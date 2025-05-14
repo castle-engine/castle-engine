@@ -33,7 +33,7 @@ type
 implementation
 
 uses CastleDownload, CastleClassUtils, CastleVectors, CastleStringUtils,
-  CastleFonts, CastleFilesUtils;
+  CastleFonts, CastleFilesUtils, CastleUriUtils;
 
 procedure TTestDownload.TestLocalChars;
 
@@ -78,12 +78,24 @@ procedure TTestDownload.TestLocalChars;
 
 begin
   TestReading('castle-data:/local_chars/ascii_name.txt');
+  TestReading('castle-data:/local_chars/' + UrlEncode('name with Polish chars ćma źrebak żmija wąż królik.txt'));
+  TestReading('castle-data:/local_chars/' + UrlEncode('name with Chinese chars 样例中文文本.txt'));
+  TestReading('castle-data:/local_chars/' + UrlEncode('样例中文文本/name with Chinese chars 样例中文文本.txt'));
+  TestReading('castle-data:/local_chars/' + UrlEncode('name with Russian chars образец русского текста.txt'));
+  TestReading('castle-data:/local_chars/' + UrlEncode('образец русского текста/name with Russian chars образец русского текста.txt'));
+
+  // Not really correct URLs, as space should be encoded as %20 etc., but we handle them too
   TestReading('castle-data:/local_chars/name with Polish chars ćma źrebak żmija wąż królik.txt');
   TestReading('castle-data:/local_chars/name with Chinese chars 样例中文文本.txt');
   TestReading('castle-data:/local_chars/样例中文文本/name with Chinese chars 样例中文文本.txt');
   TestReading('castle-data:/local_chars/name with Russian chars образец русского текста.txt');
   TestReading('castle-data:/local_chars/образец русского текста/name with Russian chars образец русского текста.txt');
 
+  TestReadingThroughReference('castle-data:/' + UrlEncode('local_chars/reference to file with Chinese chars.txt'));
+  TestReadingThroughReference('castle-data:/' + UrlEncode('local_chars/reference to file with Russian chars.txt'));
+  TestReadingThroughReference('castle-data:/' + UrlEncode('local_chars/reference to file with Polish chars.txt'));
+
+  // Not really correct URLs, as space should be encoded as %20 etc., but we handle them too
   TestReadingThroughReference('castle-data:/local_chars/reference to file with Chinese chars.txt');
   TestReadingThroughReference('castle-data:/local_chars/reference to file with Russian chars.txt');
   TestReadingThroughReference('castle-data:/local_chars/reference to file with Polish chars.txt');
@@ -91,12 +103,20 @@ begin
   { This would fail in Docker now, where we cannot create /.config/... }
   {.$define TEST_CONFIG}
   {$ifdef TEST_CONFIG}
-  StringToFile(ApplicationConfig('config_ascii.txt'), 'Testing save.');
-  StringToFile(ApplicationConfig('config with Chinese chars 样例中文文本.txt'), 'Testing save.');
-  StringToFile(ApplicationConfig('config with Polish chars ćma źrebak żmija wąż królik.txt'), 'Testing save.');
-  StringToFile(ApplicationConfig('config with Russian chars образец русского текста.txt'), 'Testing save.');
+  StringToFile('castle-config:/' + UrlEncode('config_ascii.txt'), 'Testing save.');
+  StringToFile('castle-config:/' + UrlEncode('config with Chinese chars 样例中文文本.txt'), 'Testing save.');
+  StringToFile('castle-config:/' + UrlEncode('config with Polish chars ćma źrebak żmija wąż królik.txt'), 'Testing save.');
+  StringToFile('castle-config:/' + UrlEncode('config with Russian chars образец русского текста.txt'), 'Testing save.');
+
+  // Not really correct URLs, as space should be encoded as %20 etc., but we handle them too
+  StringToFile('castle-config:/2_config with Chinese chars 样例中文文本.txt', 'Testing save.');
+  StringToFile('castle-config:/2_config with Polish chars ćma źrebak żmija wąż królik.txt', 'Testing save.');
+  StringToFile('castle-config:/2_config with Russian chars образец русского текста.txt', 'Testing save.');
   {$endif}
 
+  TestReadingFont('castle-data:/' + UrlEncode('local_chars/DejaVuSans name with Russian chars образец русского текста.ttf'));
+
+  // Not really correct URLs, as space should be encoded as %20 etc., but we handle them too
   TestReadingFont('castle-data:/local_chars/DejaVuSans name with Russian chars образец русского текста.ttf');
 end;
 

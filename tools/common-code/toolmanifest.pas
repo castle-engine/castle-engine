@@ -94,6 +94,7 @@ type
       DefaultMacUniversalBinary = false;
       DefaultWebCanvasWidth = 960;
       DefaultWebCanvasHeight = 540;
+      DefaultProposedUnitPrefix = 'Game';
 
       { character sets }
       ControlChars = [#0 .. Chr(Ord(' ') - 1)];
@@ -112,6 +113,7 @@ type
     var
       OwnerComponent: TComponent;
       FName, FExecutableName, FQualifiedName, FAuthor, FCaption: String;
+      FProposedUnitPrefix: String;
       FIOSOverrideQualifiedName: String;
       FIOSOverrideVersion: TProjectVersion; //< nil if not overridden, should use FVersion then
       FUsesNonExemptEncryption: boolean;
@@ -206,6 +208,7 @@ type
     property GameUnits: String read FGameUnits;
     property EditorUnits: String read FEditorUnits;
     property QualifiedName: String read FQualifiedName;
+    property ProposedUnitPrefix: String read FProposedUnitPrefix;
     { Dependencies of this project.
       Read-only from the outside, do not call any methods that modify
       the contents of it. }
@@ -483,6 +486,7 @@ begin
   FName := DeleteFileExt(AStandaloneSource);
   FCaption := FName;
   FQualifiedName := DefaultQualifiedName(FName);
+  FProposedUnitPrefix := DefaultProposedUnitPrefix;
   FExecutableName := FName;
   FCompiler := DefaultCompiler;
   FStandaloneSource := AStandaloneSource;
@@ -537,6 +541,7 @@ begin
     FName := Doc.DocumentElement.AttributeString('name');
     FCaption := Doc.DocumentElement.AttributeStringDef('caption', FName);
     FQualifiedName := Doc.DocumentElement.AttributeStringDef('qualified_name', DefaultQualifiedName(FName));
+    FProposedUnitPrefix := Doc.DocumentElement.AttributeStringDef('proposed_unit_prefix', DefaultProposedUnitPrefix);
     FExecutableName := Doc.DocumentElement.AttributeStringDef('executable_name', FName);
     FStandaloneSource := Doc.DocumentElement.AttributeStringDef('standalone_source', '');
     FCompiler := StringToCompiler(Doc.DocumentElement.AttributeStringDef('compiler', 'autodetect'));
@@ -1015,6 +1020,11 @@ procedure TCastleManifest.CreateFinish;
           StandaloneSource
         ]);
     end;
+
+    if ProposedUnitPrefix = '' then
+      raise Exception.Create('Proposed unit prefix is empty');
+    if not IsValidIdent(ProposedUnitPrefix) then
+      raise Exception.CreateFmt('Proposed unit prefix "%s" is not a valid Pascal identifier', [ProposedUnitPrefix]);
 
     if AndroidMinSdkVersion > AndroidTargetSdkVersion then
       raise Exception.CreateFmt('Android min_sdk_version %d is larger than target_sdk_version %d, this is incorrect',

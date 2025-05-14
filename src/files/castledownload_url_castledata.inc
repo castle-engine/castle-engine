@@ -28,7 +28,7 @@
   see https://castle-engine.io/data , so for now it deserves this "special,
   hardcoded" handling. }
 
-{ TUrlFile ------------------------------------------------------------------- }
+{ TUrlCastleData ------------------------------------------------------------- }
 
 type
   TUrlCastleData = class
@@ -61,7 +61,7 @@ begin
      (DataDirectoryInformation <> nil) then
     Result := UseDataDirectoryInformation(Url)
   else
-    { Recursively call UriExists, on URL that it no longer castle-data.
+    { Recursively call UriExists, on URL that is no longer castle-data.
 
       This way we can work in case we have castle-data:/xxx URL that resolves
       to something handled by other code (like file:/xxx) but wasn't handled

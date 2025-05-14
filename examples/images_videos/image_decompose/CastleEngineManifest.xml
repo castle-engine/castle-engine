@@ -8,5 +8,6 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 <project name="image_decompose"
   standalone_source="image_decompose.dpr"
   qualified_name="io.castleengine.image.decompose"
+  caption="Read KTX or DDS and decompose into a number of simple images (PNG)"
 >
 </project>

@@ -14,7 +14,7 @@
 }
 
 { Choose one of the existing projects to open. }
-unit GameViewChooseExistingProject;
+unit EditorViewChooseExistingProject;
 
 interface
 
@@ -26,7 +26,7 @@ type
   { What project to show as a choice.
     Used by @link(TViewChooseExistingProject.ProjectSource). }
   TProjectsSource = (
-    { Load searching ApplicationConfig('my-projects'). }
+    { Load searching castle-config:/my-projects . }
     psConfigMyProjects,
     { Load one of recently opened projects. }
     psRecent,
@@ -88,7 +88,7 @@ uses SysUtils,
   CastleConfig, CastleUtils, CastleLog, CastleUriUtils, CastleFilesUtils,
   CastleStringUtils,
   ToolManifest,
-  GameViewProject, GameViewChooseProject;
+  EditorViewProject, EditorViewChooseProject;
 
 const
   ManifestName = 'CastleEngineManifest.xml';
@@ -96,7 +96,7 @@ const
 constructor TViewChooseExistingProject.Create(AOwner: TComponent);
 begin
   inherited;
-  DesignUrl := 'castle-data:/gameviewchooseexistingproject.castle-user-interface';
+  DesignUrl := 'castle-data:/editorviewchooseexistingproject.castle-user-interface';
   RecentProjects := TRecentFiles.Create(Self);
   RecentProjects.LoadFromConfig(UserConfig);
 end;
@@ -127,7 +127,7 @@ procedure TViewChooseExistingProject.Start;
   procedure LoadConfigMyProjects;
   begin
     LabelListCaption.Caption := 'Open My Project:';
-    FindFiles(ApplicationConfig('my-projects'), '*', true,
+    FindFiles('castle-config:/my-projects', '*', true,
       {$ifdef FPC}@{$endif} FoundInMyProjects, []);
   end;
 
