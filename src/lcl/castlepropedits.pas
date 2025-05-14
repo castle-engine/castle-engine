@@ -114,6 +114,8 @@ begin
     'ImageUrl', TImageUrlPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleImageTransform,
     'Url', TImageUrlPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleImageTransform,
+    'UrlNormalMap', TImageUrlPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTerrainImage,
     'Url', TImageUrlPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTerrainLayer,

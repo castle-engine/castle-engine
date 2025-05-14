@@ -1,6 +1,6 @@
 {%MainUnit castlescene.pas}
 {
-  Copyright 2021-2022 Michalis Kamburelis.
+  Copyright 2021-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -40,14 +40,19 @@ type
     using the CGE editor. }
   TCastleAbstractPrimitive = class(TCastleTransform)
   strict private
+    { scene and X3D nodes }
     FScene: TCastleScene;
     FRootNode: TX3DRootNode;
     FAppearanceNode: TAppearanceNode;
     FShapeNode: TShapeNode;
+    FBaseTextureNode, FNormalTextureNode: TImageTextureNode;
+
+    { private fields reflecting public properties }
     FColor: TCastleColor;
     FMaterial: TPrimitiveMaterial;
     FTexture, FTextureNormalMap: String;
     FPreciseCollisions: Boolean;
+
     procedure SetMaterial(const Value: TPrimitiveMaterial);
     procedure SetColor(const Value: TCastleColor);
     procedure SetTexture(const Value: String);
@@ -73,7 +78,7 @@ type
     function HasColliderMesh: Boolean; override;
     procedure ColliderMesh(const TriangleEvent: TTriangleEvent); override;
 
-    { Color of the text. Opaque white by default.
+    { Color of the primitive. Opaque white by default.
 
       What exactly it means, depends on @link(Material):
       @unorderedList(
@@ -126,26 +131,154 @@ type
 
 {$ifdef read_implementation}
 
+{ Utility to implement TPrimitiveMaterial, shared by
+  TCastleAbstractPrimitive and TCastleImageTransform. }
+procedure CommonUpdateMaterialNode(const Material: TPrimitiveMaterial;
+  const Color: TCastleColor; const AppearanceNode: TAppearanceNode;
+  const UrlTextureBase, UrlTextureNormalMap: String;
+  const NodeTextureBase, NodeTextureNormalMap: TImageTextureNode);
+
+  { Depending on TextureUrl, adjust contents of TextureNode
+    and make NodeField refer to it, or not. }
+  procedure AdjustTexture(const NodeField: TSFNode; const TextureUrl: String;
+    const TextureNode: TImageTextureNode);
+  begin
+    if TextureUrl <> '' then
+    begin
+      // set NodeField.Value
+      if NodeField.Value <> TextureNode then
+      begin
+        NodeField.Value := TextureNode;
+        NodeField.Changed;
+      end;
+      // set TextureNode.FdUrl (loads texture image)
+      if (TextureNode.FdUrl.Count <> 1) or
+         (TextureNode.FdUrl.Items[0] <> TextureUrl) then
+        TextureNode.SetUrl([TextureUrl]);
+    end else
+    begin
+      // set NodeField.Value
+      if NodeField.Value <> nil then
+      begin
+        NodeField.Value := nil;
+        { This causes time-consuming ChangedAll, which is why we checked
+          NodeField.Value <> nil above, to not call this from every UpdateMaterialNode,
+          e.g. if you changed something else than TextureUrl. }
+        NodeField.Changed;
+      end;
+      { Set TextureNode.FdUrl (unloads texture image).
+
+        This is not strictly necessary for functionality here, since we have
+        disconnected TextureNode from NodeField anyway.
+        But it's nice to
+        1. release memory of the image
+        2. TCastleImageTransform.UpdateCoordinateNodes depends
+           on using texture node's XxxTextureNode.IsTextureImage. }
+      if TextureNode.FdUrl.Count <> 0 then
+        TextureNode.SetUrl([]);
+    end;
+  end;
+
+  procedure DoPhysical;
+  var
+    PM: TPhysicalMaterialNode;
+  begin
+    if AppearanceNode.Material is TPhysicalMaterialNode then
+      PM := TPhysicalMaterialNode(AppearanceNode.Material)
+    else
+    begin
+      PM := TPhysicalMaterialNode.Create;
+      AppearanceNode.Material := PM;
+    end;
+    PM.BaseColor := Color.XYZ;
+    PM.Transparency := 1 - Color.W;
+    AdjustTexture(PM.FdBaseTexture, UrlTextureBase, NodeTextureBase);
+    AdjustTexture(PM.FdNormalTexture, UrlTextureNormalMap, NodeTextureNormalMap);
+  end;
+
+  procedure DoPhong;
+  var
+    M: TMaterialNode;
+  begin
+    if AppearanceNode.Material is TMaterialNode then
+      M := TMaterialNode(AppearanceNode.Material)
+    else
+    begin
+      M := TMaterialNode.Create;
+      AppearanceNode.Material := M;
+    end;
+    M.DiffuseColor := Color.XYZ;
+    M.Transparency := 1 - Color.W;
+    AdjustTexture(M.FdDiffuseTexture, UrlTextureBase, NodeTextureBase);
+    AdjustTexture(M.FdNormalTexture, UrlTextureNormalMap, NodeTextureNormalMap);
+  end;
+
+  procedure DoUnlit;
+  var
+    UM: TUnlitMaterialNode;
+  begin
+    if AppearanceNode.Material is TUnlitMaterialNode then
+      UM := TUnlitMaterialNode(AppearanceNode.Material)
+    else
+    begin
+      UM := TUnlitMaterialNode.Create;
+      AppearanceNode.Material := UM;
+    end;
+    UM.EmissiveColor := Color.XYZ;
+    UM.Transparency := 1 - Color.W;
+    AdjustTexture(UM.FdEmissiveTexture, UrlTextureBase, NodeTextureBase);
+    AdjustTexture(UM.FdNormalTexture, UrlTextureNormalMap, NodeTextureNormalMap);
+  end;
+
+begin
+  case Material of
+    pmPhysical: DoPhysical;
+    pmPhong   : DoPhong;
+    pmUnlit   : DoUnlit;
+    {$ifndef COMPILER_CASE_ANALYSIS}
+    else raise EInternalError.Create('TCastleAbstractPrimitive.UpdateMaterialNode:FMaterial?');
+    {$endif}
+  end;
+end;
+
+{ TCastleAbstractPrimitive --------------------------------------------------- }
+
 constructor TCastleAbstractPrimitive.Create(AOwner: TComponent);
 begin
   inherited;
 
-  { internal stuff create }
+  { set default values }
+  FMaterial := pmPhysical;
+  FColor := White;
+
+  { create scene }
   FScene := TCastleScene.Create(nil);
   FScene.SetTransient;
   Add(FScene);
 
-  { build X3D nodes }
+  { create X3D nodes }
   FAppearanceNode := TAppearanceNode.Create;
   FShapeNode := TShapeNode.Create;
   FShapeNode.Appearance := FAppearanceNode;
   FRootNode := TX3DRootNode.Create;
   FRootNode.AddChildren(ShapeNode);
-  FScene.Load(FRootNode, true);
 
-  FMaterial := pmPhysical;
-  FColor := White;
+  { create X3D nodes for textures }
+  FBaseTextureNode := TImageTextureNode.Create;
+  FNormalTextureNode := TImageTextureNode.Create;
+  { Don't free texture nodes by ref-counting,
+    which would happen otherwise from UpdateMaterialNode, when it does
+    1. NodeField.Value := nil
+    2. or when it frees previous material (that may contain the texture) }
+  FBaseTextureNode.KeepExistingBegin;
+  FNormalTextureNode.KeepExistingBegin;
+  { Note: FBaseTextureNode, FNormalTextureNode are connected to
+    FAppearanceNode (and thus, the rest of FRootNode) by UpdateMaterialNode. }
   UpdateMaterialNode;
+
+  { load FRootNode to FScene at the end,
+    to not reinitialize scene resources on changes to X3D nodes above }
+  FScene.Load(FRootNode, true);
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastleabstractprimitive_persistent_vectors.inc}
@@ -159,101 +292,16 @@ begin
   {$undef read_implementation_destructor}
 
   FreeAndNil(FScene);
+  FreeAndNil(FBaseTextureNode);
+  FreeAndNil(FNormalTextureNode);
   inherited;
 end;
 
 procedure TCastleAbstractPrimitive.UpdateMaterialNode;
-
-  procedure AdjustTexture(const NodeField: TSFNode; const TextureUrl: String);
-  var
-    TexNode: TImageTextureNode;
-  begin
-    if TextureUrl <> '' then
-    begin
-      if NodeField.Value is TImageTextureNode then
-        TexNode := TImageTextureNode(NodeField.Value)
-      else
-      begin
-        TexNode := TImageTextureNode.Create;
-        NodeField.Value := TexNode;
-        NodeField.Changed;
-      end;
-      if (TexNode.FdUrl.Count <> 1) or
-         (TexNode.FdUrl.Items[0] <> TextureUrl) then
-        TexNode.SetUrl([TextureUrl]);
-    end else
-    begin
-      if NodeField.Value <> nil then
-      begin
-        NodeField.Value := nil;
-        { This causes time-consuming ChangedAll, which is why we checked
-          NodeField.Value <> nil above, to not call this from every UpdateMaterialNode,
-          e.g. if you changed something else than TextureUrl. }
-        NodeField.Changed;
-      end;
-    end;
-  end;
-
-  procedure DoPhysical;
-  var
-    PM: TPhysicalMaterialNode;
-  begin
-    if FAppearanceNode.Material is TPhysicalMaterialNode then
-      PM := TPhysicalMaterialNode(FAppearanceNode.Material)
-    else
-    begin
-      PM := TPhysicalMaterialNode.Create;
-      FAppearanceNode.Material := PM;
-    end;
-    PM.BaseColor := Color.XYZ;
-    PM.Transparency := 1 - Color.W;
-    AdjustTexture(PM.FdBaseTexture, Texture);
-    AdjustTexture(PM.FdNormalTexture, TextureNormalMap);
-  end;
-
-  procedure DoPhong;
-  var
-    M: TMaterialNode;
-  begin
-    if FAppearanceNode.Material is TMaterialNode then
-      M := TMaterialNode(FAppearanceNode.Material)
-    else
-    begin
-      M := TMaterialNode.Create;
-      FAppearanceNode.Material := M;
-    end;
-    M.DiffuseColor := Color.XYZ;
-    M.Transparency := 1 - Color.W;
-    AdjustTexture(M.FdDiffuseTexture, Texture);
-    AdjustTexture(M.FdNormalTexture, TextureNormalMap);
-  end;
-
-  procedure DoUnlit;
-  var
-    UM: TUnlitMaterialNode;
-  begin
-    if FAppearanceNode.Material is TUnlitMaterialNode then
-      UM := TUnlitMaterialNode(FAppearanceNode.Material)
-    else
-    begin
-      UM := TUnlitMaterialNode.Create;
-      FAppearanceNode.Material := UM;
-    end;
-    UM.EmissiveColor := Color.XYZ;
-    UM.Transparency := 1 - Color.W;
-    AdjustTexture(UM.FdEmissiveTexture, Texture);
-    AdjustTexture(UM.FdNormalTexture, TextureNormalMap);
-  end;
-
 begin
-  case FMaterial of
-    pmPhysical: DoPhysical;
-    pmPhong   : DoPhong;
-    pmUnlit   : DoUnlit;
-    {$ifndef COMPILER_CASE_ANALYSIS}
-    else raise EInternalError.Create('TCastleAbstractPrimitive.UpdateMaterialNode:FMaterial?');
-    {$endif}
-  end;
+  CommonUpdateMaterialNode(FMaterial, FColor, FAppearanceNode,
+    FTexture, FTextureNormalMap,
+    FBaseTextureNode, FNormalTextureNode);
 end;
 
 procedure TCastleAbstractPrimitive.SetMaterial(const Value: TPrimitiveMaterial);
