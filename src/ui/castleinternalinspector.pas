@@ -142,7 +142,7 @@ type
     procedure UpdateLabelStatsMore;
     procedure ChangeUiBatching(Sender: TObject);
     procedure SetSelectedComponent(const Value: TComponent);
-    procedure HierarchySelect(const Selected: TComponent);
+    procedure HierarchySelect(Sender: TObject);
   public
     const
       DefaultOpacity = 0.9;
@@ -171,7 +171,8 @@ type
 
     { Selected object in hierarchy, for which we display the properties.
       Can be changed by user while operating this UI.
-      Synchronized with RectProperties.SelectedComponent. }
+      Synchronized with RectProperties.SelectedComponent
+      and RectHierarchy.SelectedComponent. }
     property SelectedComponent: TComponent read FSelectedComponent write SetSelectedComponent;
   published
     property KeepInFront stored false;
@@ -841,9 +842,9 @@ begin
   LabelEarlierLogsRemoved.Exists := false;
 end;
 
-procedure TCastleInspector.HierarchySelect(const Selected: TComponent);
+procedure TCastleInspector.HierarchySelect(Sender: TObject);
 begin
-  SelectedComponent := Selected;
+  SelectedComponent := RectHierarchy.SelectedComponent;
 end;
 
 procedure TCastleInspector.Resize;
@@ -1058,7 +1059,7 @@ begin
   if FSelectedComponent <> Value then
   begin
     RectProperties.SelectedComponent := Value;
-    RectHierarchy.SelectComponent(Value);
+    RectHierarchy.SelectedComponent := Value;
   end;
 end;
 

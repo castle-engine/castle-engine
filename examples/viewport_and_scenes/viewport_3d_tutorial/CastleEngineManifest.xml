@@ -9,7 +9,7 @@ See https://castle-engine.io/project_manifest for documentation of this file.
   standalone_source="my_new_project_3d_standalone.dpr"
   game_units="GameInitialize"
   qualified_name="io.castleengine.viewport3d.tutorial"
-  caption="My New Project"
+  caption="Project Following Tutorial: Designing a 3D world"
 >
   <compiler_options>
     <search_paths>

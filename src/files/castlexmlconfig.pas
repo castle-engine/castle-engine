@@ -1055,7 +1055,7 @@ end;
 
 procedure TCastleConfig.Load;
 begin
-  Load(ApplicationConfig(ApplicationName + '.conf'));
+  Load('castle-config:/' + ApplicationName + '.conf');
 end;
 
 procedure TCastleConfig.Load(const AUrl: String);

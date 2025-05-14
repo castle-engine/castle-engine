@@ -407,6 +407,13 @@ begin
     P.DetectMimeTypeFromExtension := true;
     {$endif}
 
+    // handle castle-config.
+    // No need for reader/writer now, as our downloading routines use ResolveCastleConfigUrl,
+    // so they will handle this protocol.
+    P := FRegisteredProtocols.Add('castle-config');
+    P.ExistsEvent := {$ifdef FPC}@{$endif} TUrlCastleConfig{$ifdef FPC}(nil){$endif}.Exists;
+    P.DetectMimeTypeFromExtension := true;
+
     // handle castle-data.
     // No need for reader/writer now, as our downloading routines use ResolveCastleDataUrl,
     // so they will handle this protocol.

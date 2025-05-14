@@ -8,5 +8,6 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 <project name="test_castleimage_draw3x3"
   standalone_source="test_castleimage_draw3x3.dpr"
   qualified_name="io.castleengine.test.castleimage.draw3x3"
+  caption="Deprecated: Test TCastleImage.Draw3x3"
 >
 </project>

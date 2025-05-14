@@ -14,7 +14,7 @@
 }
 
 { Create new project. }
-unit GameViewNewProject;
+unit EditorViewNewProject;
 
 interface
 
@@ -54,14 +54,14 @@ implementation
 uses CastleFilesUtils, CastleInternalTools, CastleUtils, CastleUriUtils,
   CastleMessages, CastleWindow,
   ToolCommonUtils,
-  GameViewProject, GameViewChooseProject;
+  EditorViewProject, EditorViewChooseProject;
 
 { TViewNewProject ---------------------------------------------------------------- }
 
 constructor TViewNewProject.Create(AOwner: TComponent);
 begin
   inherited;
-  DesignUrl := 'castle-data:/gameviewnewproject.castle-user-interface';
+  DesignUrl := 'castle-data:/editorviewnewproject.castle-user-interface';
 end;
 
 procedure TViewNewProject.Start;
@@ -74,7 +74,7 @@ begin
   ButtonCancel.OnClick := {$ifdef FPC}@{$endif} ClickCancel;
   ButtonCreateProject.OnClick := {$ifdef FPC}@{$endif} ClickCreateProject;
 
-  EditLocation.Text := ApplicationConfig('my-projects/');
+  EditLocation.Text := 'castle-config:/my-projects/';
 end;
 
 procedure TViewNewProject.ClickTemplateAny(Sender: TObject);

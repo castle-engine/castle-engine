@@ -8,6 +8,7 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 <project name="image_identify"
   standalone_source="image_identify.dpr"
   qualified_name="io.castleengine.image.identify"
+  caption="Identity Image Size, Format"
 >
   <data exists="false" />
 </project>

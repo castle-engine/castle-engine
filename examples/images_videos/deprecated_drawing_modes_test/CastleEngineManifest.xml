@@ -8,5 +8,6 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 <project name="drawing_modes_test"
   standalone_source="drawing_modes_test.dpr"
   qualified_name="io.castleengine.drawing.modes.test"
+  caption="Deprecated: Test TCastleImage.DrawFrom modes"
 >
 </project>

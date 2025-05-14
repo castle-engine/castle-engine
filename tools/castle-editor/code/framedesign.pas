@@ -713,8 +713,6 @@ type
 
 implementation
 
-{$warnings off} // do not warn about deprecated Castle2DSceneManager usage
-
 uses
   { Standard FPC/Lazarus units }
   // use Windows unit with FPC 3.0.x, to get TSplitRectType enums
@@ -724,16 +722,11 @@ uses
   CastleUtils, CastleComponentSerialize, CastleFileFilters, CastleGLUtils, CastleImages,
   CastleLog, CastleProjection, CastleStringUtils, CastleTimeUtils,
   CastleUriUtils, X3DLoad, CastleFilesUtils, CastleInternalPhysicsVisualization,
-  CastleInternalUrlUtils, CastleInternalFileMonitor, X3DNodes,
-  { CGE unit to keep in uses clause even if they are not explicitly used by FrameDesign,
-    to register the core CGE components for (de)serialization. }
-  Castle2DSceneManager, CastleNotifications, CastleThirdPersonNavigation,
-  CastleSoundEngine, CastleBehaviors, CastleLivingBehaviors,
-  CastleFlashEffect,
+  CastleInternalUrlUtils, CastleInternalFileMonitor, X3DNodes, CastleSoundEngine,
+  CastleBehaviors,
   { Editor units }
+  EditorRegisterAllComponents,
   FormProject, CastleComponentEditorDesigner;
-
-{$warnings on}
 
 {$R *.lfm}
 

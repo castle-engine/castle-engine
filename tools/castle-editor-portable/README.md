@@ -12,22 +12,36 @@ Compared to the [real Castle Game Engine editor](https://castle-engine.io/editor
 
 - This looks the same on all platforms, and "dark mode" is trivial to implement here. Actually, we just do "dark mode" by default.
 
-- However! A lot of important functionality is yet missing (even building projects). And various things do not yet have an optimal display and are not fully functional (e.g. we cannot edit non-boolean properties yet in our simple object inspector).
-
-    These limitations will be addressed in time. We can copy here more and more "real" editor's functionality, and eventually make this a fully-functional editor version.
+- However! A lot of important functionality is yet missing. See TODOs below. This is not a replacement for the real editor yet. But with time, it can be -- we can copy here more and more "real" editor's functionality, and eventually make this a fully-functional editor version.
 
 Features:
 
-- create new project, choosing one of the templates
-- open a project (only from cross-platform writeable space, in `ApplicationConfig('my-projects/')`)
-- choosing and displaying a given view in the project
-- displaying components hierarchy
-- displaying object inspector (thus, viewing and editing components properties)
-- TODO: adding registered components
-- TODO: manipulating TCastleTransform (use CastleTransformManipulate)
-- TODO: manipulating UI (extact functionality from castle-editor?)
-- TODO: running physics simulation
-- TODO: building, running the project
+- Create a new project, choosing one of the templates.
+- Open an existing project
+    - from cross-platform writeable space, in `castle-config:/my-projects/`,
+    - from anywhere on disk (only on platforms that support regular filesystem with free access, e.g. desktops)
+    - from recent projects,
+    - from examples (only if CGE sources path is detected).
+- Choosing and displaying a given view in the project.
+- Displaying components hierarchy.
+- Displaying object inspector (thus, viewing and editing components properties).
+- Manipulating selected TCastleTransform (translate, rotate, scale).
+
+TODOs:
+
+- Adding new components to the view.
+- Manipulating UI (extact functionality from castle-editor?).
+- Creating new views.
+- Build Project.
+- Run Project.
+- Run Physics Simulation.
+- Our object inspector has a number of critical shortcomings, e.g. it can edit only boolean properties for now. The rest is read-only.
+- Multi-selection.
+- Bottom pane with Files of the project, preview, ability to drag-and-drop files to the design, double-click to open files.
+- Bottom pane with Console output.
+- UI scaling: right now editor uses UI scaling and just applies it to the loaded design. Instead: editor UI scaling should be configurable and the loaded design should be scaled following project's settings. Loaded design should also enable zoom and scroll, that's independent feature (and would be nice to have in the real editor too).
+- Import/export project. And ability to just open projects at arbitrary location on platforms where regular filesystem exists (desktops).
+- ... All other functionality of the real editor. Duplicating, all integration with code editors etc.
 
 Using [Castle Game Engine](https://castle-engine.io/).
 

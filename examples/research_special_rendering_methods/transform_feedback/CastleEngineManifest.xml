@@ -8,6 +8,7 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 <project name="transform_feedback"
   standalone_source="transform_feedback.dpr"
   qualified_name="io.castleengine.transform.feedback"
+  caption="Using OpenGL(ES) transform feedback"
 >
   <data exists="false" />
   <compiler_options>

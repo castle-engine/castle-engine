@@ -14,7 +14,7 @@
 }
 
 { Choose new or existing project. }
-unit GameViewChooseProject;
+unit EditorViewChooseProject;
 
 interface
 
@@ -28,7 +28,8 @@ type
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
     ButtonNewProject: TCastleButton;
-    ButtonOpenProject: TCastleButton;
+    ButtonOpenMyProject: TCastleButton;
+    ButtonOpenProjectDisk: TCastleButton;
     ButtonOpenRecent: TCastleButton;
     ButtonOpenExample: TCastleButton;
     ButtonPreferences: TCastleButton;
@@ -37,7 +38,8 @@ type
   private
     ExamplesPath: String;
     procedure ClickNewProject(Sender: TObject);
-    procedure ClickOpenProject(Sender: TObject);
+    procedure ClickOpenMyProject(Sender: TObject);
+    procedure ClickOpenProjectDisk(Sender: TObject);
     procedure ClickOpenRecent(Sender: TObject);
     procedure ClickOpenExample(Sender: TObject);
     procedure ClickPreferences(Sender: TObject);
@@ -56,8 +58,8 @@ implementation
 
 uses SysUtils,
   CastleFilesUtils, CastleOpenDocument, CastleApplicationProperties,
-  CastleWindow, CastleLog, CastleUtils, CastleConfig,
-  GameViewNewProject, GameViewProject, GameViewChooseExistingProject,
+  CastleWindow, CastleLog, CastleUtils, CastleConfig, CastleUriUtils,
+  EditorViewNewProject, EditorViewProject, EditorViewChooseExistingProject,
   ToolCommonUtils;
 
 { TViewChooseProject ----------------------------------------------------------- }
@@ -65,7 +67,7 @@ uses SysUtils,
 constructor TViewChooseProject.Create(AOwner: TComponent);
 begin
   inherited;
-  DesignUrl := 'castle-data:/gameviewchooseproject.castle-user-interface';
+  DesignUrl := 'castle-data:/editorviewchooseproject.castle-user-interface';
   UserConfig.Load;
 end;
 
@@ -77,10 +79,19 @@ begin
 end;
 
 procedure TViewChooseProject.Start;
+const
+  FileDialogAvailable =
+    {$if defined(MSWINDOWS) or
+      (defined(UNIX) and (not defined(ANDROID)) and (not defined(CASTLE_IOS)))}
+      true
+    {$else}
+      false
+    {$endif};
 begin
   inherited;
   ButtonNewProject.OnClick := {$ifdef FPC}@{$endif} ClickNewProject;
-  ButtonOpenProject.OnClick := {$ifdef FPC}@{$endif} ClickOpenProject;
+  ButtonOpenMyProject.OnClick := {$ifdef FPC}@{$endif} ClickOpenMyProject;
+  ButtonOpenProjectDisk.OnClick := {$ifdef FPC}@{$endif} ClickOpenProjectDisk;
   ButtonOpenRecent.OnClick := {$ifdef FPC}@{$endif} ClickOpenRecent;
   ButtonOpenExample.OnClick := {$ifdef FPC}@{$endif} ClickOpenExample;
   ButtonPreferences.OnClick := {$ifdef FPC}@{$endif} ClickPreferences;
@@ -96,6 +107,8 @@ begin
   end;
   ButtonOpenExample.Exists := ExamplesPath <> '';
 
+  ButtonOpenProjectDisk.Exists := FileDialogAvailable;
+
   ButtonQuit.Exists := ApplicationProperties.ShowUserInterfaceToQuit;
 end;
 
@@ -104,10 +117,27 @@ begin
   Container.View := ViewNewProject;
 end;
 
-procedure TViewChooseProject.ClickOpenProject(Sender: TObject);
+procedure TViewChooseProject.ClickOpenMyProject(Sender: TObject);
 begin
   ViewChooseExistingProject.ProjectsSource := psConfigMyProjects;
   Container.View := ViewChooseExistingProject;
+end;
+
+procedure TViewChooseProject.ClickOpenProjectDisk(Sender: TObject);
+const
+  DialogTitle = 'Open existing project (select CastleEngineManifest.xml file)';
+  DialogFilter = 'CastleEngineManifest.xml|CastleEngineManifest.xml|All files (*)|*';
+var
+  ProjectManifestUrl: String;
+begin
+  ProjectManifestUrl := '';
+  if Application.MainWindow.FileDialog(
+    DialogTitle, ProjectManifestUrl, true, DialogFilter) then
+  begin
+    ViewProject.ProjectPathUrl := ExtractUriPath(ProjectManifestUrl);
+    ViewProject.ProjectManifestUrl := ProjectManifestUrl;
+    Container.View := ViewProject;
+  end;
 end;
 
 procedure TViewChooseProject.ClickOpenRecent(Sender: TObject);
