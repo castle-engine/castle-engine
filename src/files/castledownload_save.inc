@@ -97,6 +97,12 @@ begin
     Result := UrlSaveStream(ResolveCastleDataUrl(Url), Options);
     Exit;
   end;
+  { Similarly, handle early castle-config: }
+  if P = 'castle-config' then
+  begin
+    Result := UrlSaveStream(ResolveCastleConfigUrl(Url), Options);
+    Exit;
+  end;
 
   {$ifdef WASI}
   // TODO: web: make ApplicationConfig return sthg like castle-config:/ and handle it for web

@@ -179,7 +179,9 @@ begin
         Attribs.AddRange([
           GLX_SAMPLE_BUFFERS_ARB, 1,
           GLX_SAMPLES_ARB, Requirements.MultiSampling ]);
-        WritelnLog('MultiSampling', 'GLX_ARB_multisample supported, using multisampling');
+        WritelnLog('MultiSampling', 'GLX_ARB_multisample supported, using multisampling %d', [
+          Requirements.MultiSampling
+        ]);
       end else
         raise EGLContextNotPossible.CreateFmt('Multisampling (%d samples) ' +
           'requested, but GLX_ARB_multisample not supported on this screen',

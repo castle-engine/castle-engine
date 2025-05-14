@@ -101,51 +101,55 @@ procedure Register;
 begin
   { URL properties }
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleSceneCore,
-    'URL', TSceneURLPropertyEditor);
+    'URL', TSceneUrlPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleImageControl,
-    'URL', TImageURLPropertyEditor);
+    'URL', TImageUrlPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleImagePersistent,
-    'URL', TImageURLPropertyEditor);
+    'URL', TImageUrlPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleAbstractPrimitive,
-    'Texture', TImageURLPropertyEditor);
+    'Texture', TImageUrlPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleAbstractPrimitive,
-    'TextureNormalMap', TImageURLPropertyEditor);
+    'TextureNormalMap', TImageUrlPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleBitmapFont,
-    'ImageUrl', TImageURLPropertyEditor);
+    'ImageUrl', TImageUrlPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleImageTransform,
-    'Url', TImageURLPropertyEditor);
+    'Url', TImageUrlPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleImageTransform,
+    'UrlNormalMap', TImageUrlPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTerrainImage,
-    'Url', TImageURLPropertyEditor);
+    'Url', TImageUrlPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTerrainLayer,
-    'Texture', TImageURLPropertyEditor);
+    'Texture', TImageUrlPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleDesign,
-    'URL', TDesignURLPropertyEditor);
+    'URL', TUiDesignUrlPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTransformDesign,
-    'URL', TTransformDesignURLPropertyEditor);
+    'URL', TTransformDesignUrlPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleComponentFactory,
+    'Url', TAnyDesignUrlPropertyEditor);
   {$warnings off} // define to support deprecated, for now
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTiledMapControl,
-    'URL', TTiledMapURLPropertyEditor);
+    'URL', TTiledMapUrlPropertyEditor);
   {$warnings on}
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTiledMap,
-    'URL', TTiledMapURLPropertyEditor);
+    'URL', TTiledMapUrlPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleSound,
-    'URL', TSoundURLPropertyEditor);
+    'URL', TSoundUrlPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleFont,
-    'URL', TFontURLPropertyEditor);
+    'URL', TFontUrlPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleBackground,
-    'TextureNegativeX', TImageURLPropertyEditor);
+    'TextureNegativeX', TImageUrlPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleBackground,
-    'TextureNegativeY', TImageURLPropertyEditor);
+    'TextureNegativeY', TImageUrlPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleBackground,
-    'TextureNegativeZ', TImageURLPropertyEditor);
+    'TextureNegativeZ', TImageUrlPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleBackground,
-    'TexturePositiveX', TImageURLPropertyEditor);
+    'TexturePositiveX', TImageUrlPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleBackground,
-    'TexturePositiveY', TImageURLPropertyEditor);
+    'TexturePositiveY', TImageUrlPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleBackground,
-    'TexturePositiveZ', TImageURLPropertyEditor);
+    'TexturePositiveZ', TImageUrlPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleControl,
-    'DesignUrl', TDesignURLPropertyEditor);
+    'DesignUrl', TUiDesignUrlPropertyEditor);
 
   { Improved numeric properties }
   RegisterPropertyEditor(TypeInfo(Single), nil, '', TCastleFloatPropertyEditor);

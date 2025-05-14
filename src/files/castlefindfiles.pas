@@ -391,8 +391,15 @@ begin
        (DataDirectoryInformation <> nil) then
       UseDataDirectoryInformation
     else
-      Result := FindFiles_NonRecursive(ResolveCastleDataURL(Path), Mask,
+      // resolve URL using ResolveCastleDataUrl, and make recursive call
+      Result := FindFiles_NonRecursive(ResolveCastleDataUrl(Path), Mask,
         FindDirectories, FileProc, FileProcData, StopSearch);
+  end else
+  if P = 'castle-config' then
+  begin
+    // resolve URL using ResolveCastleConfigUrl, and make recursive call
+    Result := FindFiles_NonRecursive(ResolveCastleConfigUrl(Path), Mask,
+      FindDirectories, FileProc, FileProcData, StopSearch);
   end else
   begin
     Result := 0;
@@ -489,15 +496,25 @@ function FindFiles_Recursive(const Path, Mask: string; const FindDirectories: bo
           [P, UriCaption(Path)]);
   end;
 
+var
+  P: String;
 begin
   Result := 0;
 
-  { early exit if we should do ResolveCastleDataURL and call ourselves }
-  if (URIProtocol(Path) = 'castle-data') and
+  P := URIProtocol(Path);
+
+  { early exit if we should do ResolveCastleDataUrl and make recursive call }
+  if (P = 'castle-data') and
      not ( (DisableDataDirectoryInformation = 0) and
            (DataDirectoryInformation <> nil) ) then
   begin
-    Exit(FindFiles_Recursive(ResolveCastleDataURL(Path), Mask,
+    Exit(FindFiles_Recursive(ResolveCastleDataUrl(Path), Mask,
+      FindDirectories, FileProc, FileProcData, DirContentsLast, StopSearch));
+  end;
+  { early exit if we should do ResolveCastleConfigUrl and make recursive call }
+  if P = 'castle-config' then
+  begin
+    Exit(FindFiles_Recursive(ResolveCastleConfigUrl(Path), Mask,
       FindDirectories, FileProc, FileProcData, DirContentsLast, StopSearch));
   end;
 

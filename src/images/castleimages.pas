@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2024 Michalis Kamburelis.
+  Copyright 2001-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -569,13 +569,22 @@ type
     procedure InvertColors; virtual;
 
     { Get or set the color of the pixel.
+      The given value TCastleColor is a 4D vector representing the color
+      RGB and "alpha" (opacity).
 
-      In case of descendants without alpha, we may drop this information.
+      When setting the TCastleColor value on image descendants that don't store
+      alpha information, we ignore the provided alpha value.
+      For example, if you do @code(MyImage.Colors[0, 0, 0] := Vector4(1, 1, 0, 0.5))
+      (setting color to half-transparent yellow) but @code(MyImage) is @link(TRGBImage),
+      then the alpha value 0.5 will be ignored. We will only set the RGB channels,
+      to (1,1,0), in the above example.
 
-      In case of grayscale descendants, when getting or setting we convert
-      the color to/from grayscale as necessary. This means that setting
-      RGB color on a grayscale image may lose information -- we will convert
-      your color to grayscale.
+      When reading the color for image descendants that store only grayscale color,
+      we just replicate the grayscale value to all three RGB channels.
+
+      When setting the color for image descendants that store only grayscale color,
+      we calculate the weighted average (see GrayscaleValue) of RGB channels
+      provided.
 
       Caller is responsible for checking the correctness of given
       X, Y, Z coordinates. For speed, we may not check them inside (so nasty
@@ -1598,7 +1607,7 @@ uses {$ifdef FPC} ExtInterpolation, FPCanvas, FPImgCanv, {$endif}
   {$endif}
   CastleInternalZLib, CastleStringUtils, CastleFilesUtils, CastleLog, CastleDynLib,
   CastleInternalCompositeImage, CastleDownload, CastleUriUtils, CastleTimeUtils,
-  CastleStreamUtils, CastleInternalDataCompression;
+  CastleStreamUtils, CastleInternalDataCompression, CastleApplicationProperties;
 
 { Like GrayscaleValue, but also convert input Byte to output Single
   (converting 0..255 to 0..1). }

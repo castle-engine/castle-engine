@@ -403,13 +403,21 @@ function ResolveCastleDataUrl(const Url: String): String;
   If the URL does not point to a file in data, it is returned untouched. }
 function RelativeToCastleDataUrl(const Url: String; out WasInsideData: Boolean): String;
 
-{ Encode string by using percent encoding (https://en.wikipedia.org/wiki/Percent-encoding)
-  @exclude }
-function InternalUriEscape(const S: String): String;
+{ If the given URL uses "castle-config:..." protocol, resolve it,
+  returning a URL that does not use "castle-config:..." protocol any more.
+  See @url(https://castle-engine.io/url#castle-config castle-config protocol
+  documentation).
 
-{ Decode string encoded by percent encoding (https://en.wikipedia.org/wiki/Percent-encoding )
-  @exclude }
-function InternalUriUnescape(const S: String): String;
+  If the URL has a different protocol, it is returned unchanged. }
+function ResolveCastleConfigUrl(const Url: String): String;
+
+{ Encode String using @url(https://en.wikipedia.org/wiki/Percent-encoding percent encoding),
+  for example space is converted to @code(%20). }
+function UrlEncode(const S: String): String;
+
+{ Decode string using @url(https://en.wikipedia.org/wiki/Percent-encoding percent encoding),
+  for example @code(%20)is converted to space. }
+function UrlDecode(const S: String): String;
 
 var
   { On systems where filesystems are usually case-sensitive
@@ -426,7 +434,7 @@ implementation
 
 uses UriParser,
   CastleUtils, CastleInternalDataUri, CastleLog, CastleFilesUtils,
-  CastleFindFiles, CastleDownload, CastleZip
+  CastleFindFiles, CastleDownload, CastleZip, CastleApplicationProperties
   {$ifdef WASI}, Job.Js, CastleInternalJobWeb {$endif}
   {$ifndef FPC}, Character{$endif};
 
@@ -434,7 +442,7 @@ uses UriParser,
   Copied from UriParser and fixed for Delphi, as they are internal there.
 }
 
-function InternalUriUnescape(const S: String): String;
+function UrlDecode(const S: String): String;
 
   function HexValue(C: Char): Integer;
   begin
@@ -592,7 +600,7 @@ begin
   {$endif FPC}
 end;
 
-function InternalUriEscape(const S: String): String;
+function UrlEncode(const S: String): String;
 const
   SubDelims = ['!', '$', '&', '''', '(', ')', '*', '+', ',', ';', '='];
   ALPHA = ['A'..'Z', 'a'..'z'];
@@ -963,6 +971,15 @@ begin
       ]);
     Result := UriToFilenameSafe(CastleDataResolved);
   end else
+  if P = 'castle-config' then
+  begin
+    CastleDataResolved := ResolveCastleConfigUrl(Uri);
+    if UriProtocol(CastleDataResolved) = 'castle-config' then
+      raise EInternalError.CreateFmt('ResolveCastleConfigUrl cannot return URL with castle-config protocol. This probably indicates that ApplicationConfigOverride (%s) contains castle-config protocol, which it should not.', [
+        ApplicationConfigOverride
+      ]);
+    Result := UriToFilenameSafe(CastleDataResolved);
+  end else
     Result := '';
 end;
 
@@ -1023,7 +1040,7 @@ begin
     end;
   end;
   {$warnings on}
-  FilenamePart := InternalUriEscape(FilenamePart);
+  FilenamePart := UrlEncode(FilenamePart);
 
   Result := Result + FilenamePart;
 end;
@@ -1036,7 +1053,7 @@ begin
   begin
     { This simple implementation is enough to handle relative filenames->URLs.
       It accounts for Windows backslashes and encodes URL. }
-    Result := InternalUriEscape(SReplaceChars(FileName, '\', '/'));
+    Result := UrlEncode(SReplaceChars(FileName, '\', '/'));
   end;
 end;
 
@@ -1260,6 +1277,19 @@ var
   P: String;
   R: TRegisteredProtocol;
 begin
+  { What should be return for ''?
+
+    1. For paths (filenames), '' sometimes means "current working directory",
+      so one can argue that it could also be ueDirectory.
+      And in many places in CGE API, we try to tolerate filenames when given
+      as URLs.
+
+    2. But '' as an URL is just invalid URL.
+
+    AD 2 seems more expected than AD 1. }
+  if Url = '' then
+    Exit(ueNotExists);
+
   P := UriProtocol(Url);
   R := FindRegisteredUrlProtocol(P);
   if (R <> nil) and Assigned(R.ExistsEvent) then
@@ -1357,9 +1387,14 @@ end;
 
 var
   ApplicationDataIsCache: Boolean = false;
+  { URL prefix with which to resolve future ApplicationDataCore calls. }
   ApplicationDataCache: String;
   DataPacked: TCastleZip;
 
+{ Resolve Path inside castle-data.
+  Given Path is a relative path, not URL-encoded (so it is directly
+  useful e.g. as part of filename but use UrlEncode to put it back
+  inside some URL). }
 function ApplicationDataCore(const Path: String): String;
 
   { For some platfors, we have special data reading algorithm that
@@ -1519,7 +1554,7 @@ function ApplicationDataCore(const Path: String): String;
 
 begin
   if ApplicationDataOverride <> '' then
-    Exit(ApplicationDataOverride + Path);
+    Exit(ApplicationDataOverride + UrlEncode(Path));
 
   if Pos('\', Path) <> 0 then
     WritelnWarning('ResolveCastleDataUrl', 'Do not use backslashes (or a PathDelim constant) in the ApplicationDataCore parameter. The ApplicationDataCore parameter should be a relative URL, with components separated by slash ("/"), regardless of the OS. Path given was: ' + Path);
@@ -1549,7 +1584,7 @@ begin
     ApplicationDataIsCache := true;
   end;
 
-  Result := ApplicationDataCache + Path;
+  Result := ApplicationDataCache + UrlEncode(Path);
 end;
 
 function ResolveCastleDataUrl(const Url: String): String;
@@ -1567,7 +1602,7 @@ function ResolveCastleDataUrl(const Url: String): String;
 
     H := TFixCaseHandler.Create;
     try
-      Parts := SplitString(InternalUriUnescape(RelativeToData), '/');
+      Parts := SplitString(UrlDecode(RelativeToData), '/');
       try
         for I := 0 to Parts.Count - 1 do
         begin
@@ -1598,9 +1633,7 @@ begin
   begin
     U := ParseUri(Url);
     RelativeToData := PrefixRemove('/', U.Path + U.Document, false);
-    {$warnings off} // don't warn that CastleDataIgnoreCase is experimental
     if CastleDataIgnoreCase and FileNameCaseSensitive then
-    {$warnings on}
       RelativeToData := FixCase(RelativeToData);
     Result := ApplicationDataCore(RelativeToData);
   end else
@@ -1617,6 +1650,47 @@ begin
   if WasInsideData then
     Result := PrefixRemove(DataUrl, FullUrl, true)
   else
+    Result := Url;
+end;
+
+function ResolveCastleConfigUrl(const Url: String): String;
+
+  { Resolve the Path inside castle-config to final URL.
+    Path is a relative path, not URL-encoded (so it is directly
+    useful e.g. as part of filename but use UrlEncode to put it back
+    inside some URL). }
+  function ApplicationConfigCore(const Path: string): string;
+  var
+    ConfigDir: string;
+  begin
+    if ApplicationConfigOverride <> '' then
+      Exit(ApplicationConfigOverride + UrlEncode(Path));
+
+    { ApplicationConfig relies that ApplicationConfigOverride is set
+      (on iOS, it's not set before CGEApp_Initialize called;
+      on Android, it's not set before AndroidMainImplementation called). }
+    if not ApplicationProperties._FileAccessSafe then
+      WritelnWarning('Using castle-config with path "%s" before the Application.OnInitialize was called. ' +
+        'This is not reliable on mobile platforms (Android, iOS). ' +
+        'This usually happens if you open a file from the "initialization" section of a unit. ' +
+        'You should do it in Application.OnInitialize instead.',
+        [Path]);
+
+    ConfigDir := InclPathDelim(GetAppConfigDir(false));
+    Result := FilenameToUriSafe(ConfigDir + Path);
+  end;
+
+var
+  U: TUri;
+  RelativeToData: String;
+begin
+  if UriProtocol(Url) = 'castle-config' then
+  begin
+    U := ParseUri(Url);
+    RelativeToData := PrefixRemove('/', U.Path + U.Document, false);
+    Result := ApplicationConfigCore(RelativeToData);
+    //WritelnLog('castle-config', Format('Resolved "%s" to "%s"', [Url, Result]));
+  end else
     Result := Url;
 end;
 

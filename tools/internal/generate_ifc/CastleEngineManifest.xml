@@ -8,4 +8,5 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 <project name="generate_ifc"
   standalone_source="generate_ifc.dpr"
   qualified_name="io.castleengine.generate.ifc">
+  <data exists="false" />
 </project>

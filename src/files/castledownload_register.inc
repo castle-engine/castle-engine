@@ -314,8 +314,6 @@ begin
 end;
 
 function TRegisteredProtocols.Add(const Protocol: String): TRegisteredProtocol;
-var
-  P: TRegisteredProtocol;
 begin
   if Find(Protocol) <> nil then
     raise EProtocolAlreadyRegistered.CreateFmt('URL protocol "%s" is already registered', [Protocol]);
@@ -408,6 +406,13 @@ begin
     P.ReadEvent := {$ifdef FPC}@{$endif} TUrlCastleAndroidAssets{$ifdef FPC}(nil){$endif}.Read;
     P.DetectMimeTypeFromExtension := true;
     {$endif}
+
+    // handle castle-config.
+    // No need for reader/writer now, as our downloading routines use ResolveCastleConfigUrl,
+    // so they will handle this protocol.
+    P := FRegisteredProtocols.Add('castle-config');
+    P.ExistsEvent := {$ifdef FPC}@{$endif} TUrlCastleConfig{$ifdef FPC}(nil){$endif}.Exists;
+    P.DetectMimeTypeFromExtension := true;
 
     // handle castle-data.
     // No need for reader/writer now, as our downloading routines use ResolveCastleDataUrl,

@@ -954,9 +954,12 @@ type
 
       Similar to @link(TransformUnderMouse), this method returns the first
       TCastleTransform hit by the ray.
+
+      If the MaxDistance is non-zero, it doesn't return collisions further
+      than MaxDistance from the camera position.
     }
     function TransformHit(const Position: TVector2;
-      const ContainerCoordinates: Boolean): TCastleTransform;
+      const ContainerCoordinates: Boolean; const MaxDistance: Single = 0): TCastleTransform;
 
     { Do not collide with this object when moving by @link(Navigation).
       It makes sense to put here player avatar (in 3rd person view)
@@ -2173,7 +2176,7 @@ begin
 end;
 
 function TCastleViewport.TransformHit(const Position: TVector2;
-  const ContainerCoordinates: Boolean): TCastleTransform;
+  const ContainerCoordinates: Boolean; const MaxDistance: Single = 0): TCastleTransform;
 var
   RayOrigin, RayDirection: TVector3;
   RayHit: TRayCollision;
@@ -2184,6 +2187,9 @@ begin
   begin
     try
       Result := RayHit.Transform;
+      // check MaxDistance, if non-zero
+      if (MaxDistance > 0) and (RayHit.Distance > MaxDistance) then
+        Result := nil;
     finally FreeAndNil(RayHit) end;
   end else
     Result := nil;

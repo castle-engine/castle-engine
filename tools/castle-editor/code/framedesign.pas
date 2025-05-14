@@ -713,8 +713,6 @@ type
 
 implementation
 
-{$warnings off} // do not warn about deprecated Castle2DSceneManager usage
-
 uses
   { Standard FPC/Lazarus units }
   // use Windows unit with FPC 3.0.x, to get TSplitRectType enums
@@ -724,16 +722,11 @@ uses
   CastleUtils, CastleComponentSerialize, CastleFileFilters, CastleGLUtils, CastleImages,
   CastleLog, CastleProjection, CastleStringUtils, CastleTimeUtils,
   CastleUriUtils, X3DLoad, CastleFilesUtils, CastleInternalPhysicsVisualization,
-  CastleInternalUrlUtils, CastleInternalFileMonitor, X3DNodes,
-  { CGE unit to keep in uses clause even if they are not explicitly used by FrameDesign,
-    to register the core CGE components for (de)serialization. }
-  Castle2DSceneManager, CastleNotifications, CastleThirdPersonNavigation,
-  CastleSoundEngine, CastleBehaviors, CastleLivingBehaviors,
-  CastleFlashEffect,
+  CastleInternalUrlUtils, CastleInternalFileMonitor, X3DNodes, CastleSoundEngine,
+  CastleBehaviors,
   { Editor units }
+  EditorRegisterAllComponents,
   FormProject, CastleComponentEditorDesigner;
-
-{$warnings on}
 
 {$R *.lfm}
 
@@ -5452,6 +5445,8 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
     Result := false;
   end;
 
+  { Move Src (TCastleUserInterface)
+    before/after/into Dst (another TCastleUserInterface). }
   procedure MoveUserInterface(const Src, Dst: TCastleUserInterface);
   var
     Index: Integer;
@@ -5496,6 +5491,8 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
     ValidateHierarchy;
   end;
 
+  { Move Src (TCastleTransform)
+    before/after/into Dst (another TCastleTransform). }
   procedure MoveTransform(const Src, Dst: TCastleTransform);
   var
     Index: Integer;
@@ -5549,7 +5546,8 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
     ValidateHierarchy;
   end;
 
-  procedure MoveBehavior(const Src: TCastleBehavior; const Dst: TCastleTransform);
+  { Move Src (TCastleBehavior) into a Dst (TCastleTransform). }
+  procedure MoveBehaviorToTransform(const Src: TCastleBehavior; const Dst: TCastleTransform);
   begin
     case ControlsTreeNodeUnderMouseSide of
       tnsInside:
@@ -5558,6 +5556,33 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
           Dst.AddBehavior(Src);
           // TODO: update tree in a simple way for now
           UpdateDesign;
+        end;
+    end;
+  end;
+
+  { Move Src (TCastleBehavior)
+    before/after Dst (another TCastleBehavior). }
+  procedure MoveBehavior(const Src: TCastleBehavior; const Dst: TCastleBehavior);
+  var
+    Index: Integer;
+    DstParent: TCastleTransform;
+  begin
+    case ControlsTreeNodeUnderMouseSide of
+      tnsBottom, tnsTop:
+        begin
+          DstParent := Dst.Parent;
+          if (DstParent <> nil) and (Src <> Dst) then
+          begin
+            Src.Parent.RemoveBehavior(Src);
+            // Access the index of dst
+            Index := DstParent.BehaviorIndex(Dst);
+            Assert(Index <> -1);
+            if ControlsTreeNodeUnderMouseSide = tnsBottom then
+              Inc(Index);
+            DstParent.InsertBehavior(Index, Src);
+            // TODO: update tree in a simple way for now
+            UpdateDesign;
+          end;
         end;
     end;
   end;
@@ -5685,9 +5710,16 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
             if (SrcComponent is TCastleBehavior) and
                (DstComponent is TCastleTransform) then
             begin
-              MoveBehavior(
+              MoveBehaviorToTransform(
                 TCastleBehavior(SrcComponent),
                 TCastleTransform(DstComponent));
+            end else
+            if (SrcComponent is TCastleBehavior) and
+               (DstComponent is TCastleBehavior) then
+            begin
+              MoveBehavior(
+                TCastleBehavior(SrcComponent),
+                TCastleBehavior(DstComponent));
             end else
             if (not ( (SrcComponent is TCastleBehavior) or
                       (SrcComponent is TCastleTransform) or

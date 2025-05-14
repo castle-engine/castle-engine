@@ -56,6 +56,8 @@
       { Used by ShowDebugShapeCallback and ShowDebugShapes. }
       ShowDebugShapeValue: Boolean;
 
+      FOptimizeAssumingOneMapping: Boolean;
+
     { Use ObjectPlacementToParentNodes and ChildrenNodesToObjectPlacement
       to move the nodes (change parents) to reflect
       TIfcObjectPlacement.PlacementRelTo instructions. }
@@ -63,6 +65,8 @@
 
     function CreateRootNode(const Ifc: TIfcFile): TX3DRootNode;
     procedure ShapeDestroyed(const Node: TX3DNode);
+
+    procedure SetOptimizeAssumingOneMapping(const Value: Boolean);
   private
     { Within the CastleIfc unit, this class is a container for information
       and actions useful to all
@@ -154,6 +158,15 @@
       This only updates the display (X3D nodes in @link(RootNode)),
       not IFC state. }
     procedure ShowDebugShapes(const Show: Boolean);
+
+    { Enable extra optimizations of some IFC operations by assuming
+      that IFC classes (in TIfcFile given to @link(Load) and @link(Update))
+      can safely remember this TCastleIfcMapping instance.
+      This is OK if the TCastleIfcMapping instance exists for the whole
+      lifetime of the TIfcFile instance (free TCastleIfcMapping later)
+      and you use only one TCastleIfcMapping instance with this TIfcFile. }
+    property OptimizeAssumingOneMapping: Boolean
+      read FOptimizeAssumingOneMapping write SetOptimizeAssumingOneMapping;
   end;
 
 {$endif read_interface_types}
@@ -170,6 +183,8 @@ function IfcToX3D(const Ifc: TIfcFile; const BaseUrl: String): TX3DRootNode;
 { Debug transformations (translation, rotation, scale). }
 {.$define CASTLE_DEBUG_IFC_TRANSFORM}
 
+{ Utility routines (not methods) --------------------------------------------- }
+
 { Set metadata of a node. }
 procedure SetMetadata(const Node: TAbstractNode; const Key, Value: String);
 begin
@@ -181,6 +196,53 @@ begin
       TX3DRootNode(Node).Meta[Key] := Value
     else
       Node.MetadataString[Key] := Value;
+  end;
+end;
+
+{ For all shapes within Node, multiply their main color (RGB)
+  and put max cap on opacity.
+  Also potentially turn shape into unlit. }
+procedure MaterialAdjust(const Node: TAbstractChildNode;
+  const Color: TCastleColorRgb; const OpacityCap: Single;
+  const MakeUnlit: Boolean);
+var
+  Shape: TShapeNode;
+  Group: TAbstractGroupingNode;
+  ChildNode: TAbstractChildNode;
+  I: Integer;
+  MatInfo: TMaterialInfo;
+begin
+  if Node is TShapeNode then
+  begin
+    Shape := TShapeNode(Node);
+    if MakeUnlit then
+      Shape.Shading := shWireframe;
+
+    if Shape.Appearance = nil then
+      Shape.Appearance := TAppearanceNode.Create('', Node.BaseUrl);
+    Assert(Shape.Appearance <> nil);
+
+    if Shape.Appearance.Material = nil then
+      // Material equal to nil implies white unlit in X3D
+      Shape.Appearance.Material := TUnlitMaterialNode.Create('', Node.BaseUrl);
+    Assert(Shape.Appearance.Material <> nil);
+
+    MatInfo := Shape.Appearance.Material.MaterialInfo;
+    MatInfo.MainColor := MatInfo.MainColor * Color;
+    MatInfo.Opacity := Min(MatInfo.Opacity, OpacityCap);
+    if MakeUnlit then
+      MatInfo.EmissiveColor := MatInfo.MainColor;
+  end;
+
+  if Node is TAbstractGroupingNode then
+  begin
+    Group := TAbstractGroupingNode(Node);
+    for I := 0 to Group.FdChildren.Count - 1 do
+      if Group.FdChildren[I] is TAbstractChildNode then
+      begin
+        ChildNode := TAbstractChildNode(Group.FdChildren[I]);
+        MaterialAdjust(ChildNode, Color, OpacityCap, MakeUnlit);
+      end;
   end;
 end;
 
@@ -574,6 +636,16 @@ begin
   end;
 end;
 
+procedure TCastleIfcMapping.SetOptimizeAssumingOneMapping(const Value: Boolean);
+begin
+  if FOptimizeAssumingOneMapping <> Value then
+  begin
+    if FRootNode <> nil then
+      raise Exception.Create('Cannot change TCastleIfcMapping.OptimizeAssumingOneMapping after TCastleIfcMapping.Load was called');
+    FOptimizeAssumingOneMapping := Value;
+  end;
+end;
+
 { BuildNode methods implementations ----------------------------------------- }
 
 function TIfcFile.BuildNode(const Mapping: TCastleIfcMapping): TX3DRootNode;
@@ -746,7 +818,9 @@ begin
   inherited;
   if InnerCurves.Count <> 0 then
   begin
+    {$ifdef CASTLE_IFC_TODO_WARNINGS}
     WritelnWarning('IFC', 'TODO: IfcArbitraryProfileDefWithVoids.InnerCurves not implemented, we do not create holes');
+    {$endif}
 
     {$ifdef CASTLE_DEBUG_IFC_CURVE_HOLES}
     // TODO: add holes, set also CrossSectionConvex:=false
@@ -956,6 +1030,7 @@ begin
         HandleShape(TShapeNode(Transform.FdChildren[0]));
         TransformCrossSection(Transform, CrossSection);
       end else
+      if ShapeOrTransform <> nil then
         WritelnWarning('IFC', 'Unsupported class for TIfcCurve.UpdateCrossSection: %s', [
           ShapeOrTransform.ClassName
         ]);
@@ -980,6 +1055,10 @@ function TIfcRepresentationItem.BuildNode(const Mapping: TCastleIfcMapping;
   const ParentProduct: TIfcProduct;
   const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
 begin
+  WritelnWarning('TODO: TIfcRepresentationItem.BuildNode not implemented for %s', [
+    ClassName
+  ]);
+
   Result := nil;
 end;
 
@@ -1016,9 +1095,45 @@ function TIfcTrimmedCurve.BuildNode(const Mapping: TCastleIfcMapping;
 begin
   if BasisCurve <> nil then
   begin
+    {$ifdef CASTLE_IFC_TODO_WARNINGS}
     WritelnWarning('TODO: IfcTrimmedCurve is only partially supported now. We ignore trim1, trim2, we display whole curve.');
+    {$endif}
     Result := BasisCurve.BuildNode(Mapping, ParentProduct,
       LitAppearance, UnlitAppearance);
+  end else
+    Result := nil;
+end;
+
+function TIfcBooleanResult.BuildNode(const Mapping: TCastleIfcMapping;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
+var
+  Op: TAbstractChildNode;
+  ResultGroup: TGroupNode;
+begin
+  if FirstOperand <> nil then
+  begin
+    ResultGroup := TGroupNode.Create('', Mapping.BaseUrl);
+    SetMetadata(ResultGroup, 'IFC_ClassName', ClassName);
+    Result := ResultGroup;
+
+    {$ifdef CASTLE_IFC_TODO_WARNINGS}
+    WritelnWarning('TODO: IfcBooleanResult: boolean operators not supported yet, displaying the 1st operand (for difference) or both (for union or intersection)');
+    {$endif}
+
+    Op := FirstOperand.BuildNode(Mapping, ParentProduct, LitAppearance, UnlitAppearance);
+    if Op <> nil then
+      ResultGroup.AddChildren(Op);
+
+    if (SecondOperand <> nil) and
+       (&Operator <> TIfcBooleanOperator.Difference) then
+    begin
+      Op := SecondOperand.BuildNode(Mapping, ParentProduct, LitAppearance, UnlitAppearance);
+      if Op <> nil then
+        ResultGroup.AddChildren(Op);
+    end;
+
+    MaterialAdjust(Result, WhiteRgb, 0.9, false);
   end else
     Result := nil;
 end;
@@ -1544,6 +1659,71 @@ begin
   Result := TransformMappingTarget;
 end;
 
+function TIfcManifoldSolidBrep.BuildNode(const Mapping: TCastleIfcMapping;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
+begin
+  if Outer <> nil then
+  begin
+    Result := Outer.BuildNode(Mapping, ParentProduct,
+      LitAppearance, UnlitAppearance);
+  end else
+    Result := nil;
+end;
+
+function TIfcGeometricCurveSet.BuildNode(const Mapping: TCastleIfcMapping;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
+var
+  Group: TGroupNode;
+  GeometricRepresentationItem: TIfcGeometricRepresentationItem;
+  NewNode: TAbstractChildNode;
+begin
+  Group := TGroupNode.Create('', Mapping.BaseUrl);
+  SetMetadata(Group, 'IFC_ClassName', ClassName);
+  Result := Group;
+
+  for GeometricRepresentationItem in Elements do
+  begin
+    NewNode := GeometricRepresentationItem.BuildNode(Mapping, ParentProduct,
+      LitAppearance, UnlitAppearance);
+    if NewNode <> nil then
+      Group.AddChildren(NewNode);
+  end;
+end;
+
+function TIfcCompositeCurveSegment.BuildNode(const Mapping: TCastleIfcMapping;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
+begin
+  if ParentCurve <> nil then
+    Result := ParentCurve.BuildNode(Mapping, ParentProduct,
+      LitAppearance, UnlitAppearance)
+  else
+    Result := nil;
+end;
+
+function TIfcCompositeCurve.BuildNode(const Mapping: TCastleIfcMapping;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
+var
+  Group: TGroupNode;
+  Segment: TIfcSegment;
+  NewNode: TAbstractChildNode;
+begin
+  Group := TGroupNode.Create('', Mapping.BaseUrl);
+  SetMetadata(Group, 'IFC_ClassName', ClassName);
+  Result := Group;
+
+  for Segment in Segments do
+  begin
+    NewNode := Segment.BuildNode(Mapping, ParentProduct,
+      LitAppearance, UnlitAppearance);
+    if NewNode <> nil then
+      Group.AddChildren(NewNode);
+  end;
+end;
+
 { BuildNode of TIfcObjectDefinition and descendants -------------------------- }
 
 function TIfcObjectDefinition.BuildNode(const Mapping: TCastleIfcMapping): TTransformNode;
@@ -1611,6 +1791,12 @@ var
 begin
   Result := inherited;
 
+  if Mapping.OptimizeAssumingOneMapping then
+  begin
+    LastMapping := Mapping;
+    LastMappingNode := Result;
+  end;
+
   if ObjectPlacement <> nil then
     ObjectPlacement.UpdateNode(Mapping, Result);
 
@@ -1629,53 +1815,6 @@ begin
 end;
 
 function TIfcElement.BuildNode(const Mapping: TCastleIfcMapping): TTransformNode;
-
-  { For all shapes within Node, multiply their main color (RGB) and opacity.
-    Also potentially turn shape into unlit. }
-  procedure MaterialMultiply(const Node: TAbstractChildNode;
-    const Color: TCastleColorRgb; const Opacity: Single;
-    const MakeUnlit: Boolean);
-  var
-    Shape: TShapeNode;
-    Group: TAbstractGroupingNode;
-    ChildNode: TAbstractChildNode;
-    I: Integer;
-    MatInfo: TMaterialInfo;
-  begin
-    if Node is TShapeNode then
-    begin
-      Shape := TShapeNode(Node);
-      if MakeUnlit then
-        Shape.Shading := shWireframe;
-
-      if Shape.Appearance = nil then
-        Shape.Appearance := TAppearanceNode.Create('', Mapping.BaseUrl);
-      Assert(Shape.Appearance <> nil);
-
-      if Shape.Appearance.Material = nil then
-        // Material equal to nil implies white unlit in X3D
-        Shape.Appearance.Material := TUnlitMaterialNode.Create('', Mapping.BaseUrl);
-      Assert(Shape.Appearance.Material <> nil);
-
-      MatInfo := Shape.Appearance.Material.MaterialInfo;
-      MatInfo.MainColor := MatInfo.MainColor * Color;
-      MatInfo.Opacity := MatInfo.Opacity * Opacity;
-      if MakeUnlit then
-        MatInfo.EmissiveColor := MatInfo.MainColor;
-    end;
-
-    if Node is TAbstractGroupingNode then
-    begin
-      Group := TAbstractGroupingNode(Node);
-      for I := 0 to Group.FdChildren.Count - 1 do
-        if Group.FdChildren[I] is TAbstractChildNode then
-        begin
-          ChildNode := TAbstractChildNode(Group.FdChildren[I]);
-          MaterialMultiply(ChildNode, Color, Opacity, MakeUnlit);
-        end;
-    end;
-  end;
-
 const
   LightRedRgb: TCastleColorRgb = (X: 1.0; Y: 0.33; Z: 0.33);
 var
@@ -1696,12 +1835,12 @@ begin
        and other geometry that should be visible (e.g. window geometry in wall). }
 
   if HasOpenings.Count > 0 then
-    MaterialMultiply(Result, WhiteRgb, 0.2, false);
+    MaterialAdjust(Result, WhiteRgb, 0.2, false);
 
   for RelVoidsElement in HasOpenings do
   begin
     ChildNode := RelVoidsElement.BuildNode(Mapping);
-    MaterialMultiply(ChildNode, LightRedRgb, 1.0, true);
+    MaterialAdjust(ChildNode, LightRedRgb, 1.0, true);
     Result.AddChildren(ChildNode);
   end;
 end;
@@ -1752,6 +1891,71 @@ begin
   ProcessList(WAxes, 2);
 end;
 
+{ TIfcConnectedFaceSet.BuildNode --------------------------------------------- }
+
+function TIfcConnectedFaceSet.BuildNode(const Mapping: TCastleIfcMapping;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
+
+{ Helpful diagram of the commonly used classes around FacetedBrep,
+  which this method practically implements, are in
+  https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcFacetedBrep.htm }
+
+var
+  IndexedFaceSet: TIndexedFaceSetNode;
+  Coord: TCoordinateNode;
+
+  procedure AddVertex(const Vertex: TVector3);
+  var
+    Index: Integer;
+  begin
+    Index := Coord.FdPoint.Count;
+    Coord.FdPoint.Count := Coord.FdPoint.Count + 1;
+    Coord.FdPoint.Items[Index] := Vertex;
+    IndexedFaceSet.FdCoordIndex.Items.Add(Index);
+  end;
+
+var
+  I: Integer;
+  Shape: TShapeNode;
+  Face: TIfcFace;
+  FaceBound: TIfcFaceBound;
+  PolyLoop: TIfcPolyLoop;
+begin
+  Coord := TCoordinateNode.Create('', Mapping.BaseUrl);
+
+  IndexedFaceSet := TIndexedFaceSetNode.Create('', Mapping.BaseUrl);
+  IndexedFaceSet.Coord := Coord;
+  IndexedFaceSet.Solid := false;
+  // do not smooth, we don't know how smooth is the mesh, using flat shading is safest
+  IndexedFaceSet.CreaseAngle := 0;
+
+  for Face in CfsFaces do
+    for FaceBound in Face.Bounds do
+      if FaceBound.Bound is TIfcPolyLoop then
+      begin
+        PolyLoop := TIfcPolyLoop(FaceBound.Bound);
+        if FaceBound.Orientation then
+        begin
+          for I := 0 to PolyLoop.Polygon.Count - 1 do
+            AddVertex(PolyLoop.Polygon[I].Coordinates.Value);
+        end else
+        begin
+          for I := PolyLoop.Polygon.Count - 1 downto 0 do
+            AddVertex(PolyLoop.Polygon[I].Coordinates.Value);
+        end;
+        IndexedFaceSet.FdCoordIndex.Items.Add(-1);
+      end;
+
+  Shape := TShapeNode.Create('', Mapping.BaseUrl);
+  Shape.Geometry := IndexedFaceSet;
+  Shape.Appearance := LitAppearance;
+  SetMetadata(Shape, 'IFC_ClassName', ClassName);
+
+  Mapping.ConnectShapeAndProduct(Shape, ParentProduct);
+  Result := Shape;
+end;
+
 { TIfc*Placement methods implementations ----------------------------------------- }
 
 function TIfcObjectPlacement.BuildNode(const Mapping: TCastleIfcMapping): TTransformNode;
@@ -1767,8 +1971,17 @@ procedure TIfcObjectPlacement.UpdateNode(const Mapping: TCastleIfcMapping;
 begin
   // inherited; // no UpdateNode in ancestor
 
-  Mapping.ObjectPlacementToParentNodes.AddOrSetValue(Self, Transform);
-  if PlacementRelTo <> nil then
+  { Mapping.ObjectPlacementToParentNodes and
+    Mapping.ChildrenNodesToObjectPlacement are only initialized inside
+    TCastleIfcMapping.CreateRootNode .
+    When this method is called by TIfcProduct.SetTranslation,
+    these are nil, and it's OK to just ignore this logic (we don't need
+    to update these dictionarties when TIfcProduct.SetTranslation happens). }
+
+  if Mapping.ObjectPlacementToParentNodes <> nil then
+    Mapping.ObjectPlacementToParentNodes.AddOrSetValue(Self, Transform);
+  if (Mapping.ChildrenNodesToObjectPlacement <> nil) and
+     (PlacementRelTo <> nil) then
     Mapping.ChildrenNodesToObjectPlacement.AddOrSetValue(Transform, PlacementRelTo);
 end;
 

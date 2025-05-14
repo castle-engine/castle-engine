@@ -923,6 +923,17 @@ type
   protected
     procedure DoUpdate; virtual;
   public
+    const
+      DefaultMinSize = 100;
+      DefaultMaxSize = 1000000;
+
+    { Instance of the TCastleContainer associated with this window.
+
+      Use this to manage everything drawn in the window
+      (all TCatleUserInterface, including @url(https://castle-engine.io/views views),
+      all 2D controls, including all viewports displaying 3D content),
+      some input features (mouse look state, sending fake input events),
+      save screen and more. }
     property Container: TWindowContainer read FContainer;
 
     { Is it allowed to suspend (for an indefinite amount of time) waiting
@@ -1192,10 +1203,10 @@ type
       So you can be sure that (as long as window
       is open) @link(Width) / @link(Height) will always fit in these constraints.
       @groupBegin }
-    property MinWidth: Integer read FMinWidth write FMinWidth default 100;
-    property MinHeight: Integer read FMinHeight write FMinHeight default 100;
-    property MaxWidth: Integer read FMaxWidth write FMaxWidth default 4000;
-    property MaxHeight: Integer read FMaxHeight write FMaxHeight default 4000;
+    property MinWidth: Integer read FMinWidth write FMinWidth default DefaultMinSize;
+    property MinHeight: Integer read FMinHeight write FMinHeight default DefaultMinSize;
+    property MaxWidth: Integer read FMaxWidth write FMaxWidth default DefaultMaxSize;
+    property MaxHeight: Integer read FMaxHeight write FMaxHeight default DefaultMaxSize;
     { @groupEnd }
 
     { Required depth buffer precision. Zero means that we don't need
@@ -1287,11 +1298,9 @@ type
       initialization with no multi-sampling. In this case this property will
       not be changed, to be nice.
 
-      You can always read OpenGL GL_SAMPLE_BUFFERS_ARB and GL_SAMPLES_ARB
-      values after initializing OpenGL context, to know exactly
-      how many samples did you actually get, and did you get multi-sampling at all.
-      Actually, we already initialize global CastleGLUtils.GLCurrentMultiSampling
-      for you, you can use this. }
+      You can read @link(TGLFeatures.CurrentMultiSampling GLFeatures.CurrentMultiSampling)
+      after initializing the rendering context to know how many samples did you
+      actually get (and did you get multi-sampling at all). }
     property MultiSampling: Cardinal
       read FMultiSampling write FMultiSampling default 1;
 
@@ -2554,8 +2563,10 @@ begin
   else
     FCaption[cpPublic] := ApplicationName;
   FResizeAllowed := raAllowed;
-  minWidth := 100;  maxWidth := 4000;
-  minHeight := 100; maxHeight := 4000;
+  MinWidth := DefaultMinSize;
+  MinHeight := DefaultMinSize;
+  MaxWidth := DefaultMaxSize;
+  MaxHeight := DefaultMaxSize;
   DepthBits := DefaultDepthBits;
   StencilBits := DefaultStencilBits;
   FCursor := mcDefault;
@@ -2611,6 +2622,18 @@ end;
 {$warnings on}
 
 procedure TCastleWindow.OpenCore;
+const
+  { Which TAntiAliasing values should cause
+    GL_MULTISAMPLE_FILTER_HINT_NV := GL_NICEST.
+    This is deliberately expressed as an array that will have to be updated
+    if we extend the TAntiAliasing type e.g. to aa32SamplesNicer some day. }
+  AntiAliasingNicest: array [TAntiAliasing] of Boolean = (
+    false, // aaNone
+    false, true, // aa2SamplesFaster, aa2SamplesNicer
+    false, true, // aa4SamplesFaster, aa4SamplesNicer
+    false, true, // aa8SamplesFaster, aa8SamplesNicer
+    false, true // aa16SamplesFaster, aa16SamplesNicer
+  );
 
   procedure RenderLoadingBackground;
   var
@@ -2744,8 +2767,7 @@ procedure TCastleWindow.OpenCore;
     RenderContext.Viewport := Rect;
 
     {$ifndef OpenGLES}
-    if ( (AntiAliasing = aa2SamplesNicer) or
-         (AntiAliasing = aa4SamplesNicer) ) and
+    if AntiAliasingNicest[AntiAliasing] and
        GLFeatures.NV_multisample_filter_hint then
       glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
     {$endif}

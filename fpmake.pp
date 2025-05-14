@@ -414,6 +414,7 @@ begin
 
     P.SourcePath.Add('src/physics/kraft');
     P.Targets.AddUnit('kraft.pas');
+    P.Targets.AddUnit('castleinternalkraftoverrides.pas');
 
     P.SourcePath.Add('src/ui');
     P.Targets.AddUnit('castlecontrols.pas');
