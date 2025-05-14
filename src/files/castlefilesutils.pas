@@ -154,7 +154,7 @@ function NormalFileExists(const FileName: String): Boolean; deprecated 'use Regu
   Always returns absolute (not relative) path. Result contains trailing
   PathDelim.
 
-  @deprecated Deprecated, use ApplicationConfig instead. }
+  @deprecated Deprecated, use 'castle-config:/' instead. }
 function UserConfigPath: string; deprecated;
 
 { Filename to store user configuration.
@@ -171,14 +171,13 @@ function UserConfigPath: string; deprecated;
   )
 
   @deprecated Deprecated,
-  use ApplicationConfig(ApplicationName + Extension) instead. }
+  use explicitly @code('castle-config:/' + ApplicationName + Extension). }
 function UserConfigFile(const Extension: string): string; deprecated;
 
 var
-  { URL used as a prefix of all @link(ApplicationConfig) returned URLs.
-    This overrides any autodetection of a suitable "user config" directory
-    done by default by @link(ApplicationConfig).
-
+  { URL used as a prefix to resolve @code(castle-config:/) URLs.
+    If not empty, then this variable overrides any autodetection of a
+    suitable "user config" directory.
     This must always end with a slash, if it's not empty. }
   ApplicationConfigOverride: string;
 
@@ -191,18 +190,7 @@ var
   the subdirectories you specify in Path) exists, creating it if necessary.
   But we do not create the file. We should have permissions
   to write inside the given directory (although, as always on multi-process OS,
-  the only 100% way to know if you can write there is to actually try it).
-
-  Under the hood, on most systems, this uses logic from
-  @url(http://www.freepascal.org/docs-html/rtl/sysutils/ongetapplicationname.html
-  FPC GetAppConfigDir function). For Delphi, we have a compatibility implementation
-  with similar logic.
-  This in turn looks at @code(ApplicationName) and follows the OS-specific
-  conventions and APIs to determine the best config directory.
-  On UNIX this follows
-  @url(see http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html
-  XDG Base Directory Specification), which, simplifying,
-  means that it looks inside @code(~/.config/<application-name>/). }
+  the only 100% way to know if you can write there is to actually try it). }
 function ApplicationConfig(const Path: string): string; deprecated 'use ''castle-config:/xxx'' instead of ApplicationConfig(''xxx'')';
 
 { @deprecated }
@@ -340,12 +328,8 @@ procedure CopyDirectory(SourcePath, DestinationPath: string);
   Example usage to save anything else to user config:
 
   @longCode(#
-    SaveSomethingUrl := FileNameAutoInc(ApplicationConfig('save_something_%d.png'));
+    SaveSomethingUrl := FileNameAutoInc('castle-config:/save_something_%d.data');
   #)
-
-  Note that it will be replaced soon by @code(SaveSomethingUrl := FileNameAutoInc('castle-config:/', 'save_something_%d.png'))
-  which also deals with the (unlikely, but still) possibility that ApplicationConfig
-  will contain a percent sign.
 }
 function FileNameAutoInc(const UrlPattern: string): string; overload;
 function FileNameAutoInc(const UrlPrefix, UrlSuffixWithPattern: string): string; overload;
@@ -494,33 +478,17 @@ end;
 
 function UserConfigPath: string;
 begin
-  Result := ApplicationConfig('');
+  Result := 'castle-config:/';
 end;
 
 function UserConfigFile(const Extension: string): string;
 begin
-  Result := ApplicationConfig(ApplicationName + Extension);
+  Result := 'castle-config:/' + ApplicationName + Extension;
 end;
 
 function ApplicationConfig(const Path: string): string;
-var
-  ConfigDir: string;
 begin
-  if ApplicationConfigOverride <> '' then
-    Exit(ApplicationConfigOverride + Path);
-
-  { ApplicationConfig relies that ApplicationConfigOverride is set
-    (on iOS, it's not set before CGEApp_Initialize called;
-    on Android, it's not set before AndroidMainImplementation called). }
-  if not ApplicationProperties._FileAccessSafe then
-    WritelnWarning('Using ApplicationConfig(''%s'') before the Application.OnInitialize was called. ' +
-      'This is not reliable on mobile platforms (Android, iOS). ' +
-      'This usually happens if you open a file from the "initialization" section of a unit. ' +
-      'You should do it in Application.OnInitialize instead.',
-      [Path]);
-
-  ConfigDir := InclPathDelim(GetAppConfigDir(false));
-  Result := FilenameToUriSafe(ConfigDir + Path);
+  Result := 'castle-config:/' + Path;
 end;
 
 function ApplicationData(const Path: String): String;
@@ -1105,12 +1073,13 @@ begin
 
   {$if defined(ANDROID) or defined(CASTLE_IOS) or defined(CASTLE_NINTENDO_SWITCH)}
   { These platforms require special treatment. Although we could use
+    something like:
 
-      Result := UriToFilenameSafe(ApplicationConfig(''));
+      Result := UriToFilenameSafe('castle-config:/screenshots/');
 
     but then we risk storing more data than expected (users/OS don't expect us
     to fill this space uncontrollably, and users also don't have direct
-    access to the ApplicationConfig space). }
+    access to the castle-config:/ space). }
   Result := '';
   {$else}
     {$if defined(DARWIN)}

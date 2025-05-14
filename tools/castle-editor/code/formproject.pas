@@ -1692,7 +1692,7 @@ var
   URLFileName: String;
 begin
   if not Docking then Exit;
-  URLFileName := ApplicationConfig(DockLayoutFileName);
+  URLFileName := 'castle-config:/' + DockLayoutFileName;
   { Try to load default layout if user layout is not exist }
   if not UriFileExists(URLFileName) then
     URLFileName := InternalCastleDesignData + 'layouts/' + DockLayoutFileNameDefault;
@@ -1722,7 +1722,7 @@ var
 begin
   if not Docking then Exit;
   try
-    XMLConfig := TXMLConfigStorage.Create(UriToFilenameSafe(ApplicationConfig(DockLayoutFileName)), false);
+    XMLConfig := TXMLConfigStorage.Create(UriToFilenameSafe('castle-config:/' + DockLayoutFileName), false);
     try
       DockMaster.SaveLayoutToConfig(XMLConfig);
       XMLConfig.WriteToDisk;
@@ -1933,7 +1933,7 @@ var
 begin
   DesignObserver := TFreeNotificationObserver.Create(Self);
   DesignObserver.OnFreeNotification := {$ifdef FPC}@{$endif} DesignObserverFreeNotification;
-  EnableDocking := UriFileExists(ApplicationConfig('enable-docking.txt'));
+  EnableDocking := UriFileExists('castle-config:/enable-docking.txt');
   MenuItemWindow.SetEnabledVisible(EnableDocking);
   Docking := EnableDocking and UserConfig.GetValue('ProjectForm_Docking', false);
   OutputList := TOutputList.Create(ListOutput);
@@ -2343,7 +2343,7 @@ var
   DockLayoutUrl: String;
 begin
   { Simply remove the dock ui config file in order to restore default settings }
-  DockLayoutUrl := ApplicationConfig(DockLayoutFileName);
+  DockLayoutUrl := 'castle-config:/' + DockLayoutFileName;
   if UriFileExists(DockLayoutUrl) then
     CheckDeleteFile(UriToFilenameSafe(DockLayoutUrl));
   LoadDockLayout;

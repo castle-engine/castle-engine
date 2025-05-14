@@ -17,7 +17,11 @@ Compared to the [real Castle Game Engine editor](https://castle-engine.io/editor
 Features:
 
 - Create a new project, choosing one of the templates.
-- Open an existing project (only from cross-platform writeable space, in `ApplicationConfig('my-projects/')`), or recent, or examples.
+- Open an existing project
+    - from cross-platform writeable space, in `castle-config:/my-projects/`,
+    - from anywhere on disk (only on platforms that support regular filesystem with free access, e.g. desktops)
+    - from recent projects,
+    - from examples (only if CGE sources path is detected).
 - Choosing and displaying a given view in the project.
 - Displaying components hierarchy.
 - Displaying object inspector (thus, viewing and editing components properties).

@@ -487,7 +487,13 @@ begin
     https://castle-engine.io/data . }
   if P = 'castle-data' then
   begin
-    FFinalUrl := ResolveCastleDataURL(Url);
+    FFinalUrl := ResolveCastleDataUrl(Url);
+    P := URIProtocol(FFinalUrl);
+  end else
+  { Similarly, handle early castle-config: }
+  if P = 'castle-config' then
+  begin
+    FFinalUrl := ResolveCastleConfigUrl(Url);
     P := URIProtocol(FFinalUrl);
   end else
     FFinalUrl := Url;

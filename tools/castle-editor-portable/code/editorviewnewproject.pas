@@ -74,7 +74,7 @@ begin
   ButtonCancel.OnClick := {$ifdef FPC}@{$endif} ClickCancel;
   ButtonCreateProject.OnClick := {$ifdef FPC}@{$endif} ClickCreateProject;
 
-  EditLocation.Text := ApplicationConfig('my-projects/');
+  EditLocation.Text := 'castle-config:/my-projects/';
 end;
 
 procedure TViewNewProject.ClickTemplateAny(Sender: TObject);

@@ -26,7 +26,7 @@ type
   { What project to show as a choice.
     Used by @link(TViewChooseExistingProject.ProjectSource). }
   TProjectsSource = (
-    { Load searching ApplicationConfig('my-projects'). }
+    { Load searching castle-config:/my-projects . }
     psConfigMyProjects,
     { Load one of recently opened projects. }
     psRecent,
@@ -127,7 +127,7 @@ procedure TViewChooseExistingProject.Start;
   procedure LoadConfigMyProjects;
   begin
     LabelListCaption.Caption := 'Open My Project:';
-    FindFiles(ApplicationConfig('my-projects'), '*', true,
+    FindFiles('castle-config:/my-projects', '*', true,
       {$ifdef FPC}@{$endif} FoundInMyProjects, []);
   end;
 
