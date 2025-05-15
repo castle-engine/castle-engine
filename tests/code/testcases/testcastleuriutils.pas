@@ -1,6 +1,6 @@
 ﻿// -*- compile-command: "./test_single_testcase.sh TTestUriUtils" -*-
 {
-  Copyright 2013-2024 Michalis Kamburelis.
+  Copyright 2013-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -40,12 +40,13 @@ type
     procedure TestMimeTypeHttpQuery;
     procedure TestUriMimeType;
     procedure TestRelativeFilenameToUriSafe;
+    procedure TestMemoryFileSystem;
   end;
 
 implementation
 
 uses Base64, UriParser,
-  CastleUriUtils, CastleUtils, CastleClassUtils;
+  CastleUriUtils, CastleUtils, CastleClassUtils, CastleFilesUtils;
 
 procedure TTestUriUtils.TestUriProtocol;
 var
@@ -464,6 +465,37 @@ begin
   AssertEquals('foo/bar.txt', RelativeFilenameToUriSafe('foo\bar.txt'));
   AssertEquals('', RelativeFilenameToUriSafe(''));
   AssertEquals('foo/bar%20xyz.txt', RelativeFilenameToUriSafe('foo/bar xyz.txt'));
+end;
+
+procedure TTestUriUtils.TestMemoryFileSystem;
+var
+  Fs: TCastleMemoryFileSystem;
+begin
+  Fs := TCastleMemoryFileSystem.Create;
+  try
+    AssertTrue(UriExists('my-fs:/') = ueNotExists);
+    Fs.RegisterUrlProtocol('my-fs');
+
+    AssertTrue(UriExists('my-fs:/') = ueDirectory);
+    AssertTrue(UriExists('my-fs:/foo.txt') = ueNotExists);
+    AssertTrue(UriExists('my-fs:/bar/') = ueNotExists);
+    AssertTrue(UriExists('my-fs:/bar/baz.txt') = ueNotExists);
+
+    StringToFile('my-fs:/foo.txt', 'Hello world');
+    StringToFile('my-fs:/bar/baz.txt', 'Hello world 2');
+
+    AssertTrue(UriExists('my-fs:/') = ueDirectory);
+    AssertTrue(UriExists('my-fs:/foo.txt') = ueFile);
+    AssertTrue(UriExists('my-fs:/bar/') = ueDirectory);
+    AssertTrue(UriExists('my-fs:/bar/baz.txt') = ueFile);
+
+    AssertEquals('Hello world', FileToString('my-fs:/foo.txt'));
+    AssertEquals('Hello world 2', FileToString('my-fs:/bar/baz.txt'));
+  finally
+    FreeAndNil(Fs);
+  end;
+
+  AssertTrue(UriExists('my-fs:/') = ueNotExists);
 end;
 
 initialization

@@ -111,9 +111,9 @@ type
       TMemoryStreamSaveOnDestroyList = {$ifdef FPC}specialize{$endif}
         TObjectList<TMemoryStreamSaveOnDestroy>;
     var
-      // Non-empty means that RegisterUrlProtocol was called.
       FPendingStreams: TMemoryStreamSaveOnDestroyList;
   strict private
+    // Non-empty means that RegisterUrlProtocol was called.
     FRegisteredUrlProtocol: String;
     FFiles: TStringList;
     function GetFiles: TStrings;
@@ -870,6 +870,11 @@ procedure TCastleZip.RegisterUrlProtocol(const Protocol: String);
 var
   P: TRegisteredProtocol;
 begin
+  if FRegisteredUrlProtocol <> '' then
+    raise Exception.CreateFmt('Cannot register ZIP as URL protocol "%s", already registered "%s"', [
+      Protocol,
+      FRegisteredUrlProtocol
+    ]);
   FRegisteredUrlProtocol := Protocol;
   P := CastleDownload.RegisterUrlProtocol(Protocol);
   P.ReadEvent := {$ifdef FPC}@{$endif} ReadUrlHandler;
