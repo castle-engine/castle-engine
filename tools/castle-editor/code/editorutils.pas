@@ -309,7 +309,7 @@ uses
   CastleUtils, CastleLog, CastleSoundEngine, CastleFilesUtils, CastleLclUtils,
   CastleComponentSerialize, CastleUiControls, CastleCameras, CastleTransform,
   CastleColors, CastleTimeUtils, CastleUriUtils,
-  ToolCompilerInfo, ToolCommonUtils;
+  ToolCompilerInfo, ToolCommonUtils, ToolProcessRun;
 
 procedure TMenuItemHelper.SetEnabledVisible(const Value: Boolean);
 begin

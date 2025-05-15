@@ -41,7 +41,7 @@ uses
   SysUtils, Process, {$ifdef UNIX} BaseUnix, {$endif}
   CastleUtils, CastleFilesUtils, CastleDownload, CastleImages, CastleLog,
   CastleStringUtils,
-  ToolCommonUtils, ToolUtils;
+  ToolCommonUtils, ToolUtils, ToolProcessRun;
 
 { FindFileCheck ----------------------------------------------------- }
 
