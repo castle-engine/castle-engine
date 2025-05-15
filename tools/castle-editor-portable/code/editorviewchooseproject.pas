@@ -35,6 +35,7 @@ type
     ButtonPreferences: TCastleButton;
     ButtonSupport: TCastleButton;
     ButtonQuit: TCastleButton;
+    LabelWarningWeb: TCastleLabel;
   private
     ExamplesPath: String;
     procedure ClickNewProject(Sender: TObject);
@@ -108,8 +109,8 @@ begin
   ButtonOpenExample.Exists := ExamplesPath <> '';
 
   ButtonOpenProjectDisk.Exists := FileDialogAvailable;
-
   ButtonQuit.Exists := ApplicationProperties.ShowUserInterfaceToQuit;
+  LabelWarningWeb.Exists := {$ifdef WASI} true {$else} false {$endif};
 end;
 
 procedure TViewChooseProject.ClickNewProject(Sender: TObject);
