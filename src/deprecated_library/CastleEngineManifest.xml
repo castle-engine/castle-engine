@@ -3,7 +3,6 @@
   standalone_source="castleengine.lpr"
   ios_source="castleengine.lpr"
   mac_app_bundle="false"
-  mac_universal_binary="true"
 >
   <data exists="false" />
   <compiler_options>

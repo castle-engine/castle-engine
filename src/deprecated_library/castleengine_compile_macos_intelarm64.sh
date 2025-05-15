@@ -6,6 +6,7 @@ set -eu
 #
 # Note: This script should not be used anymore, it is here to help to polish
 #       the workflow, e.g. to check which steps are failing, notarization, etc.
+#       The preferred command is 'castle-engine compile --target=macos'.
 # ----------------------------------------------------------------------------
 
 # Compile x86_64 slice, Apple Notarization requires at least SDK 10.9, so we set it here for fpc
@@ -31,3 +32,12 @@ castle-engine simple-compile \
 mv libcastleengine.dylib libcastleengine.aarch64.dylib
 
 lipo libcastleengine.x86_64.dylib libcastleengine.aarch64.dylib -output libcastleengine.uni.dylib -create
+
+# ----------------------------------------------------------------------------
+# same with lazbuild
+
+#lazbuild castleengine.lpi --cpu=x86_64
+#mv libcastleengine.dylib libcastleengine.x86_64.dylib
+#lazbuild castleengine.lpi --cpu=aarch64
+#mv libcastleengine.dylib libcastleengine.aarch64.dylib
+#lipo libcastleengine.x86_64.dylib libcastleengine.aarch64.dylib -output libcastleengine.uni.dylib -create

@@ -91,7 +91,6 @@ type
       DefaultFullscreenImmersive = true;
       DefaultDetectMemoryLeaks = false;
       DefaultMacAppBundle = true;
-      DefaultMacUniversalBinary = false;
       DefaultWebCanvasWidth = 960;
       DefaultWebCanvasHeight = 540;
       DefaultProposedUnitPrefix = 'Game';
@@ -146,7 +145,6 @@ type
       FFreeDesktopComment: String;
       FDetectMemoryLeaks: Boolean;
       FMacAppBundle: Boolean;
-      FMacUniversalBinary: Boolean;
       FProjectDependencies: TProjectDependencies;
       FWebCanvasWidth, FWebCanvasHeight: Integer;
       FWebHtmlContents: String;
@@ -313,7 +311,6 @@ type
     property DetectMemoryLeaks: Boolean read FDetectMemoryLeaks;
 
     property MacAppBundle: Boolean read FMacAppBundle;
-    property MacUniversalBinary: Boolean read FMacUniversalBinary;
 
     { Find a file with given BaseName (contains filename, with extension, but without any path)
       among SearchPaths of this project.
@@ -568,8 +565,6 @@ begin
     FBuildUsingLazbuild := Doc.DocumentElement.AttributeBooleanDef('build_using_lazbuild', false);
     FMacAppBundle := Doc.DocumentElement.AttributeBooleanDef('mac_app_bundle',
       DefaultMacAppBundle);
-    FMacUniversalBinary := Doc.DocumentElement.AttributeBooleanDef('mac_universal_binary',
-      DefaultMacUniversalBinary);
 
     FVersion := ReadVersion(Doc.DocumentElement.ChildElement('version', false));
     // create default FVersion value, if necessary
