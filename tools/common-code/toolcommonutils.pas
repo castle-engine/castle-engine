@@ -186,6 +186,10 @@ function GetCastleEnginePathFromExeName: String;
 var
   ToolDir: String;
 begin
+  {$ifdef WASI}
+  Exit(''); // WASI does not have ExeName, and also cannot catch exception
+  {$endif}
+
   try
     // knowingly using deprecated ExeName, that should be non-deprecated and internal here
     {$warnings off}
