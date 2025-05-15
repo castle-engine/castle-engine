@@ -77,7 +77,8 @@ begin
     Compile(Compiler, WorkingDirectory, CompileFile, CompilerOptions);
     ArchIntelCompiled := true;
   except
-    Writeln('Warning: x86_64 slice not compiled. Resulting binary will not contain it, will not be "universal".');
+    on E: TObject do
+      Writeln(ErrOutput, ExceptMessage(E));    // threat this as warning, at least one arch will be compiled
   end;
 
   CompilerOptions.OverrideEnvironmentName := '';
@@ -91,7 +92,9 @@ begin
     OutputBinary := LinkRes;
     ArchIntelBinary := LinkRes + '.x86_64';
     CheckRenameFile(LinkRes, ArchIntelBinary);
-  end;
+  end
+  else
+    Writeln('Warning: x86_64 slice not compiled. Resulting binary will not contain it, will not be "universal".');
 
   //--------------
   // Same for aarch64, not need to change the environment variables here.
@@ -101,14 +104,22 @@ begin
     Compile(Compiler, WorkingDirectory, CompileFile, CompilerOptions);
     ArchArmCompiled := true;
   except
-    Writeln('Warning: aarch64 slice not compiled. Resulting binary will not contain it, will not be "universal".');
+    on E: TObject do
+      Writeln(ErrOutput, ExceptMessage(E));    // threat this as warning, at least one arch will be compiled
   end;
 
   if ArchArmCompiled then
   begin
     LinkRes := CompilerOptions.LinkerOutputFile;
     ArchArmBinary := LinkRes + '.aarch64';
-    CheckRenameFile(LinkRes, ArchArmBinary);
+    if ArchIntelCompiled then
+      CheckRenameFile(LinkRes, ArchArmBinary);
+  end
+  else
+  begin
+    Writeln('Warning: aarch64 slice not compiled. Resulting binary will not contain it, will not be "universal".');
+    if ArchIntelCompiled then
+      CheckRenameFile(ArchIntelBinary, OutputBinary);      // rename back to expected output file name
   end;
 
   //--------------
