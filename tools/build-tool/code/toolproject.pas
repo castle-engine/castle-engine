@@ -441,7 +441,7 @@ constructor TCastleProject.Create(const APath: string);
     end else
     begin
       WritelnVerbose('Manifest file found: ' + ManifestFile);
-      Manifest := TCastleManifest.CreateFromUrl(APath, ManifestUrl);
+      Manifest := TCastleManifest.CreateFromUrl(ManifestUrl);
     end;
   end;
 

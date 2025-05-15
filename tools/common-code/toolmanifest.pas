@@ -117,7 +117,7 @@ type
       FIOSOverrideVersion: TProjectVersion; //< nil if not overridden, should use FVersion then
       FUsesNonExemptEncryption: boolean;
       FDataExists: Boolean;
-      FPath, FPathUrl, FDataPath: String;
+      FPath, FPathUrl, FDataPath, FDataPathUrl: String;
       FIncludePaths: TIncludePathList;
       FExcludePaths: TCastleStringList;
       FExtraCompilerOptions, FExtraCompilerOptionsAbsolute: TCastleStringList;
@@ -181,12 +181,8 @@ type
       @param APath Project path, must be absolute. }
     constructor Create(const APath: String);
     { Load manifest file.
-      @param APath Project path, must be absolute.
       @param ManifestUrl Full URL to CastleEngineManifest.xml, must be absolute. }
-    constructor CreateFromUrl(const APath, ManifestUrl: String); overload;
-    { Load manifest file.
-      @param ManifestUrl Full URL to CastleEngineManifest.xml, must be absolute. }
-    constructor CreateFromUrl(const ManifestUrl: String); overload;
+    constructor CreateFromUrl(const ManifestUrl: String);
     { Guess values for the manifest.
       @param APath Project path, must be absolute.
       @param AStandaloneSource Guessed StandaloneSource value. Project Name will be derived from it too. }
@@ -214,16 +210,35 @@ type
     { Shortcut for ProjectDependencies.Dependencies. }
     function Dependencies: TDependencies;
     property Name: String read FName;
+
     { Project path. Absolute.
-      Always ends with path delimiter, like a slash or backslash. }
+      Always ends with path delimiter, like a slash or backslash.
+
+      Same as @link(PathUrl) but this is a regular filename.
+      Prefer to use @link(PathUrl) instead in new code, at some point this
+      will be deprecated and then removed. }
     property Path: String read FPath;
-    { Same thing as @link(Path), but expressed as an URL. }
+
+    { Project path, as absolute URL.
+      Always ends with slash. }
     property PathUrl: String read FPathUrl;
+
     property DataExists: Boolean read FDataExists;
+
     { Project data path. Absolute.
       Always ends with path delimiter, like a slash or backslash.
-      Should be ignored if not @link(DataExists). }
+      Should be ignored if not @link(DataExists).
+
+      Same as @link(DataPathUrl) but this is a regular filename.
+      Prefer to use @link(DataPathUrl) instead in new code, at some point this
+      will be deprecated and then removed.  }
     property DataPath: String read FDataPath;
+
+    { Project data path, as absolute URL.
+      Always ends with slash.
+      Should be ignored if not @link(DataExists). }
+    property DataPathUrl: String read FDataPathUrl;
+
     property Caption: String read FCaption;
     property Author: String read FAuthor;
     property ExecutableName: String read FExecutableName;
@@ -473,6 +488,7 @@ begin
   FPath := InclPathDelim(APath);
   FPathUrl := FilenameToUriSafe(FPath);
   FDataPath := InclPathDelim(FPath + DataName);
+  FDataPathUrl := FilenameToUriSafe(FDataPath);
 end;
 
 constructor TCastleManifest.CreateGuess(const APath, AStandaloneSource: String);
@@ -480,6 +496,7 @@ begin
   Create(APath);
 
   FDataPath := InclPathDelim(Path + DataName);
+  FDataPathUrl := FilenameToUriSafe(FDataPath);
   FName := DeleteFileExt(AStandaloneSource);
   FCaption := FName;
   FQualifiedName := DefaultQualifiedName(FName);
@@ -497,7 +514,7 @@ begin
   CreateFinish;
 end;
 
-constructor TCastleManifest.CreateFromUrl(const APath, ManifestUrl: String);
+constructor TCastleManifest.CreateFromUrl(const ManifestUrl: String);
 
   { Get XML element attribute as Cardinal,
     using DefaultAndMinimum as default (if not exists in XML).
@@ -522,13 +539,32 @@ constructor TCastleManifest.CreateFromUrl(const APath, ManifestUrl: String);
 
 var
   Doc: TXMLDocument;
-  AndroidProjectTypeStr: String;
+  ManifestFileName, AndroidProjectTypeStr: String;
   ChildElements: TXMLElementIterator;
   Element, ChildElement: TDOMElement;
   NewCompilerOption, DefaultLazarusProject, DefaultDelphiProject, NewSearchPath: String;
   IncludePath: TIncludePath;
 begin
-  Create(APath);
+  ManifestFileName := UriToFilenameSafe(ManifestUrl);
+  Create(ExtractFilePath(ManifestFileName));
+
+  { Fix PathUrl and DataPathUrl in case ManifestUrl is not a regular file,
+    e.g. when it is 'castle-config:/my-projects/foo/CastleEngineManifest.xml'
+    which maps to something special with castle-editor-portable on web.
+    Current Create implementation will set them to ''.
+    TODO: In the future, it would be cleaner to use only URLs, never filenames,
+    throughout the whole TCastleManifest code.
+    Then this special fix will not be necessary. }
+  if ManifestFileName = '' then
+  begin
+    FPathUrl := ExtractUriPath(ManifestUrl);
+    FDataPathUrl := FPathUrl + DataName + '/';
+    WritelnLog('ManifestUrl is not a regular file, fixing PathUrl to "%s" and DataPathUrl to "%s"', [
+      FPathUrl,
+      FDataPathUrl
+    ]);
+  end;
+
   SetBaseUrl(ManifestUrl);
 
   Doc := UrlReadXML(ManifestUrl);
@@ -814,11 +850,6 @@ begin
   CreateFinish;
 end;
 
-constructor TCastleManifest.CreateFromUrl(const ManifestUrl: String);
-begin
-  CreateFromUrl(ExtractFilePath(UriToFilenameSafe(ManifestUrl)), ManifestUrl);
-end;
-
 destructor TCastleManifest.Destroy;
 begin
   FreeAndNil(FProjectDependencies);
@@ -961,17 +992,17 @@ procedure TCastleManifest.CreateFinish;
   begin
     if FDataExists then
     begin
-      if DirectoryExists(DataPath) then
+      if UriExists(DataPathUrl) = ueDirectory then
         WritelnLog('Found data in "' + DataPath + '"')
       else
       begin
-        WritelnWarning('Data directory not found (tried "' + DataPath + '"). If this project has no data, add <data exists="false"/> to CastleEngineManifest.xml.');
+        WritelnWarning('Data directory not found (tried "' + DataPathUrl + '"). If this project has no data, add <data exists="false"/> to CastleEngineManifest.xml.');
         FDataExists := false;
       end;
     end else
     begin
-      if DirectoryExists(DataPath) then
-        WritelnWarning('Possible data directory found in "' + DataPath + '", but your project has <data exists="false"/> in CastleEngineManifest.xml, so it will be ignored.' + NL +
+      if UriExists(DataPathUrl) = ueDirectory then
+        WritelnWarning('Possible data directory found in "' + DataPathUrl + '", but your project has <data exists="false"/> in CastleEngineManifest.xml, so it will be ignored.' + NL +
         '  To remove this warning:' + NL +
         '  1. Rename this directory to something else than "data" (if it should not be packaged),' + NL +
         '  2. Remove <data exists="false"/> from CastleEngineManifest.xml (if "data" should be packaged).');
