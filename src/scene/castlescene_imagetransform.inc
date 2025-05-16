@@ -27,14 +27,13 @@ type
     FRootNode: TX3DRootNode;
     FAppearanceNode: TAppearanceNode;
     FShapeNode: TShapeNode;
-    FBaseTextureNode, FNormalTextureNode: TImageTextureNode;
+    FBaseTexture, FNormalMapTexture: TCastleAbstractPrimitive.TMaterialTexture;
     FTexPropertiesNode: TTexturePropertiesNode;
     FCoordinateNode: TCoordinateNode;
     FTexCoordNode: TTextureCoordinateNode;
     FIndexedTriangleSetNode: TIndexedTriangleSetNode;
 
     { private fields reflecting public properties }
-    FUrl, FUrlNormalMap: String;
     FPivot, FSize, FRepeatImage, FShift: TVector2;
     FColor: TCastleColor;
     FSmoothScaling: Boolean;
@@ -54,7 +53,9 @@ type
     procedure SetColor(const Value: TCastleColor);
     procedure SetSmoothScaling(const Value: Boolean);
     procedure SetAlphaChannel(const Value: TAutoAlphaChannel);
+    function GetUrl: String;
     procedure SetUrl(const Value: String);
+    function GetUrlNormalMap: String;
     procedure SetUrlNormalMap(const Value: String);
     procedure SetMipmaps(const Value: Boolean);
     { Reflect current FColor, FMaterial, FUrl, FUrlNormalMap values in X3D nodes. }
@@ -169,7 +170,7 @@ type
 
     { URL of the image to be loaded.
       When empty, no image is loaded and this is invisible. }
-    property Url: String read FUrl write SetUrl;
+    property Url: String read GetUrl write SetUrl;
 
     { Normal map texture URL.
       Providing normal map enhances the details visible on the surface because
@@ -178,7 +179,7 @@ type
 
       This is only useful when @link(Material) is pmPhysical or pmPhong,
       so the shape is "lit". }
-    property UrlNormalMap: String read FUrlNormalMap write SetUrlNormalMap;
+    property UrlNormalMap: String read GetUrlNormalMap write SetUrlNormalMap;
 
     { Mipmaps make the image look good when it scaled to be @italic(much)
       smaller on the screen. Using mipmaps also forces the image to have
@@ -295,20 +296,20 @@ begin
   FRootNode.AddChildren(FShapeNode);
 
   { create X3D nodes for textures }
-  FBaseTextureNode := TImageTextureNode.Create;
+  FBaseTexture.Node := TImageTextureNode.Create;
   { No point in adjusting RepeatS/T: TextureProperties override it.
-  FBaseTextureNode.RepeatS := false;
-  FBaseTextureNode.RepeatT := false; }
-  FBaseTextureNode.TextureProperties := FTexPropertiesNode;
-  FNormalTextureNode := TImageTextureNode.Create;
-  FNormalTextureNode.TextureProperties := FTexPropertiesNode; // share TextureProperties
+  FBaseTexture.Node.RepeatS := false;
+  FBaseTexture.Node.RepeatT := false; }
+  FBaseTexture.Node.TextureProperties := FTexPropertiesNode;
+  FNormalMapTexture.Node := TImageTextureNode.Create;
+  FNormalMapTexture.Node.TextureProperties := FTexPropertiesNode; // share TextureProperties
   { Don't free texture nodes by ref-counting,
     which would happen otherwise from UpdateMaterialNode, when it does
     1. NodeField.Value := nil
     2. or when it frees previous material (that may contain the texture) }
-  FBaseTextureNode.KeepExistingBegin;
-  FNormalTextureNode.KeepExistingBegin;
-  { Note: FBaseTextureNode, FNormalTextureNode are connected to
+  FBaseTexture.Node.KeepExistingBegin;
+  FNormalMapTexture.Node.KeepExistingBegin;
+  { Note: FBaseTexture.Node, FNormalMapTexture.Node are connected to
     FAppearanceNode (and thus, the rest of FRootNode) by UpdateMaterialNode. }
   UpdateMaterialNode;
 
@@ -331,15 +332,15 @@ begin
   {$undef read_implementation_destructor}
 
   FreeAndNil(FScene);
-  FreeAndNil(FBaseTextureNode);
-  FreeAndNil(FNormalTextureNode);
+  FreeAndNil(FBaseTexture.Node);
+  FreeAndNil(FNormalMapTexture.Node);
   inherited;
 end;
 
 procedure TCastleImageTransform.BeforeDestruction;
 begin
-  FUrlMonitoring.Finish(FUrl);
-  FUrlNormalMapMonitoring.Finish(FUrlNormalMap);
+  FUrlMonitoring.Finish(FBaseTexture.Url);
+  FUrlNormalMapMonitoring.Finish(FNormalMapTexture.Url);
   inherited;
 end;
 
@@ -359,14 +360,18 @@ end;
 procedure TCastleImageTransform.UpdateCoordinateNodes;
 var
   X1, Y1, X2, Y2, W, H: Single;
+  TextureNode: TImageTextureNode;
 begin
-  FBaseTextureNode.IsTextureLoaded := true;
+  { We use texture from Url to determine the size of the image }
+  TextureNode := FBaseTexture.Node;
+
+  TextureNode.IsTextureLoaded := true;
   { Render is true if and only if FCoordinateNode contains useful content (not just zeros) }
-  FShapeNode.Visible := FBaseTextureNode.IsTextureImage;
-  if FBaseTextureNode.IsTextureImage then
+  FShapeNode.Visible := TextureNode.IsTextureImage;
+  if TextureNode.IsTextureImage then
   begin
-    FImageWidth := FBaseTextureNode.TextureImage.Width;
-    FImageHeight := FBaseTextureNode.TextureImage.Height;
+    FImageWidth := TextureNode.TextureImage.Width;
+    FImageHeight := TextureNode.TextureImage.Height;
     W := FImageWidth;
     H := FImageHeight;
 
@@ -438,11 +443,17 @@ begin
   end;
 end;
 
+function TCastleImageTransform.GetUrl: String;
+begin
+  Result := FBaseTexture.Url;
+end;
+
 procedure TCastleImageTransform.SetUrl(const Value: String);
 begin
-  if FUrl <> Value then
+  if FBaseTexture.Url <> Value then
   begin
-    FUrlMonitoring.ChangeUrl(FUrl, Value);
+    FUrlMonitoring.ChangeUrl(FBaseTexture.Url, Value);
+    FBaseTexture.LoadedDirectly := false;
     { Call UpdateMaterialNode first: sets texture nodes IsTextureLoaded.
       Then UpdateCoordinateNodes: looks at texture nodes IsTextureLoaded. }
     UpdateMaterialNode;
@@ -450,11 +461,17 @@ begin
   end;
 end;
 
+function TCastleImageTransform.GetUrlNormalMap: String;
+begin
+  Result := FNormalMapTexture.Url;
+end;
+
 procedure TCastleImageTransform.SetUrlNormalMap(const Value: String);
 begin
-  if FUrlNormalMap <> Value then
+  if FNormalMapTexture.Url <> Value then
   begin
-    FUrlNormalMapMonitoring.ChangeUrl(FUrlNormalMap, Value);
+    FUrlNormalMapMonitoring.ChangeUrl(FNormalMapTexture.Url, Value);
+    FNormalMapTexture.LoadedDirectly := false;
     { Call UpdateMaterialNode first: sets texture nodes IsTextureLoaded.
       Then UpdateCoordinateNodes: looks at texture nodes IsTextureLoaded. }
     UpdateMaterialNode;
@@ -594,7 +611,19 @@ procedure TCastleImageTransform.LoadFromImage(const Image: TEncodedImage;
 begin
   // unload the previous image, and make FUrlMonitoring not watch anything
   Url := '';
-  FBaseTextureNode.LoadFromImage(Image, TakeImageOwnership, '');
+  { FBaseTexture.LoadedDirectly = true will make UpdateMaterialNode use
+    the FBaseTexture.Node, even though texture URL is empty. }
+  FBaseTexture.LoadedDirectly := true;
+  { TODO: It should not matter do we call UpdateMaterialNode or
+    FBaseTexture.Node.LoadFromImage first. But it matters:
+    When FBaseTexture.Node.LoadFromImage is called before UpdateMaterialNode,
+    then texture resources change but Scene is not informed about it.
+    In effect, Scene keeps rendering the old texture.
+    Buggy behavior then: in image_generate_and_use_standalone,
+    one needs to click ClickLoadGenerated 2x to see updated texture.
+    Doing UpdateMaterialNode is a solution for now. }
+  UpdateMaterialNode;
+  FBaseTexture.Node.LoadFromImage(Image, TakeImageOwnership, '');
   UpdateCoordinateNodes;
 end;
 
@@ -615,8 +644,7 @@ end;
 procedure TCastleImageTransform.UpdateMaterialNode;
 begin
   CommonUpdateMaterialNode(FMaterial, FColor, FAppearanceNode,
-    FUrl, FUrlNormalMap,
-    FBaseTextureNode, FNormalTextureNode);
+    FBaseTexture, FNormalMapTexture);
 end;
 
 {$define read_implementation_methods}

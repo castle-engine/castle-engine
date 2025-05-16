@@ -473,7 +473,7 @@ var
   Options: TProjectCreationOptions;
   ProjectDirUrl, ProjectDir: String;
 begin
-  Options.ParentDir := ParentDir;
+  Options.ParentDirUrl := FilenameToUriSafe(ParentDir);
   Options.TemplateName := TemplateName;
   Options.ProjectName := ProjectName;
   Options.ProjectCaption := ProjectCaption;

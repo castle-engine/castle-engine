@@ -475,7 +475,6 @@ var
 begin
   ClearPreviousDownload;
 
-  P := URIProtocol(Url);
 
   if not UpdateInitialized then
   begin
@@ -483,20 +482,23 @@ begin
     UpdateInitialized := true;
   end;
 
-  { Handle early castle-data:, protocol to access application data,
-    https://castle-engine.io/data . }
+  // calculate P (protocol) and FFinalUrl
+  P := URIProtocol(Url);
+  FFinalUrl := Url;
+  { Redirect castle-data: and castle-config: to other procotols.
+    Note the order: castle-data may resolve to castle-config
+    (normal in case of castle-editor-portable new projects),
+    we account for this. }
   if P = 'castle-data' then
   begin
-    FFinalUrl := ResolveCastleDataUrl(Url);
+    FFinalUrl := ResolveCastleDataUrl(FFinalUrl);
     P := URIProtocol(FFinalUrl);
-  end else
-  { Similarly, handle early castle-config: }
+  end;
   if P = 'castle-config' then
   begin
-    FFinalUrl := ResolveCastleConfigUrl(Url);
+    FFinalUrl := ResolveCastleConfigUrl(FFinalUrl);
     P := URIProtocol(FFinalUrl);
-  end else
-    FFinalUrl := Url;
+  end;
 
   if LogAllLoading then
     WritelnLog('Loading', 'Loading "%s"', [UriDisplay(FFinalUrl)]);

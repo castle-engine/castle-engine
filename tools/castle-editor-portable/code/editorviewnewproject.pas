@@ -116,14 +116,13 @@ begin
       raise EInternalError.Create('Unknown project template selected');
 
     // Fill Options
-    { TODO: Options.ParentDir and ProjectCreateFromTemplate
-      work only if ApplicationConfig is on filesystem, they don't operate on URLs. }
-    Options.ParentDir := UriToFilenameSafe(EditLocation.Text);
+    Options.ParentDirUrl := EditLocation.Text;
     Options.TemplateName := TemplateName;
     Options.ProjectName := EditProjectName.Text;
     Options.ProjectCaption := EditProjectCaption.Text;
     Options.MainView := EditViewName.Text;
-    ProjectCreateFromTemplate(CastleEnginePath, Options, ProjectDirUrl);
+    ProjectCreateFromTemplateData('castle-data:/project_templates/', Options,
+      ProjectDirUrl);
 
     // TODO:
     //GenerateProgramWithBuildTool(ProjectDirUrl);
