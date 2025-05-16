@@ -914,7 +914,7 @@ begin
   Assert(FRegisteredUrlProtocol = '');
 end;
 
-class function TCastleZip.UrlToRelativePath(const Url: String): String; static;
+class function TCastleZip.UrlToRelativePath(const Url: String): String;
 var
   U: TURI;
 begin
@@ -922,7 +922,7 @@ begin
   Result := PrefixRemove('/', U.Path + U.Document, false);
 end;
 
-class function TCastleZip.IncludeSlash(const PathRelative: String): String; static;
+class function TCastleZip.IncludeSlash(const PathRelative: String): String;
 begin
   Result := PathRelative;
   if (Result <> '') and

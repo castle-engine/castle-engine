@@ -149,7 +149,7 @@ begin
   Assert(FRegisteredUrlProtocol = '');
 end;
 
-class function TCastleMemoryFileSystem.UrlToRelativePath(const Url: String): String; static;
+class function TCastleMemoryFileSystem.UrlToRelativePath(const Url: String): String;
 var
   U: TURI;
 begin
@@ -157,7 +157,7 @@ begin
   Result := PrefixRemove('/', U.Path + U.Document, false);
 end;
 
-class function TCastleMemoryFileSystem.IncludeSlash(const PathRelative: String): String; static;
+class function TCastleMemoryFileSystem.IncludeSlash(const PathRelative: String): String;
 begin
   Result := PathRelative;
   if (Result <> '') and
