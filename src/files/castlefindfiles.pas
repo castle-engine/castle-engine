@@ -422,7 +422,7 @@ function FindFiles_NonRecursive(const Path, Mask: String;
       Utility.FileProc := FileProc;
       Utility.FileProcData := FileProcData;
       Utility.Count := 0;
-      Event(Path, Mask, {$ifdef FPC}@{$endif} Utility.Callback);
+      Event(Path, Mask, {$ifdef FPC}@{$endif} Utility.Callback, StopSearch);
       Result := Utility.Count;
     finally FreeAndNil(Utility) end;
   end;
@@ -601,7 +601,7 @@ function FindFiles_Recursive(const Path, Mask: string; const FindDirectories: bo
       Utility.FileProcData := FileProcData;
       Utility.DirContentsLast := DirContentsLast;
       // Find *, not Mask, to find all subdirectories
-      Event(Path, '*', {$ifdef FPC}@{$endif} Utility.Callback);
+      Event(Path, '*', {$ifdef FPC}@{$endif} Utility.Callback, StopSearch);
       Result := Result + Utility.Count;
     finally FreeAndNil(Utility) end;
   end;

@@ -21,7 +21,7 @@ unit CastleUriUtils;
 interface
 
 uses SysUtils, Classes, Generics.Collections,
-  CastleStringUtils;
+  CastleStringUtils, CastleFindFiles;
 
 { Extracts #anchor from URI. On input, URI contains full URI.
   On output, Anchor is removed from URI and saved in Anchor.
@@ -436,9 +436,9 @@ var
 
 implementation
 
-uses UriParser,
+uses UriParser, StrUtils,
   CastleUtils, CastleInternalDataUri, CastleLog, CastleFilesUtils,
-  CastleFindFiles, CastleDownload, CastleZip, CastleApplicationProperties
+  CastleDownload, CastleZip, CastleApplicationProperties
   {$ifdef WASI}, Job.Js, CastleInternalJobWeb {$endif}
   {$ifndef FPC}, Character{$endif};
 
@@ -1616,7 +1616,7 @@ function ResolveCastleDataUrl(const Url: String): String;
 
     H := TFixCaseHandler.Create;
     try
-      Parts := SplitString(UrlDecode(RelativeToData), '/');
+      Parts := CastleStringUtils.SplitString(UrlDecode(RelativeToData), '/');
       try
         for I := 0 to Parts.Count - 1 do
         begin

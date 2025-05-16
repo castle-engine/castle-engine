@@ -43,9 +43,25 @@ type
     Files: TStringList;
     // Non-empty means that RegisterUrlProtocol was called.
     FRegisteredUrlProtocol: String;
+
+    { Convert URL trying to access this filesystem
+      (thanks to the RegisterUrlProtocol mechanism)
+      into a relative path within this filesystem.
+      This relative path is not URL-encoded, so space is space,
+      and it doesn't start with a slash. }
+    class function UrlToRelativePath(const Url: String): String; static;
+
+    { Make sure that relative path ends with a slash.
+      Doesn't change '', so it doesn't make '' -> '/'.
+      Otherwise, this is the simplest string operation, it doesn't
+      really care if given PathRelative is URL or filename or whatever. }
+    class function IncludeSlash(const PathRelative: String): String; static;
+
     function ReadUrlHandler(const Url: String; out MimeType: string): TStream;
     function WriteUrlHandler(const Url: String): TStream;
     function ExistsUrlHandler(const Url: String): TUriExists;
+    procedure FindFilesHandler(const UrlPath, Mask: String;
+      const FileEvent: TFoundFileMethod; var StopSearch: Boolean);
   public
     constructor Create;
     destructor Destroy; override;
@@ -120,6 +136,7 @@ begin
   P.ReadEvent := {$ifdef FPC}@{$endif} ReadUrlHandler;
   P.WriteEvent := {$ifdef FPC}@{$endif} WriteUrlHandler;
   P.ExistsEvent := {$ifdef FPC}@{$endif} ExistsUrlHandler;
+  P.FindFilesEvent := {$ifdef FPC}@{$endif} FindFilesHandler;
 end;
 
 procedure TCastleMemoryFileSystem.UnregisterUrlProtocol;
@@ -132,15 +149,29 @@ begin
   Assert(FRegisteredUrlProtocol = '');
 end;
 
-function TCastleMemoryFileSystem.ReadUrlHandler(const Url: String; out MimeType: string): TStream;
+class function TCastleMemoryFileSystem.UrlToRelativePath(const Url: String): String; static;
 var
   U: TURI;
+begin
+  U := ParseURI(Url);
+  Result := PrefixRemove('/', U.Path + U.Document, false);
+end;
+
+class function TCastleMemoryFileSystem.IncludeSlash(const PathRelative: String): String; static;
+begin
+  Result := PathRelative;
+  if (Result <> '') and
+     (Result[Length(Result)] <> '/') then
+    Result := Result + '/';
+end;
+
+function TCastleMemoryFileSystem.ReadUrlHandler(const Url: String; out MimeType: string): TStream;
+var
   PathRelative: String;
   I: Integer;
   StoredMemoryStream: TMemoryStream;
 begin
-  U := ParseURI(Url);
-  PathRelative := PrefixRemove('/', U.Path + U.Document, false);
+  PathRelative := UrlToRelativePath(Url);
 
   I := Files.IndexOf(PathRelative);
   if I = -1 then
@@ -199,12 +230,10 @@ end;
 
 function TCastleMemoryFileSystem.WriteUrlHandler(const Url: String): TStream;
 var
-  U: TURI;
   PathRelative: String;
   ResultStream: TMemoryStreamSaveOnDestroy;
 begin
-  U := ParseURI(Url);
-  PathRelative := PrefixRemove('/', U.Path + U.Document, false);
+  PathRelative := UrlToRelativePath(Url);
 
   ResultStream := TMemoryStreamSaveOnDestroy.Create;
   ResultStream.FileSystem := Self;
@@ -215,19 +244,15 @@ end;
 
 function TCastleMemoryFileSystem.ExistsUrlHandler(const Url: String): TUriExists;
 var
-  U: TURI;
   PathRelative, PathRelativeAsDirectory: String;
   I: Integer;
 begin
-  U := ParseURI(Url);
-  PathRelative := PrefixRemove('/', U.Path + U.Document, false);
+  PathRelative := UrlToRelativePath(Url);
   if PathRelative = '' then
     Exit(ueDirectory); // top directory
 
   // calculate PathRelativeAsDirectory, ending with /
-  PathRelativeAsDirectory := PathRelative;
-  if PathRelativeAsDirectory[Length(PathRelativeAsDirectory)] <> '/' then
-    PathRelativeAsDirectory := PathRelativeAsDirectory + '/';
+  PathRelativeAsDirectory := IncludeSlash(PathRelative);
 
   for I := 0 to Files.Count - 1 do
   begin
@@ -244,6 +269,66 @@ begin
   end;
 
   Result := ueNotExists;
+end;
+
+procedure TCastleMemoryFileSystem.FindFilesHandler(
+  const UrlPath, Mask: String;
+  const FileEvent: TFoundFileMethod; var StopSearch: Boolean);
+const
+  IgnoreCase = false;
+var
+  UrlPathSlash, PathRelative: String;
+  FileInfo: TFileInfo;
+  AlreadyReportedSubdirectories: TStringList;
+  I, SlashPos: Integer;
+  NamePart: String;
+begin
+  UrlPathSlash := UriIncludeSlash(UrlPath);
+  PathRelative := UrlToRelativePath(UrlPathSlash);
+  AlreadyReportedSubdirectories := TStringList.Create;
+  try
+    for I := 0 to Files.Count - 1 do
+    begin
+      if IsPrefix(PathRelative, Files[I], IgnoreCase) then
+      begin
+        NamePart := SEnding(Files[I], Length(PathRelative) + 1);
+        SlashPos := Pos('/', NamePart);
+        if SlashPos = 0 then
+        begin
+          // found file inside PathRelative
+          if IsWild(NamePart, Mask, IgnoreCase) then
+          begin
+            FileInfo := Default(TFileInfo);
+            FileInfo.Name := NamePart;
+            FileInfo.Url := UrlPathSlash + NamePart;
+            FileInfo.Directory := false;
+            FileInfo.Size := (Files.Objects[I] as TMemoryStream).Size;
+            FileEvent(FileInfo, StopSearch);
+            if StopSearch then
+              Exit;
+          end;
+        end else
+        begin
+          // found directory inside PathRelative, but it may occur multiple times
+          NamePart := Copy(NamePart, 1, SlashPos - 1);
+          if IsWild(NamePart, Mask, IgnoreCase) and
+            (AlreadyReportedSubdirectories.IndexOf(NamePart) = -1) then
+          begin
+            AlreadyReportedSubdirectories.Add(NamePart);
+
+            FileInfo := Default(TFileInfo);
+            FileInfo.Name := NamePart;
+            FileInfo.Url := UrlPathSlash + NamePart;
+            FileInfo.Directory := true;
+            FileInfo.Size := 0;
+            FileEvent(FileInfo, StopSearch);
+            if StopSearch then
+              Exit;
+          end;
+        end;
+      end;
+    end;
+  finally FreeAndNil(AlreadyReportedSubdirectories); end;
 end;
 
 { TCastleMemoryFileSystem.TMemoryStreamSaveOnDestroy -------------------------------------- }

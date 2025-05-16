@@ -46,7 +46,8 @@ type
 implementation
 
 uses Base64, UriParser,
-  CastleUriUtils, CastleUtils, CastleClassUtils, CastleFilesUtils;
+  CastleUriUtils, CastleUtils, CastleClassUtils, CastleFilesUtils,
+  CastleFindFiles;
 
 procedure TTestUriUtils.TestUriProtocol;
 var
@@ -470,11 +471,19 @@ end;
 procedure TTestUriUtils.TestMemoryFileSystem;
 var
   Fs: TCastleMemoryFileSystem;
+  FoundList: TFileInfoList;
 begin
   Fs := TCastleMemoryFileSystem.Create;
   try
     AssertTrue(UriExists('my-fs:/') = ueNotExists);
     Fs.RegisterUrlProtocol('my-fs');
+
+    FoundList := FindFilesList('my-fs:/', '*', true, [ffRecursive]);
+    try
+      AssertEquals(0, FoundList.Count);
+    finally
+      FreeAndNil(FoundList);
+    end;
 
     AssertTrue(UriExists('my-fs:/') = ueDirectory);
     AssertTrue(UriExists('my-fs:/foo.txt') = ueNotExists);
@@ -491,6 +500,76 @@ begin
 
     AssertEquals('Hello world', FileToString('my-fs:/foo.txt'));
     AssertEquals('Hello world 2', FileToString('my-fs:/bar/baz.txt'));
+
+    FoundList := FindFilesList('my-fs:/', '*', true, []);
+    try
+      AssertEquals(2, FoundList.Count);
+
+      AssertEquals('foo.txt', FoundList[0].Name);
+      AssertEquals('', FoundList[0].AbsoluteName); // this is not a filename, so AbsoluteName is empty
+      AssertEquals('my-fs:/foo.txt', FoundList[0].Url);
+      AssertEquals(Length('Hello world'), FoundList[0].Size);
+      AssertFalse(FoundList[0].Directory);
+      AssertFalse(FoundList[0].Symlink);
+
+      AssertEquals('bar', FoundList[1].Name);
+      AssertEquals('', FoundList[1].AbsoluteName); // this is not a filename, so AbsoluteName is empty
+      AssertEquals('my-fs:/bar', FoundList[1].Url);
+      AssertEquals(0, FoundList[1].Size);
+      AssertTrue(FoundList[1].Directory);
+      AssertFalse(FoundList[1].Symlink);
+    finally
+      FreeAndNil(FoundList);
+    end;
+
+    FoundList := FindFilesList('my-fs:/', '*', true, [ffRecursive]);
+    try
+      AssertEquals(3, FoundList.Count);
+
+      AssertEquals('foo.txt', FoundList[0].Name);
+      AssertEquals('', FoundList[0].AbsoluteName); // this is not a filename, so AbsoluteName is empty
+      AssertEquals('my-fs:/foo.txt', FoundList[0].Url);
+      AssertEquals(Length('Hello world'), FoundList[0].Size);
+      AssertFalse(FoundList[0].Directory);
+      AssertFalse(FoundList[0].Symlink);
+
+      AssertEquals('bar', FoundList[1].Name);
+      AssertEquals('', FoundList[1].AbsoluteName); // this is not a filename, so AbsoluteName is empty
+      AssertEquals('my-fs:/bar', FoundList[1].Url);
+      AssertEquals(0, FoundList[1].Size);
+      AssertTrue(FoundList[1].Directory);
+      AssertFalse(FoundList[1].Symlink);
+
+      AssertEquals('baz.txt', FoundList[2].Name);
+      AssertEquals('', FoundList[2].AbsoluteName); // this is not a filename, so AbsoluteName is empty
+      AssertEquals('my-fs:/bar/baz.txt', FoundList[2].Url);
+      AssertEquals(Length('Hello world 2'), FoundList[2].Size);
+      AssertFalse(FoundList[2].Directory);
+      AssertFalse(FoundList[2].Symlink);
+    finally
+      FreeAndNil(FoundList);
+    end;
+
+    FoundList := FindFilesList('my-fs:/', '*.txt', true, [ffRecursive]);
+    try
+      AssertEquals(2, FoundList.Count);
+
+      AssertEquals('foo.txt', FoundList[0].Name);
+      AssertEquals('', FoundList[0].AbsoluteName); // this is not a filename, so AbsoluteName is empty
+      AssertEquals('my-fs:/foo.txt', FoundList[0].Url);
+      AssertEquals(Length('Hello world'), FoundList[0].Size);
+      AssertFalse(FoundList[0].Directory);
+      AssertFalse(FoundList[0].Symlink);
+
+      AssertEquals('baz.txt', FoundList[1].Name);
+      AssertEquals('', FoundList[1].AbsoluteName); // this is not a filename, so AbsoluteName is empty
+      AssertEquals('my-fs:/bar/baz.txt', FoundList[1].Url);
+      AssertEquals(Length('Hello world 2'), FoundList[1].Size);
+      AssertFalse(FoundList[1].Directory);
+      AssertFalse(FoundList[1].Symlink);
+    finally
+      FreeAndNil(FoundList);
+    end;
   finally
     FreeAndNil(Fs);
   end;

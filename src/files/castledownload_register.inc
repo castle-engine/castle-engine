@@ -125,7 +125,9 @@ type
       @item(FileInfo: TFileInfo, with all fields filled.)
 
       @item(StopSearch: Boolean.
-        Initially @false. Stop enumerating if caller answers @true.)
+        Pass our parameter StopSearch to this.
+        Initially @false when this is executed.
+        Stop enumerating if caller answers @true.)
     )
 
     @param(UrlPath Absolute URL path where to search.
@@ -133,7 +135,7 @@ type
     @param(Mask The mask to search for, with wildcards ? and *.
       E.g. '*.png' or '*.jpg'.) }
   TUrlFindFilesEvent = procedure(const UrlPath, Mask: String;
-    const FileEvent: TFoundFileMethod) of object;
+    const FileEvent: TFoundFileMethod; var StopSearch: Boolean) of object;
 
   EProtocolAlreadyRegistered = class(Exception);
 
