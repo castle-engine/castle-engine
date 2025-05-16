@@ -849,7 +849,8 @@ begin
     begin
       LinkerOutputBinaryPos := LinkerOutputBinaryPos + StrLen('Linking ');
       Options.LinkerOutputFile := Copy(FpcOutput, LinkerOutputBinaryPos, Pos(NL, FpcOutput, LinkerOutputBinaryPos) - LinkerOutputBinaryPos);
-    end;
+    end else
+      Writeln('Warning: build-tool could not recognize the linker output binary name, may cause error later.');
   finally FreeAndNil(FpcOptions) end;
 end;
 

@@ -84,6 +84,8 @@ begin
   // Get the output binary, rename it to include architecture.
   //WriteLn('OutputBinary = ' + CompilerOptions.OutputBinary);
   LinkRes := CompilerOptions.LinkerOutputFile;
+  if LinkRes = '' then
+    raise Exception.Create('Error extracting linker output binary name for x86_64 slice.');
   OutputBinary := LinkRes;
   ArchIntelBinary := LinkRes + '.x86_64';
   CheckRenameFile(LinkRes, ArchIntelBinary);
@@ -99,6 +101,8 @@ begin
   end;
 
   LinkRes := CompilerOptions.LinkerOutputFile;
+  if LinkRes = '' then
+    raise Exception.Create('Error extracting linker output binary name for arm64 slice.');
   ArchArmBinary := LinkRes + '.aarch64';
   CheckRenameFile(LinkRes, ArchArmBinary);
 
