@@ -60,7 +60,7 @@ type
     function ReadUrlHandler(const Url: String; out MimeType: string): TStream;
     function WriteUrlHandler(const Url: String): TStream;
     function ExistsUrlHandler(const Url: String): TUriExists;
-    procedure FindFilesHandler(const UrlPath, Mask: String;
+    procedure FindFilesUrlHandler(const UrlPath, Mask: String;
       const FileEvent: TFoundFileMethod; var StopSearch: Boolean);
   public
     constructor Create;
@@ -136,7 +136,7 @@ begin
   P.ReadEvent := {$ifdef FPC}@{$endif} ReadUrlHandler;
   P.WriteEvent := {$ifdef FPC}@{$endif} WriteUrlHandler;
   P.ExistsEvent := {$ifdef FPC}@{$endif} ExistsUrlHandler;
-  P.FindFilesEvent := {$ifdef FPC}@{$endif} FindFilesHandler;
+  P.FindFilesEvent := {$ifdef FPC}@{$endif} FindFilesUrlHandler;
 end;
 
 procedure TCastleMemoryFileSystem.UnregisterUrlProtocol;
@@ -271,7 +271,7 @@ begin
   Result := ueNotExists;
 end;
 
-procedure TCastleMemoryFileSystem.FindFilesHandler(
+procedure TCastleMemoryFileSystem.FindFilesUrlHandler(
   const UrlPath, Mask: String;
   const FileEvent: TFoundFileMethod; var StopSearch: Boolean);
 const
@@ -300,7 +300,7 @@ begin
           begin
             FileInfo := Default(TFileInfo);
             FileInfo.Name := NamePart;
-            FileInfo.Url := UrlPathSlash + NamePart;
+            FileInfo.Url := UrlPathSlash + UrlEncode(NamePart);
             FileInfo.Directory := false;
             FileInfo.Size := (Files.Objects[I] as TMemoryStream).Size;
             FileEvent(FileInfo, StopSearch);
@@ -318,7 +318,7 @@ begin
 
             FileInfo := Default(TFileInfo);
             FileInfo.Name := NamePart;
-            FileInfo.Url := UrlPathSlash + NamePart;
+            FileInfo.Url := UrlPathSlash + UrlEncode(NamePart);
             FileInfo.Directory := true;
             FileInfo.Size := 0;
             FileEvent(FileInfo, StopSearch);

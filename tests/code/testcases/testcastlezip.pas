@@ -38,6 +38,10 @@ type
     procedure TestZipDirectory;
     procedure TestZipWriteProtocol;
     procedure TestZipExistsProtocol;
+    { Test FindFiles on readable ZIP registered as URL protocol. }
+    procedure TestZipReadingFindFiles;
+    { Test FindFiles on writable ZIP registered as URL protocol. }
+    procedure TestZipWritingFindFiles;
   end;
 
 implementation
@@ -47,7 +51,7 @@ uses
   OpenSslSockets,
   {$endif}
   CastleZip, CastleUriUtils, CastleClassUtils, CastleDownload,
-  CastleUtils, CastleFilesUtils, CastleLog;
+  CastleUtils, CastleFilesUtils, CastleLog, CastleFindFiles;
 
 // Delphi 10.2 cannot read filenames with UTF-8 in our testcase
 {$ifdef FPC}
@@ -105,7 +109,7 @@ var
     StreamOutsideZip: TStream;
     DataUrl: String;
   begin
-    // use InternalUriEscape to encode characters like spaces and Polish inside URL
+    // use UrlEncode to encode characters like spaces and Polish inside URL
     DataUrl := 'castle-data:/zip/' + UrlEncode(PathInZip);
     try
       AssertTrue(Zip.Files.IndexOf(PathInZip) <> -1);
@@ -155,7 +159,7 @@ begin
     Exit;
   end;
 
-  // Use InternalUriEscape to encode characters like spaces and Polish inside URL.
+  // Use UrlEncode to encode characters like spaces and Polish inside URL.
   // We deliberately use "żółć" and Polish in the filename, to test that it works.
   ZipUrl := 'castle-data:/zip/' + UrlEncode('packed żółć.zip');
 
@@ -424,6 +428,97 @@ begin
     AssertTrue(UriExists(
       'TestZipExistsProtocol:/notexistingdir/') = ueNotExists);
   finally FreeAndNil(Zip) end;
+end;
+
+procedure TTestCastleZip.TestZipReadingFindFiles;
+var
+  Zip: TCastleZip;
+  ZipUrl: String;
+  FoundList: TFileInfoList;
+  //I: Integer;
+begin
+  Zip := TCastleZip.Create;
+  try
+    ZipUrl := 'castle-data:/zip/' + UrlEncode('packed żółć.zip');
+    Zip.Open(ZipUrl);
+    Zip.RegisterUrlProtocol('TestZipReadingFindFiles');
+
+    FoundList := FindFilesList('TestZipReadingFindFiles:/', '*', true, []);
+    try
+      FoundList.SortUrls; // make order deterministic
+      AssertEquals(4, FoundList.Count);
+
+      // for I := 0 to FoundList.Count - 1 do
+      //   Writeln('FoundList[', I, ']: ', FoundList[I].Name, ' ', FoundList[I].Url);
+
+      AssertEquals('subdir', FoundList[0].Name);
+      AssertEquals('', FoundList[0].AbsoluteName); // this is not a filename, so AbsoluteName is empty
+      AssertEquals('TestZipReadingFindFiles:/subdir', FoundList[0].Url);
+      AssertTrue(FoundList[0].Directory);
+      AssertFalse(FoundList[0].Symlink);
+
+      {$ifdef CASTLE_FULL_ZIP_UNICODE_SUPPORT}
+      AssertEquals('test filename żółć.txt', FoundList[1].Name);
+      AssertEquals('', FoundList[1].AbsoluteName); // this is not a filename, so AbsoluteName is empty
+      AssertEquals('TestZipReadingFindFiles:/' + UrlEncode('test filename żółć.txt'), FoundList[1].Url);
+      {$endif}
+      AssertFalse(FoundList[1].Directory);
+      AssertFalse(FoundList[1].Symlink);
+
+      AssertEquals('test.txt', FoundList[2].Name);
+      AssertEquals('', FoundList[2].AbsoluteName); // this is not a filename, so AbsoluteName is empty
+      AssertEquals('TestZipReadingFindFiles:/test.txt', FoundList[2].Url);
+      AssertFalse(FoundList[2].Directory);
+      AssertFalse(FoundList[2].Symlink);
+
+      AssertEquals('test_texture.png', FoundList[3].Name);
+      AssertEquals('', FoundList[3].AbsoluteName); // this is not a filename, so AbsoluteName is empty
+      AssertEquals('TestZipReadingFindFiles:/test_texture.png', FoundList[3].Url);
+      AssertFalse(FoundList[3].Directory);
+      AssertFalse(FoundList[3].Symlink);
+    finally
+      FreeAndNil(FoundList);
+    end;
+
+    FoundList := FindFilesList('TestZipReadingFindFiles:/', '*.txt', true, [ffRecursive]);
+    try
+      FoundList.SortUrls; // make order deterministic
+      AssertEquals(3, FoundList.Count);
+
+      // for I := 0 to FoundList.Count - 1 do
+      //   Writeln('FoundList[', I, ']: ', FoundList[I].Name, ' ', FoundList[I].Url);
+
+      {$ifdef CASTLE_FULL_ZIP_UNICODE_SUPPORT}
+      AssertEquals('test filename żółć in subdir.txt', FoundList[0].Name);
+      AssertEquals('', FoundList[0].AbsoluteName); // this is not a filename, so AbsoluteName is empty
+      AssertEquals('TestZipReadingFindFiles:/subdir/' + UrlEncode('test filename żółć in subdir.txt'), FoundList[0].Url);
+      {$endif}
+      AssertFalse(FoundList[0].Directory);
+      AssertFalse(FoundList[0].Symlink);
+
+      {$ifdef CASTLE_FULL_ZIP_UNICODE_SUPPORT}
+      AssertEquals('test filename żółć.txt', FoundList[1].Name);
+      AssertEquals('', FoundList[1].AbsoluteName); // this is not a filename, so AbsoluteName is empty
+      AssertEquals('TestZipReadingFindFiles:/' + UrlEncode('test filename żółć.txt'), FoundList[1].Url);
+      {$endif}
+      AssertFalse(FoundList[1].Directory);
+      AssertFalse(FoundList[1].Symlink);
+
+      {$ifdef CASTLE_FULL_ZIP_UNICODE_SUPPORT}
+      AssertEquals('test.txt', FoundList[2].Name);
+      AssertEquals('', FoundList[2].AbsoluteName); // this is not a filename, so AbsoluteName is empty
+      AssertEquals('TestZipReadingFindFiles:/test.txt', FoundList[2].Url);
+      {$endif}
+      AssertFalse(FoundList[2].Directory);
+      AssertFalse(FoundList[2].Symlink);
+    finally
+      FreeAndNil(FoundList);
+    end;
+  finally FreeAndNil(Zip) end;
+end;
+
+procedure TTestCastleZip.TestZipWritingFindFiles;
+begin
 end;
 
 initialization
