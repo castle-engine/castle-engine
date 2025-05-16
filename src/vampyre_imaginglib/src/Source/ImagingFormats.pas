@@ -4035,21 +4035,23 @@ begin
   Convert1To8(SrcBits, DestBits, Width, Height, (Width + 7) div 8, True);
 end;
 
-{ FPC 3.3.1 false warning.
-  We need to disable them again, even though already disabled in
-  ImagingOptions.inc -- possibly FPC issue? We do enable/disable of warnings
-  above in this file, and push/pop, it looks like something resets state
-  for 6060 at some point. }
-{$ifndef VER3_0}
-  {$ifndef VER3_2}
-    { 2 warnings below are common because of case analysis.
-      We don't adjust Vampyre to them (to not cause a large diff from upstream),
-      and in CGE we also resigned from trying to adjust to them and
-      just disable them.
-      ( https://castle-engine.io/coding_conventions#case_analysis ) }
-    {$warn 6060 off} // case statement does not handle all possible cases
+{$ifdef FPC}
+  { FPC 3.3.1 false warning.
+    We need to disable them again, even though already disabled in
+    ImagingOptions.inc -- possibly FPC issue? We do enable/disable of warnings
+    above in this file, and push/pop, it looks like something resets state
+    for 6060 at some point. }
+  {$ifndef VER3_0}
+    {$ifndef VER3_2}
+      { 2 warnings below are common because of case analysis.
+        We don't adjust Vampyre to them (to not cause a large diff from upstream),
+        and in CGE we also resigned from trying to adjust to them and
+        just disable them.
+        ( https://castle-engine.io/coding_conventions#case_analysis ) }
+      {$warn 6060 off} // case statement does not handle all possible cases
+    {$endif}
   {$endif}
-{$endif}
+{$endif FPC}
 
 procedure SpecialToUnSpecial(const SrcImage: TImageData; DestBits: Pointer;
   SpecialFormat: TImageFormat);
@@ -4221,21 +4223,23 @@ begin
   PColor32Rec(Bits).B := ClampToByte(Round(Color.B * 255.0));
 end;
 
-{ FPC 3.3.1 false warning.
-  We need to disable them again, even though already disabled in
-  ImagingOptions.inc -- possibly FPC issue? We do enable/disable of warnings
-  above in this file, and push/pop, it looks like something resets state
-  for 6060 at some point. }
-{$ifndef VER3_0}
-  {$ifndef VER3_2}
-    { 2 warnings below are common because of case analysis.
-      We don't adjust Vampyre to them (to not cause a large diff from upstream),
-      and in CGE we also resigned from trying to adjust to them and
-      just disable them.
-      ( https://castle-engine.io/coding_conventions#case_analysis ) }
-    {$warn 6060 off} // case statement does not handle all possible cases
+{$ifdef FPC}
+  { FPC 3.3.1 false warning.
+    We need to disable them again, even though already disabled in
+    ImagingOptions.inc -- possibly FPC issue? We do enable/disable of warnings
+    above in this file, and push/pop, it looks like something resets state
+    for 6060 at some point. }
+  {$ifndef VER3_0}
+    {$ifndef VER3_2}
+      { 2 warnings below are common because of case analysis.
+        We don't adjust Vampyre to them (to not cause a large diff from upstream),
+        and in CGE we also resigned from trying to adjust to them and
+        just disable them.
+        ( https://castle-engine.io/coding_conventions#case_analysis ) }
+      {$warn 6060 off} // case statement does not handle all possible cases
+    {$endif}
   {$endif}
-{$endif}
+{$endif FPC}
 
 function GetPixel32Channel8Bit(Bits: Pointer; Info: PImageFormatInfo; Palette: PPalette32): TColor32Rec;
 begin
