@@ -114,6 +114,27 @@ type
     Use with @link(RegisterUrlProtocol) and @link(TRegisteredProtocol.ExistsEvent). }
   TUrlExistsEvent = function(const Url: String): TUriExists of object;
 
+  { Event called with @link(FindFiles) is used to search within a directory
+    with the registered URL protocol.
+
+    Should call FileEvent for all files and directories whose name matches
+    Mask within directory UrlPath. To every call, pass regular
+    @link(TFoundFileMethod) parameters:
+
+    @unorderedList(
+      @item(FileInfo: TFileInfo, with all fields filled.)
+
+      @item(StopSearch: Boolean.
+        Initially @false. Stop enumerating if caller answers @true.)
+    )
+
+    @param(UrlPath Absolute URL path where to search.
+      E.g. this is a directory like @code('file:///home/user/dir/').)
+    @param(Mask The mask to search for, with wildcards ? and *.
+      E.g. '*.png' or '*.jpg'.) }
+  TUrlFindFilesEvent = procedure(const UrlPath, Mask: String;
+    const FileEvent: TFoundFileMethod) of object;
+
   EProtocolAlreadyRegistered = class(Exception);
 
   { Details of the registered URL protocol.
@@ -125,6 +146,7 @@ type
     FWriteEvent: TUrlWriteEvent;
     FAsynchronousReader: TUrlAsynchronousReaderClass;
     FExistsEvent: TUrlExistsEvent;
+    FFindFilesEvent: TUrlFindFilesEvent;
     function GetDetectMimeTypeFromExtension: Boolean;
     procedure SetDetectMimeTypeFromExtension(const Value: Boolean);
   private
@@ -185,6 +207,10 @@ type
 
     { Optional event to check whether given URL exists (as a directory or file). }
     property ExistsEvent: TUrlExistsEvent read FExistsEvent write FExistsEvent;
+
+    { Optional event to enumerate files in a directory with given protocol.
+      This is used by @link(FindFiles). }
+    property FindFilesEvent: TUrlFindFilesEvent read FFindFilesEvent write FFindFilesEvent;
   end;
 
 { Register how we can load and/or save the URLs with given protocol.
