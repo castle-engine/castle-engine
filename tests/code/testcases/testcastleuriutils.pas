@@ -241,7 +241,7 @@ end;
 procedure TTestUriUtils.TestUriExists;
 begin
   AssertTrue(ueUnknown = UriExists('http:/whatever'));
-  AssertTrue(ueUnknown = UriExists('unknown-protocol:/whatecer'));
+  AssertTrue(ueNotExists = UriExists('unknown-protocol:/whatecer'));
 
   AssertTrue(ueNotExists = UriExists('castle-data:/not_existing'));
   AssertTrue(ueFile = UriExists('castle-data:/game/level.xml'));
