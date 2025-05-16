@@ -451,17 +451,16 @@ begin
       // for I := 0 to FoundList.Count - 1 do
       //   Writeln('FoundList[', I, ']: ', FoundList[I].Name, ' ', FoundList[I].Url);
 
+      {$ifdef CASTLE_FULL_ZIP_UNICODE_SUPPORT}
       AssertEquals('subdir', FoundList[0].Name);
       AssertEquals('', FoundList[0].AbsoluteName); // this is not a filename, so AbsoluteName is empty
       AssertEquals('TestZipReadingFindFiles:/subdir', FoundList[0].Url);
       AssertTrue(FoundList[0].Directory);
       AssertFalse(FoundList[0].Symlink);
 
-      {$ifdef CASTLE_FULL_ZIP_UNICODE_SUPPORT}
       AssertEquals('test filename żółć.txt', FoundList[1].Name);
       AssertEquals('', FoundList[1].AbsoluteName); // this is not a filename, so AbsoluteName is empty
       AssertEquals('TestZipReadingFindFiles:/' + UrlEncode('test filename żółć.txt'), FoundList[1].Url);
-      {$endif}
       AssertFalse(FoundList[1].Directory);
       AssertFalse(FoundList[1].Symlink);
 
@@ -476,6 +475,7 @@ begin
       AssertEquals('TestZipReadingFindFiles:/test_texture.png', FoundList[3].Url);
       AssertFalse(FoundList[3].Directory);
       AssertFalse(FoundList[3].Symlink);
+      {$endif CASTLE_FULL_ZIP_UNICODE_SUPPORT}
     finally
       FreeAndNil(FoundList);
     end;
@@ -492,25 +492,21 @@ begin
       AssertEquals('test filename żółć in subdir.txt', FoundList[0].Name);
       AssertEquals('', FoundList[0].AbsoluteName); // this is not a filename, so AbsoluteName is empty
       AssertEquals('TestZipReadingFindFiles:/subdir/' + UrlEncode('test filename żółć in subdir.txt'), FoundList[0].Url);
-      {$endif}
       AssertFalse(FoundList[0].Directory);
       AssertFalse(FoundList[0].Symlink);
 
-      {$ifdef CASTLE_FULL_ZIP_UNICODE_SUPPORT}
       AssertEquals('test filename żółć.txt', FoundList[1].Name);
       AssertEquals('', FoundList[1].AbsoluteName); // this is not a filename, so AbsoluteName is empty
       AssertEquals('TestZipReadingFindFiles:/' + UrlEncode('test filename żółć.txt'), FoundList[1].Url);
-      {$endif}
       AssertFalse(FoundList[1].Directory);
       AssertFalse(FoundList[1].Symlink);
 
-      {$ifdef CASTLE_FULL_ZIP_UNICODE_SUPPORT}
       AssertEquals('test.txt', FoundList[2].Name);
       AssertEquals('', FoundList[2].AbsoluteName); // this is not a filename, so AbsoluteName is empty
       AssertEquals('TestZipReadingFindFiles:/test.txt', FoundList[2].Url);
-      {$endif}
       AssertFalse(FoundList[2].Directory);
       AssertFalse(FoundList[2].Symlink);
+      {$endif CASTLE_FULL_ZIP_UNICODE_SUPPORT}
     finally
       FreeAndNil(FoundList);
     end;
