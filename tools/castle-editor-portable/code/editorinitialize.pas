@@ -43,6 +43,17 @@ begin
   { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
   Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
+  { Inside CGE editor,
+    - CastleApplicationMode is never appRunning,
+    - so CastleDesignMode is always true. }
+  InternalCastleApplicationMode := appDesign;
+
+  { Inside CGE editor, file monitor is always enabled.
+    Make sure to call FileMonitor.MakePossiblyEnabled before anything is watched,
+    even before any Theme.ImagesPersistent[xxx].Url := ... }
+  FileMonitor.MakePossiblyEnabled;
+  FileMonitor.Enabled := true;
+
   { Use a bit more modern buttons look, from castle-model-viewer }
   Theme.ImagesPersistent[tiButtonNormal].Url := 'castle-data:/theme/ButtonNormal.png';
   Theme.ImagesPersistent[tiButtonNormal].ProtectedSides.AllSides := 2;
@@ -59,15 +70,6 @@ begin
 
   { Make MessageOK use TCastleView and thus work on all systems, including iOS and web. }
   MessageOKPushesView := true;
-
-  { Inside CGE editor,
-    - CastleApplicationMode is never appRunning,
-    - so CastleDesignMode is always true. }
-  InternalCastleApplicationMode := appDesign;
-
-  { Inside CGE editor, file monitor is always enabled. }
-  FileMonitor.MakePossiblyEnabled;
-  FileMonitor.Enabled := true;
 
   { Set InternalCastleDesignData to enable e.g. light components to
     load gizmos. }
