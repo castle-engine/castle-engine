@@ -14,7 +14,7 @@ uses SysUtils, Job.JS;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {
-  Automatically generated file by TWebIDLToPasWasmJob on 2025-02-27 06:54:56
+  Automatically generated file by TWebIDLToPasWasmJob on 2025-05-16 12:13:41
   
   Used command-line options: 
   --input=castleinternaljobweb.webidl
@@ -7322,8 +7322,12 @@ Type
     --------------------------------------------------------------------}
   
   IJSWindow = interface(IJSEventTarget)
-    ['{7F70DB15-9FE5-38D7-8737-7370FF9CC6BA}']
+    ['{81CA455C-B190-310E-AC3B-E34368D0C443}']
     function _GetdevicePixelRatio: Double; 
+    function open(const aUrl: UnicodeString; const aTarget: UnicodeString; const aFeatures: UnicodeString): IJSWindowProxy;
+    function open: IJSWindowProxy;
+    function open(const aUrl: UnicodeString): IJSWindowProxy;
+    function open(const aUrl: UnicodeString; const aTarget: UnicodeString): IJSWindowProxy;
     function requestAnimationFrame(const aCallback: TFrameRequestCallback): LongInt;
     procedure cancelAnimationFrame(aHandle: LongInt);
     property devicePixelRatio: Double read _GetdevicePixelRatio;
@@ -7334,6 +7338,10 @@ Type
   Protected
     function _GetdevicePixelRatio: Double; 
   Public
+    function open(const aUrl: UnicodeString; const aTarget: UnicodeString; const aFeatures: UnicodeString): IJSWindowProxy; overload;
+    function open: IJSWindowProxy; overload;
+    function open(const aUrl: UnicodeString): IJSWindowProxy; overload;
+    function open(const aUrl: UnicodeString; const aTarget: UnicodeString): IJSWindowProxy; overload;
     function requestAnimationFrame(const aCallback: TFrameRequestCallback): LongInt; overload;
     procedure cancelAnimationFrame(aHandle: LongInt); overload;
     class function JSClassName: UnicodeString; override;
@@ -19408,6 +19416,26 @@ end;
 function TJSWindow._GetdevicePixelRatio: Double;
 begin
   Result:=ReadJSPropertyDouble('devicePixelRatio');
+end;
+
+function TJSWindow.open(const aUrl: UnicodeString; const aTarget: UnicodeString; const aFeatures: UnicodeString): IJSWindowProxy;
+begin
+  Result:=InvokeJSObjectResult('open',[aUrl,aTarget,aFeatures],TJSWindowProxy) as IJSWindowProxy;
+end;
+
+function TJSWindow.open: IJSWindowProxy;
+begin
+  Result:=InvokeJSObjectResult('open',[],TJSWindowProxy) as IJSWindowProxy;
+end;
+
+function TJSWindow.open(const aUrl: UnicodeString): IJSWindowProxy;
+begin
+  Result:=InvokeJSObjectResult('open',[aUrl],TJSWindowProxy) as IJSWindowProxy;
+end;
+
+function TJSWindow.open(const aUrl: UnicodeString; const aTarget: UnicodeString): IJSWindowProxy;
+begin
+  Result:=InvokeJSObjectResult('open',[aUrl,aTarget],TJSWindowProxy) as IJSWindowProxy;
 end;
 
 function TJSWindow.requestAnimationFrame(const aCallback: TFrameRequestCallback): LongInt;

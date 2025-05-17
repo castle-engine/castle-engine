@@ -20,8 +20,8 @@ unit CastleUriUtils;
 
 interface
 
-uses SysUtils, Classes,
-  CastleStringUtils;
+uses SysUtils, Classes, Generics.Collections,
+  CastleStringUtils, CastleFindFiles;
 
 { Extracts #anchor from URI. On input, URI contains full URI.
   On output, Anchor is removed from URI and saved in Anchor.
@@ -430,13 +430,21 @@ var
     data files, but in many cases it is acceptable. }
   CastleDataIgnoreCase: Boolean = false;
 
+{$define read_interface}
+{$I castleuriutils_memoryfilesystem.inc}
+{$undef read_interface}
+
 implementation
 
-uses UriParser,
+uses UriParser, StrUtils,
   CastleUtils, CastleInternalDataUri, CastleLog, CastleFilesUtils,
-  CastleFindFiles, CastleDownload, CastleZip, CastleApplicationProperties
+  CastleDownload, CastleZip, CastleApplicationProperties
   {$ifdef WASI}, Job.Js, CastleInternalJobWeb {$endif}
   {$ifndef FPC}, Character{$endif};
+
+{$define read_implementation}
+{$I castleuriutils_memoryfilesystem.inc}
+{$undef read_implementation}
 
 { Escape and Unescape --------------------------------------------------------
   Copied from UriParser and fixed for Delphi, as they are internal there.
@@ -560,8 +568,9 @@ begin
     Inc(P);
   end;
   {$else}
+  Result := ''; // rest of code will append to this string
   if L = 0 then
-    Exit('');
+    Exit;
 
   I := 1;
   while I <= L do
@@ -1292,10 +1301,16 @@ begin
 
   P := UriProtocol(Url);
   R := FindRegisteredUrlProtocol(P);
-  if (R <> nil) and Assigned(R.ExistsEvent) then
-    Result := R.ExistsEvent(Url)
-  else
-    Result := ueUnknown;
+  if R <> nil then
+  begin
+    if Assigned(R.ExistsEvent) then
+      Result := R.ExistsEvent(Url)
+    else
+      // Protocol known, but no ExistsEvent -> so don't know if this exists
+      Result := ueUnknown;
+  end else
+    // Protocol not known -> doesn't exist, as far as our Download and UrlSaveStream are concerned
+    Result := ueNotExists;
 end;
 
 function UriCurrentPath: string;
@@ -1602,7 +1617,7 @@ function ResolveCastleDataUrl(const Url: String): String;
 
     H := TFixCaseHandler.Create;
     try
-      Parts := SplitString(UrlDecode(RelativeToData), '/');
+      Parts := CastleStringUtils.SplitString(UrlDecode(RelativeToData), '/');
       try
         for I := 0 to Parts.Count - 1 do
         begin
@@ -1653,7 +1668,21 @@ begin
     Result := Url;
 end;
 
+var
+  WebTemporaryConfig: TCastleMemoryFileSystem;
+
 function ResolveCastleConfigUrl(const Url: String): String;
+
+  { TODO: Initializes a temporary filesystem now. }
+  function WebGetApplicationConfigPath: String;
+  begin
+    if WebTemporaryConfig = nil then
+    begin
+      WebTemporaryConfig := TCastleMemoryFileSystem.Create;
+      WebTemporaryConfig.RegisterUrlProtocol('castle-internal-web-config');
+    end;
+    Result := 'castle-internal-web-config:/';
+  end;
 
   { Resolve the Path inside castle-config to final URL.
     Path is a relative path, not URL-encoded (so it is directly
@@ -1676,8 +1705,14 @@ function ResolveCastleConfigUrl(const Url: String): String;
         'You should do it in Application.OnInitialize instead.',
         [Path]);
 
+    {$ifdef WASI}
+    // use WebAssembly specific implementation
+    Result := WebGetApplicationConfigPath + UrlEncode(Path);
+    {$else}
+    // use GetAppConfigDir
     ConfigDir := InclPathDelim(GetAppConfigDir(false));
     Result := FilenameToUriSafe(ConfigDir + Path);
+    {$endif}
   end;
 
 var
@@ -1698,4 +1733,5 @@ initialization
 finalization
   FreeAndNil(FUriMimeExtensions);
   FreeAndNil(DataPacked);
+  FreeAndNil(WebTemporaryConfig);
 end.

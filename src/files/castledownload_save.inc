@@ -104,12 +104,6 @@ begin
     Exit;
   end;
 
-  {$ifdef WASI}
-  // TODO: web: make ApplicationConfig return sthg like castle-config:/ and handle it for web
-  WritelnWarning('Writing to URLs (like ApplicationConfig) is not supported on web yet, sending the contents to /dev/null');
-  Exit(TMemoryStream.Create);
-  {$endif}
-
   RegisteredProtocol := RegisteredProtocols.Find(P);
   if RegisteredProtocol <> nil then
   begin

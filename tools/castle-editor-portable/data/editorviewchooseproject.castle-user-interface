@@ -166,7 +166,7 @@
                   "PaddingVertical" : 2.0000000000000000E+001,
                   "TranslationPersistent" : {
                     "$$ClassName" : "TCastleVector2Persistent",
-                    "X" : 1.7600000000000000E+002
+                    "X" : 1.7599998474121094E+002
                   },
                   "VerticalAnchorParent" : "vpMiddle",
                   "VerticalAnchorSelf" : "vpMiddle"
@@ -194,7 +194,7 @@
                   "PaddingVertical" : 2.0000000000000000E+001,
                   "TranslationPersistent" : {
                     "$$ClassName" : "TCastleVector2Persistent",
-                    "X" : 4.0000000000000000E+002
+                    "X" : 3.9999996948242188E+002
                   },
                   "VerticalAnchorParent" : "vpMiddle",
                   "VerticalAnchorSelf" : "vpMiddle"
@@ -351,27 +351,55 @@
       }
     },
     {
-      "$$ClassName" : "TCastleLabel",
-      "ColorPersistent" : {
-        "$$ClassName" : "TCastleColorPersistent",
-        "Blue" : 4.0784314274787903E-001,
-        "Green" : 4.0784314274787903E-001,
-        "Red" : 1.0000000000000000E+000
-      },
+      "$$ClassName" : "TCastleVerticalGroup",
       "HorizontalAnchorParent" : "hpMiddle",
       "HorizontalAnchorSelf" : "hpMiddle",
-      "Name" : "Label3",
-      "Text" : [
-        "Warning:  This \"portable engine editor\" is in a very early stage.",
-        "It shows that we can make an editor using our own UI",
-        "(and thus available for any platform, including mobile and web)...",
-        "but it is missing a lot of critical features necessary for real work.",
-        "Use the real editor instead (castle-editor, using LCL)."
-      ],
+      "Name" : "VerticalGroup2",
+      "Spacing" : 5.0000000000000000E+000,
       "TranslationPersistent" : {
         "$$ClassName" : "TCastleVector2Persistent",
         "Y" : 1.0000000000000000E+001
-      }
+      },
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleLabel",
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 4.0784314274787903E-001,
+            "Green" : 4.0784314274787903E-001,
+            "Red" : 1.0000000000000000E+000
+          },
+          "Name" : "LabelWarning1",
+          "Text" : [
+            "Warning:  This \"portable engine editor\" is only an \"early preview\". It shows that we can make an editor ",
+            "using our own UI, and thus available for any platform (including mobile and web), but...",
+            "it misses a lot of critical features. Use the real editor instead (castle-editor, using LCL) for real work."
+          ],
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop"
+        },
+        {
+          "$$ClassName" : "TCastleLabel",
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 8.6274512112140656E-002,
+            "Green" : 2.5882354378700256E-001,
+            "Red" : 1.0000000000000000E+000
+          },
+          "Name" : "LabelWarningWeb",
+          "Text" : [
+            "Warning 2:  On the web, the projects you create are only temporary.",
+            "You cannot save them on disk *and* they will disappear if you reload the page. ",
+            "Both things above are TODO of course. Stay tuned for more development."
+          ],
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -6.9000000000000000E+001
+          },
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop"
+        }
+      ]
     }
   ]
 }

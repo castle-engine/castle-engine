@@ -37,6 +37,7 @@ interface nsIDOMWindowUtils;
 interface nsIPrintSettings;
 
 interface Window : EventTarget {
+  [Throws] WindowProxy? open(optional USVString url = "", optional DOMString target = "", optional [LegacyNullToEmptyString] DOMString features = "");
 };
 
 Window includes AnimationFrameProvider;
