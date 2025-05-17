@@ -568,8 +568,9 @@ begin
     Inc(P);
   end;
   {$else}
+  Result := ''; // rest of code will append to this string
   if L = 0 then
-    Exit('');
+    Exit;
 
   I := 1;
   while I <= L do
