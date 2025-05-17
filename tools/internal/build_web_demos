@@ -128,6 +128,7 @@ do_project examples/creature_behaviors # TODO: web: bump mapping, mouse look
 do_project examples/third_person_navigation # TODO: web: mouse look
 do_project examples/physics/physics_3d_shooter # TODO: web: mouse look
 
+do_project tools/castle-editor-portable
 do_project tests
 
 # 3d, problems critical
