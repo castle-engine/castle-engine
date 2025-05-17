@@ -21,7 +21,7 @@ unit CastleDownload;
 interface
 
 uses SysUtils, Classes,
-  CastleVectors, CastleUriUtils;
+  CastleVectors, CastleUriUtils, CastleFindFiles;
 
 {$define read_interface}
 {$I castledownload_register.inc}

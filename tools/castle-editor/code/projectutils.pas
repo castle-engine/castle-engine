@@ -55,7 +55,8 @@ implementation
 uses Forms,
   CastleUriUtils, CastleStringUtils, CastleFindFiles, CastleUtils,
   CastleFilesUtils,
-  EditorUtils, ToolCommonUtils, FormProject;
+  ToolCommonUtils, ToolProcessRun,
+  EditorUtils, FormProject;
 
 procedure GenerateProgramWithBuildTool(const ProjectDirUrl: String);
 var

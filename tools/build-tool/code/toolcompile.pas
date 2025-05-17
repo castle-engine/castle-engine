@@ -122,7 +122,7 @@ implementation
 uses SysUtils, Process,
   CastleUtils, CastleLog, CastleFilesUtils, CastleFindFiles,
   CastleInternalTools,
-  ToolCommonUtils, ToolUtils, ToolFpcVersion, ToolCompilerInfo;
+  ToolCommonUtils, ToolUtils, ToolFpcVersion, ToolCompilerInfo, ToolProcessRun;
 
 { TCompilerOptions ----------------------------------------------------------- }
 

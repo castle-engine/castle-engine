@@ -65,7 +65,7 @@ uses SysUtils, DOM, XMLWrite,
   CastleUriUtils, CastleXmlUtils, CastleLog, CastleFilesUtils, CastleImages,
   CastleInternalTools,
   ToolEmbeddedImages, ToolFPCVersion, ToolCommonUtils, ToolUtils,
-  ToolServicesOperations;
+  ToolServicesOperations, ToolProcessRun;
 
 var
   DetectAndroidCPUSCached: TCPUS;

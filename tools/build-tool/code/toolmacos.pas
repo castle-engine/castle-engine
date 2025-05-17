@@ -56,7 +56,7 @@ implementation
 uses {$ifdef UNIX} BaseUnix, {$endif} SysUtils,
   CastleFilesUtils, CastleLog, CastleImages, CastleFindFiles,
   CastleInternalArchitectures,
-  ToolCommonUtils, ToolUtils, ToolEmbeddedImages;
+  ToolCommonUtils, ToolUtils, ToolEmbeddedImages, ToolProcessRun;
 
 procedure CompileMacOS(const Compiler: TCompiler;
   const WorkingDirectory, CompileFile: string;
