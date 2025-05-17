@@ -25,6 +25,8 @@ uses Classes,
 
 var
   IosSimulatorSupport: Boolean = false;
+  { armv7 target was removed in Xcode 14, is no longer supported }
+  IosArm32Support: Boolean = false;
 
 type
   TIosArchiveType = (
@@ -128,7 +130,8 @@ begin
     //CompileLibrary(iphonesim, i386);
     CompileLibrary(iphonesim, x86_64);
   end;
-  CompileLibrary(iOS, arm);
+  if IosArm32Support then
+     CompileLibrary(iOS, arm);
   CompileLibrary(iOS, aarch64);
 end;
 
@@ -136,6 +139,13 @@ procedure LinkIOSLibrary(const Compiler: TCompiler; const CompilationWorkingDire
 var
   Options: TCastleStringList;
 begin
+  if (not IosSimulatorSupport) and (not IosArm32Support) then
+  begin
+    { the only remaining target is aarch64, not need to connect, just copy to output }
+    CheckCopyFile(CompilationOutputPath(Compiler, iOS, aarch64, CompilationWorkingDirectory) + IOSPartialLibraryName, OutputFile);
+    exit;
+  end;
+
   Options := TCastleStringList.Create;
   try
     Options.Add('-static');
@@ -149,9 +159,10 @@ begin
       //Options.Add(CompilationOutputPath(Compiler, iphonesim, i386   , CompilationWorkingDirectory) + IOSPartialLibraryName);
       Options.Add(CompilationOutputPath(Compiler, iphonesim, x86_64 , CompilationWorkingDirectory) + IOSPartialLibraryName);
     end;
-    Options.Add(CompilationOutputPath(Compiler, iOS   , arm    , CompilationWorkingDirectory) + IOSPartialLibraryName);
+    if IosArm32Support then
+       Options.Add(CompilationOutputPath(Compiler, iOS   , arm    , CompilationWorkingDirectory) + IOSPartialLibraryName);
     Options.Add(CompilationOutputPath(Compiler, iOS   , aarch64, CompilationWorkingDirectory) + IOSPartialLibraryName);
-    RunCommandSimple('libtool', Options.ToArray);
+    RunCommandSimple('libtool', Options.ToArray)
   finally FreeAndNil(Options) end;
 end;
 

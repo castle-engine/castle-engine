@@ -240,6 +240,11 @@ begin
     BundleDocumentTypes +
     #9'</array>' + NL;
 
+  if BundleDocumentTypes <> '' then
+    Result := Result +
+    #9'<key>LSSupportsOpeningDocumentsInPlace</key>' + NL +
+    #9'<true/>' + NL;
+
   if ExportedTypeDeclarations <> '' then
     Result := Result +
     #9'<key>UTExportedTypeDeclarations</key>' + NL +
