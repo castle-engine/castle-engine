@@ -1,6 +1,6 @@
 ﻿// -*- compile-command: "./test_single_testcase.sh TTestDownload" -*-
 {
-  Copyright 2020-2023 Michalis Kamburelis.
+  Copyright 2020-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,7 +25,8 @@ uses
 type
   TTestDownload = class(TCastleTestCase)
   published
-    procedure TestLocalChars;
+    procedure TestLocalCharsCastleData;
+    procedure TestLocalCharsCastleConfig;
     procedure TestTextReader;
     procedure TestRegisteredProtocolNotCaseSensitive;
   end;
@@ -35,7 +36,7 @@ implementation
 uses CastleDownload, CastleClassUtils, CastleVectors, CastleStringUtils,
   CastleFonts, CastleFilesUtils, CastleUriUtils;
 
-procedure TTestDownload.TestLocalChars;
+procedure TTestDownload.TestLocalCharsCastleData;
 
   { Test reading file using URL (through CGE function). }
   procedure TestReading(const URL: String);
@@ -100,9 +101,20 @@ begin
   TestReadingThroughReference('castle-data:/local_chars/reference to file with Russian chars.txt');
   TestReadingThroughReference('castle-data:/local_chars/reference to file with Polish chars.txt');
 
-  { This would fail in Docker now, where we cannot create /.config/... }
-  {.$define TEST_CONFIG}
-  {$ifdef TEST_CONFIG}
+  TestReadingFont('castle-data:/' + UrlEncode('local_chars/DejaVuSans name with Russian chars образец русского текста.ttf'));
+
+  // Not really correct URLs, as space should be encoded as %20 etc., but we handle them too
+  TestReadingFont('castle-data:/local_chars/DejaVuSans name with Russian chars образец русского текста.ttf');
+end;
+
+procedure TTestDownload.TestLocalCharsCastleConfig;
+begin
+  if not CanUseCastleConfig then
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   StringToFile('castle-config:/' + UrlEncode('config_ascii.txt'), 'Testing save.');
   StringToFile('castle-config:/' + UrlEncode('config with Chinese chars 样例中文文本.txt'), 'Testing save.');
   StringToFile('castle-config:/' + UrlEncode('config with Polish chars ćma źrebak żmija wąż królik.txt'), 'Testing save.');
@@ -112,12 +124,6 @@ begin
   StringToFile('castle-config:/2_config with Chinese chars 样例中文文本.txt', 'Testing save.');
   StringToFile('castle-config:/2_config with Polish chars ćma źrebak żmija wąż królik.txt', 'Testing save.');
   StringToFile('castle-config:/2_config with Russian chars образец русского текста.txt', 'Testing save.');
-  {$endif}
-
-  TestReadingFont('castle-data:/' + UrlEncode('local_chars/DejaVuSans name with Russian chars образец русского текста.ttf'));
-
-  // Not really correct URLs, as space should be encoded as %20 etc., but we handle them too
-  TestReadingFont('castle-data:/local_chars/DejaVuSans name with Russian chars образец русского текста.ttf');
 end;
 
 procedure TTestDownload.TestTextReader;
