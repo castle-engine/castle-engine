@@ -41,6 +41,9 @@ type
     procedure TestUriMimeType;
     procedure TestRelativeFilenameToUriSafe;
     procedure TestMemoryFileSystem;
+    { Test TCastleMemoryFileSystem.FindFilesUrlEvent,
+      it internally has additional logic to return each subdir only once
+      (because it remembers only Files), make sure it works. }
     procedure TestMemoryFileSystemFindFilesSubdirs;
   end;
 
@@ -579,11 +582,6 @@ begin
 end;
 
 procedure TTestUriUtils.TestMemoryFileSystemFindFilesSubdirs;
-
-{ Test TCastleMemoryFileSystem.FindFilesUrlEvent,
-  it internally has additional logic to return each subdir only once
-  (because it remembers only Files), make sure it works. }
-
 var
   Fs: TCastleMemoryFileSystem;
   FoundList: TFileInfoList;
