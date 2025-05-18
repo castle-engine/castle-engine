@@ -214,10 +214,13 @@ function FilenameToUriSafe(FileName: String): String;
   The FileName = '' is also considered relative, and returns ''. }
 function RelativeFilenameToUriSafe(const FileName: String): String;
 
-{ Tries change URI to use castle-data: protocol.
-  It's used in our editor to change absolute paths to relative to castle-data
-  directory. }
+{ Try to change URL to use castle-data:/ protocol,
+  if the URL is resolved to a file inside the castle-data directory. }
 function MaybeUseDataProtocol(const Url: String): String;
+
+{ Try to change URL to use castle-config:/ protocol,
+  if the URL is resolved to a file inside the castle-config directory. }
+function MaybeUseCastleConfigProtocol(const Url: String): String;
 
 { Get MIME type for content of the URI @italic(without downloading the file).
   For local and remote files (file, http, and similar protocols)
@@ -1097,6 +1100,19 @@ begin
   DataPath := ResolveCastleDataUrl('castle-data:/');
   if IsPrefix(DataPath, Url, not FileNameCaseSensitive) then
     Result := 'castle-data:/' + PrefixRemove(DataPath, Url, not FileNameCaseSensitive)
+  else
+    Result := Url;
+end;
+
+function MaybeUseCastleConfigProtocol(const Url: String): String;
+var
+  ConfigPath: String;
+begin
+  { Use below ResolveCastleConfigUrl, to get real location of Config,
+    e.g. resolved to file:// on normal desktop. }
+  ConfigPath := ResolveCastleConfigUrl('castle-config:/');
+  if IsPrefix(ConfigPath, Url, not FileNameCaseSensitive) then
+    Result := 'castle-config:/' + PrefixRemove(ConfigPath, Url, not FileNameCaseSensitive)
   else
     Result := Url;
 end;
