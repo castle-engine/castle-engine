@@ -31,6 +31,7 @@ uses SysUtils,
   CastleInternalArchitectures,
   ToolPackageFormat, ToolProject, ToolCompile, ToolIOS, ToolAndroid, ToolManifest,
   ToolNintendoSwitch, ToolCommonUtils, ToolUtils, ToolProcess,
+  { For ForcePipesPassthrough, necessary for Windows. } ToolProcessRun,
   ToolCache, ToolCompilerInfo;
 
 var

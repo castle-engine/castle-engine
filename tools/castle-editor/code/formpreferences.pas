@@ -123,6 +123,7 @@ implementation
 uses CastleOpenDocument, CastleUtils, CastleLog, CastleSoundEngine,
   CastleStringUtils, CastleFilesUtils, CastleUriUtils,
   ToolCompilerInfo, ToolFpcVersion, ToolCommonUtils, ToolManifest,
+  ToolProcessRun,
   EditorUtils, ProjectUtils;
 
 {$R *.lfm}

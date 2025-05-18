@@ -7,7 +7,7 @@
   This Source Code Form is subject to the terms of the Mozilla Public
   License, v. 2.0. If a copy of the MPL was not distributed with this
   file, You can obtain one at https://mozilla.org/MPL/2.0.
-} 
+}
 
 { This unit manages information about all image data formats and contains
   low level format conversion, manipulation, and other related functions.}
@@ -1679,7 +1679,7 @@ begin
   end
   else if Scale < 1.0 then
   begin
-    // Sub-sampling - scales from bigger to smaller 
+    // Sub-sampling - scales from bigger to smaller
     Radius := Radius / Scale;
     for I := 0 to DstWidth - 1 do
     begin
@@ -2422,7 +2422,7 @@ begin
   begin
     Pix^ := Pal[I].Color;
     Inc(Pix);
-  end;       
+  end;
 end;
 
 
@@ -3576,7 +3576,7 @@ begin
   end;
 end;
 
-procedure FixEndpoints(var Ep0, Ep1: Word; HasAlpha: Boolean); 
+procedure FixEndpoints(var Ep0, Ep1: Word; HasAlpha: Boolean);
 var
   Temp: Word;
 begin
@@ -4017,7 +4017,7 @@ begin
       Color.B := 0;
 
       // Distribute alpha block values across 4x4 pixel block,
-      // first alpha block represents Red channel, second is Green. 
+      // first alpha block represents Red channel, second is Green.
       for J := 0 to 3 do
        for I := 0 to 3 do
        begin
@@ -4034,6 +4034,24 @@ procedure DecodeBinary(SrcBits, DestBits: PByte; Width, Height: Integer); {$IFDE
 begin
   Convert1To8(SrcBits, DestBits, Width, Height, (Width + 7) div 8, True);
 end;
+
+{$ifdef FPC}
+  { FPC 3.3.1 false warning.
+    We need to disable them again, even though already disabled in
+    ImagingOptions.inc -- possibly FPC issue? We do enable/disable of warnings
+    above in this file, and push/pop, it looks like something resets state
+    for 6060 at some point. }
+  {$ifndef VER3_0}
+    {$ifndef VER3_2}
+      { 2 warnings below are common because of case analysis.
+        We don't adjust Vampyre to them (to not cause a large diff from upstream),
+        and in CGE we also resigned from trying to adjust to them and
+        just disable them.
+        ( https://castle-engine.io/coding_conventions#case_analysis ) }
+      {$warn 6060 off} // case statement does not handle all possible cases
+    {$endif}
+  {$endif}
+{$endif FPC}
 
 procedure SpecialToUnSpecial(const SrcImage: TImageData; DestBits: Pointer;
   SpecialFormat: TImageFormat);
@@ -4204,6 +4222,24 @@ begin
   PColor32Rec(Bits).G := ClampToByte(Round(Color.G * 255.0));
   PColor32Rec(Bits).B := ClampToByte(Round(Color.B * 255.0));
 end;
+
+{$ifdef FPC}
+  { FPC 3.3.1 false warning.
+    We need to disable them again, even though already disabled in
+    ImagingOptions.inc -- possibly FPC issue? We do enable/disable of warnings
+    above in this file, and push/pop, it looks like something resets state
+    for 6060 at some point. }
+  {$ifndef VER3_0}
+    {$ifndef VER3_2}
+      { 2 warnings below are common because of case analysis.
+        We don't adjust Vampyre to them (to not cause a large diff from upstream),
+        and in CGE we also resigned from trying to adjust to them and
+        just disable them.
+        ( https://castle-engine.io/coding_conventions#case_analysis ) }
+      {$warn 6060 off} // case statement does not handle all possible cases
+    {$endif}
+  {$endif}
+{$endif FPC}
 
 function GetPixel32Channel8Bit(Bits: Pointer; Info: PImageFormatInfo; Palette: PPalette32): TColor32Rec;
 begin
@@ -4396,7 +4432,7 @@ initialization
     - FillMipMapLevel now works well with indexed and special formats too.
     - Moved Convert1To8 and Convert4To8 functions from ImagingBitmaps here
      and created new Convert2To8 function. They are now used by more than one
-     file format loader. 
+     file format loader.
 
   -- 0.19 Changes/Bug Fixes -----------------------------------
     - StretchResample now uses pixel get/set functions stored in

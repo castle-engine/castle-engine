@@ -314,7 +314,7 @@ uses {$ifdef UNIX} BaseUnix, {$endif}
   ToolResources, ToolAndroid, ToolMacOS, ToolWeb,
   ToolTextureGeneration, ToolIOS, ToolAndroidMerging, ToolNintendoSwitch,
   ToolCommonUtils, ToolMacros, ToolCompilerInfo, ToolPackageCollectFiles,
-  ToolProjectUnusedData, CastleInternalProjectLocalSettings;
+  ToolProjectUnusedData, CastleInternalProjectLocalSettings, ToolProcessRun;
 
 const
   SErrDataDir = 'Make sure you have installed the data files of the Castle Game Engine build tool. Usually it is easiest to set the $CASTLE_ENGINE_PATH environment variable to the location of castle_game_engine/ or castle-engine/ directory, the build tool will then find its data correctly.'
@@ -441,7 +441,7 @@ constructor TCastleProject.Create(const APath: string);
     end else
     begin
       WritelnVerbose('Manifest file found: ' + ManifestFile);
-      Manifest := TCastleManifest.CreateFromUrl(APath, ManifestUrl);
+      Manifest := TCastleManifest.CreateFromUrl(ManifestUrl);
     end;
   end;
 
@@ -473,7 +473,7 @@ var
   Options: TProjectCreationOptions;
   ProjectDirUrl, ProjectDir: String;
 begin
-  Options.ParentDir := ParentDir;
+  Options.ParentDirUrl := FilenameToUriSafe(ParentDir);
   Options.TemplateName := TemplateName;
   Options.ProjectName := ProjectName;
   Options.ProjectCaption := ProjectCaption;
