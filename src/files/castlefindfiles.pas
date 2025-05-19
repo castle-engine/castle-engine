@@ -227,6 +227,35 @@ begin
   Sort(TFileInfoComparer.Construct({$ifdef FPC}@{$endif} CompareFileInfo));
 end;
 
+{ TFindFilesCastleConfigProxy ----------------------------------------------- }
+
+type
+  { Utility to use FindFiles_xxx without castle-config protocol,
+    and for all files enumarated -- try to add there castle-config
+    to the reported URL. }
+  TFindFilesCastleConfigProxy = class
+    OriginalFileProc: TFoundFileProc;
+    OriginalFileProcData: Pointer;
+    function ProxyFileProcData: Pointer;
+  end;
+
+function TFindFilesCastleConfigProxy.ProxyFileProcData: Pointer;
+begin
+  Result := Pointer(Self);
+end;
+
+procedure ProxyFileProc(
+  const FileInfo: TFileInfo; Data: Pointer; var StopSearch: Boolean);
+var
+  DataUtility: TFindFilesCastleConfigProxy;
+  NewFileInfo: TFileInfo;
+begin
+  DataUtility := TFindFilesCastleConfigProxy(Data);
+  NewFileInfo := FileInfo;
+  NewFileInfo.Url := MaybeUseCastleConfigProtocol(NewFileInfo.Url);
+  DataUtility.OriginalFileProc(NewFileInfo, DataUtility.OriginalFileProcData, StopSearch);
+end;
+
 { FindFiles_NonRecursive ----------------------------------------------------- }
 
 type
@@ -430,6 +459,7 @@ function FindFiles_NonRecursive(const Path, Mask: String;
 var
   P: String;
   R: TRegisteredProtocol;
+  ConfigProxy: TFindFilesCastleConfigProxy;
 begin
   P := URIProtocol(Path);
 
@@ -449,8 +479,17 @@ begin
   if P = 'castle-config' then
   begin
     // resolve URL using ResolveCastleConfigUrl, and make recursive call
-    Result := FindFiles_NonRecursive(ResolveCastleConfigUrl(Path), Mask,
-      FindDirectories, FileProc, FileProcData, StopSearch);
+    ConfigProxy := TFindFilesCastleConfigProxy.Create;
+    try
+      ConfigProxy.OriginalFileProc := FileProc;
+      ConfigProxy.OriginalFileProcData := FileProcData;
+      Result := FindFiles_NonRecursive(ResolveCastleConfigUrl(Path), Mask,
+        FindDirectories,
+        {$ifdef FPC}@{$endif} ProxyFileProc, ConfigProxy.ProxyFileProcData, StopSearch);
+    finally FreeAndNil(ConfigProxy) end;
+    // This would also work, but user code would see the URLs without 'castle-config':
+    // Result := FindFiles_NonRecursive(ResolveCastleConfigUrl(Path), Mask,
+    //   FindDirectories, FileProc, FileProcData, StopSearch);
   end else
   begin
     R := FindRegisteredUrlProtocol(P);
@@ -653,6 +692,7 @@ function FindFiles_Recursive(const Path, Mask: string; const FindDirectories: bo
 
 var
   P: String;
+  ConfigProxy: TFindFilesCastleConfigProxy;
 begin
   Result := 0;
 
@@ -669,8 +709,17 @@ begin
   { early exit if we should do ResolveCastleConfigUrl and make recursive call }
   if P = 'castle-config' then
   begin
-    Exit(FindFiles_Recursive(ResolveCastleConfigUrl(Path), Mask,
-      FindDirectories, FileProc, FileProcData, DirContentsLast, StopSearch));
+    ConfigProxy := TFindFilesCastleConfigProxy.Create;
+    try
+      ConfigProxy.OriginalFileProc := FileProc;
+      ConfigProxy.OriginalFileProcData := FileProcData;
+      Exit(FindFiles_Recursive(ResolveCastleConfigUrl(Path), Mask,
+        FindDirectories,
+        {$ifdef FPC}@{$endif} ProxyFileProc, ConfigProxy.ProxyFileProcData, DirContentsLast, StopSearch));
+    finally FreeAndNil(ConfigProxy) end;
+    // This would also work, but user code would see the URLs without 'castle-config':
+    // Exit(FindFiles_Recursive(ResolveCastleConfigUrl(Path), Mask,
+    //   FindDirectories, FileProc, FileProcData, DirContentsLast, StopSearch));
   end;
 
   if DirContentsLast then
