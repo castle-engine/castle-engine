@@ -99,6 +99,11 @@ type
     { Build X3D node, used by TCastleViewport.InternalBuildNode.
       @exclude }
     function InternalBuildNode: TAbstractChildNode;
+
+    { Add shader effects to configure how is the background rendered.
+      See https://castle-engine.io/compositing_shaders.php for documentation
+      how shader effects work in Castle Game Engine. }
+    procedure SetEffects(const Value: array of TEffectNode);
   published
     { Back (-Z) background texture.
       Orientation should match @url(https://www.web3d.org/specifications/X3Dv4Draft/ISO-IEC19775-1v4-WD2/Part01/components/environmentalEffects.html#Background X3D Background node). }
@@ -374,6 +379,12 @@ begin
   Transform.Rotation := Rotation;
   Transform.AddChildren(FBackgroundNode.DeepCopy as TAbstractChildNode);
   Result := Transform;
+end;
+
+procedure TCastleBackground.SetEffects(const Value: array of TEffectNode);
+begin
+  FBackgroundNode.SetEffects(Value);
+  UpdateRendererOnceLoaded;
 end;
 
 {$define read_implementation_methods}
