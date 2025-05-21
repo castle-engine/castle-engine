@@ -99,9 +99,6 @@ type
       ProfilerDataFirst, ProfilerDataLast: Integer;
       LogCount: Cardinal;
       AutoSelect: TAutoSelect;
-      { Properties of the SelectedComponent. }
-      Properties: TPropertyDisplayList;
-      TimeToUpdatePropertiesValues: TFloatTime;
       { Stored cursor, to restore when inspector is closed, important if game/view/window has hidden cursor. }
       FStoredCursor: TMouseCursor;
     procedure ChangeOpacity(Sender: TObject);
