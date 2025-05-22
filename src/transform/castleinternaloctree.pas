@@ -386,7 +386,7 @@ type
       and we raise EOctreeMaxDuplicationError when adding new items.
       See testcase https://github.com/castle-engine/castle-engine/issues/673 . }
     property MaxDuplication: Single
-      read FMaxDuplication write FMaxDuplication default DefaultMaxDuplication;
+      read FMaxDuplication write FMaxDuplication {$ifdef FPC}default DefaultMaxDuplication{$endif};
 
     { Does this octree keep items also in internal nodes.
       Leaf nodes always store items (have ItemIndices).
