@@ -78,6 +78,9 @@ interface
 
 uses SysUtils, CastleVectors, CastleBoxes, CastleUtils, CastleFrustum, Contnrs;
 
+const
+  DefaultMaxDuplication = 10000.0;
+
 type
   { }
   TOctree = class;
@@ -89,6 +92,12 @@ type
 
   TEnumerateOctreeItemsFunc = procedure(ItemIndex: Integer;
     CollidesForSure: boolean) of object;
+
+  { Breaking octree construction because @link(TOctree.MaxDuplication)
+    limit was reached. Trying to build octree further would likely
+    only exhaust memory and loading time and not give a useful (efficient)
+    spatial structure anyway. }
+  EOctreeMaxDuplicationError = class(Exception);
 
   { Octree node.
 
@@ -306,9 +315,10 @@ type
     { @groupEnd }
   end;
 
-  { Helper structure to keep octree limits. Useful to implement
-    VRML/X3D extension
-    [https://castle-engine.io/x3d_extensions.php#section_ext_octree_properties]. }
+  { Helper structure to keep octree limits.
+    TODO: Refactor to get rid of this structure -- was useful only for deprecated
+    X3D nodes to control octree, but we no longer expose them due to low/zero
+    utility. }
   TOctreeLimits = record
     MaxDepth: integer;
     LeafCapacity: Integer;
@@ -329,8 +339,8 @@ type
     and a reference to the root octree node (of @link(TOctreeNode) class)
     in the protected property InternalTreeRoot.
 
-    The @link(MaxDepth), @link(LeafCapacity) define limits that determine how fast the octree
-    is constructed,
+    The @link(MaxDepth), @link(LeafCapacity), @link(MaxDuplication)
+    define limits that determine how fast the octree is constructed,
     how much memory does it use,
     and how fast can it answer collision queries. }
   TOctree = class
@@ -340,6 +350,7 @@ type
     FItemsInNonLeafNodes: Boolean;
     FMaxDepth: integer;
     FLeafCapacity: Integer;
+    FMaxDuplication: Single;
 
     { current octree total statistics }
     FTotalLeafNodes, FTotalNonLeafNodes, FTotalItemsInLeafs: Int64;
@@ -367,6 +378,15 @@ type
       to keep LeafCapacity correct. Must be >= 1. }
     property LeafCapacity: Integer
       read FLeafCapacity write FLeafCapacity;
+
+    { Maximum duplication of items, measured as ratio of items in leaves
+      (where they are duplicated when they go into multiple leaves)
+      versus actual number of items.
+      If this is too large, then building octree makes little sense,
+      and we raise EOctreeMaxDuplicationError when adding new items.
+      See testcase https://github.com/castle-engine/castle-engine/issues/673 . }
+    property MaxDuplication: Single
+      read FMaxDuplication write FMaxDuplication default DefaultMaxDuplication;
 
     { Does this octree keep items also in internal nodes.
       Leaf nodes always store items (have ItemIndices).
@@ -481,7 +501,7 @@ function OctreeSubnodeIndexesEqual(const SI1, SI2: TOctreeSubnodeIndex): Boolean
 implementation
 
 uses Math,
-  CastleStringUtils;
+  CastleStringUtils, CastleLog;
 
 { TOctreeNode ------------------------------------------------------------ }
 
@@ -601,12 +621,42 @@ procedure TOctreeNode.AddItem(ItemIndex: integer);
     SplitNotSensible := true;
   end;
 
+  procedure DoRaiseMaxDuplication;
+  begin
+    raise EOctreeMaxDuplicationError.CreateFmt(
+      'Too much duplication in octree. Refusing to construct octree further, as it would likely only waste memory and loading time.' + NL +
+      'In game, avoid using PreciseCollisions=true for this scene. Use physics and simple colliders to detect collisions with this object.' + NL +
+      'This can happen when you have items that span multiple octree subnodes, but not zero and not all of them (like very thin triangles long in only 1 axis)' + NL +
+      'Details:' + NL +
+      '- TotalItemsInOctree = %d' + NL +
+      '- TotalItemsInLeafs = %d' + NL +
+      '- Current Duplication = TotalItemsInLeafs / TotalItemsInOctree = %f' + NL +
+      '- Maximum Duplication = %f',
+      [
+        FParentTree.TotalItemsInOctree,
+        FParentTree.TotalItemsInLeafs,
+        FParentTree.TotalItemsInLeafs / FParentTree.TotalItemsInOctree,
+        FParentTree.MaxDuplication
+      ]);
+  end;
+
+  procedure CheckMaxDuplication;
+  begin
+    if FParentTree.TotalItemsInLeafs /
+       FParentTree.TotalItemsInOctree >
+       FParentTree.MaxDuplication then
+      DoRaiseMaxDuplication;
+  end;
+
 begin
   if IsLeaf and
     (ItemsCount = FParentTree.LeafCapacity) and
     (Depth < FParentTree.MaxDepth) and
     SplitSensible then
+  begin
+    CheckMaxDuplication;
     IsLeaf := false;
+  end;
 
   if not IsLeaf then
   begin
@@ -928,6 +978,7 @@ begin
   inherited Create;
   FMaxDepth := Limits.MaxDepth;
   FLeafCapacity := Limits.LeafCapacity;
+  FMaxDuplication := DefaultMaxDuplication;
   FOctreeNodeFinalClass := AOctreeNodeFinalClass;
   FItemsInNonLeafNodes := AItemsInNonLeafNodes;
   FTreeRoot := OctreeNodeFinalClass.Create(ARootBox, Self, nil, 0, true);
