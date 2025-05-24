@@ -306,6 +306,10 @@ type
       Shortcut for @code(ApplicationProperties.CanCatchExceptions). }
     function CanCatchExceptions: Boolean;
 
+    { Can we use (read and write) castle-config:/ .
+      Not possible in Docker now, where we cannot create /.config/... }
+    function CanUseCastleConfig: Boolean;
+
     { Clears test list. }
     procedure ClearTests;
 
@@ -1479,6 +1483,13 @@ end;
 function TCastleTestCase.CanCatchExceptions: Boolean;
 begin
   Result := ApplicationProperties.CanCatchExceptions;
+end;
+
+function TCastleTestCase.CanUseCastleConfig: Boolean;
+begin
+  { Detect when we're inside Docker in CI, without proper writeable $HOME,
+    and castle-config:/ maps to /.config/ }
+  Result := UriToFilenameSafe('castle-config:/') <> '/.config/';
 end;
 
 procedure TCastleTestCase.OnWarningRaiseException(const Category, S: string);

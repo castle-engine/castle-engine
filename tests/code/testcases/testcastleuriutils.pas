@@ -41,6 +41,10 @@ type
     procedure TestUriMimeType;
     procedure TestRelativeFilenameToUriSafe;
     procedure TestMemoryFileSystem;
+    { Test TCastleMemoryFileSystem.FindFilesUrlEvent,
+      it internally has additional logic to return each subdir only once
+      (because it remembers only Files), make sure it works. }
+    procedure TestMemoryFileSystemFindFilesSubdirs;
   end;
 
 implementation
@@ -575,6 +579,50 @@ begin
   end;
 
   AssertTrue(UriExists('my-fs:/') = ueNotExists);
+end;
+
+procedure TTestUriUtils.TestMemoryFileSystemFindFilesSubdirs;
+var
+  Fs: TCastleMemoryFileSystem;
+  FoundList: TFileInfoList;
+begin
+  Fs := TCastleMemoryFileSystem.Create;
+  try
+    Fs.RegisterUrlProtocol('my-fs');
+    StringToFile('my-fs:/subdir/1.txt', 'Hello world 1');
+    StringToFile('my-fs:/subdir/2.txt', 'Hello world 2');
+    StringToFile('my-fs:/subdir/3.txt', 'Hello world 3');
+    StringToFile('my-fs:/subdir2/4.txt', 'Hello world 4');
+    StringToFile('my-fs:/5.txt', 'Hello world 5');
+
+    FoundList := FindFilesList('my-fs:/', '*', true, []);
+    try
+      AssertEquals(3, FoundList.Count);
+
+      AssertEquals('subdir', FoundList[0].Name);
+      AssertEquals('', FoundList[0].AbsoluteName); // this is not a filename, so AbsoluteName is empty
+      AssertEquals('my-fs:/subdir', FoundList[0].Url);
+      AssertTrue(FoundList[0].Directory);
+      AssertFalse(FoundList[0].Symlink);
+
+      AssertEquals('subdir2', FoundList[1].Name);
+      AssertEquals('', FoundList[1].AbsoluteName); // this is not a filename, so AbsoluteName is empty
+      AssertEquals('my-fs:/subdir2', FoundList[1].Url);
+      AssertTrue(FoundList[1].Directory);
+      AssertFalse(FoundList[1].Symlink);
+
+      AssertEquals('5.txt', FoundList[2].Name);
+      AssertEquals('', FoundList[2].AbsoluteName); // this is not a filename, so AbsoluteName is empty
+      AssertEquals('my-fs:/5.txt', FoundList[2].Url);
+      AssertEquals(Length('Hello world 5'), FoundList[2].Size);
+      AssertFalse(FoundList[2].Directory);
+      AssertFalse(FoundList[2].Symlink);
+    finally
+      FreeAndNil(FoundList);
+    end;
+  finally
+    FreeAndNil(Fs);
+  end;
 end;
 
 initialization

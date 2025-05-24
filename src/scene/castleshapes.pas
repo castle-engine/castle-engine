@@ -2168,21 +2168,47 @@ function TShape.CreateTriangleOctree(
     Assert(Result.TreeRoot.IsLeaf);
   end;
 
+  procedure SetOctreeToBoundingBox;
+  begin
+    { Add 12 triangles for 6 cube (LocalBoundingBox) sides. }
+    Result.Triangles.Capacity := 12;
+    LocalTriangulateBox(LocalBoundingBox);
+  end;
+
+  function ParentSceneName: String;
+  begin
+    if ParentScene <> nil then
+      Result := ParentScene.Name
+    else
+      Result := '(unset ParentScene)';
+  end;
+
 begin
   Result := TTriangleOctree.Create(ALimits, LocalBoundingBox);
   try
     if (Node <> nil) and (Node.Collision in [scBox, scNone]) then
     begin
-      { Add 12 triangles for 6 cube (LocalBoundingBox) sides. }
-      Result.Triangles.Capacity := 12;
-      LocalTriangulateBox(LocalBoundingBox);
+      SetOctreeToBoundingBox;
     end else
     begin
       Result.Triangles.Capacity := TrianglesCount;
-      LocalTriangulate({$ifdef FPC}@{$endif}Result.AddItemTriangle,
-        { FrontFaceAlwaysCcw should not matter } false);
+      try
+        LocalTriangulate({$ifdef FPC}@{$endif}Result.AddItemTriangle,
+          { FrontFaceAlwaysCcw should not matter } false);
+      except
+        on E: EOctreeMaxDuplicationError do
+        begin
+          WritelnWarning('Octree for scene %s falling back to resolving collisions with a bounding box. Reason:' + NL + '%s', [
+            ParentSceneName,
+            E.Message
+          ]);
+          FreeAndNil(Result);
+          Result := TTriangleOctree.Create(ALimits, LocalBoundingBox);
+          SetOctreeToBoundingBox;
+        end;
+      end;
     end;
-  except Result.Free; raise end;
+  except FreeAndNil(Result); raise end;
 
   { $define CASTLE_DEBUG_OCTREE_DUPLICATION}
   {$ifdef CASTLE_DEBUG_OCTREE_DUPLICATION}
