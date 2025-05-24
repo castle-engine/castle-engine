@@ -7,6 +7,7 @@
       <Flags>
         <MainUnitHasCreateFormStatements Value="False"/>
         <MainUnitHasTitleStatement Value="False"/>
+        <MainUnitHasScaledStatement Value="False"/>
         <CompatibilityMode Value="True"/>
       </Flags>
       <SessionStorage Value="InIDEConfig"/>
@@ -148,6 +149,8 @@
       <OtherUnitFiles Value="..\window;..\window\deprecated_units"/>
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
+    <Conditionals Value="if TargetOS = &apos;darwin&apos; then
+  LinkerOptions += &apos; -framework Cocoa&apos;;"/>
     <Parsing>
       <SyntaxOptions>
         <CStyleMacros Value="True"/>
@@ -158,6 +161,7 @@
     </CodeGeneration>
     <Linking>
       <Options>
+        <PassLinkerOptions Value="True"/>
         <ExecutableType Value="Library"/>
       </Options>
     </Linking>
