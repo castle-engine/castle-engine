@@ -29,16 +29,19 @@ type
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
     LabelFps: TCastleLabel;
-    ButtonNoEffects, ButtonEffects1, ButtonEffects2, ButtonEffectsCombined: TCastleButton;
+    ButtonNoEffects, ButtonEffectColor, ButtonEffectNoise, ButtonEffectCubeMap,
+      ButtonAllEffects: TCastleButton;
     MainBackground: TCastleBackground;
   private
-    EffectColor, EffectNoise: TEffectNode;
+    EffectColor, EffectNoise, EffectCubeMap: TEffectNode;
     EffectColorIntensity: TSFFloat;
+    TestCubeMap: TImageCubeMapTextureNode;
     LifeTime: TFloatTime;
     procedure ClickNoEffects(Sender: TObject);
-    procedure ClickEffects1(Sender: TObject);
-    procedure ClickEffects2(Sender: TObject);
-    procedure ClickEffectsCombined(Sender: TObject);
+    procedure ClickEffectColor(Sender: TObject);
+    procedure ClickEffectNoise(Sender: TObject);
+    procedure ClickEffectsCubeMap(Sender: TObject);
+    procedure ClickAllEffects(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -120,16 +123,49 @@ procedure TViewMain.Start;
     EffectNoise.SetParts(EffectParts);
   end;
 
+  { Create EffectCubeMap node. }
+  procedure CreateEffectCubeMap;
+  var
+    EffectPart: TEffectPartNode;
+    EffectTextureField: TSFNode;
+  begin
+    EffectCubeMap := TEffectNode.Create;
+    EffectCubeMap.Language := slGLSL;
+    EffectCubeMap.SetShaderLibraries(['castle-shader:/EyeWorldSpace.glsl']);
+    EffectCubeMap.KeepExistingBegin;
+
+    EffectPart := TEffectPartNode.Create;
+    EffectPart.ShaderType := stFragment;
+    EffectPart.SetUrl(['castle-data:/shaders/skybox_cubemap.fs']);
+
+    { Note: You could have used TComposedCubeMapTextureNode as well,
+      to define cubemap as a composition of 6 regular (2D) images. }
+    TestCubeMap := TImageCubeMapTextureNode.Create;
+    TestCubeMap.SetUrl(['castle-data:/test_cubemap.dds']);
+    // TODO: This KeepExistingBegin should not be necessary?
+    // TestCubeMap refcount should be handled by EffectCubeMap.
+    TestCubeMap.KeepExistingBegin;
+
+    { Add custom field (maps to GLSL uniform "test_cube_map") }
+    EffectTextureField := TSFNode.Create(EffectCubeMap, true, 'test_cube_map',
+      [TImageCubeMapTextureNode], TestCubeMap);
+    EffectCubeMap.AddCustomField(EffectTextureField);
+
+    EffectCubeMap.SetParts([EffectPart]);
+  end;
+
 begin
   inherited;
   // assign OnClick handler to buttons
   ButtonNoEffects.OnClick := {$ifdef FPC}@{$endif} ClickNoEffects;
-  ButtonEffects1.OnClick := {$ifdef FPC}@{$endif} ClickEffects1;
-  ButtonEffects2.OnClick := {$ifdef FPC}@{$endif} ClickEffects2;
-  ButtonEffectsCombined.OnClick := {$ifdef FPC}@{$endif} ClickEffectsCombined;
+  ButtonEffectColor.OnClick := {$ifdef FPC}@{$endif} ClickEffectColor;
+  ButtonEffectNoise.OnClick := {$ifdef FPC}@{$endif} ClickEffectNoise;
+  ButtonEffectCubeMap.OnClick := {$ifdef FPC}@{$endif} ClickEffectsCubeMap;
+  ButtonAllEffects.OnClick := {$ifdef FPC}@{$endif} ClickAllEffects;
 
   CreateEffectColor;
   CreateEffectNoise;
+  CreateEffectCubeMap;
 end;
 
 procedure TViewMain.Stop;
@@ -143,8 +179,12 @@ begin
   }
   EffectColor.KeepExistingEnd;
   EffectNoise.KeepExistingEnd;
+  EffectCubeMap.KeepExistingEnd;
+  TestCubeMap.KeepExistingEnd;
   FreeIfUnusedAndNil(EffectColor);
   FreeIfUnusedAndNil(EffectNoise);
+  FreeIfUnusedAndNil(EffectCubeMap);
+  FreeIfUnusedAndNil(TestCubeMap);
   EffectColorIntensity := nil; // was (or will be) implicitly freed by EffectColor freeing
   inherited;
 end;
@@ -166,22 +206,27 @@ begin
   MainBackground.SetEffects([]);
 end;
 
-procedure TViewMain.ClickEffects1(Sender: TObject);
+procedure TViewMain.ClickEffectColor(Sender: TObject);
 begin
   MainBackground.SetEffects([EffectColor]);
   LifeTime := 0; // reset the lifetime, so that the color effect starts from the beginning
 end;
 
-procedure TViewMain.ClickEffects2(Sender: TObject);
+procedure TViewMain.ClickEffectNoise(Sender: TObject);
 begin
   MainBackground.SetEffects([EffectNoise]);
 end;
 
-procedure TViewMain.ClickEffectsCombined(Sender: TObject);
+procedure TViewMain.ClickEffectsCubeMap(Sender: TObject);
+begin
+  MainBackground.SetEffects([EffectCubeMap]);
+end;
+
+procedure TViewMain.ClickAllEffects(Sender: TObject);
 begin
   { Note: Order matters, it determines the order of calling
     the effects calculations. }
-  MainBackground.SetEffects([EffectColor, EffectNoise]);
+  MainBackground.SetEffects([EffectCubeMap, EffectColor, EffectNoise]);
   LifeTime := 0; // reset the lifetime, so that the color effect starts from the beginning
 end;
 
