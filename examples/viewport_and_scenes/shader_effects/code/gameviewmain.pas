@@ -134,7 +134,7 @@ procedure TViewMain.Start;
     TestTexture2.SetUrl(['castle-data:/test_textures/mountain.png']);
     TestTexture2.KeepExistingBegin; // do not auto-free when unused
 
-    { Add custom field (maps to GLSL uniform "texture") }
+    { Add custom field (maps to GLSL uniform "testTexture") }
     EffectTextureField := TSFNode.Create(Effect, true, 'testTexture', [TImageTextureNode], TestTexture1);
     Effect.AddCustomField(EffectTextureField);
 
