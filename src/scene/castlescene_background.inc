@@ -382,7 +382,21 @@ begin
 end;
 
 procedure TCastleBackground.SetEffects(const Value: array of TEffectNode);
+var
+  I: Integer;
 begin
+  { TODO: brutal workaround for bug exhibiting in shader_effects_on_background
+    when switching to color effect -> then back to none.
+
+    The EffectColor.Scene is seems to leave pointing to old TCastleScene,
+    of old background, which will be destroyed soon.
+
+    The next EffectColorIntensity.Send call will crash,
+    as TX3DNode(ParentNode).Scene.NextEventTime crashes,
+    as TX3DNode(ParentNode).Scene is now a dangling pointer. }
+  for I := FBackgroundNode.FdEffects.Count - 1 downto 0 do
+    FBackgroundNode.FdEffects[I].Scene := nil;
+
   FBackgroundNode.SetEffects(Value);
   UpdateRendererOnceLoaded;
 end;

@@ -185,6 +185,7 @@
           "$Children" : [
             {
               "$$ClassName" : "TCastleButton",
+              "AutoSizeWidth" : false,
               "Caption" : "No Effects",
               "CustomBackgroundDisabled" : {
                 "$$ClassName" : "TCastleImagePersistent"
@@ -205,11 +206,13 @@
               },
               "Name" : "ButtonNoEffects",
               "VerticalAnchorParent" : "vpTop",
-              "VerticalAnchorSelf" : "vpTop"
+              "VerticalAnchorSelf" : "vpTop",
+              "Width" : 4.0000000000000000E+002
             },
             {
               "$$ClassName" : "TCastleButton",
-              "Caption" : "Effects 1 (animated reddish tint)",
+              "AutoSizeWidth" : false,
+              "Caption" : "Effect: animated reddish tint",
               "CustomBackgroundDisabled" : {
                 "$$ClassName" : "TCastleImagePersistent"
               },
@@ -227,17 +230,19 @@
               "Image" : {
                 "$$ClassName" : "TCastleImagePersistent"
               },
-              "Name" : "ButtonEffects1",
+              "Name" : "ButtonEffectColor",
               "TranslationPersistent" : {
                 "$$ClassName" : "TCastleVector2Persistent",
                 "Y" : -4.8999996185302734E+001
               },
               "VerticalAnchorParent" : "vpTop",
-              "VerticalAnchorSelf" : "vpTop"
+              "VerticalAnchorSelf" : "vpTop",
+              "Width" : 4.0000000000000000E+002
             },
             {
               "$$ClassName" : "TCastleButton",
-              "Caption" : "Effect 2 (noise)",
+              "AutoSizeWidth" : false,
+              "Caption" : "Effect: noise",
               "CustomBackgroundDisabled" : {
                 "$$ClassName" : "TCastleImagePersistent"
               },
@@ -255,17 +260,19 @@
               "Image" : {
                 "$$ClassName" : "TCastleImagePersistent"
               },
-              "Name" : "ButtonEffects2",
+              "Name" : "ButtonEffectNoise",
               "TranslationPersistent" : {
                 "$$ClassName" : "TCastleVector2Persistent",
                 "Y" : -9.7999992370605469E+001
               },
               "VerticalAnchorParent" : "vpTop",
-              "VerticalAnchorSelf" : "vpTop"
+              "VerticalAnchorSelf" : "vpTop",
+              "Width" : 4.0000000000000000E+002
             },
             {
               "$$ClassName" : "TCastleButton",
-              "Caption" : "Both Effects",
+              "AutoSizeWidth" : false,
+              "Caption" : "Effect: cubemap",
               "CustomBackgroundDisabled" : {
                 "$$ClassName" : "TCastleImagePersistent"
               },
@@ -283,13 +290,44 @@
               "Image" : {
                 "$$ClassName" : "TCastleImagePersistent"
               },
-              "Name" : "ButtonEffectsCombined",
+              "Name" : "ButtonEffectCubeMap",
               "TranslationPersistent" : {
                 "$$ClassName" : "TCastleVector2Persistent",
                 "Y" : -1.4699998474121094E+002
               },
               "VerticalAnchorParent" : "vpTop",
-              "VerticalAnchorSelf" : "vpTop"
+              "VerticalAnchorSelf" : "vpTop",
+              "Width" : 4.0000000000000000E+002
+            },
+            {
+              "$$ClassName" : "TCastleButton",
+              "AutoSizeWidth" : false,
+              "Caption" : "All Effects",
+              "CustomBackgroundDisabled" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundFocused" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundNormal" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundPressed" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "HorizontalAnchorParent" : "hpRight",
+              "HorizontalAnchorSelf" : "hpRight",
+              "Image" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "Name" : "ButtonAllEffects",
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "Y" : -1.9599998474121094E+002
+              },
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop",
+              "Width" : 4.0000000000000000E+002
             }
           ]
         },

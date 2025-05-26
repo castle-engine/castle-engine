@@ -46,7 +46,8 @@
   { List of TShadowMapShader, containing all shadow maps used
     when rendering one shape.
     The methods here just call corresponding TShadowMapShader methods
-    on all children. }
+    on all children.
+    Follows castlerendererinternalshader_feature_api.md API conventions. }
   TShadowMapShaderList = class({$ifdef FPC}specialize{$endif} TStructList<TShadowMapShader>)
   public
     procedure GenerateCode(const Shader: TShader);
