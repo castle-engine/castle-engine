@@ -35,7 +35,6 @@ type
   private
     EffectColor, EffectNoise, EffectCubeMap: TEffectNode;
     EffectColorIntensity: TSFFloat;
-    TestCubeMap: TImageCubeMapTextureNode;
     LifeTime: TFloatTime;
     procedure ClickNoEffects(Sender: TObject);
     procedure ClickEffectColor(Sender: TObject);
@@ -128,6 +127,7 @@ procedure TViewMain.Start;
   var
     EffectPart: TEffectPartNode;
     EffectTextureField: TSFNode;
+    TestCubeMap: TImageCubeMapTextureNode;
   begin
     EffectCubeMap := TEffectNode.Create;
     EffectCubeMap.Language := slGLSL;
@@ -142,9 +142,6 @@ procedure TViewMain.Start;
       to define cubemap as a composition of 6 regular (2D) images. }
     TestCubeMap := TImageCubeMapTextureNode.Create;
     TestCubeMap.SetUrl(['castle-data:/test_cubemap.dds']);
-    // TODO: This KeepExistingBegin should not be necessary?
-    // TestCubeMap refcount should be handled by EffectCubeMap.
-    TestCubeMap.KeepExistingBegin;
 
     { Add custom field (maps to GLSL uniform "test_cube_map") }
     EffectTextureField := TSFNode.Create(EffectCubeMap, true, 'test_cube_map',
@@ -180,11 +177,9 @@ begin
   EffectColor.KeepExistingEnd;
   EffectNoise.KeepExistingEnd;
   EffectCubeMap.KeepExistingEnd;
-  TestCubeMap.KeepExistingEnd;
   FreeIfUnusedAndNil(EffectColor);
   FreeIfUnusedAndNil(EffectNoise);
   FreeIfUnusedAndNil(EffectCubeMap);
-  FreeIfUnusedAndNil(TestCubeMap);
   EffectColorIntensity := nil; // was (or will be) implicitly freed by EffectColor freeing
   inherited;
 end;
