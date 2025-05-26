@@ -420,7 +420,7 @@ begin
         '/* PLUG: texture_color (texture_color, %0:s) */' +NL,
         [TexCoordName]));
 
-    Shader.EnableEffects(Node.FdEffects, Code, true);
+    Shader.EffectsGenerateCode(Node.FdEffects, Code, true);
 
     { Add generated Code to Shader.Source. Code[stFragment][0] for texture
       is a little special, we add it to TextureApply that
