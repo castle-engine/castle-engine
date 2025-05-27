@@ -16,7 +16,7 @@ Remember to enable server access in the firewall, if you have one. Windows autom
 
     Indy is not distributed with _Castle Game Engine_.
 
-    FPC users: See https://castle-engine.io/manual_network.php#section_indy about installing Indy.
+    FPC users: See https://castle-engine.io/multi_player#indy about installing Indy.
 
     Delphi users: No need to do anything, Indy is part of Delphi.
 

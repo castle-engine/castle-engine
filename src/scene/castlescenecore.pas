@@ -1019,7 +1019,7 @@ type
 
       URL is downloaded using the CastleDownload unit,
       so it supports files, http resources and more.
-      See https://castle-engine.io/manual_network.php
+      See https://castle-engine.io/url
       about supported URL schemes.
       If you all you care about is loading normal files, then just pass
       a normal filename (absolute or relative to the current directory)
