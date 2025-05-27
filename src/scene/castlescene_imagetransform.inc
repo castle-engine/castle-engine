@@ -156,6 +156,11 @@ type
       new URL contents. }
     procedure LoadFromImage(const Image: TEncodedImage;
       const TakeImageOwnership: Boolean);
+
+    { Add shader effects to configure how is the component rendered.
+      See https://castle-engine.io/shaders for documentation
+      how shader effects work in Castle Game Engine. }
+    procedure SetEffects(const Value: array of TEffectNode);
   published
     { How is the image scaled.
       Determines scaling done both by @link(Size) and TCastleTransform.Scale. }
@@ -645,6 +650,11 @@ procedure TCastleImageTransform.UpdateMaterialNode;
 begin
   CommonUpdateMaterialNode(FMaterial, FColor, FAppearanceNode,
     FBaseTexture, FNormalMapTexture);
+end;
+
+procedure TCastleImageTransform.SetEffects(const Value: array of TEffectNode);
+begin
+  FScene.SetEffects(Value);
 end;
 
 {$define read_implementation_methods}

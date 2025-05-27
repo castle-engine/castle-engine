@@ -103,6 +103,11 @@ type
       )
     }
     property Color: TCastleColor read FColor write SetColor;
+
+    { Add shader effects to configure how is the component rendered.
+      See https://castle-engine.io/shaders for documentation
+      how shader effects work in Castle Game Engine. }
+    procedure SetEffects(const Value: array of TEffectNode);
   published
     { Material type (which determines lighting calculation) for this primitive. }
     property Material: TPrimitiveMaterial read FMaterial write SetMaterial default pmPhysical;
@@ -414,6 +419,11 @@ end;
 function TCastleAbstractPrimitive.InternalBuildNodeInside: TObject;
 begin
   Result := FShapeNode.DeepCopy;
+end;
+
+procedure TCastleAbstractPrimitive.SetEffects(const Value: array of TEffectNode);
+begin
+  FScene.SetEffects(Value);
 end;
 
 {$define read_implementation_methods}
