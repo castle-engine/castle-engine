@@ -83,7 +83,7 @@ end;
 procedure TView${MAIN_VIEW}.ClickLoadKnight(Sender: TObject);
 begin
   { Note that you load here any filename or URL (file://, http:// etc.).
-    - See https://castle-engine.io/url about CGE supported URLs.
+    - See https://castle-engine.io/url about supported URLs.
     - See https://castle-engine.io/data about the special
       URL protocol "castle-data:/" }
   Load('castle-data:/knight/knight.gltf');
