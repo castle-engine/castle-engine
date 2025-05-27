@@ -10,11 +10,7 @@ Example demonstrating how to apply shader effects on a texture.
 
 _Shader effects_ are a technique in _Castle Game Engine_ to add a shader code (using GLSL, _OpenGL Shading Language_) to something, to modify its appearance. The shader code defines a special function `PLUG_xxx` which is then called from the engine to apply the effect.
 
-For more information about shader effects see:
-
-- https://castle-engine.io/shaders
-- https://castle-engine.io/compositing_shaders_doc/html/
-- and the important example [examples/viewport_and_scenes/shader_effects](https://github.com/castle-engine/castle-engine/tree/master/examples/viewport_and_scenes/shader_effects).
+For more information about shader effects see https://castle-engine.io/shaders .
 
 ## What are shader effects on texture? What features do they have?
 
