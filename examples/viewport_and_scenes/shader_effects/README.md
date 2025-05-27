@@ -1,6 +1,6 @@
 # Using Shader Effects to implement rendering effects that enhance the standard rendering
 
-Demo of using _Castle Game Engine_ "shader effects" described on https://castle-engine.io/compositing_shaders.php from Pascal.
+Demo of using _Castle Game Engine_ "shader effects" described on https://castle-engine.io/shaders from Pascal.
 
 The demo adds an `Effect` node by code, and also shows how to manipulate custom `Effect` parameter (which maps to GLSL uniform) at runtime. These effects use shader code (GLSL, running on GPU) that is automatically integrated with standard engine rendering shaders.
 
@@ -12,7 +12,7 @@ We show 2 versions:
 
 In both cases, these are custom fields passed to `Effect` node, and they correspond to GLSL uniform variable.
 
-See https://castle-engine.io/compositing_shaders.php and in particular https://castle-engine.io/compositing_shaders_doc/html/ about shader effects.
+See https://castle-engine.io/shaders about shader effects.
 
 ![Screenshot](screenshot.png)
 

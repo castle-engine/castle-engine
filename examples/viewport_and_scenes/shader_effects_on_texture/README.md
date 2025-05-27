@@ -12,7 +12,7 @@ _Shader effects_ are a technique in _Castle Game Engine_ to add a shader code (u
 
 For more information about shader effects see:
 
-- https://castle-engine.io/compositing_shaders.php
+- https://castle-engine.io/shaders
 - https://castle-engine.io/compositing_shaders_doc/html/
 - and the important example [examples/viewport_and_scenes/shader_effects](https://github.com/castle-engine/castle-engine/tree/master/examples/viewport_and_scenes/shader_effects).
 

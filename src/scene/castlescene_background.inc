@@ -101,7 +101,7 @@ type
     function InternalBuildNode: TAbstractChildNode;
 
     { Add shader effects to configure how is the background rendered.
-      See https://castle-engine.io/compositing_shaders.php for documentation
+      See https://castle-engine.io/shaders for documentation
       how shader effects work in Castle Game Engine. }
     procedure SetEffects(const Value: array of TEffectNode);
   published

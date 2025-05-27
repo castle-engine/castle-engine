@@ -104,8 +104,7 @@ procedure TViewMain.Start;
       - Effects can also be applied on a specific texture or light source.
         See https://github.com/castle-engine/demo-models/blob/master/compositing_shaders/grayscale_texture_effect.x3dv .
 
-      See https://castle-engine.io/compositing_shaders.php and in particular
-      https://castle-engine.io/compositing_shaders_doc/html/ about shader effects. }
+      See https://castle-engine.io/shaders about shader effects. }
     Scene.RootNode.AddChildren([Effect]);
 
     // adding node to Scene turns off animation set by AutoAnimation, run it again
@@ -160,8 +159,7 @@ procedure TViewMain.Start;
       - Effects can also be applied on a specific texture or light source.
         See https://github.com/castle-engine/demo-models/blob/master/compositing_shaders/grayscale_texture_effect.x3dv .
 
-      See https://castle-engine.io/compositing_shaders.php and in particular
-      https://castle-engine.io/compositing_shaders_doc/html/ about shader effects. }
+      See https://castle-engine.io/shaders about shader effects. }
     Scene.RootNode.AddChildren([Effect]);
 
     // adding node to Scene turns off animation set by AutoAnimation, run it again

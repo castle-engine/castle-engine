@@ -121,8 +121,7 @@ procedure TViewMain.Start;
       or to a group of nodes.
 
       For more about shader effects :
-      - https://castle-engine.io/compositing_shaders.php
-      - https://castle-engine.io/compositing_shaders_doc/html/
+      - https://castle-engine.io/shaders
       - Another example: examples/viewport_and_scenes/shader_effects/ }
 
     EffectAnimateMesh := TEffectNode.Create;

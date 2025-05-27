@@ -2,7 +2,7 @@
 
 Demonstrates using `TCastleBackground.SetEffects` to configure shader effects on the background.
 
-See https://castle-engine.io/compositing_shaders.php about using shader effects.
+See https://castle-engine.io/shaders about using shader effects.
 
 Using [Castle Game Engine](https://castle-engine.io/).
 

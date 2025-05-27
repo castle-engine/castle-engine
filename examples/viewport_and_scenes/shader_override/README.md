@@ -15,7 +15,7 @@ In most cases, you should rather prefer the approach using "composable shader ef
 demonstrated in ../shader_effects/ demo.
 It uses the TEffectNode and TEffectPartNode
 instead of TComposedShaderNode and TShaderPartNode.
-See https://castle-engine.io/compositing_shaders.php .
+See https://castle-engine.io/shaders .
 
 Press S to toggle usage of the custom shader.
 
