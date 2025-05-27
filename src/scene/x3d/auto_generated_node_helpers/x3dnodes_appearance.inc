@@ -162,7 +162,7 @@
     strict private FFdEffects: TMFNode;
     { Internal wrapper for property @code(Effects). This wrapper API may change, we advise to access simpler @code(Effects) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdEffects: TMFNode read FFdEffects;
-    { Additional shader code for rendering this shape. See https://castle-engine.io/compositing_shaders.php . The shader effects they are easy to use, cooperate with CGE built-in rendering features, and one code is more portable to both mobile and desktop. }
+    { Additional shader code for rendering this shape. See https://castle-engine.io/shaders . The shader effects they are easy to use, cooperate with CGE built-in rendering features, and one code is more portable to both mobile and desktop. }
     procedure SetEffects(const Value: array of TEffectNode);
 
     strict private FFdAlphaChannel: TSFStringEnum;
