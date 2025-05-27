@@ -76,7 +76,7 @@
       vec3 direction_eye_to_world_space(vec3 direction_eye);
     )
 
-    See examples/viewport_and_scenes/shader_effects_on_background/ for a demo. }
+    See examples/shaders/shader_effects_on_background/ for a demo. }
     procedure SetShaderLibraries(const Value: array of string); overload;
     { Additional libraries of shader code to link with this effect.
 
@@ -92,7 +92,7 @@
       vec3 direction_eye_to_world_space(vec3 direction_eye);
     )
 
-    See examples/viewport_and_scenes/shader_effects_on_background/ for a demo. }
+    See examples/shaders/shader_effects_on_background/ for a demo. }
     procedure SetShaderLibraries(const Value: TCastleStringList); overload;
 
 {$endif read_interface}
