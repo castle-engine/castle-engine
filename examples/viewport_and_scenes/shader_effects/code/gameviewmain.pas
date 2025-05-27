@@ -95,19 +95,10 @@ procedure TViewMain.Start;
     EffectPart.SetUrl(['castle-data:/shaders/color_effect.fs']);
     Effect.SetParts([EffectPart]);
 
-    { Using "RootNode.AddChildren" applies effect for everything in the scene.
-      It is possible to be more selective:
+    { See https://castle-engine.io/shaders about applying shader effects. }
+    Scene.SetEffects([Effect]);
 
-      - You can apply effect only for given TAppearanceNode
-        (will be limited to shapes using this TAppearanceNode).
-
-      - Effects can also be applied on a specific texture or light source.
-        See https://github.com/castle-engine/demo-models/blob/master/compositing_shaders/grayscale_texture_effect.x3dv .
-
-      See https://castle-engine.io/shaders about shader effects. }
-    Scene.RootNode.AddChildren([Effect]);
-
-    // adding node to Scene turns off animation set by AutoAnimation, run it again
+    // TODO: Scene.SetEffects turns off animation set by AutoAnimation, run it again
     Scene.PlayAnimation('Walk', true);
   end;
 
@@ -150,19 +141,10 @@ procedure TViewMain.Start;
 
     Effect.SetParts([EffectPartFragment, EffectPartVertex]);
 
-    { Using "RootNode.AddChildren" applies effect for everything in the scene.
-      It is possible to be more selective:
+    { See https://castle-engine.io/shaders about applying shader effects. }
+    Scene.SetEffects([Effect]);
 
-      - You can apply effect only for given TAppearanceNode
-        (will be limited to shapes using this TAppearanceNode).
-
-      - Effects can also be applied on a specific texture or light source.
-        See https://github.com/castle-engine/demo-models/blob/master/compositing_shaders/grayscale_texture_effect.x3dv .
-
-      See https://castle-engine.io/shaders about shader effects. }
-    Scene.RootNode.AddChildren([Effect]);
-
-    // adding node to Scene turns off animation set by AutoAnimation, run it again
+    // TODO: Scene.SetEffects turns off animation set by AutoAnimation, run it again
     Scene.PlayAnimation('Walk', true);
   end;
 
