@@ -290,8 +290,8 @@ begin
     which would happen otherwise from UpdateMaterialNode, when it does
     1. NodeField.Value := nil
     2. or when it frees previous material (that may contain the texture) }
-  FBaseTexture.Node.KeepExistingBegin;
-  FNormalMapTexture.Node.KeepExistingBegin;
+  FBaseTexture.Node.WaitForRelease;
+  FNormalMapTexture.Node.WaitForRelease;
   { Note: FBaseTexture.Node, FNormalMapTexture.Node are connected to
     FAppearanceNode (and thus, the rest of FRootNode) by UpdateMaterialNode. }
   UpdateMaterialNode;
@@ -312,8 +312,8 @@ begin
   {$undef read_implementation_destructor}
 
   FreeAndNil(FScene);
-  FreeAndNil(FBaseTexture.Node);
-  FreeAndNil(FNormalMapTexture.Node);
+  NodeRelease(FBaseTexture.Node);
+  NodeRelease(FNormalMapTexture.Node);
   inherited;
 end;
 

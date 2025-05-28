@@ -104,12 +104,12 @@ begin
   ComposedShader := TComposedShaderNode.Create;
   ComposedShader.SetParts([VertexShader, FragmentShader]);
 
-  { By calling KeepExistingBegin we say we want to manually manage
+  { By calling WaitForRelease we say we want to manually manage
     the lifetime of ComposedShader. Otherwise it would be freed
     as soon as it is no longer used, which means that pressing S twice
     (see TViewMain.Press) would crash, as ComposedShader would be freed.
     In TViewMain.Stop we will have to take care to free the node. }
-  ComposedShader.KeepExistingBegin;
+  ComposedShader.WaitForRelease;
 
   { We know that Blender exported material wich such name to glTF,
     and we know that our glTF importer turned it into TAppearanceNode. }
@@ -121,8 +121,7 @@ end;
 
 procedure TViewMain.Stop;
 begin
-  ComposedShader.KeepExistingEnd;
-  FreeIfUnusedAndNil(ComposedShader);
+  NodeRelease(ComposedShader);
   inherited;
 end;
 

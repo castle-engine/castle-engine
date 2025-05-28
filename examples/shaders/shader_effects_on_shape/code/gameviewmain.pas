@@ -118,11 +118,11 @@ procedure TViewMain.Start;
 
     TestTexture1 := TImageTextureNode.Create;
     TestTexture1.SetUrl(['castle-data:/test_textures/handpaintedwall2.png']);
-    TestTexture1.KeepExistingBegin; // do not auto-free when unused
+    TestTexture1.WaitForRelease; // do not auto-free when unused
 
     TestTexture2 := TImageTextureNode.Create;
     TestTexture2.SetUrl(['castle-data:/test_textures/mountain.png']);
-    TestTexture2.KeepExistingBegin; // do not auto-free when unused
+    TestTexture2.WaitForRelease; // do not auto-free when unused
 
     { Add custom field (maps to GLSL uniform "testTexture") }
     EffectTextureField := TSFNode.Create(Effect, true, 'testTexture', [TImageTextureNode], TestTexture1);
@@ -161,10 +161,8 @@ end;
 
 procedure TViewMain.Stop;
 begin
-  TestTexture1.KeepExistingEnd;
-  TestTexture2.KeepExistingEnd;
-  FreeIfUnusedAndNil(TestTexture1);
-  FreeIfUnusedAndNil(TestTexture2);
+  NodeRelease(TestTexture1);
+  NodeRelease(TestTexture2);
   inherited;
 end;
 

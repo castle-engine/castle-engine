@@ -1687,7 +1687,7 @@ begin
   Add(Scene);
 
   Appearance := TAppearanceNode.Create;
-  Appearance.KeepExistingBegin; // it's easiest to manage release of Appearance
+  Appearance.WaitForRelease; // it's easiest to manage release of Appearance
   AdjustAppearance;
 
   for Layer := 1 to LayersCount do
@@ -1730,8 +1730,8 @@ begin
   if Appearance <> nil then
     Appearance.UnregisterScene;
 
-  // remove after RootNode containing this is removed too
-  FreeAndNil(Appearance);
+  // remove Appearance after RootNode containing this is removed too
+  NodeRelease(Appearance);
 end;
 
 procedure TCastleTerrain.Loaded;

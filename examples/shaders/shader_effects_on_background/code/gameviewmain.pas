@@ -81,7 +81,7 @@ procedure TViewMain.Start;
     EffectColor.Language := slGLSL;
     { Don't use reference counting to free this X3D node when nothing refers to it.
       We will manage it manually. }
-    EffectColor.KeepExistingBegin;
+    EffectColor.WaitForRelease;
 
     { Add custom field (maps to GLSL uniform "color"), initially white }
     EffectColorIntensity := TSFFloat.Create(EffectColor, true, 'intensity', 0.0);
@@ -103,7 +103,7 @@ procedure TViewMain.Start;
   begin
     EffectNoise := TEffectNode.Create;
     EffectNoise.Language := slGLSL;
-    EffectNoise.KeepExistingBegin;
+    EffectNoise.WaitForRelease;
 
     { Use 2 TEffectPartNode instance, because the GLSL noise functions
       live in a separate file (to show that we can have multiple shader parts,
@@ -132,7 +132,7 @@ procedure TViewMain.Start;
     EffectCubeMap := TEffectNode.Create;
     EffectCubeMap.Language := slGLSL;
     EffectCubeMap.SetShaderLibraries(['castle-shader:/EyeWorldSpace.glsl']);
-    EffectCubeMap.KeepExistingBegin;
+    EffectCubeMap.WaitForRelease;
 
     EffectPart := TEffectPartNode.Create;
     EffectPart.ShaderType := stFragment;
@@ -167,19 +167,9 @@ end;
 
 procedure TViewMain.Stop;
 begin
-  { Free the effect nodes. We do it gracefully: let reference counting
-    handle them again (by KeepExistingEnd), and free them *now* only if
-    nothing else refers to them now (by FreeIfUnusedAndNil instead of FreeAndNil).
-    This means that their free will happen
-    - right now, if MainBackground is not using them
-    - or when MainBackground is destroyed in "inherited" of Stop, if it is using them
-  }
-  EffectColor.KeepExistingEnd;
-  EffectNoise.KeepExistingEnd;
-  EffectCubeMap.KeepExistingEnd;
-  FreeIfUnusedAndNil(EffectColor);
-  FreeIfUnusedAndNil(EffectNoise);
-  FreeIfUnusedAndNil(EffectCubeMap);
+  NodeRelease(EffectColor);
+  NodeRelease(EffectNoise);
+  NodeRelease(EffectCubeMap);
   EffectColorIntensity := nil; // was (or will be) implicitly freed by EffectColor freeing
   inherited;
 end;

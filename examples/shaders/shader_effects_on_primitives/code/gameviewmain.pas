@@ -89,7 +89,7 @@ procedure TViewMain.Start;
       add / remove effects on components. (Refcounting would detect
       the effect nodes as unused and free them.) }
     for I := 0 to 2 do
-      EffectColor[I].KeepExistingBegin;
+      EffectColor[I].WaitForRelease;
   end;
 
   procedure CreateEffectEnlarge;
@@ -114,7 +114,7 @@ procedure TViewMain.Start;
       add / remove effects on components. (Refcounting would detect
       the effect nodes as unused and free them.) }
     for I := 0 to 2 do
-      EffectEnlarge[I].KeepExistingBegin;
+      EffectEnlarge[I].WaitForRelease;
   end;
 
 begin
@@ -135,16 +135,8 @@ begin
   // free the effect nodes
   for I := 0 to 2 do
   begin
-    if EffectColor[I] <> nil then
-    begin
-      EffectColor[I].KeepExistingEnd;
-      FreeIfUnusedAndNil(EffectColor[I]);
-    end;
-    if EffectEnlarge[I] <> nil then
-    begin
-      EffectEnlarge[I].KeepExistingEnd;
-      FreeIfUnusedAndNil(EffectEnlarge[I]);
-    end;
+    NodeRelease(EffectColor[I]);
+    NodeRelease(EffectEnlarge[I]);
   end;
 end;
 
