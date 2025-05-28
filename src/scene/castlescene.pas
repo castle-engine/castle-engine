@@ -1989,10 +1989,10 @@ begin
     if (IndexBeyondAdded <> 0) or // added something
        RemovedSomething then
     begin
-      WritelnLog('SetEffects modified the scene, adding %d effect nodes, removing old: %s', [
-        IndexBeyondAdded,
-        BoolToStr(RemovedSomething, true)
-      ]);
+      // WritelnLog('SetEffects modified the scene, adding %d effect nodes, removing old: %s', [
+      //   IndexBeyondAdded,
+      //   BoolToStr(RemovedSomething, true)
+      // ]);
       if RemovedSomething then
         InternalChangedField(RootNode.FdChildren)
       else
