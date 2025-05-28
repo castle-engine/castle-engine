@@ -37,7 +37,7 @@
     strict private FFdEffects: TMFNode;
     { Internal wrapper for property @code(Effects). This wrapper API may change, we advise to access simpler @code(Effects) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdEffects: TMFNode read FFdEffects;
-    { Shader effects (see https://castle-engine.io/compositing_shaders.php) used to render background geometry. }
+    { @url(https://castle-engine.io/shaders Shader effects) used to render background geometry. }
     procedure SetEffects(const Value: array of TEffectNode);
 
 {$endif read_interface}

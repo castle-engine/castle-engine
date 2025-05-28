@@ -6,9 +6,9 @@
    See Pascal code of AddEffectToLimitTexture for more comments why this is
    necessary.
 
-   For information about PLUG_ in shaders, see
-   https://castle-engine.io/compositing_shaders.php
-   and in particular PLUG_texture_color is documented at
+   For information about shader effects, see
+   https://castle-engine.io/shaders .
+   In particular PLUG_texture_color is documented at
    https://castle-engine.io/compositing_shaders_doc/html/section.fragment_plugs.html
 */
 

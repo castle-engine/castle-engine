@@ -142,7 +142,7 @@ type
     { URL to read or write.
       Supports all protocols, like @code(file), @code(http), @code(https),
       @code(castle-data) and other documented on
-      https://castle-engine.io/manual_network.php .
+      https://castle-engine.io/url .
 
       Can only change when there is no download in progress
       (@link(Status) is dsNotStarted or dsSuccess). }

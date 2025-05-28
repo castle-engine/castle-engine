@@ -146,7 +146,7 @@ Appearance : X3DAppearanceNode {
   MFNode     []            effects          []
     range: Effect
     change: chEverything
-    doc: Additional shader code for rendering this shape. See https://castle-engine.io/compositing_shaders.php . The shader effects they are easy to use, cooperate with CGE built-in rendering features, and one code is more portable to both mobile and desktop.
+    doc: Additional shader code for rendering this shape. See https://castle-engine.io/shaders . The shader effects they are easy to use, cooperate with CGE built-in rendering features, and one code is more portable to both mobile and desktop.
   SFString   [in,out]      alphaChannel     "AUTO"
     range: ["AUTO"|"NONE"|"TEST"|"BLENDING"]
     enumerated-type: TAutoAlphaChannel AlphaToString acAuto

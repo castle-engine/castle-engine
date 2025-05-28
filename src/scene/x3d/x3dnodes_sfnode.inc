@@ -346,7 +346,8 @@ begin
      (Value <> nil) and
      (Value.VRML1ParentsCount = 0) and
      (Value.FParentFields.Count = 0) and
-     (Value.KeepExisting = 0) and
+     (Value.FKeepExisting = 0) and
+     (not Value.FWaitsForRelease) and
      (not Reader.Nodes.NodeDuringReading(Value)) then
   begin
     FValue.FreeIfUnused; // we know it will be freed now

@@ -103,6 +103,11 @@ type
       )
     }
     property Color: TCastleColor read FColor write SetColor;
+
+    { Add shader effects to configure how is the component rendered.
+      See https://castle-engine.io/shaders for documentation
+      how shader effects work in Castle Game Engine. }
+    procedure SetEffects(const Value: array of TEffectNode);
   published
     { Material type (which determines lighting calculation) for this primitive. }
     property Material: TPrimitiveMaterial read FMaterial write SetMaterial default pmPhysical;
@@ -285,8 +290,8 @@ begin
     which would happen otherwise from UpdateMaterialNode, when it does
     1. NodeField.Value := nil
     2. or when it frees previous material (that may contain the texture) }
-  FBaseTexture.Node.KeepExistingBegin;
-  FNormalMapTexture.Node.KeepExistingBegin;
+  FBaseTexture.Node.WaitForRelease;
+  FNormalMapTexture.Node.WaitForRelease;
   { Note: FBaseTexture.Node, FNormalMapTexture.Node are connected to
     FAppearanceNode (and thus, the rest of FRootNode) by UpdateMaterialNode. }
   UpdateMaterialNode;
@@ -307,8 +312,8 @@ begin
   {$undef read_implementation_destructor}
 
   FreeAndNil(FScene);
-  FreeAndNil(FBaseTexture.Node);
-  FreeAndNil(FNormalMapTexture.Node);
+  NodeRelease(FBaseTexture.Node);
+  NodeRelease(FNormalMapTexture.Node);
   inherited;
 end;
 
@@ -414,6 +419,11 @@ end;
 function TCastleAbstractPrimitive.InternalBuildNodeInside: TObject;
 begin
   Result := FShapeNode.DeepCopy;
+end;
+
+procedure TCastleAbstractPrimitive.SetEffects(const Value: array of TEffectNode);
+begin
+  FScene.SetEffects(Value);
 end;
 
 {$define read_implementation_methods}

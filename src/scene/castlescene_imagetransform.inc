@@ -156,6 +156,11 @@ type
       new URL contents. }
     procedure LoadFromImage(const Image: TEncodedImage;
       const TakeImageOwnership: Boolean);
+
+    { Add shader effects to configure how is the component rendered.
+      See https://castle-engine.io/shaders for documentation
+      how shader effects work in Castle Game Engine. }
+    procedure SetEffects(const Value: array of TEffectNode);
   published
     { How is the image scaled.
       Determines scaling done both by @link(Size) and TCastleTransform.Scale. }
@@ -307,8 +312,8 @@ begin
     which would happen otherwise from UpdateMaterialNode, when it does
     1. NodeField.Value := nil
     2. or when it frees previous material (that may contain the texture) }
-  FBaseTexture.Node.KeepExistingBegin;
-  FNormalMapTexture.Node.KeepExistingBegin;
+  FBaseTexture.Node.WaitForRelease;
+  FNormalMapTexture.Node.WaitForRelease;
   { Note: FBaseTexture.Node, FNormalMapTexture.Node are connected to
     FAppearanceNode (and thus, the rest of FRootNode) by UpdateMaterialNode. }
   UpdateMaterialNode;
@@ -332,8 +337,8 @@ begin
   {$undef read_implementation_destructor}
 
   FreeAndNil(FScene);
-  FreeAndNil(FBaseTexture.Node);
-  FreeAndNil(FNormalMapTexture.Node);
+  NodeRelease(FBaseTexture.Node);
+  NodeRelease(FNormalMapTexture.Node);
   inherited;
 end;
 
@@ -645,6 +650,11 @@ procedure TCastleImageTransform.UpdateMaterialNode;
 begin
   CommonUpdateMaterialNode(FMaterial, FColor, FAppearanceNode,
     FBaseTexture, FNormalMapTexture);
+end;
+
+procedure TCastleImageTransform.SetEffects(const Value: array of TEffectNode);
+begin
+  FScene.SetEffects(Value);
 end;
 
 {$define read_implementation_methods}

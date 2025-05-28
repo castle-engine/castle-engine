@@ -170,7 +170,7 @@ ScreenEffect : X3DChildNode {
     change: chEverything
 }
 
-# See https://castle-engine.io/compositing_shaders.php
+# See https://castle-engine.io/shaders
 Effect : X3DChildNode {
 
   SFString   []            language    ""
@@ -205,11 +205,11 @@ Effect : X3DChildNode {
       vec3 direction_eye_to_world_space(vec3 direction_eye);
     )
 
-    See examples/viewport_and_scenes/shader_effects_on_background/ for a demo.
+    See examples/shaders/shader_effects_on_background/ for a demo.
     """
 }
 
-# See https://castle-engine.io/compositing_shaders.php
+# See https://castle-engine.io/shaders
 EffectPart : X3DNode, X3DUrlObject {
   default-container-field: parts
 
@@ -221,7 +221,7 @@ EffectPart : X3DNode, X3DUrlObject {
     change: chEverything
 }
 
-# See https://castle-engine.io/compositing_shaders.php
+# See https://castle-engine.io/shaders
 ShaderTexture : X3DSingleTextureNode {
   SFString []       defaultTexCoord "BOUNDS2D"
     #range: ["BOUNDS2D"|"BOUNDS3D"]
