@@ -3142,9 +3142,10 @@ begin
     There's no point in calling recursive UnregisterScene if the FRootNode
     will be freed right afterwards.
 
-    TODO: This optimization is actually not without a problem.
+    TODO: This optimization is problematic sometimes.
     If the RootNode has some child that has other parents (outside of this
-    scene, or with KeepExistingBegin) then they will remain existing,
+    scene) or uses TX3DNode.KeepExistingBegin or TX3DNode.WaitForRelease
+    then they will remain existing,
     and will have a dangling reference to this Scene.
     This happened with internal TAppearanceNode in CastleTerrain at one point.
 
@@ -3158,6 +3159,10 @@ begin
       FreeAndNil(Scene);
 
     ... then OldMaterial will have invalid reference in OldMaterial.Scene.
+
+    The workaround right now is to use TX3DNode.UnregisterScene when
+    this can happen. But it's an additional trap to think about when
+    managing memory of X3D nodes.
   }
   if (FRootNode <> nil) and (not FOwnsRootNode) then
     FRootNode.UnregisterScene;
