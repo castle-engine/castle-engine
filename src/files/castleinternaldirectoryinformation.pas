@@ -95,10 +95,18 @@ var
 
 function DataDirectoryInformation: TDirectoryInformation;
 
+{ Should we consider DataDirectoryInformation for file existence
+  and enumeration.
+  Checks @link(DisableDataDirectoryInformation),
+  @link(DataDirectoryInformation) <> nil,
+  @link(ApplicationDataOverride) = ''. }
+function ConsiderDataDirectoryInformation: Boolean;
+
 implementation
 
 uses SysUtils,
-  CastleXmlUtils, CastleUriUtils, CastleStringUtils, CastleLog;
+  CastleXmlUtils, CastleUriUtils, CastleStringUtils, CastleLog,
+  CastleFilesUtils;
 
 { TDirectory ----------------------------------------------------------------- }
 
@@ -402,6 +410,25 @@ begin
   end;
 
   Result := FDataDirectoryInformation;
+end;
+
+function ConsiderDataDirectoryInformation: Boolean;
+begin
+  Result :=
+    (DisableDataDirectoryInformation = 0) and
+    (DataDirectoryInformation <> nil) and
+    { Ignore DataDirectoryInformation when ApplicationDataOverride is set.
+      This means that e.g. when castle-editor-portable sets
+      ApplicationDataOverride (to resolve castle-data:/ to edited project's
+      directory), UriExists and FindFiles will not use
+      DataDirectoryInformation of castle-editor-portable.
+
+      Testcase: castle-editor-portable on web, create new 2d project,
+      open view "play".
+
+      Without this condition, loading dragon.atlas would fail,
+      our Spine loader would think that dragon.atlas does not exist. }
+    (ApplicationDataOverride = '');
 end;
 
 initialization
