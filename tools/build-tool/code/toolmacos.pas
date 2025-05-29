@@ -74,8 +74,13 @@ begin
     CompilerOptions.CPU := x86_64;
     Compile(Compiler, WorkingDirectory, CompileFile, CompilerOptions);
   except
-    Writeln(ErrOutput, 'Fatal error when compiling x86_64 slice');
-    raise;
+    { Enhance the exception message and reraise, we cannot make universal binary
+      with all CPU architectures if x86_64 slice fails. }
+    on E: Exception do
+    begin
+      E.Message := 'Fatal error when compiling x86_64 slice: ' + E.Message;
+      raise;
+    end;
   end;
 
   CompilerOptions.OverrideEnvironmentName := '';
@@ -96,8 +101,13 @@ begin
     CompilerOptions.CPU := aarch64;
     Compile(Compiler, WorkingDirectory, CompileFile, CompilerOptions);
   except
-    Writeln(ErrOutput, 'Fatal error when compiling arm64 slice');
-    raise;
+    { Enhance the exception message and reraise, we cannot make universal binary
+      with all CPU architectures if aarch64 slice fails. }
+    on E: Exception do
+    begin
+      E.Message := 'Fatal error when compiling aarch64 slice: ' + E.Message;
+      raise;
+    end;
   end;
 
   LinkRes := CompilerOptions.LinkerOutputFile;
