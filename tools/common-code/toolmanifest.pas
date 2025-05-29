@@ -246,7 +246,7 @@ type
     property ScreenOrientation: TScreenOrientation read FScreenOrientation;
     property Icons: TImageFileNames read FIcons;
     property LaunchImages: TImageFileNames read FLaunchImages;
-    { iOS launch image storyboard (see https://castle-engine.io/project_manifest#launch-images-for-now-only-for-ios ).
+    { iOS launch image storyboard (see https://castle-engine.io/project_manifest#_launch_images_for_now_only_for_ios ).
       Never @nil (but check Path <> '' before actually using it). }
     property LaunchImageStoryboard: TLaunchImageStoryboard read FLaunchImageStoryboard;
     property SearchPaths: TStringList read FSearchPaths;
