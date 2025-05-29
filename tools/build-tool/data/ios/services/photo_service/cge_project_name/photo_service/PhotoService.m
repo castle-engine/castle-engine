@@ -27,7 +27,7 @@
 
 - (bool)messageReceived:(NSArray* )message
 {
-    if (message.count == 2 &&
+    if (message.count >= 2 &&
         [[message objectAtIndex: 0] isEqualToString:@"photoservice-store-image"])
     {
         NSString* sFileUrl = [message objectAtIndex: 1];
