@@ -13,7 +13,7 @@ Add it to your link:https://castle-engine.io/project_manifest[CastleEngineManife
 </android>
 ----
 
-Then you can use our Pascal API (https://castle-engine.io/manual_network.php[Download and TCastleDownload]) to download resources from `http` and `https` on Android, just like on other platforms.
+Then you can use our Pascal API (https://castle-engine.io/url[Download and TCastleDownload]) to download resources from `http` and `https` on Android, just like on other platforms.
 
 Note: This service is automatically used if your project already declares that it needs to download `https` like this:
 

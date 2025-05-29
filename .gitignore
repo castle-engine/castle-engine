@@ -180,7 +180,9 @@ castle-game-engine-*.fpm
 /examples/mobile/on_screen_keyboard/on_screen_keyboard
 /examples/mobile/simple_3d_demo/simple_3d_demo
 /examples/mobile/two_cars/two_cars
-/mobile/simplest_manifest_test/simplest_manifest_test
+/examples/mobile/simplest_manifest_test/simplest_manifest_test
+/examples/shaders/shader_effects_simple/shader_effects_simple
+/examples/shaders/shader_effects_on_primitives/shader_effects_primitives
 /examples/viewport_and_scenes/shadows/shadows
 /examples/viewport_and_scenes/shadow_volumes_whole_scene_manifold/shadow_volumes_whole_scene_manifold
 /examples/viewport_and_scenes/bump_mapping/bump_mapping
@@ -216,7 +218,7 @@ castle-game-engine-*.fpm
 /examples/research_special_rendering_methods/plane_mirror_and_shadow/plane_mirror_and_shadow
 /examples/research_special_rendering_methods/shadow_fields/precompute_shadow_field
 /examples/research_special_rendering_methods/shadow_fields/shadow_fields
-/examples/research_special_rendering_methods/transform_feedback/transform_feedback
+/examples/shaders/transform_feedback/transform_feedback
 /examples/research_special_rendering_methods/test_rendering_opengl_capabilities/test_rendering_opengl_capabilities
 /examples/screen_effects_demo/screen_effects_demo
 /examples/short_api_samples/animation_stop_notification/animation_stop_notification
@@ -266,10 +268,10 @@ castle-game-engine-*.fpm
 /examples/viewport_and_scenes/position_from_world/position_from_world
 /examples/viewport_and_scenes/render_3d_to_image/render_3d_to_image
 /examples/viewport_and_scenes/render_3d_to_texture_and_use_as_quad/render_3d_to_texture_and_use_as_quad
-/examples/viewport_and_scenes/shader_effects/shader-effects
-/examples/viewport_and_scenes/shader_effects_on_texture/shader_effects_on_texture
-/examples/viewport_and_scenes/shader_effects_on_background/shader_effects_on_background
-/examples/viewport_and_scenes/shader_override/shader_override
+/examples/shaders/shader_effects_on_shape/shader-effects
+/examples/shaders/shader_effects_on_texture/shader_effects_on_texture
+/examples/shaders/shader_effects_on_background/shader_effects_on_background
+/examples/shaders/shader_override/shader_override
 /examples/viewport_and_scenes/show_bounding_rect_in_2d/show_bounding_rect_in_2d
 /examples/viewport_and_scenes/test_triangulate/test_triangulate
 /examples/viewport_and_scenes/test_was_visible/test_was_visible

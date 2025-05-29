@@ -1,6 +1,6 @@
 {%MainUnit castlescene.pas}
 {
-  Copyright 2022-2022 Michalis Kamburelis.
+  Copyright 2022-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -53,6 +53,23 @@ type
     procedure SetTexturePositiveY(const Value: String);
     procedure SetSmoothEquator(const Value: Single);
     procedure SetRotation(const Value: TVector4);
+
+    { Call before freeing the internal TCastleScene in FBackgroundRenderer
+      that is done by UpdateRenderer.
+      That scene is referenced by TX3DNode.Scene for our effect nodes,
+      but destroying that scene is not setting TX3DNode.Scene to @nil,
+      as documented in @link(TX3DNode.UnregisterScene).
+
+      Testcase: Use examples/shaders/shader_effects_on_background,
+      switch to color effect, then back to none.
+
+      Without this fix, the EffectColor.Scene would be left pointing to the
+      old TCastleScene, of old (destroyed at the beginning of
+      UpdateRenderer) TBackgroundRenderer.
+      And then the next EffectColorIntensity.Send call will crash,
+      as TX3DNode(ParentNode).Scene.NextEventTime crashes,
+      as TX3DNode(ParentNode).Scene is now a dangling pointer. }
+    procedure UnregisterSceneFromEffects;
   protected
     procedure Loaded; override;
   public
@@ -101,7 +118,7 @@ type
     function InternalBuildNode: TAbstractChildNode;
 
     { Add shader effects to configure how is the background rendered.
-      See https://castle-engine.io/compositing_shaders.php for documentation
+      See https://castle-engine.io/shaders for documentation
       how shader effects work in Castle Game Engine. }
     procedure SetEffects(const Value: array of TEffectNode);
   published
@@ -172,6 +189,9 @@ begin
   {$I auto_generated_persistent_vectors/tcastlebackground_persistent_vectors.inc}
   {$undef read_implementation_destructor}
 
+  if FBackgroundNode <> nil then
+    UnregisterSceneFromEffects;
+
   FreeAndNil(FBackgroundRenderer);
   FreeAndNil(FBackgroundNode);
   inherited;
@@ -203,8 +223,17 @@ begin
     UpdateRenderer;
 end;
 
+procedure TCastleBackground.UnregisterSceneFromEffects;
+var
+  I: Integer;
+begin
+  for I := 0 to FBackgroundNode.FdEffects.Count - 1 do
+    FBackgroundNode.FdEffects[I].UnregisterScene;
+end;
+
 procedure TCastleBackground.UpdateRenderer;
 begin
+  UnregisterSceneFromEffects;
   FreeAndNil(FBackgroundRenderer);
 
   if FSmoothEquator <= 0 then
@@ -383,6 +412,12 @@ end;
 
 procedure TCastleBackground.SetEffects(const Value: array of TEffectNode);
 begin
+  { Call UnregisterSceneFromEffects to set TX3DNode.Scene := nil
+    on old effect nodes. We cannot wait for UpdateRenderer to do it,
+    as that happens after FBackgroundNode.SetEffects,
+    so we would not fix old effects. }
+  UnregisterSceneFromEffects;
+
   FBackgroundNode.SetEffects(Value);
   UpdateRendererOnceLoaded;
 end;

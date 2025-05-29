@@ -69,6 +69,7 @@
     FX3DName: string;
     FBaseUrl: String;
     FVRML1Children, FVRML1Parents: TX3DNodeList;
+    FWaitsForRelease: Boolean;
     FKeepExisting: Cardinal;
     FParentFields: TX3DFieldList;
     FPrototypes: TX3DPrototypeBaseList;
@@ -501,20 +502,61 @@
       Methods KeepExistingBegin and KeepExistingEnd simply increase /
       decrease KeepExisting value by 1. This is the most usual usage. }
     property KeepExisting: Cardinal read FKeepExisting write FKeepExisting;
+      {$ifdef FPC}
+      deprecated 'do not access this directly; instead use NodeWaitForRelease and NodeRelease (eventually KeepExistingBegin and KeepExistingEnd) if you want to control node lifetime';
+      {$endif FPC}
 
-    { Increase @link(KeepExisting) property by 1, preventing the node from being
-      automatically freed when the reference count changes from non-zero to zero. }
+    { Increase "fake reference count" by 1, preventing the node from being
+      automatically freed when the reference count changes from non-zero to zero.
+
+      It is discouraged to use this method.
+      In most cases, @link(NodeWaitForRelease) and @link(NodeRelease)
+      are easier to use than @link(KeepExistingBegin) + @link(KeepExistingEnd)
+      + @link(FreeIfUnusedAndNil). }
     procedure KeepExistingBegin;
 
-    { Decrease @link(KeepExisting) property by 1. This should match previous
-      @link(KeepExistingBegin) call. When @link(KeepExisting) is zero,
-      the node will be automatically freed when the reference count
-      changes from non-zero to zero.
+    { Decrease "fake reference count" by 1. This should match previous
+      @link(KeepExistingBegin) call. When nothing will refer to this node,
+      and the "fake reference count" is zero, the node will be freed.
 
-      Note that merely calling KeepExistingEnd, or changing @link(KeepExisting)
-      property, @italic(will not) free the node. Follow this with @link(FreeIfUnused)
-      or @link(FreeIfUnusedAndNil) to actually free unused node. }
+      Note that merely calling KeepExistingEnd @italic(will not) free the node.
+      Follow this with @link(FreeIfUnused)
+      or (better) @link(FreeIfUnusedAndNil) to actually free unused node.
+
+      It is discouraged to use this method.
+      In most cases, @link(NodeWaitForRelease) and @link(NodeRelease)
+      are easier to use than @link(KeepExistingBegin) + @link(KeepExistingEnd)
+      + @link(FreeIfUnusedAndNil). }
     procedure KeepExistingEnd;
+
+    { Do not free this node, even if it will become unused.
+      You must call @link(NodeRelease) to free this node.
+
+      By default, if this method was not used, every X3D node is reference-counted.
+      This means that when the node starts being referenced by some other node
+      (e.g. @link(TShapeNode.Geometry) refers to @link(TIndexedFaceSetNode) instance),
+      the reference count is increased.
+      When the node stops being referenced (e.g. @link(TShapeNode.Geometry) is set to @nil),
+      the reference count is decreased.
+      When the reference count reaches zero, the node is freed.
+
+      Calling this routine pauses this "automatic freeing" of the node.
+
+      Calling this rouine multiple times on the same node has no effect.
+      So you don't need to pair every @name call with @link(NodeRelease),
+      it's enough to call @link(NodeRelease) once, no matter how many times
+      you called @name on the same node.
+
+      The reference count is still increased and decreased,
+      but we also keep additional "fake" reference to the node,
+      so it will not be freed.
+
+      This should be always paired with @link(NodeRelease),
+      that will remove this "fake" reference and free the node
+      (if it is unused).
+
+      See the https://castle-engine.io/shaders#node_release for an example of this. }
+    procedure WaitForRelease;
 
     { Name of this node. When saving/loading, this comes from VRML/X3D
       "DEF" construct. Empty value means that the name is not defined.
@@ -1143,7 +1185,7 @@
           This is done for speed, because it's not needed in 99% cases.
 
           However, if your scene contains some node that isn't freed
-          because of @link(KeepExistingBegin),
+          because of @link(KeepExistingBegin) or @link(WaitForRelease),
           then such node will remain attached to non-existing scene.
           You should call UnregisterScene on such node manually, for now.
         )
@@ -1351,7 +1393,8 @@ begin
   if (Self <> nil) and
      (VRML1ParentsCount = 0) and
      (FParentFields.Count = 0) and
-     (KeepExisting = 0) then
+     (FKeepExisting = 0) and
+     (not FWaitsForRelease) then
   begin
     { For FPC <= 2.2.2:
       This is written as "Self.Destroy" to actually do the desctruction,
@@ -1373,6 +1416,11 @@ end;
 procedure TX3DNode.KeepExistingEnd;
 begin
   Dec(FKeepExisting);
+end;
+
+procedure TX3DNode.WaitForRelease;
+begin
+  FWaitsForRelease := true;
 end;
 
 procedure TX3DNode.VRML1ChildAdd(const Index: Integer; const Child: TX3DNode);

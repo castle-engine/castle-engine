@@ -609,7 +609,7 @@ var
 
     @orderedList(
       @item(You can define your own color processing using
-        our compositing shaders ( https://castle-engine.io/compositing_shaders.php ),
+        our shader effects ( https://castle-engine.io/shaders ),
         use PLUG_fragment_modify ( https://castle-engine.io/compositing_shaders_doc/html/section.fragment_plugs.html ).
         See https://github.com/castle-engine/demo-models/blob/master/compositing_shaders/tone_mapping.x3dv
         example.

@@ -14,6 +14,12 @@ Compared to the [real Castle Game Engine editor](https://castle-engine.io/editor
 
 - However! A lot of important functionality is yet missing. See TODOs below. This is not a replacement for the real editor yet. But with time, it can be -- we can copy here more and more "real" editor's functionality, and eventually make this a fully-functional editor version.
 
+## Try it out on the web
+
+[Try it out by visiting this page.](https://castle-engine.io/web-demos/tools/castle-editor-portable/)
+
+## Detailed features and TODOs
+
 Features:
 
 - Create a new project, choosing one of the templates.
@@ -43,11 +49,15 @@ TODOs:
 - Import/export project. And ability to just open projects at arbitrary location on platforms where regular filesystem exists (desktops).
 - ... All other functionality of the real editor. Duplicating, all integration with code editors etc.
 
-Using [Castle Game Engine](https://castle-engine.io/).
+## Screenshots
 
 ![Screenshot](screenshot.png)
 
+![Screenshot on the web](screenshot2.png)
+
 ## Building
+
+Using [Castle Game Engine](https://castle-engine.io/).
 
 Compile by:
 

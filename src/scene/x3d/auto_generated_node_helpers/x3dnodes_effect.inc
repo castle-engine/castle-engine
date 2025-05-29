@@ -59,6 +59,42 @@
     { Should we report a missing uniform value. Setting this to umWarning (default) is useful to spot simple mistakes in naming uniforms. On the other hand, OpenGL aggressively removes unused uniforms from code, and it may cause spurious messages that some uniform is missing -- even though the shader is correct, is just doesn't use some uniform value e.g. because no lights are present on the current scene. }
     property UniformMissing: TUniformMissing read GetUniformMissing write SetUniformMissing;
 
+    strict private FFdShaderLibraries: TMFString;
+    { Internal wrapper for property @code(ShaderLibraries). This wrapper API may change, we advise to access simpler @code(ShaderLibraries) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdShaderLibraries: TMFString read FFdShaderLibraries;
+    { Additional libraries of shader code to link with this effect.
+
+    Each "shader library" defines a shader code, just like an additional EffectNode. This code can define new GLSL functions to use in your effect code, e.g. @code(position_world_to_eye_space). This code can also use PLUGs just like other effects, so it can influence the rendering and other computations. The engine has (right now hardcoded) logic to provide necessary uniform values for every shader library, so you don't need to do anything additional to make the added code functional.
+
+    Right now, only one shader library is allowed: 'castle-shader:/EyeWorldSpace.glsl'. This is linked with both vertex and fragment stages, and exposes new GLSL functions you can use:
+
+    @preformatted(
+      vec4 position_world_to_eye_space(vec4 position_world);
+      vec4 position_eye_to_world_space(vec4 position_eye);
+
+      vec3 direction_world_to_eye_space(vec3 direction_world);
+      vec3 direction_eye_to_world_space(vec3 direction_eye);
+    )
+
+    See examples/shaders/shader_effects_on_background/ for a demo. }
+    procedure SetShaderLibraries(const Value: array of string); overload;
+    { Additional libraries of shader code to link with this effect.
+
+    Each "shader library" defines a shader code, just like an additional EffectNode. This code can define new GLSL functions to use in your effect code, e.g. @code(position_world_to_eye_space). This code can also use PLUGs just like other effects, so it can influence the rendering and other computations. The engine has (right now hardcoded) logic to provide necessary uniform values for every shader library, so you don't need to do anything additional to make the added code functional.
+
+    Right now, only one shader library is allowed: 'castle-shader:/EyeWorldSpace.glsl'. This is linked with both vertex and fragment stages, and exposes new GLSL functions you can use:
+
+    @preformatted(
+      vec4 position_world_to_eye_space(vec4 position_world);
+      vec4 position_eye_to_world_space(vec4 position_eye);
+
+      vec3 direction_world_to_eye_space(vec3 direction_world);
+      vec3 direction_eye_to_world_space(vec3 direction_eye);
+    )
+
+    See examples/shaders/shader_effects_on_background/ for a demo. }
+    procedure SetShaderLibraries(const Value: TCastleStringList); overload;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -107,6 +143,16 @@ begin
   FdUniformMissing.SendEnumValue(Ord(Value));
 end;
 
+procedure TEffectNode.SetShaderLibraries(const Value: array of string);
+begin
+  FdShaderLibraries.Send(Value);
+end;
+
+procedure TEffectNode.SetShaderLibraries(const Value: TCastleStringList);
+begin
+  FdShaderLibraries.Send(Value);
+end;
+
 class function TEffectNode.ClassX3DType: String;
 begin
   Result := 'Effect';
@@ -131,6 +177,10 @@ begin
   FFdUniformMissing := TSFStringEnum.Create(Self, False, 'uniformMissing', @UniformMissingNames, Ord(High(UniformMissingNames)) + 1, Ord(umWarning));
    FdUniformMissing.ChangeAlways := chEverything;
   AddField(FFdUniformMissing);
+
+  FFdShaderLibraries := TMFString.Create(Self, False, 'shaderLibraries', []);
+   FdShaderLibraries.ChangeAlways := chEverything;
+  AddField(FFdShaderLibraries);
 end;
 
 {$endif read_implementation}

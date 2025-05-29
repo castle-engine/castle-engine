@@ -6,7 +6,7 @@ X3DBackgroundNode : X3DBindableNode {
   MFNode     []            effects          []
     range: Effect
     change: chEverything
-    doc: Shader effects (see https://castle-engine.io/compositing_shaders.php) used to render background geometry.
+    doc: @url(https://castle-engine.io/shaders Shader effects) used to render background geometry.
 }
 
 # X3D specification has just X3DBackgroundNode, not X3D3DBackgroundNode.

@@ -145,7 +145,7 @@
   TEffectPartNode = class;
 
   { Shader effect, that can be composed with other effect or standard rendering.
-    See https://castle-engine.io/compositing_shaders.php . }
+    See https://castle-engine.io/shaders . }
   TEffectNode = class(TAbstractChildNode)
   protected
     procedure GroupBeforeTraverse(const State: TX3DGraphTraverseState; var WasPointingDeviceSensor: Boolean); override;
@@ -155,7 +155,7 @@
   end;
 
   { Part of a shader effect, used with @link(TEffectNode).
-    See https://castle-engine.io/compositing_shaders.php . }
+    See https://castle-engine.io/shaders . }
   TEffectPartNode = class(TAbstractNode)
   strict private
     ContentsCached: boolean;
@@ -171,7 +171,7 @@
 
       Getting this automatically loads the shader code pointed by the URL field
       of this node. The shader code may be specified in an external file,
-      or inline using "data URI", see https://castle-engine.io/manual_network.php .
+      or inline using "data URI", see https://castle-engine.io/url .
       The shader code may also be specified using the XML "CDATA" in X3D XML encoding.
       Returns '' of no valid URLs are present
       (loading errors are reported to WritelnWarning).
@@ -183,7 +183,7 @@
   end;
 
   { Procedural texture defined by shaders.
-    See https://castle-engine.io/compositing_shaders.php . }
+    See https://castle-engine.io/shaders . }
   TShaderTextureNode = class(TAbstractSingleTextureNode)
   {$I auto_generated_node_helpers/x3dnodes_shadertexture.inc}
   end;

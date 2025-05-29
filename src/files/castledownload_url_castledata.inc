@@ -57,8 +57,7 @@ class function TUrlCastleData.Exists(const Url: String): TUriExists;
   end;
 
 begin
-  if (DisableDataDirectoryInformation = 0) and
-     (DataDirectoryInformation <> nil) then
+  if ConsiderDataDirectoryInformation then
     Result := UseDataDirectoryInformation(Url)
   else
     { Recursively call UriExists, on URL that is no longer castle-data.
