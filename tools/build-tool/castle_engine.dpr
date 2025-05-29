@@ -32,7 +32,7 @@ uses SysUtils,
   ToolPackageFormat, ToolProject, ToolCompile, ToolIOS, ToolAndroid, ToolManifest,
   ToolNintendoSwitch, ToolCommonUtils, ToolUtils, ToolProcess,
   { For ForcePipesPassthrough, necessary for Windows. } ToolProcessRun,
-  ToolCache, ToolCompilerInfo;
+  ToolCache, ToolCompilerInfo, ToolMacOS;
 
 var
   Target: TTarget;
@@ -427,6 +427,7 @@ begin
         targetCustom        : Compile(OverrideCompiler, GetCurrentDir, FileName, SimpleCompileOptions);
         targetAndroid       : CompileAndroid(OverrideCompiler, nil, GetCurrentDir, FileName, SimpleCompileOptions);
         targetIOS           : CompileIOS(OverrideCompiler, GetCurrentDir, FileName, SimpleCompileOptions);
+        targetMacOS         : CompileMacOS(OverrideCompiler, GetCurrentDir, FileName, SimpleCompileOptions);
         targetNintendoSwitch: CompileNintendoSwitch(GetCurrentDir, FileName, SimpleCompileOptions);
         targetWeb           :
           begin

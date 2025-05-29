@@ -387,7 +387,9 @@ begin
   if TX3DNode(Obj) = nil then Exit; // nothing to do
 
   if not TX3DNode(Obj).FWaitsForRelease then
-    WritelnWarning('NodeRelease called on a node that was not setup with Node.WaitForRelease: %s. This can happen if node was successfully created, but then exception occurred before you called "Node.WaitForRelease". To avoid this, always call "Node.WaitForRelease" right after creating the node.', [
+    WritelnWarning('NodeRelease called on a node that was not setup with Node.WaitForRelease: %s. ' +
+      'This can happen if node was successfully created, but then exception occurred before you called "Node.WaitForRelease". ' +
+      'To avoid this, always call "Node.WaitForRelease" right after creating the node.', [
       TX3DNode(Obj).NiceName
     ]);
   TX3DNode(Obj).FWaitsForRelease := false;
