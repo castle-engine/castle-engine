@@ -1933,13 +1933,19 @@ const
         raise Exception.CreateFmt('Launch image storyboard must be a PNG file, but is "%s"', [
           Manifest.LaunchImageStoryboard.Path
         ]);
-      { Note: Using "StoryboardFileName := Manifest.LaunchImageStoryboard.Path"
-        would be wrong, as "castle-engine compile" may be executed in subdirectory
-        of the project, not the project's top-level directory. }
       if UriProtocol(Manifest.LaunchImageStoryboard.Path) = 'castle-data' then
+      begin
+        { Load storyboard from the build tool data.
+          We need this to support our default launch image storyboard. }
         StoryboardFileName := Manifest.LaunchImageStoryboard.Path
-      else
+      end else
+      begin
+        { Load storyboard from the project.
+          Note: Using "StoryboardFileName := Manifest.LaunchImageStoryboard.Path"
+          would be wrong, as "castle-engine compile" may be executed in subdirectory
+          of the project, not the project's top-level directory. }
         StoryboardFileName := CombinePaths(Path, Manifest.LaunchImageStoryboard.Path);
+      end;
       Img := LoadImage(StoryboardFileName);
       try
         FLaunchImageStoryboardWidth := Img.Width;

@@ -843,7 +843,22 @@ begin
       end else
         raise Exception.Create('Failed to compile');
     end;
-    { Find the linker output from the Fpc output. The line starts with 'Linking '. }
+    { Find the linker output from the Fpc output. The line starts with 'Linking '.
+
+      TODO: This search assumes an English output of FPC.
+      If user customizes FPC to use a different language (which can be done by
+      fpc.cfg, out of our control), then this message is translated (see
+      "exec_i_linking" in FPC translation files), and logic below will not work.
+
+      - See https://github.com/castle-engine/castle-engine/pull/629#issuecomment-2886020746
+        for possible ideas:
+        "I tried finding another way to get the Options.LinkerOutputFile,
+        but failed again. There could be a chance if ppaslink.sh file
+        was not automatically deleted by fpc, as there is a ld command line inside,
+        and the output file is after -o."
+
+      - Maybe we could force the FPC language on the command-line?
+    }
     LinkerOutputBinaryPos := Pos('Linking ', FpcOutput);
     if LinkerOutputBinaryPos <> 0 then
     begin
