@@ -9,8 +9,8 @@ Extensions:
   E.g. lighting calculation may be done in either vertex shader
   (for Gouraud shading) or in fragment shader (for Phong shading).
 
-See https://castle-engine.io/compositing_shaders.php
-for our "compositing shaders" approach, which is used to "compose"
+See https://castle-engine.io/shaders
+about our shaders approach, which is used to "compose"
 the final shader from multiple pieces.
 This approach is used both internally (to construct the final shader from
 various pieces defined in this directory) and externally (to allow user

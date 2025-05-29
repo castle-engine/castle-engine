@@ -17,6 +17,13 @@ unit CastleTransform;
 
 {$I castleconf.inc}
 
+{ Hide Delphi warning about duplicate constructors in Kraft classes
+  not accessible from C++.
+  We don't need to expose Kraft classes to C++ anyway, they are internal for CGE. }
+{$ifndef FPC}
+  {$warn DUPLICATE_CTOR_DTOR off}
+{$endif}
+
 interface
 
 uses SysUtils, Classes, Math, Generics.Collections, Contnrs, Kraft,
@@ -26,21 +33,25 @@ uses SysUtils, Classes, Math, Generics.Collections, Contnrs, Kraft,
   CastleUIControls, CastleQuaternions, CastleColors, CastleInternalClassUtils,
   CastleInternalFileMonitor;
 
+{$define read_interface}
+{$I castletransform_physics_layers.inc}
+
 type
-  {$define read_interface}
   {$I castletransform_initial_types.inc}
   {$I castletransform_renderparams.inc}
   {$I castletransform_behavior.inc}
   {$I castletransform_transformlist.inc}
   {$I castletransform_transform.inc}
+  {$I castletransform_physics.inc}
   {$I castletransform_abstractroottransform.inc}
   {$I castletransform_design.inc}
   {$I castletransform_reference.inc}
   {$I castletransform_camera.inc}
+  {$I castletransform_joints.inc}
+  {$I castletransform_joints_experimental.inc}
 
-{$I castletransform_physics.inc}
-{$I castletransform_joints.inc}
-{$I castletransform_joints_experimental.inc}
+// type section ends here
+
 {$I castletransform_serialize.inc}
 {$I castletransform_miscellaneous_globals.inc}
 {$I castletransform_camera_utils.inc}
@@ -56,6 +67,7 @@ uses CastleLog, CastleApplicationProperties, CastleUriUtils, CastleInternalRays,
 
 {$define read_implementation}
 {$I castletransform_initial_types.inc}
+{$I castletransform_physics_layers.inc}
 {$I castletransform_renderparams.inc}
 {$I castletransform_physics.inc}
 {$I castletransform_joints.inc}

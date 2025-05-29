@@ -38,7 +38,7 @@ Pass input file as a command-line parameter. The output is written to standard o
 to-data-uri my_texture.png > my_texture_data_uri.txt
 ```
 
-Command-line parameter is used with our [Download](https://castle-engine.io/apidoc/html/CastleDownload.html#Download-String-TStreamOptions-) routine. See [Networking in Castle Game Engine](https://castle-engine.io/manual_network.php) for more information about supported URLs.
+Command-line parameter is used with our [Download](https://castle-engine.io/apidoc/html/CastleDownload.html#Download-String-TStreamOptions-) routine. See [loading and saving using URLs in Castle Game Engine](https://castle-engine.io/url) for more information about supported URLs.
 
 So the given parameter may be:
 - just a filename

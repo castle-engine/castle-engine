@@ -22,7 +22,7 @@
 
 - (void)viewUrl:(NSString*) url
 {
-    [[UIApplication sharedApplication] openURL: [NSURL URLWithString: url]];
+    [[UIApplication sharedApplication] openURL: [NSURL URLWithString: url] options:@{} completionHandler:nil];
 }
 
 - (void)openApplicationStore:(NSString*) applicationId

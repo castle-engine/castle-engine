@@ -636,3 +636,37 @@
 {.$define CASTLE_ANDROID_ARGV_LOGGING}
 
 {$endif not CASTLE_CONF_INCLUDED}
+
+{ Model formats support ------------------------------------------------------
+  Disable support for some model formats to make the exe smaller.
+
+  Note: Don't define these symbols in castleconf.inc,
+  as this would mean you need to maintain your CGE modification,
+  and it affects all projects (including CGE examples that may rely on specific
+  formats).
+
+  Rather, define these symbols in your project, e.g. using <defines> in the
+  CastleEngineManifest.xml.
+  See https://castle-engine.io/project_manifest#_compiler_options_and_paths .
+  Like:
+
+  <compiler_options>
+    <defines>
+      <define>CASTLE_COLLADA_SUPPORT_DISABLE</define>
+      <define>CASTLE_IFC_SUPPORT_DISABLE</define>
+    </defines>
+  </compiler_options>
+}
+{$ifdef CASTLE_GEO_SUPPORT_DISABLE}{$INFO 'GEO support disabled'}{$endif}
+{$ifdef CASTLE_OBJ_SUPPORT_DISABLE}{$INFO 'OBJ support disabled'}{$endif}
+{$ifdef CASTLE_COLLADA_SUPPORT_DISABLE}{$INFO 'COLLADA support disabled'}{$endif}
+{$ifdef CASTLE_SPINE_SUPPORT_DISABLE}{$INFO 'SPINE support disabled'}{$endif}
+{$ifdef CASTLE_STL_SUPPORT_DISABLE}{$INFO 'STL support disabled'}{$endif}
+{$ifdef CASTLE_MD3_SUPPORT_DISABLE}{$INFO 'MD3 support disabled'}{$endif}
+{$ifdef CASTLE_GLTF_SUPPORT_DISABLE}{$INFO 'GLTF support disabled'}{$endif}
+{$ifdef CASTLE_IMAGE_SUPPORT_DISABLE}{$INFO 'IMAGE support disabled'}{$endif}
+{$ifdef CASTLE_COCOS2D_SUPPORT_DISABLE}{$INFO 'COCOS2D support disabled'}{$endif}
+{$ifdef CASTLE_SPRITESHEET_SUPPORT_DISABLE}{$INFO 'SPRITESHEET support disabled'}{$endif}
+{$ifdef CASTLE_TILED_MAP_SUPPORT_DISABLE}{$INFO 'TILED_MAP support disabled'}{$endif}
+{$ifdef CASTLE_IFC_SUPPORT_DISABLE}{$INFO 'IFC support disabled'}{$endif}
+{$ifdef CASTLE_3DS_SUPPORT_DISABLE}{$INFO '3DS support disabled'}{$endif}

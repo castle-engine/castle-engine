@@ -86,7 +86,7 @@ implementation
 uses SysUtils, Process,
   CastleFilesUtils, CastleLog, CastleFindFiles, CastleUriUtils,
   CastleStringUtils, CastleInternalDirectoryInformation,
-  ToolCommonUtils, ToolUtils, ToolDebian;
+  ToolCommonUtils, ToolUtils, ToolDebian, ToolProcessRun;
 
 { TPackageDirectory ---------------------------------------------------------- }
 

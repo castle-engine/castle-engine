@@ -184,7 +184,7 @@ type
   TProjectCreationOptions = record
     { Where to place the new project.
       A subdirectory ProjectName will be created there. }
-    ParentDir: String;
+    ParentDirUrl: String;
 
     { Template name to use, must be one of the allowed templates
       in project_templates. }
@@ -201,11 +201,18 @@ procedure ProjectCreateFromTemplate(const EnginePath: String;
   const Options: TProjectCreationOptions;
   out ProjectDirUrl: String);
 
+{ Create directory with new CGE project, instantiating given template.
+  In contrast to ProjectCreateFromTemplate, this takes TemplatesPathUrl
+  which is URL to the project_templates/ directory. }
+procedure ProjectCreateFromTemplateData(const TemplatesPathUrl: String;
+  const Options: TProjectCreationOptions;
+  out ProjectDirUrl: String);
+
 implementation
 
 uses SysUtils, StrUtils,
   CastleUriUtils, CastleXmlUtils, CastleStringUtils, CastleLog, CastleUtils,
-  CastleFilesUtils;
+  CastleFilesUtils, CastleDownload, CastleClassUtils;
 
 function ApiReferenceUrlCore(const EnginePath: String): String;
 var
@@ -406,6 +413,42 @@ begin
   end;
 end;
 
+{ internal utilities for TTemplateCopyProcess -------------------------------------------- }
+
+{ Given URL to directory BasePathUrl, and target URL TargetUrl,
+  determine relative URL to the file. }
+function MustExtractRelativeUrl(BasePathUrl, TargetUrl: String): String;
+begin
+  BasePathUrl := ResolveCastleDataUrl(BasePathUrl);
+  BasePathUrl := ResolveCastleConfigUrl(BasePathUrl);
+
+  TargetUrl := ResolveCastleDataUrl(TargetUrl);
+  TargetUrl := ResolveCastleConfigUrl(TargetUrl);
+
+  { Ignore case at IsPrefix / PrefixRemove calls,
+    in case it's not case-sensitive file-system, then the case in theory
+    can differ. }
+  if not IsPrefix(BasePathUrl, TargetUrl, true) then
+    raise Exception.CreateFmt('Unexpected: %s is not a prefix of %s, report a bug',
+      [BasePathUrl, TargetUrl]);
+  Result := PrefixRemove(BasePathUrl, TargetUrl, true);
+end;
+
+{ Copy contents of one URL to another.
+  Works with arbitrary URLs, not just local files. }
+procedure CopyUrl(const SourceUrl, TargetUrl: String);
+var
+  SourceStream, TargetStream: TStream;
+begin
+  SourceStream := Download(SourceUrl);
+  try
+    TargetStream := UrlSaveStream(TargetUrl);
+    try
+      ReadGrowingStream(SourceStream, TargetStream, false);
+    finally FreeAndNil(TargetStream) end;
+  finally FreeAndNil(SourceStream) end;
+end;
+
 { TTemplateCopyProcess ------------------------------------------------------------ }
 
 type
@@ -418,29 +461,40 @@ type
   end;
 
 procedure TTemplateCopyProcess.FoundFile(const FileInfo: TFileInfo; var StopSearch: Boolean);
+
+{ When working with regular filesystem, use regular file operations to make
+  everything as efficient as possible. }
+{$define OPTIMIZE_REGULAR_FILE_SYSTEM}
+
 var
-  Contents, RelativeUrl, TargetUrl, TargetFileName, Mime: String;
+  Contents, RelativeUrl, TargetUrl, Mime: String;
+  {$ifdef OPTIMIZE_REGULAR_FILE_SYSTEM}
+  TargetFileName: String;
+  {$endif OPTIMIZE_REGULAR_FILE_SYSTEM}
 begin
-  { Ignore case at IsPrefix / PrefixRemove calls,
-    in case it's not case-sensitive file-system, then the case in theory
-    can differ. }
-  if not IsPrefix(TemplateUrl, FileInfo.URL, true) then
-    raise Exception.CreateFmt('Unexpected: %s is not a prefix of %s, report a bug',
-      [TemplateUrl, FileInfo.URL]);
-  RelativeUrl := PrefixRemove(TemplateUrl, FileInfo.URL, true);
+  RelativeUrl := MustExtractRelativeUrl(TemplateUrl, FileInfo.URL);
   TargetUrl := CombineUri(ProjectDirUrl, RelativeUrl);
   { Rename target files that depend on MainView. }
   if ExtractUriName(TargetUrl) = 'gameviewmain.pas' then
     TargetUrl := ExtractUriPath(TargetUrl) + 'gameview' + LowerCase(MainView) + '.pas';
   if ExtractUriName(TargetUrl) = 'gameviewmain.castle-user-interface' then
     TargetUrl := ExtractUriPath(TargetUrl) + 'gameview' + LowerCase(MainView) + '.castle-user-interface';
+
+  {$ifdef OPTIMIZE_REGULAR_FILE_SYSTEM}
   TargetFileName := UriToFilenameSafe(TargetUrl);
+  {$endif OPTIMIZE_REGULAR_FILE_SYSTEM}
 
   if FileInfo.Directory then
   begin
     // create directory
-    if not ForceDirectories(TargetFileName) then
-      raise Exception.CreateFmt('Cannot create directory "%s"', [TargetFileName]);
+    {$ifdef OPTIMIZE_REGULAR_FILE_SYSTEM}
+    if TargetFileName <> '' then
+    begin
+      if not ForceDirectories(TargetFileName) then
+        raise Exception.CreateFmt('Cannot create directory "%s"', [TargetFileName]);
+    end else
+    {$endif OPTIMIZE_REGULAR_FILE_SYSTEM}
+      WritelnLog('Not creating directory "%s" because not a regular filesystem, assuming that later UrlSaveStream will create it OK', [TargetUrl]);
   end else
   begin
     Mime := UriMimeType(FileInfo.URL);
@@ -450,16 +504,33 @@ begin
       // copy text file, replacing macros
       Contents := FileToString(FileInfo.URL);
       Contents := SReplacePatterns(Contents, Macros, false);
-      StringToFile(TargetFileName, Contents);
+      StringToFile(TargetUrl, Contents);
     end else
     begin
-      // simply copy other file types (e.g. sample png images in project templates)
-      CheckCopyFile(UriToFilenameSafe(FileInfo.URL), TargetFileName);
+      { Simply copy other file types (e.g. sample png images in project templates).
+        For regular filesystems use CheckCopyFile as an optimization. }
+      {$ifdef OPTIMIZE_REGULAR_FILE_SYSTEM}
+      if TargetFileName <> '' then
+        CheckCopyFile(UriToFilenameSafe(FileInfo.URL), TargetFileName)
+      else
+      {$endif OPTIMIZE_REGULAR_FILE_SYSTEM}
+        CopyUrl(FileInfo.URL, TargetUrl);
     end;
   end;
 end;
 
 procedure ProjectCreateFromTemplate(const EnginePath: String;
+  const Options: TProjectCreationOptions;
+  out ProjectDirUrl: String);
+var
+  TemplatesPathUrl: String;
+begin
+  TemplatesPathUrl := FilenameToUriSafe(InclPathDelim(EnginePath) +
+    'tools/castle-editor/data/project_templates/');
+  ProjectCreateFromTemplateData(TemplatesPathUrl, Options, ProjectDirUrl);
+end;
+
+procedure ProjectCreateFromTemplateData(const TemplatesPathUrl: String;
   const Options: TProjectCreationOptions;
   out ProjectDirUrl: String);
 
@@ -479,7 +550,7 @@ procedure ProjectCreateFromTemplate(const EnginePath: String;
   end;
 
 var
-  ProjectDir, TemplateUrl, ProjectQualifiedName, ProjectPascalName,
+  TemplateUrl, ProjectQualifiedName, ProjectPascalName,
     DelphiExecutableName: String;
   CopyProcess: TTemplateCopyProcess;
   Macros: TStringStringMap;
@@ -488,19 +559,19 @@ begin
 
   // Calculate and check TemplateUrl
   // (do it early, to fail early if template does not exist, without creating project dir)
-  TemplateUrl := FilenameToUriSafe(InclPathDelim(EnginePath) +
-    'tools/castle-editor/data/project_templates/' + Options.TemplateName + '/files/');
+  TemplateUrl := TemplatesPathUrl + Options.TemplateName + '/files/';
   if UriExists(TemplateUrl) <> ueDirectory then
     raise Exception.CreateFmt('Cannot find template directory %s. Make sure template name is valid and engine path is valid.',
       [TemplateUrl]);
 
-  // Create project dir
-  ProjectDir := InclPathDelim(Options.ParentDir) + Options.ProjectName;
-  ProjectDirUrl := FilenameToUriSafe(InclPathDelim(ProjectDir));
-  if DirectoryExists(ProjectDir) then
-    raise Exception.CreateFmt('Directory "%s" already exists. Choose a different project name.', [ProjectDir]);
-  if not ForceDirectories(ProjectDir) then
-    raise Exception.CreateFmt('Cannot create directory "%s".', [ProjectDir]);
+  // Calculate and check project dir
+  ProjectDirUrl := UriIncludeSlash(UriIncludeSlash(Options.ParentDirUrl) + Options.ProjectName);
+  if UriExists(ProjectDirUrl) = ueDirectory then
+    raise Exception.CreateFmt('Directory "%s" already exists. Choose a different project name.', [ProjectDirUrl]);
+  // ForceDirectories not done anymore, project directories will be created when copying files
+  // ProjectDir := FilenameToUriSafe(ProjectDirUrl);
+  // if not ForceDirectories(ProjectDir) then
+  //   raise Exception.CreateFmt('Cannot create directory "%s".', [ProjectDir]);
 
   ProjectQualifiedName := MakeQualifiedName(Options.ProjectName);
   ProjectPascalName := MakeProjectPascalName(Options.ProjectName);

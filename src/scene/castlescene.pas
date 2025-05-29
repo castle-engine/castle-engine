@@ -66,7 +66,7 @@ type
       case.
 
       Right now, this behaves like toDynamic when the scene is present multiple
-      times in the @link(TAbstractRootTransform) hierarchy, for example
+      times in the @link(TCastleAbstractRootTransform) hierarchy, for example
       when using @link(TCastleTransformReference) to render the same scene many times.
       Otherwise this behaves like toStatic.
 
@@ -77,8 +77,8 @@ type
 
       @unorderedList(
         @item(When the scene is present multiple times in the
-          @link(TAbstractRootTransform) hierarchy (e.g. when using
-          @link(TCastleTransformReference)) but all these occurences are
+          @link(TCastleAbstractRootTransform) hierarchy (e.g. when using
+          @link(TCastleTransformReference)) but all these occurrences are
           very close to each other, thus are within radiuses of the same lights.
 
           In this case, automatic detection makes unoptimal decision
@@ -88,7 +88,7 @@ type
         )
 
         @item(When the scene is present only once in the
-          @link(TAbstractRootTransform) hierarchy, but you know that
+          @link(TCastleAbstractRootTransform) hierarchy, but you know that
           you will change the scene translation very often (e.g. almost every frame)
           and the translation change will be large enough to make the scene
           affected by different light sources. Or maybe you know you will
@@ -509,6 +509,11 @@ type
       TODO: For now, occlusion culling doesn't affect this, i.e. if the scene
       is not visible because occlusion culling. }
     function WasVisible: Boolean;
+
+    { Add shader effects to configure how is the component rendered.
+      See https://castle-engine.io/shaders for documentation
+      how shader effects work in Castle Game Engine. }
+    procedure SetEffects(const Value: array of TEffectNode);
   published
     { Improve performance of rendering by checking for each shape whether
       it is inside frustum (camera pyramid of view) before rendering.
@@ -1901,6 +1906,99 @@ end;
 procedure TCastleScene.InternalSchedulePrepareResources;
 begin
   PreparedShapesResources := false;
+end;
+
+procedure TCastleScene.SetEffects(const Value: array of TEffectNode);
+
+  { Check if RootNode.FdChildren, limited to TEffectNode instances,
+    match the Value array. }
+  function EffectsAlreadySet: Boolean;
+  var
+    I: Integer;
+    IndexOfValue: Integer;
+  begin
+    IndexOfValue := 0; // looking for Value[IndexOfValue] now
+    for I := 0 to RootNode.FdChildren.Count - 1 do
+      if RootNode.FdChildren[I] is TEffectNode then
+      begin
+        if IndexOfValue >= Length(Value) then
+          Exit(false); // we have more effect nodes than in Value
+
+        if RootNode.FdChildren[I] <> Value[IndexOfValue] then
+          Exit(false); // effect node does not match
+
+        Inc(IndexOfValue);
+      end;
+    Result := IndexOfValue = Length(Value);
+  end;
+
+  { Insert Value array at the beginning of RootNode.FdChildren. }
+  procedure AddEffects(out IndexBeyondAdded: Integer);
+  var
+    I: Integer;
+  begin
+    IndexBeyondAdded := Length(Value);
+    if IndexBeyondAdded = 0 then Exit; // nothing to add
+
+    for I := 0 to IndexBeyondAdded - 1 do
+      RootNode.FdChildren.Add(I, Value[I]);
+  end;
+
+  { Remove all TEffectNode instances from RootNode.FdChildren,
+    except those that are in Value array. }
+  procedure RemoveUnwantedEffects(const IndexBeyondAdded: Integer; out RemovedSomething: Boolean);
+  var
+    I: Integer;
+  begin
+    RemovedSomething := false;
+    I := IndexBeyondAdded;
+    while I < RootNode.FdChildren.Count do
+      if RootNode.FdChildren[I] is TEffectNode then
+      begin
+        { This effect node is not in Value array, so remove it. }
+        RootNode.FdChildren.Delete(I);
+        RemovedSomething := true;
+      end else
+      begin
+        { This is not an effect node, so just skip it. }
+        Inc(I);
+      end;
+  end;
+
+var
+  IndexBeyondAdded: Integer;
+  RemovedSomething: Boolean;
+begin
+  if RootNode = nil then
+    raise Exception.Create('Adding effects requires RootNode to be set, which means you should load the scene model, setting TCastleScene.Url or calling TCastleScene.Load');
+
+  { We want to modify RootNode.FdChildren such that it contains only
+    the TEffectNode instances from Value (and only in the specified order,
+    because the order matters for rendering).
+
+    First we check do we need to do anything, and if yes -- first we just
+    add all nodes, then remove the rest (this makes sure we will not free
+    some effect node in the middle of work due to refcount dropping to 0). }
+
+  if not EffectsAlreadySet then
+  begin
+    AddEffects(IndexBeyondAdded);
+    RemoveUnwantedEffects(IndexBeyondAdded, RemovedSomething);
+
+    { Call most optimal (none, if possible!) InternalChangedField variant. }
+    if (IndexBeyondAdded <> 0) or // added something
+       RemovedSomething then
+    begin
+      // WritelnLog('SetEffects modified the scene, adding %d effect nodes, removing old: %s', [
+      //   IndexBeyondAdded,
+      //   BoolToStr(RemovedSomething, true)
+      // ]);
+      if RemovedSomething then
+        InternalChangedField(RootNode.FdChildren)
+      else
+        InternalChangedField(RootNode.FdChildren, chGroupChildrenAdd);
+    end;
+  end;
 end;
 
 { TBasicRenderParams --------------------------------------------------------- }

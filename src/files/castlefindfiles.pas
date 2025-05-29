@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2023 Michalis Kamburelis.
+  Copyright 2002-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -209,7 +209,9 @@ implementation
 
 uses URIParser, StrUtils, Generics.Defaults,
   CastleUriUtils, CastleLog, CastleXmlUtils, CastleStringUtils,
-  CastleInternalDirectoryInformation, CastleFilesUtils;
+  CastleInternalDirectoryInformation, CastleFilesUtils, CastleDownload;
+
+{ TFileInfoList -------------------------------------------------------------- }
 
 function CompareFileInfo(
   {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif}
@@ -225,46 +227,106 @@ begin
   Sort(TFileInfoComparer.Construct({$ifdef FPC}@{$endif} CompareFileInfo));
 end;
 
-{ Note that some limitations of FindFirst/FindNext underneath are reflected in our
-  functionality. Under Windows, mask is treated somewhat hacky:
+{ TFindFilesCastleConfigProxy ----------------------------------------------- }
 
-  @orderedList(
-    @item(Every filename conceptually has an extention under Windows,
-      so *.* matches any file. On more sane OSes, *.* matches only
-      files with a dot inside a filename.)
+type
+  { Utility to use FindFiles_xxx without castle-config protocol,
+    and for all files enumarated -- try to add there castle-config
+    to the reported URL. }
+  TFindFilesCastleConfigProxy = class
+    OriginalFileProc: TFoundFileProc;
+    OriginalFileProcData: Pointer;
+    function ProxyFileProcData: Pointer;
+  end;
 
-    @item(Extensions may be shortened to the first 3 letters.
-      For example searching for @code(*.txt) actually searches
-      for @code(*.txt*), that is it finds all the files with extensions
-      starting from txt.)
-  )
-}
+function TFindFilesCastleConfigProxy.ProxyFileProcData: Pointer;
+begin
+  Result := Pointer(Self);
+end;
 
-{ On Windows, the FindFirst/FindNext follow broken Windows API behavior
-  that only compares the first 3 letters of the extension.
-  So e.g. searching for '*.pas' will also find 'emacs-backup-file.pas~' .
-  To be sensible, and to be consistent across platforms, we fix it by
-  additional IsWild check.
-  This also matters e.g. for Pascal files list found by
-  "castle-engine generate-program" -- we don't want there
-  'emacs-backup-file.pas~'. }
-{$ifdef MSWINDOWS}
-  {$define DOUBLE_CHECK_WILDCARD}
-{$endif}
+procedure ProxyFileProc(
+  const FileInfo: TFileInfo; Data: Pointer; var StopSearch: Boolean);
+var
+  DataUtility: TFindFilesCastleConfigProxy;
+  NewFileInfo: TFileInfo;
+begin
+  DataUtility := TFindFilesCastleConfigProxy(Data);
+  NewFileInfo := FileInfo;
+  NewFileInfo.Url := MaybeUseCastleConfigProtocol(NewFileInfo.Url);
+  DataUtility.OriginalFileProc(NewFileInfo, DataUtility.OriginalFileProcData, StopSearch);
+end;
 
-{ FindFiles ------------------------------------------------------------------ }
+{ FindFiles_NonRecursive ----------------------------------------------------- }
 
-{ This is equivalent to FindFiles with Recursive = false
-  and ReadAllFirst = false. }
-function FindFiles_NonRecursive(const Path, Mask: string;
-  const FindDirectories: boolean;
+type
+  { Utility to implement FindFiles_NonRecursive for URLs with protocol
+    that has TRegisteredProtocol.FindFilesEvent handler. }
+  TFindFiles_NonRecursiveEventUtility = class
+    FindDirectories: Boolean;
+    FileProc: TFoundFileProc;
+    FileProcData: Pointer;
+    Count: Cardinal;
+    procedure Callback(const FileInfo: TFileInfo; var StopSearch: Boolean);
+  end;
+
+procedure TFindFiles_NonRecursiveEventUtility.Callback(
+  const FileInfo: TFileInfo; var StopSearch: Boolean);
+begin
+  { We filter out directories here, because TUrlFindFilesEvent,
+    for ease of implementation, is expected to return all files and directories. }
+  if (not FileInfo.Directory) or FindDirectories then
+  begin
+    Inc(Count);
+    FileProc(FileInfo, FileProcData, StopSearch);
+  end;
+end;
+
+{ Implement FindFiles in a special case:
+  - Recursive = false (so just list files/directories in the given directory)
+  - ReadAllFirst = false (so order doesn't matter) }
+function FindFiles_NonRecursive(const Path, Mask: String;
+  const FindDirectories: Boolean;
   const FileProc: TFoundFileProc; const FileProcData: Pointer;
   var StopSearch: Boolean): Cardinal;
 
   { Implementation when Path is '' (current directory)
     or maps to a regular filename using UriToFilenameSafe.
-    Always sets Result. }
+    Always sets Result to the number of calls of FileProc. }
   procedure UseLocalFileSystem;
+
+  { This follows standard FindFirst/FindNext behavior,
+    which on Windows match the Windows API specific behavior,
+    a bit weird but expected by Windows users, it seems:
+
+    @orderedList(
+      @item(On Windows, every filename conceptually "has an extension".
+        Which means that *.* matches any file.
+
+        On more sane OSes (everything non-Windows), *.* matches only
+        files with a dot inside a filename. Use "*" to match everything.)
+
+      @item(Doesn't matter anymore:
+
+        By default, in Windows API and FindFirst/FindNext,
+        extensions may be shortened to the first 3 letters.
+        For example searching for @code(*.txt) actually searches
+        for @code(*.txt*), that is it finds all the files with extensions
+        starting from txt.
+
+        So e.g. searching for '*.pas' will also find 'emacs-backup-file.pas~' .
+
+        To be sensible, and to be consistent across platforms, we fix it by
+        additional IsWild check, following DOUBLE_CHECK_WILDCARD define below.
+        This also matters e.g. for Pascal files list found by
+        "castle-engine generate-program" -- we don't want there
+        'emacs-backup-file.pas~'.
+      )
+    )
+  }
+  {$ifdef MSWINDOWS}
+    {$define DOUBLE_CHECK_WILDCARD}
+  {$endif}
+
   var
     AbsoluteName, LocalPath: string;
     FileRec: TSearchRec;
@@ -273,8 +335,7 @@ function FindFiles_NonRecursive(const Path, Mask: string;
   begin
     Result := 0;
 
-    {$warnings off}
-    { don't warn that faXxx are unportable }
+    {$warnings off} // don't warn that faXxx are unportable
     Attr := faReadOnly or faHidden or faArchive
       { for symlinks with old FPC versions } or faSysFile
       { for symlinks with new FPC versions, at least FPC >= 3.0.2 } or faSymLink;
@@ -322,7 +383,7 @@ function FindFiles_NonRecursive(const Path, Mask: string;
   end;
 
   { Implementation when Path has protocol 'castle-data'.
-    Always sets Result. }
+    Always sets Result to the number of calls of FileProc. }
   procedure UseDataDirectoryInformation;
   var
     U: TURI;
@@ -349,7 +410,7 @@ function FindFiles_NonRecursive(const Path, Mask: string;
             FileInfo := Default(TFileInfo); // clear information like FileInfo.Size to zero
             FileInfo.Name := D.Name;
             FileInfo.Directory := true;
-            FileInfo.URL := URIIncludeSlash(Path) + D.Name;
+            FileInfo.URL := UriIncludeSlash(Path) + D.Name;
             if Assigned(FileProc) then
             begin
               FileProc(FileInfo, FileProcData, StopSearch);
@@ -366,7 +427,7 @@ function FindFiles_NonRecursive(const Path, Mask: string;
             FileInfo.Name := F.Name;
             FileInfo.Directory := false;
             FileInfo.Size := F.Size;
-            FileInfo.URL := URIIncludeSlash(Path) + F.Name;
+            FileInfo.URL := UriIncludeSlash(Path) + F.Name;
             FileInfo.Symlink := false; // packaged data cannot contain symlinks, as they are not portable to all platforms
             if Assigned(FileProc) then
             begin
@@ -377,8 +438,28 @@ function FindFiles_NonRecursive(const Path, Mask: string;
     end;
   end;
 
+  { Implementation when Path has protocol with @link(TRegisteredProtocol.FindFilesEvent)
+    handler.
+    Always sets Result to the number of calls of FileProc. }
+  procedure UseEvent(const Event: TUrlFindFilesEvent);
+  var
+    Utility: TFindFiles_NonRecursiveEventUtility;
+  begin
+    Utility := TFindFiles_NonRecursiveEventUtility.Create;
+    try
+      Utility.FindDirectories := FindDirectories;
+      Utility.FileProc := FileProc;
+      Utility.FileProcData := FileProcData;
+      Utility.Count := 0;
+      Event(Path, Mask, {$ifdef FPC}@{$endif} Utility.Callback, StopSearch);
+      Result := Utility.Count;
+    finally FreeAndNil(Utility) end;
+  end;
+
 var
-  P: string;
+  P: String;
+  R: TRegisteredProtocol;
+  ConfigProxy: TFindFilesCastleConfigProxy;
 begin
   P := URIProtocol(Path);
 
@@ -387,33 +468,101 @@ begin
   else
   if P = 'castle-data' then
   begin
-    if (DisableDataDirectoryInformation = 0) and
-       (DataDirectoryInformation <> nil) then
+    if ConsiderDataDirectoryInformation then
       UseDataDirectoryInformation
     else
-      Result := FindFiles_NonRecursive(ResolveCastleDataURL(Path), Mask,
+      // resolve URL using ResolveCastleDataUrl, and make recursive call
+      Result := FindFiles_NonRecursive(ResolveCastleDataUrl(Path), Mask,
         FindDirectories, FileProc, FileProcData, StopSearch);
   end else
+  if P = 'castle-config' then
   begin
-    Result := 0;
-    WritelnLog('FindFiles',
-      'Searching inside filesystem with protocol %s not possible, ignoring path "%s"',
-        [P, UriCaption(Path)]);
+    // resolve URL using ResolveCastleConfigUrl, and make recursive call
+    ConfigProxy := TFindFilesCastleConfigProxy.Create;
+    try
+      ConfigProxy.OriginalFileProc := FileProc;
+      ConfigProxy.OriginalFileProcData := FileProcData;
+      Result := FindFiles_NonRecursive(ResolveCastleConfigUrl(Path), Mask,
+        FindDirectories,
+        {$ifdef FPC}@{$endif} ProxyFileProc, ConfigProxy.ProxyFileProcData, StopSearch);
+    finally FreeAndNil(ConfigProxy) end;
+    // This would also work, but user code would see the URLs without 'castle-config':
+    // Result := FindFiles_NonRecursive(ResolveCastleConfigUrl(Path), Mask,
+    //   FindDirectories, FileProc, FileProcData, StopSearch);
+  end else
+  begin
+    R := FindRegisteredUrlProtocol(P);
+    if R <> nil then
+    begin
+      if Assigned(R.FindFilesEvent) then
+        UseEvent(R.FindFilesEvent)
+      else
+      begin
+        Result := 0;
+        WritelnLog('FindFiles', 'Searching inside filesystem with protocol %s not possible, ignoring path "%s"', [
+          P,
+          UriCaption(Path)
+        ]);
+      end;
+    end else
+    begin
+      Result := 0;
+      WritelnLog('FindFiles', 'URL protocol %s not known, not searching inside "%s"', [
+        P,
+        UriCaption(Path)
+      ]);
+    end;
   end;
 end;
 
-{ This is equivalent to FindFiles with Recursive = true,
-  and ReadAllFirst = false. }
+{ FindFiles_Recursive ------------------------------------------------------- }
+
+function FindFiles_Recursive(const Path, Mask: string; const FindDirectories: boolean;
+  const FileProc: TFoundFileProc; const FileProcData: Pointer;
+  const DirContentsLast: boolean; var StopSearch: Boolean): Cardinal; forward;
+
+type
+  { Utility for FindFiles_Recursive to find all subdirectories
+    and call FindFiles_Recursive for each of them. }
+  TFindFiles_RecursiveSearchSubdirectoriesUtility = class
+    Path, Mask: String;
+    FindDirectories: Boolean;
+    FileProc: TFoundFileProc;
+    FileProcData: Pointer;
+    DirContentsLast: Boolean;
+    Count: Cardinal;
+    procedure Callback(const FileInfo: TFileInfo; var StopSearch: Boolean);
+  end;
+
+procedure TFindFiles_RecursiveSearchSubdirectoriesUtility.Callback(
+  const FileInfo: TFileInfo; var StopSearch: Boolean);
+begin
+  if FileInfo.Directory then
+  begin
+    Count := Count +
+      FindFiles_Recursive(UriIncludeSlash(FileInfo.URL), Mask, FindDirectories,
+        FileProc, FileProcData, DirContentsLast, StopSearch);
+  end;
+end;
+
+{ Implement FindFiles for a specific case:
+  - Recursive = true (so we enter all subdirectories)
+  - ReadAllFirst = false (so order doesn't matter). }
 function FindFiles_Recursive(const Path, Mask: string; const FindDirectories: boolean;
   const FileProc: TFoundFileProc; const FileProcData: Pointer;
   const DirContentsLast: boolean; var StopSearch: Boolean): Cardinal;
 
-  procedure WriteDirContent;
+  { Search for files/directories in the current directory matching Mask.
+    This just calls FindFiles_NonRecursive and increases Result. }
+  procedure SearchDirContents;
   begin
     Result := Result +
       FindFiles_NonRecursive(Path, Mask, FindDirectories, FileProc, FileProcData, StopSearch);
   end;
 
+  { Do SearchSubdirectories when Path has 'file' protocol (or '', just filename).
+    So call FindFiles_Recursive for each subdirectory.
+    Increase Result by the number of calls to FileProc. }
   procedure UseLocalFileSystem;
   var
     LocalPath: string;
@@ -436,14 +585,20 @@ function FindFiles_Recursive(const Path, Mask: string; const FindDirectories: bo
       begin
         if ((faDirectory and FileRec.Attr) <> 0) and
            (not SpecialDirName(FileRec.Name)) then
+        begin
           Result := Result +
             FindFiles_Recursive(FilenameToUriSafe(LocalPath + FileRec.Name), Mask,
               FindDirectories, FileProc, FileProcData, DirContentsLast, StopSearch);
+        end;
         SearchError := FindNext(FileRec);
       end;
     finally FindClose(FileRec) end;
   end;
 
+  { Do SearchSubdirectories when Path has 'castle-data' protocol
+    and we have DataDirectoryInformation.
+    So call FindFiles_Recursive for each subdirectory.
+    Increase Result by the number of calls to FileProc. }
   procedure UseDataDirectoryInformation;
   var
     U: TURI;
@@ -459,17 +614,44 @@ function FindFiles_Recursive(const Path, Mask: string; const FindDirectories: bo
       PathDir := TDirectoryInformation.TDirectory(PathEntry);
       for D in PathDir.Directories do
       begin
-        FindFiles_Recursive(URIIncludeSlash(Path) + D.Name, Mask,
-          FindDirectories, FileProc, FileProcData, DirContentsLast, StopSearch);
+        Result := Result +
+          FindFiles_Recursive(UriIncludeSlash(Path) + D.Name, Mask,
+            FindDirectories, FileProc, FileProcData, DirContentsLast, StopSearch);
         if StopSearch then Break;
       end;
     end;
   end;
 
-  { Search in subdirectories recursively. }
-  procedure WriteSubdirs;
+  { Do SearchSubdirectories when Path has protocol
+    with TRegisteredProtocol.FindFilesEvent handler.
+    So call FindFiles_Recursive for each subdirectory.
+    Increase Result by the number of calls to FileProc. }
+  procedure UseEvent(const Event: TUrlFindFilesEvent);
   var
-    P: string;
+    Utility: TFindFiles_RecursiveSearchSubdirectoriesUtility;
+  begin
+    Utility := TFindFiles_RecursiveSearchSubdirectoriesUtility.Create;
+    try
+      Utility.Path := Path;
+      Utility.Mask := Mask;
+      Utility.FindDirectories := FindDirectories;
+      Utility.FileProc := FileProc;
+      Utility.FileProcData := FileProcData;
+      Utility.DirContentsLast := DirContentsLast;
+      // Find *, not Mask, to find all subdirectories
+      Event(Path, '*', {$ifdef FPC}@{$endif} Utility.Callback, StopSearch);
+      Result := Result + Utility.Count;
+    finally FreeAndNil(Utility) end;
+  end;
+
+  { Search in subdirectories recursively.
+    This means we find all subdirectories (ignoring Mask) and call
+    FindFiles_Recursive for each of them.
+    Increase Result by the number of calls to FileProc. }
+  procedure SearchSubdirectories;
+  var
+    P: String;
+    R: TRegisteredProtocol;
   begin
     P := URIProtocol(Path);
 
@@ -478,39 +660,76 @@ function FindFiles_Recursive(const Path, Mask: string; const FindDirectories: bo
     else
     if P = 'castle-data' then
     begin
-      if (DisableDataDirectoryInformation = 0) and
-         (DataDirectoryInformation <> nil) then
+      if ConsiderDataDirectoryInformation then
         UseDataDirectoryInformation
       else
         raise EInternalError.Create('This case should cause recursive exit earlier in FindFiles_Recursive');
     end else
-      WritelnLog('FindFiles',
-        'Searching inside subdirectories with protocol %s not possible, ignoring path "%s"',
-          [P, UriCaption(Path)]);
+    begin
+      R := FindRegisteredUrlProtocol(P);
+      if R <> nil then
+      begin
+        if Assigned(R.FindFilesEvent) then
+          UseEvent(R.FindFilesEvent)
+        else
+        begin
+          WritelnLog('FindFiles', 'Searching inside filesystem with protocol %s not possible, ignoring path "%s"', [
+            P,
+            UriCaption(Path)
+          ]);
+        end;
+      end else
+      begin
+        WritelnLog('FindFiles', 'URL protocol %s not known, not searching inside "%s"', [
+          P,
+          UriCaption(Path)
+        ]);
+      end;
+    end;
   end;
 
+var
+  P: String;
+  ConfigProxy: TFindFilesCastleConfigProxy;
 begin
   Result := 0;
 
-  { early exit if we should do ResolveCastleDataURL and call ourselves }
-  if (URIProtocol(Path) = 'castle-data') and
-     not ( (DisableDataDirectoryInformation = 0) and
-           (DataDirectoryInformation <> nil) ) then
+  P := URIProtocol(Path);
+
+  { early exit if we should do ResolveCastleDataUrl and make recursive call }
+  if (P = 'castle-data') and (not ConsiderDataDirectoryInformation) then
   begin
-    Exit(FindFiles_Recursive(ResolveCastleDataURL(Path), Mask,
+    Exit(FindFiles_Recursive(ResolveCastleDataUrl(Path), Mask,
       FindDirectories, FileProc, FileProcData, DirContentsLast, StopSearch));
+  end;
+  { early exit if we should do ResolveCastleConfigUrl and make recursive call }
+  if P = 'castle-config' then
+  begin
+    ConfigProxy := TFindFilesCastleConfigProxy.Create;
+    try
+      ConfigProxy.OriginalFileProc := FileProc;
+      ConfigProxy.OriginalFileProcData := FileProcData;
+      Exit(FindFiles_Recursive(ResolveCastleConfigUrl(Path), Mask,
+        FindDirectories,
+        {$ifdef FPC}@{$endif} ProxyFileProc, ConfigProxy.ProxyFileProcData, DirContentsLast, StopSearch));
+    finally FreeAndNil(ConfigProxy) end;
+    // This would also work, but user code would see the URLs without 'castle-config':
+    // Exit(FindFiles_Recursive(ResolveCastleConfigUrl(Path), Mask,
+    //   FindDirectories, FileProc, FileProcData, DirContentsLast, StopSearch));
   end;
 
   if DirContentsLast then
   begin
-    WriteSubdirs;    if StopSearch then Exit;
-    WriteDirContent; if StopSearch then Exit;
+    SearchSubdirectories; if StopSearch then Exit;
+    SearchDirContents;    if StopSearch then Exit;
   end else
   begin
-    WriteDirContent; if StopSearch then Exit;
-    WriteSubdirs;    if StopSearch then Exit;
+    SearchDirContents;    if StopSearch then Exit;
+    SearchSubdirectories; if StopSearch then Exit;
   end;
 end;
+
+{ Other FindFiles functions -------------------------------------------------- }
 
 { This is equivalent to FindFiles with ReadAllFirst = false. }
 function FindFiles_NonReadAllFirst(const Path, Mask: string; const FindDirectories: boolean;

@@ -1,6 +1,6 @@
 // -*- compile-command: "castle-engine compile --mode=debug && castle-engine run" -*-
 {
-  Copyright 2021-2024 Michalis Kamburelis.
+  Copyright 2021-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -23,16 +23,14 @@ program check_packages;
 
 uses SysUtils, DOM, Classes,
   CastleXmlUtils, CastleUtils, CastleFindFiles, CastleStringUtils, CastleParameters,
-  CastleLog, CastleApplicationProperties, CastleDownload,
+  CastleLog, CastleApplicationProperties, CastleDownload, CastleFilesUtils,
   PackageUtils;
 
 var
   CgePath: String = '../../../';
   CgePathExpanded: String;
   WarningsCount: Cardinal = 0;
-
-const
-  TryFixing = false;
+  TryFixing: Boolean = false;
 
 type
   EInvalidPackage = class(Exception);
@@ -81,19 +79,15 @@ type
 
     { If TryFixing, this will overwrite PackageFileName adding the missing units.
 
-      This automatic fix is not perfect, so beware! Known issues:
-
-      - It is implemented now only for Lazarus packages, not Delphi.
-      - It only adds missing files. Doesn't remove files that should not be in package.
-      - It can mess some initial LPK XML stuff, causing unnecessary edits. Revert them.
-      - Generated UnitName follows filename, so it is all lowercase.
-      - It doesn't add to units (because it doesn't know which are platform-specific)
-        <AddToUsesPkgSection Value="False"/>
+      This automatic fix is not perfect, so beware!
+      See README.md for docs what works and what doesn't.
 
       Descendants: you can override this.
       Do not call inherited when overriding (since this implementation makes
       warning).
-      You can assume when this is called that TryFixing = true. }
+      You can assume when this is called that TryFixing = true.
+
+      MissingFiles are a list of files, relative to engine location (CgePathExpanded). }
     procedure ProposeFix(const MissingFiles: TCastleStringList); virtual;
   public
     property PackageFileName: String read FPackageFileName;
@@ -316,6 +310,34 @@ begin
 end;
 
 procedure TLazarusPackage.ProposeFix(const MissingFiles: TCastleStringList);
+
+  { Determine nice (CamelCase) unit name of the file in RelativeFileName. }
+  function GetUnitName(const RelativeFileName: String): String;
+  var
+    FileName, Line: String;
+    Contents: TStringList;
+    Matches: TCastleStringList;
+  begin
+    // poor version, would be lowercase
+    // Result := DeleteFileExt(ExtractFileName(MissingFile));
+
+    FileName := CombinePaths(CgePathExpanded, RelativeFileName);
+    Matches := TCastleStringList.Create;
+    try
+      Contents := TStringList.Create;
+      try
+        Contents.LoadFromFile(FileName);
+        for Line in Contents do
+          if StringMatchesRegexp(Line, '^unit ([/a-zA-Z0-9_-]+);', Matches) then
+          begin
+            Check(Matches.Count = 2, '2 matches expected for GetUnitName');
+            Exit(Matches[1]);
+          end;
+        raise Exception.CreateFmt('Failed to determine unit name for %s', [FileName]);
+      finally FreeAndNil(Contents) end;
+    finally FreeAndNil(Matches) end;
+  end;
+
 var
   Doc: TXMLDocument;
   FilesElement, FileElement,
@@ -343,7 +365,7 @@ begin
       if ExtractFileExt(MissingFile) = '.pas' then
       begin
         FileUnitNameElement := FileElement.CreateChild('UnitName');
-        FileUnitNameElement.AttributeSet('Value', DeleteFileExt(ExtractFileName(MissingFile)));
+        FileUnitNameElement.AttributeSet('Value', GetUnitName(MissingFile));
       end;
     end;
     FilesElement.AttributeSet('Count', FilesCount);
@@ -527,6 +549,20 @@ begin
   Writeln(Format('fpmake %s: %d files', [PackageFileName, Files.Count]));
 end;
 
+{ command-line parameters ---------------------------------------------------- }
+
+const
+  Options: array[0..0] of TOption =
+  ( (Short: #0; Long: 'fix'; Argument: oaNone ) );
+
+procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
+  const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
+begin
+  case OptionNum of
+    0: TryFixing := true;
+  end;
+end;
+
 { main routine --------------------------------------------------------------- }
 
 var
@@ -536,6 +572,7 @@ begin
   ApplicationProperties.Version := CastleEngineVersion;
   ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif} ApplicationProperties.WriteWarningOnConsole);
 
+  Parameters.Parse(Options, {$ifdef FPC}@{$endif} OptionProc, nil);
   Parameters.CheckHighAtMost(1);
   if Parameters.High = 1 then
     CgePath := Parameters[1];

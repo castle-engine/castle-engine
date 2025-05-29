@@ -142,7 +142,7 @@ type
     { URL to read or write.
       Supports all protocols, like @code(file), @code(http), @code(https),
       @code(castle-data) and other documented on
-      https://castle-engine.io/manual_network.php .
+      https://castle-engine.io/url .
 
       Can only change when there is no download in progress
       (@link(Status) is dsNotStarted or dsSuccess). }
@@ -475,7 +475,6 @@ var
 begin
   ClearPreviousDownload;
 
-  P := URIProtocol(Url);
 
   if not UpdateInitialized then
   begin
@@ -483,14 +482,23 @@ begin
     UpdateInitialized := true;
   end;
 
-  { Handle early castle-data:, protocol to access application data,
-    https://castle-engine.io/data . }
+  // calculate P (protocol) and FFinalUrl
+  P := URIProtocol(Url);
+  FFinalUrl := Url;
+  { Redirect castle-data: and castle-config: to other procotols.
+    Note the order: castle-data may resolve to castle-config
+    (normal in case of castle-editor-portable new projects),
+    we account for this. }
   if P = 'castle-data' then
   begin
-    FFinalUrl := ResolveCastleDataURL(Url);
+    FFinalUrl := ResolveCastleDataUrl(FFinalUrl);
     P := URIProtocol(FFinalUrl);
-  end else
-    FFinalUrl := Url;
+  end;
+  if P = 'castle-config' then
+  begin
+    FFinalUrl := ResolveCastleConfigUrl(FFinalUrl);
+    P := URIProtocol(FFinalUrl);
+  end;
 
   if LogAllLoading then
     WritelnLog('Loading', 'Loading "%s"', [UriDisplay(FFinalUrl)]);

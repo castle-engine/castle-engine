@@ -167,12 +167,12 @@ type
       automatically at our destructor (if you call AddScreenEffect
       and do not call RemoveScreenEffect on it),
       or at RemoveScreenEffect call.
-      If you don't want this, use @link(TX3DNode.KeepExistingBegin)
+      If you don't want this, use @link(TX3DNode.WaitForRelease)
       to manage the node destruction yourself.
 
-      Note that the given Node should not be used by other TCastlScene instances.
-      In general, a node should not be present in more than one TCastlScene instance,
-      and we already insert the node into an internal TCastlScene instance.
+      Note that the given Node should not be used by other TCastleScene instances.
+      In general, a node should not be present in more than one TCastleScene instance,
+      and we already insert the node into an internal TCastleScene instance.
       Use TX3DNode.DeepCopy if necessary to duplicate node into multiple scenes.
 
       Note that you can enable/disable the effect using @link(TScreenEffectNode.Enabled),

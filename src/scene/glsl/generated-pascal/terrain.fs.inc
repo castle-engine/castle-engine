@@ -1,8 +1,7 @@
 { -*- buffer-read-only: t -*- }
 { DON'T EDIT -- this file was automatically generated from "source/terrain.fs" }
-'/* OpenGL shader effect (used to enhance the Castle Game Engine shaders,' + LineEnding +
-'   see https://castle-engine.io/compositing_shaders.php ),' + LineEnding +
-'   applied over terrain.' + LineEnding +
+'/* Shader effect (used to enhance the Castle Game Engine shaders,' + LineEnding +
+'   see https://castle-engine.io/shaders ), applied over terrain.' + LineEnding +
 '' + LineEnding +
 '   This adjusts terrain color, mixing textures, based on current height. */' + LineEnding +
 '' + LineEnding +

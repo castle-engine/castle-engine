@@ -16,7 +16,8 @@
 
 {$ifdef read_interface}
 
-//type
+// type section started in CastleTransform.pas
+
   { Group and transform (move, rotate, scale) children objects.
 
     Add and remove children using the @link(Add), @link(Remove) and similar methods.
@@ -4397,12 +4398,24 @@ begin
     Assert(Behavior.FParent = nil);
 
     { Add to new parent }
-
     FBehaviors.Insert(Index, Behavior);
     Behavior.FParent := Self;
+
+    { Call this as soon as possible after adding when we have consistent state
+      (so FBehaviors.Insert was done, and Behavior.FParent is valid).
+      This makes sure that FCachedRigidBody and FCachedCollider are up-to-date.
+      This way implementations of ParentAfterAttach can rely that they are correct,
+      e.g. TCastleRigidBody.InitializeCollider can use Parent.Collider.
+
+      Testcase: adding rigid body / colliders at run-time, see
+      https://github.com/castle-engine/bad-chess/issues/3 . }
+    UpdateCachedBehaviors;
+
+    { Call virtual methods and notifications at the end, when state is consistent }
+
     Behavior.ParentAfterAttach;
     {$warnings off}
-    Behavior.ParentChanged; // call at end, when state is consistent
+    Behavior.ParentChanged;
     {$warnings on}
 
     { Call WorldAfterAttach }
@@ -4415,7 +4428,6 @@ begin
     NotifyBehaviorAdded(Behavior);
 
     UpdateBehaviorsNeedBeforeRender;
-    UpdateCachedBehaviors;
   end;
 end;
 
@@ -4445,13 +4457,21 @@ begin
 
   Beh.FParent := nil;
   FBehaviors.Delete(BehaviorIndex);
+
+  { Call this as soon as possible after removing when we have consistent state
+    (so FBehaviors.Delete was done, and Behavior.FParent is valid = nil).
+    This makes sure that FCachedRigidBody and FCachedCollider are up-to-date.
+    This way implementations of ParentChanged can rely that they are correct. }
+  UpdateCachedBehaviors;
+
+  { Call virtual methods and notifications at the end, when state is consistent }
+
   {$warnings off}
-  Beh.ParentChanged; // call at end, when state is consistent
+  Beh.ParentChanged;
   {$warnings on}
   RemoveWorldChangeNotification(Beh);
 
   UpdateBehaviorsNeedBeforeRender;
-  UpdateCachedBehaviors;
 end;
 
 procedure TCastleTransform.RemoveBehavior(const Behavior: TCastleBehavior);
@@ -4737,7 +4757,7 @@ function TCastleTransform.InternalBuildNode: TObject;
   function RotationHasZDefault(const Rot: TVector4): TVector4;
   begin
     if Rot.IsPerfectlyZero then
-      Result := Vector4(0, 0, 1, 0)
+      Result := CastleVectors.Vector4(0, 0, 1, 0)
     else
       Result := Rot;
   end;

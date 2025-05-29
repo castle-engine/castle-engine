@@ -160,7 +160,7 @@ begin
         raise EInternalError.Create('Unknown project template selected');
 
       // Fill Options
-      Options.ParentDir := NewProjectForm.EditLocation.Text;
+      Options.ParentDirUrl := FilenameToUriSafe(NewProjectForm.EditLocation.Text);
       Options.TemplateName := TemplateName;
       Options.ProjectName := NewProjectForm.EditProjectName.Text;
       Options.ProjectCaption := NewProjectForm.EditProjectCaption.Text;

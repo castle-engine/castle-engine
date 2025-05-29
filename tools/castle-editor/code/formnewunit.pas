@@ -234,17 +234,17 @@ begin
     utBehavior:
       begin
         EditClassName.Text := 'T' + EditBaseName.Text + 'Behavior';
-        EditUnitName.Text := 'Game' + EditBaseName.Text + 'Behavior';
+        EditUnitName.Text := FProjectManifest.ProposedUnitPrefix + EditBaseName.Text + 'Behavior';
       end;
     utView:
       begin
         EditClassName.Text := 'TView' + EditBaseName.Text;
-        EditUnitName.Text := 'GameView' + EditBaseName.Text;
+        EditUnitName.Text := FProjectManifest.ProposedUnitPrefix + 'View' + EditBaseName.Text;
       end;
     else
       begin
         EditClassName.Text := 'T' + EditBaseName.Text;
-        EditUnitName.Text := 'Game' + EditBaseName.Text;
+        EditUnitName.Text := FProjectManifest.ProposedUnitPrefix + EditBaseName.Text;
       end;
   end;
 

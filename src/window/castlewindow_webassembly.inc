@@ -33,6 +33,7 @@ strict private
   function LostPointerCapture(BaseEvent: IJSEvent): Boolean;
   function KeyDown(BaseEvent: IJSEvent): Boolean;
   function KeyUp(BaseEvent: IJSEvent): Boolean;
+  function ContextMenu(BaseEvent: IJSEvent): Boolean;
 {$endif read_window_interface}
 
 {$ifdef read_application_interface}
@@ -163,6 +164,7 @@ begin
   Canvas.addEventListener('pointerup', @PointerUp);
   Canvas.addEventListener('lostpointercapture', @LostPointerCapture);
   Canvas.addEventListener('pointermove', @PointerMove);
+  Canvas.addEventListener('contextmenu', @ContextMenu);
 
   { Catching key events on canvas doesn't work, as the canvas needs to be focused,
     see https://developer.mozilla.org/en-US/docs/Web/API/Element/keydown_event .
@@ -431,6 +433,20 @@ begin
   // actually KeyString is not used in KeyUp, but we had it calculated anyway
   if Key <> keyNone then
     DoKeyUp(Key);
+  Result := false;
+end;
+
+function TCastleWindow.ContextMenu(BaseEvent: IJSEvent): Boolean;
+begin
+  { Prevent browsers from showing their context menu,
+    which makes using right mouse button impossible in applications.
+    See https://developer.mozilla.org/en-US/docs/Web/API/Element/contextmenu_event
+    (which also notes that user can avoid this by holding Shift key when
+    right-clicking) and
+    https://stackoverflow.com/questions/381795/how-to-disable-right-click-context-menu-in-javascript#16987577
+    https://stackoverflow.com/questions/51958065/prevent-context-menu-from-opening-on-a-right-click-over-element
+  }
+  BaseEvent.PreventDefault;
   Result := false;
 end;
 

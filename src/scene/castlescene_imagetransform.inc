@@ -1,6 +1,6 @@
 {%MainUnit castlescene.pas}
 {
-  Copyright 2022-2024 Michalis Kamburelis.
+  Copyright 2022-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -27,22 +27,21 @@ type
     FRootNode: TX3DRootNode;
     FAppearanceNode: TAppearanceNode;
     FShapeNode: TShapeNode;
-    FMaterialNode: TUnlitMaterialNode;
-    FTextureNode: TImageTextureNode;
+    FBaseTexture, FNormalMapTexture: TCastleAbstractPrimitive.TMaterialTexture;
     FTexPropertiesNode: TTexturePropertiesNode;
     FCoordinateNode: TCoordinateNode;
     FTexCoordNode: TTextureCoordinateNode;
     FIndexedTriangleSetNode: TIndexedTriangleSetNode;
 
     { private fields reflecting public properties }
-    FUrl: String;
     FPivot, FSize, FRepeatImage, FShift: TVector2;
     FColor: TCastleColor;
     FSmoothScaling: Boolean;
     FAlphaChannel: TAutoAlphaChannel;
     FMipmaps: Boolean;
+    FMaterial: TPrimitiveMaterial;
 
-    FUrlMonitoring: TUrlMonitoring;
+    FUrlMonitoring, FUrlNormalMapMonitoring: TUrlMonitoring;
     FImageWidth, FImageHeight: Cardinal;
 
     { Update X3D TCoordinateNode, TTextureCoordinateNode. }
@@ -54,9 +53,16 @@ type
     procedure SetColor(const Value: TCastleColor);
     procedure SetSmoothScaling(const Value: Boolean);
     procedure SetAlphaChannel(const Value: TAutoAlphaChannel);
+    function GetUrl: String;
     procedure SetUrl(const Value: String);
+    function GetUrlNormalMap: String;
+    procedure SetUrlNormalMap(const Value: String);
     procedure SetMipmaps(const Value: Boolean);
+    { Reflect current FColor, FMaterial, FUrl, FUrlNormalMap values in X3D nodes. }
+    procedure UpdateMaterialNode;
     procedure SetPreciseCollisions(const Value: Boolean);
+    function GetRenderOptions: TCastleRenderOptions;
+    procedure SetMaterial(const Value: TPrimitiveMaterial);
   protected
     function InternalBuildNodeInside: TObject; override;
   public
@@ -113,6 +119,10 @@ type
       That's because the previous image contents will "survive" in the cache. }
     procedure ReloadUrl;
 
+    { Load again the image in @link(UrlNormalMap).
+      @seealso ReloadUrl }
+    procedure ReloadUrlNormalMap;
+
     { Loaded image width.
 
       This is not affected by any resizing done by @link(Size)
@@ -130,6 +140,27 @@ type
 
       Zero if no image is loaded. }
     property ImageHeight: Cardinal read FImageHeight;
+
+    { Load image contents from a ready TEncodedImage instance.
+
+      If TakeImageOwnership = @true then we take given Image reference,
+      and the lifetime of this Image object will be further managed by this
+      TImageTextureNode class (so you should no longer free it yourself).
+      If TakeImageOwnership = @false then we only copy Image contents
+      (this is slower, but it means that ownership and freeing of given
+      Image instance remains on your side).
+
+      After using this, @link(Url) is always set to an empty string.
+      Using @link(ReloadUrl) will lose image contents.
+      If developer changes the @link(Url), the image will change to reflect
+      new URL contents. }
+    procedure LoadFromImage(const Image: TEncodedImage;
+      const TakeImageOwnership: Boolean);
+
+    { Add shader effects to configure how is the component rendered.
+      See https://castle-engine.io/shaders for documentation
+      how shader effects work in Castle Game Engine. }
+    procedure SetEffects(const Value: array of TEffectNode);
   published
     { How is the image scaled.
       Determines scaling done both by @link(Size) and TCastleTransform.Scale. }
@@ -144,7 +175,16 @@ type
 
     { URL of the image to be loaded.
       When empty, no image is loaded and this is invisible. }
-    property Url: String read FUrl write SetUrl;
+    property Url: String read GetUrl write SetUrl;
+
+    { Normal map texture URL.
+      Providing normal map enhances the details visible on the surface because
+      of lighting. The normalmap texture mapping is the same as main texture,
+      in @link(Url), mapping.
+
+      This is only useful when @link(Material) is pmPhysical or pmPhong,
+      so the shape is "lit". }
+    property UrlNormalMap: String read GetUrlNormalMap write SetUrlNormalMap;
 
     { Mipmaps make the image look good when it scaled to be @italic(much)
       smaller on the screen. Using mipmaps also forces the image to have
@@ -160,6 +200,19 @@ type
       when testing collisions with this image
       in the resulting @link(TRayCollision) from @link(TCastleViewport.MouseRayHit). }
     property PreciseCollisions: Boolean read FPreciseCollisions write SetPreciseCollisions default false;
+
+    { Material type (which determines lighting calculation) for this primitive.
+
+      The default material type for TCastleImageTransform is pmUnlit,
+      contrary to TCastleAbstractPrimitive which is by default pmPhysical.
+      This reflects common usage, as most TCastleImageTransform is for unlit cases.
+
+      Change this property pmPhysical or pmPhong to make
+      the geometry receive lights (and thus, also shadows). }
+    property Material: TPrimitiveMaterial read FMaterial write SetMaterial default pmUnlit;
+
+    { Rendering options of the scene. }
+    property RenderOptions: TCastleRenderOptions read GetRenderOptions;
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleimagetransform_persistent_vectors.inc}
@@ -180,6 +233,7 @@ begin
   inherited;
 
   { set default values }
+  FMaterial := pmUnlit;
   FSmoothScaling := true;
   FAlphaChannel := acAuto;
   FPivot := Vector2(0.5, 0.5);
@@ -205,20 +259,8 @@ begin
     Consistent with X3DLoadInternalImage. }
   FTexPropertiesNode.GuiTexture := not FMipmaps;
 
-  FTextureNode := TImageTextureNode.Create;
-  { No point in adjusting RepeatS/T: TextureProperties override it.
-  FTextureNode.RepeatS := false;
-  FTextureNode.RepeatT := false; }
-  FTextureNode.TextureProperties := FTexPropertiesNode;
-
-  FMaterialNode := TUnlitMaterialNode.Create;
-  FMaterialNode.EmissiveColor := FColor.XYZ;
-  FMaterialNode.Transparency := 1 - FColor.W;
-  FMaterialNode.EmissiveTexture := FTextureNode;
-
   FAppearanceNode := TAppearanceNode.Create;
   FAppearanceNode.AlphaMode := amAuto; // corresponding to default AlphaChannel = acAuto
-  FAppearanceNode.Material := FMaterialNode;
 
   FCoordinateNode := TCoordinateNode.Create;
   { Add some zero vectors, this way renderer can prepare VBO
@@ -257,9 +299,31 @@ begin
 
   FRootNode := TX3DRootNode.Create;
   FRootNode.AddChildren(FShapeNode);
+
+  { create X3D nodes for textures }
+  FBaseTexture.Node := TImageTextureNode.Create;
+  { No point in adjusting RepeatS/T: TextureProperties override it.
+  FBaseTexture.Node.RepeatS := false;
+  FBaseTexture.Node.RepeatT := false; }
+  FBaseTexture.Node.TextureProperties := FTexPropertiesNode;
+  FNormalMapTexture.Node := TImageTextureNode.Create;
+  FNormalMapTexture.Node.TextureProperties := FTexPropertiesNode; // share TextureProperties
+  { Don't free texture nodes by ref-counting,
+    which would happen otherwise from UpdateMaterialNode, when it does
+    1. NodeField.Value := nil
+    2. or when it frees previous material (that may contain the texture) }
+  FBaseTexture.Node.WaitForRelease;
+  FNormalMapTexture.Node.WaitForRelease;
+  { Note: FBaseTexture.Node, FNormalMapTexture.Node are connected to
+    FAppearanceNode (and thus, the rest of FRootNode) by UpdateMaterialNode. }
+  UpdateMaterialNode;
+
+  { load FRootNode to FScene at the end,
+    to not reinitialize scene resources on changes to X3D nodes above }
   FScene.Load(FRootNode, true);
 
   FUrlMonitoring.Init({$ifdef FPC}@{$endif} ReloadUrl);
+  FUrlNormalMapMonitoring.Init({$ifdef FPC}@{$endif} ReloadUrlNormalMap);
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastleimagetransform_persistent_vectors.inc}
@@ -273,26 +337,26 @@ begin
   {$undef read_implementation_destructor}
 
   FreeAndNil(FScene);
+  NodeRelease(FBaseTexture.Node);
+  NodeRelease(FNormalMapTexture.Node);
   inherited;
 end;
 
 procedure TCastleImageTransform.BeforeDestruction;
 begin
-  FUrlMonitoring.Finish(FUrl);
+  FUrlMonitoring.Finish(FBaseTexture.Url);
+  FUrlNormalMapMonitoring.Finish(FNormalMapTexture.Url);
   inherited;
 end;
 
 function TCastleImageTransform.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'PivotPersistent') or
-     (PropertyName = 'SizePersistent') or
-     (PropertyName = 'RepeatImagePersistent') or
-     (PropertyName = 'ShiftPersistent') or
-     (PropertyName = 'ColorPersistent') or
-     (PropertyName = 'SmoothScaling') or
-     (PropertyName = 'AlphaChannel') or
-     (PropertyName = 'PreciseCollisions') or
-     (PropertyName = 'Url') then
+  if ArrayContainsString(PropertyName, [
+        'PivotPersistent', 'SizePersistent', 'RepeatImagePersistent',
+        'ShiftPersistent', 'ColorPersistent', 'SmoothScaling', 'AlphaChannel',
+        'PreciseCollisions', 'Url', 'UrlNormalMap', 'Mipmaps', 'RenderOptions',
+        'Material'
+      ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
@@ -301,14 +365,18 @@ end;
 procedure TCastleImageTransform.UpdateCoordinateNodes;
 var
   X1, Y1, X2, Y2, W, H: Single;
+  TextureNode: TImageTextureNode;
 begin
-  FTextureNode.IsTextureLoaded := true;
+  { We use texture from Url to determine the size of the image }
+  TextureNode := FBaseTexture.Node;
+
+  TextureNode.IsTextureLoaded := true;
   { Render is true if and only if FCoordinateNode contains useful content (not just zeros) }
-  FShapeNode.Visible := FTextureNode.IsTextureImage;
-  if FTextureNode.IsTextureImage then
+  FShapeNode.Visible := TextureNode.IsTextureImage;
+  if TextureNode.IsTextureImage then
   begin
-    FImageWidth := FTextureNode.TextureImage.Width;
-    FImageHeight := FTextureNode.TextureImage.Height;
+    FImageWidth := TextureNode.TextureImage.Width;
+    FImageHeight := TextureNode.TextureImage.Height;
     W := FImageWidth;
     H := FImageHeight;
 
@@ -380,26 +448,58 @@ begin
   end;
 end;
 
+function TCastleImageTransform.GetUrl: String;
+begin
+  Result := FBaseTexture.Url;
+end;
+
 procedure TCastleImageTransform.SetUrl(const Value: String);
 begin
-  if FUrl <> Value then
+  if FBaseTexture.Url <> Value then
   begin
-    FUrlMonitoring.ChangeUrl(FUrl, Value);
-    if Value <> '' then
-      FTextureNode.SetUrl([Value])
-    else
-      FTextureNode.SetUrl([]);
+    FUrlMonitoring.ChangeUrl(FBaseTexture.Url, Value);
+    FBaseTexture.LoadedDirectly := false;
+    { Call UpdateMaterialNode first: sets texture nodes IsTextureLoaded.
+      Then UpdateCoordinateNodes: looks at texture nodes IsTextureLoaded. }
+    UpdateMaterialNode;
+    UpdateCoordinateNodes;
+  end;
+end;
+
+function TCastleImageTransform.GetUrlNormalMap: String;
+begin
+  Result := FNormalMapTexture.Url;
+end;
+
+procedure TCastleImageTransform.SetUrlNormalMap(const Value: String);
+begin
+  if FNormalMapTexture.Url <> Value then
+  begin
+    FUrlNormalMapMonitoring.ChangeUrl(FNormalMapTexture.Url, Value);
+    FNormalMapTexture.LoadedDirectly := false;
+    { Call UpdateMaterialNode first: sets texture nodes IsTextureLoaded.
+      Then UpdateCoordinateNodes: looks at texture nodes IsTextureLoaded. }
+    UpdateMaterialNode;
     UpdateCoordinateNodes;
   end;
 end;
 
 procedure TCastleImageTransform.ReloadUrl;
 var
-  SavedUrl: String;
+  Saved: String;
 begin
-  SavedUrl := Url;
+  Saved := Url;
   Url := '';
-  Url := SavedUrl;
+  Url := Saved;
+end;
+
+procedure TCastleImageTransform.ReloadUrlNormalMap;
+var
+  Saved: String;
+begin
+  Saved := UrlNormalMap;
+  UrlNormalMap := '';
+  UrlNormalMap := Saved;
 end;
 
 procedure TCastleImageTransform.SetPivot(const Value: TVector2);
@@ -443,8 +543,7 @@ begin
   if not TCastleColor.PerfectlyEquals(FColor, Value) then
   begin
     FColor := Value;
-    FMaterialNode.EmissiveColor := FColor.XYZ;
-    FMaterialNode.Transparency := 1 - FColor.W;
+    UpdateMaterialNode;
   end;
 end;
 
@@ -510,6 +609,52 @@ begin
       somewhat useless as image is just 1 shape in an internal scene.
       But does not seem problematic either. }
   end;
+end;
+
+procedure TCastleImageTransform.LoadFromImage(const Image: TEncodedImage;
+  const TakeImageOwnership: Boolean);
+begin
+  // unload the previous image, and make FUrlMonitoring not watch anything
+  Url := '';
+  { FBaseTexture.LoadedDirectly = true will make UpdateMaterialNode use
+    the FBaseTexture.Node, even though texture URL is empty. }
+  FBaseTexture.LoadedDirectly := true;
+  { TODO: It should not matter do we call UpdateMaterialNode or
+    FBaseTexture.Node.LoadFromImage first. But it matters:
+    When FBaseTexture.Node.LoadFromImage is called before UpdateMaterialNode,
+    then texture resources change but Scene is not informed about it.
+    In effect, Scene keeps rendering the old texture.
+    Buggy behavior then: in image_generate_and_use_standalone,
+    one needs to click ClickLoadGenerated 2x to see updated texture.
+    Doing UpdateMaterialNode is a solution for now. }
+  UpdateMaterialNode;
+  FBaseTexture.Node.LoadFromImage(Image, TakeImageOwnership, '');
+  UpdateCoordinateNodes;
+end;
+
+function TCastleImageTransform.GetRenderOptions: TCastleRenderOptions;
+begin
+  Result := FScene.RenderOptions;
+end;
+
+procedure TCastleImageTransform.SetMaterial(const Value: TPrimitiveMaterial);
+begin
+  if FMaterial <> Value then
+  begin
+    FMaterial := Value;
+    UpdateMaterialNode;
+  end;
+end;
+
+procedure TCastleImageTransform.UpdateMaterialNode;
+begin
+  CommonUpdateMaterialNode(FMaterial, FColor, FAppearanceNode,
+    FBaseTexture, FNormalMapTexture);
+end;
+
+procedure TCastleImageTransform.SetEffects(const Value: array of TEffectNode);
+begin
+  FScene.SetEffects(Value);
 end;
 
 {$define read_implementation_methods}

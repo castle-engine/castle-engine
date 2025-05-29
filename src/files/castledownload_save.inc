@@ -97,12 +97,12 @@ begin
     Result := UrlSaveStream(ResolveCastleDataUrl(Url), Options);
     Exit;
   end;
-
-  {$ifdef WASI}
-  // TODO: web: make ApplicationConfig return sthg like castle-config:/ and handle it for web
-  WritelnWarning('Writing to URLs (like ApplicationConfig) is not supported on web yet, sending the contents to /dev/null');
-  Exit(TMemoryStream.Create);
-  {$endif}
+  { Similarly, handle early castle-config: }
+  if P = 'castle-config' then
+  begin
+    Result := UrlSaveStream(ResolveCastleConfigUrl(Url), Options);
+    Exit;
+  end;
 
   RegisteredProtocol := RegisteredProtocols.Find(P);
   if RegisteredProtocol <> nil then

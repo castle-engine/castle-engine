@@ -437,7 +437,7 @@ type
         @item(The overloaded @code(Load) version with URL
           sets @code(TXMLConfig.Url), loading the file from given URL.
           The URL may use any supported protocol,
-          see https://castle-engine.io/manual_network.php .
+          see https://castle-engine.io/url .
           It can also just be a filename. )
 
         @item(The overloaded @code(Load) version with TStream loads from a stream.
@@ -1055,7 +1055,7 @@ end;
 
 procedure TCastleConfig.Load;
 begin
-  Load(ApplicationConfig(ApplicationName + '.conf'));
+  Load('castle-config:/' + ApplicationName + '.conf');
 end;
 
 procedure TCastleConfig.Load(const AUrl: String);
