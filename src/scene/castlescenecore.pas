@@ -673,12 +673,13 @@ type
     FViewpointStack: TViewpointStack;
 
     { If @true, then next ChangedAll call will do ProcessShadowMapsReceivers
-      at the end.
-
-      ProcessShadowMapsReceivers are correctly called at the
-      right moment of ChangedAll, so that they have the necessary
-      information (Shapes) ready and their modifications are accounted for. }
+      at the end, regardless of UsesShadowMaps.
+      So it will detect if model starts using shadow maps. }
     ScheduledShadowMapsProcessing: boolean;
+
+    { Is model using shadow maps.
+      Detected by last ProcessShadowMapsReceivers call. }
+    UsesShadowMaps: Boolean;
 
     { Mechanism to schedule ChangedAll and GeometryChanged calls. }
     ChangedAllSchedule: Cardinal;
@@ -4106,10 +4107,26 @@ begin
     ViewpointStack.EndChangesSchedule;
   end;
 
-  if ScheduledShadowMapsProcessing then
+  { 1. We honor ScheduledShadowMapsProcessing, to detect if shadow maps are maybe
+      used. Because at the beginning, UsesShadowMaps are always @false.
+      Also UsesShadowMaps are always @false if ShadowMaps have been toggled
+      to @false.
+
+    2. We also honor UsesShadowMaps. Because it shadow maps have been detected
+      in the last ProcessShadowMapsReceivers call, then every ChangedAll
+      should rebuild TShape.InternalShadowMaps, as we have recreated all TShape.
+
+      Testcase:
+      - fps_game shadow maps,
+      - or load model with shadow maps in castle-model-viewer, and do
+        "Edit -> Remove Placeholders from CGE levels".
+      Shadows *should not* disappear. }
+  if ScheduledShadowMapsProcessing or UsesShadowMaps then
   begin
     ProcessShadowMapsReceivers(RootNode, Shapes, ShadowMaps,
-      ShadowMapsDefaultSize);
+      ShadowMapsDefaultSize, UsesShadowMaps);
+    if UsesShadowMaps then
+      WritelnLog('Scene %s (%s) is using shadow maps', [Name, UriDisplay(Url)]);
     ScheduledShadowMapsProcessing := false;
   end;
 
