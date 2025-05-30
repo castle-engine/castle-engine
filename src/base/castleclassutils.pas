@@ -781,13 +781,13 @@ var
   { Streams to read/write a standard input/output/error of the program.
 
     Tip: to read the standard input as a text file,
-    you can use @link(TTextReader) and @link(StdInStream):
+    you can use @link(TCastleTextReader) and @link(StdInStream):
 
     @longCode(#
     var
-      StdInReader: TTextReader;
+      StdInReader: TCastleTextReader;
     begin
-      StdInReader := TTextReader.Create(StdInStream, false);
+      StdInReader := TCastleTextReader.Create(StdInStream, false);
       try
         while not StdInReader.Eof do
           DoSomethingWithInputLine(StdInReader.Readln);
@@ -795,14 +795,14 @@ var
     end;
     #)
 
-    The advantage of using @link(TTextReader) above,
+    The advantage of using @link(TCastleTextReader) above,
     compared to using the standard Pascal @code(Readln) procedure
     to read from the standard Pascal @code(Input) text file,
     is that you can easily modify the above code to read from @italic(any)
     stream. So, instead of the standard input, you can easily read
     some stream that decompresses gzip data, or downloads data from
     the Internet... Actually, the overloaded constructor
-    @link(TTextReader.Create) can accept an URL, like a @code(file://...)
+    @link(TCastleTextReader.Create) can accept an URL, like a @code(file://...)
     or @code(http://...), and will internally use the stream returned
     by @link(Download) function for this URL.
 
