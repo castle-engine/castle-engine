@@ -677,8 +677,7 @@ type
 
       ProcessShadowMapsReceivers are correctly called at the
       right moment of ChangedAll, so that they have the necessary
-      information (Shapes) ready and their modifications (new GeneratedTextures
-      items) are accounted for. }
+      information (Shapes) ready and their modifications are accounted for. }
     ScheduledShadowMapsProcessing: boolean;
 
     { Mechanism to schedule ChangedAll and GeometryChanged calls. }
