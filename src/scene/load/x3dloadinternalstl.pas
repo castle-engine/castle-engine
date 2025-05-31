@@ -52,7 +52,7 @@ procedure LoadSTLText(const Stream: TStream;
   end;
 
 var
-  TextReader: TTextReader;
+  TextReader: TCastleTextReader;
 
   { Read a word expecting the ExpectedValue. Returns @true if found expected,
     otherwise returns @false (and the warning is already emitted). }
@@ -77,7 +77,7 @@ var
   Triangle: TTriangle3;
   I: Integer;
 begin
-  TextReader := TTextReader.Create(Stream, false);
+  TextReader := TCastleTextReader.Create(Stream, false);
   try
     TextReader.Readln; // read header line
 

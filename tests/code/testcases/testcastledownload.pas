@@ -27,7 +27,7 @@ type
   published
     procedure TestLocalCharsCastleData;
     procedure TestLocalCharsCastleConfig;
-    procedure TestTextReader;
+    procedure TesTCastleTextReader;
     procedure TestRegisteredProtocolNotCaseSensitive;
   end;
 
@@ -126,19 +126,19 @@ begin
   StringToFile('castle-config:/2_config with Russian chars образец русского текста.txt', 'Testing save.');
 end;
 
-procedure TTestDownload.TestTextReader;
+procedure TTestDownload.TesTCastleTextReader;
 
 { Testcase based on example from
   https://forum.castle-engine.io/t/setup-files-and-working-with-them/630/4
 }
 
 var
-  T: TTextReader;
+  T: TCastleTextReader;
   X, Y, Z: Single;
   V: TVector3;
 begin
   { using ReadSingle }
-  T := TTextReader.Create('castle-data:/test_text_reader.txt');
+  T := TCastleTextReader.Create('castle-data:/test_text_reader.txt');
   try
     X := T.ReadSingle;
     Y := T.ReadSingle;
@@ -163,7 +163,7 @@ begin
   finally FreeAndNil(T) end;
 
   { alternative version using ReadVector3 }
-  T := TTextReader.Create('castle-data:/test_text_reader.txt');
+  T := TCastleTextReader.Create('castle-data:/test_text_reader.txt');
   try
     V := T.ReadVector3;
     AssertVectorEquals(Vector3(1, 2, 3), V);
@@ -174,7 +174,7 @@ begin
   finally FreeAndNil(T) end;
 
   { alternative version using Readln + Vector3FromStr }
-  T := TTextReader.Create('castle-data:/test_text_reader.txt');
+  T := TCastleTextReader.Create('castle-data:/test_text_reader.txt');
   try
     V := Vector3FromStr(T.Readln);
     AssertVectorEquals(Vector3(1, 2, 3), V);
@@ -185,7 +185,7 @@ begin
   finally FreeAndNil(T) end;
 
   { alternative version using Readln + DeFormat }
-  T := TTextReader.Create('castle-data:/test_text_reader.txt');
+  T := TCastleTextReader.Create('castle-data:/test_text_reader.txt');
   try
     DeFormat(T.Readln, '%.single. %.single. %.single.', [@X, @Y, @Z]);
     AssertSameValue(1, X);
