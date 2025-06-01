@@ -1,5 +1,5 @@
 {
-  Copyright 2015-2019 Tomasz Wojtyś, Michalis Kamburelis.
+  Copyright 2015-2025 Tomasz Wojtyś, Michalis Kamburelis.
   Based on zgl_joystick.pas by Andrey Kemka.
 
   This file is part of "Castle Game Engine".
@@ -135,13 +135,13 @@ begin
       FpIOCtl( NewBackendInfo.Device, TIOCtlRequest(JSIOCGAXES),    @NewJoystick.InternalAxesCount );
       FpIOCtl( NewBackendInfo.Device, TIOCtlRequest(JSIOCGBUTTONS), @NewJoystick.InternalButtonsCount );
 
-      for j := 0 to NewJoystick.AxesCount - 1 do
+      for j := 0 to NewJoystick.InternalAxesCount - 1 do
         case NewBackendInfo.AxesMap[ j ] of
-          2, 6:   Include(NewJoystick.Capabilities, jcZ);
-          5, 7:   Include(NewJoystick.Capabilities, jcR);
-          3:      Include(NewJoystick.Capabilities, jcU);
-          4:      Include(NewJoystick.Capabilities, jcV);
-          16, 17: Include(NewJoystick.Capabilities, jcPOV);
+          2, 6:   Include(NewJoystick.InternalCapabilities, jcZ);
+          5, 7:   Include(NewJoystick.InternalCapabilities, jcR);
+          3:      Include(NewJoystick.InternalCapabilities, jcU);
+          4:      Include(NewJoystick.InternalCapabilities, jcV);
+          16, 17: Include(NewJoystick.InternalCapabilities, jcPOV);
         end;
 
       for j := 1 to 255 do
@@ -153,7 +153,8 @@ begin
 
       { Checking if joystick is a real one,
         because laptops with accelerometer can be detected as a joystick :) }
-      if ( NewJoystick.Info.Count.Axes >= 2 ) and ( NewJoystick.InternalButtonsCount > 0 ) then
+      if ( NewJoystick.InternalAxesCount >= 2 ) and
+         ( NewJoystick.InternalButtonsCount > 0 ) then
       begin
         WritelnLog('CastleJoysticks Init', 'Find gamepad: %s (ID: %d); Axes: %d; Buttons: %d', [
           NewJoystick.Name,
@@ -196,7 +197,7 @@ begin
               if AxisMap[ BackendInfo.AxesMap[ event.number ] ].Handled then
               begin
                 axis := AxisMap[ BackendInfo.AxesMap[ event.number ] ].Axis;
-                Joystick.State.Axis[ axis ] := Value;
+                Joystick.InternalAxis[ axis ] := Value;
                 if Assigned(EventContainer.OnAxisMove) then EventContainer.OnAxisMove(Joystick, axis, Value);
               end else
               begin
@@ -246,8 +247,7 @@ begin
       end;
   end;
   if JoystickHasBeenDisconnected then
-    if Assigned(Joysticks.OnDisconnect) then
-      Joysticks.OnDisconnect;
+    Joysticks.InternalDisconnected;
 end;
 
 end.
