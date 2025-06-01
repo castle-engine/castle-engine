@@ -20,7 +20,7 @@
 { Linux Joystick support. }
 unit CastleInternalJoysticksLinux;
 
-// TODO: drop legacy interface /dev/js#; enable /dev/event#
+{$I castleconf.inc}
 
 interface
 
@@ -96,6 +96,9 @@ implementation
 uses
   SysUtils, CastleLog, Math;
 
+// TODO: drop legacy interface /dev/js#; enable /dev/event# .
+// Or use some higher-level library (like SDL2) to handle joysticks?
+
 { TLinuxJoystickBackendInfo -------------------------------------------------- }
 
 destructor TLinuxJoystickBackendInfo.Destroy;
@@ -110,19 +113,19 @@ end;
 
 procedure TLinuxJoysticksBackend.Initialize(const List: TJoystickList);
 var
-  i, j : Integer;
+  GamepadIndex, j : Integer;
   NewJoystick: TJoystick;
   NewBackendInfo: TLinuxJoystickBackendInfo;
 begin
-  for i := 0 to 15 do
+  for GamepadIndex := 0 to 15 do
   begin
     NewJoystick := TJoystick.Create;
     NewBackendInfo := TLinuxJoystickBackendInfo.Create;
     NewJoystick.InternalBackendInfo := NewBackendInfo;
 
-    NewBackendInfo.Device := FpOpen( '/dev/input/js' + IntToStr( i ), O_RDONLY or O_NONBLOCK );
+    NewBackendInfo.Device := FpOpen( '/dev/input/js' + IntToStr(GamepadIndex), O_RDONLY or O_NONBLOCK );
     if NewBackendInfo.Device < 0 then
-      NewBackendInfo.Device := FpOpen( '/dev/js' + IntToStr( i ), O_RDONLY or O_NONBLOCK );
+      NewBackendInfo.Device := FpOpen( '/dev/js' + IntToStr(GamepadIndex), O_RDONLY or O_NONBLOCK );
 
     if NewBackendInfo.Device > -1 then
     begin
@@ -136,12 +139,13 @@ begin
       FpIOCtl( NewBackendInfo.Device, TIOCtlRequest(JSIOCGBUTTONS), @NewJoystick.InternalButtonsCount );
 
       for j := 0 to NewJoystick.InternalAxesCount - 1 do
-        case NewBackendInfo.AxesMap[ j ] of
-          2, 6:   Include(NewJoystick.InternalCapabilities, jcZ);
-          5, 7:   Include(NewJoystick.InternalCapabilities, jcR);
-          3:      Include(NewJoystick.InternalCapabilities, jcU);
-          4:      Include(NewJoystick.InternalCapabilities, jcV);
-          16, 17: Include(NewJoystick.InternalCapabilities, jcPOV);
+        if AxisMap[NewBackendInfo.AxesMap[ j ]].Handled then
+        case AxisMap[NewBackendInfo.AxesMap[ j ]].Axis of
+          jaZ: Include(NewJoystick.InternalCapabilities, jcZ);
+          jaR: Include(NewJoystick.InternalCapabilities, jcR);
+          jaU: Include(NewJoystick.InternalCapabilities, jcU);
+          jaV: Include(NewJoystick.InternalCapabilities, jcV);
+          jaPovX, jaPovY: Include(NewJoystick.InternalCapabilities, jcPOV);
         end;
 
       for j := 1 to 255 do
@@ -158,7 +162,7 @@ begin
       begin
         WritelnLog('CastleJoysticks Init', 'Find gamepad: %s (ID: %d); Axes: %d; Buttons: %d', [
           NewJoystick.Name,
-          I,
+          GamepadIndex,
           NewJoystick.InternalAxesCount,
           NewJoystick.InternalButtonsCount
         ]);

@@ -57,9 +57,9 @@ type
     { Gamepad V axis. }
     jaV,
     { Gamepad POV X axis. }
-    jaPOVX,
+    jaPovX,
     { Gamepad POV Y axis. }
-    jaPOVY
+    jaPovY
   );
 
   { Gamepad button as integer index. }

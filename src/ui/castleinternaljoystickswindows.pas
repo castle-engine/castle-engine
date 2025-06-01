@@ -20,7 +20,7 @@
 { Windows Joystick support. }
 unit CastleInternalJoysticksWindows;
 
-// TODO: only partially works on Windows (no support of new features); need to be ported to xinput library
+{$I castleconf.inc}
 
 interface
 
@@ -31,6 +31,8 @@ interface
   From code, just don't use this unit when not MSWINDOWS. }
 implementation
 {$else}
+
+// TODO: Make alternative implementation based on xinput library
 
 uses CastleJoysticks;
 
@@ -302,8 +304,8 @@ begin
             Joystick.InternalAxis[Axis] := _value;
           end;
 
-          Joystick.InternalAxis[jaPOVX] := 0;
-          Joystick.InternalAxis[jaPOVY] := 0;
+          Joystick.InternalAxis[jaPovX] := 0;
+          Joystick.InternalAxis[jaPovY] := 0;
           if (jcPOV in Joystick.InternalCapabilities) and
              (state.dwPOV and $FFFF <> $FFFF) then
           begin
