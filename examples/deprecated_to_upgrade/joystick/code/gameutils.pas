@@ -55,13 +55,28 @@ uses SysUtils,
   CastleColors;
 
 constructor TJoyAxisVisualize.Create(AOwner: TComponent);
+var
+  CircleFill: TCastleShape;
 begin
   inherited;
-  Color := Vector4(0, 0.5, 0, 1); // dark green
+  Color := Vector4(0.5, 0.5, 0.5, 1); // gray
   Border.AllSides := 2;
-  BorderColor := Yellow;
+  BorderColor := White;
   Width := 256;
   Height := 256;
+
+  { Show circle inside, just to debug how the axis coordinates fit within
+    circle. They generally *do not* fit within the circle (testing
+    with  XBox Controller now) although they also don't go "all the way"
+    into rect corners. }
+  CircleFill := TCastleShape.Create(Self);
+  CircleFill.ShapeType := stCircle;
+  CircleFill.Width := 256 - Border.AllSides * 2;
+  CircleFill.Height := 256 - Border.AllSides * 2;
+  CircleFill.Color := Vector4(0.4, 0.4, 0.4, 1); // minimally darker gray than background
+  CircleFill.Anchor(hpMiddle);
+  CircleFill.Anchor(vpMiddle);
+  InsertFront(CircleFill);
 
   Shape := TCastleShape.Create(Self);
   Shape.ShapeType := stCircle;
@@ -73,7 +88,7 @@ begin
   InsertFront(Shape);
 
   Lab := TCastleLabel.Create(Self);
-  Lab.Color := Yellow;
+  Lab.Color := White;
   Lab.Anchor(hpLeft);
   Lab.Anchor(vpBottom);
   InsertFront(Lab);
