@@ -1,0 +1,18 @@
+{
+  "$$ClassName" : "TCastleUserInterface",
+  "FullSize" : true,
+  "Name" : "RootGroup",
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleRectangleControl",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Blue" : 9.4117648899555206E-002,
+        "Green" : 9.4117648899555206E-002,
+        "Red" : 9.4117648899555206E-002
+      },
+      "FullSize" : true,
+      "Name" : "RectangleControl1"
+    }
+  ]
+}
