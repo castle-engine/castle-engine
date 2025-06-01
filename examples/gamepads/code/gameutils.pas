@@ -37,21 +37,11 @@ type
     property Caption: String read GetCaption write SetCaption;
   end;
 
-const
-  AxisNames: array [JOY_AXIS_X..JOY_POVY] of string =
-  ( 'JOY_AXIS_X',
-    'JOY_AXIS_Y',
-    'JOY_AXIS_Z',
-    'JOY_AXIS_R',
-    'JOY_AXIS_U',
-    'JOY_AXIS_V',
-    'JOY_POVX',
-    'JOY_POVY'
-  );
+function AxisName(const Axis: TInternalGamepadAxis): String;
 
 implementation
 
-uses SysUtils,
+uses SysUtils, TypInfo,
   CastleColors;
 
 constructor TJoyAxisVisualize.Create(AOwner: TComponent);
@@ -108,6 +98,11 @@ end;
 procedure TJoyAxisVisualize.SetCaption(const Value: String);
 begin
   Lab.Caption := Value;
+end;
+
+function AxisName(const Axis: TInternalGamepadAxis): String;
+begin
+  Result := GetEnumName(TypeInfo(TInternalGamepadAxis), Ord(Axis));
 end;
 
 end.

@@ -1,5 +1,5 @@
 ﻿{
-  Copyright 2015-2019 Tomasz Wojtyś, Michalis Kamburelis.
+  Copyright 2015-2025 Tomasz Wojtyś, Michalis Kamburelis.
   Based on zgl_joystick.pas by Andrey Kemka.
 
   This file is part of "Castle Game Engine".
@@ -28,77 +28,93 @@ uses Generics.Collections, Classes,
   CastleVectors, CastleUtils;
 
 type
-  PJoyInfo = ^TJoyInfo;
-  { Joystick information.
-    TODO: Deprecate at some point, in favor of simpler joystick API like @link(TJoystick.Axis). }
-  TJoyInfo = record
-    Name   : String;
-    Count  : record
-      Axes    : Integer;
-      Buttons : Integer;
-    end;
-    Caps   : UInt32;
-  end;
+  TInternalGamepadCapability = (
+    { Gamepad has a Z axis. }
+    jcZ,
+    { Gamepad has an R axis. }
+    jcR,
+    { Gamepad has a U axis. }
+    jcU,
+    { Gamepad has a V axis. }
+    jcV,
+    { Gamepad has a POV (point of view) hat. }
+    jcPOV
+  );
+  TInternalGamepadCapabilities = set of TInternalGamepadCapability;
 
-  PJoyState = ^TJoyState;
-  { Joystick state.
-    TODO: Deprecate at some point, in favor of simpler joystick API like @link(TJoystick.Axis). }
-  TJoyState = record
-    Axis        : array[ 0..7 ] of Single;
-    BtnUp       : array[ 0..31 ] of Boolean;
-    BtnDown     : array[ 0..31 ] of Boolean;
-    BtnPress    : array[ 0..31 ] of Boolean;
-    BtnCanPress : array[ 0..31 ] of Boolean;
-  end;
+  { 1D gamepad axis. }
+  TInternalGamepadAxis = (
+    { Gamepad X axis. }
+    jaX,
+    { Gamepad Y axis. }
+    jaY,
+    { Gamepad Z axis. }
+    jaZ,
+    { Gamepad R axis. }
+    jaR,
+    { Gamepad U axis. }
+    jaU,
+    { Gamepad V axis. }
+    jaV,
+    { Gamepad POV X axis. }
+    jaPOVX,
+    { Gamepad POV Y axis. }
+    jaPOVY
+  );
 
-  { Properties of a given joystick, use by accessing @link(TJoysticks.Items Joysticks[Index]).
+  { Gamepad button as integer index. }
+  TInternalGamepadButton = 0..31;
+
+  { Properties of a given joystick,
+    use by accessing @link(TJoysticks.Items Joysticks[Index]).
+
     Do not construct instances of this yourself, TJoysticks creates
-    this automatically when necessary. }
+    this automatically when necessary.
+
+    All the contents of this class are read-only for applications.
+    Only the gamepad backends (that implement TJoystick logic
+    using underlying system-specific APIs) can change it. }
   TJoystick = class
+  private
   public
     { Implementation-specific information. }
     InternalBackendInfo: TObject;
-    { Information.
-      TODO: Deprecate at some point, in favor of simpler joystick API like @link(TJoystick.Axis). }
-    Info    : TJoyInfo;
-    { State.
-      TODO: Deprecate at some point, in favor of simpler joystick API like @link(TJoystick.Axis). }
-    State   : TJoyState;
 
-    { @deprecated Deprecated name, use LeftAxis. }
-    function Axis: TVector2; deprecated 'use LeftAxis';
+    { Gamepad name. Not necessarily unique, so be sure to display also
+      gamepad index to the user in UI. }
+    Name: String;
+
+    { Gamepad information. }
+    InternalButtonsCount: Integer;
+    InternalCapabilities: TInternalGamepadCapabilities;
+
+    { Axes count available in this gamepad.
+      Warning: This doesn't imply the number of axes that are available in
+      InternalAxis, it talks about internal axes (backend-specific) that
+      are mapped to real axes in TInternalGamepadAxis.
+      So *do not* use this to iterate over InternalAxis. }
+    InternalAxesCount: Integer;
+
+    { Current gamepad state.
+      This is internal, use instead nicer
+      @link(TJoystick.LeftAxis) and @link(TJoystick.RightAxis). }
+    InternalAxis           : array[TInternalGamepadAxis] of Single;
+    InternalButtonUp       : array[TInternalGamepadButton] of Boolean;
+    InternalButtonDown     : array[TInternalGamepadButton] of Boolean;
+    InternalButtonPress    : array[TInternalGamepadButton] of Boolean;
+    InternalButtonCanPress : array[TInternalGamepadButton] of Boolean;
 
     { Left analog stick position. }
     function LeftAxis: TVector2;
+
     { Right analog stick position. }
     function RightAxis: TVector2;
 
     destructor Destroy; override;
   end;
 
-  PJoy = TJoystick deprecated 'use TJoystick';
-
   TJoystickList = {$ifdef FPC}specialize{$endif} TObjectList<TJoystick>;
 
-const
-  { TODO: Deprecate these constants at some point, in favor of simpler joystick API like @link(TJoystick.Axis). }
-
-  JOY_HAS_Z   = $000001;
-  JOY_HAS_R   = $000002;
-  JOY_HAS_U   = $000004;
-  JOY_HAS_V   = $000008;
-  JOY_HAS_POV = $000010;
-
-  JOY_AXIS_X = 0;
-  JOY_AXIS_Y = 1;
-  JOY_AXIS_Z = 2;
-  JOY_AXIS_R = 3;
-  JOY_AXIS_U = 4;
-  JOY_AXIS_V = 5;
-  JOY_POVX   = 6;
-  JOY_POVY   = 7;
-
-type
   TJoysticks = class;
 
   { Internal class to provide different implementations of joystick events reading.
@@ -106,15 +122,19 @@ type
   TJoysticksBackend = class abstract
     { Detect and add joysticks to given list. }
     procedure Initialize(const List: TJoystickList); virtual; abstract;
+
     { Update state of joysticks on given list. }
     procedure Poll(const List: TJoystickList;
       const EventContainer: TJoysticks); virtual; abstract;
   end;
 
   { Joystick axis move event. }
-  TOnJoyAxisMove = procedure(const Joy: TJoystick; const Axis: Byte; const Value: Single) of object;
+  TOnJoyAxisMove = procedure(const Joy: TJoystick;
+    const Axis: TInternalGamepadAxis; const Value: Single) of object;
+
   { Joystick button action event. Used on button press/up/down. }
-  TOnJoyButtonEvent = procedure(const Joy: TJoystick; const Button: Byte) of object;
+  TOnJoyButtonEvent = procedure(const Joy: TJoystick;
+    const Button: TInternalGamepadButton) of object;
 
   { TJoysticks is a class for joysticks and gamepads management }
   TJoysticks = class
@@ -144,22 +164,13 @@ type
       user code does not need to call this.
       @exclude }
     procedure InternalPoll;
-    { @exclude }
-    procedure Poll; deprecated 'do not call this, it is not necessary';
 
-    function  GetInfo( JoyID : Byte ) : PJoyInfo;
-    function  AxisPos( JoyID, Axis : Byte ): Single;
-    function  Down( JoyID, Button : Byte ): Boolean;
-    function  Up( JoyID, Button : Byte ): Boolean;
-    function  Press( JoyID, Button : Byte ): Boolean;
     procedure ClearState;
-    function GetJoy(const JoyID: Integer): TJoystick; deprecated 'use Joysticks[xxx] instead of Joysticks.GetJoy(xxx)';
 
     property OnAxisMove: TOnJoyAxisMove read FOnAxisMove write FOnAxisMove;
     property OnButtonDown: TOnJoyButtonEvent read FOnButtonDown write FOnButtonDown;
     property OnButtonUp: TOnJoyButtonEvent read FOnButtonUp write FOnButtonUp;
     property OnButtonPress: TOnJoyButtonEvent read FOnButtonPress write FOnButtonPress;
-    function JoyCount: Integer; deprecated 'use Count';
     function Count: Integer;
 
     property Items[const Index: Integer]: TJoystick read GetItems; default;
@@ -196,9 +207,10 @@ type
       used by Nintendo Switch, may call this at any moment). }
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
 
-    { Called in case a previously initalized joystick has been disconnected. }
+    { Called when previously initalized gamepad has been disconnected. }
     property OnDisconnect: TSimpleNotifyEvent read FOnDisconnect write FOnDisconnect;
-    { Called in case a joystick has been connected to the system. }
+
+    { Called when gamepad has been connected to the system. }
     property OnConnect: TSimpleNotifyEvent read FOnConnect write FOnConnect;
   end;
 
@@ -226,24 +238,25 @@ begin
   inherited;
 end;
 
-function TJoystick.Axis: TVector2;
-begin
-  Result := LeftAxis;
-end;
-
 function TJoystick.LeftAxis: TVector2;
 begin
   Result := Vector2(
-    State.Axis[JOY_AXIS_X],
-    State.Axis[JOY_AXIS_Y]
+    InternalAxis[jaX],
+    { Y axis should be 1 when pointing up, -1 when pointing down.
+      This is consistent with CGE 2D coordinate system
+      (and standard math 2D coordinate system). }
+    -InternalAxis[jaY]
   );
 end;
 
 function TJoystick.RightAxis: TVector2;
 begin
   Result := Vector2(
-    State.Axis[JOY_AXIS_U],
-    -State.Axis[JOY_AXIS_R]
+    InternalAxis[jaU],
+    { Y axis should be 1 when pointing up, -1 when pointing down.
+      This is consistent with CGE 2D coordinate system
+      (and standard math 2D coordinate system). }
+    -InternalAxis[jaR]
   );
 end;
 
@@ -290,78 +303,25 @@ begin
   DoChange;
 end;
 
-procedure TJoysticks.Poll;
-begin
-  InternalPoll;
-end;
-
 procedure TJoysticks.InternalPoll;
 begin
   if FInitialized then
     Backend.Poll(FList, Self);
 end;
 
-function TJoysticks.GetInfo(JoyID: Byte): PJoyInfo;
-begin
-  Result := nil;
-  if JoyID >= Count then Exit;
-
-  Result := @(FList[JoyID].Info);
-end;
-
-function TJoysticks.AxisPos(JoyID, Axis: Byte): Single;
-begin
-  Result := 0;
-  if ( JoyID >= Count ) or ( Axis > JOY_POVY ) then Exit;
-
-  Result := FList[JoyID].State.Axis[ Axis ];
-end;
-
-function TJoysticks.Down(JoyID, Button: Byte): Boolean;
-begin
-  Result := False;
-  if ( JoyID >= Count ) or ( Button >= FList[JoyID].Info.Count.Buttons ) then Exit;
-
-  Result := FList[JoyID].State.BtnDown[ Button ];
-end;
-
-function TJoysticks.Up(JoyID, Button: Byte): Boolean;
-begin
-  Result := False;
-  if ( JoyID >= Count ) or ( Button >= FList[JoyID].Info.Count.Buttons ) then Exit;
-
-  Result := FList[JoyID].State.BtnUp[ Button ];
-end;
-
-function TJoysticks.Press(JoyID, Button: Byte): Boolean;
-begin
-  Result := False;
-  if ( JoyID >= Count ) or ( Button >= FList[JoyID].Info.Count.Buttons ) then Exit;
-
-  Result := FList[JoyID].State.BtnPress[ Button ];
-end;
-
 procedure TJoysticks.ClearState;
 var
-  i, j  : Integer;
-  state : PJoyState;
+  I: Integer;
+  J: TInternalGamepadButton;
 begin
   for i := 0 to Count - 1 do
-    for j := 0 to FList[I].Info.Count.Buttons - 1 do
-      begin
-        state := @FList[I].State;
-        state^.BtnUp[ j ]       := False;
-        state^.BtnDown[ j ]     := False;
-        state^.BtnPress[ j ]    := False;
-        state^.BtnCanPress[ j ] := True;
-      end;
-end;
-
-function TJoysticks.GetJoy(const JoyID: Integer): TJoystick;
-begin
-  Result := nil;
-  if JoyID >= Count then Exit;
-  Result := FList[JoyID];
+    for j := 0 to FList[I].InternalButtonsCount - 1 do
+    begin
+      FList[I].InternalButtonUp[J] := false;
+      FList[I].InternalButtonDown[J] := false;
+      FList[I].InternalButtonPress[J] := false;
+      FList[I].InternalButtonCanPress[J] := true;
+    end;
 end;
 
 function TJoysticks.ExplicitBackend: TJoysticksBackend;
@@ -414,11 +374,6 @@ end;
 function TJoysticks.GetItems(const Index: Integer): TJoystick;
 begin
   Result := FList[Index];
-end;
-
-function TJoysticks.JoyCount: Integer;
-begin
-  Result := FList.Count;
 end;
 
 function TJoysticks.Count: Integer;

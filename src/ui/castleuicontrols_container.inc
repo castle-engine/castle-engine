@@ -1,6 +1,6 @@
 {%MainUnit castleuicontrols.pas}
 {
-  Copyright 2010-2024 Michalis Kamburelis.
+  Copyright 2010-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -401,8 +401,6 @@
       These events are special now: they are called by @link(EventUpdate),
       we don't expect that TCastleWindow or TCastleControl will call them.
       @groupBegin }
-    function EventJoyAxisMove(const JoyID, Axis: Byte): Boolean;
-    function EventJoyButtonPress(const JoyID, Button: Byte): Boolean;
     function EventSensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): Boolean;
     function EventSensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): Boolean;
     { @groupEnd }
@@ -1464,72 +1462,6 @@ begin
   Result := false;
 end;
 
-function TCastleContainer.EventJoyAxisMove(const JoyID, Axis: Byte): Boolean;
-
-  function RecursiveJoyAxisMove(const C: TCastleUserInterface): Boolean;
-  var
-    I: Integer;
-  begin
-    if PassEvents(C) then
-    begin
-      for I := C.ControlsCount - 1 downto 0 do
-        if RecursiveJoyAxisMove(C.Controls[I]) then
-          Exit(true);
-
-      {$warnings off} // keeping deprecated working
-      if C.JoyAxisMove(JoyID, Axis) then
-        Exit(true);
-      {$warnings on}
-    end;
-
-    Result := false;
-  end;
-
-var
-  I: Integer;
-begin
-  FlushCollectedMotion;
-
-  { exit as soon as something returns "true", meaning the event is handled }
-  for I := Controls.Count - 1 downto 0 do
-    if RecursiveJoyAxisMove(Controls[I]) then
-      Exit(true);
-  Result := false;
-end;
-
-function TCastleContainer.EventJoyButtonPress(const JoyID, Button: Byte): Boolean;
-
-  function RecursiveJoyButtonPress(const C: TCastleUserInterface): Boolean;
-  var
-    I: Integer;
-  begin
-    if PassEvents(C) then
-    begin
-      for I := C.ControlsCount - 1 downto 0 do
-        if RecursiveJoyButtonPress(C.Controls[I]) then
-          Exit(true);
-
-      {$warnings off} // keeping deprecated working
-      if C.JoyButtonPress(JoyID, Button) then
-        Exit(true);
-      {$warnings on}
-    end;
-
-    Result := false;
-  end;
-
-var
-  I: Integer;
-begin
-  FlushCollectedMotion;
-
-  { exit as soon as something returns "true", meaning the event is handled }
-  for I := Controls.Count - 1 downto 0 do
-    if RecursiveJoyButtonPress(Controls[I]) then
-      Exit(true);
-  Result := false;
-end;
-
 procedure TCastleContainer.ToggleInspector;
 begin
   if FInspector = nil then
@@ -1704,26 +1636,21 @@ procedure TCastleContainer.EventUpdate;
   procedure UpdateJoysticks;
   var
     Joys: TJoysticks;
-    I, J: Integer;
+    I: Integer;
+    Button: TInternalGamepadButton;
   begin
     Joys := Joysticks;
     if Joys.Initialized then
     begin
       Joys.InternalPoll;
-
       for I := 0 to Joys.Count - 1 do
       begin
-        for J := 0 to Joys[I].Info.Count.Buttons -1 do
+        for Button := 0 to Joys[I].InternalButtonsCount -1 do
         begin
-          //Joys.Down(I, J);
-          //Joys.Up(I, J);
-          if Joys.Press(I, J) then
-            EventJoyButtonPress(I, J);
-        end;
-        for J := 0 to Joys[I].Info.Count.Axes -1 do
-        begin
-          if Joys.AxisPos(I, J) <> 0 then
-            EventJoyAxisMove(I, J);
+          if Joys[I].InternalButtonPress[Button] then
+          begin
+            // TODO: make new press event
+          end;
         end;
       end;
     end;

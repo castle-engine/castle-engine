@@ -49,7 +49,33 @@ const
 
   EAGAIN = 11; //Error: "there is no data available right now, try again later"
 
-  JS_AXIS : array[ 0..17 ] of Byte = ( JOY_AXIS_X, JOY_AXIS_Y, JOY_AXIS_Z, JOY_AXIS_U, JOY_AXIS_V, JOY_AXIS_R, JOY_AXIS_Z, JOY_AXIS_R, 0, 0, 0, 0, 0, 0, 0, 0, JOY_POVX, JOY_POVY );
+  AxisMap : array[ 0..17 ] of record
+    Axis: TInternalGamepadAxis;
+    Handled: Boolean;
+  end = (
+    (Axis: jaX; Handled: True),
+    (Axis: jaY; Handled: True),
+    (Axis: jaZ; Handled: True),
+
+    (Axis: jaU; Handled: True),
+    (Axis: jaV; Handled: True),
+    (Axis: jaR; Handled: True),
+
+    (Axis: jaZ; Handled: True), // 2 things mapped to jaZ
+    (Axis: jaR; Handled: True), // 2 things mapped to jaR
+
+    (Axis: jaX; Handled: false),
+    (Axis: jaX; Handled: false),
+    (Axis: jaX; Handled: false),
+    (Axis: jaX; Handled: false),
+    (Axis: jaX; Handled: false),
+    (Axis: jaX; Handled: false),
+    (Axis: jaX; Handled: false),
+    (Axis: jaX; Handled: false),
+
+    (Axis: jaPovX; Handled: True),
+    (Axis: jaPovY; Handled: True)
+  );
 
 type
   TLinuxJoystickBackendInfo = class
@@ -101,35 +127,40 @@ begin
     if NewBackendInfo.Device > -1 then
     begin
       NewBackendInfo.DeviceInitialized := true;
-      SetLength( NewJoystick.Info.Name, 256 );
+      SetLength( NewJoystick.Name, 256 );
       { TODO: why is cast to TIOCtlRequest needed (with FPC 3.3.1-r43920),
         we should probably fix the definition of JSIOCGNAME etc. instead. }
-      FpIOCtl( NewBackendInfo.Device, TIOCtlRequest(JSIOCGNAME),    @NewJoystick.Info.Name[ 1 ] );
+      FpIOCtl( NewBackendInfo.Device, TIOCtlRequest(JSIOCGNAME),    @NewJoystick.Name[ 1 ] );
       FpIOCtl( NewBackendInfo.Device, TIOCtlRequest(JSIOCGAXMAP),   @NewBackendInfo.AxesMap[ 0 ] );
-      FpIOCtl( NewBackendInfo.Device, TIOCtlRequest(JSIOCGAXES),    @NewJoystick.Info.Count.Axes );
-      FpIOCtl( NewBackendInfo.Device, TIOCtlRequest(JSIOCGBUTTONS), @NewJoystick.Info.Count.Buttons );
+      FpIOCtl( NewBackendInfo.Device, TIOCtlRequest(JSIOCGAXES),    @NewJoystick.InternalAxesCount );
+      FpIOCtl( NewBackendInfo.Device, TIOCtlRequest(JSIOCGBUTTONS), @NewJoystick.InternalButtonsCount );
 
-      for j := 0 to NewJoystick.Info.Count.Axes - 1 do
-        with NewJoystick.Info do
-          case NewBackendInfo.AxesMap[ j ] of
-            2, 6:   Caps := Caps or JOY_HAS_Z;
-            5, 7:   Caps := Caps or JOY_HAS_R;
-            3:      Caps := Caps or JOY_HAS_U;
-            4:      Caps := Caps or JOY_HAS_V;
-            16, 17: Caps := Caps or JOY_HAS_POV;
-          end;
+      for j := 0 to NewJoystick.AxesCount - 1 do
+        case NewBackendInfo.AxesMap[ j ] of
+          2, 6:   Include(NewJoystick.Capabilities, jcZ);
+          5, 7:   Include(NewJoystick.Capabilities, jcR);
+          3:      Include(NewJoystick.Capabilities, jcU);
+          4:      Include(NewJoystick.Capabilities, jcV);
+          16, 17: Include(NewJoystick.Capabilities, jcPOV);
+        end;
 
       for j := 1 to 255 do
-        if NewJoystick.Info.Name[ j ] = #0 then
-          begin
-            SetLength( NewJoystick.Info.Name, j - 1 );
-            break;
-          end;
+        if NewJoystick.Name[ j ] = #0 then
+        begin
+          SetLength( NewJoystick.Name, j - 1 );
+          break;
+        end;
 
-      // Checking if joystick is a real one, because laptops with accelerometer can be detected as a joystick :)
-      if ( NewJoystick.Info.Count.Axes >= 2 ) and ( NewJoystick.Info.Count.Buttons > 0 ) then
+      { Checking if joystick is a real one,
+        because laptops with accelerometer can be detected as a joystick :) }
+      if ( NewJoystick.Info.Count.Axes >= 2 ) and ( NewJoystick.InternalButtonsCount > 0 ) then
       begin
-        WritelnLog('CastleJoysticks Init', 'Find joy: %s (ID: %d); Axes: %d; Buttons: %d', [NewJoystick.Info.Name, I, NewJoystick.Info.Count.Axes, NewJoystick.Info.Count.Buttons]);
+        WritelnLog('CastleJoysticks Init', 'Find gamepad: %s (ID: %d); Axes: %d; Buttons: %d', [
+          NewJoystick.Name,
+          I,
+          NewJoystick.InternalAxesCount,
+          NewJoystick.InternalButtonsCount
+        ]);
         List.Add(NewJoystick);
       end else
         FreeAndNil(NewJoystick);
@@ -143,7 +174,7 @@ procedure TLinuxJoysticksBackend.Poll(const List: TJoystickList;
 var
   i : Integer;
   Value: Single;
-  axis: Byte;
+  axis: TInternalGamepadAxis;
   event : TLinuxJsEvent;
   Joystick: TJoystick;
   BackendInfo: TLinuxJoystickBackendInfo;
@@ -161,40 +192,46 @@ begin
         case event.EventType of
           JS_EVENT_AXIS:
             begin
-              axis := JS_AXIS[ BackendInfo.AxesMap[ event.number ] ];
               Value := event.value / 32767;
-              { Y axis should be 1 when pointing up, -1 when pointing down.
-                This is consistent with CGE 2D coordinate system
-                (and standard math 2D coordinate system). }
-              if Axis = JOY_AXIS_Y then
-                Value := -Value;
-              Joystick.State.Axis[ axis ] := Value;
-              if Assigned(EventContainer.OnAxisMove) then EventContainer.OnAxisMove(Joystick, axis, Value);
+              if AxisMap[ BackendInfo.AxesMap[ event.number ] ].Handled then
+              begin
+                axis := AxisMap[ BackendInfo.AxesMap[ event.number ] ].Axis;
+                Joystick.State.Axis[ axis ] := Value;
+                if Assigned(EventContainer.OnAxisMove) then EventContainer.OnAxisMove(Joystick, axis, Value);
+              end else
+              begin
+                WritelnLog('Joystick %d reports unhandled axis (%d mapped to %d) (value: %f)', [
+                  I,
+                  event.number,
+                  BackendInfo.AxesMap[ event.number ],
+                  Value
+                ]);
+              end;
             end;
           JS_EVENT_BUTTON:
             case event.value of
               0:
                 begin
-                  if Joystick.State.BtnDown[ event.number ] then
+                  if Joystick.InternalButtonDown[ event.number ] then
                   begin
-                    Joystick.State.BtnUp[ event.number ] := True;
-                    Joystick.State.BtnPress   [ event.number ] := False;
+                    Joystick.InternalButtonUp[ event.number ] := True;
+                    Joystick.InternalButtonPress   [ event.number ] := False;
                     if Assigned(EventContainer.OnButtonUp) then EventContainer.OnButtonUp(Joystick, event.number);
-                    Joystick.State.BtnCanPress[ event.number ] := True;
+                    Joystick.InternalButtonCanPress[ event.number ] := True;
                   end;
 
-                  Joystick.State.BtnDown[ event.number ] := False;
+                  Joystick.InternalButtonDown[ event.number ] := False;
                 end;
               1:
                 begin
-                  Joystick.State.BtnDown[ event.number ] := True;
+                  Joystick.InternalButtonDown[ event.number ] := True;
                   if Assigned(EventContainer.OnButtonDown) then EventContainer.OnButtonDown(Joystick, event.number);
-                  Joystick.State.BtnUp  [ event.number ] := False;
-                  if Joystick.State.BtnCanPress[ event.number ] then
+                  Joystick.InternalButtonUp  [ event.number ] := False;
+                  if Joystick.InternalButtonCanPress[ event.number ] then
                     begin
-                      Joystick.State.BtnPress   [ event.number ] := True;
+                      Joystick.InternalButtonPress   [ event.number ] := True;
                       if Assigned(EventContainer.OnButtonPress) then EventContainer.OnButtonPress(Joystick, event.number);
-                      Joystick.State.BtnCanPress[ event.number ] := False;
+                      Joystick.InternalButtonCanPress[ event.number ] := False;
                     end;
                 end;
             end;
@@ -204,7 +241,7 @@ begin
     else
       if fpgeterrno <> EAGAIN then
       begin
-        WritelnLog('Joystick error: possibly "%s" was disconnected.', [Joystick.Info.Name]);
+        WritelnLog('Joystick error: possibly "%s" was disconnected.', [Joystick.Name]);
         JoystickHasBeenDisconnected := true;
       end;
   end;

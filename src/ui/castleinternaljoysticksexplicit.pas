@@ -65,8 +65,9 @@ begin
   if Between(JoystickIndex, 0, List.Count - 1) then
   begin
     Joystick := List[JoystickIndex];
-    Joystick.State.Axis[JOY_AXIS_X] := Axis.X;
-    Joystick.State.Axis[JOY_AXIS_Y] := Axis.Y;
+    Joystick.InternalAxis[jaX] := Axis.X;
+    // invert it, because TJoystick.LeftAxis inverts it too
+    Joystick.InternalAxis[jaY] := -Axis.Y;
   end else
     WriteLnWarning('Joystick index %d given to CGEApp_JoystickAxis is incorrect. Current joystick count (given to CGEApp_JoystickCount) is %d.', [
       JoystickIndex,
@@ -81,8 +82,9 @@ begin
   if Between(JoystickIndex, 0, List.Count - 1) then
   begin
     Joystick := List[JoystickIndex];
-    Joystick.State.Axis[JOY_AXIS_U] := Axis.X;
-    Joystick.State.Axis[JOY_AXIS_R] := -Axis.Y;
+    Joystick.InternalAxis[jaU] := Axis.X;
+    // invert it, because TJoystick.RightAxis inverts it too
+    Joystick.InternalAxis[jaR] := -Axis.Y;
   end else
     WriteLnWarning('Joystick index %d given to CGEApp_JoystickAxis is incorrect. Current joystick count (given to CGEApp_JoystickCount) is %d.', [
       JoystickIndex,

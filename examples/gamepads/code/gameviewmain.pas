@@ -38,7 +38,7 @@ type
   strict private
     SelectedJoystick: Integer;
     JoyButtons: array of TCastleButton;
-    JoyAxes: array of TCastleLabel;
+    JoyAxes: array [TInternalGamepadAxis] of TCastleLabel;
     JoyLeftAxisVisualize, JoyRightAxisVisualize: TJoyAxisVisualize;
 
     procedure ClearJoystickUI;
@@ -50,10 +50,10 @@ type
     procedure ClickReinitialize(Sender: TObject);
     procedure ClickGamepadSelect(Sender: TObject);
     procedure ClickUnselect(Sender: TObject);
-    procedure MyJoyAxisMove(const Joy: TJoystick; const Axis: Byte; const Value: Single);
-    procedure MyJoyButtonPress(const Joy: TJoystick; const Button: Byte);
-    procedure JoyButtonUp(const Joy: TJoystick; const Button: Byte);
-    procedure JoyButtonDown(const Joy: TJoystick; const Button: Byte);
+    procedure MyJoyAxisMove(const Joy: TJoystick; const Axis: TInternalGamepadAxis; const Value: Single);
+    procedure MyJoyButtonPress(const Joy: TJoystick; const Button: TInternalGamepadButton);
+    procedure JoyButtonUp(const Joy: TJoystick; const Button: TInternalGamepadButton);
+    procedure JoyButtonDown(const Joy: TJoystick; const Button: TInternalGamepadButton);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -96,7 +96,7 @@ begin
   Joysticks.Initialize;
 end;
 
-procedure TViewMain.MyJoyAxisMove(const Joy: TJoystick; const Axis: Byte;
+procedure TViewMain.MyJoyAxisMove(const Joy: TJoystick; const Axis: TInternalGamepadAxis;
   const Value: Single);
 begin
   // We show axes position only for the selected joystick.
@@ -104,46 +104,33 @@ begin
      (Joy <> Joysticks[SelectedJoystick]) then
     Exit;
 
-  // If axes labels not initialized yet then exit.
-  if Length(JoyAxes) = 0 then Exit;
-
-  // Check whether Axis is in range, because some joysticks report Axis
-  // numbers outside of their declared Axis count,
-  // see https://github.com/castle-engine/castle-engine/issues/106 .
-  if Axis <= High(JoyAxes) then
-    JoyAxes[Axis].Caption := FormatDot('Axis %d (%s): %f', [
-      Axis,
-      AxisNames[Axis],
-      Value
-    ]);
+  JoyAxes[Axis].Caption := FormatDot('Axis %d (%s): %f', [
+    Ord(Axis),
+    AxisName(Axis),
+    Value
+  ]);
 end;
 
-procedure TViewMain.MyJoyButtonPress(const Joy: TJoystick; const Button: Byte);
+procedure TViewMain.MyJoyButtonPress(const Joy: TJoystick; const Button: TInternalGamepadButton);
 begin
   Notifications.Show(Format('Gamepad %d button %d press', [SelectedJoystick, Button]));
 end;
 
-procedure TViewMain.JoyButtonUp(const Joy: TJoystick; const Button: Byte);
+procedure TViewMain.JoyButtonUp(const Joy: TJoystick; const Button: TInternalGamepadButton);
 begin
   if (SelectedJoystick = -1) or
      (Joy <> Joysticks[SelectedJoystick]) then
     Exit;
-  if Length(JoyButtons) = 0 then Exit;
-
   JoyButtons[Button].Pressed := False;
-
   Notifications.Show(Format('Gamepad %d button %d up', [SelectedJoystick, Button]));
 end;
 
-procedure TViewMain.JoyButtonDown(const Joy: TJoystick; const Button: Byte);
+procedure TViewMain.JoyButtonDown(const Joy: TJoystick; const Button: TInternalGamepadButton);
 begin
   if (SelectedJoystick = -1) or
      (Joy <> Joysticks[SelectedJoystick]) then
     Exit;
-  if Length(JoyButtons) = 0 then Exit;
-
   JoyButtons[Button].Pressed := True;
-
   Notifications.Show(Format('Gamepad %d button %d down', [SelectedJoystick, Button]));
 end;
 
@@ -156,15 +143,18 @@ end;
 
 procedure TViewMain.ClearSelectedJoystickUI;
 var
-  I: Integer;
+  Button: TInternalGamepadButton;
+  Axis: TInternalGamepadAxis;
   C: TCastleUserInterface;
 begin
-  for I := Low(JoyButtons) to High(JoyButtons) do
-    JoyButtons[i].Free;
+  if Length(JoyButtons) <> 0 then
+    for Button := Low(JoyButtons) to High(JoyButtons) do
+      FreeAndNil(JoyButtons[Button]);
   SetLength(JoyButtons, 0);
-  for I := Low(JoyAxes) to High(JoyAxes) do
-    JoyAxes[i].Free;
-  SetLength(JoyAxes, 0);
+
+  for Axis := Low(JoyAxes) to High(JoyAxes) do
+    FreeAndNil(JoyAxes[Axis]);
+
   FreeAndNil(JoyLeftAxisVisualize);
   FreeAndNil(JoyRightAxisVisualize);
   SelectedGamepadDynamicUi.ClearControls;
@@ -185,7 +175,8 @@ end;
 
 procedure TViewMain.ClickGamepadSelect(Sender: TObject);
 var
-  I: Integer;
+  Button: TInternalGamepadButton;
+  Axis: TInternalGamepadAxis;
   ButtonsGroup: TCastleHorizontalGroup;
 begin
   ClearSelectedJoystickUI;
@@ -200,33 +191,30 @@ begin
   SelectedGamepadDynamicUi.InsertBack(ButtonsGroup);
 
   // Create array of buttons
-  SetLength(JoyButtons, Joysticks.GetInfo(SelectedJoystick)^.Count.Buttons);
-  for I := 0 to High(JoyButtons) do
+  SetLength(JoyButtons, Joysticks[SelectedJoystick].InternalButtonsCount);
+  for Button := 0 to High(JoyButtons) do
   begin
-    JoyButtons[i] := TCastleButton.Create(FreeAtStop);
-    JoyButtons[i].Toggle := true;
-    JoyButtons[i].Enabled := false;
-    JoyButtons[i].Caption := IntToStr(I);
-    ButtonsGroup.InsertFront(JoyButtons[i]);
+    JoyButtons[Button] := TCastleButton.Create(FreeAtStop);
+    JoyButtons[Button].Toggle := true;
+    JoyButtons[Button].Enabled := false;
+    JoyButtons[Button].Caption := IntToStr(Button);
+    ButtonsGroup.InsertFront(JoyButtons[Button]);
   end;
   Notifications.Show(Format('Found %d buttons', [
-    Joysticks.GetInfo(SelectedJoystick)^.Count.Buttons
+    Joysticks[SelectedJoystick].InternalButtonsCount
   ]));
 
   // Create axis labels
-  //SetLength(JoyAxes, Joysticks.GetInfo(SelectedJoystick)^.Count.Axes);
-  { Show all 8 possible axes, as D-Pad/POV axes are sometimes "further than Count.Axes"
-    This is a temporary measure until we can separate D-Pad/POV correctly in the backend }
-  SetLength(JoyAxes, 8);
-  for I := 0 to High(JoyAxes) do
+  for Axis := Low(TInternalGamepadAxis) to High(TInternalGamepadAxis) do
   begin
-    JoyAxes[i] := TCastleLabel.Create(FreeAtStop);
-    JoyAxes[i].Caption := Format('Axis %d (%s): no input so far', [I, AxisNames[I]]);
-    JoyAxes[i].Color := White;
-    SelectedGamepadDynamicUi.InsertControl(I, JoyAxes[i]);
+    JoyAxes[Axis] := TCastleLabel.Create(FreeAtStop);
+    JoyAxes[Axis].Caption := Format('Axis %d (%s): no input so far', [Ord(Axis), AxisName(Axis)]);
+    JoyAxes[Axis].Color := White;
+    SelectedGamepadDynamicUi.InsertControl(Ord(Axis), JoyAxes[Axis]);
   end;
-  Notifications.Show(Format('Found %d axes',
-    [Joysticks.GetInfo(SelectedJoystick)^.Count.Axes]));
+  Notifications.Show(Format('Found %d axes', [
+    Joysticks[SelectedJoystick].InternalAxesCount
+  ]));
 
   JoyLeftAxisVisualize := TJoyAxisVisualize.Create(FreeAtStop);
   JoyLeftAxisVisualize.Anchor(hpRight, -256 - 10 - 10);
@@ -250,7 +238,6 @@ procedure TViewMain.InitializeJoystickUI(Sender: TObject);
 var
   I: Integer;
   GamepadSelectButton: TCastleButton;
-  GamepadInfo: PJoyInfo;
 begin
   ClearJoystickUI;
 
@@ -260,12 +247,11 @@ begin
   for I := 0 to Joysticks.Count - 1 do
   begin
     GamepadSelectButton := TCastleButton.Create(FreeAtStop);
-    GamepadInfo := Joysticks.GetInfo(I);
     GamepadSelectButton.Caption := Format('Gamepad %d: "%s" (%d axes, %d buttons)', [
       I,
-      GamepadInfo^.Name,
-      GamepadInfo^.Count.Axes,
-      GamepadInfo^.Count.Buttons
+      Joysticks[I].Name,
+      Joysticks[I].InternalAxesCount,
+      Joysticks[I].InternalButtonsCount
     ]);
     GamepadSelectButton.OnClick := {$ifdef FPC}@{$endif} ClickGamepadSelect;
     GamepadSelectButton.Tag := I;
