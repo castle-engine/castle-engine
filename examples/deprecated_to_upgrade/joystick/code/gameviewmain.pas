@@ -20,7 +20,6 @@ interface
 
 uses Classes,
   CastleVectors, CastleUiControls, CastleControls, CastleKeysMouse,
-  CastleOnScreenMenu,
   CastleImages, CastleFilesUtils, CastleColors,
   CastleNotifications, CastleLog, CastleJoysticks,
   GameUtils;
@@ -31,14 +30,12 @@ type
   published
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
-    // ButtonXxx: TCastleButton;
-  strict private
-    MenuGroup: TCastleVerticalGroup;
     Notifications: TCastleNotifications;
-    ButtonReinitialize: TCastleButton;
-    OnScreenMenu: TCastleOnScreenMenu;
-    LabelJoysticksCount: TCastleLabel;
-    LabelSelectedJoystick: TCastleLabel;
+    ButtonReinitialize, ButtonUnselect: TCastleButton;
+    LabelJGamepadsCount: TCastleLabel;
+    GroupGamepads, SelectedGamepadDynamicUi: TCastleVerticalGroup;
+    SelectedGamepadUi: TCastleUserInterface;
+  strict private
     SelectedJoystick: Integer;
     JoyButtons: array of TCastleButton;
     JoyAxes: array of TCastleLabel;
@@ -51,7 +48,8 @@ type
     procedure JoystickDisconnected;
     procedure JoystickConnected;
     procedure ClickReinitialize(Sender: TObject);
-    procedure ClickJoystickSelect(Sender: TObject);
+    procedure ClickGamepadSelect(Sender: TObject);
+    procedure ClickUnselect(Sender: TObject);
     procedure MyJoyAxisMove(const Joy: TJoystick; const Axis: Byte; const Value: Single);
     procedure MyJoyButtonPress(const Joy: TJoystick; const Button: Byte);
     procedure JoyButtonUp(const Joy: TJoystick; const Button: Byte);
@@ -82,38 +80,8 @@ begin
 
   SelectedJoystick := -1; // default
 
-  Notifications := TCastleNotifications.Create(FreeAtStop);
-  Notifications.Anchor(vpBottom, 10);
-  Notifications.Anchor(hpMiddle);
-  Notifications.TextAlignment := hpMiddle;
-  Notifications.Timeout := 2.0;
-  Notifications.Fade := 0.5;
-  InsertBack(Notifications);
-
-  ButtonReinitialize := TCastleButton.Create(FreeAtStop);
-  ButtonReinitialize.Caption := 'Detect connected joysticks again (Joysticks.Initialize)';
-  ButtonReinitialize.Anchor(hpLeft, 10);
-  ButtonReinitialize.Anchor(vpBottom, 10);
   ButtonReinitialize.OnClick := {$ifdef FPC}@{$endif} ClickReinitialize;
-  InsertFront(ButtonReinitialize);
-
-  MenuGroup := TCastleVerticalGroup.Create(FreeAtStop);
-  MenuGroup.Anchor(hpLeft, 10);
-  MenuGroup.Anchor(vpTop, -10);
-  MenuGroup.Spacing := 10;
-  InsertFront(MenuGroup);
-
-  LabelJoysticksCount := TCastleLabel.Create(FreeAtStop);
-  LabelJoysticksCount.Color := White;
-  MenuGroup.InsertFront(LabelJoysticksCount);
-
-  OnScreenMenu := TCastleOnScreenMenu.Create(FreeAtStop);
-  MenuGroup.InsertFront(OnScreenMenu);
-
-  LabelSelectedJoystick := TCastleLabel.Create(FreeAtStop);
-  LabelSelectedJoystick.Color := White;
-  LabelSelectedJoystick.Caption := 'Selected: none';
-  MenuGroup.InsertFront(LabelSelectedJoystick);
+  ButtonUnselect.OnClick := {$ifdef FPC}@{$endif} ClickUnselect;
 
   Joysticks.OnChange := {$ifdef FPC}@{$endif} InitializeJoystickUI;
   Joysticks.OnDisconnect := {$ifdef FPC}@{$endif} JoystickDisconnected;
@@ -124,7 +92,7 @@ begin
   Joysticks.OnButtonUp := {$ifdef FPC}@{$endif} JoyButtonUp;
 
   { Actually detect joysticks.
-    This will automatically call TEventsHandler.JoysticksChanged on some platforms. }
+    This will immediately call InitializeJoystickUI on some platforms. }
   Joysticks.Initialize;
 end;
 
@@ -143,12 +111,16 @@ begin
   // numbers outside of their declared Axis count,
   // see https://github.com/castle-engine/castle-engine/issues/106 .
   if Axis <= High(JoyAxes) then
-    JoyAxes[Axis].Caption := AxisNames[Axis] + ': ' + FloatToStrDot(Value);
+    JoyAxes[Axis].Caption := FormatDot('Axis %d (%s): %f', [
+      Axis,
+      AxisNames[Axis],
+      Value
+    ]);
 end;
 
 procedure TViewMain.MyJoyButtonPress(const Joy: TJoystick; const Button: Byte);
 begin
-  Notifications.Show(Format('Button press event (b: %d)', [Button]));
+  Notifications.Show(Format('Gamepad %d button %d press', [SelectedJoystick, Button]));
 end;
 
 procedure TViewMain.JoyButtonUp(const Joy: TJoystick; const Button: Byte);
@@ -160,7 +132,7 @@ begin
 
   JoyButtons[Button].Pressed := False;
 
-  Notifications.Show('Joy button up');
+  Notifications.Show(Format('Gamepad %d button %d up', [SelectedJoystick, Button]));
 end;
 
 procedure TViewMain.JoyButtonDown(const Joy: TJoystick; const Button: Byte);
@@ -172,7 +144,7 @@ begin
 
   JoyButtons[Button].Pressed := True;
 
-  Notifications.Show('Joy button down');
+  Notifications.Show(Format('Gamepad %d button %d down', [SelectedJoystick, Button]));
 end;
 
 procedure TViewMain.ClickReinitialize(Sender: TObject);
@@ -185,6 +157,7 @@ end;
 procedure TViewMain.ClearSelectedJoystickUI;
 var
   I: Integer;
+  C: TCastleUserInterface;
 begin
   for I := Low(JoyButtons) to High(JoyButtons) do
     JoyButtons[i].Free;
@@ -194,45 +167,51 @@ begin
   SetLength(JoyAxes, 0);
   FreeAndNil(JoyLeftAxisVisualize);
   FreeAndNil(JoyRightAxisVisualize);
+  SelectedGamepadDynamicUi.ClearControls;
+  SelectedGamepadUi.Exists := false;
 
   SelectedJoystick := -1;
-  LabelSelectedJoystick.Caption := 'Selected: none';
+
+  // Unpress all buttons in GroupGamepads
+  for C in GroupGamepads do
+    (C as TCastleButton).Pressed := false;
 end;
 
 procedure TViewMain.ClearJoystickUI;
 begin
-  OnScreenMenu.MenuItems.ClearControls;
+  GroupGamepads.ClearControls;
   ClearSelectedJoystickUI;
 end;
 
-procedure TViewMain.ClickJoystickSelect(Sender: TObject);
+procedure TViewMain.ClickGamepadSelect(Sender: TObject);
 var
-  i: Integer;
+  I: Integer;
+  ButtonsGroup: TCastleHorizontalGroup;
 begin
   ClearSelectedJoystickUI;
 
+  SelectedGamepadUi.Exists := true;
+
   // Show selected joystick details
   SelectedJoystick := (Sender as TComponent).Tag;
-  LabelSelectedJoystick.Caption := Format('Selected: [%d] %s',
-    [SelectedJoystick, Joysticks.GetInfo(SelectedJoystick)^.Name]);
+  (GroupGamepads.Controls[SelectedJoystick] as TCastleButton).Pressed := true;
+
+  ButtonsGroup := TCastleHorizontalGroup.Create(FreeAtStop);
+  SelectedGamepadDynamicUi.InsertBack(ButtonsGroup);
 
   // Create array of buttons
   SetLength(JoyButtons, Joysticks.GetInfo(SelectedJoystick)^.Count.Buttons);
   for I := 0 to High(JoyButtons) do
   begin
     JoyButtons[i] := TCastleButton.Create(FreeAtStop);
-    JoyButtons[i].Toggle := True;
-    JoyButtons[i].Enabled := False;
-    JoyButtons[i].Anchor(hpLeft, 10 + 45 * i);
-    JoyButtons[i].Anchor(vpBottom, 60);
-    JoyButtons[i].AutoSize := False;
-    JoyButtons[i].Width := 40;
-    JoyButtons[i].Height := 40;
-    JoyButtons[i].Caption := IntToStr(i);
-    InsertFront(JoyButtons[i]);
+    JoyButtons[i].Toggle := true;
+    JoyButtons[i].Enabled := false;
+    JoyButtons[i].Caption := IntToStr(I);
+    ButtonsGroup.InsertFront(JoyButtons[i]);
   end;
-  Notifications.Show(Format('Found %d buttons',
-    [Joysticks.GetInfo(SelectedJoystick)^.Count.Buttons]));
+  Notifications.Show(Format('Found %d buttons', [
+    Joysticks.GetInfo(SelectedJoystick)^.Count.Buttons
+  ]));
 
   // Create axis labels
   //SetLength(JoyAxes, Joysticks.GetInfo(SelectedJoystick)^.Count.Axes);
@@ -242,45 +221,56 @@ begin
   for I := 0 to High(JoyAxes) do
   begin
     JoyAxes[i] := TCastleLabel.Create(FreeAtStop);
-    JoyAxes[i].Anchor(hpLeft, 10);
-    JoyAxes[i].Anchor(vpBottom, 120 + i * 45);
-    JoyAxes[i].Caption := 'Axis: ' + IntToStr(i);
+    JoyAxes[i].Caption := Format('Axis %d (%s): no input so far', [I, AxisNames[I]]);
     JoyAxes[i].Color := White;
-    InsertFront(JoyAxes[i]);
+    SelectedGamepadDynamicUi.InsertControl(I, JoyAxes[i]);
   end;
   Notifications.Show(Format('Found %d axes',
     [Joysticks.GetInfo(SelectedJoystick)^.Count.Axes]));
 
   JoyLeftAxisVisualize := TJoyAxisVisualize.Create(FreeAtStop);
   JoyLeftAxisVisualize.Anchor(hpRight, -256 - 10 - 10);
-  JoyLeftAxisVisualize.Anchor(vpTop, -10);
+  JoyLeftAxisVisualize.Anchor(vpBottom, 100);
   JoyLeftAxisVisualize.Caption := 'Left Axis';
   InsertFront(JoyLeftAxisVisualize);
 
   JoyRightAxisVisualize := TJoyAxisVisualize.Create(FreeAtStop);
   JoyRightAxisVisualize.Anchor(hpRight, -10);
-  JoyRightAxisVisualize.Anchor(vpTop, -10);
+  JoyRightAxisVisualize.Anchor(vpBottom, 100);
   JoyRightAxisVisualize.Caption := 'Right Axis';
   InsertFront(JoyRightAxisVisualize);
+end;
+
+procedure TViewMain.ClickUnselect(Sender: TObject);
+begin
+  ClearSelectedJoystickUI;
 end;
 
 procedure TViewMain.InitializeJoystickUI(Sender: TObject);
 var
   I: Integer;
-  JoystickSelect: TCastleOnScreenMenuItem;
+  GamepadSelectButton: TCastleButton;
+  GamepadInfo: PJoyInfo;
 begin
   ClearJoystickUI;
 
-  LabelJoysticksCount.Caption := Format('Number of joysticks found: %d', [Joysticks.Count]);
+  LabelJGamepadsCount.Caption := Format('Number of joysticks found: %d', [Joysticks.Count]);
 
   // List all joysticks
   for I := 0 to Joysticks.Count - 1 do
   begin
-    JoystickSelect := TCastleOnScreenMenuItem.Create(FreeAtStop);
-    JoystickSelect.Caption := Format('[%d] %s', [I, Joysticks.GetInfo(I)^.Name]);
-    JoystickSelect.OnClick := {$ifdef FPC}@{$endif}ClickJoystickSelect;
-    JoystickSelect.Tag := I;
-    OnScreenMenu.Add(JoystickSelect);
+    GamepadSelectButton := TCastleButton.Create(FreeAtStop);
+    GamepadInfo := Joysticks.GetInfo(I);
+    GamepadSelectButton.Caption := Format('Gamepad %d: "%s" (%d axes, %d buttons)', [
+      I,
+      GamepadInfo^.Name,
+      GamepadInfo^.Count.Axes,
+      GamepadInfo^.Count.Buttons
+    ]);
+    GamepadSelectButton.OnClick := {$ifdef FPC}@{$endif} ClickGamepadSelect;
+    GamepadSelectButton.Tag := I;
+    GamepadSelectButton.Toggle := true;
+    GroupGamepads.InsertFront(GamepadSelectButton);
   end;
 end;
 

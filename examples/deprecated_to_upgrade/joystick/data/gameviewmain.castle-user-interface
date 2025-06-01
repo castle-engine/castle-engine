@@ -13,6 +13,134 @@
       },
       "FullSize" : true,
       "Name" : "RectangleControl1"
+    },
+    {
+      "$$ClassName" : "TCastleNotifications",
+      "Fade" : 5.0000000000000000E-001,
+      "HorizontalAnchorParent" : "hpRight",
+      "HorizontalAnchorSelf" : "hpRight",
+      "Name" : "Notifications",
+      "TextAlignment" : "hpRight",
+      "Timeout" : 2.0000000000000000E+000,
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : -1.0000000000000000E+001,
+        "Y" : -1.0000000000000000E+001
+      },
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
+    },
+    {
+      "$$ClassName" : "TCastleVerticalGroup",
+      "Name" : "VerticalGroup1",
+      "Spacing" : 1.0000000000000000E+001,
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : 1.0000000000000000E+001,
+        "Y" : -1.0000000000000000E+001
+      },
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleButton",
+          "Caption" : "Detect Connected Gamepads Again",
+          "CustomBackgroundDisabled" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundFocused" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundNormal" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundPressed" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "Image" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "Name" : "ButtonReinitialize",
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop"
+        },
+        {
+          "$$ClassName" : "TCastleLabel",
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 1.0000000000000000E+000,
+            "Green" : 1.0000000000000000E+000,
+            "Red" : 1.0000000000000000E+000
+          },
+          "Name" : "LabelJGamepadsCount",
+          "Text" : [
+            "LabelJGamepadsCount"
+          ],
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -4.9000000000000000E+001
+          },
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop"
+        },
+        {
+          "$$ClassName" : "TCastleVerticalGroup",
+          "Name" : "GroupGamepads",
+          "Spacing" : 1.0000000000000000E+001,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -8.1000000000000000E+001
+          },
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop"
+        }
+      ]
+    },
+    {
+      "$$ClassName" : "TCastleVerticalGroup",
+      "Exists" : false,
+      "Name" : "SelectedGamepadUi",
+      "Spacing" : 1.0000000000000000E+001,
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : 1.0000000000000000E+001,
+        "Y" : 1.0000000000000000E+001
+      },
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleVerticalGroup",
+          "Name" : "SelectedGamepadDynamicUi",
+          "Spacing" : 1.0000000000000000E+001,
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop"
+        },
+        {
+          "$$ClassName" : "TCastleButton",
+          "Caption" : "Close This Gamepad Visualization",
+          "CustomBackgroundDisabled" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundFocused" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundNormal" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundPressed" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "Image" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "Name" : "ButtonUnselect",
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -1.0000000000000000E+001
+          },
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop"
+        }
+      ]
     }
   ]
 }
