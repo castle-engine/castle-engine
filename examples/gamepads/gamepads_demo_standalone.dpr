@@ -15,7 +15,7 @@
 { Note: The "program" declaration is optional in Pascal.
   But we keep using it, otherwise Delphi IDE breaks the "uses" clause when
   adding units to the project. }
-program joystick_demo_standalone;
+program gamepads_demo_standalone;
 
 {$ifdef MSWINDOWS} {$apptype GUI} {$endif}
 

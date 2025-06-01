@@ -11,7 +11,7 @@
         <CompatibilityMode Value="True"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <Title Value="joystick_demo"/>
+      <Title Value="gamepads_demo"/>
     </General>
     <BuildModes Count="2">
       <Item1 Name="Debug" Default="True"/>
@@ -19,7 +19,7 @@
         <CompilerOptions>
           <Version Value="11"/>
           <Target>
-            <Filename Value="joystick_demo"/>
+            <Filename Value="gamepads_demo"/>
           </Target>
           <SearchPaths>
             <IncludeFiles Value="code/"/>
@@ -65,7 +65,7 @@
     </RequiredPackages>
     <Units Count="3">
       <Unit0>
-        <Filename Value="joystick_demo_standalone.dpr"/>
+        <Filename Value="gamepads_demo_standalone.dpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>
@@ -83,7 +83,7 @@
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="joystick_demo"/>
+      <Filename Value="gamepads_demo"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="code/"/>

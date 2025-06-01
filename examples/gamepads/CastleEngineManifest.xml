@@ -5,8 +5,8 @@ Specify basic information about the project, including how this project is build
 See https://castle-engine.io/project_manifest for documentation of this file.
 -->
 
-<project name="joystick_demo"
-  standalone_source="joystick_demo_standalone.dpr"
+<project name="gamepads_demo"
+  standalone_source="gamepads_demo_standalone.dpr"
   game_units="GameInitialize"
   author="Castle Game Engine Developers"
   qualified_name="io.castleengine.joystick"
