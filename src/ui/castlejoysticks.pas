@@ -147,8 +147,8 @@ type
     FList: TJoystickList;
     FInitialized: Boolean;
     FOnChange: TNotifyEvent;
-    FOnDisconnect: TSimpleNotifyEvent;
-    FOnConnect: TSimpleNotifyEvent;
+    FOnDisconnect: TNotifyEvent;
+    FOnConnect: TNotifyEvent;
     function GetItems(const Index: Integer): TJoystick;
     { Get (creating if necessary) joystick's explicit backend.
       Always returns TExplicitJoystickBackend, but cannot be declared as such. }
@@ -165,14 +165,16 @@ type
       @exclude }
     procedure InternalPoll;
 
-    procedure ClearState;
-
     property OnAxisMove: TOnJoyAxisMove read FOnAxisMove write FOnAxisMove;
     property OnButtonDown: TOnJoyButtonEvent read FOnButtonDown write FOnButtonDown;
     property OnButtonUp: TOnJoyButtonEvent read FOnButtonUp write FOnButtonUp;
     property OnButtonPress: TOnJoyButtonEvent read FOnButtonPress write FOnButtonPress;
+
+    { Number of connected joysticks. }
     function Count: Integer;
 
+    { List of connected joysticks.
+      Use this to access individual joysticks. }
     property Items[const Index: Integer]: TJoystick read GetItems; default;
 
     { Detect connected joysticks.
@@ -181,6 +183,7 @@ type
       Calling this again is allowed, it searches for connected joysticks again. }
     procedure Initialize;
 
+    { Was @link(Initialize) called. }
     property Initialized: Boolean read FInitialized;
 
     { Used by CASTLE_WINDOW_LIBRARY when
@@ -208,10 +211,10 @@ type
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
 
     { Called when previously initalized gamepad has been disconnected. }
-    property OnDisconnect: TSimpleNotifyEvent read FOnDisconnect write FOnDisconnect;
+    property OnDisconnect: TNotifyEvent read FOnDisconnect write FOnDisconnect;
 
     { Called when gamepad has been connected to the system. }
-    property OnConnect: TSimpleNotifyEvent read FOnConnect write FOnConnect;
+    property OnConnect: TNotifyEvent read FOnConnect write FOnConnect;
   end;
 
 { Detect connected joysticks. }
@@ -285,6 +288,22 @@ begin
 end;
 
 procedure TJoysticks.Initialize;
+
+  procedure ClearState;
+  var
+    I: Integer;
+    J: TInternalGamepadButton;
+  begin
+    for i := 0 to Count - 1 do
+      for j := 0 to FList[I].InternalButtonsCount - 1 do
+      begin
+        FList[I].InternalButtonUp[J] := false;
+        FList[I].InternalButtonDown[J] := false;
+        FList[I].InternalButtonPress[J] := false;
+        FList[I].InternalButtonCanPress[J] := true;
+      end;
+  end;
+
 begin
   FInitialized := true;
 
@@ -307,21 +326,6 @@ procedure TJoysticks.InternalPoll;
 begin
   if FInitialized then
     Backend.Poll(FList, Self);
-end;
-
-procedure TJoysticks.ClearState;
-var
-  I: Integer;
-  J: TInternalGamepadButton;
-begin
-  for i := 0 to Count - 1 do
-    for j := 0 to FList[I].InternalButtonsCount - 1 do
-    begin
-      FList[I].InternalButtonUp[J] := false;
-      FList[I].InternalButtonDown[J] := false;
-      FList[I].InternalButtonPress[J] := false;
-      FList[I].InternalButtonCanPress[J] := true;
-    end;
 end;
 
 function TJoysticks.ExplicitBackend: TJoysticksBackend;
@@ -362,13 +366,13 @@ end;
 procedure TJoysticks.InternalConnected;
 begin
   if Assigned(OnConnect) then
-    OnConnect;
+    OnConnect(Self);
 end;
 
 procedure TJoysticks.InternalDisconnected;
 begin
   if Assigned(OnDisconnect) then
-    OnDisconnect;
+    OnDisconnect(Self);
 end;
 
 function TJoysticks.GetItems(const Index: Integer): TJoystick;

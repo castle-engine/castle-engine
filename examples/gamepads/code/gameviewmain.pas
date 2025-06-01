@@ -45,8 +45,8 @@ type
     procedure ClearSelectedJoystickUI;
 
     procedure InitializeJoystickUI(Sender: TObject);
-    procedure JoystickDisconnected;
-    procedure JoystickConnected;
+    procedure JoystickDisconnected(Sender: TObject);
+    procedure JoystickConnected(Sender: TObject);
     procedure ClickReinitialize(Sender: TObject);
     procedure ClickGamepadSelect(Sender: TObject);
     procedure ClickUnselect(Sender: TObject);
@@ -260,13 +260,13 @@ begin
   end;
 end;
 
-procedure TViewMain.JoystickDisconnected;
+procedure TViewMain.JoystickDisconnected(Sender: TObject);
 begin
   Joysticks.Initialize;
   //will call OnChange and therefore InitializeJoystickUI
 end;
 
-procedure TViewMain.JoystickConnected;
+procedure TViewMain.JoystickConnected(Sender: TObject);
 begin
   Joysticks.Initialize;
   //will call OnChange and therefore InitializeJoystickUI
