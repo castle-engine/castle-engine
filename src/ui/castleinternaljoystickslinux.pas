@@ -96,8 +96,15 @@ implementation
 uses
   SysUtils, CastleLog, Math;
 
-// TODO: drop legacy interface /dev/js#; enable /dev/event# .
-// Or use some higher-level library (like SDL2) to handle joysticks?
+{ Using /dev/js* device.
+  See docs:
+  - https://www.kernel.org/doc/html/latest/input/joydev/joystick.html
+  - https://www.kernel.org/doc/html/latest/input/joydev/joystick-api.html
+
+  TODO:
+  - Alternative backend (or remake this one) using /dev/event*
+  - Alternative backend using a higher-level library (like SDL2) to handle joysticks?
+}
 
 { TLinuxJoystickBackendInfo -------------------------------------------------- }
 

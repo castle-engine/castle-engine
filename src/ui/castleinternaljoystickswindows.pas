@@ -1,5 +1,5 @@
 {
-  Copyright 2015-2019 Tomasz Wojtyś, Michalis Kamburelis.
+  Copyright 2015-2025 Tomasz Wojtyś, Michalis Kamburelis.
   Based on zgl_joystick.pas by Andrey Kemka.
 
   This file is part of "Castle Game Engine".
@@ -34,95 +34,8 @@ implementation
 
 // TODO: Make alternative implementation based on xinput library
 
-uses CastleJoysticks;
-
-type
-  PJOYCAPSW = ^TJOYCAPSW;
-  TJOYCAPSW = packed record
-    wMid: Word;
-    wPid: Word;
-    szPname: array[ 0..31 ] of WideChar;
-    wXmin: UInt32;
-    wXmax: UInt32;
-    wYmin: UInt32;
-    wYmax: UInt32;
-    wZmin: UInt32;
-    wZmax: UInt32;
-    wNumButtons: UInt32;
-    wPeriodMin: UInt32;
-    wPeriodMax: UInt32;
-    wRmin: UInt32;
-    wRmax: UInt32;
-    wUmin: UInt32;
-    wUmax: UInt32;
-    wVmin: UInt32;
-    wVmax: UInt32;
-    wCaps: UInt32;
-    wMaxAxes: UInt32;
-    wNumAxes: UInt32;
-    wMaxButtons: UInt32;
-    szRegKey: array[ 0..31 ] of WideChar;
-    szOEMVxD: array[ 0..259 ] of WideChar;
-end;
-
-type
-  PJOYINFOEX = ^TJOYINFOEX;
-  TJOYINFOEX = packed record
-    dwSize: UInt32;
-    dwFlags: UInt32;
-    wXpos: UInt32;
-    wYpos: UInt32;
-    wZpos: UInt32;
-    dwRpos: UInt32;
-    dwUpos: UInt32;
-    dwVpos: UInt32;
-    wButtons: UInt32;
-    dwButtonNumber: UInt32;
-    dwPOV: UInt32;
-    dwReserved1: UInt32;
-    dwReserved2: UInt32;
-  end;
-
-const
-  JOY_POVCENTERED    = -1;
-  JOY_POVFORWARD     = 0;
-  JOY_POVRIGHT       = 9000;
-  JOY_POVBACKWARD    = 18000;
-  JOY_POVLEFT        = 27000;
-  JOY_RETURNX        = 1;
-  JOY_RETURNY        = 2;
-  JOY_RETURNZ        = 4;
-  JOY_RETURNR        = 8;
-  JOY_RETURNU        = 16;
-  JOY_RETURNV        = 32;
-  JOY_RETURNPOV      = 64;
-  JOY_RETURNBUTTONS  = 128;
-  JOY_RETURNRAWDATA  = 256;
-  JOY_RETURNPOVCTS   = 512;
-  JOY_RETURNCENTERED = $400;
-  JOY_USEDEADZONE    = $800;
-  JOY_RETURNALL      = ( JOY_RETURNX or JOY_RETURNY or JOY_RETURNZ or JOY_RETURNR or JOY_RETURNU or JOY_RETURNV or JOY_RETURNPOV or JOY_RETURNBUTTONS );
-
-  JOYCAPS_HASZ    = 1;
-  JOYCAPS_HASR    = 2;
-  JOYCAPS_HASU    = 4;
-  JOYCAPS_HASV    = 8;
-  JOYCAPS_HASPOV  = 16;
-  JOYCAPS_POV4DIR = 32;
-  JOYCAPS_POVCTS  = 64;
-
-  JOYERR_NOERROR = 0;
-  JOYERR_BASE = 160;
-  JOYERR_PARMS = JOYERR_BASE + 5; // The specified joystick identifier is invalid.
-  JOYERR_UNPLUGGED = JOYERR_BASE + 7; //The specified joystick is not connected to the system.
-
-  WINMMLIB = 'winmm.dll';
-
-  JS_AXIS : array[jaX..jaV] of UInt32 = ( 17 {X}, 19 {Y}, 21 {Z}, 26 {R}, 28 {U}, 30 {V} );
-
-function joyGetNumDevs : UInt32; stdcall; external WINMMLIB name 'joyGetNumDevs';
-function joyGetDevCapsW( uJoyID : UInt32; lpCaps : PJOYCAPSW; uSize : UInt32 ) : UInt32; stdcall; external WINMMLIB name 'joyGetDevCapsW';
-function joyGetPosEx( uJoyID : UInt32; lpInfo : PJOYINFOEX ) : UInt32; stdcall; external WINMMLIB name 'joyGetPosEx';
+uses MMSystem,
+  CastleJoysticks;
 
 type
   TWindowsJoystickBackendInfo = class
@@ -250,12 +163,11 @@ procedure TWindowsJoysticksBackend.Poll(const List: TJoystickList;
   const EventContainer: TJoysticks);
 var
   i: Integer;
-  _value: Single;
+  AxisValueInt: UInt32;
+  AxisValueFloat, PovSin, PovCos: Single;
   j: Integer;
   btn   : Integer;
   state : TJOYINFOEX;
-  pcaps : PUInt32;
-  value : PUInt32;
   vMin  : UInt32;
   vMax  : UInt32;
   Joystick: TJoystick;
@@ -285,23 +197,42 @@ begin
             if j > High(BackendInfo.AxesMap) then
               Break;
 
-            // Say "no" to if's, and do everything trciky :)
-            // TODO: Above is a bad comment and indeed the code is rather messy. Make it more readable.
             Axis := BackendInfo.AxesMap[ j ];
-            pcaps := @BackendInfo.Caps;
-            Inc( pcaps, JS_AXIS[ Axis ] );
-            vMin  := pcaps^;
-            Inc( pcaps );
-            vMax  := pcaps^;
-            value := @state;
-            Inc( value, 2 + Ord(Axis) );
 
-            _value := value^ / ( vMax - vMin ) * 2 - 1;
+            case Axis of
+              jaX: begin vMin := BackendInfo.Caps.wXmin; vMax := BackendInfo.Caps.wXmax; end;
+              jaY: begin vMin := BackendInfo.Caps.wYmin; vMax := BackendInfo.Caps.wYmax; end;
+              jaZ: begin vMin := BackendInfo.Caps.wZmin; vMax := BackendInfo.Caps.wZmax; end;
+              jaR: begin vMin := BackendInfo.Caps.wRmin; vMax := BackendInfo.Caps.wRmax; end;
+              jaU: begin vMin := BackendInfo.Caps.wUmin; vMax := BackendInfo.Caps.wUmax; end;
+              jaV: begin vMin := BackendInfo.Caps.wVmin; vMax := BackendInfo.Caps.wVmax; end;
+              else
+                begin
+                  WriteLnWarning('CastleJoysticks Poll', 'Unknown axis %d for joystick to determine vMin/vMax', [Ord(Axis)]);
+                  Continue;
+                end;
+            end;
 
-            if Joystick.InternalAxis[Axis] <> _value then
+            case Axis of
+              jaX: AxisValueInt := state.wXpos;
+              jaY: AxisValueInt := state.wYpos;
+              jaZ: AxisValueInt := state.wZpos;
+              jaR: AxisValueInt := state.dwRpos;
+              jaU: AxisValueInt := state.dwUpos;
+              jaV: AxisValueInt := state.dwVpos;
+              else
+                begin
+                  WriteLnWarning('CastleJoysticks Poll', 'Unknown axis %d for joystick to determine value', [Ord(Axis)]);
+                  Continue;
+                end;
+            end;
+
+            AxisValueFloat := AxisValueInt / ( vMax - vMin ) * 2 - 1;
+
+            if Joystick.InternalAxis[Axis] <> AxisValueFloat then
               if Assigned(EventContainer.OnAxisMove) then
-                EventContainer.OnAxisMove(Joystick, Axis, _value);
-            Joystick.InternalAxis[Axis] := _value;
+                EventContainer.OnAxisMove(Joystick, Axis, AxisValueFloat);
+            Joystick.InternalAxis[Axis] := AxisValueFloat;
           end;
 
           Joystick.InternalAxis[jaPovX] := 0;
@@ -309,17 +240,17 @@ begin
           if (jcPOV in Joystick.InternalCapabilities) and
              (state.dwPOV and $FFFF <> $FFFF) then
           begin
-            _value := Sin( DegToRad(state.dwPOV and $FFFF / 100.0) );
-            if Joystick.InternalAxis[ jaPovX ] <> _value then
-              if Assigned(EventContainer.OnAxisMove) then
-                EventContainer.OnAxisMove(Joystick, jaPovX, _value);
-            Joystick.InternalAxis[ jaPovX ] := _value;
+            SinCos( DegToRad(state.dwPOV and $FFFF / 100.0), PovSin, PovCos );
 
-            _value := -Cos( DegToRad(state.dwPOV and $FFFF / 100.0 ) );
-            if Joystick.InternalAxis[ jaPovY ] <> _value then
+            if Joystick.InternalAxis[ jaPovX ] <> PovSin then
               if Assigned(EventContainer.OnAxisMove) then
-                EventContainer.OnAxisMove(Joystick, jaPovY, _value);
-            Joystick.InternalAxis[ jaPovY ] := _value;
+                EventContainer.OnAxisMove(Joystick, jaPovX, PovSin);
+            Joystick.InternalAxis[ jaPovX ] := PovSin;
+
+            if Joystick.InternalAxis[ jaPovY ] <> PovCos then
+              if Assigned(EventContainer.OnAxisMove) then
+                EventContainer.OnAxisMove(Joystick, jaPovY, PovCos);
+            Joystick.InternalAxis[ jaPovY ] := PovCos;
           end;
 
           for j := 0 to Joystick.InternalButtonsCount - 1 do
