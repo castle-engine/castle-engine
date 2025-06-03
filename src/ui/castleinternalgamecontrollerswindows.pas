@@ -39,6 +39,7 @@ uses MMSystem,
 
 type
   TWindowsControllerBackendInfo = class
+    WindowsId: Integer;
     Caps    : TJOYCAPSW;
     AxesMap : array[ 0..5 ] of TInternalGameControllerAxis;
   end;
@@ -59,7 +60,7 @@ uses
 
 procedure TWindowsControllersBackend.Initialize(const List: TGameControllerList);
 var
-  i, j : Integer;
+  WindowsControllerId, WindowsControllersCount: Integer;
   axis : Integer;
   NewController: TGameController;
   NewBackendInfo: TWindowsControllerBackendInfo;
@@ -69,26 +70,38 @@ var
 
   JoyCapsResult: UInt32;
 begin
-  j := joyGetNumDevs();
-  for i := 0 to j - 1 do
+  WindowsControllersCount := joyGetNumDevs();
+  for WindowsControllerId := 0 to WindowsControllersCount - 1 do
   begin
     NewController := TGameController.Create;
     NewBackendInfo := TWindowsControllerBackendInfo.Create;
     NewController.InternalBackendInfo := NewBackendInfo;
 
-    JoyCapsResult := joyGetDevCapsW( i, @NewBackendInfo.Caps, SizeOf( TJOYCAPSW ) );
+    //NewController.Index := List.Count; // TODO
+
+    { JOYSTICKID1 is 0, so NewBackendInfo.WindowsId is actually just
+      an index of this loop, equal to WindowsControllerId.
+
+      Note that it may be different from the index on List
+      (NewController.Index),
+      since we don't add all controllers to List.
+      This can happen if you unplugged some controllers, they remain
+      on Windows list with JOYERR_UNPLUGGED. }
+    NewBackendInfo.WindowsId := JOYSTICKID1 + WindowsControllerId;
+
+    JoyCapsResult := joyGetDevCapsW(NewBackendInfo.WindowsId, @NewBackendInfo.Caps, SizeOf( TJOYCAPSW ) );
     { Below we try to counter the WinAPI bug, when in case the application was run
       with no controllers connected and this is the first call to joyGetDevCapsW
       after the controller has been connected, the joyGetDevCapsW returns JOYERR_PARAMS = 165
       which is also returned for disconnected/unavailable controllers.
       Here we just call joyGetDevCapsW the second time to get the new value. }
     if JoyCapsResult <> 0 then
-      JoyCapsResult := joyGetDevCapsW( i, @NewBackendInfo.Caps, SizeOf( TJOYCAPSW ) );
+      JoyCapsResult := joyGetDevCapsW(NewBackendInfo.WindowsId, @NewBackendInfo.Caps, SizeOf( TJOYCAPSW ) );
 
     if JoyCapsResult = 0 then
     begin
-      NewController.Name         := NewBackendInfo.Caps.szPname;
-      NewController.InternalAxesCount    := NewBackendInfo.Caps.wNumAxes;
+      NewController.Name := NewBackendInfo.Caps.szPname;
+      NewController.InternalAxesCount := NewBackendInfo.Caps.wNumAxes;
       NewController.InternalButtonsCount := NewBackendInfo.Caps.wNumButtons;
 
       NewBackendInfo.AxesMap[ 0 ] := jaX;
@@ -129,13 +142,13 @@ begin
       state.dwFlags := JOY_RETURNALL or JOY_USEDEADZONE;
       if NewBackendInfo.Caps.wCaps and JOYCAPS_POVCTS > 0 then
         state.dwFlags := state.dwFlags or JOY_RETURNPOVCTS;
-      JoyError := joyGetPosEx( i, @state );
+      JoyError := joyGetPosEx(NewBackendInfo.WindowsId, @state);
       //if no errors, then add this controller
       if JoyError = JOYERR_NOERROR then
       begin
-        WriteLnLog('CastleGameControllers', 'Detected game controller: %s (ID: %d); Axes: %d; Buttons: %d', [
+        WriteLnLog('CastleGameControllers', 'Detected game controller: %s (Windows Id: %d); Axes: %d; Buttons: %d', [
           NewController.Name,
-          i,
+          NewBackendInfo.WindowsId,
           NewController.InternalAxesCount,
           NewController.InternalButtonsCount
         ]);
@@ -144,25 +157,34 @@ begin
       end else
       begin
         if JoyError = JOYERR_UNPLUGGED then
-          WriteLnLog('CastleGameControllers', 'Detected game controller: %s, but it will not be added because it seems to have been disconnected from the system recently (JOYERR_UNPLUGGED).', [
-            NewController.Name
+          WriteLnLog('CastleGameControllers', 'Detected game controller: %s (Windows Id: %d), but it will not be added because it seems to have been disconnected from the system recently (JOYERR_UNPLUGGED).', [
+            NewController.Name,
+            NewBackendInfo.WindowsId
           ])
         else
-          WriteLnWarning('CastleGameControllers', 'Detected game controller: %s, but it cannot be added due to an error %d.', [
+          WriteLnWarning('CastleGameControllers', 'Detected game controller: %s (Windows Id: %d), but it cannot be added due to an error %d.', [
             NewController.Name,
+            NewBackendInfo.WindowsId,
             JoyError
           ]);
         FreeAndNil(NewController);
       end;
     end else
+    begin
+      // too spammy
+      // WriteLnLog('CastleGameControllers', 'Detected game controller: %s (Windows Id: %d), but it will not be added because it seems to have been disconnected from the system recently (joyGetDevCapsW = 0).', [
+      //   NewController.Name,
+      //   NewBackendInfo.WindowsId
+      // ]);
       FreeAndNil(NewController);
+    end;
   end;
 end;
 
 procedure TWindowsControllersBackend.Poll(const List: TGameControllerList;
   const EventContainer: TGameControllers);
 var
-  i: Integer;
+  ControllerIndex: Integer;
   AxisValueInt: UInt32;
   AxisValueFloat, PovSin, PovCos: Single;
   j: Integer;
@@ -177,17 +199,17 @@ var
   Axis: TInternalGameControllerAxis;
 begin
   ControllerHasBeenDisconnected := false;
-  state.dwSize := SizeOf( TJOYINFOEX );
-  for I := 0 to List.Count - 1 do
+  for ControllerIndex := 0 to List.Count - 1 do
   begin
-    Controller := List[I];
+    Controller := List[ControllerIndex];
     BackendInfo := Controller.InternalBackendInfo as TWindowsControllerBackendInfo;
 
+    state.dwSize := SizeOf( TJOYINFOEX );
     state.dwFlags := JOY_RETURNALL or JOY_USEDEADZONE;
     if BackendInfo.Caps.wCaps and JOYCAPS_POVCTS > 0 then
       state.dwFlags := state.dwFlags or JOY_RETURNPOVCTS;
 
-    JoyError := joyGetPosEx( i, @state );
+    JoyError := joyGetPosEx(BackendInfo.WindowsId, @state );
     case JoyError of
       JOYERR_NOERROR:
         begin
@@ -249,16 +271,26 @@ begin
         end;
       JOYERR_UNPLUGGED:
         begin
-          WritelnLog('Controller %s was disconnected (JOYERR_UNPLUGGED)', [Controller.Name]);
+          WritelnLog('Controller %s (Windows Id: %d) was disconnected (JOYERR_UNPLUGGED)', [
+            Controller.Name,
+            BackendInfo.WindowsId
+          ]);
           ControllerHasBeenDisconnected := true;
         end;
       JOYERR_PARMS:
         begin
-          WriteLnWarning('Controller %s parameters are no longer valid (JOYERR_PARMS), possibly disconnected?', [Controller.Name]);
-          ControllerHasBeenDisconnected := true;
+          WriteLnWarning('Controller %s (Windows Id: %d) parameters are no longer valid (JOYERR_PARMS), possibly disconnected?', [
+            Controller.Name,
+            BackendInfo.WindowsId
+          ]);
+          //ControllerHasBeenDisconnected := true;
         end;
       else
-        WriteLnWarning('Controller %s error %d', [Controller.Name, JoyError]);
+        WriteLnWarning('Controller %s (Windows Id: %d) error %d', [
+          Controller.Name,
+          BackendInfo.WindowsId,
+          JoyError
+        ]);
     end;
   end;
   { Do this *after* the loop. If any controller was disconnected,
