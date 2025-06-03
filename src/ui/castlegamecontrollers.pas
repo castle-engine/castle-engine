@@ -87,6 +87,9 @@ type
       game controller index to the user in UI. }
     Name: String;
 
+    { Which buttons are now pressed. }
+    Pressed: array [TGameControllerButton] of Boolean;
+
     { Implementation-specific information.
       @exclude }
     InternalBackend: TInternalControllerBackend;
@@ -101,7 +104,7 @@ type
       @exclude }
     InternalAxis: array [TInternalGameControllerAxis] of Single;
 
-    { Current state of the buttons.
+    { Current state of the internal buttons.
       @exclude }
     InternalButtonDown: array [TInternalGameControllerButton] of Boolean;
 

@@ -191,8 +191,8 @@ type
 
     constructor Create(AOwner: TComponent); override;
     {$ifndef CASTLE_STRICT_CLI}
-    // function IsPressed(const Container: TCastleContainer;
-    //   out HowMuch: Single): Boolean; override;
+    function IsPressed(const Container: TCastleContainer;
+      out HowMuch: Single): Boolean; override;
     {$endif}
     function IsEvent(const Event: TInputPressRelease): Boolean; override;
     function ToString: String; override;
@@ -780,7 +780,7 @@ begin
   if ControllerIndex < Controllers.Count then
     Result := ForController(ControllerIndex, HowMuch)
   else
-    WritelnWarning('TInputShortcutBindingControllerAxis refers to non-existing controlled index %d', [
+    WritelnWarning('TInputShortcutBindingControllerAxis refers to non-existing controller index %d', [
       ControllerIndex
     ]);
 end;
@@ -808,6 +808,44 @@ begin
   FButton := gbNorth; // default button
   FControllerIndex := -1; // -1 means all controllers
 end;
+
+{$ifndef CASTLE_STRICT_CLI}
+function TInputShortcutBindingControllerButton.IsPressed(
+  const Container: TCastleContainer; out HowMuch: Single): Boolean;
+var
+  I: Integer;
+  Controller: TGameController;
+begin
+  HowMuch := 0.0;
+  Result := false;
+
+  if ControllerIndex = -1 then
+  begin
+    // check all controllers
+    for I := 0 to Controllers.Count - 1 do
+    begin
+      Controller := Controllers[I];
+      if Controller.Pressed[Button] then
+      begin
+        HowMuch := 1.0;
+        Exit(true);
+      end;
+    end;
+  end else
+  if ControllerIndex < Controllers.Count then
+  begin
+    Controller := Controllers[ControllerIndex];
+    if Controller.Pressed[Button] then
+    begin
+      HowMuch := 1.0;
+      Exit(true);
+    end;
+  end else
+    WritelnWarning('TInputShortcutBindingControllerButton refers to non-existing controller index %d', [
+      ControllerIndex
+    ]);
+end;
+{$endif}
 
 function TInputShortcutBindingControllerButton.IsEvent(
   const Event: TInputPressRelease): Boolean;

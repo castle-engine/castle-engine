@@ -1673,6 +1673,8 @@ procedure TCastleContainer.EventUpdate;
     Input.Controller.Caption := Controller.ButtonCaption(Input.Controller.Button);
     Input.Controller.ControllerIndex := ControllerIndex;
 
+    Controller.Pressed[Button] := NewPressed;
+
     if NewPressed then
       EventPress(Input)
     else

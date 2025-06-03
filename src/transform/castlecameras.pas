@@ -1226,6 +1226,28 @@ type
       PreferredHeight as it is. }
     procedure CorrectPreferredHeight;
 
+    { Accept game controller (joystick, gamepad) events to control this navigation.
+      This enhances @link(TInputShortcut.Bindings) of some inputs,
+      to react to game controller events.
+      The layout follows typical game controller layout for 3D games:
+
+      @unorderedList(
+        @item(Left Stick: move forward/backward, strafe left/right)
+        @item(Left Stick Click: Run)
+        @item(Right Stick: rotate camera horizontally/vertically)
+        @item(A: jump)
+        @item(B: crouch)
+      )
+
+      @param(ControllerIndex Which controller to configure.
+        Leave at -1 (default) to accept input from any controller.)
+
+      Note: Calling this many times on the same navigation is not recommended,
+      as we don't clear previous bindings.
+      If you need to adjust the bindings, we recommend you just look at the
+      simple implementation of this method, copy it to your code,
+      and adjust to your  needs. }
+    procedure UseGameController(const ControllerIndex: Integer = -1);
   published
     property MouseLook;
     property MouseLookHorizontalSensitivity;
@@ -4363,6 +4385,55 @@ begin
   Grav := GravityUpLocal;
   if not VectorsParallel(Result, Grav) then
     MakeVectorsOrthoOnTheirPlane(Result, Grav);
+end;
+
+procedure TCastleWalkNavigation.UseGameController(const ControllerIndex: Integer);
+var
+  BindingAxis: TInputShortcutBindingControllerAxis;
+  BindingButton: TInputShortcutBindingControllerButton;
+begin
+  BindingAxis := TInputShortcutBindingControllerAxis.Create(Self);
+  BindingAxis.Axis := gaLeftStick;
+  BindingAxis.Positive := true;
+  BindingAxis.Coord := 1;
+  BindingAxis.ControllerIndex := ControllerIndex;
+  Input_Forward.Bindings.Add(BindingAxis);
+
+  BindingAxis := TInputShortcutBindingControllerAxis.Create(Self);
+  BindingAxis.Axis := gaLeftStick;
+  BindingAxis.Positive := false;
+  BindingAxis.Coord := 1;
+  BindingAxis.ControllerIndex := ControllerIndex;
+  Input_Backward.Bindings.Add(BindingAxis);
+
+  BindingAxis := TInputShortcutBindingControllerAxis.Create(Self);
+  BindingAxis.Axis := gaLeftStick;
+  BindingAxis.Positive := true;
+  BindingAxis.Coord := 0;
+  BindingAxis.ControllerIndex := ControllerIndex;
+  Input_RightStrafe.Bindings.Add(BindingAxis);
+
+  BindingAxis := TInputShortcutBindingControllerAxis.Create(Self);
+  BindingAxis.Axis := gaLeftStick;
+  BindingAxis.Positive := false;
+  BindingAxis.Coord := 0;
+  BindingAxis.ControllerIndex := ControllerIndex;
+  Input_LeftStrafe.Bindings.Add(BindingAxis);
+
+  BindingButton := TInputShortcutBindingControllerButton.Create(Self);
+  BindingButton.Button := gbSouth;
+  BindingButton.ControllerIndex := ControllerIndex;
+  Input_Jump.Bindings.Add(BindingButton);
+
+  BindingButton := TInputShortcutBindingControllerButton.Create(Self);
+  BindingButton.Button := gbEast;
+  BindingButton.ControllerIndex := ControllerIndex;
+  Input_Crouch.Bindings.Add(BindingButton);
+
+  BindingButton := TInputShortcutBindingControllerButton.Create(Self);
+  BindingButton.Button := gbLeftStickClick;
+  BindingButton.ControllerIndex := ControllerIndex;
+  Input_Run.Bindings.Add(BindingButton);
 end;
 
 { global ------------------------------------------------------------ }
