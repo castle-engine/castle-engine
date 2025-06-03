@@ -1724,9 +1724,9 @@ procedure TCastleContainer.EventUpdate;
 
         { Consider sending DPad button events, based on jaPov* axis. }
         EventGameControllerPressReleaseDPad(Controller, ControllerIndex,
-          gbDPadUp, SameValue(Controller.InternalAxis[jaPovY], -1.0));
+          gbDPadUp, SameValue(Controller.InternalAxis[jaPovY], 1.0));
         EventGameControllerPressReleaseDPad(Controller, ControllerIndex,
-          gbDPadDown, SameValue(Controller.InternalAxis[jaPovY], 1.0));
+          gbDPadDown, SameValue(Controller.InternalAxis[jaPovY], -1.0));
         EventGameControllerPressReleaseDPad(Controller, ControllerIndex,
           gbDPadLeft, SameValue(Controller.InternalAxis[jaPovX], -1.0));
         EventGameControllerPressReleaseDPad(Controller, ControllerIndex,
