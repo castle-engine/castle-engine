@@ -170,8 +170,6 @@ type
     FList: TGameControllerList;
     FInitialized: Boolean;
     FOnChange: TNotifyEvent;
-    FOnDisconnect: TNotifyEvent;
-    FOnConnect: TNotifyEvent;
     function GetItems(const Index: Integer): TGameController;
     { Get (creating if necessary) explicit backend.
       Always returns TExplicitGameControllerBackend, but cannot be declared as such. }
@@ -182,6 +180,7 @@ type
   public
     constructor Create;
     destructor Destroy; override;
+
     { Check state of every connected controller and run event procedures.
       This is internal, called automatically by CastleUIControls unit,
       user code does not need to call this.
@@ -195,10 +194,11 @@ type
       Use this to access individual controllers. }
     property Items[const Index: Integer]: TGameController read GetItems; default;
 
-    { Detect connected controllers.
+    { Detect connected controllers now and keep updating this list
+      when controllers are connected / disconnected.
       On some platforms, you need to call this to search for connected controllers,
       otherwise you will always have zero controllers.
-      Calling this again is allowed, it searches for connected controllers again. }
+      Calling this again is allowed and harmless. }
     procedure Initialize;
 
     { Was @link(Initialize) called. }
@@ -213,32 +213,19 @@ type
     { @exclude }
     procedure InternalSetAxisRight(const ControllerIndex: Integer; const Axis: TVector2);
 
-    { Used by CastleWindow when
-      an external API notifies us about connecting/disconnecting devices to the system.
+    { Used by CastleWindow to notify us that some devices have been
+      connected / disconnected, so we should run @link(Initialize).
       @exclude }
     procedure InternalConnected;
     { @exclude }
     procedure InternalDisconnected;
 
-    { Called after TGameController instances on the list change (some are added, destroyed).
-      In case of some backends, this is only called at the end of @link(Initialize),
-      but it may be called in other cases (e.g. "explicit" backend,
-      used by Nintendo Switch, may call this at any moment). }
+    { Called after TGameController instances on the list changed
+      (some have been added, some destroyed).
+
+      This can be called at any moment, as controllers may be
+      connected / disconnected at any moment. }
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
-
-    { Called when a previously initalized controller has been disconnected.
-      You should call @link(TGameControllers.Initialize Controllers.Initialize)
-      at the nearest opportunity, to remove the disconnected controller
-      from the list.
-      Note that this changes the indexes of all controllers. }
-    property OnDisconnect: TNotifyEvent read FOnDisconnect write FOnDisconnect;
-
-    { Called when the new game controller has been connected to the system.
-      You should call @link(TGameControllers.Initialize Controllers.Initialize)
-      at the nearest opportunity, to remove the disconnected controller
-      from the list.
-      Note that this changes the indexes of all controllers. }
-    property OnConnect: TNotifyEvent read FOnConnect write FOnConnect;
   end;
 
 { Global game controller object.
@@ -477,14 +464,16 @@ end;
 
 procedure TGameControllers.InternalConnected;
 begin
-  if Assigned(OnConnect) then
-    OnConnect(Self);
+  if not Initialized then
+    Exit;
+  Initialize; // call Initialize again, to update the list of controllers
 end;
 
 procedure TGameControllers.InternalDisconnected;
 begin
-  if Assigned(OnDisconnect) then
-    OnDisconnect(Self);
+  if not Initialized then
+    Exit;
+  Initialize; // call Initialize again, to update the list of controllers
 end;
 
 function TGameControllers.GetItems(const Index: Integer): TGameController;

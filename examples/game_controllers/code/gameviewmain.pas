@@ -46,8 +46,6 @@ type
 
     // UI events handlers
     procedure InitializeControllersUI(Sender: TObject);
-    procedure ControllerDisconnected(Sender: TObject);
-    procedure ControllerConnected(Sender: TObject);
     procedure ClickReinitialize(Sender: TObject);
     procedure ClickControllerSelect(Sender: TObject);
     procedure ClickUnselect(Sender: TObject);
@@ -81,10 +79,7 @@ begin
 
   ButtonReinitialize.OnClick := {$ifdef FPC}@{$endif} ClickReinitialize;
   ButtonUnselect.OnClick := {$ifdef FPC}@{$endif} ClickUnselect;
-
   Controllers.OnChange := {$ifdef FPC}@{$endif} InitializeControllersUI;
-  Controllers.OnDisconnect := {$ifdef FPC}@{$endif} ControllerDisconnected;
-  Controllers.OnConnect := {$ifdef FPC}@{$endif} ControllerConnected;
 
   { Actually detect controllers.
     This will immediately call InitializeControllersUI on some platforms. }
@@ -218,18 +213,6 @@ begin
     ControllerSelectButton.Toggle := true;
     GroupControllers.InsertFront(ControllerSelectButton);
   end;
-end;
-
-procedure TViewMain.ControllerDisconnected(Sender: TObject);
-begin
-  Controllers.Initialize;
-  //will call OnChange and therefore InitializeControllersUI
-end;
-
-procedure TViewMain.ControllerConnected(Sender: TObject);
-begin
-  Controllers.Initialize;
-  //will call OnChange and therefore InitializeControllersUI
 end;
 
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: boolean);
