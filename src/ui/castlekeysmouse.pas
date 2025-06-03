@@ -902,7 +902,7 @@ type
 
 implementation
 
-uses SysUtils, Math;
+uses SysUtils, Math, TypInfo;
 
 const
   KeyToStrTable: array [TKey] of string = (
@@ -1358,12 +1358,19 @@ begin
 end;
 
 function TInputPressRelease.ToString: string;
-const
-  GameControllerButtonMeaningToStr: array [TGameControllerButtonMeaning] of string = (
-    'none',
-    'confirm',
-    'cancel'
-  );
+
+  { While usually for user we should show Caption,
+    but we also show TGameControllerButton value for developer. }
+  function ControllerButtonToStr(const Button: TGameControllerButton): String;
+  begin
+    Result := GetEnumName(TypeInfo(TGameControllerButton), Ord(Button));
+  end;
+
+  function ControllerButtonMeaningToStr(const Meaning: TGameControllerButtonMeaning): String;
+  begin
+    Result := GetEnumName(TypeInfo(TGameControllerButtonMeaning), Ord(Meaning));
+  end;
+
 begin
   case EventType of
     itKey:
@@ -1380,9 +1387,11 @@ begin
         BoolToStr(MouseWheelVertical, true)
       ]);
     itGameController:
-      Result := Format('button %s (meaning %s, internal %d) on controller %d', [
+      Result := Format('button %s "%s" (%sinternal %d) on controller %d', [
+        ControllerButtonToStr(Controller.Button),
         Controller.Caption,
-        GameControllerButtonMeaningToStr[Controller.Meaning],
+        Iff(Controller.Meaning <> gmNone,
+          'meaning: ' + ControllerButtonMeaningToStr(Controller.Meaning) + ', ', ''),
         Controller.InternalButton,
         Controller.ControllerIndex
       ]);
