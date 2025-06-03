@@ -40,6 +40,7 @@ type
     ControllerButtons: array of TCastleButton;
     ControllerAxes: array [TInternalGameControllerAxis] of TCastleLabel;
     AxisLeftVisualize, AxisRightVisualize: T2DAxisVisualize;
+    AxisTriggerVisualize: T1DAxisVisualize;
 
     procedure ClearAllControllersUI;
     procedure ClearSelectedControllerUI;
@@ -109,6 +110,7 @@ begin
 
   FreeAndNil(AxisLeftVisualize);
   FreeAndNil(AxisRightVisualize);
+  FreeAndNil(AxisTriggerVisualize);
   SelectedControllerDynamicUi.ClearControls;
   SelectedControllerUi.Exists := false;
 
@@ -179,6 +181,14 @@ begin
   AxisRightVisualize.Anchor(vpBottom, 100);
   AxisRightVisualize.Caption := 'Right Axis';
   InsertFront(AxisRightVisualize);
+
+  AxisTriggerVisualize := T1DAxisVisualize.Create(FreeAtStop);
+  AxisTriggerVisualize.Anchor(hpRight, -10);
+  AxisTriggerVisualize.Anchor(vpBottom,
+    AxisRightVisualize.Translation.Y +
+    AxisRightVisualize.EffectiveHeight + 10);
+  AxisTriggerVisualize.Caption := 'Trigger Axis';
+  InsertFront(AxisTriggerVisualize);
 end;
 
 procedure TViewMain.ClickUnselect(Sender: TObject);
@@ -224,14 +234,16 @@ begin
   begin
     Assert(AxisLeftVisualize <> nil);
     Assert(AxisRightVisualize <> nil);
+    Assert(AxisTriggerVisualize <> nil);
     AxisLeftVisualize.Axis := Controllers[SelectedController].AxisLeft;
     AxisRightVisualize.Axis := Controllers[SelectedController].AxisRight;
+    AxisTriggerVisualize.Axis := Controllers[SelectedController].AxisTrigger;
 
     { WARNING: Do not use TInternalGameControllerAxis or Controller.InternalAxis
       in your own code.
-      Use instead nice Controller.AxisLeft and Controller.AxisRight,
-      as shown above.
-      This is used here only to debug game controllers implementation. }
+      Use instead nice Controller.AxisLeft, Controller.AxisRight and other
+      Controller.Axis* as shown above.
+      Below we use InternalXxx only to debug game controllers implementation. }
     for InternalAxis := Low(TInternalGameControllerAxis) to High(TInternalGameControllerAxis) do
       ControllerAxes[InternalAxis].Caption := FormatDot('Axis %d (%s): %f', [
         Ord(InternalAxis),

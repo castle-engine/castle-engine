@@ -102,11 +102,35 @@ type
       @exclude }
     InternalButtonDownReported: array[TInternalGameControllerButton] of Boolean;
 
-    { Left analog stick position. }
+    { Left analog stick position.
+      Both coordinates are in range -1..1,
+      where (0, 0) is the center of the stick.
+
+      Note: It is not guaranteed that they fit within the circle of radius 1
+      (they usually don't, they go a bit outside the circle).
+      But it is also not guaranteed that they can reach the edge of the square,
+      e.g. position (-1,-1) may not be reachable, usually it is not reachable.
+
+      So: Your application should not assume that user can make a stick
+      position beyond the circle of radius 1, but it should accept such positions. }
     function AxisLeft: TVector2;
 
-    { Right analog stick position. }
+    { Right analog stick position.
+      See @link(TGameController.AxisLeft) for details of possible values. }
     function AxisRight: TVector2;
+
+    { Left/right triggers are expressed as 1D axis (on XBox controller).
+
+      @unorderedlist(
+        @item(1.0 means "only left trigger fully pressed",)
+        @item(0.0 means "no trigger pressed, or both triggers pressed,
+          or more generally: both triggers pressed with equal strength",)
+        @item(-1.0 means "only right trigger fully pressed".)
+      )
+
+      Values in between are determined based on the pressure
+      of the left/right trigger. }
+    function AxisTrigger: Single;
 
     { Nice caption (label) of a given button.
 
@@ -268,6 +292,11 @@ begin
       (and standard math 2D coordinate system). }
     -InternalAxis[jaR]
   );
+end;
+
+function TGameController.AxisTrigger: Single;
+begin
+  Result := InternalAxis[jaZ];
 end;
 
 const
