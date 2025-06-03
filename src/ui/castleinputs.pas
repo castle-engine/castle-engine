@@ -546,6 +546,10 @@ type
       read FDefaultMouseWheel write FDefaultMouseWheel;
     { @groupEnd }
 
+    { Add here any additonal bindings. Use this now to react to game controller
+      axis and buttons. }
+    property Bindings: TInputShortcutBindingList read FBindings;
+
     { }
     { TODO: Maybe introduce a way to limit (TKey, or all shortcuts?)
       to activate only when specific modifier is pressed.
@@ -741,7 +745,7 @@ function TInputShortcutBindingControllerAxis.IsPressed(
        ((not Positive) and (AxisValue < -DeadZone)) then
     begin
       Result := true;
-      HowMuch := MapRangeTo01(AxisValue, DeadZone, 1.0);
+      HowMuch := MapRangeTo01(Abs(AxisValue), DeadZone, 1.0);
     end;
   end;
 
@@ -753,11 +757,11 @@ begin
   HowMuch := 0.0;
   Result := false;
 
-  if ControllerIndex <> -1 then
+  if ControllerIndex = -1 then
   begin
     for I := 0 to Controllers.Count - 1 do
     begin
-      ControllerResult := ForController(ControllerIndex, ControllerHowMuch);
+      ControllerResult := ForController(I, ControllerHowMuch);
       if ControllerResult then
       begin
         if not Result then

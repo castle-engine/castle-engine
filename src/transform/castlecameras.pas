@@ -785,7 +785,8 @@ type
       Dir is in camera parent coordinates, like Camera.Direction.
       It will be automatically adjusted to be parallel to gravity plane,
       if PreferGravityUpForMoving. }
-    procedure MoveHorizontal(Dir: TVector3; const SecondsPassed: Single);
+    procedure MoveHorizontal(Dir: TVector3; const SecondsPassed: Single;
+      const InputPressureMultiplier: Single = 1.0);
 
     { Up or down move, only when flying (ignored when @link(Gravity) is @true). }
     procedure MoveVertical(const SecondsPassed: Single; const Multiply: Integer);
@@ -3175,12 +3176,12 @@ begin
 end;
 
 procedure TCastleWalkNavigation.MoveHorizontal(Dir: TVector3;
-  const SecondsPassed: Single);
+  const SecondsPassed: Single; const InputPressureMultiplier: Single);
 var
   Multiplier: Single;
   Grav: TVector3;
 begin
-  Multiplier := MoveSpeed * MoveHorizontalSpeed * SecondsPassed;
+  Multiplier := MoveSpeed * MoveHorizontalSpeed * SecondsPassed * InputPressureMultiplier;
   if IsJumping then
     Multiplier := Multiplier * JumpHorizontalSpeedMultiply;
   if Input_Run.IsPressed(Container) then
@@ -3201,7 +3202,7 @@ begin
     else
       { Do not move at all, if Dir and Grav parallel.
         This avoids moving vertically in such case. }
-      EXit;
+      Exit;
   end;
 
   MoveHorizontalDone := true;
@@ -3849,6 +3850,7 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
 
 var
   ModsDown: TModifierKeys;
+  HowMuch: Single;
 begin
   inherited;
 
@@ -3878,14 +3880,14 @@ begin
       begin
         CheckRotates(1.0);
 
-        if Input_Forward.IsPressed(Container) or MoveForward then
-          MoveHorizontal( Camera.Direction, SecondsPassed);
-        if Input_Backward.IsPressed(Container) or MoveBackward then
-          MoveHorizontal(-Camera.Direction, SecondsPassed);
-        if Input_RightStrafe.IsPressed(Container) then
-          MoveHorizontal(DirectionRight, SecondsPassed);
-        if Input_LeftStrafe.IsPressed(Container) then
-          MoveHorizontal(DirectionLeft , SecondsPassed);
+        if Input_Forward.IsPressed(Container, HowMuch) or MoveForward then
+          MoveHorizontal( Camera.Direction, SecondsPassed, HowMuch);
+        if Input_Backward.IsPressed(Container, HowMuch) or MoveBackward then
+          MoveHorizontal(-Camera.Direction, SecondsPassed, HowMuch);
+        if Input_RightStrafe.IsPressed(Container, HowMuch) then
+          MoveHorizontal(DirectionRight, SecondsPassed, HowMuch);
+        if Input_LeftStrafe.IsPressed(Container, HowMuch) then
+          MoveHorizontal(DirectionLeft , SecondsPassed, HowMuch);
 
         { A simple implementation of Input_Jump was
             RotateVertical(HalfPi); Move(MoveVerticalSpeed * MoveSpeed * SecondsPassed); RotateVertical(-HalfPi)
