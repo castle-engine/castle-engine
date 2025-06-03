@@ -29,9 +29,8 @@ uses BaseUnix,
 
 type
   TLinuxControllerManagerBackend = class(TInternalControllerManagerBackend)
-    procedure Initialize(const List: TGameControllerList); override;
-    procedure Poll(const List: TGameControllerList;
-      const EventContainer: TGameControllers); override;
+    procedure Initialize; override;
+    procedure Poll; override;
   end;
 
 implementation
@@ -227,9 +226,9 @@ begin
   inherited;
 end;
 
-{ TLinuxControllerManagerBackend ----------------------------------------------------- }
+{ TLinuxControllerManagerBackend --------------------------------------------- }
 
-procedure TLinuxControllerManagerBackend.Initialize(const List: TGameControllerList);
+procedure TLinuxControllerManagerBackend.Initialize;
 var
   ControllerIndex, j : Integer;
   NewController: TGameController;
@@ -299,8 +298,7 @@ begin
   end;
 end;
 
-procedure TLinuxControllerManagerBackend.Poll(const List: TGameControllerList;
-  const EventContainer: TGameControllers);
+procedure TLinuxControllerManagerBackend.Poll;
 var
   i : Integer;
   Value: Single;

@@ -201,12 +201,24 @@ type
   { Internal class to provide different implementations of game controllers.
     @exclude }
   TInternalControllerManagerBackend = class abstract
-    { Detect and add controllers to given list. }
-    procedure Initialize(const List: TGameControllerList); virtual; abstract;
+  strict private
+    FControllers: TGameControllers;
+    FList: TGameControllerList;
+  public
+    property Controllers: TGameControllers read FControllers;
+    property List: TGameControllerList read FList;
 
-    { Update state of controllers on given list. }
-    procedure Poll(const List: TGameControllerList;
-      const EventContainer: TGameControllers); virtual; abstract;
+    { Create instance.
+      Sets @link(Controllers), @link(List) read-only property.
+      Sets @link(TGameControllers.Backend) to this instance.
+      @exclude }
+    constructor Create(const AControllers: TGameControllers);
+
+    { Detect and add controllers to @link(List). }
+    procedure Initialize; virtual; abstract;
+
+    { Update state of controllers on @link(List). }
+    procedure Poll; virtual; abstract;
   end;
 
   { Manage game controllers (joysticks, gamepads).
@@ -218,15 +230,12 @@ type
     FInitialized: Boolean;
     FOnChange: TNotifyEvent;
     function GetItems(const Index: Integer): TGameController;
-    { Get (creating if necessary) explicit backend.
-      Always returns TExplicitControllerManagerBackend, but cannot be declared as such. }
-    function ExplicitBackend: TInternalControllerManagerBackend;
-  protected
-    { See OnChange. }
-    procedure DoChange;
   public
     constructor Create;
     destructor Destroy; override;
+
+    { Calls OnChange. }
+    procedure DoChange;
 
     { Check state of every connected controller.
       This is internal, called automatically by CastleUIControls unit,
@@ -251,14 +260,12 @@ type
     { Was @link(Initialize) called. }
     property Initialized: Boolean read FInitialized;
 
-    { Used by CASTLE_WINDOW_LIBRARY when
-      an external API notifies us about the controllers state.
-      @exclude }
-    procedure InternalSetCount(const ControllerCount: Integer);
-    { @exclude }
-    procedure InternalSetAxisLeft(const ControllerIndex: Integer; const Axis: TVector2);
-    { @exclude }
-    procedure InternalSetAxisRight(const ControllerIndex: Integer; const Axis: TVector2);
+    { Get (creating if necessary) explicit backend.
+      Always returns TExplicitControllerManagerBackend, but cannot be
+      declared as such.
+      Used by CASTLE_WINDOW_LIBRARY when
+      an external API notifies us about the controllers state. }
+    function InternalExplicitBackend: TInternalControllerManagerBackend;
 
     { Used by CastleWindow to notify us that some devices have been
       connected / disconnected, so we should run @link(Initialize).
@@ -388,20 +395,36 @@ begin
   Result := XBoxMap[Button].Meaning;
 end;
 
+{ TInternalControllerManagerBackend ------------------------------------------ }
+
+constructor TInternalControllerManagerBackend.Create(
+  const AControllers: TGameControllers);
+begin
+  inherited Create;
+  Assert(AControllers <> nil);
+
+  FControllers := AControllers;
+  FControllers.Backend := Self;
+
+  FList := FControllers.FList;
+  Assert(List <> nil, 'TGameControllers.List must be initialized before backend');
+end;
+
 { TGameControllers ----------------------------------------------------------------- }
 
 constructor TGameControllers.Create;
 begin
   inherited;
   FList := TGameControllerList.Create(true);
+
   {$if defined(MSWINDOWS)}
-  Backend := TWindowsControllerManageBackend.Create;
+  Backend := TWindowsControllerManageBackend.Create(Self);
   {$elseif defined(LINUX) and defined(FPC)}
   // TODO: Delphi on Linux doesn't support game controllers now
-  Backend := TLinuxControllerManagerBackend.Create;
+  Backend := TLinuxControllerManagerBackend.Create(Self);
   {$else}
   // This way Backend is non-nil always
-  Backend := TExplicitControllerManagerBackend.Create;
+  Backend := TExplicitControllerManagerBackend.Create(Self);
   {$endif}
 end;
 
@@ -426,44 +449,28 @@ begin
     Exit;
 
   FList.Clear;
-  Backend.Initialize(FList);
+  Backend.Initialize;
   DoChange;
 end;
 
 procedure TGameControllers.InternalPoll;
 begin
   if FInitialized then
-    Backend.Poll(FList, Self);
+    Backend.Poll;
 end;
 
-function TGameControllers.ExplicitBackend: TInternalControllerManagerBackend;
+function TGameControllers.InternalExplicitBackend: TInternalControllerManagerBackend;
 begin
   Assert(Backend <> nil);
   if not (Backend is TExplicitControllerManagerBackend) then
   begin
     FreeAndNil(Backend);
-    Backend := TExplicitControllerManagerBackend.Create;
+    Backend := TExplicitControllerManagerBackend.Create(Self);
     { Although TExplicitControllerManagerBackend.Initialize doesn't do anything for now,
       but call it, to make sure Initialized = true. }
     Initialize;
   end;
   Result := Backend;
-end;
-
-procedure TGameControllers.InternalSetCount(const ControllerCount: Integer);
-begin
-  (ExplicitBackend as TExplicitControllerManagerBackend).SetCount(FList, ControllerCount);
-  DoChange;
-end;
-
-procedure TGameControllers.InternalSetAxisLeft(const ControllerIndex: Integer; const Axis: TVector2);
-begin
-  (ExplicitBackend as TExplicitControllerManagerBackend).SetAxisLeft(FList, ControllerIndex, Axis);
-end;
-
-procedure TGameControllers.InternalSetAxisRight(const ControllerIndex: Integer; const Axis: TVector2);
-begin
-  (ExplicitBackend as TExplicitControllerManagerBackend).SetAxisRight(FList, ControllerIndex, Axis);
 end;
 
 procedure TGameControllers.InternalConnected;

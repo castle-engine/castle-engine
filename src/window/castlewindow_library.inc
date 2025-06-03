@@ -24,7 +24,7 @@
 {$endif}
 
 {$ifdef read_implementation_uses}
-CastleGameControllers,
+CastleGameControllers, CastleInternalGameControllersExplicit,
 {$endif}
 
 {$ifdef read_interface_types}
@@ -601,30 +601,39 @@ begin
 end;
 
 procedure CGEApp_ControllerCount(ControllerCount: CInt); cdecl;
+var
+  Backend: TExplicitControllerManagerBackend;
 begin
   try
     CheckMainWindow;
-    Controllers.InternalSetCount(ControllerCount);
+    Backend := Controllers.InternalExplicitBackend as TExplicitControllerManagerBackend;
+    Backend.SetCount(ControllerCount);
   except
     on E: TObject do WritelnWarning('CGEApp_ControllerCount', ExceptMessage(E));
   end;
 end;
 
 procedure CGEApp_ControllerAxisLeft(ControllerIndex: CInt; X, Y: Single); cdecl;
+var
+  Backend: TExplicitControllerManagerBackend;
 begin
   try
     CheckMainWindow;
-    Controllers.InternalSetAxisLeft(ControllerIndex, Vector2(X, Y));
+    Backend := Controllers.InternalExplicitBackend as TExplicitControllerManagerBackend;
+    Backend.SetAxisLeft(ControllerIndex, Vector2(X, Y));
   except
     on E: TObject do WritelnWarning('CGEApp_ControllerAxisLeft', ExceptMessage(E));
   end;
 end;
 
 procedure CGEApp_ControllerAxisRight(ControllerIndex: CInt; X, Y: Single); cdecl;
+var
+  Backend: TExplicitControllerManagerBackend;
 begin
   try
     CheckMainWindow;
-    Controllers.InternalSetAxisRight(ControllerIndex, Vector2(X, Y));
+    Backend := Controllers.InternalExplicitBackend as TExplicitControllerManagerBackend;
+    Backend.SetAxisRight(ControllerIndex, Vector2(X, Y));
   except
     on E: TObject do WritelnWarning('CGEApp_ControllerAxisRight', ExceptMessage(E));
   end;

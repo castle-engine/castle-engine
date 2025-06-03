@@ -23,13 +23,12 @@ uses CastleGameControllers, CastleVectors;
 
 type
   TExplicitControllerManagerBackend = class(TInternalControllerManagerBackend)
-    procedure Initialize(const List: TGameControllerList); override;
-    procedure Poll(const List: TGameControllerList;
-      const EventContainer: TGameControllers); override;
+    procedure Initialize; override;
+    procedure Poll; override;
 
-    procedure SetCount(const List: TGameControllerList; const NewControllerCount: Integer);
-    procedure SetAxisLeft(const List: TGameControllerList; const ControllerIndex: Integer; const Axis: TVector2);
-    procedure SetAxisRight(const List: TGameControllerList; const ControllerIndex: Integer; const Axis: TVector2);
+    procedure SetCount(const NewControllerCount: Integer);
+    procedure SetAxisLeft(const ControllerIndex: Integer; const Axis: TVector2);
+    procedure SetAxisRight(const ControllerIndex: Integer; const Axis: TVector2);
   end;
 
 implementation
@@ -83,18 +82,17 @@ end;
 
 { TExplicitControllerManagerBackend ----------------------------------------- }
 
-procedure TExplicitControllerManagerBackend.Initialize(const List: TGameControllerList);
+procedure TExplicitControllerManagerBackend.Initialize;
 begin
   // Nothing needs to be done here
 end;
 
-procedure TExplicitControllerManagerBackend.Poll(const List: TGameControllerList;
-  const EventContainer: TGameControllers);
+procedure TExplicitControllerManagerBackend.Poll;
 begin
   // Nothing needs to be done here
 end;
 
-procedure TExplicitControllerManagerBackend.SetCount(const List: TGameControllerList; const NewControllerCount: Integer);
+procedure TExplicitControllerManagerBackend.SetCount(const NewControllerCount: Integer);
 var
   I: Integer;
   Controller: TGameController;
@@ -107,9 +105,11 @@ begin
     TExplicitControllerBackend.Create(Controller);
     List.Add(Controller);
   end;
+  // Call TGameControllers.OnChange
+  Controllers.DoChange;
 end;
 
-procedure TExplicitControllerManagerBackend.SetAxisLeft(const List: TGameControllerList; const ControllerIndex: Integer; const Axis: TVector2);
+procedure TExplicitControllerManagerBackend.SetAxisLeft(const ControllerIndex: Integer; const Axis: TVector2);
 var
   ControllerBackend: TExplicitControllerBackend;
 begin
@@ -124,7 +124,7 @@ begin
     ]);
 end;
 
-procedure TExplicitControllerManagerBackend.SetAxisRight(const List: TGameControllerList; const ControllerIndex: Integer; const Axis: TVector2);
+procedure TExplicitControllerManagerBackend.SetAxisRight(const ControllerIndex: Integer; const Axis: TVector2);
 var
   ControllerBackend: TExplicitControllerBackend;
 begin

@@ -39,9 +39,8 @@ uses MMSystem,
 
 type
   TWindowsControllerManagerBackend = class(TInternalControllerManagerBackend)
-    procedure Initialize(const List: TGameControllerList); override;
-    procedure Poll(const List: TGameControllerList;
-      const EventContainer: TGameControllers); override;
+    procedure Initialize; override;
+    procedure Poll; override;
   end;
 
 implementation
@@ -177,7 +176,7 @@ end;
 
 { TWindowsControllerManagerBackend ------------------------------------------------- }
 
-procedure TWindowsControllerManagerBackend.Initialize(const List: TGameControllerList);
+procedure TWindowsControllerManagerBackend.Initialize;
 var
   WindowsControllerId, WindowsControllersCount: Integer;
   axis : Integer;
@@ -299,8 +298,7 @@ begin
   end;
 end;
 
-procedure TWindowsControllerManagerBackend.Poll(const List: TGameControllerList;
-  const EventContainer: TGameControllers);
+procedure TWindowsControllerManagerBackend.Poll;
 var
   ControllerIndex: Integer;
   AxisValueInt: UInt32;
