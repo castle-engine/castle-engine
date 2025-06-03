@@ -645,6 +645,8 @@ type
     gbShare
   );
 
+  TGameControlledDPadButton = gbDPadUp..gbDPadLeft;
+
   { Possible game controlers (gamepad, joystick) buttons meaning,
     that may be used in certain cases as easier way to express
     TGameControllerButton. }
@@ -685,7 +687,7 @@ type
     { Internal number of the button.
       Do not use this, unless your controller produces values that we cannot
       express using TGameControllerButton.
-      This is always TInternalGameControllerButton, but cannot be declared as such. }
+      This may be -1 or a valid value of TInternalGameControllerButton. }
     InternalButton: Integer;
   end;
 

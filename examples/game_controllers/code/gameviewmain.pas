@@ -276,7 +276,8 @@ begin
       Use instead Controller.Button.
       We only show here InternalButton to debug game controllers
       implementation. }
-    if Event.Controller.ControllerIndex = SelectedController then
+    if (Event.Controller.ControllerIndex = SelectedController) and
+       (Event.Controller.InternalButton >= 0) then
       ControllerButtons[Event.Controller.InternalButton].Pressed := true;
 
     Exit(true); // handled
@@ -296,7 +297,8 @@ begin
       Use instead Controller.Button.
       We only show here InternalButton to debug game controllers
       implementation. }
-    if Event.Controller.ControllerIndex = SelectedController then
+    if (Event.Controller.ControllerIndex = SelectedController) and
+       (Event.Controller.InternalButton >= 0) then
       ControllerButtons[Event.Controller.InternalButton].Pressed := false;
 
     Exit(true); // handled

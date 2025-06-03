@@ -122,15 +122,22 @@ type
       This is internal, use instead nicer
       @link(TGameController.AxisLeft) and @link(TGameController.AxisLeft).
       @exclude }
-    InternalAxis: array[TInternalGameControllerAxis] of Single;
+    InternalAxis: array [TInternalGameControllerAxis] of Single;
 
     { Current state of the buttons.
       @exclude }
-    InternalButtonDown: array[TInternalGameControllerButton] of Boolean;
+    InternalButtonDown: array [TInternalGameControllerButton] of Boolean;
 
     { Last state of the buttons reported to TCastleUserInterface.Press/Release.
       @exclude }
-    InternalButtonDownReported: array[TInternalGameControllerButton] of Boolean;
+    InternalButtonDownReported: array [TInternalGameControllerButton] of Boolean;
+
+    { Last state of the DPad buttons reported to TCastleUserInterface.Press/Release.
+      This is used by UpdateGameControllers, as DPad buttons
+      are internally axis, but only make sense in practice to be treated
+      as buttons.
+      @exclude }
+    InternalDPadDownReported: array [TGameControlledDPadButton] of Boolean;
 
     { Left analog stick position.
       Both coordinates are in range -1..1,

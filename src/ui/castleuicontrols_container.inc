@@ -1633,6 +1633,64 @@ procedure TCastleContainer.EventUpdate;
     end;
   end;
 
+  { Cause Press or Relase event for a game controller button. }
+  procedure EventGameControllerPressRelease(
+    const Controller: TGameController; const ControllerIndex: Integer;
+    const NewPressed: Boolean;
+    const InternalButton: Integer;
+    const Button: TGameControllerButton);
+  var
+    Input: TInputPressRelease;
+  begin
+    FillChar(Input, SizeOf(Input), 0);
+    Input.EventType := itGameController;
+
+    // fields not related to the game controller, but we fill them always
+    Input.Position := MousePosition;
+    Input.ModifiersDown := ModifiersDown(Pressed);
+
+    // fields related to the game controller
+    Input.Controller.InternalButton := InternalButton;
+    { Note: we call Controller.Xxx methods now,
+      instead of making TGameControllerPressRelease
+      methods that under the hood would query the controller, like this:
+
+        function TGameControllerPressRelease.Button: TGameControllerButton;
+        begin
+          Result := Controllers[ControllerIndex].InternalButtonMap(InternalButton);
+        end;
+
+      Reason: This way our TInputPressRelease are safe to process and
+      pass around even if controllers will get disconnected / reordered
+      in the meantime.
+      Although we don't officially support this, since ControllerIndex
+      in this situation is not valid.
+
+      Reason 2: Some buttons have InternalButton = -1, and only Button is valid.
+      This applies now to DPad buttons. }
+    Input.Controller.Button := Button;
+    Input.Controller.Meaning := Controller.ButtonMeaning(Input.Controller.Button);
+    Input.Controller.Caption := Controller.ButtonCaption(Input.Controller.Button);
+    Input.Controller.ControllerIndex := ControllerIndex;
+
+    if NewPressed then
+      EventPress(Input)
+    else
+      EventRelease(Input);
+  end;
+
+  procedure EventGameControllerPressReleaseDPad(
+    const Controller: TGameController; const ControllerIndex: Integer;
+    const DPadButton: TGameControlledDPadButton; const NewPressed: Boolean);
+  begin
+    if Controller.InternalDPadDownReported[DPadButton] <> NewPressed then
+    begin
+      Controller.InternalDPadDownReported[DPadButton] := NewPressed;
+      EventGameControllerPressRelease(Controller, ControllerIndex,
+        NewPressed, -1, DPadButton);
+    end;
+  end;
+
   { Look at Controllers state changes and send press/release events for
     game controllers' buttons. }
   procedure UpdateGameControllers;
@@ -1641,7 +1699,6 @@ procedure TCastleContainer.EventUpdate;
     InternalButton: TInternalGameControllerButton;
     Cs: TGameControllers;
     Controller: TGameController;
-    Input: TInputPressRelease;
   begin
     Cs := Controllers;
     if Cs.Initialized then
@@ -1650,48 +1707,30 @@ procedure TCastleContainer.EventUpdate;
       for ControllerIndex := 0 to Cs.Count - 1 do
       begin
         Controller := Cs[ControllerIndex];
+
         for InternalButton := 0 to Controller.InternalButtonsCount - 1 do
         begin
-          if Controller.InternalButtonDown[InternalButton] <>
-             Controller.InternalButtonDownReported[InternalButton] then
+          if Controller.InternalButtonDownReported[InternalButton] <>
+             Controller.InternalButtonDown[InternalButton] then
           begin
-            FillChar(Input, SizeOf(Input), 0);
-            Input.EventType := itGameController;
-
-            // fields not related to the game controller, but we fill them always
-            Input.Position := MousePosition;
-            Input.ModifiersDown := ModifiersDown(Pressed);
-
-            // fields related to the game controller
-            Input.Controller.InternalButton := InternalButton;
-            { Note: we call Controller.Xxx methods now,
-              instead of making TGameControllerPressRelease
-              methods that under the hood would query the controller, like this:
-
-                function TGameControllerPressRelease.Button: TGameControllerButton;
-                begin
-                  Result := Controllers[ControllerIndex].InternalButtonMap(InternalButton);
-                end;
-
-              Reason: This way our TInputPressRelease are safe to process and
-              pass around even if controllers will get disconnected / reordered
-              in the meantime.
-              Although we don't officially support this, since ControllerIndex
-              in this situation is not valid. }
-            Input.Controller.Button := Controller.InternalButtonMap(InternalButton);
-            Input.Controller.Meaning := Controller.ButtonMeaning(Input.Controller.Button);
-            Input.Controller.Caption := Controller.ButtonCaption(Input.Controller.Button);
-            Input.Controller.ControllerIndex := ControllerIndex;
-
-            if Controller.InternalButtonDown[InternalButton] then
-              EventPress(Input)
-            else
-              EventRelease(Input);
-
             Controller.InternalButtonDownReported[InternalButton] :=
               Controller.InternalButtonDown[InternalButton];
+            EventGameControllerPressRelease(Controller, ControllerIndex,
+              Controller.InternalButtonDown[InternalButton],
+              InternalButton,
+              Controller.InternalButtonMap(InternalButton));
           end;
         end;
+
+        { Consider sending DPad button events, based on jaPov* axis. }
+        EventGameControllerPressReleaseDPad(Controller, ControllerIndex,
+          gbDPadUp, SameValue(Controller.InternalAxis[jaPovY], -1.0));
+        EventGameControllerPressReleaseDPad(Controller, ControllerIndex,
+          gbDPadDown, SameValue(Controller.InternalAxis[jaPovY], 1.0));
+        EventGameControllerPressReleaseDPad(Controller, ControllerIndex,
+          gbDPadLeft, SameValue(Controller.InternalAxis[jaPovX], -1.0));
+        EventGameControllerPressReleaseDPad(Controller, ControllerIndex,
+          gbDPadRight, SameValue(Controller.InternalAxis[jaPovX], 1.0));
       end;
     end;
   end;
