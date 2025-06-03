@@ -249,17 +249,23 @@ begin
         end;
       JOYERR_UNPLUGGED:
         begin
-          WritelnLog('Controller %s was disconnected', [Controller.Name]);
+          WritelnLog('Controller %s was disconnected (JOYERR_UNPLUGGED)', [Controller.Name]);
           ControllerHasBeenDisconnected := true;
         end;
       JOYERR_PARMS:
-        WriteLnWarning('Controller %s parameters are no longer valid.', [Controller.Name]);
+        begin
+          WriteLnWarning('Controller %s parameters are no longer valid (JOYERR_PARMS), possibly disconnected?', [Controller.Name]);
+          ControllerHasBeenDisconnected := true;
+        end;
       else
         WriteLnWarning('Controller %s error %d', [Controller.Name, JoyError]);
     end;
-    if ControllerHasBeenDisconnected then
-      Controllers.InternalDisconnected;
   end;
+  { Do this *after* the loop. If any controller was disconnected,
+    this will reinitialize List, so we don't want to be in the middle
+    of iteration. }
+  if ControllerHasBeenDisconnected then
+    Controllers.InternalDisconnected;
 end;
 
 {$endif}

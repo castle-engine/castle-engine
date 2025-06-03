@@ -234,6 +234,9 @@ begin
         ControllerHasBeenDisconnected := true;
       end;
   end;
+  { Do this *after* the loop. If any controller was disconnected,
+    this will reinitialize List, so we don't want to be in the middle
+    of iteration. }
   if ControllerHasBeenDisconnected then
     Controllers.InternalDisconnected;
 end;
