@@ -168,9 +168,6 @@ begin
     ControllerAxes[Axis].Color := White;
     SelectedControllerDynamicUi.InsertControl(Ord(Axis), ControllerAxes[Axis]);
   end;
-  Notifications.Show(Format('Found %d axes', [
-    Controllers[SelectedController].InternalAxesCount
-  ]));
 
   AxisLeftVisualize := T2DAxisVisualize.Create(FreeAtStop);
   AxisLeftVisualize.Anchor(hpRight, -256 - 10 - 10);
@@ -219,14 +216,9 @@ begin
   for I := 0 to Controllers.Count - 1 do
   begin
     ControllerSelectButton := TCastleButton.Create(FreeAtStop);
-    ControllerSelectButton.Caption := Format('Controller %d: "%s" (%d axes, %d buttons)', [
+    ControllerSelectButton.Caption := Format('Controller %d: "%s"', [
       I,
-      Controllers[I].Name,
-      { WARNING: Do not use Controller.InternalAxesCount, InternalButtonsCount
-        in your own code. They are only used here to debug game controllers
-        implementation. }
-      Controllers[I].InternalAxesCount,
-      Controllers[I].InternalButtonsCount
+      Controllers[I].Name
     ]);
     ControllerSelectButton.OnClick := {$ifdef FPC}@{$endif} ClickControllerSelect;
     ControllerSelectButton.Tag := I;

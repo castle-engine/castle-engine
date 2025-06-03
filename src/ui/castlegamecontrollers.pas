@@ -28,17 +28,6 @@ uses Generics.Collections, Classes,
   CastleVectors, CastleUtils, CastleKeysMouse;
 
 type
-  { Internal capability of a controller.
-    @exclude }
-  TInternalGameControllerCapability = (
-    jcZ,
-    jcR,
-    jcU,
-    jcV,
-    jcPOV
-  );
-  TInternalGameControllerCapabilities = set of TInternalGameControllerCapability;
-
   { Internal 1D controller axis.
     @exclude }
   TInternalGameControllerAxis = (
@@ -105,18 +94,6 @@ type
     { Buttons count reported to be supported.
       @exclude }
     InternalButtonsCount: Integer;
-
-    { Capabilities reported to be supported.
-      @exclude }
-    InternalCapabilities: TInternalGameControllerCapabilities;
-
-    { Axes count available in this controller.
-      Warning: This doesn't imply the number of axes that are available in
-      InternalAxis, it talks about internal axes (backend-specific) that
-      are mapped to real axes in TInternalGameControllerAxis.
-      So *do not* use this to iterate over InternalAxis.
-      @exclude }
-    InternalAxesCount: Integer;
 
     { Current state of the axis.
       This is internal, use instead nicer

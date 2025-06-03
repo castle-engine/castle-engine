@@ -51,12 +51,35 @@ uses
   { CastleUtils needed (among other needs) to have PUInt32 defined for Delphi 10.2 }
   CastleUtils, CastleVectors, CastleKeysMouse;
 
+{ Helper types and constants ------------------------------------------------- }
+
+type
+  { Internal capability of a controller.
+    @exclude }
+  TCapability = (
+    jcZ,
+    jcR,
+    jcU,
+    jcV,
+    jcPOV
+  );
+  TCapabilities = set of TCapability;
+
 { TWindowsControllerBackend ------------------------------------------------- -}
 
 type
   TWindowsControllerBackend = class(TInternalControllerBackend)
     WindowsId: Integer;
     Caps    : TJOYCAPSW;
+    { Capabilities reported to be supported, based on Caps.wCaps. }
+    Capabilities: TCapabilities;
+    { Axes count available in this controller.
+      Warning: This doesn't imply the number of axes that are available in
+      InternalAxis, it talks about internal axes (backend-specific) that
+      are mapped to real axes in TInternalGameControllerAxis.
+      So *do not* use this to iterate over InternalAxis.
+      @exclude }
+    AxesCount: Integer;
     AxesMap : array[ 0..5 ] of TInternalGameControllerAxis;
     function AxisLeft: TVector2; override;
     function AxisRight: TVector2; override;
@@ -218,40 +241,40 @@ begin
     if JoyCapsResult = 0 then
     begin
       NewController.Name := NewControllerBackend.Caps.szPname;
-      NewController.InternalAxesCount := NewControllerBackend.Caps.wNumAxes;
       NewController.InternalButtonsCount := NewControllerBackend.Caps.wNumButtons;
+      NewControllerBackend.AxesCount := NewControllerBackend.Caps.wNumAxes;
 
       NewControllerBackend.AxesMap[ 0 ] := jaX;
       NewControllerBackend.AxesMap[ 1 ] := jaY;
       axis := 2;
       if NewControllerBackend.Caps.wCaps and JOYCAPS_HASZ > 0 then
       begin
-        Include(NewController.InternalCapabilities, jcZ);
+        Include(NewControllerBackend.Capabilities, jcZ);
         NewControllerBackend.AxesMap[ axis ] := jaZ;
         Inc( axis );
       end;
       if NewControllerBackend.Caps.wCaps and JOYCAPS_HASR > 0 then
       begin
-        Include(NewController.InternalCapabilities, jcR);
+        Include(NewControllerBackend.Capabilities, jcR);
         NewControllerBackend.AxesMap[ axis ] := jaR;
         Inc( axis );
       end;
       if NewControllerBackend.Caps.wCaps and JOYCAPS_HASU > 0 then
       begin
-        Include(NewController.InternalCapabilities, jcU);
+        Include(NewControllerBackend.Capabilities, jcU);
         NewControllerBackend.AxesMap[ axis ] := jaU;
         Inc( axis );
       end;
       if NewControllerBackend.Caps.wCaps and JOYCAPS_HASV > 0 then
       begin
-        Include(NewController.InternalCapabilities, jcV);
+        Include(NewControllerBackend.Capabilities, jcV);
         NewControllerBackend.AxesMap[ axis ] := jaV;
         Inc( axis );
       end;
       if NewControllerBackend.Caps.wCaps and JOYCAPS_HASPOV > 0 then
       begin
-        Include(NewController.InternalCapabilities, jcPOV);
-        Inc( NewController.InternalAxesCount, 2 );
+        Include(NewControllerBackend.Capabilities, jcPOV);
+        Inc( NewControllerBackend.AxesCount, 2 );
       end;
 
       // workaround Windows reporting recently disconnected controllers as connected
@@ -266,7 +289,7 @@ begin
         WriteLnLog('CastleGameControllers', 'Detected game controller: %s (Windows Id: %d); Axes: %d; Buttons: %d', [
           NewController.Name,
           NewControllerBackend.WindowsId,
-          NewController.InternalAxesCount,
+          NewControllerBackend.AxesCount,
           NewController.InternalButtonsCount
         ]);
 
@@ -329,7 +352,7 @@ begin
     case JoyError of
       JOYERR_NOERROR:
         begin
-          for j := 0 to Controller.InternalAxesCount - 1 do
+          for j := 0 to ControllerBackend.AxesCount - 1 do
           begin
             //stop if controller reported more axes than the backend can handle
             if j > High(ControllerBackend.AxesMap) then
@@ -371,7 +394,7 @@ begin
 
           Controller.InternalAxis[jaPovX] := 0;
           Controller.InternalAxis[jaPovY] := 0;
-          if (jcPOV in Controller.InternalCapabilities) and
+          if (jcPOV in ControllerBackend.Capabilities) and
              (state.dwPOV and $FFFF <> $FFFF) then
           begin
             SinCos( DegToRad(state.dwPOV and $FFFF / 100.0), PovSin, PovCos );

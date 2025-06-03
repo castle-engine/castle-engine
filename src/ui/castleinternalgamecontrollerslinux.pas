@@ -108,6 +108,13 @@ type
     DeviceInitialized: Boolean;
     Device  : LongInt;
     AxesMap : array[ 0..ABS_MAX - 1 ] of Byte;
+    { Axes count available in this controller.
+      Warning: This doesn't imply the number of axes that are available in
+      InternalAxis, it talks about internal axes (backend-specific) that
+      are mapped to real axes in TInternalGameControllerAxis.
+      So *do not* use this to iterate over InternalAxis.
+      @exclude }
+    AxesCount: Integer;
     function AxisLeft: TVector2; override;
     function AxisRight: TVector2; override;
     function AxisLeftTrigger: Single; override;
@@ -251,10 +258,17 @@ begin
         we should probably fix the definition of JSIOCGNAME etc. instead. }
       FpIOCtl( NewControllerBackend.Device, TIOCtlRequest(JSIOCGNAME),    @NewController.Name[ 1 ] );
       FpIOCtl( NewControllerBackend.Device, TIOCtlRequest(JSIOCGAXMAP),   @NewControllerBackend.AxesMap[ 0 ] );
-      FpIOCtl( NewControllerBackend.Device, TIOCtlRequest(JSIOCGAXES),    @NewController.InternalAxesCount );
+      FpIOCtl( NewControllerBackend.Device, TIOCtlRequest(JSIOCGAXES),    @NewControllerBackend.AxesCount );
       FpIOCtl( NewControllerBackend.Device, TIOCtlRequest(JSIOCGBUTTONS), @NewController.InternalButtonsCount );
 
-      for j := 0 to NewController.InternalAxesCount - 1 do
+      (*
+      This Capabilities initialization was not used in the end.
+      It was also likely incomplete, as we don't detect jaGas/jaBrake
+      which are in practice used on Linux by XBox controllers.
+      For now, comment. Maybe resurrect in the future if Capabilities
+      become (reliably) useful, internally or public.
+
+      for j := 0 to NewControllerBackend.AxesCount - 1 do
       begin
         // debug
         // WritelnLog('Controller %d reports axis %d mapped to %d', [
@@ -271,6 +285,7 @@ begin
             jaPovX, jaPovY: Include(NewController.InternalCapabilities, jcPOV);
           end;
       end;
+      *)
 
       for j := 1 to 255 do
         if NewController.Name[ j ] = #0 then
@@ -281,13 +296,13 @@ begin
 
       { Checking if controller is a real one,
         because laptops with accelerometer can be detected as a joystick :) }
-      if ( NewController.InternalAxesCount >= 2 ) and
+      if ( NewControllerBackend.AxesCount >= 2 ) and
          ( NewController.InternalButtonsCount > 0 ) then
       begin
         WritelnLog('CastleGameControllers', 'Detected game controller: %s (ID: %d); Axes: %d; Buttons: %d', [
           NewController.Name,
           ControllerIndex,
-          NewController.InternalAxesCount,
+          NewControllerBackend.AxesCount,
           NewController.InternalButtonsCount
         ]);
         List.Add(NewController);
