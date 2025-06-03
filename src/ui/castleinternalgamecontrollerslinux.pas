@@ -163,21 +163,29 @@ const
   end = (
     {  0 } (Button: gbSouth; Handled: true),
     {  1 } (Button: gbEast; Handled: true),
-    {  2 } (Button: gbWest; Handled: true),
-    {  3 } (Button: gbNorth; Handled: true),
-    {  4 } (Button: gbLeftBumper; Handled: true),
-    {  5 } (Button: gbRightBumper; Handled: true),
-    {  6 } (Button: gbView; Handled: true),
-    {  7 } (Button: gbMenu; Handled: true),
-    {  8 } (Button: gbLeftStickClick; Handled: true),
-    {  9 } (Button: gbRightStickClick; Handled: true),
-    { 10 } (Button: gbGuide; Handled: true),
-    { 11 } (Button: gbShare; Handled: true),
 
-    // all the rest, up to 31, are not handled
-    { 12 } (Button: gbNorth; Handled: false),
-    { 13 } (Button: gbNorth; Handled: false),
-    { 14 } (Button: gbNorth; Handled: false),
+    {  2 } (Button: gbNorth; Handled: false),
+
+    {  3 } (Button: gbWest; Handled: true),
+    {  4 } (Button: gbNorth; Handled: true),
+
+    {  5 } (Button: gbNorth; Handled: false),
+
+    {  6 } (Button: gbLeftBumper; Handled: true),
+    {  7 } (Button: gbRightBumper; Handled: true),
+
+    {  8 } (Button: gbNorth; Handled: false),
+    {  9 } (Button: gbNorth; Handled: false),
+
+    { 10 } (Button: gbView; Handled: true),
+    { 11 } (Button: gbMenu; Handled: true),
+    { 12 } (Button: gbGuide; Handled: true),
+    { 13 } (Button: gbLeftStickClick; Handled: true),
+    { 14 } (Button: gbRightStickClick; Handled: true),
+
+    // Note: Linux backend cannot detect "share" button at all, it seems
+    // (present on XBox controller 3rd revision).
+
     { 15 } (Button: gbNorth; Handled: false),
     { 16 } (Button: gbNorth; Handled: false),
     { 17 } (Button: gbNorth; Handled: false),
