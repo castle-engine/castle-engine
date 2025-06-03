@@ -263,8 +263,7 @@ begin
   Result := inherited;
   if Result then Exit;
 
-  if (Event.EventType = itGameController) and
-     (Event.Controller.ControllerIndex = SelectedJoystick) then
+  if Event.EventType = itGameController then
   begin
     Notifications.Show('Game controller press: ' + Event.ToString);
 
@@ -272,7 +271,9 @@ begin
       Use instead Controller.Button.
       We only show here InternalButton to debug game controllers
       implementation. }
-    JoyButtons[Event.Controller.InternalButton].Pressed := true;
+    if Event.Controller.ControllerIndex = SelectedJoystick then
+      JoyButtons[Event.Controller.InternalButton].Pressed := true;
+
     Exit(true); // handled
   end;
 end;
@@ -282,8 +283,7 @@ begin
   Result := inherited;
   if Result then Exit;
 
-  if (Event.EventType = itGameController) and
-     (Event.Controller.ControllerIndex = SelectedJoystick) then
+  if Event.EventType = itGameController then
   begin
     Notifications.Show('Game controller release: ' + Event.ToString);
 
@@ -291,7 +291,9 @@ begin
       Use instead Controller.Button.
       We only show here InternalButton to debug game controllers
       implementation. }
-    JoyButtons[Event.Controller.InternalButton].Pressed := false;
+    if Event.Controller.ControllerIndex = SelectedJoystick then
+      JoyButtons[Event.Controller.InternalButton].Pressed := false;
+
     Exit(true); // handled
   end;
 end;
