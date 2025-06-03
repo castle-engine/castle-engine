@@ -48,13 +48,13 @@ implementation
 uses
   SysUtils, Math,
   CastleLog,
-  { Needed to have PUInt32 defined for Delphi 10.2 }
-  CastleUtils;
+  { CastleUtils needed (among other needs) to have PUInt32 defined for Delphi 10.2 }
+  CastleUtils, CastleVectors, CastleKeysMouse;
 
 { TWindowsControllerBackend ------------------------------------------------- -}
 
 type
-  TWindowsControllerBackend = class(TInternalGameControllerBackend)
+  TWindowsControllerBackend = class(TInternalControllerBackend)
     WindowsId: Integer;
     Caps    : TJOYCAPSW;
     AxesMap : array[ 0..5 ] of TInternalGameControllerAxis;
@@ -318,7 +318,7 @@ begin
   for ControllerIndex := 0 to List.Count - 1 do
   begin
     Controller := List[ControllerIndex];
-    ControllerBackend := Controller.InternalControllerBackend as TWindowsControllerBackend;
+    ControllerBackend := Controller.InternalBackend as TWindowsControllerBackend;
 
     state.dwSize := SizeOf( TJOYINFOEX );
     state.dwFlags := JOY_RETURNALL or JOY_USEDEADZONE;
