@@ -228,10 +228,6 @@ begin
             end;
 
             AxisValueFloat := AxisValueInt / ( vMax - vMin ) * 2 - 1;
-
-            if Joystick.InternalAxis[Axis] <> AxisValueFloat then
-              if Assigned(EventContainer.OnAxisMove) then
-                EventContainer.OnAxisMove(Joystick, Axis, AxisValueFloat);
             Joystick.InternalAxis[Axis] := AxisValueFloat;
           end;
 
@@ -241,37 +237,14 @@ begin
              (state.dwPOV and $FFFF <> $FFFF) then
           begin
             SinCos( DegToRad(state.dwPOV and $FFFF / 100.0), PovSin, PovCos );
-
-            if Joystick.InternalAxis[ jaPovX ] <> PovSin then
-              if Assigned(EventContainer.OnAxisMove) then
-                EventContainer.OnAxisMove(Joystick, jaPovX, PovSin);
             Joystick.InternalAxis[ jaPovX ] := PovSin;
-
-            if Joystick.InternalAxis[ jaPovY ] <> PovCos then
-              if Assigned(EventContainer.OnAxisMove) then
-                EventContainer.OnAxisMove(Joystick, jaPovY, PovCos);
             Joystick.InternalAxis[ jaPovY ] := PovCos;
           end;
 
           for j := 0 to Joystick.InternalButtonsCount - 1 do
           begin
             btn := state.wButtons and ( 1 shl j );
-            if ( Joystick.InternalButtonDown[ j ] ) and ( btn = 0 ) then
-            begin
-              Joystick.InternalButtonPress[ j ] := False;
-              if Assigned(EventContainer.OnButtonUp) then EventContainer.OnButtonUp(Joystick, j);
-              Joystick.InternalButtonCanPress[ j ] := True;
-            end;
-
-            if ( Joystick.InternalButtonCanPress[ j ] ) and ( not Joystick.InternalButtonDown[ j ] ) and ( btn <> 0 ) then
-            begin
-              Joystick.InternalButtonPress   [ j ] := True;
-              if Assigned(EventContainer.OnButtonPress) then EventContainer.OnButtonPress(Joystick, j);
-              Joystick.InternalButtonCanPress[ j ] := False;
-            end;
             Joystick.InternalButtonDown[ j ] := btn <> 0;
-            Joystick.InternalButtonUp[ j ] := btn = 0;
-            if Assigned(EventContainer.OnButtonDown) and (btn <> 0) then EventContainer.OnButtonDown(Joystick, j);
           end;
         end;
       JOYERR_UNPLUGGED:

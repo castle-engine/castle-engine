@@ -209,7 +209,6 @@ begin
               begin
                 axis := AxisMap[ BackendInfo.AxesMap[ event.number ] ].Axis;
                 Joystick.InternalAxis[ axis ] := Value;
-                if Assigned(EventContainer.OnAxisMove) then EventContainer.OnAxisMove(Joystick, axis, Value);
               end else
               begin
                 WritelnLog('Joystick %d reports unhandled axis (%d mapped to %d) (value: %f)', [
@@ -222,30 +221,8 @@ begin
             end;
           JS_EVENT_BUTTON:
             case event.value of
-              0:
-                begin
-                  if Joystick.InternalButtonDown[ event.number ] then
-                  begin
-                    Joystick.InternalButtonUp[ event.number ] := True;
-                    Joystick.InternalButtonPress   [ event.number ] := False;
-                    if Assigned(EventContainer.OnButtonUp) then EventContainer.OnButtonUp(Joystick, event.number);
-                    Joystick.InternalButtonCanPress[ event.number ] := True;
-                  end;
-
-                  Joystick.InternalButtonDown[ event.number ] := False;
-                end;
-              1:
-                begin
-                  Joystick.InternalButtonDown[ event.number ] := True;
-                  if Assigned(EventContainer.OnButtonDown) then EventContainer.OnButtonDown(Joystick, event.number);
-                  Joystick.InternalButtonUp  [ event.number ] := False;
-                  if Joystick.InternalButtonCanPress[ event.number ] then
-                    begin
-                      Joystick.InternalButtonPress   [ event.number ] := True;
-                      if Assigned(EventContainer.OnButtonPress) then EventContainer.OnButtonPress(Joystick, event.number);
-                      Joystick.InternalButtonCanPress[ event.number ] := False;
-                    end;
-                end;
+              0: Joystick.InternalButtonDown[ event.number ] := False;
+              1: Joystick.InternalButtonDown[ event.number ] := True;
             end;
         end;
         BytesRead := FpRead( BackendInfo.Device, event, 8 );

@@ -25,7 +25,7 @@ unit CastleJoysticks;
 interface
 
 uses Generics.Collections, Classes,
-  CastleVectors, CastleUtils;
+  CastleVectors, CastleUtils, CastleKeysMouse;
 
 type
   TInternalGamepadCapability = (
@@ -98,17 +98,51 @@ type
     { Current gamepad state.
       This is internal, use instead nicer
       @link(TJoystick.LeftAxis) and @link(TJoystick.RightAxis). }
-    InternalAxis           : array[TInternalGamepadAxis] of Single;
-    InternalButtonUp       : array[TInternalGamepadButton] of Boolean;
-    InternalButtonDown     : array[TInternalGamepadButton] of Boolean;
-    InternalButtonPress    : array[TInternalGamepadButton] of Boolean;
-    InternalButtonCanPress : array[TInternalGamepadButton] of Boolean;
+    InternalAxis: array[TInternalGamepadAxis] of Single;
+    InternalButtonDown: array[TInternalGamepadButton] of Boolean;
+    InternalButtonDownReported: array[TInternalGamepadButton] of Boolean;
 
     { Left analog stick position. }
     function LeftAxis: TVector2;
 
     { Right analog stick position. }
     function RightAxis: TVector2;
+
+    { Nice caption (label) of a given button.
+
+      For buttons that have different names depending on the game controller,
+      like "face buttons" (A, B, X, Y, square triangle circle cross),
+      this caption depends on the game controller type.
+
+      TODO: The current implementation assumes
+      @unorderedlist(
+        @item(XBox controller on all platforms except Nintendo Switch,)
+        @item(or Nintendo Switch controllers on @url(https://castle-engine.io/nintendo_switch
+          Nintendo Switch).)
+      ) }
+    function ButtonCaption(const Button: TGameControllerButton): String;
+
+    { Intended meaning of the given button.
+      This may depend on the game controller type.
+
+      TODO: The current implementation assumes
+      @unorderedlist(
+        @item(XBox controller on all platforms except Nintendo Switch,)
+        @item(or Nintendo Switch controllers on @url(https://castle-engine.io/nintendo_switch
+          Nintendo Switch).)
+      ) }
+    function ButtonMeaning(const Button: TGameControllerButton): TGameControllerButtonMeaning;
+
+    { Map TInternalGamepadButton (button as internal, device-specific integer)
+      to nice TGameControllerButton.
+
+      TODO: The current implementation assumes
+      @unorderedlist(
+        @item(XBox controller on all platforms except Nintendo Switch,)
+        @item(or Nintendo Switch controllers on @url(https://castle-engine.io/nintendo_switch
+          Nintendo Switch).)
+      ) }
+    function InternalButtonMap(const Button: TInternalGamepadButton): TGameControllerButton;
 
     destructor Destroy; override;
   end;
@@ -139,10 +173,6 @@ type
   { TJoysticks is a class for joysticks and gamepads management }
   TJoysticks = class
   private
-    FOnAxisMove: TOnJoyAxisMove;
-    FOnButtonDown: TOnJoyButtonEvent;
-    FOnButtonUp: TOnJoyButtonEvent;
-    FOnButtonPress: TOnJoyButtonEvent;
     Backend: TJoysticksBackend;
     FList: TJoystickList;
     FInitialized: Boolean;
@@ -164,11 +194,6 @@ type
       user code does not need to call this.
       @exclude }
     procedure InternalPoll;
-
-    property OnAxisMove: TOnJoyAxisMove read FOnAxisMove write FOnAxisMove;
-    property OnButtonDown: TOnJoyButtonEvent read FOnButtonDown write FOnButtonDown;
-    property OnButtonUp: TOnJoyButtonEvent read FOnButtonUp write FOnButtonUp;
-    property OnButtonPress: TOnJoyButtonEvent read FOnButtonPress write FOnButtonPress;
 
     { Number of connected joysticks. }
     function Count: Integer;
@@ -263,6 +288,120 @@ begin
   );
 end;
 
+const
+  { Map TInternalGamepadButton to TGameControllerButton.
+    Specific to the XBox Controller, more specifically
+    https://en.wikipedia.org/wiki/Xbox_Wireless_Controller }
+  XBoxInternalMap: array[TInternalGamepadButton] of record
+    Button: TGameControllerButton;
+    Handled: Boolean;
+  end = (
+    {  0 } (Button: gbSouth; Handled: true),
+    {  1 } (Button: gbEast; Handled: true),
+    {  2 } (Button: gbWest; Handled: true),
+    {  3 } (Button: gbNorth; Handled: true),
+    {  4 } (Button: gbLeftBumper; Handled: true),
+    {  5 } (Button: gbRightBumper; Handled: true),
+    {  6 } (Button: gbView; Handled: true),
+    {  7 } (Button: gbMenu; Handled: true),
+    {  8 } (Button: gbLeftStickClick; Handled: true),
+    {  9 } (Button: gbRightStickClick; Handled: true),
+    { 10 } (Button: gbGuide; Handled: true),
+    { 11 } (Button: gbShare; Handled: true),
+
+    // all the rest, up to 31, are not handled
+    { 12 } (Button: gbNorth; Handled: false),
+    { 13 } (Button: gbNorth; Handled: false),
+    { 14 } (Button: gbNorth; Handled: false),
+    { 15 } (Button: gbNorth; Handled: false),
+    { 16 } (Button: gbNorth; Handled: false),
+    { 17 } (Button: gbNorth; Handled: false),
+    { 18 } (Button: gbNorth; Handled: false),
+    { 19 } (Button: gbNorth; Handled: false),
+    { 20 } (Button: gbNorth; Handled: false),
+    { 21 } (Button: gbNorth; Handled: false),
+    { 22 } (Button: gbNorth; Handled: false),
+    { 23 } (Button: gbNorth; Handled: false),
+    { 24 } (Button: gbNorth; Handled: false),
+    { 25 } (Button: gbNorth; Handled: false),
+    { 26 } (Button: gbNorth; Handled: false),
+    { 27 } (Button: gbNorth; Handled: false),
+    { 28 } (Button: gbNorth; Handled: false),
+    { 29 } (Button: gbNorth; Handled: false),
+    { 30 } (Button: gbNorth; Handled: false),
+    { 31 } (Button: gbNorth; Handled: false)
+  );
+
+  { Map TGameControllerButton to additional information, like Caption.
+    Specific to the XBox Controller, more specifically
+    https://en.wikipedia.org/wiki/Xbox_Wireless_Controller }
+  XBoxMap: array[TGameControllerButton] of record
+    Caption: String;
+    Meaning: TGameControllerButtonMeaning;
+    { For now, always @true, because we declare all and only buttons for
+      XBox Controller, and we treat all controlles as XBox Controller.
+      But it will not be such always. }
+    Handled: Boolean;
+  end = (
+    { gbNorth }           (Caption: 'Y'                ; Meaning: gmNone   ; Handled: true),
+    { gbEast }            (Caption: 'B'                ; Meaning: gmCancel ; Handled: true),
+    { gbSouth }           (Caption: 'A'                ; Meaning: gmConfirm; Handled: true),
+    { gbWest }            (Caption: 'X'                ; Meaning: gmNone   ; Handled: true),
+    { gbLeftTrigger }     (Caption: 'Left Trigger'     ; Meaning: gmNone   ; Handled: true),
+    { gbRightTrigger }    (Caption: 'Right Trigger'    ; Meaning: gmNone   ; Handled: true),
+    { gpLeftBumper }      (Caption: 'Left Bumper'      ; Meaning: gmNone   ; Handled: true),
+    { gpRightBumper }     (Caption: 'Right Bumper'     ; Meaning: gmNone   ; Handled: true),
+    { gbLeftStickClick }  (Caption: 'Left Stick Click' ; Meaning: gmNone   ; Handled: true),
+    { gbRightStickClick } (Caption: 'Right Stick Click'; Meaning: gmNone   ; Handled: true),
+    { gbDPadUp }          (Caption: 'D-Pad Up'         ; Meaning: gmNone   ; Handled: true),
+    { gbDPadRight }       (Caption: 'D-Pad Right'      ; Meaning: gmNone   ; Handled: true),
+    { gbDPadDown }        (Caption: 'D-Pad Down'       ; Meaning: gmNone   ; Handled: true),
+    { gbDPadLeft }        (Caption: 'D-Pad Left'       ; Meaning: gmNone   ; Handled: true),
+    { gpView }            (Caption: 'View'             ; Meaning: gmNone   ; Handled: true),
+    { gpMenu }            (Caption: 'Menu'             ; Meaning: gmNone   ; Handled: true),
+    { gpGuide }           (Caption: 'Guide'            ; Meaning: gmNone   ; Handled: true),
+    { gpShare }           (Caption: 'Share'            ; Meaning: gmNone   ; Handled: true)
+  );
+
+function TJoystick.ButtonCaption(const Button: TGameControllerButton): String;
+begin
+  if not XBoxMap[Button].Handled then
+  begin
+    WritelnWarning('TJoystick.ButtonCaption: Button %d is not handled by the game controller "%s".', [
+      Ord(Button),
+      // TODO: Write here also controller index
+      Name
+    ]);
+  end;
+  Result := XBoxMap[Button].Caption;
+end;
+
+function TJoystick.ButtonMeaning(const Button: TGameControllerButton): TGameControllerButtonMeaning;
+begin
+  if not XBoxMap[Button].Handled then
+  begin
+    WritelnWarning('TJoystick.ButtonMeaning: Button %d is not handled by the game controller "%s".', [
+      Ord(Button),
+      // TODO: Write here also controller index
+      Name
+    ]);
+  end;
+  Result := XBoxMap[Button].Meaning;
+end;
+
+function TJoystick.InternalButtonMap(const Button: TInternalGamepadButton): TGameControllerButton;
+begin
+  if not XBoxInternalMap[Button].Handled then
+  begin
+    WritelnWarning('TJoystick.InternalButtonMap: Button %d is not handled by the game controller "%s".', [
+      Ord(Button),
+      // TODO: Write here also controller index
+      Name
+    ]);
+  end;
+  Result := XBoxInternalMap[Button].Button;
+end;
+
 { TJoysticks ----------------------------------------------------------------- }
 
 constructor TJoysticks.Create;
@@ -288,22 +427,6 @@ begin
 end;
 
 procedure TJoysticks.Initialize;
-
-  procedure ClearState;
-  var
-    I: Integer;
-    J: TInternalGamepadButton;
-  begin
-    for i := 0 to Count - 1 do
-      for j := 0 to FList[I].InternalButtonsCount - 1 do
-      begin
-        FList[I].InternalButtonUp[J] := false;
-        FList[I].InternalButtonDown[J] := false;
-        FList[I].InternalButtonPress[J] := false;
-        FList[I].InternalButtonCanPress[J] := true;
-      end;
-  end;
-
 begin
   FInitialized := true;
 
@@ -318,7 +441,6 @@ begin
 
   FList.Clear;
   Backend.Initialize(FList);
-  ClearState;
   DoChange;
 end;
 

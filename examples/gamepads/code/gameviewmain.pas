@@ -44,20 +44,19 @@ type
     procedure ClearJoystickUI;
     procedure ClearSelectedJoystickUI;
 
+    // UI events handlers
     procedure InitializeJoystickUI(Sender: TObject);
     procedure JoystickDisconnected(Sender: TObject);
     procedure JoystickConnected(Sender: TObject);
     procedure ClickReinitialize(Sender: TObject);
     procedure ClickGamepadSelect(Sender: TObject);
     procedure ClickUnselect(Sender: TObject);
-    procedure MyJoyAxisMove(const Joy: TJoystick; const Axis: TInternalGamepadAxis; const Value: Single);
-    procedure MyJoyButtonPress(const Joy: TJoystick; const Button: TInternalGamepadButton);
-    procedure JoyButtonUp(const Joy: TJoystick; const Button: TInternalGamepadButton);
-    procedure JoyButtonDown(const Joy: TJoystick; const Button: TInternalGamepadButton);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
+    function Press(const Event: TInputPressRelease): Boolean; override;
+    function Release(const Event: TInputPressRelease): Boolean; override;
   end;
 
 var
@@ -86,52 +85,10 @@ begin
   Joysticks.OnChange := {$ifdef FPC}@{$endif} InitializeJoystickUI;
   Joysticks.OnDisconnect := {$ifdef FPC}@{$endif} JoystickDisconnected;
   Joysticks.OnConnect := {$ifdef FPC}@{$endif} JoystickConnected;
-  Joysticks.OnAxisMove := {$ifdef FPC}@{$endif} MyJoyAxisMove;
-  Joysticks.OnButtonDown := {$ifdef FPC}@{$endif} JoyButtonDown;
-  Joysticks.OnButtonPress := {$ifdef FPC}@{$endif} MyJoyButtonPress;
-  Joysticks.OnButtonUp := {$ifdef FPC}@{$endif} JoyButtonUp;
 
   { Actually detect joysticks.
     This will immediately call InitializeJoystickUI on some platforms. }
   Joysticks.Initialize;
-end;
-
-procedure TViewMain.MyJoyAxisMove(const Joy: TJoystick; const Axis: TInternalGamepadAxis;
-  const Value: Single);
-begin
-  // We show axes position only for the selected joystick.
-  if (SelectedJoystick = -1) or
-     (Joy <> Joysticks[SelectedJoystick]) then
-    Exit;
-
-  JoyAxes[Axis].Caption := FormatDot('Axis %d (%s): %f', [
-    Ord(Axis),
-    AxisName(Axis),
-    Value
-  ]);
-end;
-
-procedure TViewMain.MyJoyButtonPress(const Joy: TJoystick; const Button: TInternalGamepadButton);
-begin
-  Notifications.Show(Format('Gamepad %d button %d press', [SelectedJoystick, Button]));
-end;
-
-procedure TViewMain.JoyButtonUp(const Joy: TJoystick; const Button: TInternalGamepadButton);
-begin
-  if (SelectedJoystick = -1) or
-     (Joy <> Joysticks[SelectedJoystick]) then
-    Exit;
-  JoyButtons[Button].Pressed := False;
-  Notifications.Show(Format('Gamepad %d button %d up', [SelectedJoystick, Button]));
-end;
-
-procedure TViewMain.JoyButtonDown(const Joy: TJoystick; const Button: TInternalGamepadButton);
-begin
-  if (SelectedJoystick = -1) or
-     (Joy <> Joysticks[SelectedJoystick]) then
-    Exit;
-  JoyButtons[Button].Pressed := True;
-  Notifications.Show(Format('Gamepad %d button %d down', [SelectedJoystick, Button]));
 end;
 
 procedure TViewMain.ClickReinitialize(Sender: TObject);
@@ -208,7 +165,7 @@ begin
   for Axis := Low(TInternalGamepadAxis) to High(TInternalGamepadAxis) do
   begin
     JoyAxes[Axis] := TCastleLabel.Create(FreeAtStop);
-    JoyAxes[Axis].Caption := Format('Axis %d (%s): no input so far', [Ord(Axis), AxisName(Axis)]);
+    JoyAxes[Axis].Caption := Format('Axis %d (%s): no input so far', [Ord(Axis), InternalAxisName(Axis)]);
     JoyAxes[Axis].Color := White;
     SelectedGamepadDynamicUi.InsertControl(Ord(Axis), JoyAxes[Axis]);
   end;
@@ -250,6 +207,9 @@ begin
     GamepadSelectButton.Caption := Format('Gamepad %d: "%s" (%d axes, %d buttons)', [
       I,
       Joysticks[I].Name,
+      { WARNING: Do not use Controller.InternalAxesCount, InternalButtonsCount
+        in your own code. They are only used here to debug game controllers
+        implementation. }
       Joysticks[I].InternalAxesCount,
       Joysticks[I].InternalButtonsCount
     ]);
@@ -273,14 +233,66 @@ begin
 end;
 
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: boolean);
+var
+  InternalAxis: TInternalGamepadAxis;
 begin
-  { update JoyAxisVisualize.Axis }
+  { update game controller axes visualization }
   if SelectedJoystick <> -1 then
   begin
     Assert(JoyLeftAxisVisualize <> nil);
     Assert(JoyRightAxisVisualize <> nil);
     JoyLeftAxisVisualize.Axis := Joysticks[SelectedJoystick].LeftAxis;
     JoyRightAxisVisualize.Axis := Joysticks[SelectedJoystick].RightAxis;
+
+    { WARNING: Do not use TInternalGamepadAxis or Controller.InternalAxis
+      in your own code.
+      Use instead nice Controller.LeftAxis and Controller.RightAxis,
+      as shown above.
+      This is used here only to debug game controllers implementation. }
+    for InternalAxis := Low(TInternalGamepadAxis) to High(TInternalGamepadAxis) do
+      JoyAxes[InternalAxis].Caption := FormatDot('Axis %d (%s): %f', [
+        Ord(InternalAxis),
+        InternalAxisName(InternalAxis),
+        Joysticks[SelectedJoystick].InternalAxis[InternalAxis]
+      ]);
+  end;
+end;
+
+function TViewMain.Press(const Event: TInputPressRelease): Boolean;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  if (Event.EventType = itGameController) and
+     (Event.Controller.ControllerIndex = SelectedJoystick) then
+  begin
+    Notifications.Show('Game controller press: ' + Event.ToString);
+
+    { WARNING: Do not use Controller.InternalButton in your own code.
+      Use instead Controller.Button.
+      We only show here InternalButton to debug game controllers
+      implementation. }
+    JoyButtons[Event.Controller.InternalButton].Pressed := true;
+    Exit(true); // handled
+  end;
+end;
+
+function TViewMain.Release(const Event: TInputPressRelease): Boolean;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  if (Event.EventType = itGameController) and
+     (Event.Controller.ControllerIndex = SelectedJoystick) then
+  begin
+    Notifications.Show('Game controller release: ' + Event.ToString);
+
+    { WARNING: Do not use Controller.InternalButton in your own code.
+      Use instead Controller.Button.
+      We only show here InternalButton to debug game controllers
+      implementation. }
+    JoyButtons[Event.Controller.InternalButton].Pressed := false;
+    Exit(true); // handled
   end;
 end;
 

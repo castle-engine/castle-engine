@@ -1633,23 +1633,63 @@ procedure TCastleContainer.EventUpdate;
     end;
   end;
 
+  { Look at Controllers state changes and send press/release events for
+    game controllers' buttons. }
   procedure UpdateJoysticks;
   var
     Joys: TJoysticks;
-    I: Integer;
-    Button: TInternalGamepadButton;
+    ControllerIndex: Integer;
+    InternalButton: TInternalGamepadButton;
+    Controller: TJoystick;
+    Input: TInputPressRelease;
   begin
     Joys := Joysticks;
     if Joys.Initialized then
     begin
       Joys.InternalPoll;
-      for I := 0 to Joys.Count - 1 do
+      for ControllerIndex := 0 to Joys.Count - 1 do
       begin
-        for Button := 0 to Joys[I].InternalButtonsCount -1 do
+        Controller := Joys[ControllerIndex];
+        for InternalButton := 0 to Controller.InternalButtonsCount - 1 do
         begin
-          if Joys[I].InternalButtonPress[Button] then
+          if Controller.InternalButtonDown[InternalButton] <>
+             Controller.InternalButtonDownReported[InternalButton] then
           begin
-            // TODO: make new press event
+            FillChar(Input, SizeOf(Input), 0);
+            Input.EventType := itGameController;
+
+            // fields not related to the game controller, but we fill them always
+            Input.Position := MousePosition;
+            Input.ModifiersDown := ModifiersDown(Pressed);
+
+            // fields related to the game controller
+            Input.Controller.InternalButton := InternalButton;
+            { Note: we call Controller.Xxx methods now,
+              instead of making TGameControllerPressRelease
+              methods that under the hood would query the controller, like this:
+
+                function TGameControllerPressRelease.Button: TGameControllerButton;
+                begin
+                  Result := Controllers[ControllerIndex].InternalButtonMap(InternalButton);
+                end;
+
+              Reason: This way our TInputPressRelease are safe to process and
+              pass around even if controllers will get disconnected / reordered
+              in the meantime.
+              Although we don't officially support this, since ControllerIndex
+              in this situation is not valid. }
+            Input.Controller.Button := Controller.InternalButtonMap(InternalButton);
+            Input.Controller.Meaning := Controller.ButtonMeaning(Input.Controller.Button);
+            Input.Controller.Caption := Controller.ButtonCaption(Input.Controller.Button);
+            Input.Controller.ControllerIndex := ControllerIndex;
+
+            if Controller.InternalButtonDown[InternalButton] then
+              EventPress(Input)
+            else
+              EventRelease(Input);
+
+            Controller.InternalButtonDownReported[InternalButton] :=
+              Controller.InternalButtonDown[InternalButton];
           end;
         end;
       end;

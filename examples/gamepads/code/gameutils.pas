@@ -37,7 +37,7 @@ type
     property Caption: String read GetCaption write SetCaption;
   end;
 
-function AxisName(const Axis: TInternalGamepadAxis): String;
+function InternalAxisName(const Axis: TInternalGamepadAxis): String;
 
 implementation
 
@@ -100,7 +100,7 @@ begin
   Lab.Caption := Value;
 end;
 
-function AxisName(const Axis: TInternalGamepadAxis): String;
+function InternalAxisName(const Axis: TInternalGamepadAxis): String;
 begin
   Result := GetEnumName(TypeInfo(TInternalGamepadAxis), Ord(Axis));
 end;
