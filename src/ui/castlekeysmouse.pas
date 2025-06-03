@@ -817,6 +817,14 @@ type
       button that was pressed or released. }
     Controller: TGameControllerPressRelease;
 
+    { Does the event indicates pressing the given game controller
+      (joystick, gamepad) button. }
+    function IsController(const Button: TGameControllerButton): Boolean; overload;
+
+    { Does the event indicates pressing the given game controller
+      (joystick, gamepad) button meaning. }
+    function IsController(const Meaning: TGameControllerButtonMeaning): Boolean; overload;
+
     { Does the event indicate pressing the given key.
       This overloaded version, without RequiredModifiers parameter,
       ignores the currently pressed modifiers.
@@ -1355,6 +1363,16 @@ end;
 function TInputPressRelease.IsMouseWheel(const AMouseWheel: TMouseWheelDirection): Boolean;
 begin
   Result := (EventType = itMouseWheel) and (MouseWheel = AMouseWheel);
+end;
+
+function TInputPressRelease.IsController(const Button: TGameControllerButton): Boolean;
+begin
+  Result := (EventType = itGameController) and (Controller.Button = Button);
+end;
+
+function TInputPressRelease.IsController(const Meaning: TGameControllerButtonMeaning): Boolean;
+begin
+  Result := (EventType = itGameController) and (Controller.Meaning = Meaning);
 end;
 
 function TInputPressRelease.ToString: string;
