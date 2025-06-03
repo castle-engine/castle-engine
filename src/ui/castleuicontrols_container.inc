@@ -397,7 +397,7 @@
       It's also guaranteed to be called right after the EventOpen event. }
     procedure EventResize;
 
-    { Joystick or 3D mouse event happened.
+    { 3D mouse event happened.
       These events are special now: they are called by @link(EventUpdate),
       we don't expect that TCastleWindow or TCastleControl will call them.
       @groupBegin }
@@ -1635,21 +1635,21 @@ procedure TCastleContainer.EventUpdate;
 
   { Look at Controllers state changes and send press/release events for
     game controllers' buttons. }
-  procedure UpdateJoysticks;
+  procedure UpdateGameControllers;
   var
-    Joys: TJoysticks;
     ControllerIndex: Integer;
-    InternalButton: TInternalGamepadButton;
-    Controller: TJoystick;
+    InternalButton: TInternalGameControllerButton;
+    Cs: TGameControllers;
+    Controller: TGameController;
     Input: TInputPressRelease;
   begin
-    Joys := Joysticks;
-    if Joys.Initialized then
+    Cs := Controllers;
+    if Cs.Initialized then
     begin
-      Joys.InternalPoll;
-      for ControllerIndex := 0 to Joys.Count - 1 do
+      Cs.InternalPoll;
+      for ControllerIndex := 0 to Cs.Count - 1 do
       begin
-        Controller := Joys[ControllerIndex];
+        Controller := Cs[ControllerIndex];
         for InternalButton := 0 to Controller.InternalButtonsCount - 1 do
         begin
           if Controller.InternalButtonDown[InternalButton] <>
@@ -1713,7 +1713,7 @@ begin
     UpdateFocusAndMouseCursor; // sets FFocusAndMouseCursorValid to true
 
   Update3dMouse;
-  UpdateJoysticks;
+  UpdateGameControllers;
 
   HandleInput := true;
 

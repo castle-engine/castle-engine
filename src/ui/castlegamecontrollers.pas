@@ -17,8 +17,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ Cross-platform joystick and gamepad handling. }
-unit CastleJoysticks;
+{ Game controllers (joystick, gamepad) handling. }
+unit CastleGameControllers;
 
 {$I castleconf.inc}
 
@@ -28,85 +28,85 @@ uses Generics.Collections, Classes,
   CastleVectors, CastleUtils, CastleKeysMouse;
 
 type
-  TInternalGamepadCapability = (
-    { Gamepad has a Z axis. }
+  { Internal capability of a controller. }
+  TInternalGameControllerCapability = (
     jcZ,
-    { Gamepad has an R axis. }
     jcR,
-    { Gamepad has a U axis. }
     jcU,
-    { Gamepad has a V axis. }
     jcV,
-    { Gamepad has a POV (point of view) hat. }
     jcPOV
   );
-  TInternalGamepadCapabilities = set of TInternalGamepadCapability;
+  TInternalGameControllerCapabilities = set of TInternalGameControllerCapability;
 
-  { 1D gamepad axis. }
-  TInternalGamepadAxis = (
-    { Gamepad X axis. }
+  { Internal 1D controller axis. }
+  TInternalGameControllerAxis = (
     jaX,
-    { Gamepad Y axis. }
     jaY,
-    { Gamepad Z axis. }
     jaZ,
-    { Gamepad R axis. }
     jaR,
-    { Gamepad U axis. }
     jaU,
-    { Gamepad V axis. }
     jaV,
-    { Gamepad POV X axis. }
     jaPovX,
-    { Gamepad POV Y axis. }
     jaPovY
   );
 
-  { Gamepad button as integer index. }
-  TInternalGamepadButton = 0..31;
+  { Internal controller button as integer index. }
+  TInternalGameControllerButton = 0..31;
 
-  { Properties of a given joystick,
-    use by accessing @link(TJoysticks.Items Joysticks[Index]).
+  { Properties of a given game controller (joystick, gamepad).
+    Get instance of this by @link(TGameControllers.Items Controllers[Index]).
 
-    Do not construct instances of this yourself, TJoysticks creates
+    Do not construct instances of this yourself, TGameControllers creates
     this automatically when necessary.
 
     All the contents of this class are read-only for applications.
-    Only the gamepad backends (that implement TJoystick logic
+    Only the controller backends (that implement TGameController logic
     using underlying system-specific APIs) can change it. }
-  TJoystick = class
-  private
+  TGameController = class
   public
-    { Implementation-specific information. }
-    InternalBackendInfo: TObject;
-
-    { Gamepad name. Not necessarily unique, so be sure to display also
-      gamepad index to the user in UI. }
+    { Game controller name. Not necessarily unique, so be sure to display also
+      game controller index to the user in UI. }
     Name: String;
 
-    { Gamepad information. }
-    InternalButtonsCount: Integer;
-    InternalCapabilities: TInternalGamepadCapabilities;
+    { Implementation-specific information.
+      @exclude }
+    InternalBackendInfo: TObject;
 
-    { Axes count available in this gamepad.
+    { Buttons count reported to be supported.
+      @exclude }
+    InternalButtonsCount: Integer;
+
+    { Capabilities reported to be supported.
+      @exclude }
+    InternalCapabilities: TInternalGameControllerCapabilities;
+
+    { Axes count available in this controller.
       Warning: This doesn't imply the number of axes that are available in
       InternalAxis, it talks about internal axes (backend-specific) that
-      are mapped to real axes in TInternalGamepadAxis.
-      So *do not* use this to iterate over InternalAxis. }
+      are mapped to real axes in TInternalGameControllerAxis.
+      So *do not* use this to iterate over InternalAxis.
+      @exclude }
     InternalAxesCount: Integer;
 
-    { Current gamepad state.
+    { Current state of the axis.
       This is internal, use instead nicer
-      @link(TJoystick.LeftAxis) and @link(TJoystick.RightAxis). }
-    InternalAxis: array[TInternalGamepadAxis] of Single;
-    InternalButtonDown: array[TInternalGamepadButton] of Boolean;
-    InternalButtonDownReported: array[TInternalGamepadButton] of Boolean;
+      @link(TGameController.AxisLeft) and @link(TGameController.AxisLeft).
+      @exclude }
+    InternalAxis: array[TInternalGameControllerAxis] of Single;
+
+    { Current state of the buttons.
+      @exclude }
+    InternalButtonDown: array[TInternalGameControllerButton] of Boolean;
+
+    { Last state of the buttons reported to TCastleUserInterface.Press/Release.
+      @exclude }
+    InternalButtonDownReported: array[TInternalGameControllerButton] of Boolean;
 
     { Left analog stick position. }
-    function LeftAxis: TVector2;
+    function AxisLeft: TVector2;
 
     { Right analog stick position. }
-    function RightAxis: TVector2;
+    function AxisRight: TVector2;
 
     { Nice caption (label) of a given button.
 
@@ -133,7 +133,7 @@ type
       ) }
     function ButtonMeaning(const Button: TGameControllerButton): TGameControllerButtonMeaning;
 
-    { Map TInternalGamepadButton (button as internal, device-specific integer)
+    { Map TInternalGameControllerButton (button as internal, device-specific integer)
       to nice TGameControllerButton.
 
       TODO: The current implementation assumes
@@ -142,85 +142,76 @@ type
         @item(or Nintendo Switch controllers on @url(https://castle-engine.io/nintendo_switch
           Nintendo Switch).)
       ) }
-    function InternalButtonMap(const Button: TInternalGamepadButton): TGameControllerButton;
+    function InternalButtonMap(const Button: TInternalGameControllerButton): TGameControllerButton;
 
     destructor Destroy; override;
   end;
 
-  TJoystickList = {$ifdef FPC}specialize{$endif} TObjectList<TJoystick>;
+  TGameControllerList = {$ifdef FPC}specialize{$endif} TObjectList<TGameController>;
 
-  TJoysticks = class;
+  TGameControllers = class;
 
-  { Internal class to provide different implementations of joystick events reading.
+  { Internal class to provide different implementations of game controllers.
     @exclude }
-  TJoysticksBackend = class abstract
-    { Detect and add joysticks to given list. }
-    procedure Initialize(const List: TJoystickList); virtual; abstract;
+  TGameControllersBackend = class abstract
+    { Detect and add controllers to given list. }
+    procedure Initialize(const List: TGameControllerList); virtual; abstract;
 
-    { Update state of joysticks on given list. }
-    procedure Poll(const List: TJoystickList;
-      const EventContainer: TJoysticks); virtual; abstract;
+    { Update state of controllers on given list. }
+    procedure Poll(const List: TGameControllerList;
+      const EventContainer: TGameControllers); virtual; abstract;
   end;
 
-  { Joystick axis move event. }
-  TOnJoyAxisMove = procedure(const Joy: TJoystick;
-    const Axis: TInternalGamepadAxis; const Value: Single) of object;
-
-  { Joystick button action event. Used on button press/up/down. }
-  TOnJoyButtonEvent = procedure(const Joy: TJoystick;
-    const Button: TInternalGamepadButton) of object;
-
-  { TJoysticks is a class for joysticks and gamepads management }
-  TJoysticks = class
+  { Manage game controllers (joysticks, gamepads).
+    See examples/game_controllers for usage examples. }
+  TGameControllers = class
   private
-    Backend: TJoysticksBackend;
-    FList: TJoystickList;
+    Backend: TGameControllersBackend;
+    FList: TGameControllerList;
     FInitialized: Boolean;
     FOnChange: TNotifyEvent;
     FOnDisconnect: TNotifyEvent;
     FOnConnect: TNotifyEvent;
-    function GetItems(const Index: Integer): TJoystick;
-    { Get (creating if necessary) joystick's explicit backend.
-      Always returns TExplicitJoystickBackend, but cannot be declared as such. }
-    function ExplicitBackend: TJoysticksBackend;
+    function GetItems(const Index: Integer): TGameController;
+    { Get (creating if necessary) explicit backend.
+      Always returns TExplicitGameControllerBackend, but cannot be declared as such. }
+    function ExplicitBackend: TGameControllersBackend;
   protected
     { See OnChange. }
     procedure DoChange;
   public
     constructor Create;
     destructor Destroy; override;
-    { Check state of every connected joystick and run event procedures.
+    { Check state of every connected controller and run event procedures.
       This is internal, called automatically by CastleUIControls unit,
       user code does not need to call this.
       @exclude }
     procedure InternalPoll;
 
-    { Number of connected joysticks. }
+    { Number of connected controllers. }
     function Count: Integer;
 
-    { List of connected joysticks.
-      Use this to access individual joysticks. }
-    property Items[const Index: Integer]: TJoystick read GetItems; default;
+    { List of connected controllers.
+      Use this to access individual controllers. }
+    property Items[const Index: Integer]: TGameController read GetItems; default;
 
-    { Detect connected joysticks.
-      On some platforms, you need to call this to search for connected joysticks,
-      otherwise you will always have zero joysticks.
-      Calling this again is allowed, it searches for connected joysticks again. }
+    { Detect connected controllers.
+      On some platforms, you need to call this to search for connected controllers,
+      otherwise you will always have zero controllers.
+      Calling this again is allowed, it searches for connected controllers again. }
     procedure Initialize;
 
     { Was @link(Initialize) called. }
     property Initialized: Boolean read FInitialized;
 
     { Used by CASTLE_WINDOW_LIBRARY when
-      an external API notifies us about the joysticks state.
+      an external API notifies us about the controllers state.
       @exclude }
-    procedure InternalSetJoystickCount(const JoystickCount: Integer);
+    procedure InternalSetCount(const ControllerCount: Integer);
     { @exclude }
-    procedure InternalSetJoystickAxis(const JoystickIndex: Integer; const Axis: TVector2); deprecated 'use InternalSetJoystickLeftAxis';
+    procedure InternalSetAxisLeft(const ControllerIndex: Integer; const Axis: TVector2);
     { @exclude }
-    procedure InternalSetJoystickLeftAxis(const JoystickIndex: Integer; const Axis: TVector2);
-    { @exclude }
-    procedure InternalSetJoystickRightAxis(const JoystickIndex: Integer; const Axis: TVector2);
+    procedure InternalSetAxisRight(const ControllerIndex: Integer; const Axis: TVector2);
 
     { Used by CastleWindow when
       an external API notifies us about connecting/disconnecting devices to the system.
@@ -229,44 +220,48 @@ type
     { @exclude }
     procedure InternalDisconnected;
 
-    { Called after TJoystick instances on the list change (some are added, destroyed).
+    { Called after TGameController instances on the list change (some are added, destroyed).
       In case of some backends, this is only called at the end of @link(Initialize),
-      but it may be called in other cases (e.g. "explicit" joystick backend,
+      but it may be called in other cases (e.g. "explicit" backend,
       used by Nintendo Switch, may call this at any moment). }
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
 
-    { Called when previously initalized gamepad has been disconnected. }
+    { Called when a previously initalized controller has been disconnected.
+      You should call @link(TGameControllers.Initialize Controllers.Initialize)
+      at the nearest opportunity, to remove the disconnected controller
+      from the list.
+      Note that this changes the indexes of all controllers. }
     property OnDisconnect: TNotifyEvent read FOnDisconnect write FOnDisconnect;
 
-    { Called when gamepad has been connected to the system. }
+    { Called when the new game controller has been connected to the system.
+      You should call @link(TGameControllers.Initialize Controllers.Initialize)
+      at the nearest opportunity, to remove the disconnected controller
+      from the list.
+      Note that this changes the indexes of all controllers. }
     property OnConnect: TNotifyEvent read FOnConnect write FOnConnect;
   end;
 
-{ Detect connected joysticks. }
-procedure EnableJoysticks; deprecated 'use Joysticks.Initialize';
-
-{ Global joystick manager object. Singleton, automatically created when being accessed.
-  Remember to call @link(TJoysticks.Initialize), this is necessary on some platforms
-  to detect joysticks. }
-function Joysticks: TJoysticks;
+{ Global game controller object.
+  Singleton, automatically created when being accessed. }
+function Controllers: TGameControllers;
 
 implementation
 
 uses SysUtils, Math,
   CastleLog,
-  {$ifdef FPC} {$ifdef LINUX} CastleInternalJoysticksLinux, {$endif} {$endif}
-  {$ifdef MSWINDOWS} CastleInternalJoysticksWindows, {$endif}
-  CastleInternalJoysticksExplicit;
+  {$ifdef FPC} {$ifdef LINUX} CastleInternalGameControllersLinux, {$endif} {$endif}
+  {$ifdef MSWINDOWS} CastleInternalGameControllersWindows, {$endif}
+  CastleInternalGameControllersExplicit;
 
-{ TJoystick ------------------------------------------------------------------ }
+{ TGameController ------------------------------------------------------------------ }
 
-destructor TJoystick.Destroy;
+destructor TGameController.Destroy;
 begin
   FreeAndNil(InternalBackendInfo);
   inherited;
 end;
 
-function TJoystick.LeftAxis: TVector2;
+function TGameController.AxisLeft: TVector2;
 begin
   Result := Vector2(
     InternalAxis[jaX],
@@ -277,7 +272,7 @@ begin
   );
 end;
 
-function TJoystick.RightAxis: TVector2;
+function TGameController.AxisRight: TVector2;
 begin
   Result := Vector2(
     InternalAxis[jaU],
@@ -289,10 +284,10 @@ begin
 end;
 
 const
-  { Map TInternalGamepadButton to TGameControllerButton.
+  { Map TInternalGameControllerButton to TGameControllerButton.
     Specific to the XBox Controller, more specifically
     https://en.wikipedia.org/wiki/Xbox_Wireless_Controller }
-  XBoxInternalMap: array[TInternalGamepadButton] of record
+  XBoxInternalMap: array[TInternalGameControllerButton] of record
     Button: TGameControllerButton;
     Handled: Boolean;
   end = (
@@ -363,11 +358,11 @@ const
     { gpShare }           (Caption: 'Share'            ; Meaning: gmNone   ; Handled: true)
   );
 
-function TJoystick.ButtonCaption(const Button: TGameControllerButton): String;
+function TGameController.ButtonCaption(const Button: TGameControllerButton): String;
 begin
   if not XBoxMap[Button].Handled then
   begin
-    WritelnWarning('TJoystick.ButtonCaption: Button %d is not handled by the game controller "%s".', [
+    WritelnWarning('TGameController.ButtonCaption: Button %d is not handled by the game controller "%s".', [
       Ord(Button),
       // TODO: Write here also controller index
       Name
@@ -376,11 +371,11 @@ begin
   Result := XBoxMap[Button].Caption;
 end;
 
-function TJoystick.ButtonMeaning(const Button: TGameControllerButton): TGameControllerButtonMeaning;
+function TGameController.ButtonMeaning(const Button: TGameControllerButton): TGameControllerButtonMeaning;
 begin
   if not XBoxMap[Button].Handled then
   begin
-    WritelnWarning('TJoystick.ButtonMeaning: Button %d is not handled by the game controller "%s".', [
+    WritelnWarning('TGameController.ButtonMeaning: Button %d is not handled by the game controller "%s".', [
       Ord(Button),
       // TODO: Write here also controller index
       Name
@@ -389,11 +384,11 @@ begin
   Result := XBoxMap[Button].Meaning;
 end;
 
-function TJoystick.InternalButtonMap(const Button: TInternalGamepadButton): TGameControllerButton;
+function TGameController.InternalButtonMap(const Button: TInternalGameControllerButton): TGameControllerButton;
 begin
   if not XBoxInternalMap[Button].Handled then
   begin
-    WritelnWarning('TJoystick.InternalButtonMap: Button %d is not handled by the game controller "%s".', [
+    WritelnWarning('TGameController.InternalButtonMap: Button %d is not handled by the game controller "%s".', [
       Ord(Button),
       // TODO: Write here also controller index
       Name
@@ -402,41 +397,41 @@ begin
   Result := XBoxInternalMap[Button].Button;
 end;
 
-{ TJoysticks ----------------------------------------------------------------- }
+{ TGameControllers ----------------------------------------------------------------- }
 
-constructor TJoysticks.Create;
+constructor TGameControllers.Create;
 begin
   inherited;
-  FList := TJoystickList.Create(true);
+  FList := TGameControllerList.Create(true);
   {$if defined(MSWINDOWS)}
-  Backend := TWindowsJoysticksBackend.Create;
+  Backend := TWindowsControllersBackend.Create;
   {$elseif defined(LINUX) and defined(FPC)}
-  // TODO: Delphi on Linux doesn't support joysticks now
-  Backend := TLinuxJoysticksBackend.Create;
+  // TODO: Delphi on Linux doesn't support game controllers now
+  Backend := TLinuxControllersBackend.Create;
   {$else}
   // This way Backend is non-nil always
-  Backend := TExplicitJoystickBackend.Create;
+  Backend := TExplicitGameControllerBackend.Create;
   {$endif}
 end;
 
-destructor TJoysticks.Destroy;
+destructor TGameControllers.Destroy;
 begin
   FreeAndNil(FList);
   FreeAndNil(Backend);
   inherited;
 end;
 
-procedure TJoysticks.Initialize;
+procedure TGameControllers.Initialize;
 begin
   FInitialized := true;
 
-  { In case of TExplicitJoystickBackend,
+  { In case of TExplicitGameControllerBackend,
     do not clear the list and call Backend.Initialize.
-    Instead leave existing joysticks (set by TExplicitJoystickBackend.SetJoystickCount).
-    That's because Backend.Initialize doesn't have a way to get new joystick information
-    (in case of TExplicitJoystickBackend, it is CGE that is informed by external code
-    about joystick existence). }
-  if Backend is TExplicitJoystickBackend then
+    Instead leave existing controllers (set by TExplicitGameControllerBackend.SetCount).
+    That's because Backend.Initialize doesn't have a way to get new
+    controllers information (in case of TExplicitGameControllerBackend,
+    it is CGE that is informed by external code about controller existence). }
+  if Backend is TExplicitGameControllerBackend then
     Exit;
 
   FList.Clear;
@@ -444,70 +439,65 @@ begin
   DoChange;
 end;
 
-procedure TJoysticks.InternalPoll;
+procedure TGameControllers.InternalPoll;
 begin
   if FInitialized then
     Backend.Poll(FList, Self);
 end;
 
-function TJoysticks.ExplicitBackend: TJoysticksBackend;
+function TGameControllers.ExplicitBackend: TGameControllersBackend;
 begin
   Assert(Backend <> nil);
-  if not (Backend is TExplicitJoystickBackend) then
+  if not (Backend is TExplicitGameControllerBackend) then
   begin
     FreeAndNil(Backend);
-    Backend := TExplicitJoystickBackend.Create;
-    { Although TExplicitJoystickBackend.Initialize doesn't do anything for now,
+    Backend := TExplicitGameControllerBackend.Create;
+    { Although TExplicitGameControllerBackend.Initialize doesn't do anything for now,
       but call it, to make sure Initialized = true. }
     Initialize;
   end;
   Result := Backend;
 end;
 
-procedure TJoysticks.InternalSetJoystickCount(const JoystickCount: Integer);
+procedure TGameControllers.InternalSetCount(const ControllerCount: Integer);
 begin
-  TExplicitJoystickBackend(ExplicitBackend).SetJoystickCount(FList, JoystickCount);
+  (ExplicitBackend as TExplicitGameControllerBackend).SetCount(FList, ControllerCount);
   DoChange;
 end;
 
-procedure TJoysticks.InternalSetJoystickAxis(const JoystickIndex: Integer; const Axis: TVector2);
+procedure TGameControllers.InternalSetAxisLeft(const ControllerIndex: Integer; const Axis: TVector2);
 begin
-  InternalSetJoystickLeftAxis(JoystickIndex, Axis);
+  (ExplicitBackend as TExplicitGameControllerBackend).SetAxisLeft(FList, ControllerIndex, Axis);
 end;
 
-procedure TJoysticks.InternalSetJoystickLeftAxis(const JoystickIndex: Integer; const Axis: TVector2);
+procedure TGameControllers.InternalSetAxisRight(const ControllerIndex: Integer; const Axis: TVector2);
 begin
-  TExplicitJoystickBackend(ExplicitBackend).SetJoystickLeftAxis(FList, JoystickIndex, Axis);
+  (ExplicitBackend as TExplicitGameControllerBackend).SetAxisRight(FList, ControllerIndex, Axis);
 end;
 
-procedure TJoysticks.InternalSetJoystickRightAxis(const JoystickIndex: Integer; const Axis: TVector2);
-begin
-  TExplicitJoystickBackend(ExplicitBackend).SetJoystickRightAxis(FList, JoystickIndex, Axis);
-end;
-
-procedure TJoysticks.InternalConnected;
+procedure TGameControllers.InternalConnected;
 begin
   if Assigned(OnConnect) then
     OnConnect(Self);
 end;
 
-procedure TJoysticks.InternalDisconnected;
+procedure TGameControllers.InternalDisconnected;
 begin
   if Assigned(OnDisconnect) then
     OnDisconnect(Self);
 end;
 
-function TJoysticks.GetItems(const Index: Integer): TJoystick;
+function TGameControllers.GetItems(const Index: Integer): TGameController;
 begin
   Result := FList[Index];
 end;
 
-function TJoysticks.Count: Integer;
+function TGameControllers.Count: Integer;
 begin
   Result := FList.Count;
 end;
 
-procedure TJoysticks.DoChange;
+procedure TGameControllers.DoChange;
 begin
   if Assigned(OnChange) then
     OnChange(Self);
@@ -515,23 +505,17 @@ end;
 
 { global --------------------------------------------------------------------- }
 
-procedure EnableJoysticks;
-begin
-  Joysticks.Initialize;
-end;
-
 var
-  FJoysticks: TJoysticks;
+  FControllers: TGameControllers;
 
-function Joysticks: TJoysticks;
+function Controllers: TGameControllers;
 begin
-  if FJoysticks = nil then
-    FJoysticks := TJoysticks.Create;
-  Result := FJoysticks;
+  if FControllers = nil then
+    FControllers := TGameControllers.Create;
+  Result := FControllers;
 end;
 
-{$ifndef FPC}initialization{$endif}
-
+initialization
 finalization
-  FreeAndNil(FJoysticks);
+  FreeAndNil(FControllers);
 end.

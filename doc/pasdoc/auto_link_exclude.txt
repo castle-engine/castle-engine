@@ -93,6 +93,8 @@ contents
 context
 contribution
 controls
+controller
+controllers
 convex
 coordinates
 corners

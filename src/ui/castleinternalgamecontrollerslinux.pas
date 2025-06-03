@@ -17,15 +17,15 @@
   ----------------------------------------------------------------------------
 }
 
-{ Linux Joystick support. }
-unit CastleInternalJoysticksLinux;
+{ Linux game controllers support. }
+unit CastleInternalGameControllersLinux;
 
 {$I castleconf.inc}
 
 interface
 
 uses BaseUnix,
-  CastleJoysticks;
+  CastleGameControllers;
 
 type
   TLinuxJsEvent = record
@@ -50,7 +50,7 @@ const
   EAGAIN = 11; //Error: "there is no data available right now, try again later"
 
   AxisMap : array[ 0..17 ] of record
-    Axis: TInternalGamepadAxis;
+    Axis: TInternalGameControllerAxis;
     Handled: Boolean;
   end = (
     (Axis: jaX; Handled: True),
@@ -78,17 +78,17 @@ const
   );
 
 type
-  TLinuxJoystickBackendInfo = class
+  TLinuxControllerBackendInfo = class
     DeviceInitialized: Boolean;
     Device  : LongInt;
     AxesMap : array[ 0..ABS_MAX - 1 ] of Byte;
     destructor Destroy; override;
   end;
 
-  TLinuxJoysticksBackend = class(TJoysticksBackend)
-    procedure Initialize(const List: TJoystickList); override;
-    procedure Poll(const List: TJoystickList;
-      const EventContainer: TJoysticks); override;
+  TLinuxControllersBackend = class(TGameControllersBackend)
+    procedure Initialize(const List: TGameControllerList); override;
+    procedure Poll(const List: TGameControllerList;
+      const EventContainer: TGameControllers); override;
   end;
 
 implementation
@@ -106,9 +106,9 @@ uses
   - Alternative backend using a higher-level library (like SDL2) to handle joysticks?
 }
 
-{ TLinuxJoystickBackendInfo -------------------------------------------------- }
+{ TLinuxControllerBackendInfo -------------------------------------------------- }
 
-destructor TLinuxJoystickBackendInfo.Destroy;
+destructor TLinuxControllerBackendInfo.Destroy;
 begin
   { Check for DeviceInitialized, since any Device >= 0 is valid in theory. }
   if DeviceInitialized then
@@ -116,88 +116,88 @@ begin
   inherited;
 end;
 
-{ TLinuxJoysticksBackend ----------------------------------------------------- }
+{ TLinuxControllersBackend ----------------------------------------------------- }
 
-procedure TLinuxJoysticksBackend.Initialize(const List: TJoystickList);
+procedure TLinuxControllersBackend.Initialize(const List: TGameControllerList);
 var
-  GamepadIndex, j : Integer;
-  NewJoystick: TJoystick;
-  NewBackendInfo: TLinuxJoystickBackendInfo;
+  ControllerIndex, j : Integer;
+  NewController: TGameController;
+  NewBackendInfo: TLinuxControllerBackendInfo;
 begin
-  for GamepadIndex := 0 to 15 do
+  for ControllerIndex := 0 to 15 do
   begin
-    NewJoystick := TJoystick.Create;
-    NewBackendInfo := TLinuxJoystickBackendInfo.Create;
-    NewJoystick.InternalBackendInfo := NewBackendInfo;
+    NewController := TGameController.Create;
+    NewBackendInfo := TLinuxControllerBackendInfo.Create;
+    NewController.InternalBackendInfo := NewBackendInfo;
 
-    NewBackendInfo.Device := FpOpen( '/dev/input/js' + IntToStr(GamepadIndex), O_RDONLY or O_NONBLOCK );
+    NewBackendInfo.Device := FpOpen( '/dev/input/js' + IntToStr(ControllerIndex), O_RDONLY or O_NONBLOCK );
     if NewBackendInfo.Device < 0 then
-      NewBackendInfo.Device := FpOpen( '/dev/js' + IntToStr(GamepadIndex), O_RDONLY or O_NONBLOCK );
+      NewBackendInfo.Device := FpOpen( '/dev/js' + IntToStr(ControllerIndex), O_RDONLY or O_NONBLOCK );
 
     if NewBackendInfo.Device > -1 then
     begin
       NewBackendInfo.DeviceInitialized := true;
-      SetLength( NewJoystick.Name, 256 );
+      SetLength( NewController.Name, 256 );
       { TODO: why is cast to TIOCtlRequest needed (with FPC 3.3.1-r43920),
         we should probably fix the definition of JSIOCGNAME etc. instead. }
-      FpIOCtl( NewBackendInfo.Device, TIOCtlRequest(JSIOCGNAME),    @NewJoystick.Name[ 1 ] );
+      FpIOCtl( NewBackendInfo.Device, TIOCtlRequest(JSIOCGNAME),    @NewController.Name[ 1 ] );
       FpIOCtl( NewBackendInfo.Device, TIOCtlRequest(JSIOCGAXMAP),   @NewBackendInfo.AxesMap[ 0 ] );
-      FpIOCtl( NewBackendInfo.Device, TIOCtlRequest(JSIOCGAXES),    @NewJoystick.InternalAxesCount );
-      FpIOCtl( NewBackendInfo.Device, TIOCtlRequest(JSIOCGBUTTONS), @NewJoystick.InternalButtonsCount );
+      FpIOCtl( NewBackendInfo.Device, TIOCtlRequest(JSIOCGAXES),    @NewController.InternalAxesCount );
+      FpIOCtl( NewBackendInfo.Device, TIOCtlRequest(JSIOCGBUTTONS), @NewController.InternalButtonsCount );
 
-      for j := 0 to NewJoystick.InternalAxesCount - 1 do
+      for j := 0 to NewController.InternalAxesCount - 1 do
         if AxisMap[NewBackendInfo.AxesMap[ j ]].Handled then
         case AxisMap[NewBackendInfo.AxesMap[ j ]].Axis of
-          jaZ: Include(NewJoystick.InternalCapabilities, jcZ);
-          jaR: Include(NewJoystick.InternalCapabilities, jcR);
-          jaU: Include(NewJoystick.InternalCapabilities, jcU);
-          jaV: Include(NewJoystick.InternalCapabilities, jcV);
-          jaPovX, jaPovY: Include(NewJoystick.InternalCapabilities, jcPOV);
+          jaZ: Include(NewController.InternalCapabilities, jcZ);
+          jaR: Include(NewController.InternalCapabilities, jcR);
+          jaU: Include(NewController.InternalCapabilities, jcU);
+          jaV: Include(NewController.InternalCapabilities, jcV);
+          jaPovX, jaPovY: Include(NewController.InternalCapabilities, jcPOV);
         end;
 
       for j := 1 to 255 do
-        if NewJoystick.Name[ j ] = #0 then
+        if NewController.Name[ j ] = #0 then
         begin
-          SetLength( NewJoystick.Name, j - 1 );
+          SetLength( NewController.Name, j - 1 );
           break;
         end;
 
-      { Checking if joystick is a real one,
+      { Checking if controller is a real one,
         because laptops with accelerometer can be detected as a joystick :) }
-      if ( NewJoystick.InternalAxesCount >= 2 ) and
-         ( NewJoystick.InternalButtonsCount > 0 ) then
+      if ( NewController.InternalAxesCount >= 2 ) and
+         ( NewController.InternalButtonsCount > 0 ) then
       begin
-        WritelnLog('CastleJoysticks Init', 'Find gamepad: %s (ID: %d); Axes: %d; Buttons: %d', [
-          NewJoystick.Name,
-          GamepadIndex,
-          NewJoystick.InternalAxesCount,
-          NewJoystick.InternalButtonsCount
+        WritelnLog('CastleGameControllers', 'Detected game controller: %s (ID: %d); Axes: %d; Buttons: %d', [
+          NewController.Name,
+          ControllerIndex,
+          NewController.InternalAxesCount,
+          NewController.InternalButtonsCount
         ]);
-        List.Add(NewJoystick);
+        List.Add(NewController);
       end else
-        FreeAndNil(NewJoystick);
+        FreeAndNil(NewController);
     end else
-      FreeAndNil(NewJoystick);
+      FreeAndNil(NewController);
   end;
 end;
 
-procedure TLinuxJoysticksBackend.Poll(const List: TJoystickList;
-  const EventContainer: TJoysticks);
+procedure TLinuxControllersBackend.Poll(const List: TGameControllerList;
+  const EventContainer: TGameControllers);
 var
   i : Integer;
   Value: Single;
-  axis: TInternalGamepadAxis;
+  axis: TInternalGameControllerAxis;
   event : TLinuxJsEvent;
-  Joystick: TJoystick;
-  BackendInfo: TLinuxJoystickBackendInfo;
+  Controller: TGameController;
+  BackendInfo: TLinuxControllerBackendInfo;
   BytesRead: TSsize;
-  JoystickHasBeenDisconnected: Boolean;
+  ControllerHasBeenDisconnected: Boolean;
 begin
-  JoystickHasBeenDisconnected := false;
+  ControllerHasBeenDisconnected := false;
   for I := 0 to List.Count - 1 do
   begin
-    Joystick := List[I];
-    BackendInfo := Joystick.InternalBackendInfo as TLinuxJoystickBackendInfo;
+    Controller := List[I];
+    BackendInfo := Controller.InternalBackendInfo as TLinuxControllerBackendInfo;
     BytesRead := FpRead( BackendInfo.Device, event, 8 );
     if BytesRead = 8 then
       repeat
@@ -208,10 +208,10 @@ begin
               if AxisMap[ BackendInfo.AxesMap[ event.number ] ].Handled then
               begin
                 axis := AxisMap[ BackendInfo.AxesMap[ event.number ] ].Axis;
-                Joystick.InternalAxis[ axis ] := Value;
+                Controller.InternalAxis[ axis ] := Value;
               end else
               begin
-                WritelnLog('Joystick %d reports unhandled axis (%d mapped to %d) (value: %f)', [
+                WritelnLog('Controller %d reports unhandled axis (%d mapped to %d) (value: %f)', [
                   I,
                   event.number,
                   BackendInfo.AxesMap[ event.number ],
@@ -221,8 +221,8 @@ begin
             end;
           JS_EVENT_BUTTON:
             case event.value of
-              0: Joystick.InternalButtonDown[ event.number ] := False;
-              1: Joystick.InternalButtonDown[ event.number ] := True;
+              0: Controller.InternalButtonDown[ event.number ] := False;
+              1: Controller.InternalButtonDown[ event.number ] := True;
             end;
         end;
         BytesRead := FpRead( BackendInfo.Device, event, 8 );
@@ -230,12 +230,12 @@ begin
     else
       if fpgeterrno <> EAGAIN then
       begin
-        WritelnLog('Joystick error: possibly "%s" was disconnected.', [Joystick.Name]);
-        JoystickHasBeenDisconnected := true;
+        WritelnLog('Controller error: possibly "%s" was disconnected.', [Controller.Name]);
+        ControllerHasBeenDisconnected := true;
       end;
   end;
-  if JoystickHasBeenDisconnected then
-    Joysticks.InternalDisconnected;
+  if ControllerHasBeenDisconnected then
+    Controllers.InternalDisconnected;
 end;
 
 end.

@@ -21,8 +21,8 @@ implementation
 uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
-  ApplicationProperties.ApplicationName := 'gamepads_demo';
-  ApplicationProperties.Caption := 'gamepads_demo';
+  ApplicationProperties.ApplicationName := 'game_controllers_demo';
+  ApplicationProperties.Caption := 'game_controllers_demo';
   ApplicationProperties.Version := '0.1';
 
   if not IsLibrary then

@@ -23,7 +23,7 @@ interface
 uses SysUtils, Classes, Generics.Collections,
   CastleKeysMouse, CastleUtils, CastleClassUtils, CastleGLUtils, CastleFonts,
   CastleRectangles, CastleTimeUtils, CastleInternalPk3DConnexion, CastleColors,
-  CastleImages, CastleVectors, CastleJoysticks, CastleApplicationProperties,
+  CastleImages, CastleVectors, CastleGameControllers, CastleApplicationProperties,
   CastleGLImages, CastleRenderContext, CastleComponentSerialize,
   CastleMessaging, CastleStringUtils;
 

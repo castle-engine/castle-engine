@@ -685,7 +685,7 @@ type
     { Internal number of the button.
       Do not use this, unless your controller produces values that we cannot
       express using TGameControllerButton.
-      This is always TInternalGamepadButton, but cannot be declared as such. }
+      This is always TInternalGameControllerButton, but cannot be declared as such. }
     InternalButton: Integer;
   end;
 

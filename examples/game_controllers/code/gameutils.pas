@@ -1,29 +1,29 @@
 {
   Copyright 2025-2025 Michalis Kamburelis.
 
-  This file is part of "Dice Throwing".
+  This file is part of "Castle Game Engine".
 
-  "Dice Throwing" is free software; see the file LICENSE,
+  "Castle Game Engine" is free software; see the file COPYING.txt,
   included in this distribution, for details about the copyright.
 
-  "Dice Throwing" is distributed in the hope that it will be useful,
+  "Castle Game Engine" is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
   ----------------------------------------------------------------------------
 }
 
-{ Utitlities for gamepad example. }
+{ Utitlities for game_controllers example. }
 unit GameUtils;
 
 interface
 
 uses Classes,
-  CastleUiControls, CastleVectors, CastleControls, CastleJoysticks;
+  CastleUiControls, CastleVectors, CastleControls, CastleGameControllers;
 
 type
-  { Visualize joystick axis (2D vector) state. }
-  TJoyAxisVisualize = class(TCastleRectangleControl)
+  { Visualize controller 2D axis state. }
+  T2DAxisVisualize = class(TCastleRectangleControl)
   strict private
     FAxis: TVector2;
     Shape: TCastleShape;
@@ -37,14 +37,14 @@ type
     property Caption: String read GetCaption write SetCaption;
   end;
 
-function InternalAxisName(const Axis: TInternalGamepadAxis): String;
+function InternalAxisName(const Axis: TInternalGameControllerAxis): String;
 
 implementation
 
 uses SysUtils, TypInfo,
   CastleColors;
 
-constructor TJoyAxisVisualize.Create(AOwner: TComponent);
+constructor T2DAxisVisualize.Create(AOwner: TComponent);
 var
   CircleFill: TCastleShape;
 begin
@@ -84,25 +84,25 @@ begin
   InsertFront(Lab);
 end;
 
-procedure TJoyAxisVisualize.SetAxis(const Value: TVector2);
+procedure T2DAxisVisualize.SetAxis(const Value: TVector2);
 begin
   FAxis := Value;
   Shape.Translation := Value * Vector2(Width - Shape.Width, Height - Shape.Height) / 2;
 end;
 
-function TJoyAxisVisualize.GetCaption: String;
+function T2DAxisVisualize.GetCaption: String;
 begin
   Result := Lab.Caption;
 end;
 
-procedure TJoyAxisVisualize.SetCaption(const Value: String);
+procedure T2DAxisVisualize.SetCaption(const Value: String);
 begin
   Lab.Caption := Value;
 end;
 
-function InternalAxisName(const Axis: TInternalGamepadAxis): String;
+function InternalAxisName(const Axis: TInternalGameControllerAxis): String;
 begin
-  Result := GetEnumName(TypeInfo(TInternalGamepadAxis), Ord(Axis));
+  Result := GetEnumName(TypeInfo(TInternalGameControllerAxis), Ord(Axis));
 end;
 
 end.

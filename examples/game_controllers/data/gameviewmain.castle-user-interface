@@ -44,7 +44,7 @@
       "$Children" : [
         {
           "$$ClassName" : "TCastleButton",
-          "Caption" : "Detect Connected Gamepads Again",
+          "Caption" : "Detect Connected Game Controllers Again",
           "CustomBackgroundDisabled" : {
             "$$ClassName" : "TCastleImagePersistent"
           },
@@ -72,9 +72,9 @@
             "Green" : 1.0000000000000000E+000,
             "Red" : 1.0000000000000000E+000
           },
-          "Name" : "LabelJGamepadsCount",
+          "Name" : "LabelControllersCount",
           "Text" : [
-            "LabelJGamepadsCount"
+            "LabelControllersCount"
           ],
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
@@ -85,7 +85,7 @@
         },
         {
           "$$ClassName" : "TCastleVerticalGroup",
-          "Name" : "GroupGamepads",
+          "Name" : "GroupControllers",
           "Spacing" : 1.0000000000000000E+001,
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
@@ -99,7 +99,7 @@
     {
       "$$ClassName" : "TCastleVerticalGroup",
       "Exists" : false,
-      "Name" : "SelectedGamepadUi",
+      "Name" : "SelectedControllerUi",
       "Spacing" : 1.0000000000000000E+001,
       "TranslationPersistent" : {
         "$$ClassName" : "TCastleVector2Persistent",
@@ -109,14 +109,14 @@
       "$Children" : [
         {
           "$$ClassName" : "TCastleVerticalGroup",
-          "Name" : "SelectedGamepadDynamicUi",
+          "Name" : "SelectedControllerDynamicUi",
           "Spacing" : 1.0000000000000000E+001,
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
         },
         {
           "$$ClassName" : "TCastleButton",
-          "Caption" : "Close This Gamepad Visualization",
+          "Caption" : "Close This Game Controller Visualization",
           "CustomBackgroundDisabled" : {
             "$$ClassName" : "TCastleImagePersistent"
           },

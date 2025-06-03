@@ -47,12 +47,12 @@ This example shows the public API to access game controllers:
 
 ## Internal API for game controllers
 
-This example is accessing also some internal joystick API, clearly marked by `Internal*` names. In particular,
+This example is accessing also some internal game controllers API, clearly marked by `Internal*` names. In particular,
 
 - `TGameController.InternalAxis`
 - `TGameController.InternalButtonDown`
 
-For your usage, you *should not* use this API. The "public API" we recommend above is stable, and much more comfortable. The internal API exposes axis and buttons using integers, and the mapping from these integers to something meaningful (like "which button is A" or "which axis describes left stick") depends on the joystick type.
+For your usage, you *should not* use this API. The "public API" we recommend above is stable, and much more comfortable. The internal API exposes axis and buttons using integers, and the mapping from these integers to something meaningful (like "which button is A" or "which axis describes left stick") depends on the controller type.
 
 Our implementation handles
 
@@ -73,6 +73,6 @@ Compile by:
 
 - Or use [CGE command-line build tool](https://castle-engine.io/build_tool). Run `castle-engine compile` in this directory.
 
-- Or use [Lazarus](https://www.lazarus-ide.org/). Open in Lazarus `gamepads_demo_standalone.lpi` file and compile / run from Lazarus. Make sure to first register [CGE Lazarus packages](https://castle-engine.io/lazarus).
+- Or use [Lazarus](https://www.lazarus-ide.org/). Open in Lazarus `game_controllers_demo_standalone.lpi` file and compile / run from Lazarus. Make sure to first register [CGE Lazarus packages](https://castle-engine.io/lazarus).
 
-- Or use [Delphi](https://www.embarcadero.com/products/Delphi). Open in Delphi `gamepads_demo_standalone.dproj` file and compile / run from Delphi. See [CGE and Delphi](https://castle-engine.io/delphi) documentation for details.
+- Or use [Delphi](https://www.embarcadero.com/products/Delphi). Open in Delphi `game_controllers_demo_standalone.dproj` file and compile / run from Delphi. See [CGE and Delphi](https://castle-engine.io/delphi) documentation for details.
