@@ -424,15 +424,17 @@ begin
   inherited;
   FList := TGameControllerList.Create(true);
 
+  { No need to assign Backend:= below, constructors will set our Backend field. }
   {$if defined(MSWINDOWS)}
-  Backend := TWindowsControllerManageBackend.Create(Self);
+  TWindowsControllerManagerBackend.Create(Self);
   {$elseif defined(LINUX) and defined(FPC)}
   // TODO: Delphi on Linux doesn't support game controllers now
-  Backend := TLinuxControllerManagerBackend.Create(Self);
+  TLinuxControllerManagerBackend.Create(Self);
   {$else}
   // This way Backend is non-nil always
-  Backend := TExplicitControllerManagerBackend.Create(Self);
+  TExplicitControllerManagerBackend.Create(Self);
   {$endif}
+  Assert(Backend <> nil);
 end;
 
 destructor TGameControllers.Destroy;
@@ -472,7 +474,10 @@ begin
   if not (Backend is TExplicitControllerManagerBackend) then
   begin
     FreeAndNil(Backend);
-    Backend := TExplicitControllerManagerBackend.Create(Self);
+    { No need to assign Backend:= below, TExplicitControllerManagerBackend
+      constructor will set our Backend field. }
+    TExplicitControllerManagerBackend.Create(Self);
+    Assert(Backend is TExplicitControllerManagerBackend);
     { Although TExplicitControllerManagerBackend.Initialize doesn't do anything for now,
       but call it, to make sure Initialized = true. }
     Initialize;
