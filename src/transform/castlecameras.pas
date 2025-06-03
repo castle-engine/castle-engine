@@ -2617,19 +2617,19 @@ begin
      (not Valid) then
     Exit;
 
-  if RotationEnabled and Input_Rotate.IsPressed(Container.Pressed, Container.MousePressed) then
+  if RotationEnabled and Input_Rotate.IsPressed(Container) then
   begin
     DragRotation;
     Result := true;
   end;
 
-  if ZoomEnabled and Input_Zoom.IsPressed(Container.Pressed, Container.MousePressed) then
+  if ZoomEnabled and Input_Zoom.IsPressed(Container) then
   begin
     if Zoom((Event.OldPosition[1] - Event.Position[1]) * 30 / (2 * MoveDivConst)) then
       Result := true;
   end;
 
-  if MoveEnabled and Input_Move.IsPressed(Container.Pressed, Container.MousePressed) then
+  if MoveEnabled and Input_Move.IsPressed(Container) then
   begin
     if ExactMovement and (InternalViewport <> nil) and (not GoodModelBox.IsEmpty) then
     begin
