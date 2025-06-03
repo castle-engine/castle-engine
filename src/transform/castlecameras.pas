@@ -4392,6 +4392,8 @@ var
   BindingAxis: TInputShortcutBindingControllerAxis;
   BindingButton: TInputShortcutBindingControllerButton;
 begin
+  // left stick to move
+
   BindingAxis := TInputShortcutBindingControllerAxis.Create(Self);
   BindingAxis.Axis := gaLeftStick;
   BindingAxis.Positive := true;
@@ -4419,6 +4421,38 @@ begin
   BindingAxis.Coord := 0;
   BindingAxis.ControllerIndex := ControllerIndex;
   Input_LeftStrafe.Bindings.Add(BindingAxis);
+
+  // right stick to rotate
+
+  BindingAxis := TInputShortcutBindingControllerAxis.Create(Self);
+  BindingAxis.Axis := gaRightStick;
+  BindingAxis.Positive := true;
+  BindingAxis.Coord := 0; // horizontal
+  BindingAxis.ControllerIndex := ControllerIndex;
+  Input_RightRotate.Bindings.Add(BindingAxis);
+
+  BindingAxis := TInputShortcutBindingControllerAxis.Create(Self);
+  BindingAxis.Axis := gaRightStick;
+  BindingAxis.Positive := false;
+  BindingAxis.Coord := 0; // horizontal
+  BindingAxis.ControllerIndex := ControllerIndex;
+  Input_LeftRotate.Bindings.Add(BindingAxis);
+
+  BindingAxis := TInputShortcutBindingControllerAxis.Create(Self);
+  BindingAxis.Axis := gaRightStick;
+  BindingAxis.Positive := true;
+  BindingAxis.Coord := 1; // vertical
+  BindingAxis.ControllerIndex := ControllerIndex;
+  Input_UpRotate.Bindings.Add(BindingAxis);
+
+  BindingAxis := TInputShortcutBindingControllerAxis.Create(Self);
+  BindingAxis.Axis := gaRightStick;
+  BindingAxis.Positive := false;
+  BindingAxis.Coord := 1; // vertical
+  BindingAxis.ControllerIndex := ControllerIndex;
+  Input_DownRotate.Bindings.Add(BindingAxis);
+
+  // other buttons
 
   BindingButton := TInputShortcutBindingControllerButton.Create(Self);
   BindingButton.Button := gbSouth;
