@@ -38,7 +38,7 @@ type
     property Caption: String read FCaption write SetCaption;
   end;
 
-  { Visualize controller 1D axis state. }
+  { Visualize controller 1D axis state from 0 to 1. }
   T1DAxisVisualize = class(TCastleRectangleControl)
   strict private
     FAxis: Single;
@@ -139,7 +139,7 @@ begin
   Shape := TCastleShape.Create(Self);
   Shape.ShapeType := stCircle;
   Shape.Color := Yellow;
-  Shape.Anchor(hpMiddle);
+  Shape.Anchor(hpLeft);
   Shape.Anchor(vpMiddle);
   Shape.Width := 16 - Border.AllSides * 2;
   Shape.Height := 16 - Border.AllSides * 2;
@@ -155,9 +155,7 @@ end;
 procedure T1DAxisVisualize.SetAxis(const Value: Single);
 begin
   FAxis := Value;
-  // Note: Invert -1 and 1, to be more natural for trigger visualization
-  // (because AxisTrigger = 1.0 is "fully left").
-  Shape.Translation := Vector2(MapRange(Value, 1, -1, -126, 126), 0);
+  Shape.Translation := Vector2(MapRange(Value, 0, 1, 0, 256 - 4), 0);
   UpdateLabel;
 end;
 

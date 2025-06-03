@@ -38,13 +38,7 @@ uses MMSystem,
   CastleGameControllers;
 
 type
-  TWindowsControllerBackendInfo = class
-    WindowsId: Integer;
-    Caps    : TJOYCAPSW;
-    AxesMap : array[ 0..5 ] of TInternalGameControllerAxis;
-  end;
-
-  TWindowsControllersBackend = class(TGameControllersBackend)
+  TWindowsControllerManagerBackend = class(TInternalControllerManagerBackend)
     procedure Initialize(const List: TGameControllerList); override;
     procedure Poll(const List: TGameControllerList;
       const EventContainer: TGameControllers); override;
@@ -58,12 +52,137 @@ uses
   { Needed to have PUInt32 defined for Delphi 10.2 }
   CastleUtils;
 
-procedure TWindowsControllersBackend.Initialize(const List: TGameControllerList);
+{ TWindowsControllerBackend ------------------------------------------------- -}
+
+type
+  TWindowsControllerBackend = class(TInternalGameControllerBackend)
+    WindowsId: Integer;
+    Caps    : TJOYCAPSW;
+    AxesMap : array[ 0..5 ] of TInternalGameControllerAxis;
+    function AxisLeft: TVector2; override;
+    function AxisRight: TVector2; override;
+    function AxisLeftTrigger: Single; override;
+    function AxisRightTrigger: Single; override;
+    function InternalButtonMap(
+      const Button: TInternalGameControllerButton): TGameControllerButton; override;
+  end;
+
+function TWindowsControllerBackend.AxisLeft: TVector2;
+begin
+  Result := Vector2(
+    Controller.InternalAxis[jaX],
+    { Y axis should be 1 when pointing up, -1 when pointing down.
+      This is consistent with CGE 2D coordinate system
+      (and standard math 2D coordinate system). }
+    -Controller.InternalAxis[jaY]
+  );
+end;
+
+function TWindowsControllerBackend.AxisRight: TVector2;
+begin
+  Result := Vector2(
+    Controller.InternalAxis[jaU],
+    { Y axis should be 1 when pointing up, -1 when pointing down.
+      This is consistent with CGE 2D coordinate system
+      (and standard math 2D coordinate system). }
+    -Controller.InternalAxis[jaR]
+  );
+end;
+
+function TWindowsControllerBackend.AxisLeftTrigger: Single;
+begin
+  if Controller.InternalAxis[jaZ] > 0 then
+    Result := Controller.InternalAxis[jaZ]
+  else
+    Result := 0;
+end;
+
+function TWindowsControllerBackend.AxisRightTrigger: Single;
+begin
+  { Left and right triggers are reported as one axis.
+
+    InternalAxis[jaZ] meaning:
+    @unorderedlist(
+      @item(1.0 means "only left trigger fully pressed",)
+      @item(0.0 means "no trigger pressed, or both triggers pressed,
+        or more generally: both triggers pressed with equal strength",)
+      @item(-1.0 means "only right trigger fully pressed".)
+    )
+  }
+  if Controller.InternalAxis[jaZ] < 0 then
+    Result := Abs(Controller.InternalAxis[jaZ])
+  else
+    Result := 0;
+end;
+
+const
+  { Map TInternalGameControllerButton to TGameControllerButton.
+    Specific to:
+    - the XBox Controller, more specifically
+      https://en.wikipedia.org/wiki/Xbox_Wireless_Controller
+    - and to this controller implementation, using WinAPI MMSystem. }
+  XBoxInternalMap: array[TInternalGameControllerButton] of record
+    Button: TGameControllerButton;
+    Handled: Boolean;
+  end = (
+    {  0 } (Button: gbSouth; Handled: true),
+    {  1 } (Button: gbEast; Handled: true),
+    {  2 } (Button: gbWest; Handled: true),
+    {  3 } (Button: gbNorth; Handled: true),
+    {  4 } (Button: gbLeftBumper; Handled: true),
+    {  5 } (Button: gbRightBumper; Handled: true),
+    {  6 } (Button: gbView; Handled: true),
+    {  7 } (Button: gbMenu; Handled: true),
+    {  8 } (Button: gbLeftStickClick; Handled: true),
+    {  9 } (Button: gbRightStickClick; Handled: true),
+    { 10 } (Button: gbGuide; Handled: true),
+    { 11 } (Button: gbShare; Handled: true),
+
+    // all the rest, up to 31, are not handled
+    { 12 } (Button: gbNorth; Handled: false),
+    { 13 } (Button: gbNorth; Handled: false),
+    { 14 } (Button: gbNorth; Handled: false),
+    { 15 } (Button: gbNorth; Handled: false),
+    { 16 } (Button: gbNorth; Handled: false),
+    { 17 } (Button: gbNorth; Handled: false),
+    { 18 } (Button: gbNorth; Handled: false),
+    { 19 } (Button: gbNorth; Handled: false),
+    { 20 } (Button: gbNorth; Handled: false),
+    { 21 } (Button: gbNorth; Handled: false),
+    { 22 } (Button: gbNorth; Handled: false),
+    { 23 } (Button: gbNorth; Handled: false),
+    { 24 } (Button: gbNorth; Handled: false),
+    { 25 } (Button: gbNorth; Handled: false),
+    { 26 } (Button: gbNorth; Handled: false),
+    { 27 } (Button: gbNorth; Handled: false),
+    { 28 } (Button: gbNorth; Handled: false),
+    { 29 } (Button: gbNorth; Handled: false),
+    { 30 } (Button: gbNorth; Handled: false),
+    { 31 } (Button: gbNorth; Handled: false)
+  );
+
+function TWindowsControllerBackend.InternalButtonMap(
+  const Button: TInternalGameControllerButton): TGameControllerButton;
+begin
+  if not XBoxInternalMap[Button].Handled then
+  begin
+    WritelnWarning('TGameController.InternalButtonMap: Button %d is not handled by the game controller "%s".', [
+      Ord(Button),
+      // TODO: Write here also controller index
+      Controller.Name
+    ]);
+  end;
+  Result := XBoxInternalMap[Button].Button;
+end;
+
+{ TWindowsControllerManagerBackend ------------------------------------------------- }
+
+procedure TWindowsControllerManagerBackend.Initialize(const List: TGameControllerList);
 var
   WindowsControllerId, WindowsControllersCount: Integer;
   axis : Integer;
   NewController: TGameController;
-  NewBackendInfo: TWindowsControllerBackendInfo;
+  NewControllerBackend: TWindowsControllerBackend;
 
   state : TJOYINFOEX;
   JoyError: UInt32;
@@ -74,12 +193,11 @@ begin
   for WindowsControllerId := 0 to WindowsControllersCount - 1 do
   begin
     NewController := TGameController.Create;
-    NewBackendInfo := TWindowsControllerBackendInfo.Create;
-    NewController.InternalBackendInfo := NewBackendInfo;
+    NewControllerBackend := TWindowsControllerBackend.Create(NewController);
 
     //NewController.Index := List.Count; // TODO
 
-    { JOYSTICKID1 is 0, so NewBackendInfo.WindowsId is actually just
+    { JOYSTICKID1 is 0, so NewControllerBackend.WindowsId is actually just
       an index of this loop, equal to WindowsControllerId.
 
       Note that it may be different from the index on List
@@ -87,51 +205,51 @@ begin
       since we don't add all controllers to List.
       This can happen if you unplugged some controllers, they remain
       on Windows list with JOYERR_UNPLUGGED. }
-    NewBackendInfo.WindowsId := JOYSTICKID1 + WindowsControllerId;
+    NewControllerBackend.WindowsId := JOYSTICKID1 + WindowsControllerId;
 
-    JoyCapsResult := joyGetDevCapsW(NewBackendInfo.WindowsId, @NewBackendInfo.Caps, SizeOf( TJOYCAPSW ) );
+    JoyCapsResult := joyGetDevCapsW(NewControllerBackend.WindowsId, @NewControllerBackend.Caps, SizeOf( TJOYCAPSW ) );
     { Below we try to counter the WinAPI bug, when in case the application was run
       with no controllers connected and this is the first call to joyGetDevCapsW
       after the controller has been connected, the joyGetDevCapsW returns JOYERR_PARAMS = 165
       which is also returned for disconnected/unavailable controllers.
       Here we just call joyGetDevCapsW the second time to get the new value. }
     if JoyCapsResult <> 0 then
-      JoyCapsResult := joyGetDevCapsW(NewBackendInfo.WindowsId, @NewBackendInfo.Caps, SizeOf( TJOYCAPSW ) );
+      JoyCapsResult := joyGetDevCapsW(NewControllerBackend.WindowsId, @NewControllerBackend.Caps, SizeOf( TJOYCAPSW ) );
 
     if JoyCapsResult = 0 then
     begin
-      NewController.Name := NewBackendInfo.Caps.szPname;
-      NewController.InternalAxesCount := NewBackendInfo.Caps.wNumAxes;
-      NewController.InternalButtonsCount := NewBackendInfo.Caps.wNumButtons;
+      NewController.Name := NewControllerBackend.Caps.szPname;
+      NewController.InternalAxesCount := NewControllerBackend.Caps.wNumAxes;
+      NewController.InternalButtonsCount := NewControllerBackend.Caps.wNumButtons;
 
-      NewBackendInfo.AxesMap[ 0 ] := jaX;
-      NewBackendInfo.AxesMap[ 1 ] := jaY;
+      NewControllerBackend.AxesMap[ 0 ] := jaX;
+      NewControllerBackend.AxesMap[ 1 ] := jaY;
       axis := 2;
-      if NewBackendInfo.Caps.wCaps and JOYCAPS_HASZ > 0 then
+      if NewControllerBackend.Caps.wCaps and JOYCAPS_HASZ > 0 then
       begin
         Include(NewController.InternalCapabilities, jcZ);
-        NewBackendInfo.AxesMap[ axis ] := jaZ;
+        NewControllerBackend.AxesMap[ axis ] := jaZ;
         Inc( axis );
       end;
-      if NewBackendInfo.Caps.wCaps and JOYCAPS_HASR > 0 then
+      if NewControllerBackend.Caps.wCaps and JOYCAPS_HASR > 0 then
       begin
         Include(NewController.InternalCapabilities, jcR);
-        NewBackendInfo.AxesMap[ axis ] := jaR;
+        NewControllerBackend.AxesMap[ axis ] := jaR;
         Inc( axis );
       end;
-      if NewBackendInfo.Caps.wCaps and JOYCAPS_HASU > 0 then
+      if NewControllerBackend.Caps.wCaps and JOYCAPS_HASU > 0 then
       begin
         Include(NewController.InternalCapabilities, jcU);
-        NewBackendInfo.AxesMap[ axis ] := jaU;
+        NewControllerBackend.AxesMap[ axis ] := jaU;
         Inc( axis );
       end;
-      if NewBackendInfo.Caps.wCaps and JOYCAPS_HASV > 0 then
+      if NewControllerBackend.Caps.wCaps and JOYCAPS_HASV > 0 then
       begin
         Include(NewController.InternalCapabilities, jcV);
-        NewBackendInfo.AxesMap[ axis ] := jaV;
+        NewControllerBackend.AxesMap[ axis ] := jaV;
         Inc( axis );
       end;
-      if NewBackendInfo.Caps.wCaps and JOYCAPS_HASPOV > 0 then
+      if NewControllerBackend.Caps.wCaps and JOYCAPS_HASPOV > 0 then
       begin
         Include(NewController.InternalCapabilities, jcPOV);
         Inc( NewController.InternalAxesCount, 2 );
@@ -140,15 +258,15 @@ begin
       // workaround Windows reporting recently disconnected controllers as connected
       state.dwSize := SizeOf( TJOYINFOEX );
       state.dwFlags := JOY_RETURNALL or JOY_USEDEADZONE;
-      if NewBackendInfo.Caps.wCaps and JOYCAPS_POVCTS > 0 then
+      if NewControllerBackend.Caps.wCaps and JOYCAPS_POVCTS > 0 then
         state.dwFlags := state.dwFlags or JOY_RETURNPOVCTS;
-      JoyError := joyGetPosEx(NewBackendInfo.WindowsId, @state);
+      JoyError := joyGetPosEx(NewControllerBackend.WindowsId, @state);
       //if no errors, then add this controller
       if JoyError = JOYERR_NOERROR then
       begin
         WriteLnLog('CastleGameControllers', 'Detected game controller: %s (Windows Id: %d); Axes: %d; Buttons: %d', [
           NewController.Name,
-          NewBackendInfo.WindowsId,
+          NewControllerBackend.WindowsId,
           NewController.InternalAxesCount,
           NewController.InternalButtonsCount
         ]);
@@ -159,12 +277,12 @@ begin
         if JoyError = JOYERR_UNPLUGGED then
           WriteLnLog('CastleGameControllers', 'Detected game controller: %s (Windows Id: %d), but it will not be added because it seems to have been disconnected from the system recently (JOYERR_UNPLUGGED).', [
             NewController.Name,
-            NewBackendInfo.WindowsId
+            NewControllerBackend.WindowsId
           ])
         else
           WriteLnWarning('CastleGameControllers', 'Detected game controller: %s (Windows Id: %d), but it cannot be added due to an error %d.', [
             NewController.Name,
-            NewBackendInfo.WindowsId,
+            NewControllerBackend.WindowsId,
             JoyError
           ]);
         FreeAndNil(NewController);
@@ -174,14 +292,14 @@ begin
       // too spammy
       // WriteLnLog('CastleGameControllers', 'Detected game controller: %s (Windows Id: %d), but it will not be added because it seems to have been disconnected from the system recently (joyGetDevCapsW = 0).', [
       //   NewController.Name,
-      //   NewBackendInfo.WindowsId
+      //   NewControllerBackend.WindowsId
       // ]);
       FreeAndNil(NewController);
     end;
   end;
 end;
 
-procedure TWindowsControllersBackend.Poll(const List: TGameControllerList;
+procedure TWindowsControllerManagerBackend.Poll(const List: TGameControllerList;
   const EventContainer: TGameControllers);
 var
   ControllerIndex: Integer;
@@ -193,7 +311,7 @@ var
   vMin  : UInt32;
   vMax  : UInt32;
   Controller: TGameController;
-  BackendInfo: TWindowsControllerBackendInfo;
+  ControllerBackend: TWindowsControllerBackend;
   JoyError: UInt32;
   ControllerHasBeenDisconnected: Boolean;
   Axis: TInternalGameControllerAxis;
@@ -202,32 +320,32 @@ begin
   for ControllerIndex := 0 to List.Count - 1 do
   begin
     Controller := List[ControllerIndex];
-    BackendInfo := Controller.InternalBackendInfo as TWindowsControllerBackendInfo;
+    ControllerBackend := Controller.InternalControllerBackend as TWindowsControllerBackend;
 
     state.dwSize := SizeOf( TJOYINFOEX );
     state.dwFlags := JOY_RETURNALL or JOY_USEDEADZONE;
-    if BackendInfo.Caps.wCaps and JOYCAPS_POVCTS > 0 then
+    if ControllerBackend.Caps.wCaps and JOYCAPS_POVCTS > 0 then
       state.dwFlags := state.dwFlags or JOY_RETURNPOVCTS;
 
-    JoyError := joyGetPosEx(BackendInfo.WindowsId, @state );
+    JoyError := joyGetPosEx(ControllerBackend.WindowsId, @state );
     case JoyError of
       JOYERR_NOERROR:
         begin
           for j := 0 to Controller.InternalAxesCount - 1 do
           begin
             //stop if controller reported more axes than the backend can handle
-            if j > High(BackendInfo.AxesMap) then
+            if j > High(ControllerBackend.AxesMap) then
               Break;
 
-            Axis := BackendInfo.AxesMap[ j ];
+            Axis := ControllerBackend.AxesMap[ j ];
 
             case Axis of
-              jaX: begin vMin := BackendInfo.Caps.wXmin; vMax := BackendInfo.Caps.wXmax; end;
-              jaY: begin vMin := BackendInfo.Caps.wYmin; vMax := BackendInfo.Caps.wYmax; end;
-              jaZ: begin vMin := BackendInfo.Caps.wZmin; vMax := BackendInfo.Caps.wZmax; end;
-              jaR: begin vMin := BackendInfo.Caps.wRmin; vMax := BackendInfo.Caps.wRmax; end;
-              jaU: begin vMin := BackendInfo.Caps.wUmin; vMax := BackendInfo.Caps.wUmax; end;
-              jaV: begin vMin := BackendInfo.Caps.wVmin; vMax := BackendInfo.Caps.wVmax; end;
+              jaX: begin vMin := ControllerBackend.Caps.wXmin; vMax := ControllerBackend.Caps.wXmax; end;
+              jaY: begin vMin := ControllerBackend.Caps.wYmin; vMax := ControllerBackend.Caps.wYmax; end;
+              jaZ: begin vMin := ControllerBackend.Caps.wZmin; vMax := ControllerBackend.Caps.wZmax; end;
+              jaR: begin vMin := ControllerBackend.Caps.wRmin; vMax := ControllerBackend.Caps.wRmax; end;
+              jaU: begin vMin := ControllerBackend.Caps.wUmin; vMax := ControllerBackend.Caps.wUmax; end;
+              jaV: begin vMin := ControllerBackend.Caps.wVmin; vMax := ControllerBackend.Caps.wVmax; end;
               else
                 begin
                   WriteLnWarning('CastleGameControllers', 'Unknown axis %d for controller to determine vMin/vMax', [Ord(Axis)]);
@@ -273,7 +391,7 @@ begin
         begin
           WritelnLog('Controller %s (Windows Id: %d) was disconnected (JOYERR_UNPLUGGED)', [
             Controller.Name,
-            BackendInfo.WindowsId
+            ControllerBackend.WindowsId
           ]);
           ControllerHasBeenDisconnected := true;
         end;
@@ -281,14 +399,14 @@ begin
         begin
           WriteLnWarning('Controller %s (Windows Id: %d) parameters are no longer valid (JOYERR_PARMS), possibly disconnected?', [
             Controller.Name,
-            BackendInfo.WindowsId
+            ControllerBackend.WindowsId
           ]);
           //ControllerHasBeenDisconnected := true;
         end;
       else
         WriteLnWarning('Controller %s (Windows Id: %d) error %d', [
           Controller.Name,
-          BackendInfo.WindowsId,
+          ControllerBackend.WindowsId,
           JoyError
         ]);
     end;

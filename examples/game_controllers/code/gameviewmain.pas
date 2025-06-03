@@ -40,7 +40,7 @@ type
     ControllerButtons: array of TCastleButton;
     ControllerAxes: array [TInternalGameControllerAxis] of TCastleLabel;
     AxisLeftVisualize, AxisRightVisualize: T2DAxisVisualize;
-    AxisTriggerVisualize: T1DAxisVisualize;
+    AxisLeftTriggerVisualize, AxisRightTriggerVisualize: T1DAxisVisualize;
 
     procedure ClearAllControllersUI;
     procedure ClearSelectedControllerUI;
@@ -110,7 +110,9 @@ begin
 
   FreeAndNil(AxisLeftVisualize);
   FreeAndNil(AxisRightVisualize);
-  FreeAndNil(AxisTriggerVisualize);
+  FreeAndNil(AxisLeftTriggerVisualize);
+  FreeAndNil(AxisRightTriggerVisualize);
+
   SelectedControllerDynamicUi.ClearControls;
   SelectedControllerUi.Exists := false;
 
@@ -182,13 +184,21 @@ begin
   AxisRightVisualize.Caption := 'Right Axis';
   InsertFront(AxisRightVisualize);
 
-  AxisTriggerVisualize := T1DAxisVisualize.Create(FreeAtStop);
-  AxisTriggerVisualize.Anchor(hpRight, -10);
-  AxisTriggerVisualize.Anchor(vpBottom,
+  AxisLeftTriggerVisualize := T1DAxisVisualize.Create(FreeAtStop);
+  AxisLeftTriggerVisualize.Anchor(hpRight, -256 - 10 - 10);
+  AxisLeftTriggerVisualize.Anchor(vpBottom,
+    AxisLeftVisualize.Translation.Y +
+    AxisLeftVisualize.EffectiveHeight + 10);
+  AxisLeftTriggerVisualize.Caption := 'Left Trigger Axis';
+  InsertFront(AxisLeftTriggerVisualize);
+
+  AxisRightTriggerVisualize := T1DAxisVisualize.Create(FreeAtStop);
+  AxisRightTriggerVisualize.Anchor(hpRight, -10);
+  AxisRightTriggerVisualize.Anchor(vpBottom,
     AxisRightVisualize.Translation.Y +
     AxisRightVisualize.EffectiveHeight + 10);
-  AxisTriggerVisualize.Caption := 'Trigger Axis';
-  InsertFront(AxisTriggerVisualize);
+  AxisRightTriggerVisualize.Caption := 'Right Trigger Axis';
+  InsertFront(AxisRightTriggerVisualize);
 end;
 
 procedure TViewMain.ClickUnselect(Sender: TObject);
@@ -234,10 +244,10 @@ begin
   begin
     Assert(AxisLeftVisualize <> nil);
     Assert(AxisRightVisualize <> nil);
-    Assert(AxisTriggerVisualize <> nil);
     AxisLeftVisualize.Axis := Controllers[SelectedController].AxisLeft;
     AxisRightVisualize.Axis := Controllers[SelectedController].AxisRight;
-    AxisTriggerVisualize.Axis := Controllers[SelectedController].AxisTrigger;
+    AxisLeftTriggerVisualize.Axis := Controllers[SelectedController].AxisLeftTrigger;
+    AxisRightTriggerVisualize.Axis := Controllers[SelectedController].AxisRightTrigger;
 
     { WARNING: Do not use TInternalGameControllerAxis or Controller.InternalAxis
       in your own code.

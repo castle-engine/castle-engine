@@ -22,10 +22,11 @@ interface
 uses CastleGameControllers, CastleVectors;
 
 type
-  TExplicitGameControllerBackend = class(TGameControllersBackend)
+  TExplicitControllerManagerBackend = class(TInternalControllerManagerBackend)
     procedure Initialize(const List: TGameControllerList); override;
     procedure Poll(const List: TGameControllerList;
       const EventContainer: TGameControllers); override;
+
     procedure SetCount(const List: TGameControllerList; const NewControllerCount: Integer);
     procedure SetAxisLeft(const List: TGameControllerList; const ControllerIndex: Integer; const Axis: TVector2);
     procedure SetAxisRight(const List: TGameControllerList; const ControllerIndex: Integer; const Axis: TVector2);
@@ -33,36 +34,89 @@ type
 
 implementation
 
-uses CastleUtils, CastleLog;
+uses CastleUtils, CastleLog, CastleKeysMouse;
 
-procedure TExplicitGameControllerBackend.Initialize(const List: TGameControllerList);
+{ TExplicitControllerBackend ------------------------------------------------- }
+
+type
+  TExplicitControllerBackend = class(TInternalControllerBackend)
+    { Last set axis values.
+      Explicit backend ignores the InternalAxis[...] values. }
+    FAxisLeft, FAxisRight: TVector2;
+    function AxisLeft: TVector2; override;
+    function AxisRight: TVector2; override;
+    function AxisLeftTrigger: Single; override;
+    function AxisRightTrigger: Single; override;
+    function InternalButtonMap(
+      const Button: TInternalGameControllerButton): TGameControllerButton; override;
+  end;
+
+function TExplicitControllerBackend.AxisLeft: TVector2;
 begin
+  Result := FAxisLeft;
 end;
 
-procedure TExplicitGameControllerBackend.Poll(const List: TGameControllerList;
+function TExplicitControllerBackend.AxisRight: TVector2;
+begin
+  Result := FAxisRight;
+end;
+
+function TExplicitControllerBackend.AxisLeftTrigger: Single;
+begin
+  { Explicit backend does not support triggers for now, so we return 0. }
+  Result := 0;
+end;
+
+function TExplicitControllerBackend.AxisRightTrigger: Single;
+begin
+  { Explicit backend does not support triggers for now, so we return 0. }
+  Result := 0;
+end;
+
+function TExplicitControllerBackend.InternalButtonMap(
+  const Button: TInternalGameControllerButton): TGameControllerButton;
+begin
+  { Explicit backend just assumes that internal button index
+    equals the TGameControllerButton index. }
+  Result := TGameControllerButton(Button);
+end;
+
+{ TExplicitControllerManagerBackend ----------------------------------------- }
+
+procedure TExplicitControllerManagerBackend.Initialize(const List: TGameControllerList);
+begin
+  // Nothing needs to be done here
+end;
+
+procedure TExplicitControllerManagerBackend.Poll(const List: TGameControllerList;
   const EventContainer: TGameControllers);
 begin
+  // Nothing needs to be done here
 end;
 
-procedure TExplicitGameControllerBackend.SetCount(const List: TGameControllerList; const NewControllerCount: Integer);
+procedure TExplicitControllerManagerBackend.SetCount(const List: TGameControllerList; const NewControllerCount: Integer);
 var
   I: Integer;
+  Controller: TGameController;
 begin
   List.Clear;
   for I := 0 to NewControllerCount - 1 do
-    List.Add(TGameController.Create);
+  begin
+    Controller := TGameController.Create;
+    // We don't need to assign it anywhere, constructor sets Controller.InternalBackend
+    TExplicitControllerBackend.Create(Controller);
+    List.Add(Controller);
+  end;
 end;
 
-procedure TExplicitGameControllerBackend.SetAxisLeft(const List: TGameControllerList; const ControllerIndex: Integer; const Axis: TVector2);
+procedure TExplicitControllerManagerBackend.SetAxisLeft(const List: TGameControllerList; const ControllerIndex: Integer; const Axis: TVector2);
 var
-  Controller: TGameController;
+  ControllerBackend: TExplicitControllerBackend;
 begin
   if Between(ControllerIndex, 0, List.Count - 1) then
   begin
-    Controller := List[ControllerIndex];
-    Controller.InternalAxis[jaX] := Axis.X;
-    // invert it, because TGameController.AxisLeft inverts it too
-    Controller.InternalAxis[jaY] := -Axis.Y;
+    ControllerBackend := List[ControllerIndex].InternalBackend as TExplicitControllerBackend;
+    ControllerBackend.FAxisLeft := Axis;
   end else
     WriteLnWarning('Controller index %d given to CGEApp_ControllerAxisLeft is incorrect. Current controller count (given to CGEApp_ControllerCount) is %d.', [
       ControllerIndex,
@@ -70,16 +124,14 @@ begin
     ]);
 end;
 
-procedure TExplicitGameControllerBackend.SetAxisRight(const List: TGameControllerList; const ControllerIndex: Integer; const Axis: TVector2);
+procedure TExplicitControllerManagerBackend.SetAxisRight(const List: TGameControllerList; const ControllerIndex: Integer; const Axis: TVector2);
 var
-  Controller: TGameController;
+  ControllerBackend: TExplicitControllerBackend;
 begin
   if Between(ControllerIndex, 0, List.Count - 1) then
   begin
-    Controller := List[ControllerIndex];
-    Controller.InternalAxis[jaU] := Axis.X;
-    // invert it, because TGameController.AxisRight inverts it too
-    Controller.InternalAxis[jaR] := -Axis.Y;
+    ControllerBackend := List[ControllerIndex].InternalBackend as TExplicitControllerBackend;
+    ControllerBackend.FAxisRight := Axis;
   end else
     WriteLnWarning('Controller index %d given to CGEApp_ControllerAxisRight is incorrect. Current controller count (given to CGEApp_ControllerCount) is %d.', [
       ControllerIndex,

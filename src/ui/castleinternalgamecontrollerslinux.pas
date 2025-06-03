@@ -28,6 +28,30 @@ uses BaseUnix,
   CastleGameControllers;
 
 type
+  TLinuxControllerManagerBackend = class(TInternalControllerManagerBackend)
+    procedure Initialize(const List: TGameControllerList); override;
+    procedure Poll(const List: TGameControllerList;
+      const EventContainer: TGameControllers); override;
+  end;
+
+implementation
+
+uses SysUtils, Math,
+  CastleLog, CastleKeysMouse, CastleVectors;
+
+{ Backend using /dev/js* device.
+  See docs:
+  - https://www.kernel.org/doc/html/latest/input/joydev/joystick.html
+  - https://www.kernel.org/doc/html/latest/input/joydev/joystick-api.html
+
+  TODO:
+  - Alternative backend (or remake this one) using /dev/event*
+  - Alternative backend using a higher-level library (like SDL2) to handle joysticks?
+}
+
+{ Helpful types and constants ------------------------------------------------ }
+
+type
   TLinuxJsEvent = record
     time   : UInt32; // event timestamp in milliseconds
     value  : SmallInt; // value
@@ -64,11 +88,12 @@ const
     (Axis: jaZ; Handled: True), // 2 things mapped to jaZ
     (Axis: jaR; Handled: True), // 2 things mapped to jaR
 
-    (Axis: jaX; Handled: false),
-    (Axis: jaX; Handled: false),
-    (Axis: jaX; Handled: false),
-    (Axis: jaX; Handled: false),
-    (Axis: jaX; Handled: false),
+    // https://gist.github.com/emdeex/97b771b264bebbd1e18dd897404040be
+    (Axis: jaX; Handled: false), // wheel
+    (Axis: jaGas; Handled: true), // gas
+    (Axis: jaBrake; Handled: true), // brake
+    (Axis: jaX; Handled: false), // hat0x
+    (Axis: jaX; Handled: false), // hat0y
     (Axis: jaX; Handled: false),
     (Axis: jaX; Handled: false),
     (Axis: jaX; Handled: false),
@@ -77,38 +102,116 @@ const
     (Axis: jaPovY; Handled: True)
   );
 
+{ TLinuxControllerBackend -------------------------------------------------- }
+
 type
-  TLinuxControllerBackendInfo = class
+  TLinuxControllerBackend = class(TInternalControllerBackend)
     DeviceInitialized: Boolean;
     Device  : LongInt;
     AxesMap : array[ 0..ABS_MAX - 1 ] of Byte;
+    function AxisLeft: TVector2; override;
+    function AxisRight: TVector2; override;
+    function AxisLeftTrigger: Single; override;
+    function AxisRightTrigger: Single; override;
+    function InternalButtonMap(
+      const Button: TInternalGameControllerButton): TGameControllerButton;
+      override;
     destructor Destroy; override;
   end;
 
-  TLinuxControllersBackend = class(TGameControllersBackend)
-    procedure Initialize(const List: TGameControllerList); override;
-    procedure Poll(const List: TGameControllerList;
-      const EventContainer: TGameControllers); override;
+function TLinuxControllerBackend.AxisLeft: TVector2;
+begin
+  Result := Vector2(
+    Controller.InternalAxis[jaX],
+    { Y axis should be 1 when pointing up, -1 when pointing down.
+      This is consistent with CGE 2D coordinate system
+      (and standard math 2D coordinate system). }
+    -Controller.InternalAxis[jaY]
+  );
+end;
+
+function TLinuxControllerBackend.AxisRight: TVector2;
+begin
+  Result := Vector2(
+    Controller.InternalAxis[jaZ], // on Linux, contrary to Windows, this is from jaZ
+    { Y axis should be 1 when pointing up, -1 when pointing down.
+      This is consistent with CGE 2D coordinate system
+      (and standard math 2D coordinate system). }
+    -Controller.InternalAxis[jaR]
+  );
+end;
+
+function TLinuxControllerBackend.AxisLeftTrigger: Single;
+begin
+  Result := Controller.InternalAxis[jaBrake];
+end;
+
+function TLinuxControllerBackend.AxisRightTrigger: Single;
+begin
+  Result := Controller.InternalAxis[jaGas];
+end;
+
+const
+  { Map TInternalGameControllerButton to TGameControllerButton.
+    Specific to:
+    - the XBox Controller, more specifically
+      https://en.wikipedia.org/wiki/Xbox_Wireless_Controller
+    - and to this controller implementation. }
+  XBoxInternalMap: array[TInternalGameControllerButton] of record
+    Button: TGameControllerButton;
+    Handled: Boolean;
+  end = (
+    {  0 } (Button: gbSouth; Handled: true),
+    {  1 } (Button: gbEast; Handled: true),
+    {  2 } (Button: gbWest; Handled: true),
+    {  3 } (Button: gbNorth; Handled: true),
+    {  4 } (Button: gbLeftBumper; Handled: true),
+    {  5 } (Button: gbRightBumper; Handled: true),
+    {  6 } (Button: gbView; Handled: true),
+    {  7 } (Button: gbMenu; Handled: true),
+    {  8 } (Button: gbLeftStickClick; Handled: true),
+    {  9 } (Button: gbRightStickClick; Handled: true),
+    { 10 } (Button: gbGuide; Handled: true),
+    { 11 } (Button: gbShare; Handled: true),
+
+    // all the rest, up to 31, are not handled
+    { 12 } (Button: gbNorth; Handled: false),
+    { 13 } (Button: gbNorth; Handled: false),
+    { 14 } (Button: gbNorth; Handled: false),
+    { 15 } (Button: gbNorth; Handled: false),
+    { 16 } (Button: gbNorth; Handled: false),
+    { 17 } (Button: gbNorth; Handled: false),
+    { 18 } (Button: gbNorth; Handled: false),
+    { 19 } (Button: gbNorth; Handled: false),
+    { 20 } (Button: gbNorth; Handled: false),
+    { 21 } (Button: gbNorth; Handled: false),
+    { 22 } (Button: gbNorth; Handled: false),
+    { 23 } (Button: gbNorth; Handled: false),
+    { 24 } (Button: gbNorth; Handled: false),
+    { 25 } (Button: gbNorth; Handled: false),
+    { 26 } (Button: gbNorth; Handled: false),
+    { 27 } (Button: gbNorth; Handled: false),
+    { 28 } (Button: gbNorth; Handled: false),
+    { 29 } (Button: gbNorth; Handled: false),
+    { 30 } (Button: gbNorth; Handled: false),
+    { 31 } (Button: gbNorth; Handled: false)
+  );
+
+function TLinuxControllerBackend.InternalButtonMap(
+  const Button: TInternalGameControllerButton): TGameControllerButton;
+begin
+  if not XBoxInternalMap[Button].Handled then
+  begin
+    WritelnWarning('TGameController.InternalButtonMap: Button %d is not handled by the game controller "%s".', [
+      Ord(Button),
+      // TODO: Write here also controller index
+      Controller.Name
+    ]);
   end;
+  Result := XBoxInternalMap[Button].Button;
+end;
 
-implementation
-
-uses
-  SysUtils, CastleLog, Math;
-
-{ Using /dev/js* device.
-  See docs:
-  - https://www.kernel.org/doc/html/latest/input/joydev/joystick.html
-  - https://www.kernel.org/doc/html/latest/input/joydev/joystick-api.html
-
-  TODO:
-  - Alternative backend (or remake this one) using /dev/event*
-  - Alternative backend using a higher-level library (like SDL2) to handle joysticks?
-}
-
-{ TLinuxControllerBackendInfo -------------------------------------------------- }
-
-destructor TLinuxControllerBackendInfo.Destroy;
+destructor TLinuxControllerBackend.Destroy;
 begin
   { Check for DeviceInitialized, since any Device >= 0 is valid in theory. }
   if DeviceInitialized then
@@ -116,44 +219,51 @@ begin
   inherited;
 end;
 
-{ TLinuxControllersBackend ----------------------------------------------------- }
+{ TLinuxControllerManagerBackend ----------------------------------------------------- }
 
-procedure TLinuxControllersBackend.Initialize(const List: TGameControllerList);
+procedure TLinuxControllerManagerBackend.Initialize(const List: TGameControllerList);
 var
   ControllerIndex, j : Integer;
   NewController: TGameController;
-  NewBackendInfo: TLinuxControllerBackendInfo;
+  NewControllerBackend: TLinuxControllerBackend;
 begin
   for ControllerIndex := 0 to 15 do
   begin
     NewController := TGameController.Create;
-    NewBackendInfo := TLinuxControllerBackendInfo.Create;
-    NewController.InternalBackendInfo := NewBackendInfo;
+    NewControllerBackend := TLinuxControllerBackend.Create(NewController);
 
-    NewBackendInfo.Device := FpOpen( '/dev/input/js' + IntToStr(ControllerIndex), O_RDONLY or O_NONBLOCK );
-    if NewBackendInfo.Device < 0 then
-      NewBackendInfo.Device := FpOpen( '/dev/js' + IntToStr(ControllerIndex), O_RDONLY or O_NONBLOCK );
+    NewControllerBackend.Device := FpOpen( '/dev/input/js' + IntToStr(ControllerIndex), O_RDONLY or O_NONBLOCK );
+    if NewControllerBackend.Device < 0 then
+      NewControllerBackend.Device := FpOpen( '/dev/js' + IntToStr(ControllerIndex), O_RDONLY or O_NONBLOCK );
 
-    if NewBackendInfo.Device > -1 then
+    if NewControllerBackend.Device > -1 then
     begin
-      NewBackendInfo.DeviceInitialized := true;
+      NewControllerBackend.DeviceInitialized := true;
       SetLength( NewController.Name, 256 );
       { TODO: why is cast to TIOCtlRequest needed (with FPC 3.3.1-r43920),
         we should probably fix the definition of JSIOCGNAME etc. instead. }
-      FpIOCtl( NewBackendInfo.Device, TIOCtlRequest(JSIOCGNAME),    @NewController.Name[ 1 ] );
-      FpIOCtl( NewBackendInfo.Device, TIOCtlRequest(JSIOCGAXMAP),   @NewBackendInfo.AxesMap[ 0 ] );
-      FpIOCtl( NewBackendInfo.Device, TIOCtlRequest(JSIOCGAXES),    @NewController.InternalAxesCount );
-      FpIOCtl( NewBackendInfo.Device, TIOCtlRequest(JSIOCGBUTTONS), @NewController.InternalButtonsCount );
+      FpIOCtl( NewControllerBackend.Device, TIOCtlRequest(JSIOCGNAME),    @NewController.Name[ 1 ] );
+      FpIOCtl( NewControllerBackend.Device, TIOCtlRequest(JSIOCGAXMAP),   @NewControllerBackend.AxesMap[ 0 ] );
+      FpIOCtl( NewControllerBackend.Device, TIOCtlRequest(JSIOCGAXES),    @NewController.InternalAxesCount );
+      FpIOCtl( NewControllerBackend.Device, TIOCtlRequest(JSIOCGBUTTONS), @NewController.InternalButtonsCount );
 
       for j := 0 to NewController.InternalAxesCount - 1 do
-        if AxisMap[NewBackendInfo.AxesMap[ j ]].Handled then
-        case AxisMap[NewBackendInfo.AxesMap[ j ]].Axis of
-          jaZ: Include(NewController.InternalCapabilities, jcZ);
-          jaR: Include(NewController.InternalCapabilities, jcR);
-          jaU: Include(NewController.InternalCapabilities, jcU);
-          jaV: Include(NewController.InternalCapabilities, jcV);
-          jaPovX, jaPovY: Include(NewController.InternalCapabilities, jcPOV);
-        end;
+      begin
+        // debug
+        // WritelnLog('Controller %d reports axis %d mapped to %d', [
+        //   ControllerIndex,
+        //   j,
+        //   NewControllerBackend.AxesMap[ j ]
+        // ]);
+        // if AxisMap[NewControllerBackend.AxesMap[ j ]].Handled then
+          case AxisMap[NewControllerBackend.AxesMap[ j ]].Axis of
+            jaZ: Include(NewController.InternalCapabilities, jcZ);
+            jaR: Include(NewController.InternalCapabilities, jcR);
+            jaU: Include(NewController.InternalCapabilities, jcU);
+            jaV: Include(NewController.InternalCapabilities, jcV);
+            jaPovX, jaPovY: Include(NewController.InternalCapabilities, jcPOV);
+          end;
+      end;
 
       for j := 1 to 255 do
         if NewController.Name[ j ] = #0 then
@@ -181,7 +291,7 @@ begin
   end;
 end;
 
-procedure TLinuxControllersBackend.Poll(const List: TGameControllerList;
+procedure TLinuxControllerManagerBackend.Poll(const List: TGameControllerList;
   const EventContainer: TGameControllers);
 var
   i : Integer;
@@ -189,7 +299,7 @@ var
   axis: TInternalGameControllerAxis;
   event : TLinuxJsEvent;
   Controller: TGameController;
-  BackendInfo: TLinuxControllerBackendInfo;
+  ControllerBackend: TLinuxControllerBackend;
   BytesRead: TSsize;
   ControllerHasBeenDisconnected: Boolean;
 begin
@@ -197,24 +307,26 @@ begin
   for I := 0 to List.Count - 1 do
   begin
     Controller := List[I];
-    BackendInfo := Controller.InternalBackendInfo as TLinuxControllerBackendInfo;
-    BytesRead := FpRead( BackendInfo.Device, event, 8 );
+    ControllerBackend := Controller.InternalBackend as TLinuxControllerBackend;
+    BytesRead := FpRead( ControllerBackend.Device, event, 8 );
     if BytesRead = 8 then
       repeat
         case event.EventType of
           JS_EVENT_AXIS:
             begin
               Value := event.value / 32767;
-              if AxisMap[ BackendInfo.AxesMap[ event.number ] ].Handled then
+              if AxisMap[ ControllerBackend.AxesMap[ event.number ] ].Handled then
               begin
-                axis := AxisMap[ BackendInfo.AxesMap[ event.number ] ].Axis;
+                axis := AxisMap[ ControllerBackend.AxesMap[ event.number ] ].Axis;
+                if Axis in [jaGas, jaBrake] then
+                  Value := (Value + 1.0) / 2.0; // map from [-1,1] to [0,1]
                 Controller.InternalAxis[ axis ] := Value;
               end else
               begin
                 WritelnLog('Controller %d reports unhandled axis (%d mapped to %d) (value: %f)', [
                   I,
                   event.number,
-                  BackendInfo.AxesMap[ event.number ],
+                  ControllerBackend.AxesMap[ event.number ],
                   Value
                 ]);
               end;
@@ -225,7 +337,7 @@ begin
               1: Controller.InternalButtonDown[ event.number ] := True;
             end;
         end;
-        BytesRead := FpRead( BackendInfo.Device, event, 8 );
+        BytesRead := FpRead( ControllerBackend.Device, event, 8 );
       until BytesRead <> 8
     else
       if fpgeterrno <> EAGAIN then

@@ -28,7 +28,8 @@ uses Generics.Collections, Classes,
   CastleVectors, CastleUtils, CastleKeysMouse;
 
 type
-  { Internal capability of a controller. }
+  { Internal capability of a controller.
+    @exclude }
   TInternalGameControllerCapability = (
     jcZ,
     jcR,
@@ -38,7 +39,8 @@ type
   );
   TInternalGameControllerCapabilities = set of TInternalGameControllerCapability;
 
-  { Internal 1D controller axis. }
+  { Internal 1D controller axis.
+    @exclude }
   TInternalGameControllerAxis = (
     jaX,
     jaY,
@@ -47,11 +49,39 @@ type
     jaU,
     jaV,
     jaPovX,
-    jaPovY
+    jaPovY,
+    // Only by Linux backend; Windows backend returns both triggers as one axis in jaZ.
+    jaGas,
+    jaBrake
   );
 
-  { Internal controller button as integer index. }
+  { Internal controller button as integer index.
+    @exclude }
   TInternalGameControllerButton = 0..31;
+
+  TGameController = class;
+
+  { Internal backend for a single controller.
+    @exclude }
+  TInternalControllerBackend = class
+  strict private
+    FController: TGameController;
+  public
+    property Controller: TGameController read FController;
+
+    { Create instance.
+      Sets @link(Controller) read-only property.
+      Sets @link(TGameController.InternalBackend) to this instance. }
+    constructor Create(const AController: TGameController);
+
+    // Override these methods to provide controller-specific logic.
+    function AxisLeft: TVector2; virtual; abstract;
+    function AxisRight: TVector2; virtual; abstract;
+    function AxisLeftTrigger: Single; virtual; abstract;
+    function AxisRightTrigger: Single; virtual; abstract;
+    function InternalButtonMap(
+      const Button: TInternalGameControllerButton): TGameControllerButton; virtual; abstract;
+  end;
 
   { Properties of a given game controller (joystick, gamepad).
     Get instance of this by @link(TGameControllers.Items Controllers[Index]).
@@ -70,7 +100,7 @@ type
 
     { Implementation-specific information.
       @exclude }
-    InternalBackendInfo: TObject;
+    InternalBackend: TInternalControllerBackend;
 
     { Buttons count reported to be supported.
       @exclude }
@@ -119,18 +149,11 @@ type
       See @link(TGameController.AxisLeft) for details of possible values. }
     function AxisRight: TVector2;
 
-    { Left/right triggers are expressed as 1D axis (on XBox controller).
+    { Left trigger axis, in range 0..1. }
+    function AxisLeftTrigger: Single;
 
-      @unorderedlist(
-        @item(1.0 means "only left trigger fully pressed",)
-        @item(0.0 means "no trigger pressed, or both triggers pressed,
-          or more generally: both triggers pressed with equal strength",)
-        @item(-1.0 means "only right trigger fully pressed".)
-      )
-
-      Values in between are determined based on the pressure
-      of the left/right trigger. }
-    function AxisTrigger: Single;
+    { Right trigger axis, in range 0..1. }
+    function AxisRightTrigger: Single;
 
     { Nice caption (label) of a given button.
 
@@ -177,7 +200,7 @@ type
 
   { Internal class to provide different implementations of game controllers.
     @exclude }
-  TGameControllersBackend = class abstract
+  TInternalControllerManagerBackend = class abstract
     { Detect and add controllers to given list. }
     procedure Initialize(const List: TGameControllerList); virtual; abstract;
 
@@ -190,14 +213,14 @@ type
     See examples/game_controllers for usage examples. }
   TGameControllers = class
   private
-    Backend: TGameControllersBackend;
+    Backend: TInternalControllerManagerBackend;
     FList: TGameControllerList;
     FInitialized: Boolean;
     FOnChange: TNotifyEvent;
     function GetItems(const Index: Integer): TGameController;
     { Get (creating if necessary) explicit backend.
-      Always returns TExplicitGameControllerBackend, but cannot be declared as such. }
-    function ExplicitBackend: TGameControllersBackend;
+      Always returns TExplicitControllerManagerBackend, but cannot be declared as such. }
+    function ExplicitBackend: TInternalControllerManagerBackend;
   protected
     { See OnChange. }
     procedure DoChange;
@@ -205,7 +228,7 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    { Check state of every connected controller and run event procedures.
+    { Check state of every connected controller.
       This is internal, called automatically by CastleUIControls unit,
       user code does not need to call this.
       @exclude }
@@ -264,85 +287,50 @@ uses SysUtils, Math,
   {$ifdef MSWINDOWS} CastleInternalGameControllersWindows, {$endif}
   CastleInternalGameControllersExplicit;
 
-{ TGameController ------------------------------------------------------------------ }
+{ TInternalControllerBackend ------------------------------------------------- }
+
+constructor TInternalControllerBackend.Create(const AController: TGameController);
+begin
+  inherited Create;
+  Assert(AController <> nil);
+  FController := AController;
+  FController.InternalBackend := Self;
+end;
+
+{ TGameController ------------------------------------------------------------ }
 
 destructor TGameController.Destroy;
 begin
-  FreeAndNil(InternalBackendInfo);
+  FreeAndNil(InternalBackend);
   inherited;
 end;
 
 function TGameController.AxisLeft: TVector2;
 begin
-  Result := Vector2(
-    InternalAxis[jaX],
-    { Y axis should be 1 when pointing up, -1 when pointing down.
-      This is consistent with CGE 2D coordinate system
-      (and standard math 2D coordinate system). }
-    -InternalAxis[jaY]
-  );
+  Result := InternalBackend.AxisLeft;
 end;
 
 function TGameController.AxisRight: TVector2;
 begin
-  Result := Vector2(
-    InternalAxis[jaU],
-    { Y axis should be 1 when pointing up, -1 when pointing down.
-      This is consistent with CGE 2D coordinate system
-      (and standard math 2D coordinate system). }
-    -InternalAxis[jaR]
-  );
+  Result := InternalBackend.AxisRight;
 end;
 
-function TGameController.AxisTrigger: Single;
+function TGameController.AxisLeftTrigger: Single;
 begin
-  Result := InternalAxis[jaZ];
+  Result := InternalBackend.AxisLeftTrigger;
+end;
+
+function TGameController.AxisRightTrigger: Single;
+begin
+  Result := InternalBackend.AxisRightTrigger;
+end;
+
+function TGameController.InternalButtonMap(const Button: TInternalGameControllerButton): TGameControllerButton;
+begin
+  Result := InternalBackend.InternalButtonMap(Button);
 end;
 
 const
-  { Map TInternalGameControllerButton to TGameControllerButton.
-    Specific to the XBox Controller, more specifically
-    https://en.wikipedia.org/wiki/Xbox_Wireless_Controller }
-  XBoxInternalMap: array[TInternalGameControllerButton] of record
-    Button: TGameControllerButton;
-    Handled: Boolean;
-  end = (
-    {  0 } (Button: gbSouth; Handled: true),
-    {  1 } (Button: gbEast; Handled: true),
-    {  2 } (Button: gbWest; Handled: true),
-    {  3 } (Button: gbNorth; Handled: true),
-    {  4 } (Button: gbLeftBumper; Handled: true),
-    {  5 } (Button: gbRightBumper; Handled: true),
-    {  6 } (Button: gbView; Handled: true),
-    {  7 } (Button: gbMenu; Handled: true),
-    {  8 } (Button: gbLeftStickClick; Handled: true),
-    {  9 } (Button: gbRightStickClick; Handled: true),
-    { 10 } (Button: gbGuide; Handled: true),
-    { 11 } (Button: gbShare; Handled: true),
-
-    // all the rest, up to 31, are not handled
-    { 12 } (Button: gbNorth; Handled: false),
-    { 13 } (Button: gbNorth; Handled: false),
-    { 14 } (Button: gbNorth; Handled: false),
-    { 15 } (Button: gbNorth; Handled: false),
-    { 16 } (Button: gbNorth; Handled: false),
-    { 17 } (Button: gbNorth; Handled: false),
-    { 18 } (Button: gbNorth; Handled: false),
-    { 19 } (Button: gbNorth; Handled: false),
-    { 20 } (Button: gbNorth; Handled: false),
-    { 21 } (Button: gbNorth; Handled: false),
-    { 22 } (Button: gbNorth; Handled: false),
-    { 23 } (Button: gbNorth; Handled: false),
-    { 24 } (Button: gbNorth; Handled: false),
-    { 25 } (Button: gbNorth; Handled: false),
-    { 26 } (Button: gbNorth; Handled: false),
-    { 27 } (Button: gbNorth; Handled: false),
-    { 28 } (Button: gbNorth; Handled: false),
-    { 29 } (Button: gbNorth; Handled: false),
-    { 30 } (Button: gbNorth; Handled: false),
-    { 31 } (Button: gbNorth; Handled: false)
-  );
-
   { Map TGameControllerButton to additional information, like Caption.
     Specific to the XBox Controller, more specifically
     https://en.wikipedia.org/wiki/Xbox_Wireless_Controller }
@@ -400,19 +388,6 @@ begin
   Result := XBoxMap[Button].Meaning;
 end;
 
-function TGameController.InternalButtonMap(const Button: TInternalGameControllerButton): TGameControllerButton;
-begin
-  if not XBoxInternalMap[Button].Handled then
-  begin
-    WritelnWarning('TGameController.InternalButtonMap: Button %d is not handled by the game controller "%s".', [
-      Ord(Button),
-      // TODO: Write here also controller index
-      Name
-    ]);
-  end;
-  Result := XBoxInternalMap[Button].Button;
-end;
-
 { TGameControllers ----------------------------------------------------------------- }
 
 constructor TGameControllers.Create;
@@ -420,13 +395,13 @@ begin
   inherited;
   FList := TGameControllerList.Create(true);
   {$if defined(MSWINDOWS)}
-  Backend := TWindowsControllersBackend.Create;
+  Backend := TWindowsControllerManageBackend.Create;
   {$elseif defined(LINUX) and defined(FPC)}
   // TODO: Delphi on Linux doesn't support game controllers now
-  Backend := TLinuxControllersBackend.Create;
+  Backend := TLinuxControllerManagerBackend.Create;
   {$else}
   // This way Backend is non-nil always
-  Backend := TExplicitGameControllerBackend.Create;
+  Backend := TExplicitControllerManagerBackend.Create;
   {$endif}
 end;
 
@@ -441,13 +416,13 @@ procedure TGameControllers.Initialize;
 begin
   FInitialized := true;
 
-  { In case of TExplicitGameControllerBackend,
+  { In case of TExplicitControllerManagerBackend,
     do not clear the list and call Backend.Initialize.
-    Instead leave existing controllers (set by TExplicitGameControllerBackend.SetCount).
+    Instead leave existing controllers (set by TExplicitControllerManagerBackend.SetCount).
     That's because Backend.Initialize doesn't have a way to get new
-    controllers information (in case of TExplicitGameControllerBackend,
+    controllers information (in case of TExplicitControllerManagerBackend,
     it is CGE that is informed by external code about controller existence). }
-  if Backend is TExplicitGameControllerBackend then
+  if Backend is TExplicitControllerManagerBackend then
     Exit;
 
   FList.Clear;
@@ -461,14 +436,14 @@ begin
     Backend.Poll(FList, Self);
 end;
 
-function TGameControllers.ExplicitBackend: TGameControllersBackend;
+function TGameControllers.ExplicitBackend: TInternalControllerManagerBackend;
 begin
   Assert(Backend <> nil);
-  if not (Backend is TExplicitGameControllerBackend) then
+  if not (Backend is TExplicitControllerManagerBackend) then
   begin
     FreeAndNil(Backend);
-    Backend := TExplicitGameControllerBackend.Create;
-    { Although TExplicitGameControllerBackend.Initialize doesn't do anything for now,
+    Backend := TExplicitControllerManagerBackend.Create;
+    { Although TExplicitControllerManagerBackend.Initialize doesn't do anything for now,
       but call it, to make sure Initialized = true. }
     Initialize;
   end;
@@ -477,18 +452,18 @@ end;
 
 procedure TGameControllers.InternalSetCount(const ControllerCount: Integer);
 begin
-  (ExplicitBackend as TExplicitGameControllerBackend).SetCount(FList, ControllerCount);
+  (ExplicitBackend as TExplicitControllerManagerBackend).SetCount(FList, ControllerCount);
   DoChange;
 end;
 
 procedure TGameControllers.InternalSetAxisLeft(const ControllerIndex: Integer; const Axis: TVector2);
 begin
-  (ExplicitBackend as TExplicitGameControllerBackend).SetAxisLeft(FList, ControllerIndex, Axis);
+  (ExplicitBackend as TExplicitControllerManagerBackend).SetAxisLeft(FList, ControllerIndex, Axis);
 end;
 
 procedure TGameControllers.InternalSetAxisRight(const ControllerIndex: Integer; const Axis: TVector2);
 begin
-  (ExplicitBackend as TExplicitGameControllerBackend).SetAxisRight(FList, ControllerIndex, Axis);
+  (ExplicitBackend as TExplicitControllerManagerBackend).SetAxisRight(FList, ControllerIndex, Axis);
 end;
 
 procedure TGameControllers.InternalConnected;
