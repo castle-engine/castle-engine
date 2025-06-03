@@ -735,7 +735,7 @@ function TInputShortcutBindingControllerAxis.IsPressed(
     end;
 
     // calculate AxisValue
-    AxisValue := AxisValue2D.Items[Coord];
+    AxisValue := AxisValue2D.Data[Coord];
 
     { Check DeadZone and Positive.
       Use strict equality for DeadZone, so that DeadZone = 0.0
@@ -1151,12 +1151,14 @@ end;
 function TInputShortcut.IsEvent(const Event: TInputPressRelease): boolean;
 begin
   Result := false;
+  {$warnings off} // using deprecated knowingly, it should be moved to internal
   case Event.EventType of
     itKey        : Result := IsKey(Event.Key, Event.KeyString);
     itMouseButton: Result := IsMouseButton(Event.MouseButton, Event.ModifiersDown);
     itMouseWheel : Result := IsMouseWheel(Event.MouseWheel);
     else ;
   end;
+  {$warnings on}
 
   if not Result then
     Result := FBindings.IsEvent(Event);
@@ -1507,6 +1509,7 @@ function TInputShortcutList.SeekConflict(
 var
   I, J: Integer;
 begin
+  {$warnings off} // using deprecated knowingly, it should be moved to internal
   for I := 0 to Count - 1 do
     for J := I + 1 to Count - 1 do
     begin
@@ -1520,6 +1523,7 @@ begin
         Exit(true);
       end;
     end;
+  {$warnings on}
   Result := false;
 end;
 
