@@ -342,6 +342,17 @@ begin
                 if Axis in [jaGas, jaBrake] then
                   Value := (Value + 1.0) / 2.0; // map from [-1,1] to [0,1]
                 Controller.InternalAxis[ axis ] := Value;
+
+                if Axis in [jaPovX, jaPovY] then
+                begin
+                  { After updating jaPovX/Y, update also InternalDPadDown.
+                    This is similar to Windows backend, but note that jaPovY direction
+                    is reversed. }
+                  Controller.InternalDPadDown[gbDPadUp]    := SameValue(Controller.InternalAxis[jaPovY], -1.0);
+                  Controller.InternalDPadDown[gbDPadDown]  := SameValue(Controller.InternalAxis[jaPovY], 1.0);
+                  Controller.InternalDPadDown[gbDPadLeft]  := SameValue(Controller.InternalAxis[jaPovX], -1.0);
+                  Controller.InternalDPadDown[gbDPadRight] := SameValue(Controller.InternalAxis[jaPovX], 1.0);
+                end;
               end else
               begin
                 WritelnLog('Controller %d reports unhandled axis (%d mapped to %d) (value: %f)', [

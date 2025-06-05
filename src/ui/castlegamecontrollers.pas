@@ -112,6 +112,10 @@ type
       @exclude }
     InternalButtonDownReported: array [TInternalGameControllerButton] of Boolean;
 
+    { Last state of the DPad buttons detected by backend.
+      @exclude }
+    InternalDPadDown: array [TGameControlledDPadButton] of Boolean;
+
     { Last state of the DPad buttons reported to TCastleUserInterface.Press/Release.
       This is used by UpdateGameControllers, as DPad buttons
       are internally axis, but only make sense in practice to be treated

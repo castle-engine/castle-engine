@@ -402,6 +402,14 @@ begin
             Controller.InternalAxis[ jaPovY ] := PovCos;
           end;
 
+          { After updating jaPovX/Y, update also InternalDPadDown.
+            This is similar to Linux backend, but note that jaPovY direction
+            is reversed. }
+          Controller.InternalDPadDown[gbDPadUp]    := SameValue(Controller.InternalAxis[jaPovY], 1.0);
+          Controller.InternalDPadDown[gbDPadDown]  := SameValue(Controller.InternalAxis[jaPovY], -1.0);
+          Controller.InternalDPadDown[gbDPadLeft]  := SameValue(Controller.InternalAxis[jaPovX], -1.0);
+          Controller.InternalDPadDown[gbDPadRight] := SameValue(Controller.InternalAxis[jaPovX], 1.0);
+
           for j := 0 to Controller.InternalButtonsCount - 1 do
           begin
             btn := state.wButtons and ( 1 shl j );

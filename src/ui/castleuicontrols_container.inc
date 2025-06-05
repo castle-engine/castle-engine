@@ -1681,28 +1681,17 @@ procedure TCastleContainer.EventUpdate;
       EventRelease(Input);
   end;
 
-  procedure EventGameControllerPressReleaseDPad(
-    const Controller: TGameController; const ControllerIndex: Integer;
-    const DPadButton: TGameControlledDPadButton; const NewPressed: Boolean);
-  begin
-    if Controller.InternalDPadDownReported[DPadButton] <> NewPressed then
-    begin
-      Controller.InternalDPadDownReported[DPadButton] := NewPressed;
-      EventGameControllerPressRelease(Controller, ControllerIndex,
-        NewPressed, -1, DPadButton);
-    end;
-  end;
-
   { Look at Controllers state changes and send press/release events for
     game controllers' buttons. }
   procedure UpdateGameControllers;
   var
     ControllerIndex: Integer;
     InternalButton: TInternalGameControllerButton;
+    DPadButton: TGameControlledDPadButton;
     Cs: TGameControllers;
     Controller: TGameController;
   begin
-    Cs := Controllers;
+    Cs := Controllers; // just a shorter and quicker acccess to Controllers singleton
     if Cs.Initialized then
     begin
       Cs.InternalPoll;
@@ -1725,14 +1714,17 @@ procedure TCastleContainer.EventUpdate;
         end;
 
         { Consider sending DPad button events, based on jaPov* axis. }
-        EventGameControllerPressReleaseDPad(Controller, ControllerIndex,
-          gbDPadUp, SameValue(Controller.InternalAxis[jaPovY], 1.0));
-        EventGameControllerPressReleaseDPad(Controller, ControllerIndex,
-          gbDPadDown, SameValue(Controller.InternalAxis[jaPovY], -1.0));
-        EventGameControllerPressReleaseDPad(Controller, ControllerIndex,
-          gbDPadLeft, SameValue(Controller.InternalAxis[jaPovX], -1.0));
-        EventGameControllerPressReleaseDPad(Controller, ControllerIndex,
-          gbDPadRight, SameValue(Controller.InternalAxis[jaPovX], 1.0));
+        for DPadButton := Low(TGameControlledDPadButton) to High(TGameControlledDPadButton) do
+        begin
+          if Controller.InternalDPadDownReported[DPadButton] <>
+             Controller.InternalDPadDown[DPadButton] then
+          begin
+            Controller.InternalDPadDownReported[DPadButton] :=
+              Controller.InternalDPadDown[DPadButton];
+            EventGameControllerPressRelease(Controller, ControllerIndex,
+              Controller.InternalDPadDown[DPadButton], -1, DPadButton);
+          end;
+        end;
       end;
     end;
   end;
