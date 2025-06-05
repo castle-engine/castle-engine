@@ -114,14 +114,14 @@ type
 
     { Last state of the DPad buttons detected by backend.
       @exclude }
-    InternalDPadDown: array [TGameControlledDPadButton] of Boolean;
+    InternalDPadDown: array [TGameControllerDPadButton] of Boolean;
 
     { Last state of the DPad buttons reported to TCastleUserInterface.Press/Release.
       This is used by UpdateGameControllers, as DPad buttons
       are internally axis, but only make sense in practice to be treated
       as buttons.
       @exclude }
-    InternalDPadDownReported: array [TGameControlledDPadButton] of Boolean;
+    InternalDPadDownReported: array [TGameControllerDPadButton] of Boolean;
 
     { Left analog stick position.
       Both coordinates are in range -1..1,

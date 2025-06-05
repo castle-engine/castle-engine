@@ -1687,7 +1687,7 @@ procedure TCastleContainer.EventUpdate;
   var
     ControllerIndex: Integer;
     InternalButton: TInternalGameControllerButton;
-    DPadButton: TGameControlledDPadButton;
+    DPadButton: TGameControllerDPadButton;
     Cs: TGameControllers;
     Controller: TGameController;
   begin
@@ -1714,7 +1714,7 @@ procedure TCastleContainer.EventUpdate;
         end;
 
         { Consider sending DPad button events, based on jaPov* axis. }
-        for DPadButton := Low(TGameControlledDPadButton) to High(TGameControlledDPadButton) do
+        for DPadButton := Low(TGameControllerDPadButton) to High(TGameControllerDPadButton) do
         begin
           if Controller.InternalDPadDownReported[DPadButton] <>
              Controller.InternalDPadDown[DPadButton] then
