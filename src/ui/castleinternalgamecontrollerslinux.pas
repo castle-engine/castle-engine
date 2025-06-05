@@ -52,10 +52,10 @@ uses SysUtils, Math,
 
 type
   TLinuxJsEvent = record
-    time   : UInt32; // event timestamp in milliseconds
-    value  : SmallInt; // value
-    EventType  : Byte;     // event type
-    number : Byte;     // axis/button number
+    time: UInt32; //< event timestamp in milliseconds
+    value: SmallInt; //< value
+    EventType: Byte;  //< event type
+    number: Byte; //< axis/button number
   end;
 
 const
@@ -72,42 +72,16 @@ const
 
   EAGAIN = 11; //Error: "there is no data available right now, try again later"
 
-  AxisMap : array[ 0..17 ] of record
-    Axis: TInternalGameControllerAxis;
-    Handled: Boolean;
-  end = (
-    (Axis: jaX; Handled: True),
-    (Axis: jaY; Handled: True),
-    (Axis: jaZ; Handled: True),
-
-    (Axis: jaU; Handled: True),
-    (Axis: jaV; Handled: True),
-    (Axis: jaR; Handled: True),
-
-    (Axis: jaZ; Handled: True), // 2 things mapped to jaZ
-    (Axis: jaR; Handled: True), // 2 things mapped to jaR
-
-    // https://gist.github.com/emdeex/97b771b264bebbd1e18dd897404040be
-    (Axis: jaX; Handled: false), // wheel
-    (Axis: jaGas; Handled: true), // gas
-    (Axis: jaBrake; Handled: true), // brake
-    (Axis: jaX; Handled: false), // hat0x
-    (Axis: jaX; Handled: false), // hat0y
-    (Axis: jaX; Handled: false),
-    (Axis: jaX; Handled: false),
-    (Axis: jaX; Handled: false),
-
-    (Axis: jaPovX; Handled: True),
-    (Axis: jaPovY; Handled: True)
-  );
-
 { TLinuxControllerBackend -------------------------------------------------- }
 
 type
   TLinuxControllerBackend = class(TInternalControllerBackend)
     DeviceInitialized: Boolean;
-    Device  : LongInt;
-    AxesMap : array[ 0..ABS_MAX - 1 ] of Byte;
+    Device: LongInt;
+
+    { Axes mapping from JSIOCGAXMAP call. }
+    AxesMap : array[0..ABS_MAX - 1] of Byte;
+
     { Axes count available in this controller.
       Warning: This doesn't imply the number of axes that are available in
       InternalAxis, it talks about internal axes (backend-specific) that
@@ -115,46 +89,41 @@ type
       So *do not* use this to iterate over InternalAxis.
       @exclude }
     AxesCount: Integer;
+
+    { Buttons count reported to be supported. }
+    ButtonsCount: Integer;
+
+    FAxisLeft, FAxisRight: TVector2;
+    FAxisLeftTrigger, FAxisRightTrigger: Single;
+
     function AxisLeft: TVector2; override;
     function AxisRight: TVector2; override;
     function AxisLeftTrigger: Single; override;
     function AxisRightTrigger: Single; override;
-    function InternalButtonMap(
-      const Button: TInternalGameControllerButton): TGameControllerButton;
-      override;
     destructor Destroy; override;
+
+    procedure HandleEventButton(const Event: TLinuxJsEvent);
+    procedure HandleEventAxis(const Event: TLinuxJsEvent);
   end;
 
 function TLinuxControllerBackend.AxisLeft: TVector2;
 begin
-  Result := Vector2(
-    Controller.InternalAxis[jaX],
-    { Y axis should be 1 when pointing up, -1 when pointing down.
-      This is consistent with CGE 2D coordinate system
-      (and standard math 2D coordinate system). }
-    -Controller.InternalAxis[jaY]
-  );
+  Result := FAxisLeft;
 end;
 
 function TLinuxControllerBackend.AxisRight: TVector2;
 begin
-  Result := Vector2(
-    Controller.InternalAxis[jaZ], // on Linux, contrary to Windows, this is from jaZ
-    { Y axis should be 1 when pointing up, -1 when pointing down.
-      This is consistent with CGE 2D coordinate system
-      (and standard math 2D coordinate system). }
-    -Controller.InternalAxis[jaR]
-  );
+  Result := FAxisRight;
 end;
 
 function TLinuxControllerBackend.AxisLeftTrigger: Single;
 begin
-  Result := Controller.InternalAxis[jaBrake];
+  Result := FAxisLeftTrigger;
 end;
 
 function TLinuxControllerBackend.AxisRightTrigger: Single;
 begin
-  Result := Controller.InternalAxis[jaGas];
+  Result := FAxisRightTrigger;
 end;
 
 const
@@ -163,7 +132,7 @@ const
     - the XBox Controller, more specifically
       https://en.wikipedia.org/wiki/Xbox_Wireless_Controller
     - and to this controller implementation. }
-  XBoxInternalMap: array[TInternalGameControllerButton] of record
+  XBoxButtonsMap: array[0..14] of record
     Button: TGameControllerButton;
     Handled: Boolean;
   end = (
@@ -187,43 +156,11 @@ const
     { 11 } (Button: gbMenu; Handled: true),
     { 12 } (Button: gbGuide; Handled: true),
     { 13 } (Button: gbLeftStickClick; Handled: true),
-    { 14 } (Button: gbRightStickClick; Handled: true),
+    { 14 } (Button: gbRightStickClick; Handled: true)
 
     // Note: Linux backend cannot detect "share" button at all, it seems
     // (present on XBox controller 3rd revision).
-
-    { 15 } (Button: gbNorth; Handled: false),
-    { 16 } (Button: gbNorth; Handled: false),
-    { 17 } (Button: gbNorth; Handled: false),
-    { 18 } (Button: gbNorth; Handled: false),
-    { 19 } (Button: gbNorth; Handled: false),
-    { 20 } (Button: gbNorth; Handled: false),
-    { 21 } (Button: gbNorth; Handled: false),
-    { 22 } (Button: gbNorth; Handled: false),
-    { 23 } (Button: gbNorth; Handled: false),
-    { 24 } (Button: gbNorth; Handled: false),
-    { 25 } (Button: gbNorth; Handled: false),
-    { 26 } (Button: gbNorth; Handled: false),
-    { 27 } (Button: gbNorth; Handled: false),
-    { 28 } (Button: gbNorth; Handled: false),
-    { 29 } (Button: gbNorth; Handled: false),
-    { 30 } (Button: gbNorth; Handled: false),
-    { 31 } (Button: gbNorth; Handled: false)
   );
-
-function TLinuxControllerBackend.InternalButtonMap(
-  const Button: TInternalGameControllerButton): TGameControllerButton;
-begin
-  if not XBoxInternalMap[Button].Handled then
-  begin
-    WritelnWarning('TGameController.InternalButtonMap: Button %d is not handled by the game controller "%s".', [
-      Ord(Button),
-      // TODO: Write here also controller index
-      Controller.Name
-    ]);
-  end;
-  Result := XBoxInternalMap[Button].Button;
-end;
 
 destructor TLinuxControllerBackend.Destroy;
 begin
@@ -231,6 +168,96 @@ begin
   if DeviceInitialized then
     FpClose(Device);
   inherited;
+end;
+
+procedure TLinuxControllerBackend.HandleEventButton(const Event: TLinuxJsEvent);
+var
+  Button: TGameControllerButton;
+begin
+  if (Event.Number <= High(XBoxButtonsMap)) and
+     XBoxButtonsMap[Event.Number].Handled then
+  begin
+    Button := XBoxButtonsMap[Event.Number].Button;
+    case event.value of
+      0: Controller.InternalPressedToReport[Button] := false;
+      1: Controller.InternalPressedToReport[Button] := true;
+      else
+        begin
+          WritelnWarning('Game Controllers', 'Controller "%s" received press/release for button index %d with unexpected value %d', [
+            Controller.Name,
+            Event.Number,
+            Event.Value
+          ]);
+        end;
+    end;
+  end else
+  begin
+    WritelnWarning('Game Controllers', 'Controller "%s" received press/release for unhandled button index %d', [
+      Controller.Name,
+      Event.Number
+    ]);
+  end;
+end;
+
+procedure TLinuxControllerBackend.HandleEventAxis(const Event: TLinuxJsEvent);
+var
+  Axis: Byte;
+  Value: Single;
+begin
+  // Some axis names follow
+  // https://gist.github.com/emdeex/97b771b264bebbd1e18dd897404040be
+  Axis := AxesMap[event.number];
+  Value := event.value / 32767;
+
+  case Axis of
+    0: FAxisLeft.X := Value;
+    { Y axis should be 1 when pointing up, -1 when pointing down.
+      This is consistent with CGE 2D coordinate system
+      (and standard math 2D coordinate system). }
+    1: FAxisLeft.Y := -Value;
+
+    2: FAxisRight.X := Value;
+    { Y axis should be 1 when pointing up, -1 when pointing down.
+      This is consistent with CGE 2D coordinate system
+      (and standard math 2D coordinate system). }
+    5: FAxisRight.Y := -Value;
+
+    // gas
+    9: FAxisRightTrigger := (Value + 1.0) / 2.0; // map from [-1,1] to [0,1]
+    // brake
+    10: FAxisLeftTrigger := (Value + 1.0) / 2.0; // map from [-1,1] to [0,1]
+
+    16:
+      begin
+        Controller.InternalPressedToReport[gbDPadLeft] := false;
+        Controller.InternalPressedToReport[gbDPadRight] := false;
+        if SameValue(Value, 1) then
+          Controller.InternalPressedToReport[gbDPadRight] := true
+        else
+        if SameValue(Value, -1) then
+          Controller.InternalPressedToReport[gbDPadLeft] := true;
+      end;
+    17:
+      begin
+        Controller.InternalPressedToReport[gbDPadUp] := false;
+        Controller.InternalPressedToReport[gbDPadDown] := false;
+        if SameValue(Value, 1) then
+          Controller.InternalPressedToReport[gbDPadDown] := true
+        else
+        if SameValue(Value, -1) then
+          Controller.InternalPressedToReport[gbDPadUp] := true;
+      end;
+
+    else
+      begin
+        WritelnLog('Controller %s reports unhandled axis (%d mapped from %d) (value: %f)', [
+          Controller.Name,
+          Axis,
+          event.number,
+          Value
+        ]);
+      end;
+  end;
 end;
 
 { TLinuxControllerManagerBackend --------------------------------------------- }
@@ -259,33 +286,7 @@ begin
       FpIOCtl( NewControllerBackend.Device, TIOCtlRequest(JSIOCGNAME),    @NewController.Name[ 1 ] );
       FpIOCtl( NewControllerBackend.Device, TIOCtlRequest(JSIOCGAXMAP),   @NewControllerBackend.AxesMap[ 0 ] );
       FpIOCtl( NewControllerBackend.Device, TIOCtlRequest(JSIOCGAXES),    @NewControllerBackend.AxesCount );
-      FpIOCtl( NewControllerBackend.Device, TIOCtlRequest(JSIOCGBUTTONS), @NewController.InternalButtonsCount );
-
-      (*
-      This Capabilities initialization was not used in the end.
-      It was also likely incomplete, as we don't detect jaGas/jaBrake
-      which are in practice used on Linux by XBox controllers.
-      For now, comment. Maybe resurrect in the future if Capabilities
-      become (reliably) useful, internally or public.
-
-      for j := 0 to NewControllerBackend.AxesCount - 1 do
-      begin
-        // debug
-        // WritelnLog('Controller %d reports axis %d mapped to %d', [
-        //   ControllerIndex,
-        //   j,
-        //   NewControllerBackend.AxesMap[ j ]
-        // ]);
-        // if AxisMap[NewControllerBackend.AxesMap[ j ]].Handled then
-          case AxisMap[NewControllerBackend.AxesMap[ j ]].Axis of
-            jaZ: Include(NewController.InternalCapabilities, jcZ);
-            jaR: Include(NewController.InternalCapabilities, jcR);
-            jaU: Include(NewController.InternalCapabilities, jcU);
-            jaV: Include(NewController.InternalCapabilities, jcV);
-            jaPovX, jaPovY: Include(NewController.InternalCapabilities, jcPOV);
-          end;
-      end;
-      *)
+      FpIOCtl( NewControllerBackend.Device, TIOCtlRequest(JSIOCGBUTTONS), @NewControllerBackend.ButtonsCount );
 
       for j := 1 to 255 do
         if NewController.Name[ j ] = #0 then
@@ -297,13 +298,13 @@ begin
       { Checking if controller is a real one,
         because laptops with accelerometer can be detected as a joystick :) }
       if ( NewControllerBackend.AxesCount >= 2 ) and
-         ( NewController.InternalButtonsCount > 0 ) then
+         ( NewControllerBackend.ButtonsCount > 0 ) then
       begin
         WritelnLog('CastleGameControllers', 'Detected game controller: %s (ID: %d); Axes: %d; Buttons: %d', [
           NewController.Name,
           ControllerIndex,
           NewControllerBackend.AxesCount,
-          NewController.InternalButtonsCount
+          NewControllerBackend.ButtonsCount
         ]);
         List.Add(NewController);
       end else
@@ -315,9 +316,7 @@ end;
 
 procedure TLinuxControllerManagerBackend.Poll;
 var
-  i : Integer;
-  Value: Single;
-  axis: TInternalGameControllerAxis;
+  i: Integer;
   event : TLinuxJsEvent;
   Controller: TGameController;
   ControllerBackend: TLinuxControllerBackend;
@@ -333,41 +332,9 @@ begin
     if BytesRead = 8 then
       repeat
         case event.EventType of
-          JS_EVENT_AXIS:
-            begin
-              Value := event.value / 32767;
-              if AxisMap[ ControllerBackend.AxesMap[ event.number ] ].Handled then
-              begin
-                axis := AxisMap[ ControllerBackend.AxesMap[ event.number ] ].Axis;
-                if Axis in [jaGas, jaBrake] then
-                  Value := (Value + 1.0) / 2.0; // map from [-1,1] to [0,1]
-                Controller.InternalAxis[ axis ] := Value;
-
-                if Axis in [jaPovX, jaPovY] then
-                begin
-                  { After updating jaPovX/Y, update also InternalDPadDown.
-                    This is similar to Windows backend, but note that jaPovY direction
-                    is reversed. }
-                  Controller.InternalDPadDown[gbDPadUp]    := SameValue(Controller.InternalAxis[jaPovY], -1.0);
-                  Controller.InternalDPadDown[gbDPadDown]  := SameValue(Controller.InternalAxis[jaPovY], 1.0);
-                  Controller.InternalDPadDown[gbDPadLeft]  := SameValue(Controller.InternalAxis[jaPovX], -1.0);
-                  Controller.InternalDPadDown[gbDPadRight] := SameValue(Controller.InternalAxis[jaPovX], 1.0);
-                end;
-              end else
-              begin
-                WritelnLog('Controller %d reports unhandled axis (%d mapped to %d) (value: %f)', [
-                  I,
-                  event.number,
-                  ControllerBackend.AxesMap[ event.number ],
-                  Value
-                ]);
-              end;
-            end;
-          JS_EVENT_BUTTON:
-            case event.value of
-              0: Controller.InternalButtonDown[ event.number ] := False;
-              1: Controller.InternalButtonDown[ event.number ] := True;
-            end;
+          JS_EVENT_AXIS: ControllerBackend.HandleEventAxis(Event);
+          JS_EVENT_BUTTON: ControllerBackend.HandleEventButton(Event);
+          else ;
         end;
         BytesRead := FpRead( ControllerBackend.Device, event, 8 );
       until BytesRead <> 8

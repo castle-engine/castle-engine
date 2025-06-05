@@ -80,6 +80,8 @@ type
       So *do not* use this to iterate over InternalAxis.
       @exclude }
     AxesCount: Integer;
+    { Buttons count reported to be supported. }
+    ButtonsCount: Integer;
     AxesMap : array[ 0..5 ] of TInternalGameControllerAxis;
     function AxisLeft: TVector2; override;
     function AxisRight: TVector2; override;
@@ -241,7 +243,7 @@ begin
     if JoyCapsResult = 0 then
     begin
       NewController.Name := NewControllerBackend.Caps.szPname;
-      NewController.InternalButtonsCount := NewControllerBackend.Caps.wNumButtons;
+      NewControllerBackend.ButtonsCount := NewControllerBackend.Caps.wNumButtons;
       NewControllerBackend.AxesCount := NewControllerBackend.Caps.wNumAxes;
 
       NewControllerBackend.AxesMap[ 0 ] := jaX;
@@ -290,7 +292,7 @@ begin
           NewController.Name,
           NewControllerBackend.WindowsId,
           NewControllerBackend.AxesCount,
-          NewController.InternalButtonsCount
+          NewControllerBackend.ButtonsCount
         ]);
 
         List.Add(NewController);
@@ -410,7 +412,7 @@ begin
           Controller.InternalDPadDown[gbDPadLeft]  := SameValue(Controller.InternalAxis[jaPovX], -1.0);
           Controller.InternalDPadDown[gbDPadRight] := SameValue(Controller.InternalAxis[jaPovX], 1.0);
 
-          for j := 0 to Controller.InternalButtonsCount - 1 do
+          for j := 0 to ControllerBackend.ButtonsCount - 1 do
           begin
             btn := state.wButtons and ( 1 shl j );
             Controller.InternalButtonDown[ j ] := btn <> 0;

@@ -33,12 +33,10 @@ type
     Notifications: TCastleNotifications;
     ButtonReinitialize, ButtonUnselect: TCastleButton;
     LabelControllersCount: TCastleLabel;
-    GroupControllers, SelectedControllerDynamicUi: TCastleVerticalGroup;
+    GroupControllers: TCastleVerticalGroup;
     SelectedControllerUi: TCastleUserInterface;
   strict private
     SelectedController: Integer;
-    ControllerButtons: array of TCastleButton;
-    ControllerAxes: array [TInternalGameControllerAxis] of TCastleLabel;
     AxisLeftVisualize, AxisRightVisualize: T2DAxisVisualize;
     AxisLeftTriggerVisualize, AxisRightTriggerVisualize: T1DAxisVisualize;
 
@@ -96,25 +94,13 @@ end;
 
 procedure TViewMain.ClearSelectedControllerUI;
 var
-  Button: TInternalGameControllerButton;
-  Axis: TInternalGameControllerAxis;
   C: TCastleUserInterface;
 begin
-  if Length(ControllerButtons) <> 0 then
-    for Button := Low(ControllerButtons) to High(ControllerButtons) do
-      FreeAndNil(ControllerButtons[Button]);
-  SetLength(ControllerButtons, 0);
-
-  for Axis := Low(ControllerAxes) to High(ControllerAxes) do
-    FreeAndNil(ControllerAxes[Axis]);
-
+  SelectedControllerUi.Exists := false;
   FreeAndNil(AxisLeftVisualize);
   FreeAndNil(AxisRightVisualize);
   FreeAndNil(AxisLeftTriggerVisualize);
   FreeAndNil(AxisRightTriggerVisualize);
-
-  SelectedControllerDynamicUi.ClearControls;
-  SelectedControllerUi.Exists := false;
 
   SelectedController := -1;
 
@@ -130,72 +116,41 @@ begin
 end;
 
 procedure TViewMain.ClickControllerSelect(Sender: TObject);
-var
-  Button: TInternalGameControllerButton;
-  Axis: TInternalGameControllerAxis;
-  ButtonsGroup: TCastleHorizontalGroup;
 begin
   ClearSelectedControllerUI;
-
   SelectedControllerUi.Exists := true;
 
   // Show selected controller details
   SelectedController := (Sender as TComponent).Tag;
   (GroupControllers.Controls[SelectedController] as TCastleButton).Pressed := true;
 
-  ButtonsGroup := TCastleHorizontalGroup.Create(FreeAtStop);
-  SelectedControllerDynamicUi.InsertBack(ButtonsGroup);
-
-  // Create array of buttons
-  SetLength(ControllerButtons, Controllers[SelectedController].InternalButtonsCount);
-  for Button := 0 to High(ControllerButtons) do
-  begin
-    ControllerButtons[Button] := TCastleButton.Create(FreeAtStop);
-    ControllerButtons[Button].Toggle := true;
-    ControllerButtons[Button].Enabled := false;
-    ControllerButtons[Button].Caption := IntToStr(Button);
-    ButtonsGroup.InsertFront(ControllerButtons[Button]);
-  end;
-  Notifications.Show(Format('Found %d buttons', [
-    Controllers[SelectedController].InternalButtonsCount
-  ]));
-
-  // Create axis labels
-  for Axis := Low(TInternalGameControllerAxis) to High(TInternalGameControllerAxis) do
-  begin
-    ControllerAxes[Axis] := TCastleLabel.Create(FreeAtStop);
-    ControllerAxes[Axis].Caption := Format('Axis %d (%s): no input so far', [Ord(Axis), InternalAxisName(Axis)]);
-    ControllerAxes[Axis].Color := White;
-    SelectedControllerDynamicUi.InsertControl(Ord(Axis), ControllerAxes[Axis]);
-  end;
-
   AxisLeftVisualize := T2DAxisVisualize.Create(FreeAtStop);
-  AxisLeftVisualize.Anchor(hpRight, -256 - 10 - 10);
+  AxisLeftVisualize.Anchor(hpLeft, 10);
   AxisLeftVisualize.Anchor(vpBottom, 100);
   AxisLeftVisualize.Caption := 'Left Axis';
-  InsertFront(AxisLeftVisualize);
+  SelectedControllerUi.InsertFront(AxisLeftVisualize);
 
   AxisRightVisualize := T2DAxisVisualize.Create(FreeAtStop);
-  AxisRightVisualize.Anchor(hpRight, -10);
+  AxisRightVisualize.Anchor(hpLeft, 256 + 10 + 10);
   AxisRightVisualize.Anchor(vpBottom, 100);
   AxisRightVisualize.Caption := 'Right Axis';
-  InsertFront(AxisRightVisualize);
+  SelectedControllerUi.InsertFront(AxisRightVisualize);
 
   AxisLeftTriggerVisualize := T1DAxisVisualize.Create(FreeAtStop);
-  AxisLeftTriggerVisualize.Anchor(hpRight, -256 - 10 - 10);
+  AxisLeftTriggerVisualize.Anchor(hpLeft, 10);
   AxisLeftTriggerVisualize.Anchor(vpBottom,
     AxisLeftVisualize.Translation.Y +
     AxisLeftVisualize.EffectiveHeight + 10);
   AxisLeftTriggerVisualize.Caption := 'Left Trigger Axis';
-  InsertFront(AxisLeftTriggerVisualize);
+  SelectedControllerUi.InsertFront(AxisLeftTriggerVisualize);
 
   AxisRightTriggerVisualize := T1DAxisVisualize.Create(FreeAtStop);
-  AxisRightTriggerVisualize.Anchor(hpRight, -10);
+  AxisRightTriggerVisualize.Anchor(hpLeft, 256 + 10 + 10);
   AxisRightTriggerVisualize.Anchor(vpBottom,
     AxisRightVisualize.Translation.Y +
     AxisRightVisualize.EffectiveHeight + 10);
   AxisRightTriggerVisualize.Caption := 'Right Trigger Axis';
-  InsertFront(AxisRightTriggerVisualize);
+  SelectedControllerUi.InsertFront(AxisRightTriggerVisualize);
 end;
 
 procedure TViewMain.ClickUnselect(Sender: TObject);
@@ -228,8 +183,6 @@ begin
 end;
 
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: boolean);
-var
-  InternalAxis: TInternalGameControllerAxis;
 begin
   { update game controller axes visualization }
   if SelectedController <> -1 then
@@ -240,18 +193,6 @@ begin
     AxisRightVisualize.Axis := Controllers[SelectedController].AxisRight;
     AxisLeftTriggerVisualize.Axis := Controllers[SelectedController].AxisLeftTrigger;
     AxisRightTriggerVisualize.Axis := Controllers[SelectedController].AxisRightTrigger;
-
-    { WARNING: Do not use TInternalGameControllerAxis or Controller.InternalAxis
-      in your own code.
-      Use instead nice Controller.AxisLeft, Controller.AxisRight and other
-      Controller.Axis* as shown above.
-      Below we use InternalXxx only to debug game controllers implementation. }
-    for InternalAxis := Low(TInternalGameControllerAxis) to High(TInternalGameControllerAxis) do
-      ControllerAxes[InternalAxis].Caption := FormatDot('Axis %d (%s): %f', [
-        Ord(InternalAxis),
-        InternalAxisName(InternalAxis),
-        Controllers[SelectedController].InternalAxis[InternalAxis]
-      ]);
   end;
 end;
 
@@ -263,15 +204,6 @@ begin
   if Event.EventType = itGameController then
   begin
     Notifications.Show('Game controller press: ' + Event.ToString);
-
-    { WARNING: Do not use Controller.InternalButton in your own code.
-      Use instead Controller.Button.
-      We only show here InternalButton to debug game controllers
-      implementation. }
-    if (Event.Controller.ControllerIndex = SelectedController) and
-       (Event.Controller.InternalButton >= 0) then
-      ControllerButtons[Event.Controller.InternalButton].Pressed := true;
-
     Exit(true); // handled
   end;
 end;
@@ -284,15 +216,6 @@ begin
   if Event.EventType = itGameController then
   begin
     Notifications.Show('Game controller release: ' + Event.ToString);
-
-    { WARNING: Do not use Controller.InternalButton in your own code.
-      Use instead Controller.Button.
-      We only show here InternalButton to debug game controllers
-      implementation. }
-    if (Event.Controller.ControllerIndex = SelectedController) and
-       (Event.Controller.InternalButton >= 0) then
-      ControllerButtons[Event.Controller.InternalButton].Pressed := false;
-
     Exit(true); // handled
   end;
 end;

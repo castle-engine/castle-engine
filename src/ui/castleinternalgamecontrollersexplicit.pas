@@ -46,8 +46,6 @@ type
     function AxisRight: TVector2; override;
     function AxisLeftTrigger: Single; override;
     function AxisRightTrigger: Single; override;
-    function InternalButtonMap(
-      const Button: TInternalGameControllerButton): TGameControllerButton; override;
   end;
 
 function TExplicitControllerBackend.AxisLeft: TVector2;
@@ -70,14 +68,6 @@ function TExplicitControllerBackend.AxisRightTrigger: Single;
 begin
   { Explicit backend does not support triggers for now, so we return 0. }
   Result := 0;
-end;
-
-function TExplicitControllerBackend.InternalButtonMap(
-  const Button: TInternalGameControllerButton): TGameControllerButton;
-begin
-  { Explicit backend just assumes that internal button index
-    equals the TGameControllerButton index. }
-  Result := TGameControllerButton(Button);
 end;
 
 { TExplicitControllerManagerBackend ----------------------------------------- }

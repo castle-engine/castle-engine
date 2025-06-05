@@ -28,26 +28,6 @@ uses Generics.Collections, Classes,
   CastleVectors, CastleUtils, CastleKeysMouse;
 
 type
-  { Internal 1D controller axis.
-    @exclude }
-  TInternalGameControllerAxis = (
-    jaX,
-    jaY,
-    jaZ,
-    jaR,
-    jaU,
-    jaV,
-    jaPovX,
-    jaPovY,
-    // Only by Linux backend; Windows backend returns both triggers as one axis in jaZ.
-    jaGas,
-    jaBrake
-  );
-
-  { Internal controller button as integer index.
-    @exclude }
-  TInternalGameControllerButton = 0..31;
-
   TGameController = class;
 
   { Internal backend for a single controller.
@@ -68,8 +48,6 @@ type
     function AxisRight: TVector2; virtual; abstract;
     function AxisLeftTrigger: Single; virtual; abstract;
     function AxisRightTrigger: Single; virtual; abstract;
-    function InternalButtonMap(
-      const Button: TInternalGameControllerButton): TGameControllerButton; virtual; abstract;
   end;
 
   { Properties of a given game controller (joystick, gamepad).
@@ -90,38 +68,13 @@ type
     { Which buttons are now pressed. }
     Pressed: array [TGameControllerButton] of Boolean;
 
+    { New state of buttons' pressed, to be reported by next
+      TCastleContainer.Update, and it will be the new value of Pressed. }
+    InternalPressedToReport: array [TGameControllerButton] of Boolean;
+
     { Implementation-specific information.
       @exclude }
     InternalBackend: TInternalControllerBackend;
-
-    { Buttons count reported to be supported.
-      @exclude }
-    InternalButtonsCount: Integer;
-
-    { Current state of the axis.
-      This is internal, use instead nicer
-      @link(TGameController.AxisLeft) and @link(TGameController.AxisLeft).
-      @exclude }
-    InternalAxis: array [TInternalGameControllerAxis] of Single;
-
-    { Current state of the internal buttons.
-      @exclude }
-    InternalButtonDown: array [TInternalGameControllerButton] of Boolean;
-
-    { Last state of the buttons reported to TCastleUserInterface.Press/Release.
-      @exclude }
-    InternalButtonDownReported: array [TInternalGameControllerButton] of Boolean;
-
-    { Last state of the DPad buttons detected by backend.
-      @exclude }
-    InternalDPadDown: array [TGameControllerDPadButton] of Boolean;
-
-    { Last state of the DPad buttons reported to TCastleUserInterface.Press/Release.
-      This is used by UpdateGameControllers, as DPad buttons
-      are internally axis, but only make sense in practice to be treated
-      as buttons.
-      @exclude }
-    InternalDPadDownReported: array [TGameControllerDPadButton] of Boolean;
 
     { Left analog stick position.
       Both coordinates are in range -1..1,
@@ -170,17 +123,6 @@ type
           Nintendo Switch).)
       ) }
     function ButtonMeaning(const Button: TGameControllerButton): TGameControllerButtonMeaning;
-
-    { Map TInternalGameControllerButton (button as internal, device-specific integer)
-      to nice TGameControllerButton.
-
-      TODO: The current implementation assumes
-      @unorderedlist(
-        @item(XBox controller on all platforms except Nintendo Switch,)
-        @item(or Nintendo Switch controllers on @url(https://castle-engine.io/nintendo_switch
-          Nintendo Switch).)
-      ) }
-    function InternalButtonMap(const Button: TInternalGameControllerButton): TGameControllerButton;
 
     destructor Destroy; override;
   end;
@@ -321,11 +263,6 @@ end;
 function TGameController.AxisRightTrigger: Single;
 begin
   Result := InternalBackend.AxisRightTrigger;
-end;
-
-function TGameController.InternalButtonMap(const Button: TInternalGameControllerButton): TGameControllerButton;
-begin
-  Result := InternalBackend.InternalButtonMap(Button);
 end;
 
 const

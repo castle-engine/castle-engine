@@ -54,8 +54,6 @@ type
     property Caption: String read FCaption write SetCaption;
   end;
 
-function InternalAxisName(const Axis: TInternalGameControllerAxis): String;
-
 implementation
 
 uses SysUtils, TypInfo,
@@ -171,13 +169,6 @@ begin
     FCaption,
     FAxis
   ]);
-end;
-
-{ routines ------------------------------------------------------------------- }
-
-function InternalAxisName(const Axis: TInternalGameControllerAxis): String;
-begin
-  Result := GetEnumName(TypeInfo(TInternalGameControllerAxis), Ord(Axis));
 end;
 
 end.

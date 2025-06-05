@@ -97,23 +97,16 @@
       ]
     },
     {
-      "$$ClassName" : "TCastleVerticalGroup",
+      "$$ClassName" : "TCastleUserInterface",
+      "AutoSizeToChildren" : true,
       "Exists" : false,
       "Name" : "SelectedControllerUi",
-      "Spacing" : 1.0000000000000000E+001,
       "TranslationPersistent" : {
         "$$ClassName" : "TCastleVector2Persistent",
         "X" : 1.0000000000000000E+001,
         "Y" : 1.0000000000000000E+001
       },
       "$Children" : [
-        {
-          "$$ClassName" : "TCastleVerticalGroup",
-          "Name" : "SelectedControllerDynamicUi",
-          "Spacing" : 1.0000000000000000E+001,
-          "VerticalAnchorParent" : "vpTop",
-          "VerticalAnchorSelf" : "vpTop"
-        },
         {
           "$$ClassName" : "TCastleButton",
           "Caption" : "Close This Game Controller Visualization",
@@ -132,13 +125,7 @@
           "Image" : {
             "$$ClassName" : "TCastleImagePersistent"
           },
-          "Name" : "ButtonUnselect",
-          "TranslationPersistent" : {
-            "$$ClassName" : "TCastleVector2Persistent",
-            "Y" : -1.0000000000000000E+001
-          },
-          "VerticalAnchorParent" : "vpTop",
-          "VerticalAnchorSelf" : "vpTop"
+          "Name" : "ButtonUnselect"
         }
       ]
     }

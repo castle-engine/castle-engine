@@ -1633,11 +1633,10 @@ procedure TCastleContainer.EventUpdate;
     end;
   end;
 
-  { Cause Press or Relase event for a game controller button. }
+  { Cause Press or Relase event for a game controller button.
+    Assumes that Controller.Pressed[Button] is already set. }
   procedure EventGameControllerPressRelease(
     const Controller: TGameController; const ControllerIndex: Integer;
-    const NewPressed: Boolean;
-    const InternalButton: Integer;
     const Button: TGameControllerButton);
   var
     Input: TInputPressRelease;
@@ -1650,32 +1649,21 @@ procedure TCastleContainer.EventUpdate;
     Input.ModifiersDown := ModifiersDown(Pressed);
 
     // fields related to the game controller
-    Input.Controller.InternalButton := InternalButton;
     { Note: we call Controller.Xxx methods now,
       instead of making TGameControllerPressRelease
       methods that under the hood would query the controller, like this:
-
-        function TGameControllerPressRelease.Button: TGameControllerButton;
-        begin
-          Result := Controllers[ControllerIndex].InternalButtonMap(InternalButton);
-        end;
 
       Reason: This way our TInputPressRelease are safe to process and
       pass around even if controllers will get disconnected / reordered
       in the meantime.
       Although we don't officially support this, since ControllerIndex
-      in this situation is not valid.
-
-      Reason 2: Some buttons have InternalButton = -1, and only Button is valid.
-      This applies now to DPad buttons. }
+      in this situation is not valid. }
     Input.Controller.Button := Button;
-    Input.Controller.Meaning := Controller.ButtonMeaning(Input.Controller.Button);
-    Input.Controller.Caption := Controller.ButtonCaption(Input.Controller.Button);
+    Input.Controller.Meaning := Controller.ButtonMeaning(Button);
+    Input.Controller.Caption := Controller.ButtonCaption(Button);
     Input.Controller.ControllerIndex := ControllerIndex;
 
-    Controller.Pressed[Button] := NewPressed;
-
-    if NewPressed then
+    if Controller.Pressed[Button] then
       EventPress(Input)
     else
       EventRelease(Input);
@@ -1686,8 +1674,7 @@ procedure TCastleContainer.EventUpdate;
   procedure UpdateGameControllers;
   var
     ControllerIndex: Integer;
-    InternalButton: TInternalGameControllerButton;
-    DPadButton: TGameControllerDPadButton;
+    Button: TGameControllerButton;
     Cs: TGameControllers;
     Controller: TGameController;
   begin
@@ -1699,30 +1686,12 @@ procedure TCastleContainer.EventUpdate;
       begin
         Controller := Cs[ControllerIndex];
 
-        for InternalButton := 0 to Controller.InternalButtonsCount - 1 do
+        for Button := Low(TGameControllerButton) to High(TGameControllerButton) do
         begin
-          if Controller.InternalButtonDownReported[InternalButton] <>
-             Controller.InternalButtonDown[InternalButton] then
+          if Controller.Pressed[Button] <> Controller.InternalPressedToReport[Button] then
           begin
-            Controller.InternalButtonDownReported[InternalButton] :=
-              Controller.InternalButtonDown[InternalButton];
-            EventGameControllerPressRelease(Controller, ControllerIndex,
-              Controller.InternalButtonDown[InternalButton],
-              InternalButton,
-              Controller.InternalButtonMap(InternalButton));
-          end;
-        end;
-
-        { Consider sending DPad button events, based on jaPov* axis. }
-        for DPadButton := Low(TGameControllerDPadButton) to High(TGameControllerDPadButton) do
-        begin
-          if Controller.InternalDPadDownReported[DPadButton] <>
-             Controller.InternalDPadDown[DPadButton] then
-          begin
-            Controller.InternalDPadDownReported[DPadButton] :=
-              Controller.InternalDPadDown[DPadButton];
-            EventGameControllerPressRelease(Controller, ControllerIndex,
-              Controller.InternalDPadDown[DPadButton], -1, DPadButton);
+            Controller.Pressed[Button] := Controller.InternalPressedToReport[Button];
+            EventGameControllerPressRelease(Controller, ControllerIndex, Button);
           end;
         end;
       end;

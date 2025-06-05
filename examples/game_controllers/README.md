@@ -45,25 +45,12 @@ This example shows the public API to access game controllers:
     - `Controllers[0].AxisLeft` (2D axis)
     - `Controllers[0].AxisRight` (2D axis)
 
-## Internal API for game controllers
-
-This example is accessing also some internal game controllers API, clearly marked by `Internal*` names. In particular,
-
-- `TGameController.InternalAxis`
-- `TGameController.InternalButtonDown`
-
-For your usage, you *should not* use this API. The "public API" we recommend above is stable, and much more comfortable. The internal API exposes axis and buttons using integers, and the mapping from these integers to something meaningful (like "which button is A" or "which axis describes left stick") depends on the controller type.
-
 Our implementation handles
 
-- XBox controllers (on any system except Nintendo Switch)
-- Nintendo Switch gamepads
+- XBox controllers (on Windows and Linux)
+- Nintendo Switch controllers (on Nintendo Switch)
 
-In the future, we plan to extend our support to other popular controller types, like PS or Nintendo controllers plugged to PC (auto-detect them and report proper values). As you see, our API is ready for this, with things like potentially-controller-specific button captions.
-
-In the meantime, if you really need to support additional controller types -> that's a valid reason to look at internal button axis and buttons indexes, I guess :) But please also improve CGE by submitting your new mapping (and how to autodetect your game controller) type, as PR or just a forum post ( https://castle-engine.io/talk.php ).
-
-This example uses this internal API, to allow us to debug game controllers support.
+In the future, we plan to extend our support to other popular controller types, like PS or Nintendo controllers plugged to PC (auto-detect them and report proper values). As you see, our API is ready for this, with things like potentially-controller-specific button captions. Let us know if you'd like to help ( https://castle-engine.io/talk.php ), it's a matter of looking at the implementation (Windows and Linux) and logging what it reports.
 
 ## Building
 

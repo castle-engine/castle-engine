@@ -683,12 +683,6 @@ type
     { Controller on which this button was pressed or released.
       This is an index to @link(GameControllers) array. }
     ControllerIndex: Integer;
-
-    { Internal number of the button.
-      Do not use this, unless your controller produces values that we cannot
-      express using TGameControllerButton.
-      This may be -1 or a valid value of TInternalGameControllerButton. }
-    InternalButton: Integer;
   end;
 
   TFingerIndex = Cardinal;
@@ -1405,12 +1399,11 @@ begin
         BoolToStr(MouseWheelVertical, true)
       ]);
     itGameController:
-      Result := Format('button %s "%s" (%sinternal %d) on controller %d', [
+      Result := Format('button %s "%s"%s on controller %d', [
         ControllerButtonToStr(Controller.Button),
         Controller.Caption,
         Iff(Controller.Meaning <> gmNone,
-          'meaning: ' + ControllerButtonMeaningToStr(Controller.Meaning) + ', ', ''),
-        Controller.InternalButton,
+          ' (meaning: ' + ControllerButtonMeaningToStr(Controller.Meaning) + ')', ''),
         Controller.ControllerIndex
       ]);
     {$ifndef COMPILER_CASE_ANALYSIS}

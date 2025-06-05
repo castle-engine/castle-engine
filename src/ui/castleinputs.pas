@@ -1337,6 +1337,8 @@ begin
         Key2 := Key1;
         Key1 := NewEvent.Key;
       end;
+    itGameController:
+      raise EInternalError.Create('TInputShortcut.Add: TODO: adding controller button not implemented');
     {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TInputShortcut.Add: NewEvent.EventType?');
     {$endif}
