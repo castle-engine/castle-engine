@@ -65,6 +65,21 @@ type
   );
   TCapabilities = set of TCapability;
 
+  { Internal 1D controller axis.
+    @exclude }
+  TInternalGameControllerAxis = (
+    jaX,
+    jaY,
+    jaZ,
+    jaR,
+    jaU,
+    jaV
+  );
+
+  { Internal controller button as integer index.
+    @exclude }
+  TInternalGameControllerButton = 0..31;
+
 { TWindowsControllerBackend ------------------------------------------------- -}
 
 type
@@ -82,41 +97,40 @@ type
     AxesCount: Integer;
     { Buttons count reported to be supported. }
     ButtonsCount: Integer;
+    InternalAxis: array[TInternalGameControllerAxis] of Single;
     AxesMap : array[ 0..5 ] of TInternalGameControllerAxis;
     function AxisLeft: TVector2; override;
     function AxisRight: TVector2; override;
     function AxisLeftTrigger: Single; override;
     function AxisRightTrigger: Single; override;
-    function InternalButtonMap(
-      const Button: TInternalGameControllerButton): TGameControllerButton; override;
   end;
 
 function TWindowsControllerBackend.AxisLeft: TVector2;
 begin
   Result := Vector2(
-    Controller.InternalAxis[jaX],
+    InternalAxis[jaX],
     { Y axis should be 1 when pointing up, -1 when pointing down.
       This is consistent with CGE 2D coordinate system
       (and standard math 2D coordinate system). }
-    -Controller.InternalAxis[jaY]
+    -InternalAxis[jaY]
   );
 end;
 
 function TWindowsControllerBackend.AxisRight: TVector2;
 begin
   Result := Vector2(
-    Controller.InternalAxis[jaU],
+    InternalAxis[jaU],
     { Y axis should be 1 when pointing up, -1 when pointing down.
       This is consistent with CGE 2D coordinate system
       (and standard math 2D coordinate system). }
-    -Controller.InternalAxis[jaR]
+    -InternalAxis[jaR]
   );
 end;
 
 function TWindowsControllerBackend.AxisLeftTrigger: Single;
 begin
-  if Controller.InternalAxis[jaZ] > 0 then
-    Result := Controller.InternalAxis[jaZ]
+  if InternalAxis[jaZ] > 0 then
+    Result := InternalAxis[jaZ]
   else
     Result := 0;
 end;
@@ -133,8 +147,8 @@ begin
       @item(-1.0 means "only right trigger fully pressed".)
     )
   }
-  if Controller.InternalAxis[jaZ] < 0 then
-    Result := Abs(Controller.InternalAxis[jaZ])
+  if InternalAxis[jaZ] < 0 then
+    Result := Abs(InternalAxis[jaZ])
   else
     Result := 0;
 end;
@@ -184,20 +198,6 @@ const
     { 30 } (Button: gbNorth; Handled: false),
     { 31 } (Button: gbNorth; Handled: false)
   );
-
-function TWindowsControllerBackend.InternalButtonMap(
-  const Button: TInternalGameControllerButton): TGameControllerButton;
-begin
-  if not XBoxInternalMap[Button].Handled then
-  begin
-    WritelnWarning('TGameController.InternalButtonMap: Button %d is not handled by the game controller "%s".', [
-      Ord(Button),
-      // TODO: Write here also controller index
-      Controller.Name
-    ]);
-  end;
-  Result := XBoxInternalMap[Button].Button;
-end;
 
 { TWindowsControllerManagerBackend ------------------------------------------------- }
 
@@ -327,7 +327,7 @@ procedure TWindowsControllerManagerBackend.Poll;
 var
   ControllerIndex: Integer;
   AxisValueInt: UInt32;
-  AxisValueFloat, PovSin, PovCos: Single;
+  AxisValueFloat, PovX, PovY: Single;
   j: Integer;
   btn   : Integer;
   state : TJOYINFOEX;
@@ -363,59 +363,79 @@ begin
             Axis := ControllerBackend.AxesMap[ j ];
 
             case Axis of
-              jaX: begin vMin := ControllerBackend.Caps.wXmin; vMax := ControllerBackend.Caps.wXmax; end;
-              jaY: begin vMin := ControllerBackend.Caps.wYmin; vMax := ControllerBackend.Caps.wYmax; end;
-              jaZ: begin vMin := ControllerBackend.Caps.wZmin; vMax := ControllerBackend.Caps.wZmax; end;
-              jaR: begin vMin := ControllerBackend.Caps.wRmin; vMax := ControllerBackend.Caps.wRmax; end;
-              jaU: begin vMin := ControllerBackend.Caps.wUmin; vMax := ControllerBackend.Caps.wUmax; end;
-              jaV: begin vMin := ControllerBackend.Caps.wVmin; vMax := ControllerBackend.Caps.wVmax; end;
-              else
+              jaX:
                 begin
-                  WriteLnWarning('CastleGameControllers', 'Unknown axis %d for controller to determine vMin/vMax', [Ord(Axis)]);
-                  Continue;
+                  vMin := ControllerBackend.Caps.wXmin;
+                  vMax := ControllerBackend.Caps.wXmax;
+                  AxisValueInt := state.wXpos;
                 end;
-            end;
-
-            case Axis of
-              jaX: AxisValueInt := state.wXpos;
-              jaY: AxisValueInt := state.wYpos;
-              jaZ: AxisValueInt := state.wZpos;
-              jaR: AxisValueInt := state.dwRpos;
-              jaU: AxisValueInt := state.dwUpos;
-              jaV: AxisValueInt := state.dwVpos;
+              jaY:
+                begin
+                  vMin := ControllerBackend.Caps.wYmin;
+                  vMax := ControllerBackend.Caps.wYmax;
+                  AxisValueInt := state.wYpos;
+                end;
+              jaZ:
+                begin
+                  vMin := ControllerBackend.Caps.wZmin;
+                  vMax := ControllerBackend.Caps.wZmax;
+                  AxisValueInt := state.wZpos;
+                end;
+              jaR:
+                begin
+                  vMin := ControllerBackend.Caps.wRmin;
+                  vMax := ControllerBackend.Caps.wRmax;
+                  AxisValueInt := state.dwRpos;
+                end;
+              jaU:
+                begin
+                  vMin := ControllerBackend.Caps.wUmin;
+                  vMax := ControllerBackend.Caps.wUmax;
+                  AxisValueInt := state.dwUpos;
+                end;
+              jaV:
+                begin
+                  vMin := ControllerBackend.Caps.wVmin;
+                  vMax := ControllerBackend.Caps.wVmax;
+                  AxisValueInt := state.dwVpos;
+                end;
               else
                 begin
-                  WriteLnWarning('CastleGameControllers', 'Unknown axis %d for controller to determine value', [Ord(Axis)]);
+                  WriteLnWarning('CastleGameControllers', 'Unknown axis %d for controller to determine vMin/vMax/value', [Ord(Axis)]);
                   Continue;
                 end;
             end;
 
             AxisValueFloat := AxisValueInt / ( vMax - vMin ) * 2 - 1;
-            Controller.InternalAxis[Axis] := AxisValueFloat;
+            ControllerBackend.InternalAxis[Axis] := AxisValueFloat;
           end;
 
-          Controller.InternalAxis[jaPovX] := 0;
-          Controller.InternalAxis[jaPovY] := 0;
+          // update D-Pad buttons state
           if (jcPOV in ControllerBackend.Capabilities) and
              (state.dwPOV and $FFFF <> $FFFF) then
           begin
-            SinCos( DegToRad(state.dwPOV and $FFFF / 100.0), PovSin, PovCos );
-            Controller.InternalAxis[ jaPovX ] := PovSin;
-            Controller.InternalAxis[ jaPovY ] := PovCos;
+            SinCos( DegToRad(state.dwPOV and $FFFF / 100.0), PovX, PovY );
+            Controller.InternalPressedToReport[gbDPadUp]    := SameValue(PovY, 1.0);
+            Controller.InternalPressedToReport[gbDPadDown]  := SameValue(PovY, -1.0);
+            Controller.InternalPressedToReport[gbDPadLeft]  := SameValue(PovX, -1.0);
+            Controller.InternalPressedToReport[gbDPadRight] := SameValue(PovX, 1.0);
+          end else
+          begin
+            Controller.InternalPressedToReport[gbDPadUp]    := false;
+            Controller.InternalPressedToReport[gbDPadDown]  := false;
+            Controller.InternalPressedToReport[gbDPadLeft]  := false;
+            Controller.InternalPressedToReport[gbDPadRight] := false;
           end;
 
-          { After updating jaPovX/Y, update also InternalDPadDown.
-            This is similar to Linux backend, but note that jaPovY direction
-            is reversed. }
-          Controller.InternalDPadDown[gbDPadUp]    := SameValue(Controller.InternalAxis[jaPovY], 1.0);
-          Controller.InternalDPadDown[gbDPadDown]  := SameValue(Controller.InternalAxis[jaPovY], -1.0);
-          Controller.InternalDPadDown[gbDPadLeft]  := SameValue(Controller.InternalAxis[jaPovX], -1.0);
-          Controller.InternalDPadDown[gbDPadRight] := SameValue(Controller.InternalAxis[jaPovX], 1.0);
-
+          // update state of other buttons (that are reported in state.wButtons)
           for j := 0 to ControllerBackend.ButtonsCount - 1 do
           begin
-            btn := state.wButtons and ( 1 shl j );
-            Controller.InternalButtonDown[ j ] := btn <> 0;
+            if (j <= High(XBoxInternalMap)) and
+               XBoxInternalMap[j].Handled then
+            begin
+              btn := state.wButtons and ( 1 shl j );
+              Controller.InternalPressedToReport[XBoxInternalMap[j].Button] := btn <> 0;
+            end;
           end;
         end;
       JOYERR_UNPLUGGED:
