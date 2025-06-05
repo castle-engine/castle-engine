@@ -1,6 +1,6 @@
 ﻿// -*- compile-command: "./test_single_testcase.sh TTestDownload" -*-
 {
-  Copyright 2020-2023 Michalis Kamburelis.
+  Copyright 2020-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,8 +25,9 @@ uses
 type
   TTestDownload = class(TCastleTestCase)
   published
-    procedure TestLocalChars;
-    procedure TestTextReader;
+    procedure TestLocalCharsCastleData;
+    procedure TestLocalCharsCastleConfig;
+    procedure TesTCastleTextReader;
     procedure TestRegisteredProtocolNotCaseSensitive;
   end;
 
@@ -35,7 +36,7 @@ implementation
 uses CastleDownload, CastleClassUtils, CastleVectors, CastleStringUtils,
   CastleFonts, CastleFilesUtils, CastleUriUtils;
 
-procedure TTestDownload.TestLocalChars;
+procedure TTestDownload.TestLocalCharsCastleData;
 
   { Test reading file using URL (through CGE function). }
   procedure TestReading(const URL: String);
@@ -100,9 +101,20 @@ begin
   TestReadingThroughReference('castle-data:/local_chars/reference to file with Russian chars.txt');
   TestReadingThroughReference('castle-data:/local_chars/reference to file with Polish chars.txt');
 
-  { This would fail in Docker now, where we cannot create /.config/... }
-  {.$define TEST_CONFIG}
-  {$ifdef TEST_CONFIG}
+  TestReadingFont('castle-data:/' + UrlEncode('local_chars/DejaVuSans name with Russian chars образец русского текста.ttf'));
+
+  // Not really correct URLs, as space should be encoded as %20 etc., but we handle them too
+  TestReadingFont('castle-data:/local_chars/DejaVuSans name with Russian chars образец русского текста.ttf');
+end;
+
+procedure TTestDownload.TestLocalCharsCastleConfig;
+begin
+  if not CanUseCastleConfig then
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   StringToFile('castle-config:/' + UrlEncode('config_ascii.txt'), 'Testing save.');
   StringToFile('castle-config:/' + UrlEncode('config with Chinese chars 样例中文文本.txt'), 'Testing save.');
   StringToFile('castle-config:/' + UrlEncode('config with Polish chars ćma źrebak żmija wąż królik.txt'), 'Testing save.');
@@ -112,27 +124,21 @@ begin
   StringToFile('castle-config:/2_config with Chinese chars 样例中文文本.txt', 'Testing save.');
   StringToFile('castle-config:/2_config with Polish chars ćma źrebak żmija wąż królik.txt', 'Testing save.');
   StringToFile('castle-config:/2_config with Russian chars образец русского текста.txt', 'Testing save.');
-  {$endif}
-
-  TestReadingFont('castle-data:/' + UrlEncode('local_chars/DejaVuSans name with Russian chars образец русского текста.ttf'));
-
-  // Not really correct URLs, as space should be encoded as %20 etc., but we handle them too
-  TestReadingFont('castle-data:/local_chars/DejaVuSans name with Russian chars образец русского текста.ttf');
 end;
 
-procedure TTestDownload.TestTextReader;
+procedure TTestDownload.TesTCastleTextReader;
 
 { Testcase based on example from
   https://forum.castle-engine.io/t/setup-files-and-working-with-them/630/4
 }
 
 var
-  T: TTextReader;
+  T: TCastleTextReader;
   X, Y, Z: Single;
   V: TVector3;
 begin
   { using ReadSingle }
-  T := TTextReader.Create('castle-data:/test_text_reader.txt');
+  T := TCastleTextReader.Create('castle-data:/test_text_reader.txt');
   try
     X := T.ReadSingle;
     Y := T.ReadSingle;
@@ -157,7 +163,7 @@ begin
   finally FreeAndNil(T) end;
 
   { alternative version using ReadVector3 }
-  T := TTextReader.Create('castle-data:/test_text_reader.txt');
+  T := TCastleTextReader.Create('castle-data:/test_text_reader.txt');
   try
     V := T.ReadVector3;
     AssertVectorEquals(Vector3(1, 2, 3), V);
@@ -168,7 +174,7 @@ begin
   finally FreeAndNil(T) end;
 
   { alternative version using Readln + Vector3FromStr }
-  T := TTextReader.Create('castle-data:/test_text_reader.txt');
+  T := TCastleTextReader.Create('castle-data:/test_text_reader.txt');
   try
     V := Vector3FromStr(T.Readln);
     AssertVectorEquals(Vector3(1, 2, 3), V);
@@ -179,7 +185,7 @@ begin
   finally FreeAndNil(T) end;
 
   { alternative version using Readln + DeFormat }
-  T := TTextReader.Create('castle-data:/test_text_reader.txt');
+  T := TCastleTextReader.Create('castle-data:/test_text_reader.txt');
   try
     DeFormat(T.Readln, '%.single. %.single. %.single.', [@X, @Y, @Z]);
     AssertSameValue(1, X);

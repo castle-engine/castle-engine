@@ -18,7 +18,7 @@
 
 type
   { Common class for reading or writing a stream like a text file. }
-  TTextReaderWriter = class
+  TCastleTextReaderWriter = class
   private
     FOwnsStream: boolean;
     FStream: TStream;
@@ -32,7 +32,7 @@ type
   { Read any stream like a text file. You can read an arbitrary TStream
     instance, or you can read an URL. Reading from URL supports
     all URL protocols supportted by the Castle Game Engine engine
-    (see https://castle-engine.io/manual_network.php ).
+    (see https://castle-engine.io/url ).
 
     Includes comfortable @link(Readln) routine to read line by line
     (lines may be terminated in any OS convention).
@@ -41,11 +41,11 @@ type
 
     Do not use the underlying stream once you started reading it with
     this class. We will move the position within this stream ourselves. }
-  TTextReader = class(TTextReaderWriter)
+  TCastleTextReader = class(TCastleTextReaderWriter)
   private
     { For now, Stream.Read call assumes that ReadBuf is 8-bit.
       Changing ReadBuf to String on Delphi would break e.g. Spine atlas reading,
-      TTextReader.Readln would be garbage. }
+      TCastleTextReader.Readln would be garbage. }
     ReadBuf: AnsiString;
     { Try to read more data from underlying stream and add it to ReadBuf.
       Returns if we succeded, @false means that the stream ends.
@@ -105,7 +105,7 @@ type
     URL protocols supportted by @link(UrlSaveStream), which for now
     doesn't include much: only @code(file) protocol. But it will produce
     a nice exception message in case of unsupprted URL protocol. }
-  TTextWriter = class(TTextReaderWriter)
+  TCastleTextWriter = class(TCastleTextReaderWriter)
   public
     constructor Create(const Url: String); overload;
     procedure Write(const S: string); overload;
@@ -114,33 +114,37 @@ type
     procedure Writeln(const S: string; const Args: array of const); overload;
   end;
 
+  TTextReaderWriter = TCastleTextReaderWriter deprecated 'use TCastleTextReaderWriter instead';
+  TTextReader = TCastleTextReader deprecated 'use TCastleTextReader instead';
+  TTextWriter = TCastleTextWriter deprecated 'use TCastleTextWriter instead';
+
 {$endif}
 
 {$ifdef read_implementation}
 
-{ TTextReaderWriter ---------------------------------------------------------- }
+{ TCastleTextReaderWriter ---------------------------------------------------------- }
 
-constructor TTextReaderWriter.Create(AStream: TStream; AOwnsStream: boolean);
+constructor TCastleTextReaderWriter.Create(AStream: TStream; AOwnsStream: boolean);
 begin
   inherited Create;
   FStream := Astream;
   FOwnsStream := AOwnsStream;
 end;
 
-destructor TTextReaderWriter.Destroy;
+destructor TCastleTextReaderWriter.Destroy;
 begin
   if FOwnsStream then FStream.Free;
   inherited;
 end;
 
-{ TTextReader ---------------------------------------------------------------- }
+{ TCastleTextReader ---------------------------------------------------------------- }
 
-constructor TTextReader.Create(const Url: String);
+constructor TCastleTextReader.Create(const Url: String);
 begin
   inherited Create(Download(Url), true);
 end;
 
-function TTextReader.IncreaseReadBuf: boolean;
+function TCastleTextReader.IncreaseReadBuf: boolean;
 const
   BufferIncrease = 100;
 var
@@ -152,7 +156,7 @@ begin
   Result := ReadCnt <> 0;
 end;
 
-function TTextReader.Readln: string;
+function TCastleTextReader.Readln: string;
 var
   I, DeleteCount: integer;
 begin
@@ -194,7 +198,7 @@ begin
   until false;
 end;
 
-function TTextReader.Read: string;
+function TCastleTextReader.Read: string;
 var
   Start, I: integer;
 begin
@@ -224,56 +228,56 @@ begin
   Delete(ReadBuf, 1, I);
 end;
 
-function TTextReader.ReadInteger: Integer;
+function TCastleTextReader.ReadInteger: Integer;
 begin
   Result := StrToInt(Read);
 end;
 
-function TTextReader.ReadSingle: Single;
+function TCastleTextReader.ReadSingle: Single;
 begin
   Result := StrToFloatDot(Read);
 end;
 
-function TTextReader.ReadVector3: TVector3;
+function TCastleTextReader.ReadVector3: TVector3;
 begin
   Result.X := ReadSingle;
   Result.Y := ReadSingle;
   Result.Z := ReadSingle;
 end;
 
-function TTextReader.ReadVector3Single: TVector3;
+function TCastleTextReader.ReadVector3Single: TVector3;
 begin
   Result := ReadVector3;
 end;
 
-function TTextReader.Eof: boolean;
+function TCastleTextReader.Eof: boolean;
 begin
   Result := (ReadBuf = '') and not IncreaseReadBuf;
 end;
 
-{ TTextWriter ---------------------------------------------------------------- }
+{ TCastleTextWriter ---------------------------------------------------------------- }
 
-constructor TTextWriter.Create(const Url: String);
+constructor TCastleTextWriter.Create(const Url: String);
 begin
   inherited Create(UrlSaveStream(Url), true);
 end;
 
-procedure TTextWriter.Write(const S: string);
+procedure TCastleTextWriter.Write(const S: string);
 begin
   WriteStr(FStream, S);
 end;
 
-procedure TTextWriter.Writeln(const S: string);
+procedure TCastleTextWriter.Writeln(const S: string);
 begin
   WritelnStr(FStream, S);
 end;
 
-procedure TTextWriter.Write(const S: string; const Args: array of const);
+procedure TCastleTextWriter.Write(const S: string; const Args: array of const);
 begin
   WriteStr(FStream, Format(S, Args));
 end;
 
-procedure TTextWriter.Writeln(const S: string; const Args: array of const);
+procedure TCastleTextWriter.Writeln(const S: string; const Args: array of const);
 begin
   WritelnStr(FStream, Format(S, Args));
 end;

@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2024 Michalis Kamburelis.
+  Copyright 2010-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -22,21 +22,33 @@ interface
 
 uses X3DNodes, CastleShapes;
 
-{ Automatically handle X3D "receiveShadows" field
-  by inserting appropriate lower-level nodes.
+{ Initialize shadow maps for nodes (TX3DNode) with a shape tree (TShapeTree).
 
-  If Enable is @true, the appropriate lower-level nodes are added,
-  or replaced (if they already existed, because you call
-  ProcessShadowMapsReceivers again).
-  If Enable is @false, the appropriate nodes (added by previous calls to
-  ProcessShadowMapsReceivers) will be removed instead.
+  This initializes TShape.InternalShadowMaps on all shapes.
 
-  This adds/removes by changing the TShape.InternalShadowMaps,
-  nothing more (it does not modify textures in Appearance.textures,
-  or any texture coordinates). }
+  - Every shape that receives shadows (using shadow maps)
+    will have TShape.InternalShadowMaps assigned to a list of
+    TGeneratedShadowMapNode nodes that are used to receive shadows.
+
+  - This follows information from
+    TAppearanceNode.FdReceiveShadows and
+    TAbstractPunctualLightNode.Shadows.
+
+  - Also, each TGeneratedShadowMapNode.Light will be correct, regardless
+    of the initial value in X3D file.
+    It will be the light source that casts shadows on this shape using
+    this shadow map.
+
+  Also, this auto-calculates projection fields on light nodes
+  with TAbstractPunctualLightNode.Shadows = true.
+
+  @param(UsesShadowMaps When Enable, it calculates whether the model
+    is using shadow maps at all. Checks whether the model has any
+    non-empty TAppearanceNode.FdReceiveShadows or
+    TAbstractPunctualLightNode.Shadows = @true.) }
 procedure ProcessShadowMapsReceivers(Model: TX3DNode; Shapes: TShapeTree;
-  const Enable: boolean;
-  const DefaultShadowMapSize: Cardinal);
+  const Enable: boolean; const DefaultShadowMapSize: Cardinal;
+  out UsesShadowMaps: Boolean);
 
 implementation
 
@@ -58,6 +70,7 @@ type
     DefaultShadowMapSize: Cardinal;
     ShadowCastersBox: TBox3D;
     LightsCastingOnEverything: TX3DNodeList;
+    UsesShadowMaps: Boolean;
 
     { Find existing or add new TLight record for this light node.
       This also creates shadow map for this light. }
@@ -130,6 +143,8 @@ procedure TLightList.ShapeAdd(const Shape: TShape);
   var
     Light: PLight;
   begin
+    UsesShadowMaps := true; // at least one light casts shadows by shadow maps
+
     // create Shape.InternalShadowMaps if necessary
     if Shape.InternalShadowMaps = nil then
       Shape.InternalShadowMaps := TX3DNodeList.Create(false);
@@ -292,12 +307,14 @@ end;
 
 procedure ProcessShadowMapsReceivers(Model: TX3DNode; Shapes: TShapeTree;
   const Enable: boolean;
-  const DefaultShadowMapSize: Cardinal);
+  const DefaultShadowMapSize: Cardinal; out UsesShadowMaps: Boolean);
 var
   Lights: TLightList;
   L: PLight;
   I: Integer;
 begin
+  UsesShadowMaps := false; // default
+
   { This is valid situation (TCastleSceneCore.RootNode may be nil).
     Nothing to do then. }
   if Model = nil then Exit;
@@ -350,6 +367,8 @@ begin
 
       FreeAndNil(Lights.LightsCastingOnEverything);
     end;
+
+    UsesShadowMaps := Lights.UsesShadowMaps;
   finally FreeAndNil(Lights) end;
 end;
 

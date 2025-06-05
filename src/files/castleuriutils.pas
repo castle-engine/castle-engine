@@ -440,8 +440,12 @@ var
 implementation
 
 uses UriParser, StrUtils,
+  {$ifdef CASTLE_WEB_DECRYPT_DATA}
+  BlowFish,
+  {$endif}
   CastleUtils, CastleInternalDataUri, CastleLog, CastleFilesUtils,
-  CastleDownload, CastleZip, CastleApplicationProperties
+  CastleDownload, CastleZip, CastleApplicationProperties, CastleClassUtils,
+  CastleStreamUtils
   {$ifdef WASI}, Job.Js, CastleInternalJobWeb {$endif}
   {$ifndef FPC}, Character{$endif};
 
@@ -1552,6 +1556,88 @@ function ApplicationDataCore(const Path: String): String;
   {$endif CASTLE_DETECT_DATA_PATH}
 
   {$ifdef WASI}
+
+  {$ifdef CASTLE_WEB_DECRYPT_DATA}
+  (*Demo how you can encrypt / decrypt data stored on web server.
+    This is where you decrypt data.
+    During build, encrypt the zip with application like this:
+
+    @longCode(#
+      uses SysUtils, Classes, BlowFish,
+        CastleClassUtils, CastleStreamUtils;
+      const
+        BlowFishKeyPhrase = 'sample secret password, make it random';
+        // and maybe spread out in code from multiple constants
+        DataToEncrypt = 'castle-engine-output/web/dist/viewer_3d_data.zip';
+      var
+        FileStreamIn, FileStreamOut: TFileStream;
+        EncryptStream: TBlowFishEncryptStream;
+        InputSize: Int64;
+      begin
+        FileStreamOut := TFileStream.Create(DataToEncrypt + '.encrypted', fmCreate);
+        try
+          EncryptStream := TBlowFishEncryptStream.Create(BlowFishKeyPhrase, FileStreamOut);
+          try
+            FileStreamIn := TFileStream.Create(DataToEncrypt, fmOpenRead);
+            try
+              { Encrypting + decrypting using BlowFish adds a padding of zeroes at
+                the end (to multiple of 4, it seems).
+                So record correct size of input data at the beginning,
+                so that we can later read it back. }
+              InputSize := FileStreamIn.Size;
+              FileStreamOut.WriteLE(InputSize);
+
+              ReadGrowingStream(FileStreamIn, EncryptStream, false);
+            finally FreeAndNil(FileStreamin) end;
+          finally FreeAndNil(EncryptStream) end;
+        finally FreeAndNil(FileStreamOut) end;
+      end.
+    #)
+  *)
+
+  { Replace ZipContents with TMemoryStream representing decrypted ZIP.
+    The Position of the resulting stream is set to 0. }
+  procedure DecryptZip(var ZipContents: TMemoryStream);
+  const
+    BlowFishKeyPhrase = 'sample secret password, make it random';
+  var
+    StreamOut: TMemoryStream;
+    DecryptStream: TBlowFishDecryptStream;
+    CorrectDecryptedSize: Int64;
+  begin
+    { Encrypting + decrypting using BlowFish adds a padding of zeroes at
+      the end (to multiple of 4, it seems).
+      So we have recorded correct size of input data at the beginning,
+      so that we can later read it back. }
+    ZipContents.ReadLE(CorrectDecryptedSize);
+
+    StreamOut := TMemoryStream.Create;
+    try
+      DecryptStream := TBlowFishDecryptStream.Create(BlowFishKeyPhrase, ZipContents);
+      try
+        ReadGrowingStream(DecryptStream, StreamOut, true);
+
+        WritelnLog('Cutting trailing zeros from decrypted ZIP: %d', [
+          StreamOut.Size - CorrectDecryptedSize
+        ]);
+        StreamOut.Size := CorrectDecryptedSize;
+
+        // log, and show sizes to debug things
+        WritelnLog('Decrypting ZIP using BlowFish, input size %d, output size %d', [
+          ZipContents.Size,
+          StreamOut.Size
+        ]);
+
+        { Only if all good, change ZipContents to StreamOut.
+          This is one way to ensure proper memory management even when exceptions occur. }
+        FreeAndNil(ZipContents);
+        ZipContents := StreamOut;
+        StreamOut := nil;
+      finally FreeAndNil(DecryptStream) end;
+    finally FreeAndNil(StreamOut) end;
+  end;
+  {$endif CASTLE_WEB_DECRYPT_DATA}
+
   { Get ZIP data that was downloaded by pas2js,
     open it using TCastleZip in WASM,
     return new URL protocol to access files inside. }
@@ -1570,6 +1656,10 @@ function ApplicationDataCore(const Path: String): String;
     ZipContents := TMemoryStream.Create;
     ZipContents.Size := WebDataContents.ByteLength;
     WebDataContents.CopyToMemory(ZipContents.Memory, ZipContents.Size);
+
+    {$ifdef CASTLE_WEB_DECRYPT_DATA}
+    DecryptZip(ZipContents);
+    {$endif CASTLE_WEB_DECRYPT_DATA}
 
     DataPacked := TCastleZip.Create;
     DataPacked.Open(ZipContents, true);

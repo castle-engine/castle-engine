@@ -468,8 +468,7 @@ begin
   else
   if P = 'castle-data' then
   begin
-    if (DisableDataDirectoryInformation = 0) and
-       (DataDirectoryInformation <> nil) then
+    if ConsiderDataDirectoryInformation then
       UseDataDirectoryInformation
     else
       // resolve URL using ResolveCastleDataUrl, and make recursive call
@@ -661,8 +660,7 @@ function FindFiles_Recursive(const Path, Mask: string; const FindDirectories: bo
     else
     if P = 'castle-data' then
     begin
-      if (DisableDataDirectoryInformation = 0) and
-         (DataDirectoryInformation <> nil) then
+      if ConsiderDataDirectoryInformation then
         UseDataDirectoryInformation
       else
         raise EInternalError.Create('This case should cause recursive exit earlier in FindFiles_Recursive');
@@ -699,9 +697,7 @@ begin
   P := URIProtocol(Path);
 
   { early exit if we should do ResolveCastleDataUrl and make recursive call }
-  if (P = 'castle-data') and
-     not ( (DisableDataDirectoryInformation = 0) and
-           (DataDirectoryInformation <> nil) ) then
+  if (P = 'castle-data') and (not ConsiderDataDirectoryInformation) then
   begin
     Exit(FindFiles_Recursive(ResolveCastleDataUrl(Path), Mask,
       FindDirectories, FileProc, FileProcData, DirContentsLast, StopSearch));

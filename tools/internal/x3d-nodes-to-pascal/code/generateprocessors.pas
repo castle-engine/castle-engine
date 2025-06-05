@@ -935,7 +935,7 @@ var
   { Simple approach to read multiline string from text file.
     Assumes that it must end with a line with only """ (optionally surrounded by whitespaces,
     but nothing more, not even comments). }
-  function ReadMultilineString(const F: TTextReader): String;
+  function ReadMultilineString(const F: TCastleTextReader): String;
   var
     S: String;
   begin
@@ -954,7 +954,7 @@ var
   end;
 
 var
-  F: TTextReader;
+  F: TCastleTextReader;
   PosComment, I: Integer;
   Tokens: TCastleStringList;
   Line, LineWithComment: String;
@@ -963,7 +963,7 @@ begin
   Node := nil;
 
   WritelnVerbose('Processing ' + InputFileName);
-  F := TTextReader.Create(InputFileName);
+  F := TCastleTextReader.Create(InputFileName);
   try
     while not F.Eof do
     begin

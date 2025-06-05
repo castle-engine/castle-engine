@@ -170,7 +170,7 @@ ScreenEffect : X3DChildNode {
     change: chEverything
 }
 
-# See https://castle-engine.io/compositing_shaders.php
+# See https://castle-engine.io/shaders
 Effect : X3DChildNode {
 
   SFString   []            language    ""
@@ -188,9 +188,28 @@ Effect : X3DChildNode {
     enumerated-type: TUniformMissing UniformMissingNames umWarning
     change: chEverything
     doc: Should we report a missing uniform value. Setting this to umWarning (default) is useful to spot simple mistakes in naming uniforms. On the other hand, OpenGL aggressively removes unused uniforms from code, and it may cause spurious messages that some uniform is missing -- even though the shader is correct, is just doesn't use some uniform value e.g. because no lights are present on the current scene.
+  MFString [] shaderLibraries []
+    change: chEverything
+    doc: """
+    Additional libraries of shader code to link with this effect.
+
+    Each "shader library" defines a shader code, just like an additional EffectNode. This code can define new GLSL functions to use in your effect code, e.g. @code(position_world_to_eye_space). This code can also use PLUGs just like other effects, so it can influence the rendering and other computations. The engine has (right now hardcoded) logic to provide necessary uniform values for every shader library, so you don't need to do anything additional to make the added code functional.
+
+    Right now, only one shader library is allowed: 'castle-shader:/EyeWorldSpace.glsl'. This is linked with both vertex and fragment stages, and exposes new GLSL functions you can use:
+
+    @preformatted(
+      vec4 position_world_to_eye_space(vec4 position_world);
+      vec4 position_eye_to_world_space(vec4 position_eye);
+
+      vec3 direction_world_to_eye_space(vec3 direction_world);
+      vec3 direction_eye_to_world_space(vec3 direction_eye);
+    )
+
+    See examples/shaders/shader_effects_on_background/ for a demo.
+    """
 }
 
-# See https://castle-engine.io/compositing_shaders.php
+# See https://castle-engine.io/shaders
 EffectPart : X3DNode, X3DUrlObject {
   default-container-field: parts
 
@@ -202,7 +221,7 @@ EffectPart : X3DNode, X3DUrlObject {
     change: chEverything
 }
 
-# See https://castle-engine.io/compositing_shaders.php
+# See https://castle-engine.io/shaders
 ShaderTexture : X3DSingleTextureNode {
   SFString []       defaultTexCoord "BOUNDS2D"
     #range: ["BOUNDS2D"|"BOUNDS3D"]

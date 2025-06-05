@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestCastleFindFiles" -*-
 {
-  Copyright 2021-2023 Michalis Kamburelis.
+  Copyright 2021-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -27,11 +27,14 @@ type
   published
     procedure TestNilHandler;
     procedure TestFindFirstCaseSensitive;
+    { Test that searching inside castle-config:/ returns URLs that
+      start with castle-config:/ . }
+    procedure TestFindFilesCastleConfig;
   end;
 
 implementation
 
-uses CastleFindFiles, CastleUriUtils;
+uses CastleFindFiles, CastleUriUtils, CastleFilesUtils;
 
 procedure TTestCastleFindFiles.TestNilHandler;
 begin
@@ -66,6 +69,41 @@ begin
     // guaranteed to be true in all situations
     AssertTrue(FindFirstFileIgnoreCase(DataLocalSystem + 'designs_to_count_files/', '*.CASTLE-user-interface', false, [], FileInfo));
   end;
+end;
+
+procedure TTestCastleFindFiles.TestFindFilesCastleConfig;
+var
+  FoundList: TFileInfoList;
+  TestDirUrl, TestDir: String;
+begin
+  if not CanUseCastleConfig then
+  begin
+    AbortTest;
+    Exit;
+  end;
+
+  TestDirUrl := 'castle-config:/test-find-files-' + IntToStr(Random(10000)) + '/';
+  StringToFile(TestDirUrl + 'test1.txt', 'Test string.');
+  StringToFile(TestDirUrl + 'test2.txt', 'Test string 2.');
+  StringToFile(TestDirUrl + 'subdir/test3.txt', 'Test string 3.');
+  FoundList := FindFilesList(TestDirUrl, '*.txt', false, [ffRecursive]);
+
+  try
+    AssertEquals(3, FoundList.Count);
+    FoundList.SortUrls; // make order defined
+    AssertEquals(TestDirUrl + 'subdir/test3.txt', FoundList[0].Url);
+    AssertEquals(TestDirUrl + 'test1.txt', FoundList[1].Url);
+    AssertEquals(TestDirUrl + 'test2.txt', FoundList[2].Url);
+  finally
+    FreeAndNil(FoundList);
+  end;
+
+  TestDir := UriToFilenameSafe(TestDirUrl);
+  Writeln(Format('Make tests in %s which maps to %s on disk', [
+    TestDirUrl,
+    TestDir
+  ]));
+  RemoveNonEmptyDir(TestDir, true);
 end;
 
 initialization

@@ -15,12 +15,13 @@
 
 { Client and server for network communication using TCP (TCastleTCPClient, TCastleTCPServer).
   Use this in your games for easy client/server communication.
-  See https://castle-engine.io/manual_network.php#section_multi_player .
+  See https://castle-engine.io/multi_player#indy .
 
   On Android, it requires adding
   @url(https://castle-engine.io/android-Services
   client_server service in your project).
-  On other platforms, it requires having @url(http://www.indyproject.org/ Indy) available. }
+  On other platforms, it requires having
+  @url(http://www.indyproject.org/ Indy) available. }
 unit CastleClientServer;
 
 {$I castleconf.inc}

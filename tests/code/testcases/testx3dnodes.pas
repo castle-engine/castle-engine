@@ -125,6 +125,8 @@ type
     procedure TestUrlProcessing;
     procedure TestNodeClassesList;
     procedure TestCoordRanges;
+    procedure TestNodeRelease;
+    procedure TestNodeReleaseWhenStillUsed;
   end;
 
 implementation
@@ -2901,6 +2903,72 @@ begin
     FreeAndNil(State);
     FreeAndNil(Shape);
   end;
+end;
+
+procedure TTestX3DNodes.TestNodeRelease;
+var
+  Shape: TShapeNode;
+  Geometry: TIndexedFaceSetNode;
+  Coordinate: TCoordinateNode;
+begin
+  Shape := TShapeNode.Create('TestShape');
+  Geometry := TIndexedFaceSetNode.Create('TestGeometry');
+  Coordinate := TCoordinateNode.Create('TestCoordinate');
+
+  // connect them
+  Shape.Geometry := Geometry;
+  Geometry.Coord := Coordinate;
+  AssertTrue(Shape.Geometry = Geometry);
+  AssertTrue(Geometry.Coord = Coordinate);
+
+  Geometry.WaitForRelease;
+  FreeAndNil(Shape);
+  // Thanks to using Geometry.WaitForRelease, both Geometry and Coordinate continue to exist
+  AssertEquals('TestGeometry', Geometry.X3DName);
+  AssertEquals('TestCoordinate', Coordinate.X3DName);
+
+  // 2nd WaitForRelease doesn't matter
+  Geometry.WaitForRelease;
+
+  NodeRelease(Geometry); // frees the Geometry and Coordinate
+  AssertTrue(Geometry = nil);
+
+  // further NodeRelease calls are OK, do nothing
+  NodeRelease(Geometry);
+  NodeRelease(Geometry);
+  NodeRelease(Geometry);
+end;
+
+procedure TTestX3DNodes.TestNodeReleaseWhenStillUsed;
+var
+  Shape: TShapeNode;
+  Geometry: TIndexedFaceSetNode;
+  Coordinate: TCoordinateNode;
+begin
+  Shape := TShapeNode.Create('TestShape');
+  Geometry := TIndexedFaceSetNode.Create('TestGeometry');
+  Coordinate := TCoordinateNode.Create('TestCoordinate');
+
+  // connect them
+  Shape.Geometry := Geometry;
+  Geometry.Coord := Coordinate;
+  AssertTrue(Shape.Geometry = Geometry);
+  AssertTrue(Geometry.Coord = Coordinate);
+
+  Geometry.WaitForRelease;
+  // 2nd WaitForRelease doesn't matter
+  Geometry.WaitForRelease;
+
+  // NodeRelease below does not free the Geometry and Coordinate, as it is still used.
+  // But it still nils Geometry.
+  NodeRelease(Geometry);
+  AssertTrue(Geometry = nil);
+
+  AssertEquals('TestGeometry', Shape.Geometry.X3DName);
+  AssertEquals('TestCoordinate', (Shape.Geometry as TIndexedFaceSetNode).Coord.X3DName);
+
+  // free Shape, which will free Geometry and Coordinate (as they are ref-counted again)
+  FreeAndNil(Shape);
 end;
 
 initialization
