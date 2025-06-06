@@ -645,8 +645,6 @@ type
     gbShare
   );
 
-  TGameControllerDPadButton = gbDPadUp..gbDPadLeft;
-
   { Possible game controlers (gamepad, joystick) buttons meaning,
     that may be used in certain cases as easier way to express
     TGameControllerButton. }
