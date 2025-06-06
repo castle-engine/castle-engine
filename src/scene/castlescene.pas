@@ -1955,7 +1955,7 @@ procedure TCastleScene.SetEffects(const Value: array of TEffectNode);
     while I < RootNode.FdChildren.Count do
       if RootNode.FdChildren[I] is TEffectNode then
       begin
-        { This effect node is not in Value array, so remove it. }
+        { This effect node is not in the Value array, so remove it. }
         RootNode.FdChildren.Delete(I);
         RemovedSomething := true;
       end else
@@ -1985,7 +1985,7 @@ begin
     AddEffects(IndexBeyondAdded);
     RemoveUnwantedEffects(IndexBeyondAdded, RemovedSomething);
 
-    { Call most optimal (none, if possible!) InternalChangedField variant. }
+    { Call the most optimal (none, if possible!) InternalChangedField variant. }
     if (IndexBeyondAdded <> 0) or // added something
        RemovedSomething then
     begin

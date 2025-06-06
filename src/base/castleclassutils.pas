@@ -53,7 +53,7 @@ uses Classes, SysUtils, Contnrs, Generics.Collections,
 procedure StringsAdd(Strs: TStrings; Count: integer; itemVal: string='dummy');
   deprecated 'this utility is very trivial and seldom useful; better implement it in yourself, without relying on CastleClassUtils';
 
-{ Add all strings from string array to TStrings instance. }
+{ Add all strings from the string array to the TStrings instance. }
 procedure AddStrArrayToStrings(const StrArr: array of string; strlist: TStrings);
   deprecated 'use TStrings.AddStrings';
 
@@ -435,7 +435,7 @@ type
 
   TCastleComponent = class;
 
-  { Use by @link(TCastleComponent.TranslateProperties). }
+  { Used by @link(TCastleComponent.TranslateProperties). }
   TTranslatePropertyEvent = procedure (const Sender: TCastleComponent;
     const PropertyName: String; var PropertyValue: String) of object;
 
@@ -680,11 +680,11 @@ type
       @seealso NonVisualComponentsEnumerate }
     procedure InsertNonVisualComponent(const Index: Integer; const NonVisualComponent: TComponent);
 
-    { Remove component previously added by AddNonVisualComponent. }
+    { Removes the component previously added by AddNonVisualComponent. }
     procedure RemoveNonVisualComponent(const NonVisualComponent: TComponent);
 
-    { Index of component previously added non-visual component.
-      Returns -1 if component was not found. }
+    { Index of the previously added non-visual component.
+      Returns -1 if the component was not found. }
     function NonVisualComponentsIndexOf(const NonVisualComponent: TComponent): Integer;
 
     { Count of components added by AddNonVisualComponent.
@@ -893,11 +893,11 @@ type
     constructor CreateFromArray(const FreeObjects: boolean;
       const AItems: array of TObject);
 
-    { Add contents of given array to the list. }
+    { Add the contents of the given array to the list. }
     procedure AddRange(const A: array of TObject); overload;
     procedure AddArray(const A: array of TObject); deprecated 'use AddRange, consistent with other lists';
 
-    { Add contents of other TObjectList instance to the list. }
+    { Add the contents of another TObjectList instance to the list. }
     procedure AddRange(AList: Contnrs.TObjectList); overload;
     procedure AddList(AList: Contnrs.TObjectList); deprecated 'use AddRange, consistent with other lists';
 
@@ -1271,7 +1271,7 @@ end;
 function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars;
   backEndingChar: boolean; out endingChar: AnsiChar): AnsiString; overload;
 var
-  readLen: integer; { ile znakow odczytales }
+  readLen: integer; { how many characters read }
   ch: AnsiChar;
 begin
   readLen := 0;
@@ -1317,7 +1317,7 @@ end;
 
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars;
   backEndingChar: boolean; out endingChar: integer): AnsiString; overload;
-var readLen: integer; { ile znakow odczytales }
+var readLen: integer; { how many characters read }
     ch: AnsiChar;
 begin
   readLen := 0;
@@ -1542,7 +1542,7 @@ function TPeekCharStream.Seek(const Offset: Int64; Origin: TSeekOrigin): Int64;
 begin
   raise EStreamNotImplementedSeek.Create('TPeekCharStream.Seek not supported');
   {$ifdef FPC}
-  Result := 0; { just to get rid of dummy fpc warning }
+  Result := 0; { Just to get rid of dummy FPC warning. }
   {$endif}
 end;
 
@@ -1550,7 +1550,7 @@ function TPeekCharStream.Write(const Buffer; Count: Longint): Longint;
 begin
   raise EStreamNotImplementedWrite.Create('TPeekCharStream.Write not supported');
   {$ifdef FPC}
-  Result := 0; { just to get rid of dummy fpc warning }
+  Result := 0; { Just to get rid of dummy FPC warning. }
   {$endif}
 end;
 
@@ -1585,7 +1585,7 @@ begin
     Peeked := PeekChar;
     if (Peeked = -1) or (AnsiChar(Peeked) in EndingChars) then
       Exit;
-    { ReadChar will return same thing as Peeked now }
+    { ReadChar will return the same thing as Peeked now. }
     Result := Result + AnsiChar(ReadChar);
   end;
 end;
