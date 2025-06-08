@@ -4,13 +4,19 @@ List all avalaible game controlers (joysticks, gamepads).
 
 Test their inputs: axes and buttons.
 
+![Screenshot](screenshot.png)
+
 Using [Castle Game Engine](https://castle-engine.io/).
 
 ## Public API for game controllers
 
+See https://castle-engine.io/controllers for the overview of using controllers in your own applications.
+
 This example shows the public API to access game controllers:
 
-- Access them all using the `Controllers` singleton. Use `Controllers.Initialize` to initialize the list of available game controllers. Use `Controllers.Count` and `Controllers[Index]` to access each game controller as a list.
+- Access them all using the `Controllers` singleton.
+
+- Use `Controllers.Initialize` to initialize the list of available game controllers.
 
 - Receive game controllers button press / release using regular `TCastleUserInterface.Press` / `TCastleUserInterface.Release`. Just like when you handle key and mouse events, see https://castle-engine.io/view_events . Just check for `EventType = itGameController` to detect game controller button events, like this:
 
@@ -41,16 +47,10 @@ This example shows the public API to access game controllers:
 
 - Observe the game controller axis in your view's `Update` method. Look at specific controller properties like
 
-    - `Controllers[0].AxisTrigger` (1D axis)
     - `Controllers[0].AxisLeft` (2D axis)
     - `Controllers[0].AxisRight` (2D axis)
-
-Our implementation handles
-
-- XBox controllers (on Windows and Linux)
-- Nintendo Switch controllers (on Nintendo Switch)
-
-In the future, we plan to extend our support to other popular controller types, like PS or Nintendo controllers plugged to PC (auto-detect them and report proper values). As you see, our API is ready for this, with things like potentially-controller-specific button captions. Let us know if you'd like to help ( https://castle-engine.io/talk.php ), it's a matter of looking at the implementation (Windows and Linux) and logging what it reports.
+    - `Controllers[0].AxisLeftTrigger` (1D axis)
+    - `Controllers[1].AxisRightTrigger` (1D axis)
 
 ## Building
 
