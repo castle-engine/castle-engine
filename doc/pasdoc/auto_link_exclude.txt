@@ -48,6 +48,7 @@ bottom
 bound
 box
 buffer
+button
 cache
 camera
 cameras
@@ -283,6 +284,7 @@ loop
 looping
 lux
 major
+main
 map
 margin
 mask
@@ -291,6 +293,7 @@ material
 materials
 matrix
 max
+meaning
 memory
 mesa
 mesh
