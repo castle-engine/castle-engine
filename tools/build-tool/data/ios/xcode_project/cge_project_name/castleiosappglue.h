@@ -192,10 +192,13 @@ extern void CGEApp_Finalize(void);
 
 extern int CGEApp_ContextProperties(int* redBits, int* greenBits, int* blueBits, int* alphaBits, int* depthBits, int* stencilBits, int* multiSampling);
 
-extern void CGEApp_Open(unsigned initialWidth, unsigned initialHeight, unsigned initialStatusBarHeight, unsigned nDpi);
+extern void CGEApp_Open(unsigned initialWidth, unsigned initialHeight, unsigned uiSafeBorderTop,
+                        unsigned uiSafeBorderRight, unsigned uiSafeBorderBottom, unsigned uiSafeBorderLeft, unsigned nDpi);
 extern void CGEApp_Close(bool quitWhenLastWindowClosed);
 
-extern void CGEApp_Resize(unsigned uiViewWidth, unsigned uiViewHeight, unsigned uiStatusBarHeight);       // let the library know about the viewport size changes
+extern void CGEApp_Resize(unsigned uiViewWidth, unsigned uiViewHeight,
+                          unsigned uiSafeBorderTop, unsigned uiSafeBorderRight,
+                          unsigned uiSafeBorderBottom, unsigned uiSafeBorderLeft);// let the library know about the viewport size changes
 extern void CGEApp_Render(void);                                                  // paints the 3d scene into the context
 extern void CGEApp_SetLibraryCallbackProc(TCgeLibraryCallback pProc);     // set callback function
 extern void CGEApp_Update(void);                                                  // let the 3d engine perform the animations, etc
@@ -207,8 +210,9 @@ extern void CGEApp_MouseUp(int x, int y, bool bLeftBtn, int nFingerIdx);
 extern void CGEApp_KeyDown(int /*ECgeKey*/ eKey);
 extern void CGEApp_KeyUp(int /*ECgeKey*/ eKey);
 
-extern void CGEApp_JoystickAxis(int joystickIndex, float x, float y);
-extern void CGEApp_JoystickCount(int joystickCount);
+extern void CGEApp_ControllerAxisLeft(int controllerIndex, float x, float y);
+extern void CGEApp_ControllerAxisRight(int controllerIndex, float x, float y);
+extern void CGEApp_ControllerCount(int controllerCount);
 
 extern int CGEApp_HandleOpenUrl(const char *szUrl); // open URL, return 1 if processed
 

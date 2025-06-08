@@ -58,7 +58,7 @@ begin
   Scene := Parent as TCastleScene;
 
   { TCastleRigidBody was added in the editor, here we configure only the events. }
-  RBody := Scene.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+  RBody := Scene.RigidBody;
   if RBody <> nil then
     RBody.OnCollisionEnter := {$ifdef FPC}@{$endif}CollisionEnter;
 end;

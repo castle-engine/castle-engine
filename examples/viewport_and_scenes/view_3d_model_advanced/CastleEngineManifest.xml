@@ -8,6 +8,7 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 <project name="view_3d_model_advanced"
   standalone_source="view_3d_model_advanced.dpr"
   qualified_name="io.castleengine.view.model.advanced"
+  caption="View 3D Model: Advanced Version"
 >
   <compiler_options>
     <search_paths>

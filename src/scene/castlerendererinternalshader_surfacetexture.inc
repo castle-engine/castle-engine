@@ -14,8 +14,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ Generating shader code for "plane mirror" feature,
-  https://castle-engine.io/x3d_extensions_mirror_plane.php . }
+{ Generating shader code for "surface textures" that modify the corresponding
+  material parameter. }
 
 {$ifdef read_interface}
 
@@ -40,6 +40,8 @@
     procedure SetUniformsOnce(const AProgram: TX3DShaderProgram);
   end;
 
+  { Manage a number of surface textures shaders.
+    Follows castlerendererinternalshader_feature_api.md API conventions. }
   TSurfaceTextureShaderList = record
     Items: array [TSurfaceTexture] of TSurfaceTextureShader;
     procedure Clear;

@@ -56,6 +56,8 @@
       { Used by ShowDebugShapeCallback and ShowDebugShapes. }
       ShowDebugShapeValue: Boolean;
 
+      FOptimizeAssumingOneMapping: Boolean;
+
     { Use ObjectPlacementToParentNodes and ChildrenNodesToObjectPlacement
       to move the nodes (change parents) to reflect
       TIfcObjectPlacement.PlacementRelTo instructions. }
@@ -63,6 +65,8 @@
 
     function CreateRootNode(const Ifc: TIfcFile): TX3DRootNode;
     procedure ShapeDestroyed(const Node: TX3DNode);
+
+    procedure SetOptimizeAssumingOneMapping(const Value: Boolean);
   private
     { Within the CastleIfc unit, this class is a container for information
       and actions useful to all
@@ -154,6 +158,15 @@
       This only updates the display (X3D nodes in @link(RootNode)),
       not IFC state. }
     procedure ShowDebugShapes(const Show: Boolean);
+
+    { Enable extra optimizations of some IFC operations by assuming
+      that IFC classes (in TIfcFile given to @link(Load) and @link(Update))
+      can safely remember this TCastleIfcMapping instance.
+      This is OK if the TCastleIfcMapping instance exists for the whole
+      lifetime of the TIfcFile instance (free TCastleIfcMapping later)
+      and you use only one TCastleIfcMapping instance with this TIfcFile. }
+    property OptimizeAssumingOneMapping: Boolean
+      read FOptimizeAssumingOneMapping write SetOptimizeAssumingOneMapping;
   end;
 
 {$endif read_interface_types}
@@ -620,6 +633,16 @@ begin
     ShowDebugShapeValue := Show;
     FRootNode.EnumerateNodes(TShapeNode,
       {$ifdef FPC}@{$endif} ShowDebugShapeCallback, false);
+  end;
+end;
+
+procedure TCastleIfcMapping.SetOptimizeAssumingOneMapping(const Value: Boolean);
+begin
+  if FOptimizeAssumingOneMapping <> Value then
+  begin
+    if FRootNode <> nil then
+      raise Exception.Create('Cannot change TCastleIfcMapping.OptimizeAssumingOneMapping after TCastleIfcMapping.Load was called');
+    FOptimizeAssumingOneMapping := Value;
   end;
 end;
 
@@ -1636,6 +1659,71 @@ begin
   Result := TransformMappingTarget;
 end;
 
+function TIfcManifoldSolidBrep.BuildNode(const Mapping: TCastleIfcMapping;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
+begin
+  if Outer <> nil then
+  begin
+    Result := Outer.BuildNode(Mapping, ParentProduct,
+      LitAppearance, UnlitAppearance);
+  end else
+    Result := nil;
+end;
+
+function TIfcGeometricCurveSet.BuildNode(const Mapping: TCastleIfcMapping;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
+var
+  Group: TGroupNode;
+  GeometricRepresentationItem: TIfcGeometricRepresentationItem;
+  NewNode: TAbstractChildNode;
+begin
+  Group := TGroupNode.Create('', Mapping.BaseUrl);
+  SetMetadata(Group, 'IFC_ClassName', ClassName);
+  Result := Group;
+
+  for GeometricRepresentationItem in Elements do
+  begin
+    NewNode := GeometricRepresentationItem.BuildNode(Mapping, ParentProduct,
+      LitAppearance, UnlitAppearance);
+    if NewNode <> nil then
+      Group.AddChildren(NewNode);
+  end;
+end;
+
+function TIfcCompositeCurveSegment.BuildNode(const Mapping: TCastleIfcMapping;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
+begin
+  if ParentCurve <> nil then
+    Result := ParentCurve.BuildNode(Mapping, ParentProduct,
+      LitAppearance, UnlitAppearance)
+  else
+    Result := nil;
+end;
+
+function TIfcCompositeCurve.BuildNode(const Mapping: TCastleIfcMapping;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
+var
+  Group: TGroupNode;
+  Segment: TIfcSegment;
+  NewNode: TAbstractChildNode;
+begin
+  Group := TGroupNode.Create('', Mapping.BaseUrl);
+  SetMetadata(Group, 'IFC_ClassName', ClassName);
+  Result := Group;
+
+  for Segment in Segments do
+  begin
+    NewNode := Segment.BuildNode(Mapping, ParentProduct,
+      LitAppearance, UnlitAppearance);
+    if NewNode <> nil then
+      Group.AddChildren(NewNode);
+  end;
+end;
+
 { BuildNode of TIfcObjectDefinition and descendants -------------------------- }
 
 function TIfcObjectDefinition.BuildNode(const Mapping: TCastleIfcMapping): TTransformNode;
@@ -1702,6 +1790,12 @@ var
   LitAppearance, UnlitAppearance: TAppearanceNode;
 begin
   Result := inherited;
+
+  if Mapping.OptimizeAssumingOneMapping then
+  begin
+    LastMapping := Mapping;
+    LastMappingNode := Result;
+  end;
 
   if ObjectPlacement <> nil then
     ObjectPlacement.UpdateNode(Mapping, Result);
@@ -1797,6 +1891,71 @@ begin
   ProcessList(WAxes, 2);
 end;
 
+{ TIfcConnectedFaceSet.BuildNode --------------------------------------------- }
+
+function TIfcConnectedFaceSet.BuildNode(const Mapping: TCastleIfcMapping;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
+
+{ Helpful diagram of the commonly used classes around FacetedBrep,
+  which this method practically implements, are in
+  https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcFacetedBrep.htm }
+
+var
+  IndexedFaceSet: TIndexedFaceSetNode;
+  Coord: TCoordinateNode;
+
+  procedure AddVertex(const Vertex: TVector3);
+  var
+    Index: Integer;
+  begin
+    Index := Coord.FdPoint.Count;
+    Coord.FdPoint.Count := Coord.FdPoint.Count + 1;
+    Coord.FdPoint.Items[Index] := Vertex;
+    IndexedFaceSet.FdCoordIndex.Items.Add(Index);
+  end;
+
+var
+  I: Integer;
+  Shape: TShapeNode;
+  Face: TIfcFace;
+  FaceBound: TIfcFaceBound;
+  PolyLoop: TIfcPolyLoop;
+begin
+  Coord := TCoordinateNode.Create('', Mapping.BaseUrl);
+
+  IndexedFaceSet := TIndexedFaceSetNode.Create('', Mapping.BaseUrl);
+  IndexedFaceSet.Coord := Coord;
+  IndexedFaceSet.Solid := false;
+  // do not smooth, we don't know how smooth is the mesh, using flat shading is safest
+  IndexedFaceSet.CreaseAngle := 0;
+
+  for Face in CfsFaces do
+    for FaceBound in Face.Bounds do
+      if FaceBound.Bound is TIfcPolyLoop then
+      begin
+        PolyLoop := TIfcPolyLoop(FaceBound.Bound);
+        if FaceBound.Orientation then
+        begin
+          for I := 0 to PolyLoop.Polygon.Count - 1 do
+            AddVertex(PolyLoop.Polygon[I].Coordinates.Value);
+        end else
+        begin
+          for I := PolyLoop.Polygon.Count - 1 downto 0 do
+            AddVertex(PolyLoop.Polygon[I].Coordinates.Value);
+        end;
+        IndexedFaceSet.FdCoordIndex.Items.Add(-1);
+      end;
+
+  Shape := TShapeNode.Create('', Mapping.BaseUrl);
+  Shape.Geometry := IndexedFaceSet;
+  Shape.Appearance := LitAppearance;
+  SetMetadata(Shape, 'IFC_ClassName', ClassName);
+
+  Mapping.ConnectShapeAndProduct(Shape, ParentProduct);
+  Result := Shape;
+end;
+
 { TIfc*Placement methods implementations ----------------------------------------- }
 
 function TIfcObjectPlacement.BuildNode(const Mapping: TCastleIfcMapping): TTransformNode;
@@ -1812,8 +1971,17 @@ procedure TIfcObjectPlacement.UpdateNode(const Mapping: TCastleIfcMapping;
 begin
   // inherited; // no UpdateNode in ancestor
 
-  Mapping.ObjectPlacementToParentNodes.AddOrSetValue(Self, Transform);
-  if PlacementRelTo <> nil then
+  { Mapping.ObjectPlacementToParentNodes and
+    Mapping.ChildrenNodesToObjectPlacement are only initialized inside
+    TCastleIfcMapping.CreateRootNode .
+    When this method is called by TIfcProduct.SetTranslation,
+    these are nil, and it's OK to just ignore this logic (we don't need
+    to update these dictionarties when TIfcProduct.SetTranslation happens). }
+
+  if Mapping.ObjectPlacementToParentNodes <> nil then
+    Mapping.ObjectPlacementToParentNodes.AddOrSetValue(Self, Transform);
+  if (Mapping.ChildrenNodesToObjectPlacement <> nil) and
+     (PlacementRelTo <> nil) then
     Mapping.ChildrenNodesToObjectPlacement.AddOrSetValue(Transform, PlacementRelTo);
 end;
 

@@ -64,7 +64,7 @@ var
 implementation
 
 uses SysUtils, Math,
-  CastleComponentSerialize, CastleLog,
+  CastleComponentSerialize, CastleLog, CastleGameControllers,
   GameViewWin, GameViewDeath, GameViewOptions;
 
 constructor TViewPlay.Create(AOwner: TComponent);
@@ -86,6 +86,9 @@ begin
   MapViewport.Camera := MapCamera;
 
   PersistentMouseLook := true;
+
+  Controllers.Initialize;
+  WalkNavigation.UseGameController;
 end;
 
 procedure TViewPlay.Stop;

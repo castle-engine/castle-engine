@@ -414,6 +414,7 @@ begin
 
     P.SourcePath.Add('src/physics/kraft');
     P.Targets.AddUnit('kraft.pas');
+    P.Targets.AddUnit('castleinternalkraftoverrides.pas');
 
     P.SourcePath.Add('src/ui');
     P.Targets.AddUnit('castlecontrols.pas');
@@ -423,20 +424,20 @@ begin
     P.Targets.AddUnit('castleinternalcameragestures.pas');
     P.Targets.AddUnit('castleinternalcontrolsimages.pas');
     P.Targets.AddUnit('castleinternalinspector.pas');
-    P.Targets.AddUnit('castleinternaljoysticksexplicit.pas');
+    P.Targets.AddUnit('castleinternalgamecontrollersexplicit.pas');
     P.Targets.AddUnit('castleinternalpk3dconnexion.pas');
     P.Targets.AddUnit('castleinternalsettings.pas');
-    P.Targets.AddUnit('castlejoysticks.pas');
+    P.Targets.AddUnit('castlegamecontrollers.pas');
     P.Targets.AddUnit('castlekeysmouse.pas');
     P.Targets.AddUnit('castlenotifications.pas');
     P.Targets.AddUnit('castleuicontrols.pas');
     if Defaults.OS = Linux then
     begin
-      P.Targets.AddUnit('castleinternaljoystickslinux.pas');
+      P.Targets.AddUnit('castleinternalgamecontrollerslinux.pas');
     end;
     if Defaults.OS in AllWindowsOSes then
     begin
-      P.Targets.AddUnit('castleinternaljoystickswindows.pas');
+      P.Targets.AddUnit('castleinternalgamecontrollerswindows.pas');
       P.SourcePath.Add('src/ui/windows');
       P.Targets.AddUnit('castleinternaltdxinput_tlb.pas');
     end;

@@ -66,7 +66,7 @@ type
   Any errors are reported by raising exceptions.
 
   All the supported URL protocols are documented in our manual:
-  https://castle-engine.io/manual_network.php . They include:
+  https://castle-engine.io/url . They include:
 
   @unorderedList(
     @item(Local @code(file) URLs.

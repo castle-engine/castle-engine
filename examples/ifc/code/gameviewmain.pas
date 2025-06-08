@@ -215,6 +215,7 @@ begin
   FreeAndNil(IfcMapping);
 
   IfcMapping := TCastleIfcMapping.Create;
+  IfcMapping.OptimizeAssumingOneMapping := true;
   { The 'castle-data:/' below will be used as base URL to resolve any texture
     URLs inside IFC. As they are not possible in this demo for now,
     this value doesn't really matter. }
@@ -545,7 +546,11 @@ begin
       ]);
   finally FreeAndNil(ElementList) end;
 
-  IfcMapping.Update(IfcFile);
+  { No need to do IfcMapping.Update after only changing
+    RandomElement.Translation, because we use Mapping.OptimizeAssumingOneMapping.
+    This makes changing translation super-fast, it really only causes
+    minimal corresponding change in X3D scene graph. }
+  //IfcMapping.Update(IfcFile);
 
   { IfcSelectedProductShapeTranslation is no longer valid because
     IfcSelectedProduct moved, so cancel selection. }
@@ -821,7 +826,13 @@ begin
     IfcSelectedProduct.Translation +
     TransformSelectedProduct.Translation -
     IfcSelectedProductShapeTranslation;
-  IfcMapping.Update(IfcFile);
+
+  { No need to do IfcMapping.Update after only changing
+    IfcSelectedProduct.Translation, because we use Mapping.OptimizeAssumingOneMapping.
+    This makes changing translation super-fast, it really only causes
+    minimal corresponding change in X3D scene graph. }
+  //IfcMapping.Update(IfcFile);
+
   IfcSelectedProductShapeTranslation := TransformSelectedProduct.Translation;
 end;
 

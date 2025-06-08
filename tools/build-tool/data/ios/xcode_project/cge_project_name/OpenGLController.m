@@ -1,5 +1,5 @@
 /*
-  Copyright 2013-2017 Jan Adamec, Michalis Kamburelis.
+  Copyright 2013-2024 Jan Adamec, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -33,6 +33,7 @@ typedef struct TouchInfo {
     TouchInfo m_touches[MAX_TOUCHES];
     int m_currentViewWidth;
     int m_currentViewHeight;
+    UIEdgeInsets m_currentSafeAreaBorders;
 }
 
 @property (strong, nonatomic) EAGLContext *context;
@@ -149,10 +150,25 @@ typedef struct TouchInfo {
 }
 
 //-----------------------------------------------------------------
-- (int)statusBarHeight
+- (UIEdgeInsets)safeAreaBorders
 {
-    CGSize statusBarSize = [[UIApplication sharedApplication] statusBarFrame].size;
-    return MIN(statusBarSize.width, statusBarSize.height) * m_fScale;
+    UIEdgeInsets insets;
+    if (@available(iOS 11, *))
+    {
+        insets = self.view.safeAreaInsets;
+        insets.top *= m_fScale;
+        insets.right *= m_fScale;
+        insets.bottom *= m_fScale;
+        insets.left *= m_fScale;
+    }
+    else
+    {
+        CGSize statusBarSize = [[UIApplication sharedApplication] statusBarFrame].size;
+        CGFloat fStatusBarHeight = MIN(statusBarSize.width, statusBarSize.height) * m_fScale;
+        insets.top = fStatusBarHeight;
+        insets.right = insets.bottom = insets.left = 0;
+    }
+    return insets;
 }
 
 //-----------------------------------------------------------------
@@ -194,6 +210,7 @@ typedef struct TouchInfo {
 
     m_currentViewWidth  = self.view.bounds.size.width  * m_fScale;
     m_currentViewHeight = self.view.bounds.size.height * m_fScale;
+    m_currentSafeAreaBorders = [self safeAreaBorders];
 
     // Get a directory where we can write files,
     // see http://stackoverflow.com/questions/1567134/how-can-i-get-a-writable-path-on-the-iphone/1567147#1567147
@@ -201,7 +218,7 @@ typedef struct TouchInfo {
     NSString *libraryDirectory = [paths objectAtIndex:0];
 
     CGEApp_Initialize([libraryDirectory fileSystemRepresentation]);
-    CGEApp_Open(m_currentViewWidth, m_currentViewHeight, [self statusBarHeight], (unsigned)(dpi * m_fScale));
+    CGEApp_Open(m_currentViewWidth, m_currentViewHeight, (unsigned)m_currentSafeAreaBorders.top, (unsigned)m_currentSafeAreaBorders.right, (unsigned)m_currentSafeAreaBorders.bottom, (unsigned)m_currentSafeAreaBorders.left, (unsigned)(dpi * m_fScale));
 
     [self update];
 }
@@ -222,12 +239,20 @@ typedef struct TouchInfo {
     // update the viewport size, if changed
     int newViewWidth  = self.view.bounds.size.width  * m_fScale;
     int newViewHeight = self.view.bounds.size.height * m_fScale;
+    UIEdgeInsets newSafeAreaBorders = [self safeAreaBorders];
+
     if (m_currentViewWidth  != newViewWidth ||
-        m_currentViewHeight != newViewHeight)
+        m_currentViewHeight != newViewHeight ||
+        m_currentSafeAreaBorders.top != newSafeAreaBorders.top ||
+        m_currentSafeAreaBorders.right != newSafeAreaBorders.right ||
+        m_currentSafeAreaBorders.bottom != newSafeAreaBorders.bottom ||
+        m_currentSafeAreaBorders.left != newSafeAreaBorders.left)
     {
         m_currentViewWidth  = newViewWidth;
         m_currentViewHeight = newViewHeight;
-        CGEApp_Resize(newViewWidth, newViewHeight, [self statusBarHeight]);
+        m_currentSafeAreaBorders = newSafeAreaBorders;
+        
+        CGEApp_Resize(newViewWidth, newViewHeight, (unsigned)newSafeAreaBorders.top, (unsigned)newSafeAreaBorders.right, (unsigned)newSafeAreaBorders.bottom, (unsigned)newSafeAreaBorders.left);
     }
 
     // send accumulated motion events (sending them right away can jam the engine)
@@ -311,7 +336,7 @@ typedef struct TouchInfo {
 
         CGPoint pt = [touch locationInView:self.view];
         [self RecalcTouchPosForCGE:&pt];
-        CGEApp_MouseUp(pt.x, pt.y, true, (int)nFingerIdx, false);
+        CGEApp_MouseUp(pt.x, pt.y, true, (int)nFingerIdx);
     }
 }
 

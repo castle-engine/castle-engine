@@ -256,7 +256,7 @@
         @itemSpacing compact
         @item using TDrawableImage
         @item using DrawPrimitive2D (and friends in CastleGLUtils),
-        @item using TCastleScreenEffect, TCasleViewport rendering.
+        @item using TCastleScreenEffect, TCastleViewport rendering.
       )
     }
     class procedure BatchingFlush;
@@ -274,6 +274,40 @@
         by OpenGL.) }
     constructor Create(const AImage: TEncodedImage; const ASmoothScaling: boolean;
       const AOwnsImage: boolean); overload;
+
+    { Prepare an image (with undefined initial contents) for drawing.
+
+      The image memory is allocated on GPU following the StorageClass
+      parameter. For example, pass TRGBAlphaImage to have storage equivalent
+      to that of loading 8-bit RGBA image. Or TRGBImage if you only need
+      to store RGB (no alpha).
+
+      This creates a GPU image with undefined initial contents,
+      so make sure you fill 100% of the contents when drawing.
+      For example using @link(TRenderContext.Clear) or @link(DrawRectangle) like
+      this:
+
+      @longCode(
+        MyDrawableImage := TDrawableImage.Create(100, 100, TRGBImage);
+        MyDrawableImage.RenderToImageBegin;
+        RenderContext.Clear([cbColor], Yellow);
+        // maybe do more drawing here, like
+        //   DrawRectangle(...);
+        //   OtherDrawingImage.Draw(...);
+        MyDrawableImage.RenderToImageEnd;
+      )
+
+      or drawing other image filling this:
+
+      @longCode(
+        MyDrawableImage := TDrawableImage.Create(100, 100, TRGBImage);
+        MyDrawableImage.DrawFrom(OtherDrawingImage,
+          FloatRect,
+          OtherDrawingImage.FloatRect);
+      )
+    }
+    constructor Create(const AWidth, AHeight: Cardinal;
+      const StorageClass: TCastleImageClass; const ASmoothScaling: boolean = true); overload;
 
     { Load image from disk, and prepare for drawing.
 
@@ -380,6 +414,11 @@
       Always (Left,Bottom) are zero, and (Width,Height) correspond to image
       sizes. }
     function Rect: TRectangle;
+
+    { Rectangle representing the inside of this image, with float coordinates.
+      Always (Left,Bottom) are zero, and (Width,Height) correspond to image
+      sizes. }
+    function FloatRect: TFloatRectangle;
 
     { How to render the alpha channel of the texture.
 
@@ -730,6 +769,18 @@
       The result "lives" only on GPU (the underlying TEncodedImage,
       in normal RAM memory, is not updated by this drawing in any way).
 
+      This is just a shortcut for doing
+
+      @unorderedList(
+        @item @link(RenderToImageBegin),
+        @item then executing @code(SourceImage.Draw(...)),
+        @item then @link(RenderToImageEnd).
+      )
+
+      If you are already between
+      @link(RenderToImageBegin) and @link(RenderToImageEnd), then don't use
+      this method, just call explicitly @code(SourceImage.Draw(...)).
+
       If you use this only occasionally, it's nice to later free the resources
       by @link(RenderToImageFree). }
     procedure DrawFrom(const SourceImage: TDrawableImage;
@@ -837,6 +888,17 @@ begin
     NewImage := LoadEncodedImage(AUrl, LoadAsClass);
   FUrl := AUrl;
   Create(NewImage, ASmoothScaling, { AOwnsImage } true);
+end;
+
+constructor TDrawableImage.Create(const AWidth, AHeight: Cardinal;
+  const StorageClass: TCastleImageClass; const ASmoothScaling: boolean = true);
+var
+  InitialImage: TCastleImage;
+begin
+  { TODO: For now, we create useless image in RAM to allocate initial pixels
+    for this. }
+  InitialImage := StorageClass.Create(AWidth, AHeight);
+  Create(InitialImage, ASmoothScaling, { AOwnsImage } true);
 end;
 
 destructor TDrawableImage.Destroy;
@@ -1402,7 +1464,7 @@ end;
 procedure TDrawableImage.DrawFlipped(const ScreenRect: TFloatRectangle;
   const FlipHorizontal, FlipVertical: boolean);
 begin
-  DrawFlipped(ScreenRect, FloatRectangle(Rect), FlipHorizontal, FlipVertical);
+  DrawFlipped(ScreenRect, FloatRect, FlipHorizontal, FlipVertical);
 end;
 
 procedure TDrawableImage.DrawFlipped(
@@ -1669,6 +1731,11 @@ end;
 function TDrawableImage.Rect: TRectangle;
 begin
   Result := Rectangle(0, 0, Width, Height);
+end;
+
+function TDrawableImage.FloatRect: TFloatRectangle;
+begin
+  Result := FloatRectangle(0, 0, Width, Height);
 end;
 
 procedure TDrawableImage.PrepareResources;

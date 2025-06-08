@@ -673,13 +673,13 @@ type
     FViewpointStack: TViewpointStack;
 
     { If @true, then next ChangedAll call will do ProcessShadowMapsReceivers
-      at the end.
-
-      ProcessShadowMapsReceivers are correctly called at the
-      right moment of ChangedAll, so that they have the necessary
-      information (Shapes) ready and their modifications (new GeneratedTextures
-      items) are accounted for. }
+      at the end, regardless of UsesShadowMaps.
+      So it will detect if model starts using shadow maps. }
     ScheduledShadowMapsProcessing: boolean;
+
+    { Is model using shadow maps.
+      Detected by last ProcessShadowMapsReceivers call. }
+    UsesShadowMaps: Boolean;
 
     { Mechanism to schedule ChangedAll and GeometryChanged calls. }
     ChangedAllSchedule: Cardinal;
@@ -1019,7 +1019,7 @@ type
 
       URL is downloaded using the CastleDownload unit,
       so it supports files, http resources and more.
-      See https://castle-engine.io/manual_network.php
+      See https://castle-engine.io/url
       about supported URL schemes.
       If you all you care about is loading normal files, then just pass
       a normal filename (absolute or relative to the current directory)
@@ -3142,9 +3142,10 @@ begin
     There's no point in calling recursive UnregisterScene if the FRootNode
     will be freed right afterwards.
 
-    TODO: This optimization is actually not without a problem.
+    TODO: This optimization is problematic sometimes.
     If the RootNode has some child that has other parents (outside of this
-    scene, or with KeepExistingBegin) then they will remain existing,
+    scene) or uses TX3DNode.KeepExistingBegin or TX3DNode.WaitForRelease
+    then they will remain existing,
     and will have a dangling reference to this Scene.
     This happened with internal TAppearanceNode in CastleTerrain at one point.
 
@@ -3158,6 +3159,10 @@ begin
       FreeAndNil(Scene);
 
     ... then OldMaterial will have invalid reference in OldMaterial.Scene.
+
+    The workaround right now is to use TX3DNode.UnregisterScene when
+    this can happen. But it's an additional trap to think about when
+    managing memory of X3D nodes.
   }
   if (FRootNode <> nil) and (not FOwnsRootNode) then
     FRootNode.UnregisterScene;
@@ -3240,7 +3245,6 @@ procedure TCastleSceneCore.Load(const AUrl: String; const AOptions: TSceneLoadOp
 var
   TimeStart: TCastleProfilerTime;
   NewRoot, NewRootCacheOrigin: TX3DRootNode;
-  C: TCastleCollider;
 begin
   TimeStart := Profiler.Start('Loading "' + UriDisplay(AUrl) + '" (TCastleSceneCore)');
   try
@@ -3304,9 +3308,8 @@ begin
       - update triangles used by TCastleMeshCollider (note that this code
         will only update TCastleMeshCollider that is our behavior,
         it doesn't notify TCastleMeshCollider instances elsewhere that may refer to us). }
-    C := FindBehavior(TCastleCollider) as TCastleCollider;
-    if C <> nil then
-      C.InternalTransformChanged(Self);
+    if Collider <> nil then
+      Collider.InternalTransformChanged(Self);
   finally Profiler.Stop(TimeStart) end;
 end;
 
@@ -3642,7 +3645,6 @@ function TChangedAllTraverser.Traverse(
     ChildNode: TX3DNode;
     ChildGroup: TShapeTreeGroup;
     I: Integer;
-    CameraLocalPosition: TVector3;
   begin
     LODTree := TShapeTreeLOD.Create(ParentScene);
     LODTree.LODNode := LODNode;
@@ -4105,10 +4107,26 @@ begin
     ViewpointStack.EndChangesSchedule;
   end;
 
-  if ScheduledShadowMapsProcessing then
+  { 1. We honor ScheduledShadowMapsProcessing, to detect if shadow maps are maybe
+      used. Because at the beginning, UsesShadowMaps are always @false.
+      Also UsesShadowMaps are always @false if ShadowMaps have been toggled
+      to @false.
+
+    2. We also honor UsesShadowMaps. Because it shadow maps have been detected
+      in the last ProcessShadowMapsReceivers call, then every ChangedAll
+      should rebuild TShape.InternalShadowMaps, as we have recreated all TShape.
+
+      Testcase:
+      - fps_game shadow maps,
+      - or load model with shadow maps in castle-model-viewer, and do
+        "Edit -> Remove Placeholders from CGE levels".
+      Shadows *should not* disappear. }
+  if ScheduledShadowMapsProcessing or UsesShadowMaps then
   begin
     ProcessShadowMapsReceivers(RootNode, Shapes, ShadowMaps,
-      ShadowMapsDefaultSize);
+      ShadowMapsDefaultSize, UsesShadowMaps);
+    if UsesShadowMaps then
+      WritelnLog('Scene %s (%s) is using shadow maps', [Name, UriDisplay(Url)]);
     ScheduledShadowMapsProcessing := false;
   end;
 
@@ -4292,7 +4310,6 @@ function TTransformChangeHelper.TransformChangeTraverse(
     ShapeLOD: TShapeTreeLOD;
     OldShapes: PShapesParentInfo;
     NewShapes: TShapesParentInfo;
-    CameraLocalPosition: TVector3;
   begin
     { get Shape and increase Shapes^.Index }
     ShapeLOD := Shapes^.Group.Children[Shapes^.Index] as TShapeTreeLOD;

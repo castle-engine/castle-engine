@@ -56,6 +56,16 @@ type
     ExtraOptions: TCastleStringList;
     { Allow using cache. @true by default. }
     AllowCache: Boolean;
+
+    { When not empty, this environment variable has set
+      value OverrideEnvironmentValue in the compiler process.) }
+    OverrideEnvironmentName: String;
+    OverrideEnvironmentValue: String;
+
+    { This parameter is filled by Compile procedure, and should contain the binary file produced at the link stage.
+      For now, only supported by CompileFpc. }
+    LinkerOutputFile: String;
+
     constructor Create;
     destructor Destroy; override;
   end;
@@ -112,7 +122,7 @@ implementation
 uses SysUtils, Process,
   CastleUtils, CastleLog, CastleFilesUtils, CastleFindFiles,
   CastleInternalTools,
-  ToolCommonUtils, ToolUtils, ToolFpcVersion, ToolCompilerInfo;
+  ToolCommonUtils, ToolUtils, ToolFpcVersion, ToolCompilerInfo, ToolProcessRun;
 
 { TCompilerOptions ----------------------------------------------------------- }
 
@@ -496,7 +506,7 @@ var
 
   procedure AddMacOSOptions;
   begin
-    if (Options.OS = darwin) and (Options.CPU = X86_64) then
+    if (Options.OS = darwin) and ((Options.CPU = X86_64) or (Options.CPU = Aarch64)) then
     begin
       // Lazarus passes such options to compile with Cocoa, so we do too. Do not seem necessary in practice.
       FpcOptions.Add('-k-framework');
@@ -532,6 +542,7 @@ var
 var
   FpcOutput, FpcExe, CompilationOutputPathFinal, FpcStandardUnitsPath: String;
   FpcExitStatus: Integer;
+  LinkerOutputBinaryPos: Integer;
 begin
   FpcVer := FpcVersion;
 
@@ -706,9 +717,9 @@ begin
         end;
       cmDebug:
         begin
-          FpcOptions.Add('-Cr'); // Range checking, see https://github.com/michaliskambi/modern-pascal-introduction/wiki/What-are-range-and-overflow-checks-(and-errors)-in-Pascal
+          FpcOptions.Add('-Cr'); // Range checking, see https://github.com/modern-pascal/modern-pascal-introduction/wiki/What-are-range-and-overflow-checks-(and-errors)-in-Pascal
           if Options.CPU <> Wasm32 then
-            FpcOptions.Add('-Co') // Overflow checking, see https://github.com/michaliskambi/modern-pascal-introduction/wiki/What-are-range-and-overflow-checks-(and-errors)-in-Pascal
+            FpcOptions.Add('-Co') // Overflow checking, see https://github.com/modern-pascal/modern-pascal-introduction/wiki/What-are-range-and-overflow-checks-(and-errors)-in-Pascal
           else
             { It seems that Overflow Checking is broken with WebAssembly,
               it causes exceptions
@@ -816,20 +827,45 @@ begin
       FpcOptions.Add('-viwn');
     end;
 
-    RunCommandIndirPassthrough(WorkingDirectory, FpcExe, FpcOptions.ToArray, FpcOutput, FpcExitStatus, '', '', @FilterFpcOutput);
+    RunCommandIndirPassthrough(WorkingDirectory, FpcExe, FpcOptions.ToArray, FpcOutput, FpcExitStatus,
+      Options.OverrideEnvironmentName, Options.OverrideEnvironmentValue, @FilterFpcOutput);
     if FpcExitStatus <> 0 then
     begin
       if (Pos('Fatal: Internal error', FpcOutput) <> 0) or
          (Pos('Error: Compilation raised exception internally', FpcOutput) <> 0) then
       begin
         FpcLazarusCrashRetry(WorkingDirectory, 'FPC', 'FPC');
-        RunCommandIndirPassthrough(WorkingDirectory, FpcExe, FpcOptions.ToArray, FpcOutput, FpcExitStatus, '', '', @FilterFpcOutput);
+        RunCommandIndirPassthrough(WorkingDirectory, FpcExe, FpcOptions.ToArray, FpcOutput, FpcExitStatus,
+          Options.OverrideEnvironmentName, Options.OverrideEnvironmentValue, @FilterFpcOutput);
         if FpcExitStatus <> 0 then
           { do not retry compiling in a loop, give up }
           raise Exception.Create('Failed to compile');
       end else
         raise Exception.Create('Failed to compile');
     end;
+    { Find the linker output from the Fpc output. The line starts with 'Linking '.
+
+      TODO: This search assumes an English output of FPC.
+      If user customizes FPC to use a different language (which can be done by
+      fpc.cfg, out of our control), then this message is translated (see
+      "exec_i_linking" in FPC translation files), and logic below will not work.
+
+      - See https://github.com/castle-engine/castle-engine/pull/629#issuecomment-2886020746
+        for possible ideas:
+        "I tried finding another way to get the Options.LinkerOutputFile,
+        but failed again. There could be a chance if ppaslink.sh file
+        was not automatically deleted by fpc, as there is a ld command line inside,
+        and the output file is after -o."
+
+      - Maybe we could force the FPC language on the command-line?
+    }
+    LinkerOutputBinaryPos := Pos('Linking ', FpcOutput);
+    if LinkerOutputBinaryPos <> 0 then
+    begin
+      LinkerOutputBinaryPos := LinkerOutputBinaryPos + StrLen('Linking ');
+      Options.LinkerOutputFile := Copy(FpcOutput, LinkerOutputBinaryPos, Pos(NL, FpcOutput, LinkerOutputBinaryPos) - LinkerOutputBinaryPos);
+    end else
+      Writeln('Warning: build-tool could not recognize the linker output binary name, may cause error later.');
   finally FreeAndNil(FpcOptions) end;
 end;
 
@@ -1132,7 +1168,7 @@ begin
       - 2 times (for both Debug/Release, I would need a copy DebugMacOS and ReleaseMacOS)
       - and require it in all user projects (this is not acceptable).
     }
-    if (Options.OS = darwin) and (Options.CPU = X86_64) then
+    if (Options.OS = darwin) and ((Options.CPU = X86_64) or (Options.CPU = Aarch64)) then
       LazbuildOptions.Add('--widgetset=cocoa');
     LazbuildOptions.Add(LazarusProjectFile);
 

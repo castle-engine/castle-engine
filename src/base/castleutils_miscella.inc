@@ -50,7 +50,7 @@ type
   @raises ECheckFailed Raised with ErrMessage if condition TrueValue if false. }
 procedure Check(TrueValue: boolean; const ErrMessage: string = 'Check failed');
 
-{ Arrays searching ----------------------------------------------------------- }
+{ Array searching ----------------------------------------------------------- }
 
 { Search the array for a given value.
   Returns index (zero-based) or -1 if not found.
@@ -274,7 +274,7 @@ begin
  if not TrueValue then raise ECheckFailed.Create(errMessage);
 end;
 
-{ arrays searching ---------------------------------------- }
+{ Array searching ---------------------------------------- }
 
 function ArrayPosStr(const A: String; const Arr: array of String): Integer;
 begin

@@ -8,5 +8,6 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 <project name="new_renderer_skeleton"
   standalone_source="new_renderer_skeleton.dpr"
   qualified_name="io.castleengine.new.renderer.skeleton"
+  caption="Skeleton Code to Experiment With a New Renderer"
 >
 </project>

@@ -275,6 +275,22 @@ function KeyRange(Key: TSingleList;
   but checks if node is used first. }
 procedure FreeIfUnusedAndNil(var Obj);
 
+{ After using @link(TX3DNode.WaitForRelease), free this node (if it is unused).
+  This releases the "fake" reference to the node (addded by @link(TX3DNode.WaitForRelease)),
+  and frees the node @italic(right now) if it is unused right now.
+
+  If the node is still used, it will be actually freed later,
+  using the reference counting mechanism that manages X3D nodes lifetime.
+
+  Given Obj must be a reference to a TX3DNode instance,
+  and it will be set to @nil after this call (whether it was freed right now or not).
+
+  Does nothing if Obj is @nil. This makes it safe to use e.g. from destructors
+  if you're not certain if Obj has been created.
+
+  See the https://castle-engine.io/shaders#node_release for an example of this. }
+procedure NodeRelease(var Obj);
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -364,6 +380,21 @@ begin
   Temp := TX3DNode(Obj);
   Pointer(Obj) := nil;
   Temp.FreeIfUnused;
+end;
+
+procedure NodeRelease(var Obj);
+begin
+  if TX3DNode(Obj) = nil then Exit; // nothing to do
+
+  if not TX3DNode(Obj).FWaitsForRelease then
+    WritelnWarning('NodeRelease called on a node that was not setup with Node.WaitForRelease: %s. ' +
+      'This can happen if node was successfully created, but then exception occurred before you called "Node.WaitForRelease". ' +
+      'To avoid this, always call "Node.WaitForRelease" right after creating the node.', [
+      TX3DNode(Obj).NiceName
+    ]);
+  TX3DNode(Obj).FWaitsForRelease := false;
+
+  FreeIfUnusedAndNil(Obj);
 end;
 
 {$endif read_implementation}

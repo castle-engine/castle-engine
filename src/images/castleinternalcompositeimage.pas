@@ -324,7 +324,9 @@ begin
   Close;
 
   if liFlipVertically in Options then
-    WritelnWarning('ImageTexture.flipVertically for DDS/KTX not implemented yet, the image will be inverted');
+    WritelnWarning('ImageTexture.flipVertically for DDS/KTX not implemented yet, the image will be inverted: %s', [
+      UriDisplay(Url)
+    ]);
 
   if MimeType = '' then
     MimeType := UriMimeType(Url);

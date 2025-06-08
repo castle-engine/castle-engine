@@ -21,7 +21,7 @@ unit CastleDownload;
 interface
 
 uses SysUtils, Classes,
-  CastleVectors, CastleUriUtils;
+  CastleVectors, CastleUriUtils, CastleFindFiles;
 
 {$define read_interface}
 {$I castledownload_register.inc}
@@ -81,6 +81,7 @@ uses URIParser, Math, Generics.Collections,
 {$I castledownload_url_castlescript.inc}
 {$I castledownload_url_compiled.inc}
 {$I castledownload_url_castledata.inc}
+{$I castledownload_url_castleconfig.inc}
 {$I castledownload_url_data.inc}
 {$I castledownload_url_ecmascript.inc}
 {$I castledownload_url_file.inc}

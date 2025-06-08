@@ -508,7 +508,7 @@ constructor TObject3DOBJ.Create(const Stream: TStream; const BaseUrl: String);
     end;
 
   var
-    F: TTextReader;
+    F: TCastleTextReader;
     LineTok, LineAfterMarker: string;
   begin
     { Specification doesn't say what to do when multiple matlib directives
@@ -520,7 +520,7 @@ constructor TObject3DOBJ.Create(const Stream: TStream; const BaseUrl: String);
     IsMaterial := false;
 
     try
-      F := TTextReader.Create(CombineURI(BaseUrl, URLSuffix));
+      F := TCastleTextReader.Create(CombineURI(BaseUrl, URLSuffix));
     except
       on E: Exception do
       begin
@@ -666,7 +666,7 @@ constructor TObject3DOBJ.Create(const Stream: TStream; const BaseUrl: String);
   end;
 
 var
-  F: TTextReader;
+  F: TCastleTextReader;
   LineTok, LineAfterMarker: string;
   //GroupName: string;
   UsedMaterial: TWavefrontMaterial;
@@ -678,7 +678,7 @@ begin
 
   UsedMaterial := nil;
 
-  F := TTextReader.Create(Stream, false);
+  F := TCastleTextReader.Create(Stream, false);
   try
     Coord := TCoordinateNode.Create('ObjCoordinates');
     TexCoord := TTextureCoordinateNode.Create('ObjTextureCoordinates');

@@ -1,6 +1,5 @@
-/* OpenGL shader effect (used to enhance the Castle Game Engine shaders,
-   see https://castle-engine.io/compositing_shaders.php ),
-   applied over terrain.
+/* Shader effect (used to enhance the Castle Game Engine shaders,
+   see https://castle-engine.io/shaders ), applied over terrain.
 
    This simply saves position and normal in object space,
    to be used by terrain.fs code. */

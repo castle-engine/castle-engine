@@ -68,6 +68,8 @@
         <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
         <DCC_Description>Castle Game Engine - base for other packages</DCC_Description>
         <DCC_Define>CASTLE_DELPHI_PACKAGE;$(DCC_Define)</DCC_Define>
+        <DCC_DUPLICATE_CTOR_DTOR>false</DCC_DUPLICATE_CTOR_DTOR>
+        <DCC_UNSUPPORTED_CONSTRUCT>false</DCC_UNSUPPORTED_CONSTRUCT>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Linux64)'!=''">
         <DCC_UsePackage>rtl;xmlrtl;IndySystem;IndyProtocols;IndyCore;$(DCC_UsePackage)</DCC_UsePackage>
@@ -323,11 +325,11 @@
         <DCCReference Include="..\..\src\ui\castleinternalcameragestures.pas"/>
         <DCCReference Include="..\..\src\ui\castleinternalcontrolsimages.pas"/>
         <DCCReference Include="..\..\src\ui\castleinternalinspector.pas"/>
-        <DCCReference Include="..\..\src\ui\castleinternaljoysticksexplicit.pas"/>
-        <DCCReference Include="..\..\src\ui\castleinternaljoystickswindows.pas"/>
+        <DCCReference Include="..\..\src\ui\castleinternalgamecontrollersexplicit.pas"/>
+        <DCCReference Include="..\..\src\ui\castleinternalgamecontrollerswindows.pas"/>
         <DCCReference Include="..\..\src\ui\castleinternalpk3dconnexion.pas"/>
         <DCCReference Include="..\..\src\ui\castleinternalsettings.pas"/>
-        <DCCReference Include="..\..\src\ui\castlejoysticks.pas"/>
+        <DCCReference Include="..\..\src\ui\castlegamecontrollers.pas"/>
         <DCCReference Include="..\..\src\ui\castlekeysmouse.pas"/>
         <DCCReference Include="..\..\src\ui\castlenotifications.pas"/>
         <DCCReference Include="..\..\src\ui\castleuicontrols.pas"/>
@@ -392,6 +394,7 @@
         <DCCReference Include="..\..\src\scene\x3dtime.pas"/>
         <DCCReference Include="..\..\src\scene\castlelivingbehaviors.pas"/>
         <DCCReference Include="..\..\src\physics\kraft\kraft.pas"/>
+        <DCCReference Include="..\..\src\physics\kraft\castleinternalkraftoverrides.pas"/>
         <DCCReference Include="..\..\src\vampyre_imaginglib\src\Extensions\ImagingXpm.pas"/>
         <DCCReference Include="..\..\src\vampyre_imaginglib\src\Extensions\ImagingPcx.pas"/>
         <DCCReference Include="..\..\src\vampyre_imaginglib\src\Extensions\ImagingPsd.pas"/>

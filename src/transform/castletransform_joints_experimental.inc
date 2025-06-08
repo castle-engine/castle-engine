@@ -19,6 +19,9 @@
 {$ifdef CASTLE_EXPERIMENTAL_JOINTS}
 
 {$ifdef read_interface}
+
+// type section started in CastleTransform.pas
+
   { Fixed joint creates a constant connection between two bodies. }
   TCastleFixedJoint = class(TCastleAbstractTwoBodiesJoint)
   private

@@ -66,7 +66,7 @@ procedure TViewMain.ClickLoadFromFiles(Sender: TObject);
   var
     Config: TCastleConfig;
     Doc: TXmlDocument;
-    TextReader: TTextReader;
+    TextReader: TCastleTextReader;
     StringList: TStringList;
   begin
     Result :=
@@ -97,10 +97,10 @@ procedure TViewMain.ClickLoadFromFiles(Sender: TObject);
         NL;
     finally FreeAndNil(Doc) end;
 
-    TextReader := TTextReader.Create('castle-data:/example_text.txt');
+    TextReader := TCastleTextReader.Create('castle-data:/example_text.txt');
     try
       Result := Result +
-        'Strings from txt (TTextReader):' + NL +
+        'Strings from txt (TCastleTextReader):' + NL +
         TextReader.Readln + NL +
         TextReader.Readln + NL +
         TextReader.Readln + NL +

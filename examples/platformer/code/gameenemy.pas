@@ -62,7 +62,7 @@ begin
 
   Scene := Parent as TCastleScene; // TEnemy can only be added as behavior to TCastleScene
   Scene.PlayAnimation('walk', true);
-  RBody := Scene.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+  RBody := Scene.RigidBody;
   if RBody <> nil then
     RBody.OnCollisionEnter := {$ifdef FPC}@{$endif}CollisionEnter;
   { In editor you can change scale to -1 1 1 to change enemy inital direction }

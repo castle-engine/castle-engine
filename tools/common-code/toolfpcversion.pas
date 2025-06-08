@@ -66,7 +66,7 @@ implementation
 
 uses SysUtils, Classes,
   CastleFilesUtils, CastleLog, CastleStringUtils,
-  ToolCommonUtils, ToolCompilerInfo;
+  ToolCommonUtils, ToolCompilerInfo, ToolProcessRun;
 
 { TToolVersion --------------------------------------------------------------- }
 

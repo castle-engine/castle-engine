@@ -22,7 +22,7 @@ interface
 
 uses SysUtils, Classes, Generics.Collections,
   {$ifdef FPC} Zipper {$else} System.Zip {$endif},
-  CastleUriUtils;
+  CastleUriUtils, CastleFindFiles;
 
 type
   EZipNotOpen = class(Exception);
@@ -111,18 +111,34 @@ type
       TMemoryStreamSaveOnDestroyList = {$ifdef FPC}specialize{$endif}
         TObjectList<TMemoryStreamSaveOnDestroy>;
     var
-      // Non-empty means that RegisterUrlProtocol was called.
       FPendingStreams: TMemoryStreamSaveOnDestroyList;
   strict private
+    // Non-empty means that RegisterUrlProtocol was called.
     FRegisteredUrlProtocol: String;
     FFiles: TStringList;
     function GetFiles: TStrings;
     function IsOpenRead: Boolean;
     function IsOpenWrite: Boolean;
+
+    { Convert URL trying to access this filesystem
+      (thanks to the RegisterUrlProtocol mechanism)
+      into a relative path within this filesystem.
+      This relative path is not URL-encoded, so space is space,
+      and it doesn't start with a slash. }
+    class function UrlToRelativePath(const Url: String): String; static;
+
+    { Make sure that relative path ends with a slash.
+      Doesn't change '', so it doesn't make '' -> '/'.
+      Otherwise, this is the simplest string operation, it doesn't
+      really care if given PathRelative is URL or filename or whatever. }
+    class function IncludeSlash(const PathRelative: String): String; static;
+
     { Handlers given to CastleDownload.RegisterUrlProtocol. }
     function ReadUrlHandler(const Url: String; out MimeType: string): TStream;
     function WriteUrlHandler(const Url: String): TStream;
     function ExistsUrlHandler(const Url: String): TUriExists;
+    procedure FindFilesUrlHandler(const UrlPath, Mask: String;
+      const FileEvent: TFoundFileMethod; var StopSearch: Boolean);
   strict private
     { FPC or Delphi specific fields and methods }
     {$ifdef FPC}
@@ -304,14 +320,35 @@ type
 
       The directories, by itself, are never listed here.
 
-      Note: This is in contrast to both Delphi TZipFile.FileName and
-      FPC TUnZipper.Entries, where this is undefined, because ZIP files
+      Note: We guarantee that directories are never listed here.
+      This is in contrast to both Delphi @code(TZipFile.FileName) and
+      FPC @code(TUnZipper.Entries), for which it is undefined whether they contain
+      also directories, because ZIP files
       @url(https://unix.stackexchange.com/questions/743511/why-are-directories-sometimes-listed-explicitly-in-zip-files
       may list directories explicitly, but don't have to).
       For TCastleZip.Files, we explicitly guarantee that directories
       are never listed here.
 
       All these values are valid as arguments for @link(Read).
+
+      Note: If you contruct URLs, to access files inside the ZIP after
+      calling @link(RegisterUrlProtocol), remember to percent-encode the paths
+      using @link(UrlEncode).
+
+      For example, assume that the ZIP file contains
+      a file named 'name with spaces.txt'. This list, TCastleZip.Files,
+      will contain 'name with spaces.txt'.
+      You can read it like this:
+
+      @longCode(
+        // 1. Using TCastleZip.Read, just pass the path with spaces
+        MyStream := MyZip.Read('name with spaces.txt');
+
+        // 2. Using TCastleZip.RegisterUrlProtocol,
+        // pass path with spaces converted to %20.
+        MyZip.RegisterUrlProtocol('my-zip');
+        MyStream := Download('my-zip:/' + UrlEncode('name with spaces.txt'));
+      )
 
       No order of the contents is guaranteed.
 
@@ -369,9 +406,9 @@ procedure ZipDirectory(const ZipUrl: String; DirectoryUrl: String;
 
 implementation
 
-uses URIParser,
+uses URIParser, StrUtils,
   CastleDownload, CastleFilesUtils, CastleStringUtils,
-  CastleClassUtils, CastleFindFiles, CastleLog, CastleUtils;
+  CastleClassUtils, CastleLog, CastleUtils;
 
 {$ifdef FPC}
 
@@ -845,15 +882,26 @@ begin
   inherited;
 end;
 
+function TCastleZip.GetFiles: TStrings;
+begin
+  Result := FFiles;
+end;
+
 procedure TCastleZip.RegisterUrlProtocol(const Protocol: String);
 var
   P: TRegisteredProtocol;
 begin
+  if FRegisteredUrlProtocol <> '' then
+    raise Exception.CreateFmt('Cannot register ZIP as URL protocol "%s", already registered "%s"', [
+      Protocol,
+      FRegisteredUrlProtocol
+    ]);
   FRegisteredUrlProtocol := Protocol;
   P := CastleDownload.RegisterUrlProtocol(Protocol);
   P.ReadEvent := {$ifdef FPC}@{$endif} ReadUrlHandler;
   P.WriteEvent := {$ifdef FPC}@{$endif} WriteUrlHandler;
   P.ExistsEvent := {$ifdef FPC}@{$endif} ExistsUrlHandler;
+  P.FindFilesEvent := {$ifdef FPC}@{$endif} FindFilesUrlHandler;
 end;
 
 procedure TCastleZip.UnregisterUrlProtocol;
@@ -866,13 +914,27 @@ begin
   Assert(FRegisteredUrlProtocol = '');
 end;
 
-function TCastleZip.ReadUrlHandler(const Url: String; out MimeType: string): TStream;
+class function TCastleZip.UrlToRelativePath(const Url: String): String;
 var
   U: TURI;
-  PathInZip: String;
 begin
   U := ParseURI(Url);
-  PathInZip := PrefixRemove('/', U.Path + U.Document, false);
+  Result := PrefixRemove('/', U.Path + U.Document, false);
+end;
+
+class function TCastleZip.IncludeSlash(const PathRelative: String): String;
+begin
+  Result := PathRelative;
+  if (Result <> '') and
+     (Result[Length(Result)] <> '/') then
+    Result := Result + '/';
+end;
+
+function TCastleZip.ReadUrlHandler(const Url: String; out MimeType: string): TStream;
+var
+  PathInZip: String;
+begin
+  PathInZip := UrlToRelativePath(Url);
   Result := Read(PathInZip);
 
   { Determine mime type from Url, which practically means:
@@ -882,12 +944,10 @@ end;
 
 function TCastleZip.WriteUrlHandler(const Url: String): TStream;
 var
-  U: TURI;
   PathInZip: String;
   ResultStream: TMemoryStreamSaveOnDestroy;
 begin
-  U := ParseURI(Url);
-  PathInZip := PrefixRemove('/', U.Path + U.Document, false);
+  PathInZip := UrlToRelativePath(Url);
 
   ResultStream := TMemoryStreamSaveOnDestroy.Create;
   ResultStream.Zip := Self;
@@ -898,19 +958,15 @@ end;
 
 function TCastleZip.ExistsUrlHandler(const Url: String): TUriExists;
 var
-  U: TURI;
   PathInZip, PathInZipAsDirectory: String;
   I: Integer;
 begin
-  U := ParseURI(Url);
-  PathInZip := PrefixRemove('/', U.Path + U.Document, false);
+  PathInZip := UrlToRelativePath(Url);
   if PathInZip = '' then
     Exit(ueDirectory); // top zip directory
 
   // calculate PathInZipAsDirectory, ending with /
-  PathInZipAsDirectory := PathInZip;
-  if PathInZipAsDirectory[Length(PathInZipAsDirectory)] <> '/' then
-    PathInZipAsDirectory := PathInZipAsDirectory + '/';
+  PathInZipAsDirectory := IncludeSlash(PathInZip);
 
   for I := 0 to FFiles.Count - 1 do
   begin
@@ -929,9 +985,69 @@ begin
   Result := ueNotExists;
 end;
 
-function TCastleZip.GetFiles: TStrings;
+procedure TCastleZip.FindFilesUrlHandler(
+  const UrlPath, Mask: String;
+  const FileEvent: TFoundFileMethod; var StopSearch: Boolean);
+
+{ Copy-paste of TCastleMemoryStream.FindFilesUrlHandler,
+  required only minimal adjustments.
+  For now, not enough reason need to merge these 2 implementations. }
+
+const
+  IgnoreCase = false;
+var
+  UrlPathSlash, PathInZip: String;
+  FileInfo: TFileInfo;
+  AlreadyReportedSubdirectories: TStringList;
+  I, SlashPos: Integer;
+  NamePart: String;
 begin
-  Result := FFiles;
+  UrlPathSlash := UriIncludeSlash(UrlPath);
+  PathInZip := UrlToRelativePath(UrlPathSlash);
+  AlreadyReportedSubdirectories := TStringList.Create;
+  try
+    for I := 0 to Files.Count - 1 do
+    begin
+      if IsPrefix(PathInZip, Files[I], IgnoreCase) then
+      begin
+        NamePart := SEnding(Files[I], Length(PathInZip) + 1);
+        SlashPos := Pos('/', NamePart);
+        if SlashPos = 0 then
+        begin
+          // found file inside PathInZip
+          if IsWild(NamePart, Mask, IgnoreCase) then
+          begin
+            FileInfo := Default(TFileInfo);
+            FileInfo.Name := NamePart;
+            FileInfo.Url := UrlPathSlash + UrlEncode(NamePart);
+            FileInfo.Directory := false;
+            FileInfo.Size := 0; // we don't track size of files in ZIP
+            FileEvent(FileInfo, StopSearch);
+            if StopSearch then
+              Exit;
+          end;
+        end else
+        begin
+          // found directory inside PathInZip, but it may occur multiple times
+          NamePart := Copy(NamePart, 1, SlashPos - 1);
+          if IsWild(NamePart, Mask, IgnoreCase) and
+            (AlreadyReportedSubdirectories.IndexOf(NamePart) = -1) then
+          begin
+            AlreadyReportedSubdirectories.Add(NamePart);
+
+            FileInfo := Default(TFileInfo);
+            FileInfo.Name := NamePart;
+            FileInfo.Url := UrlPathSlash + UrlEncode(NamePart);
+            FileInfo.Directory := true;
+            FileInfo.Size := 0;
+            FileEvent(FileInfo, StopSearch);
+            if StopSearch then
+              Exit;
+          end;
+        end;
+      end;
+    end;
+  finally FreeAndNil(AlreadyReportedSubdirectories); end;
 end;
 
 { TCastleZip.TMemoryStreamSaveOnDestroy -------------------------------------- }

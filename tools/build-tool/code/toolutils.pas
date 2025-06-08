@@ -144,7 +144,7 @@ uses {$ifdef UNIX} BaseUnix, {$endif}
   Classes, Process, SysUtils,
   CastleFilesUtils, CastleUriUtils, CastleLog, CastleXmlUtils, CastleFindFiles,
   CastleZip,
-  ToolCommonUtils;
+  ToolCommonUtils, ToolProcessRun;
 
 procedure SmartCopyFile(const Source, Dest: string);
 begin
