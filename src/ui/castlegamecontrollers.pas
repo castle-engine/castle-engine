@@ -35,8 +35,17 @@ type
   TInternalControllerBackend = class
   strict private
     FController: TGameController;
+    function GetName: String;
+    procedure SetName(const Value: String);
+    function GetIndex: Integer;
+    procedure SetIndex(const Value: Integer);
   public
     property Controller: TGameController read FController;
+
+    { Alias for TGameController.Name, but settable. }
+    property Name: String read GetName write SetName;
+    { Alias for TGameController.Index, but settable. }
+    property Index: Integer read GetIndex write SetIndex;
 
     { Create instance.
       Sets @link(Controller) read-only property.
@@ -60,11 +69,10 @@ type
     Only the controller backends (that implement TGameController logic
     using underlying system-specific APIs) can change it. }
   TGameController = class
+  private
+    FName: String;
+    FIndex: Integer;
   public
-    { Game controller name. Not necessarily unique, so be sure to display also
-      game controller index to the user in UI. }
-    Name: String;
-
     { Which buttons are now pressed. }
     Pressed: array [TGameControllerButton] of Boolean;
 
@@ -75,6 +83,14 @@ type
     { Implementation-specific information.
       @exclude }
     InternalBackend: TInternalControllerBackend;
+
+    { Game controller name. Not necessarily unique, so be sure to display also
+      game controller @link(Index) to the user in UI. }
+    property Name: String read FName;
+
+    { Game controller index on
+      the @link(TGameControllers.Items Controllers.Items) list. }
+    property Index: Integer read FIndex;
 
     { Left analog stick position.
       Both coordinates are in range -1..1,
@@ -157,6 +173,18 @@ type
   { Manage game controllers (joysticks, gamepads).
     See examples/game_controllers for usage examples. }
   TGameControllers = class
+  public
+    type
+      TEnumerator = record
+      strict private
+        FList: TGameControllerList;
+        FPosition: Integer;
+        function GetCurrent: TGameController; inline;
+      public
+        constructor Create(const AList: TGameControllerList);
+        function MoveNext: Boolean; inline;
+        property Current: TGameController read GetCurrent;
+      end;
   private
     Backend: TInternalControllerManagerBackend;
     FList: TGameControllerList;
@@ -166,6 +194,7 @@ type
   public
     constructor Create;
     destructor Destroy; override;
+    function GetEnumerator: TEnumerator;
 
     { Calls OnChange. }
     procedure DoChange;
@@ -235,6 +264,26 @@ begin
   Assert(AController <> nil);
   FController := AController;
   FController.InternalBackend := Self;
+end;
+
+function TInternalControllerBackend.GetName: String;
+begin
+  Result := Controller.Name;
+end;
+
+procedure TInternalControllerBackend.SetName(const Value: String);
+begin
+  Controller.FName := Value;
+end;
+
+function TInternalControllerBackend.GetIndex: Integer;
+begin
+  Result := Controller.Index;
+end;
+
+procedure TInternalControllerBackend.SetIndex(const Value: Integer);
+begin
+  Controller.FIndex := Value;
 end;
 
 { TGameController ------------------------------------------------------------ }
@@ -338,6 +387,26 @@ begin
   Assert(List <> nil, 'TGameControllers.List must be initialized before backend');
 end;
 
+{ TGameControllers.TEnumerator ------------------------------------------------- }
+
+function TGameControllers.TEnumerator.GetCurrent: TGameController;
+begin
+  Result := FList[FPosition];
+end;
+
+constructor TGameControllers.TEnumerator.Create(const AList: TGameControllerList);
+begin
+//  inherited Create;
+  FList := AList;
+  FPosition := -1;
+end;
+
+function TGameControllers.TEnumerator.MoveNext: Boolean;
+begin
+  Inc(FPosition);
+  Result := FPosition < FList.Count;
+end;
+
 { TGameControllers ----------------------------------------------------------------- }
 
 constructor TGameControllers.Create;
@@ -434,6 +503,11 @@ procedure TGameControllers.DoChange;
 begin
   if Assigned(OnChange) then
     OnChange(Self);
+end;
+
+function TGameControllers.GetEnumerator: TEnumerator;
+begin
+  Result := TEnumerator.Create(FList);
 end;
 
 { global --------------------------------------------------------------------- }

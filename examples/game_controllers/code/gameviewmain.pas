@@ -160,7 +160,7 @@ end;
 
 procedure TViewMain.InitializeControllersUI(Sender: TObject);
 var
-  I: Integer;
+  Controller: TGameController;
   ControllerSelectButton: TCastleButton;
 begin
   ClearAllControllersUI;
@@ -168,15 +168,15 @@ begin
   LabelControllersCount.Caption := Format('Number of game controllers found: %d', [Controllers.Count]);
 
   // List all controllers
-  for I := 0 to Controllers.Count - 1 do
+  for Controller in Controllers do
   begin
     ControllerSelectButton := TCastleButton.Create(FreeAtStop);
     ControllerSelectButton.Caption := Format('Controller %d: "%s"', [
-      I,
-      Controllers[I].Name
+      Controller.Index,
+      Controller.Name
     ]);
     ControllerSelectButton.OnClick := {$ifdef FPC}@{$endif} ClickControllerSelect;
-    ControllerSelectButton.Tag := I;
+    ControllerSelectButton.Tag := Controller.Index;
     ControllerSelectButton.Toggle := true;
     GroupControllers.InsertFront(ControllerSelectButton);
   end;

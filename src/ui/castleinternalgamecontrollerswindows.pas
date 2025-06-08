@@ -1,6 +1,10 @@
 {
   Copyright 2015-2025 Tomasz Wojtyś, Michalis Kamburelis.
-  Based on zgl_joystick.pas by Andrey Kemka.
+
+  Original based on zgl_joystick.pas by Andrey Kemka
+  ( https://github.com/goldsmile/zengl/blob/master/src/zgl_joystick.pas ),
+  though our arrangement at this point into CGE backends and public API
+  resulted in very different code.
 
   This file is part of "Castle Game Engine".
 
@@ -31,8 +35,6 @@ interface
   From code, just don't use this unit when not MSWINDOWS. }
 implementation
 {$else}
-
-// TODO: Make alternative implementation based on xinput library
 
 uses MMSystem,
   CastleGameControllers;
@@ -219,13 +221,11 @@ begin
     NewController := TGameController.Create;
     NewControllerBackend := TWindowsControllerBackend.Create(NewController);
 
-    //NewController.Index := List.Count; // TODO
-
     { JOYSTICKID1 is 0, so NewControllerBackend.WindowsId is actually just
       an index of this loop, equal to WindowsControllerId.
 
       Note that it may be different from the index on List
-      (NewController.Index),
+      (NewControllerBackend.Index),
       since we don't add all controllers to List.
       This can happen if you unplugged some controllers, they remain
       on Windows list with JOYERR_UNPLUGGED. }
@@ -242,7 +242,7 @@ begin
 
     if JoyCapsResult = 0 then
     begin
-      NewController.Name := NewControllerBackend.Caps.szPname;
+      NewControllerBackend.Name := NewControllerBackend.Caps.szPname;
       NewControllerBackend.ButtonsCount := NewControllerBackend.Caps.wNumButtons;
       NewControllerBackend.AxesCount := NewControllerBackend.Caps.wNumAxes;
 
@@ -294,7 +294,7 @@ begin
           NewControllerBackend.AxesCount,
           NewControllerBackend.ButtonsCount
         ]);
-
+        NewControllerBackend.Index := List.Count;
         List.Add(NewController);
       end else
       begin
@@ -411,6 +411,10 @@ begin
           end;
 
           // update D-Pad buttons state
+          { Note that this code implies you cannot have > 1 Dpad button
+            pressed down on Windows.
+            This is different e.g. on Linux platform, when e.g. holding
+            down D-Pad left and up buttons is possible (and correctly reported). }
           if (jcPOV in ControllerBackend.Capabilities) and
              (state.dwPOV and $FFFF <> $FFFF) then
           begin

@@ -86,13 +86,14 @@ procedure TExplicitControllerManagerBackend.SetCount(const NewControllerCount: I
 var
   I: Integer;
   Controller: TGameController;
+  ControllerBackend: TExplicitControllerBackend;
 begin
   List.Clear;
   for I := 0 to NewControllerCount - 1 do
   begin
     Controller := TGameController.Create;
-    // We don't need to assign it anywhere, constructor sets Controller.InternalBackend
-    TExplicitControllerBackend.Create(Controller);
+    ControllerBackend := TExplicitControllerBackend.Create(Controller);
+    ControllerBackend.Index := List.Count;
     List.Add(Controller);
   end;
   // Call TGameControllers.OnChange
