@@ -1,6 +1,10 @@
 ﻿{
   Copyright 2015-2025 Tomasz Wojtyś, Michalis Kamburelis.
-  Based on zgl_joystick.pas by Andrey Kemka.
+
+  Original based on zgl_joystick.pas by Andrey Kemka
+  ( https://github.com/goldsmile/zengl/blob/master/src/zgl_joystick.pas ),
+  though our arrangement at this point into CGE backends and public API
+  resulted in very different code.
 
   This file is part of "Castle Game Engine".
 
