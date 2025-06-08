@@ -325,11 +325,11 @@
         <DCCReference Include="..\..\src\ui\castleinternalcameragestures.pas"/>
         <DCCReference Include="..\..\src\ui\castleinternalcontrolsimages.pas"/>
         <DCCReference Include="..\..\src\ui\castleinternalinspector.pas"/>
-        <DCCReference Include="..\..\src\ui\castleinternaljoysticksexplicit.pas"/>
-        <DCCReference Include="..\..\src\ui\castleinternaljoystickswindows.pas"/>
+        <DCCReference Include="..\..\src\ui\castleinternalgamecontrollersexplicit.pas"/>
+        <DCCReference Include="..\..\src\ui\castleinternalgamecontrollerswindows.pas"/>
         <DCCReference Include="..\..\src\ui\castleinternalpk3dconnexion.pas"/>
         <DCCReference Include="..\..\src\ui\castleinternalsettings.pas"/>
-        <DCCReference Include="..\..\src\ui\castlejoysticks.pas"/>
+        <DCCReference Include="..\..\src\ui\castlegamecontrollers.pas"/>
         <DCCReference Include="..\..\src\ui\castlekeysmouse.pas"/>
         <DCCReference Include="..\..\src\ui\castlenotifications.pas"/>
         <DCCReference Include="..\..\src\ui\castleuicontrols.pas"/>

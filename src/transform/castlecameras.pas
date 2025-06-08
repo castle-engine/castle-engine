@@ -769,6 +769,7 @@ type
     FHeadBobbingTime: Single;
     FClimbHeight: Single;
     FCrouchHeight: Single;
+    FRunMultiplier: Single;
 
     { React to Input_MoveSpeedInc. }
     procedure MoveSpeedInc(const SecondsPassed: Single);
@@ -784,7 +785,8 @@ type
       Dir is in camera parent coordinates, like Camera.Direction.
       It will be automatically adjusted to be parallel to gravity plane,
       if PreferGravityUpForMoving. }
-    procedure MoveHorizontal(Dir: TVector3; const SecondsPassed: Single);
+    procedure MoveHorizontal(Dir: TVector3; const SecondsPassed: Single;
+      const InputPressureMultiplier: Single = 1.0);
 
     { Up or down move, only when flying (ignored when @link(Gravity) is @true). }
     procedure MoveVertical(const SecondsPassed: Single; const Multiply: Integer);
@@ -879,6 +881,7 @@ type
       DefaultMouseDraggingMoveSpeed = 0.01;
       DefaultMoveSpeedMin = 0.01;
       DefaultMoveSpeedMax = 10000.0;
+      DefaultRunMultiplier = 2.0;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -1073,40 +1076,12 @@ type
     property FallingEffect: boolean
       read FFallingEffect write FFallingEffect default true;
 
-    { When @link(Gravity) works and camera height above the ground
-      is less than PreferredHeight, then we try to "grow",
-      i.e. camera position increases along the GravityUp
-      so that camera height above the ground is closer to
-      PreferredHeight. This property (together with length of
-      @link(TCastleTransform.Direction Camera.Direction), that always determines every moving speed)
-      determines the speed of this growth. }
-    property GrowSpeed: Single
-      read FGrowSpeed write FGrowSpeed
-      {$ifdef FPC}default DefaultGrowSpeed{$endif};
-
-    { How high can you jump ?
-      The max jump distance is calculated as
-      JumpMaxHeight * PreferredHeight, see MaxJumpDistance. }
-    property JumpMaxHeight: Single
-      read FJumpMaxHeight write FJumpMaxHeight
-      {$ifdef FPC}default DefaultJumpMaxHeight{$endif};
-
     { Returns just JumpMaxHeight * PreferredHeight,
       see JumpMaxHeight for explanation. }
     function MaxJumpDistance: Single;
 
     { We are in the middle of a "jump" move right now. }
     property IsJumping: boolean read FIsJumping;
-
-    { Scales the speed of horizontal moving during jump. }
-    property JumpHorizontalSpeedMultiply: Single
-      read FJumpHorizontalSpeedMultiply write FJumpHorizontalSpeedMultiply
-      {$ifdef FPC}default DefaultJumpHorizontalSpeedMultiply{$endif};
-
-    { How fast do you jump up. This is the time, in seconds, in takes
-      to reach MaxJumpDistance height when jumping. }
-    property JumpTime: Single read FJumpTime write FJumpTime
-      {$ifdef FPC}default DefaultJumpTime{$endif};
 
     { Is player crouching right now. }
     property IsCrouching: boolean read FIsCrouching;
@@ -1209,33 +1184,6 @@ type
     { Move backward, just like Input_Backward would be pressed. }
     property MoveBackward: boolean read FMoveBackward write FMoveBackward;
 
-    { If @true then all rotation keys
-      (Input_RightRotate, Input_LeftRotate, Input_UpRotate, Input_DownRotate)
-      will work 10x slower when Ctrl modified is pressed. }
-    property AllowSlowerRotations: boolean
-      read FAllowSlowerRotations write FAllowSlowerRotations
-      default true;
-
-    { @abstract(Do we check what key modifiers are pressed and do something
-      differently based on it?)
-
-      If @true then all keys work only when no modifiers or only shift are
-      pressed. Additionally when Ctrl is pressed (and AllowSlowerRotations) then
-      rotation keys work 10x slower. Also Increase/DecreasePreferredHeight
-      work only when Ctrl pressed.
-      Other keys with other modifiers
-      don't work. We allow shift, because to press character "+" on non-numpad
-      keyboard (useful on laptops, where numpad is difficult) you
-      probably need to press shift.
-
-      If @false then all keys work as usual, no matter what
-      modifiers are pressed. And rotation keys never work 10x slower
-      (AllowSlowerRotations is ignored),
-      also Increase/DecreasePreferredHeight are ignored. }
-    property CheckModsDown: boolean
-      read FCheckModsDown write FCheckModsDown
-      default true;
-
     { Horizontal rotation can rotate around a vector that is RotationHorizontalPivot units
       forward before the camera. This is a poor-mans way to implement some 3rd camera game.
       Note that when non-zero this may (for now) move the camera without actually checking
@@ -1278,65 +1226,34 @@ type
       PreferredHeight as it is. }
     procedure CorrectPreferredHeight;
 
-    { We may make a "head bobbing" effect,
-      by moving the camera a bit up and down.
+    { Accept game controller (joystick, gamepad) events to control this navigation.
+      This enhances @link(TInputShortcut.Bindings) of some inputs,
+      to react to game controller events.
+      The layout follows typical game controller layout for 3D games:
 
-      This property mutiplied by PreferredHeight
-      says how much head bobbing can move you along GravityUp.
-      Set this to 0 to disable head bobbing.
-      This must always be < 1.0. For sensible effects, this should
-      be rather close to 0.0, for example 0.02.
+      @unorderedList(
+        @item(Left Stick: move forward/backward, strafe left/right)
+        @item(Left Stick Click: Run)
+        @item(Right Stick: rotate camera horizontally/vertically)
+        @item(A: jump)
+        @item(B: crouch)
+      )
 
-      This is meaningfull only when @link(TCastleWalkNavigation.Gravity) works. }
-    property HeadBobbing: Single
-      read FHeadBobbing write FHeadBobbing {$ifdef FPC}default DefaultHeadBobbing{$endif};
+      @param(ControllerIndex Which controller to configure.
+        Leave at -1 (default) to accept input from any controller.)
 
-    { Controls head bobbing frequency. In the time of HeadBobbingTime seconds,
-      we do full head bobbing sequence (camera swing up, then down again).
-
-      Note that if you do a footsteps sound in your game (see
-      stPlayerFootstepsDefault or TMaterialProperty.FootstepsSound)
-      then you will want this property to match your footsteps sound length,
-      things feel and sound natural then.
-      Also, often it sounds better to record two footsteps inside
-      a single sound file, in which case the footstep sound length should be twice
-      as long as this property. For example, record 2 steps inside a 1-second long
-      footstep sound, and set this property to 0.5 a second (which is a default
-      in fact). }
-    property HeadBobbingTime: Single
-      read FHeadBobbingTime write FHeadBobbingTime
-      {$ifdef FPC}default DefaultHeadBobbingTime{$endif};
-
-    { The tallest height that you can climb only used
-      when @link(TCastleWalkNavigation.Gravity) is @true.
-      This is checked in each single horizontal move when @link(TCastleWalkNavigation.Gravity) works.
-      Must be >= 0. Value 0 means there is no limit (and makes a small speedup).
-
-      This is reliable to prevent user from climbing stairs and such,
-      when vertical walls are really vertical (not just steep-almost-vertical).
-
-      It's not 100% reliable to prevent player from climbing steep hills.
-      That's because, depending on how often an event processing occurs,
-      you actually climb using less or more steps.
-      So even a very steep hill can be always
-      climbed on a computer with very fast speed, because with large FPS you
-      effectively climb it using a lot of very small steps (assuming that
-      FPS limit is not enabled, that is CastleWindow.TCastleApplication.LimitFPS
-      or CastleControl.LimitFPS is zero).
-
-      Remember that user can still try jumping to climb on high obstactes.
-      See @link(TCastleWalkNavigation.JumpMaxHeight) for a way to control jumping.
-
-      For a 100% reliable way to prevent user from reaching some point,
-      that does not rely on specific navigation settings,
-      you should build actual walls in 3D (invisible walls
-      can be created by Collision.proxy in VRML/X3D). }
-    property ClimbHeight: Single read FClimbHeight write FClimbHeight;
+      Note: Calling this many times on the same navigation is not recommended,
+      as we don't clear previous bindings.
+      If you need to adjust the bindings, we recommend you just look at the
+      simple implementation of this method, copy it to your code,
+      and adjust to your  needs. }
+    procedure UseGameController(const ControllerIndex: Integer = -1);
   published
     property MouseLook;
     property MouseLookHorizontalSensitivity;
     property MouseLookVerticalSensitivity;
     property InvertVerticalMouseLook;
+    property Radius;
 
     { Rotation keys speed, in radians per second.
       @groupBegin }
@@ -1462,7 +1379,121 @@ type
     property CrouchHeight: Single
       read FCrouchHeight write FCrouchHeight {$ifdef FPC}default DefaultCrouchHeight{$endif};
 
-    property Radius;
+    { When @link(Gravity) works and camera height above the ground
+      is less than PreferredHeight, then we try to "grow",
+      i.e. camera position increases along the GravityUp
+      so that camera height above the ground is closer to
+      PreferredHeight. This property (together with length of
+      @link(TCastleTransform.Direction Camera.Direction), that always determines every moving speed)
+      determines the speed of this growth. }
+    property GrowSpeed: Single
+      read FGrowSpeed write FGrowSpeed
+      {$ifdef FPC}default DefaultGrowSpeed{$endif};
+
+    { How high can you jump ?
+      The max jump distance is calculated as
+      JumpMaxHeight * PreferredHeight, see MaxJumpDistance. }
+    property JumpMaxHeight: Single
+      read FJumpMaxHeight write FJumpMaxHeight
+      {$ifdef FPC}default DefaultJumpMaxHeight{$endif};
+
+    { Scales the speed of horizontal moving during jump. }
+    property JumpHorizontalSpeedMultiply: Single
+      read FJumpHorizontalSpeedMultiply write FJumpHorizontalSpeedMultiply
+      {$ifdef FPC}default DefaultJumpHorizontalSpeedMultiply{$endif};
+
+    { How fast do you jump up. This is the time, in seconds, in takes
+      to reach MaxJumpDistance height when jumping. }
+    property JumpTime: Single read FJumpTime write FJumpTime
+      {$ifdef FPC}default DefaultJumpTime{$endif};
+
+    { How much is the speed multiplied when running.
+      This is used when @link(Input_Run) is pressed.
+      The default value is 2.0, so running is twice as fast as walking. }
+    property RunMultiplier: Single read FRunMultiplier write FRunMultiplier
+      {$ifdef FPC}default DefaultRunMultiplier{$endif};
+
+    { If @true then all rotation keys
+      (Input_RightRotate, Input_LeftRotate, Input_UpRotate, Input_DownRotate)
+      will work 10x slower when Ctrl modified is pressed. }
+    property AllowSlowerRotations: boolean
+      read FAllowSlowerRotations write FAllowSlowerRotations
+      default true;
+
+    { @abstract(Do we check what key modifiers are pressed and do something
+      differently based on it?)
+
+      If @true then all keys work only when no modifiers or only shift are
+      pressed. Additionally when Ctrl is pressed (and AllowSlowerRotations) then
+      rotation keys work 10x slower. Also Increase/DecreasePreferredHeight
+      work only when Ctrl pressed.
+      Other keys with other modifiers
+      don't work. We allow shift, because to press character "+" on non-numpad
+      keyboard (useful on laptops, where numpad is difficult) you
+      probably need to press shift.
+
+      If @false then all keys work as usual, no matter what
+      modifiers are pressed. And rotation keys never work 10x slower
+      (AllowSlowerRotations is ignored),
+      also Increase/DecreasePreferredHeight are ignored. }
+    property CheckModsDown: boolean
+      read FCheckModsDown write FCheckModsDown
+      default true;
+
+    { We may make a "head bobbing" effect,
+      by moving the camera a bit up and down.
+
+      This property mutiplied by PreferredHeight
+      says how much head bobbing can move you along GravityUp.
+      Set this to 0 to disable head bobbing.
+      This must always be < 1.0. For sensible effects, this should
+      be rather close to 0.0, for example 0.02.
+
+      This is meaningfull only when @link(TCastleWalkNavigation.Gravity) works. }
+    property HeadBobbing: Single
+      read FHeadBobbing write FHeadBobbing {$ifdef FPC}default DefaultHeadBobbing{$endif};
+
+    { Controls head bobbing frequency. In the time of HeadBobbingTime seconds,
+      we do full head bobbing sequence (camera swing up, then down again).
+
+      Note that if you do a footsteps sound in your game (see
+      stPlayerFootstepsDefault or TMaterialProperty.FootstepsSound)
+      then you will want this property to match your footsteps sound length,
+      things feel and sound natural then.
+      Also, often it sounds better to record two footsteps inside
+      a single sound file, in which case the footstep sound length should be twice
+      as long as this property. For example, record 2 steps inside a 1-second long
+      footstep sound, and set this property to 0.5 a second (which is a default
+      in fact). }
+    property HeadBobbingTime: Single
+      read FHeadBobbingTime write FHeadBobbingTime
+      {$ifdef FPC}default DefaultHeadBobbingTime{$endif};
+
+    { The tallest height that you can climb only used
+      when @link(TCastleWalkNavigation.Gravity) is @true.
+      This is checked in each single horizontal move when @link(TCastleWalkNavigation.Gravity) works.
+      Must be >= 0. Value 0 means there is no limit (and makes a small speedup).
+
+      This is reliable to prevent user from climbing stairs and such,
+      when vertical walls are really vertical (not just steep-almost-vertical).
+
+      It's not 100% reliable to prevent player from climbing steep hills.
+      That's because, depending on how often an event processing occurs,
+      you actually climb using less or more steps.
+      So even a very steep hill can be always
+      climbed on a computer with very fast speed, because with large FPS you
+      effectively climb it using a lot of very small steps (assuming that
+      FPS limit is not enabled, that is CastleWindow.TCastleApplication.LimitFPS
+      or CastleControl.LimitFPS is zero).
+
+      Remember that user can still try jumping to climb on high obstactes.
+      See @link(TCastleWalkNavigation.JumpMaxHeight) for a way to control jumping.
+
+      For a 100% reliable way to prevent user from reaching some point,
+      that does not rely on specific navigation settings,
+      you should build actual walls in 3D (invisible walls
+      can be created by Collision.proxy in VRML/X3D). }
+    property ClimbHeight: Single read FClimbHeight write FClimbHeight;
   end;
 
   TUniversalCamera = TCastleNavigation deprecated 'complicated TUniversalCamera class is removed; use TCastleNavigation as base class, or TCastleWalkNavigation or TCastleExamineNavigation for particular type, and Viewport.NavigationType to switch type';
@@ -2609,19 +2640,19 @@ begin
      (not Valid) then
     Exit;
 
-  if RotationEnabled and Input_Rotate.IsPressed(Container.Pressed, Container.MousePressed) then
+  if RotationEnabled and Input_Rotate.IsPressed(Container) then
   begin
     DragRotation;
     Result := true;
   end;
 
-  if ZoomEnabled and Input_Zoom.IsPressed(Container.Pressed, Container.MousePressed) then
+  if ZoomEnabled and Input_Zoom.IsPressed(Container) then
   begin
     if Zoom((Event.OldPosition[1] - Event.Position[1]) * 30 / (2 * MoveDivConst)) then
       Result := true;
   end;
 
-  if MoveEnabled and Input_Move.IsPressed(Container.Pressed, Container.MousePressed) then
+  if MoveEnabled and Input_Move.IsPressed(Container) then
   begin
     if ExactMovement and (InternalViewport <> nil) and (not GoodModelBox.IsEmpty) then
     begin
@@ -2860,6 +2891,7 @@ begin
   FHeadBobbing := DefaultHeadBobbing;
   FHeadBobbingTime := DefaultHeadBobbingTime;
   FCrouchHeight := DefaultCrouchHeight;
+  FRunMultiplier := DefaultRunMultiplier;
 
   FInput_Forward                 := TInputShortcut.Create(Self);
   FInput_Backward                := TInputShortcut.Create(Self);
@@ -3166,16 +3198,16 @@ begin
 end;
 
 procedure TCastleWalkNavigation.MoveHorizontal(Dir: TVector3;
-  const SecondsPassed: Single);
+  const SecondsPassed: Single; const InputPressureMultiplier: Single);
 var
   Multiplier: Single;
   Grav: TVector3;
 begin
-  Multiplier := MoveSpeed * MoveHorizontalSpeed * SecondsPassed;
+  Multiplier := MoveSpeed * MoveHorizontalSpeed * SecondsPassed * InputPressureMultiplier;
   if IsJumping then
     Multiplier := Multiplier * JumpHorizontalSpeedMultiply;
   if Input_Run.IsPressed(Container) then
-    Multiplier := Multiplier * 2;
+    Multiplier := Multiplier * RunMultiplier;
 
   { Update HeadBobbingPosition }
   if (not IsJumping) and UseHeadBobbing and (not HeadBobbingAlreadyDone) then
@@ -3192,7 +3224,7 @@ begin
     else
       { Do not move at all, if Dir and Grav parallel.
         This avoids moving vertically in such case. }
-      EXit;
+      Exit;
   end;
 
   MoveHorizontalDone := true;
@@ -3840,6 +3872,7 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
 
 var
   ModsDown: TModifierKeys;
+  HowMuch: Single;
 begin
   inherited;
 
@@ -3869,14 +3902,14 @@ begin
       begin
         CheckRotates(1.0);
 
-        if Input_Forward.IsPressed(Container) or MoveForward then
-          MoveHorizontal( Camera.Direction, SecondsPassed);
-        if Input_Backward.IsPressed(Container) or MoveBackward then
-          MoveHorizontal(-Camera.Direction, SecondsPassed);
-        if Input_RightStrafe.IsPressed(Container) then
-          MoveHorizontal(DirectionRight, SecondsPassed);
-        if Input_LeftStrafe.IsPressed(Container) then
-          MoveHorizontal(DirectionLeft , SecondsPassed);
+        if Input_Forward.IsPressed(Container, HowMuch) or MoveForward then
+          MoveHorizontal( Camera.Direction, SecondsPassed, HowMuch);
+        if Input_Backward.IsPressed(Container, HowMuch) or MoveBackward then
+          MoveHorizontal(-Camera.Direction, SecondsPassed, HowMuch);
+        if Input_RightStrafe.IsPressed(Container, HowMuch) then
+          MoveHorizontal(DirectionRight, SecondsPassed, HowMuch);
+        if Input_LeftStrafe.IsPressed(Container, HowMuch) then
+          MoveHorizontal(DirectionLeft , SecondsPassed, HowMuch);
 
         { A simple implementation of Input_Jump was
             RotateVertical(HalfPi); Move(MoveVerticalSpeed * MoveSpeed * SecondsPassed); RotateVertical(-HalfPi)
@@ -4352,6 +4385,89 @@ begin
   Grav := GravityUpLocal;
   if not VectorsParallel(Result, Grav) then
     MakeVectorsOrthoOnTheirPlane(Result, Grav);
+end;
+
+procedure TCastleWalkNavigation.UseGameController(const ControllerIndex: Integer);
+var
+  BindingAxis: TInputShortcutBindingControllerAxis;
+  BindingButton: TInputShortcutBindingControllerButton;
+begin
+  // left stick to move
+
+  BindingAxis := TInputShortcutBindingControllerAxis.Create(Self);
+  BindingAxis.Axis := gaLeftStick;
+  BindingAxis.Positive := true;
+  BindingAxis.Coord := 1;
+  BindingAxis.ControllerIndex := ControllerIndex;
+  Input_Forward.Bindings.Add(BindingAxis);
+
+  BindingAxis := TInputShortcutBindingControllerAxis.Create(Self);
+  BindingAxis.Axis := gaLeftStick;
+  BindingAxis.Positive := false;
+  BindingAxis.Coord := 1;
+  BindingAxis.ControllerIndex := ControllerIndex;
+  Input_Backward.Bindings.Add(BindingAxis);
+
+  BindingAxis := TInputShortcutBindingControllerAxis.Create(Self);
+  BindingAxis.Axis := gaLeftStick;
+  BindingAxis.Positive := true;
+  BindingAxis.Coord := 0;
+  BindingAxis.ControllerIndex := ControllerIndex;
+  Input_RightStrafe.Bindings.Add(BindingAxis);
+
+  BindingAxis := TInputShortcutBindingControllerAxis.Create(Self);
+  BindingAxis.Axis := gaLeftStick;
+  BindingAxis.Positive := false;
+  BindingAxis.Coord := 0;
+  BindingAxis.ControllerIndex := ControllerIndex;
+  Input_LeftStrafe.Bindings.Add(BindingAxis);
+
+  // right stick to rotate
+
+  BindingAxis := TInputShortcutBindingControllerAxis.Create(Self);
+  BindingAxis.Axis := gaRightStick;
+  BindingAxis.Positive := true;
+  BindingAxis.Coord := 0; // horizontal
+  BindingAxis.ControllerIndex := ControllerIndex;
+  Input_RightRotate.Bindings.Add(BindingAxis);
+
+  BindingAxis := TInputShortcutBindingControllerAxis.Create(Self);
+  BindingAxis.Axis := gaRightStick;
+  BindingAxis.Positive := false;
+  BindingAxis.Coord := 0; // horizontal
+  BindingAxis.ControllerIndex := ControllerIndex;
+  Input_LeftRotate.Bindings.Add(BindingAxis);
+
+  BindingAxis := TInputShortcutBindingControllerAxis.Create(Self);
+  BindingAxis.Axis := gaRightStick;
+  BindingAxis.Positive := true;
+  BindingAxis.Coord := 1; // vertical
+  BindingAxis.ControllerIndex := ControllerIndex;
+  Input_UpRotate.Bindings.Add(BindingAxis);
+
+  BindingAxis := TInputShortcutBindingControllerAxis.Create(Self);
+  BindingAxis.Axis := gaRightStick;
+  BindingAxis.Positive := false;
+  BindingAxis.Coord := 1; // vertical
+  BindingAxis.ControllerIndex := ControllerIndex;
+  Input_DownRotate.Bindings.Add(BindingAxis);
+
+  // other buttons
+
+  BindingButton := TInputShortcutBindingControllerButton.Create(Self);
+  BindingButton.Button := gbSouth;
+  BindingButton.ControllerIndex := ControllerIndex;
+  Input_Jump.Bindings.Add(BindingButton);
+
+  BindingButton := TInputShortcutBindingControllerButton.Create(Self);
+  BindingButton.Button := gbEast;
+  BindingButton.ControllerIndex := ControllerIndex;
+  Input_Crouch.Bindings.Add(BindingButton);
+
+  BindingButton := TInputShortcutBindingControllerButton.Create(Self);
+  BindingButton.Button := gbLeftStickClick;
+  BindingButton.ControllerIndex := ControllerIndex;
+  Input_Run.Bindings.Add(BindingButton);
 end;
 
 { global ------------------------------------------------------------ }

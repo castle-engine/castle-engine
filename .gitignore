@@ -162,7 +162,7 @@ castle-game-engine-*.fpm
 /examples/images_videos/image_generate_and_use/image_generate_and_use
 /examples/isometric_game/isometric_game
 /examples/isometric_game_3d/isometric_game_3d
-/examples/deprecated_to_upgrade/joystick/joystick_demo
+/examples/game_controllers/game_controllers_demo
 /examples/lazarus/load_model_and_camera_manually/lib/
 /examples/lazarus/load_model_and_camera_manually/load_model_and_camera_manually
 /examples/lazarus/model_3d_viewer/model_3d_viewer

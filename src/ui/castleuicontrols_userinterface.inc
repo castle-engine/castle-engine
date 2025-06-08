@@ -429,20 +429,6 @@
         may *not* reported as often as normal @link(Update) calls.) }
     function SensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean; virtual;
 
-    { Axis movement detected by joystick.
-
-      @param JoyID ID of joystick with pressed button
-      @param Axis Number of moved axis }
-    function JoyAxisMove(const JoyID, Axis: Byte): boolean; virtual;
-      deprecated 'use event Joysticks.OnAxisMove, or just observe Joysticks[0].Axis';
-
-    { Joystick button pressed.
-
-      @param JoyID ID of joystick with pressed button
-      @param Button Number of pressed button }
-    function JoyButtonPress(const JoyID, Button: Byte): boolean; virtual;
-      deprecated 'use Joysticks.OnButtonDown or Joysticks.OnButtonPress';
-
     { Control may do here anything that must be continuously repeated.
       E.g. camera handles here falling down due to gravity,
       rotating model in Examine mode, and many more.
@@ -1582,16 +1568,6 @@ end;
 function TCastleUserInterface.SensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean;
 begin
   Result := false;
-end;
-
-function TCastleUserInterface.JoyAxisMove(const JoyID, Axis: Byte): boolean;
-begin
-  Result := False;
-end;
-
-function TCastleUserInterface.JoyButtonPress(const JoyID, Button: Byte): boolean;
-begin
-  Result := False;
 end;
 
 procedure TCastleUserInterface.Update(const SecondsPassed: Single;
