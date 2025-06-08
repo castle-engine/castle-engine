@@ -127,6 +127,7 @@ device
 devices
 dft
 diagonal
+difference
 dimensions
 direction
 directory
