@@ -175,7 +175,7 @@
       To be precise, this returns the inner-most TCastleTransform
       in the TCastleTransform tree,
       except it doesn't return internal TCastleTransform (that has csTransient
-      flag is ComponentState).
+      flag in ComponentState).
       This way it doesn't return internal components, like internal TCastleScene
       inside TCastleBox or TCastleTiledMap.
 

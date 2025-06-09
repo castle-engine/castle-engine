@@ -1,5 +1,5 @@
 ﻿{
-  Copyright 2001-2024 Michalis Kamburelis, Tomasz Wojtyś.
+  Copyright 2001-2025 Michalis Kamburelis, Tomasz Wojtyś.
 
   This file is part of "Castle Game Engine".
 
@@ -216,21 +216,38 @@ type
     keyNumpadEnter,
     keyNumpadMultiply,
     keyNumpadDivide,
-    { Keys on Nintendo Switch pad. }
-    keyPadA,
-    keyPadB,
-    keyPadX,
-    keyPadY,
-    keyPadL,
-    keyPadR,
-    keyPadZL,
-    keyPadZR,
-    keyPadPlus,
-    keyPadMinus,
-    keyPadLeft,
-    keyPadUp,
-    keyPadRight,
-    keyPadDown,
+    (* Old: Buttons on Nintendo Switch pad were expressed as this enum.
+       Now they are expressed as TGameControllerButton.
+    // keyPadA, // new gbEast
+    // keyPadB, // new gbSouth
+    // keyPadX, // new gbNorth
+    // keyPadY, // new gbWest
+    // keyPadL, // new gbLeftBumper
+    // keyPadR, // new gbRightBumper
+    // keyPadZL, // new TGameConroller.AxisLeftTrigger (this is digital on Nintendo Switch pads, but analog on Xbox controllers)
+    // keyPadZR, // new TGameConroller.AxisRightTrigger (this is digital on Nintendo Switch pads, but analog on Xbox controllers)
+    // keyPadPlus, // new gbMenu
+    // keyPadMinus, // new gbView
+    // keyPadLeft,
+    // keyPadUp,
+    // keyPadRight,
+    // keyPadDown,
+    home key on Nintendo Switch -> gbGuide, in cases we can handle it in API
+    *)
+    keyReserved_164,
+    keyReserved_165,
+    keyReserved_166,
+    keyReserved_167,
+    keyReserved_168,
+    keyReserved_169,
+    keyReserved_170,
+    keyReserved_171,
+    keyReserved_172,
+    keyReserved_173,
+    keyReserved_174,
+    keyReserved_175,
+    keyReserved_176,
+    keyReserved_177,
     keyReserved_178,
     keyReserved_179,
     keyReserved_180,
@@ -588,7 +605,184 @@ const
 function StrToKey(const S: string; const DefaultKey: TKey): TKey;
 
 type
-  TInputPressReleaseType = (itKey, itMouseButton, itMouseWheel);
+  TInputPressReleaseType = (itKey, itMouseButton, itMouseWheel, itGameController);
+
+  { Possible game controlers (gamepad, joystick) buttons. }
+  TGameControllerButton = (
+    { gbNorth, gbEast, gbSouth, gbWest are universal names for 4 "face buttons"
+      on the "button pad".
+      See @url(https://partner.steamgames.com/doc/features/steam_controller/input_source
+      Steam "button pad" description).
+
+      They can be labeled A B X Y (in a different order between
+      e.g. Xbox and Nintendo Switch controllers), or square triangle circle cross
+      (e.g. PlayStation controllers), or even 1 2 3 4 on some gamepads. }
+    gbNorth,
+    gbEast,
+    gbSouth,
+    gbWest,
+
+    { Trigger buttons. Triggers are underneath the "bumpers".
+
+      On @url(https://www.nintendo.com/en-gb/Support/Nintendo-Switch/Joy-Con-Controller-Diagram-1518877.html
+      Nintendo Switch controllers, they are called ZL and ZR).
+
+      Note that on some controllers, the triggers are analog
+      (report as axis: amount of pressure),
+      and on some -- digital (report only press / release).
+
+      @unorderedList(
+        @item(Nintendo Switch controllers have digital triggers.)
+        @item(In contrast, Xbox Controllers have analog triggers.
+          Observe them using @link(TGameController.AxisLeftTrigger) and
+          @link(TGameController.AxisRightTrigger).
+        )
+      )
+
+      The buttons gbLeft/RightTrigger are now commented out, this was confusing
+      to expose them as both buttons and axes.
+      Use only axis now:
+
+      - TGameController.AxisLeftTrigger
+      - TGameController.AxisRightTrigger
+
+      On devices when this is digital (Nintendo Switch controller),
+      the axis will be just 0.0 or 1.0.
+
+      If you want to treat trigger axis as "digital", just add simple code on the
+      application side to check when the trigger passes a certian "threshold".
+      For example, when TGameController.AxisLeftTrigger > 0.5 then
+      treat it as "pressed". See https://castle-engine.io/controllers
+      for pointers.
+
+      If we ever restore gbLeft/RightTrigger as buttons, we have to make it
+      easy to use, so both
+
+      - digital API (gbLeft/RightTrigger)
+      - and analog API (TGameController.AxisLeft/RightTrigger)
+
+      ... would have to work with all gamepads.
+      So the type of event not really supported by the gemapd (analog or digital)
+      would have to be simulated.
+    }
+    // gbLeftTrigger,
+    // gbRightTrigger,
+
+    { Left bumper button.
+      This is often used (together with gbRightBumper) to allow user to
+      cycle left / right through some choice, like a car color, weapon, UI tab. }
+    gbLeftBumper,
+    // Right bumper button.
+    gbRightBumper,
+
+    // Pressing down on the left stick.
+    gbLeftStickClick,
+    // Pressing down on the right stick.
+    gbRightStickClick,
+
+    { Directional buttons on the D-Pad (digital pad).
+      Remember that the D-pad generally has hardware mechanism that
+      prevents the user from pressing opposite buttons at the same time.
+      So it may not be physically possible to have e.g. both
+      gbDPadUp and gbDPadDown pressed at the same time. }
+    gbDPadUp,
+    gbDPadRight,
+    gbDPadDown,
+    gbDPadLeft,
+
+    { Button in the middle-left of the gamepad.
+
+      @unorderedList(
+        @item(This is button with 2 rectangles called "View" on the
+          @url(https://en.wikipedia.org/wiki/Xbox_Wireless_Controller Xbox Wireless Controller).)
+        @item(This is called "Back" on the
+          @url(https://en.wikipedia.org/wiki/Xbox_360_controller Xbox 360 controller).)
+        @item(This is called "Minus" or "Select" on the
+          @url(https://www.nintendo.com/en-gb/Support/Nintendo-Switch/Joy-Con-Controller-Diagram-1518877.html Nintendo Switch controllers).)
+      )
+    }
+    gbView,
+
+    { Button in the middle-right of the gamepad.
+
+      @unorderedList(
+        @item(This is button with 3 horizontal lines called "Menu" on the
+          @url(https://en.wikipedia.org/wiki/Xbox_Wireless_Controller Xbox Wireless Controller).)
+        @item(This is called "Start" on the
+          @url(https://en.wikipedia.org/wiki/Xbox_360_controller Xbox 360 controller).)
+        @item(This is called "Plus" or "Start" on the
+          @url(https://www.nintendo.com/en-gb/Support/Nintendo-Switch/Joy-Con-Controller-Diagram-1518877.html Nintendo Switch controllers).)
+      )
+    }
+    gbMenu,
+
+    { Buton in the center of the gamepad.
+      Intention is to invoke a menu with available games.
+
+      This button is sometimes not available to reliably handle in games,
+      even if the device has it. The system, like Nintendo Switch or the Xbox console,
+      has a hardcoded handling of it, with which you should not conflict
+      (or you may not even get report about this being pressed).
+      On Windows "game mode" is activated by this by default (user can disable
+      it in Windows settings). Also on Windows, Steam "big picture" handles it.
+
+      @unorderedList(
+        @item(This button shows the Xbox logo on the
+          @url(https://en.wikipedia.org/wiki/Xbox_Wireless_Controller Xbox Wireless Controller)
+          and
+          @url(https://en.wikipedia.org/wiki/Xbox_360_controller Xbox 360 controller).)
+        @item(This is called "Home" on the
+          @url(https://www.nintendo.com/en-gb/Support/Nintendo-Switch/Joy-Con-Controller-Diagram-1518877.html Nintendo Switch controllers).)
+      ) }
+    gbGuide,
+
+    { Share button with up arrow available on the
+      @url(https://en.wikipedia.org/wiki/Xbox_Wireless_Controller 3rd revision
+      of the Xbox Wireless Controller).
+
+      Note that on Windows, this automatically takes a screenshot of the
+      current window. You should probably not try to handle this button
+      in your games, to not conflict with what Windows is doing. }
+    gbShare
+  );
+
+  { Possible game controlers (gamepad, joystick) buttons meaning,
+    that may be used in certain cases as easier way to express
+    TGameControllerButton. }
+  TGameControllerButtonMeaning = (
+    { No meaning assigned to this button. }
+    gmNone,
+
+    { Button that is used to confirm some action, like "OK" or "Yes". }
+    gmConfirm,
+
+    { Button that is used to cancel some action, like "Cancel" or "No" or "Back". }
+    gmCancel
+  );
+
+  { Used when input indicates press / release of a game controller button.
+    This is used in TInputPressRelease.EventType = itGameController. }
+  TGameControllerPressRelease = record
+    { Button that was pressed or released. }
+    Button: TGameControllerButton;
+
+    { Meaning commonly assigned to this button, like gmConfirm or gmCancel.
+      This is gmNone if the button does not have any meaning
+      expressed as TGameControllerButtonMeaning. }
+    Meaning: TGameControllerButtonMeaning;
+
+    { Caption of the button, like 'A', 'B', 'X', 'Y',
+      'Left Trigger', 'Right Trigger'.
+      Never empty for buttons that can be generated by given game controller.
+      For buttons that have different names depending on the game controller,
+      like "face buttons" (A, B, X, Y, square triangle circle cross),
+      this caption depends on the game controller type. }
+    Caption: String;
+
+    { Controller on which this button was pressed or released.
+      This is an index to the @link(Controllers) array. }
+    ControllerIndex: Integer;
+  end;
 
   TFingerIndex = Cardinal;
 
@@ -598,6 +792,7 @@ type
     This is nicely matching with TInputShortcut processing in CastleInputs,
     so it allows to easily store and check for user actions. }
   TInputPressRelease = record
+  public
     EventType: TInputPressReleaseType;
 
     { When EventType is itKey, this is the key pressed or released.
@@ -710,6 +905,19 @@ type
     function MouseWheel: TMouseWheelDirection;
     { @groupEnd }
 
+  public
+    { When EventType is itGameController, this is the game controller
+      button that was pressed or released. }
+    Controller: TGameControllerPressRelease;
+
+    { Does the event indicates pressing the given game controller
+      (joystick, gamepad) button. }
+    function IsController(const Button: TGameControllerButton): Boolean; overload;
+
+    { Does the event indicates pressing the given game controller
+      (joystick, gamepad) button meaning. }
+    function IsController(const Meaning: TGameControllerButtonMeaning): Boolean; overload;
+
     { Does the event indicate pressing the given key.
       This overloaded version, without RequiredModifiers parameter,
       ignores the currently pressed modifiers.
@@ -795,7 +1003,7 @@ type
 
 implementation
 
-uses SysUtils, Math;
+uses SysUtils, Math, TypInfo;
 
 const
   KeyToStrTable: array [TKey] of string = (
@@ -1250,19 +1458,53 @@ begin
   Result := (EventType = itMouseWheel) and (MouseWheel = AMouseWheel);
 end;
 
+function TInputPressRelease.IsController(const Button: TGameControllerButton): Boolean;
+begin
+  Result := (EventType = itGameController) and (Controller.Button = Button);
+end;
+
+function TInputPressRelease.IsController(const Meaning: TGameControllerButtonMeaning): Boolean;
+begin
+  Result := (EventType = itGameController) and (Controller.Meaning = Meaning);
+end;
+
 function TInputPressRelease.ToString: string;
+
+  { While usually for user we should show Caption,
+    but we also show TGameControllerButton value for developer. }
+  function ControllerButtonToStr(const Button: TGameControllerButton): String;
+  begin
+    Result := GetEnumName(TypeInfo(TGameControllerButton), Ord(Button));
+  end;
+
+  function ControllerButtonMeaningToStr(const Meaning: TGameControllerButtonMeaning): String;
+  begin
+    Result := GetEnumName(TypeInfo(TGameControllerButtonMeaning), Ord(Meaning));
+  end;
+
 begin
   case EventType of
     itKey:
-      Result := Format('key %s, character %s',
-      [ KeyToStr(Key), KeyStringToNiceStr(KeyString) ]);
+      Result := Format('key %s, character %s', [
+        KeyToStr(Key),
+        KeyStringToNiceStr(KeyString)
+      ]);
     itMouseButton:
       Result := 'mouse ' + MouseButtonStr[MouseButton];
     itMouseWheel:
-      Result := Format('mouse wheel %s (amount %f, vertical: %s)',
-      [ MouseWheelDirectionStr[MouseWheel],
+      Result := Format('mouse wheel %s (amount %f, vertical: %s)', [
+        MouseWheelDirectionStr[MouseWheel],
         MouseWheelScroll,
-        BoolToStr(MouseWheelVertical, true) ]);
+        BoolToStr(MouseWheelVertical, true)
+      ]);
+    itGameController:
+      Result := Format('button %s "%s"%s on controller %d', [
+        ControllerButtonToStr(Controller.Button),
+        Controller.Caption,
+        Iff(Controller.Meaning <> gmNone,
+          ' (meaning: ' + ControllerButtonMeaningToStr(Controller.Meaning) + ')', ''),
+        Controller.ControllerIndex
+      ]);
     {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TInputPressRelease.Description: EventType?');
     {$endif}

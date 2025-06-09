@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2022 Michalis Kamburelis.
+  Copyright 2003-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -68,14 +68,135 @@ unit CastleInputs;
 
 interface
 
-uses Classes, Generics.Collections,
+uses Classes, Generics.Collections, Contnrs,
   CastleKeysMouse, CastleUtils, CastleClassUtils,
-  CastleXMLConfig {$ifndef CASTLE_STRICT_CLI} , CastleUIControls {$endif};
+  CastleXMLConfig
+  {$ifndef CASTLE_STRICT_CLI} , CastleUIControls, CastleGameControllers {$endif};
 
 type
   { Type of input, for TInputShortcut.Group. }
   TInputGroup = (igLocal, igBasic, igItems, igOther);
   TInputGroupNotLocal = igBasic..High(TInputGroup);
+
+  { Abstract input binding, like a given key / mouse button / game contoller
+    press. The TInputShortcut can be triggered by one or more of these. }
+  TInputShortcutBinding = class(TComponent)
+  public
+    {$ifndef CASTLE_STRICT_CLI}
+    { Is the input currently pressed.
+      If returns @true, HowMuch is set to a value between 0.0 and 1.0
+      that says "how much" the input is pressed (e.g. with what pressure
+      is the game controller axis pressed).
+      If returns @false, HowMuch is always 0.0. }
+    function IsPressed(const Container: TCastleContainer;
+      out HowMuch: Single): Boolean; virtual;
+    {$endif}
+
+    { Does receiving @link(TCastleUserInterface) press with this Event
+      means that this input has been just pressed. }
+    function IsEvent(const Event: TInputPressRelease): Boolean; virtual;
+
+    { Description of the binding. }
+    function ToString: String; override;
+  end;
+
+  { List of TInputShortcutBinding.
+    This is a TComponentList, so removed components are auto-removed from this list. }
+  TInputShortcutBindingList = class(TComponentList)
+    {$ifndef CASTLE_STRICT_CLI}
+    { Is the input currently pressed. }
+    function IsPressed(const Container: TCastleContainer;
+      out HowMuch: Single): Boolean;
+    {$endif}
+
+    { Does receiving @link(TCastleUserInterface) press with this Event
+      means that this input has been just pressed. }
+    function IsEvent(const Event: TInputPressRelease): Boolean;
+
+    { Description of all bindings, separated by ' or '
+      Empty string if the list is empty. }
+    function ToString: String; override;
+  end;
+
+  TGameControllerAxis = (
+    gaLeftStick,
+    gaRightStick,
+    gaLeftTrigger,
+    gaRightTrigger
+  );
+
+  { Trigger TInputShortcut by a game controller axis.
+    For example, trigger action when user moves the left stick of the controller.
+    Right now, this only causes IsPressed (so axis can be detected
+    as pressed) and never reacts tp IsEvent (since axis doesn't report there). }
+  TInputShortcutBindingControllerAxis = class(TInputShortcutBinding)
+  strict private
+    FAxis: TGameControllerAxis;
+    FPositive: Boolean;
+    FCoord: T2DAxis;
+    FDeadZone: Single;
+    FControllerIndex: Integer;
+  public
+    const
+      DefaultDeadZone = 0.1;
+
+    { Which game contoller axis is taken into account. }
+    property Axis: TGameControllerAxis read FAxis write FAxis default gaLeftStick;
+
+    { Whether the posititive or negative value of the axis causes the pressed state. }
+    property Positive: Boolean read FPositive write FPositive default true;
+
+    { Which axis coordinate is taken into account.
+
+      @unorderedList(
+        @item 0 means to look at axis X,
+        @item 1 (only available for 2D axes) means to look at axis Y coordinate.
+      ) }
+    property Coord: T2DAxis read FCoord write FCoord default 0;
+
+    { Values of the axis smaller (or equal) than this DeadZone are ignored.
+      This makes sense when it's 0.0 (no deadzone, any value <> 0 will trigger)
+      or values < 1.0 (like 0.1, to ignore small movement of the axis). }
+    property DeadZone: Single read FDeadZone write FDeadZone
+      {$ifdef FPC}default DefaultDeadZone{$endif};
+
+    { Which game controller is taken into account.
+      Value -1 (default) means to look at all controllers and choose maximum. }
+    property ControllerIndex: Integer read FControllerIndex write FControllerIndex default -1;
+
+    constructor Create(AOwner: TComponent); override;
+    {$ifndef CASTLE_STRICT_CLI}
+    function IsPressed(const Container: TCastleContainer;
+      out HowMuch: Single): Boolean; override;
+    {$endif}
+    //function IsEvent(const Event: TInputPressRelease): Boolean; override;
+    function ToString: String; override;
+  end;
+
+  { Trigger TInputShortcut by a game controller button.
+    For example, trigger action when user clicks "A" or "right bumper". }
+  TInputShortcutBindingControllerButton = class(TInputShortcutBinding)
+  strict private
+    FButton: TGameControllerButton;
+    FControllerIndex: Integer;
+  public
+    { Which game controller button is taken into account. }
+    property Button: TGameControllerButton read FButton write FButton
+      default gbNorth;
+
+    { Which game controller is taken into account.
+      Value -1 (default) means to look at all controllers and choose maximum. }
+    property ControllerIndex: Integer read FControllerIndex write FControllerIndex
+      default -1;
+
+    constructor Create(AOwner: TComponent); override;
+    {$ifndef CASTLE_STRICT_CLI}
+    function IsPressed(const Container: TCastleContainer;
+      out HowMuch: Single): Boolean; override;
+    {$endif}
+    function IsEvent(const Event: TInputPressRelease): Boolean; override;
+    function ToString: String; override;
+  end;
 
   { A keyboard and/or mouse shortcut for activating some action.
 
@@ -139,6 +260,7 @@ type
     { Index of InputsAll. For now this is useful only for sorting,
       to decide order when GroupOrder is equal between two items. }
     Index: Integer;
+    FBindings: TInputShortcutBindingList;
 
     procedure SetKey1(const Value: TKey);
     procedure SetKey2(const Value: TKey);
@@ -172,6 +294,8 @@ type
       const ACaption: string;
       const AName: string;
       const AGroup: TInputGroup); reintroduce; overload;
+
+    destructor Destroy; override;
 
     procedure MakeDefault;
 
@@ -218,39 +342,56 @@ type
       and MouseWheel to mwNone. }
     procedure MakeClear(const ClearAlsoDefaultState: boolean = false);
 
-    { Given a set of currently pressed keys and mouse buttons,
-      decide whether this input is currently pressed. }
-    function IsPressed(const Pressed: TKeysPressed;
-      const MousePressed: TCastleMouseButtons): boolean; overload;
-
     {$ifndef CASTLE_STRICT_CLI}
-    { Looking at Container's currently pressed keys and mouse buttons,
-      decide whether this input is currently pressed. }
-    function IsPressed(const Container: TCastleContainer): boolean; overload;
+    { Is the input pressed.
+      Checks the Container's pressed keys and mouse buttons. }
+    function IsPressed(const Container: TCastleContainer): Boolean; overload;
+
+    { Is the input pressed, and in addition return "how much" it is pressed.
+
+      When result is @true, the additional output parameter HowMuch says
+      "how much" input is pressed.
+
+      This for now is only relevant for the game controllers axis, where
+
+      @unorderedList(
+        @item(HowMuch = 0.0 would mean it is exactly equal to
+          @link(TInputShortcutBindingControllerAxis.DeadZone).
+          This is actually not possible, "exactly equal to DeadZone"
+          doesn't trigger the input, so it has to be at least very slightly
+          above DeadZone.)
+        @item(HowMuch = 1.0 means the axis (absolue) value is at maximum,
+          which means 1.0.)
+        @item(Values in between imply the input is somewhere in between.)
+      )
+
+      TODO: In the future, reading MouseLookDelta may also be possible here.
+      which some field indicating "what delta is considered max".
+
+      When result is @true but the device doesn't support "how much"
+      measurement (it's not a gamepad axis), then HowMuch is just 1.0.
+
+      When result is @false, HowMuch is always set to 0.0. }
+    function IsPressed(const Container: TCastleContainer;
+      out HowMuch: Single): Boolean; overload;
     {$endif}
+
+    { Does receiving @link(TCastleUserInterface) press with this Event
+      means that this input has been just pressed. }
+    function IsEvent(const Event: TInputPressRelease): Boolean; overload;
 
     { Check does given Key or AKeyString correspond to this input shortcut.
       If Key = keyNone and AString = '', result is always @false. }
     function IsKey(const Key: TKey; AKeyString: String): boolean;
+      deprecated 'use IsEvent';
 
     { Check does given mouse button correspond to this input shortcut. }
     function IsMouseButton(const AMouseButton: TCastleMouseButton;
-      const ModifiersDown: TModifierKeys): boolean; overload;
-
-    function IsMouseButton(const AMouseButton: TCastleMouseButton): boolean; overload;
-      deprecated 'use overloaded version with additional ModifiersDown parameter';
+      const ModifiersDown: TModifierKeys): boolean;
+      deprecated 'use IsEvent';
 
     function IsMouseWheel(const AMouseWheel: TMouseWheelDirection): boolean;
-
-    { Check does given event (key press, mouse button press, mouse wheel)
-      activates this shortcut. }
-    function IsEvent(const Event: TInputPressRelease): boolean; overload;
-
-    function IsEvent(const AKey: TKey; AKeyString: String;
-      const AMousePress: boolean; const AMouseButton: TCastleMouseButton;
-      const AMouseWheel: TMouseWheelDirection;
-      const ModifiersDown: TModifierKeys = []): boolean; overload;
-      deprecated 'use IsEvent(TInputPressRelease)';
+      deprecated 'use IsEvent';
 
     { Describe the current value (which key, mouse buttons and such) of this
       shortcut. If there is no way to press this shortcut (all properties
@@ -405,6 +546,10 @@ type
       read FDefaultMouseWheel write FDefaultMouseWheel;
     { @groupEnd }
 
+    { Add here any additonal bindings. Use this now to react to game controller
+      axis and buttons. }
+    property Bindings: TInputShortcutBindingList read FBindings;
+
     { }
     { TODO: Maybe introduce a way to limit (TKey, or all shortcuts?)
       to activate only when specific modifier is pressed.
@@ -464,8 +609,264 @@ function InputsGroup(const Group: TInputGroupNotLocal): TInputShortcutList;
 
 implementation
 
-uses SysUtils, Generics.Defaults,
-  CastleStringUtils;
+uses SysUtils, Generics.Defaults, TypInfo, Math,
+  CastleStringUtils, CastleVectors, CastleLog;
+
+{ TInputShortcTInputShortcutBinding ------------------------------------------ }
+
+{$ifndef CASTLE_STRICT_CLI}
+function TInputShortcutBinding.IsPressed(
+  const Container: TCastleContainer; out HowMuch: Single): Boolean;
+begin
+  HowMuch := 0.0;
+  Result := false;
+end;
+{$endif}
+
+function TInputShortcutBinding.IsEvent(
+  const Event: TInputPressRelease): Boolean;
+begin
+  Result := false;
+end;
+
+function TInputShortcutBinding.ToString: String;
+begin
+  Result := '';
+end;
+
+{ TInputShortcutBindingList -------------------------------------------------- }
+
+{$ifndef CASTLE_STRICT_CLI}
+function TInputShortcutBindingList.IsPressed(
+  const Container: TCastleContainer; out HowMuch: Single): Boolean;
+var
+  Binding: TInputShortcutBinding;
+  I: Integer;
+begin
+  // default result, for empty list
+  HowMuch := 0.0;
+  Result := false;
+
+  for I := 0 to Count - 1 do
+  begin
+    Binding := Items[I] as TInputShortcutBinding;
+    if Binding.IsPressed(Container, HowMuch) then
+      Exit(true);
+  end;
+end;
+{$endif}
+
+function TInputShortcutBindingList.IsEvent(
+  const Event: TInputPressRelease): Boolean;
+var
+  Binding: TInputShortcutBinding;
+  I: Integer;
+begin
+  Result := false;
+
+  for I := 0 to Count - 1 do
+  begin
+    Binding := Items[I] as TInputShortcutBinding;
+    if Binding.IsEvent(Event) then
+      Exit(true);
+  end;
+end;
+
+function TInputShortcutBindingList.ToString: String;
+var
+  Binding: TInputShortcutBinding;
+  BindingStr: String;
+  I: Integer;
+begin
+  Result := '';
+  for I := 0 to Count - 1 do
+  begin
+    Binding := Items[I] as TInputShortcutBinding;
+    BindingStr := Binding.ToString;
+    if BindingStr <> '' then
+      Result := SAppendPart(Result, ' or ', BindingStr);
+  end;
+end;
+
+{ TInputShortcutBindingControllerAxis ---------------------------------------- }
+
+constructor TInputShortcutBindingControllerAxis.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FAxis := gaLeftStick;
+  FPositive := true;
+  FCoord := 0;
+  FDeadZone := DefaultDeadZone;
+  FControllerIndex := -1; // -1 means all controllers
+end;
+
+{$ifndef CASTLE_STRICT_CLI}
+function TInputShortcutBindingControllerAxis.IsPressed(
+  const Container: TCastleContainer; out HowMuch: Single): Boolean;
+
+  { Check IsPressed for a particular controller index.
+    ControllerIndex must be valid (>= 0 and < Controllers.Count).
+    Returns is the input pressed, and how much, on this controller. }
+  function ForController(const ControllerIndex: Integer;
+    out HowMuch: Single): Boolean;
+  var
+    AxisValue2D: TVector2;
+    AxisValue: Single;
+  begin
+    HowMuch := 0.0;
+    Result := false;
+
+    Assert(ControllerIndex >= 0);
+    Assert(ControllerIndex < Controllers.Count);
+
+    // calculate AxisValue2D
+    case Axis of
+      gaLeftStick:
+        AxisValue2D := Controllers[ControllerIndex].AxisLeft;
+      gaRightStick:
+        AxisValue2D := Controllers[ControllerIndex].AxisRight;
+      gaLeftTrigger:
+        AxisValue2D := Vector2(Controllers[ControllerIndex].AxisLeftTrigger, 0);
+      gaRightTrigger:
+        AxisValue2D := Vector2(Controllers[ControllerIndex].AxisRightTrigger, 0);
+      {$ifdef COMPILER_CASE_ANALYSIS}
+      else raise Exception.CreateFmt('Unknown TGameControllerAxis %d', [Ord(Axis)]);
+      {$endif}
+    end;
+
+    // calculate AxisValue
+    AxisValue := AxisValue2D.Data[Coord];
+
+    { Check DeadZone and Positive.
+      Use strict equality for DeadZone, so that DeadZone = 0.0
+      still doesn't activate when input is zero. }
+    Assert(DeadZone >= 0.0);
+    if (     Positive  and (AxisValue >  DeadZone)) or
+       ((not Positive) and (AxisValue < -DeadZone)) then
+    begin
+      Result := true;
+      HowMuch := MapRangeTo01(Abs(AxisValue), DeadZone, 1.0);
+    end;
+  end;
+
+var
+  ControllerResult: Boolean;
+  ControllerHowMuch: Single;
+  I: Integer;
+begin
+  HowMuch := 0.0;
+  Result := false;
+
+  if ControllerIndex = -1 then
+  begin
+    for I := 0 to Controllers.Count - 1 do
+    begin
+      ControllerResult := ForController(I, ControllerHowMuch);
+      if ControllerResult then
+      begin
+        if not Result then
+        begin
+          Result := true;
+          HowMuch := ControllerHowMuch;
+        end else
+        begin
+          Assert(Result and ControllerResult);
+          // we take maximum of HowMuch
+          HowMuch := Max(HowMuch, ControllerHowMuch);
+        end;
+      end;
+    end;
+  end else
+  if ControllerIndex < Controllers.Count then
+    Result := ForController(ControllerIndex, HowMuch)
+  else
+    WritelnWarning('TInputShortcutBindingControllerAxis refers to non-existing controller index %d', [
+      ControllerIndex
+    ]);
+end;
+{$endif}
+
+function TInputShortcutBindingControllerAxis.ToString: String;
+var
+  AxisString: String;
+begin
+  AxisString := GetEnumName(TypeInfo(TGameControllerAxis), Ord(FAxis));
+  Result := Format('Controller axis %s (positive %s, coord %d, deadzone %f, controller index %d): ', [
+    AxisString,
+    BoolToStr(FPositive, true),
+    FCoord,
+    FDeadZone,
+    FControllerIndex
+  ]);
+end;
+
+{ TInputShortcutBindingControllerButton ------------------------------------- }
+
+constructor TInputShortcutBindingControllerButton.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FButton := gbNorth; // default button
+  FControllerIndex := -1; // -1 means all controllers
+end;
+
+{$ifndef CASTLE_STRICT_CLI}
+function TInputShortcutBindingControllerButton.IsPressed(
+  const Container: TCastleContainer; out HowMuch: Single): Boolean;
+var
+  I: Integer;
+  Controller: TGameController;
+begin
+  HowMuch := 0.0;
+  Result := false;
+
+  if ControllerIndex = -1 then
+  begin
+    // check all controllers
+    for I := 0 to Controllers.Count - 1 do
+    begin
+      Controller := Controllers[I];
+      if Controller.Pressed[Button] then
+      begin
+        HowMuch := 1.0;
+        Exit(true);
+      end;
+    end;
+  end else
+  if ControllerIndex < Controllers.Count then
+  begin
+    Controller := Controllers[ControllerIndex];
+    if Controller.Pressed[Button] then
+    begin
+      HowMuch := 1.0;
+      Exit(true);
+    end;
+  end else
+    WritelnWarning('TInputShortcutBindingControllerButton refers to non-existing controller index %d', [
+      ControllerIndex
+    ]);
+end;
+{$endif}
+
+function TInputShortcutBindingControllerButton.IsEvent(
+  const Event: TInputPressRelease): Boolean;
+begin
+  Result :=
+    (Event.EventType = itGameController) and
+    ( (ControllerIndex = -1) or
+      (Event.Controller.ControllerIndex = ControllerIndex) ) and
+    (Event.Controller.Button = Button);
+end;
+
+function TInputShortcutBindingControllerButton.ToString: String;
+var
+  ButtonString: String;
+begin
+  ButtonString := GetEnumName(TypeInfo(TGameControllerButton), Ord(FButton));
+  Result := Format('Controller button %s (controller index %d): ', [
+    ButtonString,
+    FControllerIndex
+  ]);
+end;
 
 { TInputShortcut ------------------------------------------------------------- }
 
@@ -478,6 +879,7 @@ begin
   FCaption := ACaption;
   Name := AName;
   FGroup := AGroup;
+  FBindings := TInputShortcutBindingList.Create;
 
   if Group <> igLocal then
   begin
@@ -490,6 +892,12 @@ end;
 constructor TInputShortcut.Create(AOwner: TComponent);
 begin
   Create(AOwner, '', '', igLocal);
+end;
+
+destructor TInputShortcut.Destroy;
+begin
+  FreeAndNil(FBindings);
+  inherited Destroy;
 end;
 
 function TInputShortcut.GetCharacter: Char;
@@ -527,6 +935,7 @@ begin
   FMouseButton2CheckModifiers := Source.DefaultMouseButton2CheckModifiers;
   FMouseButton2Modifiers := Source.DefaultMouseButton2Modifiers;
   FMouseWheel := Source.DefaultMouseWheel;
+  FBindings.Clear; // TODO: DefaultXxx do not express additional bindings now
 
   { we don't set here properties, but directly set FXxx fields,
     so that we can call Changed only once. }
@@ -582,6 +991,7 @@ begin
   FMouseButton2CheckModifiers := []; // not set by parameters, just reset
   FMouseButton2Modifiers := []; // not set by parameters, just reset
   FMouseWheel := AMouseWheel;
+  FBindings.Clear; // TODO: not copying FBindings now
   Changed;
 end;
 
@@ -616,6 +1026,8 @@ begin
   FMouseButton2Modifiers := Source.MouseButton2Modifiers;
   FMouseWheel := Source.MouseWheel;
 
+  FBindings.Clear; // TODO: not copying FBindings now
+
   { we don't set here properties, but directly set FXxx fields,
     so that we can call Changed only once. }
   Changed;
@@ -635,6 +1047,7 @@ begin
   FMouseButton2CheckModifiers := [];
   FMouseButton2Modifiers := [];
   FMouseWheel := mwNone;
+  FBindings.Clear;
 
   if ClearAlsoDefaultState then
   begin
@@ -657,28 +1070,51 @@ begin
   Changed;
 end;
 
-function TInputShortcut.IsPressed(
-  const Pressed: TKeysPressed;
-  const MousePressed: TCastleMouseButtons): boolean;
+{$ifndef CASTLE_STRICT_CLI}
+function TInputShortcut.IsPressed(const Container: TCastleContainer): Boolean;
+var
+  IgnoreHowMuch: Single;
 begin
+  Result := IsPressed(Container, IgnoreHowMuch);
+end;
+
+function TInputShortcut.IsPressed(const Container: TCastleContainer;
+  out HowMuch: Single): Boolean;
+var
+  KeysPressed: TKeysPressed;
+  MousePressed: TCastleMouseButtons;
+begin
+  KeysPressed := Container.Pressed;
+  MousePressed := Container.MousePressed;
+
+  { Hardcoded testing for keys and mouse.
+    TODO: Move this to TInputShortcutBinding descendants. }
   Result :=
-    ( (Pressed <> nil) and (Pressed.Keys[Key1] or
-                            Pressed.Keys[Key2] or
-                            Pressed.Strings[KeyString]) ) or
+    ( (KeysPressed <> nil) and
+      ( KeysPressed.Keys[Key1] or
+        KeysPressed.Keys[Key2] or
+        KeysPressed.Strings[KeyString]
+      )
+    ) or
     ( MouseButtonUse and
       (MouseButton in MousePressed) and
-      (ModifiersDown(Pressed) * MouseButtonCheckModifiers = MouseButtonModifiers)
+      (ModifiersDown(KeysPressed) * MouseButtonCheckModifiers = MouseButtonModifiers)
     ) or
     ( MouseButton2Use and
       (MouseButton2 in MousePressed) and
-      (ModifiersDown(Pressed) * MouseButton2CheckModifiers = MouseButton2Modifiers)
+      (ModifiersDown(KeysPressed) * MouseButton2CheckModifiers = MouseButton2Modifiers)
     );
-end;
 
-{$ifndef CASTLE_STRICT_CLI}
-function TInputShortcut.IsPressed(const Container: TCastleContainer): boolean;
-begin
-  Result := IsPressed(Container.Pressed, Container.MousePressed);
+  { Simple HowMuch for keys and mouse buttons.
+    TODO: Introduce some "acceleration" and "deceleration" for them. }
+  if Result then
+    HowMuch := 1.0
+  else
+    HowMuch := 0.0;
+
+  // test FBindings
+  if not Result then
+    Result := FBindings.IsPressed(Container, HowMuch);
 end;
 {$endif}
 
@@ -707,47 +1143,30 @@ begin
     );
 end;
 
-function TInputShortcut.IsMouseButton(const AMouseButton: TCastleMouseButton): boolean;
-begin
-  Result := IsMouseButton(AMouseButton, []);
-end;
-
 function TInputShortcut.IsMouseWheel(const AMouseWheel: TMouseWheelDirection): boolean;
 begin
   Result := (AMouseWheel <> mwNone) and (AMouseWheel = MouseWheel);
 end;
 
-function TInputShortcut.IsEvent(const AKey: TKey; AKeyString: String;
-  const AMousePress: boolean; const AMouseButton: TCastleMouseButton;
-  const AMouseWheel: TMouseWheelDirection;
-  const ModifiersDown: TModifierKeys): boolean;
-begin
-  // only for backward compatibility (when this parameter was Char) convert #0 to ''
-  if AKeyString = #0 then
-    AKeyString := '';
-
-  if AMousePress then
-    Result := IsMouseButton(AMouseButton, ModifiersDown)
-  else
-  if AMouseWheel <> mwNone then
-    Result := IsMouseWheel(AMouseWheel)
-  else
-    Result := IsKey(AKey, AKeyString);
-end;
-
 function TInputShortcut.IsEvent(const Event: TInputPressRelease): boolean;
 begin
+  Result := false;
+  {$warnings off} // using deprecated knowingly, it should be moved to internal
   case Event.EventType of
     itKey        : Result := IsKey(Event.Key, Event.KeyString);
     itMouseButton: Result := IsMouseButton(Event.MouseButton, Event.ModifiersDown);
     itMouseWheel : Result := IsMouseWheel(Event.MouseWheel);
-    {$ifndef COMPILER_CASE_ANALYSIS}
-    else raise EInternalError.Create('TInputShortcut.IsEvent: Event.EventType?');
-    {$endif}
+    else ;
   end;
+  {$warnings on}
+
+  if not Result then
+    Result := FBindings.IsEvent(Event);
 end;
 
 function TInputShortcut.Description(const NoneString: string): string;
+var
+  BindingsStr: String;
 begin
   Result := '';
 
@@ -792,6 +1211,10 @@ begin
     if Result <> '' then Result := Result + ' or ';
     Result := Result + Format('wheel "%s"', [MouseWheelDirectionStr[MouseWheel]]);
   end;
+
+  BindingsStr := FBindings.ToString;
+  if BindingsStr <> '' then
+    Result := SAppendPart(Result, ' or ', BindingsStr);
 
   if Result = '' then
     Result := NoneString;
@@ -914,6 +1337,8 @@ begin
         Key2 := Key1;
         Key1 := NewEvent.Key;
       end;
+    itGameController:
+      raise EInternalError.Create('TInputShortcut.Add: TODO: adding controller button not implemented');
     {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TInputShortcut.Add: NewEvent.EventType?');
     {$endif}
@@ -953,6 +1378,8 @@ begin
 
   Config.SetDeleteValue(ConfigPath + Name + '/mouse_wheel',
     Ord(MouseWheel), Ord(DefaultMouseWheel));
+
+  // TODO: FBindings not loaded/saved
 end;
 
 procedure TInputShortcut.LoadFromConfig(const Config: TCastleConfig; ConfigPath: String);
@@ -988,6 +1415,8 @@ begin
 
   MouseWheel := TMouseWheelDirection(Config.GetValue(
     ConfigPath + Name + '/mouse_wheel', Ord(DefaultMouseWheel)));
+
+  // TODO: FBindings not loaded/saved
 end;
 
 { TInputShortcutList ----------------------------------------------------- }
@@ -1082,6 +1511,7 @@ function TInputShortcutList.SeekConflict(
 var
   I, J: Integer;
 begin
+  {$warnings off} // using deprecated knowingly, it should be moved to internal
   for I := 0 to Count - 1 do
     for J := I + 1 to Count - 1 do
     begin
@@ -1095,6 +1525,7 @@ begin
         Exit(true);
       end;
     end;
+  {$warnings on}
   Result := false;
 end;
 

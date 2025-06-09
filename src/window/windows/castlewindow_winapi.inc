@@ -59,7 +59,7 @@ Windows, CommDlg,
 {$endif}
 
 {$ifdef read_implementation_uses}
-CastleInternalWindowModes, CastleMessages, CastleJoysticks, CastleUnicode,
+CastleInternalWindowModes, CastleMessages, CastleGameControllers, CastleUnicode,
 CastleInternalFileMonitor,
 {$endif}
 
@@ -997,42 +997,42 @@ begin
       most often this means connecting/disconnecting plug-n-play devices.
       Here we use it to detect DBT_DEVICEARRIVAL and DBT_DEVICEREMOVECOMPLETE events
       which correspond to adding or removing devices and suggest those are
-      caused by connecting/disconnecting a Joystick from the system. }
+      caused by connecting/disconnecting a controller from the system. }
     WM_DEVICECHANGE:
       begin
         case WParm of
           { A device has been sucessfully added to the system }
           DBT_DEVICEARRIVAL:
             begin
-              WriteLnLog('Event WM_DEVICECHANGE + DBT_DEVICEARRIVAL, possibly a joystick connected');
-              //it might be a joystick, therefore
-              Joysticks.InternalConnected;
+              WriteLnLog('Event WM_DEVICECHANGE + DBT_DEVICEARRIVAL, possibly a game controller connected');
+              //it might be a game controller, therefore
+              Controllers.InternalConnected;
             end;
           { A device has been successfully removed from the system.
-            Currently we more reliably handle this case in Joystick backend Poll
+            Currently we more reliably handle this case in Controllers backend Poll
             because DBT_DEVICEREMOVECOMPLETE is sent by many different devices
             e.g. such as USB flash drive and it isn't right to treat all of these
-            as disconnected joysticks. E.g. according to Steam recommendations
-            the game should be set to pause when the joystick is disconnected,
+            as disconnected controllers. E.g. according to Steam recommendations
+            the game should be set to pause when the controller is disconnected,
             but forcing pause mode every time some arbitrary device has disconnected
             may be inconsistent and look like a bug to the user.
             The backend does this job better:
-            1. The InternalDisconnected is sent immediately after the joystick has
+            1. The InternalDisconnected is sent immediately after the controller has
                been disconnected, while WinAPI message comes with a delay ~0.5 seconds.
             2. Backend Poll guarantees that disconnect event comes from a previously
-               connected joystick, not from any device.
+               connected controller, not from any device.
             3. Backend Poll guarantees to send the InternalDisconnected event when
-               joystick stopped working properly, while WinAPI behavior may depend
-               on joystick driver implementation. }
+               controller stopped working properly, while WinAPI behavior may depend
+               on controller driver implementation. }
           {DBT_DEVICEREMOVECOMPLETE:
             begin
               WriteLnLog('Received a WM_DEVICECHANGE event with DBT_DEVICEREMOVECOMPLETE');
-              //it might be a joystick, therefore
-              Joysticks.InternalDisconnected;
+              //it might be a controller, therefore
+              Controllers.InternalDisconnected;
             end;}
           { Something unspecified has changed in the system devices configuration
             We don't need to handle this case because we are subscribed to more specific
-            joystick connect/disconnect events through RegisterDeviceNotification. }
+            controller connect/disconnect events through RegisterDeviceNotification. }
           //DBT_DEVNODES_CHANGED: WriteLnLog('Received a WM_DEVICECHANGE event with DBT_DEVNODES_CHANGED');
         end;
         Exit(1);
@@ -1183,14 +1183,14 @@ procedure TCastleWindow.OpenBackend;
   end;
 
   { Request WinAPI to send DBT_DEVICEARRIVAL and DBT_DEVICEREMOVECOMPLETE events
-    when new Joysticks have been connected to the system }
-  procedure RegisterForJoystickEvents;
+    when new controller have been connected to the system }
+  procedure RegisterForGameControllersEvents;
   var
     BroadcastDeviceInterface: DEV_BROADCAST_DEVICEINTERFACE;
     GUID_DEVINTERFACE_HID: TGuid;
     DeviceNotification: Pointer; // HDEVNOTIFY;
   begin
-    { Construct GUID that corresponds to Joysticks/controllers devices
+    { Construct GUID that corresponds to controllers (joystick, gamepad) devices
       The values have been taken from SDL2 SDL_windowsjoystick.c }
     GUID_DEVINTERFACE_HID.D1 := $4D1E55B2;
     GUID_DEVINTERFACE_HID.D2 := $F16F;
@@ -1213,7 +1213,7 @@ procedure TCastleWindow.OpenBackend;
       for the requested GUID }
     DeviceNotification := RegisterDeviceNotification(h_Wnd, @BroadcastDeviceInterface, DEVICE_NOTIFY_WINDOW_HANDLE);
     if not Assigned(DeviceNotification) then
-      WriteLnWarning('Unable to RegisterDeviceNotification. Connecting/disconnecting joysticks will not be reported.');
+      WriteLnWarning('Unable to RegisterDeviceNotification. Connecting/disconnecting game controllers will not be reported.');
   end;
 
 var
@@ -1347,7 +1347,7 @@ begin
   GetInitialCursorPos(ClientRect);
   InitializeDpi;
 
-  RegisterForJoystickEvents;
+  RegisterForGameControllersEvents;
 end;
 
 procedure TCastleWindow.SetCursor(const Value: TMouseCursor);
