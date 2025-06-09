@@ -216,21 +216,38 @@ type
     keyNumpadEnter,
     keyNumpadMultiply,
     keyNumpadDivide,
-    { Keys on Nintendo Switch pad. }
-    keyPadA,
-    keyPadB,
-    keyPadX,
-    keyPadY,
-    keyPadL,
-    keyPadR,
-    keyPadZL,
-    keyPadZR,
-    keyPadPlus,
-    keyPadMinus,
-    keyPadLeft,
-    keyPadUp,
-    keyPadRight,
-    keyPadDown,
+    (* Old: Buttons on Nintendo Switch pad were expressed as this enum.
+       Now they are expressed as TGameControllerButton.
+    // keyPadA, // new gbEast
+    // keyPadB, // new gbSouth
+    // keyPadX, // new gbNorth
+    // keyPadY, // new gbWest
+    // keyPadL, // new gbLeftBumper
+    // keyPadR, // new gbRightBumper
+    // keyPadZL, // new gbLeftTrigger (this is digital on Nintendo Switch pads, unlike analog on Xbox controllers)
+    // keyPadZR, // new gbRightTrigger (this is digital on Nintendo Switch pads, unlike analog on Xbox controllers)
+    // keyPadPlus, // new gbMenu
+    // keyPadMinus, // new gbView
+    // keyPadLeft,
+    // keyPadUp,
+    // keyPadRight,
+    // keyPadDown,
+    home key on Nintendo Switch -> gbGuide, in cases we can handle it in API
+    *)
+    keyReserved_164,
+    keyReserved_165,
+    keyReserved_166,
+    keyReserved_167,
+    keyReserved_168,
+    keyReserved_169,
+    keyReserved_170,
+    keyReserved_171,
+    keyReserved_172,
+    keyReserved_173,
+    keyReserved_174,
+    keyReserved_175,
+    keyReserved_176,
+    keyReserved_177,
     keyReserved_178,
     keyReserved_179,
     keyReserved_180,
@@ -592,19 +609,36 @@ type
 
   { Possible game controlers (gamepad, joystick) buttons. }
   TGameControllerButton = (
-    { gbNorth, gbEast, gbSouth, gbWest are universal names for 4 buttons
-      on the "button pad"
-      (see @url(https://partner.steamgames.com/doc/features/steam_controller/input_source
+    { gbNorth, gbEast, gbSouth, gbWest are universal names for 4 "face buttons"
+      on the "button pad".
+      See @url(https://partner.steamgames.com/doc/features/steam_controller/input_source
       Steam "button pad" description).
 
-      They can be labeled A B X Y (and have different order between
+      They can be labeled A B X Y (in a different order between
       e.g. Xbox and Nintendo Switch controllers), or square triangle circle cross
-      (e.g. PlayStation controllers). }
+      (e.g. PlayStation controllers), or even 1 2 3 4 on some gamepads. }
     gbNorth,
     gbEast,
     gbSouth,
     gbWest,
 
+    { Trigger buttons. Triggers are underneath the "bumpers".
+
+      On @url(https://www.nintendo.com/en-gb/Support/Nintendo-Switch/Joy-Con-Controller-Diagram-1518877.html
+      Nintendo Switch controllers, they are called ZL and ZR).
+
+      These button codes are only generated on controllers that generate
+      digital (press / release), not analog (axis, amount of pressure) report
+      for the trigger keys.
+
+      @unorderedList(
+        @item(This happens for Nintendo Switch controllers.)
+        @item(In contrast, for Xbox Controllers, they do not generate
+          these button codes.
+          Instead observe @link(TGameController.AxisLeftTrigger) and
+          @link(TGameController.AxisRightTrigger).
+        )
+      ) }
     gbLeftTrigger,
     gbRightTrigger,
 
@@ -616,32 +650,69 @@ type
     // Pressing down on the right stick.
     gbRightStickClick,
 
+    { Directional buttons on the D-Pad (digital pad).
+      Remember that the D-pad generally has hardware mechanism that
+      prevents the user from pressing opposite buttons at the same time.
+      So it may not be physically possible to have e.g. both
+      gbDPadUp and gbDPadDown pressed at the same time. }
     gbDPadUp,
     gbDPadRight,
     gbDPadDown,
     gbDPadLeft,
 
-    { Button with 2 rectantgles on the
-      @url(https://en.wikipedia.org/wiki/Xbox_Wireless_Controller Xbox Wireless Controller).
-      Position matches "Back" on the
-      @url(https://en.wikipedia.org/wiki/Xbox_360_controller Xbox 360 controller). }
+    { Button in the middle-left of the gamepad.
+
+      @unorderedList(
+        @item(This is button with 2 rectangles called "View" on the
+          @url(https://en.wikipedia.org/wiki/Xbox_Wireless_Controller Xbox Wireless Controller).)
+        @item(This is called "Back" on the
+          @url(https://en.wikipedia.org/wiki/Xbox_360_controller Xbox 360 controller).)
+        @item(This is called "Minus" or "Select" on the
+          @url(https://www.nintendo.com/en-gb/Support/Nintendo-Switch/Joy-Con-Controller-Diagram-1518877.html Nintendo Switch controllers).)
+      )
+    }
     gbView,
 
-    { Button with 3 horizontal lines on the
-      @url(https://en.wikipedia.org/wiki/Xbox_Wireless_Controller Xbox Wireless Controller).
-      Position matches "Start" on the
-      @url(https://en.wikipedia.org/wiki/Xbox_360_controller Xbox 360 controller). }
+    { Button in the middle-right of the gamepad.
+
+      @unorderedList(
+        @item(This is button with 3 horizontal lines called "Menu" on the
+          @url(https://en.wikipedia.org/wiki/Xbox_Wireless_Controller Xbox Wireless Controller).)
+        @item(This is called "Start" on the
+          @url(https://en.wikipedia.org/wiki/Xbox_360_controller Xbox 360 controller).)
+        @item(This is called "Plus" or "Start" on the
+          @url(https://www.nintendo.com/en-gb/Support/Nintendo-Switch/Joy-Con-Controller-Diagram-1518877.html Nintendo Switch controllers).)
+      )
+    }
     gbMenu,
 
-    { Main button with XBox logo on the
-      @url(https://en.wikipedia.org/wiki/Xbox_Wireless_Controller Xbox Wireless Controller).
-      and
-      @url(https://en.wikipedia.org/wiki/Xbox_360_controller Xbox 360 controller). }
+    { Buton in the center of the gamepad.
+      Intention is to invoke a menu with available games.
+
+      This button is sometimes not available to reliably handle in games,
+      even if the device has it. The system, like Nintendo Switch or the Xbox console,
+      has a hardcoded handling of it, with which you should not conflict
+      (or you may not even get report about this being pressed).
+      On Windows "game mode" is activated by this by default (user can disable
+      it in Windows settings). Also on Windows, Steam "big picture" handles it.
+
+      @unorderedList(
+        @item(This button shows the Xbox logo on the
+          @url(https://en.wikipedia.org/wiki/Xbox_Wireless_Controller Xbox Wireless Controller)
+          and
+          @url(https://en.wikipedia.org/wiki/Xbox_360_controller Xbox 360 controller).)
+        @item(This is called "Home" on the
+          @url(https://www.nintendo.com/en-gb/Support/Nintendo-Switch/Joy-Con-Controller-Diagram-1518877.html Nintendo Switch controllers).)
+      ) }
     gbGuide,
 
-    { Share button with up arrow available in the
+    { Share button with up arrow available on the
       @url(https://en.wikipedia.org/wiki/Xbox_Wireless_Controller 3rd revision
-      of the Xbox Wireless Controller). }
+      of the Xbox Wireless Controller).
+
+      Note that on Windows, this automatically takes a screenshot of the
+      current window. You should probably not try to handle this button
+      in your games, to not conflict with what Windows is doing. }
     gbShare
   );
 
@@ -679,7 +750,7 @@ type
     Caption: String;
 
     { Controller on which this button was pressed or released.
-      This is an index to @link(GameControllers) array. }
+      This is an index to the @link(Controllers) array. }
     ControllerIndex: Integer;
   end;
 
