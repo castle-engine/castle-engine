@@ -109,7 +109,7 @@ var
   end;
 
 var
-  Reader: TTextReader;
+  Reader: TCastleTextReader;
   i: Integer;
   Line: string;
   VertsCount, PolysCount, VertsInPolysCount: Integer;
@@ -118,7 +118,7 @@ begin
  Verts := TVector3List.Create;
  Faces := TVector3CardinalList.Create;
 
- Reader := TTextReader.Create(Stream, false);
+ Reader := TCastleTextReader.Create(Stream, false);
  try
   { Read first line: magic number (or not existent in older GEO format) }
   Line := Reader.Readln;

@@ -136,7 +136,7 @@ uses
   castledialogviews,
   castleflasheffect,
   castleinputs,
-  castlejoysticks,
+  castlegamecontrollers,
   castlekeysmouse,
   castlenotifications,
   castletiledmap,

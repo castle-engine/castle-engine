@@ -408,13 +408,13 @@ constructor TDelphiPackage.Create(const APackageFileName: String);
 
   procedure ReadDpk;
   var
-    Reader: TTextReader;
+    Reader: TCastleTextReader;
     Line, FoundFileName: String;
     Matches: TCastleStringList;
   begin
     Matches := TCastleStringList.Create;
     try
-      Reader := TTextReader.Create(PackageFileName);
+      Reader := TCastleTextReader.Create(PackageFileName);
       try
         while not Reader.Eof do
         begin
@@ -510,12 +510,12 @@ type
 
 constructor TFpmakePackage.Create(const APackageFileName: String);
 var
-  Reader: TTextReader;
+  Reader: TCastleTextReader;
   Matches: TCastleStringList;
   Line, LastSourcePath: String;
 begin
   inherited;
-  Reader := TTextReader.Create(PackageFileName);
+  Reader := TCastleTextReader.Create(PackageFileName);
   try
     Matches := TCastleStringList.Create;
     try
@@ -711,8 +711,8 @@ begin
       // TODO: CastleScript is not yet fully supported with Delphi
       'src/castlescript/castlescriptxml.pas',
 
-      // TODO: Joysticks on Linux are not yet supported with Delphi
-      'src/ui/castleinternaljoystickslinux.pas',
+      // TODO: Game controllers on Linux are not yet supported with Delphi
+      'src/ui/castleinternalgamecontrollerslinux.pas',
 
       // This is VCL-specific with Delphi, maybe in the future will be in some VCL package.
       // It also makes warnings about dispinterface not being portable.

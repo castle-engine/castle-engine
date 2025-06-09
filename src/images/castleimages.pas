@@ -656,7 +656,7 @@ type
     function MakeResized(ResizeWidth, ResizeHeight: Cardinal;
       const Interpolation: TResizeInterpolation = riBilinear): TCastleImage;
 
-    { Mirror image horizotally (that is right edge is swapped with left edge). }
+    { Mirror image horizontally (that is, the right edge is swapped with the left edge). }
     procedure FlipHorizontal;
 
     { Mirror image vertically. }
@@ -2803,7 +2803,7 @@ function LoadEncodedImage(Stream: TStream; const StreamFormat: TImageFormat;
 
   procedure FixImageClass;
 
-    { ClassAllowed is only a shortcut to global utility. }
+    { ClassAllowed is only a shortcut to the global utility. }
     function ClassAllowed(ImageClass: TEncodedImageClass): boolean;
     begin
       Result := CastleImages.ClassAllowed(ImageClass, AllowedImageClasses);

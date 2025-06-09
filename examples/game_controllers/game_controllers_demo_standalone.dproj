@@ -1,7 +1,7 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
         <ProjectGuid>{B86EB8D4-0AA6-0C39-B447-DA6D68FB8E21}</ProjectGuid>
-        <MainSource>joystick_demo_standalone.dpr</MainSource>
+        <MainSource>game_controllers_demo_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
         <TargetedPlatforms>33939</TargetedPlatforms>
@@ -94,7 +94,7 @@
         <DCC_N>false</DCC_N>
         <DCC_S>false</DCC_S>
         <DCC_ImageBase>00400000</DCC_ImageBase>
-        <SanitizedProjectName>joystick_demo</SanitizedProjectName>
+        <SanitizedProjectName>game_controllers_demo</SanitizedProjectName>
         <VerInfo_Locale>1045</VerInfo_Locale>
         <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=;CFBundleName=</VerInfo_Keys>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;$(DCC_Namespace)</DCC_Namespace>
@@ -183,7 +183,7 @@
         <DelphiCompile Include="$(MainSource)">
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
-        <None Include="joystick_demo_standalone.dpr"/>
+        <None Include="game_controllers_demo_standalone.dpr"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
@@ -202,7 +202,7 @@
         <BorlandProject>
             <Delphi.Personality>
                 <Source>
-                    <Source Name="MainSource">joystick_demo_standalone.dpr</Source>
+                    <Source Name="MainSource">game_controllers_demo_standalone.dpr</Source>
                 </Source>
                 <Excluded_Packages>
                     <Excluded_Packages Name="$(BDSBIN)\bcboffice2k280.bpl">Embarcadero C++Builder Office 2000 Servers Package</Excluded_Packages>
@@ -230,41 +230,41 @@
                 </DeployFile>
 
                 <!-- Deploy executables on all platforms, for Debug -->
-                <DeployFile LocalName="joystick_demo_standalone.exe" Configuration="Debug" Class="ProjectOutput">
+                <DeployFile LocalName="game_controllers_demo_standalone.exe" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
-                        <RemoteName>joystick_demo_standalone.exe</RemoteName>
+                        <RemoteName>game_controllers_demo_standalone.exe</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="joystick_demo_standalone.exe" Configuration="Debug" Class="ProjectOutput">
+                <DeployFile LocalName="game_controllers_demo_standalone.exe" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
-                        <RemoteName>joystick_demo_standalone.exe</RemoteName>
+                        <RemoteName>game_controllers_demo_standalone.exe</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="joystick_demo_standalone" Configuration="Debug" Class="ProjectOutput">
+                <DeployFile LocalName="game_controllers_demo_standalone" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Linux64">
-                        <RemoteName>joystick_demo_standalone</RemoteName>
+                        <RemoteName>game_controllers_demo_standalone</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
 
                 <!-- Deploy executables on all platforms, for Release -->
-                <DeployFile LocalName="joystick_demo_standalone.exe" Configuration="Release" Class="ProjectOutput">
+                <DeployFile LocalName="game_controllers_demo_standalone.exe" Configuration="Release" Class="ProjectOutput">
                     <Platform Name="Win32">
-                        <RemoteName>joystick_demo_standalone.exe</RemoteName>
+                        <RemoteName>game_controllers_demo_standalone.exe</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="joystick_demo_standalone.exe" Configuration="Release" Class="ProjectOutput">
+                <DeployFile LocalName="game_controllers_demo_standalone.exe" Configuration="Release" Class="ProjectOutput">
                     <Platform Name="Win32">
-                        <RemoteName>joystick_demo_standalone.exe</RemoteName>
+                        <RemoteName>game_controllers_demo_standalone.exe</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="joystick_demo_standalone" Configuration="Release" Class="ProjectOutput">
+                <DeployFile LocalName="game_controllers_demo_standalone" Configuration="Release" Class="ProjectOutput">
                     <Platform Name="Linux64">
-                        <RemoteName>joystick_demo_standalone</RemoteName>
+                        <RemoteName>game_controllers_demo_standalone</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

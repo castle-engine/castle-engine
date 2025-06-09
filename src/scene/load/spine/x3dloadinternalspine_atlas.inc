@@ -426,14 +426,14 @@ procedure TAtlas.Parse(const Url: String);
   end;
 
 var
-  Reader: TTextReader;
+  Reader: TCastleTextReader;
   Page: TAtlasPage;
   Region: TAtlasRegion;
   Line: String;
 begin
   Page := nil;
   Region := nil;
-  Reader := TTextReader.Create(Url);
+  Reader := TCastleTextReader.Create(Url);
   try
     while not Reader.Eof do
     begin

@@ -1,6 +1,6 @@
 {%MainUnit castleuicontrols.pas}
 {
-  Copyright 2010-2024 Michalis Kamburelis.
+  Copyright 2010-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -397,12 +397,10 @@
       It's also guaranteed to be called right after the EventOpen event. }
     procedure EventResize;
 
-    { Joystick or 3D mouse event happened.
+    { 3D mouse event happened.
       These events are special now: they are called by @link(EventUpdate),
       we don't expect that TCastleWindow or TCastleControl will call them.
       @groupBegin }
-    function EventJoyAxisMove(const JoyID, Axis: Byte): Boolean;
-    function EventJoyButtonPress(const JoyID, Button: Byte): Boolean;
     function EventSensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): Boolean;
     function EventSensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): Boolean;
     { @groupEnd }
@@ -1464,72 +1462,6 @@ begin
   Result := false;
 end;
 
-function TCastleContainer.EventJoyAxisMove(const JoyID, Axis: Byte): Boolean;
-
-  function RecursiveJoyAxisMove(const C: TCastleUserInterface): Boolean;
-  var
-    I: Integer;
-  begin
-    if PassEvents(C) then
-    begin
-      for I := C.ControlsCount - 1 downto 0 do
-        if RecursiveJoyAxisMove(C.Controls[I]) then
-          Exit(true);
-
-      {$warnings off} // keeping deprecated working
-      if C.JoyAxisMove(JoyID, Axis) then
-        Exit(true);
-      {$warnings on}
-    end;
-
-    Result := false;
-  end;
-
-var
-  I: Integer;
-begin
-  FlushCollectedMotion;
-
-  { exit as soon as something returns "true", meaning the event is handled }
-  for I := Controls.Count - 1 downto 0 do
-    if RecursiveJoyAxisMove(Controls[I]) then
-      Exit(true);
-  Result := false;
-end;
-
-function TCastleContainer.EventJoyButtonPress(const JoyID, Button: Byte): Boolean;
-
-  function RecursiveJoyButtonPress(const C: TCastleUserInterface): Boolean;
-  var
-    I: Integer;
-  begin
-    if PassEvents(C) then
-    begin
-      for I := C.ControlsCount - 1 downto 0 do
-        if RecursiveJoyButtonPress(C.Controls[I]) then
-          Exit(true);
-
-      {$warnings off} // keeping deprecated working
-      if C.JoyButtonPress(JoyID, Button) then
-        Exit(true);
-      {$warnings on}
-    end;
-
-    Result := false;
-  end;
-
-var
-  I: Integer;
-begin
-  FlushCollectedMotion;
-
-  { exit as soon as something returns "true", meaning the event is handled }
-  for I := Controls.Count - 1 downto 0 do
-    if RecursiveJoyButtonPress(Controls[I]) then
-      Exit(true);
-  Result := false;
-end;
-
 procedure TCastleContainer.ToggleInspector;
 begin
   if FInspector = nil then
@@ -1701,29 +1633,66 @@ procedure TCastleContainer.EventUpdate;
     end;
   end;
 
-  procedure UpdateJoysticks;
+  { Cause Press or Relase event for a game controller button.
+    Assumes that Controller.Pressed[Button] is already set. }
+  procedure EventGameControllerPressRelease(
+    const Controller: TGameController; const ControllerIndex: Integer;
+    const Button: TGameControllerButton);
   var
-    Joys: TJoysticks;
-    I, J: Integer;
+    Input: TInputPressRelease;
   begin
-    Joys := Joysticks;
-    if Joys.Initialized then
-    begin
-      Joys.InternalPoll;
+    FillChar(Input, SizeOf(Input), 0);
+    Input.EventType := itGameController;
 
-      for I := 0 to Joys.Count - 1 do
+    // fields not related to the game controller, but we fill them always
+    Input.Position := MousePosition;
+    Input.ModifiersDown := ModifiersDown(Pressed);
+
+    // fields related to the game controller
+    { Note: we call Controller.Xxx methods now,
+      instead of making TGameControllerPressRelease
+      methods that under the hood would query the controller, like this:
+
+      Reason: This way our TInputPressRelease are safe to process and
+      pass around even if controllers will get disconnected / reordered
+      in the meantime.
+      Although we don't officially support this, since ControllerIndex
+      in this situation is not valid. }
+    Input.Controller.Button := Button;
+    Input.Controller.Meaning := Controller.ButtonMeaning(Button);
+    Input.Controller.Caption := Controller.ButtonCaption(Button);
+    Input.Controller.ControllerIndex := ControllerIndex;
+
+    if Controller.Pressed[Button] then
+      EventPress(Input)
+    else
+      EventRelease(Input);
+  end;
+
+  { Look at Controllers state changes and send press/release events for
+    game controllers' buttons. }
+  procedure UpdateGameControllers;
+  var
+    ControllerIndex: Integer;
+    Button: TGameControllerButton;
+    Cs: TGameControllers;
+    Controller: TGameController;
+  begin
+    Cs := Controllers; // just a shorter and quicker acccess to Controllers singleton
+    if Cs.Initialized then
+    begin
+      Cs.InternalPoll;
+      for ControllerIndex := 0 to Cs.Count - 1 do
       begin
-        for J := 0 to Joys[I].Info.Count.Buttons -1 do
+        Controller := Cs[ControllerIndex];
+
+        for Button := Low(TGameControllerButton) to High(TGameControllerButton) do
         begin
-          //Joys.Down(I, J);
-          //Joys.Up(I, J);
-          if Joys.Press(I, J) then
-            EventJoyButtonPress(I, J);
-        end;
-        for J := 0 to Joys[I].Info.Count.Axes -1 do
-        begin
-          if Joys.AxisPos(I, J) <> 0 then
-            EventJoyAxisMove(I, J);
+          if Controller.Pressed[Button] <> Controller.InternalPressedToReport[Button] then
+          begin
+            Controller.Pressed[Button] := Controller.InternalPressedToReport[Button];
+            EventGameControllerPressRelease(Controller, ControllerIndex, Button);
+          end;
         end;
       end;
     end;
@@ -1746,7 +1715,7 @@ begin
     UpdateFocusAndMouseCursor; // sets FFocusAndMouseCursorValid to true
 
   Update3dMouse;
-  UpdateJoysticks;
+  UpdateGameControllers;
 
   HandleInput := true;
 

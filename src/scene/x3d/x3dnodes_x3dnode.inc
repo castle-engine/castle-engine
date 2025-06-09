@@ -1,6 +1,6 @@
 {%MainUnit x3dnodes.pas}
 {
-  Copyright 2002-2024 Michalis Kamburelis.
+  Copyright 2002-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -503,14 +503,14 @@
       decrease KeepExisting value by 1. This is the most usual usage. }
     property KeepExisting: Cardinal read FKeepExisting write FKeepExisting;
       {$ifdef FPC}
-      deprecated 'do not access this directly; instead use NodeWaitForRelease and NodeRelease (eventually KeepExistingBegin and KeepExistingEnd) if you want to control node lifetime';
+      deprecated 'do not access this directly; instead use TX3DNode.WaitForRelease and NodeRelease (eventually KeepExistingBegin and KeepExistingEnd) if you want to control node lifetime';
       {$endif FPC}
 
     { Increase "fake reference count" by 1, preventing the node from being
       automatically freed when the reference count changes from non-zero to zero.
 
       It is discouraged to use this method.
-      In most cases, @link(NodeWaitForRelease) and @link(NodeRelease)
+      In most cases, @link(TX3DNode.WaitForRelease) and @link(NodeRelease)
       are easier to use than @link(KeepExistingBegin) + @link(KeepExistingEnd)
       + @link(FreeIfUnusedAndNil). }
     procedure KeepExistingBegin;
@@ -524,7 +524,7 @@
       or (better) @link(FreeIfUnusedAndNil) to actually free unused node.
 
       It is discouraged to use this method.
-      In most cases, @link(NodeWaitForRelease) and @link(NodeRelease)
+      In most cases, @link(TX3DNode.WaitForRelease) and @link(NodeRelease)
       are easier to use than @link(KeepExistingBegin) + @link(KeepExistingEnd)
       + @link(FreeIfUnusedAndNil). }
     procedure KeepExistingEnd;
@@ -534,9 +534,9 @@
 
       By default, if this method was not used, every X3D node is reference-counted.
       This means that when the node starts being referenced by some other node
-      (e.g. @link(TShapeNode.Geometry) refers to @link(TIndexedFaceSetNode) instance),
+      (e.g. @link(TAbstractShapeNode.Geometry) refers to @link(TIndexedFaceSetNode) instance),
       the reference count is increased.
-      When the node stops being referenced (e.g. @link(TShapeNode.Geometry) is set to @nil),
+      When the node stops being referenced (e.g. @link(TAbstractShapeNode.Geometry) is set to @nil),
       the reference count is decreased.
       When the reference count reaches zero, the node is freed.
 

@@ -136,12 +136,13 @@ do_project tests
 # do_project examples/terrain # TODO: web: terrain shader doesn't compile, water shader doesn't compile
 # do_project examples/research_special_rendering_methods/test_rendering_opengl_capabilities/ # TODO: web: EFramebufferInvalid: Framebuffer check failed: INCOMPLETE_ATTACHMENT: Not all framebuffer attachment points are "framebuffer attachment complete" (FBO error number 36054)
 
-# not in CGE repo, git clone castle-model-viewer-mobile as a sibling to make this work
-do_project_any "${CASTLE_ENGINE_PATH}/../castle-model-viewer-mobile" 'castle-model-viewer-mobile' # TODO: web: no open dialog
-do_project_any "${CASTLE_ENGINE_PATH}/../castle-dice-throwing" 'castle-dice-throwing'
-
 do_project examples/screen_effects_demo # TODO: edge-detect effect fails
 
 # audio
 do_project examples/audio/game_3d_sound # TODO: silent without WebAudio, also change F5 shortcut (reload), also change right button (for mouse look)
 do_project examples/audio/play_sounds # TODO: silent without WebAudio, also "Exit" should be hidden
+
+# other repos (outside CGE), git clone them as siblings
+do_project_any "${CASTLE_ENGINE_PATH}/../castle-model-viewer-mobile" 'castle-model-viewer-mobile' # TODO: web: no open dialog
+do_project_any "${CASTLE_ENGINE_PATH}/../castle-dice-throwing" 'castle-dice-throwing'
+do_project_any "${CASTLE_ENGINE_PATH}/../conference-delphi-summit-2025/walk_3d_game_controllers" 'walk_3d_game_controllers'

@@ -1,6 +1,6 @@
 {%MainUnit castlewindow.pas}
 {
-  Copyright 2004-2024 Michalis Kamburelis.
+  Copyright 2004-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -24,7 +24,7 @@
 {$endif}
 
 {$ifdef read_implementation_uses}
-CastleJoysticks,
+CastleGameControllers, CastleInternalGameControllersExplicit,
 {$endif}
 
 {$ifdef read_interface_types}
@@ -71,8 +71,9 @@ procedure CGEApp_Motion(X, Y: CInt32; FingerIndex: CInt32); cdecl;
 procedure CGEApp_MouseUp(X, Y: cInt32; bLeftBtn: cBool; FingerIndex: CInt32); cdecl;
 procedure CGEApp_KeyDown(eKey: CInt32); cdecl;
 procedure CGEApp_KeyUp(eKey: CInt32); cdecl;
-procedure CGEApp_JoystickAxis(JoystickIndex: CInt; X, Y: Single); cdecl;
-procedure CGEApp_JoystickCount(JoystickCount: CInt); cdecl;
+procedure CGEApp_ControllerAxisLeft(ControllerIndex: CInt; X, Y: Single); cdecl;
+procedure CGEApp_ControllerAxisRight(ControllerIndex: CInt; X, Y: Single); cdecl;
+procedure CGEApp_ControllerCount(ControllerCount: CInt); cdecl;
 function CGEApp_HandleOpenUrl(szUrl: PChar): CInt32; cdecl;
 
 const
@@ -599,26 +600,42 @@ begin
   end;
 end;
 
-procedure CGEApp_JoystickCount(JoystickCount: CInt); cdecl;
+procedure CGEApp_ControllerCount(ControllerCount: CInt); cdecl;
+var
+  Backend: TExplicitControllerManagerBackend;
 begin
   try
     CheckMainWindow;
-    Joysticks.InternalSetJoystickCount(JoystickCount);
+    Backend := Controllers.InternalExplicitBackend as TExplicitControllerManagerBackend;
+    Backend.SetCount(ControllerCount);
   except
-    on E: TObject do WritelnWarning('CGEApp_JoystickCount', ExceptMessage(E));
+    on E: TObject do WritelnWarning('CGEApp_ControllerCount', ExceptMessage(E));
   end;
 end;
 
-procedure CGEApp_JoystickAxis(JoystickIndex: CInt; X, Y: Single); cdecl;
+procedure CGEApp_ControllerAxisLeft(ControllerIndex: CInt; X, Y: Single); cdecl;
+var
+  Backend: TExplicitControllerManagerBackend;
 begin
   try
     CheckMainWindow;
-    // TODO: rename this to CGEApp_JoystickLeftAxis, support also CGEApp_JoystickRightAxis
-    Joysticks.InternalSetJoystickLeftAxis(JoystickIndex, Vector2(X, Y));
-    // if (X <> 0) or (Y <> 0) then
-    //   WritelnLog('Joy axis %d %f %f %f', [JoystickIndex, X, Y]);
+    Backend := Controllers.InternalExplicitBackend as TExplicitControllerManagerBackend;
+    Backend.SetAxisLeft(ControllerIndex, Vector2(X, Y));
   except
-    on E: TObject do WritelnWarning('CGEApp_JoystickAxis', ExceptMessage(E));
+    on E: TObject do WritelnWarning('CGEApp_ControllerAxisLeft', ExceptMessage(E));
+  end;
+end;
+
+procedure CGEApp_ControllerAxisRight(ControllerIndex: CInt; X, Y: Single); cdecl;
+var
+  Backend: TExplicitControllerManagerBackend;
+begin
+  try
+    CheckMainWindow;
+    Backend := Controllers.InternalExplicitBackend as TExplicitControllerManagerBackend;
+    Backend.SetAxisRight(ControllerIndex, Vector2(X, Y));
+  except
+    on E: TObject do WritelnWarning('CGEApp_ControllerAxisRight', ExceptMessage(E));
   end;
 end;
 
