@@ -224,8 +224,8 @@ type
     // keyPadY, // new gbWest
     // keyPadL, // new gbLeftBumper
     // keyPadR, // new gbRightBumper
-    // keyPadZL, // new gbLeftTrigger (this is digital on Nintendo Switch pads, unlike analog on Xbox controllers)
-    // keyPadZR, // new gbRightTrigger (this is digital on Nintendo Switch pads, unlike analog on Xbox controllers)
+    // keyPadZL, // new TGameConroller.AxisLeftTrigger (this is digital on Nintendo Switch pads, but analog on Xbox controllers)
+    // keyPadZR, // new TGameConroller.AxisRightTrigger (this is digital on Nintendo Switch pads, but analog on Xbox controllers)
     // keyPadPlus, // new gbMenu
     // keyPadMinus, // new gbView
     // keyPadLeft,
@@ -627,22 +627,52 @@ type
       On @url(https://www.nintendo.com/en-gb/Support/Nintendo-Switch/Joy-Con-Controller-Diagram-1518877.html
       Nintendo Switch controllers, they are called ZL and ZR).
 
-      These button codes are only generated on controllers that generate
-      digital (press / release), not analog (axis, amount of pressure) report
-      for the trigger keys.
+      Note that on some controllers, the triggers are analog
+      (report as axis: amount of pressure),
+      and on some -- digital (report only press / release).
 
       @unorderedList(
-        @item(This happens for Nintendo Switch controllers.)
-        @item(In contrast, for Xbox Controllers, they do not generate
-          these button codes.
-          Instead observe @link(TGameController.AxisLeftTrigger) and
+        @item(Nintendo Switch controllers have digital triggers.)
+        @item(In contrast, Xbox Controllers have analog triggers.
+          Observe them using @link(TGameController.AxisLeftTrigger) and
           @link(TGameController.AxisRightTrigger).
         )
-      ) }
-    gbLeftTrigger,
-    gbRightTrigger,
+      )
 
+      The buttons gbLeft/RightTrigger are now commented out, this was confusing
+      to expose them as both buttons and axes.
+      Use only axis now:
+
+      - TGameController.AxisLeftTrigger
+      - TGameController.AxisRightTrigger
+
+      On devices when this is digital (Nintendo Switch controller),
+      the axis will be just 0.0 or 1.0.
+
+      If you want to treat trigger axis as "digital", just add simple code on the
+      application side to check when the trigger passes a certian "threshold".
+      For example, when TGameController.AxisLeftTrigger > 0.5 then
+      treat it as "pressed". See https://castle-engine.io/controllers
+      for pointers.
+
+      If we ever restore gbLeft/RightTrigger as buttons, we have to make it
+      easy to use, so both
+
+      - digital API (gbLeft/RightTrigger)
+      - and analog API (TGameController.AxisLeft/RightTrigger)
+
+      ... would have to work with all gamepads.
+      So the type of event not really supported by the gemapd (analog or digital)
+      would have to be simulated.
+    }
+    // gbLeftTrigger,
+    // gbRightTrigger,
+
+    { Left bumper button.
+      This is often used (together with gbRightBumper) to allow user to
+      cycle left / right through some choice, like a car color, weapon, UI tab. }
     gbLeftBumper,
+    // Right bumper button.
     gbRightBumper,
 
     // Pressing down on the left stick.
