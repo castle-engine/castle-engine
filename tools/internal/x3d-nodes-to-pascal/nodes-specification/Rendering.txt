@@ -55,6 +55,44 @@ X3DComposedGeometryNode : X3DGeometryNode {
   MFVec3f    [in,out]      radianceTransfer  []
     not-slim
     change: chGeometry
+
+  MFVec4f    [in,out]      skinWeights0     []
+    change: chGeometry
+    doc: """
+    Weights for the skinned animation.
+
+    If non-empty, the count of this array should be:
+
+    @unorderedList(
+      @item(Equal to the count of coordinates in @link(Coord)),
+      @item(Equal to @link(SkinJoints0) count divided by 4.)
+    )
+
+    For each vertex, this array specifies a 4D vector, which determines the 4 weights for the "most important" joints that affect this vertex. The "most important" joints are determined by the @link(SkinJoints0).
+
+    This corresponds to the WEIGHTS_0 attribute in glTF.
+
+    It is possible we will introduce in the future @link(SkinWeights1), @link(SkinJoints1)  and more, to allow vertexes to be influenced by more than 4 joints at the same time. For now, in practice, 4 joints for each vertex is enough.
+    """
+
+  MFInt32    [in,out]      skinJoints0     []
+    change: chGeometry
+    doc: """
+    Joints for the skinned animation.
+
+    Note: In the perfect world, we'd like to express this as an array of 4D integer vectors, like @link(TVector4IntegerList) in Castle Game Engine, or "VEC4 of unsigned byte or unsigned short" in glTF. However, X3D doesn't have a field type that allows to express this in natural way. So we express this using TMFInt32, with a constraint that each 4 consecutive values form a 4D vector.
+
+    The count of this array must be divisible by 4.
+
+    If not empty, the count of this array divided by 4 should be:
+
+    @unorderedList(
+      @item(Equal to the count of coordinates in @link(Coord)),
+      @item(Equal to @link(SkinWeights0) count.)
+    )
+
+    For each vertex, this array specifies indexes of the 4 "most important" joints that affect this vertex. The weights for these joints are specified by @link(SkinWeights0). If you have less than 4 "most important" joints, just specify any (but valid) joint index and give it a zero weight using @link(SkinWeights0).
+    """
 }
 
 X3DCoordinateNode : X3DGeometricPropertyNode {
@@ -123,6 +161,13 @@ IndexedLineSet : X3DGeometryNode {
     enumerated-type: TLineMode LineModeNames lmStrip
     doc: How to interpret the vertexes: as a set of strips (connected line segments), loops (connected line segments with additional segment to form a loop), or just pairs of vertexes (each pair defines a line segment). See possible @link(TLineMode) values for details.
     change: chGeometry
+
+  MFVec4f    [in,out]      skinWeights0     []
+    change: chGeometry
+    doc: Weights for the skinned animation. See @link(TAbstractComposedGeometryNode.SetSkinWeights0) for details.
+  MFInt32    [in,out]      skinJoints0     []
+    change: chGeometry
+    doc: Joints for the skinned animation. See @link(TAbstractComposedGeometryNode.SetSkinJoints0) for details.
 }
 
 IndexedTriangleFanSet : X3DComposedGeometryNode {
@@ -199,6 +244,13 @@ LineSet : X3DGeometryNode {
     enumerated-type: TLineMode LineModeNames lmStrip
     doc: How to interpret the vertexes: as a set of strips (connected line segments), loops (connected line segments with additional segment to form a loop), or just pairs of vertexes (each pair defines a line segment). See possible @link(TLineMode) values for details.
     change: chGeometry
+
+  MFVec4f    [in,out]      skinWeights0     []
+    change: chGeometry
+    doc: Weights for the skinned animation. See @link(TAbstractComposedGeometryNode.SetSkinWeights0) for details.
+  MFInt32    [in,out]      skinJoints0     []
+    change: chGeometry
+    doc: Joints for the skinned animation. See @link(TAbstractComposedGeometryNode.SetSkinJoints0) for details.
 }
 
 Normal : X3DNormalNode {
@@ -231,6 +283,13 @@ PointSet : X3DGeometryNode {
     range: FogCoordinate
     not-slim
     change: chGeometry
+
+  MFVec4f    [in,out]      skinWeights0     []
+    change: chGeometry
+    doc: Weights for the skinned animation. See @link(TAbstractComposedGeometryNode.SetSkinWeights0) for details.
+  MFInt32    [in,out]      skinJoints0     []
+    change: chGeometry
+    doc: Joints for the skinned animation. See @link(TAbstractComposedGeometryNode.SetSkinJoints0) for details.
 }
 
 TriangleFanSet : X3DComposedGeometryNode {
