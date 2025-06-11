@@ -209,7 +209,9 @@
 
   { Defines how a set of joints influences meshes,
     thus enabling skinned animation in a way that is simple,
-    efficient and perfectly aligned with glTF. }
+    efficient and perfectly aligned with glTF.
+    See @url(https://castle-engine.io/skin skinned animation documentation)
+    for usage details. }
   TSkinNode = class(TAbstractGroupingNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
