@@ -74,6 +74,9 @@
       This makes sense to be used when underlying file on disk
       changed, and you want to reload it. }
     procedure ReloadUrl;
+
+    { Root of the loaded components, or @nil if nothing was loaded yet. }
+    property DesignRoot: TCastleUserInterface read FDesign;
   published
     { Load file with the user interface design.
       The file should be in the format created by Castle Game Engine Editor
