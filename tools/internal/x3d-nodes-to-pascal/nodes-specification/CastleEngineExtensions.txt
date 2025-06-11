@@ -290,7 +290,7 @@ Skin : X3DChildNode {
     """
 
   SFNode [in,out] skeleton NULL
-    range: Transform, HAnimJoint
+    range: X3DGroupingNode
     change: chEverything
     doc: """
     Common root of a joints hierarchy or a direct or indirect parent node of the common root.

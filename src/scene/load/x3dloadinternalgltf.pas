@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2024 Michalis Kamburelis.
+  Copyright 2018-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -2721,10 +2721,8 @@ var
   procedure ReadSkin(const SkinToInitialize: TSkinToInitialize;
     const ParentGroup: TAbstractGroupingNode);
   var
+    SkinNode: TSkinNode;
     SkeletonRootIndex: Integer;
-    SkeletonRoot: TAbstractGroupingNode;
-    Joints: TX3DNodeList;
-    InverseBindMatrices: TMatrix4List;
     I: Integer;
     Skin: TPasGLTF.TSkin;
     Shapes: TAbstractGroupingNode;
@@ -2733,9 +2731,12 @@ var
     Skin := SkinToInitialize.Skin;
     Shapes := SkinToInitialize.Shapes;
 
+    SkinNode := TSkinNode.Create(Skin.Name, BaseUrl);
+    ParentGroup.AddChildren(SkinNode);
+
     SkeletonRootIndex := Skin.Skeleton;
     if SkeletonRootIndex = -1 then
-      SkeletonRoot := Result // root node created by LoadGltf
+      SkinNode.Skeleton := Result // root node created by LoadGltf
     else
     begin
       if not Between(SkeletonRootIndex, 0, Nodes.Count - 1) then
@@ -2746,76 +2747,73 @@ var
         ]);
         Exit;
       end;
-      SkeletonRoot := Nodes[SkeletonRootIndex] as TAbstractGroupingNode;
+      SkinNode.Skeleton := Nodes[SkeletonRootIndex] as TAbstractGroupingNode;
     end;
 
-    // first nil local variables, to reliably do try..finally that includes them all
-    Joints := nil;
-    InverseBindMatrices := nil;
-
-    try
-      Joints := TX3DNodeList.Create(false);
-      Joints.Count := Skin.Joints.Count;
-      for I := 0 to Skin.Joints.Count - 1 do
+    SkinNode.FdJoints.Count := Skin.Joints.Count;
+    for I := 0 to Skin.Joints.Count - 1 do
+    begin
+      if not Between(Skin.Joints[I], 0, Nodes.Count - 1) then
       begin
-        if not Between(Skin.Joints[I], 0, Nodes.Count - 1) then
-        begin
-          WritelnWarning('Skin "%s" specifies invalid joint index %d', [
-            Skin.Name,
-            Skin.Joints[I]
-          ]);
-          Exit;
-        end;
-        Joints[I] := Nodes[Skin.Joints[I]];
-      end;
-
-      InverseBindMatrices := TMatrix4List.Create;
-      AccessorToMatrix4(Skin.InverseBindMatrices, InverseBindMatrices, false);
-
-      if Joints.Count <> InverseBindMatrices.Count then
-      begin
-        WritelnWarning('Joints and InverseBindMatrices counts differ for skin "%s": %d and %d', [
+        WritelnWarning('Skin "%s" specifies invalid joint index %d', [
           Skin.Name,
-          Joints.Count,
-          InverseBindMatrices.Count
+          Skin.Joints[I]
         ]);
+        { Exit from ReadSkin, as we cannot continue.
+          Joints indexes will make no sense if we omit some joint on the list. }
         Exit;
       end;
+      SkinNode.FdJoints[I] := Nodes[Skin.Joints[I]];
+    end;
 
-      JointMatrix.Count := Joints.Count;
+    AccessorToMatrix4(Skin.InverseBindMatrices, SkinNode.FdInverseBindMatrices.Items, false);
 
-      { To satisfy glTF requirements
-        """
-        Client implementations should apply only the transform of the skeleton root
-        node to the skinned mesh while ignoring the transform of the skinned mesh node.
-        """
-        (later rephrased in glTF as
-        """
-        Only the joint transforms are applied to the skinned mesh;
-        the transform of the skinned mesh node MUST be ignored.
-        """
+    if SkinNode.FdJoints.Count <>
+       SkinNode.FdInverseBindMatrices.Count then
+    begin
+      WritelnWarning('Joints and InverseBindMatrices counts differ for skin "%s": %d and %d', [
+        Skin.Name,
+        SkinNode.FdJoints.Count,
+        SkinNode.FdInverseBindMatrices.Count
+      ]);
+      Exit;
+    end;
 
-        Solution: Just reparent the meshes under skeleton root.
+    JointMatrix.Count := SkinNode.FdJoints.Count;
 
-        Testcase: demo-models/blender/skinned_animation/skinned_anim.glb . }
-      if SkinToInitialize.ShapesParent <> SkeletonRoot then
+    { To satisfy glTF requirements
+      """
+      Client implementations should apply only the transform of the skeleton root
+      node to the skinned mesh while ignoring the transform of the skinned mesh node.
+      """
+      (later rephrased in glTF as
+      """
+      Only the joint transforms are applied to the skinned mesh;
+      the transform of the skinned mesh node MUST be ignored.
+      """
+
+      Solution: Just reparent the meshes under skeleton root.
+      This solution is actually required now by TSkinNode.
+
+      Testcase: demo-models/blender/skinned_animation/skinned_anim.glb . }
+    if SkinToInitialize.ShapesParent <> SkinNode.Skeleton then
+    begin
+      SkinNode.Skeleton.AddChildren(Shapes);
+      SkinToInitialize.ShapesParent.RemoveChildren(Shapes);
+      SkinToInitialize.ShapesParent := SkinNode.Skeleton;
+    end;
+
+    for I := 0 to Shapes.FdChildren.Count - 1 do
+    begin
+      if Shapes.FdChildren[I] is TShapeNode then
       begin
-        SkeletonRoot.AddChildren(Shapes);
-        SkinToInitialize.ShapesParent.RemoveChildren(Shapes);
-        SkinToInitialize.ShapesParent := SkeletonRoot;
+        ShapeNode := TShapeNode(Shapes.FdChildren[I]);
+        SkinNode.FdShapes.Add(ShapeNode);
+        CalculateSkinInterpolators(ShapeNode,
+          SkinNode.FdJoints.InternalItems, Skin.Joints,
+          SkinNode.FdInverseBindMatrices.Items,
+          SkinNode.Skeleton, SkeletonRootIndex, ParentGroup);
       end;
-
-      for I := 0 to Shapes.FdChildren.Count - 1 do
-        if Shapes.FdChildren[I] is TShapeNode then
-        begin
-          ShapeNode := TShapeNode(Shapes.FdChildren[I]);
-          CalculateSkinInterpolators(ShapeNode,
-            Joints, Skin.Joints, InverseBindMatrices,
-            SkeletonRoot, SkeletonRootIndex, ParentGroup);
-        end;
-    finally
-      FreeAndNil(Joints);
-      FreeAndNil(InverseBindMatrices);
     end;
   end;
 

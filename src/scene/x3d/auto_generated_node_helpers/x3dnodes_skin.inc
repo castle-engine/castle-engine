@@ -24,8 +24,8 @@
 {$ifdef read_interface}
 
   strict private
-    function GetSkeleton: TX3DNode;
-    procedure SetSkeleton(const Value: TX3DNode);
+    function GetSkeleton: TAbstractGroupingNode;
+    procedure SetSkeleton(const Value: TAbstractGroupingNode);
   public
     { Create node fields and events. }
     procedure CreateNode; override;
@@ -75,7 +75,7 @@
     { Common root of a joints hierarchy or a direct or indirect parent node of the common root.
 
     In the most common situation, this is just the "root joint", and is also present in the @link(Joints) array. However, it's not required that @link(Skeleton) is present in @link(Joints). }
-    property Skeleton: TX3DNode read GetSkeleton write SetSkeleton;
+    property Skeleton: TAbstractGroupingNode read GetSkeleton write SetSkeleton;
 
 {$endif read_interface}
 
@@ -117,15 +117,15 @@ begin
   FdShapes.Send(A);
 end;
 
-function TSkinNode.GetSkeleton: TX3DNode;
+function TSkinNode.GetSkeleton: TAbstractGroupingNode;
 begin
-  if FdSkeleton.Value is TX3DNode then
-    Result := TX3DNode(FdSkeleton.Value)
+  if FdSkeleton.Value is TAbstractGroupingNode then
+    Result := TAbstractGroupingNode(FdSkeleton.Value)
   else
     Result := nil;
 end;
 
-procedure TSkinNode.SetSkeleton(const Value: TX3DNode);
+procedure TSkinNode.SetSkeleton(const Value: TAbstractGroupingNode);
 begin
   FdSkeleton.Send(Value);
 end;
@@ -151,7 +151,7 @@ begin
    FdShapes.ChangeAlways := chEverything;
   AddField(FFdShapes);
 
-  FFdSkeleton := TSFNode.Create(Self, True, 'skeleton', [TTransformNode, THAnimJointNode]);
+  FFdSkeleton := TSFNode.Create(Self, True, 'skeleton', [TAbstractGroupingNode]);
    FdSkeleton.ChangeAlways := chEverything;
   AddField(FFdSkeleton);
 end;
