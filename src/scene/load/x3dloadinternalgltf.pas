@@ -213,175 +213,6 @@ begin
   inherited;
 end;
 
-{ TAnimationSampler --------------------------------------------------------------- }
-
-type
-  TAnimationSampler = class
-  strict private
-    { Internal in SetTime. }
-    CurrentTranslation: TVector3List;
-    CurrentRotation: TVector4List;
-    CurrentScale: TVector3List;
-  public
-    { Set this before @link(SetTime).
-      List of TTransformNode nodes, ordered just list glTF nodes.
-      Only initialized (non-nil and enough Count) for nodes that we created in ReadNode. }
-    TransformNodes: TX3DNodeList;
-    { Set this before @link(SetTime).
-      Current animation applied by @link(SetTime). }
-    Animation: TAnimation;
-    { Owned by this object, calculated by @link(SetTime).
-      Has the same size as TransformNodes, contains accumulated transformation matrix
-      for each node.
-      Contains undefined value for nodes that are @nil. }
-    Transformations: TTransformationList;
-    TransformNodesRoots: TPasGLTF.TScene.TNodes;
-    TransformNodesGltf: TPasGLTF.TNodes;
-    constructor Create;
-    destructor Destroy; override;
-    procedure SetTime(const Time: TFloatTime);
-  end;
-
-constructor TAnimationSampler.Create;
-begin
-  inherited;
-  Transformations := TTransformationList.Create;
-  CurrentTranslation := TVector3List.Create;
-  CurrentRotation := TVector4List.Create;
-  CurrentScale := TVector3List.Create;
-end;
-
-destructor TAnimationSampler.Destroy;
-begin
-  FreeAndNil(Transformations);
-  FreeAndNil(CurrentTranslation);
-  FreeAndNil(CurrentRotation);
-  FreeAndNil(CurrentScale);
-  inherited;
-end;
-
-procedure TAnimationSampler.SetTime(const Time: TFloatTime);
-
-{ The implementation of this somewhat duplicates the logic
-  of the animation and transformation at runtime,
-  done by TTransformNode in CastleShapes, CastleSceneCore units.
-  At one point I considered just using TTimeSensor.FakeTime
-  or even TCastleSceneCore.ForceAnimationPose to set scene
-  to given state in each SetTime, and then read resulting transformations
-  from Scene.Shapes.
-
-  However, this causes new complications:
-  It would modify the nodes hierarchy, which means we should save/restore it.
-
-  And it's not really much simpler, since the transformation hierarchy is quite simple.
-}
-
-  { Set all CurrentXxx values to reflect initial transformations of TransformNodes }
-  procedure ResetCurrentTransformation;
-  var
-    I: Integer;
-    Transform: TTransformNode;
-  begin
-    // initialize CurrentXxx lists
-    for I := 0 to TransformNodes.Count - 1 do
-      if TransformNodes[I] <> nil then
-      begin
-        Transform := TransformNodes[I] as TTransformNode;
-        CurrentTranslation[I] := Transform.FdTranslation.Value;
-        CurrentRotation   [I] := Transform.FdRotation   .Value;
-        CurrentScale      [I] := Transform.FdScale      .Value;
-      end;
-  end;
-
-  { Update all CurrentXxx values affected by this animation. }
-  procedure UpdateCurrentTransformation;
-  var
-    Interpolator: TInterpolator;
-    TargetIndex: Integer;
-  begin
-    for Interpolator in Animation.Interpolators do
-    begin
-      TargetIndex := TransformNodes.IndexOf(Interpolator.Target);
-      if TargetIndex = -1 then
-        raise EInternalError.Create('Interpolator.Target not on Nodes list');
-
-      { Below we process Time,
-        similar to TAbstractSingleInterpolatorNode.EventSet_FractionReceive. }
-
-      case Interpolator.Path of
-        gsTranslation:
-          CurrentTranslation[TargetIndex] :=
-            (Interpolator.Node as TPositionInterpolatorNode).Interpolate(Time);
-        gsRotation:
-          CurrentRotation[TargetIndex] :=
-            (Interpolator.Node as TOrientationInterpolatorNode).Interpolate(Time);
-        gsScale:
-          CurrentScale[TargetIndex] :=
-            (Interpolator.Node as TPositionInterpolatorNode).Interpolate(Time);
-        {$ifndef COMPILER_CASE_ANALYSIS}
-        else raise EInternalError.Create('Unexpected glTF Interpolator.Path value');
-        {$endif}
-      end;
-    end;
-  end;
-
-  { Calculate contents of Transformations, based on CurrentXxx and parent-child relationships. }
-  procedure UpdateMatrix;
-
-    procedure UpdateChildMatrix(const NodeIndex: Integer;
-      const ParentT: TTransformation);
-    var
-      T: PTransformation;
-      ChildNodeIndex: Integer;
-    begin
-      if not Between(NodeIndex, 0, Transformations.Count - 1) then
-        Exit; // warning about it was already done by ReadNodes
-
-      T := PTransformation(Transformations.Ptr(NodeIndex));
-      T^ := ParentT;
-      T^.Multiply(
-        CurrentRotation[NodeIndex],
-        CurrentScale[NodeIndex],
-        CurrentTranslation[NodeIndex]);
-
-      for ChildNodeIndex in TransformNodesGltf[NodeIndex].Children do
-        UpdateChildMatrix(ChildNodeIndex, T^);
-    end;
-
-  var
-    T: PTransformation;
-    RootNodeIndex, ChildNodeIndex: Integer;
-  begin
-    for RootNodeIndex in TransformNodesRoots do
-    begin
-      if not Between(RootNodeIndex, 0, Transformations.Count - 1) then
-        Continue; // warning about it was already done by ReadScene
-
-      T := PTransformation(Transformations.Ptr(RootNodeIndex));
-      T^.Init;
-      T^.Multiply(
-        CurrentRotation[RootNodeIndex],
-        CurrentScale[RootNodeIndex],
-        CurrentTranslation[RootNodeIndex]);
-
-      for ChildNodeIndex in TransformNodesGltf[RootNodeIndex].Children do
-        UpdateChildMatrix(ChildNodeIndex, T^);
-    end;
-  end;
-
-begin
-  { Since in practice TransformNodes.Count is constant during glTF file reading,
-    this sets the size only at first SetTime call (for this glTF model). }
-  Transformations.Count := TransformNodes.Count;
-  CurrentTranslation.Count := TransformNodes.Count;
-  CurrentRotation.Count := TransformNodes.Count;
-  CurrentScale.Count := TransformNodes.Count;
-
-  ResetCurrentTransformation;
-  UpdateCurrentTransformation;
-  UpdateMatrix;
-end;
-
 { TTexture ------------------------------------------------------------------- }
 
 type
@@ -866,7 +697,6 @@ var
   DefaultAppearance: TGltfAppearanceNode;
   SkinsToInitialize: TSkinToInitializeList;
   Animations: TAnimationList;
-  AnimationSampler: TAnimationSampler;
   JointMatrix: TMatrix4List; //< local for SampleSkinAnimation, but created once to avoid wasting time on allocation
   Lights: TPunctualLights;
 
@@ -2152,7 +1982,6 @@ var
       Scene := Document.Scenes[SceneIndex];
       for NodeIndex in Scene.Nodes do
         ReadNode(NodeIndex, ParentGroup);
-      AnimationSampler.TransformNodesRoots := Scene.Nodes;
     end else
       WritelnWarning('glTF', 'Scene index invalid: %d', [SceneIndex]);
   end;
@@ -2373,350 +2202,6 @@ var
     end;
   end;
 
-  { Gather all key times (in 0..1 range) from Interpolators, place them in AllKeys.
-    If you have animation that uses multiple interpolators,
-    then this routine calculates *all* key points within this animation. }
-  procedure GatherAnimationKeysToSample(const AllKeys: TSingleList;
-    const Interpolators: TInterpolatorList);
-  var
-    I: Integer;
-    Interpolator: TAbstractInterpolatorNode;
-  begin
-    AllKeys.Clear;
-    for I := 0 to Interpolators.Count - 1 do
-    begin
-      Interpolator := Interpolators[I].Node;
-      AllKeys.AddRange(Interpolator.FdKey.Items);
-    end;
-    AllKeys.SortAndRemoveDuplicates;
-  end;
-
-  { Sample animation Anim at time TimeFraction (in 0..1 range)
-    to determine how does a skin look like at this moment of time.
-    OriginalCoords contains original (not animated) coords.
-    To the AnimatedCoords, we will add OriginalCoords.Count vertexes.
-
-    We also add to AnimatedNormals if they are <> nil.
-    Both OriginalNormals and AnimatedNormals must be nil or both must be <> nil.
-
-    Similarly, we also add AnimatedTangents if they are <> nil.
-    And both OriginalTangents and AnimatedTangents must be nil or both must be <> nil.
-     }
-  procedure SampleSkinAnimation(const Anim: TAnimation; const KeyIndex: Integer;
-    const TimeFraction: Single;
-    const OriginalCoords, AnimatedCoords: TVector3List;
-    const OriginalNormals, AnimatedNormals: TVector3List;
-    const OriginalTangents, AnimatedTangents: TVector3List;
-    const Joints: TX3DNodeList; const JointsGltf: TPasGLTF.TSkin.TJoints;
-    const InverseBindMatrices: TMatrix4List;
-    const SkeletonRootIndex: Integer;
-    const MeshJoints: TInt32List;
-    const MeshWeights: TVector4List);
-  var
-    I: Integer;
-    SkinMatrix, SkeletonRootInverse: TMatrix4;
-    VertexJointsPtr: PVector4Integer;
-    VertexWeights: TVector4;
-  begin
-    Assert((AnimatedNormals = nil) = (OriginalNormals = nil));
-    Assert((OriginalNormals = nil) or (OriginalNormals.Count = OriginalCoords.Count));
-    Assert((AnimatedTangents = nil) = (OriginalTangents = nil));
-    Assert((OriginalTangents = nil) or (OriginalTangents.Count = OriginalCoords.Count));
-
-    AnimationSampler.Animation := Anim;
-    AnimationSampler.SetTime(TimeFraction);
-
-    if SkeletonRootIndex <> -1 then
-      SkeletonRootInverse := AnimationSampler.Transformations.L[SkeletonRootIndex].InverseTransform
-    else
-      SkeletonRootInverse := TMatrix4.Identity;
-
-    { For each Joint, we calculate JointMatrix following
-      https://www.slideshare.net/Khronos_Group/gltf-20-reference-guide }
-    for I := 0 to Joints.Count - 1 do
-      JointMatrix[I] := SkeletonRootInverse *
-        AnimationSampler.Transformations.L[JointsGltf[I]].Transform *
-        InverseBindMatrices[I];
-
-    { For each vertex, calculate SkinMatrix as linear combination of JointMatrix[...]
-      for all joints indicated by MeshJoints values for this vertex.
-      TODO: Support JOINTS_1, WEIGHTS_1 etc. }
-    for I := 0 to OriginalCoords.Count - 1 do
-    begin
-      VertexWeights := MeshWeights[I];
-      VertexJointsPtr := PVector4Integer(MeshJoints.Ptr(I * 4));
-      if VertexWeights.IsPerfectlyZero then
-      begin
-        { Happens with glTF files generated by Blender.
-          This is not correct (glTF spec says that weights should sum to 1.0).
-          Solution that works: Transform it with weight 1 by the joint number 0
-          (relying that Blender put root joint at this position). See
-          https://github.com/KhronosGroup/glTF/issues/1213
-          https://github.com/KhronosGroup/glTF-Blender-IO/issues/308
-          https://github.com/KhronosGroup/glTF-Blender-IO/issues/308#issuecomment-531355129
-            """it's not exactly a satisfying fix, but in practice using 1, 0, 0, 0 when the weights would otherwise be zero has avoided these issues in threejs."""
-          https://github.com/KhronosGroup/glTF/pull/1352
-          https://github.com/Franck-Dernoncourt/NeuroNER/issues/91 }
-        SkinMatrix := JointMatrix.L[0];
-      end else
-      begin
-        SkinMatrix :=
-          JointMatrix.L[VertexJointsPtr^.X] * VertexWeights.X +
-          JointMatrix.L[VertexJointsPtr^.Y] * VertexWeights.Y +
-          JointMatrix.L[VertexJointsPtr^.Z] * VertexWeights.Z +
-          JointMatrix.L[VertexJointsPtr^.W] * VertexWeights.W;
-      end;
-      { Note: On Delphi, we *have to* use L[...] below and depend on $pointermath on,
-        instead of using List^[...].
-        That's because on Delphi, List^[...] may have too small (declared) upper size
-        due to Delphi not supporting SizeOf(T) in generics.
-        See https://github.com/castle-engine/castle-engine/issues/474 . }
-      AnimatedCoords.L[KeyIndex * OriginalCoords.Count + I] := SkinMatrix.MultPoint(OriginalCoords[I]);
-      if AnimatedNormals <> nil then
-        AnimatedNormals.L[KeyIndex * OriginalNormals.Count + I] := SkinMatrix.MultDirection(OriginalNormals[I]);
-      if AnimatedTangents <> nil then
-        AnimatedTangents.L[KeyIndex * OriginalTangents.Count + I] := SkinMatrix.MultDirection(OriginalTangents[I]);
-    end;
-  end;
-
-  { When animation TimeSensor starts, set Shape.BBox using X3D routes. }
-  procedure SetBBoxWhenAnimationStarts(const TimeSensor: TTimeSensorNode;
-    const Shape: TShapeNode; const BBox: TBox3D;
-    const ParentGroup: TAbstractGroupingNode);
-  var
-    ValueTrigger: TValueTriggerNode;
-    Center, Size: TVector3;
-    F: TX3DField;
-  begin
-    BBox.ToCenterSize(Center, Size);
-
-    ValueTrigger := TValueTriggerNode.Create;
-    ValueTrigger.X3DName := 'ValueTrigger_setBBox_' +
-      TimeSensor.X3DName + '_' + Shape.X3DName;
-    ParentGroup.AddChildren(ValueTrigger);
-    ParentGroup.AddRoute(TimeSensor.EventIsActive, ValueTrigger.EventTrigger);
-
-    F := TSFVec3f.Create(nil, true, 'bboxCenter', Center);
-    ValueTrigger.AddCustomField(F);
-    ParentGroup.AddRoute(F, Shape.FdBboxCenter);
-
-    F := TSFVec3f.Create(nil, true, 'bboxSize', Size);
-    ValueTrigger.AddCustomField(F);
-    ParentGroup.AddRoute(F, Shape.FdBboxSize);
-  end;
-
-  function ShapeLit(const ShapeNode: TShapeNode): Boolean;
-  begin
-    Result := (ShapeNode.Appearance <> nil) and
-      (
-        (ShapeNode.Appearance.Material is TMaterialNode) or
-        (ShapeNode.Appearance.Material is TPhysicalMaterialNode)
-      );
-  end;
-
-  { Calculate skin interpolator nodes to deform this one shape.
-
-    Note that ParentGroup can be really any grouping node,
-    we add there only interpolators and routes, it doesn't matter where this node is. }
-  procedure CalculateSkinInterpolators(const Shape: TShapeNode;
-    const Joints: TX3DNodeList; const JointsGltf: TPasGLTF.TSkin.TJoints;
-    const InverseBindMatrices: TMatrix4List;
-    const SkeletonRoot: TAbstractGroupingNode; const SkeletonRootIndex: Integer;
-    const ParentGroup: TAbstractGroupingNode);
-  var
-    CoordField: TSFNode;
-    Coord: TCoordinateNode;
-    Normal: TNormalNode;
-    Tangent: TTangentNode;
-    Anim: TAnimation;
-    CoordInterpolator: TCoordinateInterpolatorNode;
-    NormalInterpolator: TCoordinateInterpolatorNode;
-    TangentInterpolator: TCoordinateInterpolatorNode;
-    I: Integer;
-    OriginalNormals, AnimatedNormals: TVector3List;
-    OriginalTangents, AnimatedTangents: TVector3List;
-    MemoryTaken: Int64;
-    InterpolatorNameSuffix: String;
-    MeshWeights: TVector4List;
-    MeshJoints: TInt32List;
-  begin
-    CoordField := Shape.Geometry.CoordField;
-    if CoordField = nil then
-    begin
-      WritelnWarning('Cannot animate using skin geometry %s, it does not have coordinates', [
-        Shape.Geometry.NiceName
-      ]);
-      Exit;
-    end;
-
-    if not (CoordField.Value is TCoordinateNode) then
-    begin
-      WritelnWarning('Cannot animate using skin geometry %s, the coordinates are not expressed as Coordinate node', [
-        Shape.Geometry.NiceName
-      ]);
-      Exit;
-    end;
-    Coord := CoordField.Value as TCoordinateNode;
-
-    // calculate Normal
-    Normal := nil;
-    if (Shape.Geometry.NormalField <> nil) and
-       (Shape.Geometry.NormalField.Value is TNormalNode) then
-    begin
-      Normal := TNormalNode(Shape.Geometry.NormalField.Value);
-      // SampleSkinAnimation assumes that normals and coords counts are equal
-      if Normal.FdVector.Count <> Coord.FdPoint.Count then
-      begin
-        WritelnWarning('When animating using skin geometry %s, coords and normals counts different', [
-          Shape.Geometry.NiceName
-        ]);
-        Normal := nil;
-      end;
-    end else
-    begin
-      if ShapeLit(Shape) then
-        WritelnWarning('TODO: Normal vectors are not provided for a skinned geometry (using lit material), and in effect the resulting animation will be slow as we''ll recalculate normals more often than necessary. ' + 'For now it is adviced to generate glTF with normals included for skinned meshes.');
-    end;
-
-    // calculate Tangent
-    Tangent := nil;
-    if (Shape.Geometry.TangentField <> nil) and
-       (Shape.Geometry.TangentField.Value is TTangentNode) then
-    begin
-      Tangent := TTangentNode(Shape.Geometry.TangentField.Value);
-      // SampleSkinAnimation assumes that tangents and coords counts are equal
-      if Tangent.FdVector.Count <> Coord.FdPoint.Count then
-      begin
-        WritelnWarning('When animating using skin geometry %s, coords and tangents counts different', [
-          Shape.Geometry.NiceName
-        ]);
-        Tangent := nil;
-      end;
-    end else
-    begin
-      if ShapeLit(Shape) and
-         ((Shape.Appearance.Material as TAbstractOneSidedMaterialNode).NormalTexture <> nil) then
-        WritelnWarning('TODO: Tangent vectors are not provided for a skinned geometry (using lit material with normalmap), and in effect the resulting animation will be slow as we''ll recalculate tangents more often than necessary. ' + 'For now it is adviced to generate glTF with tangents included for skinned meshes.');
-    end;
-
-    if (not Shape.Geometry.SkinWeightsJoints(MeshWeights, MeshJoints)) or
-       (MeshWeights.Count      <> Coord.FdPoint.Items.Count) or
-       (MeshJoints.Count div 4 <> Coord.FdPoint.Items.Count) then
-    begin
-      WritelnWarning('Cannot animate using skin geometry %s, JOINTS_0 and WEIGHTS_0 information for the mesh not provided or has invalid size', [
-        Shape.Geometry.NiceName
-      ]);
-      Exit;
-    end;
-
-    for Anim in Animations do
-    begin
-      InterpolatorNameSuffix :=
-        'SkinInterpolator_'
-        + Anim.TimeSensor.X3DName + '_'
-        + Shape.X3DName;
-
-      CoordInterpolator := TCoordinateInterpolatorNode.Create;
-      CoordInterpolator.X3DName := 'Coord' + InterpolatorNameSuffix;
-      GatherAnimationKeysToSample(CoordInterpolator.FdKey.Items, Anim.Interpolators);
-      { Assign count, avoids later reallocating memory when adding vectors (slow),
-        and avoids Capacity >> Count (wasted memory).
-        This is important on large models.
-        Testcase: mouse_multiple,
-        - memory use: 180 MB vs 140 MB on each animation of dancing
-        - loading time: 14 vs 10 sec total. }
-      CoordInterpolator.FdKeyValue.Count := CoordInterpolator.FdKey.Count * Coord.FdPoint.Count;
-
-      ParentGroup.AddChildren(CoordInterpolator);
-      ParentGroup.AddRoute(Anim.TimeSensor.EventFraction_changed, CoordInterpolator.EventSet_fraction);
-      ParentGroup.AddRoute(CoordInterpolator.EventValue_changed, Coord.FdPoint);
-
-      if Normal <> nil then
-      begin
-        NormalInterpolator := TCoordinateInterpolatorNode.Create;
-        NormalInterpolator.X3DName := 'Normal' + InterpolatorNameSuffix;
-        //GatherAnimationKeysToSample(NormalInterpolator.FdKey.Items, Anim.Interpolators);
-        // faster:
-        NormalInterpolator.FdKey.Assign(CoordInterpolator.FdKey);
-        NormalInterpolator.FdKeyValue.Count := NormalInterpolator.FdKey.Count * Normal.FdVector.Count;
-
-        ParentGroup.AddChildren(NormalInterpolator);
-        ParentGroup.AddRoute(Anim.TimeSensor.EventFraction_changed, NormalInterpolator.EventSet_fraction);
-        ParentGroup.AddRoute(NormalInterpolator.EventValue_changed, Normal.FdVector);
-
-        OriginalNormals := Normal.FdVector.Items;
-        AnimatedNormals := NormalInterpolator.FdKeyValue.Items;
-      end else
-      begin
-        NormalInterpolator := nil;
-        OriginalNormals := nil;
-        AnimatedNormals := nil;
-      end;
-
-      if Tangent <> nil then
-      begin
-        TangentInterpolator := TCoordinateInterpolatorNode.Create;
-        TangentInterpolator.X3DName := 'Tangent' + InterpolatorNameSuffix;
-        //GatherAnimationKeysToSample(TangentInterpolator.FdKey.Items, Anim.Interpolators);
-        // faster:
-        TangentInterpolator.FdKey.Assign(CoordInterpolator.FdKey);
-        TangentInterpolator.FdKeyValue.Count := TangentInterpolator.FdKey.Count * Tangent.FdVector.Count;
-
-        ParentGroup.AddChildren(TangentInterpolator);
-        ParentGroup.AddRoute(Anim.TimeSensor.EventFraction_changed, TangentInterpolator.EventSet_fraction);
-        ParentGroup.AddRoute(TangentInterpolator.EventValue_changed, Tangent.FdVector);
-
-        OriginalTangents := Tangent.FdVector.Items;
-        AnimatedTangents := TangentInterpolator.FdKeyValue.Items;
-      end else
-      begin
-        TangentInterpolator := nil;
-        OriginalTangents := nil;
-        AnimatedTangents := nil;
-      end;
-
-      for I := 0 to CoordInterpolator.FdKey.Items.Count - 1 do
-      begin
-        SampleSkinAnimation(Anim, I, CoordInterpolator.FdKey.Items[I],
-          Coord.FdPoint.Items, CoordInterpolator.FdKeyValue.Items,
-          OriginalNormals, AnimatedNormals,
-          OriginalTangents, AnimatedTangents,
-          Joints, JointsGltf, InverseBindMatrices,
-          SkeletonRootIndex,
-          MeshJoints, MeshWeights);
-      end;
-
-      MemoryTaken := CoordInterpolator.FdKeyValue.Items.Capacity * SizeOf(TVector3);
-      if NormalInterpolator <> nil then
-        MemoryTaken := MemoryTaken + NormalInterpolator.FdKeyValue.Items.Capacity * SizeOf(TVector3);
-      if TangentInterpolator <> nil then
-        MemoryTaken := MemoryTaken + TangentInterpolator.FdKeyValue.Items.Capacity * SizeOf(TVector3);
-      if MemoryTaken > 10 * 1024 * 1024 then // report only when memory usage > 10 MB
-        WritelnLog('glTF', 'Memory occupied by precalculating "%s" animation: %s', [
-          Anim.TimeSensor.X3DName,
-          SizeToStr(MemoryTaken)
-        ]);
-
-      { We want to use Shape.BBox for optimization (to avoid recalculating bbox).
-        Simple version:
-
-          Shape.BBox := Shape.BBox + TBox3D.FromPoints(CoordInterpolator.FdKeyValue.Items);
-
-        But it's more efficient to set bbox for specific animation
-        once the animation starts.
-        It also looks a bit more intuitive when you view bbox
-        (otherwise you would see a large bbox accounting for *all* animations,
-        but with mesh transformed with current animation, testcase: Bee, Monster).
-
-        This matters, because bbox is also used for collisions.
-        E.g. knight in fps_game when Walking should not have huge bbox
-        because of Dying animation. }
-      SetBBoxWhenAnimationStarts(Anim.TimeSensor, Shape,
-        TBox3D.FromPoints(CoordInterpolator.FdKeyValue.Items),
-        ParentGroup);
-    end;
-  end;
-
   { Apply Skin to deform shapes list. }
   procedure ReadSkin(const SkinToInitialize: TSkinToInitialize;
     const ParentGroup: TAbstractGroupingNode);
@@ -2809,10 +2294,6 @@ var
       begin
         ShapeNode := TShapeNode(Shapes.FdChildren[I]);
         SkinNode.FdShapes.Add(ShapeNode);
-        CalculateSkinInterpolators(ShapeNode,
-          SkinNode.FdJoints.InternalItems, Skin.Joints,
-          SkinNode.FdInverseBindMatrices.Items,
-          SkinNode.Skeleton, SkeletonRootIndex, ParentGroup);
       end;
     end;
   end;
@@ -2824,10 +2305,6 @@ var
   var
     SkinToInitialize: TSkinToInitialize;
   begin
-    // one-time initialization of structures to process skin
-    AnimationSampler.TransformNodes := Nodes;
-    AnimationSampler.TransformNodesGltf := Document.Nodes;
-
     for SkinToInitialize in SkinsToInitialize do
       ReadSkin(SkinToInitialize, ParentGroup);
   end;
@@ -2873,14 +2350,12 @@ begin
     ExportNodes := nil;
     SkinsToInitialize := nil;
     Animations := nil;
-    AnimationSampler := nil;
     JointMatrix := nil;
     Lights := nil;
     try
       Document := TMyGltfDocument.Create(Stream, BaseUrl);
       SkinsToInitialize := TSkinToInitializeList.Create(true);
       Animations := TAnimationList.Create(true);
-      AnimationSampler := TAnimationSampler.Create;
       JointMatrix := TMatrix4List.Create;
       Lights := TPunctualLights.Create;
       ExportNodes := TX3DNodeList.Create(false);
@@ -2922,7 +2397,6 @@ begin
       FreeAndNil(JointMatrix);
       FreeAndNil(Animations);
       FreeAndNil(SkinsToInitialize);
-      FreeAndNil(AnimationSampler);
       FreeIfUnusedAndNil(DefaultAppearance);
       X3DNodeList_FreeUnusedAndNil(Appearances);
       { Note that some Nodes[...] items may be nil.
