@@ -207,6 +207,13 @@
   {$I auto_generated_node_helpers/x3dnodes_orientationinterpolator2d.inc}
   end;
 
+  { Defines how a set of joints influences meshes,
+    thus enabling skinned animation in a way that is simple,
+    efficient and perfectly aligned with glTF. }
+  TSkinNode = class(TAbstractGroupingNode)
+  {$I auto_generated_node_helpers/x3dnodes_skin.inc}
+  end;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -444,7 +451,8 @@ begin
     TEffectPartNode,
     TShaderTextureNode,
     TViewpointMirrorNode,
-    TOrientationInterpolator2DNode
+    TOrientationInterpolator2DNode,
+    TSkinNode
   ]);
 end;
 

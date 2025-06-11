@@ -2789,7 +2789,13 @@ var
         Client implementations should apply only the transform of the skeleton root
         node to the skinned mesh while ignoring the transform of the skinned mesh node.
         """
-        Just reparent the meshes under skeleton root.
+        (later rephrased in glTF as
+        """
+        Only the joint transforms are applied to the skinned mesh;
+        the transform of the skinned mesh node MUST be ignored.
+        """
+
+        Solution: Just reparent the meshes under skeleton root.
 
         Testcase: demo-models/blender/skinned_animation/skinned_anim.glb . }
       if SkinToInitialize.ShapesParent <> SkeletonRoot then

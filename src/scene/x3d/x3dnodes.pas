@@ -506,6 +506,7 @@ uses Math, StrUtils, URIParser,
 {$I auto_generated_node_helpers/x3dnodes_shaderprogram.inc}
 {$I auto_generated_node_helpers/x3dnodes_shadertexture.inc}
 {$I auto_generated_node_helpers/x3dnodes_shape.inc}
+{$I auto_generated_node_helpers/x3dnodes_skin.inc}
 {$I auto_generated_node_helpers/x3dnodes_sound.inc}
 {$I auto_generated_node_helpers/x3dnodes_sphere.inc}
 {$I auto_generated_node_helpers/x3dnodes_sphere_1.inc}
