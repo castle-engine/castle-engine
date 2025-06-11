@@ -689,6 +689,9 @@ var
   { List of TTransformNode nodes, ordered just list glTF nodes.
     Only initialized (non-nil and enough Count) for nodes that we created in ReadNode. }
   Nodes: TX3DNodeList;
+  { Parent of all loaded Nodes, represents loaded glTF "scene".
+    (don't confuse with unrelated CGE term TCastleScene.) }
+  CurrentScene: TGroupNode;
   { List of X3D nodes to be EXPORTed from the glTF scene,
     so that outer X3D can IMPORT them and use.
     Nodes with X3DName = '' on this list are ignored.
@@ -2209,7 +2212,7 @@ var
     // calculate SkinNode.Skeleton (root joint)
     SkeletonRootIndex := Skin.Skeleton;
     if SkeletonRootIndex = -1 then
-      SkinNode.Skeleton := Result // root node created by LoadGltf
+      SkinNode.Skeleton := CurrentScene
     else
     begin
       if not Between(SkeletonRootIndex, 0, Nodes.Count - 1) then
@@ -2365,13 +2368,15 @@ begin
         Appearances.Add(ReadAppearance(Material));
 
       // read main scene
+      CurrentScene := TGroupNode.Create;
+      Result.AddChildren(CurrentScene);
       Nodes := TX3DNodeList.Create(false);
       if Document.Scene <> -1 then
-        ReadScene(Document.Scene, Result)
+        ReadScene(Document.Scene, CurrentScene)
       else
       begin
         WritelnWarning('glTF does not specify a default scene to render. We will import the 1st scene, if available.');
-        ReadScene(0, Result);
+        ReadScene(0, CurrentScene);
       end;
 
       // once appearances Used, UsedAsLit are set, fix them
