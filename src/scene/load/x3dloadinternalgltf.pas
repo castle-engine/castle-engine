@@ -2284,7 +2284,7 @@ var
 
           Testcase: demo-models/blender/skinned_animation/skinned_anim.glb . }
         SkinNode.FdShapes.Add(ShapeNode);
-        Shapes.FdChildren.Remove(ShapeNode);
+        Shapes.FdChildren.Delete(I);
       end else
         Inc(I);
     end;
