@@ -211,6 +211,8 @@
     thus enabling skinned animation in a way that is simple,
     efficient and perfectly aligned with glTF. }
   TSkinNode = class(TAbstractGroupingNode)
+  protected
+    function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   {$I auto_generated_node_helpers/x3dnodes_skin.inc}
   end;
 
@@ -434,6 +436,22 @@ function TOrientationInterpolator2DNode.CreateOutputField: TSFRotation;
 begin
   Result := TSFRotation.CreateUndefined(Self, false, '');
 end;
+
+{ TSkinNode ------------------------------------------------------------------ }
+
+function TSkinNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
+begin
+  Result := inherited;
+  if Result <> nil then Exit;
+
+  Result := FdSkeleton.Enumerate(Func);
+  if Result <> nil then Exit;
+
+  Result := FdShapes.Enumerate(Func);
+  if Result <> nil then Exit;
+end;
+
+{ registration --------------------------------------------------------------- }
 
 procedure RegisterKambiNodes;
 begin

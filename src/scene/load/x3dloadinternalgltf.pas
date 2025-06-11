@@ -165,10 +165,10 @@ type
   { Information about skin, to be used later. }
   TSkinToInitialize = class
     Skin: TPasGLTF.TSkin;
-    { Direct children of this grouping node that are TShapeNode should have skinning applied. }
+    { Direct children of this grouping node
+      (that are TShapeNode and have SkinWeights0 and SkinJoints0 fields)
+      should have skinning applied. }
     Shapes: TAbstractGroupingNode;
-    { Immediate parent of the Shapes node (it always has only one parent). }
-    ShapesParent: TAbstractGroupingNode;
   end;
 
   TSkinToInitializeList = {$ifdef FPC}specialize{$endif} TObjectList<TSkinToInitialize>;
@@ -697,7 +697,6 @@ var
   DefaultAppearance: TGltfAppearanceNode;
   SkinsToInitialize: TSkinToInitializeList;
   Animations: TAnimationList;
-  JointMatrix: TMatrix4List; //< local for SampleSkinAnimation, but created once to avoid wasting time on allocation
   Lights: TPunctualLights;
 
   procedure ReadHeader;
@@ -1893,18 +1892,7 @@ var
       // Shapes is the group created inside ReadMesh
       Shapes := Transform.FdChildren.InternalItems.Last as TAbstractGroupingNode;
       SkinToInitialize.Shapes := Shapes;
-      SkinToInitialize.ShapesParent := Transform;
       SkinToInitialize.Skin := Skin;
-
-      { Make shapes collide as simple boxes.
-        We don't want to recalculate octree of their triangles each frame,
-        and their boxes are easy, since we fill shape's bbox. }
-      for I := 0 to Shapes.FdChildren.Count - 1 do
-        if Shapes.FdChildren[I] is TShapeNode then
-        begin
-          ShapeNode := TShapeNode(Shapes.FdChildren[I]);
-          ShapeNode.Collision := scBox;
-        end;
     end;
 
   var
@@ -2202,9 +2190,8 @@ var
     end;
   end;
 
-  { Apply Skin to deform shapes list. }
-  procedure ReadSkin(const SkinToInitialize: TSkinToInitialize;
-    const ParentGroup: TAbstractGroupingNode);
+  { Add skin information (TSkinNode) based on TSkinToInitialize. }
+  procedure ReadSkin(const SkinToInitialize: TSkinToInitialize);
   var
     SkinNode: TSkinNode;
     SkeletonRootIndex: Integer;
@@ -2214,11 +2201,12 @@ var
     ShapeNode: TShapeNode;
   begin
     Skin := SkinToInitialize.Skin;
-    Shapes := SkinToInitialize.Shapes;
 
     SkinNode := TSkinNode.Create(Skin.Name, BaseUrl);
-    ParentGroup.AddChildren(SkinNode);
+    // TODO add skinnode better place
+    Result.AddChildren(SkinNode);
 
+    // calculate SkinNode.Skeleton (root joint)
     SkeletonRootIndex := Skin.Skeleton;
     if SkeletonRootIndex = -1 then
       SkinNode.Skeleton := Result // root node created by LoadGltf
@@ -2235,6 +2223,7 @@ var
       SkinNode.Skeleton := Nodes[SkeletonRootIndex] as TAbstractGroupingNode;
     end;
 
+    // calculate SkinNode.Joints
     SkinNode.FdJoints.Count := Skin.Joints.Count;
     for I := 0 to Skin.Joints.Count - 1 do
     begin
@@ -2251,6 +2240,7 @@ var
       SkinNode.FdJoints[I] := Nodes[Skin.Joints[I]];
     end;
 
+    // calculate SkinNode.JInverseBindMatrices
     AccessorToMatrix4(Skin.InverseBindMatrices, SkinNode.FdInverseBindMatrices.Items, false);
 
     if SkinNode.FdJoints.Count <>
@@ -2264,49 +2254,50 @@ var
       Exit;
     end;
 
-    JointMatrix.Count := SkinNode.FdJoints.Count;
-
-    { To satisfy glTF requirements
-      """
-      Client implementations should apply only the transform of the skeleton root
-      node to the skinned mesh while ignoring the transform of the skinned mesh node.
-      """
-      (later rephrased in glTF as
-      """
-      Only the joint transforms are applied to the skinned mesh;
-      the transform of the skinned mesh node MUST be ignored.
-      """
-
-      Solution: Just reparent the meshes under skeleton root.
-      This solution is actually required now by TSkinNode.
-
-      Testcase: demo-models/blender/skinned_animation/skinned_anim.glb . }
-    if SkinToInitialize.ShapesParent <> SkinNode.Skeleton then
-    begin
-      SkinNode.Skeleton.AddChildren(Shapes);
-      SkinToInitialize.ShapesParent.RemoveChildren(Shapes);
-      SkinToInitialize.ShapesParent := SkinNode.Skeleton;
-    end;
-
-    for I := 0 to Shapes.FdChildren.Count - 1 do
+    // move shapes tp SkinNode.Shapes
+    Shapes := SkinToInitialize.Shapes;
+    I := 0;
+    while I < Shapes.FdChildren.Count do
     begin
       if Shapes.FdChildren[I] is TShapeNode then
       begin
         ShapeNode := TShapeNode(Shapes.FdChildren[I]);
+
+        { Make shapes collide as simple boxes.
+          We don't want to recalculate octree of their triangles each frame,
+          and their boxes are easy, since we fill shape's bbox.
+          TODO: Shape.BBox is not calculated now. }
+        ShapeNode.Collision := scBox;
+
+        { To satisfy glTF requirements
+          """
+          Client implementations should apply only the transform of the skeleton root
+          node to the skinned mesh while ignoring the transform of the skinned mesh node.
+          """
+          (later rephrased in glTF as
+          """
+          Only the joint transforms are applied to the skinned mesh;
+          the transform of the skinned mesh node MUST be ignored.
+          """
+
+          Solution: Just reparent the meshes under TSkinNode.
+
+          Testcase: demo-models/blender/skinned_animation/skinned_anim.glb . }
         SkinNode.FdShapes.Add(ShapeNode);
-      end;
+        Shapes.FdChildren.Remove(ShapeNode);
+      end else
+        Inc(I);
     end;
   end;
 
-  { Read glTF skins, which result in CoordinateInterpolator nodes
-    attached to shapes.
+  { Finalize reading glTF skins.
     Must be called after Nodes and SkinsToInitialize are ready, so after ReadNodes. }
-  procedure ReadSkins(const ParentGroup: TAbstractGroupingNode);
+  procedure ReadSkins;
   var
     SkinToInitialize: TSkinToInitialize;
   begin
     for SkinToInitialize in SkinsToInitialize do
-      ReadSkin(SkinToInitialize, ParentGroup);
+      ReadSkin(SkinToInitialize);
   end;
 
   { EXPORT nodes, so that using glTF animations in X3D is possible, like on
@@ -2350,13 +2341,11 @@ begin
     ExportNodes := nil;
     SkinsToInitialize := nil;
     Animations := nil;
-    JointMatrix := nil;
     Lights := nil;
     try
       Document := TMyGltfDocument.Create(Stream, BaseUrl);
       SkinsToInitialize := TSkinToInitializeList.Create(true);
       Animations := TAnimationList.Create(true);
-      JointMatrix := TMatrix4List.Create;
       Lights := TPunctualLights.Create;
       ExportNodes := TX3DNodeList.Create(false);
 
@@ -2391,10 +2380,9 @@ begin
       // read animations
       for Animation in Document.Animations do
         ReadAnimation(Animation, Result);
-      ReadSkins(Result);
+      ReadSkins;
       DoExportNodes;
     finally
-      FreeAndNil(JointMatrix);
       FreeAndNil(Animations);
       FreeAndNil(SkinsToInitialize);
       FreeIfUnusedAndNil(DefaultAppearance);
