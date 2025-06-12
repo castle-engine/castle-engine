@@ -152,6 +152,11 @@
     including chTransform flag. For some special nodes, like Billboard,
     the transformation changes are automatically managed. }
   TTransformFunctionality = class(TNodeFunctionality)
+  {$ifdef CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
+  private
+    { Transformation within the TSkinNode. }
+    SkinJointTransform: TMatrix4;
+  {$endif CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
   public
     { Change State.Transformation for children nodes.
       Almost all descendants should override only the overload changing
@@ -386,11 +391,6 @@
       end;
     var
       FTransformFunctionality: TTransformNodeTransformFunctionality;
-  {$ifdef CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
-  private
-    { Transformation within the TSkinNode. }
-    SkinJointTransform: TMatrix4;
-  {$endif CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
   protected
     { }
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
@@ -1250,7 +1250,7 @@ begin
       Parent.Scale,
       Parent.ScaleOrientation,
       Parent.Translation);
-    Parent.SkinJointTransform := State.SkinJointTransformation.Transform;
+    SkinJointTransform := State.SkinJointTransformation.Transform;
   end;
   {$endif CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
 end;
