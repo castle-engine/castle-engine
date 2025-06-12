@@ -106,17 +106,40 @@ type
       e.g. position (-1,-1) may not be reachable, usually it is not reachable.
 
       So: Your application should not assume that user can make a stick
-      position beyond the circle of radius 1, but it should accept such positions. }
+      position beyond the circle of radius 1, but it should accept such positions.
+
+      @seealso AxisRight }
     function AxisLeft: TVector2;
 
     { Right analog stick position.
-      See @link(TGameController.AxisLeft) for details of possible values. }
+      See @link(TGameController.AxisLeft) for details of possible values.
+      @seealso AxisLeft }
     function AxisRight: TVector2;
 
-    { Left trigger axis, in range 0..1. }
+    { Left trigger axis, in range 0..1.
+
+      On some controllers, like @url(https://castle-engine.io/nintendo_switch Nintendo Switch),
+      the triggers are "digital" so they can be only pressed or released.
+      In such case, this axis will have only values 0.0 or 1.0.
+
+      On other controllers, like Xbox controllers, the triggers are "analog",
+      so they can be pressed with any amount of force.
+      In such case, this axis will have any value from 0.0 to 1.0.
+
+      Note: If you don't really want to treat trigger as "analog",
+      you want to simply detect it as presses / released ("digital"),
+      then detect on the application side when the trigger passes a certian
+      "threshold".
+      For example, when TGameController.AxisLeftTrigger > 0.5 then
+      treat it as "pressed". See https://castle-engine.io/controllers
+      for pointers.
+
+      @seealso AxisRightTrigger
+    }
     function AxisLeftTrigger: Single;
 
-    { Right trigger axis, in range 0..1. }
+    { Right trigger axis, in range 0..1.
+      @seealso AxisLeftTrigger }
     function AxisRightTrigger: Single;
 
     { Nice caption (label) of a given button.
@@ -334,8 +357,8 @@ const
     { gbEast }            (Caption: 'B'                ; Meaning: gmCancel ; Handled: true),
     { gbSouth }           (Caption: 'A'                ; Meaning: gmConfirm; Handled: true),
     { gbWest }            (Caption: 'X'                ; Meaning: gmNone   ; Handled: true),
-    { gbLeftTrigger }     (Caption: 'Left Trigger'     ; Meaning: gmNone   ; Handled: true),
-    { gbRightTrigger }    (Caption: 'Right Trigger'    ; Meaning: gmNone   ; Handled: true),
+    // { gbLeftTrigger }     (Caption: 'Left Trigger'     ; Meaning: gmNone   ; Handled: true),
+    // { gbRightTrigger }    (Caption: 'Right Trigger'    ; Meaning: gmNone   ; Handled: true),
     { gpLeftBumper }      (Caption: 'Left Bumper'      ; Meaning: gmNone   ; Handled: true),
     { gpRightBumper }     (Caption: 'Right Bumper'     ; Meaning: gmNone   ; Handled: true),
     { gbLeftStickClick }  (Caption: 'Left Stick Click' ; Meaning: gmNone   ; Handled: true),
