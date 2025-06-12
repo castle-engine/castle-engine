@@ -18,6 +18,8 @@ That is, you can:
 
 2. From code, you can access particular transformation like `LeftArm := MyScene.Node('LeftArm') as TTransformNode` and transform it using e.g. `LeftArm.Rotation := ...`.
 
+![Screenshot](screenshot.png)
+
 ## Designing animation
 
 ### With skinning
@@ -25,6 +27,10 @@ That is, you can:
 You can use Blender armature/bones. Export from Blender to glTF, and the glTF model will automatically use skinned animation.
 
 We handle such animation using [Skin node](https://castle-engine.io/skin) in _Castle Game Engine_. Modifying the bones from code will affect the skinned mesh naturally.
+
+Remember that your animation, as exported to glTF, has to _not_ touch the `Neck` joint, since we want to be able to transform `Neck` by Pascal code. Trying to animate the `Neck` joint following both Blender animation (realized by our engine automatically in `TCastleScene`) and your own code would not make sense -- 2 things would try to change the same joint transformation, last modification (usually the one in `TCastleScene`, though it depends on where do you insert Pascal code that modifies `Neck`) wins.
+
+You can tweak Blender->glTF settings to avoid storing any transformation for `Neck`, or just use our engine to "disconnect" the animation from touching the `Neck`. This example shows how to do the latter, by execcuting `RemoveAnimationsAffectingJoint`. Feel free to reuse `RemoveAnimationsAffectingJoint` in your own projects.
 
 ### Without skinning
 

@@ -1,5 +1,5 @@
 {
-  Copyright 2022-2023 Michalis Kamburelis.
+  Copyright 2022-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -57,6 +57,9 @@ type
       SceneHumanoidNoSkinnedAnim or SceneHumanoidWithSkinnedAnim }
     procedure ChooseSkinnedAnim(const UseSkinnedAnim: boolean);
     procedure ChooseAnimationMode(const NewAnimationMode: TAnimationMode);
+    { Remove all X3D ROUTEs (used by animations) that can affect this Joint. }
+    procedure RemoveAnimationsAffectingJoint(
+      const Scene: TCastleScene; const Joint: TTransformNode);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -113,6 +116,14 @@ begin
   ButtonPlayBoth.OnClick := {$ifdef FPC}@{$endif} ClickPlayBoth;
   ButtonNoSkinnedAnim.OnClick := {$ifdef FPC}@{$endif} ClickNoSkinnedAnim;
   ButtonWithSkinnedAnim.OnClick := {$ifdef FPC}@{$endif} ClickWithSkinnedAnim;
+
+  { Remove any animation affecting Neck from SceneHumanoidWithSkinnedAnim.
+    This simple solution avoids tweaking animation on the Blender side,
+    we just "disconnect" it from changing the Neck on the engine side.
+    And we need to do this, to show amBoth mode on SceneHumanoidWithSkinnedAnim,
+    where Pascal code animates Neck. }
+  RemoveAnimationsAffectingJoint(SceneHumanoidWithSkinnedAnim,
+    SceneHumanoidWithSkinnedAnim.Node('Neck') as TTransformNode);
 
   // change all UI and variables to use SceneHumanoidWithSkinnedAnim and hide SceneHumanoidNoSkinnedAnim
   ClickWithSkinnedAnim(nil);
@@ -222,6 +233,53 @@ begin
       )
     );
   end;
+end;
+
+type
+  { Utility for TViewMain.RemoveAnimationsAffectingJoint }
+  TRemoveAnimationsAffectingJointUtility = class
+  public
+    Joint: TTransformNode;
+    procedure Handler(Node: TX3DNode);
+  end;
+
+procedure TRemoveAnimationsAffectingJointUtility.Handler(Node: TX3DNode);
+var
+  Route: TX3DRoute;
+  I: Integer;
+begin
+  I := 0;
+  while I < Node.RoutesCount do
+  begin
+    Route := Node.Routes[I];
+    if Route.DestinationNode = Joint then
+    begin
+      WritelnLog('Removing ROUTE affecting %s.%s (from %s.%s)', [
+        Route.DestinationNode.NiceName,
+        Route.DestinationEvent.X3DName,
+        Route.SourceNode.NiceName,
+        Route.SourceEvent.X3DName
+      ]);
+      Node.RemoveRoute(I);
+    end else
+      Inc(I);
+  end;
+end;
+
+procedure TViewMain.RemoveAnimationsAffectingJoint(
+  const Scene: TCastleScene; const Joint: TTransformNode);
+var
+  Utility: TRemoveAnimationsAffectingJointUtility;
+begin
+  if Scene.RootNode = nil then
+    Exit; // nothing to do on empty scene
+
+  Utility := TRemoveAnimationsAffectingJointUtility.Create;
+  try
+    Utility.Joint := Joint;
+    Scene.RootNode.EnumerateNodes(TX3DNode,
+      {$ifdef FPC}@{$endif} Utility.Handler, false);
+  finally FreeAndNil(Utility) end;
 end;
 
 end.
