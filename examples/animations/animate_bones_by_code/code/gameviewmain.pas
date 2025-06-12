@@ -29,10 +29,11 @@ type
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
     LabelFps: TCastleLabel;
-    SceneHumanoid: TCastleScene;
+    SceneHumanoidNoSkinnedAnim, SceneHumanoidWithSkinnedAnim: TCastleScene;
     ButtonPlayWalk, ButtonPlayHead, ButtonPlayBoth: TCastleButton;
+    ButtonNoSkinnedAnim, ButtonWithSkinnedAnim: TCastleButton;
   private
-    { Other fields }
+    SceneHumanoid: TCastleScene; //< Either SceneHumanoidNoSkinnedAnim or SceneHumanoidWithSkinnedAnim
     TransformNeck: TTransformNode;
     HeadAnimation: Boolean; //< whether we play animation of TransformNeck, controled by code
     HeadAnimationTime: TFloatTime;
@@ -40,6 +41,11 @@ type
     procedure ClickPlayWalk(Sender: TObject);
     procedure ClickPlayHead(Sender: TObject);
     procedure ClickPlayBoth(Sender: TObject);
+    procedure ClickNoSkinnedAnim(Sender: TObject);
+    procedure ClickWithSkinnedAnim(Sender: TObject);
+    { Switch UI and variables to use
+      SceneHumanoidNoSkinnedAnim or SceneHumanoidWithSkinnedAnim }
+    procedure ChooseSkinnedAnim(const UseSkinnedAnim: boolean);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -52,7 +58,7 @@ var
 implementation
 
 uses SysUtils,
-  CastleLog, CastleUtils;
+  CastleLog, CastleUtils, CastleStringUtils;
 
 { TViewMain ----------------------------------------------------------------- }
 
@@ -65,23 +71,25 @@ end;
 procedure TViewMain.DebugLogNodeName(Node: TX3DNode);
 var
   ParentNode: TX3DNode;
-  ParentNodeStr: String;
+  ParentNodeStr, AllParents: String;
+  I: Integer;
 begin
-  case Node.ParentFieldsCount of
-    0: ParentNodeStr := '(no parent)'; // possible for root node
-    1: begin
-         ParentNode := Node.ParentFields[0].ParentNode as TX3DNode;
-         ParentNodeStr := ParentNode.X3DName;
-         if ParentNodeStr = '' then
-           ParentNodeStr := '(unnamed)';
-       end;
-    else
-       ParentNodeStr := '(multiple parents)';
+  AllParents := '';
+  if Node.ParentFieldsCount = 0 then
+    AllParents := '(no parent)' // possible for root node in non-skinned animation
+  else
+  begin
+    for I := 0 to Node.ParentFieldsCount - 1 do
+    begin
+      ParentNode := Node.ParentFields[I].ParentNode as TX3DNode;
+      ParentNodeStr := ParentNode.NiceName;
+      AllParents := SAppendPart(AllParents, ', ', ParentNodeStr);
+    end;
   end;
 
-  WritelnLog('Found node: %s, parent: %s', [
+  WritelnLog('Found node: %s, parents: %s', [
     Node.X3DName,
-    ParentNodeStr
+    AllParents
   ]);
 end;
 
@@ -89,32 +97,78 @@ procedure TViewMain.Start;
 begin
   inherited;
 
-  { for debug: write to log all transform nodes }
-  SceneHumanoid.RootNode.EnumerateNodes(TTransformNode, {$ifdef FPC}@{$endif} DebugLogNodeName, false);
-
   ButtonPlayWalk.OnClick := {$ifdef FPC}@{$endif} ClickPlayWalk;
   ButtonPlayHead.OnClick := {$ifdef FPC}@{$endif} ClickPlayHead;
   ButtonPlayBoth.OnClick := {$ifdef FPC}@{$endif} ClickPlayBoth;
+  ButtonNoSkinnedAnim.OnClick := {$ifdef FPC}@{$endif} ClickNoSkinnedAnim;
+  ButtonWithSkinnedAnim.OnClick := {$ifdef FPC}@{$endif} ClickWithSkinnedAnim;
+
+  // change all UI and variables to use SceneHumanoidWithSkinnedAnim and hide SceneHumanoidNoSkinnedAnim
+  ClickWithSkinnedAnim(nil);
+end;
+
+procedure TViewMain.ClickNoSkinnedAnim(Sender: TObject);
+begin
+  ChooseSkinnedAnim(false);
+end;
+
+procedure TViewMain.ClickWithSkinnedAnim(Sender: TObject);
+begin
+  ChooseSkinnedAnim(true);
+end;
+
+procedure TViewMain.ChooseSkinnedAnim(const UseSkinnedAnim: boolean);
+begin
+  if UseSkinnedAnim then
+    SceneHumanoid := SceneHumanoidWithSkinnedAnim
+  else
+    SceneHumanoid := SceneHumanoidNoSkinnedAnim;
+
+  { for debug: write to log all transform nodes }
+  SceneHumanoid.RootNode.EnumerateNodes(TTransformNode,
+    {$ifdef FPC}@{$endif} DebugLogNodeName, false);
 
   TransformNeck := SceneHumanoid.Node('Neck') as TTransformNode;
+
+  SceneHumanoidWithSkinnedAnim.Exists := UseSkinnedAnim;
+  SceneHumanoidNoSkinnedAnim.Exists := not UseSkinnedAnim;
+
+  ButtonWithSkinnedAnim.Pressed := UseSkinnedAnim;
+  ButtonNoSkinnedAnim.Pressed := not UseSkinnedAnim;
 end;
+
 
 procedure TViewMain.ClickPlayWalk(Sender: TObject);
 begin
   SceneHumanoid.AutoAnimation := 'walk';
   HeadAnimation := false;
+
+  // update buttons
+  ButtonPlayWalk.Pressed := true;
+  ButtonPlayHead.Pressed := false;
+  ButtonPlayBoth.Pressed := false;
 end;
 
 procedure TViewMain.ClickPlayHead(Sender: TObject);
 begin
   SceneHumanoid.AutoAnimation := ''; // stop walking
   HeadAnimation := true;
+
+  // update buttons
+  ButtonPlayWalk.Pressed := false;
+  ButtonPlayHead.Pressed := true;
+  ButtonPlayBoth.Pressed := false;
 end;
 
 procedure TViewMain.ClickPlayBoth(Sender: TObject);
 begin
   SceneHumanoid.AutoAnimation := 'walk';
   HeadAnimation := true;
+
+  // update buttons
+  ButtonPlayWalk.Pressed := false;
+  ButtonPlayHead.Pressed := false;
+  ButtonPlayBoth.Pressed := true;
 end;
 
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
