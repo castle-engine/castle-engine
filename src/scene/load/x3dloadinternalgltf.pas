@@ -1887,8 +1887,6 @@ var
     var
       SkinToInitialize: TSkinToInitialize;
       Shapes: TAbstractGroupingNode;
-      I: Integer;
-      ShapeNode: TShapeNode;
     begin
       SkinToInitialize := TSkinToInitialize.Create;
       SkinsToInitialize.Add(SkinToInitialize);
@@ -2222,7 +2220,7 @@ var
       for I := 0 to ParentFieldsCopy.Count - 1 do
       begin
         ParentField := ParentFieldsCopy[I];
-        ParentNode := ParentFieldsCopy[I].ParentNode as TX3DNode;
+        ParentNode := ParentField.ParentNode as TX3DNode;
         if ParentNode = nil then
         begin
           WritelnWarning('AddSkinToHierarchy found unexpected state, Skin.Skeleton has no parent. Submit a bug with glTF testcase.');

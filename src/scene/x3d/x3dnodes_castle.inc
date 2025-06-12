@@ -213,11 +213,22 @@
     See @url(https://castle-engine.io/skin skinned animation documentation)
     for usage details. }
   TSkinNode = class(TAbstractChildNode)
+  strict private
+    { Having this ready, and of proper size, speeds up InternalUpdateSkin. }
+    JointMatrix: TMatrix4List;
+    DoneWarningNoCoords: Boolean;
+    DoneWarningNoCoordNode: Boolean;
+    DoneWarningNoNormals: Boolean;
+    DoneWarningNoTangents: Boolean;
+    DoneWarningNormalsCount: Boolean;
+    DoneWarningTangentsCount: Boolean;
+    DoneWarningNoWeightsJoints: Boolean;
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
     procedure AfterTraverse(StateStack: TX3DGraphTraverseStateStack); override;
   public
+    destructor Destroy; override;
     { Update meshes in @link(FdShapes) to reflect the current joints transformation.
       This does the core of "skinned animation" logic. }
     procedure InternalUpdateSkin;
@@ -447,6 +458,12 @@ end;
 
 { TSkinNode ------------------------------------------------------------------ }
 
+destructor TSkinNode.Destroy;
+begin
+  FreeAndNil(JointMatrix);
+  inherited;
+end;
+
 function TSkinNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
   Result := inherited;
@@ -475,11 +492,275 @@ end;
 
 procedure TSkinNode.InternalUpdateSkin;
 
-  procedure UpdateShape(const Shape: TAbstractShapeNode);
+  function ShapeLit(const ShapeNode: TAbstractShapeNode): Boolean;
   begin
-    // TODO
-    // Writeln(FormatDateTime('yyyy"-"mm"-"dd" "tt', CastleNow) +
-    //   'Updating Shape ' + Shape.NiceName + ' in skin ' + NiceName);
+    Result := (ShapeNode.Appearance <> nil) and
+      (
+        (ShapeNode.Appearance.Material is TMaterialNode) or
+        (ShapeNode.Appearance.Material is TPhysicalMaterialNode)
+      );
+  end;
+
+  procedure WritelnWarningOnce(var WarningDone: Boolean;
+    const MessageFmt: String; const Args: array of const);
+  begin
+    if not WarningDone then
+    begin
+      WritelnWarning(MessageFmt, Args);
+      WarningDone := true;
+    end;
+  end;
+
+  procedure UpdateShape(const Shape: TAbstractShapeNode);
+
+    { Get various per-vertex lists from the Shape's geometry.
+
+      Returns @true if we got at least:
+
+      - non-nil Coords, Weights0, Joints0
+      - Normals are either @nil, or they are of the same count as Coords
+      - Tangents are either @nil, or they are of the same count as Coords
+
+      The Xxxs and XxxNode are always either both nil, or both non-nil.
+      E.g. we always return NormalNode = nil and Normals = nil, or both non-nil.
+       }
+    function GetArrays(out Coords, Normals, Tangents: TVector3List;
+      out CoordNode: TCoordinateNode;
+      out NormalNode: TNormalNode;
+      out TangentNode: TTangentNode;
+      out Weights0: TVector4List;
+      out Joints0: TInt32List): Boolean;
+    var
+      CoordField: TSFNode;
+    begin
+      // initialize output to defaults
+      Result := false;
+      Coords := nil;
+      Normals := nil;
+      Tangents := nil;
+      CoordNode := nil;
+      NormalNode := nil;
+      TangentNode := nil;
+      Weights0 := nil;
+      Joints0 := nil;
+
+      // start by calculating Coords (and helper CoordField, CoordNode)
+      CoordField := Shape.Geometry.CoordField;
+      if CoordField = nil then
+      begin
+        WritelnWarningOnce(DoneWarningNoCoords,
+          'Cannot animate using skin geometry %s, it does not have coordinates', [
+          Shape.Geometry.NiceName
+        ]);
+        Exit;
+      end;
+      if not (CoordField.Value is TCoordinateNode) then
+      begin
+        WritelnWarningOnce(DoneWarningNoCoordNode,
+          'Cannot animate using skin geometry %s, the coordinates are not expressed as Coordinate node', [
+          Shape.Geometry.NiceName
+        ]);
+        Exit;
+      end;
+      CoordNode := CoordField.Value as TCoordinateNode;
+      Coords := CoordNode.FdPoint.Items;
+
+      // calculate Normals (and helper NormalNode)
+      if (Shape.Geometry.NormalField <> nil) and
+         (Shape.Geometry.NormalField.Value is TNormalNode) then
+      begin
+        NormalNode := TNormalNode(Shape.Geometry.NormalField.Value);
+        Normals := NormalNode.FdVector.Items;
+        // SampleSkinAnimation assumes that normals and coords counts are equal
+        if Normals.Count <> Coords.Count then
+        begin
+          WritelnWarningOnce(DoneWarningNormalsCount,
+            'When animating using skin geometry %s, coords and normals counts different', [
+            Shape.Geometry.NiceName
+          ]);
+          NormalNode := nil;
+          Normals := nil;
+        end;
+      end else
+      begin
+        if ShapeLit(Shape) then
+          WritelnWarningOnce(DoneWarningNoNormals,
+            'TODO: Normal vectors are not provided for a skinned geometry (using lit material), and in effect the resulting animation will be slow as we''ll recalculate normals more often than necessary. ' + 'For now it is adviced to generate models with normals included for skinned meshes.', []);
+      end;
+
+      // calculate Tangent
+      if (Shape.Geometry.TangentField <> nil) and
+         (Shape.Geometry.TangentField.Value is TTangentNode) then
+      begin
+        TangentNode := TTangentNode(Shape.Geometry.TangentField.Value);
+        Tangents := TangentNode.FdVector.Items;
+        // SampleSkinAnimation assumes that tangents and coords counts are equal
+        if Tangents.Count <> Coords.Count then
+        begin
+          WritelnWarningOnce(DoneWarningTangentsCount,
+            'When animating using skin geometry %s, coords and tangents counts different', [
+            Shape.Geometry.NiceName
+          ]);
+          TangentNode := nil;
+          Tangents := nil;
+        end;
+      end else
+      begin
+        if ShapeLit(Shape) and
+          ((Shape.Appearance.Material as TAbstractOneSidedMaterialNode).NormalTexture <> nil) then
+          WritelnWarningOnce(DoneWarningNoTangents,
+            'TODO: Tangent vectors are not provided for a skinned geometry (using lit material with normalmap), and in effect the resulting animation will be slow as we''ll recalculate tangents more often than necessary. ' + 'For now it is adviced to generate models with tangents included for skinned meshes.', []);
+      end;
+
+      if (not Shape.Geometry.SkinWeightsJoints(Weights0, Joints0)) or
+         (Weights0.Count      <> Coords.Count) or
+         (Joints0.Count div 4 <> Coords.Count) then
+      begin
+        WritelnWarningOnce(DoneWarningNoWeightsJoints,
+          'Cannot animate using skin geometry %s, JOINTS_0 and WEIGHTS_0 information for the mesh not provided or has invalid size', [
+          Shape.Geometry.NiceName
+        ]);
+        Exit;
+      end;
+
+      Result := true;
+    end;
+
+    { Update list supposed to contain original (before animation started) values
+      of some array. }
+    procedure UpdateGeometryOriginalArray(var OriginalArray: TVector3List;
+      const NewArray: TVector3List);
+    begin
+      if NewArray = nil then
+      begin
+        FreeAndNil(OriginalArray);
+      end else
+      begin
+        if OriginalArray = nil then
+          OriginalArray := TVector3List.Create;
+        // Change OriginalArray contents based on NewArray only if sizes changed
+        if OriginalArray.Count <> NewArray.Count then
+        begin
+          OriginalArray.Clear;
+          OriginalArray.AddRange(NewArray);
+        end;
+      end;
+    end;
+
+    { Initialize Geometry.InternalOriginal is necessary. }
+    procedure UpdateGeometryOriginalArrays(const Geometry: TAbstractGeometryNode;
+      const Coords, Normals, Tangents: TVector3List);
+    begin
+      UpdateGeometryOriginalArray(Geometry.InternalOriginalCoords, Coords);
+      UpdateGeometryOriginalArray(Geometry.InternalOriginalNormals, Normals);
+      UpdateGeometryOriginalArray(Geometry.InternalOriginalTangents, Tangents);
+    end;
+
+    { Update skin Coords (and optionally Normals, Tangents)
+      based on current joints transformation.
+      OriginalCoords contains original (not animated) coords. }
+    procedure SampleSkinAnimation(
+      const OriginalCoords, AnimatedCoords: TVector3List;
+      const OriginalNormals, AnimatedNormals: TVector3List;
+      const OriginalTangents, AnimatedTangents: TVector3List;
+      const Joints0: TInt32List;
+      const Weights0: TVector4List);
+    var
+      I: Integer;
+      SkinMatrix, SkeletonRootInverse: TMatrix4;
+      VertexJointsPtr: PVector4Integer;
+      VertexWeights: TVector4;
+    begin
+      Assert((AnimatedNormals = nil) = (OriginalNormals = nil));
+      Assert((OriginalNormals = nil) or (OriginalNormals.Count = OriginalCoords.Count));
+      Assert((AnimatedTangents = nil) = (OriginalTangents = nil));
+      Assert((OriginalTangents = nil) or (OriginalTangents.Count = OriginalCoords.Count));
+
+      // TODO:
+      // if SkeletonRootIndex <> -1 then
+      //   SkeletonRootInverse := AnimationSampler.Transformations.L[SkeletonRootIndex].InverseTransform
+      // else
+        SkeletonRootInverse := TMatrix4.Identity;
+
+      { For each Joint, we calculate JointMatrix following
+        https://www.slideshare.net/Khronos_Group/gltf-20-reference-guide }
+      if JointMatrix = nil then
+        JointMatrix := TMatrix4List.Create;
+      JointMatrix.Count := FdJoints.Count;
+      for I := 0 to FdJoints.Count - 1 do
+        JointMatrix.L[I] := SkeletonRootInverse;// *
+          // TODO:
+          // Joints[I].Transform???
+          //AnimationSampler.Transformations.L[JointsGltf[I]].Transform *
+          // TODO
+          //FdInverseBindMatrices.Items.L[I];
+
+      { For each vertex, calculate SkinMatrix as linear combination of JointMatrix[...]
+        for all joints indicated by Joints0 values for this vertex. }
+      for I := 0 to OriginalCoords.Count - 1 do
+      begin
+        VertexWeights := Weights0[I];
+        VertexJointsPtr := PVector4Integer(Joints0.Ptr(I * 4));
+        if VertexWeights.IsPerfectlyZero then
+        begin
+          { Happens with glTF files generated by Blender.
+            This is not correct (glTF spec says that weights should sum to 1.0).
+            Solution that works: Transform it with weight 1 by the joint number 0
+            (relying that Blender put root joint at this position). See
+            https://github.com/KhronosGroup/glTF/issues/1213
+            https://github.com/KhronosGroup/glTF-Blender-IO/issues/308
+            https://github.com/KhronosGroup/glTF-Blender-IO/issues/308#issuecomment-531355129
+              """it's not exactly a satisfying fix, but in practice using 1, 0, 0, 0 when the weights would otherwise be zero has avoided these issues in threejs."""
+            https://github.com/KhronosGroup/glTF/pull/1352
+            https://github.com/Franck-Dernoncourt/NeuroNER/issues/91 }
+          SkinMatrix := JointMatrix.L[0];
+        end else
+        begin
+          SkinMatrix :=
+            JointMatrix.L[VertexJointsPtr^.X] * VertexWeights.X +
+            JointMatrix.L[VertexJointsPtr^.Y] * VertexWeights.Y +
+            JointMatrix.L[VertexJointsPtr^.Z] * VertexWeights.Z +
+            JointMatrix.L[VertexJointsPtr^.W] * VertexWeights.W;
+        end;
+        { Note: On Delphi, we *have to* use L[...] below and depend on $pointermath on,
+          instead of using List^[...].
+          That's because on Delphi, List^[...] may have too small (declared) upper size
+          due to Delphi not supporting SizeOf(T) in generics.
+          See https://github.com/castle-engine/castle-engine/issues/474 . }
+        AnimatedCoords.L[I] := SkinMatrix.MultPoint(OriginalCoords[I]);
+        if AnimatedNormals <> nil then
+          AnimatedNormals.L[I] := SkinMatrix.MultDirection(OriginalNormals[I]);
+        if AnimatedTangents <> nil then
+          AnimatedTangents.L[I] := SkinMatrix.MultDirection(OriginalTangents[I]);
+      end;
+    end;
+
+  var
+    Coords, Normals, Tangents: TVector3List;
+    CoordNode: TCoordinateNode;
+    NormalNode: TNormalNode;
+    TangentNode: TTangentNode;
+    Weights0: TVector4List;
+    Joints0: TInt32List;
+  begin
+    if not GetArrays(
+        Coords, Normals, Tangents,
+        CoordNode, NormalNode, TangentNode,
+        Weights0, Joints0) then
+      Exit;
+    UpdateGeometryOriginalArrays(Shape.Geometry, Coords, Normals, Tangents);
+    SampleSkinAnimation(
+      Shape.Geometry.InternalOriginalCoords, Coords,
+      Shape.Geometry.InternalOriginalNormals, Normals,
+      Shape.Geometry.InternalOriginalTangents, Tangents,
+      Joints0, Weights0);
+
+    // Call Changed to update the display
+    CoordNode.FdPoint.Changed;
+    if NormalNode <> nil then
+      NormalNode.FdVector.Changed;
+    if TangentNode <> nil then
+      TangentNode.FdVector.Changed;
   end;
 
 var

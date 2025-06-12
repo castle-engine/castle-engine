@@ -65,7 +65,19 @@
       out SRanges, SRangeName: string;
       out RangeMinimumCount: Cardinal): boolean; virtual;
   public
+    { When this geometry node is used by TSkinNode.InternalUpdateSkin,
+      thenwe store here the original (before aniamtion)
+      coordinates, normals and tangents.
+      This is used to recalculate skin when joints are animated.
+      @exclude
+      @groupBegin }
+    InternalOriginalCoords: TVector3List;
+    InternalOriginalNormals: TVector3List;
+    InternalOriginalTangents: TVector3List;
+    { @groupEnd }
+
     constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
+    destructor Destroy; override;
 
     { Calculate bounding box of this geometry node.
       They require State of this node during VRML traverse state --- this
@@ -839,6 +851,14 @@ begin
     doesn't activate two-sided lighting) and correspond to X3D defaults on other nodes. }
   FIgnoredSolid := true;
   FIgnoredConvex := true;
+end;
+
+destructor TAbstractGeometryNode.Destroy;
+begin
+  FreeAndNil(InternalOriginalCoords);
+  FreeAndNil(InternalOriginalNormals);
+  FreeAndNil(InternalOriginalTangents);
+  inherited;
 end;
 
 constructor TAbstractGeometryNode.CreateWithShape(out Shape: TShapeNode);
