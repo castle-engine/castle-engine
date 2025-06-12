@@ -23,6 +23,16 @@ uses Classes,
   X3DNodes;
 
 type
+  TAnimationMode = (
+    amNone,
+    { Animate most of the body by playing 'walk' animation designed in Blender. }
+    amWalk,
+    { Animate head by changing TransformNeck.Rotation in Pascal code. }
+    amHead,
+    { Both amWalk and amHead at the same time. }
+    amBoth
+  );
+
   { Main view, where most of the application logic takes place. }
   TViewMain = class(TCastleView)
   published
@@ -35,8 +45,8 @@ type
   private
     SceneHumanoid: TCastleScene; //< Either SceneHumanoidNoSkinnedAnim or SceneHumanoidWithSkinnedAnim
     TransformNeck: TTransformNode;
-    HeadAnimation: Boolean; //< whether we play animation of TransformNeck, controled by code
     HeadAnimationTime: TFloatTime;
+    AnimationMode: TAnimationMode;
     procedure DebugLogNodeName(Node: TX3DNode);
     procedure ClickPlayWalk(Sender: TObject);
     procedure ClickPlayHead(Sender: TObject);
@@ -46,6 +56,7 @@ type
     { Switch UI and variables to use
       SceneHumanoidNoSkinnedAnim or SceneHumanoidWithSkinnedAnim }
     procedure ChooseSkinnedAnim(const UseSkinnedAnim: boolean);
+    procedure ChooseAnimationMode(const NewAnimationMode: TAnimationMode);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -135,40 +146,39 @@ begin
 
   ButtonWithSkinnedAnim.Pressed := UseSkinnedAnim;
   ButtonNoSkinnedAnim.Pressed := not UseSkinnedAnim;
-end;
 
+  // reinitialize AnimationMode, to e.g. start 'walk' on new model
+  ChooseAnimationMode(AnimationMode);
+end;
 
 procedure TViewMain.ClickPlayWalk(Sender: TObject);
 begin
-  SceneHumanoid.AutoAnimation := 'walk';
-  HeadAnimation := false;
-
-  // update buttons
-  ButtonPlayWalk.Pressed := true;
-  ButtonPlayHead.Pressed := false;
-  ButtonPlayBoth.Pressed := false;
+  ChooseAnimationMode(amWalk);
 end;
 
 procedure TViewMain.ClickPlayHead(Sender: TObject);
 begin
-  SceneHumanoid.AutoAnimation := ''; // stop walking
-  HeadAnimation := true;
-
-  // update buttons
-  ButtonPlayWalk.Pressed := false;
-  ButtonPlayHead.Pressed := true;
-  ButtonPlayBoth.Pressed := false;
+  ChooseAnimationMode(amHead);
 end;
 
 procedure TViewMain.ClickPlayBoth(Sender: TObject);
 begin
-  SceneHumanoid.AutoAnimation := 'walk';
-  HeadAnimation := true;
+  ChooseAnimationMode(amBoth);
+end;
+
+procedure TViewMain.ChooseAnimationMode(const NewAnimationMode: TAnimationMode);
+begin
+  if NewAnimationMode in [amWalk, amBoth] then
+    SceneHumanoid.AutoAnimation := 'walk'
+  else
+    SceneHumanoid.AutoAnimation := ''; // stop walking
+
+  AnimationMode := NewAnimationMode;
 
   // update buttons
-  ButtonPlayWalk.Pressed := false;
-  ButtonPlayHead.Pressed := false;
-  ButtonPlayBoth.Pressed := true;
+  ButtonPlayWalk.Pressed := AnimationMode = amWalk;
+  ButtonPlayHead.Pressed := AnimationMode = amHead;
+  ButtonPlayBoth.Pressed := AnimationMode = amBoth;
 end;
 
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
@@ -199,7 +209,7 @@ begin
   { This virtual method is executed every frame (many times per second). }
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
 
-  if HeadAnimation then
+  if AnimationMode = amHead then
   begin
     HeadAnimationTime := HeadAnimationTime + SecondsPassed;
     TransformNeck.Rotation := Vector4(
