@@ -983,6 +983,11 @@
     function RoutesCount: Integer;
     procedure AddRoute(const Value: TX3DRoute); overload;
     procedure AddRoute(const Source, Destination: TX3DFieldOrEvent); overload;
+
+    { Removes an X3D route (passing event between 2 nodes) from being stored
+      in this node, and thus from being used.
+      Note that TX3DRoute is "owned" by the node, and thus removing it also
+      frees it. }
     procedure RemoveRoute(const Value: TX3DRoute); overload;
     procedure RemoveRoute(const Index: Integer); overload;
 
@@ -3569,10 +3574,14 @@ begin
 end;
 
 procedure TX3DNode.RemoveRoute(const Value: TX3DRoute);
+var
+  I: Integer;
 begin
   Assert(FRoutes <> nil);
-
-  RemoveRoute(FRoutes.IndexOf(Value));
+  I := FRoutes.IndexOf(Value);
+  if I = -1 then
+    raise ERangeError.Create('Route to remove not found in Routes list');
+  RemoveRoute(I);
 end;
 
 procedure TX3DNode.RemoveRoute(const Index: Integer);

@@ -126,6 +126,7 @@ type
     procedure TestCoordRanges;
     procedure TestNodeRelease;
     procedure TestNodeReleaseWhenStillUsed;
+    procedure TestRemoveRoute;
   end;
 
 implementation
@@ -2913,6 +2914,30 @@ begin
 
   // free Shape, which will free Geometry and Coordinate (as they are ref-counted again)
   FreeAndNil(Shape);
+end;
+
+procedure TTestX3DNodes.TestRemoveRoute;
+var
+  PositionInterpolator: TPositionInterpolatorNode;
+  TransformNode: TTransformNode;
+  Route: TX3DRoute;
+begin
+  PositionInterpolator := TPositionInterpolatorNode.Create;
+  TransformNode := TTransformNode.Create;
+
+  Route := TX3DRoute.Create;
+  Route.SetSourceDirectly(PositionInterpolator.EventValue_Changed);
+  Route.SetDestinationDirectly(TransformNode.FdTranslation.EventIn);
+
+  PositionInterpolator.AddRoute(Route);
+  AssertEquals(1, PositionInterpolator.RoutesCount);
+
+  PositionInterpolator.RemoveRoute(Route);
+  AssertEquals(0, PositionInterpolator.RoutesCount);
+
+  FreeAndNil(PositionInterpolator);
+  FreeAndNil(TransformNode);
+  //FreeAndNil(Route); // already freed by RemoveRoute
 end;
 
 initialization
