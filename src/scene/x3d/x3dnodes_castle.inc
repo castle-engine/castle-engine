@@ -223,6 +223,7 @@
     DoneWarningNormalsCount: Boolean;
     DoneWarningTangentsCount: Boolean;
     DoneWarningNoWeightsJoints: Boolean;
+    DoneWarningInverseBindMatricesCount: Boolean;
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
@@ -656,6 +657,12 @@ procedure TSkinNode.InternalUpdateSkin;
       UpdateGeometryOriginalArray(Geometry.InternalOriginalTangents, Tangents);
     end;
 
+    function JointTransform(const Joint: TX3DNode): TMatrix4;
+    begin
+      Result := TMatrix4.Identity;
+      // TODO
+    end;
+
     { Update skin Coords (and optionally Normals, Tangents)
       based on current joints transformation.
       OriginalCoords contains original (not animated) coords. }
@@ -687,13 +694,24 @@ procedure TSkinNode.InternalUpdateSkin;
       if JointMatrix = nil then
         JointMatrix := TMatrix4List.Create;
       JointMatrix.Count := FdJoints.Count;
-      for I := 0 to FdJoints.Count - 1 do
-        JointMatrix.L[I] := SkeletonRootInverse;// *
-          // TODO:
-          // Joints[I].Transform???
-          //AnimationSampler.Transformations.L[JointsGltf[I]].Transform *
-          // TODO
-          //FdInverseBindMatrices.Items.L[I];
+      if FdJoints.Count <> FdInverseBindMatrices.Count then
+      begin
+        if FdInverseBindMatrices.Count <> 0 then
+          WritelnWarningOnce(DoneWarningInverseBindMatricesCount,
+            'Count of TSkinNode.inverseBindMatrices (%d) does not match count of TSkinNode.joints (%d)', [
+            FdInverseBindMatrices.Count,
+            FdJoints.Count
+          ]);
+        for I := 0 to FdJoints.Count - 1 do
+          JointMatrix.L[I] := SkeletonRootInverse *
+            JointTransform(FdJoints[I]);
+      end else
+      begin
+        for I := 0 to FdJoints.Count - 1 do
+          JointMatrix.L[I] := SkeletonRootInverse *
+            JointTransform(FdJoints[I]) *
+            FdInverseBindMatrices.Items.L[I];
+      end;
 
       { For each vertex, calculate SkinMatrix as linear combination of JointMatrix[...]
         for all joints indicated by Joints0 values for this vertex. }
