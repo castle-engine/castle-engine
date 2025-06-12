@@ -155,7 +155,7 @@
   {$ifdef CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
   private
     { Transformation within the TSkinNode. }
-    SkinJointTransform: TMatrix4;
+    SkinJointTransform: TTransformationSimple;
   {$endif CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
   public
     { Change State.Transformation for children nodes.
@@ -1250,7 +1250,7 @@ begin
       Parent.Scale,
       Parent.ScaleOrientation,
       Parent.Translation);
-    SkinJointTransform := State.SkinJointTransformation.Transform;
+    SkinJointTransform := State.SkinJointTransformation;
   end;
   {$endif CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
 end;

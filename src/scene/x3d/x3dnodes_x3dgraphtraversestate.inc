@@ -169,7 +169,7 @@
     {$ifdef CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
     { For transformation nodes (anything with TTransformFunctionality)
       inside TSkinNode.Skeleton, this contains cummulated transformation. }
-    SkinJointTransformation: TTransformation;
+    SkinJointTransformation: TTransformationSimple;
     {$endif CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
 
     { ClipPlanes affecting nodes within this state.

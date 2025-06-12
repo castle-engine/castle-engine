@@ -725,7 +725,7 @@ procedure TSkinNode.InternalUpdateSkin;
         for I := 0 to FdJoints.Count - 1 do
           JointMatrix.L[I] :=
             {$ifdef CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
-            FdJoints[I].TransformFunctionality.SkinJointTransform
+            FdJoints[I].TransformFunctionality.SkinJointTransform.Transform
             {$else}
             SkeletonRootInverse *
             JointTransform(FdJoints[I])^.Transform
@@ -736,7 +736,7 @@ procedure TSkinNode.InternalUpdateSkin;
         for I := 0 to FdJoints.Count - 1 do
           JointMatrix.L[I] :=
             {$ifdef CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
-            FdJoints[I].TransformFunctionality.SkinJointTransform
+            FdJoints[I].TransformFunctionality.SkinJointTransform.Transform
             {$else}
             SkeletonRootInverse *
             JointTransform(FdJoints[I])^.Transform
