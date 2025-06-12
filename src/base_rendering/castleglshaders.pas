@@ -1780,11 +1780,12 @@ begin
         if (not HasLine('precision mediump float;', S)) and
            (not HasLine('precision lowp float;', S)) and
            (not HasLine('precision highp float;', S)) then
-          {$ifdef iOS}
-          S := 'precision highp float;' + NL + S;
-          {$else}
           S := 'precision mediump float;' + NL + S;
-          {$endif}
+        {$endif}
+        {$ifdef iOS}
+        { shadow maps fragment shader requires shadowMapCoord to have high precision on iOS, else it produces black noise }
+        S := StringReplace(S, 'const vec4 shadowMapCoord', 'const highp vec4 shadowMapCoord', [rfReplaceAll]);
+        S := StringReplace(S, 'const vec3 shadowMapCoord', 'const highp vec3 shadowMapCoord', [rfReplaceAll]);
         {$endif}
       end;
     {$ifndef COMPILER_CASE_ANALYSIS}
