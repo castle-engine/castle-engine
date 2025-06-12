@@ -209,7 +209,7 @@ begin
   { This virtual method is executed every frame (many times per second). }
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
 
-  if AnimationMode = amHead then
+  if AnimationMode in [amHead, amBoth] then
   begin
     HeadAnimationTime := HeadAnimationTime + SecondsPassed;
     TransformNeck.Rotation := Vector4(
