@@ -224,6 +224,7 @@
     DoneWarningTangentsCount: Boolean;
     DoneWarningNoWeightsJoints: Boolean;
     DoneWarningInverseBindMatricesCount: Boolean;
+    DoneWarningJointTransformCount: Boolean;
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
@@ -657,10 +658,26 @@ procedure TSkinNode.InternalUpdateSkin;
       UpdateGeometryOriginalArray(Geometry.InternalOriginalTangents, Tangents);
     end;
 
-    function JointTransform(const Joint: TX3DNode): TMatrix4;
+    { Return transformation, as matrix, of this joint (from the root of the
+      X3D graph, so within this TCastleScene).
+      Returns pointer to read-only TTransformation that contains
+      the transformation matrix in both ways. }
+    function JointTransform(const Joint: TX3DNode): PTransformation;
+    var
+      ShapeTransform: TShapeTreeTransform;
+      C: Integer;
     begin
-      Result := TMatrix4.Identity;
-      // TODO
+      C := TShapeTree.AssociatedShapesCount(Joint);
+      if C <> 1 then
+      begin
+        WritelnWarningOnce(DoneWarningJointTransformCount,
+          'Joint %s is not present in the scene exactly once, cannot determine transformation', [
+          Joint.X3DName
+        ]);
+        Exit(@IdentityTransformation);
+      end;
+      ShapeTransform := TShapeTree.AssociatedShape(Joint, 0) as TShapeTreeTransform;
+      Result := @ShapeTransform.TransformState.Transformation;
     end;
 
     { Update skin Coords (and optionally Normals, Tangents)
@@ -683,11 +700,7 @@ procedure TSkinNode.InternalUpdateSkin;
       Assert((AnimatedTangents = nil) = (OriginalTangents = nil));
       Assert((OriginalTangents = nil) or (OriginalTangents.Count = OriginalCoords.Count));
 
-      // TODO:
-      // if SkeletonRootIndex <> -1 then
-      //   SkeletonRootInverse := AnimationSampler.Transformations.L[SkeletonRootIndex].InverseTransform
-      // else
-        SkeletonRootInverse := TMatrix4.Identity;
+      SkeletonRootInverse := JointTransform(Skeleton)^.InverseTransform;
 
       { For each Joint, we calculate JointMatrix following
         https://www.slideshare.net/Khronos_Group/gltf-20-reference-guide }
@@ -704,12 +717,12 @@ procedure TSkinNode.InternalUpdateSkin;
           ]);
         for I := 0 to FdJoints.Count - 1 do
           JointMatrix.L[I] := SkeletonRootInverse *
-            JointTransform(FdJoints[I]);
+            JointTransform(FdJoints[I])^.Transform;
       end else
       begin
         for I := 0 to FdJoints.Count - 1 do
           JointMatrix.L[I] := SkeletonRootInverse *
-            JointTransform(FdJoints[I]) *
+            JointTransform(FdJoints[I])^.Transform *
             FdInverseBindMatrices.Items.L[I];
       end;
 

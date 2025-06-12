@@ -252,7 +252,7 @@ implementation
 
 uses Math, StrUtils, URIParser,
   CastleTextureFont_Default3d_Sans,
-  X3DLoad, CastleInternalZStream, X3DCameraUtils,
+  X3DLoad, CastleInternalZStream, X3DCameraUtils, CastleShapes,
   CastleFilesUtils, CastleUriUtils, CastleUnicode, CastleCurves,
   CastleLog, CastleScriptParser, CastleInternalDataUri, CastleDownload,
   CastleInternalNurbs, CastleQuaternions, CastleXmlUtils, CastleOpenDocument,

@@ -120,6 +120,24 @@ type
   TTransformationList = class({$ifdef FPC}specialize{$endif} TStructList<TTransformation>)
   end;
 
+const
+  IdentityTransformation: TTransformation = (
+    Transform: (Data: (
+      (1, 0, 0, 0),
+      (0, 1, 0, 0),
+      (0, 0, 1, 0),
+      (0, 0, 0, 1)
+    ));
+    InverseTransform: (Data: (
+      (1, 0, 0, 0),
+      (0, 1, 0, 0),
+      (0, 0, 1, 0),
+      (0, 0, 0, 1)
+    ));
+    Scale: 1;
+    UniformScale: true
+  );
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
