@@ -164,6 +164,8 @@
     HumanoidTransformation: TTransformation;
     { Humanoid node containing us, or @nil if none. }
     Humanoid: THAnimHumanoidNode;
+    { Skin node containing us, or @nil if none. }
+    Skin: TSkinNode;
 
     { ClipPlanes affecting nodes within this state.
 
@@ -355,6 +357,7 @@ begin
   InsideIgnoreCollision := Source.InsideIgnoreCollision;
   InsideInvisible := Source.InsideInvisible;
   Humanoid := Source.Humanoid;
+  Skin := Source.Skin;
   LocalFog := Source.LocalFog;
 
   PointingDeviceSensors.Assign(Source.PointingDeviceSensors);

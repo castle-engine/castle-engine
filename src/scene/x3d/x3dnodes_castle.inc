@@ -1,6 +1,6 @@
 {%MainUnit x3dnodes.pas}
 {
-  Copyright 2002-2023 Michalis Kamburelis.
+  Copyright 2002-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -215,6 +215,12 @@
   TSkinNode = class(TAbstractChildNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
+    procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
+    procedure AfterTraverse(StateStack: TX3DGraphTraverseStateStack); override;
+  public
+    { Update meshes in @link(FdShapes) to reflect the current joints transformation.
+      This does the core of "skinned animation" logic. }
+    procedure InternalUpdateSkin;
   {$I auto_generated_node_helpers/x3dnodes_skin.inc}
   end;
 
@@ -451,6 +457,37 @@ begin
 
   Result := FdShapes.Enumerate(Func);
   if Result <> nil then Exit;
+end;
+
+procedure TSkinNode.BeforeTraverse(StateStack: TX3DGraphTraverseStateStack);
+begin
+  inherited;
+  StateStack.Push;
+  StateStack.Top.Skin := Self;
+end;
+
+procedure TSkinNode.AfterTraverse(StateStack: TX3DGraphTraverseStateStack);
+begin
+  InternalUpdateSkin;
+  StateStack.Pop;
+  inherited;
+end;
+
+procedure TSkinNode.InternalUpdateSkin;
+
+  procedure UpdateShape(const Shape: TAbstractShapeNode);
+  begin
+    // TODO
+    // Writeln(FormatDateTime('yyyy"-"mm"-"dd" "tt', CastleNow) +
+    //   'Updating Shape ' + Shape.NiceName + ' in skin ' + NiceName);
+  end;
+
+var
+  I: Integer;
+begin
+  for I := 0 to FdShapes.Count - 1 do
+    if FdShapes.Items[I] is TAbstractShapeNode then
+      UpdateShape(TAbstractShapeNode(FdShapes.Items[I]));
 end;
 
 { registration --------------------------------------------------------------- }
