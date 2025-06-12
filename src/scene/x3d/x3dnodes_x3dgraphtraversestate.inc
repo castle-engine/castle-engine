@@ -160,12 +160,15 @@
       grouping node, they all work.) }
     PointingDeviceSensors: TPointingDeviceSensorList;
 
-    { For Humanoid skeleton, these contain cummulated joint transformation. }
-    HumanoidTransformation: TTransformation;
     { Humanoid node containing us, or @nil if none. }
     Humanoid: THAnimHumanoidNode;
+    { For Humanoid skeleton, these contain cummulated joint transformation. }
+    HumanoidTransformation: TTransformation;
     { Skin node containing us, or @nil if none. }
     Skin: TSkinNode;
+    { For transformation nodes (anything with TTransformFunctionality)
+      inside TSkinNode.Skeleton, this contains cummulated transformation. }
+    SkinJointTransformation: TTransformation;
 
     { ClipPlanes affecting nodes within this state.
 
@@ -296,6 +299,7 @@ begin
     testcase is
     castle-model-viewer ~/3dmodels/vrmlx3d/hanim/tecfa.unige.ch/vrml/objects/avatars/blaxxun/kambi_hanim_10_test.wrl.) }
   HumanoidTransformation.Init;
+  SkinJointTransformation.Init;
 
   TextureTransform := TMatrix4.Identity;
   FVRML1State.Assign(VRML1DefaultState);
@@ -315,6 +319,7 @@ procedure TX3DGraphTraverseState.Clear;
 begin
   Transformation.Init;
   HumanoidTransformation.Init;
+  SkinJointTransformation.Init;
 
   TextureTransform := TMatrix4.Identity;
   FVRML1State.Assign(VRML1DefaultState);
@@ -376,6 +381,7 @@ procedure TX3DGraphTraverseState.AssignTransform(
 begin
   Transformation := Source.Transformation;
   HumanoidTransformation := Source.HumanoidTransformation;
+  SkinJointTransformation := Source.SkinJointTransformation;
 
   if PointingDeviceSensors.Count <> 0 then
     PointingDeviceSensors.Transformation := Source.PointingDeviceSensors.Transformation;

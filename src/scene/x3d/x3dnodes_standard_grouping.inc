@@ -382,9 +382,15 @@
         constructor Create(const AParent: TTransformNode);
         property Parent: TTransformNode read FParent;
         procedure ApplyTransform(var Transformation: TTransformation); override;
+        procedure ApplyTransform(const State: TX3DGraphTraverseState); override;
       end;
     var
       FTransformFunctionality: TTransformNodeTransformFunctionality;
+  {$ifdef CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
+  private
+    { Transformation within the TSkinNode. }
+    SkinJointTransform: TMatrix4;
+  {$endif CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
   protected
     { }
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
@@ -1229,6 +1235,24 @@ begin
     WritelnLog('VRML/X3D', 'Note: Transform.scale has negative component. It allows some tricks (especially sensible for unlit 2D stuff), but it makes lighting act weird. Make sure you use it only for unlit objects.');
   end;
   }
+end;
+
+procedure TTransformNode.TTransformNodeTransformFunctionality.ApplyTransform(const State: TX3DGraphTraverseState);
+begin
+  inherited;
+
+  {$ifdef CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
+  if State.Skin <> nil then
+  begin
+    State.SkinJointTransformation.Multiply(
+      Parent.Center,
+      Parent.Rotation,
+      Parent.Scale,
+      Parent.ScaleOrientation,
+      Parent.Translation);
+    Parent.SkinJointTransform := State.SkinJointTransformation.Transform;
+  end;
+  {$endif CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
 end;
 
 { TTransformNode ------------------------------------------------------------- }

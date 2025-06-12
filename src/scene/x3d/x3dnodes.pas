@@ -165,6 +165,10 @@ unit X3DNodes;
   {$error When CASTLE_STRICT_CLI is defined, you cannot link to this unit.}
 {$endif}
 
+{ If defined, TSkinNode joints transformation is calculated differently,
+  without relying on CastleShapes information. }
+{$define CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
+
 interface
 
 uses SysUtils, Generics.Collections, Classes, XMLRead, DOM,
@@ -252,12 +256,15 @@ implementation
 
 uses Math, StrUtils, URIParser,
   CastleTextureFont_Default3d_Sans,
-  X3DLoad, CastleInternalZStream, X3DCameraUtils, CastleShapes,
+  X3DLoad, CastleInternalZStream, X3DCameraUtils,
   CastleFilesUtils, CastleUriUtils, CastleUnicode, CastleCurves,
   CastleLog, CastleScriptParser, CastleInternalDataUri, CastleDownload,
   CastleInternalNurbs, CastleQuaternions, CastleXmlUtils, CastleOpenDocument,
   CastleSoundBase, CastleTriangles, X3DLoadInternalUtils, CastleFileFilters,
-  CastleApplicationProperties, CastleInternalNodesUnsupported;
+  CastleApplicationProperties, CastleInternalNodesUnsupported
+  {$ifndef CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
+  , CastleShapes
+  {$endif};
 
 {$define read_implementation}
 

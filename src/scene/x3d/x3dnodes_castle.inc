@@ -658,6 +658,7 @@ procedure TSkinNode.InternalUpdateSkin;
       UpdateGeometryOriginalArray(Geometry.InternalOriginalTangents, Tangents);
     end;
 
+    {$ifndef CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
     { Return transformation, as matrix, of this joint (from the root of the
       X3D graph, so within this TCastleScene).
       Returns pointer to read-only TTransformation that contains
@@ -679,6 +680,7 @@ procedure TSkinNode.InternalUpdateSkin;
       ShapeTransform := TShapeTree.AssociatedShape(Joint, 0) as TShapeTreeTransform;
       Result := @ShapeTransform.TransformState.Transformation;
     end;
+    {$endif not CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
 
     { Update skin Coords (and optionally Normals, Tangents)
       based on current joints transformation.
@@ -691,7 +693,10 @@ procedure TSkinNode.InternalUpdateSkin;
       const Weights0: TVector4List);
     var
       I: Integer;
-      SkinMatrix, SkeletonRootInverse: TMatrix4;
+      SkinMatrix: TMatrix4;
+      {$ifndef CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
+      SkeletonRootInverse: TMatrix4;
+      {$endif not CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
       VertexJointsPtr: PVector4Integer;
       VertexWeights: TVector4;
     begin
@@ -700,7 +705,9 @@ procedure TSkinNode.InternalUpdateSkin;
       Assert((AnimatedTangents = nil) = (OriginalTangents = nil));
       Assert((OriginalTangents = nil) or (OriginalTangents.Count = OriginalCoords.Count));
 
+      {$ifndef CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
       SkeletonRootInverse := JointTransform(Skeleton)^.InverseTransform;
+      {$endif not CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
 
       { For each Joint, we calculate JointMatrix following
         https://www.slideshare.net/Khronos_Group/gltf-20-reference-guide }
@@ -716,13 +723,24 @@ procedure TSkinNode.InternalUpdateSkin;
             FdJoints.Count
           ]);
         for I := 0 to FdJoints.Count - 1 do
-          JointMatrix.L[I] := SkeletonRootInverse *
-            JointTransform(FdJoints[I])^.Transform;
+          JointMatrix.L[I] :=
+            {$ifdef CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
+            (FdJoints[I] as TTransformNode).SkinJointTransform
+            {$else}
+            SkeletonRootInverse *
+            JointTransform(FdJoints[I])^.Transform
+            {$endif CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
+          ;
       end else
       begin
         for I := 0 to FdJoints.Count - 1 do
-          JointMatrix.L[I] := SkeletonRootInverse *
-            JointTransform(FdJoints[I])^.Transform *
+          JointMatrix.L[I] :=
+            {$ifdef CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
+            (FdJoints[I] as TTransformNode).SkinJointTransform
+            {$else}
+            SkeletonRootInverse *
+            JointTransform(FdJoints[I])^.Transform
+            {$endif CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL} *
             FdInverseBindMatrices.Items.L[I];
       end;
 
