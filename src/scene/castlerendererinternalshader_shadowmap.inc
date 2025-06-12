@@ -112,12 +112,7 @@ begin
     when given light is applied. }
   Shader.Plug(stFragment,
     Format('uniform %s %s;', [SamplerType, ShadowMapName]) + NL +
-    {$ifdef iOS}
-    { shadow maps fragment shader requires shadowMapCoord to have high precision on iOS, else it produces black noise }
-    Format('varying highp vec4 %s;', [ProjectedTexCoordName]) + NL +
-    {$else}
-    Format('varying vec4 %s;', [ProjectedTexCoordName]) + NL +
-    {$endif}
+    Format('varying shadowsPrecision vec4 %s;', [ProjectedTexCoordName]) + NL +
 
     // Do not redeclare shadow() and friends on OpenGLES
     {$ifndef OpenGLES}

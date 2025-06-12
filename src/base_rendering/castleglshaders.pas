@@ -1709,6 +1709,7 @@ const
     '#define texture3DProj textureProj' + NL +
     '#define gl_FragColor castle_FragColor' + NL +
     'out mediump vec4 castle_FragColor;' + NL +
+    '#define shadowsPrecision highp' + NL +
     'precision lowp sampler2DShadow;' + NL +
     'precision lowp sampler3D;' + NL
   );
@@ -1739,7 +1740,8 @@ const
     '#define texture2DProj textureProj' + NL +
     '#define texture3DProj textureProj' + NL +
     '#define gl_FragColor castle_FragColor' + NL +
-    'out mediump vec4 castle_FragColor;' + NL
+    'out mediump vec4 castle_FragColor;' + NL +
+    '#define shadowsPrecision' + NL
   );
   {$endif}
 
@@ -1781,11 +1783,6 @@ begin
            (not HasLine('precision lowp float;', S)) and
            (not HasLine('precision highp float;', S)) then
           S := 'precision mediump float;' + NL + S;
-        {$endif}
-        {$ifdef iOS}
-        { shadow maps fragment shader requires shadowMapCoord to have high precision on iOS, else it produces black noise }
-        S := StringReplace(S, 'const vec4 shadowMapCoord', 'const highp vec4 shadowMapCoord', [rfReplaceAll]);
-        S := StringReplace(S, 'const vec3 shadowMapCoord', 'const highp vec3 shadowMapCoord', [rfReplaceAll]);
         {$endif}
       end;
     {$ifndef COMPILER_CASE_ANALYSIS}
