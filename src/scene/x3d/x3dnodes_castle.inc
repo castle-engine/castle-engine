@@ -804,7 +804,7 @@ end;
 
 { registration --------------------------------------------------------------- }
 
-procedure RegisterKambiNodes;
+procedure RegisterCastleEngineNodes;
 begin
   NodesManager.RegisterNodeClasses([
     TText3DNode,

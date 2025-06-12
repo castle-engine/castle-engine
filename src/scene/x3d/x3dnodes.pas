@@ -711,7 +711,7 @@ initialization
   RegistedInventorNodes;
   RegisterVRML1Nodes;
   RegisterVRML97HAnimNodes;
-  RegisterKambiNodes;
+  RegisterCastleEngineNodes;
   RegisterInstantRealityNodes;
 
   { X3D components registration : }
