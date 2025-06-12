@@ -2193,6 +2193,68 @@ var
     end;
   end;
 
+  { Place the Skin node in the X3D nodes Transform hierarchy
+    where the Skin.Skeleton is right now.
+    You have to call this exactly once, because after this --
+    Skin.Skeleton will not be in any X3D nodes Transform hierarchy,
+    it will be only inside Skin node.
+
+    The Skin node (actually similar to HAnimHumanoid) is expected
+    to be in the place of X3D hierarchy where the skeleton is. }
+  procedure AddSkinToHierarchy(const Skin: TSkinNode);
+  var
+    ParentFieldsCopy: TX3DFieldList;
+    ParentField: TX3DField;
+    ParentNode: TX3DNode;
+    ParentNodeGroup: TAbstractGroupingNode;
+    IndexToReplace: Integer;
+    I: Integer;
+  begin
+    Assert(Skin.Skeleton <> nil);
+    ParentFieldsCopy := TX3DFieldList.Create(false);
+    try
+      // copy ParentFields -> ParentFieldsCopy
+      // ParentFieldsCopy.AddRange(Skin.Skeleton.ParentFields); // not possible
+      ParentFieldsCopy.Count := Skin.Skeleton.ParentFieldsCount;
+      for I := 0 to ParentFieldsCopy.Count - 1 do
+        ParentFieldsCopy[I] := Skin.Skeleton.ParentFields[I];
+
+      for I := 0 to ParentFieldsCopy.Count - 1 do
+      begin
+        ParentField := ParentFieldsCopy[I];
+        ParentNode := ParentFieldsCopy[I].ParentNode as TX3DNode;
+        if ParentNode = nil then
+        begin
+          WritelnWarning('AddSkinToHierarchy found unexpected state, Skin.Skeleton has no parent. Submit a bug with glTF testcase.');
+          Continue;
+        end;
+
+        if ParentNode is TAbstractGroupingNode then
+        begin
+          ParentNodeGroup := TAbstractGroupingNode(ParentNode);
+          IndexToReplace := ParentNodeGroup.FdChildren.IndexOf(Skin.Skeleton);
+          if IndexToReplace = -1 then
+          begin
+            WritelnWarning('AddSkinToHierarchy found unexpected state, Skin.Skeleton is not a child of its parent (%s). Submit a bug with glTF testcase.', [
+              ParentNode.NiceName
+            ]);
+            Continue;
+          end;
+
+          { Note that this decreases the refcount of Skin.Skeleton,
+            but it's not a problem (it will not be freed) because it's referenced
+            by Skin. }
+          ParentNodeGroup.FdChildren[IndexToReplace] := Skin;
+        end else
+        if not (ParentNode is TSkinNode) then
+        begin
+          WritelnWarning('AddSkinToHierarchy found unexpected state, Skin.Skeleton has a parent that is not TAbstractGroupingNode. Submit a bug with glTF testcase.');
+          Continue;
+        end;
+      end;
+    finally FreeAndNil(ParentFieldsCopy) end;
+  end;
+
   { Add skin information (TSkinNode) based on TSkinToInitialize. }
   procedure ReadSkin(const SkinToInitialize: TSkinToInitialize);
   var
@@ -2206,8 +2268,6 @@ var
     Skin := SkinToInitialize.Skin;
 
     SkinNode := TSkinNode.Create(Skin.Name, BaseUrl);
-    // TODO add skinnode better place
-    Result.AddChildren(SkinNode);
 
     // calculate SkinNode.Skeleton (root joint)
     SkeletonRootIndex := Skin.Skeleton;
@@ -2225,6 +2285,8 @@ var
       end;
       SkinNode.Skeleton := Nodes[SkeletonRootIndex] as TAbstractGroupingNode;
     end;
+
+    AddSkinToHierarchy(SkinNode);
 
     // calculate SkinNode.Joints
     SkinNode.FdJoints.Count := Skin.Joints.Count;

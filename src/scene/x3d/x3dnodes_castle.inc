@@ -212,7 +212,7 @@
     efficient and perfectly aligned with glTF.
     See @url(https://castle-engine.io/skin skinned animation documentation)
     for usage details. }
-  TSkinNode = class(TAbstractGroupingNode)
+  TSkinNode = class(TAbstractChildNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   {$I auto_generated_node_helpers/x3dnodes_skin.inc}
