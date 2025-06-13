@@ -34,7 +34,7 @@
     strict private FFdJoints: TMFNode;
     { Internal wrapper for property @code(Joints). This wrapper API may change, we advise to access simpler @code(Joints) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdJoints: TMFNode read FFdJoints;
-    { Joints are transformation nodes that, when transformed, modify the skin (meshes affected by this skinned animation, listed in @link(Shapes)).
+    { Joints are transformation nodes that, when transformed, modify the skin (meshes affected by this skinned animation, listed in @link(FdShapes)).
 
     Various node classes that can define a transformation (translation, rotation, scale) are allowed as joints here. If you don't have any other requirement, then just use @link(TTransformNode). Implementations can assume that nodes here have non-nil @link(TX3DNode.TransformFunctionality). }
     procedure SetJoints(const Value: array of TX3DNode);
@@ -46,13 +46,13 @@
 
     The precise mathematical meaning of this follows the @url(https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html glTF 2.0 specification). The @url(https://www.khronos.org/files/gltf20-reference-guide.pdf glTF 2.0 API Reference Guide) also contains a great explanation of how this is used.
 
-    Either this array must be empty (equivalent to all values being identity matrix) or the count of this array must be equal to the count of @link(Joints). }
+    Either this array must be empty (equivalent to all values being identity matrix) or the count of this array must be equal to the count of @link(FdJoints). }
     procedure SetInverseBindMatrices(const Value: array of TMatrix4); overload;
     { For each joint, an "inverse bind matrix" is specified, which transforms the mesh into the local space of the joint.
 
     The precise mathematical meaning of this follows the @url(https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html glTF 2.0 specification). The @url(https://www.khronos.org/files/gltf20-reference-guide.pdf glTF 2.0 API Reference Guide) also contains a great explanation of how this is used.
 
-    Either this array must be empty (equivalent to all values being identity matrix) or the count of this array must be equal to the count of @link(Joints). }
+    Either this array must be empty (equivalent to all values being identity matrix) or the count of this array must be equal to the count of @link(FdJoints). }
     procedure SetInverseBindMatrices(const Value: TMatrix4List); overload;
 
     strict private FFdShapes: TMFNode;
@@ -63,13 +63,13 @@
     Only shapes with geometries that have @code(SkinWeights0) and @code(SkinJoints0) fields are allowed here. This means these geometry nodes: @link(TAbstractComposedGeometryNode) (with its numerous descendants, all "meshes" that are composed of triangles, quads, faces...), @link(TIndexedLineSetNode), @link(TLineSetNode) and @link(TPointSetNode).
 
     The geometries within these shapes are affected by this skinned animation.
-    Their @code(SkinJoints0) indexes refer to our @link(Joints).
+    Their @code(SkinJoints0) indexes refer to our @link(FdJoints).
 
     Note that you can place here only shape nodes, not groups or hierarchies of them (e.g. @link(TGroupNode) or @link(TTransformNode)). This is a deliberate constraint to make working of this node obvious.
 
     This also matches the glTF usage, where the meshes affected by one skin are always within one and the same transformation. glTF specification says @italic("Only the joint transforms are applied to the skinned mesh; the transform of the skinned mesh node MUST be ignored.") which in practice forces treating all skinned shapes as if they were direct children alongside the skeleton root.
 
-    We make it more explicit in our design: the @link(Shapes) are explicitly direct children of the @link(TSkinNode). So the shapes are affected by the transformations of the @link(TSkinNode). Any further transformation of shapes has to happen through the skinned animation (joints affecting shapes vertexes according to weights), not through the direct transformations of the shapes themselves.
+    We make it more explicit in our design: the @link(FdShapes) are explicitly direct children of the @link(TSkinNode). So the shapes are affected by the transformations of the @link(TSkinNode). Any further transformation of shapes has to happen through the skinned animation (joints affecting shapes vertexes according to weights), not through the direct transformations of the shapes themselves.
 
     Note that you can also place @link(TShapeNode) instances within the @link(Skeleton) hierarchy. Such shapes are not affected by the skinned animation, they are just rigid 3D shapes attached to the joints (like a sword may be attached to the avatar's hand). }
     procedure SetShapes(const Value: array of TAbstractShapeNode);
