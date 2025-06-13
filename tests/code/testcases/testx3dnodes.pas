@@ -2660,7 +2660,7 @@ var
 begin
   ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}OnWarningRaiseException);
   try
-    Node := LoadNode('castle-data:/quaternius/Bunny.gltf');
+    Node := LoadNode('castle-data:/gltf/quaternius/Bunny.gltf');
     try
       OutputStream := TMemoryStream.Create;
       try
