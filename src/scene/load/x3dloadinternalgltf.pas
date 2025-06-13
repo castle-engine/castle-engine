@@ -2258,6 +2258,29 @@ var
     finally FreeAndNil(ParentFieldsCopy) end;
   end;
 
+  { This is a hacky way to determine bounding box after skin animation
+    is applied. We just enlarge the box in all dimensions by a proportional
+    size that "seems to be good enough for testcases".
+    We need this, as otherwise too-small bounding box could result in
+    frustum culling hiding the object. See https://castle-engine.io/skin
+
+    TODO: Try getting better data from glTF, they have bounds in various places,
+    can they be used? }
+  function EnlargeBoxForAnimation(const Box: TBox3D): TBox3D;
+  var
+    BoxIncrease: TVector3;
+  begin
+    Result := Box;
+    if not Result.IsEmpty then
+    begin
+      BoxIncrease.X := Result.MaxSize / 2;
+      BoxIncrease.Y := BoxIncrease.X;
+      BoxIncrease.Z := BoxIncrease.X;
+      Result.Data[0] := Result.Data[0] - BoxIncrease;
+      Result.Data[1] := Result.Data[1] + BoxIncrease;
+    end;
+  end;
+
   { Add skin information (TSkinNode) based on TSkinToInitialize. }
   procedure ReadSkin(const Skin: TPasGLTF.TSkin;
     const SkinToInitialize: TSkinToInitialize);
@@ -2335,6 +2358,8 @@ var
             and their boxes are easy, since we fill shape's bbox.
             TODO: Shape.BBox is not calculated now. }
           ShapeNode.Collision := scBox;
+
+          ShapeNode.BBox := EnlargeBoxForAnimation(ShapeNode.BBox);
 
           { To satisfy glTF requirements
             """
