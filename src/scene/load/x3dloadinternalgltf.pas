@@ -164,14 +164,13 @@ type
 type
   { Information about skin, to be used later. }
   TSkinToInitialize = class
-    Skin: TPasGLTF.TSkin;
     { Direct children of this grouping node
       (that are TShapeNode and have SkinWeights0 and SkinJoints0 fields)
       should have skinning applied. }
     Shapes: TAbstractGroupingNode;
   end;
 
-  TSkinToInitializeList = {$ifdef FPC}specialize{$endif} TObjectList<TSkinToInitialize>;
+  TSkinToInitializeList = {$ifdef FPC}specialize{$endif} TObjectDictionary<TPasGLTF.TSkin, TSkinToInitialize>;
 
 { TAnimation ----------------------------------------------------------------- }
 
@@ -1888,12 +1887,18 @@ var
       SkinToInitialize: TSkinToInitialize;
       Shapes: TAbstractGroupingNode;
     begin
+      if SkinsToInitialize.ContainsKey(Skin) then
+      begin
+        // Testcase: Bunny.gltf in data/ of this project, both Bunny and Carrot meshes refer to same skin.
+        WritelnWarning('TODO: Skin used by multiple nodes, not supported now');
+        Exit;
+      end;
+
       SkinToInitialize := TSkinToInitialize.Create;
-      SkinsToInitialize.Add(SkinToInitialize);
+      SkinsToInitialize.Add(Skin, SkinToInitialize);
       // Shapes is the group created inside ReadMesh
       Shapes := Transform.FdChildren.InternalItems.Last as TAbstractGroupingNode;
       SkinToInitialize.Shapes := Shapes;
-      SkinToInitialize.Skin := Skin;
     end;
 
   var
@@ -2254,102 +2259,106 @@ var
   end;
 
   { Add skin information (TSkinNode) based on TSkinToInitialize. }
-  procedure ReadSkin(const SkinToInitialize: TSkinToInitialize);
+  procedure ReadSkin(const Skin: TPasGLTF.TSkin;
+    const SkinToInitialize: TSkinToInitialize);
   var
     SkinNode: TSkinNode;
     SkeletonRootIndex: Integer;
     I: Integer;
-    Skin: TPasGLTF.TSkin;
     Shapes: TAbstractGroupingNode;
     ShapeNode: TShapeNode;
   begin
-    Skin := SkinToInitialize.Skin;
-
     SkinNode := TSkinNode.Create(Skin.Name, BaseUrl);
+    try
 
-    // calculate SkinNode.Skeleton (root joint)
-    SkeletonRootIndex := Skin.Skeleton;
-    if SkeletonRootIndex = -1 then
-      SkinNode.Skeleton := CurrentScene
-    else
-    begin
-      if not Between(SkeletonRootIndex, 0, Nodes.Count - 1) then
+      // calculate SkinNode.Skeleton (root joint)
+      SkeletonRootIndex := Skin.Skeleton;
+      if SkeletonRootIndex = -1 then
+        SkinNode.Skeleton := CurrentScene
+      else
       begin
-        WritelnWarning('Skin "%s" specifies invalid skeleton root node index %d', [
+        if not Between(SkeletonRootIndex, 0, Nodes.Count - 1) then
+        begin
+          WritelnWarning('Skin "%s" specifies invalid skeleton root node index %d', [
+            Skin.Name,
+            SkeletonRootIndex
+          ]);
+          Exit;
+        end;
+        SkinNode.Skeleton := Nodes[SkeletonRootIndex] as TAbstractGroupingNode;
+      end;
+
+      AddSkinToHierarchy(SkinNode);
+
+      // calculate SkinNode.Joints
+      SkinNode.FdJoints.Count := Skin.Joints.Count;
+      for I := 0 to Skin.Joints.Count - 1 do
+      begin
+        if not Between(Skin.Joints[I], 0, Nodes.Count - 1) then
+        begin
+          WritelnWarning('Skin "%s" specifies invalid joint index %d', [
+            Skin.Name,
+            Skin.Joints[I]
+          ]);
+          { Exit from ReadSkin, as we cannot continue.
+            Joints indexes will make no sense if we omit some joint on the list. }
+          Exit;
+        end;
+        SkinNode.FdJoints[I] := Nodes[Skin.Joints[I]];
+      end;
+
+      // calculate SkinNode.JInverseBindMatrices
+      AccessorToMatrix4(Skin.InverseBindMatrices, SkinNode.FdInverseBindMatrices.Items, false);
+
+      if SkinNode.FdJoints.Count <>
+        SkinNode.FdInverseBindMatrices.Count then
+      begin
+        WritelnWarning('Joints and InverseBindMatrices counts differ for skin "%s": %d and %d', [
           Skin.Name,
-          SkeletonRootIndex
+          SkinNode.FdJoints.Count,
+          SkinNode.FdInverseBindMatrices.Count
         ]);
         Exit;
       end;
-      SkinNode.Skeleton := Nodes[SkeletonRootIndex] as TAbstractGroupingNode;
-    end;
 
-    AddSkinToHierarchy(SkinNode);
-
-    // calculate SkinNode.Joints
-    SkinNode.FdJoints.Count := Skin.Joints.Count;
-    for I := 0 to Skin.Joints.Count - 1 do
-    begin
-      if not Between(Skin.Joints[I], 0, Nodes.Count - 1) then
+      // move shapes tp SkinNode.Shapes
+      Shapes := SkinToInitialize.Shapes;
+      I := 0;
+      while I < Shapes.FdChildren.Count do
       begin
-        WritelnWarning('Skin "%s" specifies invalid joint index %d', [
-          Skin.Name,
-          Skin.Joints[I]
-        ]);
-        { Exit from ReadSkin, as we cannot continue.
-          Joints indexes will make no sense if we omit some joint on the list. }
-        Exit;
+        if Shapes.FdChildren[I] is TShapeNode then
+        begin
+          ShapeNode := TShapeNode(Shapes.FdChildren[I]);
+
+          { Make shapes collide as simple boxes.
+            We don't want to recalculate octree of their triangles each frame,
+            and their boxes are easy, since we fill shape's bbox.
+            TODO: Shape.BBox is not calculated now. }
+          ShapeNode.Collision := scBox;
+
+          { To satisfy glTF requirements
+            """
+            Client implementations should apply only the transform of the skeleton root
+            node to the skinned mesh while ignoring the transform of the skinned mesh node.
+            """
+            (later rephrased in glTF as
+            """
+            Only the joint transforms are applied to the skinned mesh;
+            the transform of the skinned mesh node MUST be ignored.
+            """
+
+            Solution: Just reparent the meshes under TSkinNode.
+
+            Testcase: demo-models/blender/skinned_animation/skinned_anim.glb . }
+          SkinNode.FdShapes.Add(ShapeNode);
+          Shapes.FdChildren.Delete(I);
+        end else
+          Inc(I);
       end;
-      SkinNode.FdJoints[I] := Nodes[Skin.Joints[I]];
-    end;
-
-    // calculate SkinNode.JInverseBindMatrices
-    AccessorToMatrix4(Skin.InverseBindMatrices, SkinNode.FdInverseBindMatrices.Items, false);
-
-    if SkinNode.FdJoints.Count <>
-       SkinNode.FdInverseBindMatrices.Count then
-    begin
-      WritelnWarning('Joints and InverseBindMatrices counts differ for skin "%s": %d and %d', [
-        Skin.Name,
-        SkinNode.FdJoints.Count,
-        SkinNode.FdInverseBindMatrices.Count
-      ]);
-      Exit;
-    end;
-
-    // move shapes tp SkinNode.Shapes
-    Shapes := SkinToInitialize.Shapes;
-    I := 0;
-    while I < Shapes.FdChildren.Count do
-    begin
-      if Shapes.FdChildren[I] is TShapeNode then
-      begin
-        ShapeNode := TShapeNode(Shapes.FdChildren[I]);
-
-        { Make shapes collide as simple boxes.
-          We don't want to recalculate octree of their triangles each frame,
-          and their boxes are easy, since we fill shape's bbox.
-          TODO: Shape.BBox is not calculated now. }
-        ShapeNode.Collision := scBox;
-
-        { To satisfy glTF requirements
-          """
-          Client implementations should apply only the transform of the skeleton root
-          node to the skinned mesh while ignoring the transform of the skinned mesh node.
-          """
-          (later rephrased in glTF as
-          """
-          Only the joint transforms are applied to the skinned mesh;
-          the transform of the skinned mesh node MUST be ignored.
-          """
-
-          Solution: Just reparent the meshes under TSkinNode.
-
-          Testcase: demo-models/blender/skinned_animation/skinned_anim.glb . }
-        SkinNode.FdShapes.Add(ShapeNode);
-        Shapes.FdChildren.Delete(I);
-      end else
-        Inc(I);
+    finally
+      // If we Exit above prematurely, because some check fails,
+      // SkinNode may remain initialized but unused.
+      FreeIfUnusedAndNil(SkinNode);
     end;
   end;
 
@@ -2357,10 +2366,10 @@ var
     Must be called after Nodes and SkinsToInitialize are ready, so after ReadNodes. }
   procedure ReadSkins;
   var
-    SkinToInitialize: TSkinToInitialize;
+    SkinToInitializePair: {$ifdef FPC} TSkinToInitializeList.TDictionaryPair {$else} TPair<TPasGLTF.TSkin, TSkinToInitialize> {$endif};
   begin
-    for SkinToInitialize in SkinsToInitialize do
-      ReadSkin(SkinToInitialize);
+    for SkinToInitializePair in SkinsToInitialize do
+      ReadSkin(SkinToInitializePair.Key, SkinToInitializePair.Value);
   end;
 
   { EXPORT nodes, so that using glTF animations in X3D is possible, like on
@@ -2407,7 +2416,7 @@ begin
     Lights := nil;
     try
       Document := TMyGltfDocument.Create(Stream, BaseUrl);
-      SkinsToInitialize := TSkinToInitializeList.Create(true);
+      SkinsToInitialize := TSkinToInitializeList.Create([doOwnsValues]); // owns TSkinToInitialize instances
       Animations := TAnimationList.Create(true);
       Lights := TPunctualLights.Create;
       ExportNodes := TX3DNodeList.Create(false);
