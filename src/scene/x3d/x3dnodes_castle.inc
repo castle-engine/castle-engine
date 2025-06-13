@@ -517,7 +517,6 @@ procedure TSkinNode.InternalUpdateSkin;
     This work also makes sense for both GPU skinning and CPU skinning. }
   procedure PrepareJointMatrix;
 
-    {$ifndef CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
     { Return transformation, as matrix, of parent of this joint
       (from the root of the X3D graph, so within this TCastleScene).
       Returns pointer to read-only TTransformation that contains
@@ -565,17 +564,12 @@ procedure TSkinNode.InternalUpdateSkin;
 
       Joint.TransformFunctionality.ApplyTransform(Result);
     end;
-    {$endif not CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
 
   var
     I: Integer;
-    {$ifndef CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
     SkeletonRootInverse: TMatrix4;
-    {$endif not CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
   begin
-    {$ifndef CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
     SkeletonRootInverse := JointParentTransform(Skeleton)^.InverseTransform;
-    {$endif not CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
 
     { For each Joint, we calculate JointMatrix following
       https://www.slideshare.net/Khronos_Group/gltf-20-reference-guide }
@@ -591,24 +585,13 @@ procedure TSkinNode.InternalUpdateSkin;
           FdJoints.Count
         ]);
       for I := 0 to FdJoints.Count - 1 do
-        InternalJointMatrix.L[I] :=
-          {$ifdef CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
-          FdJoints[I].TransformFunctionality.SkinJointTransform.Transform
-          {$else}
-          SkeletonRootInverse *
-          JointTransform(FdJoints[I]).Transform
-          {$endif CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
-        ;
+        InternalJointMatrix.L[I] := SkeletonRootInverse *
+          JointTransform(FdJoints[I]).Transform;
     end else
     begin
       for I := 0 to FdJoints.Count - 1 do
-        InternalJointMatrix.L[I] :=
-          {$ifdef CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
-          FdJoints[I].TransformFunctionality.SkinJointTransform.Transform
-          {$else}
-          SkeletonRootInverse *
-          JointTransform(FdJoints[I]).Transform
-          {$endif CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL} *
+        InternalJointMatrix.L[I] := SkeletonRootInverse *
+          JointTransform(FdJoints[I]).Transform *
           FdInverseBindMatrices.Items.L[I];
     end;
   end;
