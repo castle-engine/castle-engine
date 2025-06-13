@@ -596,7 +596,9 @@ type
     { Is alpha testing enabled by EnableAlphaTest. }
     property AlphaTest: Boolean read FAlphaTest;
 
-    procedure EnableSkinnedAnimation;
+    { Enable doing skinned animation on GPU.
+      Give the jointMatrix uniform value. }
+    procedure EnableSkinnedAnimation(const JointMatrix: TMatrix4List);
   end;
 
 { Derive UniformMissing behavior for fields within given node.
@@ -2824,6 +2826,7 @@ begin
     MirrorPlaneUniforms.SetDynamicUniforms(AProgram);
 
   ShadowMapShaders.SetDynamicUniforms(AProgram, RenderingCamera);
+  FSkinShader.SetDynamicUniforms(AProgram);
 end;
 
 procedure TShader.AddScreenEffectCode(const Depth: boolean);
@@ -2890,9 +2893,10 @@ begin
   ShadowMapShader.PrepareHash(FCodeHash);
 end;
 
-procedure TShader.EnableSkinnedAnimation;
+procedure TShader.EnableSkinnedAnimation(const JointMatrix: TMatrix4List);
 begin
   FSkinShader.EnableAndPrepareHash(FCodeHash);
+  FSkinShader.JointMatrix := JointMatrix;
 end;
 
 end.

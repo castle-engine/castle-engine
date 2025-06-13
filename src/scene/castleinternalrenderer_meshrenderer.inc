@@ -150,7 +150,18 @@ type
     procedure RenderCoordinateEnd; override;
   end;
 
-  TShaderCoordinateRenderer = class(TColorPerVertexCoordinateRenderer)
+  TSkinnedRenderer = class(TColorPerVertexCoordinateRenderer)
+  protected
+    procedure RenderCoordinateBegin; override;
+  end;
+
+  { In RenderCoordinateBegin,
+    this calculates @link(CurrentMeshShader) and sets RenderContext.CurrentProgram,
+    possibly linking the shader configured in @link(Shader).
+
+    So everything that needs to be done before linking @link(Shader),
+    everything that can change shader code, shader hash... has to be done earlier. }
+  TShaderCoordinateRenderer = class(TSkinnedRenderer)
   protected
     procedure RenderCoordinateBegin; override;
   end;
@@ -977,6 +988,22 @@ begin
   {$endif}
 
   inherited;
+end;
+
+{ TSkinnedRenderer --------------------------------------------------- }
+
+procedure TSkinnedRenderer.RenderCoordinateBegin;
+var
+  Weights0: TVector4List;
+  Joints0: TInt32List;
+begin
+  inherited;
+
+  if (State.Skin <> nil) and
+     (State.Skin.InternalJointMatrix <> nil) and
+     (State.Skin.InternalJointMatrix.Count = State.Skin.FdJoints.Count) and
+     (Geometry.SkinWeightsJoints(Weights0, Joints0)) then
+    Shader.EnableSkinnedAnimation(State.Skin.InternalJointMatrix);
 end;
 
 { TShaderCoordinateRenderer -------------------------------------------------- }

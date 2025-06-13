@@ -214,8 +214,6 @@
     for usage details. }
   TSkinNode = class(TAbstractChildNode)
   strict private
-    { Having this ready, and of proper size, speeds up InternalUpdateSkin. }
-    JointMatrix: TMatrix4List;
     DoneWarningNoCoords: Boolean;
     DoneWarningNoCoordNode: Boolean;
     DoneWarningNoNormals: Boolean;
@@ -233,6 +231,14 @@
     class var
       { Set by TCastleScene to indicate do we use shaders for skin. }
       InternalSkinInShaders: Boolean;
+    var
+      { Current joint matrix.
+        See https://www.khronos.org/files/gltf20-reference-guide.pdf
+        for explanation.
+        Having this ready, and of proper size, speeds up InternalUpdateSkin.
+        Moreover, it is passed to shaders when we do skinning on GPU,
+        so it has to be accessible during rendering. }
+      InternalJointMatrix: TMatrix4List;
 
     destructor Destroy; override;
     { Update meshes in @link(FdShapes) to reflect the current joints transformation.
@@ -466,7 +472,7 @@ end;
 
 destructor TSkinNode.Destroy;
 begin
-  FreeAndNil(JointMatrix);
+  FreeAndNil(InternalJointMatrix);
   inherited;
 end;
 
@@ -520,9 +526,9 @@ procedure TSkinNode.InternalUpdateSkin;
 
     { For each Joint, we calculate JointMatrix following
       https://www.slideshare.net/Khronos_Group/gltf-20-reference-guide }
-    if JointMatrix = nil then
-      JointMatrix := TMatrix4List.Create;
-    JointMatrix.Count := FdJoints.Count;
+    if InternalJointMatrix = nil then
+      InternalJointMatrix := TMatrix4List.Create;
+    InternalJointMatrix.Count := FdJoints.Count;
     if FdJoints.Count <> FdInverseBindMatrices.Count then
     begin
       if FdInverseBindMatrices.Count <> 0 then
@@ -532,7 +538,7 @@ procedure TSkinNode.InternalUpdateSkin;
           FdJoints.Count
         ]);
       for I := 0 to FdJoints.Count - 1 do
-        JointMatrix.L[I] :=
+        InternalJointMatrix.L[I] :=
           {$ifdef CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
           FdJoints[I].TransformFunctionality.SkinJointTransform.Transform
           {$else}
@@ -543,7 +549,7 @@ procedure TSkinNode.InternalUpdateSkin;
     end else
     begin
       for I := 0 to FdJoints.Count - 1 do
-        JointMatrix.L[I] :=
+        InternalJointMatrix.L[I] :=
           {$ifdef CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
           FdJoints[I].TransformFunctionality.SkinJointTransform.Transform
           {$else}
@@ -752,7 +758,8 @@ procedure TSkinNode.InternalUpdateSkin;
       Assert((AnimatedTangents = nil) = (OriginalTangents = nil));
       Assert((OriginalTangents = nil) or (OriginalTangents.Count = OriginalCoords.Count));
 
-      { For each vertex, calculate SkinMatrix as linear combination of JointMatrix[...]
+      { For each vertex, calculate SkinMatrix as linear combination of
+        InternalJointMatrix[...]
         for all joints indicated by Joints0 values for this vertex. }
       for I := 0 to OriginalCoords.Count - 1 do
       begin
@@ -770,14 +777,14 @@ procedure TSkinNode.InternalUpdateSkin;
               """it's not exactly a satisfying fix, but in practice using 1, 0, 0, 0 when the weights would otherwise be zero has avoided these issues in threejs."""
             https://github.com/KhronosGroup/glTF/pull/1352
             https://github.com/Franck-Dernoncourt/NeuroNER/issues/91 }
-          SkinMatrix := JointMatrix.L[0];
+          SkinMatrix := InternalJointMatrix.L[0];
         end else
         begin
           SkinMatrix :=
-            JointMatrix.L[VertexJointsPtr^.X] * VertexWeights.X +
-            JointMatrix.L[VertexJointsPtr^.Y] * VertexWeights.Y +
-            JointMatrix.L[VertexJointsPtr^.Z] * VertexWeights.Z +
-            JointMatrix.L[VertexJointsPtr^.W] * VertexWeights.W;
+            InternalJointMatrix.L[VertexJointsPtr^.X] * VertexWeights.X +
+            InternalJointMatrix.L[VertexJointsPtr^.Y] * VertexWeights.Y +
+            InternalJointMatrix.L[VertexJointsPtr^.Z] * VertexWeights.Z +
+            InternalJointMatrix.L[VertexJointsPtr^.W] * VertexWeights.W;
         end;
         { Note: On Delphi, we *have to* use L[...] below and depend on $pointermath on,
           instead of using List^[...].

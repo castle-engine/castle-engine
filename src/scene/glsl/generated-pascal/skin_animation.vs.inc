@@ -8,21 +8,21 @@
 '*/' + LineEnding +
 '' + LineEnding +
 '/* Note: We need to specify array size, otherwise we get' + LineEnding +
-'   "error C7559: OpenGL requires constant indexes for unsized array access(jointMatrix)"' + LineEnding +
+'   "error C7559: OpenGL requires constant indexes for unsized array access(castle_JointMatrix)"' + LineEnding +
 '*/' + LineEnding +
-'uniform mat4 jointMatrix[128];' + LineEnding +
-'attribute vec4 skinJoints0;' + LineEnding +
-'attribute vec4 skinWeights0;' + LineEnding +
+'uniform mat4 castle_JointMatrix[128];' + LineEnding +
+'attribute vec4 castle_SkinJoints0;' + LineEnding +
+'attribute vec4 castle_SkinWeights0;' + LineEnding +
 '' + LineEnding +
 'void PLUG_vertex_object_space_change(' + LineEnding +
 '  inout vec4 vertex_object,' + LineEnding +
 '  inout vec3 normal_object)' + LineEnding +
 '{' + LineEnding +
 '  mat4 skinMatrix =' + LineEnding +
-'    skinWeights0.x * jointMatrix[int(skinJoints0.x)] +' + LineEnding +
-'    skinWeights0.y * jointMatrix[int(skinJoints0.y)] +' + LineEnding +
-'    skinWeights0.z * jointMatrix[int(skinJoints0.z)] +' + LineEnding +
-'    skinWeights0.w * jointMatrix[int(skinJoints0.w)];' + LineEnding +
+'    castle_SkinWeights0.x * castle_JointMatrix[int(castle_SkinJoints0.x)] +' + LineEnding +
+'    castle_SkinWeights0.y * castle_JointMatrix[int(castle_SkinJoints0.y)] +' + LineEnding +
+'    castle_SkinWeights0.z * castle_JointMatrix[int(castle_SkinJoints0.z)] +' + LineEnding +
+'    castle_SkinWeights0.w * castle_JointMatrix[int(castle_SkinJoints0.w)];' + LineEnding +
 '  vertex_object = skinMatrix * vertex_object;' + LineEnding +
 '  normal_object = mat3(skinMatrix) * normal_object;' + LineEnding +
 '}' + LineEnding +

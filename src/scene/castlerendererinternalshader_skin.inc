@@ -24,11 +24,11 @@
   TSkinShader = record
   public
     Enabled: Boolean;
+    JointMatrix: TMatrix4List;
     procedure Clear;
     procedure EnableAndPrepareHash(var Hash: TShaderCodeHash);
     procedure GenerateCode(const Shader: TShader);
-    // procedure SetDynamicUniforms(const AProgram: TX3DShaderProgram;
-    //   const RenderingCamera: TRenderingCamera);
+    procedure SetDynamicUniforms(const AProgram: TX3DShaderProgram);
   end;
 
 {$endif read_interface}
@@ -57,10 +57,13 @@ begin
     Shader.Plug(stVertex, ShaderSkinAnimation);
 end;
 
-// procedure TSkinShader.SetDynamicUniforms(const AProgram: TX3DShaderProgram;
-//   const RenderingCamera: TRenderingCamera);
-// begin
-//   // pass skin joints, weights, jointMatrix
-// end;
+procedure TSkinShader.SetDynamicUniforms(const AProgram: TX3DShaderProgram);
+begin
+  if Enabled then
+  begin
+    // WritelnLog('Passing to shader castle_JointMatrix with count %d', [JointMatrix.Count]);
+    AProgram.SetUniform('castle_JointMatrix', JointMatrix);
+  end;
+end;
 
 {$endif read_implementation}
