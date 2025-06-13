@@ -36,10 +36,16 @@ jobs:
       matrix:
         arch: [armv7l, aarch64]
         include:
-        # Raspberry Pi 32-bit (Arm), bullseye (older version, used on Raspberry Pi 4 by default)
+        # Raspberry Pi 32-bit (Arm), latest
         - arch: armv7l
           cpu: cortex-a7
-          base_image: dietpi:rpi_armv7_bullseye
+          # In the past we tried to use bullseye (older version, used on Raspberry Pi 4 by default).
+          # But this no longer works, as
+          # https://dietpi.com/downloads/images/DietPi_RPi-ARMv7-Bullseye.img.xz
+          # is not available.
+          # https://dietpi.com/#downloadinfo for RPi points to bookworm.
+          #base_image: dietpi:rpi_armv7_bullseye
+          base_image: raspios_lite:latest
           cpu_info: cpuinfo/raspberrypi_3b
         # Raspberry Pi 64-bit (Aarch64), latest (bookworm)
         - arch: aarch64
