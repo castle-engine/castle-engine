@@ -46,13 +46,13 @@
 
     The precise mathematical meaning of this follows the @url(https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html glTF 2.0 specification). The @url(https://www.khronos.org/files/gltf20-reference-guide.pdf glTF 2.0 API Reference Guide) also contains a great explanation of how this is used.
 
-    The count of this array must be equal to the count of @link(Joints). }
+    Either this array must be empty (equivalent to all values being identity matrix) or the count of this array must be equal to the count of @link(Joints). }
     procedure SetInverseBindMatrices(const Value: array of TMatrix4); overload;
     { For each joint, an "inverse bind matrix" is specified, which transforms the mesh into the local space of the joint.
 
     The precise mathematical meaning of this follows the @url(https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html glTF 2.0 specification). The @url(https://www.khronos.org/files/gltf20-reference-guide.pdf glTF 2.0 API Reference Guide) also contains a great explanation of how this is used.
 
-    The count of this array must be equal to the count of @link(Joints). }
+    Either this array must be empty (equivalent to all values being identity matrix) or the count of this array must be equal to the count of @link(Joints). }
     procedure SetInverseBindMatrices(const Value: TMatrix4List); overload;
 
     strict private FFdShapes: TMFNode;
