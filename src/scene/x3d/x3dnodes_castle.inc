@@ -230,6 +230,10 @@
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
     procedure AfterTraverse(StateStack: TX3DGraphTraverseStateStack); override;
   public
+    class var
+      { Set by TCastleScene to indicate do we use shaders for skin. }
+      InternalSkinInShaders: Boolean;
+
     destructor Destroy; override;
     { Update meshes in @link(FdShapes) to reflect the current joints transformation.
       This does the core of "skinned animation" logic. }
@@ -487,12 +491,68 @@ end;
 
 procedure TSkinNode.AfterTraverse(StateStack: TX3DGraphTraverseStateStack);
 begin
-  InternalUpdateSkin;
+  { THAnimHumanoid does this.
+    - But it should not be necessary to do from AfterTraverse.
+    - And it could be harmful: if we do it at loading, we risk that we initialize
+      Shaep.Geometry.InternalOriginal* before InternalSkinInShaders is set
+      to true, which tells us we should not this.
+    - And it would waste loading time, unnecessarily. }
+  // InternalUpdateSkin;
   StateStack.Pop;
   inherited;
 end;
 
 procedure TSkinNode.InternalUpdateSkin;
+
+  { Calculate our JointMatrix based on current transformation of FdJoints.
+    This work is independent of any particular shape.
+    This work also makes sense for both GPU skinning and CPU skinning. }
+  procedure PrepareJointMatrix;
+  var
+    I: Integer;
+    {$ifndef CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
+    SkeletonRootInverse: TMatrix4;
+    {$endif not CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
+  begin
+    {$ifndef CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
+    SkeletonRootInverse := JointTransform(Skeleton)^.InverseTransform;
+    {$endif not CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
+
+    { For each Joint, we calculate JointMatrix following
+      https://www.slideshare.net/Khronos_Group/gltf-20-reference-guide }
+    if JointMatrix = nil then
+      JointMatrix := TMatrix4List.Create;
+    JointMatrix.Count := FdJoints.Count;
+    if FdJoints.Count <> FdInverseBindMatrices.Count then
+    begin
+      if FdInverseBindMatrices.Count <> 0 then
+        WritelnWarningOnce(DoneWarningInverseBindMatricesCount,
+          'Count of TSkinNode.inverseBindMatrices (%d) does not match count of TSkinNode.joints (%d)', [
+          FdInverseBindMatrices.Count,
+          FdJoints.Count
+        ]);
+      for I := 0 to FdJoints.Count - 1 do
+        JointMatrix.L[I] :=
+          {$ifdef CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
+          FdJoints[I].TransformFunctionality.SkinJointTransform.Transform
+          {$else}
+          SkeletonRootInverse *
+          JointTransform(FdJoints[I])^.Transform
+          {$endif CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
+        ;
+    end else
+    begin
+      for I := 0 to FdJoints.Count - 1 do
+        JointMatrix.L[I] :=
+          {$ifdef CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
+          FdJoints[I].TransformFunctionality.SkinJointTransform.Transform
+          {$else}
+          SkeletonRootInverse *
+          JointTransform(FdJoints[I])^.Transform
+          {$endif CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL} *
+          FdInverseBindMatrices.Items.L[I];
+    end;
+  end;
 
   function ShapeLit(const ShapeNode: TAbstractShapeNode): Boolean;
   begin
@@ -501,16 +561,6 @@ procedure TSkinNode.InternalUpdateSkin;
         (ShapeNode.Appearance.Material is TMaterialNode) or
         (ShapeNode.Appearance.Material is TPhysicalMaterialNode)
       );
-  end;
-
-  procedure WritelnWarningOnce(var WarningDone: Boolean;
-    const MessageFmt: String; const Args: array of const);
-  begin
-    if not WarningDone then
-    begin
-      WritelnWarning(MessageFmt, Args);
-      WarningDone := true;
-    end;
   end;
 
   procedure UpdateShape(const Shape: TAbstractShapeNode);
@@ -587,7 +637,7 @@ procedure TSkinNode.InternalUpdateSkin;
       begin
         if ShapeLit(Shape) then
           WritelnWarningOnce(DoneWarningNoNormals,
-            'TODO: Normal vectors are not provided for a skinned geometry (using lit material), and in effect the resulting animation will be slow as we''ll recalculate normals more often than necessary. ' + 'For now it is adviced to generate models with normals included for skinned meshes.', []);
+            'TODO: Normal vectors are not provided for a skinned geometry (using lit material), and in effect the resulting animation will be slow as we''ll recalculate normals more often than necessary. ' + 'For now it is adviced to generate models with normals included for skinned meshes.');
       end;
 
       // calculate Tangent
@@ -611,7 +661,7 @@ procedure TSkinNode.InternalUpdateSkin;
         if ShapeLit(Shape) and
           ((Shape.Appearance.Material as TAbstractOneSidedMaterialNode).NormalTexture <> nil) then
           WritelnWarningOnce(DoneWarningNoTangents,
-            'TODO: Tangent vectors are not provided for a skinned geometry (using lit material with normalmap), and in effect the resulting animation will be slow as we''ll recalculate tangents more often than necessary. ' + 'For now it is adviced to generate models with tangents included for skinned meshes.', []);
+            'TODO: Tangent vectors are not provided for a skinned geometry (using lit material with normalmap), and in effect the resulting animation will be slow as we''ll recalculate tangents more often than necessary. ' + 'For now it is adviced to generate models with tangents included for skinned meshes.');
       end;
 
       if (not Shape.Geometry.SkinWeightsJoints(Weights0, Joints0)) or
@@ -694,9 +744,6 @@ procedure TSkinNode.InternalUpdateSkin;
     var
       I: Integer;
       SkinMatrix: TMatrix4;
-      {$ifndef CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
-      SkeletonRootInverse: TMatrix4;
-      {$endif not CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
       VertexJointsPtr: PVector4Integer;
       VertexWeights: TVector4;
     begin
@@ -704,45 +751,6 @@ procedure TSkinNode.InternalUpdateSkin;
       Assert((OriginalNormals = nil) or (OriginalNormals.Count = OriginalCoords.Count));
       Assert((AnimatedTangents = nil) = (OriginalTangents = nil));
       Assert((OriginalTangents = nil) or (OriginalTangents.Count = OriginalCoords.Count));
-
-      {$ifndef CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
-      SkeletonRootInverse := JointTransform(Skeleton)^.InverseTransform;
-      {$endif not CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
-
-      { For each Joint, we calculate JointMatrix following
-        https://www.slideshare.net/Khronos_Group/gltf-20-reference-guide }
-      if JointMatrix = nil then
-        JointMatrix := TMatrix4List.Create;
-      JointMatrix.Count := FdJoints.Count;
-      if FdJoints.Count <> FdInverseBindMatrices.Count then
-      begin
-        if FdInverseBindMatrices.Count <> 0 then
-          WritelnWarningOnce(DoneWarningInverseBindMatricesCount,
-            'Count of TSkinNode.inverseBindMatrices (%d) does not match count of TSkinNode.joints (%d)', [
-            FdInverseBindMatrices.Count,
-            FdJoints.Count
-          ]);
-        for I := 0 to FdJoints.Count - 1 do
-          JointMatrix.L[I] :=
-            {$ifdef CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
-            FdJoints[I].TransformFunctionality.SkinJointTransform.Transform
-            {$else}
-            SkeletonRootInverse *
-            JointTransform(FdJoints[I])^.Transform
-            {$endif CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
-          ;
-      end else
-      begin
-        for I := 0 to FdJoints.Count - 1 do
-          JointMatrix.L[I] :=
-            {$ifdef CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
-            FdJoints[I].TransformFunctionality.SkinJointTransform.Transform
-            {$else}
-            SkeletonRootInverse *
-            JointTransform(FdJoints[I])^.Transform
-            {$endif CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL} *
-            FdInverseBindMatrices.Items.L[I];
-      end;
 
       { For each vertex, calculate SkinMatrix as linear combination of JointMatrix[...]
         for all joints indicated by Joints0 values for this vertex. }
@@ -792,6 +800,18 @@ procedure TSkinNode.InternalUpdateSkin;
     Weights0: TVector4List;
     Joints0: TInt32List;
   begin
+    if InternalSkinInShaders then
+    begin
+      if (Shape.Geometry.InternalOriginalCoords <> nil) and
+         (Shape.Geometry.InternalOriginalNormals <> nil) and
+         (Shape.Geometry.InternalOriginalTangents <> nil) then
+        WritelnWarning('TCastleScene started skinned animation before rendering context was initialized, in effect we moved "original" data to special lists.' + NL +
+          '  It has to be undone now to do correct skinning in GPU.' + NL +
+          '  TODO: For now, this "undoing" is not implemented, animation will not be correct.');
+      // rest of the UpdateShape is for non-GPU skinning
+      Exit;
+    end;
+
     if not GetArrays(
         Coords, Normals, Tangents,
         CoordNode, NormalNode, TangentNode,
@@ -815,6 +835,11 @@ procedure TSkinNode.InternalUpdateSkin;
 var
   I: Integer;
 begin
+  if FdShapes.Count = 0 then
+    Exit; // early exit if nothing needs to be done
+
+  PrepareJointMatrix;
+
   for I := 0 to FdShapes.Count - 1 do
     if FdShapes.Items[I] is TAbstractShapeNode then
       UpdateShape(TAbstractShapeNode(FdShapes.Items[I]));

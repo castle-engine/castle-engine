@@ -88,6 +88,7 @@ type
   {$I castlerendererinternalshader_surfacetexture.inc}
   {$I castlerendererinternalshader_bumpmapping.inc}
   {$I castlerendererinternalshader_shaderlibraries.inc}
+  {$I castlerendererinternalshader_skin.inc}
 
   { GLSL program integrated with VRML/X3D and TShader.
     Allows to bind uniform values from VRML/X3D fields,
@@ -292,6 +293,7 @@ type
     WarnMissingPlugs: boolean;
     FShapeRequiresShaders: boolean;
     FBumpMappingShader: TBumpMappingShader;
+    FSkinShader: TSkinShader;
     FSurfaceTextureShaders: TSurfaceTextureShaderList;
     FFogEnabled: boolean;
     FFogType: TFogType;
@@ -593,6 +595,8 @@ type
 
     { Is alpha testing enabled by EnableAlphaTest. }
     property AlphaTest: Boolean read FAlphaTest;
+
+    procedure EnableSkinnedAnimation;
   end;
 
 { Derive UniformMissing behavior for fields within given node.
@@ -625,6 +629,7 @@ uses SysUtils, StrUtils,
 {$I castlerendererinternalshader_surfacetexture.inc}
 {$I castlerendererinternalshader_bumpmapping.inc}
 {$I castlerendererinternalshader_shaderlibraries.inc}
+{$I castlerendererinternalshader_skin.inc}
 
 {$ifndef OpenGLES}
 var
@@ -1262,6 +1267,7 @@ begin
   SelectedNode := nil;
   FShapeRequiresShaders := false;
   FBumpMappingShader.Clear;
+  FSkinShader.Clear;
   FSurfaceTextureShaders.Clear;
   FFogEnabled := false;
   { No need to reset, will be set when FFogEnabled := true
@@ -2104,6 +2110,7 @@ begin
   PrepareCommonCode; // must be before FBumpMappingShader.GenerateCode to define PLUG texture_coord_shift
   FBumpMappingShader.GenerateCode(Self);
   FSurfaceTextureShaders.GenerateCode(Self);
+  FSkinShader.GenerateCode(Self);
   EnableShaderFog;
   if AppearanceEffects <> nil then
     EffectsGenerateCode(AppearanceEffects);
@@ -2881,6 +2888,11 @@ begin
   ShadowMapShaders.Add(ShadowMapShader);
 
   ShadowMapShader.PrepareHash(FCodeHash);
+end;
+
+procedure TShader.EnableSkinnedAnimation;
+begin
+  FSkinShader.EnableAndPrepareHash(FCodeHash);
 end;
 
 end.

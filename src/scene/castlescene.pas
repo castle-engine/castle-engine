@@ -2020,7 +2020,15 @@ begin
   Result := FGlobalLights;
 end;
 
+procedure InitializeSkinInShaders;
+begin
+  TSkinNode.InternalSkinInShaders := GLFeatures.Shaders;
+end;
+
 initialization
+  ApplicationProperties.OnGLContextEarlyOpen.Add(
+    {$ifdef FPC}@{$endif} InitializeSkinInShaders);
+
   RegisterSerializableComponent(TCastleScene, 'Scene');
   RegisterSerializableComponent(TCastleBox, 'Box');
   RegisterSerializableComponent(TCastleSphere, 'Sphere');
