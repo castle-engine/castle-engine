@@ -31,24 +31,4 @@ resourcestring
   SIncorrectUse = 'Incorrect USE clause: node name "%s" undefined (possibly the USE clause appears before the DEF for this node name)';
   SNodeUseCycle = 'Cycles in VRML/X3D graph: USE clause inside node "%s" refers to the same node';
 
-procedure WritelnWarningOnce(var WarningDone: Boolean;
-  const MessageFmt: String; const Args: array of const); overload;
-begin
-  if not WarningDone then
-  begin
-    WritelnWarning(MessageFmt, Args);
-    WarningDone := true;
-  end;
-end;
-
-procedure WritelnWarningOnce(var WarningDone: Boolean;
-  const Message: String); overload;
-begin
-  if not WarningDone then
-  begin
-    WritelnWarning(Message);
-    WarningDone := true;
-  end;
-end;
-
 {$endif read_implementation}
