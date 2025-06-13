@@ -166,8 +166,9 @@ unit X3DNodes;
 {$endif}
 
 { If defined, TSkinNode joints transformation is calculated differently,
-  without relying on CastleShapes information. }
-{$define CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
+  without relying on CastleShapes information.
+  Not recommended right now, wastes time and memory needlessly. }
+{.$define CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
 
 interface
 

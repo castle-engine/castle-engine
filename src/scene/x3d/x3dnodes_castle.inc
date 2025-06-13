@@ -222,7 +222,9 @@
     DoneWarningTangentsCount: Boolean;
     DoneWarningNoWeightsJoints: Boolean;
     DoneWarningInverseBindMatricesCount: Boolean;
-    DoneWarningJointTransformCount: Boolean;
+    DoneWarningJointTransformCount0: Boolean;
+    DoneWarningJointTransformCountTooMany: Boolean;
+    DoneWarningJointTransformNone: Boolean;
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
@@ -514,6 +516,57 @@ procedure TSkinNode.InternalUpdateSkin;
     This work is independent of any particular shape.
     This work also makes sense for both GPU skinning and CPU skinning. }
   procedure PrepareJointMatrix;
+
+    {$ifndef CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
+    { Return transformation, as matrix, of parent of this joint
+      (from the root of the X3D graph, so within this TCastleScene).
+      Returns pointer to read-only TTransformation that contains
+      the transformation matrix in both ways. }
+    function JointParentTransform(const Joint: TX3DNode): PTransformation;
+    var
+      ShapeTransform: TShapeTreeTransform;
+      C: Integer;
+    begin
+      C := TShapeTree.AssociatedShapesCount(Joint);
+
+      // check C is valid
+      if C = 0 then
+      begin
+        WritelnWarningOnce(DoneWarningJointTransformCount0,
+          'Joint %s is not present in the scene, cannot determine transformation', [
+          Joint.X3DName
+        ]);
+        Exit(@IdentityTransformation);
+      end;
+      if C > 1 then
+      begin
+        WritelnWarningOnce(DoneWarningJointTransformCountTooMany,
+          'Joint %s is present in the scene more than once, using random transformation', [
+          Joint.X3DName
+        ]);
+      end;
+
+      ShapeTransform := TShapeTree.AssociatedShape(Joint, 0) as TShapeTreeTransform;
+      Result := @ShapeTransform.TransformState.Transformation;
+    end;
+
+    function JointTransform(const Joint: TX3DNode): TTransformation;
+    begin
+      Result := JointParentTransform(Joint)^;
+
+      if Joint.TransformFunctionality = nil then
+      begin
+        WritelnWarningOnce(DoneWarningJointTransformNone,
+          'Joint %s does not support TTransformFunctionality, cannot determine transformation', [
+          Joint.X3DName
+        ]);
+        Exit;
+      end;
+
+      Joint.TransformFunctionality.ApplyTransform(Result);
+    end;
+    {$endif not CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
+
   var
     I: Integer;
     {$ifndef CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
@@ -521,7 +574,7 @@ procedure TSkinNode.InternalUpdateSkin;
     {$endif not CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
   begin
     {$ifndef CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
-    SkeletonRootInverse := JointTransform(Skeleton)^.InverseTransform;
+    SkeletonRootInverse := JointParentTransform(Skeleton)^.InverseTransform;
     {$endif not CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
 
     { For each Joint, we calculate JointMatrix following
@@ -543,7 +596,7 @@ procedure TSkinNode.InternalUpdateSkin;
           FdJoints[I].TransformFunctionality.SkinJointTransform.Transform
           {$else}
           SkeletonRootInverse *
-          JointTransform(FdJoints[I])^.Transform
+          JointTransform(FdJoints[I]).Transform
           {$endif CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
         ;
     end else
@@ -554,7 +607,7 @@ procedure TSkinNode.InternalUpdateSkin;
           FdJoints[I].TransformFunctionality.SkinJointTransform.Transform
           {$else}
           SkeletonRootInverse *
-          JointTransform(FdJoints[I])^.Transform
+          JointTransform(FdJoints[I]).Transform
           {$endif CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL} *
           FdInverseBindMatrices.Items.L[I];
     end;
@@ -713,30 +766,6 @@ procedure TSkinNode.InternalUpdateSkin;
       UpdateGeometryOriginalArray(Geometry.InternalOriginalNormals, Normals);
       UpdateGeometryOriginalArray(Geometry.InternalOriginalTangents, Tangents);
     end;
-
-    {$ifndef CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
-    { Return transformation, as matrix, of this joint (from the root of the
-      X3D graph, so within this TCastleScene).
-      Returns pointer to read-only TTransformation that contains
-      the transformation matrix in both ways. }
-    function JointTransform(const Joint: TX3DNode): PTransformation;
-    var
-      ShapeTransform: TShapeTreeTransform;
-      C: Integer;
-    begin
-      C := TShapeTree.AssociatedShapesCount(Joint);
-      if C <> 1 then
-      begin
-        WritelnWarningOnce(DoneWarningJointTransformCount,
-          'Joint %s is not present in the scene exactly once, cannot determine transformation', [
-          Joint.X3DName
-        ]);
-        Exit(@IdentityTransformation);
-      end;
-      ShapeTransform := TShapeTree.AssociatedShape(Joint, 0) as TShapeTreeTransform;
-      Result := @ShapeTransform.TransformState.Transformation;
-    end;
-    {$endif not CASTLE_SKIN_JOINTS_TRANSFORM_LOCAL}
 
     { Update skin Coords (and optionally Normals, Tangents)
       based on current joints transformation.
