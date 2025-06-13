@@ -449,6 +449,19 @@ begin
           Attribs.Add(CurrentMeshShader.AttributeCastle_FogCoord);
         end;
 
+        if Shader.NeedsSkinWeightsJoints then
+        begin
+          { We should only has Shader.NeedsSkinWeightsJoints if
+            Shape.Geometry.SkinWeightsJoints returned true in
+            TSkinnedRenderer.RenderCoordinateBegin. }
+          Assert(Arrays.HasSkinWeights0);
+          Assert(Arrays.HasSkinJoints0);
+          CurrentMeshShader.AttributeCastle_SkinWeights0.EnableArrayVector4(Vao, Arrays.AttributeSize, PtrUInt(Arrays.SkinWeights0));
+          CurrentMeshShader.AttributeCastle_SkinJoints0.EnableArrayVector4(Vao, Arrays.AttributeSize, PtrUInt(Arrays.SkinJoints0));
+          Attribs.Add(CurrentMeshShader.AttributeCastle_SkinWeights0);
+          Attribs.Add(CurrentMeshShader.AttributeCastle_SkinJoints0);
+        end;
+
         for I := 0 to Arrays.TexCoords.Count - 1 do
           if (Arrays.TexCoords[I] <> nil) and
              (Arrays.TexCoords[I].Generation = tgExplicit) then

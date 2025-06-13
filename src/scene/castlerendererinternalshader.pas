@@ -75,7 +75,9 @@ type
     AttributeCastle_Normal,
     AttributeCastle_Tangent,
     AttributeCastle_ColorPerVertex,
-    AttributeCastle_FogCoord: TGLSLAttribute;
+    AttributeCastle_FogCoord,
+    AttributeCastle_SkinWeights0,
+    AttributeCastle_SkinJoints0: TGLSLAttribute;
 
     procedure Link; override;
   end;
@@ -599,6 +601,11 @@ type
     { Enable doing skinned animation on GPU.
       Give the jointMatrix uniform value. }
     procedure EnableSkinnedAnimation(const JointMatrix: TMatrix4List);
+
+    { Does shader need castle_SkinWeights0 and castle_SkinJoints0 attribute
+      values. This is just equivalent to whether @link(EnableSkinnedAnimation)
+      was called. }
+    function NeedsSkinWeightsJoints: Boolean;
   end;
 
 { Derive UniformMissing behavior for fields within given node.
@@ -852,6 +859,8 @@ begin
   AttributeCastle_Tangent        := AttributeOptional('castle_Tangent');
   AttributeCastle_ColorPerVertex := AttributeOptional('castle_ColorPerVertex');
   AttributeCastle_FogCoord       := AttributeOptional('castle_FogCoord');
+  AttributeCastle_SkinWeights0   := AttributeOptional('castle_SkinWeights0');
+  AttributeCastle_SkinJoints0    := AttributeOptional('castle_SkinJoints0');
 end;
 
 { TX3DShaderProgram ------------------------------------------------------- }
@@ -2897,6 +2906,11 @@ procedure TShader.EnableSkinnedAnimation(const JointMatrix: TMatrix4List);
 begin
   FSkinShader.EnableAndPrepareHash(FCodeHash);
   FSkinShader.JointMatrix := JointMatrix;
+end;
+
+function TShader.NeedsSkinWeightsJoints: Boolean;
+begin
+  Result := FSkinShader.Enabled;
 end;
 
 end.
