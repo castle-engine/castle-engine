@@ -344,7 +344,7 @@ procedure TTransformationSimple.Multiply(
   const ScaleOrientation: TVector4;
   const Translation: TVector3);
 var
-  M, IM: TMatrix4;
+  M: TMatrix4;
   MRotateScaleOrient, IMRotateScaleOrient: TMatrix4;
 begin
   MultMatrixTranslation(Transform, Translation + Center);
