@@ -2022,7 +2022,7 @@ end;
 
 procedure InitializeSkinInShaders;
 begin
-  TSkinNode.InternalSkinInShaders := GLFeatures.Shaders;
+  TSkinNode.InternalUsesShadersPossible := GLFeatures.Shaders;
 end;
 
 initialization

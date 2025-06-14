@@ -39,6 +39,8 @@ type
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
     LabelFps: TCastleLabel;
+    LabelSkinUsesShaders: TCastleLabel;
+    CheckboxCastShadows: TCastleCheckbox;
     SceneHumanoidNoSkinnedAnim, SceneHumanoidWithSkinnedAnim: TCastleScene;
     ButtonPlayWalk, ButtonPlayHead, ButtonPlayBoth: TCastleButton;
     ButtonNoSkinnedAnim, ButtonWithSkinnedAnim: TCastleButton;
@@ -47,12 +49,14 @@ type
     TransformNeck: TTransformNode;
     HeadAnimationTime: TFloatTime;
     AnimationMode: TAnimationMode;
+    SkinNode: TSkinNode;
     procedure DebugLogNodeName(Node: TX3DNode);
     procedure ClickPlayWalk(Sender: TObject);
     procedure ClickPlayHead(Sender: TObject);
     procedure ClickPlayBoth(Sender: TObject);
     procedure ClickNoSkinnedAnim(Sender: TObject);
     procedure ClickWithSkinnedAnim(Sender: TObject);
+    procedure CheckboxCastShadowsChange(Sender: TObject);
     { Switch UI and variables to use
       SceneHumanoidNoSkinnedAnim or SceneHumanoidWithSkinnedAnim }
     procedure ChooseSkinnedAnim(const UseSkinnedAnim: boolean);
@@ -101,8 +105,8 @@ begin
     end;
   end;
 
-  WritelnLog('Found node: %s, parents: %s', [
-    Node.X3DName,
+  WritelnLog('Found transformation (possible joint) node: %s, parents: %s', [
+    Node.NiceName,
     AllParents
   ]);
 end;
@@ -116,6 +120,7 @@ begin
   ButtonPlayBoth.OnClick := {$ifdef FPC}@{$endif} ClickPlayBoth;
   ButtonNoSkinnedAnim.OnClick := {$ifdef FPC}@{$endif} ClickNoSkinnedAnim;
   ButtonWithSkinnedAnim.OnClick := {$ifdef FPC}@{$endif} ClickWithSkinnedAnim;
+  CheckboxCastShadows.OnChange := {$ifdef FPC}@{$endif} CheckboxCastShadowsChange;
 
   { Remove any animation affecting Neck from SceneHumanoidWithSkinnedAnim.
     This simple solution avoids tweaking animation on the Blender side,
@@ -124,6 +129,10 @@ begin
     where Pascal code animates Neck. }
   RemoveAnimationsAffectingJoint(SceneHumanoidWithSkinnedAnim,
     SceneHumanoidWithSkinnedAnim.Node('Neck') as TTransformNode);
+
+  { In normal usage, you don't need to access the TSkinNode inside.
+    We access it only to debug whether InternalUsesShaders is true. }
+  SkinNode := SceneHumanoidWithSkinnedAnim.Node('HumanArmature') as TSkinNode;
 
   // change all UI and variables to use SceneHumanoidWithSkinnedAnim and hide SceneHumanoidNoSkinnedAnim
   ClickWithSkinnedAnim(nil);
@@ -146,7 +155,7 @@ begin
   else
     SceneHumanoid := SceneHumanoidNoSkinnedAnim;
 
-  { for debug: write to log all transform nodes }
+  { for debug: write to log transform node names }
   SceneHumanoid.RootNode.EnumerateNodes(TTransformNode,
     {$ifdef FPC}@{$endif} DebugLogNodeName, false);
 
@@ -157,6 +166,8 @@ begin
 
   ButtonWithSkinnedAnim.Pressed := UseSkinnedAnim;
   ButtonNoSkinnedAnim.Pressed := not UseSkinnedAnim;
+
+  LabelSkinUsesShaders.Exists := UseSkinnedAnim;
 
   // reinitialize AnimationMode, to e.g. start 'walk' on new model
   ChooseAnimationMode(AnimationMode);
@@ -192,6 +203,12 @@ begin
   ButtonPlayBoth.Pressed := AnimationMode = amBoth;
 end;
 
+procedure TViewMain.CheckboxCastShadowsChange(Sender: TObject);
+begin
+  SceneHumanoidNoSkinnedAnim.CastShadows := CheckboxCastShadows.Checked;
+  SceneHumanoidWithSkinnedAnim.CastShadows := CheckboxCastShadows.Checked;
+end;
+
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
 
   function AnimateKeyFrames(const TimeNow: TFloatTime;
@@ -219,6 +236,10 @@ begin
   inherited;
   { This virtual method is executed every frame (many times per second). }
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
+
+  LabelSkinUsesShaders.Caption :=
+    'Skin is calculated using shaders (better, faster, but not always possible): ' +
+    BoolToStr(SkinNode.InternalUsesShaders, true);
 
   if AnimationMode in [amHead, amBoth] then
   begin

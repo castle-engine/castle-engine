@@ -301,6 +301,33 @@
       },
       "$Children" : [
         {
+          "$$ClassName" : "TCastleLabel",
+          "FontSize" : 2.5000000000000000E+001,
+          "HorizontalAnchorParent" : "hpRight",
+          "HorizontalAnchorSelf" : "hpRight",
+          "Name" : "LabelSkinUsesShaders",
+          "Text" : [
+            "Skin is calculated using shaders (better, faster, but not always possible): xxx"
+          ],
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop"
+        },
+        {
+          "$$ClassName" : "TCastleCheckbox",
+          "Caption" : "Cast Shadows (For now, this prevents calculating skin using shaders)",
+          "Checked" : true,
+          "FontSize" : 2.5000000000000000E+001,
+          "HorizontalAnchorParent" : "hpRight",
+          "HorizontalAnchorSelf" : "hpRight",
+          "Name" : "CheckboxCastShadows",
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -3.7500000000000000E+001
+          },
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop"
+        },
+        {
           "$$ClassName" : "TCastleButton",
           "Caption" : "Model Without Skinned Animation",
           "CustomBackgroundDisabled" : {
@@ -323,6 +350,10 @@
           },
           "Name" : "ButtonNoSkinnedAnim",
           "Toggle" : true,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -7.5000000000000000E+001
+          },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
         },
@@ -351,7 +382,7 @@
           "Toggle" : true,
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
-            "Y" : -5.3750000000000000E+001
+            "Y" : -1.2875000000000000E+002
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"

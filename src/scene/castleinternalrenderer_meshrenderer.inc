@@ -1013,6 +1013,7 @@ begin
   inherited;
 
   if (State.Skin <> nil) and
+     (State.Skin.InternalUsesShaders) and
      (State.Skin.InternalJointMatrix <> nil) and
      (State.Skin.InternalJointMatrix.Count = State.Skin.FdJoints.Count) and
      (Geometry.SkinWeightsJoints(Weights0, Joints0)) then

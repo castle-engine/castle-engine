@@ -68,7 +68,8 @@ implementation
 
 uses SysUtils,
   {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
-  CastleGLUtils, CastleUtils, CastleShapes, CastleImages, CastleRenderContext;
+  CastleGLUtils, CastleUtils, CastleShapes, CastleImages, CastleRenderContext,
+  CastleTimeUtils;
 
 { Return vertex Original extruded into infinity, as seen from light
   at position LightPos.
@@ -102,6 +103,12 @@ begin
   Result.Y := Original.Y -  LightPos3.Y;
   Result.Z := Original.Z -  LightPos3.Z;
   Result.W := 0;
+end;
+
+procedure MarkShapeCastingShadowVolumes(const Shape: TShape);
+begin
+  if Shape.Node <> nil then
+    Shape.Node.InternalCastedShadowVolumesFrameId := TFramesPerSecond.RenderFrameId;
 end;
 
 procedure TRenderShapeShadowVolumes.RenderSilhouetteShadowVolume(
@@ -424,7 +431,10 @@ begin
      (not WholeSceneManifold) then
     Exit;
 
-  Mesh.ModelViewProjection := RenderContext.ProjectionMatrix * Params.RenderingCamera.CurrentMatrix;
+  MarkShapeCastingShadowVolumes(TShape(FShape));
+
+  Mesh.ModelViewProjection := RenderContext.ProjectionMatrix *
+    Params.RenderingCamera.CurrentMatrix;
 
   Triangles := TrianglesListShadowCasters;
 

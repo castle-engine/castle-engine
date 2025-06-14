@@ -231,21 +231,33 @@
     procedure AfterTraverse(StateStack: TX3DGraphTraverseStateStack); override;
   public
     class var
-      { Set by TCastleScene to indicate do we use shaders for skin. }
-      InternalSkinInShaders: Boolean;
+      { Set by TCastleScene to indicate can we use shaders for skin.
+        @exclude }
+      InternalUsesShadersPossible: Boolean;
     var
       { Current joint matrix.
         See https://www.khronos.org/files/gltf20-reference-guide.pdf
         for explanation.
         Having this ready, and of proper size, speeds up InternalUpdateSkin.
         Moreover, it is passed to shaders when we do skinning on GPU,
-        so it has to be accessible during rendering. }
+        so it has to be accessible during rendering.
+        @exclude }
       InternalJointMatrix: TMatrix4List;
 
     destructor Destroy; override;
+
     { Update meshes in @link(FdShapes) to reflect the current joints transformation.
-      This does the core of "skinned animation" logic. }
+      This does the core of "skinned animation" logic.
+      @exclude }
     procedure InternalUpdateSkin;
+
+    { Do we use shaders for skinning.
+      This takes into account InternalUsesShadersPossible (is current rendering
+      context capable enough) but also some shape-specific conditions
+      (e.g. too many joints, or being a shadow caster, prevents calculating
+      skin on GPU).
+      @exclude }
+    function InternalUsesShaders: Boolean;
   {$I auto_generated_node_helpers/x3dnodes_skin.inc}
   end;
 
@@ -819,10 +831,10 @@ procedure TSkinNode.InternalUpdateSkin;
     Weights0: TVector4List;
     Joints0: TInt32List;
   begin
-    if InternalSkinInShaders then
+    if InternalUsesShaders then
     begin
-      if (Shape.Geometry.InternalOriginalCoords <> nil) and
-         (Shape.Geometry.InternalOriginalNormals <> nil) and
+      if (Shape.Geometry.InternalOriginalCoords <> nil) or
+         (Shape.Geometry.InternalOriginalNormals <> nil) or
          (Shape.Geometry.InternalOriginalTangents <> nil) then
         WritelnWarning('TCastleScene started skinned animation before rendering context was initialized, in effect we moved "original" data to special lists.' + NL +
           '  It has to be undone now to do correct skinning in GPU.' + NL +
@@ -862,6 +874,37 @@ begin
   for I := 0 to FdShapes.Count - 1 do
     if FdShapes.Items[I] is TAbstractShapeNode then
       UpdateShape(TAbstractShapeNode(FdShapes.Items[I]));
+end;
+
+function TSkinNode.InternalUsesShaders: Boolean;
+
+  function SomeShapeCastsShadowVolumes: Boolean;
+  var
+    I: Integer;
+    ShapeNode: TAbstractShapeNode;
+  begin
+    for I := 0 to FdShapes.Count - 1 do
+      if FdShapes.Items[I] is TAbstractShapeNode then
+      begin
+        ShapeNode := TAbstractShapeNode(FdShapes.Items[I]);
+        if (ShapeNode.InternalCastedShadowVolumesFrameId <> 0) and
+           (ShapeNode.InternalCastedShadowVolumesFrameId = ShapeNode.InternalWasVisibleFrameId) then
+        begin
+          // debug:
+          // WritelnWarning('Skinning on GPU made impossible because shape casts shadows using shadow volumes.');
+          Exit(true);
+        end;
+      end;
+    Result := false;
+  end;
+
+const
+  { Matches src/scene/glsl/source/skin_animation.vs limit. }
+  MaxJoints = 128;
+begin
+  Result := InternalUsesShadersPossible and
+    (FdJoints.Count <= MaxJoints) and // shaders limit max joints count
+    (not SomeShapeCastsShadowVolumes);
 end;
 
 { registration --------------------------------------------------------------- }
