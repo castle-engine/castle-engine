@@ -699,14 +699,18 @@ begin
     except
       on E: Exception do
       begin
-        WritelnWarning('TestBox3DTransform failed at test with RandomMatrix:' + NL +
+        WritelnWarning('TestBox3DTransform failed at test with RandomMatrix, AssertBoxesEqual or one of box transformations failed:' + NL +
           'Box: %s' + NL +
-          'Matrix: %s' + NL +
-          'Resulting BoxTransformSlower: %s' + NL +
-          'Resulting Box.Transform: %s', [
+          'Matrix: %s', [
           Box.ToString,
-          Matrix.ToString,
-          BoxTransformSlower(Box, Matrix).ToString,
+          Matrix.ToString
+        ]);
+        WritelnWarning('  More info for TestBox3DTransform failed:' + NL +
+          'Resulting BoxTransformSlower: %s', [
+          BoxTransformSlower(Box, Matrix).ToString
+        ]);
+        WritelnWarning('  More info for TestBox3DTransform failed:' + NL +
+          'Resulting Box.Transform: %s', [
           Box.Transform(Matrix).ToString
         ]);
         raise;
