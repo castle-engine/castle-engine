@@ -15,9 +15,6 @@
 { Main view, where most of the application logic takes place. }
 unit GameViewMain;
 
-{ Log transform and ROUTE stuff. }
-{.$define VERBOSE_LOG}
-
 interface
 
 uses Classes,
@@ -75,6 +72,8 @@ type
 
 var
   ViewMain: TViewMain;
+
+  VerboseLog: Boolean = false;
 
 implementation
 
@@ -159,10 +158,9 @@ begin
     SceneHumanoid := SceneHumanoidNoSkinnedAnim;
 
   { for debug: write to log transform node names }
-  {$ifdef VERBOSE_LOG}
-  SceneHumanoid.RootNode.EnumerateNodes(TTransformNode,
-    {$ifdef FPC}@{$endif} DebugLogNodeName, false);
-  {$endif}
+  if VerboseLog then
+    SceneHumanoid.RootNode.EnumerateNodes(TTransformNode,
+      {$ifdef FPC}@{$endif} DebugLogNodeName, false);
 
   TransformNeck := SceneHumanoid.Node('Neck') as TTransformNode;
 
@@ -280,14 +278,13 @@ begin
     Route := Node.Routes[I];
     if Route.DestinationNode = Joint then
     begin
-      {$ifdef VERBOSE_LOG}
-      WritelnLog('Removing ROUTE affecting %s.%s (from %s.%s)', [
-        Route.DestinationNode.NiceName,
-        Route.DestinationEvent.X3DName,
-        Route.SourceNode.NiceName,
-        Route.SourceEvent.X3DName
-      ]);
-      {$endif}
+      if VerboseLog then
+        WritelnLog('Removing ROUTE affecting %s.%s (from %s.%s)', [
+          Route.DestinationNode.NiceName,
+          Route.DestinationEvent.X3DName,
+          Route.SourceNode.NiceName,
+          Route.SourceEvent.X3DName
+        ]);
       Node.RemoveRoute(I);
     end else
       Inc(I);
