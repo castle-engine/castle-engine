@@ -630,7 +630,7 @@ var
   I: Integer;
   TextureCached: TTextureDepthOrFloatCache;
   Filter: TTextureFilter;
-  ImageType: TGLenum;
+  ImageType, ImageInternalFormat: TGLenum;
   ImageFormat: string;
   ImageSize: Int64;
 begin
@@ -668,6 +668,7 @@ begin
     This was true for OES_depth_texture, looks like it is true for OpenGLES 3.0 core too,
     based on "OpenGL ES 3.2 NVIDIA 515.86.01". }
   ImageType := {$ifdef OpenGLES} GL_UNSIGNED_SHORT {$else} GL_UNSIGNED_BYTE {$endif};
+  ImageInternalFormat := {$ifdef OpenGLES} GL_DEPTH_COMPONENT16 {$else} GL_DEPTH_COMPONENT {$endif};
   ImageFormat := {$ifdef OpenGLES} 'depth-short' {$else} 'depth-byte' {$endif};
   ImageSize := {$ifdef OpenGLES} SizeOf(TGLushort) {$else} SizeOf(TGLbyte) {$endif}
     * Width * Height;
@@ -678,7 +679,7 @@ begin
   {$ifdef CASTLE_WEBGL}
   // TODO: web: Fix initializing empty depth texture on WebGL
   {$else}
-  glTexImage2d(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
+  glTexImage2d(GL_TEXTURE_2D, 0, ImageInternalFormat,
     Width, Height, 0, GL_DEPTH_COMPONENT, ImageType, nil);
   {$endif}
   TextureMemoryProfiler.Allocate(Result, '', ImageFormat, ImageSize, false,
