@@ -307,7 +307,7 @@
           "HorizontalAnchorSelf" : "hpRight",
           "Name" : "LabelSkinUsesShaders",
           "Text" : [
-            "Skin is calculated using shaders (better, faster, but not always possible): xxx"
+            "Skin is calculated using shaders (faster, but not always possible): xxx"
           ],
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"

@@ -241,7 +241,7 @@ begin
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
 
   LabelSkinUsesShaders.Caption :=
-    'Skin is calculated using shaders (better, faster, but not always possible): ' +
+    'Skin is calculated using shaders (faster, but not always possible): ' +
     BoolToStr(SkinNode.InternalUsesShaders, true);
 
   if AnimationMode in [amHead, amBoth] then
