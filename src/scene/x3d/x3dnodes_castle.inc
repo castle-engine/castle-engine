@@ -762,6 +762,30 @@ procedure TSkinNode.InternalUpdateSkin;
       UpdateGeometryOriginalArray(Geometry.InternalOriginalTangents, Tangents);
     end;
 
+    { Update list supposed to contain original (before animation started) values
+      of some array. }
+    procedure RemoveGeometryOriginalArray(var OriginalArray: TVector3List;
+      const NewArray: TVector3List);
+    begin
+      if OriginalArray <> nil then
+      begin
+        Assert(NewArray <> nil);
+        NewArray.Clear;
+        NewArray.AddRange(OriginalArray);
+        FreeAndNil(OriginalArray);
+      end;
+    end;
+
+    { Remove Geometry.InternalOriginal, setting the current contents to "original"
+      values. }
+    procedure RemoveGeometryOriginalArrays(const Geometry: TAbstractGeometryNode;
+      const Coords, Normals, Tangents: TVector3List);
+    begin
+      RemoveGeometryOriginalArray(Geometry.InternalOriginalCoords, Coords);
+      RemoveGeometryOriginalArray(Geometry.InternalOriginalNormals, Normals);
+      RemoveGeometryOriginalArray(Geometry.InternalOriginalTangents, Tangents);
+    end;
+
     { Update skin Coords (and optionally Normals, Tangents)
       based on current joints transformation.
       OriginalCoords contains original (not animated) coords. }
@@ -836,9 +860,24 @@ procedure TSkinNode.InternalUpdateSkin;
       if (Shape.Geometry.InternalOriginalCoords <> nil) or
          (Shape.Geometry.InternalOriginalNormals <> nil) or
          (Shape.Geometry.InternalOriginalTangents <> nil) then
-        WritelnWarning('TCastleScene started skinned animation before rendering context was initialized, in effect we moved "original" data to special lists.' + NL +
-          '  It has to be undone now to do correct skinning in GPU.' + NL +
-          '  TODO: For now, this "undoing" is not implemented, animation will not be correct.');
+      begin
+        WritelnWarning('TCastleScene was doing skinned animation on CPU, now it will do it on GPU.' + NL +
+          '  This may happen if you started animating it before rendering context was initialized, or if you toggle CastShadows at run-time.' + NL +
+          '  This requires to reinitialize the Geometry.InternalXxx data, and shaders, so avoid changing this too often at run-time to avoid performance hit.');
+        if not GetArrays(
+            Coords, Normals, Tangents,
+            CoordNode, NormalNode, TangentNode,
+            Weights0, Joints0) then
+          Exit;
+        RemoveGeometryOriginalArrays(Shape.Geometry, Coords, Normals, Tangents);
+        // Call Changed to update the display
+        CoordNode.FdPoint.Changed;
+        if NormalNode <> nil then
+          NormalNode.FdVector.Changed;
+        if TangentNode <> nil then
+          TangentNode.FdVector.Changed;
+      end;
+
       // rest of the UpdateShape is for non-GPU skinning
       Exit;
     end;
