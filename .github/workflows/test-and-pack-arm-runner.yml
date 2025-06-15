@@ -36,10 +36,16 @@ jobs:
       matrix:
         arch: [armv7l, aarch64]
         include:
-        # Raspberry Pi 32-bit (Arm), bullseye (older version, used on Raspberry Pi 4 by default)
+        # Raspberry Pi 32-bit (Arm), latest
         - arch: armv7l
           cpu: cortex-a7
-          base_image: dietpi:rpi_armv7_bullseye
+          # In the past we tried to use bullseye (older version, used on Raspberry Pi 4 by default).
+          # But this no longer works, as
+          # https://dietpi.com/downloads/images/DietPi_RPi-ARMv7-Bullseye.img.xz
+          # is not available.
+          # https://dietpi.com/#downloadinfo for RPi points to bookworm.
+          #base_image: dietpi:rpi_armv7_bullseye
+          base_image: raspios_lite:latest
           cpu_info: cpuinfo/raspberrypi_3b
         # Raspberry Pi 64-bit (Aarch64), latest (bookworm)
         - arch: aarch64
@@ -78,8 +84,10 @@ jobs:
             export "PATH=${PATH}:/cge-work/installed/bin/:/cge-work/pasdoc/bin/:${LAZARUS_DIR}"
             FPC_OS=`fpc -iTO`
             FPC_CPU=`fpc -iTP`
-            # Disable FPC version check (32-bit rpi is using bullseye with FPC 3.2.0 now)
-            if [ "${FPC_CPU}" = 'arm' ]; then export "CASTLE_PACK_DISABLE_FPC_VERSION_CHECK=true"; fi
+
+            # Old: Disable FPC version check (32-bit rpi is using bullseye with FPC 3.2.0 now)
+            # Later: We use Bookworm now with FPC 3.2.2.
+            # if [ "${FPC_CPU}" = 'arm' ]; then export "CASTLE_PACK_DISABLE_FPC_VERSION_CHECK=true"; fi
 
             # Put various things like other projects (Lazarus and PasDoc)
             # and installed CGE binaries in directory /cge-work/,
@@ -96,7 +104,8 @@ jobs:
             # Install Lazarus from https://github.com/castle-engine/cge-lazarus/
             # (because Lazarus in repos is too old).
             cd /cge-work/
-            wget https://github.com/castle-engine/cge-lazarus/releases/download/snapshot/lazarus-${FPC_OS}-${FPC_CPU}.zip --output-document lazarus.zip
+            # Using --no-verbose because wget progress (default or --progress=dot) causes hard to read output in GHA logs.
+            wget --progress=bar:force:noscroll https://github.com/castle-engine/cge-lazarus/releases/download/snapshot/lazarus-${FPC_OS}-${FPC_CPU}.zip --output-document lazarus.zip
             unzip lazarus.zip
             mv lazarus/lazbuild lazarus/lazbuild-real
             cp "${ARM_RUNNER_WORKSPACE}/.github/workflows/lazbuild-template" lazarus/lazbuild
