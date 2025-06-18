@@ -207,6 +207,8 @@ begin
     TSize2DPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TCastleVector2Persistent), TCastleImageTransform, 'SizePersistent',
     TSize2DPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TCastleVector2Persistent), TCastleAbstractPrimitive, 'TextureScalePersistent',
+    TCastleVector2PropertyEditor);
   RegisterPropertyEditor(TypeInfo(TCastleVector3Persistent), nil, '',
     TCastleVector3PropertyEditor);
   RegisterPropertyEditor(TypeInfo(TCastleVector4Persistent), nil, '',
