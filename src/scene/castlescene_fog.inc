@@ -128,9 +128,9 @@ end;
 
 function TCastleFog.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'ColorPersistent') or
-     (PropertyName = 'FogType') or
-     (PropertyName = 'VisibilityRange') then
+  if ArrayContainsString(PropertyName, [
+       'ColorPersistent', 'FogType', 'VisibilityRange'
+     ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
