@@ -393,7 +393,7 @@ function TCastleAbstractPrimitive.PropertySections(const PropertyName: String): 
 begin
   if ArrayContainsString(PropertyName, [
        'ColorPersistent', 'Material', 'Texture', 'TextureNormalMap',
-       'PreciseCollisions', 'RenderOptions', 'TextureScale'
+       'PreciseCollisions', 'RenderOptions', 'TextureScalePersistent'
      ]) then
     Result := [psBasic]
   else
