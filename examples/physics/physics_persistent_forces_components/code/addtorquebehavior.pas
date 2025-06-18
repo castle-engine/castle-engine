@@ -95,7 +95,9 @@ end;
 function TAddTorqueBehavior.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
-  if (PropertyName = 'Torque') then
+  if ArrayContainsString(PropertyName, [
+       'TorquePersistent'
+     ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);

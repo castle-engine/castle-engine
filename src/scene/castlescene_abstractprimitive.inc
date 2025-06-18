@@ -391,12 +391,10 @@ end;
 
 function TCastleAbstractPrimitive.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'ColorPersistent') or
-     (PropertyName = 'Material') or
-     (PropertyName = 'TextureNormalMap') or
-     (PropertyName = 'Texture') or
-     (PropertyName = 'PreciseCollisions') or
-     (PropertyName = 'RenderOptions') then
+  if ArrayContainsString(PropertyName, [
+       'ColorPersistent', 'Material', 'Texture', 'TextureNormalMap',
+       'PreciseCollisions', 'RenderOptions', 'TextureScale'
+     ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);

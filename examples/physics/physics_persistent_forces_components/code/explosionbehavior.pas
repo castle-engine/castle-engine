@@ -64,7 +64,9 @@ end;
 function TExplosionBehavior.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
-  if PropertyName = 'Value' then
+  if ArrayContainsString(PropertyName, [
+       'Value'
+     ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);

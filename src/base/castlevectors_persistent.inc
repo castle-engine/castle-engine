@@ -325,8 +325,9 @@ end;
 
 function TCastleVector2Persistent.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'X') or
-     (PropertyName = 'Y') then
+  if ArrayContainsString(PropertyName, [
+       'X', 'Y'
+       ]) then
     Result := [psBasic, psLayout]
   else
     Result := inherited PropertySections(PropertyName);
@@ -458,9 +459,9 @@ end;
 
 function TCastleVector3Persistent.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'X') or
-     (PropertyName = 'Y') or
-     (PropertyName = 'Z') then
+  if ArrayContainsString(PropertyName, [
+      'X', 'Y', 'Z'
+      ]) then
     Result := [psBasic, psLayout]
   else
     Result := inherited PropertySections(PropertyName);
@@ -617,10 +618,9 @@ end;
 
 function TCastleVector4Persistent.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'X') or
-     (PropertyName = 'Y') or
-     (PropertyName = 'Z') or
-     (PropertyName = 'W') then
+  if ArrayContainsString(PropertyName, [
+       'X', 'Y', 'Z', 'W'
+       ]) then
     Result := [psBasic, psLayout]
   else
     Result := inherited PropertySections(PropertyName);

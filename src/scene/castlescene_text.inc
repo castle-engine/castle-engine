@@ -173,14 +173,10 @@ end;
 
 function TCastleText.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'Caption') or
-     (PropertyName = 'Text') or
-     (PropertyName = 'DoubleSided') or
-     (PropertyName = 'Size') or
-     (PropertyName = 'Spacing') or
-     (PropertyName = 'Alignment') or
-     (PropertyName = 'VerticalAlignment') or
-     (PropertyName = 'CustomFont') then
+  if ArrayContainsString(PropertyName, [
+       'Caption', 'Text', 'DoubleSided', 'Size', 'Spacing',
+       'Alignment', 'VerticalAlignment', 'CustomFont'
+     ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);

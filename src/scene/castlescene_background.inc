@@ -199,18 +199,13 @@ end;
 
 function TCastleBackground.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'SkyTopColorPersistent') or
-     (PropertyName = 'SkyEquatorColorPersistent') or
-     (PropertyName = 'GroundBottomColorPersistent') or
-     (PropertyName = 'GroundEquatorColorPersistent') or
-     (PropertyName = 'RotationPersistent') or
-     (PropertyName = 'TextureNegativeZ') or
-     (PropertyName = 'TexturePositiveZ') or
-     (PropertyName = 'TextureNegativeX') or
-     (PropertyName = 'TexturePositiveX') or
-     (PropertyName = 'TextureNegativeY') or
-     (PropertyName = 'TexturePositiveY') or
-     (PropertyName = 'SmoothEquator') then
+  if ArrayContainsString(PropertyName, [
+      'SkyTopColorPersistent', 'SkyEquatorColorPersistent',
+      'GroundBottomColorPersistent', 'GroundEquatorColorPersistent',
+      'RotationPersistent', 'TextureNegativeZ', 'TexturePositiveZ',
+      'TextureNegativeX', 'TexturePositiveX', 'TextureNegativeY',
+      'TexturePositiveY', 'SmoothEquator'
+     ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);

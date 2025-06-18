@@ -117,8 +117,9 @@ end;
 function TApplyImpulseBehavior.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
-  if (PropertyName = 'Impulse') or
-     (PropertyName = 'Position') then
+  if ArrayContainsString(PropertyName, [
+       'ImpulsePersistent', 'PositionPersistent'
+     ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);

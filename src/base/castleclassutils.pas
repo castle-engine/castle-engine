@@ -1947,7 +1947,9 @@ end;
 
 function TCastleComponent.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'Name') then
+  if ArrayContainsString(PropertyName, [
+       'Name'
+     ]) then
     Result := [psBasic]
   else
     Result := [];
