@@ -458,7 +458,12 @@ type
 
       It is the user responsibility to guarantee that whole scene is
       really 2-manifold. If it is not, then shadow volumes may exhibit
-      weird artifacts. }
+      weird artifacts.
+
+      @italic(The engine now automatically detects 2-manifold scenes.
+      This property should not be necessary, unless you want to force
+      shadow volumes rendering even when the scene is really not 2-manifold.
+      But in this case expect rendering artifacts.) }
     property WholeSceneManifold: Boolean
       read FWholeSceneManifold write SetWholeSceneManifold default false;
 

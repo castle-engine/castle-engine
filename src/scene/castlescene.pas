@@ -163,6 +163,7 @@ type
       FShapeFrustumCulling, FSceneFrustumCulling: Boolean;
       FRenderOptions: TCastleRenderOptions;
       FTransformOptimization: TTransformOptimization;
+      DoneWarningWholeSceneManifold: Boolean;
 
       { These fields are valid only during LocalRenderInside and CollectShape_ methods. }
       Render_Params: TRenderParams;
@@ -227,6 +228,9 @@ type
     procedure RenderWithOctree_CheckShapeCulling(
       ShapeIndex: Integer; CollidesForSure: boolean);
     procedure SetCastGlobalLights(const Value: Boolean);
+    { Treating the scene as "whole scene manifold", because of
+      DetectedWholeSceneManifold or RenderOptions.WholeSceneManifold. }
+    function EffectiveWholeSceneManifold: Boolean;
   private
     PreparedShapesResources, PreparedRender: Boolean;
   protected
@@ -1235,6 +1239,30 @@ end;
 
 { Shadow volumes ------------------------------------------------------------- }
 
+// TODO: merge from skinned-animation-gpu branch
+procedure WritelnWarningOnce(var Done: boolean; const Format: string; const Args: array of const);
+begin
+  if not Done then
+  begin
+    Done := true;
+    WritelnWarning(Format, Args);
+  end;
+end;
+
+function TCastleScene.EffectiveWholeSceneManifold: Boolean;
+begin
+  Result := RenderOptions.WholeSceneManifold or DetectedWholeSceneManifold;
+  if RenderOptions.WholeSceneManifold and not DetectedWholeSceneManifold then
+  begin
+    WritelnWarningOnce(DoneWarningWholeSceneManifold,
+      'Rendering shadow volumes for shadow caster "%s" because forced by WholeSceneManifold=true. ' +
+      'But our detection showed that WholeSceneManifold is not correct on this scene, it is not 2-manifold. ' +
+      'Expect shadows artifacts.', [
+      Name
+    ]);
+  end;
+end;
+
 procedure TCastleScene.LocalRenderShadowVolume(const Params: TRenderParams;
   const ShadowVolumeRenderer: TBaseShadowVolumeRenderer);
 
@@ -1297,10 +1325,10 @@ begin
           Shadow volumes *assume* that shadow caster is also rendered (shadow quads
           are closed) if that shadow caster is visible in frustum.
 
-          This is done per-shape when WholeSceneManifold=false.
-          When WholeSceneManifold=true, we cannot do per-shape check:
+          This is done per-shape when EffectiveWholeSceneManifold=false.
+          When EffectiveWholeSceneManifold=true, we cannot do per-shape check:
           the whole scene should be rendered. }
-        if not RenderOptions.WholeSceneManifold then
+        if not EffectiveWholeSceneManifold then
         begin
           if (DistanceCulling > 0) and (not DistanceCullingCheckShape(Shape)) then
             Continue;
@@ -1309,13 +1337,13 @@ begin
         { Do not render shadows when frustum+light check says it is definitely
           not visible.
 
-          This is done per-shape when WholeSceneManifold=false.
+          This is done per-shape when EffectiveWholeSceneManifold=false.
 
-          When WholeSceneManifold=true, we render all shapes here.
+          When EffectiveWholeSceneManifold=true, we render all shapes here.
           The per-scene check already passed above. }
         ShapeBox := Shape.BoundingBox.Transform(Params.Transformation^.Transform);
         SVRenderer.InitCaster(ShapeBox);
-        if RenderOptions.WholeSceneManifold or
+        if EffectiveWholeSceneManifold or
            SVRenderer.CasterShadowPossiblyVisible then
         begin
           ShapeWorldTransform := Params.Transformation^.Transform *
@@ -1328,7 +1356,7 @@ begin
             SVRenderer.ZFailAndLightCap,
             SVRenderer.ZFail,
             ForceOpaque,
-            RenderOptions.WholeSceneManifold);
+            EffectiveWholeSceneManifold);
         end;
       end;
     end;
@@ -1376,13 +1404,13 @@ end;
 
 function TCastleScene.DistanceCullingCheckShape(const Shape: TShape): boolean;
 begin
-  { When WholeSceneManifold, we have to render whole scene, or nothing.
+  { When EffectiveWholeSceneManifold, we have to render whole scene, or nothing.
 
     Shadow volumes work correctly only if shadow caster (at least the part of it
     in frustum, that affects the screen) is also rendered.
 
     So distance culling cannot eliminate particular shapes. }
-  if RenderOptions.WholeSceneManifold then
+  if EffectiveWholeSceneManifold then
     Exit(true);
 
   // This should be only called when DistanceCulling indicates this check is necessary
@@ -1666,7 +1694,7 @@ begin
     RenderCameraPosition := Params.LocalCameraPosition;
 
     { Do distance culling for whole scene.
-      When WholeSceneManifold=true, this is the only place where
+      When EffectiveWholeSceneManifold=true, this is the only place where
       we check distance culling, we cannot do per-shape distance culling then. }
     if (DistanceCulling > 0) and (not DistanceCullingCheckScene) then
     begin
