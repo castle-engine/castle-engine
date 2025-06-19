@@ -112,7 +112,7 @@ begin
     when given light is applied. }
   Shader.Plug(stFragment,
     Format('uniform %s %s;', [SamplerType, ShadowMapName]) + NL +
-    Format('varying vec4 %s;', [ProjectedTexCoordName]) + NL +
+    Format('varying shadowsPrecision vec4 %s;', [ProjectedTexCoordName]) + NL +
 
     // Do not redeclare shadow() and friends on OpenGLES
     {$ifndef OpenGLES}
