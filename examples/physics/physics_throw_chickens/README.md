@@ -12,6 +12,8 @@ This example demonstrates some simple code exercises:
 - Move 3D object on button press.
 - Move 3D object when key is held down.
 
+![Screenshot](screenshot.png)
+
 Using [Castle Game Engine](https://castle-engine.io/).
 
 ## Building

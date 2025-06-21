@@ -134,12 +134,13 @@
           },
           {
             "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "Idle",
             "ExposeTransforms" : [
             ],
             "Name" : "SceneChickenRig1",
+            "ProcessEvents" : true,
             "RenderOptions" : {
               "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-              "Blending" : false,
               "WholeSceneManifold" : true
             },
             "ScalePersistent" : {
@@ -154,7 +155,7 @@
               "Y" : 6.7771558761596680E+000,
               "Z" : 1.2906229972839355E+001
             },
-            "Url" : "castle-data:/sketchfab/chicken-rig-b92464211274439b955700e3aa5c321f/scene.gltf",
+            "Url" : "castle-data:/sketchfab/chicken-rig-b92464211274439b955700e3aa5c321f/chicken_fixed_alpha.gltf",
             "$Behaviors" : [
               {
                 "$$ClassName" : "TCastleBoxCollider",
@@ -168,12 +169,13 @@
           },
           {
             "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "Idle",
             "ExposeTransforms" : [
             ],
             "Name" : "SceneChickenRig2",
+            "ProcessEvents" : true,
             "RenderOptions" : {
               "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-              "Blending" : false,
               "WholeSceneManifold" : true
             },
             "ScalePersistent" : {
@@ -188,7 +190,7 @@
               "Y" : 6.7771558761596680E+000,
               "Z" : 1.2906229972839355E+001
             },
-            "Url" : "castle-data:/sketchfab/chicken-rig-b92464211274439b955700e3aa5c321f/scene.gltf",
+            "Url" : "castle-data:/sketchfab/chicken-rig-b92464211274439b955700e3aa5c321f/chicken_fixed_alpha.gltf",
             "$Behaviors" : [
               {
                 "$$ClassName" : "TCastleBoxCollider",
@@ -202,12 +204,13 @@
           },
           {
             "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "Idle",
             "ExposeTransforms" : [
             ],
             "Name" : "SceneChickenRig5",
+            "ProcessEvents" : true,
             "RenderOptions" : {
               "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-              "Blending" : false,
               "WholeSceneManifold" : true
             },
             "ScalePersistent" : {
@@ -222,7 +225,7 @@
               "Y" : 6.7771558761596680E+000,
               "Z" : 1.2906229972839355E+001
             },
-            "Url" : "castle-data:/sketchfab/chicken-rig-b92464211274439b955700e3aa5c321f/scene.gltf",
+            "Url" : "castle-data:/sketchfab/chicken-rig-b92464211274439b955700e3aa5c321f/chicken_fixed_alpha.gltf",
             "$Behaviors" : [
               {
                 "$$ClassName" : "TCastleBoxCollider",
@@ -236,12 +239,13 @@
           },
           {
             "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "Idle",
             "ExposeTransforms" : [
             ],
             "Name" : "SceneChickenRig6",
+            "ProcessEvents" : true,
             "RenderOptions" : {
               "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-              "Blending" : false,
               "WholeSceneManifold" : true
             },
             "ScalePersistent" : {
@@ -256,7 +260,7 @@
               "Y" : 6.7771558761596680E+000,
               "Z" : 5.4846687316894531E+000
             },
-            "Url" : "castle-data:/sketchfab/chicken-rig-b92464211274439b955700e3aa5c321f/scene.gltf",
+            "Url" : "castle-data:/sketchfab/chicken-rig-b92464211274439b955700e3aa5c321f/chicken_fixed_alpha.gltf",
             "$Behaviors" : [
               {
                 "$$ClassName" : "TCastleBoxCollider",
@@ -270,12 +274,13 @@
           },
           {
             "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "Idle",
             "ExposeTransforms" : [
             ],
             "Name" : "SceneChickenRig3",
+            "ProcessEvents" : true,
             "RenderOptions" : {
               "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-              "Blending" : false,
               "WholeSceneManifold" : true
             },
             "ScalePersistent" : {
@@ -290,7 +295,7 @@
               "Y" : 6.7771558761596680E+000,
               "Z" : 6.2983503341674805E+000
             },
-            "Url" : "castle-data:/sketchfab/chicken-rig-b92464211274439b955700e3aa5c321f/scene.gltf",
+            "Url" : "castle-data:/sketchfab/chicken-rig-b92464211274439b955700e3aa5c321f/chicken_fixed_alpha.gltf",
             "$Behaviors" : [
               {
                 "$$ClassName" : "TCastleBoxCollider",
@@ -304,12 +309,13 @@
           },
           {
             "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "Idle",
             "ExposeTransforms" : [
             ],
             "Name" : "SceneChickenRig4",
+            "ProcessEvents" : true,
             "RenderOptions" : {
               "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-              "Blending" : false,
               "WholeSceneManifold" : true
             },
             "ScalePersistent" : {
@@ -324,7 +330,7 @@
               "Y" : 6.7771558761596680E+000,
               "Z" : 6.2983503341674805E+000
             },
-            "Url" : "castle-data:/sketchfab/chicken-rig-b92464211274439b955700e3aa5c321f/scene.gltf",
+            "Url" : "castle-data:/sketchfab/chicken-rig-b92464211274439b955700e3aa5c321f/chicken_fixed_alpha.gltf",
             "$Behaviors" : [
               {
                 "$$ClassName" : "TCastleBoxCollider",
@@ -376,20 +382,16 @@
         },
         "RotationPersistent" : {
           "$$ClassName" : "TCastleVector4RotationPersistent",
-          "W" : 9.7682166099548340E-001,
-          "X" : -4.3259695172309875E-001,
-          "Y" : -8.7980484962463379E-001,
-          "Z" : -1.9698651134967804E-001
-        },
-        "ScalePersistent" : {
-          "$$ClassName" : "TCastleVector3Persistent",
-          "Z" : 9.9999994039535522E-001
+          "W" : 4.0988203883171082E-001,
+          "X" : -9.9497455358505249E-001,
+          "Y" : 9.5602996647357941E-002,
+          "Z" : 2.9760897159576416E-002
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : -1.4451442718505859E+001,
-          "Y" : 1.8513988494873047E+001,
-          "Z" : 3.7764884948730469E+001
+          "X" : 4.5330910682678223E+000,
+          "Y" : 1.0530081748962402E+001,
+          "Z" : 2.4139947891235352E+001
         }
       },
       "InternalDesignNavigations[dnFly]" : {
