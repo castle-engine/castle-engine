@@ -169,7 +169,9 @@
       This is for fields in TAbstractTextureNode. }
     chTextureRendererProperties,
 
-    { Texture properties inside TextureProperties node changed. }
+    { Texture properties inside TextureProperties node changed.
+      This should cause chTextureRendererProperties on texture nodes
+      that use this TextureProperties node. }
     chTexturePropertiesNode,
 
     { What is considered a shadow caster changed. }
