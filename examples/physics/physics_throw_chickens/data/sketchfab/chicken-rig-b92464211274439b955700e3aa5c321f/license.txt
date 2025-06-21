@@ -1,0 +1,11 @@
+Model Information:
+* title:	Chicken Rig
+* source:	https://sketchfab.com/3d-models/chicken-rig-b92464211274439b955700e3aa5c321f
+* author:	FourthGreen (https://sketchfab.com/FourthGreen)
+
+Model License:
+* license type:	CC-BY-NC-4.0 (http://creativecommons.org/licenses/by-nc/4.0/)
+* requirements:	Author must be credited. No commercial use.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Chicken Rig" (https://sketchfab.com/3d-models/chicken-rig-b92464211274439b955700e3aa5c321f) by FourthGreen (https://sketchfab.com/FourthGreen) licensed under CC-BY-NC-4.0 (http://creativecommons.org/licenses/by-nc/4.0/)
