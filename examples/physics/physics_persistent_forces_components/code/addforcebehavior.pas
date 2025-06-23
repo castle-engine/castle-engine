@@ -18,9 +18,10 @@ unit AddForceBehavior;
 
 interface
 
-uses
-  Classes, SysUtils, CastleTransform, CastleBehaviors, CastleVectors,
-  CastleComponentSerialize, CastleClassUtils, AbstractTimeDurationBehavior;
+uses Classes, SysUtils,
+  CastleTransform, CastleBehaviors, CastleVectors,
+  CastleComponentSerialize, CastleClassUtils, CastleUtils,
+  AbstractTimeDurationBehavior;
 
 type
   TAddForceBehavior = class(TAbstractTimeDurationBehavior)

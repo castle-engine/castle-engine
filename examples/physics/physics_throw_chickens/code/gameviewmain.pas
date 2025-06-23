@@ -19,7 +19,7 @@ unit GameViewMain;
 interface
 
 uses Classes,
-  CastleVectors, CastleComponentSerialize, CastleControls,
+  CastleVectors, CastleComponentSerialize, CastleControls, CastleCameras,
   CastleUIControls, CastleKeysMouse, CastleTransform, CastleViewport;
 
 type
@@ -32,6 +32,7 @@ type
     Button1: TCastleButton;
     MyBull: TCastleTransform;
     MainViewport: TCastleViewport;
+    WalkNavigation1: TCastleWalkNavigation;
   private
     procedure Click1(Sender: TObject);
   public
@@ -47,7 +48,7 @@ var
 implementation
 
 uses SysUtils,
-  CastleLog;
+  CastleLog, CastleScene, CastleSceneCore, CastleUtils;
 
 { TViewMain ----------------------------------------------------------------- }
 
@@ -63,9 +64,32 @@ begin
 end;
 
 procedure TViewMain.Start;
+
+  { Start Idle animation on all chickens with random initial time,
+    to make their animations unsynchronized -- looks more natural. }
+  procedure UnsynchronizeChickenAnimations;
+  var
+    I: Integer;
+    Params: TPlayAnimationParameters;
+    ChickenScene: TCastleScene;
+  begin
+    for I := 1 to 6 do
+    begin
+      ChickenScene := DesignedComponent('SceneChickenRig' + IntToStr(I)) as TCastleScene;
+      Params := TPlayAnimationParameters.Create;
+      try
+        Params.Name := 'Idle';
+        Params.InitialTime := RandomFloatRange(0, ChickenScene.AnimationDuration('Idle'));
+        Params.Loop := true;
+        ChickenScene.PlayAnimation(Params);
+      finally FreeAndNil(Params) end;
+    end;
+  end;
+
 begin
   inherited;
-  Button1.OnClick := Click1;
+  Button1.OnClick := {$ifdef FPC}@{$endif} Click1;
+  UnsynchronizeChickenAnimations;
 end;
 
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
@@ -76,7 +100,7 @@ begin
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
 
   if Container.Pressed[keyP] then
-    MyBull.Translation := MyBull.Translation + Vector3(1 * SecondsPassed, 0, 0);
+    MyBull.Translation := MyBull.Translation + Vector3(4 * SecondsPassed, 0, 0);
 end;
 
 function TViewMain.Press(const Event: TInputPressRelease): Boolean;
@@ -104,6 +128,13 @@ begin
     Exit(true); // key was handled
   end;
   }
+
+  { Allow user to "escape" from mouse look, e.g. to click on button. }
+  if Event.IsMouseButton(buttonRight) then
+  begin
+    WalkNavigation1.MouseLook := not WalkNavigation1.MouseLook;
+    Exit(true);
+  end;
 
   if Event.IsKey(keyX) then
   begin
