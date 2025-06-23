@@ -47,7 +47,7 @@ var
 implementation
 
 uses SysUtils,
-  CastleLog;
+  CastleLog, CastleScene, CastleSceneCore, CastleUtils;
 
 { TViewMain ----------------------------------------------------------------- }
 
@@ -63,9 +63,32 @@ begin
 end;
 
 procedure TViewMain.Start;
+
+  { Start Idle animation on all chickens with random initial time,
+    to make their animations unsynchronized -- looks more natural. }
+  procedure UnsynchronizeChickenAnimations;
+  var
+    I: Integer;
+    Params: TPlayAnimationParameters;
+    ChickenScene: TCastleScene;
+  begin
+    for I := 1 to 6 do
+    begin
+      ChickenScene := DesignedComponent('SceneChickenRig' + IntToStr(I)) as TCastleScene;
+      Params := TPlayAnimationParameters.Create;
+      try
+        Params.Name := 'Idle';
+        Params.InitialTime := RandomFloatRange(0, ChickenScene.AnimationDuration('Idle'));
+        Params.Loop := true;
+        ChickenScene.PlayAnimation(Params);
+      finally FreeAndNil(Params) end;
+    end;
+  end;
+
 begin
   inherited;
-  Button1.OnClick := Click1;
+  Button1.OnClick := {$ifdef FPC}@{$endif} Click1;
+  UnsynchronizeChickenAnimations;
 end;
 
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
