@@ -19,7 +19,7 @@ unit GameViewMain;
 interface
 
 uses Classes,
-  CastleVectors, CastleComponentSerialize, CastleControls,
+  CastleVectors, CastleComponentSerialize, CastleControls, CastleCameras,
   CastleUIControls, CastleKeysMouse, CastleTransform, CastleViewport;
 
 type
@@ -32,6 +32,7 @@ type
     Button1: TCastleButton;
     MyBull: TCastleTransform;
     MainViewport: TCastleViewport;
+    WalkNavigation1: TCastleWalkNavigation;
   private
     procedure Click1(Sender: TObject);
   public
@@ -99,7 +100,7 @@ begin
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
 
   if Container.Pressed[keyP] then
-    MyBull.Translation := MyBull.Translation + Vector3(1 * SecondsPassed, 0, 0);
+    MyBull.Translation := MyBull.Translation + Vector3(4 * SecondsPassed, 0, 0);
 end;
 
 function TViewMain.Press(const Event: TInputPressRelease): Boolean;
@@ -127,6 +128,13 @@ begin
     Exit(true); // key was handled
   end;
   }
+
+  { Allow user to "escape" from mouse look, e.g. to click on button. }
+  if Event.IsMouseButton(buttonRight) then
+  begin
+    WalkNavigation1.MouseLook := not WalkNavigation1.MouseLook;
+    Exit(true);
+  end;
 
   if Event.IsKey(keyX) then
   begin

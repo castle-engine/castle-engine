@@ -8,9 +8,10 @@ Simple physics demo originally shown at [Delphi Day 2025](https://www.delphiday.
 This example demonstrates some simple code exercises:
 
 - Throw chickens using physics (press Z or left mouse button).
-- Make a log on key press.
+- Toggle "mouse look" by right mouse button click (e.g. to enable to use button).
+- Make a log on key press (X).
 - Move 3D object on button press.
-- Move 3D object when key is held down.
+- Move 3D object when key (P) is held down.
 
 ![Screenshot](screenshot.png)
 
