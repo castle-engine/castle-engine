@@ -18,9 +18,10 @@ unit ExplosionBehavior;
 
 interface
 
-uses
-  Classes, SysUtils, CastleTransform, CastleBehaviors, CastleVectors,
-  CastleComponentSerialize, CastleClassUtils, AbstractIterateRigidBodyBehavior;
+uses Classes, SysUtils,
+  CastleTransform, CastleBehaviors, CastleVectors,
+  CastleComponentSerialize, CastleClassUtils, CastleUtils,
+  AbstractIterateRigidBodyBehavior;
 
 type
   { Add this behavior to CastleTransform }
