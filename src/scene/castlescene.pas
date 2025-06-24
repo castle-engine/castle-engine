@@ -228,7 +228,7 @@ type
     procedure RenderWithOctree_CheckShapeCulling(
       ShapeIndex: Integer; CollidesForSure: boolean);
     procedure SetCastGlobalLights(const Value: Boolean);
-    { Treating the scene as "whole scene manifold", because of
+    { Treating the scene as "whole scene 2-manifold", because of
       DetectedWholeSceneManifold or RenderOptions.WholeSceneManifold. }
     function EffectiveWholeSceneManifold: Boolean;
   private
@@ -1255,9 +1255,10 @@ begin
   if RenderOptions.WholeSceneManifold and not DetectedWholeSceneManifold then
   begin
     WritelnWarningOnce(DoneWarningWholeSceneManifold,
-      'Rendering shadow volumes for shadow caster "%s" because forced by WholeSceneManifold=true. ' +
-      'But our detection showed that WholeSceneManifold is not correct on this scene, it is not 2-manifold. ' +
-      'Expect shadows artifacts.', [
+      'Rendering shadow volumes for shadow caster "%s" because forced by RenderOptions.WholeSceneManifold=true. ' +
+      'But our detection showed that this scene is not really 2-manifold. ' +
+      'Shadows artifacts are possible in this case. ' +
+      'We advise to fix the 3D model to be really 2-manifold.', [
       Name
     ]);
   end;

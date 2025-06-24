@@ -835,8 +835,11 @@ type
 
     GeneratedTextures: TGeneratedTextureList;
 
-    { Was this detectes as "whole scene in manifold".
-      Independent of the RenderOptions.WholeSceneManifold. }
+    { Is this scene detected as "whole scene is manifold",
+      so some shapes are not 2-manifold but whole scene is 2-manifold.
+      This is independent (doesn't take into account) the value
+      of @link(TCastleRenderOptions.WholeSceneManifold
+      RenderOptions.WholeSceneManifold). }
     property DetectedWholeSceneManifold: Boolean read FDetectedWholeSceneManifold;
 
     function InternalBuildNodeInside: TObject; override;

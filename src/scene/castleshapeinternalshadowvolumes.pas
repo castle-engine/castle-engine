@@ -379,6 +379,7 @@ procedure TShapeShadowVolumes.CalculateIfNeededManifoldAndBorderEdges
   end;
 
 begin
+  EdgesChanged := false;
   if not (svManifoldAndBorderEdges in Validities) then
   begin
     CalculateManifoldAndBorderEdges;
