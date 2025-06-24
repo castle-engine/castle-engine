@@ -19,8 +19,10 @@ unit AddTorqueBehavior;
 interface
 
 uses
-  Classes, SysUtils, CastleTransform, CastleBehaviors, CastleVectors,
-  CastleComponentSerialize, CastleClassUtils, AbstractTimeDurationBehavior;
+  Classes, SysUtils,
+  CastleTransform, CastleBehaviors, CastleVectors, CastleUtils,
+  CastleComponentSerialize, CastleClassUtils,
+  AbstractTimeDurationBehavior;
 
 type
   TAddTorqueBehavior = class(TAbstractTimeDurationBehavior)
@@ -104,8 +106,6 @@ begin
 end;
 
 initialization
-
-RegisterSerializableComponent(TAddTorqueBehavior, 'Add Torque Behavior');
-
+  RegisterSerializableComponent(TAddTorqueBehavior, 'Add Torque Behavior');
 end.
 

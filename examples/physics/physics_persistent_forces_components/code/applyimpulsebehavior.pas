@@ -19,8 +19,10 @@ unit ApplyImpulseBehavior;
 interface
 
 uses
-  Classes, SysUtils, CastleTransform, CastleBehaviors, CastleVectors,
-  CastleComponentSerialize, CastleClassUtils, AbstractTimeDurationBehavior;
+  Classes, SysUtils,
+  CastleTransform, CastleBehaviors, CastleVectors, CastleUtils,
+  CastleComponentSerialize, CastleClassUtils,
+  AbstractTimeDurationBehavior;
 
 type
   TApplyImpulseBehavior = class(TAbstractTimeDurationBehavior)
@@ -126,8 +128,6 @@ begin
 end;
 
 initialization
-
-RegisterSerializableComponent(TApplyImpulseBehavior, 'Apply Impulse Behavior');
-
+  RegisterSerializableComponent(TApplyImpulseBehavior, 'Apply Impulse Behavior');
 end.
 

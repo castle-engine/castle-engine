@@ -221,7 +221,8 @@ constructor TCastleSteam.Create(const AAppId: TAppId);
           WriteLnLog('The app was started through Steam (or runs in developer mode with steam_appid.txt), Steam integration enabled OK.');
         end;
       end else
-        WriteLnWarning('SteamAPI_Init failed. This means Steam does not run in the background, but you run the application in development mode (with steam_appid.txt). In this case Steam integration will not work. See https://castle-engine.io/steam for information how to test the Steam integration.');
+        WriteLnWarning('SteamAPI_Init failed. This means Steam does not run in the background, but you run the application in development mode (with steam_appid.txt). ' +
+          'In this case Steam integration will not work. See https://castle-engine.io/steam for information how to test the Steam integration.');
     end else
     begin
       {$warnings off} // ignore FPC warnings about unreachable code, since SteamLibraryName is constant
