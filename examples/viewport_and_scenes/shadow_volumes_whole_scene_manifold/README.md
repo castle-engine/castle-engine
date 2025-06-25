@@ -1,10 +1,20 @@
-# Test RenderOptions.WholeSceneManifold
+# Test detecting scene as 2-manifold, and forcing treating scene as 2-manifold
 
-The example uses an Alpaca model that is *not* a single 2-manifold mesh, therefore by default it doesn't qualify as shadow volumes shadow caster. See https://castle-engine.io/shadow_volumes about 2-manifold requirement.
+For [shadow volumes](https://castle-engine.io/shadow_volumes), everything that casts shadows must be 2-manifold.
 
-However, this model actually is 2-manifold if you look at the scene as a whole. All shapes (all meshes) together form a 2-manifold, i.e. a tight skin, because different meshes just represent a different material. You can confirm it by trying to select _"Non Manifold"_ in Blender -- it will select nothing, the model is manifold for Blender (before it is broken into separate meshes for each material).
+- The engine can automatically detect when each _shape_ is 2-manifold.
 
-Using `RenderOptions.WholeSceneManifold` allows to tell CGE to use this model as shadow caster with shadow volumes.
+    Note: _Shape_ in Castle Game Eneigne means [X3D](https://castle-engine.io/x3d) `Shape` node, which is equal to [glTF](https://castle-engine.io/gltf) _primitive_, which is generally equal to a subset of [Blender object](https://castle-engine.io/blender) that has a single material.
+
+- The engine can also automatically detect when some shape(s) are not 2-manifold, but the _whole scene_ is 2-manifold. This is a common case when you have a 2-manifold mesh in Blender, but it uses multiple materials. In such case, exporting it to glTF or X3D splits each mesh into multiple shapes. Each shape is _not_ 2-manifold but whole scene is.
+
+- Even if none of the above applies, you can force treating the whole scene as 2-manifold. This is done by setting `RenderOptions.WholeSceneManifold` to `true`.
+
+This example shows:
+
+- _Alpaca_ model, that is detected as _whole scene is 2-manifold_.
+
+- _Bull_ model, that is not detected as _whole scene is 2-manifold_. It really is not 2-manifold (horns are not "closed") but we can ignore this, and force treating the whole scene as 2-manifold, and it happens to work correctly with shadow volumes.
 
 Note: We use a version of Alpaca model with _"Backface Culling"_ = _On_. Since 2-manifold scenes require consistent face ordering and "closed skin", using _"Backface Culling"_ on them is an obvious performance benefit. That said, the shadow volumes algorithm would also work if backface culling is off (you can test it by using `Alpaca_original_no_backface_culling.gltf` from our data), just rendering then wouldn't be optimal.
 

@@ -115,10 +115,9 @@ end;
 
 function TCastleFontFamily.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'Regular') or
-     (PropertyName = 'Bold') or
-     (PropertyName = 'Italic') or
-     (PropertyName = 'BoldItalic') then
+  if ArrayContainsString(PropertyName, [
+      'Regular', 'Bold', 'Italic', 'BoldItalic'
+     ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);

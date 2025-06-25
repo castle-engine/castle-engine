@@ -340,12 +340,10 @@ end;
 
 function TCastleFont.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'Url') or
-     (PropertyName = 'OptimalSize') or
-     (PropertyName = 'AntiAliased') or
-     (PropertyName = 'LoadCharacters') or
-     (PropertyName = 'DistanceField') or
-     (PropertyName = 'LoadBasicCharacters') then
+  if ArrayContainsString(PropertyName, [
+      'Url', 'OptimalSize', 'AntiAliased', 'LoadCharacters', 'DistanceField',
+      'LoadBasicCharacters'
+     ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);

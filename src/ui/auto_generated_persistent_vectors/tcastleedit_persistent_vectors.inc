@@ -53,7 +53,7 @@ end;
   FFocusedColorPersistent := TCastleColorPersistent.Create(nil);
   { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
     on themselves, for backward compatibility. But we should not depend on it,
-    some classes (like TFloatRectanglePersisten) may not call it.
+    some classes (like TFloatRectanglePersistent) may not call it.
     The responsibility of calling "SetSubComponent(true)" should be on the owner
     in general (this is more functional, and more standard too). }
   FFocusedColorPersistent.SetSubComponent(true);
@@ -121,7 +121,7 @@ end;
   FUnfocusedColorPersistent := TCastleColorPersistent.Create(nil);
   { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
     on themselves, for backward compatibility. But we should not depend on it,
-    some classes (like TFloatRectanglePersisten) may not call it.
+    some classes (like TFloatRectanglePersistent) may not call it.
     The responsibility of calling "SetSubComponent(true)" should be on the owner
     in general (this is more functional, and more standard too). }
   FUnfocusedColorPersistent.SetSubComponent(true);
@@ -189,7 +189,7 @@ end;
   FPlaceholderColorPersistent := TCastleColorPersistent.Create(nil);
   { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
     on themselves, for backward compatibility. But we should not depend on it,
-    some classes (like TFloatRectanglePersisten) may not call it.
+    some classes (like TFloatRectanglePersistent) may not call it.
     The responsibility of calling "SetSubComponent(true)" should be on the owner
     in general (this is more functional, and more standard too). }
   FPlaceholderColorPersistent.SetSubComponent(true);
@@ -257,7 +257,7 @@ end;
   FBackgroundColorPersistent := TCastleColorPersistent.Create(nil);
   { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
     on themselves, for backward compatibility. But we should not depend on it,
-    some classes (like TFloatRectanglePersisten) may not call it.
+    some classes (like TFloatRectanglePersistent) may not call it.
     The responsibility of calling "SetSubComponent(true)" should be on the owner
     in general (this is more functional, and more standard too). }
   FBackgroundColorPersistent.SetSubComponent(true);

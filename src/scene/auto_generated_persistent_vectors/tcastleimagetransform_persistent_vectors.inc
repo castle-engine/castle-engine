@@ -53,7 +53,7 @@ end;
   FPivotPersistent := TCastleVector2Persistent.Create(nil);
   { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
     on themselves, for backward compatibility. But we should not depend on it,
-    some classes (like TFloatRectanglePersisten) may not call it.
+    some classes (like TFloatRectanglePersistent) may not call it.
     The responsibility of calling "SetSubComponent(true)" should be on the owner
     in general (this is more functional, and more standard too). }
   FPivotPersistent.SetSubComponent(true);
@@ -121,7 +121,7 @@ end;
   FSizePersistent := TCastleVector2Persistent.Create(nil);
   { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
     on themselves, for backward compatibility. But we should not depend on it,
-    some classes (like TFloatRectanglePersisten) may not call it.
+    some classes (like TFloatRectanglePersistent) may not call it.
     The responsibility of calling "SetSubComponent(true)" should be on the owner
     in general (this is more functional, and more standard too). }
   FSizePersistent.SetSubComponent(true);
@@ -189,7 +189,7 @@ end;
   FRepeatImagePersistent := TCastleVector2Persistent.Create(nil);
   { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
     on themselves, for backward compatibility. But we should not depend on it,
-    some classes (like TFloatRectanglePersisten) may not call it.
+    some classes (like TFloatRectanglePersistent) may not call it.
     The responsibility of calling "SetSubComponent(true)" should be on the owner
     in general (this is more functional, and more standard too). }
   FRepeatImagePersistent.SetSubComponent(true);
@@ -257,7 +257,7 @@ end;
   FShiftPersistent := TCastleVector2Persistent.Create(nil);
   { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
     on themselves, for backward compatibility. But we should not depend on it,
-    some classes (like TFloatRectanglePersisten) may not call it.
+    some classes (like TFloatRectanglePersistent) may not call it.
     The responsibility of calling "SetSubComponent(true)" should be on the owner
     in general (this is more functional, and more standard too). }
   FShiftPersistent.SetSubComponent(true);
@@ -325,7 +325,7 @@ end;
   FColorPersistent := TCastleColorPersistent.Create(nil);
   { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
     on themselves, for backward compatibility. But we should not depend on it,
-    some classes (like TFloatRectanglePersisten) may not call it.
+    some classes (like TFloatRectanglePersistent) may not call it.
     The responsibility of calling "SetSubComponent(true)" should be on the owner
     in general (this is more functional, and more standard too). }
   FColorPersistent.SetSubComponent(true);

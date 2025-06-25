@@ -85,8 +85,8 @@ uses SysUtils,
 
   Note: this cannot be moved to a local function inside
   TCastleScene.RenderSilhouetteShadowVolume, as FPC 2.6.4 and 2.6.2 on Win32 (but not on Linux
-  i386) generates then bad code, the loop to ManifoldEdgesNow.Count doesn't finish OK,
-  the index goes beyond ManifoldEdgesNow.Count-1. }
+  i386) generates then bad code, the loop to EdgesNow.Count doesn't finish OK,
+  the index goes beyond EdgesNow.Count-1. }
 function ExtrudeVertex(
   const Original: TVector3;
   const LightPos: TVector4): TVector4;
@@ -180,26 +180,13 @@ var
       Vertexes.Add(LightPos);
   end;
 
-  { Render shadow quad from edge given by PManifoldEdge. }
-  procedure RenderShadowQuad_ManifoldEdge(const EdgePtr: PManifoldEdge;
+  { Render shadow quad from PEdge. }
+  procedure RenderShadowQuad_EdgePtr(const EdgePtr: PEdge;
     const P0Index, P1Index: Cardinal);
   var
     TrianglePtr: PTriangle3;
   begin
     TrianglePtr := PTriangle3(Triangles.Ptr(EdgePtr^.Triangles[0]));
-    RenderShadowQuad_Edge(
-      TrianglePtr^.Data[(EdgePtr^.VertexIndex + P0Index) mod 3],
-      TrianglePtr^.Data[(EdgePtr^.VertexIndex + P1Index) mod 3]
-    );
-  end;
-
-  { Render shadow quad from edge given by PBorderEdge. }
-  procedure RenderShadowQuad_BorderEdge(const EdgePtr: PBorderEdge;
-    const P0Index, P1Index: Cardinal);
-  var
-    TrianglePtr: PTriangle3;
-  begin
-    TrianglePtr := PTriangle3(Triangles.Ptr(EdgePtr^.TriangleIndex));
     RenderShadowQuad_Edge(
       TrianglePtr^.Data[(EdgePtr^.VertexIndex + P0Index) mod 3],
       TrianglePtr^.Data[(EdgePtr^.VertexIndex + P1Index) mod 3]
@@ -415,10 +402,8 @@ var
   I: Integer;
   PlaneSide0, PlaneSide1: boolean;
   TrianglesPlaneSide: TBooleanList;
-  ManifoldEdgesNow: TManifoldEdgeList;
-  ManifoldEdgePtr: PManifoldEdge;
-  BorderEdgesNow: TBorderEdgeList;
-  BorderEdgePtr: PBorderEdge;
+  EdgesNow: TEdgeList;
+  EdgePtr: PEdge;
 begin
   Assert(ManifoldEdges <> nil);
 
@@ -450,12 +435,12 @@ begin
       LightCap, DarkCap);
 
     { for each 2-manifold edge, possibly render it's shadow quad }
-    ManifoldEdgesNow := ManifoldEdges;
-    ManifoldEdgePtr := PManifoldEdge(ManifoldEdgesNow.L);
-    for I := 0 to ManifoldEdgesNow.Count - 1 do
+    EdgesNow := ManifoldEdges;
+    EdgePtr := PEdge(EdgesNow.L);
+    for I := 0 to EdgesNow.Count - 1 do
     begin
-      PlaneSide0 := TrianglesPlaneSide.L[ManifoldEdgePtr^.Triangles[0]];
-      PlaneSide1 := TrianglesPlaneSide.L[ManifoldEdgePtr^.Triangles[1]];
+      PlaneSide0 := TrianglesPlaneSide.L[EdgePtr^.Triangles[0]];
+      PlaneSide1 := TrianglesPlaneSide.L[EdgePtr^.Triangles[1]];
 
       { Only if PlaneSide0 <> PlaneSide1 it's a silhouette edge,
         so only then render it's shadow quad.
@@ -477,23 +462,41 @@ begin
         imagine that you want the shadow quad to be also CCW on the outside,
         it will make sense then :) }
       if PlaneSide0 and not PlaneSide1 then
-        RenderShadowQuad_ManifoldEdge(ManifoldEdgePtr, 1, 0)
+        RenderShadowQuad_EdgePtr(EdgePtr, 1, 0)
       else
       if PlaneSide1 and not PlaneSide0 then
-        RenderShadowQuad_ManifoldEdge(ManifoldEdgePtr, 0, 1);
+        RenderShadowQuad_EdgePtr(EdgePtr, 0, 1);
 
-      Inc(ManifoldEdgePtr);
+      Inc(EdgePtr);
     end;
 
     { For each border edge, always render it's shadow quad.
       This is used now only if WholeSceneManifold
       (otherwise at the beginning of this method,
       we exit if BorderEdges.Count <> 0). }
-    BorderEdgesNow := BorderEdges;
-    BorderEdgePtr := PBorderEdge(BorderEdgesNow.L);
-    for I := 0 to BorderEdgesNow.Count - 1 do
+    EdgesNow := BorderEdges;
+    EdgePtr := PEdge(EdgesNow.L);
+    for I := 0 to EdgesNow.Count - 1 do
     begin
-      PlaneSide0 := TrianglesPlaneSide.L[BorderEdgePtr^.TriangleIndex];
+      PlaneSide0 := TrianglesPlaneSide.L[EdgePtr^.Triangles[0]];
+
+      { Note that even for BorderEdges that are actually manifold but from
+        different shapes (so have Triangles[1] = High(Cardinal)),
+        we don't check PlaneSide1, so we don't render them under the same
+        conditions as ManifoldEdges.
+
+        While this would be more optimal (less shadow quads)
+        but force such BorderEdges to have consistent order (reverted)
+        in both shapes. Right now our CalculateDetectedWholeSceneManifold
+        allows any order.
+
+        Moreover, it means that forcing 2-manifold by
+        RenderOptions.WholeSceneManifold is a valid optimization at loading,
+        without any adverse effects. RenderOptions.WholeSceneManifold doesn't
+        set "Triangles[1] = High(Cardinal)" on any edge (which is OK since we
+        don't use it for rendering), and it avoids doing
+        CalculateDetectedWholeSceneManifold.
+      }
 
       { We want to have consistent CCW orientation of shadow quads faces,
         so that face is oriented CCW <=> you're looking at it from outside
@@ -507,15 +510,15 @@ begin
         triangle. So if PlaneSide0, the shadow quad is extended
         in the direction of TriangleIndex, like 1, 0, Extruded0, Extruded1. }
       if PlaneSide0 then
-        RenderShadowQuad_BorderEdge(BorderEdgePtr, 1, 0)
+        RenderShadowQuad_EdgePtr(EdgePtr, 1, 0)
       {
       // Do not render shadow quad from other border edge, this would break rendering
       // (testcase: examples/viewport_and_scenes/shadow_volumes_whole_scene_manifold/ ).
       // The other shape, that shares this manifold edge, will render the corresponding shadow quad for it.
       else
-        RenderShadowQuad_BorderEdge(BorderEdgePtr, 0, 1)};
+        RenderShadowQuad_EdgePtr(EdgePtr, 0, 1)};
 
-      Inc(BorderEdgePtr);
+      Inc(EdgePtr);
     end;
 
     FlushVertexes;

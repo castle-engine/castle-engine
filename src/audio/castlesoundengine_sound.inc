@@ -286,13 +286,9 @@ end;
 
 function TCastleSound.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'Url') or
-     (PropertyName = 'Stream') or
-     (PropertyName = 'Volume') or
-     (PropertyName = 'Pitch') or
-     (PropertyName = 'Priority') or
-     (PropertyName = 'ReferenceDistance') or
-     (PropertyName = 'MaxDistance') then
+  if ArrayContainsString(PropertyName, [
+       'Url', 'Stream', 'Volume', 'Pitch', 'Priority', 'ReferenceDistance', 'MaxDistance'
+     ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
