@@ -7697,14 +7697,21 @@ function TCastleSceneCore.DetectedWholeSceneManifold: Boolean;
 
             { Try both orders: two border edges can match in any order,
               our border edges rendering tolerates it.
-              Note that we match here with epsilon, which may be faulty in the end,
-              if OpenGL calculations lead to slightly different results...
-              But precise matching has almost no chance, we already multiplied
-              it by matrices. }
-            if ( TVector3.Equals(Shape1V0, Shape2V1{, Epsilon}) and
-                 TVector3.Equals(Shape1V1, Shape2V0{, Epsilon}) ) or
-               ( TVector3.Equals(Shape1V0, Shape2V0{, Epsilon}) and
-                 TVector3.Equals(Shape1V1, Shape2V1{, Epsilon}) ) then
+
+              Compare with epsilon or not?
+              Better not. Comparing with epsilon may be faulty
+              (if OpenGL calculations lead to slightly different results,
+              we will have rendering artifacts).
+              And it seems comparing precisely actually works in our testcases,
+              it detects scenes as 2-manifold correctly. }
+            // if ( TVector3.Equals(Shape1V0, Shape2V1{, Epsilon}) and
+            //      TVector3.Equals(Shape1V1, Shape2V0{, Epsilon}) ) or
+            //    ( TVector3.Equals(Shape1V0, Shape2V0{, Epsilon}) and
+            //      TVector3.Equals(Shape1V1, Shape2V1{, Epsilon}) ) then
+            if ( TVector3.PerfectlyEquals(Shape1V0, Shape2V1) and
+                 TVector3.PerfectlyEquals(Shape1V1, Shape2V0) ) or
+               ( TVector3.PerfectlyEquals(Shape1V0, Shape2V0) and
+                 TVector3.PerfectlyEquals(Shape1V1, Shape2V1) ) then
             begin
               // mark that this edge is already matched
               BorderEdge2^.Triangles[1] := High(Cardinal);

@@ -470,6 +470,17 @@ begin
     begin
       PlaneSide0 := TrianglesPlaneSide.L[EdgePtr^.Triangles[0]];
 
+      { Note that even for BorderEdges that are actually manifold but from
+        different shapes (so have Triangles[1] = High(Cardinal)),
+        we don't check PlaneSide1, so we don't render them under the same
+        conditions as ManifoldEdges.
+
+        While this would be more optimal (less shadow quads)
+        but force such BorderEdges to have consistent order (reverted)
+        in both shapes. Right now our CalculateDetectedWholeSceneManifold
+        allows any order.
+      }
+
       { We want to have consistent CCW orientation of shadow quads faces,
         so that face is oriented CCW <=> you're looking at it from outside
         (i.e. it's considered front face of this shadow quad).
