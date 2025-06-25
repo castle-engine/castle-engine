@@ -1447,6 +1447,12 @@ begin
 
     So distance culling cannot eliminate particular shapes.
 
+    Testcase that this check is necessary: Open
+    examples/viewport_and_scenes/shadows_distance_culling/ (in editor is OK),
+    look at one of the houses with multiple materials, get closer/further from it.
+    Without this check, if *part* of shapes (but not all) would be eliminated
+    by distance culling, weird shadow artifacts would be rendered.
+
     We take care to only do this (exit early, eliminating per-shape
     DistanceCulling check)
     when really necessary, so only when actually using shadow volumes light source
