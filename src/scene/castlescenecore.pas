@@ -360,12 +360,15 @@ type
   TCastleSceneCore = class(TX3DEventsEngine)
   private
     type
-      TSceneValidity = (fvLocalBoundingBox,
+      TSceneValidity = (
+        fvLocalBoundingBox,
         fvVerticesCount,
         fvTrianglesCount,
         fvMainLightForShadows,
+        fvDetectedWholeSceneManifold,
         fvShapesActiveCount,
-        fvShapesActiveVisibleCount);
+        fvShapesActiveVisibleCount
+      );
 
       TSceneValidities = set of TSceneValidity;
 
@@ -456,6 +459,8 @@ type
     LastCameraStateId: TFrameId;
     FDefaultAnimationTransition: Single;
     FCache: Boolean;
+    { Calculated DetectedWholeSceneManifold result.
+      Valid only if fvDetectedWholeSceneManifold in Validities. }
     FDetectedWholeSceneManifold: Boolean;
 
     { All InternalUpdateCamera calls will disable smooth (animated)
@@ -608,7 +613,6 @@ type
     procedure ExposeTransformsChange(Sender: TObject);
     procedure SetExposeTransformsPrefix(const Value: String);
     function CreateAnimations: TStringList;
-    procedure CalculateDetectedWholeSceneManifold;
   private
     FGlobalLights: TLightInstancesList;
 
@@ -1297,7 +1301,7 @@ type
       This is independent (doesn't take into account) the value
       of @link(TCastleRenderOptions.WholeSceneManifold
       RenderOptions.WholeSceneManifold). }
-    property DetectedWholeSceneManifold: Boolean read FDetectedWholeSceneManifold;
+    function DetectedWholeSceneManifold: Boolean;
 
     { Edges count in the scene, for information purposes. }
     procedure EdgesCount(out ManifoldEdges, BorderEdges: Cardinal);
@@ -7636,114 +7640,125 @@ begin
     HeadlightOn := DefaultNavigationInfoHeadlight;
 end;
 
-procedure TCastleSceneCore.CalculateDetectedWholeSceneManifold;
-var
-  ShapeList: TShapeList;
-  Shape1, Shape2: TShape;
-  BorderEdges1, BorderEdges2: TEdgeList;
-  BorderEdge1, BorderEdge2: PEdge;
-  BorderEdge1Index, BorderEdge2Index: Integer;
-  Shape1V0, Shape1V1, Shape2V0, Shape2V1: TVector3;
-  AnyBorderEdges: Boolean;
-begin
-  { Once ManifoldEdges and BorderEdges for all shapes are calculated,
-    check is scene manifold "as a whole". }
+function TCastleSceneCore.DetectedWholeSceneManifold: Boolean;
 
-  FDetectedWholeSceneManifold := true; // assume yes
-  AnyBorderEdges := false;
-
-  ShapeList := Shapes.TraverseList(false);
-
-  for Shape1 in ShapeList do
+  procedure CalculateDetectedWholeSceneManifold;
+  var
+    ShapeList: TShapeList;
+    Shape1, Shape2: TShape;
+    BorderEdges1, BorderEdges2: TEdgeList;
+    BorderEdge1, BorderEdge2: PEdge;
+    BorderEdge1Index, BorderEdge2Index: Integer;
+    Shape1V0, Shape1V1, Shape2V0, Shape2V1: TVector3;
+    AnyBorderEdges: Boolean;
   begin
-    BorderEdges1 := Shape1.InternalShadowVolumes.BorderEdges;
-    BorderEdge1 := PEdge(BorderEdges1.L);
-    AnyBorderEdges := AnyBorderEdges or (BorderEdges1.Count <> 0);
-    for BorderEdge1Index := 0 to BorderEdges1.Count - 1 do
+    { Once ManifoldEdges and BorderEdges for all shapes are calculated,
+      check is scene manifold "as a whole". }
+
+    FDetectedWholeSceneManifold := true; // assume yes
+    AnyBorderEdges := false;
+
+    ShapeList := Shapes.TraverseList(false);
+
+    for Shape1 in ShapeList do
     begin
-      // do not match, if this edge is already matched
-      if BorderEdge1^.Triangles[1] = High(Cardinal) then
+      BorderEdges1 := Shape1.InternalShadowVolumes.BorderEdges;
+      BorderEdge1 := PEdge(BorderEdges1.L);
+      AnyBorderEdges := AnyBorderEdges or (BorderEdges1.Count <> 0);
+      for BorderEdge1Index := 0 to BorderEdges1.Count - 1 do
       begin
-        Inc(BorderEdge1);
-        Continue;
-      end;
-
-      Shape1V0 := Shape1.State.Transformation.Transform.MultPoint(BorderEdge1^.V0);
-      Shape1V1 := Shape1.State.Transformation.Transform.MultPoint(BorderEdge1^.V1);
-
-      for Shape2 in ShapeList do
-      begin
-        if Shape1 = Shape2 then Continue;
-
-        BorderEdges2 := Shape2.InternalShadowVolumes.BorderEdges;
-        BorderEdge2 := PEdge(BorderEdges2.L);
-        for BorderEdge2Index := 0 to BorderEdges2.Count - 1 do
+        // do not match, if this edge is already matched
+        if BorderEdge1^.Triangles[1] = High(Cardinal) then
         begin
-          // do not match, if this edge is already matched
-          if BorderEdge2^.Triangles[1] = High(Cardinal) then
-          begin
-            Inc(BorderEdge2);
-            Continue;
-          end;
-
-          Shape2V0 := Shape2.State.Transformation.Transform.MultPoint(BorderEdge2^.V0);
-          Shape2V1 := Shape2.State.Transformation.Transform.MultPoint(BorderEdge2^.V1);
-
-          { Try both orders: two border edges can match in any order,
-            our border edges rendering tolerates it.
-            Note that we match here with epsilon, which may be faulty in the end,
-            if OpenGL calculations lead to slightly different results...
-            But precise matching has almost no chance, we already multiplied
-            it by matrices. }
-          if ( TVector3.Equals(Shape1V0, Shape2V1) and
-               TVector3.Equals(Shape1V1, Shape2V0) ) or
-             ( TVector3.Equals(Shape1V0, Shape2V0) and
-               TVector3.Equals(Shape1V1, Shape2V1) ) then
-          begin
-            // mark that this edge is already matched
-            BorderEdge2^.Triangles[1] := High(Cardinal);
-            BorderEdge1^.Triangles[1] := High(Cardinal);
-            Break;
-          end;
-          Inc(BorderEdge2);
+          Inc(BorderEdge1);
+          Continue;
         end;
 
-        if BorderEdge1^.Triangles[1] = High(Cardinal) then
-          Break; // found match for BorderEdge1
-      end;
+        Shape1V0 := Shape1.State.Transformation.Transform.MultPoint(BorderEdge1^.V0);
+        Shape1V1 := Shape1.State.Transformation.Transform.MultPoint(BorderEdge1^.V1);
 
-      // not found any match for BorderEdge1, in all shapes
-      if BorderEdge1^.Triangles[1] <> High(Cardinal) then
-      begin
-        FDetectedWholeSceneManifold := false;
-        {$define CalculateDetectedWholeSceneManifold_Log}
-        {$ifdef CalculateDetectedWholeSceneManifold_Log}
-        WritelnLog('Scene %s %s detected as NOT 2-manifold.', [Name, UriDisplay(Url)]);
-        {$endif}
-        // Comment out to keep detecting, and match at least as much as possible
-        Exit;
-      end;
+        for Shape2 in ShapeList do
+        begin
+          if Shape1 = Shape2 then Continue;
 
-      Inc(BorderEdge1);
+          BorderEdges2 := Shape2.InternalShadowVolumes.BorderEdges;
+          BorderEdge2 := PEdge(BorderEdges2.L);
+          for BorderEdge2Index := 0 to BorderEdges2.Count - 1 do
+          begin
+            // do not match, if this edge is already matched
+            if BorderEdge2^.Triangles[1] = High(Cardinal) then
+            begin
+              Inc(BorderEdge2);
+              Continue;
+            end;
+
+            Shape2V0 := Shape2.State.Transformation.Transform.MultPoint(BorderEdge2^.V0);
+            Shape2V1 := Shape2.State.Transformation.Transform.MultPoint(BorderEdge2^.V1);
+
+            { Try both orders: two border edges can match in any order,
+              our border edges rendering tolerates it.
+              Note that we match here with epsilon, which may be faulty in the end,
+              if OpenGL calculations lead to slightly different results...
+              But precise matching has almost no chance, we already multiplied
+              it by matrices. }
+            if ( TVector3.Equals(Shape1V0, Shape2V1{, Epsilon}) and
+                 TVector3.Equals(Shape1V1, Shape2V0{, Epsilon}) ) or
+               ( TVector3.Equals(Shape1V0, Shape2V0{, Epsilon}) and
+                 TVector3.Equals(Shape1V1, Shape2V1{, Epsilon}) ) then
+            begin
+              // mark that this edge is already matched
+              BorderEdge2^.Triangles[1] := High(Cardinal);
+              BorderEdge1^.Triangles[1] := High(Cardinal);
+              Break;
+            end;
+            Inc(BorderEdge2);
+          end;
+
+          if BorderEdge1^.Triangles[1] = High(Cardinal) then
+            Break; // found match for BorderEdge1
+        end;
+
+        // not found any match for BorderEdge1, in all shapes
+        if BorderEdge1^.Triangles[1] <> High(Cardinal) then
+        begin
+          FDetectedWholeSceneManifold := false;
+          {.$define CalculateDetectedWholeSceneManifold_Log}
+          {$ifdef CalculateDetectedWholeSceneManifold_Log}
+          WritelnLog('Scene %s %s detected as NOT 2-manifold.', [Name, UriDisplay(Url)]);
+          {$endif}
+          // Comment out to keep detecting, and match at least as much as possible
+          Exit;
+        end;
+
+        Inc(BorderEdge1);
+      end;
+    end;
+
+    { When the scene is trivially detected as "whole scene is 2-manifold"
+      just because there are no border edges, then actually each shape is
+      already a 2-manifold. We don't need in this case the EffectiveWholeSceneManifold
+      algorithm, better to cull and render shadow volumes per shape. }
+    if not AnyBorderEdges then
+    begin
+      {$ifdef CalculateDetectedWholeSceneManifold_Log}
+      WritelnLog('Scene %s %s detected as 2-manifold, but trivially, because there are no border edges. Disabling EffectiveWholeSceneManifold.', [Name, UriDisplay(Url)]);
+      {$endif}
+      FDetectedWholeSceneManifold := false;
+    end else
+    begin
+      {$ifdef CalculateDetectedWholeSceneManifold_Log}
+      WritelnLog('Scene %s %s detected as 2-manifold.', [Name, UriDisplay(Url)]);
+      {$endif}
     end;
   end;
 
-  { When the scene is trivially detected as "whole scene is 2-manifold"
-    just because there are no border edges, then actually each shape is
-    already a 2-manifold. We don't need in this case the EffectiveWholeSceneManifold
-    algorithm, better to cull and render shadow volumes per shape. }
-  if not AnyBorderEdges then
+begin
+  if not (fvDetectedWholeSceneManifold in Validities) then
   begin
-    {$ifdef CalculateDetectedWholeSceneManifold_Log}
-    WritelnLog('Scene %s %s detected as 2-manifold, but trivially, because there are no border edges. Disabling EffectiveWholeSceneManifold.', [Name, UriDisplay(Url)]);
-    {$endif}
-    FDetectedWholeSceneManifold := false;
-  end else
-  begin
-    {$ifdef CalculateDetectedWholeSceneManifold_Log}
-    WritelnLog('Scene %s %s detected as 2-manifold.', [Name, UriDisplay(Url)]);
-    {$endif}
+    CalculateDetectedWholeSceneManifold;
+    Include(Validities, fvDetectedWholeSceneManifold);
   end;
+  Result := FDetectedWholeSceneManifold;
 end;
 
 procedure TCastleSceneCore.PrepareResources(const Options: TPrepareResourcesOptions;
@@ -7766,13 +7781,10 @@ procedure TCastleSceneCore.PrepareResources(const Options: TPrepareResourcesOpti
   var
     ShapeList: TShapeList;
     Shape: TShape;
-    SomethingChanged: Boolean;
   begin
     ShapeList := Shapes.TraverseList(false);
     for Shape in ShapeList do
-      Shape.InternalShadowVolumes.PrepareResources(SomethingChanged);
-    if SomethingChanged then
-      CalculateDetectedWholeSceneManifold;
+      Shape.InternalShadowVolumes.PrepareResources;
   end;
 
 begin

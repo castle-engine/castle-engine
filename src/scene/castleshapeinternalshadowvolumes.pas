@@ -94,12 +94,11 @@ type
         svManifoldAndBorderEdges
       );
     var
-    Validities: TValidities;
-    FTrianglesListShadowCasters: TTrianglesShadowCastersList;
-    FManifoldEdges: TEdgeList;
-    FBorderEdges: TEdgeList;
-    procedure CalculateIfNeededManifoldAndBorderEdges; overload;
-    procedure CalculateIfNeededManifoldAndBorderEdges(out EdgesChanged: Boolean); overload;
+      Validities: TValidities;
+      FTrianglesListShadowCasters: TTrianglesShadowCastersList;
+      FManifoldEdges: TEdgeList;
+      FBorderEdges: TEdgeList;
+      procedure CalculateIfNeededManifoldAndBorderEdges;
   public
     FShape: TObject;
 
@@ -162,7 +161,7 @@ type
     function BorderEdges: TEdgeList;
     { @groupEnd }
 
-    procedure PrepareResources(out SomethingChanged: Boolean);
+    procedure PrepareResources;
     procedure FreeResources;
   end;
 
@@ -271,8 +270,7 @@ begin
   FreeAndNil(FTrianglesListShadowCasters);
 end;
 
-procedure TShapeShadowVolumes.CalculateIfNeededManifoldAndBorderEdges
-  (out EdgesChanged: Boolean);
+procedure TShapeShadowVolumes.CalculateIfNeededManifoldAndBorderEdges;
 
   { Sets FManifoldEdges and FBorderEdges. Assumes that FManifoldEdges and
     FBorderEdges are @nil on enter. }
@@ -379,8 +377,6 @@ procedure TShapeShadowVolumes.CalculateIfNeededManifoldAndBorderEdges
       Inc(TrianglePtr);
     end;
 
-    EdgesChanged := true;
-
     if LogShadowVolumes then
       WritelnLog('Shadow volumes', Format(
         'Edges: %d manifold, %d border',
@@ -388,19 +384,11 @@ procedure TShapeShadowVolumes.CalculateIfNeededManifoldAndBorderEdges
   end;
 
 begin
-  EdgesChanged := false;
   if not (svManifoldAndBorderEdges in Validities) then
   begin
     CalculateManifoldAndBorderEdges;
     Include(Validities, svManifoldAndBorderEdges);
   end;
-end;
-
-procedure TShapeShadowVolumes.CalculateIfNeededManifoldAndBorderEdges;
-var
-  IgnoredEdgesChanged: Boolean;
-begin
-  CalculateIfNeededManifoldAndBorderEdges(IgnoredEdgesChanged);
 end;
 
 function TShapeShadowVolumes.ManifoldEdges: TEdgeList;
@@ -422,10 +410,10 @@ begin
   FreeAndNil(FBorderEdges);
 end;
 
-procedure TShapeShadowVolumes.PrepareResources(out SomethingChanged: Boolean);
+procedure TShapeShadowVolumes.PrepareResources;
 begin
   TrianglesListShadowCasters;
-  CalculateIfNeededManifoldAndBorderEdges(SomethingChanged);
+  CalculateIfNeededManifoldAndBorderEdges;
 end;
 
 procedure TShapeShadowVolumes.FreeResources;
