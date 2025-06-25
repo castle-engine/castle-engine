@@ -4,7 +4,7 @@ For [shadow volumes](https://castle-engine.io/shadow_volumes), everything that c
 
 - The engine can automatically detect when each _shape_ is 2-manifold.
 
-    Note: _Shape_ in Castle Game Eneigne means [X3D](https://castle-engine.io/x3d) `Shape` node, which is equal to [glTF](https://castle-engine.io/gltf) _primitive_, which is generally equal to a subset of [Blender object](https://castle-engine.io/blender) that has a single material.
+    Note: _Shape_ in _Castle Game Engine_ means [X3D](https://castle-engine.io/x3d) `Shape` node, which is equal to [glTF](https://castle-engine.io/gltf) _primitive_, which is generally equal to a subset of [Blender object](https://castle-engine.io/blender) that has a single material.
 
 - The engine can also automatically detect when some shape(s) are not 2-manifold, but the _whole scene_ is 2-manifold. This is a common case when you have a 2-manifold mesh in Blender, but it uses multiple materials. In such case, exporting it to glTF or X3D splits each mesh into multiple shapes. Each shape is _not_ 2-manifold but whole scene is.
 
