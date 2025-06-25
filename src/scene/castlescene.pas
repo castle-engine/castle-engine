@@ -163,7 +163,6 @@ type
       FShapeFrustumCulling, FSceneFrustumCulling: Boolean;
       FRenderOptions: TCastleRenderOptions;
       FTransformOptimization: TTransformOptimization;
-      DoneWarningWholeSceneManifold: Boolean;
 
       { These fields are valid only during LocalRenderInside and CollectShape_ methods. }
       Render_Params: TRenderParams;
@@ -1242,19 +1241,25 @@ end;
 
 { Shadow volumes ------------------------------------------------------------- }
 
-// TODO: merge from skinned-animation-gpu branch
-procedure WritelnWarningOnce(var Done: boolean; const Format: string; const Args: array of const);
-begin
-  if not Done then
-  begin
-    Done := true;
-    WritelnWarning(Format, Args);
-  end;
-end;
-
 function TCastleScene.EffectiveWholeSceneManifold: Boolean;
 begin
   Result := RenderOptions.WholeSceneManifold or DetectedWholeSceneManifold;
+
+  { Remove the warning, as it would trigger often, in cases when it's acceptable.
+    Assume that "user knows what (s)he's doing" when toggling manually
+    RenderOptions.WholeSceneManifold.
+
+    Testcases where DetectedWholeSceneManifold=false but
+    RenderOptions.WholeSceneManifold=true works OK:
+
+    - examples/physics/physics_throw_chickens
+    - examples/animations/split_long_animation
+    - examples/creature_behaviors
+    - examples/cpp_builder/window
+    - https://github.com/castle-engine/conference-delphi-summit-2025/tree/master/walk_3d_game_controllers
+  }
+
+  {
   if RenderOptions.WholeSceneManifold and not DetectedWholeSceneManifold then
   begin
     WritelnWarningOnce(DoneWarningWholeSceneManifold,
@@ -1265,6 +1270,7 @@ begin
       Name
     ]);
   end;
+  }
 end;
 
 procedure TCastleScene.LocalRenderShadowVolume(const Params: TRenderParams;
