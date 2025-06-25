@@ -7759,10 +7759,40 @@ function TCastleSceneCore.InternalDetectedWholeSceneManifold: Boolean;
     end;
   end;
 
+  { Do CalculateDetectedWholeSceneManifold, measure time. }
+  procedure CalculateDetectedWholeSceneManifoldTime;
+  var
+    T: TTimerResult;
+    ProfilerTime: TCastleProfilerTime;
+    ElapsedTime: TFloatTime;
+  begin
+    T := Timer;
+    ProfilerTime := Profiler.Start(Format('Calculate DetectedWholeSceneManifold "%s" (%s)', [
+      Name,
+      UriDisplay(Url)
+    ]));
+
+    CalculateDetectedWholeSceneManifold;
+
+    Profiler.Stop(ProfilerTime);
+
+    ElapsedTime := T.ElapsedTime;
+    if ElapsedTime > 0.1 then
+    begin
+      WritelnLog('Auto-detecting WholeSceneManifold on scene %s %s took %f seconds.', [
+        Name,
+        UriDisplay(Url),
+        ElapsedTime
+      ]);
+      if FDetectedWholeSceneManifold then
+        WritelnLog('  Moreover, the detection was successfull. Consider setting RenderOptions.WholeSceneManifold to skip this detection in the future.');
+    end;
+  end;
+
 begin
   if not (fvDetectedWholeSceneManifold in Validities) then
   begin
-    CalculateDetectedWholeSceneManifold;
+    CalculateDetectedWholeSceneManifoldTime;
     Include(Validities, fvDetectedWholeSceneManifold);
   end;
   Result := FDetectedWholeSceneManifold;

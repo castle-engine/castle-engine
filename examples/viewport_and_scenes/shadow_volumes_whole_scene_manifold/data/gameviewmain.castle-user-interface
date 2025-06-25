@@ -100,6 +100,7 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Gallop",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "SceneAlpaca1",
@@ -122,6 +123,7 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Gallop",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "SceneAlpaca2",
@@ -186,6 +188,7 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Gallop",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "SceneBull6",
@@ -265,6 +268,7 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Gallop",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "SceneAlpaca3",
@@ -287,6 +291,7 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Gallop",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "SceneAlpaca4",
@@ -362,6 +367,7 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Gallop",
+                "Cache" : true,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "SceneBull5",
