@@ -1243,6 +1243,10 @@ end;
 
 function TCastleScene.EffectiveWholeSceneManifold: Boolean;
 begin
+  { Test RenderOptions.WholeSceneManifold first, as it's instant
+    (if marked by user), while DetectedWholeSceneManifold may trigger
+    on-demand analysis of borders. }
+
   Result := RenderOptions.WholeSceneManifold or DetectedWholeSceneManifold;
 
   { Remove the warning, as it would trigger often, in cases when it's acceptable.
