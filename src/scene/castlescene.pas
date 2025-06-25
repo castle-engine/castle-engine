@@ -229,7 +229,10 @@ type
       ShapeIndex: Integer; CollidesForSure: boolean);
     procedure SetCastGlobalLights(const Value: Boolean);
     { Treating the scene as "whole scene 2-manifold", because of
-      DetectedWholeSceneManifold or RenderOptions.WholeSceneManifold. }
+      DetectedWholeSceneManifold or RenderOptions.WholeSceneManifold.
+      Calling this may have a cost: on-demand calculation of
+      DetectedWholeSceneManifold, so use this only when a light source
+      casting shadow volumes is present. }
     function EffectiveWholeSceneManifold: Boolean;
   private
     PreparedShapesResources, PreparedRender: Boolean;
