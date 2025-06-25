@@ -479,6 +479,13 @@ begin
         but force such BorderEdges to have consistent order (reverted)
         in both shapes. Right now our CalculateDetectedWholeSceneManifold
         allows any order.
+
+        Moreover, it means that forcing 2-manifold by
+        RenderOptions.WholeSceneManifold is a valid optimization at loading,
+        without any adverse effects. RenderOptions.WholeSceneManifold doesn't
+        set "Triangles[1] = High(Cardinal)" on any edge (which is OK since we
+        don't use it for rendering), and it avoids doing
+        CalculateDetectedWholeSceneManifold.
       }
 
       { We want to have consistent CCW orientation of shadow quads faces,

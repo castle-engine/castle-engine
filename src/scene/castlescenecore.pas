@@ -459,7 +459,7 @@ type
     LastCameraStateId: TFrameId;
     FDefaultAnimationTransition: Single;
     FCache: Boolean;
-    { Calculated DetectedWholeSceneManifold result.
+    { Calculated InternalDetectedWholeSceneManifold result.
       Valid only if fvDetectedWholeSceneManifold in Validities. }
     FDetectedWholeSceneManifold: Boolean;
 
@@ -1301,7 +1301,7 @@ type
       This is independent (doesn't take into account) the value
       of @link(TCastleRenderOptions.WholeSceneManifold
       RenderOptions.WholeSceneManifold). }
-    function DetectedWholeSceneManifold: Boolean;
+    function InternalDetectedWholeSceneManifold: Boolean;
 
     { Edges count in the scene, for information purposes. }
     procedure EdgesCount(out ManifoldEdges, BorderEdges: Cardinal);
@@ -7640,7 +7640,7 @@ begin
     HeadlightOn := DefaultNavigationInfoHeadlight;
 end;
 
-function TCastleSceneCore.DetectedWholeSceneManifold: Boolean;
+function TCastleSceneCore.InternalDetectedWholeSceneManifold: Boolean;
 
   procedure CalculateDetectedWholeSceneManifold;
   var

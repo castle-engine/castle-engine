@@ -460,7 +460,7 @@ type
           not 2-manifold, but all shapes' border edges match with each other,
           closing the skin of the model perfectly;
           you can test what was detected looking
-          at @link(TCastleSceneCore.DetectedWholeSceneManifold)).
+          at @link(TCastleSceneCore.InternalDetectedWholeSceneManifold)).
 
           The "only whole scene is 2-manifold" causes a little different
           optimization than "each shape is 2-manifold" (because in the former
@@ -477,13 +477,26 @@ type
       each shape was 2-manifold or only whole scene is 2-manifold)
       then using this property is not necessary.
 
-      This property is useful only if engine detected that this scene
-      is @italic(not) 2-manifold, but you want to force using it as shadow
-      caster anyway. In such case, set this to @true.
-      Rendering artifacts are possible in such case,
-      but in some cases they may be not noticeable.
-      See https://castle-engine.io/shadow_volumes
-      about using shadow volumes and the requirement to be 2-manifold. }
+      Setting this property to @true makes sense in 2 cases:
+
+      @orderedList(
+        @item(
+          You want to speedup loading of this scene, by skipping
+          the automatic detection done by
+          @link(TCastleSceneCore.InternalDetectedWholeSceneManifold).
+        )
+
+        @item(
+          Or if engine detected that this scene
+          is @italic(not) 2-manifold (so @link(TCastleSceneCore.InternalDetectedWholeSceneManifold)
+          = @false and some shapes have border egdes), but you want to force
+          using it as shadow caster anyway. In such case, set this to @true.
+          Rendering artifacts are possible in such case,
+          but in some cases they may be not noticeable.
+          See https://castle-engine.io/shadow_volumes
+          about using shadow volumes and the requirement to be 2-manifold.
+        )
+      ) }
     property WholeSceneManifold: Boolean
       read FWholeSceneManifold write SetWholeSceneManifold default false;
 

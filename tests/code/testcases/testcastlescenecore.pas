@@ -71,7 +71,7 @@ type
     procedure TestExposedTransforms;
     //procedure TestInternalNodesReadOnly;
     procedure TestValidScene;
-    procedure TestDetectedWholeSceneManifold;
+    procedure TestInternalDetectedWholeSceneManifold;
   end;
 
 implementation
@@ -1321,7 +1321,7 @@ begin
   CheckScene('castle-data:/extrusion_empty_spine_smooth.x3dv');
 end;
 
-procedure TTestSceneCore.TestDetectedWholeSceneManifold;
+procedure TTestSceneCore.TestInternalDetectedWholeSceneManifold;
 var
   Scene: TCastleSceneCore;
   ManifoldEdges, BorderEdges: Cardinal;
@@ -1334,14 +1334,14 @@ begin
     Scene.EdgesCount(ManifoldEdges, BorderEdges);
     AssertTrue(0 <> BorderEdges);
     AssertTrue(0 <> ManifoldEdges);
-    AssertTrue(Scene.DetectedWholeSceneManifold);
+    AssertTrue(Scene.InternalDetectedWholeSceneManifold);
 
-    // each shape is 2-manifold, in this case DetectedWholeSceneManifold=false
+    // each shape is 2-manifold, in this case InternalDetectedWholeSceneManifold=false
     Scene.Load('castle-data:/manifold_tests/manifold_shapes.glb');
     Scene.EdgesCount(ManifoldEdges, BorderEdges);
     AssertEquals(0, BorderEdges);
     AssertTrue(0 <> ManifoldEdges);
-    AssertFalse(Scene.DetectedWholeSceneManifold);
+    AssertFalse(Scene.InternalDetectedWholeSceneManifold);
 
     // not manifold at all
     for I := 1 to 3 do
@@ -1350,7 +1350,7 @@ begin
       Scene.EdgesCount(ManifoldEdges, BorderEdges);
       AssertTrue(0 <> BorderEdges);
       AssertTrue(0 <> ManifoldEdges);
-      AssertFalse(Scene.DetectedWholeSceneManifold);
+      AssertFalse(Scene.InternalDetectedWholeSceneManifold);
     end;
   finally FreeAndNil(Scene) end;
 end;

@@ -228,9 +228,9 @@ type
       ShapeIndex: Integer; CollidesForSure: boolean);
     procedure SetCastGlobalLights(const Value: Boolean);
     { Treating the scene as "whole scene 2-manifold", because of
-      DetectedWholeSceneManifold or RenderOptions.WholeSceneManifold.
+      InternalDetectedWholeSceneManifold or RenderOptions.WholeSceneManifold.
       Calling this may have a cost: on-demand calculation of
-      DetectedWholeSceneManifold, so use this only when a light source
+      InternalDetectedWholeSceneManifold, so use this only when a light source
       casting shadow volumes is present. }
     function EffectiveWholeSceneManifold: Boolean;
   private
@@ -1244,16 +1244,16 @@ end;
 function TCastleScene.EffectiveWholeSceneManifold: Boolean;
 begin
   { Test RenderOptions.WholeSceneManifold first, as it's instant
-    (if marked by user), while DetectedWholeSceneManifold may trigger
+    (if marked by user), while InternalDetectedWholeSceneManifold may trigger
     on-demand analysis of borders. }
 
-  Result := RenderOptions.WholeSceneManifold or DetectedWholeSceneManifold;
+  Result := RenderOptions.WholeSceneManifold or InternalDetectedWholeSceneManifold;
 
   { Remove the warning, as it would trigger often, in cases when it's acceptable.
     Assume that "user knows what (s)he's doing" when toggling manually
     RenderOptions.WholeSceneManifold.
 
-    Testcases where DetectedWholeSceneManifold=false but
+    Testcases where InternalDetectedWholeSceneManifold=false but
     RenderOptions.WholeSceneManifold=true works OK:
 
     - examples/physics/physics_throw_chickens
@@ -1264,7 +1264,7 @@ begin
   }
 
   {
-  if RenderOptions.WholeSceneManifold and not DetectedWholeSceneManifold then
+  if RenderOptions.WholeSceneManifold and not InternalDetectedWholeSceneManifold then
   begin
     WritelnWarningOnce(DoneWarningWholeSceneManifold,
       'Rendering shadow volumes for shadow caster "%s" because forced by RenderOptions.WholeSceneManifold=true. ' +
