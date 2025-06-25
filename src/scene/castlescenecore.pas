@@ -7662,7 +7662,11 @@ begin
     for BorderEdge1Index := 0 to BorderEdges1.Count - 1 do
     begin
       // do not match, if this edge is already matched
-      if BorderEdge1^.Triangles[1] = High(Cardinal) then Continue;
+      if BorderEdge1^.Triangles[1] = High(Cardinal) then
+      begin
+        Inc(BorderEdge1);
+        Continue;
+      end;
 
       Shape1V0 := Shape1.State.Transformation.Transform.MultPoint(BorderEdge1^.V0);
       Shape1V1 := Shape1.State.Transformation.Transform.MultPoint(BorderEdge1^.V1);
@@ -7676,7 +7680,11 @@ begin
         for BorderEdge2Index := 0 to BorderEdges2.Count - 1 do
         begin
           // do not match, if this edge is already matched
-          if BorderEdge2^.Triangles[1] = High(Cardinal) then Continue;
+          if BorderEdge2^.Triangles[1] = High(Cardinal) then
+          begin
+            Inc(BorderEdge2);
+            Continue;
+          end;
 
           Shape2V0 := Shape2.State.Transformation.Transform.MultPoint(BorderEdge2^.V0);
           Shape2V1 := Shape2.State.Transformation.Transform.MultPoint(BorderEdge2^.V1);
