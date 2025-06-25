@@ -835,13 +835,6 @@ type
 
     GeneratedTextures: TGeneratedTextureList;
 
-    { Is this scene detected as "whole scene is manifold",
-      so some shapes are not 2-manifold but whole scene is 2-manifold.
-      This is independent (doesn't take into account) the value
-      of @link(TCastleRenderOptions.WholeSceneManifold
-      RenderOptions.WholeSceneManifold). }
-    property DetectedWholeSceneManifold: Boolean read FDetectedWholeSceneManifold;
-
     function InternalBuildNodeInside: TObject; override;
 
     { Create TShape (or descendant) instance suitable for this
@@ -1298,6 +1291,13 @@ type
       deprecated 'better to construct a string yourself, use BoundingBox.ToString';
     function InfoManifoldAndBorderEdges: String;
       deprecated 'better to construct a string yourself, use EdgesCount';
+
+    { Is this scene detected as "whole scene is manifold",
+      so some shapes are not 2-manifold but whole scene is 2-manifold.
+      This is independent (doesn't take into account) the value
+      of @link(TCastleRenderOptions.WholeSceneManifold
+      RenderOptions.WholeSceneManifold). }
+    property DetectedWholeSceneManifold: Boolean read FDetectedWholeSceneManifold;
 
     { Edges count in the scene, for information purposes. }
     procedure EdgesCount(out ManifoldEdges, BorderEdges: Cardinal);
