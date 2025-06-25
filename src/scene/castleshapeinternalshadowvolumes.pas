@@ -69,6 +69,8 @@ type
       So memory loss is small, speed gain is noticeable (but still small),
       implementation code is a little simplified, so we're keeping this for now. }
     V0, V1: TVector3;
+
+    function TriangleIndex: Cardinal; deprecated 'use Triangles[0] instead';
   end;
   PEdge = ^TEdge;
 
@@ -170,22 +172,14 @@ uses SysUtils,
   CastleShapes, X3DNodes, CastleLog, CastleTransform,
   CastleRenderOptions;
 
-constructor TShapeShadowVolumes.Create(const AShape: TObject);
+{ TEdge ---------------------------------------------------------------------- }
+
+function TEdge.TriangleIndex: Cardinal;
 begin
-  inherited Create;
-  FShape := AShape;
+  Result := Triangles[0];
 end;
 
-destructor TShapeShadowVolumes.Destroy;
-begin
-  { free FTrianglesList* variables }
-  InvalidateTrianglesListShadowCasters;
-  { frees FManifoldEdges, FBorderEdges if needed }
-  InvalidateManifoldAndBorderEdges;
-  inherited;
-end;
-
-{ triangles list ------------------------------------------------------------- }
+{ TTriangleAdder ------------------------------------------------------------- }
 
 type
   TTriangleAdder = class
@@ -203,6 +197,23 @@ procedure TTriangleAdder.AddTriangle(Shape: TObject;
 begin
   if Triangle.IsValid then
     TriangleList.Add(Triangle);
+end;
+
+{ TShapeShadowVolumes -------------------------------------------------------- }
+
+constructor TShapeShadowVolumes.Create(const AShape: TObject);
+begin
+  inherited Create;
+  FShape := AShape;
+end;
+
+destructor TShapeShadowVolumes.Destroy;
+begin
+  { free FTrianglesList* variables }
+  InvalidateTrianglesListShadowCasters;
+  { frees FManifoldEdges, FBorderEdges if needed }
+  InvalidateManifoldAndBorderEdges;
+  inherited;
 end;
 
 function TShapeShadowVolumes.TrianglesListShadowCasters: TTrianglesShadowCastersList;
@@ -259,8 +270,6 @@ begin
   Exclude(Validities, svTrianglesListShadowCasters);
   FreeAndNil(FTrianglesListShadowCasters);
 end;
-
-{ edges lists ------------------------------------------------------------- }
 
 procedure TShapeShadowVolumes.CalculateIfNeededManifoldAndBorderEdges
   (out EdgesChanged: Boolean);
