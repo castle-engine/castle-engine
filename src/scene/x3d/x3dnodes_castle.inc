@@ -926,11 +926,24 @@ function TSkinNode.InternalUsesShaders: Boolean;
       if FdShapes.Items[I] is TAbstractShapeNode then
       begin
         ShapeNode := TAbstractShapeNode(FdShapes.Items[I]);
+        // primitive0, which is main body, casts shadows
+        // TODO: excessive logging for debug
+        WritelnWarning('Shape %s casts shadows? %s', [
+          ShapeNode.NiceName,
+          BoolToStr(
+            (ShapeNode.InternalCastedShadowVolumesFrameId <> 0) and
+            (ShapeNode.InternalCastedShadowVolumesFrameId >= ShapeNode.InternalWasVisibleFrameId),
+            true)
+          ]
+        );
         if (ShapeNode.InternalCastedShadowVolumesFrameId <> 0) and
            (ShapeNode.InternalCastedShadowVolumesFrameId = ShapeNode.InternalWasVisibleFrameId) then
         begin
           // debug:
-          // WritelnWarning('Skinning on GPU made impossible because shape casts shadows using shadow volumes.');
+          // TODO: excessive logging for debug
+          WritelnWarning('Skinning on GPU made impossible because shape %s casts shadows using shadow volumes.', [
+            ShapeNode.NiceName
+          ]);
           Exit(true);
         end;
       end;
@@ -944,6 +957,11 @@ begin
   Result := InternalUsesShadersPossible and
     (FdJoints.Count <= MaxJoints) and // shaders limit max joints count
     (not SomeShapeCastsShadowVolumes);
+  // TODO: excessive logging for debug
+  WritelnLog('TSkinNode.InternalUsesShaders? ' + Self.NiceName + ' = ' + BoolToStr(Result, true) +
+    ' because ' + BoolToStr(InternalUsesShadersPossible, true) + ' and ' +
+    BoolToStr(FdJoints.Count <= MaxJoints, true) + ' and ' +
+    BoolToStr(not SomeShapeCastsShadowVolumes, true));
 end;
 
 { registration --------------------------------------------------------------- }
