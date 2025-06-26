@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2024 Michalis Kamburelis.
+  Copyright 2003-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -360,12 +360,15 @@ type
   TCastleSceneCore = class(TX3DEventsEngine)
   private
     type
-      TSceneValidity = (fvLocalBoundingBox,
+      TSceneValidity = (
+        fvLocalBoundingBox,
         fvVerticesCount,
         fvTrianglesCount,
         fvMainLightForShadows,
+        fvDetectedWholeSceneManifold,
         fvShapesActiveCount,
-        fvShapesActiveVisibleCount);
+        fvShapesActiveVisibleCount
+      );
 
       TSceneValidities = set of TSceneValidity;
 
@@ -456,6 +459,9 @@ type
     LastCameraStateId: TFrameId;
     FDefaultAnimationTransition: Single;
     FCache: Boolean;
+    { Calculated InternalDetectedWholeSceneManifold result.
+      Valid only if fvDetectedWholeSceneManifold in Validities. }
+    FDetectedWholeSceneManifold: Boolean;
 
     { All InternalUpdateCamera calls will disable smooth (animated)
       transitions when this is true.
@@ -1289,6 +1295,13 @@ type
       deprecated 'better to construct a string yourself, use BoundingBox.ToString';
     function InfoManifoldAndBorderEdges: String;
       deprecated 'better to construct a string yourself, use EdgesCount';
+
+    { Is this scene detected as "whole scene is manifold",
+      so some shapes are not 2-manifold but whole scene is 2-manifold.
+      This is independent (doesn't take into account) the value
+      of @link(TCastleRenderOptions.WholeSceneManifold
+      RenderOptions.WholeSceneManifold). }
+    function InternalDetectedWholeSceneManifold: Boolean;
 
     { Edges count in the scene, for information purposes. }
     procedure EdgesCount(out ManifoldEdges, BorderEdges: Cardinal);
@@ -2424,7 +2437,7 @@ implementation
 
 uses Math, DateUtils,
   X3DCameraUtils, CastleStringUtils, CastleLog,
-  X3DLoad, CastleUriUtils, CastleQuaternions;
+  X3DLoad, CastleUriUtils, CastleQuaternions, CastleShapeInternalShadowVolumes;
 
 {$define read_implementation}
 {$I castlescenecore_collisions.inc}
@@ -7625,6 +7638,48 @@ begin
     HeadlightOn := NavigationInfoStack.Top.Headlight
   else
     HeadlightOn := DefaultNavigationInfoHeadlight;
+end;
+
+function TCastleSceneCore.InternalDetectedWholeSceneManifold: Boolean;
+
+  { Do CalculateDetectedWholeSceneManifold, measure time. }
+  procedure CalculateDetectedWholeSceneManifoldTime;
+  var
+    T: TTimerResult;
+    ProfilerTime: TCastleProfilerTime;
+    ElapsedTime: TFloatTime;
+  begin
+    T := Timer;
+    ProfilerTime := Profiler.Start(Format('Calculate DetectedWholeSceneManifold "%s" (%s)', [
+      Name,
+      UriDisplay(Url)
+    ]));
+
+    FDetectedWholeSceneManifold :=
+      CalculateDetectedWholeSceneManifold(Shapes.TraverseList(false));
+
+    Profiler.Stop(ProfilerTime);
+
+    ElapsedTime := T.ElapsedTime;
+    if ElapsedTime > 0.1 then
+    begin
+      WritelnLog('Auto-detecting WholeSceneManifold on scene %s %s took %f seconds.', [
+        Name,
+        UriDisplay(Url),
+        ElapsedTime
+      ]);
+      if FDetectedWholeSceneManifold then
+        WritelnLog('  Moreover, the detection was successfull. Consider setting RenderOptions.WholeSceneManifold to skip this detection in the future.');
+    end;
+  end;
+
+begin
+  if not (fvDetectedWholeSceneManifold in Validities) then
+  begin
+    CalculateDetectedWholeSceneManifoldTime;
+    Include(Validities, fvDetectedWholeSceneManifold);
+  end;
+  Result := FDetectedWholeSceneManifold;
 end;
 
 procedure TCastleSceneCore.PrepareResources(const Options: TPrepareResourcesOptions;

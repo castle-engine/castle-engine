@@ -286,6 +286,17 @@
       The TCastleScene.LocalRender should ignore frustum when it is @nil. }
     Frustum: PFrustum;
 
+    { Are we going to render with shadow volumes, which means we have a light
+      source casting shadows with shadow volumes, and renderer is capable
+      (has stencil buffer etc.).
+
+      This doesn't say at which pass are we -- collecting shapes,
+      or during pass rendering unlit or lit things
+      (see TRenderOnePassParams.DisableShadowVolumeCastingLights).
+
+      This merely says we @italic(are) going to have these passes. }
+    UsingShadowVolumes: Boolean;
+
     { Camera information for renderer. }
     RenderingCamera: TRenderingCamera;
 

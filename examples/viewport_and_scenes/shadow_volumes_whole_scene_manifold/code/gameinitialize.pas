@@ -23,7 +23,7 @@ interface
 implementation
 
 uses SysUtils,
-  CastleWindow, CastleLog, CastleUIControls
+  CastleWindow, CastleLog, CastleUIControls, CastleTimeUtils
   {$region 'Castle Initialization Uses'}
   // The content here may be automatically updated by CGE editor.
   , GameViewMain
@@ -48,6 +48,9 @@ begin
 end;
 
 initialization
+  Profiler.Enabled := true;
+  TCastleView.Log := true;
+
   { This initialization section configures:
     - Application.OnInitialize
     - Application.MainWindow
