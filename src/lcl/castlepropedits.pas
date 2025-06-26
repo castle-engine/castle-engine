@@ -183,10 +183,13 @@ begin
   { Properties that simply use TSubPropertiesEditor.
     Registering properties that use TSubPropertiesEditor
     (not any descendant of it) is still necessary to expand them
-    in castle-editor and Lazarus design-time. }
+    in castle-editor and Lazarus design-time and allow to edit multiple values
+    when multiple components are selected. }
   RegisterPropertyEditor(TypeInfo(TCastleRootTransform), TCastleViewport, 'Items',
     TSubPropertiesEditor);
   RegisterPropertyEditor(TypeInfo(TBorder), nil, '',
+    TSubPropertiesEditor);
+  RegisterPropertyEditor(TypeInfo(TCastleRenderOptions), nil, '',
     TSubPropertiesEditor);
 
   { Other properties }
@@ -203,6 +206,8 @@ begin
   RegisterPropertyEditor(TypeInfo(TCastleVector2Persistent), TCastlePlane, 'SizePersistent',
     TSize2DPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TCastleVector2Persistent), TCastleImageTransform, 'SizePersistent',
+    TSize2DPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TCastleVector2Persistent), TCastleAbstractPrimitive, 'TextureScalePersistent',
     TSize2DPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TCastleVector3Persistent), nil, '',
     TCastleVector3PropertyEditor);

@@ -60,11 +60,13 @@ type
     FAppearanceNode: TAppearanceNode;
     FShapeNode: TShapeNode;
     FBaseTexture, FNormalMapTexture: TMaterialTexture;
+    FTextureTransform: TTextureTransformNode;
 
     { private fields reflecting public properties }
     FColor: TCastleColor;
     FMaterial: TPrimitiveMaterial;
     FPreciseCollisions: Boolean;
+    FTextureScale: TVector2;
 
     procedure SetMaterial(const Value: TPrimitiveMaterial);
     procedure SetColor(const Value: TCastleColor);
@@ -76,6 +78,7 @@ type
     procedure UpdateMaterialNode;
     procedure SetPreciseCollisions(const Value: Boolean);
     function GetRenderOptions: TCastleRenderOptions;
+    procedure SetTextureScale(const Value: TVector2);
   protected
     { Descendants should add primitive X3D geometry node here. }
     property ShapeNode: TShapeNode read FShapeNode;
@@ -108,6 +111,10 @@ type
       See https://castle-engine.io/shaders for documentation
       how shader effects work in Castle Game Engine. }
     procedure SetEffects(const Value: array of TEffectNode);
+
+    { Scale the texture coordinates of both @link(Texture) and @link(TextureNormalMap).
+      By default (1,1), no scaling. }
+    property TextureScale: TVector2 read FTextureScale write SetTextureScale;
   published
     { Material type (which determines lighting calculation) for this primitive. }
     property Material: TPrimitiveMaterial read FMaterial write SetMaterial default pmPhysical;
@@ -152,7 +159,12 @@ type
 {$ifdef read_implementation}
 
 { Utility to implement TPrimitiveMaterial, shared by
-  TCastleAbstractPrimitive and TCastleImageTransform. }
+  TCastleAbstractPrimitive and TCastleImageTransform.
+  Changes
+  - AppearanceNode.Material
+  - Possibly the texture node inside main material's texture slot
+  - Possibly the texture node inside normalmap material's texture slot
+}
 procedure CommonUpdateMaterialNode(const Material: TPrimitiveMaterial;
   const Color: TCastleColor; const AppearanceNode: TAppearanceNode;
   const Base, NormalMap: TCastleAbstractPrimitive.TMaterialTexture);
@@ -270,6 +282,7 @@ begin
   { set default values }
   FMaterial := pmPhysical;
   FColor := White;
+  FTextureScale := Vector2(1, 1);
 
   { create scene }
   FScene := TCastleScene.Create(nil);
@@ -296,6 +309,12 @@ begin
     FAppearanceNode (and thus, the rest of FRootNode) by UpdateMaterialNode. }
   UpdateMaterialNode;
 
+  { create FTextureTransform node.
+    As it will be detached/attached to FAppearanceNode as we need,
+    don't free it automatically, use WaitForRelease. }
+  FTextureTransform := TTextureTransformNode.Create;
+  FTextureTransform.WaitForRelease;
+
   { load FRootNode to FScene at the end,
     to not reinitialize scene resources on changes to X3D nodes above }
   FScene.Load(FRootNode, true);
@@ -314,6 +333,7 @@ begin
   FreeAndNil(FScene);
   NodeRelease(FBaseTexture.Node);
   NodeRelease(FNormalMapTexture.Node);
+  NodeRelease(FTextureTransform);
   inherited;
 end;
 
@@ -371,12 +391,10 @@ end;
 
 function TCastleAbstractPrimitive.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'ColorPersistent') or
-     (PropertyName = 'Material') or
-     (PropertyName = 'TextureNormalMap') or
-     (PropertyName = 'Texture') or
-     (PropertyName = 'PreciseCollisions') or
-     (PropertyName = 'RenderOptions') then
+  if ArrayContainsString(PropertyName, [
+       'ColorPersistent', 'Material', 'Texture', 'TextureNormalMap',
+       'PreciseCollisions', 'RenderOptions', 'TextureScalePersistent'
+     ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
@@ -424,6 +442,22 @@ end;
 procedure TCastleAbstractPrimitive.SetEffects(const Value: array of TEffectNode);
 begin
   FScene.SetEffects(Value);
+end;
+
+procedure TCastleAbstractPrimitive.SetTextureScale(const Value: TVector2);
+begin
+  if not TVector2.PerfectlyEquals(FTextureScale, Value) then
+  begin
+    FTextureScale := Value;
+    if TVector2.PerfectlyEquals(FTextureScale, Vector2(1, 1)) then
+    begin
+      FAppearanceNode.TextureTransform := nil;
+    end else
+    begin
+      FTextureTransform.Scale := FTextureScale;
+      FAppearanceNode.TextureTransform := FTextureTransform;
+    end;
+  end;
 end;
 
 {$define read_implementation_methods}

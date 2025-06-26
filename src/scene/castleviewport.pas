@@ -2769,12 +2769,14 @@ begin
   AllShapesCollector.Clear;
   Assert(Params.Collector = AllShapesCollector);
   Params.Frustum := @Params.RenderingCamera.Frustum;
+  Params.UsingShadowVolumes :=
+    GLFeatures.ShadowVolumesPossible and
+    ShadowVolumes and
+    MainLightForShadowVolumes(MainLightPosition);
   Items.Render(Params);
 
   // call RenderOnePass multiple times, filtering AllShapesCollector in different ways
-  if GLFeatures.ShadowVolumesPossible and
-     ShadowVolumes and
-     MainLightForShadowVolumes(MainLightPosition) then
+  if Params.UsingShadowVolumes then
     RenderWithShadowVolumes(MainLightPosition)
   else
     RenderNoShadowVolumes;

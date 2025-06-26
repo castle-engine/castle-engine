@@ -1,0 +1,1 @@
+These assets and textures by [Quaternius](https://quaternius.com/), a great source of public-domain high-quality 3D models. Visit [Quaternius homepage for more stuff](https://quaternius.com/) and [support him on Patreon](https://www.patreon.com/quaternius) if you can.

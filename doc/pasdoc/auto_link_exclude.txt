@@ -48,6 +48,7 @@ bottom
 bound
 box
 buffer
+button
 cache
 camera
 cameras
@@ -93,6 +94,8 @@ contents
 context
 contribution
 controls
+controller
+controllers
 convex
 coordinates
 corners
@@ -125,6 +128,7 @@ device
 devices
 dft
 diagonal
+difference
 dimensions
 direction
 directory
@@ -280,6 +284,7 @@ loop
 looping
 lux
 major
+main
 map
 margin
 mask
@@ -288,6 +293,7 @@ material
 materials
 matrix
 max
+meaning
 memory
 mesa
 mesh

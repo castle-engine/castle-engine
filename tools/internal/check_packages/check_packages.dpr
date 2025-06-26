@@ -711,8 +711,8 @@ begin
       // TODO: CastleScript is not yet fully supported with Delphi
       'src/castlescript/castlescriptxml.pas',
 
-      // TODO: Joysticks on Linux are not yet supported with Delphi
-      'src/ui/castleinternaljoystickslinux.pas',
+      // TODO: Game controllers on Linux are not yet supported with Delphi
+      'src/ui/castleinternalgamecontrollerslinux.pas',
 
       // This is VCL-specific with Delphi, maybe in the future will be in some VCL package.
       // It also makes warnings about dispinterface not being portable.

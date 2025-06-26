@@ -136,13 +136,13 @@
     procedure DoClick; virtual;
     procedure SetFocused(const Value: boolean); override;
 
-    { Color tint when button is pressed (regardless if enabled or disabled). Opaque white by default. }
+    { Color tint when the button is pressed (regardless if enabled or disabled). Opaque white by default. }
     property TintPressed : TCastleColor read FTintPressed  write FTintPressed;
-    { Color tint when button is disabled (and not pressed). Opaque white by default. }
+    { Color tint when the button is disabled (and not pressed). Opaque white by default. }
     property TintDisabled: TCastleColor read FTintDisabled write FTintDisabled;
-    { Color tint when button is focused. Opaque white by default. }
+    { Color tint when the button is focused. Opaque white by default. }
     property TintFocused : TCastleColor read FTintFocused  write FTintFocused;
-    { Color tint when button is enabled, but neither pressed nor focused. Opaque white by default. }
+    { Color tint when the button is enabled, but neither pressed nor focused. Opaque white by default. }
     property TintNormal  : TCastleColor read FTintNormal   write FTintNormal;
 
     { Text color to use if @link(CustomTextColorUse) is @true.
@@ -249,11 +249,11 @@
       instead of @code(Theme.TextColor) or @code(Theme.DisabledTextColor). }
     property CustomTextColorUse: boolean read FCustomTextColorUse write FCustomTextColorUse default false;
 
-    { Horizontal distance between text or @link(Image) and the button border. }
+    { Horizontal distance between the text or @link(Image) and the button border. }
     property PaddingHorizontal: Single
       read FPaddingHorizontal write SetPaddingHorizontal {$ifdef FPC}default DefaultPaddingHorizontal{$endif};
 
-    { Vertical distance between text or @link(Image) and the button border. }
+    { Vertical distance between the text or @link(Image) and the button border. }
     property PaddingVertical: Single
       read FPaddingVertical write SetPaddingVertical {$ifdef FPC}default DefaultPaddingVertical{$endif};
 
@@ -314,7 +314,7 @@
       but you cannot reliably set it. }
     property Pressed: boolean read FPressed write SetPressed default false;
 
-    { Where the @link(Image) is drawn on a button. }
+    { Where the @link(Image) is drawn on the button. }
     property ImageLayout: TCastleButtonImageLayout
       read FImageLayout write SetImageLayout default ilLeft;
 

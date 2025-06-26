@@ -18,9 +18,10 @@ unit AddVelocityBehavior;
 
 interface
 
-uses
-  Classes, SysUtils, CastleTransform, CastleBehaviors, CastleVectors,
-  CastleComponentSerialize, CastleClassUtils, AbstractTimeDurationBehavior;
+uses Classes, SysUtils,
+  CastleTransform, CastleBehaviors, CastleVectors,
+  CastleComponentSerialize, CastleClassUtils, CastleUtils,
+  AbstractTimeDurationBehavior;
 
 type
   TAddVelocityBehavior = class(TAbstractTimeDurationBehavior)
@@ -78,7 +79,9 @@ end;
 function TAddVelocityBehavior.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
-  if (PropertyName = 'DVelocity') then
+  if ArrayContainsString(PropertyName, [
+       'DeltaVelocityPersistent'
+     ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);

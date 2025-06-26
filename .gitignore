@@ -162,7 +162,7 @@ castle-game-engine-*.fpm
 /examples/images_videos/image_generate_and_use/image_generate_and_use
 /examples/isometric_game/isometric_game
 /examples/isometric_game_3d/isometric_game_3d
-/examples/deprecated_to_upgrade/joystick/joystick_demo
+/examples/game_controllers/game_controllers_demo
 /examples/lazarus/load_model_and_camera_manually/lib/
 /examples/lazarus/load_model_and_camera_manually/load_model_and_camera_manually
 /examples/lazarus/model_3d_viewer/model_3d_viewer
@@ -211,6 +211,7 @@ castle-game-engine-*.fpm
 /examples/physics/physics_test_scale_colliders/physics_test_scale_colliders
 /examples/physics/physics_test_scaled_mesh_collider/physics_test_scaled_mesh_collider
 /examples/physics/physics_test_transformation_sync/physics_test_transformation_sync
+/examples/physics/physics_throw_chickens/physics_throw_chickens
 /examples/platformer/platformer
 /examples/portable_game_skeleton/my_fantastic_game
 /examples/research_special_rendering_methods/dynamic_ambient_occlusion/dynamic_ambient_occlusion

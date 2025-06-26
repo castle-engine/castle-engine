@@ -286,7 +286,7 @@
       object class filtering. }
     procedure AddNotificationOnBehaviorAdded(const AEvent: TComponentEvent;
       const ClassFilter: TComponentClass); overload;
-    { Calls all behavior add callbacks with ABehavior as parameter value. }
+    { Calls all behavior add callbacks with ABehavior as the parameter value. }
     procedure NotifyBehaviorAdded(const ABehavior: TCastleBehavior);
     { Remove all occurrences of callback (object of procedure have to be TComponent)
       from "OnBehaviorAdded" list. }
@@ -304,7 +304,7 @@
       object class filtering. }
     procedure AddNotificationBeforeBehaviorRemove(const AEvent: TComponentEvent;
       const ClassFilter: TComponentClass); overload;
-    { Calls all behavior remove callbacks with ABehavior as parameter value. }
+    { Calls all behavior remove callbacks with ABehavior as the parameter value. }
     procedure NotifyBeforeBehaviorRemove(const ABehavior: TCastleBehavior);
     { Remove all occurrences of callback (object of procedure have to be TComponent)
       from "BeforeBehaviorRemove" list. }
@@ -2029,7 +2029,7 @@
       @seealso BehaviorsEnumerate }
     procedure InsertBehavior(const Index: Integer; const Behavior: TCastleBehavior);
 
-    { Returns behavior index, -1 means not found. }
+    { Returns the behavior index, -1 means not found. }
     function BehaviorIndex(const Behavior: TCastleBehavior): Integer;
 
     { Remove TCastleBehavior from this TCastleTransform.

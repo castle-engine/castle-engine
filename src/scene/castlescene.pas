@@ -147,9 +147,14 @@ type
 
       FReceiveShadowVolumes: Boolean;
       FTempPrepareParams: TPrepareParams;
+
       { Camera position, in local scene coordinates, known during
         the LocalRender or LocalRenderShadowVolume calls. }
       RenderCameraPosition: TVector3;
+      { Copy of TRenderParams.UsingShadowVolumes, known during
+        the LocalRender or LocalRenderShadowVolume calls. }
+      RenderUsingShadowVolumes: Boolean;
+
       FCastGlobalLights: Boolean;
       FWasVisibleFrameId: TFrameId;
 
@@ -227,6 +232,18 @@ type
     procedure RenderWithOctree_CheckShapeCulling(
       ShapeIndex: Integer; CollidesForSure: boolean);
     procedure SetCastGlobalLights(const Value: Boolean);
+
+    { Treating the scene as "whole scene 2-manifold", because of
+      InternalDetectedWholeSceneManifold or RenderOptions.WholeSceneManifold.
+      Calling this may have a cost: on-demand calculation of
+      InternalDetectedWholeSceneManifold, so use this only when a light source
+      casting shadow volumes is present. }
+    function EffectiveWholeSceneManifold: Boolean;
+
+    { Can this be shadow caster for shadow volumes.
+      This is not concerned whether we have light using shadow volumes,
+      and this is not concerned whether the scene or shapes are 2-manifold. }
+    function EffectiveCastShadowVolumes: Boolean;
   private
     PreparedShapesResources, PreparedRender: Boolean;
   protected
@@ -1235,6 +1252,53 @@ end;
 
 { Shadow volumes ------------------------------------------------------------- }
 
+function TCastleScene.EffectiveCastShadowVolumes: Boolean;
+begin
+  Result :=
+    CheckVisible and
+    CastShadows and
+    { Do not render shadow volumes when rendering wireframe.
+      Shadow volumes assume that object is closed (2-manifold),
+      otherwise weird artifacts are visible. }
+    (RenderOptions.WireframeEffect <> weWireframeOnly);
+end;
+
+function TCastleScene.EffectiveWholeSceneManifold: Boolean;
+begin
+  { Test RenderOptions.WholeSceneManifold first, as it's instant
+    (if marked by user), while InternalDetectedWholeSceneManifold may trigger
+    on-demand analysis of borders. }
+
+  Result := RenderOptions.WholeSceneManifold or InternalDetectedWholeSceneManifold;
+
+  { Remove the warning, as it would trigger often, in cases when it's acceptable.
+    Assume that "user knows what (s)he's doing" when toggling manually
+    RenderOptions.WholeSceneManifold.
+
+    Testcases where InternalDetectedWholeSceneManifold=false but
+    RenderOptions.WholeSceneManifold=true works OK:
+
+    - examples/physics/physics_throw_chickens
+    - examples/animations/split_long_animation
+    - examples/creature_behaviors
+    - examples/cpp_builder/window
+    - https://github.com/castle-engine/conference-delphi-summit-2025/tree/master/walk_3d_game_controllers
+  }
+
+  {
+  if RenderOptions.WholeSceneManifold and not InternalDetectedWholeSceneManifold then
+  begin
+    WritelnWarningOnce(DoneWarningWholeSceneManifold,
+      'Rendering shadow volumes for shadow caster "%s" because forced by RenderOptions.WholeSceneManifold=true. ' +
+      'But our detection showed that this scene is not really 2-manifold. ' +
+      'Shadows artifacts are possible in this case. ' +
+      'We advise to fix the 3D model to be really 2-manifold.', [
+      Name
+    ]);
+  end;
+  }
+end;
+
 procedure TCastleScene.LocalRenderShadowVolume(const Params: TRenderParams;
   const ShadowVolumeRenderer: TBaseShadowVolumeRenderer);
 
@@ -1258,16 +1322,14 @@ begin
   { Call inherited to render shadow quads of children,
     in case one TCastleScene is a child of another.
     See https://forum.castle-engine.io/t/shadow-ignors-distanceculling/670/14 for testcase.
-    Note that inherited also checks "CheckVisible and CastShadows",
-    so they work recursively. }
+
+    Note that inherited also checks our own "CheckVisible and CastShadows",
+    so they work recursively.
+    Below EffectiveCastShadowVolumes also checks our own
+    "CheckVisible and CastShadows". }
   inherited;
 
-  if CheckVisible and
-     CastShadows and
-     { Do not render shadow volumes when rendering wireframe.
-       Shadow volumes assume that object is closed (2-manifold),
-       otherwise weird artifacts are visible. }
-     (RenderOptions.WireframeEffect <> weWireframeOnly) then
+  if EffectiveCastShadowVolumes then
   begin
     SVRenderer := ShadowVolumeRenderer as TGLShadowVolumeRenderer;
 
@@ -1275,6 +1337,7 @@ begin
 
     // DistanceCullingCheck* uses this value, and it may be called here
     RenderCameraPosition := Params.LocalCameraPosition;
+    RenderUsingShadowVolumes := Params.UsingShadowVolumes;
 
     { calculate and check SceneBox }
     SceneBox := LocalBoundingBox.Transform(Params.Transformation^.Transform);
@@ -1297,10 +1360,10 @@ begin
           Shadow volumes *assume* that shadow caster is also rendered (shadow quads
           are closed) if that shadow caster is visible in frustum.
 
-          This is done per-shape when WholeSceneManifold=false.
-          When WholeSceneManifold=true, we cannot do per-shape check:
+          This is done per-shape when EffectiveWholeSceneManifold=false.
+          When EffectiveWholeSceneManifold=true, we cannot do per-shape check:
           the whole scene should be rendered. }
-        if not RenderOptions.WholeSceneManifold then
+        if not EffectiveWholeSceneManifold then
         begin
           if (DistanceCulling > 0) and (not DistanceCullingCheckShape(Shape)) then
             Continue;
@@ -1309,13 +1372,13 @@ begin
         { Do not render shadows when frustum+light check says it is definitely
           not visible.
 
-          This is done per-shape when WholeSceneManifold=false.
+          This is done per-shape when EffectiveWholeSceneManifold=false.
 
-          When WholeSceneManifold=true, we render all shapes here.
+          When EffectiveWholeSceneManifold=true, we render all shapes here.
           The per-scene check already passed above. }
         ShapeBox := Shape.BoundingBox.Transform(Params.Transformation^.Transform);
         SVRenderer.InitCaster(ShapeBox);
-        if RenderOptions.WholeSceneManifold or
+        if EffectiveWholeSceneManifold or
            SVRenderer.CasterShadowPossiblyVisible then
         begin
           ShapeWorldTransform := Params.Transformation^.Transform *
@@ -1328,7 +1391,7 @@ begin
             SVRenderer.ZFailAndLightCap,
             SVRenderer.ZFail,
             ForceOpaque,
-            RenderOptions.WholeSceneManifold);
+            EffectiveWholeSceneManifold);
         end;
       end;
     end;
@@ -1376,13 +1439,29 @@ end;
 
 function TCastleScene.DistanceCullingCheckShape(const Shape: TShape): boolean;
 begin
-  { When WholeSceneManifold, we have to render whole scene, or nothing.
+  { When this is shadow caster for shadow volumes and this has
+    EffectiveWholeSceneManifold, we have to render whole scene, or nothing.
 
     Shadow volumes work correctly only if shadow caster (at least the part of it
     in frustum, that affects the screen) is also rendered.
 
-    So distance culling cannot eliminate particular shapes. }
-  if RenderOptions.WholeSceneManifold then
+    So distance culling cannot eliminate particular shapes.
+
+    Testcase that this check is necessary: Open
+    examples/viewport_and_scenes/shadows_distance_culling/ (in editor is OK),
+    look at one of the houses with multiple materials, get closer/further from it.
+    Without this check, if *part* of shapes (but not all) would be eliminated
+    by distance culling, weird shadow artifacts would be rendered.
+
+    We take care to only do this (exit early, eliminating per-shape
+    DistanceCulling check)
+    when really necessary, so only when actually using shadow volumes light source
+    (RenderUsingShadowVolumes). And we check EffectiveWholeSceneManifold
+    at the end, as it potentially causes CalculateDetectedWholeSceneManifold,
+    which may on-demand do some calculation. }
+  if RenderUsingShadowVolumes and
+     EffectiveCastShadowVolumes and
+     EffectiveWholeSceneManifold then
     Exit(true);
 
   // This should be only called when DistanceCulling indicates this check is necessary
@@ -1664,9 +1743,10 @@ begin
 
     // RenderCameraPosition is used by DistanceCullingCheck* below
     RenderCameraPosition := Params.LocalCameraPosition;
+    RenderUsingShadowVolumes := Params.UsingShadowVolumes;
 
     { Do distance culling for whole scene.
-      When WholeSceneManifold=true, this is the only place where
+      When EffectiveWholeSceneManifold=true, this is the only place where
       we check distance culling, we cannot do per-shape distance culling then. }
     if (DistanceCulling > 0) and (not DistanceCullingCheckScene) then
     begin
@@ -1955,7 +2035,7 @@ procedure TCastleScene.SetEffects(const Value: array of TEffectNode);
     while I < RootNode.FdChildren.Count do
       if RootNode.FdChildren[I] is TEffectNode then
       begin
-        { This effect node is not in Value array, so remove it. }
+        { This effect node is not in the Value array, so remove it. }
         RootNode.FdChildren.Delete(I);
         RemovedSomething := true;
       end else
@@ -1985,7 +2065,7 @@ begin
     AddEffects(IndexBeyondAdded);
     RemoveUnwantedEffects(IndexBeyondAdded, RemovedSomething);
 
-    { Call most optimal (none, if possible!) InternalChangedField variant. }
+    { Call the most optimal (none, if possible!) InternalChangedField variant. }
     if (IndexBeyondAdded <> 0) or // added something
        RemovedSomething then
     begin

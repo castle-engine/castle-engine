@@ -12,5 +12,3 @@ we want to show how to do it using CGE.
 In particular:
 
 - `fixed_camera_game/` sets up a specialized rendering using code. This can be now largely designed in CGE editor and be much more flexible.
-
-- `joystick/` uses UI not designed in editor. Also it shows a complicated joystick API, that we hope to improve in near future. Reading joystick axis and button should be easier, and account for various joystick types better.

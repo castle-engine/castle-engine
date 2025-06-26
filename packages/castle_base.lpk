@@ -4489,18 +4489,18 @@ See https://castle-engine.io/license for details.
         <Type Value="Include"/>
       </Item1100>
       <Item1101>
-        <Filename Value="../src/ui/castleinternaljoysticksexplicit.pas"/>
-        <UnitName Value="CastleInternalJoysticksExplicit"/>
+        <Filename Value="../src/ui/castleinternalgamecontrollersexplicit.pas"/>
+        <UnitName Value="CastleInternalGameControllersExplicit"/>
       </Item1101>
       <Item1102>
-        <Filename Value="../src/ui/castleinternaljoystickslinux.pas"/>
+        <Filename Value="../src/ui/castleinternalgamecontrollerslinux.pas"/>
         <AddToUsesPkgSection Value="False"/>
-        <UnitName Value="CastleInternalJoysticksLinux"/>
+        <UnitName Value="CastleInternalGameControllersLinux"/>
       </Item1102>
       <Item1103>
-        <Filename Value="../src/ui/castleinternaljoystickswindows.pas"/>
+        <Filename Value="../src/ui/castleinternalgamecontrollerswindows.pas"/>
         <AddToUsesPkgSection Value="False"/>
-        <UnitName Value="CastleInternalJoysticksWindows"/>
+        <UnitName Value="CastleInternalGameControllersWindows"/>
       </Item1103>
       <Item1104>
         <Filename Value="../src/ui/castleinternalpk3dconnexion.pas"/>
@@ -4511,8 +4511,8 @@ See https://castle-engine.io/license for details.
         <UnitName Value="CastleInternalSettings"/>
       </Item1105>
       <Item1106>
-        <Filename Value="../src/ui/castlejoysticks.pas"/>
-        <UnitName Value="CastleJoysticks"/>
+        <Filename Value="../src/ui/castlegamecontrollers.pas"/>
+        <UnitName Value="CastleGameControllers"/>
       </Item1106>
       <Item1107>
         <Filename Value="../src/ui/castlekeysmouse.pas"/>

@@ -223,10 +223,9 @@ end;
 
 function TFloatRectanglePersistent.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'Left') or
-     (PropertyName = 'Bottom') or
-     (PropertyName = 'Width') or
-     (PropertyName = 'Height') then
+  if ArrayContainsString(PropertyName, [
+       'Left', 'Bottom', 'Width', 'Height'
+       ]) then
     Result := [psBasic, psLayout]
   else
     Result := inherited PropertySections(PropertyName);
