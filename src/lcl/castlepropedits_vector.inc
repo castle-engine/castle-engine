@@ -237,7 +237,10 @@ end;
 { TSize2DPropertyEditor ------------------------------------------------- }
 
 type
-  { Editor for Size:TVector2 properties, like TCastlePlane.Size. }
+  { Editor for Size:TVector2 properties, like TCastlePlane.Size.
+    In addition to TCastleVector2PropertyEditor, allows to input a single
+    float value as input, and it's interpreted as if it was repeated 2x.
+    E.g. "2" works the same as "2 2". }
   TSize2DPropertyEditor = class(TCastleVector2PropertyEditor)
     procedure SetValue(const NewValue: String); override;
   end;

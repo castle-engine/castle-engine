@@ -99,7 +99,8 @@ uses
   TestCastleIfc,
   TestCastleZip,
   TestCastleInternalUrlUtils,
-  TestCastleTransformManipulate;
+  TestCastleTransformManipulate,
+  TestCastleSteam;
 
 implementation
 

@@ -90,9 +90,9 @@ end;
 
 function TImageGrid.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'Rows') or
-     (PropertyName = 'Columns') or
-     (PropertyName = 'Url') then
+  if ArrayContainsString(PropertyName, [
+    'Rows', 'Columns', 'Url'
+    ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);

@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestSceneCore" -*-
 {
-  Copyright 2020-2023 Michalis Kamburelis.
+  Copyright 2020-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -71,6 +71,7 @@ type
     procedure TestExposedTransforms;
     //procedure TestInternalNodesReadOnly;
     procedure TestValidScene;
+    procedure TestInternalDetectedWholeSceneManifold;
   end;
 
 implementation
@@ -1318,6 +1319,40 @@ begin
   CheckScene('castle-data:/extrusion_empty_cross_section.x3dv');
   CheckScene('castle-data:/extrusion_empty_spine_concave.x3dv');
   CheckScene('castle-data:/extrusion_empty_spine_smooth.x3dv');
+end;
+
+procedure TTestSceneCore.TestInternalDetectedWholeSceneManifold;
+var
+  Scene: TCastleSceneCore;
+  ManifoldEdges, BorderEdges: Cardinal;
+  I: Integer;
+begin
+  Scene := TCastleSceneCore.Create(nil);
+  try
+    // shapes are not 2-manifold, but whole scene is
+    Scene.Load('castle-data:/manifold_tests/manifold_not_shapes_but_scene.glb');
+    Scene.EdgesCount(ManifoldEdges, BorderEdges);
+    AssertTrue(0 <> BorderEdges);
+    AssertTrue(0 <> ManifoldEdges);
+    AssertTrue(Scene.InternalDetectedWholeSceneManifold);
+
+    // each shape is 2-manifold, in this case InternalDetectedWholeSceneManifold=false
+    Scene.Load('castle-data:/manifold_tests/manifold_shapes.glb');
+    Scene.EdgesCount(ManifoldEdges, BorderEdges);
+    AssertEquals(0, BorderEdges);
+    AssertTrue(0 <> ManifoldEdges);
+    AssertFalse(Scene.InternalDetectedWholeSceneManifold);
+
+    // not manifold at all
+    for I := 1 to 3 do
+    begin
+      Scene.Load('castle-data:/manifold_tests/not_manifold_' + IntToStr(I) + '.glb');
+      Scene.EdgesCount(ManifoldEdges, BorderEdges);
+      AssertTrue(0 <> BorderEdges);
+      AssertTrue(0 <> ManifoldEdges);
+      AssertFalse(Scene.InternalDetectedWholeSceneManifold);
+    end;
+  finally FreeAndNil(Scene) end;
 end;
 
 initialization

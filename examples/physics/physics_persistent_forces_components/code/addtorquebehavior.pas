@@ -19,8 +19,10 @@ unit AddTorqueBehavior;
 interface
 
 uses
-  Classes, SysUtils, CastleTransform, CastleBehaviors, CastleVectors,
-  CastleComponentSerialize, CastleClassUtils, AbstractTimeDurationBehavior;
+  Classes, SysUtils,
+  CastleTransform, CastleBehaviors, CastleVectors, CastleUtils,
+  CastleComponentSerialize, CastleClassUtils,
+  AbstractTimeDurationBehavior;
 
 type
   TAddTorqueBehavior = class(TAbstractTimeDurationBehavior)
@@ -95,15 +97,15 @@ end;
 function TAddTorqueBehavior.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
-  if (PropertyName = 'Torque') then
+  if ArrayContainsString(PropertyName, [
+       'TorquePersistent'
+     ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
 end;
 
 initialization
-
-RegisterSerializableComponent(TAddTorqueBehavior, 'Add Torque Behavior');
-
+  RegisterSerializableComponent(TAddTorqueBehavior, 'Add Torque Behavior');
 end.
 

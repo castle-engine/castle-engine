@@ -520,8 +520,9 @@ end;
 
 function TCastlePerspective.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'FieldOfView') or
-     (PropertyName = 'FieldOfViewAxis') then
+  if ArrayContainsString(PropertyName, [
+      'FieldOfView', 'FieldOfViewAxis'
+    ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
@@ -620,9 +621,9 @@ end;
 
 function TCastleOrthographic.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'Width') or
-     (PropertyName = 'Height') or
-     (PropertyName = 'OriginPersistent') then
+  if ArrayContainsString(PropertyName, [
+      'Width', 'Height', 'OriginPersistent'
+    ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);

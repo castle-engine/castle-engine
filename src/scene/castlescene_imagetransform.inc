@@ -352,11 +352,11 @@ end;
 function TCastleImageTransform.PropertySections(const PropertyName: String): TPropertySections;
 begin
   if ArrayContainsString(PropertyName, [
-        'PivotPersistent', 'SizePersistent', 'RepeatImagePersistent',
-        'ShiftPersistent', 'ColorPersistent', 'SmoothScaling', 'AlphaChannel',
-        'PreciseCollisions', 'Url', 'UrlNormalMap', 'Mipmaps', 'RenderOptions',
-        'Material'
-      ]) then
+      'PivotPersistent', 'SizePersistent', 'RepeatImagePersistent',
+      'ShiftPersistent', 'ColorPersistent', 'SmoothScaling', 'AlphaChannel',
+      'PreciseCollisions', 'Url', 'UrlNormalMap', 'Mipmaps', 'RenderOptions',
+      'Material'
+    ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);

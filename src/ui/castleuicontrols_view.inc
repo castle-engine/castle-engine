@@ -184,7 +184,9 @@
       @code(FreeAndNil(MyInstance)) in the state @link(Stop). }
     function FreeAtStop: TComponent;
   public
-    { When @true, view operations will send a log to CastleLog. }
+    { When @true, view operations will send a log to CastleLog.
+      On start, we will also output the @link(Profiler) summary what took
+      time during starting. }
     class var Log: boolean;
 
     { Create an instance of the view.
