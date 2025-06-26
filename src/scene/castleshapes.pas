@@ -783,9 +783,9 @@ type
     property GeometryGrandGrandParentNode: TX3DNode read FGeometryGrandGrandParentNode;
     { @groupEnd }
 
-    function GeometryParentNodeName: String; deprecated 'use GeometryParentNode.X3DName';
-    function GeometryGrandParentNodeName: String; deprecated 'use GeometryGrandParentNode.X3DName';
-    function GeometryGrandGrandParentNodeName: String; deprecated 'use GeometryGrandGrandParentNode.X3DName';
+    function GeometryParentNodeName: String; deprecated 'use GeometryParentNode.X3DName, if GeometryParentNode <> nil';
+    function GeometryGrandParentNodeName: String; deprecated 'use GeometryGrandParentNode.X3DName, if GeometryGrandParentNode <> nil';
+    function GeometryGrandGrandParentNodeName: String; deprecated 'use GeometryGrandGrandParentNode.X3DName, if GeometryGrandGrandParentNode <> nil';
 
     { Material property associated with this shape's material/texture. }
     function InternalMaterialProperty: TMaterialProperty;
