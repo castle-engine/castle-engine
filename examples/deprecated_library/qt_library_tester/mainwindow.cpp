@@ -20,6 +20,7 @@
 #include <QDialog>
 #include <QFileDialog>
 #include <QPlainTextEdit>
+#include <QSettings>
 #include <QVBoxLayout>
 
 #include <castleengine.h>
@@ -35,8 +36,14 @@ MainWindow::MainWindow(QWidget *parent) :
 
     CGE_LoadLibrary();
 
+    // load settings
+    QSettings aSettings("castleengine", "qt_library_tester");
+    m_sLastUsedFolder = aSettings.value("lastFolder", ".").toString();
+    ui->actionMultiSampling->setChecked(aSettings.value("multiSampling", true).toBool());
+
+    // define OpenGL context format
     QSurfaceFormat aFormat;
-    aFormat.setSamples(4);
+    aFormat.setSamples(ui->actionMultiSampling->isChecked() ? 4 : 0);
     aFormat.setDepthBufferSize(24);
     aFormat.setStencilBufferSize(8);
     aFormat.setSwapBehavior(QSurfaceFormat::DoubleBuffer);
@@ -60,25 +67,31 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionMultiSampling, SIGNAL(triggered()), this, SLOT(MenuAntiAliasingClick()));
     connect(ui->actionOpenGL_Information, SIGNAL(triggered()), this, SLOT(MenuOpenGLInfoClick()));
     connect(ui->actionShow_Warnings, SIGNAL(triggered()), this, SLOT(MenuShowWarningClick()));
-
-    ui->actionMultiSampling->setChecked(m_pGlWidget->format().samples()>1);
-
-    // Use this to load some default scene
-    //m_pGlWidget->OpenScene("../../../../demo-models/navigation/type_walk.wrl");
 }
 
 MainWindow::~MainWindow()
 {
+    SaveSettings();
     CGE_Finalize();
     delete ui;
 }
 
+void MainWindow::SaveSettings()
+{
+    QSettings aSettings("castleengine", "qt_library_tester");
+    aSettings.setValue("lastFolder", m_sLastUsedFolder);
+    aSettings.setValue("multiSampling", ui->actionMultiSampling->isChecked());
+}
+
 void MainWindow::OnFileOpenClick()
 {
-    QString sFile = QFileDialog::getOpenFileName(this, tr("Open Scene"), ".", tr("3D scenes") +
+    QString sFile = QFileDialog::getOpenFileName(this, tr("Open Scene"), m_sLastUsedFolder, tr("3D scenes") +
         " (*.wrl *.wrl.gz *.wrz *.x3d *.x3dz *.x3d.gz *.x3dv *.x3dvz *.x3dv.gz *.kanim *.castle-anim-frames *.dae *.iv *.3ds *.md3 *.obj *.geo *.json *.stl *.gltf *.glb)");
     if (!sFile.isEmpty())
+    {
+        m_sLastUsedFolder = QFileInfo(sFile).absolutePath();
         m_pGlWidget->OpenScene(sFile);
+    }
 }
 
 void MainWindow::UpdateNavigationButtons()

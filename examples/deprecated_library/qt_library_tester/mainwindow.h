@@ -35,6 +35,7 @@ public:
     void UpdateAfterSceneLoaded();
     void MoveToViewpoint(int nView);
     void AddNewWarning(QString const& sWarning);
+    void SaveSettings();
 
 private:
     Ui::MainWindow *ui;
@@ -42,6 +43,7 @@ private:
     QDialog *m_pConsoleWnd;
     int m_nViewpointCount, m_iCurrentViewpoint;
     NavKeeper m_aNavKeeper;
+    QString m_sLastUsedFolder;
 
 private slots:
     void OnFileOpenClick();
