@@ -15,6 +15,7 @@
 
 #include <QtWidgets>
 #include <QtOpenGL>
+#include <castleengine.h>
 
 #include "glwidget.h"
 #include "mainwindow.h"

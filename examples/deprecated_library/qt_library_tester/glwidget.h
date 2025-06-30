@@ -3,8 +3,6 @@
 
 #include <QOpenGLWidget>
 
-#include "../../../src/deprecated_library/castleengine.h"
-
 class GLWidget : public QOpenGLWidget
 {
     Q_OBJECT
@@ -21,7 +19,7 @@ public:
     static int QKeyToCgeKey(int qKey);
 
 protected:
-    static int CDECL OpenGlLibraryCallback(int eCode, int iParam1, int iParam2, const char *szParam);
+    static int OpenGlLibraryCallback(int eCode, int iParam1, int iParam2, const char *szParam);
     QPoint PointFromMousePoint(const QPoint& pt);
     QPoint PointFromMousePoint(const QPointF& pt);
     void updateGL();

@@ -22,7 +22,7 @@
 #include <QPlainTextEdit>
 #include <QVBoxLayout>
 
-#include "../../../src/deprecated_library/castleengine.h"
+#include <castleengine.h>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
