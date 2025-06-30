@@ -243,8 +243,9 @@ void MainWindow::MenuOpenGLInfoClick()
 {
     m_pGlWidget->makeCurrent();
 
-    char szBuf[8192];
-    CGE_GetOpenGLInformation(szBuf, 8192);
+    char szBuf[16000];
+    memset(szBuf, 0, sizeof(szBuf));
+    CGE_GetOpenGLInformation(szBuf, sizeof(szBuf));
 
     m_pGlWidget->doneCurrent();
 
