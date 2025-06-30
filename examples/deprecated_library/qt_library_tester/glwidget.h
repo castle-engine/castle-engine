@@ -22,11 +22,12 @@ protected:
     static int OpenGlLibraryCallback(int eCode, int iParam1, int iParam2, const char *szParam);
     QPoint PointFromMousePoint(const QPoint& pt);
     QPoint PointFromMousePoint(const QPointF& pt);
-    void updateGL();
+    void PrintContextInfo(const QString &sTitle);
 
 private:
     bool m_bAfterInit;
     bool m_bNeedsDisplay;
+    bool m_bPrintContextInfoAtPaint;
 
 public:
     virtual QSize minimumSizeHint() const;
