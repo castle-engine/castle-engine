@@ -172,7 +172,10 @@ void GLWidget::paintGL()
 void GLWidget::resizeGL(int width, int height)
 {
     if (m_bAfterInit && width > 0 && height > 0)
-        CGE_Resize(width, height);
+    {
+        double dPixRatio = devicePixelRatioF();
+        CGE_Resize(width * dPixRatio, height * dPixRatio);
+    }
 }
 
 QPoint GLWidget::PointFromMousePoint(const QPoint& pt)

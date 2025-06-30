@@ -5,6 +5,7 @@
 #include <QAction>
 
 class GLWidget;
+class QSurfaceFormat;
 
 namespace Ui {
 class MainWindow;
@@ -36,6 +37,7 @@ public:
     void MoveToViewpoint(int nView);
     void AddNewWarning(QString const& sWarning);
     void SaveSettings();
+    static void SetSurfaceFormat(QSurfaceFormat *pFormat);
 
 private:
     Ui::MainWindow *ui;

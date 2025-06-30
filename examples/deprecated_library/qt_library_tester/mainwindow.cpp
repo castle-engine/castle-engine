@@ -43,11 +43,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // define OpenGL context format
     QSurfaceFormat aFormat;
+    SetSurfaceFormat(&aFormat);
     aFormat.setSamples(ui->actionMultiSampling->isChecked() ? 4 : 0);
-    aFormat.setDepthBufferSize(24);
-    aFormat.setStencilBufferSize(8);
-    aFormat.setSwapBehavior(QSurfaceFormat::DoubleBuffer);
-    aFormat.setSwapInterval(1);
+
     QSurfaceFormat::setDefaultFormat(aFormat);
 
     m_pGlWidget = new GLWidget(aFormat, this);    // init with multisampling
@@ -74,6 +72,24 @@ MainWindow::~MainWindow()
     SaveSettings();
     CGE_Finalize();
     delete ui;
+}
+
+void MainWindow::SetSurfaceFormat(QSurfaceFormat *pFormat)
+{
+    pFormat->setRenderableType(QSurfaceFormat::OpenGL);
+    pFormat->setRedBufferSize(8);
+    pFormat->setGreenBufferSize(8);
+    pFormat->setBlueBufferSize(8);
+    pFormat->setAlphaBufferSize(8);
+    pFormat->setDepthBufferSize(24);
+    pFormat->setStencilBufferSize(8);
+    pFormat->setSwapBehavior(QSurfaceFormat::DoubleBuffer);
+    pFormat->setSwapInterval(1);
+#ifdef Q_OS_MAC
+    pFormat->setMajorVersion(3);
+    pFormat->setMinorVersion(2);
+    pFormat->setProfile(QSurfaceFormat::CoreProfile);
+#endif
 }
 
 void MainWindow::SaveSettings()
@@ -197,11 +213,13 @@ void MainWindow::MenuAntiAliasingClick()
     m_pGlWidget = NULL;
 
     QSurfaceFormat aFormat;
+    SetSurfaceFormat(&aFormat);
     aFormat.setSamples(ui->actionMultiSampling->isChecked() ? 4 : 0);
 
     m_pGlWidget = new GLWidget(aFormat, this);    // init with multisampling
     setCentralWidget(m_pGlWidget);
     m_pGlWidget->OpenScene(sScene);
+    m_pGlWidget->setFocus();
 }
 
 void MainWindow::MenuWalkingEffectClick()
