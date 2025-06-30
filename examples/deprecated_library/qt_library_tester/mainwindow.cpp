@@ -20,9 +20,10 @@
 #include <QDialog>
 #include <QFileDialog>
 #include <QPlainTextEdit>
+#include <QSettings>
 #include <QVBoxLayout>
 
-#include "../../../src/deprecated_library/castleengine.h"
+#include <castleengine.h>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -35,12 +36,16 @@ MainWindow::MainWindow(QWidget *parent) :
 
     CGE_LoadLibrary();
 
+    // load settings
+    QSettings aSettings("castleengine", "qt_library_tester");
+    m_sLastUsedFolder = aSettings.value("lastFolder", ".").toString();
+    ui->actionMultiSampling->setChecked(aSettings.value("multiSampling", true).toBool());
+
+    // define OpenGL context format
     QSurfaceFormat aFormat;
-    aFormat.setSamples(4);
-    aFormat.setDepthBufferSize(24);
-    aFormat.setStencilBufferSize(8);
-    aFormat.setSwapBehavior(QSurfaceFormat::DoubleBuffer);
-    aFormat.setSwapInterval(1);
+    SetSurfaceFormat(&aFormat);
+    aFormat.setSamples(ui->actionMultiSampling->isChecked() ? 4 : 0);
+
     QSurfaceFormat::setDefaultFormat(aFormat);
 
     m_pGlWidget = new GLWidget(aFormat, this);    // init with multisampling
@@ -60,25 +65,49 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionMultiSampling, SIGNAL(triggered()), this, SLOT(MenuAntiAliasingClick()));
     connect(ui->actionOpenGL_Information, SIGNAL(triggered()), this, SLOT(MenuOpenGLInfoClick()));
     connect(ui->actionShow_Warnings, SIGNAL(triggered()), this, SLOT(MenuShowWarningClick()));
-
-    ui->actionMultiSampling->setChecked(m_pGlWidget->format().samples()>1);
-
-    // Use this to load some default scene
-    //m_pGlWidget->OpenScene("../../../../demo-models/navigation/type_walk.wrl");
 }
 
 MainWindow::~MainWindow()
 {
+    SaveSettings();
     CGE_Finalize();
     delete ui;
 }
 
+void MainWindow::SetSurfaceFormat(QSurfaceFormat *pFormat)
+{
+    pFormat->setRenderableType(QSurfaceFormat::OpenGL);
+    pFormat->setRedBufferSize(8);
+    pFormat->setGreenBufferSize(8);
+    pFormat->setBlueBufferSize(8);
+    pFormat->setAlphaBufferSize(8);
+    pFormat->setDepthBufferSize(24);
+    pFormat->setStencilBufferSize(8);
+    pFormat->setSwapBehavior(QSurfaceFormat::DoubleBuffer);
+    pFormat->setSwapInterval(1);
+#ifdef Q_OS_MAC
+    pFormat->setMajorVersion(3);
+    pFormat->setMinorVersion(2);
+    pFormat->setProfile(QSurfaceFormat::CoreProfile);
+#endif
+}
+
+void MainWindow::SaveSettings()
+{
+    QSettings aSettings("castleengine", "qt_library_tester");
+    aSettings.setValue("lastFolder", m_sLastUsedFolder);
+    aSettings.setValue("multiSampling", ui->actionMultiSampling->isChecked());
+}
+
 void MainWindow::OnFileOpenClick()
 {
-    QString sFile = QFileDialog::getOpenFileName(this, tr("Open Scene"), ".", tr("3D scenes") +
+    QString sFile = QFileDialog::getOpenFileName(this, tr("Open Scene"), m_sLastUsedFolder, tr("3D scenes") +
         " (*.wrl *.wrl.gz *.wrz *.x3d *.x3dz *.x3d.gz *.x3dv *.x3dvz *.x3dv.gz *.kanim *.castle-anim-frames *.dae *.iv *.3ds *.md3 *.obj *.geo *.json *.stl *.gltf *.glb)");
     if (!sFile.isEmpty())
+    {
+        m_sLastUsedFolder = QFileInfo(sFile).absolutePath();
         m_pGlWidget->OpenScene(sFile);
+    }
 }
 
 void MainWindow::UpdateNavigationButtons()
@@ -184,11 +213,13 @@ void MainWindow::MenuAntiAliasingClick()
     m_pGlWidget = NULL;
 
     QSurfaceFormat aFormat;
+    SetSurfaceFormat(&aFormat);
     aFormat.setSamples(ui->actionMultiSampling->isChecked() ? 4 : 0);
 
     m_pGlWidget = new GLWidget(aFormat, this);    // init with multisampling
     setCentralWidget(m_pGlWidget);
     m_pGlWidget->OpenScene(sScene);
+    m_pGlWidget->setFocus();
 }
 
 void MainWindow::MenuWalkingEffectClick()
@@ -243,8 +274,9 @@ void MainWindow::MenuOpenGLInfoClick()
 {
     m_pGlWidget->makeCurrent();
 
-    char szBuf[8192];
-    CGE_GetOpenGLInformation(szBuf, 8192);
+    char szBuf[16000];
+    memset(szBuf, 0, sizeof(szBuf));
+    CGE_GetOpenGLInformation(szBuf, sizeof(szBuf));
 
     m_pGlWidget->doneCurrent();
 

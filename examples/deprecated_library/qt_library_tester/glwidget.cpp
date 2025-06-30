@@ -15,6 +15,7 @@
 
 #include <QtWidgets>
 #include <QtOpenGL>
+#include <castleengine.h>
 
 #include "glwidget.h"
 #include "mainwindow.h"
@@ -28,6 +29,7 @@ GLWidget::GLWidget(const QSurfaceFormat &format, QWidget *parent) :
     m_bAfterInit = false;
     m_bLimitFPS = true;
     m_bNeedsDisplay = false;
+    m_bPrintContextInfoAtPaint = false;
     setFormat(format);
     setMouseTracking(true);
     setFocusPolicy(Qt::StrongFocus);    // accept key strokes
@@ -123,6 +125,18 @@ void GLWidget::initializeGL()
     m_bAfterInit = true;
     if (!m_sSceneToOpen.isEmpty())
         OpenScene(m_sSceneToOpen);
+
+    PrintContextInfo("initializeGL()");
+    m_bPrintContextInfoAtPaint = true;
+}
+
+void GLWidget::PrintContextInfo(const QString &sTitle)
+{
+    GLint iSampleBuffers = -1;
+    context()->functions()->glGetIntegerv(GL_SAMPLE_BUFFERS, &iSampleBuffers);
+    GLint iSamples = -1;
+    context()->functions()->glGetIntegerv(GL_SAMPLES, &iSamples);
+    qDebug() << "Context info at" << sTitle << "GL_SAMPLE_BUFFERS:" << iSampleBuffers << ", GL_SAMPLES:" << iSamples;
 }
 
 void GLWidget::OnUpdateTimer()
@@ -138,18 +152,19 @@ void GLWidget::OnUpdateTimer()
     if (!m_bLimitFPS || m_bNeedsDisplay)
     {
         m_bNeedsDisplay = false;
-        updateGL();
+        update();
     }
-}
-
-void GLWidget::updateGL()
-{
-    update();
 }
 
 void GLWidget::paintGL()
 {
     if (!m_bAfterInit) return;
+
+    if (m_bPrintContextInfoAtPaint)
+    {
+        PrintContextInfo("paintGL()");
+        m_bPrintContextInfoAtPaint = false;
+    }
 
     CGE_Render();
 }
@@ -157,7 +172,10 @@ void GLWidget::paintGL()
 void GLWidget::resizeGL(int width, int height)
 {
     if (m_bAfterInit && width > 0 && height > 0)
-        CGE_Resize(width, height);
+    {
+        double dPixRatio = devicePixelRatioF();
+        CGE_Resize(width * dPixRatio, height * dPixRatio);
+    }
 }
 
 QPoint GLWidget::PointFromMousePoint(const QPoint& pt)
@@ -209,7 +227,7 @@ void GLWidget::wheelEvent(QWheelEvent *event)
     if (m_bNeedsDisplay)
     {
         m_bNeedsDisplay = false;
-        updateGL();
+        update();
     }
 }
 #endif
