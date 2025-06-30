@@ -1012,7 +1012,7 @@ var
 begin
   inherited;
 
-  if (State.Skin <> nil) and
+  if State.SkinnedAnimatedShape and
      (State.Skin.InternalUsesShaders) and
      (State.Skin.InternalJointMatrix <> nil) and
      (State.Skin.InternalJointMatrix.Count = State.Skin.FdJoints.Count) and

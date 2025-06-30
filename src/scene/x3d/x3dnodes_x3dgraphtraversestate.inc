@@ -199,6 +199,12 @@
       Material or CommonSurfaceShader node exists.
       Do not free it yourself, it will be automatically freed. }
     function MaterialInfo: TMaterialInfo;
+
+    { Is current shape animated using skinned animation by being inside
+      @link(TSkinNode.FdShapes).
+      Shapes that are rigid children of joints, in @link(TSkinNode.FdSkeleton),
+      are not considered skinned animated by this method. }
+    function SkinnedAnimatedShape: Boolean;
   end;
 
   { Stack of TX3DGraphTraverseState.
@@ -497,6 +503,14 @@ begin
     end;
   end else
     Result := VRML1State.Material.MaterialInfo;
+end;
+
+function TX3DGraphTraverseState.SkinnedAnimatedShape: Boolean;
+begin
+  Result :=
+    (Skin <> nil) and
+    (ShapeNode <> nil) and
+    Skin.FdShapes.Contains(ShapeNode);
 end;
 
 { TX3DGraphTraverseStateStack --------------------------------------------- }

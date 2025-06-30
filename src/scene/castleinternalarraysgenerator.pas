@@ -2469,7 +2469,7 @@ var
   Joints0: TInt32List;
 begin
   inherited;
-  if (State.Skin <> nil) and
+  if State.SkinnedAnimatedShape and
      (Geometry.SkinWeightsJoints(Weights0, Joints0)) then
   begin
     Arrays.AddSkinWeights0;
@@ -2485,7 +2485,7 @@ var
   I: Integer;
 begin
   inherited;
-  if (State.Skin <> nil) and
+  if State.SkinnedAnimatedShape and
      (Geometry.SkinWeightsJoints(Weights0, Joints0Int)) then
   begin
     AssignAttribute('skinWeights0', Arrays.SkinWeights0,
