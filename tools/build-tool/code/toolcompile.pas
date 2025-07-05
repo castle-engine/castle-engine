@@ -1136,7 +1136,9 @@ begin
     LazbuildOptions.Clear;
     LazbuildOptions.Add('--os=' + OSToString(Options.OS));
     LazbuildOptions.Add('--cpu=' + CPUToString(Options.CPU));
-    { // Do not pass --build-mode, as project may not have it defined.
+    {
+    // Do not pass --build-mode, as project may not have it defined.
+    // TODO: We can detect first build modes available, using lazbuild --get-build-modes.
     if Options.Mode = cmDebug then
       LazbuildOptions.Add('--build-mode=Debug')
     else
