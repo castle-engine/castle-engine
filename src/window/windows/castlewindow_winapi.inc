@@ -1,6 +1,6 @@
 {%MainUnit ../castlewindow.pas}
 {
-  Copyright 2001-2024 Michalis Kamburelis.
+  Copyright 2001-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -38,6 +38,10 @@
   - Note: LCL win32 widgetset (used on 64-bit Windows too) still uses ANSI.
 }
 
+{ Activate debug feature to output all WinAPI messages as they arrive.
+  Beware: your log will be *flooded* with logs about messages! }
+{.$define CASTLE_DEBUG_WINAPI_MESSAGES}
+
 {$ifdef USE_EGL}
   {$I castlewindow_egl.inc}
 {$else}
@@ -58,6 +62,7 @@ Imm, Windows, CommDlg,
 {$endif}
 
 {$ifdef read_implementation_uses}
+{$ifdef CASTLE_DEBUG_WINAPI_MESSAGES} StrUtils, {$endif}
 CastleInternalWindowModes, CastleMessages, CastleGameControllers, CastleUnicode,
 CastleInternalFileMonitor,
 {$endif}
@@ -99,6 +104,7 @@ private
   { Should we do ChangeDisplaySettings(nil, 0) when Destroy? }
   DisplaySettingsChanged: boolean;
   WndClassName: UnicodeString;
+  WndClassNameRegistered: Boolean;
 
   { A private array, initialized in CreateBackend.
     Having all cursor handles loaded makes sure that WM_SETCURSOR is able to
@@ -303,6 +309,12 @@ begin
   if Result then
     Window.WindowProc(uMsg, wParm, lParm);
 end;
+
+{$ifdef CASTLE_DEBUG_WINAPI_MESSAGES}
+var
+  WindowProcNesting: Cardinal;
+{$I castlewindow_debug.inc}
+{$endif}
 
 function WndProc(hWnd: HWND; uMsg: UINT; wParm: WPARAM; lParm: LPARAM) :LRESULT; stdcall;
 var
@@ -739,6 +751,10 @@ var
 begin
   Result := 0;
 
+  {$ifdef CASTLE_DEBUG_WINAPI_MESSAGES}
+  WritelnLog(DupeString('  ', WindowProcNesting) + 'Message: ', WindowsMessageName(uMsg));
+  {$endif}
+
   { generalnie chcemy przepuszczac SYSKEY* do DefaultWndProc ktore moze
     wtedy np. na Alt+F4 zrobic nam close albo na Alt+spacja otworzyc
     nam system menu itp. To wszystko sa fajne rzeczy i nie chce ich blokowac
@@ -1072,6 +1088,9 @@ begin
 
   if DoEnableUpdatesFromWindowProc then Inc(EnableUpdatesFromWindowProc);
   if DoDisableUpdatesFromWindowProc then Inc(DisableUpdatesFromWindowProc);
+  {$ifdef CASTLE_DEBUG_WINAPI_MESSAGES}
+  Inc(WindowProcNesting);
+  {$endif}
   try
     { Note: It is extremely important to use here DefWindowProcW.
       If you use (ANSI, in FPC) DefWindowProc, then Windows will detect that
@@ -1083,6 +1102,9 @@ begin
   finally
     if DoEnableUpdatesFromWindowProc then Dec(EnableUpdatesFromWindowProc);
     if DoDisableUpdatesFromWindowProc then Dec(DisableUpdatesFromWindowProc);
+    {$ifdef CASTLE_DEBUG_WINAPI_MESSAGES}
+    Dec(WindowProcNesting);
+    {$endif}
   end;
 end;
 
@@ -1906,6 +1928,10 @@ var
   WindowClass: TWndClassW;
   C: TMouseCursor;
 begin
+  {$ifdef CASTLE_DEBUG_WINAPI_MESSAGES}
+  InitializeWindowsMessageNames;
+  {$endif}
+
   RegisterClipboard(TWinApiClipboard.Create);
 
   appActive := true;
@@ -1944,11 +1970,21 @@ begin
   WindowClass.hCursor := CursorHandles[mcStandard].Handle;
   WindowClass.lpszClassName := PWideChar(WndClassName);
   OSCheck( Windows.RegisterClassW(WindowClass) <> 0, 'RegisterClassW');
+  WndClassNameRegistered := true;
 end;
 
 procedure TCastleApplication.DestroyBackend;
 begin
-  OSCheck( Windows.UnregisterClassW(PWideChar(WndClassName), hInstance), 'UnregisterClassW');
+  { Check WndClassNameRegistered to have better behavior in case something
+    in TCastleApplication.CreateBackend fails: we want then to get original
+    exception, not an error from UnregisterClassW that we try to unregister
+    class that wasn't registered. }
+  if WndClassNameRegistered then
+    OSCheck( Windows.UnregisterClassW(PWideChar(WndClassName), hInstance), 'UnregisterClassW');
+
+  {$ifdef CASTLE_DEBUG_WINAPI_MESSAGES}
+  FreeAndNil(WindowsMessageNames);
+  {$endif}
 end;
 
 procedure TCastleApplication.VideoReset;
