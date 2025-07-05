@@ -152,7 +152,7 @@ type
     function DefaultQualifiedName(const AName: String): String;
     procedure CheckMatches(const Name, Value: String; const AllowedChars: TSetOfChars);
     class procedure CheckUnicodeDoesNotContain(
-      const Name, Value: String; const DisallowedChars: TUnicodeCharList);
+      const Name, Value: String; const DisallowedChars: TUnicodeCharSet);
     procedure CheckValidQualifiedName(const OptionName: String; const QualifiedName: String);
     { Change compiler option @xxx to use absolute paths.
       Important for "castle-engine editor" where ExtraCompilerOptionsAbsolute is inserted
@@ -897,7 +897,7 @@ begin
 end;
 
 class procedure TCastleManifest.CheckUnicodeDoesNotContain(
-  const Name, Value: String; const DisallowedChars: TUnicodeCharList);
+  const Name, Value: String; const DisallowedChars: TUnicodeCharSet);
 var
   Iter: TCastleStringIterator;
 begin
@@ -915,14 +915,14 @@ end;
 
 class procedure TCastleManifest.CheckExecutableName(const AExecutableName: String);
 var
-  DisallowedChars: TUnicodeCharList;
+  DisallowedChars: TUnicodeCharSet;
   DisallowedChar: TUnicodeChar;
 begin
   { Executable name can contain everything that is an allowed filename
     on modern platforms.
     See https://superuser.com/questions/358855/what-characters-are-safe-in-cross-platform-file-names-for-linux-windows-and-os .
     In particular, most local (Chinese, Polish...) characters are OK. }
-  DisallowedChars := TUnicodeCharList.Create;
+  DisallowedChars := TUnicodeCharSet.Create;
   try
     DisallowedChars.Add('\/:*?"<>|');
     for DisallowedChar := 0 to 31 do // disallow null, ASCII control characters

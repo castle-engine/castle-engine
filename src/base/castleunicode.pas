@@ -28,14 +28,15 @@ uses CastleUtils, CastleStringUtils;
 type
   TUnicodeChar = Cardinal;
 
-  TUnicodeCharList = class(TCardinalList)
+  { Manage a set (without duplicates) of Unicode character codes. }
+  TUnicodeCharSet = class(TCardinalList)
   public
     { Add a single Unicode character.
       Doesn't add duplicates (contrary to ancestor Add). }
     procedure Add(const C: TUnicodeChar); reintroduce; overload;
 
     { Add all characters from SampleText.
-      Useful to fill TUnicodeCharList
+      Useful to fill TUnicodeCharSet
       when you have a sample text of international letters.
       Doesn't add duplicates. }
     procedure Add(const SampleText: string); overload;
@@ -44,7 +45,7 @@ type
       Doesn't add duplicates. }
     procedure Add(const Characters: TSetOfChars); overload;
 
-    { Express all characters inside as one string.
+    { Express all characters inside the set as one string.
 
       The resulting String follows the encoding conventions used throughout CGE,
       which means it will be UTF-8 with FPC (AnsiString)
@@ -52,6 +53,8 @@ type
       See https://castle-engine.io/coding_conventions#strings_unicode . }
     function ToString: String; override;
   end;
+
+  TUnicodeCharList = TUnicodeCharSet deprecated 'use TUnicodeCharSet instead';
 
 { Length of the string, in Unicode characters.
 
@@ -222,15 +225,15 @@ implementation
 
 uses SysUtils{$ifndef FPC}, Character{$endif}, CastleLog;
 
-{ TUnicodeCharList ----------------------------------------------------------- }
+{ TUnicodeCharSet ----------------------------------------------------------- }
 
-procedure TUnicodeCharList.Add(const C: TUnicodeChar);
+procedure TUnicodeCharSet.Add(const C: TUnicodeChar);
 begin
   if IndexOf(C) = -1 then
     inherited Add(C);
 end;
 
-procedure TUnicodeCharList.Add(const SampleText: string);
+procedure TUnicodeCharSet.Add(const SampleText: string);
 var
   Iter: TCastleStringIterator;
 begin
@@ -239,7 +242,7 @@ begin
     Add(Iter.Current);
 end;
 
-procedure TUnicodeCharList.Add(const Characters: TSetOfChars);
+procedure TUnicodeCharSet.Add(const Characters: TSetOfChars);
 var
   C: char;
 begin
@@ -247,7 +250,7 @@ begin
     Add(Ord(C));
 end;
 
-function TUnicodeCharList.ToString: String;
+function TUnicodeCharSet.ToString: String;
 var
   C: TUnicodeChar;
 begin
