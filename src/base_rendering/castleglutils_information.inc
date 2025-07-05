@@ -147,11 +147,16 @@ const
     Result := '[' + Result + ']';
   end;
 
-  function IntToStrUnknown(const I: Integer): string;
+  function MemoryInfo(const Name: String; const ValueInKb: Integer): String;
   begin
-    Result := IntToStr(I);
-    if I = 0 then
-      Result := Result + ' (unknown)';
+    if ValueInKb = 0 then
+      Result := ''
+    else
+      Result := Format('  %s: %d mb (%d kb)' + NL, [
+        Name,
+        ValueInKb div 1024,
+        ValueInKb
+      ]);
   end;
 
 begin
@@ -284,13 +289,20 @@ begin
     NL +
 
     Section + NL +
-    'Memory (in Kb):' + NL +
+    'Memory:' + NL +
       NL +
-    '  Total: ' + IntToStrUnknown(GLFeatures.Memory.Total) + NL +
-    '  Current: ' + IntToStrUnknown(GLFeatures.Memory.Current) + NL +
-    '  Current for VBO: ' + IntToStrUnknown(GLFeatures.Memory.CurrentVbo) + NL +
-    '  Current for Textures: ' + IntToStrUnknown(GLFeatures.Memory.CurrentTexture) + NL +
-    '  Current for Renderbuffers: ' + IntToStrUnknown(GLFeatures.Memory.CurrentRenderbuffer);
+    { Using wording from
+      https://registry.khronos.org/OpenGL/extensions/NVX/NVX_gpu_memory_info.txt
+      to be precise.
+      See also how glxinfo displays it,
+      https://stackoverflow.com/questions/75756085/linuxmesaopengl-measuring-amount-of-allocated-video-memory-of-an-application . }
+    MemoryInfo('Dedicated video memory', GLFeatures.Memory.DedicatedVideoMemory) +
+    MemoryInfo('Total available memory', GLFeatures.Memory.TotalAvailableMemory) +
+    MemoryInfo('Currently available dedicated video memory', GLFeatures.Memory.CurrentAvailableVideoMemory) +
+    MemoryInfo('VBO free memory', GLFeatures.Memory.VboFreeMemory) +
+    MemoryInfo('Texture free memory', GLFeatures.Memory.TextureFreeMemory) +
+    MemoryInfo('Renderbuffer free memory', GLFeatures.Memory.RenderbufferFreeMemory) +
+    '';
 
   CheckGLErrors('End of GLInformationString');
 end;
