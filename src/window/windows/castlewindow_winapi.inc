@@ -54,17 +54,13 @@
   Beware: your log will be *flooded* with logs about messages! }
 {.$define CASTLE_DEBUG_WINAPI_MESSAGES}
 
-{ Activate debug feature to measure "recursive updates" that happen
-  when you move / resize / operate menu of the window.
-  We want to avoid window visibly lagging during this,
-  see https://github.com/castle-engine/castle-engine/issues/672 }
-{.$define CASTLE_DEBUG_RECURSIVE_UPDATES}
-
 {$ifdef USE_EGL}
   {$I castlewindow_egl.inc}
 {$else}
   {$I castlewindow_wgl.inc}
 {$endif}
+
+{$I castlewindow_winapi_forced_processing.inc}
 
 {$ifdef read_interface_uses}
 {$ifdef FPC}
@@ -92,8 +88,6 @@ private
   { InCloseBackend = true means we are currently inside CloseBackend call.
     Useful -- see at WM_ACTIVATE. }
   InCloseBackend: boolean;
-
-  EnableUpdatesFromWindowProc, DisableUpdatesFromWindowProc: Cardinal;
 
   VK_LeftBracket_Exists,
   VK_RightBracket_Exists,
@@ -332,10 +326,6 @@ end;
 var
   WindowProcNesting: Cardinal;
 {$I castlewindow_winapi_debug.inc}
-{$endif}
-
-{$ifdef CASTLE_DEBUG_RECURSIVE_UPDATES}
-{$I castlewindow_winapi_debug_recursive_updates.inc}
 {$endif}
 
 function WndProc(hWnd: HWND; uMsg: UINT; wParm: WPARAM; lParm: LPARAM) :LRESULT; stdcall;
@@ -768,30 +758,13 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
       Container.MousePressed, 0));
   end;
 
-  procedure UpdateAndRenderEverythingDuringRecursiveWindowProc;
-  begin
-    {$ifdef CASTLE_DEBUG_RECURSIVE_UPDATES}
-    RecursiveUpdatesFps.CallBegin;
-    {$endif}
-
-    Application.UpdateAndRenderEverything;
-
-    {$ifdef CASTLE_DEBUG_RECURSIVE_UPDATES}
-    RecursiveUpdatesFps.CallEnd;
-    {$endif}
-  end;
-
 var
-  DoEnableUpdatesFromWindowProc, DoDisableUpdatesFromWindowProc: boolean;
+  ForcedProcessingMessage: TForcedProcessingMessageState;
 begin
   Result := 0;
 
   {$ifdef CASTLE_DEBUG_WINAPI_MESSAGES}
   WritelnLog(DupeString('  ', WindowProcNesting) + 'Message: ', WindowsMessageName(uMsg));
-  {$endif}
-
-  {$ifdef CASTLE_DEBUG_RECURSIVE_UPDATES}
-  RecursiveUpdatesFps.UpdateFps;
   {$endif}
 
   { generalnie chcemy przepuszczac SYSKEY* do DefaultWndProc ktore moze
@@ -1084,51 +1057,7 @@ begin
       end;
   end;
 
-  { The DefWindowProcW may enter a modal loop in some cases, e.g. when
-    WM_NCLBUTTONDOWN initializes window resizing operation.
-
-    This makes our normal message loop not working (although application
-    is working, but methods like ProcessMessage are not called in a loop anymore,
-    instead we "hang" in a DispatchMessage call in top-level ProcessMessage).
-    WinAPI will directly call WindowProc, creating a recursion.
-    See See http://stackoverflow.com/questions/3102074/win32-my-application-freezes-while-the-user-resizes-the-window
-
-    So to keep receiving update/timer/redraws, we simply call
-    UpdateAndRenderEverything manually here.
-
-    A simple solution was to just call it always when recursion here is detected.
-    But this seems unexpected to WinAPI in many situations, causing
-
-    1. crashes, when this is done from some messages.
-    2. slowdown at initialization (castle-model-viewer main menu blinks for some
-      time, with "busy" cursor, before it becomes responsive).
-
-    So the solution now is to activate it only for certain commands,
-    and moreover deactivate inside certain other commands. }
-  //Writeln('Got message ', uMsg,
-  //  ', UpdatesFromWindowProc: Enable: ', EnableUpdatesFromWindowProc,
-  //  ', Disable: ', DisableUpdatesFromWindowProc);
-
-  if (EnableUpdatesFromWindowProc <> 0) and
-     (DisableUpdatesFromWindowProc = 0) and
-     (not Closed) then
-  begin
-    UpdateAndRenderEverythingDuringRecursiveWindowProc;
-  end;
-
-  DoEnableUpdatesFromWindowProc := uMsg = WM_NCLBUTTONDOWN;
-  DoDisableUpdatesFromWindowProc :=
-    // user closes window by clicking on close button
-    ((uMsg = WM_SYSCOMMAND) and (wParm = SC_CLOSE)) or
-    // we close the window by code
-    (uMsg = WM_NCACTIVATE) or
-    // we recreate the window as fullscreen
-    (uMsg = WM_IME_SETCONTEXT) or
-    // we recreate the window as windowed?
-    (uMsg = WM_ACTIVATE);
-
-  if DoEnableUpdatesFromWindowProc then Inc(EnableUpdatesFromWindowProc);
-  if DoDisableUpdatesFromWindowProc then Inc(DisableUpdatesFromWindowProc);
+  ForcedProcessingMessage.BeforeDefWindowProc(ForcedProcessingState, uMsg, wParm, lParm);
   {$ifdef CASTLE_DEBUG_WINAPI_MESSAGES}
   Inc(WindowProcNesting);
   {$endif}
@@ -1141,8 +1070,7 @@ begin
       as just 1 single letter). }
     Result := DefWindowProcW(h_Wnd, uMsg, wParm, lParm);
   finally
-    if DoEnableUpdatesFromWindowProc then Dec(EnableUpdatesFromWindowProc);
-    if DoDisableUpdatesFromWindowProc then Dec(DisableUpdatesFromWindowProc);
+    ForcedProcessingMessage.AfterDefWindowProc(ForcedProcessingState);
     {$ifdef CASTLE_DEBUG_WINAPI_MESSAGES}
     Dec(WindowProcNesting);
     {$endif}
@@ -1497,6 +1425,7 @@ end;
 
 procedure TCastleWindow.CreateBackend;
 begin
+  ForcedProcessingState.Window := Self;
 end;
 
 function TCastleWindow.BackendFileDialog(const Title: String; var FileName: String;

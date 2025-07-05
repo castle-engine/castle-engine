@@ -14,6 +14,8 @@
   ----------------------------------------------------------------------------
 }
 
+{ Debug feature to log WinAPI message type. }
+
 type
   TWindowsMessageNames = {$ifdef FPC}specialize{$endif} TDictionary<UINT, String>;
 var
