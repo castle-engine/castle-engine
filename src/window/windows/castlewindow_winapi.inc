@@ -14,7 +14,19 @@
   ----------------------------------------------------------------------------
 }
 
-{ CastleWindow backend using WinAPI, Windows-only.
+{ CastleWindow backend using WinAPI. Windows-only.
+
+  Looks native on Windows, supports everything:
+  - including toggling fullscreen,
+  - TCastleWindow.MainMenu,
+  - native-looking dialogs like TCastleWindow.FileDialog.
+
+  OpenGL(ES) initialization can be done using
+  - (default) WGL (WinAPI way to initialize OpenGL context).
+  - EGL (cross-platform API to initialize OpenGL or OpenGLES context).
+
+  See https://castle-engine.io/castlewindow_backends#_winapi_castle_window_winapi
+  for more information.
 
   TODO:
 
