@@ -45,17 +45,16 @@
 {$endif}
 
 {$ifdef read_interface_uses}
-{ note: this unit's definitions conflict with other definitions used in this file
-  But we need it for RegisterDeviceNotification, therefore adding it to the very
-  first position in the uses list to be overwritten by subsequent used units }
 {$ifdef FPC}
+{ Note about JwaWinUser, JwaDbt units in uses clause:
+  Their definitions may conflict with some other definitions (in Windows, CommDlg).
+  But we need them for RegisterDeviceNotification and friends.
+  So keep JwaWinUser, JwaDbt early in the uses clause, before Windows, CommDlg. }
 JwaWinUser, JwaDbt,
 {$else}
 Winapi.Messages, Character,
 {$endif}
-Imm,
-{ /note }
-Windows, CommDlg,
+Imm, Windows, CommDlg,
 {$endif}
 
 {$ifdef read_implementation_uses}
