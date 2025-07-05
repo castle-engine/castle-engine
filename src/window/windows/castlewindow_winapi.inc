@@ -54,6 +54,12 @@
   Beware: your log will be *flooded* with logs about messages! }
 {.$define CASTLE_DEBUG_WINAPI_MESSAGES}
 
+{ Activate debug feature to measure "recursive updates" that happen
+  when you move / resize / operate menu of the window.
+  We want to avoid window visibly lagging during this,
+  see https://github.com/castle-engine/castle-engine/issues/672 }
+{.$define CASTLE_DEBUG_RECURSIVE_UPDATES}
+
 {$ifdef USE_EGL}
   {$I castlewindow_egl.inc}
 {$else}
@@ -325,7 +331,11 @@ end;
 {$ifdef CASTLE_DEBUG_WINAPI_MESSAGES}
 var
   WindowProcNesting: Cardinal;
-{$I castlewindow_debug.inc}
+{$I castlewindow_winapi_debug.inc}
+{$endif}
+
+{$ifdef CASTLE_DEBUG_RECURSIVE_UPDATES}
+{$I castlewindow_winapi_debug_recursive_updates.inc}
 {$endif}
 
 function WndProc(hWnd: HWND; uMsg: UINT; wParm: WPARAM; lParm: LPARAM) :LRESULT; stdcall;
@@ -758,6 +768,19 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
       Container.MousePressed, 0));
   end;
 
+  procedure UpdateAndRenderEverythingDuringRecursiveWindowProc;
+  begin
+    {$ifdef CASTLE_DEBUG_RECURSIVE_UPDATES}
+    RecursiveUpdatesFps.CallBegin;
+    {$endif}
+
+    Application.UpdateAndRenderEverything;
+
+    {$ifdef CASTLE_DEBUG_RECURSIVE_UPDATES}
+    RecursiveUpdatesFps.CallEnd;
+    {$endif}
+  end;
+
 var
   DoEnableUpdatesFromWindowProc, DoDisableUpdatesFromWindowProc: boolean;
 begin
@@ -765,6 +788,10 @@ begin
 
   {$ifdef CASTLE_DEBUG_WINAPI_MESSAGES}
   WritelnLog(DupeString('  ', WindowProcNesting) + 'Message: ', WindowsMessageName(uMsg));
+  {$endif}
+
+  {$ifdef CASTLE_DEBUG_RECURSIVE_UPDATES}
+  RecursiveUpdatesFps.UpdateFps;
   {$endif}
 
   { generalnie chcemy przepuszczac SYSKEY* do DefaultWndProc ktore moze
@@ -1085,7 +1112,9 @@ begin
   if (EnableUpdatesFromWindowProc <> 0) and
      (DisableUpdatesFromWindowProc = 0) and
      (not Closed) then
-    Application.UpdateAndRenderEverything;
+  begin
+    UpdateAndRenderEverythingDuringRecursiveWindowProc;
+  end;
 
   DoEnableUpdatesFromWindowProc := uMsg = WM_NCLBUTTONDOWN;
   DoDisableUpdatesFromWindowProc :=
