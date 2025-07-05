@@ -19,10 +19,6 @@ unit CastleRayTracer;
 {$I castleconf.inc}
 {$I octreeconf.inc}
 
-{$ifndef FPC}
-  {$message fatal 'This unit is only for FPC, not Delphi.'}
-{$endif}
-
 { TODO:
   - for classic raytracer do shadow cache
   - for classic raytracer use various space filling curves
@@ -166,12 +162,14 @@ type
     destructor Destroy; override;
   end;
 
+  TFastPointerList = {$ifdef FPC}TFPList{$else}TList{$endif};
+
   { Path tracer. See
     [https://castle-engine.io/vrml_engine_doc/output/xsl/html/section.path_tracer.html]
     for documentation. }
   TPathTracer = class(TRayTracer)
   private
-    CollectedLightItems: TFPList;
+    CollectedLightItems: TFastPointerList;
     procedure CollectLightItems(const Triangle: PTriangle);
   protected
     procedure AppendStats(const Stats: TStrings; const RenderingTime: Single); override;
@@ -842,7 +840,7 @@ procedure TPathTracer.Execute;
 var
   { In LightItems we have pointers to Octree.Triangles[] pointing
     to the items with emission color > 0. In other words, light sources. }
-  LightItems: TFPList;
+  LightItems: TFastPointerList;
 
   {$ifdef PATHTR_USES_SHADOW_CACHE}
   { For each light in LightItems[I], ShadowCache[I] gives the pointer
@@ -852,7 +850,7 @@ var
 
     This index is updated and used in IsLightShadowed.
     The idea of "shadow cache" comes from RGK, crystalized in "Graphic Gems II". }
-  ShadowCache: TFPList;
+  ShadowCache: TFastPointerList;
   {$endif}
 
   SceneBackgroundColor: TCastleColorRGB;
@@ -927,7 +925,7 @@ const
       LightItems.Items[LightSourceIndiceIndex]);
     try
       Shadower := Octree.SegmentCollision(ItemPoint, LightSourcePoint, false,
-        Item, true, @OctreeIgnorer.IgnoreItem);
+        Item, true, {$ifdef FPC}@{$endif} OctreeIgnorer.IgnoreItem);
       Result := Shadower <> nil;
       {$ifdef PATHTR_USES_SHADOW_CACHE}
       ShadowCache.Items[LightSourceIndiceIndex] := Shadower;
@@ -1086,7 +1084,7 @@ const
               1/LightEmissionArea. Ale poniewaz LightEmissionArea = const wiec
               przenioslem mnozenie przez LightEmissionArea na sam koniec tej
               funkcji.}
-          DirectColor *=
+          DirectColor := DirectColor *
             TVector3.DotProduct(LightDirNorm, IntersectNormal) *
             TVector3.DotProduct(NegatedLightDirNorm,
               PlaneDirInDirection(LightSource^.SceneSpace.Plane,
@@ -1338,16 +1336,16 @@ begin
   SFCurve := nil;
   try
     { calculate LightItems }
-    LightItems := TFPList.Create;
+    LightItems := TFastPointerList.Create;
     LightItems.Capacity := Octree.TrianglesCount div 4;
     CollectedLightItems := LightItems;
-    Octree.EnumerateTriangles(@CollectLightItems);
+    Octree.EnumerateTriangles({$ifdef FPC}@{$endif} CollectLightItems);
 
     {$ifdef PATHTR_USES_SHADOW_CACHE}
     { calculate ShadowCache }
-    ShadowCache := TFPList.Create;
+    ShadowCache := TFastPointerList.Create;
     ShadowCache.Count := LightItems.Count;
-    { Setting TFPList.Count already makes sure that new pointers are nil }
+    { Setting TFastPointerList.Count already makes sure that new pointers are nil }
     {$endif}
 
     { calculate RaysWindow }
