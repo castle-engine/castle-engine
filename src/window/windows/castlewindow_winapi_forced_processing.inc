@@ -62,6 +62,12 @@ private
       procedure UpdateFps;
       procedure CallBegin;
       procedure CallEnd;
+      { Is it allowed to start new call, with CallBegin, *right now*.
+        This may return @false to avoid doing to make "forced processing"
+        too oftenm which would make Windows stutter when
+        moving / resizign the window.
+        See https://github.com/castle-engine/castle-engine/issues/672 . }
+      function CheckLimit: Boolean;
     end;
 
     { Track is "forced processing" necessary and allowed now.
@@ -137,6 +143,17 @@ begin
   OnlyCallsTimePassed := OnlyCallsTimePassed + TimerSeconds(Timer, CallStartTime);
 end;
 
+function TCastleWindow.TForcedProcessingFps.CheckLimit: boolean;
+const
+  FpsLimit = 10.0;
+begin
+  Result :=
+    // CallBegin never called
+    (not CallStartTime.Initialized) or
+    // CallBegin called more than 1 / FpsLimit secs ago
+    (TimerSeconds(Timer, CallStartTime) > 1 / FpsLimit);
+end;
+
 { TForcedProcessingMessageState ---------------------------------------------- }
 
 procedure TForcedProcessingMessageState.BeforeDefWindowProc(
@@ -147,7 +164,8 @@ begin
 
   if (State.Necessary <> 0) and
      (State.Disallowed = 0) and
-     (not State.Window.Closed) then
+     (not State.Window.Closed) and
+     State.Fps.CheckLimit then
   begin
     State.Fps.CallBegin;
     Application.UpdateAndRenderEverything;
