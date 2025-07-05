@@ -117,7 +117,7 @@ begin
       OnlyCallsFps := 0;
 
     { Log "forced processing" time. }
-    {$define CASTLE_LOG_FORCED_PROCESSING}
+    {.$define CASTLE_LOG_FORCED_PROCESSING}
     {$ifdef CASTLE_LOG_FORCED_PROCESSING}
     if CallsCount <> 0 then
       WritelnLog('ForcedProcessing calls per second: real: %f, only calls: %f', [
