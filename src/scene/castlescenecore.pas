@@ -3919,7 +3919,13 @@ procedure TCastleSceneCore.ChangedAllEnumerateCallback(Node: TX3DNode);
 begin
   if (Node.Scene <> nil) and
      (Node.Scene <> Self) and
-     (not InternalNodeSharing) then
+     (not InternalNodeSharing) and
+     { We need to check both Self and Node.Scene for InternalNodeSharing flag,
+       since updates may happen in both scenes.
+       Testcase: https://github.com/castle-engine/castle-model-viewer/issues/109
+       when "Silhouette and Border Edges" visualization was doing ChangedAll
+       on Scene every frame. }
+     (not TCastleSceneCore(Node.Scene).InternalNodeSharing) then
     WritelnWarning('X3D node %s is already part of another TCastleScene instance.' + ' You cannot use the same X3D node in multiple instances of TCastleScene. Instead you must copy the node, using "Node.DeepCopy". It is usually most comfortable to copy the entire scene, using "TCastleScene.Clone".',
       [Node.NiceName]);
   Node.Scene := Self;
