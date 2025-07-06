@@ -1301,7 +1301,8 @@ type
       This is independent (doesn't take into account) the value
       of @link(TCastleRenderOptions.WholeSceneManifold
       RenderOptions.WholeSceneManifold). }
-    function InternalDetectedWholeSceneManifold: Boolean;
+    function InternalDetectedWholeSceneManifold(
+      const ForceRecalculation: Boolean = false): Boolean;
 
     { Edges count in the scene, for information purposes. }
     procedure EdgesCount(out ManifoldEdges, BorderEdges: Cardinal);
@@ -7646,7 +7647,8 @@ begin
     HeadlightOn := DefaultNavigationInfoHeadlight;
 end;
 
-function TCastleSceneCore.InternalDetectedWholeSceneManifold: Boolean;
+function TCastleSceneCore.InternalDetectedWholeSceneManifold(
+  const ForceRecalculation: Boolean): Boolean;
 
   { Do CalculateDetectedWholeSceneManifold, measure time. }
   procedure CalculateDetectedWholeSceneManifoldTime;
@@ -7680,6 +7682,8 @@ function TCastleSceneCore.InternalDetectedWholeSceneManifold: Boolean;
   end;
 
 begin
+  if ForceRecalculation then
+    Exclude(Validities, fvDetectedWholeSceneManifold);
   if not (fvDetectedWholeSceneManifold in Validities) then
   begin
     CalculateDetectedWholeSceneManifoldTime;
