@@ -855,29 +855,28 @@ var
 
   SceneBackgroundColor: TCastleColorRGB;
 
-  { TODO: comments below are in Polish. }
-
 const
-  { LightEmissionArea definiuje co znacza wlasciwosci .Emission zrodel swiatla.
-    Kolor emission swiatla bedzie oczywiscie skalowany przez kat brylowy jaki
-    ma zrodlo swiatla dla oswietlanego punktu. Skalowanie to bedzie robione tak
-    ze jezeli swiatlo bedzie zajmowalo kat brylowy LightEmissionArea
-    (w steradianach) to kolor swiatla dodany do DirectIllumination bedzie wynosil
-    doklanie Emission swiatla. Jesli kat brylowy bedzie a razy wiekszy (mniejszy)
-    niz LightEmissionArea to kolor jaki bedzie mial byc dodany do Direct Illumination
-    bedzie wynosil a*LightEmissionArea.
+  { LightEmissionArea defines what the xxx.Emission properties of light sources mean.
 
-    Oczywiscie ten kolor bedzie dalej skalowany, przez BRDFa i inne rzeczy,
-    wiec to nie oznacza ze dokladnie taki kolor a*Emission zostanie zwrocony
-    przez DirectIllumination. Ale taka bedzie "podstawa" tego koloru.
+    The emission color of light will be scaled by the solid angle that
+    the light source has for the illuminated point. This scaling will be done such
+    that if the light occupies a solid angle of LightEmissionArea
+    (in steradians) then the light color added to DirectIllumination will be
+    exactly the Emission of the light. If the solid angle is X times larger
+    than LightEmissionArea then the color that should be added to Direct Illumination
+    will be X*LightEmissionArea.
 
-    Mowiac nieco formalnie, LightEmissionArea okresla w jakich jednostkach
-    mamy zapisane Emission swiatla w modelu.
+    This color will be further scaled by BRDF and other things,
+    so this doesn't mean that exactly such color X*Emission will be returned
+    by DirectIllumination. But this will be the "basis" of that color.
 
-    Wartosc ponizej dobralem eksperymentalnie chcac zeby cornell-box renderowane
-    z path wygladalo tak samo jak rendering na stronie www.cornell-box'a.
-    Dopasowywalem ten parametr tak dlugo az rysunki path (z rosyjska ruletka,
-    bo ona nie wprowadza biasu) mialy "na oko" podobna jasnosc co tamtejszy
+    You can think of LightEmissionArea as defining in what units
+    we have the Emission of light stored in the model.
+
+    The value below was chosen experimentally wanting the cornell-box rendered
+    with path tracer to look the same as the rendering on the www.cornell-box website.
+    I adjusted this parameter until the path tracer images (with Russian roulette,
+    because it doesn't introduce bias) had "visually" similar brightness as their
     box.jpg. }
   LightEmissionArea = 1/30;
 
@@ -885,11 +884,11 @@ const
     const ItemPoint: TVector3;
     const LightSourceIndiceIndex: Integer;
     LightSourcePoint: TVector3): boolean;
-  { ta funkcja liczy shadow ray (a w zasadzie segment). Zwraca true jezeli
-    pomiedzy punktem ItemPoint a LightSourcePoint jest jakis element
-    o transparency = 1. Wpp. zwraca false.
-    LightSourceIndiceIndex to indeks to tablicy LightItems[].
-    Item to pointer to given item (somewhere in Octree.Triangles[]). }
+  { This function calculates shadow ray (or rather segment). Returns true if
+    between point ItemPoint and LightSourcePoint there is some element
+    with transparency = 1. Otherwise returns false.
+    LightSourceIndiceIndex is the index to the LightItems[] array.
+    Item is pointer to given item (somewhere in Octree.Triangles[]). }
   { TODO: transparent objects should scale light color instead of just
     letting it pass }
   var
@@ -900,7 +899,7 @@ const
   {$endif}
   begin
     {$ifdef PATHTR_USES_SHADOW_CACHE}
-    { sprobuj wziac wynik z ShadowCache }
+    { try to get result from ShadowCache }
     CachedShadower := ShadowCache.Items[LightSourceIndiceIndex];
     if (CachedShadower <> nil) and
        (CachedShadower <> Item) then
@@ -910,17 +909,17 @@ const
         CachedShadower^.SceneSpace.Plane, ItemPoint, LightSourcePoint) then
         Exit(true);
 
-      { powyzej zapominamy o marginesie epsilonowym wokol ItemPoint i
-        LightSourcePoint (jezeli tam jest przeciecie to powinno byc uznawane
-        za niewazne). Zreszta ponizej zapominamy o marginesie wokol
-        LightSourcePoint. W moim kodzie te marginesy epsilonowe nie sa tak
-        wazne (tylko dla nieprawidlowych modeli, dla prawidlowych modeli
-        wystarcza ItemIndexToIgnore i OctreeIgnorer) wiec olewam tutaj te
-        niedorobki. }
+      { above we forget about epsilon margin around ItemPoint and
+        LightSourcePoint (if there is intersection there it should be considered
+        as invalid). Also below we forget about margin around
+        LightSourcePoint. In my code these epsilon margins are not so
+        important (only for invalid models, for valid models
+        ItemIndexToIgnore and OctreeIgnorer are sufficient) so I ignore these
+        shortcomings here. }
     end;
     {$endif}
 
-    { oblicz przeciecie uzywajac Octree }
+    { calculate intersection using Octree }
     OctreeIgnorer := TOctreeIgnoreForShadowRaysAndOneItem.Create(
       LightItems.Items[LightSourceIndiceIndex]);
     try
@@ -937,8 +936,8 @@ const
     const Depth: Integer; const TriangleToIgnore: PTriangle;
     const IgnoreMarginAtStart: boolean; const TraceOnlyIndirect: boolean)
     : TVector3;
-  { sledzi promien z zadana glebokoscia. Zwraca Black (0, 0, 0) jesli
-    promien w nic nie trafia, wpp. zwraca wyliczony kolor. }
+  { traces ray with given depth. Returns Black (0, 0, 0) if
+    ray doesn't hit anything, otherwise returns calculated color. }
   var
     Intersection: TVector3;
     IntersectNode: PTriangle;
@@ -954,7 +953,7 @@ const
         TransmittedRayDirection: TVector3;
         EtaFrom, EtaTo: Single;
       const
-        EtaConst = 1.3; { TODO: tu tez uzywam EtaConst, jak w Classic }
+        EtaConst = 1.3; { TODO: here I also use EtaConst, like in Classic ray-tracer }
       begin
         if Odd(MinDepth-Depth) then
           begin EtaFrom := 1; EtaTo := EtaConst end else
@@ -972,37 +971,42 @@ const
       end;
 
       function DirectIllumination: TVector3;
-      { ta funkcja liczy DirectIllumination dla naszego Intersection.
-        Implementacja : uzywamy sformulowania (101) z GlobalIllumCompendium :
+      { this function calculates DirectIllumination for our Intersection.
+        Implementation: we use formulation (101) from GlobalIllumCompendium:
 
         for i = 0..DirectIllumSamplesCount-1 do
-          uniformly losuj LightItemIndex sposrod 0..LightIndices.Count-1.
-          uniformly (wzgledem pola powierzchni trojkata wylosowanego swiatla)
-            losuj punkt na swietle jako SampleLightPoint.
-          if (SampleLightPoint widoczny z Intersection) then
-            result += PolePowierzchni(LightItem) * LightEmission * BRDF *
+          uniformly choose LightItemIndex from 0..LightIndices.Count-1.
+          uniformly (with respect to surface area of chosen light triangle)
+            choose point on light as SampleLightPoint.
+          if (SampleLightPoint visible from Intersection) then
+            result += SurfaceArea(LightItem) * LightEmission * BRDF *
               GeometryFunction
-        Na koncu result *= LightIndices.Count / DirectIllumSamplesCount.
 
-        Mozna powiedziec ze instrukcja
-          result += PolePowierzchni(LightItem) * LightEmission * BRDF *
+        At the end result *= LightIndices.Count / DirectIllumSamplesCount.
+
+        One can say that the instruction
+
+          result += SurfaceArea(LightItem) * LightEmission * BRDF *
             GeometryFunction
-        jest mniej wiecej rownowazne
-          result += LightEmission * BRDF * cos(LightDirNorm, IntersectNormal)
-            * solid-angle-swiatla
-        (taka jest rola PolePowierzchni(LightItem) i czesci GeometryFunction -
-        one po prostu licza solid angle; no, de facto pewne bardzo dobre przyblizenie
-        solid angle)
 
-        W rezultacie result = sredni kolor ze swiatla razy srednia powierzchnia
-          swiatla * ilosc swiatel = wlasnie direct illumination, uwzgledniajace
-          ze rozne swiatla maja rozna powierzchnie i swieca z rozna intensywnoscia.
+        is more or less equivalent to
+
+          result += LightEmission * BRDF * cos(LightDirNorm, IntersectNormal)
+            * solid-angle-of-light
+
+        (this is the role of SurfaceArea(LightItem) and part of GeometryFunction -
+        they simply calculate solid angle; well, de facto some very good approximation
+        of solid angle)
+
+        As a result result = average color from light times average surface
+        of light * number of lights = exactly direct illumination, taking into account
+        that different lights have different surfaces and shine with different intensity.
       }
-      { TODO: better approach : (102), czyli losuj punkt na zrodle swiatla
-              ze wzgledu na jego solid angle.
-        TODO: jeszcze lepiej : (103), czyli losuj swiatlo w taki sposob ze
-              swiatla o wiekszej powierzchni (a wlasciwie, o wiekszym kacie
-              brylowym) i/lub o wiekszej intensywnosci beda wybierane czesciej. }
+      { TODO: better approach: (102), i.e. choose point on light source
+              with respect to its solid angle.
+        TODO: even better: (103), i.e. choose light in such way that
+              lights with larger surface (or rather, with larger solid
+              angle) and/or with larger intensity will be chosen more often. }
       var
         LightSource: PTriangle;
         LightSourceIndiceIndex: Integer; { indeks do LightIndices[] }
@@ -1012,10 +1016,10 @@ const
       begin
         Result := TVector3.Zero;
 
-        { trzeba ustrzec sie tu przed LightsItems.Count = 0 (zeby moc pozniej
-          spokojnie robic Random(LightsItems.Count) i przed
-          DirectIllumSamplesCount = 0 (zeby moc pozniej spokojnie podzielic przez
-          DirectIllumSamplesCount). }
+        { need to guard against LightsItems.Count = 0 (to be able to safely
+          do Random(LightsItems.Count) later) and against
+          DirectIllumSamplesCount = 0 (to be able to safely divide by
+          DirectIllumSamplesCount later). }
         if (LightItems.Count = 0) or (DirectIllumSamplesCount = 0) then Exit;
 
         for i := 0 to DirectIllumSamplesCount - 1 do
@@ -1026,64 +1030,72 @@ const
           if LightSource = IntersectNode then Continue;
 
           { calculate SampleLightPoint.
-            Lepiej pozniej sprawdz ze SampleLightPoint jest
-            rozny od Intersection (poniewaz SampleLightPoint jest losowy to na
-            nieprawidlowo skonstruowanym modelu wszystko moze sie zdarzyc...)  }
+            Better check later that SampleLightPoint is
+            different from Intersection (since SampleLightPoint is random, on
+            incorrectly constructed model anything can happen...)  }
           SampleLightPoint := LightSource^.SceneSpace.Triangle.RandomPoint;
           if TVector3.Equals(SampleLightPoint, Intersection) then Continue;
 
-          { calculate LigtDirNorm (nieznormalizowane).
-            Jezeli LigtDirNorm wychodzi z innej strony
-            IntersectionNode.TriangleNormPlane niz IntersectNormal
-            to znaczy ze swiatlo jest po przeciwnej stronie plane - wiec
-            swiatlo nie oswietla naszego pixela. }
+          { calculate LigtDirNorm (not normalized).
+            If LigtDirNorm comes from different side of
+            IntersectionNode.TriangleNormPlane than IntersectNormal
+            it means that light is on the opposite side of plane - so
+            light doesn't illuminate our pixel. }
           LightDirNorm := SampleLightPoint - Intersection;
           if not VectorsSamePlaneDirections(LightDirNorm, IntersectNormal,
             IntersectNormal) then Continue;
 
-          { sprawdz IsLightShadowed, czyli zrob shadow ray }
+          { check IsLightShadowed, i.e. do shadow ray }
           if IsLightShadowed(IntersectNode, Intersection,
             LightSourceIndiceIndex, SampleLightPoint) then Continue;
 
-          { calculate DirectColor = kolor emission swiatla }
+          { calculate DirectColor = emission color of light }
           DirectColor := EmissiveColor(LightSource^);
 
-          { wymnoz przez naszego "niby-BRDFa" czyli po prostu przez kolor Diffuse
-            materialu }
+          { multiply by our "pseudo-BRDF" i.e. simply by Diffuse color
+            of material }
           DirectColor := DirectColor * Material.DiffuseColor;
 
-          { calculate LightDirNorm (znormalizowane), NegatedLightDirNorm }
+          { calculate LightDirNorm (normalized), NegatedLightDirNorm }
           LightDirNorm := LightDirNorm.Normalize;
           NegatedLightDirNorm := -LightDirNorm;
 
-          { Wymnoz DirectColor
-            1) przez GeometryFunction czyli
+          { Multiply DirectColor
+            1) by GeometryFunction i.e.
                  cos(LightDirNorm, IntersectNormal)
                    * cos(-LightDirNorm, LightSource.SceneSpace.Normal) /
                    PointsDistanceSqr(SampleLightPoint, Intersection).
-               Cosinusy naturalnie licz uzywajac dot product.
-            2) przez TriangleArea
+               Cosines naturally calculated using dot product.
+            2) by TriangleArea
 
-            Mozna zauwazyc ze czlon
+            One can notice that the term
+
               TriangleArea *
               cos(-LightDirNorm, LightSource.SceneSpace.Normal) /
                 PointsDistanceSqr(SampleLightPoint, Intersection)
-            liczy po prostu solid angle swiatla with respect to Intersection
-            (no, mowiac scisle pewne bardzo dobre przyblizenie tego solid angle).
 
-            Moze byc tutaj pouczajace zobaczyc jak to dziala gdy usuniemy mnozenie
-              przez cos(-LightDirNorm, LightSource.SceneSpace.Normal)
-              (swiatlo bedzie wtedy jasniej swiecilo jakby "w bok"),
-            pouczajace moze tez byc usuniecie dzielenia przez
-              PointsDistanceSqr(SampleLightPoint, Intersection) i jednoczesnie
-              mnozenia przez TriangleArea (te dwie rzeczy "wspolpracuja ze soba",
-              tzn. wazny jest tu wlasnie ich iloraz, dlatego usuwanie tylko
-              jednej z tych wartosci nie ma sensu).
+            simply calculates solid angle of light with respect to Intersection
+            (well, strictly speaking some very good approximation of this solid angle).
 
-            Elegancko byloby tutaj pomnozyc jeszcze przez
-              1/LightEmissionArea. Ale poniewaz LightEmissionArea = const wiec
-              przenioslem mnozenie przez LightEmissionArea na sam koniec tej
-              funkcji.}
+            It can be instructive here to see how it works when we remove multiplication
+
+              by cos(-LightDirNorm, LightSource.SceneSpace.Normal)
+
+            (light will then shine brighter as if "sideways").
+
+            It can also be instructive to remove:
+
+            - division by PointsDistanceSqr(SampleLightPoint, Intersection)
+            - and also multiplication by TriangleArea
+
+            (these two things "work together",
+            i.e. their ratio is important here, so removing only
+            one of these values doesn't make sense).
+
+            It would be elegant to multiply here also by
+            1/LightEmissionArea. But since LightEmissionArea = const so
+            I moved multiplication by LightEmissionArea to the very end of this
+            function.}
           DirectColor := DirectColor *
             TVector3.DotProduct(LightDirNorm, IntersectNormal) *
             TVector3.DotProduct(NegatedLightDirNorm,
@@ -1095,16 +1107,16 @@ const
           Result := Result + DirectColor;
         end;
 
-        { dopiero tu przemnoz przez 1/LightEmissionArea.
-          Podziel tez przez ilosc probek i pomnoz przez ilosc swiatel -
-          - w rezultacie spraw zeby wynik przyblizal sume wkladu direct illumination
-          wszystkich swiatel. }
+        { only here multiply by 1/LightEmissionArea.
+          Also divide by number of samples and multiply by number of lights -
+          - as a result make the result approximate the sum of direct illumination contribution
+          of all lights. }
         Result := Result * (LightItems.Count /
           (LightEmissionArea * DirectIllumSamplesCount));
       end;
 
     type
-      { kolory Transmittive/Reflective Diffuse/Specular }
+      { colors Transmittive/Reflective Diffuse/Specular }
       TColorKind = (ckRS, ckRD, ckTS, ckTD);
     var
       Colors: array[TColorKind]of TVector3;
@@ -1116,30 +1128,30 @@ const
       ck: TColorKind;
     begin
       Result := TVector3.Zero;
-      { caly result jaki tu wyliczymy dostaniemy dzieki wygranej w rosyjskiej
-        ruletce jezeli Depth <= 0. (Trzeba o tym pamietac i pozniej podzielic
-        przez RROulContinue.) }
+      { all result that we calculate here we get thanks to winning in Russian
+        roulette if Depth <= 0. (Need to remember this and later divide
+        by RROulContinue.) }
 
       if (Depth > 0) or (Random < RRoulContinue) then
       begin
-        { krok sciezki to importance sampling zgodnie z Modified Phong BRDF,
-          patrz GlobalIllumComp (66), diffuse samplujemy z gestoscia cos(),
-          specular z gestoscia cos()^N_EXP.
+        { path step is importance sampling according to Modified Phong BRDF,
+          see GlobalIllumComp (66), diffuse we sample with density cos(),
+          specular with density cos()^N_EXP.
 
-          W rezultacie po otrzymaniu wyniku Trace diffuse nie dziele juz wyniku
-          przez cosinus() (a powinienem, bo to jest importance sampling) ani
-          nie mnoze go przez cosinus() (a powinienem, bo w calce BRDF'a jest
-          ten cosinus - diffuse oznacza zbieranie ze wszystkich kierunkow swiatla
-          rownomiernie ale pod mniejszym katem na powierzchnie pada mniej promieni,
-          dlatego w diffuse mamy cosinus). Wszystko dlatego ze te cosinusy sie
-          skracaja.
+          As a result after getting Trace result for diffuse I no longer divide result
+          by cosine() (and I should, because this is importance sampling) nor
+          multiply it by cosine() (and I should, because in BRDF integral there is
+          this cosine - diffuse means gathering from all light directions
+          uniformly but at smaller angle less rays fall on surface,
+          that's why in diffuse we have cosine). All because these cosines
+          cancel out.
 
-          Podobnie dla specular - mam nadzieje ! TODO: Specular jeszcze
-          nie jest zbyt dobrze przetestowane...
+          Similarly for specular - I hope! TODO: Specular is not yet
+          very well tested...
 
-          W rezultacie kompletnie ignoruje PdfValue (otrzymywane w wyniku
-          RandomUnitHemispeherePoint) i BRDF'a - po prostu akurat taki rozklad PDF'ow
-          odpowiada DOKLADNIE temu jak wpada swiatlo. }
+          As a result I completely ignore PdfValue (obtained as result of
+          RandomUnitHemispeherePoint) and BRDF - simply this particular PDF distribution
+          corresponds EXACTLY to how light falls. }
 
         { calculate Colors[] }
         Colors[ckRS] := Material.ReflSpecular;
@@ -1157,8 +1169,8 @@ const
           WeightsSum := WeightsSum + Weights[ck];
         end;
 
-        { wylosuj jedno z ck : wylosuj zmienna RandomCK z przedzialu 0..WeightsSum
-          a potem zbadaj do ktorego z przedzialow Weights[] wpada. Calculate ck. }
+        { choose one of ck: choose variable RandomCK from range 0..WeightsSum
+          and then check which of the Weights[] ranges it falls into. Calculate ck. }
         RandomCK := Random * WeightsSum;
         ck := Low(ck);
         while ck < High(ck) do
@@ -1168,13 +1180,13 @@ const
           Inc(ck);
         end;
 
-        { notka : nie, ponizej nie mozna zamienic na test WeightsSum >
-          SingleEpsilon. Nawet gdy to zachodzi ciagle moze sie okazac
-          ze WeightsSum jest wprawdzie duzo wieksze od zera ale samo
-          Weights[ck] jest mikroskopijnie male (i po prostu mielismy duzo
-          szczescia w losowaniu; path tracer robi tyle sciezek, tyle pixeli
-          itd. ze nietrudno tutaj "przez przypadek" wylosowac mikroskopijnie
-          mala wartosc). }
+        { note: no, below cannot be replaced with test WeightsSum >
+          SingleEpsilon. Even when this holds it can still turn out
+          that WeightsSum is indeed much larger than zero but
+          Weights[ck] itself is microscopically small (and we simply had a lot of
+          luck in random selection; path tracer does so many paths, so many pixels
+          etc. that it's not hard here to "accidentally" choose microscopically
+          small value). }
         if Weights[ck] > SingleEpsilon then
         begin
           IntersectNormal :=
@@ -1186,9 +1198,9 @@ const
           { choose normal at Intersection pointing in the direction of RayOrigin }
           IntersectNormal := PlaneDirNotInDirection(IntersectNormal, RayDirection);
 
-          { calculate TracedDir i PdfValue samplujac odpowiednio polsfere
-           (na podstawie ck). W przypadku TS moze wystapic calk. odbicie wewn.
-           i wtedy konczymy sciezke. }
+          { calculate TracedDir and PdfValue by sampling hemisphere appropriately
+           (based on ck). In case of TS total internal reflection may occur
+           and then we end the path. }
           case ck of
             ckTD: TracedDir := PhiThetaToXYZ(
                     RandomHemispherePointCosTheta(PdfValue),
@@ -1206,26 +1218,26 @@ const
                       IntersectNormal));
           end;
 
-          { wywolaj rekurencyjnie Trace(), a wiec idz sciezka dalej }
+          { call Trace() recursively, so continue the path }
           TracedCol := Trace(Intersection, TracedDir, Depth - 1,
             IntersectNode, true, DirectIllumSamplesCount <> 0);
 
-          { przetworz TracedCol : wymnoz przez Colors[ck], podziel przez szanse
-            jego wyboru sposrod czterech Colors[], czyli przez
-            Weights[ck]/WeightsSum (bo to w koncu jest importance sampling)
-            (czyli pomnoz przez WeightsSum/Weights[ck], wiemy ze mianownik jest
-            > SingleEpsilon, sprawdzilismy to juz wczesniej). }
+          { process TracedCol: multiply by Colors[ck], divide by chance
+            of its selection among four Colors[], i.e. by
+            Weights[ck]/WeightsSum (because this is importance sampling after all)
+            (i.e. multiply by WeightsSum/Weights[ck], we know that denominator is
+            > SingleEpsilon, we checked this earlier). }
           TracedCol := TracedCol * Colors[ck];
           TracedCol := TracedCol * (WeightsSum / Weights[ck]);
 
           Result := Result + TracedCol;
         end;
 
-        { dodaj DirectIllumination }
+        { add DirectIllumination }
         Result := Result + DirectIllumination;
 
-        { Jezeli weszlismy tu dzieki rosyjskiej ruletce (a wiec jezeli Depth <= 0)
-          to skaluj Result zeby zapisany tu estymator byl unbiased. }
+        { If we entered here thanks to Russian roulette (i.e. if Depth <= 0)
+          then scale Result so that the estimator written here is unbiased. }
         if Depth <= 0 then Result := Result * (1/RRoulContinue);
       end;
     end;
@@ -1251,9 +1263,9 @@ const
     else
       Material := nil; // TODO: path tracer treats all non-Phong materials (like Physical) as unlit
 
-    { de facto jezeli TraceOnlyIndirect to ponizsza linijka na pewno dodaje
-      do result (0, 0, 0). Ale nie widze w tej chwili jak z tego wyciagnac
-      jakas specjalna optymalizacje.
+    { de facto if TraceOnlyIndirect then the line below certainly adds
+      (0, 0, 0) to result. But I don't see right now how to extract
+      some special optimization from this.
 
       We use below EmissiveColor(), not MaterialInfo.EmissiveColor,
       because this is done even when MaterialInfo is nil. }
@@ -1261,12 +1273,14 @@ const
 
     if Material <> nil then
     begin
-      { jezeli MinDepth = Depth to znaczy ze nasz Trace zwraca kolor dla primary ray.
-        Wiec rozgaleziamy sie tutaj na NonPrimarySamplesCount, czyli dzialamy
-          jakbysmy byly stochastycznym ray tracerem ktory rozgalezia sie
-          na wiele promieni w punkcie rekursji.
-        Wpp. idziemy sciezka czyli dzialamy jakbysmy byly path tracerem czyli
-          nie rozgaleziamy sie na wiele promieni. }
+      { if MinDepth = Depth it means that our Trace returns color for primary ray.
+
+        So we branch here into NonPrimarySamplesCount, i.e. we act
+        as if we were stochastic ray tracer that branches
+        into multiple rays at recursion point.
+
+        Otherwise we go by path i.e. we act as if we were path tracer i.e.
+        we don't branch into multiple rays. }
       if MinDepth = Depth then
       begin
         NonEmissiveColor := TVector3.Zero;
@@ -1289,12 +1303,12 @@ var
     C: TCastleColor;
     ColRGB: TCastleColorRGB absolute C;
   begin
-    { generuj pixel x, y. calculate PixColor }
+    { generate pixel x, y. calculate PixColor }
     if PrimarySamplesCount = 1 then
     begin
-      { gdy PrimarySamplesCount = 1 to wysylamy jeden promien pierwotny
-        i ten promien NIE jest losowany na rzutni w zakresie pixela
-        x, y ale przechodzi dokladnie przez srodek pixela x, y. }
+      { when PrimarySamplesCount = 1 we send one primary ray
+        and this ray is NOT randomized on projection plane within pixel
+        x, y but passes exactly through center of pixel x, y. }
       RaysWindow.PrimaryRay(x, y, Image.Width, Image.Height, PrimaryRayOrigin, PrimaryRayDirection);
       PixColor := Trace(PrimaryRayOrigin, PrimaryRayDirection, MinDepth, nil, false, false);
     end else
@@ -1310,7 +1324,7 @@ var
       PixColor := PixColor * (1 / PrimarySamplesCount);
     end;
 
-    { zapisz PixColor do Image }
+    { save PixColor to Image }
     C := Image.Colors[X, Y, 0];
     ColRGB := PixColor;
     Image.Colors[X, Y, 0] := C;
@@ -1322,9 +1336,9 @@ var
 begin
   SceneBackgroundColor := GetSceneBackgroundColor(Background, SceneBGColor);
 
-  { check parameters (path tracing i tak trwa bardzo dlugo wiec mozemy sobie
-    pozwolic zeby na poczatku tej procedury wykonac kilka testow, nawet gdy
-    kompilujemy sie w wersji RELEASE) }
+  { check parameters (path tracing takes very long anyway so we can afford
+    to execute a few tests at the beginning of this procedure, even when
+    compiling in RELEASE version) }
   Check(PrimarySamplesCount > 0, 'PrimarySamplesCount for PathTracer must be greater than 0');
   Check(NonPrimarySamplesCount > 0, 'NonPrimarySamplesCount for PathTracer must be greater than 0');
   ClampVar(RRoulContinue, Single(0.0), Single(1.0));
@@ -1356,7 +1370,7 @@ begin
     SFCurve := SFCurveClass.Create(Image.Width, Image.Height);
     SFCurve.SkipPixels(FirstPixel);
 
-    { generuj pixle obrazka }
+    { generate image pixels }
     if Assigned(PixelsMadeNotifier) then
     begin
       while not SFCurve.EndOfPixels do
