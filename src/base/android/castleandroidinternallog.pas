@@ -22,8 +22,8 @@ type
     alSilent
   );
 
-procedure AndroidLog(const Priority: TAndroidLogPriority; const S: string);
-procedure AndroidLog(const Priority: TAndroidLogPriority; const S: string; const Args: array of const);
+procedure AndroidLog(const Priority: TAndroidLogPriority; const S: AnsiString); overload;
+procedure AndroidLog(const Priority: TAndroidLogPriority; const S: string; const Args: array of const); overload;
 
 { Like AndroidLog, but works better for long strings (> 4076 characters),
   otherwise the default AndroidLog seems to cut them off. }
@@ -31,29 +31,56 @@ procedure AndroidLogRobust(const Priority: TAndroidLogPriority; const S: string)
 
 implementation
 
-uses CTypes, SysUtils, CastleUtils;
+uses {$ifdef FPC} CTypes, {$else} Androidapi.Log, {$endif}
+  SysUtils, CastleUtils;
 
+// Define __android_log_write for FPC.
+// Delphi already defines it for Androidapi.Log.
+{$ifdef FPC}
 const
   AndroidLogLib = 'liblog.so';
-
 function __android_log_write(prio: CInt; tag, text: PChar): CInt; cdecl;
   external AndroidLogLib;
+{$endif}
 
 var
-  LogTag: string;
+  LogTag: AnsiString;
 
-procedure AndroidLog(const Priority: TAndroidLogPriority; const S: string);
+procedure AndroidLog(const Priority: TAndroidLogPriority; const S: AnsiString);
 const
   MaxAndroidTagLength = 23;
+  {$ifndef FPC}
+  { Map our TAndroidLogPriority to Delphi's android_LogPriority.
+    This could be actually also done by typecast, Delphi's
+    android_LogPriority is passed directly to C API, just like our
+    TAndroidLogPriority, so their ordinal values have to match exactly the C API.
+    But better be safe. }
+  PriorityToDelphi: array[TAndroidLogPriority] of android_LogPriority = (
+    ANDROID_LOG_UNKNOWN,
+    ANDROID_LOG_DEFAULT,
+    ANDROID_LOG_VERBOSE,
+    ANDROID_LOG_DEBUG,
+    ANDROID_LOG_INFO,
+    ANDROID_LOG_WARN,
+    ANDROID_LOG_ERROR,
+    ANDROID_LOG_FATAL,
+    ANDROID_LOG_SILENT
+ );
+ {$endif}
 begin
   if LogTag = '' then
     LogTag :=
       {$ifdef CASTLE_ANDROID_ARGV_LOGGING}
-      'eye_of_beholder'; // hardcode for this test
+      'eye_of_beholder'; // hardcode for this test, this is not used in production ever
       {$else}
       Copy(ApplicationName, 1, MaxAndroidTagLength);
       {$endif}
-  __android_log_write(Ord(Priority), PChar(LogTag), PChar(S));
+
+  __android_log_write(
+    {$ifdef FPC} Ord(Priority) {$else} PriorityToDelphi[Priority] {$endif},
+    PAnsiChar(LogTag),
+    PAnsiChar(S)
+  );
 end;
 
 procedure AndroidLog(const Priority: TAndroidLogPriority; const S: string; const Args: array of const);
@@ -74,7 +101,7 @@ begin
   while I <= Length(S) do
   begin
     AndroidLog(Priority, Copy(S, I, MaxChunkLength));
-    I += MaxChunkLength;
+    I := I + MaxChunkLength;
   end;
 end;
 

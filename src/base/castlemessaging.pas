@@ -23,7 +23,9 @@ unit CastleMessaging;
 interface
 
 uses
-  {$ifdef ANDROID} JNI, SyncObjs, {$endif}
+  {$ifdef ANDROID}
+    {$ifdef FPC} JNI, {$else} AndroidApi.Jni, {$endif} SyncObjs,
+  {$endif}
   {$ifdef CASTLE_IOS} CTypes, {$endif}
   Generics.Collections, Classes,
   CastleStringUtils, CastleTimeUtils;
@@ -116,6 +118,19 @@ type
   end;
 
 {$ifdef ANDROID}
+
+// type aliases to make Delphi AndroidApi.Jni similar to FPC JNI types
+{$ifndef FPC}
+type
+  JObject = JniObject;
+  JString = JniString;
+  JByteArray = JniByteArray;
+  JByte = JniByte;
+  PJByte = PJniByte;
+  JBoolean = JniBoolean;
+  JSize = JniSize;
+{$endif}
+
 { Export this function from your Android library. }
 function Java_io_castleengine_MainActivity_jniMessage(
   Env: PJNIEnv; This: jobject;
