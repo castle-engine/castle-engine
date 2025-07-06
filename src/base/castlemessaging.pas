@@ -24,7 +24,8 @@ interface
 
 uses
   {$ifdef ANDROID}
-    {$ifdef FPC} JNI, {$else} AndroidApi.Jni, {$endif} SyncObjs,
+    {$ifdef FPC} JNI, {$else} AndroidApi.Jni, {$endif}
+    SyncObjs,
   {$endif}
   {$ifdef CASTLE_IOS} CTypes, {$endif}
   Generics.Collections, Classes,
