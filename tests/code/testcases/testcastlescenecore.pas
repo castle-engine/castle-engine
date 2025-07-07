@@ -79,7 +79,7 @@ implementation
 uses X3DLoad, CastleVectors, CastleShapes,
   CastleTimeUtils, CastleStringUtils, X3DFields, CastleViewport, CastleBoxes,
   CastleFilesUtils, CastleScene, CastleTransform, CastleApplicationProperties,
-  CastleUriUtils, CastleColors;
+  CastleUriUtils, CastleColors, CastleRenderOptions;
 
 procedure TTestSceneCore.TestBorderManifoldEdges;
 var
