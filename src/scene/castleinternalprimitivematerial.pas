@@ -69,6 +69,8 @@ procedure CommonUpdateMaterialNode(const Material: TPrimitiveMaterial;
 
 implementation
 
+uses CastleUtils;
+
 procedure CommonUpdateMaterialNode(const Material: TPrimitiveMaterial;
   const Color: TCastleColor; const AppearanceNode: TAppearanceNode;
   const Base, NormalMap: TMaterialTexture);
