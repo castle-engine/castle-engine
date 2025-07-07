@@ -279,6 +279,7 @@ contains
   castleinternalnodeinterpolator in '..\..\src\scene\castleinternalnodeinterpolator.pas',
   castleinternalnoise in '..\..\src\scene\castleinternalnoise.pas',
   castleinternalnormals in '..\..\src\scene\castleinternalnormals.pas',
+  castleinternalprimitivematerial in '..\..\src\scene\castleinternalprimitivematerial.pas',
   castleinternalrenderer in '..\..\src\scene\castleinternalrenderer.pas',
   castleinternalshadowmaps in '..\..\src\scene\castleinternalshadowmaps.pas',
   castleinternalshapeoctree in '..\..\src\scene\castleinternalshapeoctree.pas',
