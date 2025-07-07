@@ -19,6 +19,10 @@ unit CastleAndroidInternalAssetManager;
 
 {$I castleconf.inc}
 
+{$ifndef FPC}
+  {$message error 'This unit is only available for FPC. With Delphi, use equivalent built-in unit Androidapi.AssetManager.'}
+{$endif}
+
 interface
 
 uses ctypes;

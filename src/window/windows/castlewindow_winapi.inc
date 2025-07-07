@@ -1,6 +1,6 @@
 {%MainUnit ../castlewindow.pas}
 {
-  Copyright 2001-2024 Michalis Kamburelis.
+  Copyright 2001-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,7 +14,19 @@
   ----------------------------------------------------------------------------
 }
 
-{ CastleWindow backend using WinAPI, Windows-only.
+{ CastleWindow backend using WinAPI. Windows-only.
+
+  Looks native on Windows, supports everything:
+  - including toggling fullscreen,
+  - TCastleWindow.MainMenu,
+  - native-looking dialogs like TCastleWindow.FileDialog.
+
+  OpenGL(ES) initialization can be done using
+  - (default) WGL (WinAPI way to initialize OpenGL context).
+  - EGL (cross-platform API to initialize OpenGL or OpenGLES context).
+
+  See https://castle-engine.io/castlewindow_backends#_winapi_castle_window_winapi
+  for more information.
 
   TODO:
 
@@ -38,27 +50,33 @@
   - Note: LCL win32 widgetset (used on 64-bit Windows too) still uses ANSI.
 }
 
+{ Activate debug feature to output all WinAPI messages as they arrive.
+  Beware: your log will be *flooded* with logs about messages! }
+{.$define CASTLE_DEBUG_WINAPI_MESSAGES}
+
 {$ifdef USE_EGL}
   {$I castlewindow_egl.inc}
 {$else}
   {$I castlewindow_wgl.inc}
 {$endif}
 
+{$I castlewindow_winapi_forced_processing.inc}
+
 {$ifdef read_interface_uses}
-{ note: this unit's definitions conflict with other definitions used in this file
-  But we need it for RegisterDeviceNotification, therefore adding it to the very
-  first position in the uses list to be overwritten by subsequent used units }
 {$ifdef FPC}
+{ Note about JwaWinUser, JwaDbt units in uses clause:
+  Their definitions may conflict with some other definitions (in Windows, CommDlg).
+  But we need them for RegisterDeviceNotification and friends.
+  So keep JwaWinUser, JwaDbt early in the uses clause, before Windows, CommDlg. }
 JwaWinUser, JwaDbt,
 {$else}
 Winapi.Messages, Character,
 {$endif}
-Imm,
-{ /note }
-Windows, CommDlg,
+Imm, Windows, CommDlg,
 {$endif}
 
 {$ifdef read_implementation_uses}
+{$ifdef CASTLE_DEBUG_WINAPI_MESSAGES} StrUtils, {$endif}
 CastleInternalWindowModes, CastleMessages, CastleGameControllers, CastleUnicode,
 CastleInternalFileMonitor,
 {$endif}
@@ -70,8 +88,6 @@ private
   { InCloseBackend = true means we are currently inside CloseBackend call.
     Useful -- see at WM_ACTIVATE. }
   InCloseBackend: boolean;
-
-  EnableUpdatesFromWindowProc, DisableUpdatesFromWindowProc: Cardinal;
 
   VK_LeftBracket_Exists,
   VK_RightBracket_Exists,
@@ -100,6 +116,7 @@ private
   { Should we do ChangeDisplaySettings(nil, 0) when Destroy? }
   DisplaySettingsChanged: boolean;
   WndClassName: UnicodeString;
+  WndClassNameRegistered: Boolean;
 
   { A private array, initialized in CreateBackend.
     Having all cursor handles loaded makes sure that WM_SETCURSOR is able to
@@ -305,28 +322,36 @@ begin
     Window.WindowProc(uMsg, wParm, lParm);
 end;
 
+{$ifdef CASTLE_DEBUG_WINAPI_MESSAGES}
+var
+  WindowProcNesting: Cardinal;
+{$I castlewindow_winapi_debug.inc}
+{$endif}
+
 function WndProc(hWnd: HWND; uMsg: UINT; wParm: WPARAM; lParm: LPARAM) :LRESULT; stdcall;
 var
   Window: TCastleWindow;
 begin
   Window := TCastleWindow(GetWindowLongPtr(hWnd, GWL_USERDATA));
-  { Wszystkie hwnd jakie tu beda wpadac to beda nasze okna
-    (it's only different for a plugin, but right now the plugin uses only TryHandlingMessage,
-    not this). Ale zanim
-    ustawimy oknu SetWindowLongPtr (GetWindowLongPtr bedzie do tego czasu zwracac 0)
-    ono juz dostaje jakies messagy - WM_CREATE i inne.
-    Mozemy je spokojnie zignorowac.
 
-    Co wiecej jednak, moze tak byc ze Window <> nil ale wskazuje na okienko
-    ktore juz jest zamkniete (a moze nawet na obiekt ktory juz zostal
-    zwolniony z pamieci !). Dlaczego tak jest, patrz komentarz na poczatku
-    castlewindow_winsystem.inc. Wiec sprawdzamy tutaj czy Window jest na liscie
-    Application.OpenWindows .
+  { All window handles (hWnd) that will be reported here will be our windows.
+
+    But before we set SetWindowLongPtr for the window (GetWindowLongPtr will
+    return 0 until then), the window already receives some messages,
+    like WM_CREATE and others.
+    So Application.FindWindow may fail.
+    We can safely ignore these initial messages.
+
+    Moreover, it may happen that Window <> nil but points to a window
+    that is already closed (or even to an object that has already been
+    freed from memory!). Why this is so, see comment at the beginning of
+    castlewindow_winsystem.inc. So we check here whether Window is on the list
+    Application.OpenWindows.
 
     Moreover, temporary windows created by CreateTemporaryWindow in
     SetPixelFormat_WGLChoose also get here (as they use our
-    Application.wndClassName). They don't set Get/SetWindowLongPtr, so Window here
-    will be @nil in this case. }
+    Application.wndClassName). They don't set Get/SetWindowLongPtr,
+    so Window here will be @nil in this case. }
   if Application.FindWindow(Window) >= 0 then
     result := Window.WindowProc(uMsg, wParm, lParm)
   else
@@ -736,21 +761,25 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
   end;
 
 var
-  DoEnableUpdatesFromWindowProc, DoDisableUpdatesFromWindowProc: boolean;
+  ForcedProcessingMessage: TForcedProcessingMessageState;
 begin
   Result := 0;
 
-  { generalnie chcemy przepuszczac SYSKEY* do DefaultWndProc ktore moze
-    wtedy np. na Alt+F4 zrobic nam close albo na Alt+spacja otworzyc
-    nam system menu itp. To wszystko sa fajne rzeczy i nie chce ich blokowac
-    przechwytujac zawsze zdarzenia SYSKEY*, tym samym rezygnuje z przetwarzania
-    kiedywkolwiek sekwencji klawiszy w rodzaju Alt+F4.
+  {$ifdef CASTLE_DEBUG_WINAPI_MESSAGES}
+  WritelnLog(DupeString('  ', WindowProcNesting) + 'Message: ', WindowsMessageName(uMsg));
+  {$endif}
 
-    Ale jednak czasem chce przechwycic zdarzenia SYSKEY* zeby obsluzyc wlasne
-    klawisze. Wiec niektore klawisze przechwytujemy od systemu operacyjnego.
-    (normalnie Alt i F10 powoduja wejscie w menu). Wiec wtedy zmieniam uMsg z
-    SYSKEY* na KEY* (korzystajac z tego ze te zdarzenia maja taki sam format
-    dla wParm i lParm). }
+  { generally we want to pass SYSKEY* to DefaultWndProc which can
+    then e.g. on Alt+F4 close us or on Alt+space open
+    system menu etc. All these are nice things and we don't want to block them
+    by always intercepting SYSKEY* events, thus giving up processing
+    any key sequences like Alt+F4.
+
+    But sometimes we want to intercept SYSKEY* events to handle my own
+    keys. So some keys we intercept from the operating system.
+    (normally Alt and F10 cause entering menu). So then we change uMsg from
+    SYSKEY* to KEY* (using the fact that these events have the same format
+    for wParm and lParm). }
   if (uMsg = WM_SYSKEYDOWN) and InterceptedSystemKey(wParm) then uMsg := WM_KEYDOWN;
   if (uMsg = WM_SYSKEYUP) and InterceptedSystemKey(wParm) then uMsg := WM_KEYUP;
 
@@ -1030,49 +1059,10 @@ begin
       end;
   end;
 
-  { The DefWindowProcW may enter a modal loop in some cases, e.g. when
-    WM_NCLBUTTONDOWN initializes window resizing operation.
-
-    This makes our normal message loop not working (although application
-    is working, but methods like ProcessMessage are not called in a loop anymore,
-    instead we "hang" in a DispatchMessage call in top-level ProcessMessage).
-    WinAPI will directly call WindowProc, creating a recursion.
-    See See http://stackoverflow.com/questions/3102074/win32-my-application-freezes-while-the-user-resizes-the-window
-
-    So to keep receiving update/timer/redraws, we simply call
-    UpdateAndRenderEverything manually here.
-
-    A simple solution was to just call it always when recursion here is detected.
-    But this seems unexpected to WinAPI in many situations, causing
-
-    1. crashes, when this is done from some messages.
-    2. slowdown at initialization (castle-model-viewer main menu blinks for some
-      time, with "busy" cursor, before it becomes responsive).
-
-    So the solution now is to activate it only for certain commands,
-    and moreover deactivate inside certain other commands. }
-  //Writeln('Got message ', uMsg,
-  //  ', UpdatesFromWindowProc: Enable: ', EnableUpdatesFromWindowProc,
-  //  ', Disable: ', DisableUpdatesFromWindowProc);
-
-  if (EnableUpdatesFromWindowProc <> 0) and
-     (DisableUpdatesFromWindowProc = 0) and
-     (not Closed) then
-    Application.UpdateAndRenderEverything;
-
-  DoEnableUpdatesFromWindowProc := uMsg = WM_NCLBUTTONDOWN;
-  DoDisableUpdatesFromWindowProc :=
-    // user closes window by clicking on close button
-    ((uMsg = WM_SYSCOMMAND) and (wParm = SC_CLOSE)) or
-    // we close the window by code
-    (uMsg = WM_NCACTIVATE) or
-    // we recreate the window as fullscreen
-    (uMsg = WM_IME_SETCONTEXT) or
-    // we recreate the window as windowed?
-    (uMsg = WM_ACTIVATE);
-
-  if DoEnableUpdatesFromWindowProc then Inc(EnableUpdatesFromWindowProc);
-  if DoDisableUpdatesFromWindowProc then Inc(DisableUpdatesFromWindowProc);
+  ForcedProcessingMessage.BeforeDefWindowProc(ForcedProcessingState, uMsg, wParm, lParm);
+  {$ifdef CASTLE_DEBUG_WINAPI_MESSAGES}
+  Inc(WindowProcNesting);
+  {$endif}
   try
     { Note: It is extremely important to use here DefWindowProcW.
       If you use (ANSI, in FPC) DefWindowProc, then Windows will detect that
@@ -1082,8 +1072,10 @@ begin
       as just 1 single letter). }
     Result := DefWindowProcW(h_Wnd, uMsg, wParm, lParm);
   finally
-    if DoEnableUpdatesFromWindowProc then Dec(EnableUpdatesFromWindowProc);
-    if DoDisableUpdatesFromWindowProc then Dec(DisableUpdatesFromWindowProc);
+    ForcedProcessingMessage.AfterDefWindowProc(ForcedProcessingState);
+    {$ifdef CASTLE_DEBUG_WINAPI_MESSAGES}
+    Dec(WindowProcNesting);
+    {$endif}
   end;
 end;
 
@@ -1304,12 +1296,12 @@ begin
 
   MakeCurrent;
 
-  { robimy OpenWindowsAdd PRZED ShowWindow bo ShowWindow wywoluje WinProc
-    z message'm kazacym nam sie odmalowac. Wiec zeby przetworzyc tego messaga
-    (ktory powoduje po prostu Invalidate) nasze okienko musi byc
-    zarejestrowane w Application.OpenWindows. Dlaczego nie zrobic po prostu Invalidate ?
-    Tak jest porzadniej, no i w ten sposob wiem DLACZEGO to dziala, a nie tylko
-    ze "dziala kiedy wywolamy Invalidate". }
+  { we do OpenWindowsAdd BEFORE ShowWindow because ShowWindow calls WinProc
+    with message telling us to repaint. So to process this message
+    (which simply causes Invalidate) our window must be
+    registered in Application.OpenWindows. Why not just do Invalidate?
+    This way is cleaner, and this way I know WHY it works, not just
+    that "it works when we call Invalidate". }
   Application.OpenWindowsAdd(Self);
 
   if Visible then
@@ -1435,6 +1427,7 @@ end;
 
 procedure TCastleWindow.CreateBackend;
 begin
+  ForcedProcessingState.Window := Self;
 end;
 
 function TCastleWindow.BackendFileDialog(const Title: String; var FileName: String;
@@ -1907,6 +1900,10 @@ var
   WindowClass: TWndClassW;
   C: TMouseCursor;
 begin
+  {$ifdef CASTLE_DEBUG_WINAPI_MESSAGES}
+  InitializeWindowsMessageNames;
+  {$endif}
+
   RegisterClipboard(TWinApiClipboard.Create);
 
   appActive := true;
@@ -1933,23 +1930,33 @@ begin
   WindowClass.style := CS_HREDRAW or CS_VREDRAW or CS_OWNDC;
   WindowClass.lpfnWndProc := @WndProc;
   WindowClass.hInstance := hInstance;
-  { sprobuj zaladowac ikone z pliku EXE, tzn. z naszego resource;
-    w ten sposob mozesz ja latwo zmieniac w IDE delphi a mozesz sam stworzyc
-    odpowiedni resource przez windres, no i twoja ikona bedzie widoczna dla innych
-    programow.
-    Jesli nie znajdzie ikonki w resource to zaladuj ikone ze zbioru Windowsa
-    idi_application. }
+  { try to load icon from EXE file, i.e. from our resource;
+    this way you can easily change it in Delphi IDE and you can create
+    appropriate resource through windres, and your icon will be visible to other
+    programs.
+    If it doesn't find icon in resource then load icon from Windows collection
+    IDI_APPLICATION. }
   WindowClass.hIcon := LoadIconW(hInstance, 'MAINICON');
   if WindowClass.hIcon = 0 then
     WindowClass.hIcon := LoadIconW(0, PWideChar(IDI_APPLICATION));
   WindowClass.hCursor := CursorHandles[mcStandard].Handle;
   WindowClass.lpszClassName := PWideChar(WndClassName);
   OSCheck( Windows.RegisterClassW(WindowClass) <> 0, 'RegisterClassW');
+  WndClassNameRegistered := true;
 end;
 
 procedure TCastleApplication.DestroyBackend;
 begin
-  OSCheck( Windows.UnregisterClassW(PWideChar(WndClassName), hInstance), 'UnregisterClassW');
+  { Check WndClassNameRegistered to have better behavior in case something
+    in TCastleApplication.CreateBackend fails: we want then to get original
+    exception, not an error from UnregisterClassW that we try to unregister
+    class that wasn't registered. }
+  if WndClassNameRegistered then
+    OSCheck( Windows.UnregisterClassW(PWideChar(WndClassName), hInstance), 'UnregisterClassW');
+
+  {$ifdef CASTLE_DEBUG_WINAPI_MESSAGES}
+  FreeAndNil(WindowsMessageNames);
+  {$endif}
 end;
 
 procedure TCastleApplication.VideoReset;
@@ -2062,12 +2069,12 @@ end;
 
 procedure TCastleApplication.SetAppActive(value: boolean);
 begin
-  { ponizej : gdy fappActive zmienia sie z true na false musimy
-    wykonac ChangeDisplaySettings(nil, 0) bez wzgledu na to czy
-    DisplaySettingsChanged. W ten sposob unikamy bledu Windowsa
-    z zostawaniem przycisku po oknie fullscreen na pasku zadan.
-    W rezultacie musimy tez odnawiac nasz Video mode jesli potem
-    wracamy do naszej aplikacji. }
+  { below: when fappActive changes from true to false we must
+    execute ChangeDisplaySettings(nil, 0) regardless of whether
+    DisplaySettingsChanged. This way we avoid Windows bug
+    with button remaining after fullscreen window on taskbar.
+    As a result we must also refresh our Video mode if later
+    we return to our application. }
   if value and not appActive then
   begin
     if DisplaySettingsChanged then VideoChange(true);

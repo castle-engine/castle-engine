@@ -49,7 +49,8 @@ uses SysUtils, Classes, Math,
   CastleUIControls, CastleRectangles, CastleOnScreenMenu, CastleComponentSerialize,
   CastleCameras, {$ifdef FPC}CastleSceneManager,{$endif} CastleVectors,
   CastleTransform, CastleScene, CastleApplicationProperties, X3DCameraUtils,
-  CastleViewport, CastleInternalRenderer, CastleInternalShapesRenderer;
+  CastleViewport, CastleInternalRenderer, CastleInternalShapesRenderer,
+  CastleRenderOptions;
 
 procedure TTestCastleWindow.Test1;
 var

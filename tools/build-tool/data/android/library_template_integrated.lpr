@@ -18,6 +18,10 @@
 
 library ${NAME_PASCAL};
 
+{$ifndef FPC}
+  {$message error 'This library can be used only with FPC+Android. With Delphi+Android, a program using FMX should be created.'}
+{$endif}
+
 uses
   { CastleAndroidNativeAppGlue must be the 1st unit on uses clause,
     as it uses CThreads that must be loaded before any memory allocation happens. }
