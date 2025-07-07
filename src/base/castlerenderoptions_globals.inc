@@ -490,6 +490,11 @@ type
     @exclude }
   TDepthRange = (drFull, drNear, drFar);
 
+  { Primitive material type, used by
+    @link(TCastleAbstractPrimitive.Material) and
+    @link(TCastleImageTransform.Material). }
+  TPrimitiveMaterial = (pmPhysical, pmPhong, pmUnlit);
+
 const
   ShadowSamplingNames: array [TShadowSampling] of string =
   ( 'Simple', 'PCF 4', 'PCF 4 Bilinear', 'PCF 16', 'Variance Shadow Maps (Experimental)' );
