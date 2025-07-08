@@ -580,14 +580,26 @@ function TriangleToNiceStr(const T: TTriangle3): string; deprecated 'use T.ToStr
   (along texture T coordinate, when IsTangent=false),
   knowing positions and texture coordinates.
 
-  This procedure can change Triangle*, but only by swapping some vertexes,
+  The generated tangent or bitangent are in right-handed coordinate space.
+
+  The overloaded version with TVector4 returns the same XYZ vectors
+  as version with TVector3,
+  but with 4th component (W) set always to 1.0.
+  This indicates, following glTF and X3D 4.1 Tangent conventions,
+  that the tangent coordinate space is right-handed.
+
+  This procedure can change Triangle* parameters,
+  but only by swapping some vertexes,
   so we pass Triangle* by reference instead of by value, to avoid
   needless mem copying.
 
   Returns @false if cannot be calculated. }
 function CalculateTangent(const IsTangent: boolean; out Tangent: TVector3;
   var TriangleCoord: TTriangle3;
-  var TriangleTexCoord: TTriangle2): Boolean;
+  var TriangleTexCoord: TTriangle2): Boolean; overload;
+function CalculateTangent(const IsTangent: boolean; out Tangent: TVector4;
+  var TriangleCoord: TTriangle3;
+  var TriangleTexCoord: TTriangle2): Boolean; overload;
 
 implementation
 
@@ -1720,6 +1732,16 @@ begin
   Tangent := Tangent.Normalize;
 
   Result := true;
+end;
+
+function CalculateTangent(const IsTangent: boolean; out Tangent: TVector4;
+  var TriangleCoord: TTriangle3;
+  var TriangleTexCoord: TTriangle2): Boolean;
+begin
+  Result := CalculateTangent(IsTangent, Tangent.XYZ, TriangleCoord, TriangleTexCoord);
+  { Set Tangent.W regardless of Result, no point wasting time on testing
+    and Result is almost always = true. }
+  Tangent.W := 1.0;
 end;
 
 end.

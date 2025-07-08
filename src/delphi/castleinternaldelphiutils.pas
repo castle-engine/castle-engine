@@ -1,5 +1,5 @@
 {
-  Copyright 2022-2024 Michalis Kamburelis.
+  Copyright 2022-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -161,7 +161,7 @@ procedure KeyFromCastle(const Key: TKey; const KeyString: String;
   out KeyCode: Word; out Shift: TShiftState);
 const
   { Ctrl key on most systems, Command key on macOS. }
-  ssCtrlOrCommand = {$ifdef DARWIN} ssMeta {$else} ssCtrl {$endif};
+  ssCtrlOrCommand = {$ifdef DARWIN} ssCommand {$else} ssCtrl {$endif};
 var
   KeyChar: Char;
 begin
@@ -597,12 +597,12 @@ const
     crSizeNS,      //< mcResizeVertical
     crSizeWE,      //< mcResizeHorizontal
     crSizeNS { nothing better in Delphi },      //< mcResizeTopLeft
-    crSizeNS { nothing better in Delphi },       //< mcResizeTop
+    crSizeNS { nothing better in Delphi },      //< mcResizeTop
     crSizeNS { nothing better in Delphi },      //< mcResizeTopRight
-    crSizeWE { nothing better in Delphi },       //< mcResizeLeft
-    crSizeWE { nothing better in Delphi },       //< mcResizeRight
+    crSizeWE { nothing better in Delphi },      //< mcResizeLeft
+    crSizeWE { nothing better in Delphi },      //< mcResizeRight
     crSizeNS { nothing better in Delphi },      //< mcResizeBottomLeft
-    crSizeNS { nothing better in Delphi },       //< mcResizeBottom
+    crSizeNS { nothing better in Delphi },      //< mcResizeBottom
     crSizeNS { nothing better in Delphi }       //< mcResizeBottomRight
   );
 begin

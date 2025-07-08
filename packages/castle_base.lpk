@@ -60,7 +60,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license for details.
 "/>
     <Version Major="6" Minor="93" Release="1"/>
-    <Files Count="1154">
+    <Files Count="1155">
       <Item1>
         <Filename Value="../src/audio/castleinternalabstractsoundbackend.pas"/>
         <UnitName Value="CastleInternalAbstractSoundBackend"/>
@@ -4696,17 +4696,21 @@ See https://castle-engine.io/license for details.
         <UnitName Value="CastleInternalPrimitiveMaterial"/>
       </Item1151>
       <Item1152>
-        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_skin.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_coordinateinterpolator4d.inc"/>
         <Type Value="Include"/>
       </Item1152>
       <Item1153>
-        <Filename Value="../src/scene/castlerendererinternalshader_skin.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_skin.inc"/>
         <Type Value="Include"/>
       </Item1153>
       <Item1154>
-        <Filename Value="../src/scene/glsl/generated-pascal/skin_animation.vs.inc"/>
+        <Filename Value="../src/scene/castlerendererinternalshader_skin.inc"/>
         <Type Value="Include"/>
       </Item1154>
+      <Item1155>
+        <Filename Value="../src/scene/glsl/generated-pascal/skin_animation.vs.inc"/>
+        <Type Value="Include"/>
+      </Item1155>
     </Files>
     <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="1">

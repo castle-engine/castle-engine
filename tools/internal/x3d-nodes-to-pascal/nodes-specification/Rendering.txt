@@ -36,7 +36,17 @@ X3DComposedGeometryNode : X3DGeometryNode {
   SFNode [in,out] tangent         NULL
     range: Tangent
     change: chGeometry
-    doc: Tangent vectors describe the tangent coordinate-space, used by the bump mapping algorithm. If specified, the ordering of tangents should be the same as normals, i.e. they should follow the NormalPerVertex and such properties.
+    doc: """
+    Tangent vectors determine the tangent coordinate-space, used by the bump mapping algorithms.
+
+    If the materials applied on this geometry may use normal maps (by providing @link(TAbstractOneSidedMaterialNode.NormalTexture)), we recommend to provide tangent vectors calculated in the same manner as the software you used to bake the normal maps. If you don't provide tangent vectors, we will automatically calculate them.
+
+    If specified, the ordering of tangents should be the same as normals, e.g. they should follow the @link(NormalPerVertex) property.
+
+    The XYZ component of each tangent vector should be a normalized tangent direction.
+
+    The W component is a sign value (-1 or +1) indicating handedness of the tangent basis. See the X3D 4.1 and glTF specifications for details.
+    """
     setter-before: MoveShapeAssociations
   SFNode [in,out] texCoord        NULL
     range: X3DTextureCoordinateNode
@@ -261,7 +271,7 @@ Normal : X3DNormalNode {
 
 Tangent : X3DGeometricPropertyNode {
   default-container-field: tangent
-  MFVec3f [in,out] vector   []
+  MFVec4f [in,out] vector   []
     range: [-1,1]
     change: chTangent
 }

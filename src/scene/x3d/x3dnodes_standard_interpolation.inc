@@ -136,6 +136,21 @@
   {$I auto_generated_node_helpers/x3dnodes_coordinateinterpolator2d.inc}
   end;
 
+  { Interpolate (animate) a set of 4D vectors. }
+  TCoordinateInterpolator4DNode = class({$ifdef FPC}specialize{$endif} TAbstractCommonInterpolatorNode<
+    TMFVec4f>)
+  strict private
+    function FrameValues: TListSize;
+  strict protected
+    function KeyValueCount: TListSize; override;
+    procedure InterpolatorLerp(const Target: TMFVec4f; const A: Single;
+      const Index1, Index2: Integer); override;
+    procedure InterpolatorSet(const Target: TMFVec4f; const Index: Integer); override;
+    function CreateOutputField: TMFVec4f; override;
+
+  {$I auto_generated_node_helpers/x3dnodes_coordinateinterpolator4d.inc}
+  end;
+
   { Support controlled gradual transitions by modifying
     TimeSensor node fractions.
     @bold(Not implemented yet.) }
@@ -524,6 +539,42 @@ begin
   Result := TMFVec2f.CreateUndefined(Self, false, '');
 end;
 
+{ TCoordinateInterpolator4DNode ---------------------------------------------------- }
+
+function TCoordinateInterpolator4DNode.FrameValues: TListSize;
+begin
+  Result := FdKeyValue.Count div FdKey.Count;
+end;
+
+function TCoordinateInterpolator4DNode.KeyValueCount: TListSize;
+begin
+  Result := FdKeyValue.Items.Count div FrameValues;
+end;
+
+procedure TCoordinateInterpolator4DNode.InterpolatorLerp(const Target: TMFVec4f; const A: Single;
+  const Index1, Index2: Integer);
+var
+  FV: TListSize;
+begin
+  FV := FrameValues;
+  Target.Items.AssignLerpRange(A, FdKeyValue.Items, FdKeyValue.Items,
+    Index1 * FV, Index2 * FV, FrameValues);
+end;
+
+procedure TCoordinateInterpolator4DNode.InterpolatorSet(const Target: TMFVec4f; const Index: Integer);
+var
+  FV: TListSize;
+begin
+  FV := FrameValues;
+  Target.Items.Clear;
+  Target.Items.AddSubRange(FdKeyValue.Items, Index * FV, FV);
+end;
+
+function TCoordinateInterpolator4DNode.CreateOutputField: TMFVec4f;
+begin
+  Result := TMFVec4f.CreateUndefined(Self, false, '');
+end;
+
 { TNormalInterpolatorNode -------------------------------------------------- }
 
 function TNormalInterpolatorNode.FrameValues: TListSize;
@@ -787,6 +838,7 @@ begin
     TColorSetInterpolatorNode,
     TCoordinateInterpolatorNode,
     TCoordinateInterpolator2DNode,
+    TCoordinateInterpolator4DNode,
     TEaseInEaseOutNode,
     TNormalInterpolatorNode,
     TOrientationInterpolatorNode,

@@ -786,12 +786,12 @@ type
       GetNormal to return correct normal. }
   TAbstractBumpMappingGenerator = class(TAbstractShaderAttribGenerator)
   strict private
-    Tangent: TVector3;
+    Tangent: TVector4;
     CalculateTangents: Boolean;
   protected
-    { If tangents are provided in the TAbstractComposedGeometryNode.FdTangent,
+    { If tangents are provided in the TAbstractComposedGeometryNode.Tangent,
       descendants should set them here. }
-    TangentsFromNode: TVector3List;
+    TangentsFromNode: TVector4List;
 
     procedure PrepareAttributes(var AllowIndexed: boolean); override;
     procedure GenerateCoordinateBegin; override;
@@ -2413,7 +2413,13 @@ procedure TAbstractBumpMappingGenerator.GenerateVertex(IndexNum: Integer);
         and both tangents/bitangents may be different on each vertex. }
 
       GetNormal(IndexNum, CurrentRangeNumber, Normal);
-      Arrays.Tangent(ArrayIndexNum)^ := MakeVectorOrthogonal(Tangent, Normal);
+      Arrays.Tangent(ArrayIndexNum)^ :=
+        Vector4(MakeVectorOrthogonal(Tangent.XYZ, Normal),
+          { tangent W is always 1.0 in this case,
+            this is simple and correct, because this code executes only
+            when CalculateTangents = true, and then Tangent.W is 1.0
+            because we always calculate right-handed tangents. }
+          1.0);
     end;
   end;
 
@@ -2444,17 +2450,21 @@ begin
       { calculate Tangent }
       CalculateTangent(true , Tangent, TriangleCoord, TriangleTexCoord) ) then
     begin
-      { Would be more correct to set Tangent as anything perpendicular to Normal. }
-      Tangent := TVector3.One[0];
+      { Return X direction.
+        It would be more correct to set Tangent as anything perpendicular
+        to Normal? But it doesn't really matter, as our tangent calculation
+        should work for all normal cases, and exceptional cases should
+        provide explicit Tangent vectors by the Tangent node. }
+      Tangent := Vector4(1, 0, 0, 1);
     end;
 
     { It *is* possible that we'll get somewhat incorrect tangents in practice,
       but it's not really useful to check it (at least in non-debug builds)
       because we don't really have here a better fallback.
-      Using above "TVector3.One[0]" isn't really better. }
+      Using above "Vector4(1, 0, 0, 1)" isn't really better. }
     {
-    if not ( (Abs(TVector3.DotProduct(Tangent, Bitangent)) < 0.95) and
-             (Abs(TVector3.DotProduct(Tangent, Normal)) < 0.95) and
+    if not ( (Abs(TVector3.DotProduct(Tangent.XYZ, Bitangent)) < 0.95) and
+             (Abs(TVector3.DotProduct(Tangent.XYZ, Normal)) < 0.95) and
              (Abs(TVector3.DotProduct(Bitangent, Normal)) < 0.95) ) then
       WritelnWarning('Tangents are likely incorrect');
     }

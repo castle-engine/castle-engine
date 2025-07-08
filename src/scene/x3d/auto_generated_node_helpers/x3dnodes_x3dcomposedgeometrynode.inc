@@ -90,7 +90,15 @@
     strict private FFdTangent: TSFNode;
     { Internal wrapper for property @code(Tangent). This wrapper API may change, we advise to access simpler @code(Tangent) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTangent: TSFNode read FFdTangent;
-    { Tangent vectors describe the tangent coordinate-space, used by the bump mapping algorithm. If specified, the ordering of tangents should be the same as normals, i.e. they should follow the NormalPerVertex and such properties. }
+    { Tangent vectors determine the tangent coordinate-space, used by the bump mapping algorithms.
+
+    If the materials applied on this geometry may use normal maps (by providing @link(TAbstractOneSidedMaterialNode.NormalTexture)), we recommend to provide tangent vectors calculated in the same manner as the software you used to bake the normal maps. If you don't provide tangent vectors, we will automatically calculate them.
+
+    If specified, the ordering of tangents should be the same as normals, e.g. they should follow the @link(NormalPerVertex) property.
+
+    The XYZ component of each tangent vector should be a normalized tangent direction.
+
+    The W component is a sign value (-1 or +1) indicating handedness of the tangent basis. See the X3D 4.1 and glTF specifications for details. }
     property Tangent: TTangentNode read GetTangent write SetTangent;
 
     strict private FFdTexCoord: TSFNode;

@@ -644,31 +644,35 @@ end;
 function TGLFeatures.HasExtension(const Extension: String): Boolean;
 
   {$if defined(OpenGLES) and not defined(CASTLE_WEBGL)}
-  { Based on GLExt unit in FPC. This function is missing from GLES header,
-    which does not check for extensions presence at all. }
-  function glext_ExtensionSupported(const extension: String;
-    const searchIn: String): Boolean;
+  { Based on GLExt unit in FPC.
+    This function is missing from GLES header,
+    which does not check for extensions presence at all.
+
+    Extension must be non-empty extension name.
+
+    AllExtensions must be as obtained from glGetString(GL_EXTENSIONS) }
+  function glext_ExtensionSupported(const Extension, AllExtensions: AnsiString): Boolean;
   var
-    extensions: PChar;
-    start: PChar;
-    where, terminator: PChar;
+    start: PAnsiChar;
+    where, terminator: PAnsiChar;
   begin
-    if (Pos(' ', extension) <> 0) or (extension = '') then
+    Assert(Pos(' ', Extension) = 0);
+    Assert(Extension <> '');
+
+    if AllExtensions = '' then
     begin
-      Result := FALSE;
-      Exit;
+      WritelnWarning('Empty ExtensionsStr. This is either a weird OpenGLES implementation with *no* extensions (glGetString(GL_EXTENSIONS) empty) or a caller mistake, did not get glGetString(GL_EXTENSIONS)');
+      Exit(false);
     end;
 
-    if searchIn = '' then extensions := PGLChar(glGetString(GL_EXTENSIONS))
-    else extensions := PChar(searchIn);
-    start := extensions;
+    start := PAnsiChar(AllExtensions);
     while TRUE do
     begin
-      where := StrPos(start, PChar(extension));
+      where := StrPos(start, PAnsiChar(extension));
       if where = nil then Break;
       terminator := Pointer(PtrUInt(where) + PtrUInt(Length(extension)));
       {$warnings off} { Stop warning about unportable PtrUInt conversions }
-      if (where = start) or (PChar(Pointer(PtrUInt(where) - PtrUInt(1)))^ = ' ') then
+      if (where = start) or (PAnsiChar(Pointer(PtrUInt(where) - PtrUInt(1)))^ = ' ') then
       {$warnings on}
       begin
         if (terminator^ = ' ') or (terminator^ = #0) then
@@ -684,9 +688,9 @@ function TGLFeatures.HasExtension(const Extension: String): Boolean;
   {$endif}
 
   {$ifdef USE_DGL}
-  function glext_ExtensionSupported(const extension: String;
-    { SearchIn ignored with dglOpenGL }
-    const searchIn: String): Boolean;
+  { Is given Extension supported by OpenGL.
+    AllExtensions is ignored with dglOpenGL. }
+  function glext_ExtensionSupported(const Extension, AllExtensions: AnsiString): Boolean;
   begin
     Result := dglCheckExtension(Extension);
   end;
