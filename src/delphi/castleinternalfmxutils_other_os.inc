@@ -1,6 +1,6 @@
 {%MainUnit castleinternalfmxutils.pas}
 {
-  Copyright 2023-2023 Michalis Kamburelis.
+  Copyright 2023-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -34,4 +34,9 @@ end;
 
 procedure TFmxOpenGLUtility.Update;
 begin
+end;
+
+function TFmxOpenGLUtility.Scale: Single;
+begin
+  Result := 1;
 end;
