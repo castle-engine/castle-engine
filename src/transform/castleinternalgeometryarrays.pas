@@ -276,7 +276,7 @@ type
     { Was AddTangent used. }
     property HasTangent: Boolean read FHasTangent;
     { Access tangent information per-vertex. }
-    function Tangent(const Index: Cardinal = 0): PVector3;
+    function Tangent(const Index: Cardinal = 0): PVector4;
 
     { Add color-per-vertex attribute.
       @param AMode Rendering mode, determines what shader does.
@@ -489,14 +489,14 @@ begin
   begin
     FHasTangent := true;
     FTangentOffset := FCoordinateSize;
-    FCoordinateSize := FCoordinateSize + SizeOf(TVector3);
+    FCoordinateSize := FCoordinateSize + SizeOf(TVector4);
   end;
 end;
 
-function TGeometryArrays.Tangent(const Index: Cardinal = 0): PVector3;
+function TGeometryArrays.Tangent(const Index: Cardinal = 0): PVector4;
 begin
   { When DataFreed, FCoordinateArray is already nil }
-  Result := PVector3(PtrUInt(PtrUInt(FCoordinateArray) +
+  Result := PVector4(PtrUInt(PtrUInt(FCoordinateArray) +
     FTangentOffset + CoordinateSize * Index));
 end;
 

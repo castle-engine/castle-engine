@@ -18,6 +18,8 @@
   platforms. }
 unit CastleInternalKraftOverrides;
 
+{$I castleconf.inc}
+
 interface
 
 {$if (not defined(FPC)) and (not defined(MSWINDOWS))}
@@ -39,7 +41,7 @@ const
     Define tpHigher as 0 (seems to work OK, or should we bump it?)
     to compile. }
   tpHigher = 0;
-{$ifend}
+{$endif}
 
 { Delphi on Linux doesn't define
   - TFPUPrecisionMode and setter/getter
@@ -47,7 +49,8 @@ const
   Define dummy "stubs" to compile Kraft. }
 {$if defined(FPC) or defined(MSWINDOWS)}
   {$define HAS_FPU_TYPES}
-{$ifend}
+{$endif}
+
 {$ifndef HAS_FPU_TYPES}
 type
   TFPUPrecisionMode = (pmSingle, pmReserved, pmDouble, pmExtended);
