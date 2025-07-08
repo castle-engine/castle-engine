@@ -161,7 +161,7 @@ procedure KeyFromCastle(const Key: TKey; const KeyString: String;
   out KeyCode: Word; out Shift: TShiftState);
 const
   { Ctrl key on most systems, Command key on macOS. }
-  ssCtrlOrCommand = {$ifdef DARWIN} ssMeta {$else} ssCtrl {$endif};
+  ssCtrlOrCommand = {$ifdef DARWIN} ssCommand {$else} ssCtrl {$endif};
 var
   KeyChar: Char;
 begin
