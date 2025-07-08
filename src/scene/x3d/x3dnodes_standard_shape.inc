@@ -1117,10 +1117,10 @@ procedure TShapeNode.GenerateTangents;
   procedure GenerateTangentsCore(const CoordsCount: Integer;
     const Coords, Normals: TVector3List;
     const TexCoords: TVector2List;
-    const Tangents: TVector3List);
+    const Tangents: TVector4List);
   var
     TriangleIndexes: TInt32List;
-    Tangent: TVector3;
+    Tangent: TVector4;
     I, Index0, Index1, Index2: Integer;
     TriangleCoord: TTriangle3;
     TriangleTexCoord: TTriangle2;
@@ -1166,11 +1166,15 @@ procedure TShapeNode.GenerateTangents;
       TriangleTexCoord.Data[2] := TexCoords.L[Index2];
 
       if not CalculateTangent(true, Tangent, TriangleCoord, TriangleTexCoord) then
-        Tangent := TVector3.One[0];
+        Tangent := Vector4(1, 0, 0, 1);
 
-      Tangents.L[Index0] := MakeVectorOrthogonal(Tangent, Normals.L[Index0]);
-      Tangents.L[Index1] := MakeVectorOrthogonal(Tangent, Normals.L[Index1]);
-      Tangents.L[Index2] := MakeVectorOrthogonal(Tangent, Normals.L[Index2]);
+      { Tangent W is always 1.0 in this case,
+        this is simple and correct, because CalculateTangent always
+        calculates right-handed tangents. }
+
+      Tangents.L[Index0] := Vector4(MakeVectorOrthogonal(Tangent.XYZ, Normals.L[Index0]), 1.0);
+      Tangents.L[Index1] := Vector4(MakeVectorOrthogonal(Tangent.XYZ, Normals.L[Index1]), 1.0);
+      Tangents.L[Index2] := Vector4(MakeVectorOrthogonal(Tangent.XYZ, Normals.L[Index2]), 1.0);
 
       Inc(I, 3);
     end;
@@ -1184,7 +1188,7 @@ var
   CoordsCount: Integer;
   Coords, Normals: TVector3List;
   TexCoords: TVector2List;
-  Tangents: TVector3List;
+  Tangents: TVector4List;
 begin
   if { geometry has normals per-vertex }
      (Geometry is TAbstractComposedGeometryNode) and // also checks Geometry <> nil

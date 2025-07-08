@@ -243,7 +243,7 @@
 
     { Returns tangent vectors that are specified explicitly, see @link(TAbstractComposedGeometryNode.Tangent).
       Returns @nil if not specified. }
-    function InternalTangent: TVector3List;
+    function InternalTangent: TVector4List;
 
     { Node's list of coordinate indexes.
 
@@ -1189,7 +1189,7 @@ begin
     Result := nil;
 end;
 
-function TAbstractGeometryNode.InternalTangent: TVector3List;
+function TAbstractGeometryNode.InternalTangent: TVector4List;
 begin
   if (TangentField <> nil) and
      (TangentField.Value is TTangentNode) then
