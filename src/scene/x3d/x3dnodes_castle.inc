@@ -630,7 +630,7 @@ procedure TSkinNode.InternalUpdateSkin;
       The Xxxs and XxxNode are always either both nil, or both non-nil.
       E.g. we always return NormalNode = nil and Normals = nil, or both non-nil.
        }
-    function GetArrays(out Coords, Normals, Tangents: TVector3List;
+    function GetArrays(out Coords, Normals: TVector3List; out Tangents: TVector4List;
       out CoordNode: TCoordinateNode;
       out NormalNode: TNormalNode;
       out TangentNode: TTangentNode;
@@ -733,9 +733,11 @@ procedure TSkinNode.InternalUpdateSkin;
     end;
 
     { Update list supposed to contain original (before animation started) values
-      of some array. }
+      of some array.
+      In way, this assigns OriginalArray := NewArray,
+      by making sure they have the same contents and are both nil or both non-nil. }
     procedure UpdateGeometryOriginalArray(var OriginalArray: TVector3List;
-      const NewArray: TVector3List);
+      const NewArray: TVector3List); overload;
     begin
       if NewArray = nil then
       begin
@@ -753,9 +755,28 @@ procedure TSkinNode.InternalUpdateSkin;
       end;
     end;
 
+    procedure UpdateGeometryOriginalArray(var OriginalArray: TVector4List;
+      const NewArray: TVector4List); overload;
+    begin
+      if NewArray = nil then
+      begin
+        FreeAndNil(OriginalArray);
+      end else
+      begin
+        if OriginalArray = nil then
+          OriginalArray := TVector4List.Create;
+        // Change OriginalArray contents based on NewArray only if sizes changed
+        if OriginalArray.Count <> NewArray.Count then
+        begin
+          OriginalArray.Clear;
+          OriginalArray.AddRange(NewArray);
+        end;
+      end;
+    end;
+
     { Initialize Geometry.InternalOriginal is necessary. }
     procedure UpdateGeometryOriginalArrays(const Geometry: TAbstractGeometryNode;
-      const Coords, Normals, Tangents: TVector3List);
+      const Coords, Normals: TVector3List; const Tangents: TVector4List);
     begin
       UpdateGeometryOriginalArray(Geometry.InternalOriginalCoords, Coords);
       UpdateGeometryOriginalArray(Geometry.InternalOriginalNormals, Normals);
@@ -765,7 +786,19 @@ procedure TSkinNode.InternalUpdateSkin;
     { Update list supposed to contain original (before animation started) values
       of some array. }
     procedure RemoveGeometryOriginalArray(var OriginalArray: TVector3List;
-      const NewArray: TVector3List);
+      const NewArray: TVector3List); overload;
+    begin
+      if OriginalArray <> nil then
+      begin
+        Assert(NewArray <> nil);
+        NewArray.Clear;
+        NewArray.AddRange(OriginalArray);
+        FreeAndNil(OriginalArray);
+      end;
+    end;
+
+    procedure RemoveGeometryOriginalArray(var OriginalArray: TVector4List;
+      const NewArray: TVector4List); overload;
     begin
       if OriginalArray <> nil then
       begin
@@ -779,11 +812,21 @@ procedure TSkinNode.InternalUpdateSkin;
     { Remove Geometry.InternalOriginal, setting the current contents to "original"
       values. }
     procedure RemoveGeometryOriginalArrays(const Geometry: TAbstractGeometryNode;
-      const Coords, Normals, Tangents: TVector3List);
+      const Coords, Normals: TVector3List; const Tangents: TVector4List);
     begin
       RemoveGeometryOriginalArray(Geometry.InternalOriginalCoords, Coords);
       RemoveGeometryOriginalArray(Geometry.InternalOriginalNormals, Normals);
       RemoveGeometryOriginalArray(Geometry.InternalOriginalTangents, Tangents);
+    end;
+
+    { Multiply tangent vector by a matrix.
+      Multiplies T.XYZ by Matrix.
+      Preserves T.W, assuming it means just handedness, like for glTF
+      and X3D Tangent node. }
+    function SkinMultiplyTangent(const Matrix: TMatrix4; const T: TVector4): TVector4;
+    begin
+      Result.XYZ := Matrix.MultDirection(T.XYZ);
+      Result.W := T.W;
     end;
 
     { Update skin Coords (and optionally Normals, Tangents)
@@ -792,7 +835,7 @@ procedure TSkinNode.InternalUpdateSkin;
     procedure SampleSkinAnimation(
       const OriginalCoords, AnimatedCoords: TVector3List;
       const OriginalNormals, AnimatedNormals: TVector3List;
-      const OriginalTangents, AnimatedTangents: TVector3List;
+      const OriginalTangents, AnimatedTangents: TVector4List;
       const Joints0: TInt32List;
       const Weights0: TVector4List);
     var
@@ -839,16 +882,17 @@ procedure TSkinNode.InternalUpdateSkin;
           That's because on Delphi, List^[...] may have too small (declared) upper size
           due to Delphi not supporting SizeOf(T) in generics.
           See https://github.com/castle-engine/castle-engine/issues/474 . }
-        AnimatedCoords.L[I] := SkinMatrix.MultPoint(OriginalCoords[I]);
+        AnimatedCoords.L[I] := SkinMatrix.MultPoint(OriginalCoords.L[I]);
         if AnimatedNormals <> nil then
-          AnimatedNormals.L[I] := SkinMatrix.MultDirection(OriginalNormals[I]);
+          AnimatedNormals.L[I] := SkinMatrix.MultDirection(OriginalNormals.L[I]);
         if AnimatedTangents <> nil then
-          AnimatedTangents.L[I] := SkinMatrix.MultDirection(OriginalTangents[I]);
+          AnimatedTangents.L[I] := SkinMultiplyTangent(SkinMatrix, OriginalTangents.L[I]);
       end;
     end;
 
   var
-    Coords, Normals, Tangents: TVector3List;
+    Coords, Normals: TVector3List;
+    Tangents: TVector4List;
     CoordNode: TCoordinateNode;
     NormalNode: TNormalNode;
     TangentNode: TTangentNode;

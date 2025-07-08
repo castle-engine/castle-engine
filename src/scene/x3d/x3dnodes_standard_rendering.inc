@@ -73,7 +73,7 @@
       @groupBegin }
     InternalOriginalCoords: TVector3List;
     InternalOriginalNormals: TVector3List;
-    InternalOriginalTangents: TVector3List;
+    InternalOriginalTangents: TVector4List;
     { @groupEnd }
 
     constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
