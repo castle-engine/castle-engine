@@ -4,8 +4,7 @@
 '   Included by EnableShaderBumpMapping in ../castlerendererinternalshader.pas unit.' + LineEnding +
 '*/' + LineEnding +
 '' + LineEnding +
-'attribute vec3 castle_Tangent;' + LineEnding +
-'// attribute vec3 castle_bitangent; // GLSL doesn''t receive this vector anymore, instead GPU can compute it' + LineEnding +
+'attribute vec4 castle_Tangent;' + LineEnding +
 'varying mat3 castle_tangent_to_eye_space;' + LineEnding +
 '' + LineEnding +
 '// avoid redeclaring variables when no "separate compilation units" available (OpenGLES)' + LineEnding +
@@ -19,9 +18,9 @@
 'void PLUG_vertex_eye_space(const in vec4 vertex_eye, const in vec3 normal_eye)' + LineEnding +
 '{' + LineEnding +
 '  #if defined(CASTLE_HAS_NORMALS)' + LineEnding +
-'  vec3 bitangent = cross(castle_Normal, castle_Tangent);' + LineEnding +
+'  vec3 bitangent = cross(castle_Normal, castle_Tangent.xyz) * castle_Tangent.w;' + LineEnding +
 '  mat3 castle_tangent_to_object_space = mat3(' + LineEnding +
-'    castle_Tangent,' + LineEnding +
+'    castle_Tangent.xyz,' + LineEnding +
 '    bitangent,' + LineEnding +
 '    castle_Normal' + LineEnding +
 '  );' + LineEnding +
