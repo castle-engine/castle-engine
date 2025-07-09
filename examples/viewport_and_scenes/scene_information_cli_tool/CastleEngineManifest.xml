@@ -8,6 +8,6 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 <project name="scene_information_cli_tool"
   standalone_source="scene_information_cli_tool.dpr"
   qualified_name="io.castleengine.test.triangulate"
-  caption="Deconstruct Scene Into Triangles"
+  caption="Utility to write information about 3D models"
 >
 </project>

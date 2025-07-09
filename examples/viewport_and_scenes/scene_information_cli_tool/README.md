@@ -1,4 +1,4 @@
-# Command-line utility to process model (scene) files
+# Command-line utility to write information about various 3D / 2D model files
 
 Command-line application to load and output various model information.
 
@@ -6,13 +6,22 @@ Command-line application to load and output various model information.
 
 - Shows that our API, including `TCastleScene`, can be used without rendering too.
 
+- Shows basic 3D / 2D model information, like
+
+    - number of triangles,
+    - vertices,
+    - bounding box,
+    - animations,
+    - shapes ([what is a shape](https://castle-engine.io/manual_optimization.php#section_shapes)),
+    - can also output triangles of the model, if you uncomment the proper line of code.
+
 Usage: Provide the model filename as a parameter. If omitted we will load a simple test model.
 
 ![Screenshot](screenshot.png)
 
 ## See also command-line Castle Model Converter
 
-If you're looking for a tool to convert model files, see [Castle Model Converter](https://castle-engine.io/castle-model-converter). Source code [here](https://github.com/castle-engine/castle-model-viewer/blob/master/castle_model_converter.dpr). This is another application using our engine to do command-line scene processing.
+If you're looking for a tool to convert model files, see [Castle Model Converter](https://castle-engine.io/castle-model-converter). Source code [here](https://github.com/castle-engine/castle-model-viewer/blob/master/castle_model_converter.dpr). This is another application using our engine to do command-line model processing.
 
 Using [Castle Game Engine](https://castle-engine.io/).
 
