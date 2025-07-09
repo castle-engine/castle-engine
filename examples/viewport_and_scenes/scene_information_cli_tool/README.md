@@ -8,6 +8,8 @@ Command-line application to load and output various model information.
 
 Usage: Provide the model filename as a parameter. If omitted we will load a simple test model.
 
+![Screenshot](screenshot.png)
+
 ## See also command-line Castle Model Converter
 
 If you're looking for a tool to convert model files, see [Castle Model Converter](https://castle-engine.io/castle-model-converter). Source code [here](https://github.com/castle-engine/castle-model-viewer/blob/master/castle_model_converter.dpr). This is another application using our engine to do command-line scene processing.
