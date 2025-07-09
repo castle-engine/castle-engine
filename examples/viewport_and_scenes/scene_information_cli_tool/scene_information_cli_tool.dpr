@@ -19,7 +19,8 @@ program scene_information_cli_tool;
 
 {$ifdef MSWINDOWS} {$apptype CONSOLE} {$endif}
 
-uses SysUtils, CastleVectors, CastleScene, CastleShapes, CastleTriangles,
+uses SysUtils,
+  CastleVectors, CastleScene, CastleShapes, CastleTriangles, CastleUtils,
   CastleFilesUtils, CastleParameters, CastleUriUtils;
 
 type
@@ -103,5 +104,11 @@ begin
     // long output
     // Writeln('------------------------');
     // WritelnSceneTriangles(Scene);
+
+    Writeln('------------------------');
+    Writeln('Castle Game Engine version: ' + CastleEngineVersion);
+    Writeln('Compiled with ' + SCompilerDescription);
+    Writeln('Platform: ' + SPlatformDescription);
+
   finally FreeAndNil(Scene) end;
 end.
