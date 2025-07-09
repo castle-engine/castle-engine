@@ -274,7 +274,7 @@ castle-game-engine-*.fpm
 /examples/shaders/shader_effects_on_background/shader_effects_on_background
 /examples/shaders/shader_override/shader_override
 /examples/viewport_and_scenes/show_bounding_rect_in_2d/show_bounding_rect_in_2d
-/examples/viewport_and_scenes/test_triangulate/test_triangulate
+/examples/viewport_and_scenes/scene_information_cli_tool/scene_information_cli_tool
 /examples/viewport_and_scenes/test_was_visible/test_was_visible
 /examples/viewport_and_scenes/transform_hierarchy/transform_hierarchy
 /examples/viewport_and_scenes/transform_primitives/transform_primitives
