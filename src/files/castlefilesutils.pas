@@ -429,7 +429,13 @@ function DirectorySize(const Dir: String): QWord;
 implementation
 
 uses {$ifdef MSWINDOWS} ShlObj, {$endif}
-  {$ifdef DARWIN} MacOSAll, {$endif} Classes,
+  // FPC-specific and Delphi-specific units to implement BundlePath.
+  {$ifdef DARWIN}
+    {$ifdef FPC} MacOSAll,
+    {$else} Macapi.CoreFoundation,
+    {$endif}
+  {$endif}
+  Classes,
   {$ifdef FPC} {$ifndef WASI} Process, {$endif} {$endif}
   CastleStringUtils,
   {$ifdef MSWINDOWS} CastleDynLib, {$endif} CastleLog,

@@ -91,9 +91,15 @@
   {$ifdef CPUX86} {$define cpu386} {$define cpui386} {$endif}
   {$ifdef CPUARM64} {$define CPUAARCH64} {$endif}
 
+  { Define Darwin for a common Apple OS in macOS, iOS etc.
+    See https://en.wikipedia.org/wiki/Darwin_(operating_system).
+    Compatible with FPC. }
+  {$ifdef MACOS} {$define DARWIN} {$endif}
+
   { Define in Delphi UNIX when LINUX or other UNIXes are, like FPC does. }
   {$ifdef LINUX} {$define UNIX} {$endif}
   {$ifdef ANDROID} {$define UNIX} {$endif}
+  {$ifdef DARWIN} {$define UNIX} {$endif}
 {$endif}
 
 { Traditionally, CGE defined CPUARM64 also for 64-bit iOS.
