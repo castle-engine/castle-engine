@@ -94,6 +94,12 @@ begin
     Writeln('Vertices: ', Scene.VerticesCount);
     Writeln('Bounding box: ', Scene.BoundingBox.ToString);
     Writeln('Shapes: ', Scene.Shapes.ShapesCount(false, false, false));
+
+    Writeln('------------------------');
+    Writeln('Animations: ', Scene.AnimationsList.Count);
+    Writeln('Animation names: ');
+    Writeln(Scene.AnimationsList.Text);
+
     // long output
     // Writeln('------------------------');
     // WritelnSceneTriangles(Scene);
