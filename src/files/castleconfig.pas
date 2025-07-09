@@ -49,5 +49,12 @@ end;
 initialization
   FUserConfig := TCastleConfig.Create(nil);
 finalization
+  { Delphi on macOS crashes (runtime error 217)
+    when trying to free TDOMDocument underneath, which releases the interface.
+    Reason unknown, not happens with FPC or other Delphi platforms (Windows, Linux).
+    Reproduce: run examples/viewport_and_scenes/scene_information_cli_tool/
+    on macOS (Intel-based) with Delphi 12.3. }
+  {$if not (defined(DELPHI) and defined(DARWIN))}
   FreeAndNil(FUserConfig);
+  {$endif}
 end.
