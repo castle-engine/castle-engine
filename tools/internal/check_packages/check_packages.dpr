@@ -279,6 +279,8 @@ type
   end;
 
 constructor TLazarusPackage.Create(const APackageFileName: String);
+const
+  RelativePathFromLpkToCgeRoot = '../../';
 var
   Doc: TXMLDocument;
   FilesElement, FileElement: TDOMElement;
@@ -299,9 +301,9 @@ begin
     begin
       FileElement := FilesElement.Child('Item' + IntToStr(I));
       FileName := FileElement.Child('Filename').AttributeString('Value');
-      if not IsPrefix('../', FileName, not FileNameCaseSensitive) then
+      if not IsPrefix(RelativePathFromLpkToCgeRoot, FileName, not FileNameCaseSensitive) then
         PackageWarning('All filenames in lpk must be in CGE root, invalid: %s', [FileName]);
-      FileName := PrefixRemove('../', FileName, not FileNameCaseSensitive);
+      FileName := PrefixRemove(RelativePathFromLpkToCgeRoot, FileName, not FileNameCaseSensitive);
       Files.Append(FileName);
     end;
   finally FreeAndNil(Doc) end;
