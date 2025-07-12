@@ -57,10 +57,10 @@
     </BuildModes>
     <RequiredPackages Count="2">
       <Item1>
-        <PackageName Value="castle_window"/>
+        <PackageName Value="castle_engine_window"/>
       </Item1>
       <Item2>
-        <PackageName Value="castle_base"/>
+        <PackageName Value="castle_engine_base"/>
       </Item2>
     </RequiredPackages>
     <Units Count="7">

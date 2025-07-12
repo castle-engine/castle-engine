@@ -4,35 +4,35 @@
 
 Register in Lazarus all packages using the button _"Register Lazarus Packages"_ in CGE editor _"Preferences -> FPC and Lazarus"_ (see https://castle-engine.io/install ).
 
-Then, optionally, you can install the `castle_components.lpk` package in Lazarus, to have LCL component `TCastleControl` (see https://castle-engine.io/control_on_form ).
+Then, optionally, you can install the `castle_engine_lcl.lpk` package in Lazarus, to have LCL component `TCastleControl` (see https://castle-engine.io/control_on_form ).
 
 Please use this approach instead of manually compiling/installing .lpk files, and hunting for their dependencies :)
 
 ## Packages desciption
 
-### castle_base.lpk
+### castle_engine_base.lpk
 
 Base engine code and components.
 
 This also includes [Vampyre Imaging Library](https://imaginglib.sourceforge.io/) (you do not have to install it by a separate package).
 
-### castle_window.lpk
+### castle_engine_window.lpk
 
 `TCastleWindow` class and associated unit.
 
 Should never be installed in Lazarus, as the `CastleWindow` is talking directly to the window system, and would conflict with LCL trying to do the same.
 
-Depends on `castle_base.lpk`.
+Depends on `castle_engine_base.lpk`.
 
 Add this package as a _requirement_ to Lazarus applications that use `TCastleWindow`.
 
-### castle_components.lpk
+### castle_engine_lcl.lpk
 
-Engine code and components using LCL. TODO: a better name of this package would be `castle_lcl.lpk`.
+Engine code and components using LCL.
 
 Depends on
 
-- `castle_base.lpk`.
+- `castle_engine_base.lpk`.
 
 - LCL.
 
@@ -42,7 +42,7 @@ Depends on
 
 Add this package as a _requirement_ to Lazarus applications that use `TCastleControl` (our LCL component).
 
-### castle_editor_components.lpk
+### castle_engine_editor_components.lpk
 
 Components used by CGE editor. Engine developers (who wish to modify CGE editor forms) should install this in Lazarus IDE.
 
@@ -52,22 +52,24 @@ All the units inside this package are internal for CGE -- normal engine users sh
 
 Note: We avoid adding dependencies on packages elsewhere in CGE directories, like `tools/castle-editor/contrib/mbColorLib/mbcolorliblaz.lpk`. Because this would confuse some people, because seasoned Lazarus users routinely install lpk directly, scanning our "packages/" subdirectory, and not knowing about CGE button "Register Lazarus Packages" (even though it's documented early in manual). So let's keep it simple and store all .lpk here.
 
-Depends on `castle_components.lpk`.
+Depends on `castle_engine_lcl.lpk`.
 
-### alternative_castle_window_based_on_lcl.lpk
+### alternative_castle_engine_window_based_on_lcl.lpk
 
-Alternative version of `castle_window.lpk` package that provides `CastleWindow` unit using Lazarus LCL as a backend. It's useful for platforms where we don't have a better CastleWindow backend.
+Alternative version of `castle_engine_window.lpk` package that provides `CastleWindow` unit using Lazarus LCL as a backend. It's useful for platforms where we don't have a better CastleWindow backend.
 
-In practice, it has no use now. (In the past, it was useful for macOS.)
+In practice, it has no practical use now. We have TCastleWindow backend on every platform that is better than `CASTLE_WINDOW_FORM`, so there's no practical reason to use `alternative_castle_engine_window_based_on_lcl.lpk` now. (In the past, it was useful for macOS.)
 
-### castle_indy.lpk
+But you can use it just to test that `CASTLE_WINDOW_FORM`, when `TCastleWindow` is implemented on top of LCL, still works.
+
+### castle_engine_indy.lpk
 
 There is one, completely optional unit in CGE using Indy: `CastleClientServer`. This package allows to compile applications within it.
 
 Example usage of it is in `examples/network/tcp_connection/`.
 
 Depends on:
-- castle_base
+- castle_engine_base
 - indylaz
 
 TODO: To avoid confusion (as CGE in general doesn't depend on Indy) we should probably move it to separate repo.

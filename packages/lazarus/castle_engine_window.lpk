@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <Package Version="5">
-    <Name Value="castle_window"/>
+    <Name Value="castle_engine_window"/>
     <AddToProjectUsesSection Value="True"/>
     <Author Value="Michalis Kamburelis"/>
     <CompilerOptions>
@@ -9,7 +9,7 @@
       <SearchPaths>
         <IncludeFiles Value="../src/window/unix;../src/window/windows;../src/window/gtk;../src/common_includes;../src/window"/>
         <OtherUnitFiles Value="../src/window;../src/window/windows;../src/window/unix;../src/window/deprecated_units"/>
-        <UnitOutputDirectory Value="lib/castle_window/$(TargetCPU)-$(TargetOS)"/>
+        <UnitOutputDirectory Value="lib/castle_engine_window/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Parsing>
         <SyntaxOptions>
@@ -41,7 +41,7 @@
     </CompilerOptions>
     <Description Value="Castle Game Engine is an open-source 3D and 2D game engine. We support many game model formats (glTF, X3D, Spine...), we are cross-platform (desktop, mobile, console), we have an optimized renderer with many cool graphic effects (physically-based rendering, shadows, mirrors, bump mapping, gamma correction...). See https://castle-engine.io/features.php for a complete list of features.
 
-This package, castle_window.lpk, contains the CastleWindow unit (and friends). It allows to create a window suitable for engine rendering.
+This package, castle_engine_window.lpk, contains the CastleWindow unit (and friends). It allows to create a window suitable for engine rendering.
 
 This package cannot be installed under Lazarus, it&apos;s only for being used in other programs. CastleWindow unit may initialize some things that conflict with Lazarus reserving the same resources."/>
     <License Value="GNU LGPL with static linking exception >= 2.
@@ -202,7 +202,7 @@ See https://castle-engine.io/license for details.
     <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="2">
       <Item1>
-        <PackageName Value="castle_base"/>
+        <PackageName Value="castle_engine_base"/>
       </Item1>
       <Item2>
         <PackageName Value="FCL"/>
@@ -215,5 +215,8 @@ See https://castle-engine.io/license for details.
     <PublishOptions>
       <Version Value="2"/>
     </PublishOptions>
+    <Provides Count="1">
+      <Item1 Value="castle_window"/>
+    </Provides>
   </Package>
 </CONFIG>

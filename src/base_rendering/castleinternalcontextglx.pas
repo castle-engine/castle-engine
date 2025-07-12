@@ -22,9 +22,9 @@ interface
 
 {$ifndef UNIX_WITH_X}
 { To make it easier to organize Lazarus packages
-  (to keep this unit in castle_base.lpk, since it doesn't depend on TCastleWindow,
+  (to keep this unit in castle_engine_base.lpk, since it doesn't depend on TCastleWindow,
   but at the same time this unit cannot have "<AddToUsesPkgSection Value="False"/>"
-  in castle_base.lpk because castle_window.lpk expects to use this unit
+  in castle_engine_base.lpk because castle_engine_window.lpk expects to use this unit
   without recompiling...) ->
   this unit compiles even for platforms that don't have glX,
   the unit just doesn't define anything in this case. }

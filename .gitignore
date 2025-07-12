@@ -102,13 +102,8 @@ castle-game-engine-*.fpm
 /src/deprecated_library/libcastleengine.so
 
 # Lazarus packages artifacts
-/packages/alternative_castle_window_based_on_lcl.pas
-/packages/castle_base.pas
-/packages/castle_components.pas
-/packages/castle_editor_components.pas
-/packages/castle_indy.pas
-/packages/castle_window.pas
-/packages/lib/
+/packages/lazarus/*castle_engine*.pas
+/packages/lazarus/lib/
 
 # Unix binaries (keep this list alphabetic).
 /examples/advanced_editor/advanced_loading_designs/advanced_loading_designs

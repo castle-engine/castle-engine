@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <Package Version="5">
-    <Name Value="castle_base"/>
+    <Name Value="castle_engine_base"/>
     <Type Value="RunAndDesignTime"/>
     <AddToProjectUsesSection Value="True"/>
     <Author Value="Michalis Kamburelis"/>
@@ -10,7 +10,7 @@
       <SearchPaths>
         <IncludeFiles Value="../src/common_includes;../src/base;../src/base/unix;../src/base/windows;../src/audio;../src/castlescript;../src/transform;../src/scene/glsl/generated-pascal;../src/scene;../src/scene/x3d;../src/scene/load;../src/scene/load/spine;../src/scene/load/md3;../src/scene/load/collada;../src/scene/load/pasgltf;../src/base_rendering;../src/physics/kraft;../src/base_rendering/dglopengl;../src/base_rendering/glsl/generated-pascal;../src/images;../src/scene/x3d/auto_generated_node_helpers;../src/ui;../src/deprecated_units;../src/files;../src/files/tools;../src/fonts;../src/transform/auto_generated_persistent_vectors;../src/vampyre_imaginglib/src/Source;../src/vampyre_imaginglib/src/Source/JpegLib;../src/vampyre_imaginglib/src/Source/ZLib;../src/scene/transform_manipulate_data/generated-pascal;../src/scene/load/ifc;../src/services/steam;../src/ui/designs;../src/services"/>
         <OtherUnitFiles Value="../src/base;../src/transform;../src/images;../src/fonts;../src/audio;../src/files;../src/files/tools;../src/castlescript;../src/ui;../src/ui/windows;../src/services;../src/base_rendering;../src/base_rendering/dglopengl;../src/physics/kraft;../src/scene;../src/scene/x3d;../src/scene/load;../src/scene/load/spine;../src/scene/load/md3;../src/scene/load/collada;../src/scene/load/pasgltf;../src/audio/openal;../src/audio/ogg_vorbis;../src/audio/fmod;../src/deprecated_units;../src/vampyre_imaginglib/src/Source;../src/vampyre_imaginglib/src/Source/JpegLib;../src/vampyre_imaginglib/src/Source/ZLib;../src/vampyre_imaginglib/src/Extensions;../src/vampyre_imaginglib/src/Extensions/LibTiff;../src/scene/load/ifc;../src/services/steam"/>
-        <UnitOutputDirectory Value="lib/castle_base/$(TargetCPU)-$(TargetOS)"/>
+        <UnitOutputDirectory Value="lib/castle_engine_base/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Conditionals Value="// example for adding linker options on macOS
 //if TargetOS=&apos;darwin&apos; then
@@ -52,7 +52,7 @@
     </CompilerOptions>
     <Description Value="Castle Game Engine is an open-source 3D and 2D game engine. We support many game model formats (glTF, X3D, Spine...), we are cross-platform (desktop, mobile, console), we have an optimized renderer with many cool graphic effects (physically-based rendering, shadows, mirrors, bump mapping, gamma correction...). See https://castle-engine.io/features.php for a complete list of features.
 
-This package, castle_base.lpk, contains the core engine units. It is not dependent on CastleWindow or Lazarus LCL.
+This package, castle_engine_base.lpk, contains the core engine units. It is not dependent on CastleWindow or Lazarus LCL.
 
 You can install this package in Lazarus, it&apos;s required by all other programs and packages that are part of Castle Game Engine."/>
     <License Value="GNU LGPL with static linking exception >= 2.
@@ -4713,8 +4713,8 @@ See https://castle-engine.io/license for details.
     <PublishOptions>
       <Version Value="2"/>
     </PublishOptions>
-    <CustomOptions Items="ExternHelp" Version="2">
-      <_ExternHelp Items="Count"/>
-    </CustomOptions>
+    <Provides Count="1">
+      <Item1 Value="castle_base"/>
+    </Provides>
   </Package>
 </CONFIG>

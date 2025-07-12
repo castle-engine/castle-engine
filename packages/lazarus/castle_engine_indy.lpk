@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <Package Version="4">
-    <Name Value="castle_indy"/>
+    <Name Value="castle_engine_indy"/>
     <Type Value="RunAndDesignTime"/>
     <Author Value="Michalis Kamburelis"/>
     <CompilerOptions>
@@ -9,7 +9,7 @@
       <SearchPaths>
         <IncludeFiles Value="../src/common_includes"/>
         <OtherUnitFiles Value="../src/files/indy"/>
-        <UnitOutputDirectory Value="lib/castle_indy/$(TargetCPU)-$(TargetOS)"/>
+        <UnitOutputDirectory Value="lib/castle_engine_indy/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Other>
         <Verbosity>
@@ -24,7 +24,7 @@
     </CompilerOptions>
     <Description Value="Castle Game Engine is an open-source 3D and 2D game engine. We support many game model formats (glTF, X3D, Spine...), we are cross-platform (desktop, mobile, console), we have an optimized renderer with many cool graphic effects (physically-based rendering, shadows, mirrors, bump mapping, gamma correction...). See https://castle-engine.io/features.php for a complete list of features.
 
-This package, castle_indy.lpk, contains the units that depend on Indy. You can install this package in Lazarus. See https://castle-engine.io/multi_player#indy about our networking solutions."/>
+This package, castle_engine_indy.lpk, contains the units that depend on Indy. You can install this package in Lazarus. See https://castle-engine.io/multi_player#indy about our networking solutions."/>
     <License Value="GNU LGPL with static linking exception >= 2.
 This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license for details.
@@ -38,7 +38,7 @@ See https://castle-engine.io/license for details.
     </Files>
     <RequiredPkgs Count="3">
       <Item1>
-        <PackageName Value="castle_base"/>
+        <PackageName Value="castle_engine_base"/>
       </Item1>
       <Item2>
         <PackageName Value="indylaz"/>
@@ -54,5 +54,8 @@ See https://castle-engine.io/license for details.
       <Version Value="2"/>
       <UseFileFilters Value="True"/>
     </PublishOptions>
+    <Provides Count="1">
+      <Item1 Value="castle_indy"/>
+    </Provides>
   </Package>
 </CONFIG>
