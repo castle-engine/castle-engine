@@ -186,9 +186,9 @@ uninstall:
 .PHONY: strip-precompiled-libraries
 strip-precompiled-libraries:
 	rm -Rf tools/build-tool/data/external_libraries/ \
-	       tools/build-tool/data/android/integrated-services/sound/ \
-	       tools/build-tool/data/android/integrated-services/ogg_vorbis/ \
-	       tools/build-tool/data/android/integrated-services/freetype/ \
+	       tools/build-tool/data/android/services/sound/ \
+	       tools/build-tool/data/android/services/ogg_vorbis/ \
+	       tools/build-tool/data/android/services/freetype/ \
 	       tools/build-tool/data/android/base/gradle/ \
 	       tools/build-tool/data/android/base/gradlew \
 	       tools/build-tool/data/android/base/gradlew.bat \

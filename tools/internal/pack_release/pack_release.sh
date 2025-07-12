@@ -333,8 +333,8 @@ cge_clean_all ()
 
   # Delete closed-source libs you may have left in tools/build-tool/data
   # (as some past instructions recommended to copy them into CGE tree).
-	rm -Rf tools/build-tool/data/android/integrated-services/chartboost/app/libs/*.jar \
-	       tools/build-tool/data/android/integrated-services/startapp/app/libs/*.jar \
+	rm -Rf tools/build-tool/data/android/services/chartboost/app/libs/*.jar \
+	       tools/build-tool/data/android/services/startapp/app/libs/*.jar \
 	       tools/build-tool/data/ios/services/game_analytics/cge_project_name/game_analytics/GameAnalytics.h \
 	       tools/build-tool/data/ios/services/game_analytics/cge_project_name/game_analytics/libGameAnalytics.a
 

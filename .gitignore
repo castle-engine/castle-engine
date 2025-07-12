@@ -82,9 +82,9 @@ castle-game-engine-*.fpm
 
 # Proprietary Android libraries
 # (it may be easy to put them into CGE source tree, but don't commit).
-/tools/build-tool/data/android/integrated-services/chartboost/app/libs/*.jar
-/tools/build-tool/data/android/integrated-services/game_analytics/app/libs/*.jar
-/tools/build-tool/data/android/integrated-services/startapp/app/libs/*.jar
+/tools/build-tool/data/android/services/chartboost/app/libs/*.jar
+/tools/build-tool/data/android/services/game_analytics/app/libs/*.jar
+/tools/build-tool/data/android/services/startapp/app/libs/*.jar
 /tools/build-tool/data/ios/services/game_analytics/cge_project_name/game_analytics/GameAnalytics.h
 /tools/build-tool/data/ios/services/game_analytics/cge_project_name/game_analytics/libGameAnalytics.a
 

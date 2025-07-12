@@ -449,7 +449,7 @@
     - On macOS, see https://castle-engine.io/macos .
 
     - On Android, we have a "png" service with libpng included.
-      See ../../tools/build-tool/data/android/integrated-services/png/README.adoc .
+      See ../../tools/build-tool/data/android/services/png/README.adoc .
 
   3.If CASTLE_PNG_STATIC is defined, we statically link to libpng.
     The presense of static libpng library (libpng.a on Unix) is then
