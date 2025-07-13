@@ -24,7 +24,7 @@ uses Classes;
 
 type
   { TestFairy integration.
-    On Android ( https://github.com/castle-engine/castle-engine/blob/master/tools/build-tool/data/android/integrated-services/test_fairy/README.md )
+    On Android ( https://github.com/castle-engine/castle-engine/blob/master/tools/build-tool/data/android/services/test_fairy/README.md )
     and on iOS ( https://github.com/castle-engine/castle-engine/blob/master/tools/build-tool/data/ios/services/test_fairy/README.md ).
   }
   TTestFairy = class(TComponent)

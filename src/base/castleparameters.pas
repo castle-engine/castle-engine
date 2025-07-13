@@ -763,8 +763,10 @@ begin
 end;
 
 procedure InitializationParams;
+{$ifndef CASTLE_PARAMSTR_BUGGY}
 var
   I: Integer;
+{$endif}
 begin
   Parameters := TParameters.Create;
 

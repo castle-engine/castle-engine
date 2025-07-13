@@ -156,7 +156,7 @@
               "Y" : 6.7771558761596680E+000,
               "Z" : 1.2906229972839355E+001
             },
-            "Url" : "castle-data:/sketchfab/chicken-rig-b92464211274439b955700e3aa5c321f/chicken_fixed_alpha.gltf",
+            "Url" : "castle-data:/sketchfab/chicken-rig/chicken_fixed_alpha.gltf",
             "$Behaviors" : [
               {
                 "$$ClassName" : "TCastleBoxCollider",
@@ -192,7 +192,7 @@
               "Y" : 6.7771558761596680E+000,
               "Z" : 1.2906229972839355E+001
             },
-            "Url" : "castle-data:/sketchfab/chicken-rig-b92464211274439b955700e3aa5c321f/chicken_fixed_alpha.gltf",
+            "Url" : "castle-data:/sketchfab/chicken-rig/chicken_fixed_alpha.gltf",
             "$Behaviors" : [
               {
                 "$$ClassName" : "TCastleBoxCollider",
@@ -228,7 +228,7 @@
               "Y" : 6.7771558761596680E+000,
               "Z" : 1.2906229972839355E+001
             },
-            "Url" : "castle-data:/sketchfab/chicken-rig-b92464211274439b955700e3aa5c321f/chicken_fixed_alpha.gltf",
+            "Url" : "castle-data:/sketchfab/chicken-rig/chicken_fixed_alpha.gltf",
             "$Behaviors" : [
               {
                 "$$ClassName" : "TCastleBoxCollider",
@@ -264,7 +264,7 @@
               "Y" : 6.7771558761596680E+000,
               "Z" : 5.4846687316894531E+000
             },
-            "Url" : "castle-data:/sketchfab/chicken-rig-b92464211274439b955700e3aa5c321f/chicken_fixed_alpha.gltf",
+            "Url" : "castle-data:/sketchfab/chicken-rig/chicken_fixed_alpha.gltf",
             "$Behaviors" : [
               {
                 "$$ClassName" : "TCastleBoxCollider",
@@ -300,7 +300,7 @@
               "Y" : 6.7771558761596680E+000,
               "Z" : 6.2983503341674805E+000
             },
-            "Url" : "castle-data:/sketchfab/chicken-rig-b92464211274439b955700e3aa5c321f/chicken_fixed_alpha.gltf",
+            "Url" : "castle-data:/sketchfab/chicken-rig/chicken_fixed_alpha.gltf",
             "$Behaviors" : [
               {
                 "$$ClassName" : "TCastleBoxCollider",
@@ -336,7 +336,7 @@
               "Y" : 6.7771558761596680E+000,
               "Z" : 6.2983503341674805E+000
             },
-            "Url" : "castle-data:/sketchfab/chicken-rig-b92464211274439b955700e3aa5c321f/chicken_fixed_alpha.gltf",
+            "Url" : "castle-data:/sketchfab/chicken-rig/chicken_fixed_alpha.gltf",
             "$Behaviors" : [
               {
                 "$$ClassName" : "TCastleBoxCollider",
