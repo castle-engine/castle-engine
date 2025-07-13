@@ -437,13 +437,23 @@ clean: cleanexamples
 # Avoid project in build-tool/tests/data that is not a real project
 # (will never be compiled).
 #
-# Note: This may cause errors if build tool doesn't exist anymore, ignore them.
-	"$(FIND)" . \
+# Note: Build tool may not exist anymore at this point, ignore this then.
+#
+# Note: Do not use -execdir, only -exec, as BUILD_TOOL may be relative.
+# This also implies to pass project using --project.
+	if [ -x $(BUILD_TOOL) ]; then \
+	  "$(FIND)" . \
 	  '(' -path ./tools/castle-editor/data/project_templates -prune ')' -or \
 	  '(' -path ./tools/castle-editor-portable/data/project_templates -prune ')' -or \
 	  '(' -path ./tools/build-tool/tests/data -prune ')' -or \
 	  '(' -iname CastleEngineManifest.xml \
-	      -execdir $(BUILD_TOOL) clean ';' ')'
+		    -exec echo 'Cleaning project:' '{}' ';' \
+	      -exec $(BUILD_TOOL) --project '{}' clean ';' ')'; \
+	else \
+	  echo 'Build tool $(BUILD_TOOL) does not exist.'; \
+		echo 'This is completely normal during "make clean", if you did not take special care to make/preserve it.'; \
+		echo 'In effect, not doing extra cleaning of projects with CastleEngineManifest.xml.'; \
+	fi
 
 # tests ----------------------------------------
 
