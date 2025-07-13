@@ -447,70 +447,70 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab\chicken-rig-b92464211274439b955700e3aa5c321f\license.txt" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab\chicken-rig\license.txt" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab\chicken-rig-b92464211274439b955700e3aa5c321f\</RemoteDir>
+  <RemoteDir>./data/sketchfab\chicken-rig\</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab\chicken-rig-b92464211274439b955700e3aa5c321f\</RemoteDir>
+  <RemoteDir>./data/sketchfab\chicken-rig\</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab\chicken-rig-b92464211274439b955700e3aa5c321f\</RemoteDir>
+  <RemoteDir>./data/sketchfab\chicken-rig\</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab\chicken-rig-b92464211274439b955700e3aa5c321f\scene.bin" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab\chicken-rig\scene.bin" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab\chicken-rig-b92464211274439b955700e3aa5c321f\</RemoteDir>
+  <RemoteDir>./data/sketchfab\chicken-rig\</RemoteDir>
   <RemoteName>scene.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab\chicken-rig-b92464211274439b955700e3aa5c321f\</RemoteDir>
+  <RemoteDir>./data/sketchfab\chicken-rig\</RemoteDir>
   <RemoteName>scene.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab\chicken-rig-b92464211274439b955700e3aa5c321f\</RemoteDir>
+  <RemoteDir>./data/sketchfab\chicken-rig\</RemoteDir>
   <RemoteName>scene.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab\chicken-rig-b92464211274439b955700e3aa5c321f\scene.gltf" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab\chicken-rig\scene.gltf" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab\chicken-rig-b92464211274439b955700e3aa5c321f\</RemoteDir>
+  <RemoteDir>./data/sketchfab\chicken-rig\</RemoteDir>
   <RemoteName>scene.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab\chicken-rig-b92464211274439b955700e3aa5c321f\</RemoteDir>
+  <RemoteDir>./data/sketchfab\chicken-rig\</RemoteDir>
   <RemoteName>scene.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab\chicken-rig-b92464211274439b955700e3aa5c321f\</RemoteDir>
+  <RemoteDir>./data/sketchfab\chicken-rig\</RemoteDir>
   <RemoteName>scene.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab\chicken-rig-b92464211274439b955700e3aa5c321f\textures\Main_baseColor.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab\chicken-rig\textures\Main_baseColor.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab\chicken-rig-b92464211274439b955700e3aa5c321f\textures\</RemoteDir>
+  <RemoteDir>./data/sketchfab\chicken-rig\textures\</RemoteDir>
   <RemoteName>Main_baseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab\chicken-rig-b92464211274439b955700e3aa5c321f\textures\</RemoteDir>
+  <RemoteDir>./data/sketchfab\chicken-rig\textures\</RemoteDir>
   <RemoteName>Main_baseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab\chicken-rig-b92464211274439b955700e3aa5c321f\textures\</RemoteDir>
+  <RemoteDir>./data/sketchfab\chicken-rig\textures\</RemoteDir>
   <RemoteName>Main_baseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -685,70 +685,70 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab\chicken-rig-b92464211274439b955700e3aa5c321f\license.txt" Configuration="Release" Class="File">
+<DeployFile LocalName="data\sketchfab\chicken-rig\license.txt" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab\chicken-rig-b92464211274439b955700e3aa5c321f\</RemoteDir>
+  <RemoteDir>./data/sketchfab\chicken-rig\</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab\chicken-rig-b92464211274439b955700e3aa5c321f\</RemoteDir>
+  <RemoteDir>./data/sketchfab\chicken-rig\</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab\chicken-rig-b92464211274439b955700e3aa5c321f\</RemoteDir>
+  <RemoteDir>./data/sketchfab\chicken-rig\</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab\chicken-rig-b92464211274439b955700e3aa5c321f\scene.bin" Configuration="Release" Class="File">
+<DeployFile LocalName="data\sketchfab\chicken-rig\scene.bin" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab\chicken-rig-b92464211274439b955700e3aa5c321f\</RemoteDir>
+  <RemoteDir>./data/sketchfab\chicken-rig\</RemoteDir>
   <RemoteName>scene.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab\chicken-rig-b92464211274439b955700e3aa5c321f\</RemoteDir>
+  <RemoteDir>./data/sketchfab\chicken-rig\</RemoteDir>
   <RemoteName>scene.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab\chicken-rig-b92464211274439b955700e3aa5c321f\</RemoteDir>
+  <RemoteDir>./data/sketchfab\chicken-rig\</RemoteDir>
   <RemoteName>scene.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab\chicken-rig-b92464211274439b955700e3aa5c321f\scene.gltf" Configuration="Release" Class="File">
+<DeployFile LocalName="data\sketchfab\chicken-rig\scene.gltf" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab\chicken-rig-b92464211274439b955700e3aa5c321f\</RemoteDir>
+  <RemoteDir>./data/sketchfab\chicken-rig\</RemoteDir>
   <RemoteName>scene.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab\chicken-rig-b92464211274439b955700e3aa5c321f\</RemoteDir>
+  <RemoteDir>./data/sketchfab\chicken-rig\</RemoteDir>
   <RemoteName>scene.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab\chicken-rig-b92464211274439b955700e3aa5c321f\</RemoteDir>
+  <RemoteDir>./data/sketchfab\chicken-rig\</RemoteDir>
   <RemoteName>scene.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab\chicken-rig-b92464211274439b955700e3aa5c321f\textures\Main_baseColor.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\sketchfab\chicken-rig\textures\Main_baseColor.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab\chicken-rig-b92464211274439b955700e3aa5c321f\textures\</RemoteDir>
+  <RemoteDir>./data/sketchfab\chicken-rig\textures\</RemoteDir>
   <RemoteName>Main_baseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab\chicken-rig-b92464211274439b955700e3aa5c321f\textures\</RemoteDir>
+  <RemoteDir>./data/sketchfab\chicken-rig\textures\</RemoteDir>
   <RemoteName>Main_baseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab\chicken-rig-b92464211274439b955700e3aa5c321f\textures\</RemoteDir>
+  <RemoteDir>./data/sketchfab\chicken-rig\textures\</RemoteDir>
   <RemoteName>Main_baseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
