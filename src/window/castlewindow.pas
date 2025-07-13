@@ -2622,6 +2622,7 @@ end;
 {$warnings on}
 
 procedure TCastleWindow.OpenCore;
+{$ifndef OpenGLES}
 const
   { Which TAntiAliasing values should cause
     GL_MULTISAMPLE_FILTER_HINT_NV := GL_NICEST.
@@ -2634,6 +2635,7 @@ const
     false, true, // aa8SamplesFaster, aa8SamplesNicer
     false, true // aa16SamplesFaster, aa16SamplesNicer
   );
+{$endif}
 
   procedure RenderLoadingBackground;
   var
