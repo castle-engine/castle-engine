@@ -1,6 +1,6 @@
 {%MainUnit castlevectors.pas}
 {
-  Copyright 2017-2024 Michalis Kamburelis.
+  Copyright 2017-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -636,12 +636,22 @@ type
     procedure SetRows(const ARow: TIndex; const Value: TGenericVector4); {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
     function GetColumns(const AColumn: TIndex): TGenericVector4; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
     procedure SetColumns(const AColumn: TIndex; const Value: TGenericVector4); {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
-    procedure RaisePositionTransformResultInvalid;
-    { Raise ETransformedResultInvalid.
-      Since TGenericMatrix4.MultDirection is time-critical (it is used in TFrustum.Transform
+
+    { Raise ETransformedResultInvalid, with details why the current matrix
+      failed to transform current point or direction.
+      We need detailed info, in case these fail in some edge-cases with random
+      matrix contents.
+
+      These are utility procedures, used by MultPoint and MultDirection.
+      The latter are time-critical (used e.g. by TFrustum.Transform
       which can be a bottleneck, testcase: The Unholy Society),
-      keep it fast. }
+      so keep them fast, so it makes sense to move exception-raising
+      and string-building to separate procedure which needs stackframe.
+
+      @groupBegin }
+    procedure RaisePositionTransformResultInvalid(const Divisor: TGenericScalar);
     procedure RaiseDirectionTransformedResultInvalid(const Divisor: TGenericScalar);
+    { @groupEnd }
   public
     type
       TIndexArray = array[TIndex] of TGenericScalar;
@@ -2297,9 +2307,18 @@ begin
   Result.Data[3, 3] := Data[3, 3];
 end;
 
-procedure TGenericMatrix4.RaisePositionTransformResultInvalid;
+procedure TGenericMatrix4.RaiseDirectionTransformedResultInvalid(const Divisor: TGenericScalar);
 begin
-  raise ETransformedResultInvalid.Create('3D point transformed by 4x4 matrix to a direction');
+  raise ETransformedResultInvalid.Create(Format(
+    '3D direction transformed by 4x4 matrix to a point, with divisor = %f (%g), with matrix:',
+    [Divisor, Divisor]) + NL + ToString);
+end;
+
+procedure TGenericMatrix4.RaisePositionTransformResultInvalid(const Divisor: TGenericScalar);
+begin
+  raise ETransformedResultInvalid.Create(Format(
+    '3D point transformed by 4x4 matrix to a direction, with divisor = %f (%g), with matrix:',
+    [Divisor, Divisor]) + NL + ToString);
 end;
 
 function TGenericMatrix4.MultPoint(const Pt: TGenericVector3): TGenericVector3;
@@ -2343,7 +2362,7 @@ begin
       Data[2, 3] * Pt.Z +
       Data[3, 3];
     if Math.IsZero(Divisor) then
-      RaisePositionTransformResultInvalid;
+      RaisePositionTransformResultInvalid(Divisor);
 
     Divisor := 1 / Divisor;
     Result.X := Result.X * Divisor;
@@ -2365,13 +2384,6 @@ begin
 
   Result.X := Res3D.X;
   Result.Y := Res3D.Y;
-end;
-
-procedure TGenericMatrix4.RaiseDirectionTransformedResultInvalid(const Divisor: TGenericScalar);
-begin
-  raise ETransformedResultInvalid.Create(Format(
-    '3D direction transformed by 4x4 matrix to a point, with divisor = %f (%g), with matrix:',
-    [Divisor, Divisor]) + NL + ToString);
 end;
 
 function TGenericMatrix4.MultDirection(const Dir: TGenericVector3): TGenericVector3;
