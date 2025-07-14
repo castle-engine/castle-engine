@@ -2375,19 +2375,23 @@ const
     { amMask -> } acTest,
     { amBlend -> } acBlending
   );
+var
+  App: TAppearanceNode;
 begin
   { Check whether Appearance.alphaMode or alphaChannel field is set to something <> "AUTO".
     This is the simplest option, in which we don't need to run our "auto detection"
     below. }
-  if (State.ShapeNode <> nil) and
-     (State.ShapeNode.Appearance <> nil) and
-     (State.ShapeNode.Appearance.AlphaMode <> amAuto) then
-    Exit(AlphaModeToChannel[State.ShapeNode.Appearance.AlphaMode]);
-
-  if (State.ShapeNode <> nil) and
-     (State.ShapeNode.Appearance <> nil) and
-     (State.ShapeNode.Appearance.AlphaChannel <> acAuto) then
-    Exit(State.ShapeNode.Appearance.AlphaChannel);
+  if State.ShapeNode <> nil then
+  begin
+    App := State.ShapeNode.Appearance;
+    if App <> nil then
+    begin
+      if App.AlphaMode <> amAuto then
+        Exit(AlphaModeToChannel[App.AlphaMode]);
+      if App.AlphaChannel <> acAuto then
+        Exit(App.AlphaChannel);
+    end;
+  end;
 
   if DetectAlphaBlending then
     Exit(acBlending)
