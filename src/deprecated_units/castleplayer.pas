@@ -108,21 +108,11 @@ type
       SwimLastSoundTime: Single;
       FSwimming: TPlayerSwimming;
 
-      { Did last @link(Update) detected that we're on toxic ground? }
-      IsToxic: boolean;
-      { Relevant if IsToxic, this is LifeTime when
-        last time toxic damage was done. When player steps on toxic for the
-        first time, he immediately gets damage, so ToxicLastDamageTime is
-        always valid when IsToxic. }
-      ToxicLastDamageTime: Single;
-
       SwimmingChangePlayingSound: TCastlePlayingSound;
       SwimmingPlayingSound: TCastlePlayingSound;
 
       { Did last @link(Update) detected that we are on the ground. }
       IsOnTheGround: boolean;
-      { <> @nil if IsOnTheGround and last ground had some TMaterialProperty. }
-      GroundProperty: TMaterialProperty;
       ReallyIsOnTheGroundTime: Single;
 
       FootstepsPlayingSound: TCastlePlayingSound;
@@ -1052,100 +1042,11 @@ procedure TPlayer.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType)
     begin
       ReallyIsOnTheGroundTime := LifeTime;
       IsOnTheGround := true;
-      if Ground <> nil then
-        GroundProperty := Ground^.Shape.InternalMaterialProperty
-      else
-        GroundProperty := nil;
     end else
     if LifeTime - ReallyIsOnTheGroundTime > TimeToChangeIsOnTheGround then
     begin
-      GroundProperty := nil;
       IsOnTheGround := false;
-    end; { else leave GroundProperty and IsOnTheGround unchanged. }
-  end;
-
-  { Update IsToxic and related variables, hurt player if on toxic.
-    Must be called after UpdateIsOnTheGround (depends on GroundProperty). }
-  procedure UpdateToxic;
-  var
-    NewIsToxic: boolean;
-  begin
-    {$warnings off} // using deprecated material props in deprecated CastlePlayer
-    NewIsToxic := (GroundProperty <> nil) and GroundProperty.Toxic;
-    if NewIsToxic then
-    begin
-      if (not IsToxic) or
-         (LifeTime - ToxicLastDamageTime > GroundProperty.ToxicDamageTime) then
-      begin
-        ToxicLastDamageTime := LifeTime;
-        if not Dead then
-        begin
-          SoundEngine.Play(stPlayerToxicPain);
-          SetLifeCustomFadeOut(Life - (GroundProperty.ToxicDamageConst +
-            Random * GroundProperty.ToxicDamageRandom), Green);
-        end;
-      end;
-    end;
-    IsToxic := NewIsToxic;
-    {$warnings on}
-  end;
-
-  { Update FootstepsSound and related variables.
-    Must be called after UpdateIsOnTheGround (depends on GroundProperty). }
-  procedure UpdateFootstepsSound;
-  const
-    TimeToChangeFootstepsSound = 0.5;
-  var
-    NewFootstepsSound: TCastleSound;
-  begin
-    { The meaning of ReallyWalkingOnTheGroundTime and
-      TimeToChangeFootstepsSound:
-      WalkNavigation.IsWalkingOnTheGround can change quite rapidly
-      (when player quickly presses and releases up/down keys,
-      or when he're walking up the stairs, or when he's walking
-      on un-flat terrain --- then WalkNavigation.IsWalkingOnTheGround
-      switches between @true and @false quite often).
-      But it is undesirable to change FootstepsSound
-      so often, as this causes footsteps to suddenly stop, then play,
-      then stop again etc. --- this doesn't sound good.
-
-      So I use ReallyWalkingOnTheGroundTime to mark myself
-      the time when WalkNavigation.IsWalkingOnTheGround was true.
-      In normal situation I would set NewFootstepsSound to nil
-      when WalkNavigation.IsWalkingOnTheGround = @false.
-      But now I set NewFootstepsSound to nil only if
-      WalkNavigation.IsWalkingOnTheGround = @false
-      for at least TimeToChangeFootstepsSound seconds. }
-
-    { calculate NewFootstepsSound }
-    if WalkNavigation.IsWalkingOnTheGround then
-    begin
-      ReallyWalkingOnTheGroundTime := LifeTime;
-      { Since WalkNavigation.IsWalkingOnTheGroundm then for sure
-        WalkNavigation.IsOnTheGround, so UpdateIsOnTheGround updated
-        GroundProperty field. }
-      {$warnings off} // just to keep deprecated working
-      if (GroundProperty <> nil) and
-         (GroundProperty.FootstepsSound <> nil) then
-        NewFootstepsSound := GroundProperty.FootstepsSound
-      else
-        NewFootstepsSound := stPlayerFootstepsDefault;
-      {$warnings on}
-    end else
-    if LifeTime - ReallyWalkingOnTheGroundTime >
-      TimeToChangeFootstepsSound then
-      NewFootstepsSound := nil
-    else
-      NewFootstepsSound := FootstepsSound;
-
-    if FootstepsSound <> NewFootstepsSound then
-    begin
-      FootstepsPlayingSound.Stop;
-      FootstepsPlayingSound.Sound := NewFootstepsSound;
-      if NewFootstepsSound <> nil then
-        SoundEngine.Play(FootstepsPlayingSound);
-      FootstepsSound := NewFootstepsSound;
-    end;
+    end; { else leave IsOnTheGround unchanged. }
   end;
 
 const
@@ -1182,8 +1083,6 @@ begin
     FEquippedWeaponResourceFrame.Exists := false;
 
   UpdateIsOnTheGround;
-  UpdateToxic;
-  UpdateFootstepsSound;
 
   FDebugTransform.Exists := RenderDebug;
 end;
@@ -1353,9 +1252,6 @@ begin
 
   ReallyIsOnTheGroundTime := -1000;
   IsOnTheGround := false;
-  GroundProperty := nil;
-
-  IsToxic := false;
 end;
 
 function TPlayer.Ground: PTriangle;

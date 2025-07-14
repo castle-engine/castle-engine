@@ -1467,14 +1467,16 @@ type
       we do full head bobbing sequence (camera swing up, then down again).
 
       Note that if you do a footsteps sound in your game (see
-      stPlayerFootstepsDefault or TMaterialProperty.FootstepsSound)
+      e.g. @url(https://castle-engine.io/behaviors#_example_controlling_the_footsteps_sound
+      Example: controlling the footsteps sound))
       then you will want this property to match your footsteps sound length,
-      things feel and sound natural then.
-      Also, often it sounds better to record two footsteps inside
+      to sound natural.
+
+      Note: Often it sounds better to record two footsteps inside
       a single sound file, in which case the footstep sound length should be twice
       as long as this property. For example, record 2 steps inside a 1-second long
-      footstep sound, and set this property to 0.5 a second (which is a default
-      in fact). }
+      footstep sound, and set this property to 0.5 a second (which happens to be
+      a default). }
     property HeadBobbingTime: Single
       read FHeadBobbingTime write FHeadBobbingTime
       {$ifdef FPC}default DefaultHeadBobbingTime{$endif};
