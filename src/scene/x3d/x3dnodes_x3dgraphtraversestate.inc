@@ -495,7 +495,10 @@ begin
     Result := Mi.MainTexture(Appearance, VRML1State,
       GeometryForTexCoord, TexCoordIndex)
   else
+  begin
     Result := nil;
+    TexCoordIndex := -1; // make it defined -1 in this case
+  end;
 end;
 
 function TX3DGraphTraverseState.BlendMode: TBlendModeNode;
