@@ -1547,11 +1547,11 @@ begin
     if AState.ShapeNode <> nil then
     begin
       AssociateNode(AState.ShapeNode);
-      if AState.ShapeNode.Appearance <> nil then
+      if AState.Appearance <> nil then
       begin
-        AssociateNode(AState.ShapeNode.Appearance);
-        if AState.ShapeNode.Appearance.Material <> nil then
-          AssociateNode(AState.ShapeNode.Appearance.Material);
+        AssociateNode(AState.Appearance);
+        if AState.Appearance.Material <> nil then
+          AssociateNode(AState.Appearance.Material);
       end;
     end;
     if AState.ClipPlanes <> nil then
@@ -1597,11 +1597,11 @@ begin
     if AState.ShapeNode <> nil then
     begin
       UnAssociateNode(AState.ShapeNode);
-      if AState.ShapeNode.Appearance <> nil then
+      if AState.Appearance <> nil then
       begin
-        UnAssociateNode(AState.ShapeNode.Appearance);
-        if AState.ShapeNode.Appearance.Material <> nil then
-          UnAssociateNode(AState.ShapeNode.Appearance.Material);
+        UnAssociateNode(AState.Appearance);
+        if AState.Appearance.Material <> nil then
+          UnAssociateNode(AState.Appearance.Material);
       end;
     end;
     if AState.ClipPlanes <> nil then
@@ -1780,13 +1780,10 @@ var
 
     { we need at least 1 texture coordinate if some special texture
       (not necessarily diffuse texture) is used }
-    if (S.ShapeNode <> nil) and
-       (S.ShapeNode.Appearance <> nil) then
+    if S.Appearance <> nil then
     begin
       // CommonSurfaceShader can only be non-nil if Appearance is non-nil
-      {$warnings off} // using deprecated to keep backward compatibility
-      SurfaceShader := S.ShapeNode.CommonSurfaceShader;
-      {$warnings on}
+      SurfaceShader := S.Appearance.InternalCommonSurfaceShader;
       if SurfaceShader <> nil then
       begin
         if SurfaceShader.MultiDiffuseAlphaTexture <> nil then
@@ -1803,19 +1800,19 @@ var
           MaxVar(Result, SurfaceShader.ShininessTextureCoordinatesId + 1);
       end else
       begin
-        if S.ShapeNode.Appearance.NormalMap <> nil then
+        if S.Appearance.NormalMap <> nil then
           MaxVar(Result, 1);
-        if S.ShapeNode.Appearance.Material is TAbstractOneSidedMaterialNode then
+        if S.Appearance.Material is TAbstractOneSidedMaterialNode then
         begin
-          MatOne := TAbstractOneSidedMaterialNode(S.ShapeNode.Appearance.Material);
+          MatOne := TAbstractOneSidedMaterialNode(S.Appearance.Material);
           if MatOne.EmissiveTexture <> nil then
             TexCoordsNeededForMapping(Result, MatOne.EmissiveTextureMapping);
           if MatOne.NormalTexture <> nil then
             TexCoordsNeededForMapping(Result, MatOne.NormalTextureMapping);
         end;
-        if S.ShapeNode.Appearance.Material is TMaterialNode then
+        if S.Appearance.Material is TMaterialNode then
         begin
-          MatPhong := TMaterialNode(S.ShapeNode.Appearance.Material);
+          MatPhong := TMaterialNode(S.Appearance.Material);
           if MatPhong.AmbientTexture <> nil then
             TexCoordsNeededForMapping(Result, MatPhong.AmbientTextureMapping);
           if MatPhong.DiffuseTexture <> nil then
@@ -1827,9 +1824,9 @@ var
           if MatPhong.OcclusionTexture <> nil then
             TexCoordsNeededForMapping(Result, MatPhong.OcclusionTextureMapping);
         end;
-        if S.ShapeNode.Appearance.Material is TPhysicalMaterialNode then
+        if S.Appearance.Material is TPhysicalMaterialNode then
         begin
-          MatPhysical := TPhysicalMaterialNode(S.ShapeNode.Appearance.Material);
+          MatPhysical := TPhysicalMaterialNode(S.Appearance.Material);
           if MatPhysical.BaseTexture <> nil then
             TexCoordsNeededForMapping(Result, MatPhysical.BaseTextureMapping);
           if MatPhysical.MetallicRoughnessTexture <> nil then
@@ -2374,16 +2371,13 @@ begin
   { Check whether Appearance.alphaMode or alphaChannel field is set to something <> "AUTO".
     This is the simplest option, in which we don't need to run our "auto detection"
     below. }
-  if State.ShapeNode <> nil then
+  App := State.Appearance;
+  if App <> nil then
   begin
-    App := State.ShapeNode.Appearance;
-    if App <> nil then
-    begin
-      if App.AlphaMode <> amAuto then
-        Exit(AlphaModeToChannel[App.AlphaMode]);
-      if App.AlphaChannel <> acAuto then
-        Exit(App.AlphaChannel);
-    end;
+    if App.AlphaMode <> amAuto then
+      Exit(AlphaModeToChannel[App.AlphaMode]);
+    if App.AlphaChannel <> acAuto then
+      Exit(App.AlphaChannel);
   end;
 
   if DetectAlphaBlending then
@@ -2796,11 +2790,9 @@ begin
   Result := HandleTextureNode(State.VRML1State.Texture2);
   if Result <> nil then Exit;
 
-  if (State.ShapeNode <> nil) and
-     (State.ShapeNode.Appearance <> nil) then
+  App := State.Appearance;
+  if App <> nil then
   begin
-    App := State.ShapeNode.Appearance;
-
     if App.FdMaterial.Value is TAbstractOneSidedMaterialNode then
     begin
       Result := HandleOneSidedMaterial(TAbstractOneSidedMaterialNode(App.FdMaterial.Value));
@@ -2828,10 +2820,7 @@ begin
     HandleIDecls(App.FdShaders);
     HandleIDecls(App.FdEffects);
 
-    { CommonSurfaceShader can be non-nil only when App is non-nil }
-    {$warnings off} // using deprecated to keep backward compatibility
-    SurfaceShader := State.ShapeNode.CommonSurfaceShader;
-    {$warnings on}
+    SurfaceShader := App.InternalCommonSurfaceShader;
     if SurfaceShader <> nil then
     begin
       HandleCommonSurfaceShader(SurfaceShader);

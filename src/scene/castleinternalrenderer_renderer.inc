@@ -871,9 +871,8 @@ begin
   State := Shape.State;
 
   if (State.ShapeNode = nil { VRML 1.0, always some texture transform }) or
-     ( (State.ShapeNode <> nil) and
-       (State.ShapeNode.Appearance <> nil) and
-       (State.ShapeNode.Appearance.TextureTransform <> nil { VRML 2.0 with tex transform })
+     ( (State.Appearance <> nil) and
+       (State.Appearance.TextureTransform <> nil { VRML 2.0 with tex transform })
      ) then
   begin
     {$ifndef OpenGLES}
@@ -926,9 +925,9 @@ begin
     begin
       // conditions above should have already checked this, we have some texture transform
       Assert(State.ShapeNode <> nil);
-      Assert(State.ShapeNode.Appearance <> nil);
-      Assert(State.ShapeNode.Appearance.TextureTransform <> nil);
-      TextureTransform := State.ShapeNode.Appearance.TextureTransform;
+      Assert(State.Appearance <> nil);
+      Assert(State.Appearance.TextureTransform <> nil);
+      TextureTransform := State.Appearance.TextureTransform;
       if TextureTransform <> nil then
       begin
         if TextureTransform is TMultiTextureTransformNode then

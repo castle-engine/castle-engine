@@ -111,11 +111,6 @@
       read GetLineProperties write SetLineProperties;
       {$ifdef FPC}deprecated 'create and assign TLinePropertiesNode instance explicitly, then set Appearance.LineProperties';{$endif}
 
-    { Find a suitable CommonSurfaceShader to be used when rendering this shape,
-      or @nil. }
-    function CommonSurfaceShader: TCommonSurfaceShaderNode;
-      deprecated 'use TMaterialNode instead of TCommonSurfaceShaderNode (it has the same functionality and is standardized in X3D v4)';
-
     { Whether the shape was (potentially, at least partially) visible in the last rendering event.
 
       Note that the same shape reference may be present multiple times
@@ -147,10 +142,12 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     { Find a suitable CommonSurfaceShader to be used when rendering this shape,
-      or @nil. }
-    function CommonSurfaceShader: TCommonSurfaceShaderNode;
-      deprecated 'use TMaterialNode instead of TCommonSurfaceShaderNode (it has the same functionality and is standardized in X3D v4)';
-
+      or @nil. This is only maintaned for backward compatibility,
+      the whole TCommonSurfaceShaderNode is deprecated: new X3D 4 material nodes,
+      including enhanced TMaterialNode, cover all the features of
+      TCommonSurfaceShaderNode.
+      @exclude }
+    function InternalCommonSurfaceShader: TCommonSurfaceShaderNode;
   {$I auto_generated_node_helpers/x3dnodes_appearance.inc}
   end;
 
@@ -541,19 +538,6 @@ begin
     Result := nil;
 end;
 
-function TAbstractShapeNode.CommonSurfaceShader: TCommonSurfaceShaderNode;
-var
-  App: TAppearanceNode;
-begin
-  App := Appearance;
-  if App <> nil then
-    {$warnings off} // using deprecated in deprecated
-    Result := App.CommonSurfaceShader
-    {$warnings on}
-  else
-    Result := nil;
-end;
-
 procedure TAbstractShapeNode.SetMaterial(const Value: TAbstractMaterialNode);
 var
   App: TAppearanceNode;
@@ -686,7 +670,7 @@ begin
   if Result <> nil then Exit;
 end;
 
-function TAppearanceNode.CommonSurfaceShader: TCommonSurfaceShaderNode;
+function TAppearanceNode.InternalCommonSurfaceShader: TCommonSurfaceShaderNode;
 var
   I: Integer;
   Shader: TX3DNode;

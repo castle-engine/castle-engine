@@ -514,22 +514,23 @@ begin
   Result := nil;
   if ShapeNode <> nil then
   begin
-    if ShapeNode.Appearance <> nil then
+    if Appearance <> nil then
     begin
-      {$warnings off} // using deprecated to keep backward compatibility
-      SurfaceShader := ShapeNode.Appearance.CommonSurfaceShader;
-      {$warnings on}
+      SurfaceShader := Appearance.InternalCommonSurfaceShader;
       if SurfaceShader <> nil then
         Result := SurfaceShader.MaterialInfo
       else
       begin
-        Mat := ShapeNode.Appearance.Material;
+        Mat := Appearance.Material;
         if Mat <> nil then
           Result := Mat.MaterialInfo
         else
           Result := nil;
       end;
     end;
+    { Note: When ShapeNode <> nil but Appearance = nil
+      -> then we're in X3D (or VRML 2.0) and Shape.apperance is not specified.
+      So return nil, not VRML1 info. }
   end else
     Result := VRML1State.Material.MaterialInfo;
 end;
