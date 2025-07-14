@@ -124,6 +124,10 @@ type
     MouseDraggingStarted: Integer;
     MouseDraggingStart: TVector2;
 
+    { Box around which the Examine navigation should work.
+      Note that calling this has sometimes non-trivial cost,
+      needs to iterate over items,
+      so save the result to a variable if you need to use it multiple times. }
     function GoodModelBox: TBox3D;
 
     { Viewport we should manipulate.
@@ -1820,7 +1824,7 @@ begin
     Note: We use Items.BoundingBox, not (private) ItemsBoundingBox
     that avoids adding gizmos to bbox.
     Right now it doesn't matter (as we don't need this box to be precise,
-    we dont' zoom to box center) so it's better to use Items.BoundingBox
+    we don't zoom to box center) so it's better to use Items.BoundingBox
     and keep ItemsBoundingBox private.
   }
   if ModelBox.IsEmpty and
@@ -2221,10 +2225,7 @@ begin
 
   if HandleInput and (niNormal in UsingInput) then
   begin
-    if GoodModelBox.IsEmptyOrZero then
-      MoveChange := KeysMoveSpeed * SecondsPassed
-    else
-      MoveChange := KeysMoveSpeed * GoodModelBox.AverageSize * SecondsPassed;
+    MoveChange := KeysMoveSpeed * GoodModelBox.AverageSize(false, 1.0) * SecondsPassed;
 
     ModsDown := ModifiersDown(Container.Pressed);
 
@@ -2313,13 +2314,15 @@ function TCastleExamineNavigation.SensorTranslation(const X, Y, Z, Length: Doubl
 var
   Size: Single;
   MoveSize: Double;
+  Box: TBox3D;
 begin
   if not (ni3dMouse in UsingInput) then Exit(false);
   if not MoveEnabled then Exit(false);
-  if GoodModelBox.IsEmptyOrZero then Exit(false);
+  Box := GoodModelBox;
+  if Box.IsEmptyOrZero then Exit(false);
   Result := true;
 
-  Size := GoodModelBox.AverageSize;
+  Size := Box.AverageSize;
   MoveSize := Length * SecondsPassed / 5000;
 
   if Abs(X) > 5 then   { left / right }
@@ -2680,6 +2683,7 @@ const
 var
   Recognizer: TCastlePinchPanGestureRecognizer;
   Factor, Size, MoveDivConst, ZoomScale: Single;
+  Box: TBox3D;
 begin
   Recognizer := Sender as TCastlePinchPanGestureRecognizer;
   if Recognizer = nil then Exit;
@@ -2701,13 +2705,17 @@ begin
     Zoom(PinchZoomSpeed * Factor * ZoomScale);
   end;
 
-  if MoveEnabled and (not GoodModelBox.IsEmpty) and (Recognizer.Gesture = gtPan) then
+  if MoveEnabled and (Recognizer.Gesture = gtPan) then
   begin
-    Size := GoodModelBox.AverageSize;
-    Translation := Translation - Vector3(
-      DragMoveSpeed * Size * Recognizer.PanMove.X / (2 * MoveDivConst),
-      DragMoveSpeed * Size * Recognizer.PanMove.Y / (2 * MoveDivConst),
-      0);
+    Box := GoodModelBox;
+    if not Box.IsEmptyOrZero then
+    begin
+      Size := Box.AverageSize;
+      Translation := Translation - Vector3(
+        DragMoveSpeed * Size * Recognizer.PanMove.X / (2 * MoveDivConst),
+        DragMoveSpeed * Size * Recognizer.PanMove.Y / (2 * MoveDivConst),
+        0);
+    end;
   end;
 end;
 
