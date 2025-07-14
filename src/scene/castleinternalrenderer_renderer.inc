@@ -1349,6 +1349,10 @@ procedure TRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
     { assert we never have non-nil TextureRes and nil TextureNode }
     Assert((TextureRes = nil) or (TextureNode <> nil));
 
+    // MainTextureMapping cannot be < -1
+    //Check(MainTextureMapping >= -1); // check even in -dRELEASE
+    Assert(MainTextureMapping >= -1);
+
     Shader.MainTextureMapping := MainTextureMapping;
 
     FontTextureNode := Shape.OriginalGeometry.FontTextureNode;
