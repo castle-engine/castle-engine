@@ -1039,7 +1039,7 @@ type
     property Current: TShape read FCurrent;
   end deprecated{ 'use Tree.TraverseList(...)'};
 
-  TShapeList = class({$ifdef FPC}specialize{$endif} TObjectList<TShape>)
+  TShapeList = class({$ifdef FPC}specialize{$endif} TCastleFastList<TShape>)
   private
     { Like regular Add, but parameter is "const" to satisfy TShapeTraverseFunc signature. }
     procedure AddConst(const S: TShape);
@@ -1368,7 +1368,7 @@ var
       Note that we use MaxShapesCount instead of ShapesCount,
       since MaxShapesCount is usually instant, while ShapesCount...
       now ShapesCount depends on TraverseList, so it would cause infinite loop. }
-    Result.Capacity := MaxShapesCount;
+    Result.AllocateAtLeast(MaxShapesCount);
     TraverseCore({$ifdef FPC}@{$endif} Result.AddConst, OnlyActive, OnlyVisible, OnlyCollidable);
     CachedChildrenListHash[OnlyActive, OnlyVisible, OnlyCollidable] := CurrentShapesHash;
     CachedChildrenList[OnlyActive, OnlyVisible, OnlyCollidable] := Result;
@@ -3773,18 +3773,18 @@ end;
 
 constructor TShapeList.Create;
 begin
-  inherited Create(false);
+  inherited Create;
 end;
 
 constructor TShapeList.Create(const Tree: TShapeTree;
   const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
 begin
   Create;
-  { Set Capacity, to make following operations faster.
+  { Allocate some Capacity, to make following operations faster.
     Note that we use MaxShapesCount instead of ShapesCount,
     since MaxShapesCount is usually instant.
     Testcase of speedup: e.g. profiling animate_3d_model_by_code_2. }
-  Capacity := Tree.MaxShapesCount;
+  AllocateAtLeast(Tree.MaxShapesCount);
   { This method uses Tree.Traverse that uses Tree.TraverseList that creates a list,
     iterates over it, and here we add results to another list...
     This is clearly a waste of time. That's why this method is deprecated. }
