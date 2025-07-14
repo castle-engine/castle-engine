@@ -343,6 +343,12 @@ type
         procedure SetTranslation(const Value: TVector3);
         procedure SetRotations(const Value: TQuaternion);
       public
+        { Calculated TCastleExamineNavigation.EffectiveCenterOfRotation
+          at the time of getting these vectors, to avoid calculating it again
+          when setting. Calculating it relies on viewport bounding box,
+          so it's not always cheap. }
+        EffectiveCenterOfRotation: TVector3;
+
         property Translation: TVector3 read FTranslation write SetTranslation;
         property Rotations: TQuaternion read FRotations write SetRotations;
 
@@ -2107,6 +2113,8 @@ begin
   Result.Translation := -APos;
   Result.Rotations := OrientationQuaternionFromDirectionUp(ADir, AUp).Conjugate;
 
+  Result.EffectiveCenterOfRotation := EffectiveCenterOfRotation;
+
   { We have to fix our Translation, since our TCastleExamineNavigation.Matrix
     applies our move *first* before applying rotation
     (and this is good, as it allows rotating around object center,
@@ -2119,8 +2127,9 @@ begin
     We also note at this point that rotation is done around
     (Translation + EffectiveCenterOfRotation). But EffectiveCenterOfRotation is not
     included in Translation. }
-  Result.Translation := Result.Rotations.Rotate(Result.Translation + EffectiveCenterOfRotation)
-    - EffectiveCenterOfRotation;
+  Result.Translation :=
+    Result.Rotations.Rotate(Result.Translation + Result.EffectiveCenterOfRotation)
+    - Result.EffectiveCenterOfRotation;
 end;
 
 procedure TCastleExamineNavigation.SetExamineVectors(const Value: TExamineVectors);
@@ -2128,9 +2137,9 @@ var
   MInverse: TMatrix4;
 begin
   MInverse :=
-    TranslationMatrix(EffectiveCenterOfRotation) *
+    TranslationMatrix(Value.EffectiveCenterOfRotation) *
     Value.Rotations.Conjugate.ToRotationMatrix *
-    TranslationMatrix(-(Value.Translation + EffectiveCenterOfRotation));
+    TranslationMatrix(-(Value.Translation + Value.EffectiveCenterOfRotation));
 
   { These MultPoint/Direction should never fail with ETransformedResultInvalid.
     That's because M is composed from translations, rotations, scaling,
