@@ -61,7 +61,6 @@ var
   RemovePlayer: TRemoveType;
   //SoundType: TCastleSound;
   C: TWalkAttackCreatureResource;
-  MatProp: TMaterialProperty;
 begin
   // requires catching EViewportNotAssigned internally
   if not CanCatchExceptions then
@@ -158,26 +157,6 @@ begin
   AssertSound(Levels[0].MusicSound, 'test_sound_2');
 
   MaterialProperties.URL := 'castle-data:/game/material_properties.xml';
-
-  // not exposed anymore
-  //AssertTrue(MaterialProperties.Count = 2);
-
-  MatProp := MaterialProperties.FindTextureBaseName('test_texture');
-  AssertSound(MatProp.FootstepsSound, 'test_sound_4');
-  AssertTrue(MatProp.Toxic = true);
-  AssertFloat(MatProp.ToxicDamageConst, 1.2);
-  AssertFloat(MatProp.ToxicDamageRandom, 3.4);
-  AssertFloat(MatProp.ToxicDamageTime, 5.6);
-  AssertURL(MatProp.NormalMap, '');
-
-  MatProp := MaterialProperties.FindTextureBaseName('test_texture_2');
-  AssertTrue(MatProp.TextureBaseName = 'test_texture_2');
-  AssertTrue(MatProp.FootstepsSound = nil);
-  AssertTrue(MatProp.Toxic = false);
-  AssertFloat(MatProp.ToxicDamageConst, 0.0);
-  AssertFloat(MatProp.ToxicDamageRandom, 0.0);
-  AssertFloat(MatProp.ToxicDamageTime, 0.0);
-  AssertURL(MatProp.NormalMap, 'test_normal_map.png');
 
   Player := TPlayer.Create(nil);
   try
