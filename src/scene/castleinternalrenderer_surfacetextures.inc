@@ -76,53 +76,56 @@ var
   MatOne: TAbstractOneSidedMaterialNode;
   MatPhong: TMaterialNode;
   MatPhysical: TPhysicalMaterialNode;
+  App: TAppearanceNode;
 begin
   Result := false;
   if Shape.Node <> nil then
   begin
-    {$warnings off} // using deprecated to keep backward compatibility
-    SurfaceShader := Shape.Node.CommonSurfaceShader;
-    {$warnings on}
-    if SurfaceShader <> nil then
+    App := Shape.Node.Appearance;
+    if App <> nil then
     begin
-      Result :=
-        (SurfaceShader.AmbientTexture <> nil) or
-        (SurfaceShader.EmissiveTexture <> nil) or
-        (SurfaceShader.NormalTexture <> nil) or
-        (SurfaceShader.ShininessTexture <> nil) or
-        (SurfaceShader.SpecularTexture <> nil);
-    end else
-    if Shape.Node.Appearance <> nil then
-    begin
-      if Shape.Node.Appearance.NormalMap <> nil then
-        Exit(true);
-
-      if Shape.Node.Appearance.Material is TAbstractOneSidedMaterialNode then
+      SurfaceShader := App.InternalCommonSurfaceShader;
+      if SurfaceShader <> nil then
       begin
-        MatOne := TAbstractOneSidedMaterialNode(Shape.Node.Appearance.Material);
-        if (MatOne.EmissiveTexture <> nil) or
-           (MatOne.NormalTexture <> nil) then
-          Exit(true);
-      end;
-
-      if Shape.Node.Appearance.Material is TMaterialNode then
+        Result :=
+          (SurfaceShader.AmbientTexture <> nil) or
+          (SurfaceShader.EmissiveTexture <> nil) or
+          (SurfaceShader.NormalTexture <> nil) or
+          (SurfaceShader.ShininessTexture <> nil) or
+          (SurfaceShader.SpecularTexture <> nil);
+      end else
+      if App <> nil then
       begin
-        MatPhong := TMaterialNode(Shape.Node.Appearance.Material);
-        if (MatPhong.AmbientTexture <> nil) or
-           // (MatPhong.DiffuseTexture <> nil) or // this is OK for Gouraud shading
-           (MatPhong.ShininessTexture <> nil) or
-           (MatPhong.SpecularTexture <> nil) or
-           (MatPhong.OcclusionTexture <> nil) then
+        if App.NormalMap <> nil then
           Exit(true);
-      end;
 
-      if Shape.Node.Appearance.Material is TPhysicalMaterialNode then
-      begin
-        MatPhysical := TPhysicalMaterialNode(Shape.Node.Appearance.Material);
-        if // (MatPhysical.BaseTexture <> nil) or // this is OK for Gouraud shading? Actually PhysicalMaterial always requires Phong shading anyway.
-           (MatPhysical.MetallicRoughnessTexture <> nil) or
-           (MatPhysical.OcclusionTexture <> nil) then
-          Exit(true);
+        if App.Material is TAbstractOneSidedMaterialNode then
+        begin
+          MatOne := TAbstractOneSidedMaterialNode(App.Material);
+          if (MatOne.EmissiveTexture <> nil) or
+            (MatOne.NormalTexture <> nil) then
+            Exit(true);
+        end;
+
+        if App.Material is TMaterialNode then
+        begin
+          MatPhong := TMaterialNode(App.Material);
+          if (MatPhong.AmbientTexture <> nil) or
+            // (MatPhong.DiffuseTexture <> nil) or // this is OK for Gouraud shading
+            (MatPhong.ShininessTexture <> nil) or
+            (MatPhong.SpecularTexture <> nil) or
+            (MatPhong.OcclusionTexture <> nil) then
+            Exit(true);
+        end;
+
+        if App.Material is TPhysicalMaterialNode then
+        begin
+          MatPhysical := TPhysicalMaterialNode(App.Material);
+          if // (MatPhysical.BaseTexture <> nil) or // this is OK for Gouraud shading? Actually PhysicalMaterial always requires Phong shading anyway.
+            (MatPhysical.MetallicRoughnessTexture <> nil) or
+            (MatPhysical.OcclusionTexture <> nil) then
+            Exit(true);
+        end;
       end;
     end;
   end;
@@ -175,11 +178,10 @@ var
   Appearance: TAppearanceNode;
   TexCoordIndex: Integer;
 begin
-  if Shape.State.ShapeNode <> nil then
+  Appearance := Shape.State.Appearance;
+  if Appearance <> nil then
   begin
-    {$warnings off} // using deprecated to keep backward compatibility
-    SurfaceShader := Shape.State.ShapeNode.CommonSurfaceShader;
-    {$warnings on}
+    SurfaceShader := Appearance.InternalCommonSurfaceShader;
     if SurfaceShader <> nil then
     begin
       Enable(
@@ -188,9 +190,7 @@ begin
         1,
         SurfaceShader.NormalTextureParallaxHeight);
     end else
-    if Shape.State.ShapeNode.Appearance <> nil then
     begin
-      Appearance := Shape.State.ShapeNode.Appearance;
       Mat := Appearance.Material;
       if (Mat is TAbstractOneSidedMaterialNode) and
          (TAbstractOneSidedMaterialNode(Mat).NormalTexture <> nil) then
@@ -358,17 +358,17 @@ procedure TRenderer.SurfaceTexturesEnable(const Shape: TX3DRendererShape;
   end;
 
 var
+  App: TAppearanceNode;
   SurfaceShader: TCommonSurfaceShaderNode;
   Material: TAbstractMaterialNode;
   MatPhong: TMaterialNode;
   MatPhysical: TPhysicalMaterialNode;
   MatUnlit: TUnlitMaterialNode;
 begin
-  if Shape.State.ShapeNode <> nil then
+  App := Shape.State.Appearance;
+  if App <> nil then
   begin
-    {$warnings off} // using deprecated to keep backward compatibility
-    SurfaceShader := Shape.State.ShapeNode.CommonSurfaceShader;
-    {$warnings on}
+    SurfaceShader := App.InternalCommonSurfaceShader;
     if SurfaceShader <> nil then
     begin
       EmissiveTextureEnable(
@@ -394,10 +394,7 @@ begin
         RequireTexCoord(SurfaceShader.DiffuseTextureCoordinatesId); // TODO test X3DOM/InstantReality are they using DiffuseTextureCoordinatesId in this case
     end else
     begin
-      if Shape.State.ShapeNode.Appearance <> nil then
-        Material := Shape.State.ShapeNode.Appearance.Material
-      else
-        Material := nil;
+      Material := App.Material;
       if Material is TMaterialNode then // also checks Material <> nil
       begin
         MatPhong := TMaterialNode(Material);
