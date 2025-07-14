@@ -1547,11 +1547,14 @@ begin
     if AState.ShapeNode <> nil then
     begin
       AssociateNode(AState.ShapeNode);
-      if AState.Appearance <> nil then
+      { TODO: replacing here and in unassociate the State.ShapeNode.Appearance
+        ->State.Appearance causes crashes in auto-tests.
+        Investigate, explain, possibly improve State.Appearance? }
+      if AState.ShapeNode.Appearance <> nil then
       begin
-        AssociateNode(AState.Appearance);
-        if AState.Appearance.Material <> nil then
-          AssociateNode(AState.Appearance.Material);
+        AssociateNode(AState.ShapeNode.Appearance);
+        if AState.ShapeNode.Appearance.Material <> nil then
+          AssociateNode(AState.ShapeNode.Appearance.Material);
       end;
     end;
     if AState.ClipPlanes <> nil then
@@ -1597,11 +1600,11 @@ begin
     if AState.ShapeNode <> nil then
     begin
       UnAssociateNode(AState.ShapeNode);
-      if AState.Appearance <> nil then
+      if AState.ShapeNode.Appearance <> nil then
       begin
-        UnAssociateNode(AState.Appearance);
-        if AState.Appearance.Material <> nil then
-          UnAssociateNode(AState.Appearance.Material);
+        UnAssociateNode(AState.ShapeNode.Appearance);
+        if AState.ShapeNode.Appearance.Material <> nil then
+          UnAssociateNode(AState.ShapeNode.Appearance.Material);
       end;
     end;
     if AState.ClipPlanes <> nil then
