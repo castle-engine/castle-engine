@@ -55,6 +55,7 @@ type
     procedure TestDecimalSeparator;
     procedure TestFloatToStrDisplay;
     procedure TestDeg;
+    procedure TestFastList;
   end;
 
 implementation
@@ -729,6 +730,39 @@ begin
   AssertSameValue(0, Deg(0));
   AssertSameValue(pi/2, Deg(90));
   AssertSameValue(-pi/2, Deg(-90));
+end;
+
+type
+  TFastIntegerList = {$ifdef FPC}specialize{$endif} TCastleFastList<Integer>;
+
+procedure TTestCastleUtils.TestFastList;
+var
+  L: TFastIntegerList;
+begin
+  L := TFastIntegerList.Create;
+  try
+    L.Add(1);
+    L.Add(2);
+    L.Add(3);
+    AssertEquals(3, L.Count);
+    AssertEquals(1, L[0]);
+    AssertEquals(2, L[1]);
+    AssertEquals(3, L[2]);
+
+    L.Clear;
+    AssertEquals(0, L.Count);
+
+    L.Add(1);
+    L.Add(2);
+    L.Add(3);
+    AssertEquals(3, L.Count);
+    AssertEquals(1, L[0]);
+    AssertEquals(2, L[1]);
+    AssertEquals(3, L[2]);
+
+    L.ReleaseMemory;
+    AssertEquals(0, L.Count);
+  finally FreeAndNil(L) end;
 end;
 
 initialization
