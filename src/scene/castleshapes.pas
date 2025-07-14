@@ -28,7 +28,7 @@ uses SysUtils, Classes, Generics.Collections,
   CastleVectors, CastleTransform, CastleBoxes, X3DNodes, CastleClassUtils,
   CastleUtils, CastleInternalTriangleOctree, CastleFrustum, CastleInternalOctree,
   CastleInternalBaseTriangleOctree, X3DFields, CastleInternalGeometryArrays,
-  CastleTriangles, CastleImages, CastleInternalMaterialProperties,
+  CastleTriangles, CastleImages,
   CastleShapeInternalShadowVolumes, CastleRenderOptions, CastleTimeUtils;
 
 const
@@ -371,9 +371,6 @@ type
 
     FLocalGeometryChangedCount: Cardinal;
     FDynamicGeometry: Boolean;
-
-    IsCachedMaterialProperty: boolean;
-    CachedMaterialProperty: TMaterialProperty;
 
     FShadowVolumes: TShapeShadowVolumes;
 
@@ -786,10 +783,6 @@ type
     function GeometryParentNodeName: String; deprecated 'use GeometryParentNode.X3DName, if GeometryParentNode <> nil';
     function GeometryGrandParentNodeName: String; deprecated 'use GeometryGrandParentNode.X3DName, if GeometryGrandParentNode <> nil';
     function GeometryGrandGrandParentNodeName: String; deprecated 'use GeometryGrandGrandParentNode.X3DName, if GeometryGrandGrandParentNode <> nil';
-
-    { Material property associated with this shape's material/texture. }
-    function InternalMaterialProperty: TMaterialProperty;
-    function MaterialProperty: TMaterialProperty; deprecated 'use InternalMaterialProperty, or (better) do not use it at all -- this is internal';
 
     { @exclude }
     property InternalShadowVolumes: TShapeShadowVolumes read FShadowVolumes;
@@ -3160,11 +3153,6 @@ begin
   Result := State.ShapeNode;
 end;
 
-function TShape.MaterialProperty: TMaterialProperty;
-begin
-  Result := InternalMaterialProperty;
-end;
-
 procedure TShape.InternalBeforeChange;
 begin
   FreeProxy;
@@ -3176,33 +3164,6 @@ procedure TShape.InternalAfterChange;
 begin
   AssociateGeometryState(FOriginalGeometry, FOriginalState);
   AssociateGeometryStateNeverProxied(FOriginalGeometry, FOriginalState);
-end;
-
-function TShape.InternalMaterialProperty: TMaterialProperty;
-var
-  TextureUrl: String;
-begin
-  if IsCachedMaterialProperty then
-    Exit(CachedMaterialProperty);
-
-  Result := nil;
-
-  if Node <> nil then
-  begin
-    { VRML 2.0/X3D version: refer to TAppearanceNode.MaterialProperty }
-    if Node.Appearance <> nil then
-      Result := Node.Appearance.InternalMaterialProperty;
-  end else
-  begin
-    { VRML 1.0 version: calculate it directly here }
-    TextureUrl := State.VRML1State.Texture2.FdFileName.Value;
-    if TextureUrl <> '' then
-      Result := MaterialProperties.FindTextureBaseName(
-        DeleteURIExt(ExtractURIName(TextureUrl)));
-  end;
-
-  IsCachedMaterialProperty := true;
-  CachedMaterialProperty := Result;
 end;
 
 { TShapeTreeGroup -------------------------------------------------------- }
