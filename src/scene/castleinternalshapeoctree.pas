@@ -791,7 +791,7 @@ constructor TShapeOctree.Create(const ALimits: TOctreeLimits;
 begin
   inherited Create(ALimits, ARootBox, TShapeOctreeNode, true);
 
-  FShapesList := TShapeList.Create(false);
+  FShapesList := TShapeList.Create;
   FShapesList.AddRange(AShapesList);
   FOwnsShapesList := true; // for now always true
 end;

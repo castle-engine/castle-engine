@@ -1,6 +1,6 @@
 {%MainUnit x3dnodes.pas}
 {
-  Copyright 2008-2023 Michalis Kamburelis.
+  Copyright 2008-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -75,6 +75,30 @@
       TCastleSceneCore initialization, when there's no point in notifying about this). }
     procedure InternalUpdateSkin;
 
+    { Fill the FdJoints array, if it is empty.
+
+      It is a common mistake to leave @link(FdJoints HAnimHumanoid.Joints) empty,
+      which means that we would not animate humanoid at all (as Castle Game Engine
+      requires on the "joints" list being present, as required by the X3D spec).
+
+      Using this method, you can fix this problem in certain models.
+      If only the proper THAnimJointNode are inside the THAnimHumanoidNode
+      (like in @link(FdSkeleton)), we will find them and populate the @link(FdJoints)
+      list.
+
+      This is automatically done when parsing X3D content.
+      You only need to manually call this if you build X3D graph in some other
+      way, e.g. loading other 3D model formats. }
+    procedure FixJoints;
+
+    { Calculate some thigns neeeded for animation later,
+      assuming the @italic(current state) is the rest position.
+
+      This is automatically done when parsing X3D content.
+      You only need to manually call this if you build X3D graph in some other
+      way, e.g. loading other 3D model formats. }
+    procedure ApplyRestPose;
+
   {$I auto_generated_node_helpers/x3dnodes_hanimhumanoid.inc}
   end;
 
@@ -119,6 +143,14 @@
   public
     constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     function TransformationChange: TNodeTransformationChange; override;
+
+    { Calculate some thigns neeeded for animation later,
+      assuming the @italic(current state) is the rest position.
+
+      This is automatically done when parsing X3D content.
+      You only need to manually call this if you build X3D graph in some other
+      way, e.g. loading other 3D model formats. }
+    procedure ApplyRestPose;
 
   {$I auto_generated_node_helpers/x3dnodes_hanimjoint.inc}
   end;
@@ -336,84 +368,80 @@ begin
   FdJoints.Add(Node);
 end;
 
-procedure THAnimHumanoidNode.ParseAfter(Reader: TX3DReaderNames);
-
-  { It is a common mistake to leave HAnimHumanoid.joints empty,
-    which means that CGE would not animate humanoid at all (contrary to other
-    X3D browsers that don't rely on "joints").
-    So we fix the HAnimHumanoid.joints list. }
-  procedure CalculateJoints;
+procedure THAnimHumanoidNode.FixJoints;
+begin
+  if FdJoints.Count = 0 then
   begin
-    if FdJoints.Count = 0 then
-    begin
-      EnumerateNodes(THAnimJointNode, {$ifdef FPC}@{$endif} AddJoint, false);
-      if FdJoints.Count <> 0 then
-        WritelnWarning('HAnimHumanoid.joints list was empty, fixed to list all %d joints', [
-          FdJoints.Count
-        ]);
-    end;
+    EnumerateNodes(THAnimJointNode, {$ifdef FPC}@{$endif} AddJoint, false);
+    if FdJoints.Count <> 0 then
+      WritelnWarning('HAnimHumanoid.joints list was empty, fixed to list all %d joints', [
+        FdJoints.Count
+      ]);
   end;
+end;
 
-  procedure CalculateVertexJoints;
-  var
-    SkinCoord: TVector3List;
-    I, J: Integer;
-    SkinCoordIndex: TInt32List;
-    CoordIndex: Integer;
-    Weight: Single;
-    Joint: THAnimJointNode;
+procedure THAnimHumanoidNode.ApplyRestPose;
+var
+  SkinCoord: TVector3List;
+  I, J: Integer;
+  SkinCoordIndex: TInt32List;
+  CoordIndex: Integer;
+  Weight: Single;
+  Joint: THAnimJointNode;
+begin
+  FreeAndNil(VertexJoints);
+  if (FdSkinCoord.Value <> nil) and
+     (FdSkinCoord.Value is TCoordinateNode) then
   begin
-    FreeAndNil(VertexJoints);
-    if (FdSkinCoord.Value <> nil) and
-       (FdSkinCoord.Value is TCoordinateNode) then
-    begin
-      SkinCoord := TCoordinateNode(FdSkinCoord.Value).FdPoint.Items;
-      VertexJoints := TVertexJointsList.Create;
-      VertexJoints.Count := SkinCoord.Count;
+    SkinCoord := TCoordinateNode(FdSkinCoord.Value).FdPoint.Items;
+    VertexJoints := TVertexJointsList.Create;
+    VertexJoints.Count := SkinCoord.Count;
 
-      for I := 0 to SkinCoord.Count - 1 do
+    for I := 0 to SkinCoord.Count - 1 do
+    begin
+      VertexJoints.L[I].RestPosition := SkinCoord.L[I];
+      VertexJoints.L[I].Count := 0; { initially }
+    end;
+
+    for I := 0 to FdJoints.Count - 1 do
+      if FdJoints[I] is THAnimJointNode then
       begin
-        VertexJoints.L[I].RestPosition := SkinCoord.L[I];
-        VertexJoints.L[I].Count := 0; { initially }
-      end;
-
-      for I := 0 to FdJoints.Count - 1 do
-        if FdJoints[I] is THAnimJointNode then
+        Joint := THAnimJointNode(FdJoints[I]);
+        SkinCoordIndex := Joint.FdSkinCoordIndex.Items;
+        for J := 0 to SkinCoordIndex.Count - 1 do
         begin
-          Joint := THAnimJointNode(FdJoints[I]);
-          SkinCoordIndex := Joint.FdSkinCoordIndex.Items;
-          for J := 0 to SkinCoordIndex.Count - 1 do
+          CoordIndex := SkinCoordIndex.Items[J];
+          if (CoordIndex < 0) or
+             (CoordIndex >= SkinCoord.Count) then
           begin
-            CoordIndex := SkinCoordIndex.Items[J];
-            if (CoordIndex < 0) or
-               (CoordIndex >= SkinCoord.Count) then
+            if not Joint.WarningSkinCoordReferences then
             begin
-              if not Joint.WarningSkinCoordReferences then
-              begin
-                WritelnWarning('X3D', Format('"%s": skinCoord refers to not existing coordinate index %d (while we have only %d skin coordinates in HAnimHumanoid.skin)', [
-                  Joint.NiceName,
-                  CoordIndex,
-                  SkinCoord.Count
-                ]));
-                Joint.WarningSkinCoordReferences := true;
-              end;
-              Continue;
+              WritelnWarning('X3D', Format('"%s": skinCoord refers to not existing coordinate index %d (while we have only %d skin coordinates in HAnimHumanoid.skin)', [
+                Joint.NiceName,
+                CoordIndex,
+                SkinCoord.Count
+              ]));
+              Joint.WarningSkinCoordReferences := true;
             end;
-
-            if J < Joint.FdSkinCoordWeight.Items.Count then
-              Weight := Joint.FdSkinCoordWeight.Items[J] else
-              Weight := 1;
-
-            VertexJoints.L[CoordIndex].Add(Joint, Weight);
+            Continue;
           end;
-        end;
-    end;
-  end;
 
+          if J < Joint.FdSkinCoordWeight.Items.Count then
+            Weight := Joint.FdSkinCoordWeight.Items[J]
+          else
+            Weight := 1;
+
+          VertexJoints.L[CoordIndex].Add(Joint, Weight);
+        end;
+      end;
+  end;
+end;
+
+procedure THAnimHumanoidNode.ParseAfter(Reader: TX3DReaderNames);
 begin
   inherited;
-  CalculateJoints;
-  CalculateVertexJoints;
+  FixJoints;
+  ApplyRestPose;
 end;
 
 function THAnimHumanoidNode.TransformationChange: TNodeTransformationChange;
@@ -527,10 +555,15 @@ begin
   Result := AnimateSkinTransform.MultPoint(Point);
 end;
 
+procedure THAnimJointNode.ApplyRestPose;
+begin
+  RestCenter := FdCenter.Value;
+end;
+
 procedure THAnimJointNode.ParseAfter(Reader: TX3DReaderNames);
 begin
   inherited;
-  RestCenter := FdCenter.Value;
+  ApplyRestPose;
 end;
 
 function THAnimJointNode.TransformationChange: TNodeTransformationChange;

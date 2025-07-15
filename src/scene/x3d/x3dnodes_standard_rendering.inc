@@ -738,21 +738,19 @@
   end;
 
   { Tangent vectors information, for bump mapping.
-    The "vector" field should contain normalized tangent vectors,
-    in right-handed coordinate system.
 
-    The ordering of the tangent vectors is exactly the same as ordering
-    of normal vectors would be,
-    so e.g. @link(TAbstractComposedGeometryNode.NormalPerVertex) affects
-    the interpretation of tangent vectors as well. }
+    If your materials use @link(TAbstractOneSidedMaterialNode.NormalTexture)
+    then tangent vectors are used to determine the tangent space
+    in which the normal map is applied.
+    While the engine can automatically generate tangent vectors,
+    it is recommended to provide tangent vectors explicitly to achieve the
+    perfect look of the lighting, matching the software used to create normalmaps.
+
+    See @url(https://github.com/michaliskambi/x3d-tests/wiki/Tangent-node-in-X3D
+    Tangent node in X3D) for more details what this node specifies and why
+    is it useful. }
   TTangentNode = class(TAbstractGeometricPropertyNode)
-    {$I auto_generated_node_helpers/x3dnodes_tangent.inc}
-  public
-    { Set tangent vectors from a list of 4D vectors following glTF specification.
-      https://github.com/KhronosGroup/glTF/tree/master/specification/2.0 says
-      "XYZW vertex tangents where the w component is a sign value
-      (-1 or +1) indicating handedness of the tangent basis". }
-    procedure SetVector4D(const List: TVector4List);
+  {$I auto_generated_node_helpers/x3dnodes_tangent.inc}
   end;
 
   { Points. }
@@ -1638,34 +1636,6 @@ function TLineSetNode.Lit(State: TX3DGraphTraverseState): boolean;
 begin
   { X3D specification says that LineSet should always be unlit }
   Result := false;
-end;
-
-{ TTangentNode --------------------------------------------------------------- }
-
-procedure TTangentNode.SetVector4D(const List: TVector4List);
-var
-  I, Len: Integer;
-  Source: PVector4;
-  Dest: PVector3;
-  W: Single;
-begin
-  Len := List.Count;
-  FdVector.Items.Count := Len;
-  if Len = 0 then Exit;
-
-  Source := PVector4(List.L);
-  Dest := PVector3(FdVector.Items.L);
-  for I := 0 to Len - 1 do
-  begin
-    // convert tangents to right-handed
-    // slower: Dest^ := Source^.XYZ * Source^.W;
-    W := Source^.W;
-    Dest^.X := Source^.X * W;
-    Dest^.Y := Source^.Y * W;
-    Dest^.Z := Source^.Z * W;
-    Inc(Source);
-    Inc(Dest);
-  end;
 end;
 
 class function TPointSetNode.ForVRMLVersion(const Version: TX3DVersion): boolean;

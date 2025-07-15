@@ -11,7 +11,7 @@
         <CompatibilityMode Value="True"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <Title Value="test_triangulate"/>
+      <Title Value="scene_information_cli_tool"/>
     </General>
     <BuildModes Count="2">
       <Item1 Name="Debug" Default="True"/>
@@ -19,7 +19,7 @@
         <CompilerOptions>
           <Version Value="11"/>
           <Target>
-            <Filename Value="test_triangulate"/>
+            <Filename Value="scene_information_cli_tool"/>
           </Target>
           <SearchPaths>
             <IncludeFiles Value=""/>
@@ -65,7 +65,7 @@
     </RequiredPackages>
     <Units Count="2">
       <Unit0>
-        <Filename Value="test_triangulate.dpr"/>
+        <Filename Value="scene_information_cli_tool.dpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>
@@ -78,7 +78,7 @@
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="test_triangulate"/>
+      <Filename Value="scene_information_cli_tool"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value=""/>

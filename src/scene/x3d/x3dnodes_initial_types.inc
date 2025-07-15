@@ -78,6 +78,11 @@
   TGeneratedTextureFunctionality = class;
   TX3DExportList = class;
   TEnvironmentNode = class;
+  TAppearanceNode = class;
+  TMaterialNode = class;
+  TComposedShaderNode = class;
+  TLinePropertiesNode = class;
+  TCommonSurfaceShaderNode = class;
 
   TX3DNodeClass = class of TX3DNode;
 

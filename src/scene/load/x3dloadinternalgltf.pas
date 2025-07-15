@@ -1578,7 +1578,6 @@ var
     ColorAccessor: TPasGLTF.TAccessor;
     IndexField: TMFLong;
     Appearance: TGltfAppearanceNode;
-    Tangent4D: TVector4List;
     MetadataCollision: String;
     Weights: TVector4List;
     Joints: TInt32List;
@@ -1704,16 +1703,9 @@ var
         end else
         if (AttributeName = 'TANGENT') and (Geometry is TAbstractComposedGeometryNode) then
         begin
-          if CastleX3dExtensions then
-          begin
-            Tangent := TTangentNode.Create;
-            Tangent4D := TVector4List.Create;
-            try
-              AccessorToVector4(Primitive.Attributes[AttributeName], Tangent4D, false);
-              Tangent.SetVector4D(Tangent4D);
-            finally FreeAndNil(Tangent4D) end;
-            TAbstractComposedGeometryNode(Geometry).FdTangent.Value := Tangent;
-          end;
+          Tangent := TTangentNode.Create;
+          AccessorToVector4(Primitive.Attributes[AttributeName], Tangent.FdVector, false);
+          TAbstractComposedGeometryNode(Geometry).FdTangent.Value := Tangent;
         end else
         if (AttributeName = 'JOINTS_0') then
         begin

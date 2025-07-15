@@ -1,6 +1,6 @@
 {%MainUnit x3dnodes.pas}
 {
-  Copyright 2002-2023 Michalis Kamburelis.
+  Copyright 2002-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -43,12 +43,6 @@
 
   {$I auto_generated_node_helpers/x3dnodes_x3dmaterialnode.inc}
   end;
-
-  TAppearanceNode = class;
-  TMaterialNode = class;
-  TComposedShaderNode = class;
-  TLinePropertiesNode = class;
-  TCommonSurfaceShaderNode = class;
 
   TShading = (shDefault, shGouraud, shPhong, shWireframe);
   TShapeCollision = (scDefault, scBox, scNone);
@@ -123,11 +117,6 @@
       read GetLineProperties write SetLineProperties;
       {$ifdef FPC}deprecated 'create and assign TLinePropertiesNode instance explicitly, then set Appearance.LineProperties';{$endif}
 
-    { Find a suitable CommonSurfaceShader to be used when rendering this shape,
-      or @nil. }
-    function CommonSurfaceShader: TCommonSurfaceShaderNode;
-      deprecated 'use TMaterialNode instead of TCommonSurfaceShaderNode (it has the same functionality and is standardized in X3D v4)';
-
     { Whether the shape was (potentially, at least partially) visible in the last rendering event.
 
       Note that the same shape reference may be present multiple times
@@ -157,43 +146,14 @@
   TAppearanceNode = class(TAbstractAppearanceNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
-    procedure ParseAfter(Reader: TX3DReaderNames); override;
   public
     { Find a suitable CommonSurfaceShader to be used when rendering this shape,
-      or @nil. }
-    function CommonSurfaceShader: TCommonSurfaceShaderNode;
-      deprecated 'use TMaterialNode instead of TCommonSurfaceShaderNode (it has the same functionality and is standardized in X3D v4)';
-
-    { Texture that determines the primary RGB color of the material,
-      and transparency of the material.
-
-      This is the texture used when rendering using Gouraud shading
-      (following the new X3D 4 specification advise).
-
-      For Phong shading, this is the texture:
-      - diffuseTexture for Material
-      - emissiveTexture for UnlitMaterial
-      - baseTexture for PhysicalMaterial
-
-      This is also the texture that determines the opacity of the material.
-
-      This is also the texture which is affected by @link(FdTexture)
-      field (if appropriate material slot is empty).
-
-      The overloaded version with TexCoordIndex parameter also specifies which
-      texture coordinates / transformations should be used for this texture.
-      It returns -1 when we should use standard MultiTexture specification for this,
-      which also covers the case when MainTexture is a MultiTexture node,
-      and should use appropriate texture coordinates for MultiTexture children.
-
-      Returns @nil if none. }
-    function MainTexture: TAbstractTextureNode; overload;
-    function MainTexture(const GeometryForTexCoord: TAbstractGeometryNode;
-      out TexCoordIndex: Integer): TAbstractTextureNode; overload;
-
-    function InternalMaterialProperty: TMaterialProperty;
-    function MaterialProperty: TMaterialProperty; deprecated 'use InternalMaterialProperty, or (better) do not use it at all -- this is internal';
-
+      or @nil. This is only maintaned for backward compatibility,
+      the whole TCommonSurfaceShaderNode is deprecated: new X3D 4 material nodes,
+      including enhanced TMaterialNode, cover all the features of
+      TCommonSurfaceShaderNode.
+      @exclude }
+    function InternalCommonSurfaceShader: TCommonSurfaceShaderNode;
   {$I auto_generated_node_helpers/x3dnodes_appearance.inc}
   end;
 
@@ -256,6 +216,15 @@
         function ReflSpecularExp: Single; override;
         function TransSpecularExp: Single; override;
         {$endif}
+
+        function MainTexture(
+          const Appearance: TAppearanceNode;
+          const VRML1State: TVRML1State): TAbstractTextureNode; overload; override;
+        function MainTexture(
+          const Appearance: TAppearanceNode;
+          const VRML1State: TVRML1State;
+          const GeometryForTexCoord: TAbstractGeometryNode;
+          out TexCoordIndex: Integer): TAbstractTextureNode; overload; override;
       end;
     var
       FMaterialInfo: TMyMaterialInfo;
@@ -320,6 +289,15 @@
         constructor Create(ANode: TPhysicalMaterialNode);
         function Metallic: Single; override;
         function Roughness: Single; override;
+
+        function MainTexture(
+          const Appearance: TAppearanceNode;
+          const VRML1State: TVRML1State): TAbstractTextureNode; overload; override;
+        function MainTexture(
+          const Appearance: TAppearanceNode;
+          const VRML1State: TVRML1State;
+          const GeometryForTexCoord: TAbstractGeometryNode;
+          out TexCoordIndex: Integer): TAbstractTextureNode; overload; override;
       end;
     var
       FMaterialInfo: TMyPhysicalMaterialInfo;
@@ -371,6 +349,15 @@
         function AmbientColor: TVector3; override;
         function Shininess: Single; override;
         function ReflectionColor: TVector3; override;
+
+        function MainTexture(
+          const Appearance: TAppearanceNode;
+          const VRML1State: TVRML1State): TAbstractTextureNode; overload; override;
+        function MainTexture(
+          const Appearance: TAppearanceNode;
+          const VRML1State: TVRML1State;
+          const GeometryForTexCoord: TAbstractGeometryNode;
+          out TexCoordIndex: Integer): TAbstractTextureNode; overload; override;
       end;
     var
       FMaterialInfo: TMaterialInfo;
@@ -394,6 +381,15 @@
         procedure SetTransparency(const Value: Single); override;
       public
         constructor Create(ANode: TUnlitMaterialNode);
+
+        function MainTexture(
+          const Appearance: TAppearanceNode;
+          const VRML1State: TVRML1State): TAbstractTextureNode; overload; override;
+        function MainTexture(
+          const Appearance: TAppearanceNode;
+          const VRML1State: TVRML1State;
+          const GeometryForTexCoord: TAbstractGeometryNode;
+          out TexCoordIndex: Integer): TAbstractTextureNode; overload; override;
       end;
     var
       FMaterialInfo: TMyUnlitMaterialInfo;
@@ -527,11 +523,13 @@ procedure TAbstractShapeNode.BeforeTraverse(StateStack: TX3DGraphTraverseStateSt
 begin
   inherited;
   StateStack.Top.ShapeNode := Self;
+  StateStack.Top.Appearance := Appearance;
 end;
 
 procedure TAbstractShapeNode.AfterTraverse(StateStack: TX3DGraphTraverseStateStack);
 begin
   StateStack.Top.ShapeNode := nil;
+  StateStack.Top.Appearance := nil;
   inherited;
 end;
 
@@ -542,19 +540,6 @@ begin
   App := Appearance;
   if App <> nil then
     Result := App.Material
-  else
-    Result := nil;
-end;
-
-function TAbstractShapeNode.CommonSurfaceShader: TCommonSurfaceShaderNode;
-var
-  App: TAppearanceNode;
-begin
-  App := Appearance;
-  if App <> nil then
-    {$warnings off} // using deprecated in deprecated
-    Result := App.CommonSurfaceShader
-    {$warnings on}
   else
     Result := nil;
 end;
@@ -691,7 +676,7 @@ begin
   if Result <> nil then Exit;
 end;
 
-function TAppearanceNode.CommonSurfaceShader: TCommonSurfaceShaderNode;
+function TAppearanceNode.InternalCommonSurfaceShader: TCommonSurfaceShaderNode;
 var
   I: Integer;
   Shader: TX3DNode;
@@ -703,155 +688,6 @@ begin
     if Shader is TCommonSurfaceShaderNode then
       Exit(TCommonSurfaceShaderNode(Shader));
   end;
-end;
-
-function TAppearanceNode.MainTexture: TAbstractTextureNode;
-// var
-//   TexCoordIndex: Integer;
-var
-  SurfaceShader: TCommonSurfaceShaderNode;
-begin
-  // It's like
-  // Result := MainTexture(GeometryForTexCoord, TexCoordIndex);
-  // but we don't need GeometryForTexCoord in this case.
-
-  Result := nil;
-  {$warnings off} // using deprecated to keep backward compatibility
-  SurfaceShader := CommonSurfaceShader;
-  {$warnings on}
-  if SurfaceShader <> nil then
-  begin
-    if SurfaceShader.MultiDiffuseAlphaTexture <> nil then
-    begin
-      Exit(SurfaceShader.MultiDiffuseAlphaTexture);
-    end;
-    if SurfaceShader.DiffuseTexture <> nil then
-    begin
-      Exit(SurfaceShader.DiffuseTexture);
-    end;
-  end else
-  begin
-    if (Material is TMaterialNode) and
-       (TMaterialNode(Material).DiffuseTexture <> nil) then
-    begin
-      Exit(TMaterialNode(Material).DiffuseTexture);
-    end;
-    if (Material is TPhysicalMaterialNode) and
-       (TPhysicalMaterialNode(Material).BaseTexture <> nil) then
-    begin
-      Exit(TPhysicalMaterialNode(Material).BaseTexture);
-    end;
-    if (Material is TUnlitMaterialNode) and
-       (TUnlitMaterialNode(Material).EmissiveTexture <> nil) then
-    begin
-      Exit(TUnlitMaterialNode(Material).EmissiveTexture);
-    end;
-    Result := Texture;
-  end;
-end;
-
-function TAppearanceNode.MainTexture(const GeometryForTexCoord: TAbstractGeometryNode;
-  out TexCoordIndex: Integer): TAbstractTextureNode;
-var
-  SurfaceShader: TCommonSurfaceShaderNode;
-begin
-  Result := nil;
-  TexCoordIndex := -1;
-  {$warnings off} // using deprecated to keep backward compatibility
-  SurfaceShader := CommonSurfaceShader;
-  {$warnings on}
-  if SurfaceShader <> nil then
-  begin
-    if SurfaceShader.MultiDiffuseAlphaTexture <> nil then
-    begin
-      TexCoordIndex := SurfaceShader.DiffuseTextureCoordinatesId; // TODO: is this what X3DOM/InstantReality are doing? test.
-      Exit(SurfaceShader.MultiDiffuseAlphaTexture);
-    end;
-    if SurfaceShader.DiffuseTexture <> nil then
-    begin
-      TexCoordIndex := SurfaceShader.DiffuseTextureCoordinatesId;
-      Exit(SurfaceShader.DiffuseTexture);
-    end;
-  end else
-  begin
-    if (Material is TMaterialNode) and
-       (TMaterialNode(Material).DiffuseTexture <> nil) then
-    begin
-      GeometryForTexCoord.FindTextureMapping(TMaterialNode(Material).DiffuseTextureMapping, TexCoordIndex, false);
-      Exit(TMaterialNode(Material).DiffuseTexture);
-    end;
-    if (Material is TPhysicalMaterialNode) and
-       (TPhysicalMaterialNode(Material).BaseTexture <> nil) then
-    begin
-      GeometryForTexCoord.FindTextureMapping(TPhysicalMaterialNode(Material).BaseTextureMapping, TexCoordIndex, false);
-      Exit(TPhysicalMaterialNode(Material).BaseTexture);
-    end;
-    if (Material is TUnlitMaterialNode) and
-       (TUnlitMaterialNode(Material).EmissiveTexture <> nil) then
-    begin
-      GeometryForTexCoord.FindTextureMapping(TUnlitMaterialNode(Material).EmissiveTextureMapping, TexCoordIndex, false);
-      Exit(TUnlitMaterialNode(Material).EmissiveTexture);
-    end;
-    Result := Texture;
-  end;
-end;
-
-function TAppearanceNode.MaterialProperty: TMaterialProperty;
-begin
-  Result := InternalMaterialProperty;
-end;
-
-function TAppearanceNode.InternalMaterialProperty: TMaterialProperty;
-
-  function TryUrl(const Url: TMFString): TMaterialProperty;
-  var
-    TextureUrl: String;
-  begin
-    Result := nil;
-    if Url.Count <> 0 then
-    begin
-      TextureUrl := Url.Items[0];
-      if TextureUrl <> '' then
-        Result := MaterialProperties.FindTextureBaseName(
-          DeleteURIExt(ExtractURIName(TextureUrl)));
-    end;
-  end;
-
-var
-  Tex: TAbstractTextureNode;
-begin
-  Result := nil;
-
-  Tex := MainTexture;
-  if Tex is TImageTextureNode then
-    Result := TryUrl(TImageTextureNode(Tex).FdUrl);
-  if Tex is TMovieTextureNode then
-    Result := TryUrl(TMovieTextureNode(Tex).FdUrl);
-end;
-
-procedure TAppearanceNode.ParseAfter(Reader: TX3DReaderNames);
-var
-  MP: TMaterialProperty;
-  NormalMapNode: TImageTextureNode;
-begin
-  inherited;
-
-  {$warnings off} // using deprecated material props to keep them working
-  MP := InternalMaterialProperty;
-
-  if (MP <> nil) and (MP.NormalMap <> '') and (FdNormalMap.Value = nil) then
-  begin
-    { use normalMap from MaterialProperty, if our normalMap field is empty now }
-    NormalMapNode := TImageTextureNode.Create('', BaseUrl);
-    NormalMapNode.FdUrl.Items.Add(MP.NormalMap);
-    FdNormalMap.Value := NormalMapNode;
-  end;
-
-  if (MP <> nil) and
-     (MP.AlphaChannel <> '') and
-     (Texture is TAbstractSingleTextureNode) { checks also Texture <> nil } then
-    TAbstractSingleTextureNode(Texture).FdAlphaChannel.Value := MP.AlphaChannel;
-  {$warnings on}
 end;
 
 function TLinePropertiesNode.GetLineType: TLineType;
@@ -1049,6 +885,32 @@ begin
   Result := FNode.FdTransSpecularExp.Value;
 end;
 
+function TMaterialNode.TMyMaterialInfo.MainTexture(
+  const Appearance: TAppearanceNode;
+  const VRML1State: TVRML1State): TAbstractTextureNode;
+begin
+  if FNode.DiffuseTexture <> nil then
+    Exit(FNode.DiffuseTexture);
+  // fallback result
+  Result := Appearance.Texture;
+end;
+
+function TMaterialNode.TMyMaterialInfo.MainTexture(
+  const Appearance: TAppearanceNode;
+  const VRML1State: TVRML1State;
+  const GeometryForTexCoord: TAbstractGeometryNode;
+  out TexCoordIndex: Integer): TAbstractTextureNode;
+begin
+  if FNode.DiffuseTexture <> nil then
+  begin
+    GeometryForTexCoord.FindTextureMapping(FNode.DiffuseTextureMapping, TexCoordIndex, false);
+    Exit(FNode.DiffuseTexture);
+  end;
+  // fallback result
+  Result := Appearance.Texture;
+  TexCoordIndex := -1;
+end;
+
 {$endif not CASTLE_SLIM_NODES}
 
 { TPhysicalMaterialNode.TMyPhysicalMaterialInfo --------------------------------------------------- }
@@ -1097,6 +959,32 @@ end;
 function TPhysicalMaterialNode.TMyPhysicalMaterialInfo.Roughness: Single;
 begin
   Result := FNode.Roughness;
+end;
+
+function TPhysicalMaterialNode.TMyPhysicalMaterialInfo.MainTexture(
+  const Appearance: TAppearanceNode;
+  const VRML1State: TVRML1State): TAbstractTextureNode;
+begin
+  if FNode.BaseTexture <> nil then
+    Exit(FNode.BaseTexture);
+  // fallback result
+  Result := Appearance.Texture;
+end;
+
+function TPhysicalMaterialNode.TMyPhysicalMaterialInfo.MainTexture(
+  const Appearance: TAppearanceNode;
+  const VRML1State: TVRML1State;
+  const GeometryForTexCoord: TAbstractGeometryNode;
+  out TexCoordIndex: Integer): TAbstractTextureNode;
+begin
+  if FNode.BaseTexture <> nil then
+  begin
+    GeometryForTexCoord.FindTextureMapping(FNode.BaseTextureMapping, TexCoordIndex, false);
+    Exit(FNode.BaseTexture);
+  end;
+  // fallback result
+  Result := Appearance.Texture;
+  TexCoordIndex := -1;
 end;
 
 { TPhysicalMaterialNode ------------------------------------------------------ }
@@ -1332,6 +1220,29 @@ begin
   FNode.Transparency := Value;
 end;
 
+function TTwoSidedMaterialNode.TTwoSidedMaterialInfo.MainTexture(
+  const Appearance: TAppearanceNode;
+  const VRML1State: TVRML1State): TAbstractTextureNode;
+begin
+  { TTwoSidedMaterialNode is deprecated and doesn't specify own texture,
+    unlike e.g. TMaterialNode.
+    Just return TAppearanceNode texture. }
+  Result := Appearance.Texture;
+end;
+
+function TTwoSidedMaterialNode.TTwoSidedMaterialInfo.MainTexture(
+  const Appearance: TAppearanceNode;
+  const VRML1State: TVRML1State;
+  const GeometryForTexCoord: TAbstractGeometryNode;
+  out TexCoordIndex: Integer): TAbstractTextureNode;
+begin
+  { TTwoSidedMaterialNode is deprecated and doesn't specify own texture,
+    unlike e.g. TMaterialNode.
+    Just return TAppearanceNode texture. }
+  Result := Appearance.Texture;
+  TexCoordIndex := -1;
+end;
+
 { TTwoSidedMaterialNode ------------------------------------------------------ }
 
 destructor TTwoSidedMaterialNode.Destroy;
@@ -1373,6 +1284,32 @@ end;
 procedure TUnlitMaterialNode.TMyUnlitMaterialInfo.SetTransparency(const Value: Single);
 begin
   FNode.Transparency := Value;
+end;
+
+function TUnlitMaterialNode.TMyUnlitMaterialInfo.MainTexture(
+  const Appearance: TAppearanceNode;
+  const VRML1State: TVRML1State): TAbstractTextureNode;
+begin
+  if FNode.EmissiveTexture <> nil then
+    Exit(FNode.EmissiveTexture);
+  // fallback result
+  Result := Appearance.Texture;
+end;
+
+function TUnlitMaterialNode.TMyUnlitMaterialInfo.MainTexture(
+  const Appearance: TAppearanceNode;
+  const VRML1State: TVRML1State;
+  const GeometryForTexCoord: TAbstractGeometryNode;
+  out TexCoordIndex: Integer): TAbstractTextureNode;
+begin
+  if FNode.EmissiveTexture <> nil then
+  begin
+    GeometryForTexCoord.FindTextureMapping(FNode.EmissiveTextureMapping, TexCoordIndex, false);
+    Exit(FNode.EmissiveTexture);
+  end;
+  // fallback result
+  Result := Appearance.Texture;
+  TexCoordIndex := -1;
 end;
 
 { TUnlitMaterialNode ------------------------------------------------------ }
