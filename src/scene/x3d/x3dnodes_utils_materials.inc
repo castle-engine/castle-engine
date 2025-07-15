@@ -65,6 +65,21 @@
       that is not affected by any light sources.
       All material types (unlit, Phong, physical) have this color. }
     property EmissiveColor: TVector3 read GetEmissiveColor write SetEmissiveColor;
+
+    { Texture that determines the primary RGB color and transparency (opacity).
+      See TX3DGraphTraverseState.MainTexture, which is really a shortcut
+      to call this.
+
+      @groupBegin }
+    function MainTexture(
+      const Appearance: TAppearanceNode;
+      const VRML1State: TVRML1State): TAbstractTextureNode; virtual; abstract; overload;
+    function MainTexture(
+      const Appearance: TAppearanceNode;
+      const VRML1State: TVRML1State;
+      const GeometryForTexCoord: TAbstractGeometryNode;
+      out TexCoordIndex: Integer): TAbstractTextureNode; virtual; abstract; overload;
+    { @groupEnd }
   end;
 
   { Material information that defines parameters for Phong lighting equations.
