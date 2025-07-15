@@ -175,7 +175,7 @@ end;
 
 procedure TCastleFastList{$ifndef FPC}<T>{$endif}.ReleaseMemory;
 begin
-  FreeMemNiling(FItems);
+  FreeMemNiling(Pointer(FItems));
   FCapacity := 0;
   FCount := 0;
 end;
@@ -202,7 +202,10 @@ end;
 
 procedure TCastleFastList{$ifndef FPC}<T>{$endif}.SetItems(const Index: Integer; const Value: T);
 begin
-  L[Index] := Value;
+  // looks much nicer, OK for FPC, but Delphi cannot handle this
+  // L[Index] := Value;
+
+  PtrT(PtrUInt(FItems) + SizeOf(T) * Index)^ := Value;
 end;
 
 procedure TCastleFastList{$ifndef FPC}<T>{$endif}.Assign(const Source: TCastleFastList {$ifndef FPC}<T>{$endif});
@@ -218,7 +221,10 @@ var
 begin
   NewCount := Count + Source.Count;
   AllocateAtLeast(NewCount);
-  Move(Source.L^, L[Count], Source.Count * SizeOf(T));
+  Move(Source.L^,
+    // L[Count], // looks much nicer, OK for FPC, but Delphi cannot handle this
+    PtrT(PtrUInt(FItems) + SizeOf(T) * Count)^,
+    Source.Count * SizeOf(T));
   FCount := NewCount;
 end;
 

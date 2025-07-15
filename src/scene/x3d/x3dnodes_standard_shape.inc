@@ -213,12 +213,12 @@
 
         function MainTexture(
           const Appearance: TAppearanceNode;
-          const VRML1State: TVRML1State): TAbstractTextureNode; override; overload;
+          const VRML1State: TVRML1State): TAbstractTextureNode; overload; override;
         function MainTexture(
           const Appearance: TAppearanceNode;
           const VRML1State: TVRML1State;
           const GeometryForTexCoord: TAbstractGeometryNode;
-          out TexCoordIndex: Integer): TAbstractTextureNode; override; overload;
+          out TexCoordIndex: Integer): TAbstractTextureNode; overload; override;
       end;
     var
       FMaterialInfo: TMyMaterialInfo;
@@ -286,12 +286,12 @@
 
         function MainTexture(
           const Appearance: TAppearanceNode;
-          const VRML1State: TVRML1State): TAbstractTextureNode; override; overload;
+          const VRML1State: TVRML1State): TAbstractTextureNode; overload; override;
         function MainTexture(
           const Appearance: TAppearanceNode;
           const VRML1State: TVRML1State;
           const GeometryForTexCoord: TAbstractGeometryNode;
-          out TexCoordIndex: Integer): TAbstractTextureNode; override; overload;
+          out TexCoordIndex: Integer): TAbstractTextureNode; overload; override;
       end;
     var
       FMaterialInfo: TMyPhysicalMaterialInfo;
@@ -346,12 +346,12 @@
 
         function MainTexture(
           const Appearance: TAppearanceNode;
-          const VRML1State: TVRML1State): TAbstractTextureNode; override; overload;
+          const VRML1State: TVRML1State): TAbstractTextureNode; overload; override;
         function MainTexture(
           const Appearance: TAppearanceNode;
           const VRML1State: TVRML1State;
           const GeometryForTexCoord: TAbstractGeometryNode;
-          out TexCoordIndex: Integer): TAbstractTextureNode; override; overload;
+          out TexCoordIndex: Integer): TAbstractTextureNode; overload; override;
       end;
     var
       FMaterialInfo: TMaterialInfo;
@@ -378,12 +378,12 @@
 
         function MainTexture(
           const Appearance: TAppearanceNode;
-          const VRML1State: TVRML1State): TAbstractTextureNode; override; overload;
+          const VRML1State: TVRML1State): TAbstractTextureNode; overload; override;
         function MainTexture(
           const Appearance: TAppearanceNode;
           const VRML1State: TVRML1State;
           const GeometryForTexCoord: TAbstractGeometryNode;
-          out TexCoordIndex: Integer): TAbstractTextureNode; override; overload;
+          out TexCoordIndex: Integer): TAbstractTextureNode; overload; override;
       end;
     var
       FMaterialInfo: TMyUnlitMaterialInfo;
