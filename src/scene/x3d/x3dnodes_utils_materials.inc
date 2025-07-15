@@ -73,12 +73,12 @@
       @groupBegin }
     function MainTexture(
       const Appearance: TAppearanceNode;
-      const VRML1State: TVRML1State): TAbstractTextureNode; virtual; abstract; overload;
+      const VRML1State: TVRML1State): TAbstractTextureNode; overload; virtual; abstract;
     function MainTexture(
       const Appearance: TAppearanceNode;
       const VRML1State: TVRML1State;
       const GeometryForTexCoord: TAbstractGeometryNode;
-      out TexCoordIndex: Integer): TAbstractTextureNode; virtual; abstract; overload;
+      out TexCoordIndex: Integer): TAbstractTextureNode; overload; virtual; abstract;
     { @groupEnd }
   end;
 
