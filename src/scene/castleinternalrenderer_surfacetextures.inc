@@ -22,13 +22,6 @@
 {$ifdef read_interface}
 
 private
-  { Return OpenGL 2D texture initialized for given texture node.
-    If Node is nil, or it's corresponding OpenGL resource is not initialized
-    for whatever reason --- returns 0. }
-  function GLTexture2D(Node: TAbstractTextureNode;
-    out TextureHasAlpha: boolean): TGLTextureId; overload;
-  function GLTexture2D(Node: TAbstractTextureNode): TGLTextureId; overload;
-
   { If this Shape uses a normal map, use it for bump mapping. }
   procedure BumpMappingEnable(const Shape: TX3DRendererShape;
     const RenderOptions: TCastleRenderOptions;
@@ -45,30 +38,6 @@ private
 {$endif read_interface}
 
 {$ifdef read_implementation}
-
-function TRenderer.GLTexture2D(Node: TAbstractTextureNode;
-  out TextureHasAlpha: boolean): TGLTextureId;
-var
-  TextureRes: TTextureResource;
-begin
-  Result := GLObjectNone;
-  if Node <> nil then
-  begin
-    TextureRes := TTextureResources.Get(Node);
-    if TextureRes is T2DTextureResource then // also checks is TextureRes <> nil
-    begin
-      Result := T2DTextureResource(TextureRes).GLName;
-      TextureHasAlpha := Node.AlphaChannelFinal <> acNone;
-    end;
-  end;
-end;
-
-function TRenderer.GLTexture2D(Node: TAbstractTextureNode): TGLTextureId;
-var
-  IgnoreTextureHasAlpha: boolean;
-begin
-  Result := GLTexture2D(Node, IgnoreTextureHasAlpha);
-end;
 
 class function TRenderer.ShapeTextureForcesPhongShading(const Shape: TX3DRendererShape): boolean;
 var
@@ -139,25 +108,29 @@ procedure TRenderer.BumpMappingEnable(const Shape: TX3DRendererShape;
     NormalTextureCoordinatesId: Integer;
     const NormalMapScale, ParallaxHeight: Single);
   var
-    GLNormalTexture: TGLTextureId;
+    NormalTextureResource: TTextureResource;
     { Does NormalTexture have alpha channel. }
     HasAlpha: boolean;
   begin
+    { Note: no need to check "NormalTexture <> nil" explicitly here,
+      TTextureResources.Get will return nil for it so the check
+      "NormalTextureResource <> nil" lower is enough. }
     if Shape.BumpMappingAllowed and
        (BumpMapping(RenderOptions) <> bmNone) and
        (ABoundTextureUnits < GLFeatures.MaxTextureUnits) then
     begin
-      GLNormalTexture := GLTexture2D(NormalTexture, HasAlpha);
-      if GLNormalTexture <> GLObjectNone then
+      NormalTextureResource := TTextureResources.Get(NormalTexture);
+      if (NormalTextureResource <> nil) and
+         NormalTextureResource.Bind(ABoundTextureUnits) then
       begin
         // fix NormalTextureCoordinatesId if needed
         NormalTextureCoordinatesId := Max(0, NormalTextureCoordinatesId);
 
+        HasAlpha := NormalTexture.AlphaChannelFinal <> acNone;
+
         Shape.BumpMappingUsed := true;
         Shape.BumpMappingTextureCoordinatesId := NormalTextureCoordinatesId;
 
-        ActiveTexture(ABoundTextureUnits);
-        glBindTexture(GL_TEXTURE_2D, GLNormalTexture);
         Shader.EnableBumpMapping(BumpMapping(RenderOptions), ABoundTextureUnits,
           NormalTextureCoordinatesId, NormalMapScale, HasAlpha, ParallaxHeight);
         Inc(ABoundTextureUnits);
@@ -228,20 +201,19 @@ procedure TRenderer.SurfaceTexturesEnable(const Shape: TX3DRendererShape;
     We call it "surface texture" for consistency with CommonSurfaceShader
     X3DOM node that originally introduced this idea to X3D. }
   procedure SurfaceTextureEnable(const SurfaceTexture: TSurfaceTexture;
-    const Texture: TAbstractTextureNode;
+    const TextureNode: TAbstractTextureNode;
     const TextureCoordinatesId: Integer;
     const UniformTextureName: String);
   var
-    GLTextureId: TGLTextureId;
+    TextureResource: TTextureResource;
   begin
-    if (Texture <> nil) and
+    if (TextureNode <> nil) and
        (ABoundTextureUnits < GLFeatures.MaxTextureUnits) then
     begin
-      GLTextureId := GLTexture2D(Texture);
-      if GLTextureId <> GLObjectNone then
+      TextureResource := TTextureResources.Get(TextureNode);
+      if (TextureResource <> nil) and
+         TextureResource.Bind(ABoundTextureUnits) then
       begin
-        ActiveTexture(ABoundTextureUnits);
-        glBindTexture(GL_TEXTURE_2D, GLTextureId);
         Shader.EnableSurfaceTexture(SurfaceTexture, ABoundTextureUnits,
           Max(0, TextureCoordinatesId),
           UniformTextureName);
