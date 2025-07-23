@@ -79,12 +79,16 @@
     procedure SetRevertReference(const Value: TCastleTransform);
     procedure ReferenceFreeNotification(const Sender: TFreeNotificationObserver);
     procedure RevertReferenceFreeNotification(const Sender: TFreeNotificationObserver);
+    { Set FReferenceWrapper translation / rotation / scale to reflect
+      the ReferenceTransformation and current Reference transform. }
+    procedure UpdateWrapperTransform;
   protected
     procedure LocalRender(const Params: TRenderParams); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
+    function LocalBoundingBox: TBox3D; override;
   published
     { Reference another TCastleTransform instance, rendering and processing
       it as our child. This makes the referenced instance being visible
@@ -252,7 +256,7 @@ begin
     Result := inherited PropertySections(PropertyName);
 end;
 
-procedure TCastleTransformReference.LocalRender(const Params: TRenderParams);
+procedure TCastleTransformReference.UpdateWrapperTransform;
 var
   InvertRefTranslation: TVector3;
   InvertReftRotation: TVector4;
@@ -297,8 +301,22 @@ begin
   end;
 
   LastReferenceInverseTransformValid := NewReferenceInverseTransformValid;
+end;
 
+procedure TCastleTransformReference.LocalRender(const Params: TRenderParams);
+begin
+  UpdateWrapperTransform;
   inherited;
+end;
+
+function TCastleTransformReference.LocalBoundingBox: TBox3D;
+begin
+  { We need to call UpdateWrapperTransform, to have correct bounding box
+    even before we are rendered.
+    This is necessary e.g. to have correct physics collider auto-sizing,
+    see https://forum.castle-engine.io/t/domino-physics-demo-problems-with-transformreference/1973/4 }
+  UpdateWrapperTransform;
+  Result := inherited;
 end;
 
 {$endif read_implementation}
