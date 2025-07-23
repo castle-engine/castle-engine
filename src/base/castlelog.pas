@@ -72,7 +72,7 @@ type
 }
 procedure InitializeLog(const ALogStream: TStream = nil);
 
-{ Log a message. 
+{ Log a message.
 
   See https://castle-engine.io/log for documentation where does
   the log appear. When using the @url(https://castle-engine.io/editor editor),
@@ -115,6 +115,13 @@ procedure WritelnWarning(const Category: string; const MessageBase: string;
   const Args: array of const); overload;
 procedure WritelnWarning(const MessageBase: string;
   const Args: array of const); overload;
+
+{ Shortcut to output a warning, but only if WarningDone is @false.
+  Sets WarningDone to @true after the first call. }
+procedure WritelnWarningOnce(var WarningDone: Boolean;
+  const MessageBase: String; const Args: array of const); overload;
+procedure WritelnWarningOnce(var WarningDone: Boolean;
+  const Message: String); overload;
 
 var
   { Dump backtrace (call stack) with each log.
@@ -486,7 +493,7 @@ begin
     WarningCategory := 'Warning';
   WritelnLog(WarningCategory, Message);
   { Note that TCastleApplicationProperties.OnWarning will be called
-    regardless of whether InitializeLog was called or not. 
+    regardless of whether InitializeLog was called or not.
     This is good, to make sure we notify about early warnings. }
   ApplicationProperties._Warning(Category, Message);
 end;
@@ -506,6 +513,26 @@ procedure WritelnWarning(const MessageBase: string;
   const Args: array of const);
 begin
   WritelnWarning('', MessageBase, Args);
+end;
+
+procedure WritelnWarningOnce(var WarningDone: Boolean;
+  const MessageBase: String; const Args: array of const);
+begin
+  if not WarningDone then
+  begin
+    WritelnWarning(MessageBase, Args);
+    WarningDone := true;
+  end;
+end;
+
+procedure WritelnWarningOnce(var WarningDone: Boolean;
+  const Message: String);
+begin
+  if not WarningDone then
+  begin
+    WritelnWarning(Message);
+    WarningDone := true;
+  end;
 end;
 
 function LastLogCount: Integer;
