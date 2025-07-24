@@ -206,16 +206,22 @@ procedure TRenderer.SurfaceTexturesEnable(const Shape: TX3DRendererShape;
     const UniformTextureName: String);
   var
     TextureResource: TTextureResource;
+    TextureType: TTextureType;
   begin
     if (TextureNode <> nil) and
        (ABoundTextureUnits < GLFeatures.MaxTextureUnits) then
     begin
       TextureResource := TTextureResources.Get(TextureNode);
       if (TextureResource <> nil) and
+         // We have TextureType that fits in TTextureTypeSample for this
+         TextureResource.ShaderTextureType(TextureType) and
+         (TextureType >= Low(TTextureTypeSample)) and
+         (TextureType <= High(TTextureTypeSample)) and
+         // Texture resource is bound for OpenGL
          TextureResource.Bind(ABoundTextureUnits) then
       begin
-        Shader.EnableSurfaceTexture(SurfaceTexture, ABoundTextureUnits,
-          Max(0, TextureCoordinatesId),
+        Shader.EnableSurfaceTexture(SurfaceTexture, TextureType,
+          ABoundTextureUnits, Max(0, TextureCoordinatesId),
           UniformTextureName);
         Inc(ABoundTextureUnits);
 
