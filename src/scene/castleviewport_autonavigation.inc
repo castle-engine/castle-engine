@@ -281,7 +281,11 @@ class function TCastleAutoNavigationViewport.NavigationTypeFromNavigationInfo(co
        { PLANE and PLANE_create3000.github.io names are used by X_ITE,
          see "Online X3D File Format Converter Powered by X_ITE" thread on x3d-public mailing list. }
        (S = 'PLANE') or
-       (S = 'PLANE_create3000.github.io') then
+       (S = 'PLANE_create3000.github.io') or
+       { Found on https://github.com/create3000/Library/blob/main/Tests/Components/Shape/Connectors.x3d
+         Likely allowed in past X_ITE versions, because it was hosted on
+         http://titania.create3000.de . }
+       (S = 'PLANE_create3000.de') then
     begin
       Result := true;
       NavigationType := nt2D;
