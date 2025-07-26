@@ -527,6 +527,7 @@ type
       or in new Material / PhysicalMaterial / UnlitMaterial xxxTexture fields
       in X3D 4.0). }
     procedure EnableSurfaceTexture(const SurfaceTexture: TSurfaceTexture;
+      const TextureType: TTextureTypeSample;
       const TextureUnit, TextureCoordinatesId: Cardinal;
       const UniformTextureName: String);
     { Enable light source. Remember to set MaterialXxx before calling this. }
@@ -2593,6 +2594,7 @@ begin
 end;
 
 procedure TShader.EnableSurfaceTexture(const SurfaceTexture: TSurfaceTexture;
+  const TextureType: TTextureTypeSample;
   const TextureUnit, TextureCoordinatesId: Cardinal;
   const UniformTextureName: String);
 begin
@@ -2601,6 +2603,7 @@ begin
   FSurfaceTextureShaders.Items[SurfaceTexture].TextureCoordinatesId := TextureCoordinatesId;
   FSurfaceTextureShaders.Items[SurfaceTexture].UniformTextureName := UniformTextureName;
   FSurfaceTextureShaders.Items[SurfaceTexture].SurfaceTexture := SurfaceTexture;
+  FSurfaceTextureShaders.Items[SurfaceTexture].TextureType := TextureType;
 
   ShapeRequiresShaders := true;
 

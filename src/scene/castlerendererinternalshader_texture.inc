@@ -73,6 +73,10 @@
 
 {$ifdef read_implementation}
 
+const
+  SamplerFromTextureType: array [TTextureType] of string =
+  ('sampler2D', 'samplerCube', 'sampler3D', '');
+
 { TTextureCoordinateShader --------------------------------------------------- }
 
 class function TTextureCoordinateShader.CoordName(const TexUnit: Cardinal): String;
@@ -342,9 +346,6 @@ procedure TTextureShader.Enable(const MainTextureMapping: Integer; const MultiTe
     TextureCoordInitialize, TextureCoordMatrix,
     TextureAttributeDeclare, TextureVaryingDeclareVertex, TextureVaryingDeclareFragment, TextureUniformsDeclare,
     GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: String);
-const
-  SamplerFromTextureType: array [TTextureType] of string =
-  ('sampler2D', 'samplerCube', 'sampler3D', '');
 var
   TextureSampleCall, TexCoordName: String;
   Code: TShaderSource;
