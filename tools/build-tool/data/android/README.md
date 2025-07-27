@@ -4,7 +4,7 @@ This subdirectory contains the
 
 - Android project skeleton files in `integrated`.
 
-- Additional Android services in `integrated-services`.
+- Additional Android services in `services`.
 
     See
     - [Android Services](https://castle-engine.io/android_services)

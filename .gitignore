@@ -82,9 +82,9 @@ castle-game-engine-*.fpm
 
 # Proprietary Android libraries
 # (it may be easy to put them into CGE source tree, but don't commit).
-/tools/build-tool/data/android/integrated-services/chartboost/app/libs/*.jar
-/tools/build-tool/data/android/integrated-services/game_analytics/app/libs/*.jar
-/tools/build-tool/data/android/integrated-services/startapp/app/libs/*.jar
+/tools/build-tool/data/android/services/chartboost/app/libs/*.jar
+/tools/build-tool/data/android/services/game_analytics/app/libs/*.jar
+/tools/build-tool/data/android/services/startapp/app/libs/*.jar
 /tools/build-tool/data/ios/services/game_analytics/cge_project_name/game_analytics/GameAnalytics.h
 /tools/build-tool/data/ios/services/game_analytics/cge_project_name/game_analytics/libGameAnalytics.a
 
@@ -274,7 +274,7 @@ castle-game-engine-*.fpm
 /examples/shaders/shader_effects_on_background/shader_effects_on_background
 /examples/shaders/shader_override/shader_override
 /examples/viewport_and_scenes/show_bounding_rect_in_2d/show_bounding_rect_in_2d
-/examples/viewport_and_scenes/test_triangulate/test_triangulate
+/examples/viewport_and_scenes/scene_information_cli_tool/scene_information_cli_tool
 /examples/viewport_and_scenes/test_was_visible/test_was_visible
 /examples/viewport_and_scenes/transform_hierarchy/transform_hierarchy
 /examples/viewport_and_scenes/transform_primitives/transform_primitives

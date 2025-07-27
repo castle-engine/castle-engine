@@ -1741,7 +1741,6 @@ var
     ColorAccessor: TPasGLTF.TAccessor;
     IndexField: TMFLong;
     Appearance: TGltfAppearanceNode;
-    Tangent4D: TVector4List;
     MetadataCollision: String;
   begin
     // create X3D geometry and shape nodes
@@ -1865,16 +1864,9 @@ var
         end else
         if (AttributeName = 'TANGENT') and (Geometry is TAbstractComposedGeometryNode) then
         begin
-          if CastleX3dExtensions then
-          begin
-            Tangent := TTangentNode.Create;
-            Tangent4D := TVector4List.Create;
-            try
-              AccessorToVector4(Primitive.Attributes[AttributeName], Tangent4D, false);
-              Tangent.SetVector4D(Tangent4D);
-            finally FreeAndNil(Tangent4D) end;
-            TAbstractComposedGeometryNode(Geometry).FdTangent.Value := Tangent;
-          end;
+          Tangent := TTangentNode.Create;
+          AccessorToVector4(Primitive.Attributes[AttributeName], Tangent.FdVector, false);
+          TAbstractComposedGeometryNode(Geometry).FdTangent.Value := Tangent;
         end else
         if (AttributeName = 'JOINTS_0') then
         begin
@@ -2375,6 +2367,16 @@ var
     AllKeys.SortAndRemoveDuplicates;
   end;
 
+  { Multiply tangent vector by a matrix.
+    Multiplies T.XYZ by Matrix.
+    Preserves T.W, assuming it means just handedness, like for glTF
+    and X3D Tangent node. }
+  function SkinMultiplyTangent(const Matrix: TMatrix4; const T: TVector4): TVector4;
+  begin
+    Result.XYZ := Matrix.MultDirection(T.XYZ);
+    Result.W := T.W;
+  end;
+
   { Sample animation Anim at time TimeFraction (in 0..1 range)
     to determine how does a skin look like at this moment of time.
     OriginalCoords contains original (not animated) coords.
@@ -2390,7 +2392,7 @@ var
     const TimeFraction: Single;
     const OriginalCoords, AnimatedCoords: TVector3List;
     const OriginalNormals, AnimatedNormals: TVector3List;
-    const OriginalTangents, AnimatedTangents: TVector3List;
+    const OriginalTangents, AnimatedTangents: TVector4List;
     const Joints: TX3DNodeList; const JointsGltf: TPasGLTF.TSkin.TJoints;
     const InverseBindMatrices: TMatrix4List;
     const SkeletonRootIndex: Integer;
@@ -2455,11 +2457,11 @@ var
         That's because on Delphi, List^[...] may have too small (declared) upper size
         due to Delphi not supporting SizeOf(T) in generics.
         See https://github.com/castle-engine/castle-engine/issues/474 . }
-      AnimatedCoords.L[KeyIndex * OriginalCoords.Count + I] := SkinMatrix.MultPoint(OriginalCoords[I]);
+      AnimatedCoords.L[KeyIndex * OriginalCoords.Count + I] := SkinMatrix.MultPoint(OriginalCoords.L[I]);
       if AnimatedNormals <> nil then
-        AnimatedNormals.L[KeyIndex * OriginalNormals.Count + I] := SkinMatrix.MultDirection(OriginalNormals[I]);
+        AnimatedNormals.L[KeyIndex * OriginalNormals.Count + I] := SkinMatrix.MultDirection(OriginalNormals.L[I]);
       if AnimatedTangents <> nil then
-        AnimatedTangents.L[KeyIndex * OriginalTangents.Count + I] := SkinMatrix.MultDirection(OriginalTangents[I]);
+        AnimatedTangents.L[KeyIndex * OriginalTangents.Count + I] := SkinMultiplyTangent(SkinMatrix, OriginalTangents.L[I]);
     end;
   end;
 
@@ -2515,10 +2517,10 @@ var
     Anim: TAnimation;
     CoordInterpolator: TCoordinateInterpolatorNode;
     NormalInterpolator: TCoordinateInterpolatorNode;
-    TangentInterpolator: TCoordinateInterpolatorNode;
+    TangentInterpolator: TCoordinateInterpolator4DNode;
     I: Integer;
     OriginalNormals, AnimatedNormals: TVector3List;
-    OriginalTangents, AnimatedTangents: TVector3List;
+    OriginalTangents, AnimatedTangents: TVector4List;
     MemoryTaken: Int64;
     InterpolatorNameSuffix: String;
   begin
@@ -2636,7 +2638,7 @@ var
 
       if Tangent <> nil then
       begin
-        TangentInterpolator := TCoordinateInterpolatorNode.Create;
+        TangentInterpolator := TCoordinateInterpolator4DNode.Create;
         TangentInterpolator.X3DName := 'Tangent' + InterpolatorNameSuffix;
         //GatherAnimationKeysToSample(TangentInterpolator.FdKey.Items, Anim.Interpolators);
         // faster:

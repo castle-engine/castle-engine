@@ -45,7 +45,9 @@ unit CastleInternalFreeTypeH;
 
 {$i castleconf.inc}
 
-{$ifdef CASTLE_IOS}
+// FPC + iOS deployment always links with static FreeType library.
+// TODO: How will FreeType work on Delphi + iOS?
+{$if defined(CASTLE_IOS) and defined(FPC)}
   {$define CASTLE_FREETYPE_STATIC}
 {$endif}
 

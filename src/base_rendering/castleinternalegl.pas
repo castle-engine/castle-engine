@@ -1,5 +1,5 @@
 {
-  Copyright 2023-2023 Michalis Kamburelis, Benjamin 'BeRo' Rosseaux, The Khronos Group.
+  Copyright 2023-2025 Michalis Kamburelis, Benjamin 'BeRo' Rosseaux, The Khronos Group.
 
   This file is part of "Castle Game Engine".
 

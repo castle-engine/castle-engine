@@ -27,7 +27,7 @@ type
     FRootNode: TX3DRootNode;
     FAppearanceNode: TAppearanceNode;
     FShapeNode: TShapeNode;
-    FBaseTexture, FNormalMapTexture: TCastleAbstractPrimitive.TMaterialTexture;
+    FBaseTexture, FNormalMapTexture: TMaterialTexture;
     FTexPropertiesNode: TTexturePropertiesNode;
     FCoordinateNode: TCoordinateNode;
     FTexCoordNode: TTextureCoordinateNode;

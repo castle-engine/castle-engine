@@ -5,6 +5,7 @@
 #include <QAction>
 
 class GLWidget;
+class QSurfaceFormat;
 
 namespace Ui {
 class MainWindow;
@@ -35,13 +36,17 @@ public:
     void UpdateAfterSceneLoaded();
     void MoveToViewpoint(int nView);
     void AddNewWarning(QString const& sWarning);
+    void SaveSettings();
+    static void SetSurfaceFormat(QSurfaceFormat *pFormat);
 
 private:
     Ui::MainWindow *ui;
     GLWidget *m_pGlWidget;
+    QWidget *m_pWindowContainer;
     QDialog *m_pConsoleWnd;
     int m_nViewpointCount, m_iCurrentViewpoint;
     NavKeeper m_aNavKeeper;
+    QString m_sLastUsedFolder;
 
 private slots:
     void OnFileOpenClick();

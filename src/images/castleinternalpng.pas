@@ -17,15 +17,11 @@ unit CastleInternalPng;
   {$I castleinternalpng_static.inc}
 
 {$elseif defined(CASTLE_PNG_DYNAMIC)}
-  {$ifdef FPC}
-    {$info PNG loading with dynamic LibPng (fallback on Vampyre/FPImage/PngImage)}
-  {$else}
-    {$message Hint 'PNG loading with dynamic LibPng (fallback on Vampyre/FPImage/PngImage)'}
-  {$endif}
+  {$message Hint 'PNG loading with dynamic LibPng (fallback on Vampyre/FPImage/PngImage)'}
   {$I castleinternalpng_dynamic.inc}
 
 {$else}
-  {$info PNG loading without LibPng, we will use only Vampyre/FPImage/PngImage.}
+  {$message Hint 'PNG loading without LibPng, we will use only Vampyre/FPImage/PngImage.'}
   interface
   { Empty. We will not use Libpng API in this case. }
   const

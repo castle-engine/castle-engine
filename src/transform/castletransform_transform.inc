@@ -2811,6 +2811,43 @@ begin
   List.Exchange(Index1, Index2);
 end;
 
+{ Testcase that this helps:
+  https://github.com/michaliskambi/many-cubes/ .
+  It is possible it will not be a relevant optimization at some point in the future. }
+{$define CASTLE_OPTIMIZE_LocalBoundingBox}
+{$ifdef CASTLE_OPTIMIZE_LocalBoundingBox}
+
+function TCastleTransform.LocalBoundingBox: TBox3D;
+var
+  I: Integer;
+  Child: TCastleTransform;
+begin
+  if Exists and (List.Count <> 0) then
+  begin
+    Child := List[0];
+    if not (Child.InternalExcludeFromParentBoundingVolume and
+            (InternalGizmoBoundingBox = 0)) then
+      Result := Child.BoundingBox
+    else
+      Result := TBox3D.Empty;
+
+    for I := 1 to List.Count - 1 do
+    begin
+      Child := List[I];
+      { Ignoring InternalExcludeFromParentBoundingVolume when
+        InternalGizmoBoundingBox <> 0 is a hack,
+        so that when TCastleViewport.ItemsWithGizmosBoundingBox is called,
+        then all gizmos are taken into account. }
+      if not (Child.InternalExcludeFromParentBoundingVolume and
+              (InternalGizmoBoundingBox = 0)) then
+        Result.Include(Child.BoundingBox);
+    end;
+  end else
+    Result := TBox3D.Empty;
+end;
+
+{$else}
+
 function TCastleTransform.LocalBoundingBox: TBox3D;
 var
   I: Integer;
@@ -2828,6 +2865,8 @@ begin
         Result.Include(List[I].BoundingBox);
   end;
 end;
+
+{$endif}
 
 function TCastleTransform.GetRenderList(const Params: TRenderParams): TCastleTransformList;
 begin

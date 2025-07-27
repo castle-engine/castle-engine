@@ -1075,11 +1075,11 @@ begin
   if ALDevice <> nil then
   begin
     alcCloseDevice(ALDevice);
-    { w/g specyfikacji OpenAL generuje teraz error ALC_INVALID_DEVICE jesli
-      device bylo nieprawidlowe; ale niby jak mam sprawdzic ten blad ?
-      Przeciez zeby sprawdzic alcGetError potrzebuje miec valid device w reku,
-      a po wywolaniu alcCloseDevice(device) device jest invalid (bez wzgledu
-      na czy przed wywolaniem alcCloseDevice bylo valid) }
+    { according to OpenAL specification, error ALC_INVALID_DEVICE is generated
+      if device was invalid; but how am I supposed to check this error?
+      After all, to check alcGetError I need to have valid device in hand,
+      and after calling alcCloseDevice(device) device is invalid (regardless
+      of whether before calling alcCloseDevice it was valid) }
     ALDevice := nil;
   end;
 end;

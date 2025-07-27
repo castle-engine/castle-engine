@@ -165,6 +165,15 @@
         function Shininess: Single; override;
         function ReflectionColor: TVector3; override;
         function TransmissionColor: TVector3; override;
+
+        function MainTexture(
+          const Appearance: TAppearanceNode;
+          const VRML1State: TVRML1State): TAbstractTextureNode; overload; override;
+        function MainTexture(
+          const Appearance: TAppearanceNode;
+          const VRML1State: TVRML1State;
+          const GeometryForTexCoord: TAbstractGeometryNode;
+          out TexCoordIndex: Integer): TAbstractTextureNode; overload; override;
       end;
     var
       FMaterialInfo: TMaterialInfo;
@@ -620,6 +629,39 @@ end;
 procedure TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.SetTransparency(const Value: Single);
 begin
   FNode.Transparency := Value;
+end;
+
+function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.MainTexture(
+  const Appearance: TAppearanceNode;
+  const VRML1State: TVRML1State): TAbstractTextureNode;
+begin
+  if FNode.MultiDiffuseAlphaTexture <> nil then
+    Exit(FNode.MultiDiffuseAlphaTexture);
+  if FNode.DiffuseTexture <> nil then
+    Exit(FNode.DiffuseTexture);
+  // fallback result
+  Result := nil;
+end;
+
+function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.MainTexture(
+  const Appearance: TAppearanceNode;
+  const VRML1State: TVRML1State;
+  const GeometryForTexCoord: TAbstractGeometryNode;
+  out TexCoordIndex: Integer): TAbstractTextureNode;
+begin
+  if FNode.MultiDiffuseAlphaTexture <> nil then
+  begin
+    TexCoordIndex := FNode.DiffuseTextureCoordinatesId; // TODO: is this what X3DOM/InstantReality are doing? test.
+    Exit(FNode.MultiDiffuseAlphaTexture);
+  end;
+  if FNode.DiffuseTexture <> nil then
+  begin
+    TexCoordIndex := FNode.DiffuseTextureCoordinatesId;
+    Exit(FNode.DiffuseTexture);
+  end;
+  // fallback result
+  Result := nil;
+  TexCoordIndex := -1;
 end;
 
 { TCommonSurfaceShaderNode ----------------------------------------------------- }

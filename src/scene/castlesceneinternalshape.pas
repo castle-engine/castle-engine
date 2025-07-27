@@ -69,7 +69,12 @@ type
 
   { Shape with additional information how to render it inside a world,
     that allows to render it independently of the containing TCastleScene.
-    Meaning of fields follows the TShapesCollector.Add parameters. }
+    Meaning of fields follows the TShapesCollector.Add parameters.
+
+    Implementation note: We tested whether remaking this to be a record
+    makes sense for performance on https://github.com/michaliskambi/many-cubes/ .
+    It doesn't. We would also lose the property of quick copy/replace
+    (and we use it during sorting) and <> nil (used by shapes batching). }
   TCollectedShape = class
     Shape: TGLShape;
     RenderOptions: TCastleRenderOptions;

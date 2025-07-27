@@ -28,7 +28,7 @@ uses SysUtils, Classes, Generics.Collections,
   CastleVectors, CastleTransform, CastleBoxes, X3DNodes, CastleClassUtils,
   CastleUtils, CastleInternalTriangleOctree, CastleFrustum, CastleInternalOctree,
   CastleInternalBaseTriangleOctree, X3DFields, CastleInternalGeometryArrays,
-  CastleTriangles, CastleImages, CastleInternalMaterialProperties,
+  CastleTriangles, CastleImages,
   CastleShapeInternalShadowVolumes, CastleRenderOptions, CastleTimeUtils;
 
 const
@@ -371,9 +371,6 @@ type
 
     FLocalGeometryChangedCount: Cardinal;
     FDynamicGeometry: Boolean;
-
-    IsCachedMaterialProperty: boolean;
-    CachedMaterialProperty: TMaterialProperty;
 
     FShadowVolumes: TShapeShadowVolumes;
 
@@ -787,10 +784,6 @@ type
     function GeometryGrandParentNodeName: String; deprecated 'use GeometryGrandParentNode.X3DName, if GeometryGrandParentNode <> nil';
     function GeometryGrandGrandParentNodeName: String; deprecated 'use GeometryGrandGrandParentNode.X3DName, if GeometryGrandGrandParentNode <> nil';
 
-    { Material property associated with this shape's material/texture. }
-    function InternalMaterialProperty: TMaterialProperty;
-    function MaterialProperty: TMaterialProperty; deprecated 'use InternalMaterialProperty, or (better) do not use it at all -- this is internal';
-
     { @exclude }
     property InternalShadowVolumes: TShapeShadowVolumes read FShadowVolumes;
 
@@ -1039,7 +1032,7 @@ type
     property Current: TShape read FCurrent;
   end deprecated{ 'use Tree.TraverseList(...)'};
 
-  TShapeList = class({$ifdef FPC}specialize{$endif} TObjectList<TShape>)
+  TShapeList = class({$ifdef FPC}specialize{$endif} TCastleFastList<TShape>)
   private
     { Like regular Add, but parameter is "const" to satisfy TShapeTraverseFunc signature. }
     procedure AddConst(const S: TShape);
@@ -1368,7 +1361,7 @@ var
       Note that we use MaxShapesCount instead of ShapesCount,
       since MaxShapesCount is usually instant, while ShapesCount...
       now ShapesCount depends on TraverseList, so it would cause infinite loop. }
-    Result.Capacity := MaxShapesCount;
+    Result.AllocateAtLeast(MaxShapesCount);
     TraverseCore({$ifdef FPC}@{$endif} Result.AddConst, OnlyActive, OnlyVisible, OnlyCollidable);
     CachedChildrenListHash[OnlyActive, OnlyVisible, OnlyCollidable] := CurrentShapesHash;
     CachedChildrenList[OnlyActive, OnlyVisible, OnlyCollidable] := Result;
@@ -1554,6 +1547,9 @@ begin
     if AState.ShapeNode <> nil then
     begin
       AssociateNode(AState.ShapeNode);
+      { TODO: replacing here and in unassociate the State.ShapeNode.Appearance
+        ->State.Appearance causes crashes in auto-tests.
+        Investigate, explain, possibly improve State.Appearance? }
       if AState.ShapeNode.Appearance <> nil then
       begin
         AssociateNode(AState.ShapeNode.Appearance);
@@ -1787,13 +1783,10 @@ var
 
     { we need at least 1 texture coordinate if some special texture
       (not necessarily diffuse texture) is used }
-    if (S.ShapeNode <> nil) and
-       (S.ShapeNode.Appearance <> nil) then
+    if S.Appearance <> nil then
     begin
       // CommonSurfaceShader can only be non-nil if Appearance is non-nil
-      {$warnings off} // using deprecated to keep backward compatibility
-      SurfaceShader := S.ShapeNode.CommonSurfaceShader;
-      {$warnings on}
+      SurfaceShader := S.Appearance.InternalCommonSurfaceShader;
       if SurfaceShader <> nil then
       begin
         if SurfaceShader.MultiDiffuseAlphaTexture <> nil then
@@ -1810,19 +1803,19 @@ var
           MaxVar(Result, SurfaceShader.ShininessTextureCoordinatesId + 1);
       end else
       begin
-        if S.ShapeNode.Appearance.NormalMap <> nil then
+        if S.Appearance.NormalMap <> nil then
           MaxVar(Result, 1);
-        if S.ShapeNode.Appearance.Material is TAbstractOneSidedMaterialNode then
+        if S.Appearance.Material is TAbstractOneSidedMaterialNode then
         begin
-          MatOne := TAbstractOneSidedMaterialNode(S.ShapeNode.Appearance.Material);
+          MatOne := TAbstractOneSidedMaterialNode(S.Appearance.Material);
           if MatOne.EmissiveTexture <> nil then
             TexCoordsNeededForMapping(Result, MatOne.EmissiveTextureMapping);
           if MatOne.NormalTexture <> nil then
             TexCoordsNeededForMapping(Result, MatOne.NormalTextureMapping);
         end;
-        if S.ShapeNode.Appearance.Material is TMaterialNode then
+        if S.Appearance.Material is TMaterialNode then
         begin
-          MatPhong := TMaterialNode(S.ShapeNode.Appearance.Material);
+          MatPhong := TMaterialNode(S.Appearance.Material);
           if MatPhong.AmbientTexture <> nil then
             TexCoordsNeededForMapping(Result, MatPhong.AmbientTextureMapping);
           if MatPhong.DiffuseTexture <> nil then
@@ -1834,9 +1827,9 @@ var
           if MatPhong.OcclusionTexture <> nil then
             TexCoordsNeededForMapping(Result, MatPhong.OcclusionTextureMapping);
         end;
-        if S.ShapeNode.Appearance.Material is TPhysicalMaterialNode then
+        if S.Appearance.Material is TPhysicalMaterialNode then
         begin
-          MatPhysical := TPhysicalMaterialNode(S.ShapeNode.Appearance.Material);
+          MatPhysical := TPhysicalMaterialNode(S.Appearance.Material);
           if MatPhysical.BaseTexture <> nil then
             TexCoordsNeededForMapping(Result, MatPhysical.BaseTextureMapping);
           if MatPhysical.MetallicRoughnessTexture <> nil then
@@ -2375,19 +2368,20 @@ const
     { amMask -> } acTest,
     { amBlend -> } acBlending
   );
+var
+  App: TAppearanceNode;
 begin
   { Check whether Appearance.alphaMode or alphaChannel field is set to something <> "AUTO".
     This is the simplest option, in which we don't need to run our "auto detection"
     below. }
-  if (State.ShapeNode <> nil) and
-     (State.ShapeNode.Appearance <> nil) and
-     (State.ShapeNode.Appearance.AlphaMode <> amAuto) then
-    Exit(AlphaModeToChannel[State.ShapeNode.Appearance.AlphaMode]);
-
-  if (State.ShapeNode <> nil) and
-     (State.ShapeNode.Appearance <> nil) and
-     (State.ShapeNode.Appearance.AlphaChannel <> acAuto) then
-    Exit(State.ShapeNode.Appearance.AlphaChannel);
+  App := State.Appearance;
+  if App <> nil then
+  begin
+    if App.AlphaMode <> amAuto then
+      Exit(AlphaModeToChannel[App.AlphaMode]);
+    if App.AlphaChannel <> acAuto then
+      Exit(App.AlphaChannel);
+  end;
 
   if DetectAlphaBlending then
     Exit(acBlending)
@@ -2799,11 +2793,9 @@ begin
   Result := HandleTextureNode(State.VRML1State.Texture2);
   if Result <> nil then Exit;
 
-  if (State.ShapeNode <> nil) and
-     (State.ShapeNode.Appearance <> nil) then
+  App := State.Appearance;
+  if App <> nil then
   begin
-    App := State.ShapeNode.Appearance;
-
     if App.FdMaterial.Value is TAbstractOneSidedMaterialNode then
     begin
       Result := HandleOneSidedMaterial(TAbstractOneSidedMaterialNode(App.FdMaterial.Value));
@@ -2831,10 +2823,7 @@ begin
     HandleIDecls(App.FdShaders);
     HandleIDecls(App.FdEffects);
 
-    { CommonSurfaceShader can be non-nil only when App is non-nil }
-    {$warnings off} // using deprecated to keep backward compatibility
-    SurfaceShader := State.ShapeNode.CommonSurfaceShader;
-    {$warnings on}
+    SurfaceShader := App.InternalCommonSurfaceShader;
     if SurfaceShader <> nil then
     begin
       HandleCommonSurfaceShader(SurfaceShader);
@@ -3156,11 +3145,6 @@ begin
   Result := State.ShapeNode;
 end;
 
-function TShape.MaterialProperty: TMaterialProperty;
-begin
-  Result := InternalMaterialProperty;
-end;
-
 procedure TShape.InternalBeforeChange;
 begin
   FreeProxy;
@@ -3172,33 +3156,6 @@ procedure TShape.InternalAfterChange;
 begin
   AssociateGeometryState(FOriginalGeometry, FOriginalState);
   AssociateGeometryStateNeverProxied(FOriginalGeometry, FOriginalState);
-end;
-
-function TShape.InternalMaterialProperty: TMaterialProperty;
-var
-  TextureUrl: String;
-begin
-  if IsCachedMaterialProperty then
-    Exit(CachedMaterialProperty);
-
-  Result := nil;
-
-  if Node <> nil then
-  begin
-    { VRML 2.0/X3D version: refer to TAppearanceNode.MaterialProperty }
-    if Node.Appearance <> nil then
-      Result := Node.Appearance.InternalMaterialProperty;
-  end else
-  begin
-    { VRML 1.0 version: calculate it directly here }
-    TextureUrl := State.VRML1State.Texture2.FdFileName.Value;
-    if TextureUrl <> '' then
-      Result := MaterialProperties.FindTextureBaseName(
-        DeleteURIExt(ExtractURIName(TextureUrl)));
-  end;
-
-  IsCachedMaterialProperty := true;
-  CachedMaterialProperty := Result;
 end;
 
 { TShapeTreeGroup -------------------------------------------------------- }
@@ -3773,18 +3730,18 @@ end;
 
 constructor TShapeList.Create;
 begin
-  inherited Create(false);
+  inherited Create;
 end;
 
 constructor TShapeList.Create(const Tree: TShapeTree;
   const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
 begin
   Create;
-  { Set Capacity, to make following operations faster.
+  { Allocate some Capacity, to make following operations faster.
     Note that we use MaxShapesCount instead of ShapesCount,
     since MaxShapesCount is usually instant.
     Testcase of speedup: e.g. profiling animate_3d_model_by_code_2. }
-  Capacity := Tree.MaxShapesCount;
+  AllocateAtLeast(Tree.MaxShapesCount);
   { This method uses Tree.Traverse that uses Tree.TraverseList that creates a list,
     iterates over it, and here we add results to another list...
     This is clearly a waste of time. That's why this method is deprecated. }

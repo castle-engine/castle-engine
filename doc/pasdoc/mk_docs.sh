@@ -102,17 +102,22 @@ if (( $# == 0 )); then
   #   describe an "external API", not interesting to CGE developers,
   #   like castleinternalpk3dconnexion.pas and castleinternaltdxinput_tlb.pas.
   #
-  #   There are two units that are "somewhat internal":
-  #   glext.pas, castlegles.pas. We want them to be treated as internal
+  #   Note: There are two units that are "somewhat internal":
+  #   castlegl.pas, castlegles.pas. We want them to be treated as internal
   #   for most games. But sometimes users can also use them directly,
   #   to do some advanced tricks (direct OpenGL / OpenGLES rendering,
   #   mixed with CGE rendering).
   #   In any case, their docs are not ready for PasDoc (and never will be
   #   --- this is OpenGL and OpenGL ES API).
   #
-  #   Exception: we still generate docs for castlevectorsinternal*.pas.
-  #   Although these units are not supposed to be used directly,
-  #   but they document API of TVector3 and TVector3Double.
+  #   - Exception: we still generate docs for castlevectorsinternal*.pas.
+  #     Although these units are not supposed to be used directly,
+  #     but they document API of TVector3 and TVector3Double.
+  #
+  #   - Exception: we also generate docs for CastleInternalProjectLocalSettings.
+  #     While you should not use this unit directly in Pascal application,
+  #     but documentation for this unit is useful for people writing/generating
+  #     CastleProjectLocalSettings.json .
 
   "${FIND}" .  \
     '(' -type f -iname '*.pas' \

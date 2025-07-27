@@ -1,5 +1,5 @@
 {
-  Copyright 2005-2024 Michalis Kamburelis.
+  Copyright 2005-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -484,16 +484,31 @@ function TFrustum.Box3DCollisionPossibleSimple(
 
 var
   fp: TFrustumPlane;
+  PlanePtr: PVector4;
+  BoxBool: TBox3DBool absolute box;
 begin
   if Box.IsEmpty then
     Exit(false);
 
   for fp := Low(fp) to LastPlane do
-    { Again, don't be confused by name "Inside" below: pcInside
+  begin
+    { Same comment as for TFrustum.Box3DCollisionPossible:
+      Don't be confused by name "Inside" below: pcInside
       means that box is where Planes[fp] inverted normal points,
       which means *outside* the frustum... }
-    if Box.PlaneCollisionInside(Planes[fp]) then
+
+    // Naive implementation:
+    // if Box.PlaneCollisionInside(Planes[fp]) then
+    //   Exit(false);
+
+    // Optimized implementation, inlined and knowing that Box is not empty.
+    PlanePtr := @Planes[fp];
+    if BoxBool[PlanePtr^.X >= 0].X * PlanePtr^.X +
+       BoxBool[PlanePtr^.Y >= 0].Y * PlanePtr^.Y +
+       BoxBool[PlanePtr^.Z >= 0].Z * PlanePtr^.Z +
+       PlanePtr^.W < 0 then
       Exit(false);
+  end;
 
   Result := true;
 end;
