@@ -1,7 +1,7 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
         <ProjectGuid>{53D74136-DD0C-DE9F-E275-BC4F96297003}</ProjectGuid>
-        <MainSource>test_triangulate.dpr</MainSource>
+        <MainSource>scene_information_cli_tool.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
         <TargetedPlatforms>33939</TargetedPlatforms>
@@ -94,7 +94,7 @@
         <DCC_N>false</DCC_N>
         <DCC_S>false</DCC_S>
         <DCC_ImageBase>00400000</DCC_ImageBase>
-        <SanitizedProjectName>test_triangulate</SanitizedProjectName>
+        <SanitizedProjectName>scene_information_cli_tool</SanitizedProjectName>
         <VerInfo_Locale>1045</VerInfo_Locale>
         <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=;CFBundleName=</VerInfo_Keys>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;$(DCC_Namespace)</DCC_Namespace>
@@ -184,7 +184,7 @@
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
         <None Include="README.md"/>
-        <None Include="test_triangulate.dpr"/>
+        <None Include="scene_information_cli_tool.dpr"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
@@ -203,7 +203,7 @@
         <BorlandProject>
             <Delphi.Personality>
                 <Source>
-                    <Source Name="MainSource">test_triangulate.dpr</Source>
+                    <Source Name="MainSource">scene_information_cli_tool.dpr</Source>
                 </Source>
                 <Excluded_Packages>
                     <Excluded_Packages Name="$(BDSBIN)\bcboffice2k280.bpl">Embarcadero C++Builder Office 2000 Servers Package</Excluded_Packages>
@@ -232,41 +232,41 @@
                 </DeployFile>
 
                 <!-- Deploy executables on all platforms, for Debug -->
-                <DeployFile LocalName="test_triangulate.exe" Configuration="Debug" Class="ProjectOutput">
+                <DeployFile LocalName="scene_information_cli_tool.exe" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
-                        <RemoteName>test_triangulate.exe</RemoteName>
+                        <RemoteName>scene_information_cli_tool.exe</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="test_triangulate.exe" Configuration="Debug" Class="ProjectOutput">
+                <DeployFile LocalName="scene_information_cli_tool.exe" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
-                        <RemoteName>test_triangulate.exe</RemoteName>
+                        <RemoteName>scene_information_cli_tool.exe</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="test_triangulate" Configuration="Debug" Class="ProjectOutput">
+                <DeployFile LocalName="scene_information_cli_tool" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Linux64">
-                        <RemoteName>test_triangulate</RemoteName>
+                        <RemoteName>scene_information_cli_tool</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
 
                 <!-- Deploy executables on all platforms, for Release -->
-                <DeployFile LocalName="test_triangulate.exe" Configuration="Release" Class="ProjectOutput">
+                <DeployFile LocalName="scene_information_cli_tool.exe" Configuration="Release" Class="ProjectOutput">
                     <Platform Name="Win32">
-                        <RemoteName>test_triangulate.exe</RemoteName>
+                        <RemoteName>scene_information_cli_tool.exe</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="test_triangulate.exe" Configuration="Release" Class="ProjectOutput">
+                <DeployFile LocalName="scene_information_cli_tool.exe" Configuration="Release" Class="ProjectOutput">
                     <Platform Name="Win32">
-                        <RemoteName>test_triangulate.exe</RemoteName>
+                        <RemoteName>scene_information_cli_tool.exe</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="test_triangulate" Configuration="Release" Class="ProjectOutput">
+                <DeployFile LocalName="scene_information_cli_tool" Configuration="Release" Class="ProjectOutput">
                     <Platform Name="Linux64">
-                        <RemoteName>test_triangulate</RemoteName>
+                        <RemoteName>scene_information_cli_tool</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

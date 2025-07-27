@@ -468,6 +468,7 @@ begin
     P.Targets.AddUnit('castleinternalnodeinterpolator.pas');
     P.Targets.AddUnit('castleinternalnoise.pas');
     P.Targets.AddUnit('castleinternalnormals.pas');
+    P.Targets.AddUnit('castleinternalprimitivematerial.pas');
     P.Targets.AddUnit('castleinternalrenderer.pas');
     P.Targets.AddUnit('castleinternalshadowmaps.pas');
     P.Targets.AddUnit('castleinternalshapesrenderer.pas');

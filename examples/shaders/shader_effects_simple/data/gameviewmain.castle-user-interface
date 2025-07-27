@@ -108,7 +108,7 @@
               "X" : 1.2871779203414917E+000,
               "Y" : 8.6285519599914551E-001
             },
-            "Url" : "castle-data:/sketchfab/cat-16c3444c8d1440fc97fdf10f60ec58b0/scene.gltf"
+            "Url" : "castle-data:/sketchfab/cat-soldier/scene.gltf"
           },
           {
             "$$ClassName" : "TCastleScene",
@@ -124,7 +124,7 @@
               "X" : -1.9024528264999390E+000,
               "Y" : 8.6286002397537231E-001
             },
-            "Url" : "castle-data:/sketchfab/cat-16c3444c8d1440fc97fdf10f60ec58b0/scene.gltf"
+            "Url" : "castle-data:/sketchfab/cat-soldier/scene.gltf"
           },
           {
             "$$ClassName" : "TCastlePointLight",

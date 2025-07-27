@@ -527,8 +527,9 @@ type
       or in new Material / PhysicalMaterial / UnlitMaterial xxxTexture fields
       in X3D 4.0). }
     procedure EnableSurfaceTexture(const SurfaceTexture: TSurfaceTexture;
+      const TextureType: TTextureTypeSample;
       const TextureUnit, TextureCoordinatesId: Cardinal;
-      const UniformTextureName, PlugCode: String);
+      const UniformTextureName: String);
     { Enable light source. Remember to set MaterialXxx before calling this. }
     procedure EnableLight(const Number: Cardinal; Light: PLightInstance);
     procedure EnableFog(const FogType: TFogType;
@@ -2593,18 +2594,20 @@ begin
 end;
 
 procedure TShader.EnableSurfaceTexture(const SurfaceTexture: TSurfaceTexture;
+  const TextureType: TTextureTypeSample;
   const TextureUnit, TextureCoordinatesId: Cardinal;
-  const UniformTextureName, PlugCode: String);
+  const UniformTextureName: String);
 begin
   FSurfaceTextureShaders.Items[SurfaceTexture].Enable := true;
   FSurfaceTextureShaders.Items[SurfaceTexture].TextureUnit := TextureUnit;
   FSurfaceTextureShaders.Items[SurfaceTexture].TextureCoordinatesId := TextureCoordinatesId;
   FSurfaceTextureShaders.Items[SurfaceTexture].UniformTextureName := UniformTextureName;
-  FSurfaceTextureShaders.Items[SurfaceTexture].PlugCode := PlugCode;
+  FSurfaceTextureShaders.Items[SurfaceTexture].SurfaceTexture := SurfaceTexture;
+  FSurfaceTextureShaders.Items[SurfaceTexture].TextureType := TextureType;
 
   ShapeRequiresShaders := true;
 
-  FSurfaceTextureShaders.Items[SurfaceTexture].PrepareHash(FCodeHash, SurfaceTexture);
+  FSurfaceTextureShaders.Items[SurfaceTexture].PrepareHash(FCodeHash);
 end;
 
 procedure TShader.EnableLight(const Number: Cardinal; Light: PLightInstance);

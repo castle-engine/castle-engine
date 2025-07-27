@@ -91,8 +91,15 @@
   {$ifdef CPUX86} {$define cpu386} {$define cpui386} {$endif}
   {$ifdef CPUARM64} {$define CPUAARCH64} {$endif}
 
-  { Define in Delphi UNIX when LINUX, like FPC does. }
+  { Define Darwin for a common Apple OS in macOS, iOS etc.
+    See https://en.wikipedia.org/wiki/Darwin_(operating_system).
+    Compatible with FPC. }
+  {$ifdef MACOS} {$define DARWIN} {$endif}
+
+  { Define in Delphi UNIX when LINUX or other UNIXes are, like FPC does. }
   {$ifdef LINUX} {$define UNIX} {$endif}
+  {$ifdef ANDROID} {$define UNIX} {$endif}
+  {$ifdef DARWIN} {$define UNIX} {$endif}
 {$endif}
 
 { Traditionally, CGE defined CPUARM64 also for 64-bit iOS.
@@ -442,7 +449,7 @@
     - On macOS, see https://castle-engine.io/macos .
 
     - On Android, we have a "png" service with libpng included.
-      See ../../tools/build-tool/data/android/integrated-services/png/README.adoc .
+      See ../../tools/build-tool/data/android/services/png/README.adoc .
 
   3.If CASTLE_PNG_STATIC is defined, we statically link to libpng.
     The presense of static libpng library (libpng.a on Unix) is then

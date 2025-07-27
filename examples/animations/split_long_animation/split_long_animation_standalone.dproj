@@ -328,257 +328,257 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/license.txt" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin/license.txt" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/scene.bin" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin/scene.bin" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/</RemoteDir>
   <RemoteName>scene.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/</RemoteDir>
   <RemoteName>scene.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/</RemoteDir>
   <RemoteName>scene.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/scene.gltf" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin/scene.gltf" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/</RemoteDir>
   <RemoteName>scene.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/</RemoteDir>
   <RemoteName>scene.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/</RemoteDir>
   <RemoteName>scene.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/09_-_Default_baseColor.jpeg" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin/textures/09_-_Default_baseColor.jpeg" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>09_-_Default_baseColor.jpeg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>09_-_Default_baseColor.jpeg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>09_-_Default_baseColor.jpeg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/09_-_Default_emissive.jpeg" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin/textures/09_-_Default_emissive.jpeg" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>09_-_Default_emissive.jpeg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>09_-_Default_emissive.jpeg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>09_-_Default_emissive.jpeg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/09_-_Default_metallicRoughness.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin/textures/09_-_Default_metallicRoughness.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>09_-_Default_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>09_-_Default_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>09_-_Default_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/09_-_Default_normal.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin/textures/09_-_Default_normal.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>09_-_Default_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>09_-_Default_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>09_-_Default_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/material_1_baseColor.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin/textures/material_1_baseColor.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_1_baseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_1_baseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_1_baseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/material_1_metallicRoughness.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin/textures/material_1_metallicRoughness.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_1_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_1_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_1_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/material_1_normal.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin/textures/material_1_normal.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_1_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_1_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_1_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/material_2_baseColor.jpeg" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin/textures/material_2_baseColor.jpeg" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_2_baseColor.jpeg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_2_baseColor.jpeg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_2_baseColor.jpeg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/material_3_emissive.jpeg" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin/textures/material_3_emissive.jpeg" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_3_emissive.jpeg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_3_emissive.jpeg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_3_emissive.jpeg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/material_baseColor.jpeg" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin/textures/material_baseColor.jpeg" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_baseColor.jpeg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_baseColor.jpeg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_baseColor.jpeg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/material_metallicRoughness.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin/textures/material_metallicRoughness.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/material_normal.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin/textures/material_normal.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -634,257 +634,257 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/license.txt" Configuration="Release" Class="File">
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin/license.txt" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/scene.bin" Configuration="Release" Class="File">
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin/scene.bin" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/</RemoteDir>
   <RemoteName>scene.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/</RemoteDir>
   <RemoteName>scene.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/</RemoteDir>
   <RemoteName>scene.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/scene.gltf" Configuration="Release" Class="File">
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin/scene.gltf" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/</RemoteDir>
   <RemoteName>scene.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/</RemoteDir>
   <RemoteName>scene.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/</RemoteDir>
   <RemoteName>scene.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/09_-_Default_baseColor.jpeg" Configuration="Release" Class="File">
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin/textures/09_-_Default_baseColor.jpeg" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>09_-_Default_baseColor.jpeg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>09_-_Default_baseColor.jpeg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>09_-_Default_baseColor.jpeg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/09_-_Default_emissive.jpeg" Configuration="Release" Class="File">
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin/textures/09_-_Default_emissive.jpeg" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>09_-_Default_emissive.jpeg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>09_-_Default_emissive.jpeg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>09_-_Default_emissive.jpeg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/09_-_Default_metallicRoughness.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin/textures/09_-_Default_metallicRoughness.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>09_-_Default_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>09_-_Default_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>09_-_Default_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/09_-_Default_normal.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin/textures/09_-_Default_normal.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>09_-_Default_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>09_-_Default_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>09_-_Default_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/material_1_baseColor.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin/textures/material_1_baseColor.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_1_baseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_1_baseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_1_baseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/material_1_metallicRoughness.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin/textures/material_1_metallicRoughness.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_1_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_1_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_1_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/material_1_normal.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin/textures/material_1_normal.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_1_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_1_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_1_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/material_2_baseColor.jpeg" Configuration="Release" Class="File">
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin/textures/material_2_baseColor.jpeg" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_2_baseColor.jpeg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_2_baseColor.jpeg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_2_baseColor.jpeg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/material_3_emissive.jpeg" Configuration="Release" Class="File">
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin/textures/material_3_emissive.jpeg" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_3_emissive.jpeg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_3_emissive.jpeg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_3_emissive.jpeg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/material_baseColor.jpeg" Configuration="Release" Class="File">
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin/textures/material_baseColor.jpeg" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_baseColor.jpeg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_baseColor.jpeg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_baseColor.jpeg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/material_metallicRoughness.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin/textures/material_metallicRoughness.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/material_normal.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin/textures/material_normal.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>

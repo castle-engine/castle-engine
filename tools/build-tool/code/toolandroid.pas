@@ -269,7 +269,7 @@ var
     var
       TemplatePath: string;
     begin
-      TemplatePath := 'android/integrated-services/' + ServiceName;
+      TemplatePath := 'android/services/' + ServiceName;
       Project.ExtractTemplate(TemplatePath, AndroidProjectPath);
     end;
 
@@ -575,7 +575,7 @@ begin
   GenerateFromTemplates;
   GenerateServicesFromTemplates;
   PackageServices(Project, Project.AndroidServices,
-    'castle-data:/android/integrated-services/', AndroidProjectPath);
+    'castle-data:/android/services/', AndroidProjectPath);
   GenerateIcons;
   GenerateAssets;
   GenerateLocalization;

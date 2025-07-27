@@ -117,7 +117,7 @@ type
     and AddSubRange (for maximum speed). }
   TVector4List = class({$ifdef FPC}specialize{$endif} TStructList<TVector4>)
   public
-    procedure AddRange(const Source: TVector4List);
+    procedure AddRange(const Source: TVector4List); overload;
     procedure AddSubRange(const Source: TVector4List; const Index, AddCount: Integer);
     procedure AddListRange(const Source: TVector4List; const Index, AddCount: Integer); deprecated 'use AddSubRange';
 

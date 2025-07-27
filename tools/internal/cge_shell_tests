@@ -7,6 +7,17 @@ set -exuo pipefail
 
 cd "$CASTLE_ENGINE_PATH"
 
+# --------------------------------------------------------------------------
+# detect tools with OS-specific names
+
+FIND='find'
+if which cygpath.exe > /dev/null; then
+  FIND='/bin/find' # On Cygwin, make sure to use Cygwin's find, not the one from Windows
+fi
+
+# --------------------------------------------------------------------------
+# routines performing specific tests
+
 # Test we don't have any projects with invalid qualified_name
 # in CastleEngineManifest.xml .
 do_test_qualified_name ()
@@ -153,11 +164,6 @@ do_test_no_invalid_deploy_files ()
 # (because there are lots of examples, better list their binaries in one top-level .gitignore).
 do_test_examples_no_gitignore ()
 {
-  FIND='find'
-  if which cygpath.exe > /dev/null; then
-    FIND='/bin/find' # On Cygwin, make sure to use Cygwin's find, not the one from Windows
-  fi
-
   # Using "+" to have proper exit status from find,
   # "If any invocation with the + form returns a non-zero value as exit status, then find returns a non-zero exit status"
 
@@ -174,6 +180,60 @@ do_test_examples_no_gitignore ()
     ')'
 }
 
+# Analyze path lengths within CGE repository.
+#
+# We try to limit ourselves, to not hit too soon:
+# 1. Windows long paths limit
+# 2. GIT on Windows paths limit
+#
+# See
+# - https://www.supportyourtech.com/articles/how-to-enable-long-paths-in-windows-11-step-by-step-guide/
+# - https://technofossy.com/how-to-fix-filename-too-long-errors-in-git-on-windows/
+#
+# Note: the problem is in general not possible to avoid, since users
+# can install CGE in already-long paths.
+# Also, our build tool can create super long paths within,
+# like Android can create:
+# xxx/castle-engine-output/android/project/app/build/intermediates/desugar_graph/debug/out/currentProject/jar_6f952a041434a249b77470de1f1a7ef58277461d633a2e42644e1add6726a3f6_bucket_0/graph.bin
+# (that's almost 200 chars, and we're not responsible for most of them).
+#
+# So we just try to limit ourselves to something reasonable
+# to minimize changes of possible issues.
+do_longest_path ()
+{
+  # Look only at versioned files.
+  # To list all, try
+  #   "${FIND}" . -type f
+  # but note it depends on previous state, for what platforms and what did we compile.
+
+  # We need to change core.quotePath, otherwise some of our test files
+  # with Chinese etc. characters inside would seem to be longest.
+  #git config core.quotePath
+  git config core.quotePath false
+
+  LONGEST_PATH_LENGTH=`
+    git ls-tree --full-tree -r --name-only HEAD  | \
+    awk '{ print length, $0 }' | \
+    sort -n | \
+    tail -n 1 | \
+    cut -d ' ' -f 1`
+  MAX_LONGEST_PATH_LENGTH=130
+
+  if [ "$LONGEST_PATH_LENGTH" -gt "$MAX_LONGEST_PATH_LENGTH" ]; then
+    echo "Error: longest path in CGE repository is $LONGEST_PATH_LENGTH, should be <= $MAX_LONGEST_PATH_LENGTH"
+    echo "Here are 10 files with longest paths"
+    git ls-tree --full-tree -r --name-only HEAD  | \
+      awk '{ print length, $0 }' | \
+      sort -n | \
+      tail -n 10
+    exit 1
+  fi
+
+  git config --unset core.quotePath
+}
+
+# main -----------------------------------------------------------------------
+
 do_test_qualified_name
 do_test_examples_copyright
 do_test_custom_editor_template_up_to_date
@@ -181,3 +241,4 @@ do_test_examples_up_to_date
 do_test_packages_dependencies
 do_test_no_invalid_deploy_files
 do_test_examples_no_gitignore
+do_longest_path

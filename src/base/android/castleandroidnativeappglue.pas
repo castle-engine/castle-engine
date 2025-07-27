@@ -17,6 +17,10 @@
 
 unit CastleAndroidNativeAppGlue;
 
+{$ifndef FPC}
+  {$message error 'This unit is only available for FPC. With Delphi, use equivalent built-in unit Androidapi.AppGlue.'}
+{$endif}
+
 {$I castleconf.inc}
 
 interface

@@ -1301,7 +1301,8 @@ type
       This is independent (doesn't take into account) the value
       of @link(TCastleRenderOptions.WholeSceneManifold
       RenderOptions.WholeSceneManifold). }
-    function InternalDetectedWholeSceneManifold: Boolean;
+    function InternalDetectedWholeSceneManifold(
+      const ForceRecalculation: Boolean = false): Boolean;
 
     { Edges count in the scene, for information purposes. }
     procedure EdgesCount(out ManifoldEdges, BorderEdges: Cardinal);
@@ -3919,7 +3920,13 @@ procedure TCastleSceneCore.ChangedAllEnumerateCallback(Node: TX3DNode);
 begin
   if (Node.Scene <> nil) and
      (Node.Scene <> Self) and
-     (not InternalNodeSharing) then
+     (not InternalNodeSharing) and
+     { We need to check both Self and Node.Scene for InternalNodeSharing flag,
+       since updates may happen in both scenes.
+       Testcase: https://github.com/castle-engine/castle-model-viewer/issues/109
+       when "Silhouette and Border Edges" visualization was doing ChangedAll
+       on Scene every frame. }
+     (not TCastleSceneCore(Node.Scene).InternalNodeSharing) then
     WritelnWarning('X3D node %s is already part of another TCastleScene instance.' + ' You cannot use the same X3D node in multiple instances of TCastleScene. Instead you must copy the node, using "Node.DeepCopy". It is usually most comfortable to copy the entire scene, using "TCastleScene.Clone".',
       [Node.NiceName]);
   Node.Scene := Self;
@@ -7640,7 +7647,8 @@ begin
     HeadlightOn := DefaultNavigationInfoHeadlight;
 end;
 
-function TCastleSceneCore.InternalDetectedWholeSceneManifold: Boolean;
+function TCastleSceneCore.InternalDetectedWholeSceneManifold(
+  const ForceRecalculation: Boolean): Boolean;
 
   { Do CalculateDetectedWholeSceneManifold, measure time. }
   procedure CalculateDetectedWholeSceneManifoldTime;
@@ -7674,6 +7682,8 @@ function TCastleSceneCore.InternalDetectedWholeSceneManifold: Boolean;
   end;
 
 begin
+  if ForceRecalculation then
+    Exclude(Validities, fvDetectedWholeSceneManifold);
   if not (fvDetectedWholeSceneManifold in Validities) then
   begin
     CalculateDetectedWholeSceneManifoldTime;

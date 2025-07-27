@@ -72,6 +72,7 @@ type
     //procedure TestInternalNodesReadOnly;
     procedure TestValidScene;
     procedure TestInternalDetectedWholeSceneManifold;
+    procedure TestMaterialInfo;
   end;
 
 implementation
@@ -79,7 +80,7 @@ implementation
 uses X3DLoad, CastleVectors, CastleShapes,
   CastleTimeUtils, CastleStringUtils, X3DFields, CastleViewport, CastleBoxes,
   CastleFilesUtils, CastleScene, CastleTransform, CastleApplicationProperties,
-  CastleUriUtils, CastleColors;
+  CastleUriUtils, CastleColors, CastleRenderOptions;
 
 procedure TTestSceneCore.TestBorderManifoldEdges;
 var
@@ -1352,6 +1353,72 @@ begin
       AssertTrue(0 <> ManifoldEdges);
       AssertFalse(Scene.InternalDetectedWholeSceneManifold);
     end;
+  finally FreeAndNil(Scene) end;
+end;
+
+procedure TTestSceneCore.TestMaterialInfo;
+var
+  Scene: TCastleSceneCore;
+  ShapesList: TShapeList;
+begin
+  Scene := TCastleSceneCore.Create(nil);
+  try
+    Scene.Load('castle-data:/test_material_info/no_texture.x3dv');
+    AssertEquals(1, Scene.Shapes.ShapesCount(false, false, false));
+    ShapesList := Scene.Shapes.TraverseList(false, false, false);
+    AssertEquals(1, ShapesList.Count);
+
+    AssertTrue(ShapesList[0].State.MaterialInfo <> nil);
+    AssertVectorEquals(Vector3(1, 1, 0), ShapesList[0].State.MaterialInfo.MainColor);
+
+    AssertTrue(ShapesList[0].State.MainTexture = nil);
+  finally FreeAndNil(Scene) end;
+
+  Scene := TCastleSceneCore.Create(nil);
+  try
+    Scene.Load('castle-data:/test_material_info/texture_in_appearance.x3dv');
+    AssertEquals(1, Scene.Shapes.ShapesCount(false, false, false));
+    ShapesList := Scene.Shapes.TraverseList(false, false, false);
+    AssertEquals(1, ShapesList.Count);
+
+    AssertTrue(ShapesList[0].State.MaterialInfo <> nil);
+    AssertVectorEquals(Vector3(1, 1, 0), ShapesList[0].State.MaterialInfo.MainColor);
+
+    AssertTrue(ShapesList[0].State.MainTexture <> nil);
+    AssertTrue((ShapesList[0].State.MainTexture as TImageTextureNode).FdUrl.Count = 1);
+    AssertTrue((ShapesList[0].State.MainTexture as TImageTextureNode).FdUrl.Items[0] = 'test_texture.png');
+  finally FreeAndNil(Scene) end;
+
+
+  Scene := TCastleSceneCore.Create(nil);
+  try
+    Scene.Load('castle-data:/test_material_info/texture_in_appearance_without_material.x3dv');
+    AssertEquals(1, Scene.Shapes.ShapesCount(false, false, false));
+    ShapesList := Scene.Shapes.TraverseList(false, false, false);
+    AssertEquals(1, ShapesList.Count);
+
+    AssertTrue(ShapesList[0].State.MaterialInfo <> nil);
+    // no material node, but still MaterialInfo, with white color
+    AssertVectorEquals(Vector3(1, 1, 1), ShapesList[0].State.MaterialInfo.MainColor);
+
+    AssertTrue(ShapesList[0].State.MainTexture <> nil);
+    AssertTrue((ShapesList[0].State.MainTexture as TImageTextureNode).FdUrl.Count = 1);
+    AssertTrue((ShapesList[0].State.MainTexture as TImageTextureNode).FdUrl.Items[0] = 'test_texture.png');
+  finally FreeAndNil(Scene) end;
+
+  Scene := TCastleSceneCore.Create(nil);
+  try
+    Scene.Load('castle-data:/test_material_info/texture_in_physical_material.x3dv');
+    AssertEquals(1, Scene.Shapes.ShapesCount(false, false, false));
+    ShapesList := Scene.Shapes.TraverseList(false, false, false);
+    AssertEquals(1, ShapesList.Count);
+
+    AssertTrue(ShapesList[0].State.MaterialInfo <> nil);
+    AssertVectorEquals(Vector3(1, 1, 0), ShapesList[0].State.MaterialInfo.MainColor);
+
+    AssertTrue(ShapesList[0].State.MainTexture <> nil);
+    AssertTrue((ShapesList[0].State.MainTexture as TImageTextureNode).FdUrl.Count = 1);
+    AssertTrue((ShapesList[0].State.MainTexture as TImageTextureNode).FdUrl.Items[0] = 'test_texture_from_material.png');
   finally FreeAndNil(Scene) end;
 end;
 
