@@ -298,7 +298,10 @@ function MessageInputQuery(Window: TCastleWindow; const Title: string;
   const ValueAsString: string = '';
   const Alignment: THorizontalPosition = DefaultAlign;
   const Html: boolean = false): boolean; overload;
-{$ifndef EXTENDED_EQUALS_DOUBLE}
+{ MessageInputQuery version on Double (also TFloatTime) define only
+  - for Delphi (where Extended sometimes = Double but it still wants separate overload)
+  - for FPC, if Extended <> Double }
+{$if (not defined(FPC)) or (not defined(EXTENDED_EQUALS_DOUBLE))}
 function MessageInputQuery(Window: TCastleWindow; const Title: string;
   var Value: Double;
   const ValueAsString: string = '';
@@ -843,7 +846,7 @@ begin
     Value := ValueExtended;
 end;
 
-{$ifndef EXTENDED_EQUALS_DOUBLE}
+{$if (not defined(FPC)) or (not defined(EXTENDED_EQUALS_DOUBLE))}
 function MessageInputQuery(Window: TCastleWindow; const Title: string;
   var Value: Double; const ValueAsString: string;
   const Alignment: THorizontalPosition;

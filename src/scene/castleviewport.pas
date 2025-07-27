@@ -548,15 +548,15 @@ type
 
     function GetMainScene: TCastleScene; deprecated 'use Items.MainScene';
 
-    {$ifdef FPC}
     { Current projection parameters,
       calculated by last @link(CalculateProjection) call,
       adjusted by @link(OnProjection).
       @bold(This is read only). To change the projection parameters,
       override @link(CalculateProjection) or handle event @link(OnProjection). }
     property Projection: TProjection read FProjection;
+      {$ifdef FPC}
       deprecated 'in most cases, you can instead read Camera parameters, like Camera.Orthographic.EffectiveWidth, Camera.Orthographic.EffectiveHeight';
-    {$endif}
+      {$endif}
 
     { Set current camera vectors and projection,
       to best reflect current @link(TCastleRootTransform.MainScene Items.MainScene)

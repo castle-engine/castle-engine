@@ -124,6 +124,10 @@ type
     MouseDraggingStarted: Integer;
     MouseDraggingStart: TVector2;
 
+    { Box around which the Examine navigation should work.
+      Note that calling this has sometimes non-trivial cost,
+      needs to iterate over items,
+      so save the result to a variable if you need to use it multiple times. }
     function GoodModelBox: TBox3D;
 
     { Viewport we should manipulate.
@@ -343,6 +347,12 @@ type
         procedure SetTranslation(const Value: TVector3);
         procedure SetRotations(const Value: TQuaternion);
       public
+        { Calculated TCastleExamineNavigation.EffectiveCenterOfRotation
+          at the time of getting these vectors, to avoid calculating it again
+          when setting. Calculating it relies on viewport bounding box,
+          so it's not always cheap. }
+        EffectiveCenterOfRotation: TVector3;
+
         property Translation: TVector3 read FTranslation write SetTranslation;
         property Rotations: TQuaternion read FRotations write SetRotations;
 
@@ -1457,14 +1467,16 @@ type
       we do full head bobbing sequence (camera swing up, then down again).
 
       Note that if you do a footsteps sound in your game (see
-      stPlayerFootstepsDefault or TMaterialProperty.FootstepsSound)
+      e.g. @url(https://castle-engine.io/behaviors#_example_controlling_the_footsteps_sound
+      Example: controlling the footsteps sound))
       then you will want this property to match your footsteps sound length,
-      things feel and sound natural then.
-      Also, often it sounds better to record two footsteps inside
+      to sound natural.
+
+      Note: Often it sounds better to record two footsteps inside
       a single sound file, in which case the footstep sound length should be twice
       as long as this property. For example, record 2 steps inside a 1-second long
-      footstep sound, and set this property to 0.5 a second (which is a default
-      in fact). }
+      footstep sound, and set this property to 0.5 a second (which happens to be
+      a default). }
     property HeadBobbingTime: Single
       read FHeadBobbingTime write FHeadBobbingTime
       {$ifdef FPC}default DefaultHeadBobbingTime{$endif};
@@ -1814,7 +1826,7 @@ begin
     Note: We use Items.BoundingBox, not (private) ItemsBoundingBox
     that avoids adding gizmos to bbox.
     Right now it doesn't matter (as we don't need this box to be precise,
-    we dont' zoom to box center) so it's better to use Items.BoundingBox
+    we don't zoom to box center) so it's better to use Items.BoundingBox
     and keep ItemsBoundingBox private.
   }
   if ModelBox.IsEmpty and
@@ -2107,6 +2119,8 @@ begin
   Result.Translation := -APos;
   Result.Rotations := OrientationQuaternionFromDirectionUp(ADir, AUp).Conjugate;
 
+  Result.EffectiveCenterOfRotation := EffectiveCenterOfRotation;
+
   { We have to fix our Translation, since our TCastleExamineNavigation.Matrix
     applies our move *first* before applying rotation
     (and this is good, as it allows rotating around object center,
@@ -2119,8 +2133,9 @@ begin
     We also note at this point that rotation is done around
     (Translation + EffectiveCenterOfRotation). But EffectiveCenterOfRotation is not
     included in Translation. }
-  Result.Translation := Result.Rotations.Rotate(Result.Translation + EffectiveCenterOfRotation)
-    - EffectiveCenterOfRotation;
+  Result.Translation :=
+    Result.Rotations.Rotate(Result.Translation + Result.EffectiveCenterOfRotation)
+    - Result.EffectiveCenterOfRotation;
 end;
 
 procedure TCastleExamineNavigation.SetExamineVectors(const Value: TExamineVectors);
@@ -2128,9 +2143,9 @@ var
   MInverse: TMatrix4;
 begin
   MInverse :=
-    TranslationMatrix(EffectiveCenterOfRotation) *
+    TranslationMatrix(Value.EffectiveCenterOfRotation) *
     Value.Rotations.Conjugate.ToRotationMatrix *
-    TranslationMatrix(-(Value.Translation + EffectiveCenterOfRotation));
+    TranslationMatrix(-(Value.Translation + Value.EffectiveCenterOfRotation));
 
   { These MultPoint/Direction should never fail with ETransformedResultInvalid.
     That's because M is composed from translations, rotations, scaling,
@@ -2212,10 +2227,7 @@ begin
 
   if HandleInput and (niNormal in UsingInput) then
   begin
-    if GoodModelBox.IsEmptyOrZero then
-      MoveChange := KeysMoveSpeed * SecondsPassed
-    else
-      MoveChange := KeysMoveSpeed * GoodModelBox.AverageSize * SecondsPassed;
+    MoveChange := KeysMoveSpeed * GoodModelBox.AverageSize(false, 1.0) * SecondsPassed;
 
     ModsDown := ModifiersDown(Container.Pressed);
 
@@ -2304,13 +2316,15 @@ function TCastleExamineNavigation.SensorTranslation(const X, Y, Z, Length: Doubl
 var
   Size: Single;
   MoveSize: Double;
+  Box: TBox3D;
 begin
   if not (ni3dMouse in UsingInput) then Exit(false);
   if not MoveEnabled then Exit(false);
-  if GoodModelBox.IsEmptyOrZero then Exit(false);
+  Box := GoodModelBox;
+  if Box.IsEmptyOrZero then Exit(false);
   Result := true;
 
-  Size := GoodModelBox.AverageSize;
+  Size := Box.AverageSize;
   MoveSize := Length * SecondsPassed / 5000;
 
   if Abs(X) > 5 then   { left / right }
@@ -2671,6 +2685,7 @@ const
 var
   Recognizer: TCastlePinchPanGestureRecognizer;
   Factor, Size, MoveDivConst, ZoomScale: Single;
+  Box: TBox3D;
 begin
   Recognizer := Sender as TCastlePinchPanGestureRecognizer;
   if Recognizer = nil then Exit;
@@ -2692,13 +2707,17 @@ begin
     Zoom(PinchZoomSpeed * Factor * ZoomScale);
   end;
 
-  if MoveEnabled and (not GoodModelBox.IsEmpty) and (Recognizer.Gesture = gtPan) then
+  if MoveEnabled and (Recognizer.Gesture = gtPan) then
   begin
-    Size := GoodModelBox.AverageSize;
-    Translation := Translation - Vector3(
-      DragMoveSpeed * Size * Recognizer.PanMove.X / (2 * MoveDivConst),
-      DragMoveSpeed * Size * Recognizer.PanMove.Y / (2 * MoveDivConst),
-      0);
+    Box := GoodModelBox;
+    if not Box.IsEmptyOrZero then
+    begin
+      Size := Box.AverageSize;
+      Translation := Translation - Vector3(
+        DragMoveSpeed * Size * Recognizer.PanMove.X / (2 * MoveDivConst),
+        DragMoveSpeed * Size * Recognizer.PanMove.Y / (2 * MoveDivConst),
+        0);
+    end;
   end;
 end;
 

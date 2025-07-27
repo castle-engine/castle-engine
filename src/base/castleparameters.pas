@@ -509,18 +509,19 @@ procedure TParameters.Parse(
       raise EInvalidParams.Create('Invalid empty parameter "' + s + '"');
   end;
 
-  { s jest jakims parametrem ktory zaczyna sie od '--' i nie jest rowny '--'.
-    Wyciaga z s-a opcje jaka reprezentuje (i zwraca jej numer w Params,
-    zero-based), wyciaga tez zapisany razem z nia parametr i zwraca
-    HasArgument i Argument (pamietaj ze wyciaga tylko argumenty dolaczone
-    do opcji przy pomocy znaku "="; nie sprawdza tez w ogole czy HasArgument
-    w jakis sposob zgadza sie z Options[result].Argument.).
+  { Assumption: s is some parameter that starts with '--' and is not equal exactly '--'.
 
-    Jezeli ParseOnlyKnownOptions to moze zwrocic -1 aby zaznaczyc ze
-    ten parametr nie reprezentuje zadnej znanej opcji (chociaz ciagle
-    nieprawidlowe postacie w rodzaju --=argument czy --non-arg-option=argument
-    beda oczywiscie powodowaly wyjatek.) }
-  function ParseLongParameter(const s: string; out HasArgument: boolean;
+    This extracts from S the option it represents (and returns its number in Params,
+    zero-based), also extracts parameter written together with it and returns
+    HasArgument and Argument (remember that it extracts only arguments attached
+    to option using "=" sign; it also doesn't check at all whether HasArgument
+    in some way matches Options[result].Argument).
+
+    If ParseOnlyKnownOptions then it may return -1 to indicate that
+    this parameter doesn't represent any known option (although still
+    invalid forms like --=argument or --non-arg-option=argument
+    will obviously cause exception.) }
+  function ParseLongParameter(const S: string; out HasArgument: boolean;
     out Argument: string): Integer;
   var
     ParamLong: string;
@@ -566,28 +567,33 @@ procedure TParameters.Parse(
       raise EInvalidShortOption.CreateFmt(SInvalidShortOpt, [c, Parameter]);
   end;
 
-  { s jest jakims parametrem zaczynajacym sie od '-' i nie bedacym '-'.
-    Dziala tak jak ParseLongParameter...
+  { Assumption: S is some parameter starting with '-' and not being exactly '-'.
 
-    - ponadto do SimpleShortOptions dopisze ciag prostych opcji ktore zostaly
-      podane razem z ostatnia opcja (czyli z opcja zwracana pod nazwa).
-      Te proste opcje zostaly "skombinowane" razem z ostatnia opcja w
-      jednym parametrze. W rezultacie nazywam je "prostymi" bo one nie moga
-      miec argumentu - AOptions^[].Argument tych opcji moze byc tylko oaNone
-      lub oaOptional. Ta procedura NIE sprawdza ze to sie zgadza
-      tak jak w ogole nie sprawdza zadnego AOptions^[].Argument, takze
-      dla ostatniej (zwracanej pod nazwa) opcji nie sprawdza - moze wiec
-      zwrocic opcje oaNone z HasArgument albo oaRequired[*Separate] z
-      not HasArgument.
+    This Works like ParseLongParameter...
 
-    Ten kto uzywa tej opcji musi sprawdzic czy HasArgument ma sens ze
-    zwrocona opcja. W przypadku oaRequired[*Separate] moze/musi odczytac
-    dalsze parametry zeby postac argument/argumenty opcji.
-    Zasada jest taka ze ta procedura zajmuje sie TYLKO parametrem s.
-    Ona nie wchodzi na inne Strings[], zreszta w ogole nie wie dla jakiego
-    I zachodzi Strings[I] = s.
+    - additionally to SimpleShortOptions it will append sequence of simple options that were
+      given together with last option (i.e. with option returned under name).
+      These simple options were "combined" together with last option in
+      one parameter. As a result I call them "simple" because they cannot
+      have argument - AOptions^[].Argument of these options can be only oaNone
+      or oaOptional. This procedure does NOT check:
+
+      - That AOptions^[].Argument is in [oaNone, oaOptional], as assumed above.
+
+      - This also doesn't check any AOptions^[].Argument at all,
+
+      - also for last (returned under name) option it doesn't check anything.
+        So it can return oaNone option with HasArgument or oaRequired[*Separate]
+        with not HasArgument.
+
+    Caller must check whether HasArgument makes sense with
+    returned option. In case of oaRequired[*Separate] it may/must read
+    further parameters to form argument/arguments of option.
+    The rule is that this procedure deals ONLY with parameter S.
+    It doesn't go into other Strings[], moreover it doesn't know at all for which
+    I the Strings[I] = S.
   }
-  function ParseShortParameter(const s: string; out HasArgument: boolean;
+  function ParseShortParameter(const S: string; out HasArgument: boolean;
     out Argument: string; const SimpleShortOptions: TIntegerList): Integer;
   var
     ParamAllShortOptions: string;
@@ -757,8 +763,10 @@ begin
 end;
 
 procedure InitializationParams;
+{$ifndef CASTLE_PARAMSTR_BUGGY}
 var
   I: Integer;
+{$endif}
 begin
   Parameters := TParameters.Create;
 

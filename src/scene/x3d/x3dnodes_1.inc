@@ -235,6 +235,15 @@
 
         function ReflSpecularExp: Single; override;
         function TransSpecularExp: Single; override;
+
+        function MainTexture(
+          const Appearance: TAppearanceNode;
+          const VRML1State: TVRML1State): TAbstractTextureNode; overload; override;
+        function MainTexture(
+          const Appearance: TAppearanceNode;
+          const VRML1State: TVRML1State;
+          const GeometryForTexCoord: TAbstractGeometryNode;
+          out TexCoordIndex: Integer): TAbstractTextureNode; overload; override;
       end;
     var
       FMaterialInfo: array of TMaterialInfo_1;
@@ -977,6 +986,23 @@ begin
     Result := inherited
   else
     Result := A.L[Min(FIndex, A.Count - 1)];
+end;
+
+function TMaterialNode_1.TMaterialInfo_1.MainTexture(
+  const Appearance: TAppearanceNode;
+  const VRML1State: TVRML1State): TAbstractTextureNode;
+begin
+  Result := VRML1State.Texture2;
+end;
+
+function TMaterialNode_1.TMaterialInfo_1.MainTexture(
+  const Appearance: TAppearanceNode;
+  const VRML1State: TVRML1State;
+  const GeometryForTexCoord: TAbstractGeometryNode;
+  out TexCoordIndex: Integer): TAbstractTextureNode;
+begin
+  TexCoordIndex := -1;
+  Result := VRML1State.Texture2;
 end;
 
 { TTexture2Node_1 ------------------------------------------------------------ }

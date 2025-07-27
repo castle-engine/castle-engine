@@ -42,7 +42,11 @@ uses SysUtils, Classes, Math, StrUtils, CTypes,
   CastleVectors, CastleTimeUtils, CastleLog, CastleUtils, CastleUriUtils,
   CastleClassUtils, CastleStringUtils, CastleInternalSoundFile,
   CastleInternalAbstractSoundBackend, CastleSoundBase, CastleSoundEngine,
-  {$ifdef ANDROID} JNI, CastleAndroidNativeAppGlue, CastleAndroidInternalAssetStream, {$endif}
+  {$ifdef ANDROID}
+    {$ifdef FPC} JNI, {$else} AndroidApi.Jni, {$endif}
+    {$ifdef FPC} CastleAndroidNativeAppGlue, {$else} Androidapi.AppGlue, {$endif}
+    CastleAndroidInternalAssetStream,
+  {$endif}
   CastleInternalFMOD;
 
 { sound backend classes interface -------------------------------------------- }

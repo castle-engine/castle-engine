@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2024 Michalis Kamburelis.
+  Copyright 2001-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -549,15 +549,21 @@ end;
 
 
 procedure TRenderContext.SetDepthRange(const Value: TDepthRange);
+
+  {$if defined(OpenGLES) and not defined(CASTLE_WEBGL)}
+  // Define glDepthRange (not existing in OpenGLES) as alias to glDepthRangef
+  procedure glDepthRange(const zNear, zFar: GLclampf);
+  begin
+    glDepthRangef(zNear, zFar);
+  end;
+  {$endif}
+
 begin
   if Self <> RenderContext then
     WarnContextNotCurrent;
 
   if FDepthRange <> Value then
   begin
-    {$if defined(OpenGLES) and not defined(CASTLE_WEBGL)}
-      {$define glDepthRange := glDepthRangef}
-    {$endif}
     FDepthRange := Value;
     case Value of
       drFull: glDepthRange(0  , 1);

@@ -21,8 +21,8 @@ implementation
 uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
-  ApplicationProperties.ApplicationName := 'test_triangulate';
-  ApplicationProperties.Caption := 'test_triangulate';
+  ApplicationProperties.ApplicationName := 'scene_information_cli_tool';
+  ApplicationProperties.Caption := 'scene_information_cli_tool';
   ApplicationProperties.Version := '0.1';
 
   if not IsLibrary then

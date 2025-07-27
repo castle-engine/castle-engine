@@ -89,7 +89,7 @@ type
       But actually it works a little faster, by utilizing the assumption
       that TBox3D.Empty is the only allowed value that breaks
       @code(Data[0].X <= Data[1].X) rule. }
-    function IsEmpty: boolean;
+    function IsEmpty: boolean; {$ifdef SUPPORTS_INLINE}inline;{$endif}
 
     { The minimum 3D position within this box. Use only if not @link(IsEmpty),
       in which case this is just a shortcut for @code(Data[0]). }

@@ -367,6 +367,7 @@
         <DCCReference Include="..\..\src\scene\castleinternalnodeinterpolator.pas"/>
         <DCCReference Include="..\..\src\scene\castleinternalnoise.pas"/>
         <DCCReference Include="..\..\src\scene\castleinternalnormals.pas"/>
+        <DCCReference Include="..\..\src\scene\castleinternalprimitivematerial.pas"/>
         <DCCReference Include="..\..\src\scene\castleinternalrenderer.pas"/>
         <DCCReference Include="..\..\src\scene\castleinternalshadowmaps.pas"/>
         <DCCReference Include="..\..\src\scene\castleinternalshapeoctree.pas"/>
