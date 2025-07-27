@@ -42,6 +42,7 @@ public:
 private:
     Ui::MainWindow *ui;
     GLWidget *m_pGlWidget;
+    QWidget *m_pWindowContainer;
     QDialog *m_pConsoleWnd;
     int m_nViewpointCount, m_iCurrentViewpoint;
     NavKeeper m_aNavKeeper;

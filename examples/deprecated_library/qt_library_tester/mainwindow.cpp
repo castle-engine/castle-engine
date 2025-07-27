@@ -49,7 +49,8 @@ MainWindow::MainWindow(QWidget *parent) :
     QSurfaceFormat::setDefaultFormat(aFormat);
 
     m_pGlWidget = new GLWidget(aFormat, this);    // init with multisampling
-    setCentralWidget(m_pGlWidget);
+    m_pWindowContainer = QWidget::createWindowContainer(m_pGlWidget, this);
+    setCentralWidget(m_pWindowContainer);
 
     connect(ui->actionOpen, SIGNAL(triggered()), this, SLOT(OnFileOpenClick()));
     connect(ui->actionWalk, SIGNAL(triggered()), this, SLOT(OnWalkClick()));
@@ -209,17 +210,20 @@ void MainWindow::MenuAntiAliasingClick()
 
     QString sScene = m_pGlWidget->m_sSceneToOpen;
     takeCentralWidget();
+    delete m_pWindowContainer;
+    m_pWindowContainer = nullptr;
     delete m_pGlWidget;
-    m_pGlWidget = NULL;
+    m_pGlWidget = nullptr;
 
     QSurfaceFormat aFormat;
     SetSurfaceFormat(&aFormat);
     aFormat.setSamples(ui->actionMultiSampling->isChecked() ? 4 : 0);
 
     m_pGlWidget = new GLWidget(aFormat, this);    // init with multisampling
-    setCentralWidget(m_pGlWidget);
+    m_pWindowContainer = QWidget::createWindowContainer(m_pGlWidget, this);
+    setCentralWidget(m_pWindowContainer);
     m_pGlWidget->OpenScene(sScene);
-    m_pGlWidget->setFocus();
+    m_pWindowContainer->setFocus();
 }
 
 void MainWindow::MenuWalkingEffectClick()

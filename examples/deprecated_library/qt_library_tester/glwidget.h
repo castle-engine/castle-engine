@@ -1,13 +1,26 @@
 #ifndef GLWIDGET_H
 #define GLWIDGET_H
 
-#include <QOpenGLWidget>
+#include <QOpenGLWindow>
 
-class GLWidget : public QOpenGLWidget
+class MainWindow;
+
+/* Having OpenGL rendering done inside the QWidget enables storing it to QLayouts or use
+ * another widgets along it (like toolbar).
+ *
+ * While we could use QOpenGLWidget as a base class for our GLWidget, there are issues
+ * in the initialization. It is done using offscreen buffer with different format, and
+ * thus CGE detects wrong values in its initialization.
+ *
+ * So, instead, we use QOpenGLWindow (using native OpenGL surface from start)
+ * and Qt windowContainer to ecapsulate QOpenGLWindow to a widget.
+ */
+
+class GLWidget : public QOpenGLWindow
 {
     Q_OBJECT
 public:
-    explicit GLWidget(const QSurfaceFormat &format, QWidget *parent = 0);
+    explicit GLWidget(const QSurfaceFormat &format, MainWindow *parent = 0);
     ~GLWidget();
 
     QString m_sSceneToOpen;
@@ -25,26 +38,23 @@ protected:
     void PrintContextInfo(const QString &sTitle);
 
 private:
+    MainWindow *m_pMainWnd;
     bool m_bAfterInit;
     bool m_bNeedsDisplay;
     bool m_bPrintContextInfoAtPaint;
 
-public:
-    virtual QSize minimumSizeHint() const;
-    virtual QSize sizeHint() const;
-
 protected:
-    virtual void initializeGL();
-    virtual void paintGL();
-    virtual void resizeGL(int width, int height);
-    virtual void mousePressEvent(QMouseEvent *event);
-    virtual void mouseMoveEvent(QMouseEvent *event);
-    virtual void mouseReleaseEvent(QMouseEvent *event);
+    void initializeGL() override;
+    void paintGL() override;
+    void resizeGL(int width, int height) override;
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
 #ifndef QT_NO_WHEELEVENT
-    virtual void wheelEvent(QWheelEvent *event);
+    void wheelEvent(QWheelEvent *event) override;
 #endif
-    virtual void keyPressEvent(QKeyEvent *event);
-    virtual void keyReleaseEvent(QKeyEvent *event);
+    void keyPressEvent(QKeyEvent *event) override;
+    void keyReleaseEvent(QKeyEvent *event) override;
 
 private slots:
     void OnUpdateTimer();

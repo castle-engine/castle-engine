@@ -13,8 +13,10 @@
   ----------------------------------------------------------------------------
 */
 
-#include <QtWidgets>
-#include <QtOpenGL>
+#include <QOpenGLFunctions>
+#include <QMouseEvent>
+#include <QStandardPaths>
+#include <QTimer>
 #include <castleengine.h>
 
 #include "glwidget.h"
@@ -22,17 +24,16 @@
 
 GLWidget *g_pThis = NULL;
 
-GLWidget::GLWidget(const QSurfaceFormat &format, QWidget *parent) :
-    QOpenGLWidget(parent)
+GLWidget::GLWidget(const QSurfaceFormat &format, MainWindow *parent) :
+    QOpenGLWindow()
 {
     g_pThis = this;
+    m_pMainWnd = parent;
     m_bAfterInit = false;
     m_bLimitFPS = true;
     m_bNeedsDisplay = false;
     m_bPrintContextInfoAtPaint = false;
     setFormat(format);
-    setMouseTracking(true);
-    setFocusPolicy(Qt::StrongFocus);    // accept key strokes
 
     QTimer *pUpdateTimer = new QTimer(this);
     connect(pUpdateTimer, SIGNAL(timeout()), this, SLOT(OnUpdateTimer()));
@@ -54,17 +55,7 @@ void GLWidget::OpenScene(QString const &sFilename)
     CGE_LoadSceneFromFile(sFilename.toUtf8());
     double dPixRatio = devicePixelRatioF();
     CGE_Resize(width()*dPixRatio, height()*dPixRatio);
-    ((MainWindow*)g_pThis->parent())->UpdateAfterSceneLoaded();
-}
-
-QSize GLWidget::minimumSizeHint() const
-{
-    return QSize(200, 200);
-}
-
-QSize GLWidget::sizeHint() const
-{
-    return QSize(400, 400);
+    m_pMainWnd->UpdateAfterSceneLoaded();
 }
 
 int CDECL GLWidget::OpenGlLibraryCallback(int eCode, int iParam1, int iParam2, const char *szParam)
@@ -93,7 +84,7 @@ int CDECL GLWidget::OpenGlLibraryCallback(int eCode, int iParam1, int iParam2, c
         return 1;
 
     case ecgelibNavigationTypeChanged:
-        ((MainWindow*)g_pThis->parent())->UpdateNavigationButtons();
+        g_pThis->m_pMainWnd->UpdateNavigationButtons();
         return 1;
 
     case ecgelibSetMousePosition:
@@ -106,7 +97,7 @@ int CDECL GLWidget::OpenGlLibraryCallback(int eCode, int iParam1, int iParam2, c
     case ecgelibWarning:
         {
             QString sWarning = QString::fromUtf8(szParam);
-            ((MainWindow*)g_pThis->parent())->AddNewWarning(sWarning);
+            g_pThis->m_pMainWnd->AddNewWarning(sWarning);
         }
         return 1;
     }
