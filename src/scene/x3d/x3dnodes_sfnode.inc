@@ -528,6 +528,14 @@ begin
   Assert(Source is TSFNode);
   GoodCopyState := CopyState as TX3DNodeDeepCopyState;
 
+  { Copy also WeakLink state from Source, to not create cycles in
+    DirectEnumerateAll that have been broken by WeakLink=true in the original.
+    Also set Value to nil before changing WeakLink, this is required by
+    TSFNode.SetWeakLink.
+    Testcase: tests/data/proto_reuse_first_node/full_connectors.x3d }
+  Value := nil;
+  WeakLink := TSFNode(Source).WeakLink;
+
   { Similar to TSFNode.Assign }
   Value              := DeepCopyNode(TSFNode(Source).Value);
   DefaultValue       := DeepCopyNode(TSFNode(Source).DefaultValue);
