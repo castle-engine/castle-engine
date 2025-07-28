@@ -126,6 +126,7 @@ type
     procedure TestCoordRanges;
     procedure TestNodeRelease;
     procedure TestNodeReleaseWhenStillUsed;
+    procedure TestProtoReuseFirstNode;
   end;
 
 implementation
@@ -2913,6 +2914,50 @@ begin
 
   // free Shape, which will free Geometry and Coordinate (as they are ref-counted again)
   FreeAndNil(Shape);
+end;
+
+{ TODO:
+  Below is known to cause memory leaks.
+  Memory leaks are known to be possible in some difficult cases
+  with PrototypeInstanceHelpers.
+
+  Reason: PrototypeInstanceHelpers may contain,
+  by DEF statements, links to Self.
+  This causes circular dependency (Self is child of some node on
+  PrototypeInstanceHelpers, but PrototypeInstanceHelpers will
+  be freed only if Self is freed) causing some memory to be left
+  always allocated.
+
+  PrototypeInstanceHelpers are actually always TX3DRootNode,
+  may be declared as such in the future if needed.
+}
+
+procedure TTestX3DNodes.TestProtoReuseFirstNode;
+
+  procedure TestOneFile(const Url: String);
+  var
+    RootNode: TX3DRootNode;
+    TempStream: TMemoryStream;
+  begin
+    RootNode := LoadNode(Url);
+    try
+      TempStream := TMemoryStream.Create;
+      try
+        SaveNode(RootNode, TempStream, 'model/x3d+xml');
+      finally FreeAndNil(TempStream) end;
+    finally FreeAndNil(RootNode) end;
+  end;
+
+begin
+  { TODO: the test passes, but causing memory leak, see above
+    for explanation. Don't do by default for now. }
+  AbortTest;
+  Exit;
+
+  TestOneFile('castle-data:/proto_reuse_first_node/minimized_connectors.x3d');
+  TestOneFile('castle-data:/proto_reuse_first_node/full_connectors.x3d');
+  TestOneFile('castle-data:/proto_reuse_first_node/proto_leak.wrl');
+  TestOneFile('castle-data:/proto_reuse_first_node/proto_leak_2.wrl');
 end;
 
 initialization
