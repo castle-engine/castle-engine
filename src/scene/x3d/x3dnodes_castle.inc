@@ -970,24 +970,35 @@ function TSkinNode.InternalUsesShaders: Boolean;
       if FdShapes.Items[I] is TAbstractShapeNode then
       begin
         ShapeNode := TAbstractShapeNode(FdShapes.Items[I]);
-        // primitive0, which is main body, casts shadows
-        // TODO: excessive logging for debug
-        WritelnWarning('Shape %s casts shadows? %s', [
-          ShapeNode.NiceName,
-          BoolToStr(
-            (ShapeNode.InternalCastedShadowVolumesFrameId <> 0) and
-            (ShapeNode.InternalCastedShadowVolumesFrameId >= ShapeNode.InternalWasVisibleFrameId),
-            true)
-          ]
-        );
+        { Is this shape rendered with shadow volumes?
+
+          InternalCastedShadowVolumesFrameId check means that
+
+          - This shape and scene cast shadows, so they allow casting
+            shadows (which is almost always true) and are 2-manifold,
+
+          - We have, right now, light source using shadow volumes.
+            (We never want to needlessly fallback to non-GPU implementation
+            of skinning if shadow volumes are not really used,
+            as we will recommend shadow maps in the future.)
+
+          Why we compare InternalWasVisibleFrameId - 1?
+          Because the InternalCastedShadowVolumesFrameId is set in the middle
+          of rendering call, when we render shadow quads (so after rendering
+          everything with light=off, and before rendering everything with
+          light=on and stencil test). So if InternalCastedShadowVolumesFrameId
+          is InternalWasVisibleFrameId - 1, it doesn't necessarily mean
+          that "shadow volumes were used in last frame, and not in this one".
+          It may mean "shadow volumes were used in last frame, and maybe
+          are going to be used in this frame too, we're just before shadow
+          quad rendering". }
         if (ShapeNode.InternalCastedShadowVolumesFrameId <> 0) and
-           (ShapeNode.InternalCastedShadowVolumesFrameId = ShapeNode.InternalWasVisibleFrameId) then
+           (ShapeNode.InternalCastedShadowVolumesFrameId = ShapeNode.InternalWasVisibleFrameId - 1) then
         begin
           // debug:
-          // TODO: excessive logging for debug
-          WritelnWarning('Skinning on GPU made impossible because shape %s casts shadows using shadow volumes.', [
-            ShapeNode.NiceName
-          ]);
+          // WritelnWarning('Skinning on GPU made impossible because shape %s casts shadows using shadow volumes.', [
+          //   ShapeNode.NiceName
+          // ]);
           Exit(true);
         end;
       end;
@@ -1001,6 +1012,7 @@ begin
   Result := InternalUsesShadersPossible and
     (FdJoints.Count <= MaxJoints) and // shaders limit max joints count
     (not SomeShapeCastsShadowVolumes);
+
   // TODO: excessive logging for debug
   WritelnLog('TSkinNode.InternalUsesShaders? ' + Self.NiceName + ' = ' + BoolToStr(Result, true) +
     ' because ' + BoolToStr(InternalUsesShadersPossible, true) + ' and ' +
