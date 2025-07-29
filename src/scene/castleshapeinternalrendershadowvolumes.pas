@@ -105,12 +105,6 @@ begin
   Result.W := 0;
 end;
 
-procedure MarkShapeCastingShadowVolumes(const Shape: TShape);
-begin
-  if Shape.Node <> nil then
-    Shape.Node.InternalCastedShadowVolumesFrameId := TFramesPerSecond.RenderFrameId;
-end;
-
 procedure TRenderShapeShadowVolumes.RenderSilhouetteShadowVolume(
   const Params: TRenderParams;
   const Mesh: TCastleRenderUnlitMesh;
@@ -415,8 +409,6 @@ begin
   if (BorderEdges.Count <> 0) and
      (not WholeSceneManifold) then
     Exit;
-
-  MarkShapeCastingShadowVolumes(TShape(FShape));
 
   Mesh.ModelViewProjection := RenderContext.ProjectionMatrix *
     Params.RenderingCamera.CurrentMatrix;

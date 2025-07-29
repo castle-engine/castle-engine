@@ -966,6 +966,7 @@ type
     constructor Create(AOwner: TComponent); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
     procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
+    function InternalCastingShadowVolumesNow: Boolean; override;
 
     { Load the given model.
       This replaces @link(RootNode) with new value.
@@ -8606,6 +8607,14 @@ begin
     WritelnWarning('Scene %s: Spatial property is deprecated, use PreciseCollisions instead', [Name]);
     PreciseCollisions := true;
   end;
+end;
+
+function TCastleSceneCore.InternalCastingShadowVolumesNow: Boolean;
+begin
+  { Will be overriden by TCastleScene.
+    Here we define it, to make TCastleSceneCore non-abstract to allow
+    some code to instantiate TCastleSceneCore. }
+  Result := false;
 end;
 
 function TCastleSceneCore.InternalBuildNodeInside: TObject;

@@ -75,12 +75,6 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     InternalWasVisibleFrameId: TFrameId;
-    { Controlled by shadow volume rendering.
-      Last frame id when this shape casted shadows using shadow volumes,
-      0 if never.
-      If InternalCastsShadowVolumes < InternalWasVisibleFrameId
-      then shape was last rendered without shadow volumes. }
-    InternalCastedShadowVolumesFrameId: TFrameId;
 
     constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
