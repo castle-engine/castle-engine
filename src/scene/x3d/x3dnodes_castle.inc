@@ -993,7 +993,7 @@ function TSkinNode.InternalUsesShaders: Boolean;
           are going to be used in this frame too, we're just before shadow
           quad rendering". }
         if (ShapeNode.InternalCastedShadowVolumesFrameId <> 0) and
-           (ShapeNode.InternalCastedShadowVolumesFrameId = ShapeNode.InternalWasVisibleFrameId - 1) then
+           (ShapeNode.InternalCastedShadowVolumesFrameId >= ShapeNode.InternalWasVisibleFrameId - 1) then
         begin
           // debug:
           // WritelnWarning('Skinning on GPU made impossible because shape %s casts shadows using shadow volumes.', [
