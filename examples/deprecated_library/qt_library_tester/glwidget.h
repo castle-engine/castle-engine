@@ -14,6 +14,15 @@ class MainWindow;
  *
  * So, instead, we use QOpenGLWindow (using native OpenGL surface from start)
  * and Qt windowContainer to ecapsulate QOpenGLWindow to a widget.
+ *
+ * In more detail:
+ * QOpenGLWidget::initializeGL() is done with offscreen framebuffer, that does not have
+ * multisampling switched on, even when multisampling is used in final rendering.
+ * This is demostrated in PrintContextInfo() function that prints the value of GL_SAMPLES.
+ *
+ * We call Castle Engine initialization from initializeGL(), that sets TGLFeatures.CurrentMultiSampling.
+ * While both GL_SAMPLE_BUFFERS and GL_SAMPLES are zero in QOpenGLWidget::initializeGL, Castle Engine
+ * will discard multisampling in ScreenEffect shaders.
  */
 
 class GLWidget : public QOpenGLWindow
