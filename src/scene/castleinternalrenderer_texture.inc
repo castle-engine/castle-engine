@@ -1,6 +1,6 @@
 {%MainUnit castleinternalrenderer.pas}
 {
-  Copyright 2002-2024 Michalis Kamburelis.
+  Copyright 2002-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -143,6 +143,10 @@
       var TextureSlotsUsed: Cardinal;
       const Shader: TShader;
       const HasPreviousMainTexture: Boolean); virtual; abstract;
+
+    { How to query this texture type from shaders.
+      @false if this texture type is not supported by simple query in shaders. }
+    function ShaderTextureType(out TextureType: TTextureType): Boolean; virtual;
   end;
 
   { Manage TTextureResource connected to X3D nodes.
@@ -244,11 +248,15 @@
     NormalMap, HeightMap: TGLTexture;
     HeightMapScale: Single;
 
+    const
+      MyTextureType = tt2D;
+
     function TextureNode: TAbstractTexture2DNode;
 
     function Bind(const TextureUnit: Cardinal): boolean; override;
     function Enable(const TextureUnit: Cardinal;
       Shader: TShader; const Env: TTextureEnv): boolean; override;
+    function ShaderTextureType(out TextureType: TTextureType): Boolean; override;
     function GLName: TGLTextureId; override;
   end;
 
@@ -262,11 +270,15 @@
   public
     GLVideo: TGLVideo3D;
 
+    const
+      MyTextureType = tt2D;
+
     function TextureNode: TMovieTextureNode;
 
     function Bind(const TextureUnit: Cardinal): boolean; override;
     function Enable(const TextureUnit: Cardinal;
       Shader: TShader; const Env: TTextureEnv): boolean; override;
+    function ShaderTextureType(out TextureType: TTextureType): Boolean; override;
     function GLName: TGLTextureId; override;
   end;
 
@@ -285,11 +297,15 @@
     Width, Height: Cardinal;
     NeedsMipmaps: boolean;
 
+    const
+      MyTextureType = tt2D;
+
     function TextureNode: TRenderedTextureNode;
 
     function Bind(const TextureUnit: Cardinal): boolean; override;
     function Enable(const TextureUnit: Cardinal;
       Shader: TShader; const Env: TTextureEnv): boolean; override;
+    function ShaderTextureType(out TextureType: TTextureType): Boolean; override;
     function GLName: TGLTextureId; override;
 
     procedure Update(
@@ -311,11 +327,15 @@
   public
     GLName: TGLTexture;
 
+    const
+      MyTextureType = ttCubeMap;
+
     function TextureNode: TAbstractEnvironmentTextureNode;
 
     function Bind(const TextureUnit: Cardinal): boolean; override;
     function Enable(const TextureUnit: Cardinal;
       Shader: TShader; const Env: TTextureEnv): boolean; override;
+    function ShaderTextureType(out TextureType: TTextureType): Boolean; override;
   end;
 
   { Renderer resource for TComposedCubeMapTextureNode. }
@@ -374,11 +394,15 @@
   public
     GLName: TGLTexture;
 
+    const
+      MyTextureType = tt3D;
+
     function TextureNode: TAbstractTexture3DNode;
 
     function Bind(const TextureUnit: Cardinal): boolean; override;
     function Enable(const TextureUnit: Cardinal;
       Shader: TShader; const Env: TTextureEnv): boolean; override;
+    function ShaderTextureType(out TextureType: TTextureType): Boolean; override;
   end;
 
   { Renderer resource for TGeneratedShadowMapNode. }
@@ -425,10 +449,14 @@
       const RenderOptions: TCastleRenderOptions); override;
     procedure UnprepareCore; override;
   public
+    const
+      MyTextureType = ttShader;
+
     function TextureNode: TShaderTextureNode;
     function Bind(const TextureUnit: Cardinal): boolean; override;
     function Enable(const TextureUnit: Cardinal;
       Shader: TShader; const Env: TTextureEnv): boolean; override;
+    function ShaderTextureType(out TextureType: TTextureType): Boolean; override;
   end;
 
 {$endif read_interface}
@@ -633,6 +661,11 @@ end;
 function TTextureResource.TextureNode: TAbstractTextureNode;
 begin
   Result := TAbstractTextureNode(inherited Node);
+end;
+
+function TTextureResource.ShaderTextureType(out TextureType: TTextureType): Boolean;
+begin
+  Result := false;
 end;
 
 { TTextureResources ------------------------------------------------------------ }
@@ -1048,7 +1081,13 @@ begin
   Result := Bind(TextureUnit);
   if not Result then Exit;
 
-  Shader.EnableTexture(TextureUnit, tt2D, TextureNode, Env);
+  Shader.EnableTexture(TextureUnit, MyTextureType, TextureNode, Env);
+end;
+
+function TImageTextureResource.ShaderTextureType(out TextureType: TTextureType): Boolean;
+begin
+  TextureType := MyTextureType;
+  Result := true;
 end;
 
 function TImageTextureResource.GLName: TGLTextureId;
@@ -1157,7 +1196,13 @@ begin
   Result := Bind(TextureUnit);
   if not Result then Exit;
 
-  Shader.EnableTexture(TextureUnit, tt2D, TextureNode, Env);
+  Shader.EnableTexture(TextureUnit, MyTextureType, TextureNode, Env);
+end;
+
+function TMovieTextureResource.ShaderTextureType(out TextureType: TTextureType): Boolean;
+begin
+  TextureType := MyTextureType;
+  Result := true;
 end;
 
 { TRenderedTextureResource ----------------------------------------------------- }
@@ -1297,7 +1342,13 @@ begin
   Result := Bind(TextureUnit);
   if not Result then Exit;
 
-  Shader.EnableTexture(TextureUnit, tt2D, TextureNode, Env);
+  Shader.EnableTexture(TextureUnit, MyTextureType, TextureNode, Env);
+end;
+
+function TRenderedTextureResource.ShaderTextureType(out TextureType: TTextureType): Boolean;
+begin
+  TextureType := MyTextureType;
+  Result := true;
 end;
 
 procedure TRenderedTextureResource.Update(
@@ -1684,7 +1735,13 @@ begin
   Result := Bind(TextureUnit);
   if not Result then Exit;
 
-  Shader.EnableTexture(TextureUnit, ttCubeMap, TextureNode, Env);
+  Shader.EnableTexture(TextureUnit, MyTextureType, TextureNode, Env);
+end;
+
+function TCubeMapTextureResource.ShaderTextureType(out TextureType: TTextureType): Boolean;
+begin
+  TextureType := MyTextureType;
+  Result := true;
 end;
 
 { TComposedCubeMapTextureResource ---------------------------------------------- }
@@ -2018,7 +2075,13 @@ begin
   Result := Bind(TextureUnit);
   if not Result then Exit;
 
-  Shader.EnableTexture(TextureUnit, tt3D, TextureNode, Env);
+  Shader.EnableTexture(TextureUnit, MyTextureType, TextureNode, Env);
+end;
+
+function T3DTextureResource.ShaderTextureType(out TextureType: TTextureType): Boolean;
+begin
+  TextureType := MyTextureType;
+  Result := true;
 end;
 
 { TGeneratedShadowMapResource ------------------------------------------------------ }
@@ -2251,7 +2314,13 @@ begin
   Result := Bind(TextureUnit);
   if not Result then Exit;
 
-  Shader.EnableTexture(TextureUnit, ttShader, TextureNode, Env);
+  Shader.EnableTexture(TextureUnit, MyTextureType, TextureNode, Env);
+end;
+
+function TShaderTextureResource.ShaderTextureType(out TextureType: TTextureType): Boolean;
+begin
+  TextureType := MyTextureType;
+  Result := true;
 end;
 
 function TShaderTextureResource.TextureNode: TShaderTextureNode;

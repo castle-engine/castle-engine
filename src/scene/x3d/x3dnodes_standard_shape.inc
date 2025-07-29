@@ -141,12 +141,46 @@
 
     Note that the geometry is unlit (pure white, regardless of lighting)
     if no @link(Material) is assigned.
-    To make the geometry lit, you can just set there a default
-    material created by @code(TMaterialNode.Create). }
+    To make the geometry lit, you can just assign there
+    a material like
+
+    @longCode(
+      MyAppearanceNode.Material := TPhysicalMaterialNode.Create;
+    )
+
+    Alternative material types are also possible: @link(TMaterialNode)
+    (simpler Phong lighting model) and @link(TUnlitMaterialNode)
+    (unlit, pure emissive rendering, but with configurable emissive color and
+    texture). }
   TAppearanceNode = class(TAbstractAppearanceNode)
+  strict private
+    type
+      TAppearanceFallbacktMaterialInfo = class(TUnlitMaterialInfo)
+      strict private
+        FNode: TAppearanceNode;
+      protected
+        function GetEmissiveColor: TVector3; override;
+        procedure SetEmissiveColor(const Value: TVector3); override;
+        function GetTransparency: Single; override;
+        procedure SetTransparency(const Value: Single); override;
+      public
+        constructor Create(const ANode: TAppearanceNode);
+        function MainTexture(
+          const Appearance: TAppearanceNode;
+          const VRML1State: TVRML1State): TAbstractTextureNode; overload; override;
+        function MainTexture(
+          const Appearance: TAppearanceNode;
+          const VRML1State: TVRML1State;
+          const GeometryForTexCoord: TAbstractGeometryNode;
+          out TexCoordIndex: Integer): TAbstractTextureNode; overload; override;
+      end;
+    var
+      FMaterialInfo: TAppearanceFallbacktMaterialInfo;
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
+    destructor Destroy; override;
+
     { Find a suitable CommonSurfaceShader to be used when rendering this shape,
       or @nil. This is only maintaned for backward compatibility,
       the whole TCommonSurfaceShaderNode is deprecated: new X3D 4 material nodes,
@@ -154,6 +188,13 @@
       TCommonSurfaceShaderNode.
       @exclude }
     function InternalCommonSurfaceShader: TCommonSurfaceShaderNode;
+
+    { Used by TX3DGraphTraverseState.MaterialInfo
+      when we have the Appearance node, but Appearance.Material = nil.
+      We still need TMaterialInfo in this case, to return MainTexture.
+      @exclude }
+    function InternalFallbackMaterialInfo: TMaterialInfo;
+
   {$I auto_generated_node_helpers/x3dnodes_appearance.inc}
   end;
 
@@ -653,6 +694,54 @@ begin
   Result := TFramesPerSecond.RenderFrameId = InternalWasVisibleFrameId;
 end;
 
+{ TAppearanceNode.TAppearanceFallbacktMaterialInfo --------------------------------------------------- }
+
+constructor TAppearanceNode.TAppearanceFallbacktMaterialInfo.Create(
+  const ANode: TAppearanceNode);
+begin
+  inherited Create(ANode);
+  FNode := ANode;
+end;
+
+function TAppearanceNode.TAppearanceFallbacktMaterialInfo.GetEmissiveColor: TVector3;
+begin
+  Result := WhiteRGB;
+end;
+
+procedure TAppearanceNode.TAppearanceFallbacktMaterialInfo.SetEmissiveColor(const Value: TVector3);
+begin
+  { ignored, no way to change unlit color in this case, you must use TUnlitMaterialColor. }
+end;
+
+function TAppearanceNode.TAppearanceFallbacktMaterialInfo.GetTransparency: Single;
+begin
+  Result := 0.0;
+end;
+
+procedure TAppearanceNode.TAppearanceFallbacktMaterialInfo.SetTransparency(const Value: Single);
+begin
+  { ignored, no way to change transparency in this case, you must use TUnlitMaterialColor. }
+end;
+
+function TAppearanceNode.TAppearanceFallbacktMaterialInfo.MainTexture(
+  const Appearance: TAppearanceNode;
+  const VRML1State: TVRML1State): TAbstractTextureNode;
+begin
+  Result := Appearance.Texture;
+end;
+
+function TAppearanceNode.TAppearanceFallbacktMaterialInfo.MainTexture(
+  const Appearance: TAppearanceNode;
+  const VRML1State: TVRML1State;
+  const GeometryForTexCoord: TAbstractGeometryNode;
+  out TexCoordIndex: Integer): TAbstractTextureNode;
+begin
+  Result := Appearance.Texture;
+  TexCoordIndex := -1;
+end;
+
+{ TAppearanceNode ------------------------------------------------------------ }
+
 function TAppearanceNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
   {$ifndef CASTLE_SLIM_NODES}
@@ -689,6 +778,21 @@ begin
       Exit(TCommonSurfaceShaderNode(Shader));
   end;
 end;
+
+destructor TAppearanceNode.Destroy;
+begin
+  FreeAndNil(FMaterialInfo);
+  inherited;
+end;
+
+function TAppearanceNode.InternalFallbackMaterialInfo: TMaterialInfo;
+begin
+  if FMaterialInfo = nil then
+    FMaterialInfo := TAppearanceFallbacktMaterialInfo.Create(Self);
+  Result := FMaterialInfo;
+end;
+
+{ TLinePropertiesNode -------------------------------------------------------- }
 
 function TLinePropertiesNode.GetLineType: TLineType;
 begin

@@ -537,7 +537,7 @@ begin
         if Mat <> nil then
           Result := Mat.MaterialInfo
         else
-          Result := nil;
+          Result := Appearance.InternalFallbackMaterialInfo;
       end;
     end;
     { Note: When ShapeNode <> nil but Appearance = nil

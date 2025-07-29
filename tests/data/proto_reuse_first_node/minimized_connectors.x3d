@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE X3D PUBLIC "ISO//Web3D//DTD X3D 4.0//EN" "http://www.web3d.org/specifications/x3d-4.0.dtd">
+<X3D profile='Full' version='4.0' xmlns:xsd='http://www.w3.org/2001/XMLSchema-instance' xsd:noNamespaceSchemaLocation='http://www.web3d.org/specifications/x3d-4.0.xsd'>
+
+  <!--
+  Minimal reproduction for
+  https://github.com/castle-engine/castle-model-viewer/issues/112
+  -->
+
+  <head>
+  </head>
+  <Scene>
+
+    <ProtoDeclare name='RoundedRectangle2D'>
+      <ProtoInterface>
+      </ProtoInterface>
+      <ProtoBody>
+        <IndexedFaceSet DEF='Geometry'>
+        </IndexedFaceSet>
+        <!--
+          To reproduce the problem, it's critical to have 2nd instance of
+          Geometry in ProtoBody.
+        -->
+        <IndexedFaceSet USE='Geometry'/>
+      </ProtoBody>
+    </ProtoDeclare>
+
+    <ProtoDeclare name='Widget'>
+      <ProtoInterface>
+        <field accessType='inputOutput' type='SFNode' name='geometry'/>
+      </ProtoInterface>
+      <ProtoBody>
+        <Transform>
+        </Transform>
+      </ProtoBody>
+    </ProtoDeclare>
+
+    <ProtoDeclare name='Node'>
+      <ProtoBody>
+        <ProtoInstance name='Widget'>
+          <fieldValue name='geometry'>
+            <ProtoInstance name='RoundedRectangle2D'>
+            </ProtoInstance>
+          </fieldValue>
+        </ProtoInstance>
+      </ProtoBody>
+    </ProtoDeclare>
+
+    <ProtoInstance name='Node'>
+    </ProtoInstance>
+
+  </Scene>
+</X3D>

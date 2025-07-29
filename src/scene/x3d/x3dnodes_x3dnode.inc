@@ -65,6 +65,7 @@
     FTransformFunctionality: TTransformFunctionality;
     FTimeFunctionality: TTimeDependentFunctionality;
     FGenTexFunctionality: TGeneratedTextureFunctionality;
+    WithinDirectEnumerateAll: Boolean;
   private
     FX3DName: string;
     FBaseUrl: String;
@@ -1018,23 +1019,6 @@
       it's not linked anywhere. }
     function DeepCopy: TX3DNode;
 
-    { Internal notes:
-
-      TODO: memory leaks are known to be possible in some difficult cases
-      with PrototypeInstanceHelpers. See e.g.
-      ../../../demo-models/prototypes/warnings/errors/proto_leak.wrl and
-      ../../../demo-models/prototypes/warnings/errors/proto_leak_2.wrl
-      for simple testcases. Reason: PrototypeInstanceHelpers may contain,
-      by DEF statements, links to Self.
-      This causes circular dependency (Self is child of some node on
-      PrototypeInstanceHelpers, but PrototypeInstanceHelpers will
-      be freed only if Self is freed) causing some memory to be left
-      always allocated.
-
-      PrototypeInstanceHelpers are actually always TX3DRootNode,
-      may be declared as such in the future if needed.
-    }
-
     { PrototypeInstance = @true indicates that this node was created
       from a non-external prototype instantiation.
 
@@ -1671,9 +1655,42 @@ begin
     Result := Func(Self, PrototypeInstanceSourceNode);
     if Result <> nil then Exit;
 
-    if PrototypeInstanceHelpers <> nil then
+    { Using WithinDirectEnumerateAll we avoid infinite recursion in some
+      edge-cases.
+
+      Testcases in tests/data/proto_reuse_first_node/ .
+      When the ProtoBody contains, as a first node, node that is also reUSEd
+      in further nodes, then we have a problem:
+
+      - Our prototype expansion
+        in TX3DPrototypeNode.Instantiate will set FPrototypeInstance,
+        FPrototypeInstanceSourceNode, FPrototypeInstanceHelpers on the first
+        node in ProtoBody.
+
+      - But in these edge-cases from tests/data/proto_reuse_first_node/,
+        this means that one of the nodes (maybe deep inside)
+        in FPrototypeInstanceHelpers will also have FPrototypeInstanceHelpers set,
+        since it reUSEs the first node. And this will cause
+        infinite recursion here.
+
+      TODO: The flag WithinDirectEnumerateAll is not a fool-proof solution.
+      If something will call
+      DirectEnumerateAll within a callback, like from EnumerateNodes callback,
+      then the WithinDirectEnumerateAll will prevent from visiting it at all.
+      But all "more involved" solutions seem to complicate code a lot,
+      just to address this one simple case:
+
+      - Not have the PrototypeInstanceHelpers? And define some special way
+        to get "prototype used to create this node" that isn't part of
+        TX3DNode information?
+    }
+    if (PrototypeInstanceHelpers <> nil) and
+       (not WithinDirectEnumerateAll) then
     begin
-      Result := Func(Self, PrototypeInstanceHelpers);
+      WithinDirectEnumerateAll := true;
+      try
+        Result := Func(Self, PrototypeInstanceHelpers);
+      finally WithinDirectEnumerateAll := false end;
       if Result <> nil then Exit;
     end;
   end;

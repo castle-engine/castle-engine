@@ -463,6 +463,11 @@ begin
     P.ReadEvent := {$ifdef FPC}@{$endif} TUrlEcmaScript{$ifdef FPC}(nil){$endif}.Read;
     P.FMimeTypeEvent := {$ifdef FPC}@{$endif} TUrlEcmaScript{$ifdef FPC}(nil){$endif}.MimeType;
 
+    // vrmlscript: found in https://github.com/create3000/Library/blob/main/Tests/Components/Shape/Connectors.x3d
+    P := FRegisteredProtocols.Add('vrmlscript');
+    P.ReadEvent := {$ifdef FPC}@{$endif} TUrlEcmaScript{$ifdef FPC}(nil){$endif}.Read;
+    P.FMimeTypeEvent := {$ifdef FPC}@{$endif} TUrlEcmaScript{$ifdef FPC}(nil){$endif}.MimeType;
+
     P := FRegisteredProtocols.Add('castlescript');
     P.ReadEvent := {$ifdef FPC}@{$endif} TUrlCastleScript{$ifdef FPC}(nil){$endif}.Read;
     P.FMimeTypeEvent := {$ifdef FPC}@{$endif} TUrlCastleScript{$ifdef FPC}(nil){$endif}.MimeType;
