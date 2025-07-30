@@ -225,6 +225,13 @@
     DoneWarningJointTransformCount0: Boolean;
     DoneWarningJointTransformCountTooMany: Boolean;
     DoneWarningJointTransformNone: Boolean;
+
+    { Calculate the current local bounding box of shape Shapes[ShapeIndex]
+      within this skinned node.
+      Assumes the current joints transformation state is as specified
+      by TCastleSceneInstance. }
+    // function ShapeBoundingBoxInInstance(const ShapeIndex: Integer;
+    //   const Instance: TCastleSceneInstance): TBox3D;
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
@@ -1001,6 +1008,38 @@ begin
   //   BoolToStr(FdJoints.Count <= MaxJoints, true) + ' and ' +
   //   BoolToStr(not SomeShapeCastsShadowVolumes, true));
 end;
+
+// TODO:
+//
+// function TSkinNode.ShapeBoundingBoxInInstance(const ShapeIndex: Integer;
+//   const Instance: TCastleSceneInstance): TBox3D;
+// begin
+//
+// end;
+//
+// TODO: full algo:
+//
+// from ChangedAll, once we know all TSkinNode instances:
+//
+// for their shapes with TShapeNode.InternalAnimatedBBoxKnown=false:
+// calculate TShapeNode.InternalAnimatedBBox.
+//
+// TCastleScene uses TCastleSceneInstance on itself.
+//
+// For skin node, looks at all animations affecting it
+// (how do we detect them? how this glTF precalculation detect them?).
+// Sets their times to start, end, and at keyframes, with increments >=
+// NextKeyframeTimeToConsider (to not consider too dense keyframes inside).
+//
+// Skips some vertexes to optimize?
+// Maybe just pick "max 1000 vertexes, interspersed in mesh" --
+// based on this, calculate SkipVertexIndex.
+//
+// Then sums, for each shape, ShapeBoundingBoxInInstance.
+//
+// At the end, use TShapeNode.InternalAnimatedBBox if exists.
+//
+// TODO: Time this calculation.
 
 { registration --------------------------------------------------------------- }
 
