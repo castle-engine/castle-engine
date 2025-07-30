@@ -1425,6 +1425,33 @@ var
     end;
   end;
 
+  { Read min / maximum 3D bounds from 3D glTF accessor. }
+  function AccessorVector3MinMax(const AccessorIndex: Integer; out BoundingBox: TBox3D): Boolean;
+  var
+    Accessor: TPasGLTF.TAccessor;
+  begin
+    Result := false; // assume failure
+    Accessor := GetAccessor(AccessorIndex);
+    if Accessor <> nil then
+    begin
+      if (Accessor.MinArray.Count = 3) and
+         (Accessor.MaxArray.Count = 3) then
+      begin
+        BoundingBox.Data[0] := Vector3(Accessor.MinArray[0], Accessor.MinArray[1], Accessor.MinArray[2]);
+        BoundingBox.Data[1] := Vector3(Accessor.MaxArray[0], Accessor.MaxArray[1], Accessor.MaxArray[2]);
+        //WritelnLog('AccessorVector3MinMax: %s', [BoundingBox.ToString]);
+        Result := true;
+      end else
+      begin
+        // perform correctness checks on Min/MaxArray
+        if (Accessor.MinArray.Count <> 0) and (Accessor.MinArray.Count <> 3) then
+          WritelnWarning('glTF', 'Accessor.MinArray has unexpected length %d, expected 0 or 3', [Accessor.MinArray.Count]);
+        if (Accessor.MaxArray.Count <> 0) and (Accessor.MaxArray.Count <> 3) then
+          WritelnWarning('glTF', 'Accessor.MaxArray has unexpected length %d, expected 0 or 3', [Accessor.MaxArray.Count]);
+      end;
+    end;
+  end;
+
   procedure AccessorToVector4(const AccessorIndex: Integer; const Field: TVector4List;
     const ForVertex: Boolean); overload;
   var
@@ -1581,6 +1608,7 @@ var
     MetadataCollision: String;
     Weights: TVector4List;
     Joints: TInt32List;
+    ShapeBBox: TBox3D;
   begin
     // create X3D geometry and shape nodes
     if Primitive.Indices <> -1 then
@@ -1659,7 +1687,10 @@ var
           Coord := TCoordinateNode.Create;
           AccessorToVector3(Primitive.Attributes[AttributeName], Coord.FdPoint, true);
           Geometry.CoordField.Value := Coord;
-          Shape.BBox := TBox3D.FromPoints(Coord.FdPoint.Items);
+          // to speedup reading, use bbox from the accessor, if available
+          if not AccessorVector3MinMax(Primitive.Attributes[AttributeName], ShapeBBox) then
+            ShapeBBox := TBox3D.FromPoints(Coord.FdPoint.Items);
+          Shape.BBox := ShapeBBox;
           { Do special fix for line strip and line loop: glTF specifies just one strip/loop,
             put it in VertexCount. }
           if (Geometry is TLineSetNode) and
