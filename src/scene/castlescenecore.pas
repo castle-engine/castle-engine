@@ -3731,6 +3731,11 @@ function TChangedAllTraverser.Traverse(
     Instances.Add(VSI);
   end;
 
+  function ParentNodeIsShape: Boolean;
+  begin
+    Result := (ParentInfo <> nil) and (ParentInfo^.Node is TShapeNode);
+  end;
+
 var
   Shape: TShape;
 begin
@@ -3738,23 +3743,22 @@ begin
 
   if Node is TAbstractGeometryNode then
   begin
-    if (not (Node is TAbstractGeometryNode_1)) and
-       ( (ParentInfo = nil) or
-         (not (ParentInfo^.Node is TShapeNode) ) ) then
-    begin
-      { Detect and reject trying to use geometry nodes incorrectly in X3D or
-        VRML 2.0.
+    { We only take into account geometry nodes inside TShapeNode
+      and VRML 1.0 geometry nodes (they can have any parent).
 
-        Testcase: tests/data/geometry_not_in_shape.x3dv
+      Ignore (do not call ParentScene.CreateShape):
 
-        Without this safeguard, in debug mode, it would cause failure
-        at "Assert(State.ShapeNode <> nil)" in
-        src/scene/castleinternalarraysgenerator.pas .
-      }
-      WritelnWarning('Node "%s" is a geometry node, it has to be placed within a Shape node', [
-        Node.NiceName
-      ]);
-    end else
+      - Invalid geometry nodes, like tests/data/geometry_not_in_shape.x3dv .
+        (a warning that they are invalid will be done by parser already,
+        it knows allowed children),
+
+      - Valid geometry nodes in other contexts.
+        In particular, X3D "Particle systems" component allows geometry
+        nodes in BoundedPhysicsModel.geometry.
+
+      This allows TShape to safely assume that, for non-VRML 1.0,
+      we always have TShapeNode available in State.ShapeNode. }
+    if (Node is TAbstractGeometryNode_1) or ParentNodeIsShape then
     begin
       { Add shape to Shapes }
       Shape := ParentScene.CreateShape(Node as TAbstractGeometryNode,
