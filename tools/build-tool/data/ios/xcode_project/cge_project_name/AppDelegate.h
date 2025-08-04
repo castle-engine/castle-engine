@@ -32,6 +32,10 @@
 - (void)onPurchase:(AvailableProduct*) product
   withTransaction:(SKPaymentTransaction*) transaction;
 
+- (void)initializeRootViewControllerInWindow:(UIWindow*)sceneWindow;
+- (void)onSceneDidEnterBackground;
+- (void)onSceneDidBecomeActive;
+
 @property (strong, nonatomic) UIWindow *window;
 
 @end
