@@ -992,27 +992,28 @@ begin
       is called with exactly the same arguments. }
     WM_SETCURSOR:
       begin
-        // Check if the cursor is in a system area (non-client area)
-        if LoWord(lParm) in [HTCAPTION, HTSYSMENU, HTMINBUTTON, HTMAXBUTTON, HTCLOSE, HTMENU, 
-          HTLEFT, HTRIGHT, HTBOTTOM, HTBOTTOMLEFT, HTBOTTOMRIGHT, HTTOP, HTTOPLEFT, HTTOPRIGHT] then
-        begin
-          // Let the default window procedure handle the cursor
-          Result := DefWindowProcW(h_Wnd, uMsg, wParm, lParm);
-          Exit;
-        end;
-
         if (WParm = h_Wnd) and
+
+           { Do not use SetCursor to set custom cursor (or hide system cursor)
+             if we're hovering over the window borders/captions.
+             Testcase:  examples/user_interface/custom_cursor/ . }
+           (not (LoWord(lParm) in
+             [HTCAPTION, HTSYSMENU, HTMINBUTTON, HTMAXBUTTON, HTCLOSE, HTMENU,
+              HTLEFT, HTRIGHT, HTBOTTOM, HTBOTTOMLEFT, HTBOTTOMRIGHT,
+              HTTOP, HTTOPLEFT, HTTOPRIGHT])) and
+
+          { Use SetCursor only if we have a useful WinAPI handle for
+            the new cursor, or (handle 0) we really want to hide it. }
            ( (InternalCursor in [mcNone, mcForceNone]) or
              (Application.CursorHandles[InternalCursor].Handle <> 0) ) then
         begin
           Windows.SetCursor(Application.CursorHandles[InternalCursor].Handle);
           Exit(1);
         end;
+
         { Otherwise we fall back on DefWindowProcW.
           It will install our window class cursor (or parent cursor)
-          if in client area, or just do the right thing if outside client area.
-          So it's suitable when wParm <> h_Wnd,
-          or we want mcDefault. }
+          if in client area, or just do the right thing if outside client area. }
       end;
 
     WM_MOUSEWHEEL, WM_MOUSEHWHEEL:
