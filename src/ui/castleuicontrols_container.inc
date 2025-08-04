@@ -1341,9 +1341,12 @@ var
     if OverrideCursor <> mcDefault then
       Result := OverrideCursor;
 
-    { do not hide when container is not focused (mouse look doesn't work
-      then too, so better to not hide mouse) }
-    if (not Focused) and (Result in [mcNone, mcForceNone]) then
+    { Do not hide when
+      - container is not focused (mouse look doesn't work
+        then too, so better to not hide mouse)
+      - inspector is active (we should then see the mouse on top of inspector). }
+    if ( (not Focused) or (FInspector <> nil) ) and
+       (Result in [mcNone, mcForceNone]) then
       Result := mcDefault;
   end;
 
