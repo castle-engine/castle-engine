@@ -99,8 +99,6 @@ type
       ProfilerDataFirst, ProfilerDataLast: Integer;
       LogCount: Cardinal;
       AutoSelect: TAutoSelect;
-      { Stored cursor, to restore when inspector is closed, important if game/view/window has hidden cursor. }
-      FStoredCursor: TMouseCursor;
     procedure ChangeOpacity(Sender: TObject);
     procedure SetOpacity(const Value: Single);
     { Show component in hierarchy, allow to select it. }
@@ -368,16 +366,9 @@ end;
 
 procedure TCastleInspector.InternalSetContainer(const Value: TCastleContainer);
 begin
-  if Assigned(Container) and Assigned(Container.FrontView) and not Assigned(Value) then
-    Container.FrontView.Cursor := FStoredCursor;
   inherited;
   if Container <> nil then
     CheckboxUiBatching.Checked := Container.UserInterfaceBatching;
-  if Assigned(Container) and Assigned(Container.FrontView) then
-  begin
-    FStoredCursor := Container.FrontView.Cursor;
-    Container.FrontView.Cursor := mcDefault;
-  end;
 end;
 
 function TCastleInspector.Selectable(const C: TComponent): Boolean;
