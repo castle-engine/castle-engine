@@ -53,6 +53,12 @@ type
     moScale
   );
 
+  TTerrainEditMode = (
+    temRaise,
+    temLower,
+    temFlatten
+  );
+
   { Frame to visually design component hierarchy. }
   TDesignFrame = class(TFrame)
     ActionChangeHeightMapSize: TAction;
@@ -82,7 +88,7 @@ type
     GroupBoxHeightMapSize: TGroupBox;
     GroupBoxRaiseTerrainSettings: TGroupBox;
     GroupBoxLowerTerrainSettings: TGroupBox;
-    GroupBoxLevelTerrainSettings: TGroupBox;
+    GroupBoxFlattenTerrainSettings: TGroupBox;
     Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;
@@ -367,6 +373,7 @@ type
       FTerrainLevelHeight: Byte;
       FIsFirstTerrainLevelFrame: Boolean;
       FWasTerrainUrlUpdate: Boolean;
+      FTerrainEditMode: TTerrainEditMode;
 
     { Create and add to the designed parent a new component,
       whose type best matches currently selected file in SourceShellList.
@@ -5165,10 +5172,21 @@ begin
 end;
 
 procedure TDesignFrame.UpdateChoosenTerrainTool;
+var
+  VisibleGroup: TGroupBox;
 begin
-  GroupBoxRaiseTerrainSettings.Visible := ActionChooseRaiseTerrainTool.Checked;
-  GroupBoxLowerTerrainSettings.Visible := ActionChooseLowerTerrainTool.Checked;
-  GroupBoxLevelTerrainSettings.Visible := ActionChooseLevelTerrainTool.Checked;
+  GroupBoxRaiseTerrainSettings.Visible := FTerrainEditMode = temRaise;
+  GroupBoxLowerTerrainSettings.Visible := FTerrainEditMode = temLower;
+  GroupBoxFlattenTerrainSettings.Visible := FTerrainEditMode = temFlatten;
+
+  case FTerrainEditMode of
+    temRaise: VisibleGroup := GroupBoxRaiseTerrainSettings;
+    temLower: VisibleGroup := GroupBoxLowerTerrainSettings;
+    temFlatten: VisibleGroup := GroupBoxFlattenTerrainSettings;
+    else raise EInternalError.Create('UpdateChoosenTerrainTool: FTerrainEditMode?');
+  end;
+
+  PanelEditTerrainSave.AnchorSideTop.Control := VisibleGroup;
 end;
 
 procedure TDesignFrame.UpdateSelectedInfo;
@@ -6343,16 +6361,19 @@ end;
 
 procedure TDesignFrame.ActionChooseLevelTerrainToolExecute(Sender: TObject);
 begin
+  FTerrainEditMode := temFlatten;
   UpdateChoosenTerrainTool;
 end;
 
 procedure TDesignFrame.ActionChooseLowerTerrainToolExecute(Sender: TObject);
 begin
+  FTerrainEditMode := temLower;
   UpdateChoosenTerrainTool;
 end;
 
 procedure TDesignFrame.ActionChooseRaiseTerrainToolExecute(Sender: TObject);
 begin
+  FTerrainEditMode := temRaise;
   UpdateChoosenTerrainTool;
 end;
 
