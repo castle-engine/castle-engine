@@ -430,7 +430,6 @@ object DesignFrame: TDesignFrame
           AutoSize = True
           Constraints.MinHeight = 34
           Constraints.MinWidth = 70
-          Caption = 'Raise'
           Down = True
           GroupIndex = 40
         end
@@ -446,7 +445,6 @@ object DesignFrame: TDesignFrame
           AutoSize = True
           Constraints.MinHeight = 34
           Constraints.MinWidth = 70
-          Caption = 'Lower'
           GroupIndex = 40
         end
         object SpeedButtonFlattenTerrain: TSpeedButton
@@ -461,7 +459,6 @@ object DesignFrame: TDesignFrame
           AutoSize = True
           Constraints.MinHeight = 34
           Constraints.MinWidth = 70
-          Caption = 'Flatten'
           GroupIndex = 40
         end
         object GroupBoxRaiseTerrainSettings: TGroupBox
