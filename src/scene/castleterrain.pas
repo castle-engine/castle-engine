@@ -520,37 +520,35 @@ type
   {$undef read_interface_class}
   end;
 
-
-  { TCastleTerrainEditMode }
-
-  TCastleTerrainEditMode = class
+  { Editing operations on a terrain. }
+  TCastleTerrainEditor = class
   strict private
     FTerrain: TCastleTerrain;
     FEffectTextureHeightField: TSFNode;
     FShaderHeightTexture1: TImageTextureNode;
     FShaderHeightTexture2: TImageTextureNode;
-    FEditModeSourceViewport: TCastleViewport;
-    FEditModeHeightTextureScene: TCastleScene;
-    FEditModeApperance: TAppearanceNode;
+    FSourceViewport: TCastleViewport;
+    FHeightTextureScene: TCastleScene;
+    FApperance: TAppearanceNode;
     // FTempContainer: TCastleContainer;
-    // FEditModeBrush: TDrawableImage;
-    FEditModeBrushShader: TGLSLProgram;
-    FEditModeHeightMapSize: TVector2Integer;
+    // FBrush: TDrawableImage;
+    FBrushShader: TGLSLProgram;
+    FHeightMapSize: TVector2Integer;
     FTerrainModified: Boolean;
     DebugImage: TGrayscaleImage;
 
     { Create edit mode viewport with texture based on copy of TextureNode
       when we create viewport. This texture content is not important,
       only the size is used becouse we change OpenGL texture id before redering. }
-    procedure PrepareEditModeViewport(const TextureNode: TImageTextureNode);
+    procedure PrepareViewport(const TextureNode: TImageTextureNode);
     { Allows you to draw with another texture using its id. You need to call
-      ResetOpenGLTextureInEditModeViewport after drawing }
-    function ShareOpenGLTextureToEditModeViewport(const TextureNode: TImageTextureNode): TGLTextureId;
+      ResetOpenGLTextureInViewport after drawing }
+    function ShareOpenGLTextureToViewport(const TextureNode: TImageTextureNode): TGLTextureId;
     { Resets texture id to given one, should use id from
-      ShareOpenGLTextureToEditModeViewport result }
-    procedure ResetOpenGLTextureInEditModeViewport(const PreviousGLTextureId: TGLTextureId);
+      ShareOpenGLTextureToViewport result }
+    procedure ResetOpenGLTextureInViewport(const PreviousGLTextureId: TGLTextureId);
 
-    procedure PrepareEditModeBrushShader(const Brush: TDrawableImage;
+    procedure PrepareBrushShader(const Brush: TDrawableImage;
       const BrushShape: TCastleTerrainBrush; const BrushSize: Integer;
       const Strength, BrushMaxHeight: Byte; const RingThickness: Single);
 
@@ -577,15 +575,15 @@ type
       const Strength: Byte; const BrushRotation: Single = 0; const BrushMaxHeight: Byte = 255;
       const RingBrushThickness: Single = 1.0);
 
-    procedure SetEditModeHeightMapSize(const NewSize: TVector2Integer);
-    function GetEditModeHeightMapSize: TVector2Integer;
+    procedure SetHeightMapSize(const NewSize: TVector2Integer);
+    function GetHeightMapSize: TVector2Integer;
 
-    procedure LoadEditModeHeightMapFromData;
+    procedure LoadHeightMapFromData;
 
     { Returns terrain height in Coord }
     function TerrainHeight(const Coord: TVector3): Byte;
 
-    procedure SaveEditModeHeightMap(const AUrl: String);
+    procedure SaveHeightMap(const AUrl: String);
 
     property TerrainModified: Boolean read FTerrainModified;
   end;
@@ -661,7 +659,7 @@ type
     FUpdateGeometryWhenLoaded: Boolean;
 
     FMode: TCastleTerrainMode;
-    FEditMode: TCastleTerrainEditMode;
+    FEditor: TCastleTerrainEditor;
 
     function GetRenderOptions: TCastleRenderOptions;
     function GetLayer(const Index: Integer): TCastleTerrainLayer;
@@ -683,7 +681,6 @@ type
     procedure SetSteepEmphasize(const Value: Single);
     procedure SetPreciseCollisions(const Value: Boolean);
 
-    function GetEditMode: TCastleTerrainEditMode;
     procedure SetMode(const NewMode: TCastleTerrainMode);
   private
     Effect: TEffectNode;
@@ -762,7 +759,11 @@ type
       {$ifdef FPC}deprecated 'use TriangulationIgnoreHeights';{$endif}
 
     property Mode: TCastleTerrainMode read FMode write SetMode;
-    property EditMode: TCastleTerrainEditMode read GetEditMode;
+
+    { Perform editing operations using this editor.
+      Created on first access.
+      Requires @link(RenderMode) to be ctmShader. }
+    function Editor: TCastleTerrainEditor;
   published
     { Options used to render the terrain. Can be used e.g. to toggle wireframe rendering. }
     property RenderOptions: TCastleRenderOptions read GetRenderOptions;
@@ -1561,9 +1562,9 @@ begin
   end;
 end;
 
-{ TCastleTerrainEditMode ----------------------------------------------------- }
+{ TCastleTerrainEditor ----------------------------------------------------- }
 
-procedure TCastleTerrainEditMode.PrepareEditModeViewport(
+procedure TCastleTerrainEditor.PrepareViewport(
   const TextureNode: TImageTextureNode);
 var
   QuadSet: TQuadSetNode;
@@ -1579,23 +1580,23 @@ var
 
   function TextureSizeChanged: Boolean;
   begin
-    Result := ((TImageTextureNode(FEditModeApperance.Texture).TextureImage.Width <> TexWidth) or
-     (TImageTextureNode(FEditModeApperance.Texture).TextureImage.Height <> TexHeight));
+    Result := ((TImageTextureNode(FApperance.Texture).TextureImage.Width <> TexWidth) or
+     (TImageTextureNode(FApperance.Texture).TextureImage.Height <> TexHeight));
   end;
 
 begin
   TexWidth := TextureNode.TextureImage.Width;
   TexHeight := TextureNode.TextureImage.Height;
 
-  if (FEditModeSourceViewport <> nil) and TextureSizeChanged then
+  if (FSourceViewport <> nil) and TextureSizeChanged then
   begin
-    FreeAndNil(FEditModeSourceViewport);
-    FEditModeApperance := nil;
+    FreeAndNil(FSourceViewport);
+    FApperance := nil;
   end;
 
-  if FEditModeSourceViewport = nil then
+  if FSourceViewport = nil then
   begin
-    FEditModeSourceViewport := TCastleViewport.Create(FTerrain);
+    FSourceViewport := TCastleViewport.Create(FTerrain);
 
     Coord := TCoordinateNode.Create;
     Coord.SetPoint([
@@ -1613,28 +1614,28 @@ begin
     QuadSet.TexCoord := TexCoord;
     QuadSet.Solid := false;
 
-    FEditModeApperance := TAppearanceNode.Create;
+    FApperance := TAppearanceNode.Create;
 
     Material := TUnlitMaterialNode.Create;
     Material.EmissiveColor := Vector3(1, 1, 1);
 
-    FEditModeApperance.Material := Material;
+    FApperance.Material := Material;
 
     TextureCopy := TImageTextureNode.Create;
     TextureCopy.LoadFromImage(TextureNode.TextureImage, false, '');
-    FEditModeApperance.Texture := TextureCopy;
+    FApperance.Texture := TextureCopy;
 
-    Shape.Appearance := FEditModeApperance;
+    Shape.Appearance := FApperance;
 
     Root := TX3DRootNode.Create;
     Root.AddChildren(Shape);
 
-    FEditModeHeightTextureScene := TCastleScene.Create(FEditModeSourceViewport);
-    FEditModeHeightTextureScene.Load(Root, true);
+    FHeightTextureScene := TCastleScene.Create(FSourceViewport);
+    FHeightTextureScene.Load(Root, true);
 
-    FEditModeSourceViewport.Items.Add(FEditModeHeightTextureScene);
-    Camera := TCastleCamera.Create(FEditModeHeightTextureScene);
-    FEditModeSourceViewport.Items.Add(Camera);
+    FSourceViewport.Items.Add(FHeightTextureScene);
+    Camera := TCastleCamera.Create(FHeightTextureScene);
+    FSourceViewport.Items.Add(Camera);
     Camera.ProjectionType := ptOrthographic;
     Camera.Orthographic.Width := TexWidth;
     Camera.Orthographic.Height := TexHeight;
@@ -1642,46 +1643,46 @@ begin
     Camera.Direction := Vector3(0, 0, -1);
     Camera.Translation := Vector3(0,0, 500);
 
-    FEditModeSourceViewport.Camera := Camera;
-    FEditModeSourceViewport.Width := TexWidth;
-    FEditModeSourceViewport.Height := TexHeight;
-    FEditModeSourceViewport.EnableUIScaling := false;
+    FSourceViewport.Camera := Camera;
+    FSourceViewport.Width := TexWidth;
+    FSourceViewport.Height := TexHeight;
+    FSourceViewport.EnableUIScaling := false;
   end;
 end;
 
-function TCastleTerrainEditMode.ShareOpenGLTextureToEditModeViewport(
+function TCastleTerrainEditor.ShareOpenGLTextureToViewport(
   const TextureNode: TImageTextureNode): TGLTextureId;
 var
   TextureNodeTextureId: TGLTextureId;
 begin
   TextureNodeTextureId := TImageTextureResource(TextureNode.InternalRendererResource).GLName;
 
-  if FEditModeApperance.Texture.InternalRendererResource = nil then
-    TTextureResources.Prepare(FTerrain.RenderOptions, FEditModeApperance.Texture);
+  if FApperance.Texture.InternalRendererResource = nil then
+    TTextureResources.Prepare(FTerrain.RenderOptions, FApperance.Texture);
 
-  Result := TImageTextureResource(FEditModeApperance.Texture.InternalRendererResource).GLName;
+  Result := TImageTextureResource(FApperance.Texture.InternalRendererResource).GLName;
 
-  TImageTextureResource(FEditModeApperance.Texture.InternalRendererResource).InternalSetGLName(TextureNodeTextureId);
+  TImageTextureResource(FApperance.Texture.InternalRendererResource).InternalSetGLName(TextureNodeTextureId);
 end;
 
-procedure TCastleTerrainEditMode.ResetOpenGLTextureInEditModeViewport(
+procedure TCastleTerrainEditor.ResetOpenGLTextureInViewport(
   const PreviousGLTextureId: TGLTextureId);
 begin
-  if FEditModeApperance.Texture.InternalRendererResource = nil then
+  if FApperance.Texture.InternalRendererResource = nil then
     Exit;
 
-  TImageTextureResource(FEditModeApperance.Texture.InternalRendererResource).InternalSetGLName(PreviousGLTextureId);
+  TImageTextureResource(FApperance.Texture.InternalRendererResource).InternalSetGLName(PreviousGLTextureId);
 end;
 
-procedure TCastleTerrainEditMode.PrepareEditModeBrushShader(
+procedure TCastleTerrainEditor.PrepareBrushShader(
   const Brush: TDrawableImage; const BrushShape: TCastleTerrainBrush;
   const BrushSize: Integer; const Strength, BrushMaxHeight: Byte;
   const RingThickness: Single);
 begin
-  if FEditModeBrushShader = nil then
+  if FBrushShader = nil then
   begin
-    FEditModeBrushShader := TGLSLProgram.Create;
-    FEditModeBrushShader.AttachVertexShader(
+    FBrushShader := TGLSLProgram.Create;
+    FBrushShader.AttachVertexShader(
       'attribute vec2 vertex;' + NL +
       'attribute vec2 tex_coord;' + NL +
       'uniform vec2 viewport_size;' + NL +
@@ -1692,7 +1693,7 @@ begin
       '  tex_coord_frag = tex_coord;' + NL +
       '}'
     );
-    FEditModeBrushShader.AttachFragmentShader(
+    FBrushShader.AttachFragmentShader(
       'varying vec2 tex_coord_frag;' + NL +
       ' ' + NL +
       'uniform sampler2D image_texture;' + NL +
@@ -1788,18 +1789,18 @@ begin
       '  } //switch end' + NL +
       '} // main end'
     );
-    FEditModeBrushShader.Link;
+    FBrushShader.Link;
   end;
-  FEditModeBrushShader.Uniform('brush_shape').SetValue(Integer(BrushShape));
-  FEditModeBrushShader.Uniform('strength').SetValue(Strength / 255);
-  FEditModeBrushShader.Uniform('max_terrain_height').SetValue(BrushMaxHeight / 255);
-  FEditModeBrushShader.Uniform('brush_size').SetValue(BrushSize);
-  FEditModeBrushShader.Uniform('ring_thickness').SetValue(RingThickness);
+  FBrushShader.Uniform('brush_shape').SetValue(Integer(BrushShape));
+  FBrushShader.Uniform('strength').SetValue(Strength / 255);
+  FBrushShader.Uniform('max_terrain_height').SetValue(BrushMaxHeight / 255);
+  FBrushShader.Uniform('brush_size').SetValue(BrushSize);
+  FBrushShader.Uniform('ring_thickness').SetValue(RingThickness);
 
-  Brush.CustomShader := FEditModeBrushShader;
+  Brush.CustomShader := FBrushShader;
 end;
 
-function TCastleTerrainEditMode.CreateTerrainIndexedTriangleNode(
+function TCastleTerrainEditor.CreateTerrainIndexedTriangleNode(
   const Subdivisions: TVector2; const InputRange, OutputRange: TFloatRectangle;
   const Appearance: TAppearanceNode): TAbstractChildNode;
 var
@@ -1839,7 +1840,7 @@ begin
     FShaderHeightTexture2.KeepExistingBegin;
   end;
 
-  LoadEditModeHeightMapFromData;
+  LoadHeightMapFromData;
 
   if FEffectTextureHeightField = nil then
   begin
@@ -1853,15 +1854,15 @@ begin
   Result := Transform;
 end;
 
-function TCastleTerrainEditMode.UpdateGeometry(const InputRange, OutputRange: TFloatRectangle;
+function TCastleTerrainEditor.UpdateGeometry(const InputRange, OutputRange: TFloatRectangle;
       const Appearance: TAppearanceNode): TAbstractChildNode;
 var
   Root: TX3DRootNode;
 begin
-  if FEditModeSourceViewport <> nil then
+  if FSourceViewport <> nil then
   begin
-    FreeAndNil(FEditModeSourceViewport);
-    FEditModeApperance := nil;
+    FreeAndNil(FSourceViewport);
+    FApperance := nil;
   end;
 
   Root := TX3DRootNode.Create;
@@ -1871,30 +1872,30 @@ begin
   FTerrain.Scene.RenderOptions.WireframeEffect := weSolidWireframe;
 end;
 
-procedure TCastleTerrainEditMode.SetTerrainModified(const Modified: Boolean);
+procedure TCastleTerrainEditor.SetTerrainModified(const Modified: Boolean);
 begin
   FTerrainModified := Modified;
 end;
 
-constructor TCastleTerrainEditMode.Create(ATerrain: TCastleTerrain);
+constructor TCastleTerrainEditor.Create(ATerrain: TCastleTerrain);
 begin
   Assert(ATerrain <> nil, 'Terrain can''t be nil');
 
   FTerrain := ATerrain;
-  FEditModeHeightMapSize.X := 64;
-  FEditModeHeightMapSize.Y := 64;
+  FHeightMapSize.X := 64;
+  FHeightMapSize.Y := 64;
 end;
 
-destructor TCastleTerrainEditMode.Destroy;
+destructor TCastleTerrainEditor.Destroy;
 begin
   FShaderHeightTexture1.KeepExistingEnd;
   FShaderHeightTexture2.KeepExistingEnd;
 
-  FreeAndNil(FEditModeSourceViewport);
+  FreeAndNil(FSourceViewport);
   inherited Destroy;
 end;
 
-procedure TCastleTerrainEditMode.AlterTerrain(
+procedure TCastleTerrainEditor.AlterTerrain(
   const Container: TCastleContainer; const Coord: TVector3;
   const BrushShape: TCastleTerrainBrush; const BrushSize: Integer;
   const Strength: Byte; const BrushRotation: Single;
@@ -1941,7 +1942,7 @@ var
     begin
       TexNode := TImageTextureNode.Create;
       TexNode.LoadFromImage(DebugImage, false, '');
-      FEditModeApperance.Texture := TexNode;
+      FApperance.Texture := TexNode;
     end;
   end;
 
@@ -2003,20 +2004,20 @@ begin
 
     { This is faster aproach without copying from/to gpu on every frame
       but not working in TCastleControl. }
-    {PrepareEditModeViewport(SourceTexture);
-    PreviousTextureId := ShareOpenGLTextureToEditModeViewport(SourceTexture);
+    {PrepareViewport(SourceTexture);
+    PreviousTextureId := ShareOpenGLTextureToViewport(SourceTexture);
     try
-      WritelnLog('FEditModeHeightMapSize.X' + IntToStr(FEditModeHeightMapSize.X));
-      ViewportRect := Rectangle(0, 0, FEditModeHeightMapSize.X, FEditModeHeightMapSize.Y);
-      if Container.Controls.IndexOf(FEditModeSourceViewport) = -1 then
-        Container.Controls.InsertFront(FEditModeSourceViewport);
-      Container.RenderControl(FEditModeSourceViewport, ViewportRect);
+      WritelnLog('FHeightMapSize.X' + IntToStr(FHeightMapSize.X));
+      ViewportRect := Rectangle(0, 0, FHeightMapSize.X, FHeightMapSize.Y);
+      if Container.Controls.IndexOf(FSourceViewport) = -1 then
+        Container.Controls.InsertFront(FSourceViewport);
+      Container.RenderControl(FSourceViewport, ViewportRect);
 
       DebugSaveImage;
 
-      //Container.Controls.Remove(FEditModeSourceViewport);
+      //Container.Controls.Remove(FSourceViewport);
     finally
-      ResetOpenGLTextureInEditModeViewport(PreviousTextureId);
+      ResetOpenGLTextureInViewport(PreviousTextureId);
     end;
     UpdateDebugImage;}
 
@@ -2024,7 +2025,7 @@ begin
     Image := TRGBAlphaImage.Create(BrushSize, BrushSize);
     Brush := TDrawableImage.Create(Image, false, true);
     try
-    PrepareEditModeBrushShader(Brush, BrushShape,
+    PrepareBrushShader(Brush, BrushShape,
       BrushSize, Strength, BrushMaxHeight, RingBrushThickness);
 
     Brush.Rotation := BrushRotation;
@@ -2056,7 +2057,7 @@ begin
   FEffectTextureHeightField.Send(TargetTexture);
 end;
 
-procedure TCastleTerrainEditMode.SetEditModeHeightMapSize(
+procedure TCastleTerrainEditor.SetHeightMapSize(
   const NewSize: TVector2Integer);
 var
   SrcImage: TGrayscaleImage;
@@ -2064,10 +2065,10 @@ var
   CurrentShaderTextureNode: TImageTextureNode;
   SrcWidth, SrcHeight : Integer;
 begin
-  if FEditModeHeightMapSize.Equals(FEditModeHeightMapSize, NewSize) then
+  if FHeightMapSize.Equals(FHeightMapSize, NewSize) then
     Exit;
 
-  FEditModeHeightMapSize := NewSize;
+  FHeightMapSize := NewSize;
   FTerrainModified := true;
 
   if (FShaderHeightTexture1 = nil) or (FShaderHeightTexture2 = nil) then
@@ -2102,12 +2103,12 @@ begin
   end;
 end;
 
-function TCastleTerrainEditMode.GetEditModeHeightMapSize: TVector2Integer;
+function TCastleTerrainEditor.GetHeightMapSize: TVector2Integer;
 begin
-  Result := FEditModeHeightMapSize;
+  Result := FHeightMapSize;
 end;
 
-procedure TCastleTerrainEditMode.LoadEditModeHeightMapFromData;
+procedure TCastleTerrainEditor.LoadHeightMapFromData;
 var
   DataTerrainImage: TCastleTerrainImage;
   Image: TGrayscaleImage;
@@ -2125,11 +2126,11 @@ begin
     //FShaderHeightTexture2.SetUrl([DataTerrainImage.Url]);
     FShaderHeightTexture2.InternalRendererResourceFree;
     FShaderHeightTexture2.LoadFromImage(DataTerrainImage.Image.MakeCopy, true, '');
-    FEditModeHeightMapSize.X := FShaderHeightTexture2.TextureImage.Width;
-    FEditModeHeightMapSize.Y := FShaderHeightTexture2.TextureImage.Height;
+    FHeightMapSize.X := FShaderHeightTexture2.TextureImage.Width;
+    FHeightMapSize.Y := FShaderHeightTexture2.TextureImage.Height;
   end else
   begin
-    Image := TGrayscaleImage.Create(FEditModeHeightMapSize.X, FEditModeHeightMapSize.Y);
+    Image := TGrayscaleImage.Create(FHeightMapSize.X, FHeightMapSize.Y);
     Image.Clear(Vector4Byte(0,0,0,255));
     FShaderHeightTexture1.InternalRendererResourceFree;
     FShaderHeightTexture1.LoadFromImage(Image.MakeCopy, true, '');
@@ -2138,7 +2139,7 @@ begin
   end;
 end;
 
-function TCastleTerrainEditMode.TerrainHeight(const Coord: TVector3): Byte;
+function TCastleTerrainEditor.TerrainHeight(const Coord: TVector3): Byte;
 var
   SourceTexture: TImageTextureNode;
   LocalCoord: TVector3;
@@ -2181,7 +2182,7 @@ begin
   end;
 end;
 
-procedure TCastleTerrainEditMode.SaveEditModeHeightMap(const AUrl: String);
+procedure TCastleTerrainEditor.SaveHeightMap(const AUrl: String);
 var
   Image: TGrayscaleImage;
   TextureWidth, TextureHeight : Integer;
@@ -2474,7 +2475,7 @@ begin
   {$undef read_implementation_destructor}
   inherited;
 
-  FreeAndNil(FEditMode);
+  FreeAndNil(FEditor);
   { Avoid Appearance having invalid reference in Appearance.Scene.
     Note that Scene was freed in "inherited" above,
     but Appearance.Scene may not have been cleared,
@@ -2596,7 +2597,7 @@ begin
     end;
   ctmShader:
     begin
-      TerrainNode := EditMode.UpdateGeometry(InputRange, OutputRange, Appearance);
+      TerrainNode := Editor.UpdateGeometry(InputRange, OutputRange, Appearance);
     end;
   end;
 
@@ -2723,13 +2724,13 @@ begin
   end;
 end;
 
-function TCastleTerrain.GetEditMode: TCastleTerrainEditMode;
+function TCastleTerrain.Editor: TCastleTerrainEditor;
 begin
   if FMode <> ctmShader then
     raise Exception.Create('Not in edit mode.');
-  if FEditMode = nil then
-    FEditMode := TCastleTerrainEditMode.Create(Self);
-  Result := FEditMode;
+  if FEditor = nil then
+    FEditor := TCastleTerrainEditor.Create(Self);
+  Result := FEditor;
 end;
 
 procedure TCastleTerrain.SetMode(const NewMode: TCastleTerrainMode);
@@ -2761,7 +2762,7 @@ begin
 
   TerrainNode := nil;
   UpdateGeometry;
-  FEditMode.SetTerrainModified(false);
+  FEditor.SetTerrainModified(false);
 end;
 
 function TCastleTerrain.PropertySections(const PropertyName: String): TPropertySections;

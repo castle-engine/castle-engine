@@ -213,7 +213,7 @@ begin
     ChangeModeClick(nil);
   Assert(Terrain.Mode = ctmShader);
 
-  Terrain.EditMode.SaveEditModeHeightMap(SaveHeightMapUrlEdit.Text);
+  Terrain.Editor.SaveHeightMap(SaveHeightMapUrlEdit.Text);
 end;
 
 procedure TViewMain.UpdateTerrainMode;
@@ -272,7 +272,7 @@ begin
     ChangeModeClick(nil);
   Assert(Terrain.Mode = ctmShader);
 
-  Terrain.EditMode.SetEditModeHeightMapSize(Vector2Integer(
+  Terrain.Editor.SetHeightMapSize(Vector2Integer(
     HeightMapWidthIntegerEdit.Value,
     HeightMapHeightIntegerEdit.Value)
   );
@@ -299,18 +299,18 @@ begin
 
       case Operation of
         toRaise:
-          Terrain.EditMode.AlterTerrain(Container, HitInfo.Point, FBrush, BrushSizeSlider.Value,
+          Terrain.Editor.AlterTerrain(Container, HitInfo.Point, FBrush, BrushSizeSlider.Value,
             StrengthSlider.Value, DegToRad(BrushRotationSlider.Value),
             BrushMaxHeightSlider.Value, RingThicknessSlider.Value);
         toLower:
-          Terrain.EditMode.AlterTerrain(Container, HitInfo.Point, FBrush, BrushSizeSlider.Value,
+          Terrain.Editor.AlterTerrain(Container, HitInfo.Point, FBrush, BrushSizeSlider.Value,
             StrengthSlider.Value, DegToRad(BrushRotationSlider.Value),
             0, RingThicknessSlider.Value);
         toFlatten:
           begin
             if IsFirstFramePressed then
-              BrushFlattenHeightSlider.Value := Terrain.EditMode.TerrainHeight(HitInfo.Point);
-            Terrain.EditMode.AlterTerrain(Container, HitInfo.Point, FBrush, BrushSizeSlider.Value,
+              BrushFlattenHeightSlider.Value := Terrain.Editor.TerrainHeight(HitInfo.Point);
+            Terrain.Editor.AlterTerrain(Container, HitInfo.Point, FBrush, BrushSizeSlider.Value,
               StrengthSlider.Value, DegToRad(BrushRotationSlider.Value),
               BrushFlattenHeightSlider.Value, RingThicknessSlider.Value);
           end;
@@ -333,7 +333,7 @@ begin
       RayCollision := Viewport.MouseRayHit;
       if (RayCollision <> nil) and RayCollision.Info(HitInfo) then
       begin
-        BrushFlattenHeightSlider.Value := Terrain.EditMode.TerrainHeight(HitInfo.Point);
+        BrushFlattenHeightSlider.Value := Terrain.Editor.TerrainHeight(HitInfo.Point);
       end;
     end;
   end;

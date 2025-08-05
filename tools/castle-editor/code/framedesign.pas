@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2024 Michalis Kamburelis.
+  Copyright 2018-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -5059,7 +5059,9 @@ procedure TDesignFrame.UpdateTerrainEditMode;
           if SpeedButtonLevelCone.Down then
             Exit(ctbCone);
         end;
+      {$ifndef CASE_ANALYSIS}
       else raise EInternalError.Create('GetTerrainBrush: FTerrainEditMode?');
+      {$endif}
     end;
   end;
 
@@ -5069,7 +5071,9 @@ procedure TDesignFrame.UpdateTerrainEditMode;
       temRaise: Exit(SpinEditRaiseBrushSize.Value);
       temLower: Exit(SpinEditLowerBrushSize.Value);
       temFlatten: Exit(SpinEditLevelBrushSize.Value);
+      {$ifndef CASE_ANALYSIS}
       else raise EInternalError.Create('GetTerrainBrushSize: FTerrainEditMode?');
+      {$endif}
     end;
   end;
 
@@ -5079,7 +5083,9 @@ procedure TDesignFrame.UpdateTerrainEditMode;
       temRaise: Exit(SpinEditRaiseStrength.Value);
       temLower: Exit(SpinEditLowerStrength.Value);
       temFlatten: Exit(SpinEditLevelStrength.Value);
+      {$ifndef CASE_ANALYSIS}
       else raise EInternalError.Create('GetTerrainToolStrength: FTerrainEditMode?');
+      {$endif}
     end;
   end;
 
@@ -5089,7 +5095,9 @@ procedure TDesignFrame.UpdateTerrainEditMode;
       temRaise: Exit(SpinEditRaiseBrushRotation.Value);
       temLower: Exit(SpinEditLowerBrushRotation.Value);
       temFlatten: Exit(SpinEditLevelBrushRotation.Value);
+      {$ifndef CASE_ANALYSIS}
       else raise EInternalError.Create('GetTerrainBrushRotation: FTerrainEditMode?');
+      {$endif}
     end;
   end;
 
@@ -5099,7 +5107,9 @@ procedure TDesignFrame.UpdateTerrainEditMode;
       temRaise: Exit(SpinEditRaiseMaxHeight.Value);
       temLower: Exit(0);
       temFlatten: Exit(FTerrainLevelHeight);
+      {$ifndef CASE_ANALYSIS}
       else raise EInternalError.Create('GetTerrainMaxHeight: FTerrainEditMode?');
+      {$endif}
     end;
   end;
 
@@ -5109,7 +5119,9 @@ procedure TDesignFrame.UpdateTerrainEditMode;
       temRaise: Exit(FloatSpinRaiseRingThickness.Value);
       temLower: Exit(FloatSpinLowerRingThickness.Value);
       temFlatten: Exit(FloatSpinLevelRingThickness.Value);
+      {$ifndef CASE_ANALYSIS}
       else raise EInternalError.Create('GetTerrainRingThickness: FTerrainEditMode?');
+      {$endif}
     end;
   end;
 
@@ -5137,11 +5149,11 @@ begin
 
       if FIsFirstTerrainLevelFrame and ActionChooseFlattenTerrainTool.Checked then
       begin
-        FTerrainLevelHeight := Terrain.EditMode.TerrainHeight(HitInfo.Point);
+        FTerrainLevelHeight := Terrain.Editor.TerrainHeight(HitInfo.Point);
         SpinEditLevelHeight.Value := FTerrainLevelHeight;
       end;
 
-      Terrain.EditMode.AlterTerrain(Container, HitInfo.Point, GetTerrainBrush,
+      Terrain.Editor.AlterTerrain(Container, HitInfo.Point, GetTerrainBrush,
         GetTerrainBrushSize, GetTerrainToolStrength, DegToRad(GetTerrainBrushRotation),
         GetTerrainMaxHeight, GetTerrainRingThickness);
 
@@ -5157,7 +5169,7 @@ begin
       RayCollision := CurrentViewport.MouseRayHit;
       if (RayCollision <> nil) and RayCollision.Info(HitInfo) then
       begin
-        FTerrainLevelHeight := Terrain.EditMode.TerrainHeight(HitInfo.Point);
+        FTerrainLevelHeight := Terrain.Editor.TerrainHeight(HitInfo.Point);
         SpinEditLevelHeight.Value := FTerrainLevelHeight;
       end;
     end;
@@ -5176,7 +5188,9 @@ begin
     temRaise: VisibleGroup := GroupBoxRaiseTerrainSettings;
     temLower: VisibleGroup := GroupBoxLowerTerrainSettings;
     temFlatten: VisibleGroup := GroupBoxFlattenTerrainSettings;
+    {$ifndef CASE_ANALYSIS}
     else raise EInternalError.Create('UpdateChoosenTerrainTool: FTerrainEditMode?');
+    {$endif}
   end;
 
   PanelEditTerrainSave.AnchorSideTop.Control := VisibleGroup;
@@ -6325,7 +6339,7 @@ var
 begin
   Terrain := CurrentTransform as TCastleTerrain;
 
-  Terrain.EditMode.SetEditModeHeightMapSize(Vector2Integer(
+  Terrain.Editor.SetHeightMapSize(Vector2Integer(
     SpinEditHeightMapWidth.Value, SpinEditHeightMapHeight.Value));
 end;
 
@@ -6348,8 +6362,8 @@ begin
   Terrain := CurrentTransform as TCastleTerrain;
 
   ActionChangeHeightMapSize.Enabled := FIsEditingTerrain and (
-  (SpinEditHeightMapHeight.Value <> Terrain.EditMode.GetEditModeHeightMapSize.Y) or
-  (SpinEditHeightMapWidth.Value <> Terrain.EditMode.GetEditModeHeightMapSize.X));
+  (SpinEditHeightMapHeight.Value <> Terrain.Editor.GetHeightMapSize.Y) or
+  (SpinEditHeightMapWidth.Value <> Terrain.Editor.GetHeightMapSize.X));
 end;
 
 procedure TDesignFrame.ActionChooseFlattenTerrainToolExecute(Sender: TObject);
@@ -6391,14 +6405,14 @@ begin
     TransformManipulate.SetSelected([]);
     PanelEditTerrain.Visible := true;
     FWasTerrainUrlUpdate := false;
-    SpinEditHeightMapHeight.Value := Terrain.EditMode.GetEditModeHeightMapSize.Y;
-    SpinEditHeightMapWidth.Value := Terrain.EditMode.GetEditModeHeightMapSize.X;
+    SpinEditHeightMapHeight.Value := Terrain.Editor.GetHeightMapSize.Y;
+    SpinEditHeightMapWidth.Value := Terrain.Editor.GetHeightMapSize.X;
     ActionChangeHeightMapSizeUpdate(ActionChangeHeightMapSize);
     ProjectForm.PageControlBottom.Hide;
   end else
   begin
     // Finish edit mode
-    if Terrain.EditMode.TerrainModified then
+    if Terrain.Editor.TerrainModified then
     begin
       Mr := MessageDlg('Terrain editor',
         'Terrain was modified but not saved yet. Save changes?',
@@ -6486,7 +6500,7 @@ begin
     if SaveHeightImageDialog.Execute then
     begin
       try
-        Terrain.EditMode.SaveEditModeHeightMap(SaveHeightImageDialog.Url);
+        Terrain.Editor.SaveHeightMap(SaveHeightImageDialog.Url);
         // update current image also in case the user selected
         // the same file that is loaded
         FWasTerrainUrlUpdate := true;
@@ -6524,7 +6538,7 @@ begin
   TerrainUrl := GetTerrainUrl;
   if TerrainUrl <> '' then
   begin
-    Terrain.EditMode.SaveEditModeHeightMap(TerrainUrl);
+    Terrain.Editor.SaveHeightMap(TerrainUrl);
     FWasTerrainUrlUpdate := true;
   end
   else
