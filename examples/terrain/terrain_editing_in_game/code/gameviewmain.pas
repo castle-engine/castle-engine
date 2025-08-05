@@ -1,9 +1,30 @@
-{ Main view, where most of the application logic takes place.
+{
+  Copyright 2025-2025 Michalis Kamburelis.
 
-  Feel free to use this code as a starting point for your own projects.
-  This template code is in public domain, unlike most other CGE code which
-  is covered by BSD or LGPL (see https://castle-engine.io/license). }
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
+{ Main view, where most of the application logic takes place. }
 unit GameViewMain;
+
+// Define COMPILER_CASE_ANALYSIS to be able to avoid some FPC warnings.
+// See https://castle-engine.io/coding_conventions#case_analysis .
+{$ifdef FPC}
+  {$ifndef VER3_0}
+    {$ifndef VER3_1}
+      {$define COMPILER_CASE_ANALYSIS}
+    {$endif}
+  {$endif}
+{$endif}
 
 interface
 
@@ -13,19 +34,15 @@ uses Classes,
   CastleViewport, CastleTransform;
 
 type
-
   TTerrainOperation = (
     toRaise,
     toLower,
-    toLevel
+    toFlatten
   );
 
   TTerrainOperations = set of TTerrainOperation;
 
   { Main view, where most of the application logic takes place. }
-
-  { TViewMain }
-
   TViewMain = class(TCastleView)
   published
     { Components designed using CGE editor.
@@ -44,7 +61,7 @@ type
 
     RaiseTerrainButton: TCastleButton;
     LowerTerrainButton: TCastleButton;
-    LevelTerrainButton: TCastleButton;
+    FlattenTerrainButton: TCastleButton;
 
     FixedSquareBrushButton: TCastleButton;
     SquareBrushButton: TCastleButton;
@@ -62,10 +79,11 @@ type
 
     HorizontalGroupMaxHeight: TCastleHorizontalGroup;
 
-    HorizontalGroupLevelHeight: TCastleHorizontalGroup;
-    BrushLevelHeightSlider: TCastleIntegerSlider;
+    HorizontalGroupFlattenHeight: TCastleHorizontalGroup;
+    BrushFlattenHeightSlider: TCastleIntegerSlider;
 
     LabelOperation: TCastleLabel;
+    LabelTerrainMode: TCastleLabel;
 
     SaveHeightMapUrlEdit: TCastleEdit;
     SaveHeightMapButton: TCastleButton;
@@ -81,12 +99,11 @@ type
     procedure SaveHeightMapClick(Sender: TObject);
     procedure ChangeModeClick(Sender: TObject);
     procedure UpdateOperationAndBrushLabel;
-    function BrushToString(ABrush: TCastleTerrainBrush): String;
-    function OperationToString(AOperation: TTerrainOperation): String;
-
+    function BrushToString(const ABrush: TCastleTerrainBrush): String;
+    function OperationToString(const AOperation: TTerrainOperation): String;
     procedure SetHeightMapSizeButtonClick(Sender: TObject);
+    procedure UpdateTerrainMode;
   public
-    TimeAccumulator: Single;
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
@@ -98,9 +115,45 @@ var
 
 implementation
 
-uses SysUtils, CastleLog, Math;
+uses SysUtils, Math,
+  CastleLog, CastleUtils;
 
 { TViewMain ----------------------------------------------------------------- }
+
+constructor TViewMain.Create(AOwner: TComponent);
+begin
+  inherited;
+  DesignUrl := 'castle-data:/gameviewmain.castle-user-interface';
+  Operation := toRaise;
+  FBrush := ctbCone;
+  IsFirstFramePressed := true;
+end;
+
+procedure TViewMain.Start;
+begin
+  inherited;
+  RaiseTerrainButton.OnClick := {$ifdef FPC}@{$endif} OperationClick;
+  LowerTerrainButton.OnClick := {$ifdef FPC}@{$endif} OperationClick;
+  FlattenTerrainButton.OnClick := {$ifdef FPC}@{$endif} OperationClick;
+
+  FixedSquareBrushButton.OnClick := {$ifdef FPC}@{$endif} BrushTypeClick;
+  SquareBrushButton.OnClick := {$ifdef FPC}@{$endif} BrushTypeClick;
+  PyramidBrushButton.OnClick := {$ifdef FPC}@{$endif} BrushTypeClick;
+  CircleBrushButton.OnClick := {$ifdef FPC}@{$endif} BrushTypeClick;
+  ConeBrushButton.OnClick := {$ifdef FPC}@{$endif} BrushTypeClick;
+  RingBrushButton.OnClick := {$ifdef FPC}@{$endif} BrushTypeClick;
+  LyingCylinderBrushButton.OnClick := {$ifdef FPC}@{$endif} BrushTypeClick;
+  RotationPlus15DegButton.OnClick := {$ifdef FPC}@{$endif} RotationPlus15DegButtonClick;
+
+  SetHeightMapSizeButton.OnClick := {$ifdef FPC}@{$endif} SetHeightMapSizeButtonClick;
+
+  SaveHeightMapButton.OnClick := {$ifdef FPC}@{$endif} SaveHeightMapClick;
+
+  ChangeModeButton.OnClick := {$ifdef FPC}@{$endif} ChangeModeClick;
+
+  UpdateOperationAndBrushLabel;
+  UpdateTerrainMode;
+end;
 
 procedure TViewMain.OperationClick(Sender: TObject);
 begin
@@ -108,19 +161,19 @@ begin
   begin
     Operation := toRaise;
     HorizontalGroupMaxHeight.Exists := true;
-    HorizontalGroupLevelHeight.Exists := false;
+    HorizontalGroupFlattenHeight.Exists := false;
   end
   else if Sender = LowerTerrainButton then
   begin
     Operation := toLower;
     HorizontalGroupMaxHeight.Exists := false;
-    HorizontalGroupLevelHeight.Exists := false;
+    HorizontalGroupFlattenHeight.Exists := false;
   end
-  else if Sender = LevelTerrainButton then
+  else if Sender = FlattenTerrainButton then
   begin
-    Operation := toLevel;
+    Operation := toFlatten;
     HorizontalGroupMaxHeight.Exists := false;
-    HorizontalGroupLevelHeight.Exists := true;
+    HorizontalGroupFlattenHeight.Exists := true;
   end;
 
   UpdateOperationAndBrushLabel;
@@ -156,7 +209,21 @@ end;
 
 procedure TViewMain.SaveHeightMapClick(Sender: TObject);
 begin
+  if Terrain.Mode = ctmMesh then
+    ChangeModeClick(nil);
+  Assert(Terrain.Mode = ctmShader);
+
   Terrain.EditMode.SaveEditModeHeightMap(SaveHeightMapUrlEdit.Text);
+end;
+
+procedure TViewMain.UpdateTerrainMode;
+const
+  TerainModeNames: array [TCastleTerrainMode] of String = (
+    'Heights In Vertexes (Not Editable)',
+    'Heights In Texture (Editable)'
+  );
+begin
+  LabelTerrainMode.Caption := 'Terrain mode: ' + TerainModeNames[Terrain.Mode];
 end;
 
 procedure TViewMain.ChangeModeClick(Sender: TObject);
@@ -165,6 +232,7 @@ begin
     Terrain.Mode := ctmShader
   else
     Terrain.Mode := ctmMesh;
+  UpdateTerrainMode;
 end;
 
 procedure TViewMain.UpdateOperationAndBrushLabel;
@@ -172,78 +240,42 @@ begin
   LabelOperation.Caption := OperationToString(Operation) + ': ' + BrushToString(FBrush);
 end;
 
-function TViewMain.BrushToString(ABrush: TCastleTerrainBrush): String;
+function TViewMain.BrushToString(const ABrush: TCastleTerrainBrush): String;
+const
+  Names: array [TCastleTerrainBrush] of String = (
+    'Fixed Square',
+    'Square',
+    'Pyramid',
+    'Circle',
+    'Cone',
+    'Ring',
+    'Lying Cylinder'
+  );
 begin
-  case ABrush of
-    ctbFixedSquare:
-      Result := 'Fixed Square';
-    ctbSquare:
-      Result := 'Square';
-    ctbPyramid:
-      Result := 'Pyramid';
-    ctbCircle:
-      Result := 'Circle';
-    ctbCone:
-      Result := 'Cone';
-    ctbRing:
-      Result := 'Ring';
-    ctbLyingCylinder:
-      Result := 'Lying Cylinder';
-  end;
+  Result := Names[ABrush];
 end;
 
-function TViewMain.OperationToString(AOperation: TTerrainOperation): String;
+function TViewMain.OperationToString(const AOperation: TTerrainOperation): String;
+const
+  Names: array [TTerrainOperation] of String = (
+    'Raise',
+    'Lower',
+    'Flatten'
+  );
 begin
-  case AOperation of
-    toRaise:
-      Result := 'Raise terrain';
-    toLower:
-      Result := 'Lower terrain';
-    toLevel:
-      Result := 'Level terrain';
-  end;
+  Result := Names[AOperation];
 end;
 
 procedure TViewMain.SetHeightMapSizeButtonClick(Sender: TObject);
 begin
+  if Terrain.Mode = ctmMesh then
+    ChangeModeClick(nil);
+  Assert(Terrain.Mode = ctmShader);
+
   Terrain.EditMode.SetEditModeHeightMapSize(Vector2Integer(
     HeightMapWidthIntegerEdit.Value,
     HeightMapHeightIntegerEdit.Value)
   );
-end;
-
-constructor TViewMain.Create(AOwner: TComponent);
-begin
-  inherited;
-  DesignUrl := 'castle-data:/gameviewmain.castle-user-interface';
-  Operation := toRaise;
-  FBrush := ctbCone;
-  IsFirstFramePressed := true;
-end;
-
-procedure TViewMain.Start;
-begin
-  inherited;
-  RaiseTerrainButton.OnClick := {$ifdef FPC}@{$endif}OperationClick;
-  LowerTerrainButton.OnClick := {$ifdef FPC}@{$endif}OperationClick;
-  LevelTerrainButton.OnClick := {$ifdef FPC}@{$endif}OperationClick;
-
-  FixedSquareBrushButton.OnClick := {$ifdef FPC}@{$endif}BrushTypeClick;
-  SquareBrushButton.OnClick := {$ifdef FPC}@{$endif}BrushTypeClick;
-  PyramidBrushButton.OnClick := {$ifdef FPC}@{$endif}BrushTypeClick;
-  CircleBrushButton.OnClick := {$ifdef FPC}@{$endif}BrushTypeClick;
-  ConeBrushButton.OnClick := {$ifdef FPC}@{$endif}BrushTypeClick;
-  RingBrushButton.OnClick := {$ifdef FPC}@{$endif}BrushTypeClick;
-  LyingCylinderBrushButton.OnClick := {$ifdef FPC}@{$endif}BrushTypeClick;
-  RotationPlus15DegButton.OnClick := {$ifdef FPC}@{$endif}RotationPlus15DegButtonClick;
-
-  SetHeightMapSizeButton.OnClick := {$ifdef FPC}@{$endif}SetHeightMapSizeButtonClick;
-
-  SaveHeightMapButton.OnClick := {$ifdef FPC}@{$endif}SaveHeightMapClick;
-
-  ChangeModeButton.OnClick := {$ifdef FPC}@{$endif}ChangeModeClick;
-
-  UpdateOperationAndBrushLabel;
 end;
 
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
@@ -261,7 +293,10 @@ begin
     RayCollision := Viewport.MouseRayHit;
     if (RayCollision <> nil) and RayCollision.Info(HitInfo) then
     begin
-      WritelnLog('Hitpoint: ', HitInfo.Point.ToString);
+      if Terrain.Mode = ctmMesh then
+        ChangeModeClick(nil);
+      Assert(Terrain.Mode = ctmShader);
+
       case Operation of
         toRaise:
           Terrain.EditMode.AlterTerrain(Container, HitInfo.Point, FBrush, BrushSizeSlider.Value,
@@ -271,14 +306,17 @@ begin
           Terrain.EditMode.AlterTerrain(Container, HitInfo.Point, FBrush, BrushSizeSlider.Value,
             StrengthSlider.Value, DegToRad(BrushRotationSlider.Value),
             0, RingThicknessSlider.Value);
-        toLevel:
-        begin
-          if IsFirstFramePressed then
-            BrushLevelHeightSlider.Value := Terrain.EditMode.TerrainHeight(HitInfo.Point);
-          Terrain.EditMode.AlterTerrain(Container, HitInfo.Point, FBrush, BrushSizeSlider.Value,
-            StrengthSlider.Value, DegToRad(BrushRotationSlider.Value),
-            BrushLevelHeightSlider.Value, RingThicknessSlider.Value);
-        end;
+        toFlatten:
+          begin
+            if IsFirstFramePressed then
+              BrushFlattenHeightSlider.Value := Terrain.EditMode.TerrainHeight(HitInfo.Point);
+            Terrain.EditMode.AlterTerrain(Container, HitInfo.Point, FBrush, BrushSizeSlider.Value,
+              StrengthSlider.Value, DegToRad(BrushRotationSlider.Value),
+              BrushFlattenHeightSlider.Value, RingThicknessSlider.Value);
+          end;
+        {$ifndef COMPILER_CASE_ANALYSIS}
+        else raise EInternalError.Create('Operation not implemented');
+        {$endif}
       end;
 
       IsFirstFramePressed := false;
@@ -290,12 +328,12 @@ begin
 
   if Container.MousePressed = [] then
   begin
-    if Operation = toLevel then
+    if Operation = toFlatten then
     begin
       RayCollision := Viewport.MouseRayHit;
       if (RayCollision <> nil) and RayCollision.Info(HitInfo) then
       begin
-        BrushLevelHeightSlider.Value := Terrain.EditMode.TerrainHeight(HitInfo.Point);
+        BrushFlattenHeightSlider.Value := Terrain.EditMode.TerrainHeight(HitInfo.Point);
       end;
     end;
   end;
@@ -303,10 +341,10 @@ begin
 end;
 
 function TViewMain.Press(const Event: TInputPressRelease): Boolean;
-var
-  RayOrigin, RayDirection: TVector3;
-  RayCollision: TRayCollision;
-  HitInfo: TRayCollisionNode;
+// var
+//   RayOrigin, RayDirection: TVector3;
+//   RayCollision: TRayCollision;
+//   HitInfo: TRayCollisionNode;
 begin
   Result := inherited;
   if Result then Exit; // allow the ancestor to handle keys
@@ -328,25 +366,6 @@ begin
     end;
 
   end;}
-
-  { This virtual method is executed when user presses
-    a key, a mouse button, or touches a touch-screen.
-
-    Note that each UI control has also events like OnPress and OnClick.
-    These events can be used to handle the "press", if it should do something
-    specific when used in that UI control.
-    The TViewMain.Press method should be used to handle keys
-    not handled in children controls.
-  }
-
-  // Use this to handle keys:
-  {
-  if Event.IsKey(keyXxx) then
-  begin
-    // DoSomething;
-    Exit(true); // key was handled
-  end;
-  }
 end;
 
 end.
