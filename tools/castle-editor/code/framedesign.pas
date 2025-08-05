@@ -64,7 +64,7 @@ type
     ActionChangeHeightMapSize: TAction;
     ActionSaveTerrainAs: TAction;
     ActionSaveTerrain: TAction;
-    ActionChooseLevelTerrainTool: TAction;
+    ActionChooseFlattenTerrainTool: TAction;
     ActionChooseLowerTerrainTool: TAction;
     ActionChooseRaiseTerrainTool: TAction;
     ActionEditTerrain: TAction;
@@ -176,7 +176,7 @@ type
     SpeedButtonLevelSquare: TSpeedButton;
     SpeedButtonRaiseTerrain: TSpeedButton;
     SpeedButtonLowerTerrain: TSpeedButton;
-    SpeedButtonLevelTerrain: TSpeedButton;
+    SpeedButtonFlattenTerrain: TSpeedButton;
     SpeedButtonRaiseFixedSquare: TSpeedButton;
     SpeedButtonRaiseSquare: TSpeedButton;
     SpeedButtonRaisePyramid: TSpeedButton;
@@ -211,7 +211,7 @@ type
     procedure ActionApiReferenceOfCurrentExecute(Sender: TObject);
     procedure ActionChangeHeightMapSizeExecute(Sender: TObject);
     procedure ActionChangeHeightMapSizeUpdate(Sender: TObject);
-    procedure ActionChooseLevelTerrainToolExecute(Sender: TObject);
+    procedure ActionChooseFlattenTerrainToolExecute(Sender: TObject);
     procedure ActionChooseLowerTerrainToolExecute(Sender: TObject);
     procedure ActionChooseRaiseTerrainToolExecute(Sender: TObject);
     procedure ActionEditTerrainExecute(Sender: TObject);
@@ -4995,136 +4995,129 @@ begin
 end;
 
 procedure TDesignFrame.UpdateTerrainEditMode;
-var
-  RayCollision: TRayCollision;
-  HitInfo: TRayCollisionNode;
-  Terrain: TCastleTerrain;
-  Container: TCastleContainer;
 
   function GetTerrainBrush: TCastleTerrainBrush;
   begin
-    if ActionChooseRaiseTerrainTool.Checked then
-    begin
-      if SpeedButtonRaiseFixedSquare.Down then
-        Exit(ctbFixedSquare);
+    case FTerrainEditMode of
+      temRaise:
+        begin
+          if SpeedButtonRaiseFixedSquare.Down then
+            Exit(ctbFixedSquare);
 
-      if SpeedButtonRaiseSquare.Down then
-        Exit(ctbSquare);
+          if SpeedButtonRaiseSquare.Down then
+            Exit(ctbSquare);
 
-      if SpeedButtonRaisePyramid.Down then
-        Exit(ctbPyramid);
+          if SpeedButtonRaisePyramid.Down then
+            Exit(ctbPyramid);
 
-      if SpeedButtonRaiseCircle.Down then
-        Exit(ctbCircle);
+          if SpeedButtonRaiseCircle.Down then
+            Exit(ctbCircle);
 
-      if SpeedButtonRaiseCone.Down then
-        Exit(ctbCone);
+          if SpeedButtonRaiseCone.Down then
+            Exit(ctbCone);
 
-      if SpeedButtonRaiseRing.Down then
-        Exit(ctbRing);
+          if SpeedButtonRaiseRing.Down then
+            Exit(ctbRing);
 
-      if SpeedButtonRaiseCylinder.Down then
-        Exit(ctbLyingCylinder);
-    end else
-    if ActionChooseLowerTerrainTool.Checked then
-    begin
-      if SpeedButtonLowerFixedSquare.Down then
-        Exit(ctbFixedSquare);
+          if SpeedButtonRaiseCylinder.Down then
+            Exit(ctbLyingCylinder);
+        end;
+      temLower:
+        begin
+          if SpeedButtonLowerFixedSquare.Down then
+            Exit(ctbFixedSquare);
 
-      if SpeedButtonLowerSquare.Down then
-        Exit(ctbSquare);
+          if SpeedButtonLowerSquare.Down then
+            Exit(ctbSquare);
 
-      if SpeedButtonLowerPyramid.Down then
-        Exit(ctbPyramid);
+          if SpeedButtonLowerPyramid.Down then
+            Exit(ctbPyramid);
 
-      if SpeedButtonLowerCircle.Down then
-        Exit(ctbCircle);
+          if SpeedButtonLowerCircle.Down then
+            Exit(ctbCircle);
 
-      if SpeedButtonLowerCone.Down then
-        Exit(ctbCone);
+          if SpeedButtonLowerCone.Down then
+            Exit(ctbCone);
 
-      if SpeedButtonLowerRing.Down then
-        Exit(ctbRing);
+          if SpeedButtonLowerRing.Down then
+            Exit(ctbRing);
 
-      if SpeedButtonLowerCylinder.Down then
-        Exit(ctbLyingCylinder);
-    end else
-    if ActionChooseLevelTerrainTool.Checked then
-    begin
-      if SpeedButtonLevelSquare.Down then
-        Exit(ctbSquare);
+          if SpeedButtonLowerCylinder.Down then
+            Exit(ctbLyingCylinder);
+        end;
+      temFlatten:
+        begin
+          if SpeedButtonLevelSquare.Down then
+            Exit(ctbSquare);
 
-      if SpeedButtonLevelPyramid.Down then
-        Exit(ctbPyramid);
+          if SpeedButtonLevelPyramid.Down then
+            Exit(ctbPyramid);
 
-      if SpeedButtonLevelCircle.Down then
-        Exit(ctbCircle);
+          if SpeedButtonLevelCircle.Down then
+            Exit(ctbCircle);
 
-      if SpeedButtonLevelCone.Down then
-        Exit(ctbCone);
+          if SpeedButtonLevelCone.Down then
+            Exit(ctbCone);
+        end;
+      else raise EInternalError.Create('GetTerrainBrush: FTerrainEditMode?');
     end;
   end;
 
   function GetTerrainBrushSize: Integer;
   begin
-    if ActionChooseRaiseTerrainTool.Checked then
-      Exit(SpinEditRaiseBrushSize.Value);
-
-    if ActionChooseLowerTerrainTool.Checked then
-      Exit(SpinEditLowerBrushSize.Value);
-
-    if ActionChooseLevelTerrainTool.Checked then
-      Exit(SpinEditLevelBrushSize.Value);
+    case FTerrainEditMode of
+      temRaise: Exit(SpinEditRaiseBrushSize.Value);
+      temLower: Exit(SpinEditLowerBrushSize.Value);
+      temFlatten: Exit(SpinEditLevelBrushSize.Value);
+      else raise EInternalError.Create('GetTerrainBrushSize: FTerrainEditMode?');
+    end;
   end;
 
   function GetTerrainToolStrength: Byte;
   begin
-    if ActionChooseRaiseTerrainTool.Checked then
-      Exit(SpinEditRaiseStrength.Value);
-
-    if ActionChooseLowerTerrainTool.Checked then
-      Exit(SpinEditLowerStrength.Value);
-
-    if ActionChooseLevelTerrainTool.Checked then
-      Exit(SpinEditLevelStrength.Value);
+    case FTerrainEditMode of
+      temRaise: Exit(SpinEditRaiseStrength.Value);
+      temLower: Exit(SpinEditLowerStrength.Value);
+      temFlatten: Exit(SpinEditLevelStrength.Value);
+      else raise EInternalError.Create('GetTerrainToolStrength: FTerrainEditMode?');
+    end;
   end;
 
   function GetTerrainBrushRotation: Single;
   begin
-    if ActionChooseRaiseTerrainTool.Checked then
-      Exit(SpinEditRaiseBrushRotation.Value);
-
-    if ActionChooseLowerTerrainTool.Checked then
-      Exit(SpinEditLowerBrushRotation.Value);
-
-    if ActionChooseLevelTerrainTool.Checked then
-      Exit(SpinEditLevelBrushRotation.Value);
+    case FTerrainEditMode of
+      temRaise: Exit(SpinEditRaiseBrushRotation.Value);
+      temLower: Exit(SpinEditLowerBrushRotation.Value);
+      temFlatten: Exit(SpinEditLevelBrushRotation.Value);
+      else raise EInternalError.Create('GetTerrainBrushRotation: FTerrainEditMode?');
+    end;
   end;
 
   function GetTerrainMaxHeight: Byte;
   begin
-    if ActionChooseRaiseTerrainTool.Checked then
-      Exit(SpinEditRaiseMaxHeight.Value);
-
-    if ActionChooseLowerTerrainTool.Checked then
-      Exit(0);
-
-    if ActionChooseLevelTerrainTool.Checked then
-      Exit(FTerrainLevelHeight);
+    case FTerrainEditMode of
+      temRaise: Exit(SpinEditRaiseMaxHeight.Value);
+      temLower: Exit(0);
+      temFlatten: Exit(FTerrainLevelHeight);
+      else raise EInternalError.Create('GetTerrainMaxHeight: FTerrainEditMode?');
+    end;
   end;
 
   function GetTerrainRingThickness: Single;
   begin
-    if ActionChooseRaiseTerrainTool.Checked then
-      Exit(FloatSpinRaiseRingThickness.Value);
-
-    if ActionChooseLowerTerrainTool.Checked then
-      Exit(FloatSpinLowerRingThickness.Value);
-
-    if ActionChooseLevelTerrainTool.Checked then
-      Exit(FloatSpinLevelRingThickness.Value);
+    case FTerrainEditMode of
+      temRaise: Exit(FloatSpinRaiseRingThickness.Value);
+      temLower: Exit(FloatSpinLowerRingThickness.Value);
+      temFlatten: Exit(FloatSpinLevelRingThickness.Value);
+      else raise EInternalError.Create('GetTerrainRingThickness: FTerrainEditMode?');
+    end;
   end;
 
+var
+  RayCollision: TRayCollision;
+  HitInfo: TRayCollisionNode;
+  Terrain: TCastleTerrain;
+  Container: TCastleContainer;
 begin
   if not FIsEditingTerrain then
     Exit;
@@ -5142,15 +5135,15 @@ begin
     if (RayCollision <> nil) and RayCollision.Info(HitInfo) then
     begin
 
-      if FIsFirstTerrainLevelFrame and ActionChooseLevelTerrainTool.Checked then
+      if FIsFirstTerrainLevelFrame and ActionChooseFlattenTerrainTool.Checked then
       begin
         FTerrainLevelHeight := Terrain.EditMode.TerrainHeight(HitInfo.Point);
         SpinEditLevelHeight.Value := FTerrainLevelHeight;
       end;
 
       Terrain.EditMode.AlterTerrain(Container, HitInfo.Point, GetTerrainBrush,
-      GetTerrainBrushSize, GetTerrainToolStrength, DegToRad(GetTerrainBrushRotation),
-      GetTerrainMaxHeight, GetTerrainRingThickness);
+        GetTerrainBrushSize, GetTerrainToolStrength, DegToRad(GetTerrainBrushRotation),
+        GetTerrainMaxHeight, GetTerrainRingThickness);
 
       FIsFirstTerrainLevelFrame := false;
     end;
@@ -5159,7 +5152,7 @@ begin
     FIsFirstTerrainLevelFrame := true;
 
     // terrain leveling: change level value based on mouse position
-    if ActionChooseLevelTerrainTool.Checked and (Container.MousePressed = []) then
+    if ActionChooseFlattenTerrainTool.Checked and (Container.MousePressed = []) then
     begin
       RayCollision := CurrentViewport.MouseRayHit;
       if (RayCollision <> nil) and RayCollision.Info(HitInfo) then
@@ -6359,7 +6352,7 @@ begin
   (SpinEditHeightMapWidth.Value <> Terrain.EditMode.GetEditModeHeightMapSize.X));
 end;
 
-procedure TDesignFrame.ActionChooseLevelTerrainToolExecute(Sender: TObject);
+procedure TDesignFrame.ActionChooseFlattenTerrainToolExecute(Sender: TObject);
 begin
   FTerrainEditMode := temFlatten;
   UpdateChoosenTerrainTool;

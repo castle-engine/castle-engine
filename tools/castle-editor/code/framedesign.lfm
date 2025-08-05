@@ -449,7 +449,7 @@ object DesignFrame: TDesignFrame
           Caption = 'Lower'
           GroupIndex = 40
         end
-        object SpeedButtonLevelTerrain: TSpeedButton
+        object SpeedButtonFlattenTerrain: TSpeedButton
           AnchorSideLeft.Control = SpeedButtonLowerTerrain
           AnchorSideLeft.Side = asrBottom
           AnchorSideTop.Control = SpeedButtonRaiseTerrain
@@ -457,7 +457,7 @@ object DesignFrame: TDesignFrame
           Height = 34
           Top = 0
           Width = 70
-          Action = ActionChooseLevelTerrainTool
+          Action = ActionChooseFlattenTerrainTool
           AutoSize = True
           Constraints.MinHeight = 34
           Constraints.MinWidth = 70
@@ -2385,7 +2385,7 @@ object DesignFrame: TDesignFrame
     object ActionChooseRaiseTerrainTool: TAction
       Category = 'Terrain'
       AutoCheck = True
-      Caption = 'R'
+      Caption = 'Raise'
       Checked = True
       GroupIndex = 40
       OnExecute = ActionChooseRaiseTerrainToolExecute
@@ -2393,17 +2393,17 @@ object DesignFrame: TDesignFrame
     object ActionChooseLowerTerrainTool: TAction
       Category = 'Terrain'
       AutoCheck = True
-      Caption = 'D'
+      Caption = 'Lower'
       GroupIndex = 40
       Hint = 'Lower terrain'
       OnExecute = ActionChooseLowerTerrainToolExecute
     end
-    object ActionChooseLevelTerrainTool: TAction
+    object ActionChooseFlattenTerrainTool: TAction
       Category = 'Terrain'
       AutoCheck = True
-      Caption = 'L'
+      Caption = 'Flatten'
       GroupIndex = 40
-      OnExecute = ActionChooseLevelTerrainToolExecute
+      OnExecute = ActionChooseFlattenTerrainToolExecute
     end
     object ActionSaveTerrain: TAction
       Category = 'Terrain'
