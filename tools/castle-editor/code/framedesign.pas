@@ -5133,8 +5133,12 @@ var
 begin
   if not FIsEditingTerrain then
     Exit;
-
   if CurrentViewport = nil then
+    Exit;
+  { Right now, one can switch selection during terrain editing
+    (though we try to block it). So secure from crashes by checking
+    that CurrentTransform is still <> nil and still TCastleTerrain. }
+  if not (CurrentTransform is TCastleTerrain) then
     Exit;
 
   Terrain := CurrentTransform as TCastleTerrain;
@@ -6401,7 +6405,6 @@ begin
     ControlProperties.Visible := false;
     PanelLeft.Visible := false;
     FIsEditingTerrain := true;
-    FDesignerLayer.Exists := false;
     TransformManipulate.SetSelected([]);
     PanelEditTerrain.Visible := true;
     FWasTerrainUrlUpdate := false;
@@ -6439,7 +6442,6 @@ begin
     ControlProperties.Visible := true;
     PanelLeft.Visible := true;
     FIsEditingTerrain := false;
-    FDesignerLayer.Exists := true;
     TransformManipulate.SetSelected([Terrain]);
     PanelEditTerrain.Visible := false;
     FIsFirstTerrainLevelFrame := true;
