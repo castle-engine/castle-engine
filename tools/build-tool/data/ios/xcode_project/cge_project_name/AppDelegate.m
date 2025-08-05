@@ -78,6 +78,8 @@ AppDelegate* getAppDelegate(void)
     }
     
     // call application:didFinishLaunchingWithOptions on all services
+    // Note: on iOS 13, this is called before creating the window and viewController
+    // TODO: test GameCenterService. Some services (GameCenterService) may expect UI created at application:didFinishLaunchingWithOptions:
     for (int i = 0; i < [services count]; i++) {
         ServiceAbstract* service = [services objectAtIndex: i];
         [service application: application didFinishLaunchingWithOptions: launchOptions];
@@ -158,6 +160,7 @@ AppDelegate* getAppDelegate(void)
     }
 }
 
+// Note: called until iOS 12, UIKit uses SceneDelegate since iOS 13, please check the code in onOpenURLContexts:
 - (BOOL)application:(UIApplication *)application
     openURL:(NSURL *)url
     options:(NSDictionary<UIApplicationOpenURLOptionsKey, id> *)options
@@ -176,6 +179,33 @@ AppDelegate* getAppDelegate(void)
         int ret = CGEApp_HandleOpenUrl(url.fileSystemRepresentation);
         [url stopAccessingSecurityScopedResource];
         return ret;
+    }
+    return NO;
+}
+
+// called in iOS 13 and later
+- (BOOL)onOpenURLContexts:(NSSet<UIOpenURLContext *> *)URLContexts  API_AVAILABLE(ios(13.0))
+{
+    // call application:openURL:options on all services
+    for (int i = 0; i < [services count]; i++) {
+        ServiceAbstract* service = [services objectAtIndex: i];
+        BOOL result = [service openURLContexts:URLContexts];
+        if (result) {
+            return result;
+        }
+    }
+    
+    UIOpenURLContext* context = URLContexts.anyObject;
+    if (context != nil)
+    {
+        NSURL *url = context.URL;
+        if ([url.scheme isEqualToString:@"file"])
+        {
+            [url startAccessingSecurityScopedResource];     // when opening from Files app (after declaring LSSupportsOpeningDocumentsInPlace in Info.plist to true)
+            int ret = CGEApp_HandleOpenUrl(url.fileSystemRepresentation);
+            [url stopAccessingSecurityScopedResource];
+            return ret;
+        }
     }
     return NO;
 }

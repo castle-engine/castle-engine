@@ -35,6 +35,9 @@
     openURL:(NSURL *)url
     options:(NSDictionary<UIApplicationOpenURLOptionsKey, id> *)options;
 
+/* Called when SceneDelegate receives scene:openURLContexts:options message. */
+- (BOOL)openURLContexts:(NSSet<UIOpenURLContext *> *)URLContexts  API_AVAILABLE(ios(13.0));
+
 /* Try handling this message. Returns TRUE if handled. */
 - (bool)messageReceived:(NSArray* )message;
 

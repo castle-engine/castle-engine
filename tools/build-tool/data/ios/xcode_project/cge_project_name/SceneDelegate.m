@@ -72,13 +72,8 @@
 }
 
 - (void)scene:(UIScene *)scene openURLContexts:(NSSet<UIOpenURLContext *> *)URLContexts  API_AVAILABLE(ios(13.0)) {
-    UIOpenURLContext* context = URLContexts.anyObject;
-    if (context != nil)
-    {
-        // TODO: implement opening files
-        //AppDelegate *appDelegate = (AppDelegate*)[[UIApplication sharedApplication] delegate];
-        //[appDelegate openURL:context.URL inPlace:context.options.openInPlace];
-    }
+    AppDelegate *appDelegate = (AppDelegate*)[[UIApplication sharedApplication] delegate];
+    [appDelegate onOpenURLContexts:URLContexts];
 }
 
 @end

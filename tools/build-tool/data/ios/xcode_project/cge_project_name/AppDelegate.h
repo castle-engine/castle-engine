@@ -35,6 +35,7 @@
 - (void)initializeRootViewControllerInWindow:(UIWindow*)sceneWindow;
 - (void)onSceneDidEnterBackground;
 - (void)onSceneDidBecomeActive;
+- (BOOL)onOpenURLContexts:(NSSet<UIOpenURLContext *> *)URLContexts  API_AVAILABLE(ios(13.0));
 
 @property (strong, nonatomic) UIWindow *window;
 
