@@ -4708,7 +4708,6 @@ See https://castle-engine.io/license for details.
         <Type Value="Include"/>
       </Item1154>
     </Files>
-    </Files>
     <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="1">
       <Item1>
