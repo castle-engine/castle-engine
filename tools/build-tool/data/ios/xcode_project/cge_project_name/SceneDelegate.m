@@ -34,6 +34,7 @@
         self.window = [[UIWindow alloc] initWithWindowScene:windowScene];
         [appDelegate initializeRootViewControllerInWindow:self.window];
         [self.window makeKeyAndVisible];
+        [appDelegate onSceneDidFinishLaunching];
     }
 }
 

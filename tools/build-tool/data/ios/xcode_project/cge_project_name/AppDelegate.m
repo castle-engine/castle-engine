@@ -1,5 +1,5 @@
 /*
-  Copyright 2013-2017 Jan Adamec, Michalis Kamburelis.
+  Copyright 2013-2025 Jan Adamec, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -66,6 +66,8 @@ AppDelegate* getAppDelegate(void)
 {
     if (@available(iOS 13.0, *)) {
         // window creation is done in SceneDelegate scene:willConnectToSession:options:
+        // We will simulate calling didFinishLaunchingWithOptions on services later in onSceneDidFinishLaunching
+        appLaunchOptions = launchOptions;
     }
     else {
         self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
@@ -75,14 +77,12 @@ AppDelegate* getAppDelegate(void)
         // Although the window seems already visible, but makeKeyAndVisible call is still
         // needed to keep visible after application:didFinishLaunchingWithOptions call.
         [self.window makeKeyAndVisible];
-    }
-    
-    // call application:didFinishLaunchingWithOptions on all services
-    // Note: on iOS 13, this is called before creating the window and viewController
-    // TODO: test GameCenterService. Some services (GameCenterService) may expect UI created at application:didFinishLaunchingWithOptions:
-    for (int i = 0; i < [services count]; i++) {
-        ServiceAbstract* service = [services objectAtIndex: i];
-        [service application: application didFinishLaunchingWithOptions: launchOptions];
+        
+        // call application:didFinishLaunchingWithOptions on all services
+        for (int i = 0; i < [services count]; i++) {
+            ServiceAbstract* service = [services objectAtIndex: i];
+            [service application: application didFinishLaunchingWithOptions: launchOptions];
+        }
     }
     return YES;
 }
@@ -103,6 +103,15 @@ AppDelegate* getAppDelegate(void)
     [self initializeServices:viewController window:sceneWindow];
 
     [viewController viewDidLoad];
+}
+
+- (void)onSceneDidFinishLaunching
+{
+    // call application:didFinishLaunchingWithOptions on all services
+    for (int i = 0; i < [services count]; i++) {
+        ServiceAbstract* service = [services objectAtIndex: i];
+        [service application: [UIApplication sharedApplication] didFinishLaunchingWithOptions: appLaunchOptions];
+    }
 }
 
 // Note: called until iOS 12, UIKit uses SceneDelegate since iOS 13
