@@ -29,12 +29,19 @@
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
+    { Make next @link(OnTimer) event happen after @link(IntervalSeconds)
+      seconds from now.
+      This is automatically done when you change IntervalSeconds.
+      You can also call this method manually to reset the timer. }
+    procedure ResetNextTimerEvent;
   published
     { How often should we call OnTimer. Value of 0 means to call OnTimer
       in every Update event. }
     property IntervalSeconds: TFloatTime read FIntervalSeconds write SetIntervalSeconds;
+
     { The event called periodically. }
     property OnTimer: TNotifyEvent read FOnTimer write FOnTimer;
+
     { Should we counteract the delays in timer by firing next event sooner.
       This helps to keep a constant frequency of timer events over a long time,
       and to keep multiple things (like multiple timer instances)
@@ -56,8 +63,13 @@ begin
   if FIntervalSeconds <> AValue then
   begin
     FIntervalSeconds := AValue;
-    IntervalRemaining := FIntervalSeconds;
+    ResetNextTimerEvent;
   end;
+end;
+
+procedure TCastleTimer.ResetNextTimerEvent;
+begin
+  IntervalRemaining := FIntervalSeconds;
 end;
 
 procedure TCastleTimer.DoTimer;

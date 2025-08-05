@@ -1,6 +1,6 @@
 {%MainUnit castlevectors.pas}
 {
-  Copyright 2017-2024 Michalis Kamburelis.
+  Copyright 2017-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -636,12 +636,22 @@ type
     procedure SetRows(const ARow: TIndex; const Value: TGenericVector4); {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
     function GetColumns(const AColumn: TIndex): TGenericVector4; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
     procedure SetColumns(const AColumn: TIndex; const Value: TGenericVector4); {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
-    procedure RaisePositionTransformResultInvalid;
-    { Raise ETransformedResultInvalid.
-      Since TGenericMatrix4.MultDirection is time-critical (it is used in TFrustum.Transform
+
+    { Raise ETransformedResultInvalid, with details why the current matrix
+      failed to transform current point or direction.
+      We need detailed info, in case these fail in some edge-cases with random
+      matrix contents.
+
+      These are utility procedures, used by MultPoint and MultDirection.
+      The latter are time-critical (used e.g. by TFrustum.Transform
       which can be a bottleneck, testcase: The Unholy Society),
-      keep it fast. }
+      so keep them fast, so it makes sense to move exception-raising
+      and string-building to separate procedure which needs stackframe.
+
+      @groupBegin }
+    procedure RaisePositionTransformResultInvalid(const Divisor: TGenericScalar);
     procedure RaiseDirectionTransformedResultInvalid(const Divisor: TGenericScalar);
+    { @groupEnd }
   public
     type
       TIndexArray = array[TIndex] of TGenericScalar;
@@ -912,8 +922,13 @@ end;
 
 function TGenericVector2.IsZero(const Epsilon: TGenericScalar): boolean;
 begin
-  Result := (System.Abs(X) < Epsilon) and
-            (System.Abs(Y) < Epsilon);
+  { Compare with Epsilon using " <= Epsilon", not stricter "< Epsilon",
+    1. for consistency with what FPC Math.SameValue and Math.IsZero do;
+       this also means that "Xxx.IsZero(SingleEpsilon)" and "Xxx.IsZero()"
+       do the same thing.
+    2. to make Epsilon = 0 sensible. }
+  Result := (System.Abs(X) <= Epsilon) and
+            (System.Abs(Y) <= Epsilon);
 end;
 
 function TGenericVector2.IsPerfectlyZero: boolean;
@@ -935,8 +950,8 @@ begin
   if Epsilon = 0 then
     Result := (V1.X = V2.X) and
               (V1.Y = V2.Y) else
-    Result := (System.Abs(V1.X-V2.X) < Epsilon) and
-              (System.Abs(V1.Y-V2.Y) < Epsilon);
+    Result := (System.Abs(V1.X-V2.X) <= Epsilon) and
+              (System.Abs(V1.Y-V2.Y) <= Epsilon);
 end;
 
 class function TGenericVector2.PerfectlyEquals(const V1, V2: TGenericVector2): boolean;
@@ -1158,9 +1173,9 @@ end;
 
 function TGenericVector3.IsZero(const Epsilon: TGenericScalar): boolean;
 begin
-  Result := (System.Abs(X) < Epsilon) and
-            (System.Abs(Y) < Epsilon) and
-            (System.Abs(Z) < Epsilon);
+  Result := (System.Abs(X) <= Epsilon) and
+            (System.Abs(Y) <= Epsilon) and
+            (System.Abs(Z) <= Epsilon);
 end;
 
 function TGenericVector3.IsPerfectlyZero: boolean;
@@ -1185,9 +1200,9 @@ begin
     Result := (V1.X = V2.X) and
               (V1.Y = V2.Y) and
               (V1.Z = V2.Z) else
-    Result := (System.Abs(V1.X-V2.X) < Epsilon) and
-              (System.Abs(V1.Y-V2.Y) < Epsilon) and
-              (System.Abs(V1.Z-V2.Z) < Epsilon);
+    Result := (System.Abs(V1.X-V2.X) <= Epsilon) and
+              (System.Abs(V1.Y-V2.Y) <= Epsilon) and
+              (System.Abs(V1.Z-V2.Z) <= Epsilon);
 end;
 
 class function TGenericVector3.PerfectlyEquals(const V1, V2: TGenericVector3): boolean;
@@ -1376,10 +1391,10 @@ end;
 
 function TGenericVector4.IsZero(const Epsilon: TGenericScalar): boolean;
 begin
-  Result := (System.Abs(X) < Epsilon) and
-            (System.Abs(Y) < Epsilon) and
-            (System.Abs(Z) < Epsilon) and
-            (System.Abs(W) < Epsilon);
+  Result := (System.Abs(X) <= Epsilon) and
+            (System.Abs(Y) <= Epsilon) and
+            (System.Abs(Z) <= Epsilon) and
+            (System.Abs(W) <= Epsilon);
 end;
 
 function TGenericVector4.IsPerfectlyZero: boolean;
@@ -1407,10 +1422,10 @@ begin
               (V1.Y = V2.Y) and
               (V1.Z = V2.Z) and
               (V1.W = V2.W) else
-    Result := (System.Abs(V1.X-V2.X) < Epsilon) and
-              (System.Abs(V1.Y-V2.Y) < Epsilon) and
-              (System.Abs(V1.Z-V2.Z) < Epsilon) and
-              (System.Abs(V1.W-V2.W) < Epsilon);
+    Result := (System.Abs(V1.X-V2.X) <= Epsilon) and
+              (System.Abs(V1.Y-V2.Y) <= Epsilon) and
+              (System.Abs(V1.Z-V2.Z) <= Epsilon) and
+              (System.Abs(V1.W-V2.W) <= Epsilon);
 end;
 
 class function TGenericVector4.PerfectlyEquals(const V1, V2: TGenericVector4): boolean;
@@ -1632,11 +1647,11 @@ begin
     Result := CompareMem(@M1, @M2, SizeOf(M1))
   else
     Result :=
-      (System.Abs(M1.Data[0, 0] - M2.Data[0, 0]) < Epsilon) and
-      (System.Abs(M1.Data[0, 1] - M2.Data[0, 1]) < Epsilon) and
+      (System.Abs(M1.Data[0, 0] - M2.Data[0, 0]) <= Epsilon) and
+      (System.Abs(M1.Data[0, 1] - M2.Data[0, 1]) <= Epsilon) and
 
-      (System.Abs(M1.Data[1, 0] - M2.Data[1, 0]) < Epsilon) and
-      (System.Abs(M1.Data[1, 1] - M2.Data[1, 1]) < Epsilon);
+      (System.Abs(M1.Data[1, 0] - M2.Data[1, 0]) <= Epsilon) and
+      (System.Abs(M1.Data[1, 1] - M2.Data[1, 1]) <= Epsilon);
 end;
 
 class function TGenericMatrix2.PerfectlyEquals(const M1, M2: TGenericMatrix2): boolean;
@@ -1895,17 +1910,17 @@ begin
     Result := CompareMem(@M1, @M2, SizeOf(M1))
   else
     Result :=
-      (System.Abs(M1.Data[0, 0] - M2.Data[0, 0]) < Epsilon) and
-      (System.Abs(M1.Data[0, 1] - M2.Data[0, 1]) < Epsilon) and
-      (System.Abs(M1.Data[0, 2] - M2.Data[0, 2]) < Epsilon) and
+      (System.Abs(M1.Data[0, 0] - M2.Data[0, 0]) <= Epsilon) and
+      (System.Abs(M1.Data[0, 1] - M2.Data[0, 1]) <= Epsilon) and
+      (System.Abs(M1.Data[0, 2] - M2.Data[0, 2]) <= Epsilon) and
 
-      (System.Abs(M1.Data[1, 0] - M2.Data[1, 0]) < Epsilon) and
-      (System.Abs(M1.Data[1, 1] - M2.Data[1, 1]) < Epsilon) and
-      (System.Abs(M1.Data[1, 2] - M2.Data[1, 2]) < Epsilon) and
+      (System.Abs(M1.Data[1, 0] - M2.Data[1, 0]) <= Epsilon) and
+      (System.Abs(M1.Data[1, 1] - M2.Data[1, 1]) <= Epsilon) and
+      (System.Abs(M1.Data[1, 2] - M2.Data[1, 2]) <= Epsilon) and
 
-      (System.Abs(M1.Data[2, 0] - M2.Data[2, 0]) < Epsilon) and
-      (System.Abs(M1.Data[2, 1] - M2.Data[2, 1]) < Epsilon) and
-      (System.Abs(M1.Data[2, 2] - M2.Data[2, 2]) < Epsilon);
+      (System.Abs(M1.Data[2, 0] - M2.Data[2, 0]) <= Epsilon) and
+      (System.Abs(M1.Data[2, 1] - M2.Data[2, 1]) <= Epsilon) and
+      (System.Abs(M1.Data[2, 2] - M2.Data[2, 2]) <= Epsilon);
 end;
 
 class function TGenericMatrix3.PerfectlyEquals(const M1, M2: TGenericMatrix3): boolean;
@@ -2292,9 +2307,18 @@ begin
   Result.Data[3, 3] := Data[3, 3];
 end;
 
-procedure TGenericMatrix4.RaisePositionTransformResultInvalid;
+procedure TGenericMatrix4.RaiseDirectionTransformedResultInvalid(const Divisor: TGenericScalar);
 begin
-  raise ETransformedResultInvalid.Create('3D point transformed by 4x4 matrix to a direction');
+  raise ETransformedResultInvalid.Create(Format(
+    '3D direction transformed by 4x4 matrix to a point, with divisor = %f (%g), with matrix:',
+    [Divisor, Divisor]) + NL + ToString);
+end;
+
+procedure TGenericMatrix4.RaisePositionTransformResultInvalid(const Divisor: TGenericScalar);
+begin
+  raise ETransformedResultInvalid.Create(Format(
+    '3D point transformed by 4x4 matrix to a direction, with divisor = %f (%g), with matrix:',
+    [Divisor, Divisor]) + NL + ToString);
 end;
 
 function TGenericMatrix4.MultPoint(const Pt: TGenericVector3): TGenericVector3;
@@ -2338,7 +2362,7 @@ begin
       Data[2, 3] * Pt.Z +
       Data[3, 3];
     if Math.IsZero(Divisor) then
-      RaisePositionTransformResultInvalid;
+      RaisePositionTransformResultInvalid(Divisor);
 
     Divisor := 1 / Divisor;
     Result.X := Result.X * Divisor;
@@ -2360,13 +2384,6 @@ begin
 
   Result.X := Res3D.X;
   Result.Y := Res3D.Y;
-end;
-
-procedure TGenericMatrix4.RaiseDirectionTransformedResultInvalid(const Divisor: TGenericScalar);
-begin
-  raise ETransformedResultInvalid.Create(Format(
-    '3D direction transformed by 4x4 matrix to a point, with divisor = %f (%g), with matrix:',
-    [Divisor, Divisor]) + NL + ToString);
 end;
 
 function TGenericMatrix4.MultDirection(const Dir: TGenericVector3): TGenericVector3;
@@ -2438,25 +2455,25 @@ begin
     Result := CompareMem(@M1, @M2, SizeOf(M1))
   else
     Result :=
-      (System.Abs(M1.Data[0, 0] - M2.Data[0, 0]) < Epsilon) and
-      (System.Abs(M1.Data[0, 1] - M2.Data[0, 1]) < Epsilon) and
-      (System.Abs(M1.Data[0, 2] - M2.Data[0, 2]) < Epsilon) and
-      (System.Abs(M1.Data[0, 3] - M2.Data[0, 3]) < Epsilon) and
+      (System.Abs(M1.Data[0, 0] - M2.Data[0, 0]) <= Epsilon) and
+      (System.Abs(M1.Data[0, 1] - M2.Data[0, 1]) <= Epsilon) and
+      (System.Abs(M1.Data[0, 2] - M2.Data[0, 2]) <= Epsilon) and
+      (System.Abs(M1.Data[0, 3] - M2.Data[0, 3]) <= Epsilon) and
 
-      (System.Abs(M1.Data[1, 0] - M2.Data[1, 0]) < Epsilon) and
-      (System.Abs(M1.Data[1, 1] - M2.Data[1, 1]) < Epsilon) and
-      (System.Abs(M1.Data[1, 2] - M2.Data[1, 2]) < Epsilon) and
-      (System.Abs(M1.Data[1, 3] - M2.Data[1, 3]) < Epsilon) and
+      (System.Abs(M1.Data[1, 0] - M2.Data[1, 0]) <= Epsilon) and
+      (System.Abs(M1.Data[1, 1] - M2.Data[1, 1]) <= Epsilon) and
+      (System.Abs(M1.Data[1, 2] - M2.Data[1, 2]) <= Epsilon) and
+      (System.Abs(M1.Data[1, 3] - M2.Data[1, 3]) <= Epsilon) and
 
-      (System.Abs(M1.Data[2, 0] - M2.Data[2, 0]) < Epsilon) and
-      (System.Abs(M1.Data[2, 1] - M2.Data[2, 1]) < Epsilon) and
-      (System.Abs(M1.Data[2, 2] - M2.Data[2, 2]) < Epsilon) and
-      (System.Abs(M1.Data[2, 3] - M2.Data[2, 3]) < Epsilon) and
+      (System.Abs(M1.Data[2, 0] - M2.Data[2, 0]) <= Epsilon) and
+      (System.Abs(M1.Data[2, 1] - M2.Data[2, 1]) <= Epsilon) and
+      (System.Abs(M1.Data[2, 2] - M2.Data[2, 2]) <= Epsilon) and
+      (System.Abs(M1.Data[2, 3] - M2.Data[2, 3]) <= Epsilon) and
 
-      (System.Abs(M1.Data[3, 0] - M2.Data[3, 0]) < Epsilon) and
-      (System.Abs(M1.Data[3, 1] - M2.Data[3, 1]) < Epsilon) and
-      (System.Abs(M1.Data[3, 2] - M2.Data[3, 2]) < Epsilon) and
-      (System.Abs(M1.Data[3, 3] - M2.Data[3, 3]) < Epsilon);
+      (System.Abs(M1.Data[3, 0] - M2.Data[3, 0]) <= Epsilon) and
+      (System.Abs(M1.Data[3, 1] - M2.Data[3, 1]) <= Epsilon) and
+      (System.Abs(M1.Data[3, 2] - M2.Data[3, 2]) <= Epsilon) and
+      (System.Abs(M1.Data[3, 3] - M2.Data[3, 3]) <= Epsilon);
 end;
 
 class function TGenericMatrix4.PerfectlyEquals(const M1, M2: TGenericMatrix4): boolean;

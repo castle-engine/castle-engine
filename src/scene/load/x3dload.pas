@@ -13,49 +13,15 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(Loading and saving nodes.)
-
-  Almost every format is handled by converting it into VRML / X3D nodes graph.
+{ Loading and saving model formats.
+  All model formats are loaded into a graph of X3D nodes.
   This allows to use nodes throughout the engine, for all rendering and processing.
 
-  Basic guide for adding a new format:
-
-  @unorderedList(
-    @item(
-      Particular formats are implemented inside various X3DLoadInternalXxx units.
-      Implementation of this unit calls them. In the future,
-      a mechanism that allows you to "register" an importer, without modifying
-      this unit's implementation, may be done --- report if needed.)
-
-    @item(Scene formats are also listed in the file filters constants:
-      see LoadScene_FileFilters .
-      Each format has a file filter to specifically choose this format,
-      and also is added to the "All Scenes" filter.)
-
-    @item(Enable castle-model-viewer to associate with this file format on freedesktops
-      (GNOME, and other following freedesktop.org specs). For this,
-
-      1. Update castle-model-viewer MIME database.
-      Simply add appopriate element to ../../../castle-model-viewer/freedesktop/castle-model-viewer.xml.
-      Format of that MIME xml file is self-explanatory.
-      It's good idea to google first
-      to search for standard MIME type for your model format (e.g. wikipedia
-      shows mime types for formats).
-      If none is found, just use application/x-???, where ??? is some short
-      name for your format.
-
-      2. After adding to MIME database, you want to also add format to
-      ../../../castle-model-viewer/freedesktop/castle-model-viewer.desktop, to indicate that
-      castle-model-viewer handles this MIME type.
-
-      3. Finally, also add this to ../../../castle-model-viewer/freedesktop/install_thumbnailer.sh,
-      so that GNOME nautilus thumbnailers for this MIME types can be installed.)
-
-    @item(You probably also want to extend documentation.
-      At least https://castle-engine.io/creating_data_model_formats.php ,
-      it lists all supported scene formats.)
-  )
-}
+  To add a new model format handled throughout the engine,
+  register it using @link(RegisterModelFormat).
+  Our @link(LoadNode), @link(SaveNode), @link(TCastleScene),
+  @link(LoadScene_FileFilters) and other API will automatically account
+  for the new format. }
 unit X3DLoad;
 
 {$I castleconf.inc}
@@ -72,7 +38,7 @@ uses SysUtils, Classes,
 
   URL is downloaded using the CastleDownload unit,
   so it supports files, http resources and more.
-  See https://castle-engine.io/manual_network.php
+  See https://castle-engine.io/url
   about supported URL schemes.
   If you all you care about is loading normal files, then just pass
   a normal filename (absolute or relative to the current directory)
@@ -288,12 +254,20 @@ procedure RegisterModelFormat(const ModelFormat: TModelFormat);
 implementation
 
 uses Generics.Collections,
-  CastleClassUtils, CastleImages, CastleUriUtils,
-  X3DLoadInternalGEO, X3DLoadInternal3DS, X3DLoadInternalOBJ,
-  X3DLoadInternalCollada, X3DLoadInternalSpine, X3DLoadInternalSTL,
-  X3DLoadInternalMD3, X3DLoadInternalGLTF, X3DLoadInternalImage,
-  X3DLoadInternalCocos2d, CastleInternalNodeInterpolator,
-  CastleInternalSpritesheet, CastleDownload, X3DLoadInternalTiledMap;
+  CastleClassUtils, CastleImages, CastleUriUtils, CastleInternalNodeInterpolator, CastleDownload
+  {$IFNDEF CASTLE_GEO_SUPPORT_DISABLE}, X3DLoadInternalGEO {$ENDIF}
+  {$IFNDEF CASTLE_3DS_SUPPORT_DISABLE}, X3DLoadInternal3DS {$ENDIF}
+  {$IFNDEF CASTLE_OBJ_SUPPORT_DISABLE}, X3DLoadInternalOBJ {$ENDIF}
+  {$IFNDEF CASTLE_COLLADA_SUPPORT_DISABLE}, X3DLoadInternalCollada {$ENDIF}
+  {$IFNDEF CASTLE_SPINE_SUPPORT_DISABLE}, X3DLoadInternalSpine {$ENDIF}
+  {$IFNDEF CASTLE_STL_SUPPORT_DISABLE}, X3DLoadInternalSTL {$ENDIF}
+  {$IFNDEF CASTLE_MD3_SUPPORT_DISABLE}, X3DLoadInternalMD3 {$ENDIF}
+  {$IFNDEF CASTLE_GLTF_SUPPORT_DISABLE}, X3DLoadInternalGLTF {$ENDIF}
+  {$IFNDEF CASTLE_IMAGE_SUPPORT_DISABLE}, X3DLoadInternalImage {$ENDIF}
+  {$IFNDEF CASTLE_COCOS2D_SUPPORT_DISABLE}, X3DLoadInternalCocos2d {$ENDIF}
+  {$IFNDEF CASTLE_SPRITESHEET_SUPPORT_DISABLE}, CastleInternalSpritesheet {$ENDIF}
+  {$IFNDEF CASTLE_TILED_MAP_SUPPORT_DISABLE}, X3DLoadInternalTiledMap {$ENDIF}
+  {$IFNDEF CASTLE_IFC_SUPPORT_DISABLE}, CastleIfc {$ENDIF};
 
 { declare FRegisteredModelFormats early ------------------------------------- }
 
@@ -411,7 +385,7 @@ begin
   { We always download stripping anchor.
     Spine, sprite sheets (Starling, Cocos2d), images, Tiled all expect such anchor.
     Other model formats may support it as well in the future. }
-  UrlWithoutAnchor := UriDeleteAnchor(Url, true);
+  UrlWithoutAnchor := UriDeleteAnchor(Url);
 
   if HasNameCounter(Url, false) then
   begin
@@ -505,10 +479,21 @@ procedure SaveNode(const Node: TX3DRootNode;
   const Source: String);
 var
   Stream: TStream;
+  SaveStreamOptions: TSaveStreamOptions;
+  Gzipped: Boolean;
+  MimeType: String;
 begin
-  Stream := UrlSaveStream(Url);
+  { If the extension indicates that content is gzipped, like .x3d.gz or .x3dvz,
+    then save it gzipped. This is performed by passing ssoGzip to UrlSaveStream. }
+  MimeType := UriMimeType(Url, Gzipped);
+  if Gzipped then
+    SaveStreamOptions := [ssoGzip]
+  else
+    SaveStreamOptions := [];
+
+  Stream := UrlSaveStream(Url, SaveStreamOptions);
   try
-    SaveNode(Node, Stream, UriMimeType(Url), Generator, Source);
+    SaveNode(Node, Stream, MimeType, Generator, Source);
   finally FreeAndNil(Stream) end;
 end;
 
@@ -546,8 +531,23 @@ function SaveLoad_FileFilters(const Load: boolean): String;
   begin
     Result := '';
     for ModelFormat in FRegisteredModelFormats do
+    begin
+      // Exclude ModelFormat that cannot be loaded / saved?
+      // Or not, display in "All Scenes" really all.
+
+      // if Load then
+      // begin
+      //   if not Assigned(ModelFormat.OnLoad) then
+      //     Continue;
+      // end else
+      // begin
+      //   if not Assigned(ModelFormat.OnSave) then
+      //     Continue;
+      // end;
+
       for Ext in ModelFormat.Extensions do
         Result := SAppendPart(Result, ';', '*' + Ext);
+    end;
   end;
 
   function FormatExtensions(const ModelFormat: TModelFormat): String;
@@ -561,18 +561,14 @@ function SaveLoad_FileFilters(const Load: boolean): String;
 
 var
   ModelFormat: TModelFormat;
-  DefaultMark: String;
 begin
   if FRegisteredModelFormats = nil then
     raise Exception.Create('No model formats registered, you try to build filters list too early, before initialization of Castle Game Engine units that register model formats');
 
   Result := 'All Files|*';
 
-  if Load then
-  begin
-    { When loading, "All Scenes" is the default filter. }
-    Result := Result + '|*All Scenes|' + AllExtensions;
-  end;
+  { "All Scenes" is the default filter for both loading and saving now. }
+  Result := Result + '|*All Scenes|' + AllExtensions;
 
   for ModelFormat in FRegisteredModelFormats do
   begin
@@ -587,11 +583,7 @@ begin
         Continue;
     end;
 
-    { When saving, the default filter is X3D XML. }
-    DefaultMark := Iff((not Load) and (ModelFormat.MimeTypes[0] = 'model/x3d+xml'), '*', '');
-
     Result := Result + '|' +
-      DefaultMark +
       ModelFormat.FileFilterName + '|' + FormatExtensions(ModelFormat);
   end;
 end;

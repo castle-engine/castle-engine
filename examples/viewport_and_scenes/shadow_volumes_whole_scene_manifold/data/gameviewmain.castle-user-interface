@@ -31,38 +31,38 @@
             },
             "RotationPersistent" : {
               "$$ClassName" : "TCastleVector4RotationPersistent",
-              "W" : 1.4440441131591797E+000,
-              "X" : -1.4555047452449799E-001,
-              "Y" : -9.8160421848297119E-001,
-              "Z" : -1.2356449663639069E-001
+              "W" : 1.6433326005935669E+000,
+              "X" : -1.7703911662101746E-001,
+              "Y" : -9.6734058856964111E-001,
+              "Z" : -1.8140955269336700E-001
             },
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
-              "X" : -1.8389360427856445E+001,
-              "Y" : 7.9976997375488281E+000,
-              "Z" : 1.4479176521301270E+001
+              "X" : -2.8264520645141602E+001,
+              "Y" : 1.3719104766845703E+001,
+              "Z" : -9.6031147241592407E-001
             }
           },
           {
             "$$ClassName" : "TCastlePointLight",
-            "Intensity" : 1.0000000000000000E+001,
+            "Intensity" : 5.0000000000000000E+002,
             "Name" : "PointLight1",
             "Shadows" : true,
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
-              "X" : 4.0000000000000000E+000,
-              "Y" : 5.9041194915771484E+000,
-              "Z" : 1.0000000000000000E+000
+              "X" : 1.1061757802963257E+000,
+              "Y" : 1.1008563995361328E+001,
+              "Z" : 7.7888994216918945E+000
             }
           },
           {
             "$$ClassName" : "TCastlePointLight",
-            "Intensity" : 5.0000000000000000E+000,
+            "Intensity" : 5.0000000000000000E+001,
             "Name" : "PointLight2",
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
-              "X" : -1.1063582420349121E+001,
-              "Y" : 7.7433958053588867E+000,
+              "X" : -9.6917611360549927E-001,
+              "Y" : 1.1490576744079590E+001,
               "Z" : 8.8489980697631836E+000
             }
           },
@@ -74,8 +74,15 @@
             },
             "SizePersistent" : {
               "$$ClassName" : "TCastleVector2Persistent",
-              "X" : 5.0000000000000000E+001,
-              "Y" : 5.0000000000000000E+001
+              "X" : 1.0000000000000000E+002,
+              "Y" : 1.0000000000000000E+002
+            },
+            "Texture" : "castle-data:/quaternius_animals/T_UnevenBrick_BaseColor.png",
+            "TextureNormalMap" : "castle-data:/quaternius_animals/T_UnevenBrick_Normal.png",
+            "TextureScalePersistent" : {
+              "$$ClassName" : "TCastleVector2Persistent",
+              "X" : 1.0000000000000000E+001,
+              "Y" : 1.0000000000000000E+001
             },
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
@@ -83,41 +90,59 @@
             }
           },
           {
-            "$$ClassName" : "TCastleScene",
-            "AutoAnimation" : "Gallop",
-            "ExposeTransforms" : [
-            ],
-            "Name" : "Scene1",
-            "ProcessEvents" : true,
-            "RenderOptions" : {
-              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-              "WholeSceneManifold" : true
-            },
+            "$$ClassName" : "TCastleTransform",
+            "Name" : "TransformShadowsForced",
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
-              "X" : -2.0776572227478027E+000,
-              "Z" : 2.9052934646606445E+000
+              "Z" : 1.3973696231842041E+000
             },
-            "URL" : "castle-data:/quaternius_alpaca/Alpaca.gltf"
-          },
-          {
-            "$$ClassName" : "TCastleScene",
-            "AutoAnimation" : "Gallop",
-            "ExposeTransforms" : [
-            ],
-            "Name" : "Scene2",
-            "ProcessEvents" : true,
-            "RenderOptions" : {
-              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-              "WholeSceneManifold" : true
-            },
-            "TranslationPersistent" : {
-              "$$ClassName" : "TCastleVector3Persistent",
-              "X" : 1.0267260074615479E+000,
-              "Z" : 2.9052934646606445E+000
-            },
-            "URL" : "castle-data:/quaternius_alpaca/Alpaca.gltf",
             "$Children" : [
+              {
+                "$$ClassName" : "TCastleScene",
+                "AutoAnimation" : "Gallop",
+                "Cache" : true,
+                "ExposeTransforms" : [
+                ],
+                "Name" : "SceneAlpaca1",
+                "ProcessEvents" : true,
+                "RenderOptions" : {
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WholeSceneManifold" : true
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "Z" : 1.0000000000000000E+000
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : -2.0776572227478027E+000,
+                  "Z" : -8.9587736129760742E-001
+                },
+                "Url" : "castle-data:/quaternius_animals/Alpaca.gltf"
+              },
+              {
+                "$$ClassName" : "TCastleScene",
+                "AutoAnimation" : "Gallop",
+                "Cache" : true,
+                "ExposeTransforms" : [
+                ],
+                "Name" : "SceneAlpaca2",
+                "ProcessEvents" : true,
+                "RenderOptions" : {
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WholeSceneManifold" : true
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "Z" : 1.0000000000000000E+000
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 1.0267260074615479E+000,
+                  "Z" : 7.7580451965332031E-002
+                },
+                "Url" : "castle-data:/quaternius_animals/Alpaca.gltf"
+              },
               {
                 "$$ClassName" : "TCastleText",
                 "Alignment" : "hpMiddle",
@@ -132,8 +157,15 @@
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
-                  "W" : 1.0332511663436890E+000,
-                  "Y" : -1.0000000000000000E+000
+                  "W" : 1.6107364892959595E+000,
+                  "X" : -1.7263347399421036E-004,
+                  "Y" : -9.9999994039535522E-001,
+                  "Z" : 1.6587259597145021E-004
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 9.9999994039535522E-001,
+                  "Z" : 9.9999994039535522E-001
                 },
                 "Size" : 5.0000000000000000E-001,
                 "Text" : [
@@ -142,7 +174,9 @@
                 ],
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
-                  "Y" : 5.2919321060180664E+000
+                  "X" : 1.0267260074615479E+000,
+                  "Y" : 5.2919321060180664E+000,
+                  "Z" : 7.7580451965332031E-002
                 },
                 "$Behaviors" : [
                   {
@@ -150,30 +184,45 @@
                     "Name" : "Billboard2"
                   }
                 ]
+              },
+              {
+                "$$ClassName" : "TCastleScene",
+                "AutoAnimation" : "Gallop",
+                "Cache" : true,
+                "ExposeTransforms" : [
+                ],
+                "Name" : "SceneBull6",
+                "ProcessEvents" : true,
+                "RenderOptions" : {
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WholeSceneManifold" : true
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "Z" : 1.0000000000000000E+000
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 5.3348269462585449E+000,
+                  "Z" : -1.0976011753082275E+000
+                },
+                "Url" : "castle-data:/quaternius_animals/Bull.gltf"
               }
             ]
           },
           {
-            "$$ClassName" : "TCastleScene",
-            "AutoAnimation" : "Gallop",
-            "ExposeTransforms" : [
-            ],
-            "Name" : "Scene3",
-            "ProcessEvents" : true,
-            "RenderOptions" : {
-              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
-            },
+            "$$ClassName" : "TCastleTransform",
+            "Name" : "TransformShadowsAutoDetected",
             "RotationPersistent" : {
               "$$ClassName" : "TCastleVector4RotationPersistent",
-              "W" : 3.0241150856018066E+000,
-              "Y" : -1.0000007152557373E+000
+              "W" : 2.9628486633300781E+000,
+              "Y" : 9.9999737739562988E-001
             },
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
-              "X" : 5.3291764259338379E+000,
-              "Z" : 1.5567148208618164E+001
+              "X" : 1.0891221463680267E-001,
+              "Z" : 1.2377915382385254E+001
             },
-            "URL" : "castle-data:/quaternius_alpaca/Alpaca.gltf",
             "$Children" : [
               {
                 "$$ClassName" : "TCastleText",
@@ -189,17 +238,25 @@
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
-                  "W" : 1.4074808359146118E+000,
+                  "W" : 1.7096002101898193E+000,
                   "Y" : 1.0000000000000000E+000
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 9.9999994039535522E-001,
+                  "Z" : 9.9999994039535522E-001
                 },
                 "Size" : 5.0000000000000000E-001,
                 "Text" : [
-                  "No Shadows",
-                  "(WholeSceneManifold  = false)"
+                  "Shadows Automatic",
+                  "(WholeSceneManifold  = false",
+                  "but InternalDetectedWholeSceneManifold=true)"
                 ],
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
-                  "Y" : 5.2919321060180664E+000
+                  "X" : 2.0350058078765869E+000,
+                  "Y" : 5.2919321060180664E+000,
+                  "Z" : 1.4957618713378906E-001
                 },
                 "$Behaviors" : [
                   {
@@ -207,30 +264,144 @@
                     "Name" : "Billboard1"
                   }
                 ]
+              },
+              {
+                "$$ClassName" : "TCastleScene",
+                "AutoAnimation" : "Gallop",
+                "Cache" : true,
+                "ExposeTransforms" : [
+                ],
+                "Name" : "SceneAlpaca3",
+                "ProcessEvents" : true,
+                "RenderOptions" : {
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "W" : 3.2590701580047607E+000,
+                  "Y" : 1.0000001192092896E+000
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 2.5532207489013672E+000,
+                  "Z" : 8.8415920734405518E-002
+                },
+                "Url" : "castle-data:/quaternius_animals/Alpaca.gltf"
+              },
+              {
+                "$$ClassName" : "TCastleScene",
+                "AutoAnimation" : "Gallop",
+                "Cache" : true,
+                "ExposeTransforms" : [
+                ],
+                "Name" : "SceneAlpaca4",
+                "ProcessEvents" : true,
+                "RenderOptions" : {
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "W" : 3.2590701580047607E+000,
+                  "Y" : 1.0000001192092896E+000
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : -1.3244426250457764E+000,
+                  "Z" : -5.1645499467849731E-001
+                },
+                "Url" : "castle-data:/quaternius_animals/Alpaca.gltf"
               }
             ]
           },
           {
-            "$$ClassName" : "TCastleScene",
-            "AutoAnimation" : "Gallop",
-            "ExposeTransforms" : [
-            ],
-            "Name" : "Scene4",
-            "ProcessEvents" : true,
-            "RenderOptions" : {
-              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
-            },
+            "$$ClassName" : "TCastleTransform",
+            "Name" : "TransformNoShadows",
             "RotationPersistent" : {
               "$$ClassName" : "TCastleVector4RotationPersistent",
-              "W" : 3.0241150856018066E+000,
-              "Y" : -1.0000007152557373E+000
+              "W" : 3.1752433776855469E+000,
+              "Y" : 1.0000001192092896E+000
             },
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
-              "X" : -2.5790288448333740E+000,
-              "Z" : 1.6500484466552734E+001
+              "Z" : -1.1776000022888184E+001
             },
-            "URL" : "castle-data:/quaternius_alpaca/Alpaca.gltf"
+            "$Children" : [
+              {
+                "$$ClassName" : "TCastleText",
+                "Alignment" : "hpMiddle",
+                "ColorPersistent" : {
+                  "$$ClassName" : "TCastleColorPersistent",
+                  "Blue" : 0.0000000000000000E+000,
+                  "Green" : 0.0000000000000000E+000
+                },
+                "Name" : "Text3",
+                "RenderOptions" : {
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "W" : 1.4972054958343506E+000,
+                  "X" : -1.7263348854612559E-004,
+                  "Y" : 1.0000000000000000E+000,
+                  "Z" : -1.8582922348286957E-004
+                },
+                "Size" : 5.0000000000000000E-001,
+                "Text" : [
+                  "No Shadows",
+                  "(WholeSceneManifold  = false,",
+                  "InternalDetectedWholeSceneManifold  = false)"
+                ],
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 1.2481945753097534E+000,
+                  "Y" : 5.2919321060180664E+000,
+                  "Z" : 2.1905364990234375E+000
+                },
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleBillboard",
+                    "Name" : "Billboard3"
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastleScene",
+                "AutoAnimation" : "Gallop",
+                "Cache" : true,
+                "ExposeTransforms" : [
+                ],
+                "Name" : "SceneBull5",
+                "ProcessEvents" : true,
+                "RenderOptions" : {
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "W" : 3.2590701580047607E+000,
+                  "Y" : 1.0000001192092896E+000
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 1.2481945753097534E+000,
+                  "Z" : 2.1905364990234375E+000
+                },
+                "Url" : "castle-data:/quaternius_animals/Bull.gltf"
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleDirectionalLight",
+            "Name" : "DirectionalLight1",
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4RotationPersistent",
+              "W" : 5.4981708526611328E-001,
+              "X" : -9.9999725818634033E-001
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "Y" : 1.4506296157836914E+001,
+              "Z" : 2.0563146591186523E+001
+            }
           }
         ]
       },
@@ -252,24 +423,21 @@
         },
         "RotationPersistent" : {
           "$$ClassName" : "TCastleVector4RotationPersistent",
-          "W" : 1.4440441131591797E+000,
-          "X" : -1.4555060863494873E-001,
-          "Y" : -9.8160421848297119E-001,
-          "Z" : -1.2356432527303696E-001
-        },
-        "ScalePersistent" : {
-          "$$ClassName" : "TCastleVector3Persistent",
-          "X" : 1.0000001192092896E+000
+          "W" : 1.6433326005935669E+000,
+          "X" : -1.7703899741172791E-001,
+          "Y" : -9.6734058856964111E-001,
+          "Z" : -1.8140962719917297E-001
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : -1.8389360427856445E+001,
-          "Y" : 7.9976997375488281E+000,
-          "Z" : 1.4479176521301270E+001
+          "X" : -2.8264520645141602E+001,
+          "Y" : 1.3719104766845703E+001,
+          "Z" : -9.6031147241592407E-001
         }
       },
       "InternalDesignNavigations[dnFly]" : {
         "$$ClassName" : "TCastleWalkNavigationDesign",
+        "MoveSpeed" : 1.3593563079833984E+001,
         "Name" : ""
       },
       "InternalDesignNavigations[dnExamine]" : {

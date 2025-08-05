@@ -1,5 +1,5 @@
 ﻿{
-  Copyright 2020-2023 Michalis Kamburelis.
+  Copyright 2020-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -23,7 +23,7 @@ implementation
 uses SysUtils, Classes,
   CastleWindow, CastleLog, CastleApplicationProperties, CastleDownload, CastleClassUtils,
   CastleControls, CastleUIControls, CastleColors, CastleUnicode, CastleUtils,
-  CastleFilesUtils, CastleFonts;
+  CastleFilesUtils, CastleFonts, CastleUriUtils;
 
 var
   Window: TCastleWindow;
@@ -111,7 +111,7 @@ procedure ApplicationInitialize;
 
     { This is an *extremely* simplified (only correct in simplest cases) implementation
       of determining application data directory
-      ( https://castle-engine.io/manual_data_directory.php ).
+      ( https://castle-engine.io/data ).
       We do it only for TestReadingRtl test here (that uses FPC functions
       *without* any CGE API, just for test).
       In real CGE applications, you should always use 'castle-data:/'
@@ -136,23 +136,29 @@ procedure ApplicationInitialize;
     TestReadingRtl(DataPath + 'образец русского текста/name with Russian chars образец русского текста.txt');
     *)
 
+    { Note that when using non-ASCII characters or spaces in the URL,
+      we should use UrlEncode to encode them properly.
+      E.g. space in URL should be encoded as %20.
+      CGE makes reasonable effort to actually handle incorrect URLs too
+      (so below samples may also work without UrlEncode), but try not to rely on it. }
+
     TestReading('castle-data:/ascii_name.txt');
-    TestReading('castle-data:/name with Polish chars ćma źrebak żmija wąż królik.txt');
-    TestReading('castle-data:/name with Chinese chars 样例中文文本.txt');
-    TestReading('castle-data:/样例中文文本/name with Chinese chars 样例中文文本.txt');
-    TestReading('castle-data:/name with Russian chars образец русского текста.txt');
-    TestReading('castle-data:/образец русского текста/name with Russian chars образец русского текста.txt');
+    TestReading('castle-data:/' + UrlEncode('name with Polish chars ćma źrebak żmija wąż królik.txt'));
+    TestReading('castle-data:/' + UrlEncode('name with Chinese chars 样例中文文本.txt'));
+    TestReading('castle-data:/' + UrlEncode('样例中文文本/name with Chinese chars 样例中文文本.txt'));
+    TestReading('castle-data:/' + UrlEncode('name with Russian chars образец русского текста.txt'));
+    TestReading('castle-data:/' + UrlEncode('образец русского текста/name with Russian chars образец русского текста.txt'));
 
-    TestReadingThroughReference('castle-data:/reference to file with Chinese chars.txt');
-    TestReadingThroughReference('castle-data:/reference to file with Russian chars.txt');
-    TestReadingThroughReference('castle-data:/reference to file with Polish chars.txt');
+    TestReadingThroughReference('castle-data:/' + UrlEncode('reference to file with Chinese chars.txt'));
+    TestReadingThroughReference('castle-data:/' + UrlEncode('reference to file with Russian chars.txt'));
+    TestReadingThroughReference('castle-data:/' + UrlEncode('reference to file with Polish chars.txt'));
 
-    StringToFile(ApplicationConfig('config_ascii.txt'), 'Testing save.');
-    StringToFile(ApplicationConfig('config with Chinese chars 样例中文文本.txt'), 'Testing save.');
-    StringToFile(ApplicationConfig('config with Polish chars ćma źrebak żmija wąż królik.txt'), 'Testing save.');
-    StringToFile(ApplicationConfig('config with Russian chars образец русского текста.txt'), 'Testing save.');
+    StringToFile('castle-config:/config_ascii.txt', 'Testing save.');
+    StringToFile('castle-config:/' + UrlEncode('config with Chinese chars 样例中文文本.txt'), 'Testing save.');
+    StringToFile('castle-config:/' + UrlEncode('config with Polish chars ćma źrebak żmija wąż królik.txt'), 'Testing save.');
+    StringToFile('castle-config:/' + UrlEncode('config with Russian chars образец русского текста.txt'), 'Testing save.');
 
-    TestReadingFont('castle-data:/DejaVuSans name with Russian chars образец русского текста.ttf');
+    TestReadingFont('castle-data:/' + UrlEncode('DejaVuSans name with Russian chars образец русского текста.ttf'));
   end;
 
 var
@@ -184,26 +190,7 @@ initialization
   Application.MainWindow := Window;
 
   { Optionally, adjust window fullscreen state and size at this point.
-    Examples:
-
-    Run fullscreen:
-
-      Window.FullScreen := true;
-
-    Run in a 600x400 window:
-
-      Window.FullScreen := false; // default
-      Window.Width := 600;
-      Window.Height := 400;
-
-    Run in a window taking 2/3 of screen (width and height):
-
-      Window.FullScreen := false; // default
-      Window.Width := Application.ScreenWidth * 2 div 3;
-      Window.Height := Application.ScreenHeight * 2 div 3;
-
-    Note that some platforms (like mobile) ignore these window sizes.
-  }
+    See https://castle-engine.io/window_size . }
 
   { Handle command-line parameters like --fullscreen and --window.
     By doing this last, you let user to override your fullscreen / mode setup. }

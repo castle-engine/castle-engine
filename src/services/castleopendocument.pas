@@ -117,7 +117,7 @@ var
   U, Anchor: String;
 begin
   U := Url;
-  URIExtractAnchor(U, Anchor, true);
+  URIExtractAnchor(U, Anchor);
   Result := Anchor <> '';
 end;
 

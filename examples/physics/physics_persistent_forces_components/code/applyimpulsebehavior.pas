@@ -19,8 +19,10 @@ unit ApplyImpulseBehavior;
 interface
 
 uses
-  Classes, SysUtils, CastleTransform, CastleBehaviors, CastleVectors,
-  CastleComponentSerialize, CastleClassUtils, AbstractTimeDurationBehavior;
+  Classes, SysUtils,
+  CastleTransform, CastleBehaviors, CastleVectors, CastleUtils,
+  CastleComponentSerialize, CastleClassUtils,
+  AbstractTimeDurationBehavior;
 
 type
   TApplyImpulseBehavior = class(TAbstractTimeDurationBehavior)
@@ -106,7 +108,7 @@ begin
   if not ShouldUpdate then
     Exit;
 
-  RigidBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+  RigidBody := Parent.RigidBody;
   if (RigidBody <> nil) and (RigidBody.ExistsInRoot) then
   begin
     RigidBody.ApplyImpulse(Impulse, Position);
@@ -117,16 +119,15 @@ end;
 function TApplyImpulseBehavior.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
-  if (PropertyName = 'Impulse') or
-     (PropertyName = 'Position') then
+  if ArrayContainsString(PropertyName, [
+       'ImpulsePersistent', 'PositionPersistent'
+     ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
 end;
 
 initialization
-
-RegisterSerializableComponent(TApplyImpulseBehavior, 'Apply Impulse Behavior');
-
+  RegisterSerializableComponent(TApplyImpulseBehavior, 'Apply Impulse Behavior');
 end.
 

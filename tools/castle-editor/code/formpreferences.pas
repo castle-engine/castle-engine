@@ -1,5 +1,5 @@
 {
-  Copyright 2019-2023 Michalis Kamburelis.
+  Copyright 2019-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -27,12 +27,19 @@ type
     ButtonRegisterLazarusPackages: TButton;
     ButtonPanel1: TButtonPanel;
     CheckBoxMuteOnRun: TCheckBox;
+    DirectoryEditAndroidHome: TDirectoryEdit;
+    DirectoryEditJavaHome: TDirectoryEdit;
     DirectoryEditFpc: TDirectoryEdit;
     DirectoryEditCgePath: TDirectoryEdit;
     DirectoryEditLazarus: TDirectoryEdit;
     EditCodeEditorCommand: TFileNameEdit;
     EditCodeEditorCommandLineColumn: TFileNameEdit;
     EditCodeEditorCommandProject: TFileNameEdit;
+    LabelAndroidDocsWww: TLabel;
+    LabelAndroidHome: TLabel;
+    LabelJavaHome: TLabel;
+    LabelAndroidHomeHint: TLabel;
+    LabelJavaHomeHint: TLabel;
     LabelCodeEditorAutodetect: TLabel;
     LabelCodeEditorCommandLineColumn: TLabel;
     LabelCompilerAutodetect: TLabel;
@@ -48,6 +55,7 @@ type
     LabelInstructions0: TLabel;
     LabelInstructions1: TLabel;
     LabelInstructions2: TLabel;
+    LabelAndroidDocsWwwCaption: TLabel;
     LabelLazarusWebsite: TLabel;
     LabelVolume: TLabel;
     LabelCodeEditorCommandInstructions: TLabel;
@@ -65,6 +73,7 @@ type
     ListPages: TListBox;
     PanelGeneral: TPanel;
     PanelCompilation: TPanel;
+    PanelAndroid: TPanel;
     PanelInstructions: TPanel;
     PanelCodeEditor: TPanel;
     PanelSound: TPanel;
@@ -79,6 +88,8 @@ type
     RadioCodeEditorVSCode: TRadioButton;
     TrackVolume: TTrackBar;
     procedure ButtonRegisterLazarusPackagesClick(Sender: TObject);
+    procedure DirectoryEditAndroidHomeAcceptDirectory(Sender: TObject;
+      var Value: String);
     procedure DirectoryEditCgePathChange(Sender: TObject);
     procedure DirectoryEditFpcChange(Sender: TObject);
     procedure DirectoryEditLazarusChange(Sender: TObject);
@@ -91,6 +102,7 @@ type
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormShow(Sender: TObject);
+    procedure LabelAndroidDocsWwwClick(Sender: TObject);
     procedure LabelLazarusWebsiteClick(Sender: TObject);
     procedure ListPagesClick(Sender: TObject);
     procedure RadioCodeEditorAnyChange(Sender: TObject);
@@ -109,8 +121,9 @@ var
 implementation
 
 uses CastleOpenDocument, CastleUtils, CastleLog, CastleSoundEngine,
-  CastleStringUtils, CastleFilesUtils,
+  CastleStringUtils, CastleFilesUtils, CastleUriUtils,
   ToolCompilerInfo, ToolFpcVersion, ToolCommonUtils, ToolManifest,
+  ToolProcessRun,
   EditorUtils, ProjectUtils;
 
 {$R *.lfm}
@@ -119,7 +132,7 @@ uses CastleOpenDocument, CastleUtils, CastleLog, CastleSoundEngine,
 
 procedure TPreferencesForm.LabelLazarusWebsiteClick(Sender: TObject);
 begin
-  OpenURL('https://www.lazarus-ide.org/');
+  OpenUrl('https://www.lazarus-ide.org/');
 end;
 
 procedure TPreferencesForm.ListPagesClick(Sender: TObject);
@@ -254,6 +267,8 @@ begin
   DirectoryEditFpc.Directory := FpcCustomPath;
   DirectoryEditLazarus.Directory := LazarusCustomPath;
   DirectoryEditCgePath.Directory := CastleEngineOverridePath;
+  DirectoryEditAndroidHome.Directory := AndroidHome;
+  DirectoryEditJavaHome.Directory := JavaHome;
   { We will change the global Fpc/LazarusCustomPath during this dialog,
     so allow to revert them on "Cancel". }
   OriginalFpcCustomPath := FpcCustomPath;
@@ -286,13 +301,18 @@ begin
   CheckBoxMuteOnRun.Checked := MuteOnRun;
 end;
 
+procedure TPreferencesForm.LabelAndroidDocsWwwClick(Sender: TObject);
+begin
+  OpenUrl('https://castle-engine.io/android');
+end;
+
 procedure TPreferencesForm.FormClose(Sender: TObject;
   var CloseAction: TCloseAction);
 
   { When CastleEngineOverridePath changed, we need to recalculate stuff based on it. }
   procedure CastleEngineOverridePathChanged;
   var
-    OldApplicationDataOverride: String;
+    EditorApplicationData: TEditorApplicationData;
   begin
     { Recalculate InternalCastleDesignData that depends on detected CGE path.
       This way changes to CGE path in "Preferences" update also
@@ -302,19 +322,22 @@ procedure TPreferencesForm.FormClose(Sender: TObject;
       - test with castle-editor in bin/ subdirectory of CGE
         (like in binary distribution; this means that ExeName will not be enough
         to guess editor data location)
-      - set CastleEngineOverridePath to something invalid but non-empty (i.e. to non-existing dir)
-      - restart editor (TChooseProjectForm.FormCreate will set InternalCastleDesignData to '',
-        because CastleEnginePath is invalid and CastleEnginePath + tools/castle-editor/data doesn't exist)
+      - set CastleEngineOverridePath to something invalid but non-empty
+        (i.e. to non-existing dir)
+      - restart editor (TChooseProjectForm.FormCreate will set
+        InternalCastleDesignData to '',
+        because CastleEnginePath is invalid and
+        CastleEnginePath + tools/castle-editor/data doesn't exist)
       - open some project, open some design with viewport.
         It will fail, and it's kind of OK -- engine path was invalid.
       - go to Preferences and change CastleEngineOverridePath to empty
       - reopen the project (or reopen design within it)
       - now it should open OK.
     }
-    OldApplicationDataOverride := ApplicationDataOverride;
-    UseEditorApplicationData;
-    InternalCastleDesignData := ApplicationData('');
-    ApplicationDataOverride := OldApplicationDataOverride;
+    EditorApplicationData := TEditorApplicationData.Create;
+    try
+      InternalCastleDesignData := ResolveCastleDataUrl('castle-data:/');
+    finally FreeAndNil(EditorApplicationData) end;
   end;
 
 begin
@@ -359,6 +382,10 @@ begin
     // sound tab
     EditorVolume := TrackVolume.Position / TrackVolume.Max;
     MuteOnRun := CheckBoxMuteOnRun.Checked;
+
+    // Android tab
+    AndroidHome := DirectoryEditAndroidHome.Directory;
+    JavaHome := DirectoryEditJavaHome.Directory;
   end else
   begin
     { XxxCustomPath are special.
@@ -427,17 +454,36 @@ procedure TPreferencesForm.ButtonRegisterLazarusPackagesClick(Sender: TObject);
 
 begin
   try
-    RegisterPackage('packages/castle_base.lpk');
-    RegisterPackage('packages/castle_window.lpk');
-    RegisterPackage('packages/castle_components.lpk');
-    RegisterPackage('packages/castle_editor_components.lpk');
-    RegisterPackage('packages/alternative_castle_window_based_on_lcl.lpk');
-    RegisterPackage('packages/castle_indy.lpk');
+    RegisterPackage('packages/lazarus/castle_engine_base.lpk');
+    RegisterPackage('packages/lazarus/castle_engine_window.lpk');
+    RegisterPackage('packages/lazarus/castle_engine_lcl.lpk');
+    RegisterPackage('packages/lazarus/castle_engine_editor_components.lpk');
+    RegisterPackage('packages/lazarus/alternative_castle_engine_window_based_on_lcl.lpk');
+    RegisterPackage('packages/lazarus/castle_engine_indy.lpk');
 
     ShowMessage('Lazarus packages registered successfully.');
   except
     on E: Exception do
       ErrorBox(E.Message);
+  end;
+end;
+
+procedure TPreferencesForm.DirectoryEditAndroidHomeAcceptDirectory(
+  Sender: TObject; var Value: String);
+begin
+  if Value <> '' then
+  begin
+    if not DirectoryExists(Value) then
+    begin
+      WarningBox(Format('Directory "%s" does not exist', [Value]));
+    end else
+    if not (
+        // Android SDK 30 doesn't contain 'tools', only 'platform-tools', so don't check it
+        // DirectoryExists(InclPathDelim(Value) + 'tools') and
+        DirectoryExists(InclPathDelim(Value) + 'platform-tools')) then
+    begin
+      WarningBox(Format('Directory "%s" does not contain typical Android SDK subdirectories "tools", "platform-tools". Make sure it is correct.', [Value]));
+    end;
   end;
 end;
 
@@ -490,6 +536,7 @@ begin
     2: SelectedPage := PanelCompilation;
     3: SelectedPage := PanelFpcLazarusConfig;
     4: SelectedPage := PanelSound;
+    5: SelectedPage := PanelAndroid;
     else raise Exception.CreateFmt('Unexpected ListPages.ItemIndex %d', [ListPages.ItemIndex]);
   end;
   SetEnabledVisible(PanelGeneral         , PanelGeneral          = SelectedPage);
@@ -497,6 +544,7 @@ begin
   SetEnabledVisible(PanelCompilation     , PanelCompilation      = SelectedPage);
   SetEnabledVisible(PanelFpcLazarusConfig, PanelFpcLazarusConfig = SelectedPage);
   SetEnabledVisible(PanelSound           , PanelSound            = SelectedPage);
+  SetEnabledVisible(PanelAndroid         , PanelAndroid          = SelectedPage);
 end;
 
 end.

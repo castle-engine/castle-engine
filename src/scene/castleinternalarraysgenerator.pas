@@ -44,8 +44,10 @@ type
       const SourcePtr: Pointer; const SourceItemSize, SourceCount: SizeInt;
       const TrivialIndex: Boolean);
   protected
-    { Indexes, only when Arrays.Indexes = nil but original node was indexed.
-      This has only indexes >= 0.
+    { Indexes, only when Arrays.Indexes = nil but original node was indexed
+      (that is, it has CoordIndex <> nil after PrepareIndexesPrimitives).
+
+      This list can have only indexes >= 0, it is a list of unsigned values.
 
       This is TUInt32List, not TGeometryIndexList -- eventual conversion
       32-bit indexes -> 16-bit (if necessary because of old OpenGLES) will happen later. }
@@ -161,7 +163,7 @@ type
       intermediate classes in this file, that cannot triangulate,
       but still want to add something before / after GenerateCoordinate.
       When overriding GenerateCoordinateBegin, always call inherited
-      at the begin. When overriding GenerateCoordinateEnd, always call inherited
+      at the beginning. When overriding GenerateCoordinateEnd, always call inherited
       at the end.
       @groupBegin }
     procedure GenerateCoordinate; virtual; abstract;
@@ -169,16 +171,20 @@ type
     procedure GenerateCoordinateEnd; virtual;
     { @groupEnd }
 
-    { Generate arrays content for one coordinate range (like a face).
+    (*Generate arrays content for one coordinate range (like a face).
       This is not called, not used, anywhere in this base
       TAbstractCoordinateGenerator class.
       In descendants, it may be useful to use this, like
-      Geometry.InternalMakeCoordRanges(State, @@GenerateCoordsRange).
+
+      @longCode(#
+        Geometry.InternalMakeCoordRanges(State,
+          {$ifdef FPC}@{$endif} GenerateCoordsRange);
+      #)
 
       GenerateCoordsRange is supposed to generate the parts of the mesh
       between BeginIndex and EndIndex - 1 vertices.
       BeginIndex and EndIndex are indexes to CoordIndex array,
-      if CoordIndex is assigned, or just indexes to Coord. }
+      if CoordIndex is assigned, or just indexes to Coord.*)
     procedure GenerateCoordsRange(
       const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer); virtual;
@@ -193,9 +199,27 @@ type
       GenerateCoordsRange. }
     property CurrentRangeNumber: Cardinal read FCurrentRangeNumber;
 
-    { If CoordIndex assigned (this VRML/X3D node is IndexedXxx)
+    { If CoordIndex assigned (this X3D node is IndexedXxx)
       then calculate and set IndexesFromCoordIndex here.
-      This is also the place to set Arrays.Primitive and Arrays.Counts. }
+
+      This is also the place to set various Arrays properties:
+
+      @unorderedList(
+        @item(When CoordIndex not assigned, you can assign Arrays.Indexes,
+          if you want to use indexes for rendering non-indexed primitive
+          (this makes sense e.g. to render TriangleSet with shWireframe).)
+
+        @item(Arrays.Primitive should be adjusted here)
+
+        @item(Arrays.Counts)
+
+        @item(Arrays.ForceUnlit, Arrays.ForceUnlitColor
+          (e.g. using WireframeShapePrepareIndexesPrimitives).)
+      )
+
+      It's also the last chance to assign CoordIndex (in case
+      taking it from Geometry.CoordIndexField, which we do in this base class,
+      wasn't enough). }
     procedure PrepareIndexesPrimitives; virtual; abstract;
 
     { Called when constructing Arrays, before the Arrays.Count is set.
@@ -232,6 +256,20 @@ type
     procedure AssignCoordinate(const AttributeName: String;
       const TargetPtr, SourcePtr: Pointer; const SourceItemSize, SourceCount: SizeInt;
       const TrivialIndex: Boolean = false);
+
+    { @true if TShapeNode.Shading is shWireframe,
+      see https://castle-engine.io/x3d_implementation_shape_extensions.php#section_ext_shading ,
+      to force wireframe rendering. }
+    function WireframeShape: Boolean;
+
+    { Call this from PrepareIndexesPrimitives when WireframeShape,
+      and your shape should change from polygons -> lines.
+
+      Sets Arrays.Primitive to gpLines.
+      Make sure to generate proper indexes for lines.
+
+      Sets Arrays.ForceUnlit and Arrays.ForceUnlitColor. }
+    procedure WireframeShapePrepareIndexesPrimitives;
   public
     { Assign these before calling GenerateArrays.
       @groupBegin }
@@ -748,12 +786,12 @@ type
       GetNormal to return correct normal. }
   TAbstractBumpMappingGenerator = class(TAbstractShaderAttribGenerator)
   strict private
-    Tangent: TVector3;
+    Tangent: TVector4;
     CalculateTangents: Boolean;
   protected
-    { If tangents are provided in the TAbstractComposedGeometryNode.FdTangent,
+    { If tangents are provided in the TAbstractComposedGeometryNode.Tangent,
       descendants should set them here. }
-    TangentsFromNode: TVector3List;
+    TangentsFromNode: TVector4List;
 
     procedure PrepareAttributes(var AllowIndexed: boolean); override;
     procedure GenerateCoordinateBegin; override;
@@ -1028,6 +1066,27 @@ end;
 class function TArraysGenerator.BumpMappingAllowed: boolean;
 begin
   Result := false;
+end;
+
+function TArraysGenerator.WireframeShape: Boolean;
+begin
+  Result := (State.ShapeNode <> nil) and (State.ShapeNode.Shading = shWireframe);
+end;
+
+procedure TArraysGenerator.WireframeShapePrepareIndexesPrimitives;
+var
+  M: TMaterialInfo;
+begin
+  Arrays.Primitive := gpLines;
+  { Make lines unlit (and using EmissiveColor),
+    following https://castle-engine.io/x3d_implementation_shape_extensions.php#section_ext_shading :
+    rendering matches the LineSet specification. }
+  Arrays.ForceUnlit := true;
+  M := State.MaterialInfo;
+  if M <> nil then
+    Arrays.ForcedUnlitColor := Vector4(M.EmissiveColor, M.Opacity)
+  else
+    Arrays.ForcedUnlitColor := White;
 end;
 
 { TAbstractTextureCoordinateGenerator ----------------------------------------- }
@@ -1677,11 +1736,11 @@ begin
       E.g. right now IndexedTriangleSetNode does this in TTriangleSetGenerator.PrepareIndexesPrimitives:
 
         IndexesFromCoordIndex := TUInt32List.Create;
-        IndexesFromCoordIndex.Assign(CoordIndex.Items);
+        IndexesFromCoordIndex.AssignCheckUnsigned(CoordIndex.Items);
         IndexesFromCoordIndex.Count := (IndexesFromCoordIndex.Count div 3) * 3;
 
-      It would require extra iteration instead of simple "IndexesFromCoordIndex.Assign"
-      to create IndexedTriangleSetNode.
+      It would require extra iteration instead of simple
+      "IndexesFromCoordIndex.AssignCheckUnsigned" to create IndexedTriangleSetNode.
   }
   if TexImplementation = tcTexIndexed then
     DoTexCoord(TexCoordIndex.Items.L[IndexNum]);
@@ -1754,7 +1813,9 @@ var
   M: TPhongMaterialInfo; // VRML 1.0 has only Phong lighting model
 begin
   M := State.VRML1State.Material.MaterialInfo(MaterialIndex);
+  {$warnings off} // do not warn about PureEmissive, whole VRML 1.0 is deprecated now
   if M.PureEmissive then
+  {$warnings on}
     Result := Vector4(M.EmissiveColor, M.Opacity)
   else
     Result := Vector4(M.DiffuseColor, M.Opacity);
@@ -2346,7 +2407,13 @@ procedure TAbstractBumpMappingGenerator.GenerateVertex(IndexNum: Integer);
         and both tangents/bitangents may be different on each vertex. }
 
       GetNormal(IndexNum, CurrentRangeNumber, Normal);
-      Arrays.Tangent(ArrayIndexNum)^ := MakeVectorOrthogonal(Tangent, Normal);
+      Arrays.Tangent(ArrayIndexNum)^ :=
+        Vector4(MakeVectorOrthogonal(Tangent.XYZ, Normal),
+          { tangent W is always 1.0 in this case,
+            this is simple and correct, because this code executes only
+            when CalculateTangents = true, and then Tangent.W is 1.0
+            because we always calculate right-handed tangents. }
+          1.0);
     end;
   end;
 
@@ -2377,17 +2444,21 @@ begin
       { calculate Tangent }
       CalculateTangent(true , Tangent, TriangleCoord, TriangleTexCoord) ) then
     begin
-      { Would be more correct to set Tangent as anything perpendicular to Normal. }
-      Tangent := TVector3.One[0];
+      { Return X direction.
+        It would be more correct to set Tangent as anything perpendicular
+        to Normal? But it doesn't really matter, as our tangent calculation
+        should work for all normal cases, and exceptional cases should
+        provide explicit Tangent vectors by the Tangent node. }
+      Tangent := Vector4(1, 0, 0, 1);
     end;
 
     { It *is* possible that we'll get somewhat incorrect tangents in practice,
       but it's not really useful to check it (at least in non-debug builds)
       because we don't really have here a better fallback.
-      Using above "TVector3.One[0]" isn't really better. }
+      Using above "Vector4(1, 0, 0, 1)" isn't really better. }
     {
-    if not ( (Abs(TVector3.DotProduct(Tangent, Bitangent)) < 0.95) and
-             (Abs(TVector3.DotProduct(Tangent, Normal)) < 0.95) and
+    if not ( (Abs(TVector3.DotProduct(Tangent.XYZ, Bitangent)) < 0.95) and
+             (Abs(TVector3.DotProduct(Tangent.XYZ, Normal)) < 0.95) and
              (Abs(TVector3.DotProduct(Bitangent, Normal)) < 0.95) ) then
       WritelnWarning('Tangents are likely incorrect');
     }

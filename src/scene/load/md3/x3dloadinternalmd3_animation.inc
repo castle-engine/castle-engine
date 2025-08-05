@@ -119,14 +119,14 @@ var
   end;
 
 var
-  Reader: TTextReader;
+  Reader: TCastleTextReader;
   Line, LineComment, AnimationName: String;
   Anim: TMd3Animation;
   Tokens: TCastleStringList;
   CommentPos: Integer;
 begin
   LegsOffset := 0;
-  Reader := TTextReader.Create(AnimationCfgUrl);
+  Reader := TCastleTextReader.Create(AnimationCfgUrl);
   try
     while not Reader.Eof do
     begin

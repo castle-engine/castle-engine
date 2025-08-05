@@ -109,10 +109,10 @@ BUILD_TOOL = ./tools/build-tool/castle-engine$(EXE_EXTENSION)
 
 .PHONY: default
 default: tools
-	lazbuild $(CASTLE_LAZBUILD_OPTIONS) --add-package-link packages/castle_base.lpk
-	lazbuild $(CASTLE_LAZBUILD_OPTIONS) --add-package-link packages/castle_window.lpk
-	lazbuild $(CASTLE_LAZBUILD_OPTIONS) --add-package-link packages/castle_components.lpk
-	lazbuild $(CASTLE_LAZBUILD_OPTIONS) --add-package-link packages/castle_editor_components.lpk
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) --add-package-link packages/lazarus/castle_engine_base.lpk
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) --add-package-link packages/lazarus/castle_engine_window.lpk
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) --add-package-link packages/lazarus/castle_engine_lcl.lpk
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) --add-package-link packages/lazarus/castle_engine_editor_components.lpk
 	lazbuild $(CASTLE_LAZBUILD_OPTIONS) tools/castle-editor/castle_editor.lpi
 # move binaries to bin/
 	$(INSTALL) -d bin/
@@ -186,9 +186,9 @@ uninstall:
 .PHONY: strip-precompiled-libraries
 strip-precompiled-libraries:
 	rm -Rf tools/build-tool/data/external_libraries/ \
-	       tools/build-tool/data/android/integrated-services/sound/ \
-	       tools/build-tool/data/android/integrated-services/ogg_vorbis/ \
-	       tools/build-tool/data/android/integrated-services/freetype/ \
+	       tools/build-tool/data/android/services/sound/ \
+	       tools/build-tool/data/android/services/ogg_vorbis/ \
+	       tools/build-tool/data/android/services/freetype/ \
 	       tools/build-tool/data/android/base/gradle/ \
 	       tools/build-tool/data/android/base/gradlew \
 	       tools/build-tool/data/android/base/gradlew.bat \
@@ -273,9 +273,13 @@ examples:
 #   - compilation is tested by "make tools" already,
 #   - we don't want to clean it, to have it available for "make test-editor-templates" after this
 #   - on Windows, we'd have to make a copy of castle-engine, as you cannot replace own exe.
+#
+# - generate_webgl_flat_api: because it requires FPC > 3.2
 	"$(FIND)" . \
+	  '(' -path ./tools/internal/generate_webgl_flat_api -prune ')' -o \
 	  '(' -path ./examples/network/tcp_connection -prune ')' -o \
 	  '(' -path ./tools/castle-editor/data/project_templates -prune ')' -o \
+	  '(' -path ./tools/castle-editor-portable/data/project_templates -prune ')' -o \
 	  '(' -path ./tools/build-tool -prune ')' -o \
 	  '(' -path ./tests/delphi_tests -prune ')' -o \
 	  '(' -path ./examples/delphi -prune ')' -o \
@@ -321,21 +325,24 @@ examples-delphi:
 
 .PHONY: examples-laz
 examples-laz:
-	lazbuild $(CASTLE_LAZBUILD_OPTIONS) packages/castle_base.lpk
-	lazbuild $(CASTLE_LAZBUILD_OPTIONS) packages/castle_window.lpk
-	lazbuild $(CASTLE_LAZBUILD_OPTIONS) packages/castle_components.lpk
-	lazbuild $(CASTLE_LAZBUILD_OPTIONS) packages/castle_editor_components.lpk
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) packages/lazarus/castle_engine_base.lpk
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) packages/lazarus/castle_engine_window.lpk
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) packages/lazarus/castle_engine_lcl.lpk
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) packages/lazarus/castle_engine_editor_components.lpk
 	set -e && for PROJECT_LPI in $(EXAMPLES_BASE_NAMES) $(EXAMPLES_LAZARUS_BASE_NAMES); do \
 	  ./tools/internal/lazbuild_retry $${PROJECT_LPI}.lpi; \
 	done
 	"$(FIND)" . \
+	  '(' -path ./tools/internal/generate_webgl_flat_api -prune ')' -o \
 	  '(' -path ./examples/network/tcp_connection -prune ')' -o \
 	  '(' -path ./src/vampyre_imaginglib -prune ')' -o \
 	  '(' -path ./tools/castle-editor/data/project_templates -prune ')' -o \
+	  '(' -path ./tools/castle-editor-portable/data/project_templates -prune ')' -o \
 	  '(' -path ./tools/build-tool/tests/data -prune ')' -o \
 	  '(' -path ./tools/build-tool/data -prune ')' -o \
 	  '(' -path ./examples/deprecated_library -prune ')' -o \
 	  '(' -path ./tools/castle-editor/components/mbColorLib/examples -prune ')' -o \
+	  '(' -path ./src/compatibility/web_assembly -prune ')' -o \
 	  '(' -iname '*.lpi' -print ')'  > \
 	  /tmp/cge-laz-projects.txt
 	echo 'Found projects: '`wc -l < /tmp/cge-laz-projects.txt`
@@ -364,32 +371,36 @@ cleanexamples:
 .PHONY: clean
 
 clean: cleanexamples
-	"$(FIND)" . -type f '(' -iname '*.ow'  -or \
-	                   -iname '*.ppw' -or \
-			   -iname '*.aw' -or \
-	                   -iname '*.o'   -or \
-			   -iname '*.or'  -or \
-			   -iname '*.ppu' -or \
-			   '(' -iname '*.a' -and -not -iwholename '*/vampyre_imaginglib/*' ')' -or \
-			   '(' -iname '*.res' -and \
-			       -not -iwholename '*/vampyre_imaginglib/*' -and \
-			       -not -iwholename '*/mbColorLib/*' -and \
-			       -not -iwholename '*/examples/delphi/*' ')' \
-			       -or \
-			   -iname '*.rsj' -or \
-			   -iname '*.compiled' -or \
-			   -iname '*.lps' -or \
-			   -iname '*.libimp*.a' -or \
-			   -iname '*.apk' -or \
-			   -iname '*.aab' -or \
-			   -iname '*.dbg' -or \
-	                   -iname '*.dcu' -or \
-			   -iname '*.dpu' -or \
-			   -iname '*.bpi' -or \
-			   -iname '*.dproj.local' -or \
-			   -iname '*.identcache' -or \
-			   -iname '*.rsm' -or \
-	                   -iname '*.log' ')' \
+	"$(FIND)" . -type f '(' \
+					-iname '*.ow'  -or \
+					-iname '*.ppw' -or \
+					-iname '*.aw' -or \
+					-iname '*.o'   -or \
+					-iname '*.or'  -or \
+					-iname '*.ppu' -or \
+					'(' -iname '*.a' -and -not -iwholename '*/vampyre_imaginglib/*' ')' -or \
+					'(' -iname '*.res' -and \
+						-not -iwholename '*/vampyre_imaginglib/*' -and \
+						-not -iwholename '*/mbColorLib/*' -and \
+						-not -iwholename '*/examples/delphi/*' ')' \
+					-or \
+					-iname '*.rsj' -or \
+					-iname '*.compiled' -or \
+					-iname '*.lps' -or \
+					-iname '*.libimp*.a' -or \
+					-iname '*.apk' -or \
+					-iname '*.aab' -or \
+					-iname '*.dbg' -or \
+					-iname '*.dcu' -or \
+					-iname '*.dpu' -or \
+					-iname '*.bpi' -or \
+					-iname '*.dproj.local' -or \
+					-iname '*.identcache' -or \
+					-iname '*.rsm' -or \
+					-iname '*.log' -or \
+					-iname libsteam_api.so -or \
+					-iname libsteam_api.dylib \
+				')' \
 	     -print \
 	     | xargs rm -f
 # Note: *.app directory is a macOS bundle,
@@ -401,11 +412,11 @@ clean: cleanexamples
 	     -exec rm -Rf '{}' ';' -prune
 	rm -Rf bin/ \
 	  castle-engine-copy$(EXE_EXTENSION) \
-	  packages/castle_base.pas \
-	  packages/castle_window.pas \
-	  packages/castle_components.pas \
-	  packages/castle_editor_components.pas \
-	  packages/alternative_castle_window_based_on_lcl.pas \
+	  packages/lazarus/castle_engine_base.pas \
+	  packages/lazarus/castle_engine_window.pas \
+	  packages/lazarus/castle_engine_lcl.pas \
+	  packages/lazarus/castle_engine_editor_components.pas \
+	  packages/alternative_castle_engine_window_based_on_lcl.pas \
 	  tests/test_castle_game_engine \
 	  tests/test_castle_game_engine.exe \
 	  tests/castle-tester \
@@ -426,12 +437,23 @@ clean: cleanexamples
 # Avoid project in build-tool/tests/data that is not a real project
 # (will never be compiled).
 #
-# Note: This may cause errors if build tool doesn't exist anymore, ignore them.
-	"$(FIND)" . \
+# Note: Build tool may not exist anymore at this point, ignore this then.
+#
+# Note: Do not use -execdir, only -exec, as BUILD_TOOL may be relative.
+# This also implies to pass project using --project.
+	if [ -x $(BUILD_TOOL) ]; then \
+	  "$(FIND)" . \
 	  '(' -path ./tools/castle-editor/data/project_templates -prune ')' -or \
+	  '(' -path ./tools/castle-editor-portable/data/project_templates -prune ')' -or \
 	  '(' -path ./tools/build-tool/tests/data -prune ')' -or \
 	  '(' -iname CastleEngineManifest.xml \
-	      -execdir $(BUILD_TOOL) clean ';' ')'
+		    -exec echo 'Cleaning project:' '{}' ';' \
+	      -exec $(BUILD_TOOL) --project '{}' clean ';' ')'; \
+	else \
+	  echo 'Build tool $(BUILD_TOOL) does not exist.'; \
+		echo 'This is completely normal during "make clean", if you did not take special care to make/preserve it.'; \
+		echo 'In effect, not doing extra cleaning of projects with CastleEngineManifest.xml.'; \
+	fi
 
 # tests ----------------------------------------
 

@@ -36,14 +36,11 @@
             "ExposeTransforms" : [
             ],
             "Name" : "MainScene",
+            "PreciseCollisions" : true,
             "RenderOptions" : {
               "$$ClassName" : "TCastleScene.TSceneRenderOptions",
               "Name" : "RenderOptions"
-            },
-            "Spatial" : [
-              "ssRendering",
-              "ssDynamicCollisions"
-            ]
+            }
           }
         ]
       },

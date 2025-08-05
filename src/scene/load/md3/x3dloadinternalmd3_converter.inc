@@ -109,7 +109,7 @@ begin
   SkinName := 'default'; // default skin, SettingsFromAnchor may override it
   SettingsFromAnchor;
   // for all following operations, we don't want #anchor in URL anymore
-  FBaseUrl := URIDeleteAnchor(FBaseUrl, true);
+  FBaseUrl := URIDeleteAnchor(FBaseUrl);
 
   Skin := TStringList.Create;
   SkinUrl := DeleteURIExt(BaseUrl) + '_' + SkinName + '.skin';
@@ -178,7 +178,7 @@ end;
 
 procedure TMD3Converter.ReadSkinFile(const SkinUrl: String);
 var
-  SkinFile: TTextReader;
+  SkinFile: TCastleTextReader;
   S, SkinKey, TextureUrl: String;
   CommaPos: Integer;
   TexturePath: string;
@@ -186,7 +186,7 @@ begin
   if URIFileExists(SkinUrl) then
   begin
     TexturePath := ExtractURIPath(SkinUrl);
-    SkinFile := TTextReader.Create(SkinUrl);
+    SkinFile := TCastleTextReader.Create(SkinUrl);
     try
       { Note: We don't just do
           Skin.NameValueSeparator := ',';

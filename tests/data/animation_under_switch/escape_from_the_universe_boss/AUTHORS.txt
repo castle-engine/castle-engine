@@ -1,3 +1,3 @@
 Copyright: Cat-astrophe Games LLC https://cat-astrophe-games.com/
-For the "Escape from the Universe": https://cat-astrophe-games.party/escape-universe/
+For the "Escape from the Universe": https://www.nintendo.com/us/store/products/escape-from-the-universe-switch/
 License: GNU GPL >= 2

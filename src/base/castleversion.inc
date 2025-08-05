@@ -1,4 +1,4 @@
-'7.0-alpha.snapshot'
+'7.0-alpha.3.snapshot'
 
 { In normal programs, you should get the engine version as
   the CastleEngineVersion constant (from CastleUtils unit),

@@ -791,6 +791,22 @@ var
     if Map.TileRenderData(TilePosition, ALayer,
       Tileset, Frame, HorizontalFlip, VerticalFlip, DiagonalFlip) then
     begin
+      { Do not load image when there's no Url (no "source" attribute at <tileset>).
+        This is possible when each <tile> has its own <image> element,
+        we don't support it yet, TCastleTiledMapConverter will later warn and
+        skip such tileset.
+
+        Testcase: Phoenix bugreport,
+        https://discord.com/channels/389676745957310465/1204090530368327690/1247180638520606829 ,
+        Michalis has testcase in private. }
+      if Tileset.Columns = 0 then
+      begin
+        WritelnWarning('Tileset "%s" has zero columns, likely because the tileset does not specify the image with all tiles packed. This is not supported now, skipping the tileset.', [
+          Tileset.Name
+        ]);
+        Exit;
+      end;
+
       if not ValidTileId(Frame) then
       begin
         WritelnWarning('Invalid TileId:%d TilePosition:' + TilePosition.ToString, [Frame]);

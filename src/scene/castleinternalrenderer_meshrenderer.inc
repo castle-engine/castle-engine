@@ -366,8 +366,8 @@ begin
     if not PrepareRenderShape then
     begin
       { Initialize vertex arrays that we we will use with indexed nodes. }
-      if Vbo[vtCoordinate] <> 0 then
-        glBindBuffer(GL_ARRAY_BUFFER, Vbo[vtCoordinate]);
+      if Vbo[vtCoordinate] <> GLObjectNone then
+        RenderContext.BindBuffer[btArray] := Vbo[vtCoordinate];
 
       {$ifdef OpenGLES}
       Assert(CurrentMeshShader <> nil, 'OpenGL ES 2.0 rendering must go through shaders');
@@ -398,7 +398,7 @@ begin
 
         if Arrays.HasTangent then
         begin
-          CurrentMeshShader.AttributeCastle_Tangent.EnableArrayVector3(Vao, Arrays.CoordinateSize, PtrUInt(Arrays.Tangent));
+          CurrentMeshShader.AttributeCastle_Tangent.EnableArrayVector4(Vao, Arrays.CoordinateSize, PtrUInt(Arrays.Tangent));
           Attribs.Add(CurrentMeshShader.AttributeCastle_Tangent);
         end;
       end else
@@ -416,8 +416,8 @@ begin
         {$endif not OpenGLES}
       end;
 
-      if Vbo[vtAttribute] <> 0 then
-        glBindBuffer(GL_ARRAY_BUFFER, Vbo[vtAttribute]);
+      if Vbo[vtAttribute] <> GLObjectNone then
+        RenderContext.BindBuffer[btArray] := Vbo[vtAttribute];
 
       if CurrentMeshShader <> nil then
       begin
@@ -508,10 +508,10 @@ begin
       First := 0;
       if Arrays.HasIndexes then
       begin
-        if Vbo[vtIndex] <> 0 then
+        if Vbo[vtIndex] <> GLObjectNone then
         begin
           RenderContext.CurrentVao := Vao;
-          glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Vbo[vtIndex]);
+          RenderContext.BindBuffer[btElementArray] := Vbo[vtIndex];
         end;
 
         if Arrays.Counts = nil then
@@ -1081,8 +1081,8 @@ begin
       CurrentMeshShader := nil;
   end;
 
+  RenderContext.CurrentProgram := CurrentMeshShader; // enable the CurrentMeshShader for OpenGL
+
   if CurrentMeshShader <> nil then
     CurrentMeshShader.SetupUniforms(BoundTextureUnits);
-
-  RenderContext.CurrentProgram := CurrentMeshShader; // enable the CurrentMeshShader for OpenGL
 end;

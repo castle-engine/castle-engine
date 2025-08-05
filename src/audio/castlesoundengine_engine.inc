@@ -568,6 +568,9 @@ begin
       Result.Loop    := Parameters.Loop;
       Result.Pitch   := Parameters.Pitch;
       Result.Volume  := Parameters.Volume;
+      { No need to set Result.Priority,
+        TSoundAllocator.AllocateSound have already done this. }
+      Assert(Result.Priority = Parameters.Priority);
       {$warnings off} // using unportable symbols knowingly
       Result.MinGain := Parameters.MinGain;
       Result.MaxGain := Parameters.MaxGain;
@@ -643,7 +646,7 @@ begin
     Params.Spatial    := ASpatial;
     Params.Position   := APosition;
     Params.Loop       := PlayingSound.Loop;
-    Params.Priority   := ASound.Priority;
+    Params.Priority   := PlayingSound.InternalFinalPriority;
     Params.Pitch      := PlayingSound.InternalFinalPitch;
     Params.Volume     := PlayingSound.InternalFinalVolume;
     {$warnings off} // using unportable symbols knowingly

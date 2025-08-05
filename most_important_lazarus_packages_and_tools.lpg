@@ -2,16 +2,16 @@
 <CONFIG>
   <ProjectGroup FileVersion="2">
     <Targets>
-      <Target FileName="packages/castle_base.lpk"/>
-      <Target FileName="packages/castle_components.lpk"/>
-      <Target FileName="packages/castle_editor_components.lpk"/>
-      <Target FileName="packages/castle_window.lpk"/>
+      <Target FileName="packages/lazarus/castle_engine_base.lpk"/>
+      <Target FileName="packages/lazarus/castle_engine_lcl.lpk"/>
+      <Target FileName="packages/lazarus/castle_engine_editor_components.lpk"/>
+      <Target FileName="packages/lazarus/castle_engine_window.lpk"/>
       <Target FileName="tools/castle-editor/castle_editor.lpi">
         <BuildModes>
           <Mode Name="default"/>
         </BuildModes>
       </Target>
-      <Target FileName="tools/build-tool/castle-engine.lpi">
+      <Target FileName="tools/build-tool/castle_engine.lpi">
         <BuildModes>
           <Mode Name="default"/>
         </BuildModes>

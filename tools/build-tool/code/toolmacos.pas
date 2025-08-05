@@ -1,5 +1,5 @@
 {
-  Copyright 2022-2022 Michalis Kamburelis.
+  Copyright 2022-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -20,7 +20,12 @@ interface
 
 uses Classes,
   CastleUtils, CastleStringUtils,
-  ToolProject;
+  ToolCompile, ToolManifest, ToolProject;
+
+{ Compile macOS universal binary with x86_84 and aarch64 platforms). }
+procedure CompileMacOS(const Compiler: TCompiler;
+  const WorkingDirectory, CompileFile: string;
+  const CompilerOptions: TCompilerOptions);
 
 { Create AppBundle to run the project in castle-engine-output.
   This is the only reliable way to run GUI applications on macOS.
@@ -49,8 +54,75 @@ procedure ZipMacAppBundle(const Project: TCastleProject; const BundleParenPath, 
 implementation
 
 uses {$ifdef UNIX} BaseUnix, {$endif} SysUtils,
-  CastleFilesUtils, CastleLog, CastleImages,
-  ToolArchitectures, ToolCommonUtils, ToolUtils, ToolEmbeddedImages;
+  CastleFilesUtils, CastleLog, CastleImages, CastleFindFiles,
+  CastleInternalArchitectures,
+  ToolCommonUtils, ToolUtils, ToolEmbeddedImages, ToolProcessRun;
+
+procedure CompileMacOS(const Compiler: TCompiler;
+  const WorkingDirectory, CompileFile: string;
+  const CompilerOptions: TCompilerOptions);
+var
+  LinkRes, ArchIntelBinary, ArchArmBinary, OutputBinary: string;
+begin
+  { We need to set the env.variable MACOSX_DEPLOYMENT_TARGET for x86_64 platform
+    for FPC to at least 10.9 in order to pass Apple Notarization. }
+  //{$ifdef UNIX}SetEnvironmentVariable('MACOSX_DEPLOYMENT_TARGET', '10.9.0');{$endif}
+  CompilerOptions.OverrideEnvironmentName := 'MACOSX_DEPLOYMENT_TARGET';
+  CompilerOptions.OverrideEnvironmentValue := '10.9.0';
+
+  try
+    CompilerOptions.CPU := x86_64;
+    Compile(Compiler, WorkingDirectory, CompileFile, CompilerOptions);
+  except
+    { Enhance the exception message and reraise, we cannot make universal binary
+      with all CPU architectures if x86_64 slice fails. }
+    on E: Exception do
+    begin
+      E.Message := 'Fatal error when compiling x86_64 slice: ' + E.Message;
+      raise;
+    end;
+  end;
+
+  CompilerOptions.OverrideEnvironmentName := '';
+  CompilerOptions.OverrideEnvironmentValue := '';
+
+  // Get the output binary, rename it to include architecture.
+  //WriteLn('OutputBinary = ' + CompilerOptions.OutputBinary);
+  LinkRes := CompilerOptions.LinkerOutputFile;
+  if LinkRes = '' then
+    raise Exception.Create('Error extracting linker output binary name for x86_64 slice.');
+  OutputBinary := LinkRes;
+  ArchIntelBinary := LinkRes + '.x86_64';
+  CheckRenameFile(LinkRes, ArchIntelBinary);
+
+  //--------------
+  // Same for aarch64, not need to change the environment variables here.
+  try
+    CompilerOptions.CPU := aarch64;
+    Compile(Compiler, WorkingDirectory, CompileFile, CompilerOptions);
+  except
+    { Enhance the exception message and reraise, we cannot make universal binary
+      with all CPU architectures if aarch64 slice fails. }
+    on E: Exception do
+    begin
+      E.Message := 'Fatal error when compiling aarch64 slice: ' + E.Message;
+      raise;
+    end;
+  end;
+
+  LinkRes := CompilerOptions.LinkerOutputFile;
+  if LinkRes = '' then
+    raise Exception.Create('Error extracting linker output binary name for arm64 slice.');
+  ArchArmBinary := LinkRes + '.aarch64';
+  CheckRenameFile(LinkRes, ArchArmBinary);
+
+  //--------------
+  // Glue both slices together and delete compiled binaries for each architecture
+  RunCommandSimple('lipo', [ArchIntelBinary, ArchArmBinary, '-output', OutputBinary, '-create']);
+
+  CheckDeleteFile(ArchIntelBinary);
+  CheckDeleteFile(ArchArmBinary);
+end;
 
 procedure SaveResized(const Image: TCastleImage; const Size: Integer; const OutputFileName: string);
 var
@@ -135,6 +207,30 @@ procedure CreateMacAppBundle(const Project: TCastleProject; const BundleParenPat
       CheckCopyFile(Src, Dst);
   end;
 
+  { Copy or symlink additional file, given as filename:
+    - relative to project path (for source)
+    - relative to bundle exe dir (for destination).
+    Make a Writeln about it (always, because this is a bit non-standard thing
+    we do, better tell user about it).
+
+    TODO: It would be better to control it by some parameter in manifest, like:
+
+      <macos_bundle_exe>
+        <include file="libsteam_api.dylib" />
+        <include file="steam_appid.txt" />
+      </macos_bundle_exe>
+
+    and allow each package (like CGE Steam integration) to specify it. }
+  procedure CopyOrSymlinkFileAlongsideExe(const RelativeName, OutputBundleExePath: String);
+  begin
+    Writeln(Format('Copying (or symlinking) additional file (alongside exe) into the bundle: %s', [
+      RelativeName
+    ]));
+    CopyOrSymlinkFile(
+      Project.Path + RelativeName,
+      OutputBundleExePath + RelativeName);
+  end;
+
   procedure CopyOrSymlinkData(const Dst: String);
   begin
     if SymlinkToFiles then
@@ -146,6 +242,8 @@ procedure CreateMacAppBundle(const Project: TCastleProject; const BundleParenPat
 var
   OutputBundlePath, OutputBundleExePath, OutputBundleResourcesPath, IconIcns, IconPng: String;
   LoadedIcon: TCastleImage;
+  DynLibs: TFileInfoList;
+  DynLibInfo: TFileInfo;
 begin
   { create clean OutputBundlePath }
   OutputBundlePath := InclPathDelim(BundleParenPath) + Project.Caption + '.app' + PathDelim;
@@ -170,6 +268,20 @@ begin
   ExeInBundle := OutputBundleExePath + Project.ExecutableName;
   CopyOrSymlinkFile(Project.Path + Project.ExecutableName, ExeInBundle);
   DoMakeExecutable(ExeInBundle);
+
+  { Copy or symlink dynamic libraries into the bundle.
+    This cooperates with our code in CastleDynLibs to find the dynamic libraries. }
+  DynLibs := FindFilesList(Project.Path, 'lib*.dylib', false, []);
+  try
+    for DynLibInfo in DynLibs do
+      CopyOrSymlinkFileAlongsideExe(DynLibInfo.Name, OutputBundleExePath);
+  finally FreeAndNil(DynLibs) end;
+
+  { Necessary to test applications with Steam integration on macOS.
+    TODO: This should not be hardcoded in the build tool, we need a way to
+    specify this in the project file. }
+  if FileExists(Project.Path + 'steam_appid.txt') then
+    CopyOrSymlinkFileAlongsideExe('steam_appid.txt', OutputBundleExePath);
 
   IconIcns := Project.Icons.FindExtension(['.icns']);
   if IconIcns <> '' then
@@ -213,7 +325,7 @@ procedure ZipMacAppBundle(const Project: TCastleProject; const BundleParenPath, 
 begin
   //RunCommandSimple(BundleParenPath, 'zip', ['-q', '-r', PackageFileName, Project.Caption + '.app']);
   // Better use internal zip, that doesn't require any tool installed:
-  ZipDirectory(
+  ZipDirectoryTool(
     CombinePaths(BundleParenPath, PackageFileName),
     CombinePaths(BundleParenPath, Project.Caption + '.app'));
 

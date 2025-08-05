@@ -40,6 +40,8 @@ type
     Rat: TCastleScene;
     SoundSourceRat: TCastleSoundSource;
     SceneLevel: TCastleScene;
+    TntFactory: TCastleComponentFactory;
+    
   private
     const
       { Max number of TNT items. }
@@ -48,7 +50,6 @@ type
 
     var
       RatAngle: Single;
-      TntFactory: TCastleComponentFactory;
       Tnts: TComponentList;
 
     procedure NewTnt(const Y: Single);
@@ -88,9 +89,6 @@ begin
 
   { initialize Tnt }
   Tnts := TComponentList.Create(false);
-
-  TntFactory := TCastleComponentFactory.Create(FreeAtStop);
-  TntFactory.Url := 'castle-data:/extra_objects/tnt_final.castle-transform';
   while Tnts.Count < InitialTntsCount do
     NewTnt(0.0);
 

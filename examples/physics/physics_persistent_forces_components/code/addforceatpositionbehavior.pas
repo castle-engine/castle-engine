@@ -18,9 +18,10 @@ unit AddForceAtPositionBehavior;
 
 interface
 
-uses
-  Classes, SysUtils, CastleTransform, CastleBehaviors, CastleVectors,
-  CastleComponentSerialize, CastleClassUtils, AbstractTimeDurationBehavior;
+uses Classes, SysUtils,
+  CastleTransform, CastleBehaviors, CastleVectors, CastleUtils,
+  CastleComponentSerialize, CastleClassUtils,
+  AbstractTimeDurationBehavior;
 
 type
   TAddForceAtPositionBehavior = class(TAbstractTimeDurationBehavior)
@@ -106,7 +107,7 @@ begin
   if not ShouldUpdate then
     Exit;
 
-  RigidBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+  RigidBody := Parent.RigidBody;
   if (RigidBody <> nil) and (RigidBody.ExistsInRoot) then
   begin
     RigidBody.AddForceAtPosition(Force, Position);
@@ -117,8 +118,9 @@ end;
 function TAddForceAtPositionBehavior.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
-  if (PropertyName = 'Force') or
-     (PropertyName = 'Position') then
+  if ArrayContainsString(PropertyName, [
+       'ForcePersistent', 'PositionPersistent'
+     ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);

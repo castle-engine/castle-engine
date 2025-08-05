@@ -23,7 +23,7 @@ interface
 implementation
 
 uses SysUtils,
-  CastleWindow, CastleLog, CastleUIControls
+  CastleWindow, CastleLog, CastleUIControls, CastleTimeUtils
   {$region 'Castle Initialization Uses'}
   // The content here may be automatically updated by CGE editor.
   , GameViewMain
@@ -48,6 +48,9 @@ begin
 end;
 
 initialization
+  Profiler.Enabled := true;
+  TCastleView.Log := true;
+
   { This initialization section configures:
     - Application.OnInitialize
     - Application.MainWindow
@@ -63,26 +66,7 @@ initialization
   Application.MainWindow := Window;
 
   { Optionally, adjust window fullscreen state and size at this point.
-    Examples:
-
-    Run fullscreen:
-
-      Window.FullScreen := true;
-
-    Run in a 600x400 window:
-
-      Window.FullScreen := false; // default
-      Window.Width := 600;
-      Window.Height := 400;
-
-    Run in a window taking 2/3 of screen (width and height):
-
-      Window.FullScreen := false; // default
-      Window.Width := Application.ScreenWidth * 2 div 3;
-      Window.Height := Application.ScreenHeight * 2 div 3;
-
-    Note that some platforms (like mobile) ignore these window sizes.
-  }
+    See https://castle-engine.io/window_size . }
 
   { Handle command-line parameters like --fullscreen and --window.
     By doing this last, you let user to override your fullscreen / mode setup. }

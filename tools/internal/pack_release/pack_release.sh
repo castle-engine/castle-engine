@@ -81,10 +81,53 @@ trap cleanup_temp EXIT
 check_fpc_version ()
 {
   local FPC_VERSION=`fpc -iV | tr -d '\r'`
+  echo "FPC version: ${FPC_VERSION}"
+
   local REQUIRED_FPC_VERSION='3.2.2'
-  if [ "${FPC_VERSION}" '!=' "${REQUIRED_FPC_VERSION}" ]; then
-    echo "pack_release: Expected FPC version ${REQUIRED_FPC_VERSION}, but got ${FPC_VERSION}"
+
+  if [ "${CASTLE_PACK_DISABLE_FPC_VERSION_CHECK:-}" '!=' 'true' ]; then
+    if [ "${FPC_VERSION}" '!=' "${REQUIRED_FPC_VERSION}" ]; then
+      echo "pack_release: Expected FPC version ${REQUIRED_FPC_VERSION}, but got ${FPC_VERSION}"
+      exit 1
+    fi
+  fi
+}
+
+# Require building release with a supported Lazarus (also LCL, lazbuild) version.
+# See https://castle-engine.io/supported_compilers.php .
+check_lazarus_version ()
+{
+  # Note that we have to remove lines "using config file", since "lazbuild --version"
+  # can answer something like
+  #   using config file /Users/jenkins/installed/fpclazarus/fpc322-lazfixes30/lazarus/lazarus.cfg
+  #   3.5
+
+  local LAZARUS_VERSION=`lazbuild --version | grep --invert-match 'using config file' | tr -d '\r'`
+  echo "Lazarus version: ${LAZARUS_VERSION}"
+
+  if [ "${LAZARUS_VERSION}" '!=' '3.2' -a \
+       "${LAZARUS_VERSION}" '!=' '3.4' -a \
+       "${LAZARUS_VERSION}" '!=' '3.5' -a \
+       "${LAZARUS_VERSION}" '!=' '3.6' -a \
+       "${LAZARUS_VERSION}" '!=' '3.7' ]; then
+    echo "pack_release: Incorrect Lazarus version to pack release, we have ${LAZARUS_VERSION}"
     exit 1
+  fi
+
+  # To avoid https://gitlab.com/freepascal.org/lazarus/lazarus/-/merge_requests/291
+  # we need Lazarus >= 3.5 on macOS.
+  #
+  # Note that using https://github.com/gcarreno/setup-lazarus with "lazarus-version: stable"
+  # results now in Lazarus version 3.7. This seems to be what the download
+  # https://sourceforge.net/projects/lazarus/files/Lazarus%20macOS%20x86-64/Lazarus%203.6/Lazarus-3.6-macosx-x86_64.pkg/download
+  # reports.
+  if [ "`uname -s`" '=' 'Darwin' ]; then
+    if [ "${LAZARUS_VERSION}" '!=' '3.5' -a \
+         "${LAZARUS_VERSION}" '!=' '3.6' -a \
+         "${LAZARUS_VERSION}" '!=' '3.7' ]; then
+      echo "pack_release: macOS: Incorrect Lazarus version to pack release, we have ${LAZARUS_VERSION}"
+      exit 1
+    fi
   fi
 }
 
@@ -133,6 +176,7 @@ detect_platform ()
 
   if [ "`uname -s`" '=' 'Darwin' ]; then
     SED='gsed'
+    FIND='gfind'
   fi
 
   # for debugging, output versions of tools
@@ -270,25 +314,27 @@ cge_clean_all ()
   #     Blender (*.blend?),
   #     QtCreator (*.pro.user).
   # - macOS app bundles (made by "make examples-laz", not cleaned up by "make clean").
-	"${FIND}" . -type f '(' \
-      -iname '*~' -or \
-      -iname '*.bak' -or \
-      -iname '*.~???' -or \
-      -iname '*.pro.user' -or \
-      -iname '*.blend?' \
-    ')' -exec rm -f '{}' ';'
-	"${FIND}" . -type d '(' \
-    -iname 'backup' \
-    -iname '*.app' \
-		')' -exec rm -Rf '{}' ';' -prune
+	"${FIND}" . \
+    '(' -type d -name 'bin-to-keep' -prune ')' -or \
+    '(' -type f '(' \
+          -iname '*~' -or \
+          -iname '*.bak' -or \
+          -iname '*.~???' -or \
+          -iname '*.pro.user' -or \
+          -iname '*.blend?' \
+        ')' -exec rm -f '{}' ';' ')' -or \
+    '(' -type d '(' \
+          -iname 'backup' -or \
+          -iname '*.app' \
+        ')' -exec rm -Rf '{}' ';' -prune ')'
 
   # Delete pasdoc generated documentation in doc/pasdoc/ and doc/reference/
 	"${MAKE}" -C doc/pasdoc/ clean
 
   # Delete closed-source libs you may have left in tools/build-tool/data
   # (as some past instructions recommended to copy them into CGE tree).
-	rm -Rf tools/build-tool/data/android/integrated-services/chartboost/app/libs/*.jar \
-	       tools/build-tool/data/android/integrated-services/startapp/app/libs/*.jar \
+	rm -Rf tools/build-tool/data/android/services/chartboost/app/libs/*.jar \
+	       tools/build-tool/data/android/services/startapp/app/libs/*.jar \
 	       tools/build-tool/data/ios/services/game_analytics/cge_project_name/game_analytics/GameAnalytics.h \
 	       tools/build-tool/data/ios/services/game_analytics/cge_project_name/game_analytics/libGameAnalytics.a
 
@@ -391,10 +437,10 @@ pack_platform_dir ()
   # update environment to use CGE in temporary location
   export CASTLE_ENGINE_PATH="${TEMP_PATH_CGE}"
 
-  lazbuild_twice $CASTLE_LAZBUILD_OPTIONS packages/castle_base.lpk
-  lazbuild_twice $CASTLE_LAZBUILD_OPTIONS packages/castle_window.lpk
-  lazbuild_twice $CASTLE_LAZBUILD_OPTIONS packages/castle_components.lpk
-  lazbuild_twice $CASTLE_LAZBUILD_OPTIONS packages/castle_editor_components.lpk
+  lazbuild_twice $CASTLE_LAZBUILD_OPTIONS packages/lazarus/castle_engine_base.lpk
+  lazbuild_twice $CASTLE_LAZBUILD_OPTIONS packages/lazarus/castle_engine_window.lpk
+  lazbuild_twice $CASTLE_LAZBUILD_OPTIONS packages/lazarus/castle_engine_lcl.lpk
+  lazbuild_twice $CASTLE_LAZBUILD_OPTIONS packages/lazarus/castle_engine_editor_components.lpk
 
   # Make sure no leftovers from previous compilations remain,
   # to not pack them in release.
@@ -477,6 +523,13 @@ pack_platform_dir ()
 
   # After make clean, make sure bin/ exists and is filled with what we need
   mv "${TEMP_PATH_CGE}"bin-to-keep "${TEMP_PATH_CGE}"bin
+
+  if [ "$OS" '=' 'darwin' ]; then
+    if [ ! -d "${TEMP_PATH_CGE}"bin/castle-editor.app ]; then
+      echo "Error: castle-editor.app not found in bin/ at packaging macOS release"
+      exit 1
+    fi
+  fi
 
   # Add PasDoc docs
   "${MAKE}" -C doc/pasdoc/ clean html ${MAKE_OPTIONS}
@@ -564,9 +617,8 @@ pack_windows_installer ()
 # Main body
 
 detect_platform
-if [ "${CASTLE_PACK_DISABLE_FPC_VERSION_CHECK:-}" '!=' 'true' ]; then
-  check_fpc_version
-fi
+check_fpc_version
+check_lazarus_version
 prepare_build_tool
 calculate_cge_version
 if [ -n "${1:-}" ]; then

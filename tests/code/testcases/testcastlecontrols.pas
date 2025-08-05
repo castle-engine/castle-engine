@@ -120,16 +120,20 @@ procedure TTestCastleControls.TestRecursiveDesign;
 var
   Owner: TComponent;
 begin
+  if not CanCatchExceptions then
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   try
     Owner := TComponent.Create(nil);
     try
       UserInterfaceLoad('castle-data:/designs/test_recursive_ui.castle-user-interface', Owner);
       Fail('Loading test_recursive_ui.castle-user-interface should have raised an exception');
     except
-      on E: Exception do
-        { We expect Exception with message "Exceeded maximum depth..." }
-        if not IsPrefix('Exceeded maximum depth', E.Message) then
-          raise;
+      on EMaximumDesignDepth do
+        Exit; // OK, silence this exception, this is expected
     end;
   finally FreeAndNil(Owner) end;
 end;

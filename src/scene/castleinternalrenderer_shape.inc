@@ -92,7 +92,8 @@ function FastUpdateArrays(const Shape: TX3DRendererShape): Boolean;
     Pass non-nil Tangents if VBO should have tangent data,
     pass nil Tangents if VBO should not have it. }
   function FastCoordinateNormalUpdate(const Cache: TShapeCache;
-    const Coords, Normals, Tangents: TVector3List): Boolean;
+    const Coords, Normals: TVector3List;
+    const Tangents: TVector4List): Boolean;
   var
     NewCoordinates, NewCoord: Pointer;
     Count, Size, ItemSize: Cardinal;
@@ -109,7 +110,7 @@ function FastUpdateArrays(const Shape: TX3DRendererShape): Boolean;
 
       ItemSize := SizeOf(TVector3) * 2;
       if Tangents <> nil then
-        ItemSize := ItemSize + SizeOf(TVector3);
+        ItemSize := ItemSize + SizeOf(TVector4);
       Size := Count * ItemSize;
 
       if (Cache.VboAllocatedUsage = GL_STREAM_DRAW) and
@@ -140,8 +141,8 @@ function FastUpdateArrays(const Shape: TX3DRendererShape): Boolean;
                 PVector3(NewCoord)^ := Normals.L[I];
                 PtrUInt(NewCoord) := PtrUInt(NewCoord) + SizeOf(TVector3);
 
-                PVector3(NewCoord)^ := Tangents.L[I];
-                PtrUInt(NewCoord) := PtrUInt(NewCoord) + SizeOf(TVector3);
+                PVector4(NewCoord)^ := Tangents.L[I];
+                PtrUInt(NewCoord) := PtrUInt(NewCoord) + SizeOf(TVector4);
               end;
             end else
             begin
@@ -156,7 +157,7 @@ function FastUpdateArrays(const Shape: TX3DRendererShape): Boolean;
             end;
 
             // load NewCoordinates to GPU
-            glBindBuffer(GL_ARRAY_BUFFER, Cache.Vbo[vtCoordinate]);
+            RenderContext.BindBuffer[btArray] := Cache.Vbo[vtCoordinate];
             glBufferSubData(GL_ARRAY_BUFFER, 0, Size, NewCoordinates);
           finally FreeMemNiling(NewCoordinates) end;
         end;
@@ -166,7 +167,8 @@ function FastUpdateArrays(const Shape: TX3DRendererShape): Boolean;
 
 var
   Cache: TShapeCache;
-  Coords, Normals, Tangents: TVector3List;
+  Coords, Normals: TVector3List;
+  Tangents: TVector4List;
 begin
   Result := false;
 
@@ -179,7 +181,7 @@ begin
   { When VBO of coordinates is 0 then
     - VBOs not supported (ancient GPU) -> we need to really update Arrays contents each time
     - or VBO of coordinates was not initialized yet }
-  if Cache.Vbo[vtCoordinate] = 0 then
+  if Cache.Vbo[vtCoordinate] = GLObjectNone then
     Exit;
   if Cache.Arrays = nil then // not initialized yet
     Exit;

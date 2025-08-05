@@ -1,5 +1,5 @@
 ﻿{
-  Copyright 2022-2024 Andrzej Kilijański, Dean Zobec, Michael Van Canneyt, Michalis Kamburelis.
+  Copyright 2022-2025 Andrzej Kilijański, Dean Zobec, Michael Van Canneyt, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -40,7 +40,9 @@ const
   DoubleEpsilon = 1E-12;
 
 type
-
+  { One of the assertions (from TCastleTestCase.AssertXxx methods) failed.
+    Do not confuse this with EAssertionFailed, raised when standard Pascal
+    Assert failed. }
   EAssertionFailedError = class(Exception);
 
   TNotifyTestFail = procedure (const TestName, Msg: String) of object;
@@ -57,6 +59,8 @@ type
   TCastleTestCase = class;
   {$M-}
 
+  { A single TestXxx method that can be executed to perform a test.
+    This refers to TestCase (TCastleTestCase) which is a class holding this method. }
   TCastleTest = class
   strict private
     FTestCase: TCastleTestCase;
@@ -88,6 +92,14 @@ type
   end;
 
   {$M+} // Generate type info for TCastleTestCase and descendants
+
+  { Base class from which you should derive new tests.
+
+    Every published method of this class that starts with the name "Test"
+    will be executed.
+
+    The Setup and Teardown will be called around it, for every such "TestXxx"
+    call. }
   TCastleTestCase = class
   strict private
     FName: String;
@@ -102,11 +114,6 @@ type
     FCurrentTestName: String;
 
     FWindowForTest: TCastleWindow;
-    { Viewport from Application.MainWindow in non-console mode,
-      or viewport from FWindowForViewportTest when Console Mode. }
-    FViewportForTest: TCastleViewport;
-    { Window for Viewport when tester in Console mode }
-    FWindowForViewportTest: TCastleWindow;
     { TCastleTester that runs test case }
     FCastleTester: TCastleTester;
 
@@ -176,10 +183,18 @@ type
       const Epsilon: Single; AddrOfError: Pointer = nil); overload;
 
     { Check that 3D planes (defined by equation Ax+By+Cz+D=0) are equal.
-      The vectors must be a component-wise multiplication of each other. }
+      The vectors must be a component-wise multiplication of each other.
+
+      @param(CheckEqualDirection
+        The plane direction (ABC) must point in the same direction
+        (because our planes in practice often determine a half-space,
+        not only a plane, so their direction matters).
+      ) }
     procedure AssertPlaneEquals(const Expected, Actual: TVector4;
+      const CheckEqualDirection: Boolean;
       const Epsilon: Single; AddrOfError: Pointer = nil); overload;
     procedure AssertPlaneEquals(const Expected, Actual: TVector4;
+      const CheckEqualDirection: Boolean;
       AddrOfError: Pointer = nil); overload;
 
     { TODO: Need to have different names to avoid FPC errors "duplicate ASM label",
@@ -218,6 +233,8 @@ type
     procedure AssertRectsEqual(const Expected, Actual: TFloatRectangle;
       AddrOfError: Pointer = nil); overload;
 
+    procedure AssertFrustumNormalized(const F: TFrustum);
+
     procedure AssertFrustumEquals(const Expected, Actual: TFrustum;
       const Epsilon: Single; AddrOfError: Pointer = nil); overload;
     procedure AssertFrustumEquals(const Expected, Actual: TFrustum;
@@ -225,8 +242,17 @@ type
 
     function CompareFileName(Expected, Actual: String): Boolean;
 
-    { Get temporary directory, implementation that works for both Delphi and FPC. }
+    { Get temporary directory.
+      This is a simplest wrapper over the respective FPC / Delphi functions. }
     function GetTempDirectory: String;
+
+    { Create an URL to an existing temporary directory.
+
+      - Determines temporary directory using GetTempDirectory
+      - Adds subdirectory based on SubDirBaseName and random number
+      - Actually creates it using ForceDirectories
+      - Returns URL (not just a filename) of it. }
+    function CreateTemporaryDirUrl(const SubDirBaseName: String): String;
 
     procedure TestLog(Text: String);
 
@@ -245,10 +271,6 @@ type
       because the window will be automatically freed when test method ends anyway. }
     procedure DestroyWindowForTest(var Window: TCastleWindow);
 
-    { If you need a TCastleViewport for testing, you can use this one.
-      This viewport is automatically cleaned when test method ends. }
-    //function GetTestingViewport: TCastleViewport;
-
     { Used by TCastleTester.Scan to add tests }
     function AddTest(const AName: String;
       {$ifdef FPC}const AMethodPointer: CodePointer{$else}
@@ -258,7 +280,8 @@ type
 
       In case you do manually TCastleWindow.Create call,
       you should also honour this method, do not create TCastleWindow instance
-      when this is @false. Abort the test (without any failure) in this case.
+      when this is @false. Abort the test (without any failure) in this case,
+      preferably by @code(AbortTest; Exit;).
 
       All test windows should be created using CreateWindowForTest now,
       and CreateWindowForTest will actually raise exception if this is true.
@@ -266,7 +289,28 @@ type
       This is @false on mobile or when run with --no-window-create . }
     function CanCreateWindowForTest: Boolean;
 
-    { Clears test list }
+    { Are standard files and filesystem things working, so we can use:
+
+      - standard TFileStream, FileExists, DirectoryExists
+
+      - engine's UriToFilenameSafe / FilenameToUriSafe work (return
+        useful filenames).
+
+      - GetTempDirectory, CreateTemporaryDirUrl work.
+
+      Possibly in the future CreateTemporaryDirUrl can work regardless of this,
+      using subdir in castle-config:/ . }
+    function CanUseFileSystem: Boolean;
+
+    { Can catch exceptions on this platform.
+      Shortcut for @code(ApplicationProperties.CanCatchExceptions). }
+    function CanCatchExceptions: Boolean;
+
+    { Can we use (read and write) castle-config:/ .
+      Not possible in Docker now, where we cannot create /.config/... }
+    function CanUseCastleConfig: Boolean;
+
+    { Clears test list. }
     procedure ClearTests;
 
     function TestCount: Integer;
@@ -276,8 +320,11 @@ type
 
     property CurrentTestName: String read FCurrentTestName;
 
-  published
-
+    { Call this when aborting the test, because for some reason it cannot
+      be performed on the given platform.
+      Should be followed by early @code(Exit) from the given testcase,
+      without any error. }
+    procedure AbortTest;
   end;
   {$M-}
 
@@ -316,8 +363,9 @@ type
 
     procedure SetTestPassedCount(const NewTestCount: Integer);
     procedure SetTestFailedCount(const NewTestCount: Integer);
-
   private
+    FTestAbortedCount: Integer;
+
     { Callbacks to change UI }
     FNotifyTestExecuted: TNotifyTestExecuted;
     FNotifyTestCaseExecuted: TNotifyTestCaseExecuted;
@@ -358,6 +406,10 @@ type
       which is nice to let FPC print backtrace of exception to console,
       if outside code will just let unhandled exception to break the program.
 
+      Note that for platforms where ApplicationProperties.CanCatchExceptions=@false
+      the behavior is always as if this was @true .
+      We always crash the testsuite at first fail then.
+
       Default @true is suitable for console version. }
     property StopOnFirstFail: Boolean read FStopOnFirstFail
       write FStopOnFirstFail default true;
@@ -367,6 +419,11 @@ type
       write SetTestPassedCount;
     property TestFailedCount: Integer read FTestFailedCount
       write SetTestFailedCount;
+
+    { Number of tests aborted (because for some reason that could not be performed
+      on the given platform) in the last run.
+      These are also included @link(TestPassedCount). }
+    property TestAbortedCount: Integer read FTestAbortedCount;
 
     property NotifyTestExecuted: TNotifyTestExecuted read FNotifyTestExecuted
       write FNotifyTestExecuted;
@@ -415,8 +472,10 @@ function CompareMemDebug(const P1, P2: Pointer; const Size: Integer): Boolean;
 
 implementation
 
-uses TypInfo, Math, {$ifdef FPC}testutils,{$else}IOUtils,{$endif} StrUtils,
-  CastleLog, CastleUtils, CastleStringUtils, CastleTesterParameters;
+uses TypInfo, Math,
+  {$ifdef FPC} TestUtils, {$else} IOUtils, {$endif} StrUtils,
+  CastleLog, CastleUtils, CastleStringUtils, CastleTesterParameters,
+  CastleFilesUtils, CastleUriUtils, CastleApplicationProperties;
 
 { routines ------------------------------------------------------------------- }
 
@@ -491,6 +550,27 @@ begin
 end;
 
 procedure TCastleTester.PrepareTestListToRun(const ATestCaseName: String);
+
+  { Randomize order on L.
+
+    Why? On the web it is useful, because recompiling on the web takes
+    a long time and often crashes after even a simplest code change
+    (so each recompilation starts from scratch).
+    So to find various failing tests, it is helpful to run in various orders
+    from a single build.
+
+    Randomizing is simplest for this. }
+  procedure RandomPermutation(const L: {$ifdef FPC}specialize{$endif} TList<TCastleTest>);
+  var
+    I, J: Integer;
+  begin
+    for I := 0 to L.Count - 1 do
+    begin
+      J := RandomIntRange(I, L.Count - 1);
+      L.Exchange(I, J);
+    end;
+  end;
+
 var
   I, J: Integer;
   TestCase: TCastleTestCase;
@@ -519,8 +599,14 @@ begin
     end;
   end;
 
+  // Hack useful to test various testcases, when multiple may fail, with web
+  {$ifdef WASI}
+  // RandomPermutation(FTestsToRun);
+  {$endif}
+
   TestPassedCount := 0;
   TestFailedCount := 0;
+  FTestAbortedCount := 0;
   if Assigned(FNotifyEnabledTestCountChanged) then
     NotifyEnabledTestCountChanged(Self);
 end;
@@ -869,6 +955,30 @@ begin
   AssertTrue(CompareMem     (Expected.RawPixels, Actual.RawPixels, Expected.Size));
 end;
 
+procedure TCastleTestCase.AssertFrustumNormalized(const F: TFrustum);
+
+  procedure AssertPlaneNormalized(const P: TVector4);
+  var
+    PDir: TVector3 absolute P;
+  begin
+    if not SameValue(PDir.Length, 1.0, SingleEpsilon) then
+      Fail('Plane is not normalized (frustum planes have to be normalized): ' + P.ToString);
+  end;
+
+var
+  I: TFrustumPlane;
+begin
+  if F.FarInfinity then
+  begin
+    for I := Low(I) to Pred(High(I)) do
+      AssertPlaneNormalized(F.Planes[I]);
+  end else
+  begin
+    for I := Low(I) to High(I) do
+      AssertPlaneNormalized(F.Planes[I]);
+  end;
+end;
+
 procedure TCastleTestCase.AssertFrustumEquals(const Expected, Actual: TFrustum;
   const Epsilon: Single; AddrOfError: Pointer);
 var
@@ -877,17 +987,21 @@ begin
   if AddrOfError = nil then
     AddrOfError := {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif};
 
+  // by the way, check frustums have normalized planes
+  AssertFrustumNormalized(Expected);
+  AssertFrustumNormalized(Actual);
+
   try
     AssertEquals(Expected.FarInfinity, Actual.FarInfinity);
 
     if Expected.FarInfinity then
     begin
       for I := Low(I) to Pred(High(I)) do
-        AssertPlaneEquals(Expected.Planes[I], Actual.Planes[I], Epsilon);
+        AssertPlaneEquals(Expected.Planes[I], Actual.Planes[I], true, Epsilon);
     end else
     begin
       for I := Low(I) to High(I) do
-        AssertPlaneEquals(Expected.Planes[I], Actual.Planes[I], Epsilon);
+        AssertPlaneEquals(Expected.Planes[I], Actual.Planes[I], true, Epsilon);
     end;
   except
     on E: Exception do
@@ -941,11 +1055,12 @@ begin
 end;
 
 procedure TCastleTestCase.AssertPlaneEquals(const Expected, Actual: TVector4;
+  const CheckEqualDirection: Boolean;
   AddrOfError: Pointer);
 begin
   if AddrOfError = nil then
     AddrOfError := {$ifdef FPC}get_caller_addr(get_frame){$else}ReturnAddress{$endif};
-  AssertPlaneEquals(Expected, Actual, SingleEpsilon, AddrOfError);
+  AssertPlaneEquals(Expected, Actual, CheckEqualDirection, SingleEpsilon, AddrOfError);
 end;
 
 procedure TCastleTestCase.AssertVectorEqualsDouble(const Expected,
@@ -1051,7 +1166,17 @@ begin
 end;
 
 procedure TCastleTestCase.AssertPlaneEquals(const Expected, Actual: TVector4;
+  const CheckEqualDirection: Boolean;
   const Epsilon: Single; AddrOfError: Pointer);
+
+  function VectorsDifference(const V1, V2: TVector4): Single;
+  var
+    I: Integer;
+  begin
+    I := MaxAbsVectorCoord(V1 - V2);
+    Result := Abs(V1[I] - V2[I]);
+  end;
+
 var
   MaxE, MaxA: Integer;
 begin
@@ -1078,16 +1203,23 @@ begin
     Fail(Format('Planes (TVector4) are not equal, one of them has zero maximum component, the other not. Expected: %s, actual: %s',
       [Expected.ToRawString, Actual.ToRawString]), AddrOfError);
   end else
+  if CheckEqualDirection and
+     ((Expected[MaxE] >= 0) <> (Actual[MaxA] >= 0)) then
+  begin
+    Fail(Format('Planes (TVector4) are not equal, point in different directions (this matters e.g. for frustum calculations). Expected: %s, actual: %s',
+      [Expected.ToRawString, Actual.ToRawString]), AddrOfError);
+  end else
   begin
     if not TVector4.Equals(
       Expected,
       Actual * (Expected[MaxE] / Actual[MaxA]),
       Epsilon
     ) then
-      Fail(Format('Planes (TVector4) are not equal, they are not multiplied version of each other. Expected: %s, actual: %s. After trying to bring them closer, actual is %s', [
+      Fail(Format('Planes (TVector4) are not equal, they are not multiplied version of each other. Expected: %s, actual: %s. After trying to bring them closer, actual is %s, max difference %f', [
         Expected.ToRawString,
         Actual.ToRawString,
-        (Actual * (Expected[MaxE] / Actual[MaxA])).ToRawString
+        (Actual * (Expected[MaxE] / Actual[MaxA])).ToRawString,
+        VectorsDifference(Expected, Actual * (Expected[MaxE] / Actual[MaxA]))
       ]), AddrOfError);
   end;
 end;
@@ -1312,30 +1444,52 @@ begin
   {$endif}
 end;
 
+function TCastleTestCase.CreateTemporaryDirUrl(const SubDirBaseName: String): String;
+var
+  Base: String;
+begin
+  if not CanUseFileSystem then
+    raise Exception.Create('Cannot create temporary directory on this system, because CanUseFileSystem=false');
+
+  Base := GetTempDirectory;
+  Result := InclPathDelim(
+    InclPathDelim(Base) + SubDirBaseName + '-' + IntToStr(Random(1000000)));
+  CheckForceDirectories(Result);
+  Result := FilenameToUriSafe(Result);
+  WritelnLog('Created temporary directory: ', Result);
+end;
+
 function TCastleTestCase.GetTest(const Index: Integer): TCastleTest;
 begin
   Result := FTestList[Index];
 end;
 
-{ TODO:
-function TCastleTestCase.GetTestingViewport: TCastleViewport;
-begin
-  raise Exception.Create('Not implemented');
-end;
-}
-
 function TCastleTestCase.CanCreateWindowForTest: Boolean;
 begin
   Result :=
-    {$if defined(ANDROID) or
-         defined(iPHONESIM) or
-         defined(iOS) or
-         defined(CASTLE_NINTENDO_SWITCH)}
-      // On these platforms, we cannot create a window, so we cannot test
-      false
-    {$else}
-      not ParamNoWindowCreate
-    {$endif};
+    { On some platforms, we cannot create arbitrary number of independent
+      windows (TCastleWindow instances). }
+    Application.MultipleWindowsPossible and
+    (not ParamNoWindowCreate);
+end;
+
+function TCastleTestCase.CanUseFileSystem: Boolean;
+begin
+  { On the web, right now, our resources do not map to regular "files / dirs"
+    as checked by FPC FileExists, DirectoryExists. }
+  Result := {$ifdef WASI} false {$else} true {$endif};
+end;
+
+function TCastleTestCase.CanCatchExceptions: Boolean;
+begin
+  Result := ApplicationProperties.CanCatchExceptions;
+end;
+
+function TCastleTestCase.CanUseCastleConfig: Boolean;
+begin
+  { Detect when we're inside Docker in CI, without proper writeable $HOME,
+    and castle-config:/ maps to /.config/ }
+  Result := UriToFilenameSafe('castle-config:/') <> '/.config/';
 end;
 
 procedure TCastleTestCase.OnWarningRaiseException(const Category, S: string);
@@ -1442,11 +1596,16 @@ begin
     ' Actual: ' + IntToStr(Actual), Expected = Actual, AddrOfError);
 end;
 
-{ TCastleTest }
+procedure TCastleTestCase.AbortTest;
+begin
+  Inc(FCastleTester.FTestAbortedCount);
+end;
+
+{ TCastleTest ---------------------------------------------------------------- }
 
 constructor TCastleTest.Create(const ATestCase: TCastleTestCase;
   const AName: String; {$ifdef FPC}const AMethodPointer: CodePointer{$else}
-      const ARttiMethod: TRttiMethod{$endif});
+  const ARttiMethod: TRttiMethod{$endif});
 begin
   FTestCase := ATestCase;
   Name := AName;

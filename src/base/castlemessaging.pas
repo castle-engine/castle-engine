@@ -1,5 +1,5 @@
 {
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -23,7 +23,10 @@ unit CastleMessaging;
 interface
 
 uses
-  {$ifdef ANDROID} JNI, SyncObjs, {$endif}
+  {$ifdef ANDROID}
+    {$ifdef FPC} JNI, {$else} AndroidApi.Jni, {$endif}
+    SyncObjs,
+  {$endif}
   {$ifdef CASTLE_IOS} CTypes, {$endif}
   Generics.Collections, Classes,
   CastleStringUtils, CastleTimeUtils;
@@ -116,8 +119,21 @@ type
   end;
 
 {$ifdef ANDROID}
+
+// type aliases to make Delphi AndroidApi.Jni similar to FPC JNI types
+{$ifndef FPC}
+type
+  JObject = JniObject;
+  JString = JniString;
+  JByteArray = JniByteArray;
+  JByte = JniByte;
+  PJByte = PJniByte;
+  JBoolean = JniBoolean;
+  JSize = JniSize;
+{$endif}
+
 { Export this function from your Android library. }
-function Java_net_sourceforge_castleengine_MainActivity_jniMessage(
+function Java_io_castleengine_MainActivity_jniMessage(
   Env: PJNIEnv; This: jobject;
   MessageToPascal: jstring;
   MessageToPascalStream: jbyteArray): jstring; cdecl;
@@ -355,7 +371,7 @@ end;
 { Android specific ----------------------------------------------------------- }
 
 {$ifdef ANDROID}
-function Java_net_sourceforge_castleengine_MainActivity_jniMessage(
+function Java_io_castleengine_MainActivity_jniMessage(
   Env: PJNIEnv; This: jobject;
   MessageToPascal: jstring;
   MessageToPascalStream: jbyteArray): jstring; cdecl;
@@ -364,13 +380,13 @@ function Java_net_sourceforge_castleengine_MainActivity_jniMessage(
   function GetBinaryDataStream(const BytesObject: jbyteArray): TMemoryStream;
   var
     Bytes: PJByte;
-    Dummy: JBoolean;
+    DummyIsCopy: JBoolean;
     Len: JSize;
   begin
     { See https://docs.oracle.com/javase/8/docs/technotes/guides/jni/spec/functions.html
       about JNI functions meaning. }
     Len := Env^^.GetArrayLength(Env, BytesObject);
-    Bytes := Env^^.GetByteArrayElements(Env, BytesObject, Dummy);
+    Bytes := Env^^.GetByteArrayElements(Env, BytesObject, {$ifndef FPC}@{$endif} DummyIsCopy);
     try
       Result := TMemoryStream.Create;
       if Len <> 0 then
@@ -379,9 +395,10 @@ function Java_net_sourceforge_castleengine_MainActivity_jniMessage(
   end;
 
 var
-  MessageToPascalStr: PChar;
+  MessageToPascalStr: PAnsiChar;
   Dummy: JBoolean;
   Stream: TObject;
+  MessageFromPascalAnsi: AnsiString;
 begin
   { As this may be called from different thread, secure from being called
     in weird state. }
@@ -394,7 +411,8 @@ begin
     try
       if FMessaging.FromPascal.Count <> 0 then
       begin
-        Result := Env^^.NewStringUTF(Env, PChar(FMessaging.FromPascal[0]));
+        MessageFromPascalAnsi := FMessaging.FromPascal[0];
+        Result := Env^^.NewStringUTF(Env, PAnsiChar(MessageFromPascalAnsi));
         FMessaging.FromPascal.Delete(0);
       end else
         Result := Env^^.NewStringUTF(Env, nil);
@@ -415,7 +433,8 @@ begin
         finally Env^^.ReleaseStringUTFChars(Env, MessageToPascal, MessageToPascalStr) end;
       end;
     finally FMessaging.JavaCommunicationCS.Release end;
-  end;
+  end else
+    Result := Env^^.NewStringUTF(Env, nil);
 end;
 {$endif ANDROID}
 

@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2023 Michalis Kamburelis.
+  Copyright 2010-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -79,16 +79,16 @@ type
         ScreenEffectRTT is non-nil.
         Also, ScreenEffectTextureWidth/Height indicate size of the texture,
         as well as ScreenEffectRTT.Width/Height. }
-      ScreenEffectTextureDest, ScreenEffectTextureSrc: TGLuint;
+      ScreenEffectTextureDest, ScreenEffectTextureSrc: TGLTexture;
       ScreenEffectTextureTarget: TGLenum;
-      ScreenEffectTextureDepth: TGLuint;
+      ScreenEffectTextureDepth: TGLTexture;
       ScreenEffectRTT: TGLRenderToTexture;
       ScreenEffectTextureWidth: Cardinal;
       ScreenEffectTextureHeight: Cardinal;
       { Saved ScreenEffectsCount/NeedDepth result, during rendering. }
       CurrentScreenEffectsCount: Integer;
       CurrentScreenEffectsNeedDepth: boolean;
-      ScreenPointVbo: TGLuint;
+      ScreenPointVbo: TGLBuffer;
       ScreenPointVao: TVertexArrayObject;
       ScreenPoint: packed array [0..3] of TScreenPoint;
 
@@ -167,12 +167,12 @@ type
       automatically at our destructor (if you call AddScreenEffect
       and do not call RemoveScreenEffect on it),
       or at RemoveScreenEffect call.
-      If you don't want this, use @link(TX3DNode.KeepExistingBegin)
+      If you don't want this, use @link(TX3DNode.WaitForRelease)
       to manage the node destruction yourself.
 
-      Note that the given Node should not be used by other TCastlScene instances.
-      In general, a node should not be present in more than one TCastlScene instance,
-      and we already insert the node into an internal TCastlScene instance.
+      Note that the given Node should not be used by other TCastleScene instances.
+      In general, a node should not be present in more than one TCastleScene instance,
+      and we already insert the node into an internal TCastleScene instance.
       Use TX3DNode.DeepCopy if necessary to duplicate node into multiple scenes.
 
       Note that you can enable/disable the effect using @link(TScreenEffectNode.Enabled),
@@ -211,8 +211,19 @@ type
 
 implementation
 
-uses CastleUtils, CastleLog, CastleRenderContext, CastleInternalGLUtils,
+uses
+  {$ifdef WASI} Job.Js, {$endif}
+  CastleUtils, CastleLog, CastleRenderContext, CastleInternalGLUtils,
   CastleApplicationProperties, CastleInternalScreenEffects;
+
+procedure SwapValues(var A, B: TGLTexture);
+var
+  Tmp: TGLTexture;
+begin
+  Tmp := A;
+  A := B;
+  B := Tmp;
+end;
 
 { TCastleScreenEffects ------------------------------------------------------- }
 
@@ -388,7 +399,7 @@ var
 
   { Create and setup new OpenGL texture for screen effects.
     Depends on ScreenEffectTextureWidth, ScreenEffectTextureHeight being set. }
-  function CreateScreenEffectTexture(const Depth: boolean): TGLuint;
+  function CreateScreenEffectTexture(const Depth: boolean): TGLTexture;
 
     { Create new OpenGL texture for screen effect.
       Calls glTexImage2D or glTexImage2DMultisample
@@ -427,11 +438,12 @@ var
       {$endif}
         glTexImage2D(ScreenEffectTextureTarget, 0, InternalFormat,
           ScreenEffectTextureWidth,
-          ScreenEffectTextureHeight, 0, Format, AType, nil);
+          ScreenEffectTextureHeight, 0, Format, AType,
+          {$ifdef CASTLE_WEBGL} IJSArrayBufferView {$endif} (nil));
     end;
 
   begin
-    glGenTextures(1, @Result);
+    Result := glCreateTexture();
     glBindTexture(ScreenEffectTextureTarget, Result);
     {$ifndef OpenGLES}
     { for multisample texture, these cannot be configured (OpenGL makes
@@ -472,16 +484,16 @@ var
   procedure BeginRenderingToTexture;
   begin
     { We need a temporary texture, for screen effect. }
-    if (ScreenEffectTextureDest = 0) or
-       (ScreenEffectTextureSrc = 0) or
-       (CurrentScreenEffectsNeedDepth <> (ScreenEffectTextureDepth <> 0)) or
+    if (ScreenEffectTextureDest = GLObjectNone) or
+       (ScreenEffectTextureSrc = GLObjectNone) or
+       (CurrentScreenEffectsNeedDepth <> (ScreenEffectTextureDepth <> GLObjectNone)) or
        (ScreenEffectRTT = nil) or
        (ScreenEffectTextureWidth  <> SR.Width ) or
        (ScreenEffectTextureHeight <> SR.Height) then
     begin
-      glFreeTexture(ScreenEffectTextureDest);
-      glFreeTexture(ScreenEffectTextureSrc);
-      glFreeTexture(ScreenEffectTextureDepth);
+      FreeTexture(ScreenEffectTextureDest);
+      FreeTexture(ScreenEffectTextureSrc);
+      FreeTexture(ScreenEffectTextureDepth);
       FreeAndNil(ScreenEffectRTT);
 
       {$ifndef OpenGLES}
@@ -568,10 +580,10 @@ var
       BoundTextureUnits: Cardinal;
       AttribVertex, AttribTexCoord: TGLSLAttribute;
     begin
-      if ScreenPointVbo = 0 then
+      if ScreenPointVbo = GLObjectNone then
       begin
         { generate and fill ScreenPointVbo. It's contents are constant. }
-        glGenBuffers(1, @ScreenPointVbo);
+        ScreenPointVbo := glCreateBuffer();
         ScreenPoint[0].TexCoord := Vector2(0, 0);
         ScreenPoint[0].Position := Vector2(-1, -1);
         ScreenPoint[1].TexCoord := Vector2(1, 0);
@@ -580,7 +592,7 @@ var
         ScreenPoint[2].Position := Vector2( 1,  1);
         ScreenPoint[3].TexCoord := Vector2(0, 1);
         ScreenPoint[3].Position := Vector2(-1,  1);
-        glBindBuffer(GL_ARRAY_BUFFER, ScreenPointVbo);
+        RenderContext.BindBuffer[btArray] := ScreenPointVbo;
         glBufferData(GL_ARRAY_BUFFER, SizeOf(ScreenPoint), @(ScreenPoint[0]), GL_STATIC_DRAW);
       end;
 
@@ -590,7 +602,7 @@ var
       RenderContext.CurrentProgram := Shader;
       RenderContext.CurrentVao := ScreenPointVao;
 
-      glBindBuffer(GL_ARRAY_BUFFER, ScreenPointVbo);
+      RenderContext.BindBuffer[btArray] := ScreenPointVbo;
 
       glActiveTexture(GL_TEXTURE0); // GLFeatures.UseMultiTexturing is already checked
       glBindTexture(ScreenEffectTextureTarget, ScreenEffectTextureSrc);
@@ -629,7 +641,7 @@ var
 
       AttribVertex.DisableArray;
       AttribTexCoord.DisableArray;
-      glBindBuffer(GL_ARRAY_BUFFER, 0);
+      RenderContext.BindBuffer[btArray] := GLObjectNone;
     end;
 
   var
@@ -714,12 +726,12 @@ end;
 
 procedure TCastleScreenEffects.GLContextClose;
 begin
-  glFreeTexture(ScreenEffectTextureDest);
-  glFreeTexture(ScreenEffectTextureSrc);
-  glFreeTexture(ScreenEffectTextureDepth);
+  FreeTexture(ScreenEffectTextureDest);
+  FreeTexture(ScreenEffectTextureSrc);
+  FreeTexture(ScreenEffectTextureDepth);
   ScreenEffectTextureTarget := 0; //< clear, for safety
   FreeAndNil(ScreenEffectRTT);
-  glFreeBuffer(ScreenPointVbo);
+  FreeBuffer(ScreenPointVbo);
   FreeAndNil(ScreenPointVao);
   inherited;
 end;

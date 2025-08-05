@@ -100,9 +100,6 @@ begin
   MovingEnvCopy.Translation := MovingEnv.Translation + Vector3(0, MovingEnvSize, 0);
   MainViewport.Items.Add(MovingEnvCopy);
 
-  MovingEnv.InternalMovesPhysicsBodies := true;
-  MovingEnvCopy.InternalMovesPhysicsBodies := true;
-
   MovingEnvNextDistance := MovingEnvSize;
   MovingEnvNextTransform := MovingEnv;
 

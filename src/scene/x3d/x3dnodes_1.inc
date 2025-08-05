@@ -219,13 +219,14 @@
         procedure SetSpecularColor(const Value: TVector3); override;
         function GetEmissiveColor: TVector3; override;
         procedure SetEmissiveColor(const Value: TVector3); override;
+        function GetTransparency: Single; override;
+        procedure SetTransparency(const Value: Single); override;
       public
         constructor Create(ANode: TMaterialNode_1; const Index: Integer);
 
         function AmbientColor: TVector3; override;
         function Shininess: Single; override;
         function ReflectionColor: TVector3; override;
-        function Transparency: Single; override;
 
         function ReflSpecular: TVector3; override;
         function ReflDiffuse: TVector3; override;
@@ -234,6 +235,15 @@
 
         function ReflSpecularExp: Single; override;
         function TransSpecularExp: Single; override;
+
+        function MainTexture(
+          const Appearance: TAppearanceNode;
+          const VRML1State: TVRML1State): TAbstractTextureNode; overload; override;
+        function MainTexture(
+          const Appearance: TAppearanceNode;
+          const VRML1State: TVRML1State;
+          const GeometryForTexCoord: TAbstractGeometryNode;
+          out TexCoordIndex: Integer): TAbstractTextureNode; overload; override;
       end;
     var
       FMaterialInfo: array of TMaterialInfo_1;
@@ -246,11 +256,15 @@
       then emissiveColor should be used at the final color and shape
       should be unlit.
 
-      You should use the EmissiveColor4Single in this case. }
-    function PureEmissive: boolean;
+      You should use the EmissiveColor4Single in this case.
+
+      @seealso TMaterialNode.PureEmissive }
+    function PureEmissive: boolean; deprecated 'use X3D with TUnlitMaterialNode';
 
     { Force the material pure emissive (see @link(PureEmissive)) by setting
-      other colors to black. }
+      other colors to black.
+
+      @seealso TMaterialNode.ForcePureEmissive }
     procedure ForcePureEmissive; deprecated 'use X3D with TUnlitMaterialNode';
 
     { Material information based on this node.
@@ -785,7 +799,9 @@ begin
   FdAmbientColor .Count := 0; FdAmbientColor .Changed;
   FdDiffuseColor .Count := 0; FdDiffuseColor .Changed;
   FdSpecularColor.Count := 0; FdSpecularColor.Changed;
+  {$warnings off} // using deprecated in deprecated
   Assert(PureEmissive);
+  {$warnings on}
 end;
 
 function TMaterialNode_1.MaterialInfo(const AIndex: Integer): TPhongMaterialInfo;
@@ -890,7 +906,7 @@ begin
   Result := Vector3(M, M, M);
 end;
 
-function TMaterialNode_1.TMaterialInfo_1.Transparency: Single;
+function TMaterialNode_1.TMaterialInfo_1.GetTransparency: Single;
 var
   A: TSingleList;
 begin
@@ -899,6 +915,11 @@ begin
     Result := TMaterialInfo.DefaultTransparency
   else
     Result := A.L[Min(FIndex, A.Count - 1)];
+end;
+
+procedure TMaterialNode_1.TMaterialInfo_1.SetTransparency(const Value: Single);
+begin
+  FNode.FdTransparency.Send([Value]);
 end;
 
 function TMaterialNode_1.TMaterialInfo_1.ReflSpecular: TVector3;
@@ -965,6 +986,23 @@ begin
     Result := inherited
   else
     Result := A.L[Min(FIndex, A.Count - 1)];
+end;
+
+function TMaterialNode_1.TMaterialInfo_1.MainTexture(
+  const Appearance: TAppearanceNode;
+  const VRML1State: TVRML1State): TAbstractTextureNode;
+begin
+  Result := VRML1State.Texture2;
+end;
+
+function TMaterialNode_1.TMaterialInfo_1.MainTexture(
+  const Appearance: TAppearanceNode;
+  const VRML1State: TVRML1State;
+  const GeometryForTexCoord: TAbstractGeometryNode;
+  out TexCoordIndex: Integer): TAbstractTextureNode;
+begin
+  TexCoordIndex := -1;
+  Result := VRML1State.Texture2;
 end;
 
 { TTexture2Node_1 ------------------------------------------------------------ }

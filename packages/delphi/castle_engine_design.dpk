@@ -38,6 +38,9 @@ requires
   castle_engine_fmx;
 
 contains
-  castleinternaldelphidesign in '..\..\src\delphi\castleinternaldelphidesign.pas';
+  castleinternaldelphidesign in '..\..\src\delphi\castleinternaldelphidesign.pas',
+  castleinternaltools in '..\..\src\files\tools\castleinternaltools.pas',
+  castleinternalprojectlocalsettings in '..\..\src\files\tools\castleinternalprojectlocalsettings.pas',
+  castleinternalarchitectures in '..\..\src\files\tools\castleinternalarchitectures.pas';
 
 end.

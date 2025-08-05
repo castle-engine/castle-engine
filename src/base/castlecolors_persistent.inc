@@ -1,3 +1,4 @@
+{%MainUnit castlecolors.pas}
 {
   Copyright 2018-2022 Michalis Kamburelis.
 
@@ -273,9 +274,9 @@ end;
 
 function TCastleColorRGBPersistent.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'Red') or
-     (PropertyName = 'Green') or
-     (PropertyName = 'Blue') then
+  if ArrayContainsString(PropertyName, [
+       'Red', 'Green', 'Blue'
+       ]) then
     Result := [psBasic, psLayout]
   else
     Result := inherited PropertySections(PropertyName);
@@ -432,10 +433,9 @@ end;
 
 function TCastleColorPersistent.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'Red') or
-     (PropertyName = 'Green') or
-     (PropertyName = 'Blue') or
-     (PropertyName = 'Alpha') then
+  if ArrayContainsString(PropertyName, [
+       'Red', 'Green', 'Blue', 'Alpha'
+       ]) then
     Result := [psBasic, psLayout]
   else
     Result := inherited PropertySections(PropertyName);

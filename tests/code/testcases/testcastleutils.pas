@@ -55,6 +55,7 @@ type
     procedure TestDecimalSeparator;
     procedure TestFloatToStrDisplay;
     procedure TestDeg;
+    procedure TestFastList;
   end;
 
 implementation
@@ -165,8 +166,11 @@ procedure TTestCastleUtils.TestCheckIsMemCharFilled;
       WritelnLog(
         SpeedTest_FasterName + ' is faster than ' +
         SpeedTest_SlowerName + ' by ' +
-        Format('%f', [(SpeedTest_Time2-SpeedTest_Time0)/
-                      (SpeedTest_Time1-SpeedTest_Time0)]));
+        FloatToStrDisplay(
+          (SpeedTest_Time2-SpeedTest_Time0)/
+          (SpeedTest_Time1-SpeedTest_Time0)
+        )
+      );
 
     finally FreeMem(pa) end;
   end;
@@ -249,29 +253,31 @@ begin
 end;
 
 procedure TTestCastleUtils.TestPathDelim;
-{$ifdef UNIX}
+{$if defined(UNIX) or defined(WASI)}
 begin
- AssertTrue(InclPathDelim('/c/blah/') = '/c/blah/');
- AssertTrue(InclPathDelim('/c/blah' ) = '/c/blah/');
- AssertTrue(ExclPathDelim('/c/blah/') = '/c/blah' );
- AssertTrue(ExclPathDelim('/c/blah' ) = '/c/blah' );
+  // WASI also uses / as path delimiter, following FPC rtl/wasi/system.pp
+  AssertTrue(InclPathDelim('/c/blah/') = '/c/blah/');
+  AssertTrue(InclPathDelim('/c/blah' ) = '/c/blah/');
+  AssertTrue(ExclPathDelim('/c/blah/') = '/c/blah' );
+  AssertTrue(ExclPathDelim('/c/blah' ) = '/c/blah' );
 {$endif}
 {$ifdef MSWINDOWS}
 begin
- AssertTrue(InclPathDelim('c:\blah\') = 'c:\blah\');
- AssertTrue(InclPathDelim('c:\blah' ) = 'c:\blah\');
- AssertTrue(ExclPathDelim('c:\blah\') = 'c:\blah' );
- AssertTrue(ExclPathDelim('c:\blah' ) = 'c:\blah' );
+  AssertTrue(InclPathDelim('c:\blah\') = 'c:\blah\');
+  AssertTrue(InclPathDelim('c:\blah' ) = 'c:\blah\');
+  AssertTrue(ExclPathDelim('c:\blah\') = 'c:\blah' );
+  AssertTrue(ExclPathDelim('c:\blah' ) = 'c:\blah' );
 
- AssertTrue(InclPathDelim('c:\blah/') = 'c:\blah/');
- AssertTrue(ExclPathDelim('c:\blah/') = 'c:\blah' );
+  AssertTrue(InclPathDelim('c:\blah/') = 'c:\blah/');
+  AssertTrue(ExclPathDelim('c:\blah/') = 'c:\blah' );
 {$endif}
 end;
 
 procedure TTestCastleUtils.TestOSError;
 begin
   // TODO: add some test for Delphi + Linux
-  {$if defined(MSWINDOWS) or defined(FPC)}
+  // TODO: web: add some test for WASI
+  {$if (defined(MSWINDOWS) or defined(FPC)) and (not defined(WASI))}
   try
     OSCheck(
       {$ifdef MSWINDOWS} Windows.MoveFile('some_not_existing_file_name', 'foo') {$endif}
@@ -705,15 +711,18 @@ begin
   AssertEquals('123', FloatToStrDisplay(123.000));
   AssertEquals('123.4', FloatToStrDisplay(123.400));
   AssertEquals('123.45', FloatToStrDisplay(123.450));
-  AssertEquals('123.46', FloatToStrDisplay(123.456));
+  AssertEquals('123.456', FloatToStrDisplay(123.456));
+  AssertEquals('123.46', FloatToStrDisplay(123.456, 2));
 
   AssertEquals('0', FloatToStrDisplay(0.000));
   AssertEquals('0.4', FloatToStrDisplay(0.400));
   AssertEquals('0.45', FloatToStrDisplay(0.450));
-  AssertEquals('0.46', FloatToStrDisplay(0.456));
+  AssertEquals('0.456', FloatToStrDisplay(0.456));
+  AssertEquals('0.46', FloatToStrDisplay(0.456, 2));
 
   AssertEquals('99.99', FloatToStrDisplay(99.99));
-  AssertEquals('100', FloatToStrDisplay(99.999));
+  AssertEquals('99.999', FloatToStrDisplay(99.999));
+  AssertEquals('100', FloatToStrDisplay(99.999, 2));
 end;
 
 procedure TTestCastleUtils.TestDeg;
@@ -721,6 +730,39 @@ begin
   AssertSameValue(0, Deg(0));
   AssertSameValue(pi/2, Deg(90));
   AssertSameValue(-pi/2, Deg(-90));
+end;
+
+type
+  TFastIntegerList = {$ifdef FPC}specialize{$endif} TCastleFastList<Integer>;
+
+procedure TTestCastleUtils.TestFastList;
+var
+  L: TFastIntegerList;
+begin
+  L := TFastIntegerList.Create;
+  try
+    L.Add(1);
+    L.Add(2);
+    L.Add(3);
+    AssertEquals(3, L.Count);
+    AssertEquals(1, L[0]);
+    AssertEquals(2, L[1]);
+    AssertEquals(3, L[2]);
+
+    L.Clear;
+    AssertEquals(0, L.Count);
+
+    L.Add(1);
+    L.Add(2);
+    L.Add(3);
+    AssertEquals(3, L.Count);
+    AssertEquals(1, L[0]);
+    AssertEquals(2, L[1]);
+    AssertEquals(3, L[2]);
+
+    L.ReleaseMemory;
+    AssertEquals(0, L.Count);
+  finally FreeAndNil(L) end;
 end;
 
 initialization

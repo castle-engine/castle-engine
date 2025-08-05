@@ -1,6 +1,6 @@
 {%MainUnit castleinternalrenderer.pas}
 {
-  Copyright 2002-2023 Michalis Kamburelis.
+  Copyright 2002-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -22,13 +22,6 @@
 {$ifdef read_interface}
 
 private
-  { Return OpenGL 2D texture initialized for given texture node.
-    If Node is nil, or it's corresponding OpenGL resource is not initialized
-    for whatever reason --- returns 0. }
-  function GLTexture2D(Node: TAbstractTextureNode;
-    out TextureHasAlpha: boolean): TGLTextureId; overload;
-  function GLTexture2D(Node: TAbstractTextureNode): TGLTextureId; overload;
-
   { If this Shape uses a normal map, use it for bump mapping. }
   procedure BumpMappingEnable(const Shape: TX3DRendererShape;
     const RenderOptions: TCastleRenderOptions;
@@ -40,89 +33,68 @@ private
 
   { Does this shape possibly use some texture that requires Phong shading.
     Decide before actually making any OpenGL operations. }
-  class function ShapeMaybeUsesSurfaceTexture(const Shape: TX3DRendererShape): boolean;
+  class function ShapeTextureForcesPhongShading(const Shape: TX3DRendererShape): boolean;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
-function TRenderer.GLTexture2D(Node: TAbstractTextureNode;
-  out TextureHasAlpha: boolean): TGLTextureId;
-var
-  TextureRes: TTextureResource;
-begin
-  Result := 0;
-  if Node <> nil then
-  begin
-    TextureRes := TTextureResources.Get(Node);
-    if TextureRes is T2DTextureResource then // also checks is TextureRes <> nil
-    begin
-      Result := T2DTextureResource(TextureRes).GLName;
-      TextureHasAlpha := Node.AlphaChannelFinal <> acNone;
-    end;
-  end;
-end;
-
-function TRenderer.GLTexture2D(Node: TAbstractTextureNode): TGLTextureId;
-var
-  IgnoreTextureHasAlpha: boolean;
-begin
-  Result := GLTexture2D(Node, IgnoreTextureHasAlpha);
-end;
-
-class function TRenderer.ShapeMaybeUsesSurfaceTexture(const Shape: TX3DRendererShape): boolean;
+class function TRenderer.ShapeTextureForcesPhongShading(const Shape: TX3DRendererShape): boolean;
 var
   SurfaceShader: TCommonSurfaceShaderNode;
   MatOne: TAbstractOneSidedMaterialNode;
   MatPhong: TMaterialNode;
   MatPhysical: TPhysicalMaterialNode;
+  App: TAppearanceNode;
 begin
   Result := false;
   if Shape.Node <> nil then
   begin
-    {$warnings off} // using deprecated to keep backward compatibility
-    SurfaceShader := Shape.Node.CommonSurfaceShader;
-    {$warnings on}
-    if SurfaceShader <> nil then
+    App := Shape.Node.Appearance;
+    if App <> nil then
     begin
-      Result :=
-        (SurfaceShader.AmbientTexture <> nil) or
-        (SurfaceShader.EmissiveTexture <> nil) or
-        (SurfaceShader.NormalTexture <> nil) or
-        (SurfaceShader.ShininessTexture <> nil) or
-        (SurfaceShader.SpecularTexture <> nil);
-    end else
-    if Shape.Node.Appearance <> nil then
-    begin
-      if Shape.Node.Appearance.NormalMap <> nil then
-        Exit(true);
-
-      if Shape.Node.Appearance.Material is TAbstractOneSidedMaterialNode then
+      SurfaceShader := App.InternalCommonSurfaceShader;
+      if SurfaceShader <> nil then
       begin
-        MatOne := TAbstractOneSidedMaterialNode(Shape.Node.Appearance.Material);
-        if (MatOne.EmissiveTexture <> nil) or
-           (MatOne.NormalTexture <> nil) then
-          Exit(true);
-      end;
-
-      if Shape.Node.Appearance.Material is TMaterialNode then
+        Result :=
+          (SurfaceShader.AmbientTexture <> nil) or
+          (SurfaceShader.EmissiveTexture <> nil) or
+          (SurfaceShader.NormalTexture <> nil) or
+          (SurfaceShader.ShininessTexture <> nil) or
+          (SurfaceShader.SpecularTexture <> nil);
+      end else
+      if App <> nil then
       begin
-        MatPhong := TMaterialNode(Shape.Node.Appearance.Material);
-        if (MatPhong.AmbientTexture <> nil) or
-           // (MatPhong.DiffuseTexture <> nil) or // this is OK for Gouraud shading
-           (MatPhong.ShininessTexture <> nil) or
-           (MatPhong.SpecularTexture <> nil) or
-           (MatPhong.OcclusionTexture <> nil) then
+        if App.NormalMap <> nil then
           Exit(true);
-      end;
 
-      if Shape.Node.Appearance.Material is TPhysicalMaterialNode then
-      begin
-        MatPhysical := TPhysicalMaterialNode(Shape.Node.Appearance.Material);
-        if // (MatPhysical.BaseTexture <> nil) or // this is OK for Gouraud shading? Actually PhysicalMaterial always requires Phong shading anyway.
-           (MatPhysical.MetallicRoughnessTexture <> nil) or
-           (MatPhysical.OcclusionTexture <> nil) then
-          Exit(true);
+        if App.Material is TAbstractOneSidedMaterialNode then
+        begin
+          MatOne := TAbstractOneSidedMaterialNode(App.Material);
+          if (MatOne.EmissiveTexture <> nil) or
+            (MatOne.NormalTexture <> nil) then
+            Exit(true);
+        end;
+
+        if App.Material is TMaterialNode then
+        begin
+          MatPhong := TMaterialNode(App.Material);
+          if (MatPhong.AmbientTexture <> nil) or
+            // (MatPhong.DiffuseTexture <> nil) or // this is OK for Gouraud shading
+            (MatPhong.ShininessTexture <> nil) or
+            (MatPhong.SpecularTexture <> nil) or
+            (MatPhong.OcclusionTexture <> nil) then
+            Exit(true);
+        end;
+
+        if App.Material is TPhysicalMaterialNode then
+        begin
+          MatPhysical := TPhysicalMaterialNode(App.Material);
+          if // (MatPhysical.BaseTexture <> nil) or // this is OK for Gouraud shading? Actually PhysicalMaterial always requires Phong shading anyway.
+            (MatPhysical.MetallicRoughnessTexture <> nil) or
+            (MatPhysical.OcclusionTexture <> nil) then
+            Exit(true);
+        end;
       end;
     end;
   end;
@@ -136,25 +108,29 @@ procedure TRenderer.BumpMappingEnable(const Shape: TX3DRendererShape;
     NormalTextureCoordinatesId: Integer;
     const NormalMapScale, ParallaxHeight: Single);
   var
-    GLNormalTexture: TGLTextureId;
+    NormalTextureResource: TTextureResource;
     { Does NormalTexture have alpha channel. }
     HasAlpha: boolean;
   begin
+    { Note: no need to check "NormalTexture <> nil" explicitly here,
+      TTextureResources.Get will return nil for it so the check
+      "NormalTextureResource <> nil" lower is enough. }
     if Shape.BumpMappingAllowed and
        (BumpMapping(RenderOptions) <> bmNone) and
        (ABoundTextureUnits < GLFeatures.MaxTextureUnits) then
     begin
-      GLNormalTexture := GLTexture2D(NormalTexture, HasAlpha);
-      if GLNormalTexture <> 0 then
+      NormalTextureResource := TTextureResources.Get(NormalTexture);
+      if (NormalTextureResource <> nil) and
+         NormalTextureResource.Bind(ABoundTextureUnits) then
       begin
         // fix NormalTextureCoordinatesId if needed
         NormalTextureCoordinatesId := Max(0, NormalTextureCoordinatesId);
 
+        HasAlpha := NormalTexture.AlphaChannelFinal <> acNone;
+
         Shape.BumpMappingUsed := true;
         Shape.BumpMappingTextureCoordinatesId := NormalTextureCoordinatesId;
 
-        ActiveTexture(ABoundTextureUnits);
-        glBindTexture(GL_TEXTURE_2D, GLNormalTexture);
         Shader.EnableBumpMapping(BumpMapping(RenderOptions), ABoundTextureUnits,
           NormalTextureCoordinatesId, NormalMapScale, HasAlpha, ParallaxHeight);
         Inc(ABoundTextureUnits);
@@ -175,11 +151,10 @@ var
   Appearance: TAppearanceNode;
   TexCoordIndex: Integer;
 begin
-  if Shape.State.ShapeNode <> nil then
+  Appearance := Shape.State.Appearance;
+  if Appearance <> nil then
   begin
-    {$warnings off} // using deprecated to keep backward compatibility
-    SurfaceShader := Shape.State.ShapeNode.CommonSurfaceShader;
-    {$warnings on}
+    SurfaceShader := Appearance.InternalCommonSurfaceShader;
     if SurfaceShader <> nil then
     begin
       Enable(
@@ -188,9 +163,7 @@ begin
         1,
         SurfaceShader.NormalTextureParallaxHeight);
     end else
-    if Shape.State.ShapeNode.Appearance <> nil then
     begin
-      Appearance := Shape.State.ShapeNode.Appearance;
       Mat := Appearance.Material;
       if (Mat is TAbstractOneSidedMaterialNode) and
          (TAbstractOneSidedMaterialNode(Mat).NormalTexture <> nil) then
@@ -224,25 +197,32 @@ procedure TRenderer.SurfaceTexturesEnable(const Shape: TX3DRendererShape;
     Shape.Geometry.FindTextureMapping(Mapping, Result, true);
   end;
 
+  { Enable a texture affecting specific material parameter.
+    We call it "surface texture" for consistency with CommonSurfaceShader
+    X3DOM node that originally introduced this idea to X3D. }
   procedure SurfaceTextureEnable(const SurfaceTexture: TSurfaceTexture;
-    const Texture: TAbstractTextureNode;
+    const TextureNode: TAbstractTextureNode;
     const TextureCoordinatesId: Integer;
-    const UniformTextureName, PlugCode: String);
+    const UniformTextureName: String);
   var
-    GLTextureId: TGLTextureId;
+    TextureResource: TTextureResource;
+    TextureType: TTextureType;
   begin
-    if (Texture <> nil) and
+    if (TextureNode <> nil) and
        (ABoundTextureUnits < GLFeatures.MaxTextureUnits) then
     begin
-      GLTextureId := GLTexture2D(Texture);
-      if GLTextureId <> 0 then
+      TextureResource := TTextureResources.Get(TextureNode);
+      if (TextureResource <> nil) and
+         // We have TextureType that fits in TTextureTypeSample for this
+         TextureResource.ShaderTextureType(TextureType) and
+         (TextureType >= Low(TTextureTypeSample)) and
+         (TextureType <= High(TTextureTypeSample)) and
+         // Texture resource is bound for OpenGL
+         TextureResource.Bind(ABoundTextureUnits) then
       begin
-        ActiveTexture(ABoundTextureUnits);
-        glBindTexture(GL_TEXTURE_2D, GLTextureId);
-        Shader.EnableSurfaceTexture(SurfaceTexture, ABoundTextureUnits,
-          Max(0, TextureCoordinatesId),
-          UniformTextureName,
-          PlugCode);
+        Shader.EnableSurfaceTexture(SurfaceTexture, TextureType,
+          ABoundTextureUnits, Max(0, TextureCoordinatesId),
+          UniformTextureName);
         Inc(ABoundTextureUnits);
 
         RequireTexCoord(TextureCoordinatesId);
@@ -252,62 +232,42 @@ procedure TRenderer.SurfaceTexturesEnable(const Shape: TX3DRendererShape;
 
   procedure EmissiveTextureEnable(
     const Texture: TAbstractTextureNode;
-    const TextureCoordinatesId: Integer;
-    const ChannelMask: String = 'rgb');
+    const TextureCoordinatesId: Integer);
   begin
     SurfaceTextureEnable(stEmissive,
       Texture,
       TextureCoordinatesId,
-      'castle_SurfaceTexture_emissive',
-      'void PLUG_material_emissive(inout vec3 parameter)' + NL +
-      '{' + NL +
-      '  parameter *= castle_texture_color_to_linear(texture2D({uniform_texture_name}, {coord_name}.st).' + ChannelMask + ');' + NL +
-      '}');
+      'castle_SurfaceTexture_emissive');
   end;
 
   procedure AmbientTextureEnable(
     const Texture: TAbstractTextureNode;
-    const TextureCoordinatesId: Integer;
-    const ChannelMask: String = 'rgb');
+    const TextureCoordinatesId: Integer);
   begin
     SurfaceTextureEnable(stAmbient,
       Texture,
       TextureCoordinatesId,
-      'castle_SurfaceTexture_ambient',
-      'void PLUG_material_ambient(inout vec3 parameter)' + NL +
-      '{' + NL +
-      '  parameter *= castle_texture_color_to_linear(texture2D({uniform_texture_name}, {coord_name}.st).' + ChannelMask + ');' + NL +
-      '}');
+      'castle_SurfaceTexture_ambient');
   end;
 
   procedure SpecularTextureEnable(
     const Texture: TAbstractTextureNode;
-    const TextureCoordinatesId: Integer;
-    const ChannelMask: String = 'rgb');
+    const TextureCoordinatesId: Integer);
   begin
     SurfaceTextureEnable(stSpecular,
       Texture,
       TextureCoordinatesId,
-      'castle_SurfaceTexture_specular',
-      'void PLUG_material_specular(inout vec3 parameter)' + NL +
-      '{' + NL +
-      '  parameter *= castle_texture_color_to_linear(texture2D({uniform_texture_name}, {coord_name}.st).' + ChannelMask + ');' + NL +
-      '}');
+      'castle_SurfaceTexture_specular');
   end;
 
   procedure ShininessTextureEnable(
     const Texture: TAbstractTextureNode;
-    const TextureCoordinatesId: Integer;
-    const ChannelMask: String = 'a');
+    const TextureCoordinatesId: Integer);
   begin
     SurfaceTextureEnable(stShininess,
       Texture,
       TextureCoordinatesId,
-      'castle_SurfaceTexture_shininess',
-      'void PLUG_material_shininess(inout float parameter)' + NL +
-      '{' + NL +
-      '  parameter *= texture2D({uniform_texture_name}, {coord_name}.st).' + ChannelMask + ';' + NL +
-      '}');
+      'castle_SurfaceTexture_shininess');
   end;
 
   procedure MetallicRoughnessTextureEnable(
@@ -317,15 +277,7 @@ procedure TRenderer.SurfaceTexturesEnable(const Shape: TX3DRendererShape;
     SurfaceTextureEnable(stMetallicRoughness,
       Texture,
       TextureCoordinatesId,
-      'castle_SurfaceTexture_metallic_roughness',
-      'void PLUG_material_metallic_roughness(inout float metallic, inout float roughness)' + NL +
-      '{' + NL +
-      { Roughness is stored in the 'g' channel, metallic is stored in the 'b' channel.
-        Read it to place metallic is x, roughness in y. }
-      '  vec2 mr = texture2D({uniform_texture_name}, {coord_name}.st).bg;' + NL +
-      '  metallic *= mr.x;' + NL +
-      '  roughness *= mr.y;' + NL +
-      '}');
+      'castle_SurfaceTexture_metallic_roughness');
   end;
 
   procedure OcclusionTextureEnable(
@@ -338,16 +290,13 @@ procedure TRenderer.SurfaceTexturesEnable(const Shape: TX3DRendererShape;
     SurfaceTextureEnable(stOcclusion,
       Texture,
       TextureCoordinatesId,
-      'castle_SurfaceTexture_occlusion',
-      'uniform float castle_MaterialOcclusionStrength;' + NL +
-      'void PLUG_material_occlusion(inout vec4 color)' + NL +
-      '{' + NL +
-      '  float occlusion = texture2D({uniform_texture_name}, {coord_name}.st).r;' + NL +
-      '  color.rgb = mix(color.rgb, color.rgb * occlusion, castle_MaterialOcclusionStrength);' + NL +
-      '}');
+      'castle_SurfaceTexture_occlusion');
 
     { This procedure is called even with Texture = nil.
-      In this case SurfaceTextureEnable, so we also don't need to add this uniform. }
+      In this case SurfaceTextureEnable, does not actually enable the shader code,
+      so we also don't need to add this uniform.
+      When Texture <> nil, this uniform is used by PlugCode[stOcclusion]
+      in TSurfaceTextureShader.GenerateCode. }
     if Texture <> nil then
     begin
       USingle := TDynamicUniformSingle.Create;
@@ -358,35 +307,60 @@ procedure TRenderer.SurfaceTexturesEnable(const Shape: TX3DRendererShape;
   end;
 
 var
+  App: TAppearanceNode;
   SurfaceShader: TCommonSurfaceShaderNode;
   Material: TAbstractMaterialNode;
   MatPhong: TMaterialNode;
   MatPhysical: TPhysicalMaterialNode;
   MatUnlit: TUnlitMaterialNode;
 begin
-  if Shape.State.ShapeNode <> nil then
+  App := Shape.State.Appearance;
+  if App <> nil then
   begin
-    {$warnings off} // using deprecated to keep backward compatibility
-    SurfaceShader := Shape.State.ShapeNode.CommonSurfaceShader;
-    {$warnings on}
+    SurfaceShader := App.InternalCommonSurfaceShader;
     if SurfaceShader <> nil then
     begin
+      { Do some additional checks and warnings for TCommonSurfaceShaderNode.
+        We don't care about efficiency of deprecated TCommonSurfaceShaderNode,
+        so we can do these checks without worry.
+
+        We disabled handling of non-standard channel masks, as they didn't seem
+        to have much use, and would complicate implemetation of XxxTextureEnable
+        (used also by X3D 4 material nodes, which are much more common case).
+        They required to construct ShaderCode at runtime,
+        and it should affect the hash (or at least ChannelMask
+        should be part of the hash) to avoid shaders with different masks
+        having same hash.
+
+        So not implementing non-standard channel masks seems like a good idea,
+        to gain code simplicity and efficiency for the non-deprecated and
+        common code path of X3D 4 nodes. }
+
+      if (SurfaceShader.EmissiveTexture <> nil) and
+         (SurfaceShader.EmissiveTextureChannelMask <> 'rgb') then
+        WritelnWarning('CommonSurfaceShader', 'emissiveTextureChannelMask <> "rgb" not implemented');
+      if (SurfaceShader.AmbientTexture <> nil) and
+         (SurfaceShader.AmbientTextureChannelMask <> 'rgb') then
+        WritelnWarning('CommonSurfaceShader', 'ambientTextureChannelMask <> "rgb" not implemented');
+      if (SurfaceShader.SpecularTexture <> nil) and
+         (SurfaceShader.SpecularTextureChannelMask <> 'rgb') then
+        WritelnWarning('CommonSurfaceShader', 'specularTextureChannelMask <> "rgb" not implemented');
+      if (SurfaceShader.ShininessTexture <> nil) and
+         (SurfaceShader.ShininessTextureChannelMask <> 'a') then
+        WritelnWarning('CommonSurfaceShader', 'shininessTextureChannelMask <> "a" not implemented');
+
       EmissiveTextureEnable(
         SurfaceShader.EmissiveTexture,
-        SurfaceShader.EmissiveTextureCoordinatesId,
-        SurfaceShader.EmissiveTextureChannelMask);
+        SurfaceShader.EmissiveTextureCoordinatesId);
       AmbientTextureEnable(
         SurfaceShader.AmbientTexture,
-        SurfaceShader.AmbientTextureCoordinatesId,
-        SurfaceShader.AmbientTextureChannelMask);
+        SurfaceShader.AmbientTextureCoordinatesId);
       SpecularTextureEnable(
         SurfaceShader.SpecularTexture,
-        SurfaceShader.SpecularTextureCoordinatesId,
-        SurfaceShader.SpecularTextureChannelMask);
+        SurfaceShader.SpecularTextureCoordinatesId);
       ShininessTextureEnable(
         SurfaceShader.ShininessTexture,
-        SurfaceShader.ShininessTextureCoordinatesId,
-        SurfaceShader.ShininessTextureChannelMask);
+        SurfaceShader.ShininessTextureCoordinatesId);
       // These textures will be rendered using the MainTexture mechanism, but they still need tex coords
       if SurfaceShader.DiffuseTexture <> nil then
         RequireTexCoord(SurfaceShader.DiffuseTextureCoordinatesId);
@@ -394,10 +368,7 @@ begin
         RequireTexCoord(SurfaceShader.DiffuseTextureCoordinatesId); // TODO test X3DOM/InstantReality are they using DiffuseTextureCoordinatesId in this case
     end else
     begin
-      if Shape.State.ShapeNode.Appearance <> nil then
-        Material := Shape.State.ShapeNode.Appearance.Material
-      else
-        Material := nil;
+      Material := App.Material;
       if Material is TMaterialNode then // also checks Material <> nil
       begin
         MatPhong := TMaterialNode(Material);

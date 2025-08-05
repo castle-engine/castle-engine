@@ -1,6 +1,6 @@
 {%MainUnit castlefonts.pas}
 {
-  Copyright 2001-2023 Michalis Kamburelis.
+  Copyright 2001-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -89,11 +89,7 @@ type
 
       It is not adviced to use it, as using the global WindowPos leads
       sooner or later to messy in code, that has to deal with global state.
-      If you need to know how to move after printing text, use TextMove.
-
-      May require 1 free slot on the attributes stack.
-      May only be called when current matrix is modelview.
-      Doesn't modify any OpenGL state or matrix, except it moves raster position. }
+      If you need to know how to move after printing text, use TextMove. }
     procedure PrintAndMove(const s: string); deprecated 'use Print(X, Y, ...), and move the (X, Y) yourself based on TextMove, instead of this';
 
     { Draw text at the given position with given color.
@@ -107,11 +103,7 @@ type
       It is not adviced to use overloaded versions without X, Y or Color
       --- using global state leads to messy code.
       You should upgrade your code to use the version that gets X,Y,Color
-      explicitly.
-
-      May require 1 free slot on the attributes stack.
-      May only be called when current matrix is modelview.
-      Doesn't modify any OpenGL state or matrix, except it moves raster position. }
+      explicitly. }
     procedure Print(const X, Y: Single; const Color: TCastleColor;
       const S: string); overload; virtual; abstract;
     procedure Print(const Pos: TVector2Integer; const Color: TCastleColor;
@@ -336,10 +328,6 @@ type
       Returns the number of lines printed, that is the number of lines
       after breaking the text into lines. This may be useful e.g. to calculate
       the height of the printed text.
-
-      May require 1 free slot on the attributes stack.
-      May only be called when current matrix is modelview.
-      Doesn't modify any OpenGL state or matrix.
 
       Overloaded and deprecated version without
       explicit Color parameter uses CurrentColor.
@@ -631,7 +619,7 @@ var
 begin
   unbrokenlist := TStringList.Create;
   try
-    Strings_SetText(unbrokenlist, unbroken);
+    unbrokenlist.Text := unbroken;
     BreakLines(unbrokenlist, broken, MaxLineWidth);
   finally unbrokenlist.Free end;
 end;
@@ -650,19 +638,12 @@ procedure TCastleAbstractFont.BreakLines(broken: TStrings;
   MaxLineWidth: Single; FirstToBreak: integer);
 var
   I: Integer;
-  LineWidthBytes: Integer;
-  LineWidth: Single;
+  LineWidth, NewLineWidth: Single;
+  LineUnicodeChars: Cardinal;
   P: Integer;
   BreakInput, BreakOutput1, BreakOutput2, HardBreakOutput: string;
-  C: TUnicodeChar;
-  {$ifdef FPC}
-  BreakInputPtr: PChar;
-  CharLen: Integer;
-  {$else}
-  TextIndex: Integer;
-  NextTextIndex: Integer;
-  TextLength: Integer;
-  {$endif}
+  BreakInputIterator: TCastleStringIterator;
+  BreakNeeded: Boolean;
 begin
   { break the strings on Broken list.
     We look at MaxLineWidth in pixels, taking into account that font
@@ -673,67 +654,46 @@ begin
   while I < Broken.Count do
   begin
     BreakInput := Broken[I];
-
+    BreakInputIterator.Start(BreakInput);
     { Try breaking line number I. If it's empty, there's no need to break it. }
-    {$ifdef FPC}
-    BreakInputPtr := PChar(BreakInput);
-
-    C := UTF8CharacterToUnicode(BreakInputPtr, CharLen);
-    if (C > 0) and (CharLen > 0) then
-    {$else}
-    TextIndex := 1;
-    TextLength := Length(BreakInput);
-    if TextLength > 0 then
-    {$endif}
+    if BreakInputIterator.GetNext then
     begin
       { the first character C is always considered to fit into BreakOutput1,
         regardless of MaxLineWidth --- after all, we have to place this character
         somewhere (otherwise we would have to reject this character
         or raise an error). }
-      {$ifdef FPC}
-      Inc(BreakInputPtr, CharLen);
-      LineWidthBytes := CharLen;
-      {$else}
-      C := UnicodeStringNextChar(BreakInput, TextIndex, NextTextIndex);
-      TextIndex := NextTextIndex;
-      LineWidthBytes := TextIndex {TODO: maybe *2 to gets bytes};
-      {$endif}
-      LineWidth := TextWidth({$ifdef FPC}UnicodeToUTF8{$else}ConvertFromUtf32{$endif}(C));
+      LineWidth := TextWidth(UnicodeCharToString(BreakInputIterator.Current));
+      LineUnicodeChars := 1;
+      BreakNeeded := false;
 
-      {$ifdef FPC}
-      C := UTF8CharacterToUnicode(BreakInputPtr, CharLen);
-      while (C > 0) and (CharLen > 0) and
-            (LineWidth + TextWidth(UnicodeToUTF8(C)) <= MaxLineWidth) do
-      {$else}
-      while (TextIndex <= TextLength) and
-            (LineWidth + TextWidth(ConvertFromUtf32(C)) <= MaxLineWidth) do
-      {$endif}
+      while BreakInputIterator.GetNext do
       begin
-        {$ifdef FPC}
-        Inc(BreakInputPtr, CharLen);
-        LineWidthBytes += CharLen;
-        {$else}
-        C := UnicodeStringNextChar(BreakInput, TextIndex, NextTextIndex);
-        Inc(LineWidthBytes, NextTextIndex - TextIndex); {TODO: maybe *2 to gets bytes};
-        TextIndex := NextTextIndex;
-        {$endif}
-        LineWidth := LineWidth + TextWidth({$ifdef FPC}UnicodeToUTF8{$else}ConvertFromUtf32{$endif}(C));
-
-        {$ifdef FPC}
-        C := UTF8CharacterToUnicode(BreakInputPtr, CharLen);
-        {$endif}
+        NewLineWidth := LineWidth + TextWidth(UnicodeCharToString(BreakInputIterator.Current));
+        if NewLineWidth > MaxLineWidth then
+        begin
+          { More characters available, but we need to break }
+          BreakNeeded := true;
+          Break;
+        end;
+        LineWidth := NewLineWidth;
+        LineUnicodeChars := LineUnicodeChars + 1;
       end;
 
-      {$ifdef FPC}
-      if (C > 0) and (CharLen > 0) then // then above loop stopped because we have to break
-      {$else}
-      if TextIndex <= TextLength then // TODO: check that carefully
-      {$endif}
+      if BreakNeeded then
       begin
         { HardBreakOutput is BreakOutput1 in case we don't find a whitespace
           on which to break }
-        HardBreakOutput := Copy(BreakInput, 1, LineWidthBytes);
-        { We have to break this line now. }
+        HardBreakOutput := StringCopy(BreakInput, 1, LineUnicodeChars);
+
+        { We have to break this line now.
+
+          Note: To split with space, we use regular
+          BackCharsPos followed by Copy + SEnding. These are not aware of
+          multi-character sequences that in UTF-8 (FPC) or UTF-16 (Delphi) may mean
+          one Unicode character. But it's OK, the space is detected correctly
+          (since it's a single character in UTF-8 and UTF-16 and cannot be mistaken
+          for the middle of a multi-character sequence due to how UTF-8 and UTF-16
+          are made). }
         P := BackCharsPos(WhiteSpaces, HardBreakOutput);
         if P > 0 then
         begin
@@ -742,7 +702,7 @@ begin
         end else
         begin
           BreakOutput1 := HardBreakOutput;
-          BreakOutput2 := SEnding(BreakInput, Length(HardBreakOutput) + 1);
+          BreakOutput2 := StringEnding(BreakInput, LineUnicodeChars + 1);
         end;
         Broken[I] := BreakOutput1;
         Broken.Insert(I + 1, BreakOutput2); // next iteration will break BreakOutput2
@@ -846,7 +806,7 @@ var
 begin
   SList := TStringList.Create;
   try
-    AddStrArrayToStrings(Strs, SList);
+    SList.AddStrings(Strs);
     PrintStrings(X0, Y0, Color, SList, Html, LineSpacing, TextHorizontalAlignment);
   finally FreeAndNil(SList) end;
 end;
@@ -871,7 +831,7 @@ begin
   {$warnings off}
   SList := TStringList.Create;
   try
-    AddStrArrayToStrings(Strs, SList);
+    SList.AddStrings(Strs);
     PrintStrings(X0, Y0, CurrentColor, SList, Html, LineSpacing);
   finally SList.Free end;
   {$warnings on}

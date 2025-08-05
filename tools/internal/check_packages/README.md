@@ -1,14 +1,30 @@
-# Check that Castle Game Engine Lazarus (.lpk) and Delphi (.dpk, .dproj) packages are correct
+# Check that Castle Game Engine Lazarus packages (.lpk), Delphi packages (.dpk, .dproj) and fpmake.pp are correct
 
 In particular check that they contain all files they should, and none of the files they shouldn't. This checks:
 
 - The packages are complete. Missing files from packages, while not critical, is bothersome E.g. Lazarus will not auto-recompile package if you change a file that wasn't explicitly listed in .lpk.
 
-- The package doesn't use something it should not. E.g. castle_base.lpk should not use any files from src/window/, as they depend on CastleWindow, and castle_base.lpk deliberately doesn't depend on CastleWindow.
+- The package doesn't use something it should not. E.g. castle_engine_base.lpk should not use any files from src/window/, as they depend on CastleWindow, and castle_engine_base.lpk deliberately doesn't depend on CastleWindow.
 
 See https://castle-engine.io/units_map about CGE subdirectories.
 
 Using [Castle Game Engine](https://castle-engine.io/).
+
+## Automatic fixing
+
+The tool can also attempt some automated fixing of the packages.
+
+Use `--fix` to do this.
+
+This automatic fix as currently implemented is not perfect, so beware! Known issues:
+
+- It is implemented now only for Lazarus packages, not Delphi. So if you use this, you will still have to fix Delphi DPROJ / DPK manually.
+
+- It only adds missing files. Doesn't remove files that should not be in package.
+
+- It changes some initial LPK XML stuff (like case of `<?xml version="1.0" encoding="utf-8"?>` or how multi-line string attributes are written in XML), causing unnecessary changes. Revert them. (To revert chunks, instead of whoe files, use e.g. _"Revert Selected Ranges"_ in VS Code or [Magit](https://magit.vc/) in Emacs.)
+
+- It assumes that all new units are cross-platform. So it doesn't add, at any unit, `<AddToUsesPkgSection Value="False"/>`.
 
 ## Adjusting the tool for your own projects
 

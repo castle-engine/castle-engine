@@ -22,8 +22,8 @@ interface
 
 uses Classes, Types, Controls, StdCtrls, Process, Menus, Generics.Collections,
   Dialogs, Contnrs,
-  CastleStringUtils, CastleInternalTools,
-  ToolArchitectures, ToolManifest, ToolProcess;
+  CastleStringUtils, CastleInternalTools, CastleInternalArchitectures,
+  ToolManifest, ToolProcess;
 
 type
   TMenuItemHelper = class helper for TMenuItem
@@ -141,8 +141,20 @@ type
   end;
 
   TPlatformInfo = class
+    { Do not pass --target, --cpu, --os to the build tool,
+      let build tool determine default platform.
+
+      This by default implies targetCustom, DefaultOS, DefaultCPU,
+      but may be customized if project has
+      @url(https://castle-engine.io/web#platform_default
+      CastleProjectLocalSettings.json file). }
+    UseDefault: Boolean;
+
+    { Target. Meaningful only if UseDefault = @false. }
     Target: TTarget;
+    { OS. Meaningful only if UseDefault = @false and Target = targetCustom. }
     OS: TOS;
+    { CPU. Meaningful only if UseDefault = @false and Target = targetCustom. }
     CPU: TCPU;
   end;
   TPlatformInfoList = specialize TObjectList<TPlatformInfo>;
@@ -269,9 +281,6 @@ type
     class function Equals(const A, B: TSavedSelection): Boolean; static;
   end;
 
-{ Show last file modification time as nice string. }
-function FileDateTimeStr(const FileName: String): String;
-
 type
   TComponentListEnumerator = record
   strict private
@@ -289,6 +298,10 @@ type
   https://wiki.freepascal.org/for-in_loop }
 operator Enumerator(const A: TComponentList): TComponentListEnumerator;
 
+var
+  { Path to Android SDK (for ANDROID_HOME), and Java (JAVA_HOME). }
+  AndroidHome, JavaHome: String;
+
 implementation
 
 uses
@@ -296,7 +309,7 @@ uses
   CastleUtils, CastleLog, CastleSoundEngine, CastleFilesUtils, CastleLclUtils,
   CastleComponentSerialize, CastleUiControls, CastleCameras, CastleTransform,
   CastleColors, CastleTimeUtils, CastleUriUtils,
-  ToolCompilerInfo, ToolCommonUtils;
+  ToolCompilerInfo, ToolCommonUtils, ToolProcessRun;
 
 procedure TMenuItemHelper.SetEnabledVisible(const Value: Boolean);
 begin
@@ -454,6 +467,11 @@ begin
     Environment.Values['CASTLE_ENGINE_PATH'] := CastleEnginePath;
     WritelnLog('Calling process with extended CASTLE_ENGINE_PATH: ' + Environment.Values['CASTLE_ENGINE_PATH']);
   end;
+
+  if AndroidHome <> '' then
+    Environment.Values['ANDROID_HOME'] := AndroidHome;
+  if JavaHome <> '' then
+    Environment.Values['JAVA_HOME'] := JavaHome;
 
   { create Process and call Process.Execute }
   Process := TProcess.Create(nil);
@@ -1054,6 +1072,10 @@ begin
 end;
 
 function FindExeVSCode(const ExceptionWhenMissing: Boolean): String;
+{$ifdef DARWIN}
+const
+  MacVSCodePath = '/Applications/Visual Studio Code.app/Contents/MacOS/Electron';
+{$endif}
 begin
   Result := FindExe('code');
 
@@ -1067,6 +1089,11 @@ begin
     Result := ParentPath(ExtractFileDir(Result), false) + 'code.exe';
   {$endif}
   *)
+
+  {$ifdef DARWIN}
+  if (Result = '') and (FileExists(MacVSCodePath)) then
+    Result := MacVSCodePath;
+  {$endif}
 
   if (Result = '') and ExceptionWhenMissing then
     raise EExecutableNotFound.Create('Cannot find Visual Studio Code. Make sure it is installed, and available on environment variable $PATH (there should be an option to set this up during VS Code installlation).');
@@ -1231,42 +1258,6 @@ begin
     (A.CurrentViewport = B.CurrentViewport) and
     (A.ItemIndex = B.ItemIndex) and
     (A.TabIndex = B.TabIndex);
-end;
-
-function FileDateTimeStr(const FileName: String): String;
-
-  function RoundUp(const Val: Double): Int64;
-  begin
-    Result := Trunc(Val);
-    if Frac(Val) > 0 then
-      Inc(Result);
-  end;
-
-var
-  FileDateTime: TDateTime;
-  Secs, Mins: Int64;
-begin
-  if FileAge(FileName, FileDateTime) then
-  begin
-    Secs := RoundUp(SecondSpan(Now, FileDateTime));
-    if Secs < 60 then
-      FileDateTimeStr := Format('%d second%s ago', [
-        Secs,
-        Iff(Secs > 0, 's', '')
-      ])
-    else
-    begin
-      Mins := RoundUp(MinuteSpan(Now, FileDateTime));
-      if Mins < 60 then
-        FileDateTimeStr := Format('%d minute%s ago', [
-          Mins,
-          Iff(Mins > 0, 's', '')
-        ])
-      else
-        FileDateTimeStr := DateTimeToAtStr(FileDateTime);
-    end;
-  end else
-    Result := 'Unknown';
 end;
 
 { TComponentListEnumerator ------------------------------------------------- }

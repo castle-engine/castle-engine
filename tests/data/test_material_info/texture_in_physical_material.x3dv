@@ -1,0 +1,13 @@
+#X3D V4.0 utf8
+PROFILE Interchange
+
+Shape {
+  appearance Appearance {
+    material PhysicalMaterial {
+      baseColor 1 1 0
+      baseTexture ImageTexture { url "test_texture_from_material.png" }
+    }
+    texture ImageTexture { url "test_texture_from_appearance.png" }
+  }
+  geometry Sphere { }
+}

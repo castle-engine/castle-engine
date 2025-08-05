@@ -1,5 +1,5 @@
 {
-  Copyright 2013-2018 Michalis Kamburelis.
+  Copyright 2013-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -20,7 +20,10 @@ unit CastleAndroidInternalAssetStream;
 
 interface
 
-uses SysUtils, Classes, CastleAndroidInternalAssetManager;
+uses SysUtils, Classes,
+  {$ifdef FPC} CastleAndroidInternalAssetManager
+  {$else} Androidapi.AssetManager
+  {$endif} ;
 
 type
   EAssetReadError = class(EReadError);
@@ -32,7 +35,13 @@ type
     FPosition: Int64;
   protected
     function GetSize: Int64; override;
+
+    {$ifdef FPC}
+    { Current position in Stream.
+      Note: Delphi doesn't need this, to get position it always does
+      "Result := Seek(0, soCurrent)" which our Seek also handles OK. }
     function GetPosition: Int64; override;
+    {$endif}
 
     { This stream doesn't support setting size.
       (All other versions of SetSize also call this.)
@@ -42,7 +51,7 @@ type
     { Open a stream for an asset on given path.
       The path should be a valid Android asset path,
       like @code(images/my_texture.png). }
-    constructor Create(Path: string);
+    constructor Create(Path: AnsiString);
     destructor Destroy; override;
 
     { This stream doesn't support seeking.
@@ -66,10 +75,11 @@ function AssetPathToURI(const AssetPath: string): string;
 
 implementation
 
-uses CastleAndroidInternalLog, CastleAndroidNativeAppGlue,
+uses CastleAndroidInternalLog,
+  {$ifdef FPC} CastleAndroidNativeAppGlue, {$else} Androidapi.AppGlue, {$endif}
   CastleClassUtils, CastleLog, CastleStringUtils, URIParser;
 
-constructor TReadAssetStream.Create(Path: string);
+constructor TReadAssetStream.Create(Path: AnsiString);
 var
   AssetManager: PAAssetManager;
 begin
@@ -80,8 +90,11 @@ begin
     //   [Path]);
     Path := ChangeFileExt(Path, '');
   end;
-  AssetManager := AndroidMainApp^.Activity^.AssetManager;
-  Asset := AAssetManager_open(AssetManager, PChar(Path), AASSET_MODE_STREAMING);
+  AssetManager :=
+    {$ifdef FPC} AndroidMainApp^.Activity^.AssetManager
+    {$else} TAndroidApplicationGlue.Current.NativeActivity^.AssetManager
+    {$endif} ;
+  Asset := AAssetManager_open(AssetManager, PAnsiChar(Path), AASSET_MODE_STREAMING);
   if Asset = nil then
     raise EAssetNotFound.CreateFmt('Android asset "%s" not found', [Path]);
 end;
@@ -98,7 +111,7 @@ begin
   Result := AAsset_read(Asset, @Buffer, Count);
   if Result < 0 then
     raise EAssetReadError.Create('Error when reading asset data stream');
-  FPosition += Result;
+  FPosition := FPosition + Result;
 end;
 
 function TReadAssetStream.GetSize: Int64;
@@ -110,10 +123,12 @@ begin
   Result := Result and Int64(High(UInt32));
 end;
 
+{$ifdef FPC}
 function TReadAssetStream.GetPosition: Int64;
 begin
   Result := FPosition;
 end;
+{$endif}
 
 procedure TReadAssetStream.SetSize(NewSize: Longint);
 begin
@@ -126,7 +141,7 @@ begin
   if ( (Origin = soBeginning) and (Offset = FPosition) ) or
      ( (Origin = soCurrent  ) and (Offset = 0) ) then
     { nothing needs to be done, ok }
-    Exit;
+    Exit(FPosition);
 
   raise EStreamNotImplementedSeek.Create('TReadAssetStream.Seek not supported');
   Result := 0; // just to get rid of warning
@@ -152,7 +167,7 @@ begin
     // Try to work (but with warning) even in case of some invalid URI
     if IsPrefix('castle-android-assets://', URI, true) then
     begin
-      WritelnWarning('Too many / at the beginning of URL "%s". This usually means you used ApplicationData(''/xxx'') or ''castle-data://xxx'', while you should use ApplicationData(''xxx'') or ''castle-data:/xxx''.',
+      WritelnWarning('Too many / at the beginning of URL "%s". This usually means you used ''castle-data://xxx'', while you should use ''castle-data:/xxx''.',
         [URI]);
       FixedURI := 'castle-android-assets:/' + PrefixRemove('castle-android-assets://', URI, true);
       U := ParseURI(FixedURI);
@@ -168,7 +183,7 @@ function AssetPathToURI(const AssetPath: string): string;
 var
   U: TURI;
 begin
-  FillByte(U, SizeOf(U), 0);
+  FillChar(U, SizeOf(U), 0);
   U.Protocol := 'castle-android-assets';
   U.Path := '/' + AssetPath; // AssetPath does not start with slash
   Result := EncodeURI(U);

@@ -1,8 +1,7 @@
 { -*- buffer-read-only: t -*- }
 { DON'T EDIT -- this file was automatically generated from "source/terrain.vs" }
-'/* OpenGL shader effect (used to enhance the Castle Game Engine shaders,' + LineEnding +
-'   see https://castle-engine.io/compositing_shaders.php ),' + LineEnding +
-'   applied over terrain.' + LineEnding +
+'/* Shader effect (used to enhance the Castle Game Engine shaders,' + LineEnding +
+'   see https://castle-engine.io/shaders ), applied over terrain.' + LineEnding +
 '' + LineEnding +
 '   This simply saves position and normal in object space,' + LineEnding +
 '   to be used by terrain.fs code. */' + LineEnding +

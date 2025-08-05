@@ -298,7 +298,10 @@ function MessageInputQuery(Window: TCastleWindow; const Title: string;
   const ValueAsString: string = '';
   const Alignment: THorizontalPosition = DefaultAlign;
   const Html: boolean = false): boolean; overload;
-{$ifndef EXTENDED_EQUALS_DOUBLE}
+{ MessageInputQuery version on Double (also TFloatTime) define only
+  - for Delphi (where Extended sometimes = Double but it still wants separate overload)
+  - for FPC, if Extended <> Double }
+{$if (not defined(FPC)) or (not defined(EXTENDED_EQUALS_DOUBLE))}
 function MessageInputQuery(Window: TCastleWindow; const Title: string;
   var Value: Double;
   const ValueAsString: string = '';
@@ -412,7 +415,7 @@ begin
 
   { Using @NoClose below allows to safely use MessageXxx inside own OnCloseQuery,
     like "if MessageYesNo('Are you sure ?') then Window.Close;" }
-  SavedMode := TGLMode.CreateReset(Window, nil, nil, @NoClose);
+  SavedMode := TGLMode.CreateReset(Window);
   try
     { use View directly as UI control, not using TCastleContainer.PushView
       nor setting TCastleContainer.View,
@@ -428,7 +431,7 @@ begin
   finally
     FreeAndNil(SavedMode);
     { Message boxes should not leave the keys in false/strange pressed view. }
-    Window.Pressed.Clear;
+    Window.Container.Pressed.Clear;
   end;
 
   View.Stop;
@@ -444,7 +447,7 @@ var
 begin
   TextList := TStringList.Create;
   try
-    AddStrArrayToStrings(SArray, TextList);
+    TextList.AddStrings(SArray);
     MessageOK(Window, TextList, Alignment, Html);
   finally TextList.Free end;
 end;
@@ -457,7 +460,7 @@ var
 begin
   TextList := TStringList.Create;
   try
-    Strings_SetText(TextList, s);
+    TextList.Text := S;
     MessageOK(Window, TextList, Alignment, Html);
   finally TextList.free end;
 end;
@@ -495,7 +498,7 @@ var
 begin
   TextList := TStringList.Create;
   try
-    Strings_SetText(TextList, s);
+    TextList.Text := S;
     result := MessageInput(Window, TextList, answerDefault,
       MinLength, MaxLength, AllowedChars, Alignment, Html);
   finally TextList.free end;
@@ -537,7 +540,7 @@ var
 begin
   TextList := TStringList.Create;
   try
-    Strings_SetText(TextList, s);
+    TextList.Text := S;
     result := MessageInputQuery(Window, TextList, answer, MinLength,
       MaxLength, AllowedChars, Alignment, Html);
   finally TextList.free end;
@@ -582,7 +585,7 @@ var
 begin
   TextList := TStringList.Create;
   try
-    Strings_SetText(TextList, s);
+    TextList.Text := S;
     Result := MessageChoice(Window, TextList, ButtonCaptions, ButtonChars, Alignment, Html, AllowCancel);
   finally TextList.free end;
 end;
@@ -597,7 +600,7 @@ var
 begin
   TextList := TStringList.Create;
   try
-    AddStrArrayToStrings(SArray, TextList);
+    TextList.AddStrings(SArray);
     Result := MessageChoice(Window, TextList, ButtonCaptions, ButtonChars, Alignment, Html, AllowCancel);
   finally TextList.Free end;
 end;
@@ -639,7 +642,7 @@ var
 begin
   TextList := TStringList.Create;
   try
-    Strings_SetText(TextList, S);
+    TextList.Text := S;
     Result := MessageKey(Window, TextList, Alignment, Html);
   finally TextList.free end;
 end;
@@ -652,7 +655,7 @@ var
 begin
   TextList := TStringList.Create;
   try
-    AddStrArrayToStrings(SArray, TextList);
+    TextList.AddStrings(SArray);
     Result := MessageKey(Window, TextList, Alignment, Html);
   finally TextList.Free end;
 end;
@@ -682,7 +685,7 @@ var
 begin
   TextList := TStringList.Create;
   try
-    Strings_SetText(TextList, S);
+    TextList.Text := S;
     Result := MessageKeyMouse(Window, TextList, Alignment, Html);
   finally TextList.Free end;
 end;
@@ -726,7 +729,7 @@ var
 begin
   TextList := TStringList.Create;
   try
-    Strings_SetText(TextList, S);
+    TextList.Text := S;
     Result := MessageYesNo(Window, TextList, Alignment, Html);
   finally TextList.free end;
 end;
@@ -739,7 +742,7 @@ var
 begin
   TextList := TStringList.Create;
   try
-    AddStrArrayToStrings(SArray, TextList);
+    TextList.AddStrings(SArray);
     Result := MessageYesNo(Window, TextList, Alignment, Html);
   finally TextList.Free end;
 end;
@@ -843,7 +846,7 @@ begin
     Value := ValueExtended;
 end;
 
-{$ifndef EXTENDED_EQUALS_DOUBLE}
+{$if (not defined(FPC)) or (not defined(EXTENDED_EQUALS_DOUBLE))}
 function MessageInputQuery(Window: TCastleWindow; const Title: string;
   var Value: Double; const ValueAsString: string;
   const Alignment: THorizontalPosition;

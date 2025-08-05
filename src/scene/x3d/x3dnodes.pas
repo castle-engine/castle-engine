@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2023 Michalis Kamburelis.
+  Copyright 2002-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -381,6 +381,7 @@ uses Math, StrUtils, URIParser,
 {$I auto_generated_node_helpers/x3dnodes_coordinatedouble.inc}
 {$I auto_generated_node_helpers/x3dnodes_coordinateinterpolator.inc}
 {$I auto_generated_node_helpers/x3dnodes_coordinateinterpolator2d.inc}
+{$I auto_generated_node_helpers/x3dnodes_coordinateinterpolator4d.inc}
 {$I auto_generated_node_helpers/x3dnodes_cube_1.inc}
 {$I auto_generated_node_helpers/x3dnodes_cubicbezier2dorientationinterpolator.inc}
 {$I auto_generated_node_helpers/x3dnodes_cubicbeziercoordinateinterpolator.inc}
@@ -681,6 +682,22 @@ begin
   ModelFormat.Extensions.Add('.x3d');
   ModelFormat.Extensions.Add('.x3dz');
   ModelFormat.Extensions.Add('.x3d.gz');
+  { Testcases: Run on Android and play game:
+      https://github.com/castle-engine/little-things
+      https://github.com/castle-engine/darkest-before-dawn
+
+    Opening a xxx.x3d.gz file on Android with OnLoadForceMemoryStream=false
+    would fail, with "Illegal at document level" error (from FPC XML parsing units),
+    testing with FPC 3.2.2 on Android/Arm .
+    On Android, in this case we read file through Android assets and then through
+    TGZFileStream (even though .gz file is no longer compressed,
+    packing into APK actually decompressed it; still reading through TGZFileStream
+    is OK, and tests confirm that TGZFileStream returns correct, valid XML contents).
+
+    We assume it works on desktop with OnLoadForceMemoryStream=false
+    only because on desktop, TFileStream (returned for files by default)
+    is already seekable. }
+  ModelFormat.OnLoadForceMemoryStream := true;
   RegisterModelFormat(ModelFormat);
 end;
 

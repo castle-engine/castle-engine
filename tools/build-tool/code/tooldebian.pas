@@ -21,8 +21,8 @@ unit ToolDebian;
 interface
 
 uses
-  CastleFindFiles,
-  ToolArchitectures, ToolManifest, ToolPackage;
+  CastleFindFiles, CastleInternalArchitectures,
+  ToolManifest, ToolPackage;
 
 { Create Debian package (DEB).
 
@@ -41,7 +41,7 @@ uses
   SysUtils, Process, {$ifdef UNIX} BaseUnix, {$endif}
   CastleUtils, CastleFilesUtils, CastleDownload, CastleImages, CastleLog,
   CastleStringUtils,
-  ToolCommonUtils, ToolUtils;
+  ToolCommonUtils, ToolUtils, ToolProcessRun;
 
 { FindFileCheck ----------------------------------------------------- }
 

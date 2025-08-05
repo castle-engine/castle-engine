@@ -144,12 +144,12 @@ type
     { Improves the parallax effect, by tracing the ray as it goes through the height map.
       This is more costly, but makes the parallax effect better.
 
-      See http://graphics.cs.brown.edu/games/SteepParallax/index.html . }
+      See https://www.casual-effects.com/research/McGuire2005Parallax/index.html . }
     bmSteepParallax,
 
     { Improves the bmSteepParallax even more, by adding additional shadow calculation.
 
-      See http://graphics.cs.brown.edu/games/SteepParallax/index.html . }
+      See https://www.casual-effects.com/research/McGuire2005Parallax/index.html . }
     bmSteepParallaxShadowing
   );
 
@@ -490,6 +490,11 @@ type
     @exclude }
   TDepthRange = (drFull, drNear, drFar);
 
+  { Primitive material type, used by
+    @link(TCastleAbstractPrimitive.Material) and
+    @link(TCastleImageTransform.Material). }
+  TPrimitiveMaterial = (pmPhysical, pmPhong, pmUnlit);
+
 const
   ShadowSamplingNames: array [TShadowSampling] of string =
   ( 'Simple', 'PCF 4', 'PCF 4 Bilinear', 'PCF 16', 'Variance Shadow Maps (Experimental)' );
@@ -609,7 +614,7 @@ var
 
     @orderedList(
       @item(You can define your own color processing using
-        our compositing shaders ( https://castle-engine.io/compositing_shaders.php ),
+        our shader effects ( https://castle-engine.io/shaders ),
         use PLUG_fragment_modify ( https://castle-engine.io/compositing_shaders_doc/html/section.fragment_plugs.html ).
         See https://github.com/castle-engine/demo-models/blob/master/compositing_shaders/tone_mapping.x3dv
         example.

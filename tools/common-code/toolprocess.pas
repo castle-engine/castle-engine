@@ -1,5 +1,5 @@
 {
-  Copyright 2021-2022 Michalis Kamburelis.
+  Copyright 2021-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -129,7 +129,7 @@ var
 begin
   repeat
     Res := FpKill(ProcessId, SIGCHLD);
-    // once process stops existing, kill will return -1, and FpGetErrno = ESRCH
+    // once process stops existing, kill will return -1, and FpGetErrno = ESRCH = ESysESRCH
     if Res = -1 then
       Exit;
     Sleep(100);
@@ -174,6 +174,8 @@ begin
 {$endif}
 
 {$ifdef UNIX}
+var
+  LastError: Integer;
 begin
   if FpKill(ProcessId, SIGTERM) = 0 then
   begin
@@ -194,7 +196,12 @@ begin
     *)
   end else
   begin
-    WritelnWarning('Cannot send SIGTERM to child process (id: %d)', [ProcessId]);
+    LastError := GetLastOSError;
+    WritelnWarning('Cannot send SIGTERM to child process (id: %d). OS error %d: %s', [
+      ProcessId,
+      LastError,
+      SysErrorMessage(LastError)
+    ]);
   end;
 {$endif}
 

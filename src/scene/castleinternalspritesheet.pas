@@ -1782,7 +1782,7 @@ var
   URLWithoutAnchor: String;
   Stream: TStream;
 begin
-  URLWithoutAnchor := UriDeleteAnchor(URL, true);
+  URLWithoutAnchor := UriDeleteAnchor(URL);
 
   Stream := Download(URLWithoutAnchor);
   try
@@ -2205,7 +2205,7 @@ var
   Image: TCastleImage;
 begin
   FRelativeImagePath := AtlasNode.AttributeString('imagePath');
-  FAbsoluteImagePath := ExtractUriPath(UriDeleteAnchor(URL, true)) + FRelativeImagePath;
+  FAbsoluteImagePath := ExtractUriPath(UriDeleteAnchor(URL)) + FRelativeImagePath;
   { Some exporters, like Free Texture Packer and
     Castle Game Engine itself (in TCastleSpriteSheetXMLExporter.ExportToXML)
     store width and height attributes.

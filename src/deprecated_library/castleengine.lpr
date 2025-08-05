@@ -1,6 +1,6 @@
 { -*- compile-command: "./castleengine_compile.sh" -*- }
 {
-  Copyright 2013-2023 Jan Adamec, Michalis Kamburelis.
+  Copyright 2013-2025 Jan Adamec, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -34,12 +34,13 @@
 library castleengine;
 
 uses CTypes, Math, SysUtils, CastleUtils,
-  Classes, CastleKeysMouse, CastleCameras, CastleVectors, CastleGLUtils,
+  Classes, CastleKeysMouse, CastleCameras, CastleVectors, CastleGLUtils, CastleGLVersion,
   CastleImages, CastleSceneCore, CastleUIControls, X3DNodes, X3DFields, CastleLog,
   CastleBoxes, CastleControls, CastleInputs, CastleApplicationProperties,
-  CastleWindow, CastleViewport, CastleScene, CastleTransform;
+  CastleWindow, CastleViewport, CastleScene, CastleTransform, CastleStringUtils;
 
 type
+  ppcchar = ^pcchar;
   TCrosshairManager = class(TObject)
   public
     CrosshairCtl: TCastleCrosshair;
@@ -64,6 +65,8 @@ var
   PreviousNavigationType: TNavigationType;
   TouchNavigation: TCastleTouchNavigation;
   Crosshair: TCrosshairManager;
+
+{$WARN 6058 off: Ignore warning Call to subroutine "$1" marked as inline is not inlined}
 
 { Check that CGE_Open was called, and at least Window and Viewport are created. }
 function CGE_VerifyWindow(const FromFunc: string): boolean;
@@ -134,7 +137,7 @@ begin
 
     PreviousNavigationType := Viewport.NavigationType;
 
-    CGEApp_Open(InitialWidth, InitialHeight, 0, Dpi);
+    CGEApp_Open(InitialWidth, InitialHeight, 0, 0, 0, 0, Dpi);
 
     Crosshair := TCrosshairManager.Create;
   except
@@ -171,11 +174,23 @@ begin
   end;
 end;
 
+procedure CGE_GetCastleEngineVersion(szBuffer: pchar; nBufSize: cInt32); cdecl;
+var
+  sText: string;
+begin
+  try
+    sText := CastleEngineVersion;
+    StrPLCopy(szBuffer, sText, nBufSize-1);
+  except
+    on E: TObject do WritelnWarning('Window', 'CGE_GetCastleEngineVersion: ' + ExceptMessage(E));
+  end;
+end;
+
 procedure CGE_Resize(uiViewWidth, uiViewHeight: cUInt32); cdecl;
 begin
   try
     if not CGE_VerifyWindow('CGE_Resize') then exit;
-    CGEApp_Resize(uiViewWidth, uiViewHeight, 0);
+    CGEApp_Resize(uiViewWidth, uiViewHeight, 0, 0, 0, 0);
   except
     on E: TObject do WritelnWarning('Window', 'CGE_Resize: ' + ExceptMessage(E));
   end;
@@ -286,11 +301,11 @@ begin
 end;
 
 procedure CGE_MouseUp(X, Y: cInt32; bLeftBtn: cBool;
-  FingerIndex: CInt32; TrackReleased: cBool); cdecl;
+  FingerIndex: CInt32); cdecl;
 begin
   try
     if not CGE_VerifyWindow('CGE_MouseUp') then exit;
-    CGEApp_MouseUp(X, Y, bLeftBtn, FingerIndex, TrackReleased);
+    CGEApp_MouseUp(X, Y, bLeftBtn, FingerIndex);
   except
     on E: TObject do WritelnWarning('Window', 'CGE_MouseUp: ' + ExceptMessage(E));
   end;
@@ -355,6 +370,17 @@ begin
   end;
 end;
 
+procedure CGE_SaveSceneToFile(szFile: pcchar); cdecl;
+begin
+  if not CGE_VerifyScene('CGE_SaveSceneToFile') then
+    exit;
+  try
+    MainScene.Save(StrPas(PChar(szFile)));
+  except
+    on E: TObject do WritelnWarning('Window', 'CGE_SaveSceneToFile: ' + ExceptMessage(E));
+  end;
+end;
+
 function CGE_GetViewpointsCount(): cInt32; cdecl;
 begin
   try
@@ -404,9 +430,8 @@ begin
   try
     if not CGE_VerifyScene('CGE_AddViewpointFromCurrentView') then exit;
 
-    if Viewport.Navigation <> nil then
-      MainScene.AddViewpointFromNavigation(
-        Viewport.Navigation, StrPas(PChar(szName)));
+    MainScene.AddViewpointFromNavigation(
+      Viewport.RequiredNavigation, StrPas(PChar(szName)));
   except
     on E: TObject do WritelnWarning('Window', 'CGE_AddViewpointFromCurrentView: ' + ExceptMessage(E));
   end;
@@ -507,7 +532,7 @@ begin
     end;
 
     InputShortcut := nil;
-    Nav := Viewport.Navigation;
+    Nav := Viewport.RequiredNavigation;
     if Nav is TCastleWalkNavigation then
     begin
       WalkNavigation := TCastleWalkNavigation(Nav);
@@ -631,12 +656,29 @@ begin
   end;
 end;
 
-procedure CGE_SetUserInterface(bAutomaticTouchInterface: cBool); cdecl;
+procedure CGE_SetAutoTouchInterface(bAutomaticTouchInterface: cBool); cdecl;
 begin
   try
     TouchNavigation.AutoTouchInterface := bAutomaticTouchInterface;
   except
-    on E: TObject do WritelnWarning('Window', 'CGE_SetUserInterface: ' + ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_SetAutoTouchInterface: ' + ExceptMessage(E));
+  end;
+end;
+
+procedure CGE_SetWalkNavigationMouseDragMode(eMode: cInt32); cdecl;
+var
+  NewMode: TMouseDragMode;
+begin
+  try
+    case eMode of
+      0: NewMode := mdWalkRotate;
+      1: NewMode := mdRotate;
+      2: NewMode := mdNone;
+      else raise EInternalError.CreateFmt('Invalid MouseDragMode mode %d', [eMode]);
+    end;
+    Viewport.InternalWalkNavigation.MouseDragMode := NewMode;
+  except
+    on E: TObject do WritelnWarning('Window', 'CGE_SetWalkNavigationMouseDragMode: ' + ExceptMessage(E));
   end;
 end;
 
@@ -657,7 +699,7 @@ function GetWalkNavigation: TCastleWalkNavigation;
 var
   Nav: TCastleNavigation;
 begin
-  Nav := Viewport.Navigation;
+  Nav := Viewport.RequiredNavigation;
   if Nav is TCastleWalkNavigation then
     Result := TCastleWalkNavigation(Nav)
   else
@@ -667,6 +709,7 @@ end;
 procedure CGE_SetVariableInt(eVar: cInt32; nValue: cInt32); cdecl;
 var
   WalkNavigation: TCastleWalkNavigation;
+  NewUIScaling: TUIScaling;
 begin
   if Window = nil then exit;
   try
@@ -706,7 +749,7 @@ begin
            end;
          end;
 
-      5: begin    // ecgevarWalkTouchCtl
+      5: begin    // ecgevarAutoWalkTouchInterface
            TouchNavigation.AutoWalkTouchInterface := cgehelper_TouchInterfaceFromConst(nValue);
          end;
 
@@ -731,6 +774,23 @@ begin
       10: begin    // ecgevarPhongShading
             if MainScene <> nil then
                MainScene.RenderOptions.PhongShading := (nValue > 0);
+          end;
+
+      11: begin    // ecgevarPreventInfiniteFallingDown
+            Viewport.PreventInfiniteFallingDown := (nValue > 0);
+          end;
+
+      12: begin    // ecgevarUIScaling
+            case nValue of
+              0: NewUIScaling := usNone;
+              1: NewUIScaling := usEncloseReferenceSize;
+              2: NewUIScaling := usEncloseReferenceSizeAutoOrientation;
+              3: NewUIScaling := usFitReferenceSize;
+              4: NewUIScaling := usExplicitScale;
+              5: NewUIScaling := usDpiScale;
+              else raise EInternalError.CreateFmt('Invalid UIScaling mode %d', [nValue]);
+            end;
+            Window.Container.UIScaling := NewUIScaling;
           end;
     end;
   except
@@ -790,7 +850,7 @@ begin
              Result := 0;
          end;
 
-      5: begin    // ecgevarWalkTouchCtl
+      5: begin    // ecgevarAutoWalkTouchInterface
            Result := cgehelper_ConstFromTouchInterface(TouchNavigation.AutoWalkTouchInterface);
          end;
 
@@ -823,10 +883,28 @@ begin
          end;
 
       10: begin    // ecgevarPhongShading
-        if (MainScene <> nil) and MainScene.RenderOptions.PhongShading then
-          Result := 1 else
-          Result := 0;
-      end;
+            if (MainScene <> nil) and MainScene.RenderOptions.PhongShading then
+              Result := 1 else
+              Result := 0;
+          end;
+
+      11: begin    // ecgevarPreventInfiniteFallingDown
+            if Viewport.PreventInfiniteFallingDown then
+              Result := 1 else
+              Result := 0;
+          end;
+
+      12: begin    // ecgevarUIScaling
+            case Window.Container.UIScaling of
+              usNone:                 Result := 0;
+              usEncloseReferenceSize: Result := 1;
+              usEncloseReferenceSizeAutoOrientation: Result := 2;
+              usFitReferenceSize:     Result := 3;
+              usExplicitScale:        Result := 4;
+              usDpiScale:             Result := 5;
+              else Result := 0;
+            end;
+          end;
 
       else Result := -1; // unsupported variable
     end;
@@ -835,53 +913,421 @@ begin
   end;
 end;
 
-procedure CGE_SetNodeFieldValue(szNodeName, szFieldName: pcchar;
-                                fVal1, fVal2, fVal3, fVal4: cFloat); cdecl;
+procedure CGE_SetNodeFieldValue_SFFloat(szNodeName, szFieldName: pcchar; value: cFloat); cdecl;
 var
   aField: TX3DField;
 begin
   try
-    if not CGE_VerifyScene('CGE_SetNodeFieldValue') then exit;
+    if not CGE_VerifyScene('CGE_SetNodeFieldValue_SFFloat') then exit;
+    aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
+    if aField <> nil then
+       (aField as TSFFloat).Send(value);
+  except
+    on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue_SFFloat: ' + ExceptMessage(E));
+  end;
+end;
 
-    // find node and field
+procedure CGE_SetNodeFieldValue_SFDouble(szNodeName, szFieldName: pcchar; value: cDouble); cdecl;
+var
+  aField: TX3DField;
+begin
+  try
+    if not CGE_VerifyScene('CGE_SetNodeFieldValue_SFDouble') then exit;
+    aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
+    if aField <> nil then
+       (aField as TSFDouble).Send(value);
+  except
+    on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue_SFDouble: ' + ExceptMessage(E));
+  end;
+end;
+
+procedure CGE_SetNodeFieldValue_SFInt32(szNodeName, szFieldName: pcchar; value: cInt32); cdecl;
+var
+  aField: TX3DField;
+begin
+  try
+    if not CGE_VerifyScene('CGE_SetNodeFieldValue_SFInt32') then exit;
+    aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
+    if aField <> nil then
+       (aField as TSFInt32).Send(value);
+  except
+    on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue_SFInt32: ' + ExceptMessage(E));
+  end;
+end;
+
+procedure CGE_SetNodeFieldValue_SFBool(szNodeName, szFieldName: pcchar; value: cBool); cdecl;
+var
+  aField: TX3DField;
+begin
+  try
+    if not CGE_VerifyScene('CGE_SetNodeFieldValue_SFBool') then exit;
+    aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
+    if aField <> nil then
+       (aField as TSFBool).Send(value);
+  except
+    on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue_SFBool: ' + ExceptMessage(E));
+  end;
+end;
+
+procedure CGE_SetNodeFieldValue_SFString(szNodeName, szFieldName, szValue: pcchar); cdecl;
+var
+  aField: TX3DField;
+begin
+  try
+    if not CGE_VerifyScene('CGE_SetNodeFieldValue_SFString') then exit;
+    aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
+    if aField <> nil then
+       (aField as TSFString).Send(PChar(szValue));
+  except
+    on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue_SFString: ' + ExceptMessage(E));
+  end;
+end;
+
+procedure CGE_SetNodeFieldValue_SFVec2f(szNodeName, szFieldName: pcchar; val1, val2: cFloat); cdecl;
+var
+  aField: TX3DField;
+begin
+  try
+    if not CGE_VerifyScene('CGE_SetNodeFieldValue_SFVec2f') then exit;
+    aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
+    if aField <> nil then
+       (aField as TSFVec2f).Send(Vector2(val1, val2));
+  except
+    on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue_SFVec2f: ' + ExceptMessage(E));
+  end;
+end;
+
+procedure CGE_SetNodeFieldValue_SFVec3f(szNodeName, szFieldName: pcchar; val1, val2, val3: cFloat); cdecl;
+var
+  aField: TX3DField;
+begin
+  try
+    if not CGE_VerifyScene('CGE_SetNodeFieldValue_SFVec3f') then exit;
+    aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
+    if aField <> nil then
+       (aField as TSFVec3f).Send(Vector3(val1, val2, val3));
+  except
+    on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue_SFVec3f: ' + ExceptMessage(E));
+  end;
+end;
+
+procedure CGE_SetNodeFieldValue_SFVec4f(szNodeName, szFieldName: pcchar; val1, val2, val3, val4: cFloat); cdecl;
+var
+  aField: TX3DField;
+begin
+  try
+    if not CGE_VerifyScene('CGE_SetNodeFieldValue_SFVec4f') then exit;
+    aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
+    if aField <> nil then
+       (aField as TSFVec4f).Send(Vector4(val1, val2, val3, val4));
+  except
+    on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue_SFVec4f: ' + ExceptMessage(E));
+  end;
+end;
+
+procedure CGE_SetNodeFieldValue_SFVec2d(szNodeName, szFieldName: pcchar; val1, val2: cDouble); cdecl;
+var
+  aField: TX3DField;
+begin
+  try
+    if not CGE_VerifyScene('CGE_SetNodeFieldValue_SFVec2d') then exit;
+    aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
+    if aField <> nil then
+       (aField as TSFVec2d).Send(Vector2Double(val1, val2));
+  except
+    on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue_SFVec2d: ' + ExceptMessage(E));
+  end;
+end;
+
+procedure CGE_SetNodeFieldValue_SFVec3d(szNodeName, szFieldName: pcchar; val1, val2, val3: cDouble); cdecl;
+var
+  aField: TX3DField;
+begin
+  try
+    if not CGE_VerifyScene('CGE_SetNodeFieldValue_SFVec3d') then exit;
+    aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
+    if aField <> nil then
+       (aField as TSFVec3d).Send(Vector3Double(val1, val2, val3));
+  except
+    on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue_SFVec3d: ' + ExceptMessage(E));
+  end;
+end;
+
+procedure CGE_SetNodeFieldValue_SFVec4d(szNodeName, szFieldName: pcchar; val1, val2, val3, val4: cDouble); cdecl;
+var
+  aField: TX3DField;
+begin
+  try
+    if not CGE_VerifyScene('CGE_SetNodeFieldValue_SFVec4d') then exit;
+    aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
+    if aField <> nil then
+       (aField as TSFVec4d).Send(Vector4Double(val1, val2, val3, val4));
+  except
+    on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue_SFVec4d: ' + ExceptMessage(E));
+  end;
+end;
+
+procedure CGE_SetNodeFieldValue_SFRotation(szNodeName, szFieldName: pcchar; axisX, axisY, axisZ, rotation: cFloat); cdecl;
+var
+  aField: TX3DField;
+begin
+  try
+    if not CGE_VerifyScene('CGE_SetNodeFieldValue_SFRotation') then exit;
+    aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
+    if aField <> nil then
+       (aField as TSFRotation).Send(Vector4(axisX, axisY, axisZ, rotation));
+  except
+    on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue_SFRotation: ' + ExceptMessage(E));
+  end;
+end;
+
+procedure CGE_SetNodeFieldValue_MFFloat(szNodeName, szFieldName: pcchar; iCount: cInt32; values: pcfloat); cdecl;
+var
+  aField: TX3DField;
+  aItemList: TSingleList;
+begin
+  try
+    if not CGE_VerifyScene('CGE_SetNodeFieldValue_MFFloat') then exit;
     aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
     if aField = nil then Exit;
 
-    if aField is TSFVec2f then
-      TSFVec2f(aField).Send(Vector2(fVal1, fVal2))
-    else
-    if aField is TSFVec3f then
-      TSFVec3f(aField).Send(Vector3(fVal1, fVal2, fVal3))
-    else
-    if aField is TSFVec4f then
-      TSFVec4f(aField).Send(Vector4(fVal1, fVal2, fVal3, fVal4))
-    else
-    if aField is TSFVec2d then
-      TSFVec2d(aField).Send(Vector2Double(fVal1, fVal2))
-    else
-    if aField is TSFVec3d then
-      TSFVec3d(aField).Send(Vector3Double(fVal1, fVal2, fVal3))
-    else
-    if aField is TSFVec4d then
-      TSFVec4d(aField).Send(Vector4Double(fVal1, fVal2, fVal3, fVal4))
-    else
-    if aField is TSFFloat then
-      TSFFloat(aField).Send(fVal1)
-    else
-    if aField is TSFDouble then
-      TSFDouble(aField).Send(fVal1)
-    else
-    if aField is TSFLong then
-      TSFLong(aField).Send(Round(fVal1))
-    else
-    if aField is TSFInt32 then
-      TSFInt32(aField).Send(Round(fVal1))
-    else
-    if aField is TSFBool then
-      TSFBool(aField).Send(fVal1 <> 0.0);
-
+    aItemList := TSingleList.Create;
+    aItemList.Count := iCount;
+    Move(values^, aItemList.L^, SizeOf(Single) * iCount);
+    (aField as TMFFloat).Send(aItemList);
+    aItemList.Destroy;
   except
-    on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue: ' + ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue_MFFloat: ' + ExceptMessage(E));
+  end;
+end;
+
+procedure CGE_SetNodeFieldValue_MFDouble(szNodeName, szFieldName: pcchar; iCount: cInt32; values: pcdouble); cdecl;
+var
+  aField: TX3DField;
+  aItemList: TDoubleList;
+begin
+  try
+    if not CGE_VerifyScene('CGE_SetNodeFieldValue_MFDouble') then exit;
+    aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
+    if aField = nil then Exit;
+
+    aItemList := TDoubleList.Create;
+    aItemList.Count := iCount;
+    Move(values^, aItemList.L^, SizeOf(Double) * iCount);
+    (aField as TMFDouble).Send(aItemList);
+    aItemList.Destroy;
+  except
+    on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue_MFDouble: ' + ExceptMessage(E));
+  end;
+end;
+
+procedure CGE_SetNodeFieldValue_MFInt32(szNodeName, szFieldName: pcchar; iCount: cInt32; values: pcInt32); cdecl;
+var
+  aField: TX3DField;
+  aItemList: TInt32List;
+begin
+  try
+    if not CGE_VerifyScene('CGE_SetNodeFieldValue_MFInt32') then exit;
+    aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
+    if aField = nil then Exit;
+
+    aItemList := TInt32List.Create;
+    aItemList.Count := iCount;
+    Move(values^, aItemList.L^, SizeOf(Int32) * iCount);
+    (aField as TMFInt32).Send(aItemList);
+    aItemList.Destroy;
+  except
+    on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue_MFInt32: ' + ExceptMessage(E));
+  end;
+end;
+
+procedure CGE_SetNodeFieldValue_MFBool(szNodeName, szFieldName: pcchar; iCount: cInt32; values: pcbool); cdecl;
+var
+  aField: TX3DField;
+  aItemList: TBooleanList;
+begin
+  try
+    if not CGE_VerifyScene('CGE_SetNodeFieldValue_MFBool') then exit;
+    aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
+    if aField = nil then Exit;
+
+    aItemList := TBooleanList.Create;
+    aItemList.Count := iCount;
+    Move(values^, aItemList.L^, SizeOf(boolean) * iCount);
+    (aField as TMFBool).Send(aItemList);
+    aItemList.Destroy;
+  except
+    on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue_MFBool: ' + ExceptMessage(E));
+  end;
+end;
+
+// Set MFVec2f. We expect "2 * count" floats in the array "values"
+procedure CGE_SetNodeFieldValue_MFVec2f(szNodeName, szFieldName: pcchar; iCount: cInt32; values: pcfloat); cdecl;
+var
+  aField: TX3DField;
+  aItemList: TVector2List;
+begin
+  try
+    if not CGE_VerifyScene('CGE_SetNodeFieldValue_MFVec2f') then exit;
+    aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
+    if aField = nil then Exit;
+
+    aItemList := TVector2List.Create;
+    aItemList.Count := iCount;
+    Move(values^, aItemList.L^, SizeOf(TVector2) * iCount);
+    (aField as TMFVec2f).Send(aItemList);
+    aItemList.Destroy;
+  except
+    on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue_MFVec2f: ' + ExceptMessage(E));
+  end;
+end;
+
+// Set MFVec3f. We expect "3 * count" floats in the array "values"
+procedure CGE_SetNodeFieldValue_MFVec3f(szNodeName, szFieldName: pcchar; iCount: cInt32; values: pcfloat); cdecl;
+var
+  aField: TX3DField;
+  aItemList: TVector3List;
+begin
+  try
+    if not CGE_VerifyScene('CGE_SetNodeFieldValue_MFVec3f') then exit;
+    aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
+    if aField = nil then Exit;
+
+    aItemList := TVector3List.Create;
+    aItemList.Count := iCount;
+    Move(values^, aItemList.L^, SizeOf(TVector3) * iCount);
+    (aField as TMFVec3f).Send(aItemList);
+    aItemList.Destroy;
+  except
+    on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue_MFVec3f: ' + ExceptMessage(E));
+  end;
+end;
+
+// Set MFVec4f. We expect "4 * count" floats in the array "values"
+procedure CGE_SetNodeFieldValue_MFVec4f(szNodeName, szFieldName: pcchar; iCount: cInt32; values: pcfloat); cdecl;
+var
+  aField: TX3DField;
+  aItemList: TVector4List;
+begin
+  try
+    if not CGE_VerifyScene('CGE_SetNodeFieldValue_MFVec4f') then exit;
+    aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
+    if aField = nil then Exit;
+
+    aItemList := TVector4List.Create;
+    aItemList.Count := iCount;
+    Move(values^, aItemList.L^, SizeOf(TVector4) * iCount);
+    (aField as TMFVec4f).Send(aItemList);
+    aItemList.Destroy;
+  except
+    on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue_MFVec4f: ' + ExceptMessage(E));
+  end;
+end;
+
+// Set MFVec2f. We expect "2 * count" doubles in the array "values"
+procedure CGE_SetNodeFieldValue_MFVec2d(szNodeName, szFieldName: pcchar; iCount: cInt32; values: pcdouble); cdecl;
+var
+  aField: TX3DField;
+  aItemList: TVector2DoubleList;
+begin
+  try
+    if not CGE_VerifyScene('CGE_SetNodeFieldValue_MFVec2d') then exit;
+    aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
+    if aField = nil then Exit;
+
+    aItemList := TVector2DoubleList.Create;
+    aItemList.Count := iCount;
+    Move(values^, aItemList.L^, SizeOf(TVector2Double) * iCount);
+    (aField as TMFVec2d).Send(aItemList);
+    aItemList.Destroy;
+  except
+    on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue_MFVec2d: ' + ExceptMessage(E));
+  end;
+end;
+
+// Set MFVec3f. We expect "3 * count" doubles in the array "values"
+procedure CGE_SetNodeFieldValue_MFVec3d(szNodeName, szFieldName: pcchar; iCount: cInt32; values: pcdouble); cdecl;
+var
+  aField: TX3DField;
+  aItemList: TVector3DoubleList;
+begin
+  try
+    if not CGE_VerifyScene('CGE_SetNodeFieldValue_MFVec3d') then exit;
+    aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
+    if aField = nil then Exit;
+
+    aItemList := TVector3DoubleList.Create;
+    aItemList.Count := iCount;
+    Move(values^, aItemList.L^, SizeOf(TVector3Double) * iCount);
+    (aField as TMFVec3d).Send(aItemList);
+    aItemList.Destroy;
+  except
+    on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue_MFVec3d: ' + ExceptMessage(E));
+  end;
+end;
+
+// Set MFVec4f. We expect "4 * count" doubles in the array "values"
+procedure CGE_SetNodeFieldValue_MFVec4d(szNodeName, szFieldName: pcchar; iCount: cInt32; values: pcdouble); cdecl;
+var
+  aField: TX3DField;
+  aItemList: TVector4DoubleList;
+begin
+  try
+    if not CGE_VerifyScene('CGE_SetNodeFieldValue_MFVec4d') then exit;
+    aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
+    if aField = nil then Exit;
+
+    aItemList := TVector4DoubleList.Create;
+    aItemList.Count := iCount;
+    Move(values^, aItemList.L^, SizeOf(TVector4Double) * iCount);
+    (aField as TMFVec4d).Send(aItemList);
+    aItemList.Destroy;
+  except
+    on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue_MFVec4d: ' + ExceptMessage(E));
+  end;
+end;
+
+// Set MFRotation. We expect "4 * count" floats in the array "values"
+procedure CGE_SetNodeFieldValue_MFRotation(szNodeName, szFieldName: pcchar; iCount: cInt32; values: pcfloat); cdecl;
+var
+  aField: TX3DField;
+  aItemList: TVector4List;
+begin
+  try
+    if not CGE_VerifyScene('CGE_SetNodeFieldValue_MFRotation') then exit;
+    aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
+    if aField = nil then Exit;
+
+    aItemList := TVector4List.Create;
+    aItemList.Count := iCount;
+    Move(values^, aItemList.L^, SizeOf(TVector4) * iCount);
+    (aField as TMFRotation).Send(aItemList);
+    aItemList.Destroy;
+  except
+    on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue_MFRotation: ' + ExceptMessage(E));
+  end;
+end;
+
+// Set MFString. We expect array of "count" char* pointers to null-terminated UTF-8 strings
+procedure CGE_SetNodeFieldValue_MFString(szNodeName, szFieldName: pcchar; iCount: cInt32; values: ppcchar); cdecl;
+var
+  aField: TX3DField;
+  aItemList: TCastleStringList;
+  i: cInt32;
+begin
+  try
+    if not CGE_VerifyScene('CGE_SetNodeFieldValue_MFString') then exit;
+    aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
+    if aField = nil then Exit;
+
+    aItemList := TCastleStringList.Create;
+    aItemList.Count := iCount;
+    for i := 0 to iCount - 1 do
+      aItemList[i] := PChar(values[i]);
+    (aField as TMFString).Send(aItemList);
+    aItemList.Destroy;
+  except
+    on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue_MFString: ' + ExceptMessage(E));
   end;
 end;
 
@@ -935,6 +1381,7 @@ exports
   CGE_Open,
   CGE_Close,
   CGE_GetOpenGLInformation,
+  CGE_GetCastleEngineVersion,
   CGE_Render,
   CGE_Resize,
   CGE_SetLibraryCallbackProc,
@@ -946,6 +1393,7 @@ exports
   CGE_KeyDown,
   CGE_KeyUp,
   CGE_LoadSceneFromFile,
+  CGE_SaveSceneToFile,
   CGE_SetNavigationInputShortcut,
   CGE_GetNavigationType,
   CGE_SetNavigationType,
@@ -958,11 +1406,35 @@ exports
   CGE_MoveViewToCoords,
   CGE_SaveScreenshotToFile,
   CGE_SetTouchInterface,
-  CGE_SetUserInterface,
+  CGE_SetAutoTouchInterface,
+  CGE_SetWalkNavigationMouseDragMode,
   CGE_IncreaseSceneTime,
   CGE_SetVariableInt,
   CGE_GetVariableInt,
-  CGE_SetNodeFieldValue;
+  CGE_SetNodeFieldValue_SFFloat,
+  CGE_SetNodeFieldValue_SFDouble,
+  CGE_SetNodeFieldValue_SFInt32,
+  CGE_SetNodeFieldValue_SFBool,
+  CGE_SetNodeFieldValue_SFVec2f,
+  CGE_SetNodeFieldValue_SFVec3f,
+  CGE_SetNodeFieldValue_SFVec4f,
+  CGE_SetNodeFieldValue_SFVec2d,
+  CGE_SetNodeFieldValue_SFVec3d,
+  CGE_SetNodeFieldValue_SFVec4d,
+  CGE_SetNodeFieldValue_SFRotation,
+  CGE_SetNodeFieldValue_SFString,
+  CGE_SetNodeFieldValue_MFFloat,
+  CGE_SetNodeFieldValue_MFDouble,
+  CGE_SetNodeFieldValue_MFInt32,
+  CGE_SetNodeFieldValue_MFBool,
+  CGE_SetNodeFieldValue_MFVec2f,
+  CGE_SetNodeFieldValue_MFVec3f,
+  CGE_SetNodeFieldValue_MFVec4f,
+  CGE_SetNodeFieldValue_MFVec2d,
+  CGE_SetNodeFieldValue_MFVec3d,
+  CGE_SetNodeFieldValue_MFVec4d,
+  CGE_SetNodeFieldValue_MFRotation,
+  CGE_SetNodeFieldValue_MFString;
 
 begin
   SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide,

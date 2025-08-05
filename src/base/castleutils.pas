@@ -86,6 +86,7 @@ uses
 {$I castleutils_delphi_compatibility.inc}
 {$I castleutils_platform.inc}
 {$I castleutils_miscella.inc}
+{$I castleutils_fast_list.inc}
 {$I castleutils_struct_list.inc}
 {$I castleutils_primitive_lists.inc}
 {$I castleutils_program_exit.inc}
@@ -106,6 +107,7 @@ implementation
 {$I castleutils_delphi_compatibility.inc}
 {$I castleutils_platform.inc}
 {$I castleutils_miscella.inc}
+{$I castleutils_fast_list.inc}
 {$I castleutils_struct_list.inc}
 {$I castleutils_primitive_lists.inc}
 {$I castleutils_program_exit.inc}
@@ -120,6 +122,7 @@ implementation
   see ../packages/README. }
 {$ifdef UNIX}      {$I castleutils_os_specific_unix.inc}    {$endif}
 {$ifdef MSWINDOWS} {$I castleutils_os_specific_windows.inc} {$endif}
+{$ifdef WASI}      {$I castleutils_os_specific_wasi.inc}    {$endif}
 
 {$I castleutils_pointers.inc}
 {$I castleutils_read_write.inc}

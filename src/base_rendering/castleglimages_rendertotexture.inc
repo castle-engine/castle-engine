@@ -1,6 +1,6 @@
 {%MainUnit castleglimages.pas}
 {
-  Copyright 2001-2023 Michalis Kamburelis.
+  Copyright 2001-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -39,14 +39,15 @@
     FCompleteTextureTarget: TGLenum;
     FDepthTextureTarget: TGLenum;
     FBuffer: TGLRenderToTextureBuffer;
-    FStencil: boolean;
+    FStencil: Boolean;
     FDepthTexture: TGLTextureId;
 
     FGLInitialized: boolean;
-    Framebuffer, RenderbufferColor, RenderbufferDepth, RenderbufferStencil: TGLuint;
+    Framebuffer: TGLFramebuffer;
+    RenderbufferColor, RenderbufferDepth, RenderbufferStencil: TGLRenderbuffer;
 
-    FramebufferBound: boolean;
-    FColorBufferAlpha: boolean;
+    FramebufferBound: Boolean;
+    FColorBufferAlpha: Boolean;
     FMultiSampling: Cardinal;
   public
     { Constructor. Doesn't require OpenGL context,
@@ -78,8 +79,10 @@
       fallback to non-stencil version) right at GLContextOpen call, and no need
       to repeat it (e.g. at each RenderBegin).
 
+      By default this is GLObjectNone, meaning 0 (OpenGL, OpenGLES) or nil (WebGL).
+
       Changed by SetTexture. }
-    property Texture: TGLTextureId read FTexture default 0;
+    property Texture: TGLTextureId read FTexture;
 
     { Target of texture associated with rendered buffer.
       This is GL_TEXTURE_2D for normal 2D textures, but may also be
@@ -283,6 +286,9 @@ end;
 
 { BindFramebuffer stack ------------------------------------------------------ }
 
+type
+  TGLFramebufferList = {$ifdef FPC}specialize{$endif} TList<TGLFramebuffer>;
+
 var
   { We may want to use an FBO, while another FBO is already used.
 
@@ -292,23 +298,28 @@ var
 
     It's important in such cases that we should restore at the end
     previously bound FBO --- not necessarily just FBO number 0. }
-  BoundFboStack: TUInt32List;
+  BoundFboStack: TGLFramebufferList;
 
   { The FBO id meaning "the screen".
-    This is 0 in usual circumstances, except on iOS and iPhone Simulator it can be non-zero
+    This is 0 (GLObjectNone for WebGL) in usual circumstances,
+    except on iOS and iPhone Simulator it can be non-zero:
     (see https://stackoverflow.com/questions/11617013/why-would-glbindframebuffergl-framebuffer-0-result-in-blank-screen-in-cocos2d)
   }
-  ScreenFbo: TGLuint;
+  ScreenFbo: TGLFramebuffer;
   ScreenFboQueried: boolean;
 
 { Use instead of glBindFramebuffer(GL_FRAMEBUFFER, Fbo),
   for non-zero Fbo. This will bind and add this Fbo to stack. }
-procedure BindFramebuffer(const Fbo: TGLuint);
+procedure BindFramebuffer(const Fbo: TGLFramebuffer);
+{$ifdef CASTLE_WEBGL}
+var
+  ScreenFboVariant: Variant;
+{$endif}
 begin
-  Assert(Fbo <> 0);
+  Assert(Fbo <> GLObjectNone);
   Assert(Fbo <> ScreenFbo);
   if BoundFboStack = nil then
-    BoundFboStack := TUInt32List.Create;
+    BoundFboStack := TGLFramebufferList.Create;
   { See the ScreenFbo documentation for reason why we need to query it now.
     We use ScreenFboQueried to
     1. optimize (no need for glGetIntegerv every time we do BindFramebuffer)
@@ -316,8 +327,22 @@ begin
   if (BoundFboStack.Count = 0) and (not ScreenFboQueried) then
   begin
     ScreenFboQueried := true;
-    glGetIntegerv(GL_FRAMEBUFFER_BINDING, @ScreenFbo);
-    if ScreenFbo <> 0 then
+    {$ifdef CASTLE_WEBGL}
+    { Querying for GL_FRAMEBUFFER_BINDING returns
+      WebGLFramebuffer (our TGLFramebuffer) or null according to
+      https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/getParameter ,
+      which is exactly what we want. }
+    ScreenFboVariant := GL.getParameter(GL_FRAMEBUFFER_BINDING);
+    // WebGL getParameter(GL_FRAMEBUFFER_BINDING) returns "null" if no FBO is bound.
+    // See https://wiki.lazarus.freepascal.org/WebAssembly/DOM how check for null and typecast.
+    if VarIsNull(ScreenFboVariant) then
+      ScreenFbo := GLObjectNone
+    else
+      ScreenFbo := TJSWebGLFramebuffer.Cast(ScreenFboVariant);
+    {$else}
+    ScreenFbo := glGetInteger(GL_FRAMEBUFFER_BINDING);
+    {$endif}
+    if ScreenFbo <> GLObjectNone then
       { See about GTK3:
         https://stackoverflow.com/questions/62422683/framebuffer-issue-render-to-texture-with-gtk3-glarea-vs-glfw-identical-opengl#62436181
 
@@ -351,7 +376,7 @@ end;
   "invalid enum" error. }
 procedure UnbindFramebuffer(out PreviousFboDefaultBuffer: TGLenum); overload;
 var
-  PreviousFbo: TGLuint;
+  PreviousFbo: TGLFramebuffer;
 begin
   if (BoundFboStack <> nil) and (BoundFboStack.Count <> 0) then
   begin
@@ -400,7 +425,7 @@ procedure FramebufferTexture2D(const Target: TGLenum;
   const AttachmentDepthAndStencil: boolean;
   Attachment, TexTarget: TGLenum; const Texture: TGLTextureId; const Level: TGLint);
 begin
-  Assert(Texture <> 0, 'Texture 0 assigned to framebuffer, FBO will be incomplete');
+  Assert(Texture <> GLObjectNone, 'Texture 0 assigned to framebuffer, FBO will be incomplete');
   if GLFeatures.Framebuffer then
   begin
     if AttachmentDepthAndStencil then
@@ -418,7 +443,7 @@ begin
   inherited Create;
 
   if not ApplicationProperties.IsGLContextOpen then
-    raise EFramebufferError.Create('Cannot create TGLRenderToTexture when OpenGL context is not available. Do this later -- e.g. from events like TCastleControl.OnOpen, TCastleWindow.OnOpen, Application.OnInitialize, or after an explicit call to TCastleWindow.Open.');
+    raise EFramebufferError.Create('Cannot create TGLRenderToTexture when OpenGL context is not available. Do this later, e.g. from events like TCastleUserInterface.Render, TCastleUserInterface.GLContextOpen, Application.OnInitialize.');
 
   FTextureTarget := GL_TEXTURE_2D;
   FCompleteTextureTarget := GL_TEXTURE_2D;
@@ -444,7 +469,7 @@ begin
   begin
     FTexture := ATexture;
     FTextureTarget := ATextureTarget;
-    if Framebuffer <> 0 then
+    if Framebuffer <> GLObjectNone then
     begin
       if not FramebufferBound then
         BindFramebuffer(Framebuffer);
@@ -488,13 +513,13 @@ procedure TGLRenderToTexture.GLContextOpen;
     If AttachmentDepthAndStencil, we attach to both depth/stencil,
     and provided Attachment value is ignored. Otherwise, we attach to the given
     Attachment. }
-  procedure GenBindRenderbuffer(var RenderbufferId: TGLuint;
+  procedure GenBindRenderbuffer(var RenderbufferId: TGLRenderbuffer;
     const InternalFormat: TGLenum; const AttachmentDepthAndStencil: boolean;
     Attachment: TGLenum);
   begin
     if GLFeatures.Framebuffer then
     begin
-      glGenRenderbuffers(1, @RenderbufferId);
+      RenderbufferId := glCreateRenderbuffer();
       glBindRenderbuffer(GL_RENDERBUFFER, RenderbufferId);
       {$ifndef OpenGLES}
       if (MultiSampling > 1) and GLFeatures.FBOMultiSampling then
@@ -538,7 +563,7 @@ begin
       raise EFramebufferSizeTooLow.CreateFmt('Maximum renderbuffer (within framebuffer) size is %d x %d in your OpenGL implementation, while we require %d x %d',
         [ GLFeatures.MaxRenderbufferSize, GLFeatures.MaxRenderbufferSize, Width, Height ]);
 
-    glGenFramebuffers(1, @Framebuffer);
+    Framebuffer := glCreateFramebuffer();
     BindFramebuffer(Framebuffer);
 
     { When GLFeatures.PackedDepthStencil and stencil is wanted
@@ -621,7 +646,7 @@ begin
       end;
     finally
       { Always, regardless of Success, unbind FBO and restore normal gl*Buffer }
-      glBindRenderbuffer(GL_RENDERBUFFER, 0);
+      glBindRenderbuffer(GL_RENDERBUFFER, GLObjectNone);
       UnbindFramebuffer(PreviousFboDefaultBuffer);
 
       if Buffer = tbDepth then
@@ -641,27 +666,6 @@ begin
 end;
 
 procedure TGLRenderToTexture.GLContextClose;
-
-  procedure FreeRenderbuffer(var Buf: TGLuint);
-  begin
-    if Buf <> 0 then
-    begin
-      if GLFeatures.Framebuffer then
-        glDeleteRenderbuffers(1, @Buf);
-      Buf := 0;
-    end;
-  end;
-
-  procedure FreeFramebuffer(var Buf: TGLuint);
-  begin
-    if Buf <> 0 then
-    begin
-      if GLFeatures.Framebuffer then
-        glDeleteFramebuffers(1, @Buf);
-      Buf := 0;
-    end;
-  end;
-
 begin
   FreeRenderbuffer(RenderbufferColor);
   FreeRenderbuffer(RenderbufferDepth);
@@ -673,7 +677,7 @@ procedure TGLRenderToTexture.RenderBegin;
 begin
   Inc(FOffscreenRendering);
 
-  if Framebuffer <> 0 then
+  if Framebuffer <> GLObjectNone then
   begin
     if not FramebufferBound then
     begin
@@ -745,7 +749,7 @@ begin
   SaveDepth('file:///tmp/framebuffer_depth.png');
 {$endif DEBUG_SAVE_FRAMEBUFFER_DEPTH}
 
-  if Framebuffer <> 0 then
+  if Framebuffer <> GLObjectNone then
   begin
     Assert(FramebufferBound);
     if not RenderBeginFollows then
@@ -787,8 +791,9 @@ end;
 
 function TGLRenderToTexture.ColorBuffer: TColorBuffer;
 begin
-  if Framebuffer <> 0 then
-    Result := cbColorAttachment0 else
+  if Framebuffer <> GLObjectNone then
+    Result := cbColorAttachment0
+  else
     Result := cbBack;
 end;
 

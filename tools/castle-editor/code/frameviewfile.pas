@@ -40,6 +40,13 @@ uses
   {$endif}
 {$endif}
 
+{$if defined(LCLCocoa)}
+  {$if LCL_FULLVERSION < 3050000}
+    // To have https://gitlab.com/freepascal.org/lazarus/lazarus/-/merge_requests/291 fixed
+    {$error Using LCL Cocoa widgetset to build CGE editor requires Lazarus (LCL) version >= 3.5.}
+  {$endif}
+{$endif}
+
 type
   TViewFileFrame = class(TFrame)
     Control: TCastleControl;

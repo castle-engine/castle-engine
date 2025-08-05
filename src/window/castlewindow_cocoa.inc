@@ -1,6 +1,6 @@
 {%MainUnit castlewindow.pas}
 {
-  Copyright 2022-2023 Michalis Kamburelis and GLPT, LCL contributors.
+  Copyright 2022-2024 Michalis Kamburelis, Jan Adamec, and GLPT, LCL contributors.
 
   The Cocoa integration code is based on
 
@@ -59,6 +59,7 @@
     mentions it, without any answer except "ignore them"..
   - entering modal message leaves the key pressed down, testcase: test_all_state_events, press Q
   - hiding cursor doesn't work for unknown reason
+  - Call FileMonitor.CheckChanges when user switches to application.
 }
 
 {$ifdef read_interface_uses}
@@ -389,7 +390,7 @@ var
       WritelnWarning('Cocoa event indicated that %s should be pressed, but not registered as pressed yet', [
         MouseButtonStr[MouseButton]
       ]);
-      win.DoMouseDown(win.MousePosition, MouseButton, 0);
+      win.DoMouseDown(win.Container.MousePosition, MouseButton, 0);
     end;
   end;
 
@@ -402,14 +403,14 @@ var
     IsShift, IsAlt, IsCtrl: Boolean;
   begin
     IsShift := (ModifierFlags and NSShiftKeyMask) <> 0;
-    if IsShift <> win.Pressed[keyShift] then
+    if IsShift <> win.Container.Pressed[keyShift] then
       if IsShift then
         win.DoKeyDown(keyShift, '')
       else
         win.DoKeyUp(keyShift);
 
     IsAlt := (ModifierFlags and NSAlternateKeyMask) <> 0;
-    if IsAlt <> win.Pressed[keyAlt] then
+    if IsAlt <> win.Container.Pressed[keyAlt] then
       if IsAlt then
         win.DoKeyDown(keyAlt, '')
       else
@@ -418,7 +419,7 @@ var
     IsCtrl :=
       //(ModifierFlags and NSControlKeyMask) <> 0;
       (ModifierFlags and NSCommandKeyMask) <> 0; // treat Command key as Ctrl
-    if IsCtrl <> win.Pressed[keyCtrl] then
+    if IsCtrl <> win.Container.Pressed[keyCtrl] then
       if IsCtrl then
         win.DoKeyDown(keyCtrl, '')
       else
@@ -465,7 +466,7 @@ begin
                 NSRightMouseDragged: CheckMotionDragged(buttonRight);
                 NSOtherMouseDragged: CheckMotionDragged(buttonMiddle);
               end;
-              win.DoMotion(InputMotion(win.MousePosition,
+              win.DoMotion(InputMotion(win.Container.MousePosition,
                 Vector2(event.locationInWindow.x*ScaleFactor, event.locationInWindow.y*ScaleFactor), win.MousePressed, 0));
             end;
           NSLeftMouseDown, NSRightMouseDown, NSOtherMouseDown:
@@ -553,6 +554,7 @@ type
   TOpenGLView = objcclass (NSView)
     public
       function initWithFrame(frameRect: NSRect): id; override;
+      procedure dealloc; override;
       function isOpaque: ObjCBool; override;
       procedure viewDidMoveToWindow; override;
       procedure mouseEntered(theEvent: NSEvent); override;
@@ -561,6 +563,7 @@ type
       procedure updateTrackingAreas; override;
       procedure keyDown(theEvent: NSEvent); override;
       procedure drawRect(dirtyRect: NSRect); override;
+      procedure setFrameSize(newSize: NSSize); override;
 
       { Realizes TCastleWindow.OnDropFiles, allows to handle dropping files. }
       function performDragOperation(sender: NSDraggingInfoProtocol): ObjCBOOL; override;
@@ -573,7 +576,7 @@ type
       function defaultPixelFormat: NSOpenGLPixelFormat; message 'defaultPixelFormat';
       function windowRef: TCastleWindow; message 'windowRef';
       procedure frameChanged (sender: NSNotification); message 'frameChanged:';
-      procedure reshape; message 'reshape';
+      procedure reshape(newSize: NSSize); message 'reshape:';
   end;
 
 // note: setValues_forParameter in RTL headers is parsed wrong
@@ -637,13 +640,15 @@ begin
   end;
 
   if window = nil then
-    openGLContext.clearDrawable;
+    openGLContext.clearDrawable
+  else
+    reshape(bounds.size);
 end;
 
 procedure TOpenGLView.frameChanged (sender: NSNotification);
 begin
-  if openGLContext <> nil then
-    reshape;
+  if (openGLContext <> nil) and (window <> nil) and (windowRef <> nil) then
+    reshape(bounds.size);
 end;
 
 procedure TOpenGLView.drawRect(dirtyRect: NSRect);
@@ -652,9 +657,10 @@ begin
   // openGLContext.flushBuffer;
 end;
 
-procedure TOpenGLView.reshape;
+procedure TOpenGLView.reshape(newSize: NSSize);
 var
   ScaleFactor: Single;
+  BackingSize: NSSize;
 begin
   openGLContext.update;
 
@@ -669,16 +675,25 @@ begin
       https://developer.apple.com/documentation/quartzcore/calayer/1410746-contentsscale?language=objc
       (possibly we could use NSViewLayerContentScaleDelegate
       to avoid such scaling on OpenGL control; for now this solution seems easier). }
-    if window.respondsToSelector( ObjCSelector('backingScaleFactor')) then
-      ScaleFactor := window.backingScaleFactor
+    if window.respondsToSelector( ObjCSelector('backingScaleFactor')) then  // check if we are on OSX 10.7
+    begin
+      BackingSize := convertSizeToBacking(newSize);
+      ScaleFactor := BackingSize.width / newSize.width;
+    end
     else
-    if window.respondsToSelector( ObjCSelector('userSpaceScaleFactor')) then // for older OSX
-      {$warnings off}
-      // do not warn about userSpaceScaleFactor being deprecated, we only use it for older OS
-      ScaleFactor := window.userSpaceScaleFactor
-      {$warnings on}
-    else
-      ScaleFactor := 1;
+    begin
+      if window.respondsToSelector( ObjCSelector('backingScaleFactor')) then
+        ScaleFactor := window.backingScaleFactor
+      else
+      if window.respondsToSelector( ObjCSelector('userSpaceScaleFactor')) then // for older OSX
+        {$warnings off}
+        // do not warn about userSpaceScaleFactor being deprecated, we only use it for older OS
+        ScaleFactor := window.userSpaceScaleFactor
+        {$warnings on}
+      else
+        ScaleFactor := 1;
+      BackingSize := NSMakeSize(newSize.width * ScaleFactor, newSize.height * ScaleFactor);
+    end;
 
     if TCocoaWindow(window).ScaleFactor <> ScaleFactor then
     begin
@@ -686,10 +701,14 @@ begin
       windowRef.Container.Dpi := ScaleFactor * DefaultDpi
     end;
 
-    windowRef.DoResize(
-      trunc(ScaleFactor * bounds.size.width),
-      trunc(ScaleFactor * bounds.size.height), false);
+    windowRef.DoResize(trunc(BackingSize.width), trunc(BackingSize.height), false);
   end;
+end;
+
+procedure TOpenGLView.setFrameSize(newSize: NSSize);
+begin
+  inherited setFrameSize(newSize);
+  reshape(newSize);
 end;
 
 function TOpenGLView.isOpaque: ObjCBool;
@@ -752,7 +771,19 @@ function TOpenGLView.initWithFrame(frameRect: NSRect): id;
 begin
   result := inherited initWithFrame(frameRect);
   if result <> nil then
-    NSNotificationCenter(NSNotificationCenter.defaultCenter).addObserver_selector_name_object(result, objcselector('frameChanged:'), NSViewGlobalFrameDidChangeNotification, nil);
+  begin
+    // NSViewGlobalFrameDidChangeNotification is not needed when setFrameSize is overriden in our view. This notification is received far too often.
+    //NSNotificationCenter(NSNotificationCenter.defaultCenter).addObserver_selector_name_object(result, objcselector('frameChanged:'), NSViewGlobalFrameDidChangeNotification, result);
+  end;
+end;
+
+procedure TOpenGLView.dealloc;
+begin
+  //NSNotificationCenter(NSNotificationCenter.defaultCenter).removeObserver_name_object(self, NSViewGlobalFrameDidChangeNotification, result);
+  NSNotificationCenter(NSNotificationCenter.defaultCenter).removeObserver_name_object(self, NSWindowDidChangeScreenNotification, nil);
+  NSNotificationCenter(NSNotificationCenter.defaultCenter).removeObserver_name_object(self, NSWindowDidChangeBackingPropertiesNotification, nil);
+
+  inherited dealloc;
 end;
 
 function TOpenGLView.draggingEntered(sender: NSDraggingInfoProtocol): NSDragOperation;
@@ -937,8 +968,28 @@ begin
   openGLView := TOpenGLView.alloc.initWithFrame(window.contentView.bounds);
   // makes drag-and-drop files on window work
   openGLView.registerForDraggedTypes(NSArray.arrayWithObjects_count(@NSFilenamesPboardType, 1));
+  { It is critical to call this, in order to get the "real" resolution OpenGL
+    context (with our pixel corresponding to final device pixels).
+    Otherwise, with Retina monitors, we get OpenGL context with smaller pixel
+    size that is then stretched (on the macOS side) to the final size,
+    which is not what we want -- we want crisp rendering, we want to control
+    any eventual scaling on our side.
+
+    This wasnt necessary when compiling with old macOS SDK (on macOS 12.7.2).
+
+    With new macOS SDK (macOS 14.6, Xcode 15.4) this is necessary.
+
+    Docs on https://developer.apple.com/documentation/appkit/nsview/1414938-wantsbestresolutionopenglsurface?language=objc
+    say this is deprecated and defaults to Yes with new macOS SDK, but it seems
+    the docs are wrong.
+    LCL Cocoa TOpenGLControl also does this, see
+    https://gitlab.com/freepascal.org/lazarus/lazarus/-/blob/main/components/opengl/glcocoanscontext.pas?ref_type=heads . }
+  openGLView.setWantsBestResolutionOpenGLSurface(true);
   window.setContentView(openGLView);
   openGLView.release;
+
+  NSNotificationCenter(NSNotificationCenter.defaultCenter).addObserver_selector_name_object(openGLView, objcselector('frameChanged:'), NSWindowDidChangeScreenNotification, window);
+  NSNotificationCenter(NSNotificationCenter.defaultCenter).addObserver_selector_name_object(openGLView, objcselector('frameChanged:'), NSWindowDidChangeBackingPropertiesNotification, window);
 
   if FullScreen then
     FullScreenBegin;
@@ -949,10 +1000,10 @@ begin
   window.setAcceptsMouseMovedEvents(true);
   window.makeKeyAndOrderFront(nil);
 
+  openGLView.reshape(openGLView.bounds.size);
+
   glcontext := openGLView.openGLContext;
   ref := window;
-
-  Container.Dpi := window.ScaleFactor * DefaultDpi; // InitializeDpi;
 
   Application.OpenWindowsAdd(Self);
 
@@ -979,7 +1030,7 @@ procedure TCastleWindow.SetCaption(const Part: TCaptionPart; const Value: String
 begin
   FCaption[Part] := Value;
   if not Closed then
-    ref.setTitle(NSSTR(GetWholeCaption));
+    ref.setTitle(NSString.stringWithUTF8String(PChar(GetWholeCaption)));
 end;
 
 procedure TCastleWindow.BackendMakeCurrent;
@@ -1052,9 +1103,10 @@ begin
   Result := { TODO } true;
 end;
 
-procedure TCastleWindow.SetMousePosition(const Value: TVector2);
+procedure TCastleWindow.SystemSetMousePosition(const Value: TVector2);
 begin
 end;
+
 (* TODO: Unfortunately none of the options below make any effect.
 
 var
@@ -1098,6 +1150,45 @@ end;
 
 procedure TCastleWindow.BackendInsideUpdate;
 begin
+end;
+
+{ TCocoaClipboard ----------------------------------------------------------- }
+
+{ Clipboard operations using Cocoa }
+
+type
+  TCocoaClipboard = class(TCastleClipboard)
+  protected
+    function GetAsText: String; override;
+    procedure SetAsText(const Value: String); override;
+  end;
+
+function TCocoaClipboard.GetAsText: String;
+var
+  Pasteboard: NSPasteboard;
+  Text: NSString;
+begin
+  Result := '';
+
+  Pasteboard := NSPasteboard.generalPasteboard;
+  if Pasteboard <> nil then
+  begin
+    Text := Pasteboard.stringForType(NSPasteboardTypeString);
+    if Text <> nil then
+        Result := PChar(Text.UTF8String);
+  end;
+end;
+
+procedure TCocoaClipboard.SetAsText(const Value: String);
+var
+  Pasteboard: NSPasteboard;
+begin
+  Pasteboard := NSPasteboard.generalPasteboard;
+  if Pasteboard <> nil then
+  begin
+    Pasteboard.clearContents;
+    Pasteboard.setString_forType(NSSTR(Value), NSPasteboardTypeString);
+  end;
 end;
 
 { TCastleApplication ---------------------------------------------------------- }
@@ -1155,6 +1246,8 @@ begin
 
   delegate := TCocoaAppDelegate.alloc.init;
   app.setDelegate(delegate);
+
+  RegisterClipboard(TCocoaClipboard.Create);
 
   NSApp.setActivationPolicy(NSApplicationActivationPolicyRegular);
   NSApp.activateIgnoringOtherApps(true);
@@ -1245,14 +1338,14 @@ begin
   Result := trunc(NSMaxY(screenFrame)) - trunc(NSMinY(screenFrame));
 end;
 
-function TCastleApplication.ScreenStatusBarScaledHeight: Cardinal;
-begin
-  Result := 0;
-end;
-
 function TCastleApplication.BackendName: String;
 begin
   Result := 'Cocoa';
+end;
+
+function TCastleApplication.MultipleWindowsPossible: Boolean;
+begin
+  Result := true;
 end;
 
 { TWindowContainer ----------------------------------------------------------- }

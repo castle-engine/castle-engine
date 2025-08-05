@@ -11,7 +11,7 @@ castle_game_engine_icon.png: castle_game_engine_icon.svg
 	  --export-height=256 \
 	  --export-background=white \
 	  --export-background-opacity=0 \
-	  --export-png=$@
+	  --export-filename=$@
 
 # Unused anymore.
 # This made sense cause old IE didn't interpret alpha channel in PNG Ok.
@@ -23,4 +23,4 @@ castle_game_engine_icon.png: castle_game_engine_icon.svg
 # 	  --export-height=256 \
 # 	  --export-background=white \
 # 	  --export-background-opacity=255 \
-# 	  --export-png=$@
+# 	  --export-filename=$@

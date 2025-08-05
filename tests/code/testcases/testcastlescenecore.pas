@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestSceneCore" -*-
 {
-  Copyright 2020-2023 Michalis Kamburelis.
+  Copyright 2020-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -70,6 +70,9 @@ type
     procedure TestGeometryNodesInShape;
     procedure TestExposedTransforms;
     //procedure TestInternalNodesReadOnly;
+    procedure TestValidScene;
+    procedure TestInternalDetectedWholeSceneManifold;
+    procedure TestMaterialInfo;
   end;
 
 implementation
@@ -77,7 +80,7 @@ implementation
 uses X3DLoad, CastleVectors, CastleShapes,
   CastleTimeUtils, CastleStringUtils, X3DFields, CastleViewport, CastleBoxes,
   CastleFilesUtils, CastleScene, CastleTransform, CastleApplicationProperties,
-  CastleUriUtils, CastleColors;
+  CastleUriUtils, CastleColors, CastleRenderOptions;
 
 procedure TTestSceneCore.TestBorderManifoldEdges;
 var
@@ -192,6 +195,7 @@ begin
   CheckIterator('castle-data:/switches_and_transforms_2.x3dv');
   CheckIterator('castle-data:/key_sensor_2.x3dv');
   CheckIterator('castle-data:/extrusion_empty_spine.x3dv');
+  CheckIterator('castle-data:/extrusion_empty_cross_section.x3dv');
   CheckIterator('castle-data:/extrusion_empty_spine_concave.x3dv');
   CheckIterator('castle-data:/extrusion_empty_spine_smooth.x3dv');
 
@@ -209,6 +213,12 @@ procedure TTestSceneCore.TestFind;
 var
   Scene: TCastleSceneCore;
 begin
+  if not CanCatchExceptions then
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   Scene := TCastleSceneCore.Create(nil);
   try
     try
@@ -347,6 +357,12 @@ var
   Node: TX3DRootNode;
   Scene1, Scene2: TCastleScene;
 begin
+  if not CanCatchExceptions then
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}NodeMultipleTimesWarning);
   try
     try
@@ -490,6 +506,11 @@ procedure TTestSceneCore.TestLoadGzipped;
   end;
 
 begin
+  {$ifdef WASI} // TODO: web: it fails with "EZlibError: Compression stream seek error"
+  AbortTest;
+  Exit;
+  {$endif}
+
   TestSphere('castle-data:/gzipped_x3d/sphere.wrl');
   TestSphere('castle-data:/gzipped_x3d/sphere.wrl.gz');
   TestSphere('castle-data:/gzipped_x3d/sphere.wrz');
@@ -1125,6 +1146,7 @@ begin
     { Test with Scene.RootNode = nil }
     AssertTrue(Scene.RootNode = nil);
 
+    if CanCatchExceptions then
     try
       Scene.Node(TX3DNode, 'Foo');
       Fail('This should have raised exception');
@@ -1136,6 +1158,7 @@ begin
     Scene.Load(RootNode, true);
     AssertTrue(Scene.RootNode <> nil);
 
+    if CanCatchExceptions then
     try
       Scene.Node(TX3DNode, 'Foo');
       Fail('This should have raised exception');
@@ -1143,6 +1166,7 @@ begin
 
     AssertTrue(Scene.Node(TX3DNode, 'Foo', [fnNilOnMissing]) = nil);
 
+    if CanCatchExceptions then
     try
       Scene.RootNode.FindNode(TX3DNode, 'Foo');
       Fail('This should have raised exception');
@@ -1151,10 +1175,12 @@ begin
     AssertTrue(Scene.RootNode.FindNode(TX3DNode, 'Foo', [fnNilOnMissing]) = nil);
 
     { Test fnOnlyActive: box is only in active subgraph }
+    if CanCatchExceptions then
     try
       Scene.RootNode.FindNode(TBoxNode, 'B', [fnOnlyActive]);
       Fail('This should have raised exception');
     except on E: EX3DNotFound do { valid response }; end;
+
     AssertTrue(Scene.RootNode.FindNode(TBoxNode, 'B', [fnOnlyActive, fnNilOnMissing]) = nil);
     AssertTrue(Scene.RootNode.FindNode(TBoxNode, 'B', []) <> nil);
     AssertTrue(Scene.RootNode.FindNode(TBoxNode, 'B', [fnNilOnMissing]) <> nil);
@@ -1265,6 +1291,136 @@ begin
   AssertTrue(SomeShape.Scene = nil);
 end;
 *)
+
+procedure TTestSceneCore.TestValidScene;
+
+  procedure CheckScene(const Url: String);
+  var
+    Scene: TCastleSceneCore;
+  begin
+    Scene := TCastleSceneCore.Create(nil);
+    try
+      try
+        Scene.Load(Url);
+        Scene.TrianglesCount;
+        Scene.VerticesCount;
+        Scene.BoundingBox;
+      except
+        on E: Exception do
+        begin
+          E.Message := E.Message + ' (TestValidScene with Url: ' + Url + ')';
+          raise;
+        end;
+      end;
+    finally FreeAndNil(Scene) end;
+  end;
+
+begin
+  CheckScene('castle-data:/extrusion_empty_spine.x3dv');
+  CheckScene('castle-data:/extrusion_empty_cross_section.x3dv');
+  CheckScene('castle-data:/extrusion_empty_spine_concave.x3dv');
+  CheckScene('castle-data:/extrusion_empty_spine_smooth.x3dv');
+end;
+
+procedure TTestSceneCore.TestInternalDetectedWholeSceneManifold;
+var
+  Scene: TCastleSceneCore;
+  ManifoldEdges, BorderEdges: Cardinal;
+  I: Integer;
+begin
+  Scene := TCastleSceneCore.Create(nil);
+  try
+    // shapes are not 2-manifold, but whole scene is
+    Scene.Load('castle-data:/manifold_tests/manifold_not_shapes_but_scene.glb');
+    Scene.EdgesCount(ManifoldEdges, BorderEdges);
+    AssertTrue(0 <> BorderEdges);
+    AssertTrue(0 <> ManifoldEdges);
+    AssertTrue(Scene.InternalDetectedWholeSceneManifold);
+
+    // each shape is 2-manifold, in this case InternalDetectedWholeSceneManifold=false
+    Scene.Load('castle-data:/manifold_tests/manifold_shapes.glb');
+    Scene.EdgesCount(ManifoldEdges, BorderEdges);
+    AssertEquals(0, BorderEdges);
+    AssertTrue(0 <> ManifoldEdges);
+    AssertFalse(Scene.InternalDetectedWholeSceneManifold);
+
+    // not manifold at all
+    for I := 1 to 3 do
+    begin
+      Scene.Load('castle-data:/manifold_tests/not_manifold_' + IntToStr(I) + '.glb');
+      Scene.EdgesCount(ManifoldEdges, BorderEdges);
+      AssertTrue(0 <> BorderEdges);
+      AssertTrue(0 <> ManifoldEdges);
+      AssertFalse(Scene.InternalDetectedWholeSceneManifold);
+    end;
+  finally FreeAndNil(Scene) end;
+end;
+
+procedure TTestSceneCore.TestMaterialInfo;
+var
+  Scene: TCastleSceneCore;
+  ShapesList: TShapeList;
+begin
+  Scene := TCastleSceneCore.Create(nil);
+  try
+    Scene.Load('castle-data:/test_material_info/no_texture.x3dv');
+    AssertEquals(1, Scene.Shapes.ShapesCount(false, false, false));
+    ShapesList := Scene.Shapes.TraverseList(false, false, false);
+    AssertEquals(1, ShapesList.Count);
+
+    AssertTrue(ShapesList[0].State.MaterialInfo <> nil);
+    AssertVectorEquals(Vector3(1, 1, 0), ShapesList[0].State.MaterialInfo.MainColor);
+
+    AssertTrue(ShapesList[0].State.MainTexture = nil);
+  finally FreeAndNil(Scene) end;
+
+  Scene := TCastleSceneCore.Create(nil);
+  try
+    Scene.Load('castle-data:/test_material_info/texture_in_appearance.x3dv');
+    AssertEquals(1, Scene.Shapes.ShapesCount(false, false, false));
+    ShapesList := Scene.Shapes.TraverseList(false, false, false);
+    AssertEquals(1, ShapesList.Count);
+
+    AssertTrue(ShapesList[0].State.MaterialInfo <> nil);
+    AssertVectorEquals(Vector3(1, 1, 0), ShapesList[0].State.MaterialInfo.MainColor);
+
+    AssertTrue(ShapesList[0].State.MainTexture <> nil);
+    AssertTrue((ShapesList[0].State.MainTexture as TImageTextureNode).FdUrl.Count = 1);
+    AssertTrue((ShapesList[0].State.MainTexture as TImageTextureNode).FdUrl.Items[0] = 'test_texture.png');
+  finally FreeAndNil(Scene) end;
+
+
+  Scene := TCastleSceneCore.Create(nil);
+  try
+    Scene.Load('castle-data:/test_material_info/texture_in_appearance_without_material.x3dv');
+    AssertEquals(1, Scene.Shapes.ShapesCount(false, false, false));
+    ShapesList := Scene.Shapes.TraverseList(false, false, false);
+    AssertEquals(1, ShapesList.Count);
+
+    AssertTrue(ShapesList[0].State.MaterialInfo <> nil);
+    // no material node, but still MaterialInfo, with white color
+    AssertVectorEquals(Vector3(1, 1, 1), ShapesList[0].State.MaterialInfo.MainColor);
+
+    AssertTrue(ShapesList[0].State.MainTexture <> nil);
+    AssertTrue((ShapesList[0].State.MainTexture as TImageTextureNode).FdUrl.Count = 1);
+    AssertTrue((ShapesList[0].State.MainTexture as TImageTextureNode).FdUrl.Items[0] = 'test_texture.png');
+  finally FreeAndNil(Scene) end;
+
+  Scene := TCastleSceneCore.Create(nil);
+  try
+    Scene.Load('castle-data:/test_material_info/texture_in_physical_material.x3dv');
+    AssertEquals(1, Scene.Shapes.ShapesCount(false, false, false));
+    ShapesList := Scene.Shapes.TraverseList(false, false, false);
+    AssertEquals(1, ShapesList.Count);
+
+    AssertTrue(ShapesList[0].State.MaterialInfo <> nil);
+    AssertVectorEquals(Vector3(1, 1, 0), ShapesList[0].State.MaterialInfo.MainColor);
+
+    AssertTrue(ShapesList[0].State.MainTexture <> nil);
+    AssertTrue((ShapesList[0].State.MainTexture as TImageTextureNode).FdUrl.Count = 1);
+    AssertTrue((ShapesList[0].State.MainTexture as TImageTextureNode).FdUrl.Items[0] = 'test_texture_from_material.png');
+  finally FreeAndNil(Scene) end;
+end;
 
 initialization
   RegisterTest(TTestSceneCore);

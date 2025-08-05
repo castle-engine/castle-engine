@@ -60,7 +60,7 @@ type
       const Wireframe: boolean;
       const RenderRect: TFloatRectangle;
       const CurrentProjection: TProjection;
-      const ShapesCollector: TShapesCollector;
+      const AllShapesCollector, FilteredShapesCollector: TShapesCollector;
       const ShapesRenderer: TShapesRenderer); virtual;
     { Change rotation.
       Initially rotation is taken from TBackgroundNode.TransformRotation
@@ -123,7 +123,7 @@ procedure TBackgroundRenderer.Render(const RenderingCamera: TRenderingCamera;
   const Wireframe: boolean;
   const RenderRect: TFloatRectangle;
   const CurrentProjection: TProjection;
-  const ShapesCollector: TShapesCollector;
+  const AllShapesCollector, FilteredShapesCollector: TShapesCollector;
   const ShapesRenderer: TShapesRenderer);
 begin
 end;
@@ -156,7 +156,7 @@ type
       const Wireframe: boolean;
       const RenderRect: TFloatRectangle;
       const CurrentProjection: TProjection;
-      const ShapesCollector: TShapesCollector;
+      const AllShapesCollector, FilteredShapesCollector: TShapesCollector;
       const ShapesRenderer: TShapesRenderer); override;
     procedure FreeResources; override;
   end;
@@ -195,19 +195,68 @@ end;
 procedure TBackgroundScene.Render(const RenderingCamera: TRenderingCamera;
   const Wireframe: boolean; const RenderRect: TFloatRectangle;
   const CurrentProjection: TProjection;
-  const ShapesCollector: TShapesCollector;
+  const AllShapesCollector, FilteredShapesCollector: TShapesCollector;
   const ShapesRenderer: TShapesRenderer);
-var
-  SavedOcclusionCulling: Boolean;
-  SavedBlendingSort, SavedOcclusionSort: TShapeSort;
+
+  procedure ShapesCollect;
+  begin
+    Params.RenderingCamera := RenderingCamera;
+    Params.Collector := AllShapesCollector;
+    Params.RendererToPrepareShapes := ShapesRenderer.Renderer;
+
+    { We don't calculate correct Params.Frustum (accounting for the fact that camera
+      is rotated but never shifted during 3D background rendering) now.
+      But also frustum culling for this would not be very useful,
+      so just disable it by leaving Params.Frustum = nil. }
+    //Params.Frustum := nil; // this is actually the default, we never set Params.Frustum
+    Assert(Params.Frustum = nil);
+
+    AllShapesCollector.Clear;
+
+    { Scene.Render in this case should call Scene.LocalRender straight away,
+      as Scene has no transformation.
+      And that's good, the TCastleTransform.Render could not handle any transformation
+      as Params.Frustum is nil.  }
+    Scene.Render(Params);
+  end;
+
+  procedure ShapesRender;
+  var
+    SavedOcclusionCulling: Boolean;
+    SavedBlendingSort, SavedOcclusionSort: TShapeSort;
+    PassParams: TRenderOnePassParams;
+    UsingBlending: Boolean;
+  begin
+    { Disable occlusion culling on background.
+      It works correctly... but the 1-frame delay is too noticeable,
+      testcase: examples/fps_game/ . }
+    SavedOcclusionCulling := ShapesRenderer.OcclusionCulling;
+    ShapesRenderer.OcclusionCulling := false;
+
+    SavedBlendingSort := ShapesRenderer.BlendingSort;
+    ShapesRenderer.BlendingSort := sortNone;
+
+    SavedOcclusionSort := ShapesRenderer.OcclusionSort;
+    ShapesRenderer.OcclusionSort := sortNone;
+
+    PassParams.Init;
+
+    for UsingBlending := false to true do
+    begin
+      PassParams.UsingBlending := UsingBlending;
+      FilteredShapesCollector.Clear;
+      FilteredShapesCollector.AddFiltered(AllShapesCollector,
+        [PassParams.UsingBlending], PassParams.FilterShadowVolumesReceivers);
+      ShapesRenderer.Render(FilteredShapesCollector, Params, PassParams);
+    end;
+
+    ShapesRenderer.OcclusionCulling := SavedOcclusionCulling;
+    ShapesRenderer.BlendingSort := SavedBlendingSort;
+    ShapesRenderer.OcclusionSort := SavedOcclusionSort;
+  end;
+
 begin
   inherited;
-
-  Params.InShadow := false;
-  Params.ShadowVolumesReceivers := [false, true];
-  Params.RenderingCamera := RenderingCamera;
-  Params.Collector := ShapesCollector;
-  Params.RendererToPrepareShapes := ShapesRenderer.Renderer;
 
   if Wireframe then
     Scene.RenderOptions.WireframeEffect := weWireframeOnly
@@ -217,39 +266,8 @@ begin
   if UseClearColor then
     RenderContext.Clear([cbColor], ClearColor);
 
-  { We don't calculate correct Params.Frustum (accounting for the fact that camera
-    is rotated but never shifted during 3D background rendering) now.
-    But also frustum culling for this would not be very useful,
-    so just disable it by leaving Params.Frustum = nil. }
-  //Params.Frustum := nil; // this is actually the default, we never set Params.Frustum
-  Assert(Params.Frustum = nil);
-
-  ShapesCollector.Clear;
-
-  { Scene.Render in this case should call Scene.LocalRender straight away,
-    as Scene has no transformation.
-    And that's good, the TCastleTransform.Render could not handle any transformation
-    as Params.Frustum is nil.  }
-  Params.Transparent := false; Scene.Render(Params);
-  Params.Transparent := true ; Scene.Render(Params);
-
-  { Disable occlusion culling on background.
-    It works correctly... but the 1-frame delay is too noticeable,
-    testcase: examples/fps_game/ . }
-  SavedOcclusionCulling := ShapesRenderer.OcclusionCulling;
-  ShapesRenderer.OcclusionCulling := false;
-
-  SavedBlendingSort := ShapesRenderer.BlendingSort;
-  ShapesRenderer.BlendingSort := sortNone;
-
-  SavedOcclusionSort := ShapesRenderer.OcclusionSort;
-  ShapesRenderer.OcclusionSort := sortNone;
-
-  ShapesRenderer.Render(ShapesCollector, Params);
-
-  ShapesRenderer.OcclusionCulling := SavedOcclusionCulling;
-  ShapesRenderer.BlendingSort := SavedBlendingSort;
-  ShapesRenderer.OcclusionSort := SavedOcclusionSort;
+  ShapesCollect;
+  ShapesRender;
 end;
 
 procedure TBackgroundScene.FreeResources;
@@ -271,7 +289,7 @@ type
       const Wireframe: boolean;
       const RenderRect: TFloatRectangle;
       const CurrentProjection: TProjection;
-      const ShapesCollector: TShapesCollector;
+      const AllShapesCollector, FilteredShapesCollector: TShapesCollector;
       const ShapesRenderer: TShapesRenderer); override;
   end;
 
@@ -671,7 +689,7 @@ procedure TBackground3D.Render(const RenderingCamera: TRenderingCamera;
   const Wireframe: boolean;
   const RenderRect: TFloatRectangle;
   const CurrentProjection: TProjection;
-  const ShapesCollector: TShapesCollector;
+  const AllShapesCollector, FilteredShapesCollector: TShapesCollector;
   const ShapesRenderer: TShapesRenderer);
 var
   SavedProjectionMatrix: TMatrix4;
@@ -728,7 +746,7 @@ type
       const Wireframe: boolean;
       const RenderRect: TFloatRectangle;
       const CurrentProjection: TProjection;
-      const ShapesCollector: TShapesCollector;
+      const AllShapesCollector, FilteredShapesCollector: TShapesCollector;
       const ShapesRenderer: TShapesRenderer); override;
   end;
 
@@ -786,7 +804,7 @@ procedure TBackground2D.Render(const RenderingCamera: TRenderingCamera;
   const Wireframe: boolean;
   const RenderRect: TFloatRectangle;
   const CurrentProjection: TProjection;
-  const ShapesCollector: TShapesCollector;
+  const AllShapesCollector, FilteredShapesCollector: TShapesCollector;
   const ShapesRenderer: TShapesRenderer);
 
   { Apply various Node properties at the beginning of each Render,

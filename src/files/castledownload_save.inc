@@ -91,10 +91,16 @@ begin
   P := URIProtocol(Url);
 
   { Handle early castle-data:, protocol to access application data,
-    https://castle-engine.io/manual_data_directory.php }
+    https://castle-engine.io/data }
   if P = 'castle-data' then
   begin
     Result := UrlSaveStream(ResolveCastleDataUrl(Url), Options);
+    Exit;
+  end;
+  { Similarly, handle early castle-config: }
+  if P = 'castle-config' then
+  begin
+    Result := UrlSaveStream(ResolveCastleConfigUrl(Url), Options);
     Exit;
   end;
 

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<build_gradle_merge>
+  <dependencies>
+    <!--
+    See
+    https://developer.android.com/games/pgs/android/migrate-to-v2
+    https://developers.google.com/android/guides/setup#split
+    -->
+    <dependency>implementation "com.google.android.gms:play-services-games-v2:21.0.0"</dependency>
+  </dependencies>
+</build_gradle_merge>

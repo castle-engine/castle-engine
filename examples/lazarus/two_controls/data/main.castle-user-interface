@@ -18,14 +18,11 @@
             "ExposeTransforms" : [
             ],
             "Name" : "MainScene",
+            "PreciseCollisions" : true,
             "ProcessEvents" : true,
             "RenderOptions" : {
               "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
-            "Spatial" : [
-              "ssRendering",
-              "ssDynamicCollisions"
-            ],
             "URL" : "castle-data:/fireplace/fireplace_final.wrl"
           },
           {

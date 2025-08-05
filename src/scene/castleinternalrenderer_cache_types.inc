@@ -28,7 +28,7 @@
     Wrap: TTextureWrap2D;
     GUITexture: boolean;
     References: Cardinal;
-    GLName: TGLuint;
+    GLName: TGLTexture;
   end;
   TTextureImageCacheList = {$ifdef FPC}specialize{$endif} TObjectList<TTextureImageCache>;
 
@@ -53,7 +53,7 @@
     Filter: TTextureFilter;
     Anisotropy: TGLfloat;
     References: Cardinal;
-    GLName: TGLuint;
+    GLName: TGLTexture;
   end;
   TTextureCubeMapCacheList = {$ifdef FPC}specialize{$endif} TObjectList<TTextureCubeMapCache>;
 
@@ -65,7 +65,7 @@
     Anisotropy: TGLfloat;
     Wrap: TTextureWrap3D;
     References: Cardinal;
-    GLName: TGLuint;
+    GLName: TGLTexture;
   end;
   TTexture3DCacheList = {$ifdef FPC}specialize{$endif} TObjectList<TTexture3DCache>;
 
@@ -77,14 +77,14 @@
     FullUrl: String;
     Wrap: TTextureWrap2D;
     References: Cardinal;
-    GLName: TGLuint;
+    GLName: TGLTexture;
   end;
   TTextureDepthOrFloatCacheList = {$ifdef FPC}specialize{$endif} TObjectList<TTextureDepthOrFloatCache>;
 
   TX3DRendererShape = class;
   TVboType = (vtCoordinate, vtAttribute, vtIndex);
   TVboTypes = set of TVboType;
-  TVboArrays = array [TVboType] of TGLuint;
+  TVboArrays = array [TVboType] of TGLBuffer;
 
   { Cached shape resources. }
   TShapeCache = class
@@ -178,16 +178,14 @@ procedure TShapeCache.GLContextClose;
 var
   I: TVboType;
 begin
-  if Vbo[vtCoordinate] <> 0 then
+  if Vbo[vtCoordinate] <> GLObjectNone then
   begin
-    { All Vbo must be zero, or none. }
     for I := Low(I) to High(I) do
-      Assert(Vbo[I] <> 0);
-
-    glDeleteBuffers(Ord(High(Vbo)) + 1, @Vbo);
-
-    for I := Low(I) to High(I) do
-      Vbo[I] := 0;
+    begin
+      { All Vbo must be zero, or none. }
+      Assert(Vbo[I] <> GLObjectNone);
+      FreeBuffer(Vbo[I]);
+    end;
   end;
 
   FreeAndNil(Vao);
@@ -212,7 +210,9 @@ var
     rather than completely recreating the data store with glBufferData.
     This avoids the cost of reallocating the data store. " ). }
   procedure BufferData(const VboType: TVboType;
-    const Target: TGLenum; const Size: Cardinal; const Data: Pointer);
+    const Target: TBufferTarget; const Size: Cardinal; const Data: Pointer);
+  var
+    TargetGL: TGLenum;
   begin
     { It may happen that Data = nil, because Arrays.AttributeSize may be 0
       (some shapes just don't need extra per-vertex attributes).
@@ -244,15 +244,16 @@ var
          as it tries to access non-existent data from vertex arrays). }
        (VboAllocatedSize[VboType] <> Size) then
     begin
-      glBindBuffer(Target, Vbo[VboType]);
+      RenderContext.BindBuffer[Target] := Vbo[VboType];
+      TargetGL := BufferTargetGL[Target];
       if NewVbos or
         (VboAllocatedUsage <> DataUsage) or
         (VboAllocatedSize[VboType] <> Size) then
       begin
-        glBufferData(Target, Size, Data, DataUsage);
+        glBufferData(TargetGL, Size, Data, DataUsage);
         VboAllocatedSize[VboType] := Size;
       end else
-        glBufferSubData(Target, 0, Size, Data);
+        glBufferSubData(TargetGL, 0, Size, Data);
     end;
   end;
 
@@ -273,6 +274,14 @@ var
     Result := '[' + Result + ']';
   end;
 
+  procedure CreateVbo;
+  var
+    VboType: TVboType;
+  begin
+    for VboType := Low(VboType) to High(VboType) do
+      Vbo[VboType] := glCreateBuffer();
+  end;
+
 begin
   if GLFeatures.VertexBufferObject then
   begin
@@ -280,10 +289,10 @@ begin
       it will be used to provide data at each draw call. }
     Assert(not Arrays.DataFreed);
 
-    NewVbos := Vbo[vtCoordinate] = 0;
+    NewVbos := Vbo[vtCoordinate] = GLObjectNone;
     if NewVbos then
     begin
-      glGenBuffers(Ord(High(Vbo)) + 1, @Vbo);
+      CreateVbo;
       if LogRenderer then
         WritelnLog('Renderer', Format('Creating and loading data to VBOs (%d,%d,%d)',
           [Vbo[vtCoordinate], Vbo[vtAttribute], Vbo[vtIndex]]));
@@ -307,14 +316,14 @@ begin
 
     VboCoordinatePreserveGeometryOrder := Arrays.CoordinatePreserveGeometryOrder;
 
-    BufferData(vtCoordinate, GL_ARRAY_BUFFER,
+    BufferData(vtCoordinate, btArray,
       Arrays.Count * Arrays.CoordinateSize, Arrays.CoordinateArray);
 
-    BufferData(vtAttribute, GL_ARRAY_BUFFER,
+    BufferData(vtAttribute, btArray,
       Arrays.Count * Arrays.AttributeSize, Arrays.AttributeArray);
 
     if Arrays.Indexes <> nil then
-      BufferData(vtIndex, GL_ELEMENT_ARRAY_BUFFER,
+      BufferData(vtIndex, btElementArray,
         Arrays.Indexes.Count * SizeOf(TGeometryIndex), Arrays.Indexes.L);
 
     VboAllocatedUsage := DataUsage;

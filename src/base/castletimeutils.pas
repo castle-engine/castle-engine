@@ -30,7 +30,10 @@ uses
     {$ifdef FPC} BaseUnix, Unix, Dl,
     {$else} Posix.SysTypes, Posix.SysTime, Posix.SysTimes, {$endif}
   {$endif}
-  {$ifdef ANDROID} Linux, {$endif}
+  // for clock_gettime used by Timer
+  {$if defined(ANDROID) and defined(FPC)} Linux, {$endif}
+  // for clock_gettime used by Timer
+  {$if defined(ANDROID) and defined(DELPHI)} Posix.Time, {$endif}
   SysUtils, Classes, Math, Generics.Collections,
   CastleUtils;
 

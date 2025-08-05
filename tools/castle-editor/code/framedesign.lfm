@@ -2265,6 +2265,10 @@ object DesignFrame: TDesignFrame
       Caption = 'Duplicate'
       OnClick = MenuTreeViewItemDuplicateClick
     end
+    object MenuTreeViewItemDuplicateLinked: TMenuItem
+      Caption = 'Duplicate Linked (TCastleTransformReference)'
+      OnClick = MenuTreeViewItemDuplicateLinkedClick
+    end
     object MenuTreeViewItemCut: TMenuItem
       Caption = 'Cut'
       OnClick = MenuTreeViewItemCutClick
@@ -2399,5 +2403,12 @@ object DesignFrame: TDesignFrame
       OnExecute = ActionChangeHeightMapSizeExecute
       OnUpdate = ActionChangeHeightMapSizeUpdate
     end
+  end
+  object ExportToModelDialog: TCastleSaveDialog
+    Title = 'Export to a standard 3D / 2D model format'
+    FileName = 'export.x3d'
+    Options = [ofOverwritePrompt, ofEnableSizing, ofViewDetail]
+    Left = 648
+    Top = 320
   end
 end

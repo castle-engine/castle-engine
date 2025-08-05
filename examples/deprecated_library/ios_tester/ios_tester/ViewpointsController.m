@@ -1,5 +1,5 @@
 /*
-  Copyright 2013-2017 Jan Adamec, Michalis Kamburelis.
+  Copyright 2013-2024 Jan Adamec, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -22,6 +22,22 @@
     [super viewDidLoad];
     
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(OnBtnCancel:)];
+
+    // regiser to set content size as compact as possible
+    [self.tableView addObserver:self forKeyPath:@"contentSize" options: NSKeyValueObservingOptionNew context: nil];
+}
+
+//-----------------------------------------------------------------
+- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey,id> *)change context:(void *)context
+{
+    if ([keyPath isEqualToString:@"contentSize"] && object == self.tableView)
+        self.preferredContentSize = self.tableView.contentSize;
+}
+
+//-----------------------------------------------------------------
+- (void)viewDidDisappear:(BOOL)animated
+{
+    [self.tableView removeObserver:self forKeyPath:@"contentSize"];
 }
 
 //-----------------------------------------------------------------

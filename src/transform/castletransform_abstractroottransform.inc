@@ -1,6 +1,6 @@
 {%MainUnit castletransform.pas}
 {
-  Copyright 2017-2022 Michalis Kamburelis.
+  Copyright 2017-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -16,17 +16,7 @@
 
 {$ifdef read_interface}
 
-//type
-  { Result of @link(TCastleAbstractRootTransform.PhysicsRayCast) and
-    @link(TCastleRigidBody.PhysicsRayCast). }
-  TPhysicsRayCastResult = record
-    { Other fields are guaranteed to be all zero if Hit = @false. }
-    Hit: Boolean;
-    Transform: TCastleTransform;
-    { Distance from ray origin to the hit point. }
-    Distance: Single;
-    Point, Normal: TVector3;
-  end;
+// type section started in CastleTransform.pas
 
   { Root of transformations and scenes (tree of TCastleTransform and TCastleScene).
     This is the base abstract class, the non-abstract descendant is @link(TCastleRootTransform). }
@@ -95,6 +85,21 @@
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
     procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
+
+    { Update everything when time passes, in particular updating physics.
+      This makes physics recalculation and updates rigid bodies transformations.
+      It also calls any other TCastleTransform.Update work.
+
+      Use this to simulate the passage of time without actually displaying
+      the updated viewport. Useful e.g. to record the physics simulation
+      results (to later play them back), see
+      https://github.com/castle-engine/castle-dice-throwing .
+
+      Contrary to just @link(Update), this always makes the processing,
+      doesn't check did TFramesPerSecond.FrameId changed.
+      This also doesn't check @link(Exists), so can be called even on non-existing
+      viewport. }
+    procedure UpdateIncreaseTime(const SecondsPassed: Single);
 
     { @exclude
       TCastleTransform instances that listen on press/release.
@@ -257,27 +262,80 @@
 
     { First object hit by the ray, calculated using the physics engine.
 
-      Returns the TPhysicsRayCastResult record.
-      Read TPhysicsRayCastResult.Hit (boolean), TPhysicsRayCastResult.Transform
-      (guaranteed to be @nil when TPhysicsRayCastResult.Hit is @false) and other fields
+      Returns the TRayCastResult record.
+      Read TRayCastResult.Hit (boolean), TRayCastResult.Transform
+      (guaranteed to be @nil when TRayCastResult.Hit is @false) and other fields
       to know what was hit.
 
       The given RayOrigin, RayDirection, Distance are in the world coordinate system.
 
-      It returns TPhysicsRayCastResult, with information there
+      It returns TRayCastResult, with information there
       also in the world coordinate system.
 
-      This ignores the collider of this body IgnoreBody, if IgnoreBody is not @nil.
+      Collisions taken / not taken into account:
+
+      @unorderedList(
+        @item(Ignores the collider of IgnoreBody, if IgnoreBody is not @nil.)
+        @item(Ignores collisions beyond MaxDistance, if MaxDistance <> MaxSingle.
+          Passing some MaxDistance may also optimize the calculation.)
+        @item(Only collisions with the physics colliders (TCastleCollider)
+          are considered.)
+      )
+
+      By default, the ray hits all physics layers, but you can choose physics layers
+      in CollisionLayers attribute.
 
       Note: The @link(TCastleTransform.Pickable) property is ignored by this method,
       i.e. it considers all colliders regardless of their @link(TCastleTransform.Pickable) value.
       The @link(TCastleTransform.Pickable) is only taken into account by the routines
       of the old physics system
       (see https://castle-engine.io/physics#_old_system_for_collisions_and_gravity ).
-      In the new system, a similar role will be filled by layers. }
+      In the new system, a similar role is filled by physics layers. }
     function PhysicsRayCast(const RayOrigin, RayDirection: TVector3;
       const MaxDistance: Single = MaxSingle;
-      const IgnoreBody: TCastleRigidBody = nil): TPhysicsRayCastResult;
+      const IgnoreBody: TCastleRigidBody = nil;
+      const CollisionLayers: TPhysicsLayers = AllLayers): TRayCastResult;
+
+    { Check if moving a sphere in the given direction would collide with anything
+      in the world.
+
+      Returns the TRayCastResult record.
+      Read TRayCastResult.Hit (boolean), TRayCastResult.Transform
+      (guaranteed to be @nil when TRayCastResult.Hit is @false) and other fields
+      to know what was hit.
+
+      The given SphereOrigin, SphereRadius, SphereDirection, MaxDistance are in
+      the world coordinate system.
+
+      It returns TRayCastResult, with information there
+      also in the world coordinate system.
+
+      Collisions taken / not taken into account:
+
+      @unorderedList(
+        @item(Ignores all colliders that overlap sphere at the initial position,
+          before it is moved by SphereDirection.)
+        @item(Ignores the collider of IgnoreBody, if IgnoreBody is not @nil.)
+        @item(Ignores collisions that would occur is sphere is moved by move than
+          MaxDistance, if MaxDistance <> MaxSingle.
+          Passing some MaxDistance may also optimize the calculation.)
+        @item(Only collisions with the physics colliders (TCastleCollider)
+          are considered.)
+      )
+
+      By default, the sphere cast hits all physics layers, but you can choose
+      physics layers in CollisionLayers attribute.
+
+      Note: The @link(TCastleTransform.Pickable) property is ignored by this method,
+      i.e. it considers all colliders regardless of their @link(TCastleTransform.Pickable) value.
+      The @link(TCastleTransform.Pickable) is only taken into account by the routines
+      of the old physics system
+      (see https://castle-engine.io/physics#_old_system_for_collisions_and_gravity ).
+      In the new system, a similar role is filled by physics layers. }
+    function PhysicsSphereCast(const SphereOrigin: TVector3; const SphereRadius:Single;
+      const SphereDirection: TVector3; const MaxDistance: Single = MaxSingle;
+      const IgnoreBody: TCastleRigidBody = nil;
+      const CollisionLayers: TPhysicsLayers = AllLayers): TRayCastResult;
 
     { Yoo can temporarily disable physics (no transformations will be updated
       by the physics engine) by setting this property to @false. }
@@ -631,10 +689,22 @@ end;
 procedure TCastleAbstractRootTransform.CustomSerialization(
   const SerializationProcess: TSerializationProcess);
 
+  function InternalViewport: TComponent;
+  begin
+    { This is a quick hack, assuming Owner = containing TCastleViewport.
+      It's in practice mostly OK (the only case when TCastleAbstractRootTransform
+      is created is from TCastleViewport, TODO: unless user would create
+      it manually which is allowed).
+      And there's no big harm if we make mistake (only ViewportCaption will be wrong,
+      which is only used for debug message). }
+    Result := Owner;
+  end;
+
   function ViewportCaption: String;
   begin
-    if (Owner <> nil) and (Owner.Name <> '') then
-      Result := '"' + Owner.Name + '.Items"'
+    if (InternalViewport <> nil) and
+       (InternalViewport.Name <> '') then
+      Result := '"' + InternalViewport.Name + '.Items"'
     else
       Result := 'TCastleViewport.Items';
   end;

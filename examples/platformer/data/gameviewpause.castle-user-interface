@@ -1,11 +1,13 @@
 {
+  "$$ClassName" : "TCastleUserInterface",
   "FullSize" : true,
   "Name" : "RootGroup",
   "$Children" : [
     {
+      "$$ClassName" : "TCastleImageControl",
       "Content" : {
-        "URL" : "castle-data:/background/colored_grass.png",
-        "$ClassName" : "TCastleImagePersistent"
+        "$$ClassName" : "TCastleImagePersistent",
+        "Url" : "castle-data:/background/colored_grass.png"
       },
       "Exists" : false,
       "HeightFraction" : 1.0000000000000000E+000,
@@ -16,12 +18,22 @@
       "Stretch" : true,
       "VerticalAnchorParent" : "vpMiddle",
       "VerticalAnchorSelf" : "vpMiddle",
-      "WidthFraction" : 1.0000000000000000E+000,
-      "$Children" : [
-      ],
-      "$ClassName" : "TCastleImageControl"
+      "WidthFraction" : 1.0000000000000000E+000
     },
     {
+      "$$ClassName" : "TCastleRectangleControl",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Alpha" : 4.5490196347236633E-001,
+        "Blue" : 0.0000000000000000E+000,
+        "Green" : 0.0000000000000000E+000,
+        "Red" : 0.0000000000000000E+000
+      },
+      "FullSize" : true,
+      "Name" : "RectDimBackground"
+    },
+    {
+      "$$ClassName" : "TCastleVerticalGroup",
       "Alignment" : "hpMiddle",
       "HorizontalAnchorParent" : "hpMiddle",
       "HorizontalAnchorSelf" : "hpMiddle",
@@ -31,11 +43,12 @@
       "VerticalAnchorSelf" : "vpMiddle",
       "$Children" : [
         {
+          "$$ClassName" : "TCastleLabel",
           "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
             "Blue" : 1.1372549086809158E-001,
             "Green" : 1.1372549086809158E-001,
-            "Red" : 8.5098040103912354E-001,
-            "$ClassName" : "TCastleColorPersistent"
+            "Red" : 8.5098040103912354E-001
           },
           "FontSize" : 1.0000000000000000E+002,
           "HorizontalAnchorParent" : "hpMiddle",
@@ -43,94 +56,92 @@
           "Name" : "LabelTitle",
           "Outline" : 2,
           "OutlineColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
             "Blue" : 6.6666670143604279E-002,
             "Green" : 6.6666670143604279E-002,
-            "Red" : 4.7843137383460999E-001,
-            "$ClassName" : "TCastleColorPersistent"
+            "Red" : 4.7843137383460999E-001
           },
           "OutlineHighQuality" : true,
           "Text" : [
             "Pause"
           ],
           "VerticalAnchorParent" : "vpTop",
-          "VerticalAnchorSelf" : "vpTop",
-          "$Children" : [
-          ],
-          "$ClassName" : "TCastleLabel"
+          "VerticalAnchorSelf" : "vpTop"
         },
         {
+          "$$ClassName" : "TCastleUserInterface",
           "Height" : 5.0000000000000000E+001,
           "HorizontalAnchorParent" : "hpMiddle",
           "HorizontalAnchorSelf" : "hpMiddle",
           "Name" : "Group1",
-          "VerticalAnchorDelta" : -7.4000000000000000E+001,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -9.2050315856933594E+001
+          },
           "VerticalAnchorParent" : "vpTop",
-          "VerticalAnchorSelf" : "vpTop",
-          "$Children" : [
-          ],
-          "$ClassName" : "TCastleUserInterface"
+          "VerticalAnchorSelf" : "vpTop"
         },
         {
+          "$$ClassName" : "TCastleButton",
           "Caption" : "Resume",
           "CustomBackgroundDisabled" : {
-            "$ClassName" : "TCastleImagePersistent"
+            "$$ClassName" : "TCastleImagePersistent"
           },
           "CustomBackgroundFocused" : {
-            "$ClassName" : "TCastleImagePersistent"
+            "$$ClassName" : "TCastleImagePersistent"
           },
           "CustomBackgroundNormal" : {
-            "$ClassName" : "TCastleImagePersistent"
+            "$$ClassName" : "TCastleImagePersistent"
           },
           "CustomBackgroundPressed" : {
-            "$ClassName" : "TCastleImagePersistent"
+            "$$ClassName" : "TCastleImagePersistent"
           },
           "HorizontalAnchorParent" : "hpMiddle",
           "HorizontalAnchorSelf" : "hpMiddle",
           "Image" : {
-            "$ClassName" : "TCastleImagePersistent"
+            "$$ClassName" : "TCastleImagePersistent"
           },
           "Name" : "ButtonResume",
           "PaddingHorizontal" : 3.0000000000000000E+001,
           "PaddingVertical" : 3.0000000000000000E+001,
-          "VerticalAnchorDelta" : -1.3400000000000000E+002,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -1.5205032348632812E+002
+          },
           "VerticalAnchorParent" : "vpTop",
-          "VerticalAnchorSelf" : "vpTop",
-          "$Children" : [
-          ],
-          "$ClassName" : "TCastleButton"
+          "VerticalAnchorSelf" : "vpTop"
         },
         {
+          "$$ClassName" : "TCastleButton",
           "Caption" : "Menu",
           "CustomBackgroundDisabled" : {
-            "$ClassName" : "TCastleImagePersistent"
+            "$$ClassName" : "TCastleImagePersistent"
           },
           "CustomBackgroundFocused" : {
-            "$ClassName" : "TCastleImagePersistent"
+            "$$ClassName" : "TCastleImagePersistent"
           },
           "CustomBackgroundNormal" : {
-            "$ClassName" : "TCastleImagePersistent"
+            "$$ClassName" : "TCastleImagePersistent"
           },
           "CustomBackgroundPressed" : {
-            "$ClassName" : "TCastleImagePersistent"
+            "$$ClassName" : "TCastleImagePersistent"
           },
           "HorizontalAnchorParent" : "hpMiddle",
           "HorizontalAnchorSelf" : "hpMiddle",
           "Image" : {
-            "$ClassName" : "TCastleImagePersistent"
+            "$$ClassName" : "TCastleImagePersistent"
           },
           "Name" : "ButtonMenu",
           "PaddingHorizontal" : 3.0000000000000000E+001,
           "PaddingVertical" : 3.0000000000000000E+001,
-          "VerticalAnchorDelta" : -2.3600000000000000E+002,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -2.5905032348632812E+002
+          },
           "VerticalAnchorParent" : "vpTop",
-          "VerticalAnchorSelf" : "vpTop",
-          "$Children" : [
-          ],
-          "$ClassName" : "TCastleButton"
+          "VerticalAnchorSelf" : "vpTop"
         }
-      ],
-      "$ClassName" : "TCastleVerticalGroup"
+      ]
     }
-  ],
-  "$ClassName" : "TCastleUserInterface"
+  ]
 }

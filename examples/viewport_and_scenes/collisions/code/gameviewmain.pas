@@ -1,5 +1,5 @@
 {
-  Copyright 2020-2022 Michalis Kamburelis.
+  Copyright 2020-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -34,6 +34,7 @@ type
     SceneMovingSphere: TCastleScene;
     SceneMovingRay: TCastleScene;
     ButtonTestMove: TCastleButton;
+    ButtonTestPhysicsSphere: TCastleButton;
     ButtonTestBox: TCastleButton;
     ButtonTestSphere: TCastleButton;
     ButtonTestRay: TCastleButton;
@@ -41,7 +42,7 @@ type
     MainViewport: TCastleViewport;
   private
     type
-      TTestMode = (tmMove, tmBox, tmSphere, tmRay, tmPhysicsRay);
+      TTestMode = (tmMove, tmPhysicsSphere, tmBox, tmSphere, tmRay, tmPhysicsRay);
     var
       FTestMode: TTestMode;
     procedure SetTestMode(const Value: TTestMode);
@@ -49,6 +50,7 @@ type
       following current FTestMode. }
     procedure UpdateCollision;
     procedure ClickTestMove(Sender: TObject);
+    procedure ClickTestPhysicsSphere(Sender: TObject);
     procedure ClickTestBox(Sender: TObject);
     procedure ClickTestSphere(Sender: TObject);
     procedure ClickTestRay(Sender: TObject);
@@ -81,6 +83,7 @@ begin
   inherited;
 
   ButtonTestMove.OnClick := {$ifdef FPC}@{$endif} ClickTestMove;
+  ButtonTestPhysicsSphere.OnClick := {$ifdef FPC}@{$endif} ClickTestPhysicsSphere;
   ButtonTestBox.OnClick := {$ifdef FPC}@{$endif} ClickTestBox;
   ButtonTestSphere.OnClick := {$ifdef FPC}@{$endif} ClickTestSphere;
   ButtonTestRay.OnClick := {$ifdef FPC}@{$endif} ClickTestRay;
@@ -94,13 +97,14 @@ begin
   FTestMode := Value;
 
   ButtonTestMove.Pressed := FTestMode = tmMove;
+  ButtonTestPhysicsSphere.Pressed := FTestMode = tmPhysicsSphere;
   ButtonTestBox.Pressed := FTestMode = tmBox;
   ButtonTestSphere.Pressed := FTestMode = tmSphere;
   ButtonTestRay.Pressed := FTestMode = tmRay;
   ButtonTestPhysicsRay.Pressed := FTestMode = tmPhysicsRay;
 
   SceneMovingBox.Exists := FTestMode = tmBox;
-  SceneMovingSphere.Exists := FTestMode in [tmMove, tmSphere];
+  SceneMovingSphere.Exists := FTestMode in [tmMove, tmPhysicsSphere, tmSphere];
   SceneMovingRay.Exists := FTestMode in [tmRay, tmPhysicsRay];
 
   UpdateCollision;
@@ -114,7 +118,7 @@ procedure TViewMain.UpdateCollision;
     Mat: TPhysicalMaterialNode;
   begin
     case FTestMode of
-      tmMove, tmSphere:
+      tmMove, tmSphere, tmPhysicsSphere:
         Appearance := SceneMovingSphere.Node('MainMaterial') as TAppearanceNode;
       tmBox:
         Appearance := SceneMovingBox.Node('MainMaterial') as TAppearanceNode;
@@ -141,7 +145,7 @@ begin
   TransformMoving.Exists := false;
 
   case FTestMode of
-    tmMove, tmSphere:
+    tmMove, tmSphere, tmPhysicsSphere:
       begin
         ShowCollision(MainViewport.Items.WorldSphereCollision(
           TransformMoving.Translation, 0.5));
@@ -195,15 +199,29 @@ begin
 
   if not MoveVector.IsPerfectlyZero then
   begin
-    if FTestMode = tmMove then
-    begin
-      // change TransformMoving.Translation only if possible
-      TransformMoving.Move(MoveVector, false)
-    end else
-    begin
-      // unconditionally change TransformMoving.Translation
-      TransformMoving.Translation := TransformMoving.Translation + MoveVector;
-      UpdateCollision;
+    case FTestMode of
+      tmMove:
+        begin
+          // change TransformMoving.Translation only if possible
+          TransformMoving.Move(MoveVector, false)
+        end;
+      tmPhysicsSphere:
+        begin
+          if not MainViewport.Items.PhysicsSphereCast(
+            TransformMoving.WorldTranslation, 0.5,
+            MoveVector, MoveVector.Length).Hit then
+          begin
+            // change TransformMoving.Translation, if PhysicsSphereCast says it's possible
+            TransformMoving.Translation := TransformMoving.Translation + MoveVector;
+            UpdateCollision;
+          end;
+        end;
+    else
+      begin
+        // unconditionally change TransformMoving.Translation
+        TransformMoving.Translation := TransformMoving.Translation + MoveVector;
+        UpdateCollision;
+      end;
     end;
   end;
 end;
@@ -211,6 +229,11 @@ end;
 procedure TViewMain.ClickTestMove(Sender: TObject);
 begin
   SetTestMode(tmMove);
+end;
+
+procedure TViewMain.ClickTestPhysicsSphere(Sender: TObject);
+begin
+  SetTestMode(tmPhysicsSphere);
 end;
 
 procedure TViewMain.ClickTestBox(Sender: TObject);

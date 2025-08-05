@@ -100,7 +100,11 @@
           },
           {
             "$$ClassName" : "TCastlePointLight",
-            "Intensity" : 1.0000000000000000E+002,
+            "AttenuationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "Z" : 1.0000000149011612E-001
+            },
+            "Intensity" : 1.0000000000000000E+003,
             "Name" : "PointLight1",
             "Radius" : 1.0000000000000000E+003,
             "RotationPersistent" : {
@@ -109,8 +113,8 @@
             },
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
-              "X" : 4.0000000000000000E+000,
-              "Y" : 1.0000000000000000E+000,
+              "X" : -1.5543046951293945E+001,
+              "Y" : 2.3696372985839844E+001,
               "Z" : 1.0000000000000000E+000
             }
           },
@@ -127,10 +131,10 @@
             },
             "RotationPersistent" : {
               "$$ClassName" : "TCastleVector4RotationPersistent",
-              "W" : 1.5565630197525024E+000,
-              "X" : -7.6154425740242004E-002,
-              "Y" : -9.9455237388610840E-001,
-              "Z" : -7.1174666285514832E-002
+              "W" : 1.9669727087020874E+000,
+              "X" : 3.3144641667604446E-002,
+              "Y" : -9.9801445007324219E-001,
+              "Z" : 5.3557548671960831E-002
             },
             "ScalePersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
@@ -144,7 +148,7 @@
               "Y" : 2.7104146480560303E+000,
               "Z" : -3.0108705520629883E+001
             },
-            "URL" : "castle-data:/dragon/dragon.json",
+            "Url" : "castle-data:/dragon/dragon.json",
             "$Behaviors" : [
               {
                 "$$ClassName" : "TCastleBillboard",
@@ -169,10 +173,10 @@
             },
             "RotationPersistent" : {
               "$$ClassName" : "TCastleVector4RotationPersistent",
-              "W" : 1.5565630197525024E+000,
-              "X" : -7.6154425740242004E-002,
-              "Y" : -9.9455237388610840E-001,
-              "Z" : -7.1174666285514832E-002
+              "W" : 1.9669727087020874E+000,
+              "X" : 3.3144641667604446E-002,
+              "Y" : -9.9801445007324219E-001,
+              "Z" : 5.3557548671960831E-002
             },
             "ScalePersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
@@ -186,7 +190,7 @@
               "Y" : 2.7104146480560303E+000,
               "Z" : -8.7822446823120117E+000
             },
-            "URL" : "castle-data:/dragon/dragon.json",
+            "Url" : "castle-data:/dragon/dragon.json",
             "$Behaviors" : [
               {
                 "$$ClassName" : "TCastleBillboard",
@@ -211,10 +215,10 @@
             },
             "RotationPersistent" : {
               "$$ClassName" : "TCastleVector4RotationPersistent",
-              "W" : 1.5565630197525024E+000,
-              "X" : -7.6154425740242004E-002,
-              "Y" : -9.9455237388610840E-001,
-              "Z" : -7.1174666285514832E-002
+              "W" : 1.9669727087020874E+000,
+              "X" : 3.3144641667604446E-002,
+              "Y" : -9.9801445007324219E-001,
+              "Z" : 5.3557548671960831E-002
             },
             "ScalePersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
@@ -228,7 +232,7 @@
               "Y" : 2.7104146480560303E+000,
               "Z" : -6.2696719169616699E+000
             },
-            "URL" : "castle-data:/dragon/dragon.json",
+            "Url" : "castle-data:/dragon/dragon.json",
             "$Behaviors" : [
               {
                 "$$ClassName" : "TCastleBillboard",
@@ -253,10 +257,10 @@
             },
             "RotationPersistent" : {
               "$$ClassName" : "TCastleVector4RotationPersistent",
-              "W" : 1.5565630197525024E+000,
-              "X" : -7.6154425740242004E-002,
-              "Y" : -9.9455237388610840E-001,
-              "Z" : -7.1174666285514832E-002
+              "W" : 1.9669727087020874E+000,
+              "X" : 3.3144641667604446E-002,
+              "Y" : -9.9801445007324219E-001,
+              "Z" : 5.3557548671960831E-002
             },
             "ScalePersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
@@ -270,7 +274,7 @@
               "Y" : 2.7104146480560303E+000,
               "Z" : -2.9507144927978516E+001
             },
-            "URL" : "castle-data:/dragon/dragon.json",
+            "Url" : "castle-data:/dragon/dragon.json",
             "$Behaviors" : [
               {
                 "$$ClassName" : "TCastleBillboard",
@@ -295,10 +299,10 @@
             },
             "RotationPersistent" : {
               "$$ClassName" : "TCastleVector4RotationPersistent",
-              "W" : 1.5565630197525024E+000,
-              "X" : -7.6154425740242004E-002,
-              "Y" : -9.9455237388610840E-001,
-              "Z" : -7.1174666285514832E-002
+              "W" : 1.9669727087020874E+000,
+              "X" : 3.3144641667604446E-002,
+              "Y" : -9.9801445007324219E-001,
+              "Z" : 5.3557548671960831E-002
             },
             "ScalePersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
@@ -312,7 +316,7 @@
               "Y" : 2.7104146480560303E+000,
               "Z" : -2.7094438552856445E+001
             },
-            "URL" : "castle-data:/dragon/dragon.json",
+            "Url" : "castle-data:/dragon/dragon.json",
             "$Behaviors" : [
               {
                 "$$ClassName" : "TCastleBillboard",
@@ -337,10 +341,10 @@
             },
             "RotationPersistent" : {
               "$$ClassName" : "TCastleVector4RotationPersistent",
-              "W" : 1.5565630197525024E+000,
-              "X" : -7.6154425740242004E-002,
-              "Y" : -9.9455237388610840E-001,
-              "Z" : -7.1174666285514832E-002
+              "W" : 1.9669727087020874E+000,
+              "X" : 3.3144641667604446E-002,
+              "Y" : -9.9801445007324219E-001,
+              "Z" : 5.3557548671960831E-002
             },
             "ScalePersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
@@ -354,7 +358,7 @@
               "Y" : 2.7104146480560303E+000,
               "Z" : -4.8267135620117188E+000
             },
-            "URL" : "castle-data:/dragon/dragon.json",
+            "Url" : "castle-data:/dragon/dragon.json",
             "$Behaviors" : [
               {
                 "$$ClassName" : "TCastleBillboard",
@@ -370,10 +374,11 @@
             "$$ClassName" : "TCastleTransformReference",
             "Name" : "TransformReference1",
             "Reference" : "SceneDragon1",
+            "ReferenceTransformation" : "rtIgnoreTranslation",
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
               "X" : 1.1796729087829590E+001,
-              "Y" : -1.7457389831542969E-001,
+              "Y" : 2.1641708374023438E+001,
               "Z" : 3.0774333953857422E+001
             },
             "$Children" : [
@@ -392,10 +397,10 @@
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
-                  "W" : 1.5565630197525024E+000,
-                  "X" : -7.6154425740242004E-002,
-                  "Y" : -9.9455237388610840E-001,
-                  "Z" : -7.1174666285514832E-002
+                  "W" : 1.9669727087020874E+000,
+                  "X" : 3.3144641667604446E-002,
+                  "Y" : -9.9801445007324219E-001,
+                  "Z" : 5.3557548671960831E-002
                 },
                 "Size" : 2.0000000000000000E+000,
                 "Text" : [
@@ -481,16 +486,16 @@
         },
         "RotationPersistent" : {
           "$$ClassName" : "TCastleVector4RotationPersistent",
-          "W" : 1.5565630197525024E+000,
-          "X" : -7.6154239475727081E-002,
-          "Y" : -9.9455249309539795E-001,
-          "Z" : -7.1174882352352142E-002
+          "W" : 1.9669727087020874E+000,
+          "X" : 3.3144854009151459E-002,
+          "Y" : -9.9801450967788696E-001,
+          "Z" : 5.3557429462671280E-002
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : -8.8194892883300781E+001,
-          "Y" : 4.5661743164062500E+001,
-          "Z" : 4.7169823646545410E+000
+          "X" : -6.5417144775390625E+001,
+          "Y" : 1.3365737915039062E+001,
+          "Z" : -1.7933622360229492E+001
         }
       },
       "InternalDesignNavigations[dnFly]" : {

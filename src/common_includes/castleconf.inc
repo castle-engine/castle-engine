@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2023 Michalis Kamburelis.
+  Copyright 2002-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -91,8 +91,15 @@
   {$ifdef CPUX86} {$define cpu386} {$define cpui386} {$endif}
   {$ifdef CPUARM64} {$define CPUAARCH64} {$endif}
 
-  { Define in Delphi UNIX when LINUX, like FPC does. }
+  { Define Darwin for a common Apple OS in macOS, iOS etc.
+    See https://en.wikipedia.org/wiki/Darwin_(operating_system).
+    Compatible with FPC. }
+  {$ifdef MACOS} {$define DARWIN} {$endif}
+
+  { Define in Delphi UNIX when LINUX or other UNIXes are, like FPC does. }
   {$ifdef LINUX} {$define UNIX} {$endif}
+  {$ifdef ANDROID} {$define UNIX} {$endif}
+  {$ifdef DARWIN} {$define UNIX} {$endif}
 {$endif}
 
 { Traditionally, CGE defined CPUARM64 also for 64-bit iOS.
@@ -217,11 +224,17 @@
   https://gitlab.com/freepascal.org/fpc/source/-/commit/693491048bf2c6f9122a0d8b044ad0e55382354d }
 {$ifdef VER3_0} {$define GENERICS_CONSTREF} {$endif}
 {$ifdef VER3_2} {$define GENERICS_CONSTREF} {$endif}
-{$if defined(VER3_2_3)}
+{$if defined(VER3_2_3) or
+     defined(VER3_2_4) or
+     defined(VER3_2_5) or
+     defined(VER3_2_6)}
   { FPC 3.2.3 (fixes_3_2 branch, as of 2023-12-23) no longer uses "constref".
     Confirmed on Linux/Arm32, Linux/Arm64(Aarch64), Linux/x86_64,
     see also sources:
-    https://gitlab.com/freepascal.org/fpc/source/-/blob/fixes_3_2/packages/rtl-generics/src/generics.collections.pas?ref_type=heads. }
+    https://gitlab.com/freepascal.org/fpc/source/-/blob/fixes_3_2/packages/rtl-generics/src/generics.collections.pas?ref_type=heads.
+
+    2025-06-24, testing FPC 3.2.4 release candidate, it also doesn't use
+    "constref" in Generics.Collections. }
   {$undef GENERICS_CONSTREF}
 {$endif}
 
@@ -294,6 +307,10 @@
 
 { OpenGL[ES] ------------------------------------------------------------------ }
 
+{ OpenGL / OpenGLES calls are callbacks, so e.g. writing
+  "Assert(Assigned(glGenerateMipmap))" is valid. }
+{$define CASTLE_GL_USES_CALLBACKS}
+
 (*Whether we use OpenGL ES or normal OpenGL.
   OpenGL ES is by default used for mobile devices.
   For testing, you can also use OpenGL ES on normal desktop OSes
@@ -319,6 +336,16 @@
 { $define OpenGLES}
 {$ifdef ANDROID} {$define OpenGLES} {$endif}
 {$ifdef CASTLE_IOS} {$define OpenGLES} {$endif}
+{$ifdef WASI}
+  {$define OpenGLES}
+  {$define CastleGLES := CastleInternalWebGL}
+  {$undef CASTLE_GL_USES_CALLBACKS}
+  { Using WebGL API for rendering. Use this symbol when necessary to do
+    something different between WebGL and OpenGLES.
+    We try to hide many differences at the CastleInternalWebGL unit,
+    but not everything is handled there. }
+  {$define CASTLE_WEBGL}
+{$endif}
 
 { NX supports OpenGL and OpenGLES (that's public information,
   https://wccftech.com/nintendo-switch-supports-vulkan/ ).
@@ -327,7 +354,7 @@
 
 {$ifdef OpenGLES}
   {$ifdef CASTLE_NINTENDO_SWITCH}
-    {$define CastleGLES := CastleInternalNxGLES20}
+    {$define CastleGLES := CastleInternalNxGLES}
   {$endif}
 
   { This is necessary for OpenGL ES 2.0 versions that support only 16-bit indexes,
@@ -422,7 +449,7 @@
     - On macOS, see https://castle-engine.io/macos .
 
     - On Android, we have a "png" service with libpng included.
-      See ../../tools/build-tool/data/android/integrated-services/png/README.adoc .
+      See ../../tools/build-tool/data/android/services/png/README.adoc .
 
   3.If CASTLE_PNG_STATIC is defined, we statically link to libpng.
     The presense of static libpng library (libpng.a on Unix) is then
@@ -572,4 +599,87 @@
   {$define UNIX_WITH_X}
 {$endif}
 
+{ FPC 3.3.1 produces many false warnings. }
+{$ifdef FPC}
+  {$ifndef VER3_0}
+    {$ifndef VER3_2}
+      { 2 warnings below are common because of case analysis.
+        We tried to adjust to them
+        ( https://castle-engine.io/coding_conventions#case_analysis )
+        but in some cases there's no good adjustment of code.
+        Let's disable them for now. }
+      {$warn 6060 off} // case statement does not handle all possible cases
+      {$warn 6018 off} // unreachable code
+      { This happens because unfortunately FPC 3.3.1 doesn't understand
+        that writing e.g. "WriteBuffer(Tmp, SizeOf(Tmp));" means we use Tmp value. }
+      {$warn 5027 off} // Local variable is assigned but never used
+    {$endif}
+  {$endif}
+{$endif}
+
+{ WebAssembly --------------------------------------------------------------- }
+
+{$ifdef WASI}
+  {$undef HAS_FP_HTTP_CLIENT}
+  // CastleDynLibs on WASI not tested
+  {$undef ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION}
+  { Web target doesn't support try..except, so we report some errors
+    without causing exceptions in this case. }
+  {$define CASTLE_CANNOT_CATCH_EXCEPTIONS}
+
+  // LibPng, from dynamic or static library, not supported.
+  // Undefining the 2 symbols below simply avoids 2 warnings at runtime
+  // from WarningNoLibPng, nothing more.
+  {$undef CASTLE_PNG_DYNAMIC}
+  {$undef CASTLE_PNG_STATIC}
+{$endif}
+
+{ Workaround ParamStr issue -------------------------------------------------- }
+
+{$ifdef ANDROID}
+  { Android 15, Google Pixel 6a:
+    Argv[...] are invalid pointers, and so using ParamStr(...) crashes.
+    See CastleParameters unit, InitializationParams comments for more
+    information. }
+  {$define CASTLE_PARAMSTR_BUGGY}
+{$endif}
+
+{ Log Argv reading in CastleParameters, to investigate bugs like
+  CASTLE_PARAMSTR_BUGGY. }
+{.$define CASTLE_ANDROID_ARGV_LOGGING}
+
 {$endif not CASTLE_CONF_INCLUDED}
+
+{ Model formats support ------------------------------------------------------
+  Disable support for some model formats to make the exe smaller.
+
+  Note: Don't define these symbols in castleconf.inc,
+  as this would mean you need to maintain your CGE modification,
+  and it affects all projects (including CGE examples that may rely on specific
+  formats).
+
+  Rather, define these symbols in your project, e.g. using <defines> in the
+  CastleEngineManifest.xml.
+  See https://castle-engine.io/project_manifest#_compiler_options_and_paths .
+  Like:
+
+  <compiler_options>
+    <defines>
+      <define>CASTLE_COLLADA_SUPPORT_DISABLE</define>
+      <define>CASTLE_IFC_SUPPORT_DISABLE</define>
+    </defines>
+  </compiler_options>
+}
+{$ifdef CASTLE_GEO_SUPPORT_DISABLE}{$INFO 'GEO support disabled'}{$endif}
+{$ifdef CASTLE_OBJ_SUPPORT_DISABLE}{$INFO 'OBJ support disabled'}{$endif}
+{$ifdef CASTLE_COLLADA_SUPPORT_DISABLE}{$INFO 'COLLADA support disabled'}{$endif}
+{$ifdef CASTLE_SPINE_SUPPORT_DISABLE}{$INFO 'SPINE support disabled'}{$endif}
+{$ifdef CASTLE_STL_SUPPORT_DISABLE}{$INFO 'STL support disabled'}{$endif}
+{$ifdef CASTLE_MD3_SUPPORT_DISABLE}{$INFO 'MD3 support disabled'}{$endif}
+{$ifdef CASTLE_GLTF_SUPPORT_DISABLE}{$INFO 'GLTF support disabled'}{$endif}
+{$ifdef CASTLE_IMAGE_SUPPORT_DISABLE}{$INFO 'IMAGE support disabled'}{$endif}
+{$ifdef CASTLE_COCOS2D_SUPPORT_DISABLE}{$INFO 'COCOS2D support disabled'}{$endif}
+{$ifdef CASTLE_SPRITESHEET_SUPPORT_DISABLE}{$INFO 'SPRITESHEET support disabled'}{$endif}
+{$ifdef CASTLE_TILED_MAP_SUPPORT_DISABLE}{$INFO 'TILED_MAP support disabled'}{$endif}
+{$ifdef CASTLE_IFC_SUPPORT_DISABLE}{$INFO 'IFC support disabled'}{$endif}
+{$ifdef CASTLE_3DS_SUPPORT_DISABLE}{$INFO '3DS support disabled'}{$endif}

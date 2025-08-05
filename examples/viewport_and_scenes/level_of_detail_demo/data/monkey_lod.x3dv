@@ -1,0 +1,16 @@
+#X3D V4.0 utf8
+PROFILE Interactive
+
+# ----------------------------------------------------------------------------
+# Simple X3D file that defines a Level of Detail (LOD) node with three children.
+# Depending on the distance from camera, only one of the children is rendered.
+# ----------------------------------------------------------------------------
+
+LOD {
+  children [
+    Inline { url "monkey_lod_near.glb" } # used when distance < 30
+    Inline { url "monkey_lod_middle.glb" } # used when distance between 30 and 100
+    Inline { url "monkey_lod_far.glb" } # used when distance > 100
+  ]
+  range [ 30 100 ]
+}

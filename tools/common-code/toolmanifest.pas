@@ -23,7 +23,7 @@ interface
 
 uses DOM, Classes, Generics.Collections,
   CastleStringUtils, CastleImages, CastleUtils, CastleFindFiles, CastleColors,
-  CastleInternalTools,
+  CastleInternalTools, CastleUnicode,
   ToolServices, ToolAssocDocTypes;
 
 type
@@ -91,6 +91,9 @@ type
       DefaultFullscreenImmersive = true;
       DefaultDetectMemoryLeaks = false;
       DefaultMacAppBundle = true;
+      DefaultWebCanvasWidth = 960;
+      DefaultWebCanvasHeight = 540;
+      DefaultProposedUnitPrefix = 'Game';
 
       { character sets }
       ControlChars = [#0 .. Chr(Ord(' ') - 1)];
@@ -109,11 +112,12 @@ type
     var
       OwnerComponent: TComponent;
       FName, FExecutableName, FQualifiedName, FAuthor, FCaption: String;
+      FProposedUnitPrefix: String;
       FIOSOverrideQualifiedName: String;
       FIOSOverrideVersion: TProjectVersion; //< nil if not overridden, should use FVersion then
       FUsesNonExemptEncryption: boolean;
       FDataExists: Boolean;
-      FPath, FPathUrl, FDataPath: String;
+      FPath, FPathUrl, FDataPath, FDataPathUrl: String;
       FIncludePaths: TIncludePathList;
       FExcludePaths: TCastleStringList;
       FExtraCompilerOptions, FExtraCompilerOptionsAbsolute: TCastleStringList;
@@ -142,9 +146,13 @@ type
       FDetectMemoryLeaks: Boolean;
       FMacAppBundle: Boolean;
       FProjectDependencies: TProjectDependencies;
+      FWebCanvasWidth, FWebCanvasHeight: Integer;
+      FWebHtmlContents: String;
 
     function DefaultQualifiedName(const AName: String): String;
     procedure CheckMatches(const Name, Value: String; const AllowedChars: TSetOfChars);
+    class procedure CheckUnicodeDoesNotContain(
+      const Name, Value: String; const DisallowedChars: TUnicodeCharList);
     procedure CheckValidQualifiedName(const OptionName: String; const QualifiedName: String);
     { Change compiler option @xxx to use absolute paths.
       Important for "castle-engine editor" where ExtraCompilerOptionsAbsolute is inserted
@@ -161,7 +169,7 @@ type
     const
       { Android SDK versions.
         See https://castle-engine.io/project_manifest#_android_information . }
-      DefaultAndroidCompileSdkVersion = 33;
+      DefaultAndroidCompileSdkVersion = 35;
       DefaultAndroidTargetSdkVersion = DefaultAndroidCompileSdkVersion;
       { See https://castle-engine.io/android_faq
         for reasons behind this minimal version. }
@@ -173,12 +181,8 @@ type
       @param APath Project path, must be absolute. }
     constructor Create(const APath: String);
     { Load manifest file.
-      @param APath Project path, must be absolute.
       @param ManifestUrl Full URL to CastleEngineManifest.xml, must be absolute. }
-    constructor CreateFromUrl(const APath, ManifestUrl: String); overload;
-    { Load manifest file.
-      @param ManifestUrl Full URL to CastleEngineManifest.xml, must be absolute. }
-    constructor CreateFromUrl(const ManifestUrl: String); overload;
+    constructor CreateFromUrl(const ManifestUrl: String);
     { Guess values for the manifest.
       @param APath Project path, must be absolute.
       @param AStandaloneSource Guessed StandaloneSource value. Project Name will be derived from it too. }
@@ -198,6 +202,7 @@ type
     property GameUnits: String read FGameUnits;
     property EditorUnits: String read FEditorUnits;
     property QualifiedName: String read FQualifiedName;
+    property ProposedUnitPrefix: String read FProposedUnitPrefix;
     { Dependencies of this project.
       Read-only from the outside, do not call any methods that modify
       the contents of it. }
@@ -205,16 +210,35 @@ type
     { Shortcut for ProjectDependencies.Dependencies. }
     function Dependencies: TDependencies;
     property Name: String read FName;
+
     { Project path. Absolute.
-      Always ends with path delimiter, like a slash or backslash. }
+      Always ends with path delimiter, like a slash or backslash.
+
+      Same as @link(PathUrl) but this is a regular filename.
+      Prefer to use @link(PathUrl) instead in new code, at some point this
+      will be deprecated and then removed. }
     property Path: String read FPath;
-    { Same thing as @link(Path), but expressed as an URL. }
+
+    { Project path, as absolute URL.
+      Always ends with slash. }
     property PathUrl: String read FPathUrl;
+
     property DataExists: Boolean read FDataExists;
+
     { Project data path. Absolute.
       Always ends with path delimiter, like a slash or backslash.
-      Should be ignored if not @link(DataExists). }
+      Should be ignored if not @link(DataExists).
+
+      Same as @link(DataPathUrl) but this is a regular filename.
+      Prefer to use @link(DataPathUrl) instead in new code, at some point this
+      will be deprecated and then removed.  }
     property DataPath: String read FDataPath;
+
+    { Project data path, as absolute URL.
+      Always ends with slash.
+      Should be ignored if not @link(DataExists). }
+    property DataPathUrl: String read FDataPathUrl;
+
     property Caption: String read FCaption;
     property Author: String read FAuthor;
     property ExecutableName: String read FExecutableName;
@@ -222,7 +246,7 @@ type
     property ScreenOrientation: TScreenOrientation read FScreenOrientation;
     property Icons: TImageFileNames read FIcons;
     property LaunchImages: TImageFileNames read FLaunchImages;
-    { iOS launch image storyboard (see https://castle-engine.io/project_manifest#launch-images-for-now-only-for-ios ).
+    { iOS launch image storyboard (see https://castle-engine.io/project_manifest#_launch_images_for_now_only_for_ios ).
       Never @nil (but check Path <> '' before actually using it). }
     property LaunchImageStoryboard: TLaunchImageStoryboard read FLaunchImageStoryboard;
     property SearchPaths: TStringList read FSearchPaths;
@@ -247,6 +271,10 @@ type
     property AndroidMinSdkVersion: Cardinal read FAndroidMinSdkVersion;
     property AndroidTargetSdkVersion: Cardinal read FAndroidTargetSdkVersion;
     property AndroidServices: TServiceList read FAndroidServices;
+
+    property WebCanvasWidth: Integer read FWebCanvasWidth;
+    property WebCanvasHeight: Integer read FWebCanvasHeight;
+    property WebHtmlContents: String read FWebHtmlContents;
 
     { Standalone source specified in CastleEngineManifest.xml.
       Most build tool code should use TCastleProject.StandaloneSourceFile instead,
@@ -317,6 +345,13 @@ type
     { Finds all Pascal files (units and includes -- not lpr / dpr for now).
       Returns a list with filenames relative to Path. }
     function FindPascalFiles: TStringList;
+
+    { Convert possible manifest value of standalone_source into implied Pascal
+      program name. }
+    class function StandaloneSourceToProgramName(const AStandaloneSource: String): String;
+
+    { Raise exception if AExecutableName not valid. }
+    class procedure CheckExecutableName(const AExecutableName: String);
   end;
 
 function CompilerToString(const C: TCompiler): String;
@@ -447,10 +482,13 @@ begin
   FFullscreenImmersive := DefaultFullscreenImmersive;
   FDetectMemoryLeaks := DefaultDetectMemoryLeaks;
   FMacAppBundle := DefaultMacAppBundle;
+  FWebCanvasWidth := DefaultWebCanvasWidth;
+  FWebCanvasHeight := DefaultWebCanvasHeight;
 
   FPath := InclPathDelim(APath);
   FPathUrl := FilenameToUriSafe(FPath);
   FDataPath := InclPathDelim(FPath + DataName);
+  FDataPathUrl := FilenameToUriSafe(FDataPath);
 end;
 
 constructor TCastleManifest.CreateGuess(const APath, AStandaloneSource: String);
@@ -458,9 +496,11 @@ begin
   Create(APath);
 
   FDataPath := InclPathDelim(Path + DataName);
+  FDataPathUrl := FilenameToUriSafe(FDataPath);
   FName := DeleteFileExt(AStandaloneSource);
   FCaption := FName;
   FQualifiedName := DefaultQualifiedName(FName);
+  FProposedUnitPrefix := DefaultProposedUnitPrefix;
   FExecutableName := FName;
   FCompiler := DefaultCompiler;
   FStandaloneSource := AStandaloneSource;
@@ -474,7 +514,7 @@ begin
   CreateFinish;
 end;
 
-constructor TCastleManifest.CreateFromUrl(const APath, ManifestUrl: String);
+constructor TCastleManifest.CreateFromUrl(const ManifestUrl: String);
 
   { Get XML element attribute as Cardinal,
     using DefaultAndMinimum as default (if not exists in XML).
@@ -499,13 +539,32 @@ constructor TCastleManifest.CreateFromUrl(const APath, ManifestUrl: String);
 
 var
   Doc: TXMLDocument;
-  AndroidProjectTypeStr: String;
+  ManifestFileName, AndroidProjectTypeStr: String;
   ChildElements: TXMLElementIterator;
   Element, ChildElement: TDOMElement;
   NewCompilerOption, DefaultLazarusProject, DefaultDelphiProject, NewSearchPath: String;
   IncludePath: TIncludePath;
 begin
-  Create(APath);
+  ManifestFileName := UriToFilenameSafe(ManifestUrl);
+  Create(ExtractFilePath(ManifestFileName));
+
+  { Fix PathUrl and DataPathUrl in case ManifestUrl is not a regular file,
+    e.g. when it is 'castle-config:/my-projects/foo/CastleEngineManifest.xml'
+    which maps to something special with castle-editor-portable on web.
+    Current Create implementation will set them to ''.
+    TODO: In the future, it would be cleaner to use only URLs, never filenames,
+    throughout the whole TCastleManifest code.
+    Then this special fix will not be necessary. }
+  if ManifestFileName = '' then
+  begin
+    FPathUrl := ExtractUriPath(ManifestUrl);
+    FDataPathUrl := FPathUrl + DataName + '/';
+    WritelnLog('ManifestUrl is not a regular file, fixing PathUrl to "%s" and DataPathUrl to "%s"', [
+      FPathUrl,
+      FDataPathUrl
+    ]);
+  end;
+
   SetBaseUrl(ManifestUrl);
 
   Doc := UrlReadXML(ManifestUrl);
@@ -515,6 +574,7 @@ begin
     FName := Doc.DocumentElement.AttributeString('name');
     FCaption := Doc.DocumentElement.AttributeStringDef('caption', FName);
     FQualifiedName := Doc.DocumentElement.AttributeStringDef('qualified_name', DefaultQualifiedName(FName));
+    FProposedUnitPrefix := Doc.DocumentElement.AttributeStringDef('proposed_unit_prefix', DefaultProposedUnitPrefix);
     FExecutableName := Doc.DocumentElement.AttributeStringDef('executable_name', FName);
     FStandaloneSource := Doc.DocumentElement.AttributeStringDef('standalone_source', '');
     FCompiler := StringToCompiler(Doc.DocumentElement.AttributeStringDef('compiler', 'autodetect'));
@@ -678,6 +738,10 @@ begin
       ChildElement := Element.ChildElement('services', false);
       if ChildElement <> nil then
         FIOSServices.ReadCastleEngineManifest(ChildElement);
+
+      ChildElement := Element.ChildElement('service', false);
+      if ChildElement <> nil then
+        raise Exception.Create('<service> element directly inside <ios> element in CastleEngineManifest.xml file, this is incorrect. The <service> should be within <services>, which in turn should be in <ios>');
     end;
 
     Element := Doc.DocumentElement.ChildElement('associate_document_types', false);
@@ -769,14 +833,21 @@ begin
       FFreeDesktopCategories := Element.AttributeStringDef('categories', FFreeDesktopCategories);
       FFreeDesktopComment := Element.AttributeStringDef('comment', FFreeDesktopComment);
     end;
+
+    Element := Doc.DocumentElement.ChildElement('web', false);
+    if Element <> nil then
+    begin
+      FWebHtmlContents := Element.AttributeStringDef('html_contents', '');
+      ChildElement := Element.ChildElement('canvas', false);
+      if ChildElement <> nil then
+      begin
+        FWebCanvasWidth := ChildElement.AttributeIntegerDef('width', DefaultWebCanvasWidth);
+        FWebCanvasHeight := ChildElement.AttributeIntegerDef('height', DefaultWebCanvasHeight);
+      end;
+    end;
   finally FreeAndNil(Doc) end;
 
   CreateFinish;
-end;
-
-constructor TCastleManifest.CreateFromUrl(const ManifestUrl: String);
-begin
-  CreateFromUrl(ExtractFilePath(UriToFilenameSafe(ManifestUrl)), ManifestUrl);
 end;
 
 destructor TCastleManifest.Destroy;
@@ -823,6 +894,41 @@ begin
     if not (Value[I] in AllowedChars) then
       raise Exception.CreateFmt('Project %s contains invalid characters: "%s", this character is not allowed: "%s"',
         [Name, Value, SReadableForm(Value[I])]);
+end;
+
+class procedure TCastleManifest.CheckUnicodeDoesNotContain(
+  const Name, Value: String; const DisallowedChars: TUnicodeCharList);
+var
+  Iter: TCastleStringIterator;
+begin
+  Iter.Start(Value);
+  while Iter.GetNext do
+  begin
+    if DisallowedChars.IndexOf(Iter.Current) <> -1 then
+      raise Exception.CreateFmt('Project %s contains invalid characters: "%s", this character is not allowed: "%s"', [
+        Name,
+        Value,
+        UnicodeCharToReadableString(Iter.Current)
+      ]);
+  end;
+end;
+
+class procedure TCastleManifest.CheckExecutableName(const AExecutableName: String);
+var
+  DisallowedChars: TUnicodeCharList;
+  DisallowedChar: TUnicodeChar;
+begin
+  { Executable name can contain everything that is an allowed filename
+    on modern platforms.
+    See https://superuser.com/questions/358855/what-characters-are-safe-in-cross-platform-file-names-for-linux-windows-and-os .
+    In particular, most local (Chinese, Polish...) characters are OK. }
+  DisallowedChars := TUnicodeCharList.Create;
+  try
+    DisallowedChars.Add('\/:*?"<>|');
+    for DisallowedChar := 0 to 31 do // disallow null, ASCII control characters
+      DisallowedChars.Add(DisallowedChar);
+    CheckUnicodeDoesNotContain('executable_name', AExecutableName, DisallowedChars);
+  finally FreeAndNil(DisallowedChars) end;
 end;
 
 procedure TCastleManifest.CheckValidQualifiedName(const OptionName: String; const QualifiedName: String);
@@ -886,17 +992,17 @@ procedure TCastleManifest.CreateFinish;
   begin
     if FDataExists then
     begin
-      if DirectoryExists(DataPath) then
+      if UriExists(DataPathUrl) = ueDirectory then
         WritelnLog('Found data in "' + DataPath + '"')
       else
       begin
-        WritelnWarning('Data directory not found (tried "' + DataPath + '"). If this project has no data, add <data exists="false"/> to CastleEngineManifest.xml.');
+        WritelnWarning('Data directory not found (tried "' + DataPathUrl + '"). If this project has no data, add <data exists="false"/> to CastleEngineManifest.xml.');
         FDataExists := false;
       end;
     end else
     begin
-      if DirectoryExists(DataPath) then
-        WritelnWarning('Possible data directory found in "' + DataPath + '", but your project has <data exists="false"/> in CastleEngineManifest.xml, so it will be ignored.' + NL +
+      if UriExists(DataPathUrl) = ueDirectory then
+        WritelnWarning('Possible data directory found in "' + DataPathUrl + '", but your project has <data exists="false"/> in CastleEngineManifest.xml, so it will be ignored.' + NL +
         '  To remove this warning:' + NL +
         '  1. Rename this directory to something else than "data" (if it should not be packaged),' + NL +
         '  2. Remove <data exists="false"/> from CastleEngineManifest.xml (if "data" should be packaged).');
@@ -905,9 +1011,17 @@ procedure TCastleManifest.CreateFinish;
 
   { Check correctness. }
   procedure CheckManifestCorrect;
+  var
+    ProgramName: String;
   begin
-    CheckMatches('name', Name                     , AlphaNum + ['_','-']);
-    CheckMatches('executable_name', ExecutableName, AlphaNum + ['_','-']);
+    { Note that project "name" can contain minus ("-")
+      character which is not allowed inside a Pascal identifier.
+      This is a deliberate feature (we like names like "castle-model-viewer").
+      When we have to derive some Pascal identifier from it, we use
+      MakeProjectPascalName , TCastleProject.NamePascal and related. }
+    CheckMatches('name', Name, AlphaNum + ['_','-']);
+
+    CheckExecutableName(ExecutableName);
 
     { non-filename stuff: allow also dots }
     CheckValidQualifiedName('qualified_name', QualifiedName);
@@ -915,6 +1029,28 @@ procedure TCastleManifest.CreateFinish;
     { more user-visible stuff, where we allow spaces, local characters and so on }
     CheckMatches('caption', Caption, AllChars - ControlChars);
     CheckMatches('author', Author  , AllChars - ControlChars);
+
+    { StandaloneSource, if specified, determines the dpr filename
+      and (sans extension) the Pascal "program" declaration
+      (these 2 things have to match exactly, compilers check this when "program"
+      is specified, and we have to specify "program" otherwise Delphi IDE
+      breaks "uses" clause when adding units).
+      As such, it has to be a valid Pascal identifier. }
+    if StandaloneSource <> '' then
+    begin
+      ProgramName := StandaloneSourceToProgramName(StandaloneSource);
+      if not IsValidIdent(ProgramName) then
+        //raise Exception.CreateFmt
+        WritelnWarning('Program name "%s" (determined by standalone_source "%s" in CastleEngineManifest.xml) is not a valid Pascal identifier. This will be an error in future CGE versions, please rename your DPR / LPR.', [
+          ProgramName,
+          StandaloneSource
+        ]);
+    end;
+
+    if ProposedUnitPrefix = '' then
+      raise Exception.Create('Proposed unit prefix is empty');
+    if not IsValidIdent(ProposedUnitPrefix) then
+      raise Exception.CreateFmt('Proposed unit prefix "%s" is not a valid Pascal identifier', [ProposedUnitPrefix]);
 
     if AndroidMinSdkVersion > AndroidTargetSdkVersion then
       raise Exception.CreateFmt('Android min_sdk_version %d is larger than target_sdk_version %d, this is incorrect',
@@ -1064,6 +1200,13 @@ begin
   StringReplaceAllVar(Relative, '\', '/');
   {$endif}
   FindPascalFilesResult.Add(Relative);
+end;
+
+class function TCastleManifest.StandaloneSourceToProgramName(const AStandaloneSource: String): String;
+begin
+  { Use ExtractFileName to ignore path in AStandaloneSource
+    which is possible, user can specify path like "code/myprogram_standalone.lpr". }
+  Result := ExtractFileName(DeleteFileExt(AStandaloneSource));
 end;
 
 { globals -------------------------------------------------------------------- }

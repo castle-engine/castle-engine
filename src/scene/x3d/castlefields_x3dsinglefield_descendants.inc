@@ -3694,8 +3694,9 @@ var
 begin
   CreateUndefined(AParentNode, AExposed, AName);
 
-  fFlagNames := TStringListCaseSens.Create;
-  AddStrArrayToStrings(AFlagNames, fFlagNames);
+  fFlagNames := TStringList.Create;
+  fFlagNames.CaseSensitive := true;
+  fFlagNames.AddStrings(AFlagNames);
   for i := 0 to FlagsCount-1 do Flags[i] := AFlags[i];
   fNoneString := ANoneString;
   fAllString := AAllString;

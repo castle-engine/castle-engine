@@ -243,7 +243,7 @@
 
     { Returns tangent vectors that are specified explicitly, see @link(TAbstractComposedGeometryNode.Tangent).
       Returns @nil if not specified. }
-    function InternalTangent: TVector3List;
+    function InternalTangent: TVector4List;
 
     { Node's list of coordinate indexes.
 
@@ -259,6 +259,11 @@
       just a range of non-negative indexes within CoordIndex.
       Otherwise (when CoordIndex = @nil), InternalCoordRangesCounts must
       return @true and we will use RangeCount to split coordinates.
+
+      The CoordRangeHandler can safely assume it only gets non-empty
+      and correct ranges, that is: EndIndex > BeginIndex for TCoordRangeHandler
+      call, and all indexes between BeginIndex and EndIndex-1 are >= 0
+      (when CoordIndex is assigned).
 
       Call this only for nodes with coordinates, that is only when
       @link(InternalCoord) returns @true. }
@@ -692,21 +697,19 @@
   end;
 
   { Tangent vectors information, for bump mapping.
-    The "vector" field should contain normalized tangent vectors,
-    in right-handed coordinate system.
 
-    The ordering of the tangent vectors is exactly the same as ordering
-    of normal vectors would be,
-    so e.g. @link(TAbstractComposedGeometryNode.NormalPerVertex) affects
-    the interpretation of tangent vectors as well. }
+    If your materials use @link(TAbstractOneSidedMaterialNode.NormalTexture)
+    then tangent vectors are used to determine the tangent space
+    in which the normal map is applied.
+    While the engine can automatically generate tangent vectors,
+    it is recommended to provide tangent vectors explicitly to achieve the
+    perfect look of the lighting, matching the software used to create normalmaps.
+
+    See @url(https://github.com/michaliskambi/x3d-tests/wiki/Tangent-node-in-X3D
+    Tangent node in X3D) for more details what this node specifies and why
+    is it useful. }
   TTangentNode = class(TAbstractGeometricPropertyNode)
-    {$I auto_generated_node_helpers/x3dnodes_tangent.inc}
-  public
-    { Set tangent vectors from a list of 4D vectors following glTF specification.
-      https://github.com/KhronosGroup/glTF/tree/master/specification/2.0 says
-      "XYZW vertex tangents where the w component is a sign value
-      (-1 or +1) indicating handedness of the tangent basis". }
-    procedure SetVector4D(const List: TVector4List);
+  {$I auto_generated_node_helpers/x3dnodes_tangent.inc}
   end;
 
   { Points. }
@@ -889,8 +892,14 @@ begin
       while (EndIndex < CoordIndexField.Count) and
             (CoordIndexField.Items.Items[EndIndex] >= 0) do
         Inc(EndIndex);
-      CoordRangeHandler(RangeNumber, BeginIndex, EndIndex);
-      Inc(RangeNumber);
+      { Do not call CoordRangeHandler (or increase RangeNumber)
+        for empty ranges, when -1 is at the start
+        of the indexes, or we have multiple consecutive -1 in indexes. }
+      if EndIndex > BeginIndex then
+      begin
+        CoordRangeHandler(RangeNumber, BeginIndex, EndIndex);
+        Inc(RangeNumber);
+      end;
       BeginIndex := EndIndex + 1;
     end;
   end else
@@ -1178,7 +1187,7 @@ begin
     Result := nil;
 end;
 
-function TAbstractGeometryNode.InternalTangent: TVector3List;
+function TAbstractGeometryNode.InternalTangent: TVector4List;
 begin
   if (TangentField <> nil) and
      (TangentField.Value is TTangentNode) then
@@ -1552,34 +1561,6 @@ function TLineSetNode.Lit(State: TX3DGraphTraverseState): boolean;
 begin
   { X3D specification says that LineSet should always be unlit }
   Result := false;
-end;
-
-{ TTangentNode --------------------------------------------------------------- }
-
-procedure TTangentNode.SetVector4D(const List: TVector4List);
-var
-  I, Len: Integer;
-  Source: PVector4;
-  Dest: PVector3;
-  W: Single;
-begin
-  Len := List.Count;
-  FdVector.Items.Count := Len;
-  if Len = 0 then Exit;
-
-  Source := PVector4(List.L);
-  Dest := PVector3(FdVector.Items.L);
-  for I := 0 to Len - 1 do
-  begin
-    // convert tangents to right-handed
-    // slower: Dest^ := Source^.XYZ * Source^.W;
-    W := Source^.W;
-    Dest^.X := Source^.X * W;
-    Dest^.Y := Source^.Y * W;
-    Dest^.Z := Source^.Z * W;
-    Inc(Source);
-    Inc(Dest);
-  end;
 end;
 
 class function TPointSetNode.ForVRMLVersion(const Version: TX3DVersion): boolean;

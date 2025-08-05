@@ -38,7 +38,7 @@ Glib2, Gdk2, Gtk2, CastleDynLib,
 {$endif}
 
 {$ifdef read_implementation_uses}
-CastleInternalWindowModes, CastleFindFiles,
+CastleInternalWindowModes, CastleFindFiles, CastleInternalFileMonitor,
 {$endif}
 
 {$ifdef read_interface_types}
@@ -538,8 +538,8 @@ SIGNAL_GLAREA_END;
 function signal_motion_notify_event(AGLAreaGtk: PGtkGLArea; Event: PGdkEventMotion;
   data: gpointer): gboolean; cdecl;
 SIGNAL_GLAREA_BEGIN
-  DoMotion(InputMotion(MousePosition,
-    LeftTopToCastle(Event^.x, Event^.y), MousePressed, 0));
+  DoMotion(InputMotion(Container.MousePosition,
+    LeftTopToCastle(Event^.x, Event^.y), Container.MousePressed, 0));
   Result := gtrue;
 SIGNAL_GLAREA_END;
 
@@ -626,12 +626,13 @@ SIGNAL_WINDOW_END;
 function signal_window_focus_in_event(AWindowGtk: PGtkWindow;
   Event: PGdkEventfocus; data: gpointer): gboolean; cdecl;
 SIGNAL_WINDOW_BEGIN
-  { Reset FMousePosition, since mouse position is unknown now,
+  { Reset Container.MousePosition, since mouse position is unknown now,
     and do not activate mouse look at next frame.
-    Note: resetting with FMousePosition := Vector2(-1, -1);
+    Note: resetting to some hardcoded Container.MousePosition, like Vector2(-1, -1),
     is not enough, testcase: wrong 1st movement in Unholy after alt+tab to fight. }
   GetInitialCursorPos;
   Container.MouseLookIgnoreNextMotion;
+  FileMonitor.CheckChanges;
   FFocused := true;
   Result := gfalse;
 SIGNAL_WINDOW_END;
@@ -728,37 +729,30 @@ begin
 end;
 {$endif}
 
-procedure TCastleWindow.SetMousePosition(const Value: TVector2);
+procedure TCastleWindow.SystemSetMousePosition(const Value: TVector2);
 var
   P: TVector2Integer;
 {$ifndef CASTLE_WINDOW_GTK_WITH_XLIB}
   RootX, RootY: GInt;
 {$endif}
 begin
-  if not Closed then
-  begin
-    { Do not set Mouse.CursorPos to the same value, to make sure we don't cause
-      unnecessary OnMotion on some systems while actual MousePosition didn't change. }
-    if TVector2.PerfectlyEquals(Value, FMousePosition) then Exit;
+  P := CastleToLeftTopInt(Value);
 
-    P := CastleToLeftTopInt(Value);
-
-    {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
-    { With older GDK/GTK, you had to use XWarpPointer to position mouse.
-      We still use it, for now, for GTK under Xlib --- this way we work
-      even with ancient GTK versions. }
-    XWarpPointer(
-      gdk_x11_drawable_get_xdisplay(GTK_WIDGET(GLAreaGtk)^.Window),
-      X.None,
-      WindowXID,
-      0, 0, 0, 0, P.X, P.Y);
-    {$else}
-      gdk_window_get_root_coords(GTK_WIDGET(GLAreaGtk)^.Window,
-        P.X, P.Y, @RootX, @RootY);
-      gdk_display_warp_pointer(Application.XDisplayGdk,
-        Application.XScreenGdk, RootX, RootY);
-    {$endif}
-  end;
+  {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
+  { With older GDK/GTK, you had to use XWarpPointer to position mouse.
+    We still use it, for now, for GTK under Xlib --- this way we work
+    even with ancient GTK versions. }
+  XWarpPointer(
+    gdk_x11_drawable_get_xdisplay(GTK_WIDGET(GLAreaGtk)^.Window),
+    X.None,
+    WindowXID,
+    0, 0, 0, 0, P.X, P.Y);
+  {$else}
+    gdk_window_get_root_coords(GTK_WIDGET(GLAreaGtk)^.Window,
+      P.X, P.Y, @RootX, @RootY);
+    gdk_display_warp_pointer(Application.XDisplayGdk,
+      Application.XScreenGdk, RootX, RootY);
+  {$endif}
 end;
 
 procedure TCastleWindow.SetCaption(const Part: TCaptionPart; const Value: String);
@@ -773,7 +767,7 @@ var
   X, Y: GInt;
 begin
   gdk_window_get_pointer(GTK_WIDGET(GLAreaGtk)^.Window, @X, @Y, nil);
-  FMousePosition := LeftTopToCastle(X, Y);
+  Container.InitializeMousePosition(LeftTopToCastle(X, Y));
 end;
 
 procedure TCastleWindow.OpenBackend;
@@ -1765,14 +1759,14 @@ begin
 end;
 {$endif CASTLE_WINDOW_USE_XF86VMODE}
 
-function TCastleApplication.ScreenStatusBarScaledHeight: Cardinal;
-begin
-  Result := 0;
-end;
-
 function TCastleApplication.BackendName: String;
 begin
   Result := 'GTK+';
+end;
+
+function TCastleApplication.MultipleWindowsPossible: Boolean;
+begin
+  Result := true;
 end;
 
 {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}

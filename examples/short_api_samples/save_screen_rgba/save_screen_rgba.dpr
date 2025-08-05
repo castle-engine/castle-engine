@@ -19,16 +19,31 @@ uses SysUtils,
   CastleWindow, CastleLog, CastleVectors, CastleUIControls, CastleScene,
   CastleViewport, CastleKeysMouse, CastleImages, CastleCameras;
 
-procedure Press(Container: TCastleContainer; const Event: TInputPressRelease);
+{ View ----------------------------------------------------------------------- }
+
+type
+  { View to contain whole UI and to handle events, like key press. }
+  TMyView = class(TCastleView)
+    function Press(const Event: TInputPressRelease): Boolean; override;
+  end;
+
+var
+  MyView: TMyView;
+
+function TMyView.Press(const Event: TInputPressRelease): Boolean;
 var
   Image: TRGBAlphaImage;
 begin
+  Result := inherited;
+  if Result then Exit;
+
   if Event.IsKey(keyF5) then
   begin
     Image := Container.SaveScreenRgba;
     try
       SaveImage(Image, 'save_screen_rgba.png');
     finally FreeAndNil(Image) end;
+    Exit(true);
   end;
 end;
 
@@ -43,14 +58,16 @@ begin
   // Initially fill buffer with transparent white.
   // When displaying, the window will be white, but it will be saved as transparent white.
   Window.Container.BackgroundColor := Vector4(1, 1, 1, 0);
-  Window.OnPress := @Press;
   Window.Open;
+
+  MyView := TMyView.Create(Application);
+  Window.Container.View := MyView;
 
   Viewport := TCastleViewport.Create(Application);
   Viewport.FullSize := true;
   Viewport.InsertBack(TCastleExamineNavigation.Create(Application));
   Viewport.Transparent := true; // do not fill parent with Viewport.BackgroundColor
-  Window.Controls.InsertFront(Viewport);
+  MyView.InsertFront(Viewport);
 
   Scene := TCastleScene.Create(Application);
   Scene.Load('castle-data:/teapot.x3dv');

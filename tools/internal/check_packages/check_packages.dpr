@@ -1,6 +1,6 @@
 // -*- compile-command: "castle-engine compile --mode=debug && castle-engine run" -*-
 {
-  Copyright 2021-2024 Michalis Kamburelis.
+  Copyright 2021-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -23,16 +23,14 @@ program check_packages;
 
 uses SysUtils, DOM, Classes,
   CastleXmlUtils, CastleUtils, CastleFindFiles, CastleStringUtils, CastleParameters,
-  CastleLog, CastleApplicationProperties, CastleDownload,
+  CastleLog, CastleApplicationProperties, CastleDownload, CastleFilesUtils,
   PackageUtils;
 
 var
   CgePath: String = '../../../';
   CgePathExpanded: String;
   WarningsCount: Cardinal = 0;
-
-const
-  TryFixing = false;
+  TryFixing: Boolean = false;
 
 type
   EInvalidPackage = class(Exception);
@@ -49,7 +47,10 @@ end;
 { TPackage ------------------------------------------------------------------- }
 
 type
-  { Abstract class that represents Lazarus or Delphi package.
+  { Abstract class that represents
+    - Lazarus package or
+    - Delphi package or
+    - fpmake.pp file following our conventions.
 
     Descendants:
     - Must implement constructor to read PackageFileName file and fill Files.
@@ -78,19 +79,15 @@ type
 
     { If TryFixing, this will overwrite PackageFileName adding the missing units.
 
-      This automatic fix is not perfect, so beware! Known issues:
-
-      - It is implemented now only for Lazarus packages, not Delphi.
-      - It only adds missing files. Doesn't remove files that should not be in package.
-      - It can mess some initial LPK XML stuff, causing unnecessary edits. Revert them.
-      - Generated UnitName follows filename, so it is all lowercase.
-      - It doesn't add to units (because it doesn't know which are platform-specific)
-        <AddToUsesPkgSection Value="False"/>
+      This automatic fix is not perfect, so beware!
+      See README.md for docs what works and what doesn't.
 
       Descendants: you can override this.
       Do not call inherited when overriding (since this implementation makes
       warning).
-      You can assume when this is called that TryFixing = true. }
+      You can assume when this is called that TryFixing = true.
+
+      MissingFiles are a list of files, relative to engine location (CgePathExpanded). }
     procedure ProposeFix(const MissingFiles: TCastleStringList); virtual;
   public
     property PackageFileName: String read FPackageFileName;
@@ -282,6 +279,8 @@ type
   end;
 
 constructor TLazarusPackage.Create(const APackageFileName: String);
+const
+  RelativePathFromLpkToCgeRoot = '../../';
 var
   Doc: TXMLDocument;
   FilesElement, FileElement: TDOMElement;
@@ -302,9 +301,9 @@ begin
     begin
       FileElement := FilesElement.Child('Item' + IntToStr(I));
       FileName := FileElement.Child('Filename').AttributeString('Value');
-      if not IsPrefix('../', FileName, not FileNameCaseSensitive) then
+      if not IsPrefix(RelativePathFromLpkToCgeRoot, FileName, not FileNameCaseSensitive) then
         PackageWarning('All filenames in lpk must be in CGE root, invalid: %s', [FileName]);
-      FileName := PrefixRemove('../', FileName, not FileNameCaseSensitive);
+      FileName := PrefixRemove(RelativePathFromLpkToCgeRoot, FileName, not FileNameCaseSensitive);
       Files.Append(FileName);
     end;
   finally FreeAndNil(Doc) end;
@@ -313,6 +312,34 @@ begin
 end;
 
 procedure TLazarusPackage.ProposeFix(const MissingFiles: TCastleStringList);
+
+  { Determine nice (CamelCase) unit name of the file in RelativeFileName. }
+  function GetUnitName(const RelativeFileName: String): String;
+  var
+    FileName, Line: String;
+    Contents: TStringList;
+    Matches: TCastleStringList;
+  begin
+    // poor version, would be lowercase
+    // Result := DeleteFileExt(ExtractFileName(MissingFile));
+
+    FileName := CombinePaths(CgePathExpanded, RelativeFileName);
+    Matches := TCastleStringList.Create;
+    try
+      Contents := TStringList.Create;
+      try
+        Contents.LoadFromFile(FileName);
+        for Line in Contents do
+          if StringMatchesRegexp(Line, '^unit ([/a-zA-Z0-9_-]+);', Matches) then
+          begin
+            Check(Matches.Count = 2, '2 matches expected for GetUnitName');
+            Exit(Matches[1]);
+          end;
+        raise Exception.CreateFmt('Failed to determine unit name for %s', [FileName]);
+      finally FreeAndNil(Contents) end;
+    finally FreeAndNil(Matches) end;
+  end;
+
 var
   Doc: TXMLDocument;
   FilesElement, FileElement,
@@ -340,7 +367,7 @@ begin
       if ExtractFileExt(MissingFile) = '.pas' then
       begin
         FileUnitNameElement := FileElement.CreateChild('UnitName');
-        FileUnitNameElement.AttributeSet('Value', DeleteFileExt(ExtractFileName(MissingFile)));
+        FileUnitNameElement.AttributeSet('Value', GetUnitName(MissingFile));
       end;
     end;
     FilesElement.AttributeSet('Count', FilesCount);
@@ -383,13 +410,13 @@ constructor TDelphiPackage.Create(const APackageFileName: String);
 
   procedure ReadDpk;
   var
-    Reader: TTextReader;
+    Reader: TCastleTextReader;
     Line, FoundFileName: String;
     Matches: TCastleStringList;
   begin
     Matches := TCastleStringList.Create;
     try
-      Reader := TTextReader.Create(PackageFileName);
+      Reader := TCastleTextReader.Create(PackageFileName);
       try
         while not Reader.Eof do
         begin
@@ -474,6 +501,70 @@ begin
   ReadDproj;
 end;
 
+{ fpmake.pp file ------------------------------------------------------------- }
+
+type
+  { Represents fpmake.pp file following CGE conventions. }
+  TFpmakePackage = class(TPackage)
+  public
+    constructor Create(const APackageFileName: String);
+  end;
+
+constructor TFpmakePackage.Create(const APackageFileName: String);
+var
+  Reader: TCastleTextReader;
+  Matches: TCastleStringList;
+  Line, LastSourcePath: String;
+begin
+  inherited;
+  Reader := TCastleTextReader.Create(PackageFileName);
+  try
+    Matches := TCastleStringList.Create;
+    try
+      LastSourcePath := '';
+      while not Reader.Eof do
+      begin
+        Line := Reader.Readln;
+        Matches.Clear;
+        // match lines like P.SourcePath.Add('src/scene/load/pasgltf');
+        if StringMatchesRegexp(Line, '^ *P.SourcePath.Add\(''([/a-zA-Z0-9_-]+)''\);', Matches) then
+        begin
+          Check(Matches.Count = 2, '2 matches expected for P.SourcePath.Add');
+          LastSourcePath := Matches[1];
+          if not IsSuffix('/', LastSourcePath) then
+            LastSourcePath := LastSourcePath + '/';
+        end else
+        // match lines like P.Targets.AddUnit('x3dloadinternalcollada.pas');
+        if StringMatchesRegexp(Line, '^ *P.Targets.AddUnit\(''([a-zA-Z0-9_]+.pas)''\);', Matches) then
+        begin
+          Check(Matches.Count = 2, '2 matches expected for P.Targets.AddUnit');
+          if LastSourcePath = '' then
+            raise Exception.CreateFmt('Failed parsing fpmake.pp correctly, no P.SourcePath.Add before P.Targets.AddUnit for "%s"', [
+              Line
+            ]);
+          Files.Append(LastSourcePath + Matches[1]);
+        end;
+      end;
+    finally FreeAndNil(Matches) end;
+  finally FreeAndNil(Reader) end;
+
+  Writeln(Format('fpmake %s: %d files', [PackageFileName, Files.Count]));
+end;
+
+{ command-line parameters ---------------------------------------------------- }
+
+const
+  Options: array[0..0] of TOption =
+  ( (Short: #0; Long: 'fix'; Argument: oaNone ) );
+
+procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
+  const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
+begin
+  case OptionNum of
+    0: TryFixing := true;
+  end;
+end;
+
 { main routine --------------------------------------------------------------- }
 
 var
@@ -483,6 +574,7 @@ begin
   ApplicationProperties.Version := CastleEngineVersion;
   ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif} ApplicationProperties.WriteWarningOnConsole);
 
+  Parameters.Parse(Options, {$ifdef FPC}@{$endif} OptionProc, nil);
   Parameters.CheckHighAtMost(1);
   if Parameters.High = 1 then
     CgePath := Parameters[1];
@@ -491,7 +583,7 @@ begin
   CgePathExpanded := SReplaceChars(CgePathExpanded, '\', '/'); // replace backslashes with slashes
   Writeln('Checking CGE in directory: ', CgePathExpanded);
 
-  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/castle_base.lpk');
+  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/lazarus/castle_engine_base.lpk');
   try
     Package.CheckFiles([
       'src/common_includes/',
@@ -511,14 +603,15 @@ begin
     ],
     [
       'src/base/android/',
-      'src/files/indy/'
+      'src/files/indy/',
+      'src/base_rendering/web/'
     ],
     [
       'src/vampyre_imaginglib/'
     ]);
   finally FreeAndNil(Package) end;
 
-  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/castle_window.lpk');
+  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/lazarus/castle_engine_window.lpk');
   try
     Package.CheckFiles([
       'src/window/'
@@ -527,7 +620,7 @@ begin
     [ ]);
   finally FreeAndNil(Package) end;
 
-  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/alternative_castle_window_based_on_lcl.lpk');
+  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/lazarus/alternative_castle_engine_window_based_on_lcl.lpk');
   try
     Package.CheckFiles([
       'src/window/'
@@ -536,7 +629,7 @@ begin
     [ ]);
   finally FreeAndNil(Package) end;
 
-  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/castle_components.lpk');
+  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/lazarus/castle_engine_lcl.lpk');
   try
     Package.CheckFiles([
       'src/lcl/'
@@ -545,7 +638,7 @@ begin
     [ ]);
   finally FreeAndNil(Package) end;
 
-  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/castle_indy.lpk');
+  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/lazarus/castle_engine_indy.lpk');
   try
     Package.CheckFiles([
       'src/files/indy/'
@@ -554,7 +647,7 @@ begin
     [ ]);
   finally FreeAndNil(Package) end;
 
-  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/castle_editor_components.lpk');
+  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/lazarus/castle_engine_editor_components.lpk');
   try
     Package.CheckFiles([
       'tools/castle-editor/components/'
@@ -591,6 +684,10 @@ begin
       'src/delphi/castleinternaldelphidesign.pas',
       'src/base/android/',
       'src/files/indy/',
+      'src/base_rendering/web/',
+
+      // This will be in castle_engine_design package
+      'src/files/tools/',
 
       // This is in castle_engine_vcl package
       'src/delphi/vcl.castlecontrol.pas',
@@ -616,8 +713,8 @@ begin
       // TODO: CastleScript is not yet fully supported with Delphi
       'src/castlescript/castlescriptxml.pas',
 
-      // TODO: Joysticks on Linux are not yet supported with Delphi
-      'src/ui/castleinternaljoystickslinux.pas',
+      // TODO: Game controllers on Linux are not yet supported with Delphi
+      'src/ui/castleinternalgamecontrollerslinux.pas',
 
       // This is VCL-specific with Delphi, maybe in the future will be in some VCL package.
       // It also makes warnings about dispinterface not being portable.
@@ -635,7 +732,8 @@ begin
   Package := TDelphiPackage.Create(CgePathExpanded + 'packages/delphi/castle_engine_design.dpk');
   try
     Package.CheckFiles([
-      'src/delphi/castleinternaldelphidesign.pas'
+      'src/delphi/castleinternaldelphidesign.pas',
+      'src/files/tools/'
     ],
     [ ],
     [ ]);
@@ -672,6 +770,34 @@ begin
     ],
     [ ],
     [ ]);
+  finally FreeAndNil(Package) end;
+
+  Package := TFpmakePackage.Create(CgePathExpanded + 'fpmake.pp');
+  try
+    Package.CheckFiles([
+      'src/common_includes/',
+      'src/transform/',
+      'src/audio/',
+      'src/base/',
+      'src/base_rendering/',
+      'src/castlescript/',
+      'src/files/',
+      'src/fonts/',
+      'src/images/',
+      'src/physics/',
+      'src/services/',
+      'src/ui/',
+      'src/scene/',
+      'src/deprecated_units/',
+      'src/window/'
+    ],
+    [
+      'src/files/indy/',
+      'src/base_rendering/web/'
+    ],
+    [
+      'src/vampyre_imaginglib/'
+    ]);
   finally FreeAndNil(Package) end;
 
   if WarningsCount <> 0 then

@@ -55,6 +55,10 @@ jobs:
         run: make clean test-fpmake
       - name: Test CastleWindow backends
         run: ./tools/internal/check_castle_window_backends_compilation
+      - name: Test build tool --output
+        run: ./tools/internal/check_build_tool_output
+      - name: Test LPG (Lazarus Package Group)
+        run: ./tools/internal/check_lpg_compilation
 
   test-docker-examples:
     strategy:
@@ -113,9 +117,22 @@ jobs:
         run: make clean examples-laz CASTLE_CONSERVE_DISK_SPACE=true
 
 
-  pack:
-    name: Pack to zip
-    runs-on: ubuntu-latest
+  pack_1:
+    name: Pack to zip (1)
+
+    # TODO: With Ubuntu 24 LTS, we hit weird "*** buffer overflow detected ***:"
+    # from "zip -r castle-engine-7.0-alpha.3.snapshot-linux-x86_64.zip castle_game_engine/"
+    # inside pack_release.sh .
+    # Sample build: https://github.com/castle-engine/castle-engine/actions/runs/11084360353/job/30799583387
+    #
+    # Related somehow? https://bugzilla.redhat.com/show_bug.cgi?id=2165653
+    # https://sourceforge.net/p/sevenzip/support-requests/581/
+    #
+    # Workaround by using Ubuntu 22 LTS for now.
+    # Seehttps://github.com/actions/runner-images?tab=readme-ov-file .
+    #runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
+
     container: kambi/castle-engine-cloud-builds-tools:cge-none
     steps:
       - uses: actions/checkout@v4
@@ -131,8 +148,28 @@ jobs:
       - name: Pack Linux/x86_64
         run: ./tools/internal/pack_release/pack_release.sh linux x86_64
 
+      - name: Archive Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-and-linux-release-from-docker-1
+          path: "castle-engine*.zip"
+          if-no-files-found: error
+
+  # We split pack into two jobs to avoid running out of disk space
+  # on GH hosted runners, no other reason.
+  pack_2:
+    name: Pack to zip (2)
+    # TODO: Just like above, workaround zip crashes by using older Ubuntu LTS.
+    #runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
+    container: kambi/castle-engine-cloud-builds-tools:cge-none
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set environment
+        run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+
       - name: Download bundled FPC
-        uses: robinraju/release-downloader@v1.10
+        uses: robinraju/release-downloader@v1.12
         with:
           repository: "castle-engine/cge-fpc"
           latest: true
@@ -146,6 +183,6 @@ jobs:
       - name: Archive Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: windows-and-linux-release-from-docker
+          name: windows-and-linux-release-from-docker-2
           path: "castle-engine*.zip"
           if-no-files-found: error

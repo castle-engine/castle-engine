@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2023 Michalis Kamburelis.
+  Copyright 2003-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -23,10 +23,11 @@ uses Generics.Collections,
   CastleUtils, CastleVectors, CastleTriangles;
 
 type
-  { Edge that is between exactly two triangles.
-    It's used by @link(TShapeShadowVolumes.ManifoldEdges),
+  { Edge, manifold (between exactly two triangles) or border (otherwise).
+    This is used by @link(TShapeShadowVolumes.ManifoldEdges) and
+    @link(TShapeShadowVolumes.BorderEdges),
     and this is crucial for rendering silhouette shadow volumes in OpenGL. }
-  TManifoldEdge = record
+  TEdge = record
     { Index to get vertexes of this edge.
 
       During rendering, the edge is defined by these two vertexes:
@@ -40,7 +41,13 @@ type
       @link(TShapeShadowVolumes.BorderEdges) may stay unchanged. }
     VertexIndex: Cardinal;
 
-    { Indexes to @link(TShapeShadowVolumes.TrianglesListShadowCasters) array }
+    { Indexes to @link(TShapeShadowVolumes.TrianglesListShadowCasters) array.
+
+      For manifold edges, both indexes are set.
+
+      For border edges, only the 1st (Triangles[0]) index is valid.
+      We overuse now Triangles[1] to mark (using High(Cardinal)) that
+      the other border edge was found. }
     Triangles: array [0..1] of Cardinal;
 
     { These are vertex values at VertexIndex and (VertexIndex+1)mod 3 positions,
@@ -62,28 +69,19 @@ type
       So memory loss is small, speed gain is noticeable (but still small),
       implementation code is a little simplified, so we're keeping this for now. }
     V0, V1: TVector3;
+
+    function TriangleIndex: Cardinal; deprecated 'use Triangles[0] instead';
   end;
-  PManifoldEdge = ^TManifoldEdge;
+  PEdge = ^TEdge;
 
-  TManifoldEdgeList = {$ifdef FPC}specialize{$endif} TStructList<TManifoldEdge>;
+  TEdgeList = {$ifdef FPC}specialize{$endif} TStructList<TEdge>;
 
-  { Edge that has one neighbor, i.e. border edge.
-    It's used by @link(TShapeShadowVolumes.BorderEdges),
-    and this is crucial for rendering silhouette shadow volumes in OpenGL. }
-  TBorderEdge = record
-    { Index to get vertex of this edge.
-      The actual edge's vertexes are not recorded here (this way
-      we don't have to update this when the shape changes during animation).
-      You should get them as the VertexIndex
-      and (VertexIndex+1) mod 3 vertexes of the triangle TriangleIndex. }
-    VertexIndex: Cardinal;
-
-    { Index to @link(TShapeShadowVolumes.TrianglesListShadowCasters) array. }
-    TriangleIndex: Cardinal;
-  end;
-  PBorderEdge = ^TBorderEdge;
-
-  TBorderEdgeList = {$ifdef FPC}specialize{$endif} TStructList<TBorderEdge>;
+  TManifoldEdge = TEdge deprecated 'use TEdge instead';
+  PManifoldEdge = PEdge deprecated 'use PEdge instead';
+  TManifoldEdgeList = TEdgeList deprecated 'use TEdgeList instead';
+  TBorderEdge = TEdge deprecated 'use TEdge instead';
+  PBorderEdge = PEdge deprecated 'use PEdge instead';
+  TBorderEdgeList = TEdgeList deprecated 'use TEdgeList instead';
 
   { Triangles array for shadow casting shape. In local shape coordinates. }
   TTrianglesShadowCastersList = TTriangle3List;
@@ -96,11 +94,11 @@ type
         svManifoldAndBorderEdges
       );
     var
-    Validities: TValidities;
-    FTrianglesListShadowCasters: TTrianglesShadowCastersList;
-    FManifoldEdges: TManifoldEdgeList;
-    FBorderEdges: TBorderEdgeList;
-    procedure CalculateIfNeededManifoldAndBorderEdges;
+      Validities: TValidities;
+      FTrianglesListShadowCasters: TTrianglesShadowCastersList;
+      FManifoldEdges: TEdgeList;
+      FBorderEdges: TEdgeList;
+      procedure CalculateIfNeededManifoldAndBorderEdges;
   public
     FShape: TObject;
 
@@ -159,13 +157,29 @@ type
       This uses TrianglesListShadowCasters.
 
       @groupBegin }
-    function ManifoldEdges: TManifoldEdgeList;
-    function BorderEdges: TBorderEdgeList;
+    function ManifoldEdges: TEdgeList;
+    function BorderEdges: TEdgeList;
     { @groupEnd }
 
     procedure PrepareResources;
     procedure FreeResources;
   end;
+
+var
+  { By default, CalculateDetectedWholeSceneManifold detection stops
+    as soon as it knows the result is @false, so it is fast,
+    but also it can leave some border edges
+    with Triangles[1] = 0 (unmatched) instead of Triangles[1] = High(Cardinal)
+    (matching some shapes).
+
+    For Castle Model Viewer visualization, it's useful to force
+    matching all border edges, so we can see proper blue vs white colors in
+    "View -> Fill Mode -> Silhouette and Border Edges" mode. }
+  WholeSceneManifoldDetectionForceAllEdges: Boolean = false;
+
+{ Calculate proper value for TCastleSceneCore.InternalDetectedWholeSceneManifold.
+  ShapeListCore must be TShapeList, but cannot be declared as such. }
+function CalculateDetectedWholeSceneManifold(const ShapeListCore: TObject): Boolean;
 
 implementation
 
@@ -173,22 +187,14 @@ uses SysUtils,
   CastleShapes, X3DNodes, CastleLog, CastleTransform,
   CastleRenderOptions;
 
-constructor TShapeShadowVolumes.Create(const AShape: TObject);
+{ TEdge ---------------------------------------------------------------------- }
+
+function TEdge.TriangleIndex: Cardinal;
 begin
-  inherited Create;
-  FShape := AShape;
+  Result := Triangles[0];
 end;
 
-destructor TShapeShadowVolumes.Destroy;
-begin
-  { free FTrianglesList* variables }
-  InvalidateTrianglesListShadowCasters;
-  { frees FManifoldEdges, FBorderEdges if needed }
-  InvalidateManifoldAndBorderEdges;
-  inherited;
-end;
-
-{ triangles list ------------------------------------------------------------- }
+{ TTriangleAdder ------------------------------------------------------------- }
 
 type
   TTriangleAdder = class
@@ -206,6 +212,23 @@ procedure TTriangleAdder.AddTriangle(Shape: TObject;
 begin
   if Triangle.IsValid then
     TriangleList.Add(Triangle);
+end;
+
+{ TShapeShadowVolumes -------------------------------------------------------- }
+
+constructor TShapeShadowVolumes.Create(const AShape: TObject);
+begin
+  inherited Create;
+  FShape := AShape;
+end;
+
+destructor TShapeShadowVolumes.Destroy;
+begin
+  { free FTrianglesList* variables }
+  InvalidateTrianglesListShadowCasters;
+  { frees FManifoldEdges, FBorderEdges if needed }
+  InvalidateManifoldAndBorderEdges;
+  inherited;
 end;
 
 function TShapeShadowVolumes.TrianglesListShadowCasters: TTrianglesShadowCastersList;
@@ -237,7 +260,8 @@ function TShapeShadowVolumes.TrianglesListShadowCasters: TTrianglesShadowCasters
       try
         TriangleAdder.TriangleList := Result;
         if ShadowCaster(Shape) then
-          Shape.LocalTriangulate({$ifdef FPC}@{$endif}TriangleAdder.AddTriangle);
+          Shape.LocalTriangulate({$ifdef FPC}@{$endif}TriangleAdder.AddTriangle,
+            { FrontFaceAlwaysCcw should not matter } false);
         if LogShadowVolumes then
           WritelnLog('Shadow volumes', Format('Shadows casters triangles: %d',
             [Result.Count]));
@@ -262,8 +286,6 @@ begin
   FreeAndNil(FTrianglesListShadowCasters);
 end;
 
-{ edges lists ------------------------------------------------------------- }
-
 procedure TShapeShadowVolumes.CalculateIfNeededManifoldAndBorderEdges;
 
   { Sets FManifoldEdges and FBorderEdges. Assumes that FManifoldEdges and
@@ -271,15 +293,14 @@ procedure TShapeShadowVolumes.CalculateIfNeededManifoldAndBorderEdges;
   procedure CalculateManifoldAndBorderEdges;
 
     { If the counterpart of this edge (edge from neighbor) exists in
-      EdgesSingle, then it adds this edge (along with it's counterpart)
+      FBorderEdges, then it adds this edge (along with it's counterpart)
       to FManifoldEdges.
 
-      Otherwise, it just adds the edge to EdgesSingle. This can happen
+      Otherwise, it just adds the edge to FBorderEdges. This can happen
       if it's the 1st time this edge occurs, or maybe the 3d one, 5th...
       all odd occurrences, assuming that ordering of faces is consistent,
       so that counterpart edges are properly detected. }
     procedure AddEdgeCheckManifold(
-      EdgesSingle: TManifoldEdgeList;
       const TriangleIndex: Cardinal;
       const V0: TVector3;
       const V1: TVector3;
@@ -287,12 +308,12 @@ procedure TShapeShadowVolumes.CalculateIfNeededManifoldAndBorderEdges;
       Triangles: TTriangle3List);
     var
       I: Integer;
-      EdgePtr: PManifoldEdge;
+      EdgePtr: PEdge;
     begin
-      if EdgesSingle.Count <> 0 then
+      if FBorderEdges.Count <> 0 then
       begin
-        EdgePtr := PManifoldEdge(EdgesSingle.L);
-        for I := 0 to EdgesSingle.Count - 1 do
+        EdgePtr := PEdge(FBorderEdges.L);
+        for I := 0 to FBorderEdges.Count - 1 do
         begin
           { It would also be possible to get EdgePtr^.V0/1 by code like
 
@@ -300,7 +321,7 @@ procedure TShapeShadowVolumes.CalculateIfNeededManifoldAndBorderEdges;
             EdgeV0 := @TrianglePtr^[EdgePtr^.VertexIndex];
             EdgeV1 := @TrianglePtr^[(EdgePtr^.VertexIndex + 1) mod 3];
 
-            But, see TManifoldEdge.V0/1 comments --- current version is
+            But, see TEdge.V0/1 comments --- current version is
             a little faster.
           }
 
@@ -316,13 +337,13 @@ procedure TShapeShadowVolumes.CalculateIfNeededManifoldAndBorderEdges;
             { Move edge to FManifoldEdges: it has 2 neighboring triangles now. }
             FManifoldEdges.Add^ := EdgePtr^;
 
-            { Remove this from EdgesSingle.
-              Note that we delete from EdgesSingle fast, using assignment and
+            { Remove this from FBorderEdges.
+              Note that we delete from FBorderEdges fast, using assignment and
               deleting only from the end (normal Delete would want to shift
-              EdgesSingle contents in memory, to preserve order of items;
+              FBorderEdges contents in memory, to preserve order of items;
               but we don't care about order). }
-            EdgePtr^ := EdgesSingle.L[EdgesSingle.Count - 1];
-            EdgesSingle.Count := EdgesSingle.Count - 1;
+            EdgePtr^ := FBorderEdges.L[FBorderEdges.Count - 1];
+            FBorderEdges.Count := FBorderEdges.Count - 1;
 
             Exit;
           end;
@@ -330,8 +351,8 @@ procedure TShapeShadowVolumes.CalculateIfNeededManifoldAndBorderEdges;
         end;
       end;
 
-      { New edge: add new item to EdgesSingle }
-      EdgePtr := PManifoldEdge(EdgesSingle.Add);
+      { New edge: add new item to FBorderEdges }
+      EdgePtr := PEdge(FBorderEdges.Add);
       EdgePtr^.VertexIndex := VertexIndex;
       EdgePtr^.Triangles[0] := TriangleIndex;
       EdgePtr^.V0 := V0;
@@ -342,7 +363,6 @@ procedure TShapeShadowVolumes.CalculateIfNeededManifoldAndBorderEdges;
     I: Integer;
     Triangles: TTriangle3List;
     TrianglePtr: PTriangle3;
-    EdgesSingle: TManifoldEdgeList;
   begin
     Assert(FManifoldEdges = nil);
     Assert(FBorderEdges = nil);
@@ -352,43 +372,26 @@ procedure TShapeShadowVolumes.CalculateIfNeededManifoldAndBorderEdges;
       shadow volumes rendering result bad. }
     Triangles := TrianglesListShadowCasters;
 
-    FManifoldEdges := TManifoldEdgeList.Create;
+    FManifoldEdges := TEdgeList.Create;
     { There is a precise relation between number of edges and number of faces
       on a closed manifold: E = T * 3 / 2. }
     FManifoldEdges.Capacity := Triangles.Count * 3 div 2;
 
-    { EdgesSingle are edges that have no neighbor,
+    { FBorderEdges are edges that have no neighbor,
       i.e. have only one adjacent triangle. At the end, what's left here
-      will be simply copied to BorderEdges. }
-    EdgesSingle := TManifoldEdgeList.Create;
-    try
-      EdgesSingle.Capacity := Triangles.Count * 3 div 2;
+      will be simply left as BorderEdges. }
+    FBorderEdges := TEdgeList.Create;
+    FBorderEdges.Capacity := Triangles.Count * 3 div 2;
 
-      TrianglePtr := PTriangle3(Triangles.L);
-      for I := 0 to Triangles.Count - 1 do
-      begin
-        { TrianglePtr points to Triangles[I] now }
-        AddEdgeCheckManifold(EdgesSingle, I, TrianglePtr^.Data[0], TrianglePtr^.Data[1], 0, Triangles);
-        AddEdgeCheckManifold(EdgesSingle, I, TrianglePtr^.Data[1], TrianglePtr^.Data[2], 1, Triangles);
-        AddEdgeCheckManifold(EdgesSingle, I, TrianglePtr^.Data[2], TrianglePtr^.Data[0], 2, Triangles);
-        Inc(TrianglePtr);
-      end;
-
-      FBorderEdges := TBorderEdgeList.Create;
-
-      if EdgesSingle.Count <> 0 then
-      begin
-        { scene not a perfect manifold: less than 2 faces for some edges
-          (the case with more than 2 is already eliminated above).
-          So we copy EdgesSingle to BorderEdges. }
-        FBorderEdges.Count := EdgesSingle.Count;
-        for I := 0 to EdgesSingle.Count - 1 do
-        begin
-          FBorderEdges.L[I].VertexIndex := EdgesSingle.L[I].VertexIndex;
-          FBorderEdges.L[I].TriangleIndex := EdgesSingle.L[I].Triangles[0];
-        end;
-      end;
-    finally FreeAndNil(EdgesSingle); end;
+    TrianglePtr := PTriangle3(Triangles.L);
+    for I := 0 to Triangles.Count - 1 do
+    begin
+      { TrianglePtr points to Triangles[I] now }
+      AddEdgeCheckManifold(I, TrianglePtr^.Data[0], TrianglePtr^.Data[1], 0, Triangles);
+      AddEdgeCheckManifold(I, TrianglePtr^.Data[1], TrianglePtr^.Data[2], 1, Triangles);
+      AddEdgeCheckManifold(I, TrianglePtr^.Data[2], TrianglePtr^.Data[0], 2, Triangles);
+      Inc(TrianglePtr);
+    end;
 
     if LogShadowVolumes then
       WritelnLog('Shadow volumes', Format(
@@ -404,13 +407,13 @@ begin
   end;
 end;
 
-function TShapeShadowVolumes.ManifoldEdges: TManifoldEdgeList;
+function TShapeShadowVolumes.ManifoldEdges: TEdgeList;
 begin
   CalculateIfNeededManifoldAndBorderEdges;
   Result := FManifoldEdges;
 end;
 
-function TShapeShadowVolumes.BorderEdges: TBorderEdgeList;
+function TShapeShadowVolumes.BorderEdges: TEdgeList;
 begin
   CalculateIfNeededManifoldAndBorderEdges;
   Result := FBorderEdges;
@@ -426,13 +429,131 @@ end;
 procedure TShapeShadowVolumes.PrepareResources;
 begin
   TrianglesListShadowCasters;
-  ManifoldEdges;
+  CalculateIfNeededManifoldAndBorderEdges;
 end;
 
 procedure TShapeShadowVolumes.FreeResources;
 begin
   InvalidateTrianglesListShadowCasters;
   InvalidateManifoldAndBorderEdges;
+end;
+
+function CalculateDetectedWholeSceneManifold(const ShapeListCore: TObject): Boolean;
+var
+  ShapeList: TShapeList absolute ShapeListCore;
+  Shape1, Shape2: TShape;
+  BorderEdges1, BorderEdges2: TEdgeList;
+  BorderEdge1, BorderEdge2: PEdge;
+  BorderEdge1Index, BorderEdge2Index: Integer;
+  Shape1V0, Shape1V1, Shape2V0, Shape2V1: TVector3;
+  AnyBorderEdges: Boolean;
+begin
+  { Once ManifoldEdges and BorderEdges for all shapes are calculated,
+    check is scene manifold "as a whole". }
+
+  Result := true; // assume yes
+  AnyBorderEdges := false;
+
+  for Shape1 in ShapeList do
+  begin
+    BorderEdges1 := Shape1.InternalShadowVolumes.BorderEdges;
+    BorderEdge1 := PEdge(BorderEdges1.L);
+    AnyBorderEdges := AnyBorderEdges or (BorderEdges1.Count <> 0);
+    for BorderEdge1Index := 0 to BorderEdges1.Count - 1 do
+    begin
+      // do not match, if this edge is already matched
+      if BorderEdge1^.Triangles[1] = High(Cardinal) then
+      begin
+        Inc(BorderEdge1);
+        Continue;
+      end;
+
+      Shape1V0 := Shape1.State.Transformation.Transform.MultPoint(BorderEdge1^.V0);
+      Shape1V1 := Shape1.State.Transformation.Transform.MultPoint(BorderEdge1^.V1);
+
+      for Shape2 in ShapeList do
+      begin
+        if Shape1 = Shape2 then Continue;
+
+        BorderEdges2 := Shape2.InternalShadowVolumes.BorderEdges;
+        BorderEdge2 := PEdge(BorderEdges2.L);
+        for BorderEdge2Index := 0 to BorderEdges2.Count - 1 do
+        begin
+          // do not match, if this edge is already matched
+          if BorderEdge2^.Triangles[1] = High(Cardinal) then
+          begin
+            Inc(BorderEdge2);
+            Continue;
+          end;
+
+          Shape2V0 := Shape2.State.Transformation.Transform.MultPoint(BorderEdge2^.V0);
+          Shape2V1 := Shape2.State.Transformation.Transform.MultPoint(BorderEdge2^.V1);
+
+          { Try both orders: two border edges can match in any order,
+            our border edges rendering tolerates it.
+
+            Compare with epsilon or not?
+            Better not. Comparing with epsilon may be faulty
+            (if OpenGL calculations lead to slightly different results,
+            we will have rendering artifacts).
+            And it seems comparing precisely actually works in our testcases,
+            it detects scenes as 2-manifold correctly. }
+          // if ( TVector3.Equals(Shape1V0, Shape2V1{, Epsilon}) and
+          //      TVector3.Equals(Shape1V1, Shape2V0{, Epsilon}) ) or
+          //    ( TVector3.Equals(Shape1V0, Shape2V0{, Epsilon}) and
+          //      TVector3.Equals(Shape1V1, Shape2V1{, Epsilon}) ) then
+          if ( TVector3.PerfectlyEquals(Shape1V0, Shape2V1) and
+               TVector3.PerfectlyEquals(Shape1V1, Shape2V0) ) or
+             ( TVector3.PerfectlyEquals(Shape1V0, Shape2V0) and
+               TVector3.PerfectlyEquals(Shape1V1, Shape2V1) ) then
+          begin
+            // mark that this edge is already matched
+            BorderEdge2^.Triangles[1] := High(Cardinal);
+            BorderEdge1^.Triangles[1] := High(Cardinal);
+            Break;
+          end;
+          Inc(BorderEdge2);
+        end;
+
+        if BorderEdge1^.Triangles[1] = High(Cardinal) then
+          Break; // found match for BorderEdge1
+      end;
+
+      // not found any match for BorderEdge1, in all shapes
+      if BorderEdge1^.Triangles[1] <> High(Cardinal) then
+      begin
+        Result := false;
+        {.$define CalculateDetectedWholeSceneManifold_Log}
+        {$ifdef CalculateDetectedWholeSceneManifold_Log}
+        WritelnLog('Scene %s %s detected as NOT 2-manifold.', [Name, UriDisplay(Url)]);
+        {$endif}
+
+        { Do not Exit to keep detecting, and match as much edges as possible,
+          even though we know Result is false. }
+        if not WholeSceneManifoldDetectionForceAllEdges then
+          Exit;
+      end;
+
+      Inc(BorderEdge1);
+    end;
+  end;
+
+  { When the scene is trivially detected as "whole scene is 2-manifold"
+    just because there are no border edges, then actually each shape is
+    already a 2-manifold. We don't need in this case the EffectiveWholeSceneManifold
+    algorithm, better to cull and render shadow volumes per shape. }
+  if not AnyBorderEdges then
+  begin
+    {$ifdef CalculateDetectedWholeSceneManifold_Log}
+    WritelnLog('Scene %s %s detected as 2-manifold, but trivially, because there are no border edges. Disabling EffectiveWholeSceneManifold.', [Name, UriDisplay(Url)]);
+    {$endif}
+    Result := false;
+  end else
+  begin
+    {$ifdef CalculateDetectedWholeSceneManifold_Log}
+    WritelnLog('Scene %s %s detected as 2-manifold.', [Name, UriDisplay(Url)]);
+    {$endif}
+  end;
 end;
 
 end.

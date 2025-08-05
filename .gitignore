@@ -37,7 +37,10 @@ backup
 *.aab
 *.log
 *.exe
+*.wasm
 *.dll
+libsteam_api.so
+libsteam_api.dylib
 *.pro.user
 .DS_Store
 xcuserdata
@@ -57,20 +60,52 @@ castle-engine-output
 # Already included by *.res above
 #automatic-windows-resources.res
 #castle-auto-generated-resources.res
+CastleProjectLocalSettings.json
 
 # fpmake stuff
 castle-game-engine-*.fpm
 /fpmake
 /units/
 
-# alphabetic list of specific subdirs (and files inside)
-
+# manpages output
 /doc/man/man1/*.1
+
+# PasDoc output
 /doc/pasdoc/cache/
 /doc/pasdoc/html/
 /doc/pasdoc/latex/
 /doc/pasdoc/php/
 /doc/reference/
+
+# Bundled FPC (ignore it, in case someone puts it in CGE source tree)
+/tools/contrib/fpc
+
+# Proprietary Android libraries
+# (it may be easy to put them into CGE source tree, but don't commit).
+/tools/build-tool/data/android/services/chartboost/app/libs/*.jar
+/tools/build-tool/data/android/services/game_analytics/app/libs/*.jar
+/tools/build-tool/data/android/services/startapp/app/libs/*.jar
+/tools/build-tool/data/ios/services/game_analytics/cge_project_name/game_analytics/GameAnalytics.h
+/tools/build-tool/data/ios/services/game_analytics/cge_project_name/game_analytics/libGameAnalytics.a
+
+# deprecated_library artifacts
+/examples/deprecated_library/build-qt_library_tester-*
+/examples/deprecated_library/qt_library_tester/build
+/examples/deprecated_library/cpp_winapi_library_tester/Debug
+/examples/deprecated_library/cpp_winapi_library_tester/Release
+/examples/deprecated_library/cpp_winapi_library_tester/x64
+/examples/deprecated_library/lazarus_library_tester/*.app
+/examples/deprecated_library/lazarus_library_tester/cge_dynlib_tester
+/src/deprecated_library/build-*
+/src/deprecated_library/ios-output/
+/src/deprecated_library/libcastleengine.dylib
+/src/deprecated_library/libcastleengine.so
+
+# Lazarus packages artifacts
+/packages/lazarus/*castle_engine*.pas
+/packages/lazarus/lib/
+
+# Unix binaries (keep this list alphabetic).
 /examples/advanced_editor/advanced_loading_designs/advanced_loading_designs
 /examples/advanced_editor/custom_component/custom_component
 /examples/animations/animate_bones_by_code/animate_bones_by_code
@@ -82,6 +117,7 @@ castle-game-engine-*.fpm
 /examples/animations/simultaneous_animations_one_scene/simultaneous_animations_one_scene
 /examples/animations/split_long_animation/split_long_animation
 /examples/animations/md3_animations_tags/md3_animations_tags
+/examples/animations/optimize_animations_test/optimize_animations_test
 /examples/audio/audio_player/audio_player
 /examples/audio/doppler_demo/doppler_demo
 /examples/audio/game_3d_sound/game_3d_sound
@@ -93,17 +129,12 @@ castle-game-engine-*.fpm
 /examples/castlescript/image_make_by_script/image_make_by_script
 /examples/component_gallery/cge-component-gallery
 /examples/creature_behaviors/creature_behaviors
-/examples/curves/deprecated_space_filling_curve/draw_space_filling_curve
 /examples/curves/use_designed_curve/use_designed_curve
 /examples/delphi/fmx/CastleFmx
-/examples/deprecated_library/build-qt_library_tester-*
-/examples/deprecated_library/cpp_winapi_library_tester/Debug
-/examples/deprecated_library/cpp_winapi_library_tester/Release
-/examples/deprecated_library/cpp_winapi_library_tester/x64
-/examples/deprecated_library/lazarus_library_tester/*.app
-/examples/deprecated_library/lazarus_library_tester/cge_dynlib_tester
+/examples/delphi/fmx_play_animation/CastleFmxPlayAnimation
 /examples/deprecated_to_upgrade/fixed_camera_game/rift
 /examples/eye_of_beholder/eye_of_beholder
+/examples/fonts/distance_field_fonts/distance_field_fonts
 /examples/fonts/font_draw_over_image/font_draw_over_image
 /examples/fonts/font_draw_over_image/font_draw_over_image_output.png
 /examples/fonts/html_text/html_text
@@ -112,10 +143,9 @@ castle-game-engine-*.fpm
 /examples/fonts/texture-font-to-pascal
 /examples/fps_game/fps_game
 /examples/deprecated_to_upgrade/fps_game_old_ai/fps_game
-/examples/images_videos/background_tiling/background_tiling
+/examples/ifc/ifc
 /examples/images_videos/image_decompose/image_decompose
 /examples/images_videos/deprecated_drawing_modes_test/drawing_modes_test
-/examples/images_videos/deprecated_image_paint/image_paint
 /examples/images_videos/draw_images_on_gpu/draw_images_on_gpu
 /examples/images_videos/image_compare/image_compare
 /examples/images_videos/image_convert/image_convert
@@ -124,10 +154,10 @@ castle-game-engine-*.fpm
 /examples/images_videos/image_render_custom_shader/image_render_custom_shader
 /examples/images_videos/simple_video_editor/simple_video_editor
 /examples/images_videos/test_castleimage_draw3x3/test_castleimage_draw3x3
+/examples/images_videos/image_generate_and_use/image_generate_and_use
 /examples/isometric_game/isometric_game
 /examples/isometric_game_3d/isometric_game_3d
-/examples/deprecated_to_upgrade/isometric_game/isometric_game
-/examples/deprecated_to_upgrade/joystick/joystick_demo
+/examples/game_controllers/game_controllers_demo
 /examples/lazarus/load_model_and_camera_manually/lib/
 /examples/lazarus/load_model_and_camera_manually/load_model_and_camera_manually
 /examples/lazarus/model_3d_viewer/model_3d_viewer
@@ -145,6 +175,9 @@ castle-game-engine-*.fpm
 /examples/mobile/on_screen_keyboard/on_screen_keyboard
 /examples/mobile/simple_3d_demo/simple_3d_demo
 /examples/mobile/two_cars/two_cars
+/examples/mobile/simplest_manifest_test/simplest_manifest_test
+/examples/shaders/shader_effects_simple/shader_effects_simple
+/examples/shaders/shader_effects_on_primitives/shader_effects_primitives
 /examples/viewport_and_scenes/shadows/shadows
 /examples/viewport_and_scenes/shadow_volumes_whole_scene_manifold/shadow_volumes_whole_scene_manifold
 /examples/viewport_and_scenes/bump_mapping/bump_mapping
@@ -165,22 +198,23 @@ castle-game-engine-*.fpm
 /examples/physics/physics_joints_2d_grab/physics_joints_2d_grab
 /examples/physics/physics_joints_3d/physics_joints_3d
 /examples/physics/physics_joints_frequency/physics_joints_frequency
+/examples/physics/physics_explosion/physics_explosion
 /examples/physics/physics_forces/physics_forces
 /examples/physics/physics_persistent_forces_components/physics_persistent_forces_components
 /examples/physics/physics_simple_3d_bullet/physics_simple_3d_bullet
 /examples/physics/physics_test_changing_transformation/physics_test_changing_transformation
 /examples/physics/physics_test_scale_colliders/physics_test_scale_colliders
+/examples/physics/physics_test_scaled_mesh_collider/physics_test_scaled_mesh_collider
 /examples/physics/physics_test_transformation_sync/physics_test_transformation_sync
+/examples/physics/physics_throw_chickens/physics_throw_chickens
 /examples/platformer/platformer
-/examples/plugin/cge_3d_viewer/cge_3d_viewer
-/examples/plugin/cge_3d_viewer/npcge_3d_viewer.linux-i386.so
 /examples/portable_game_skeleton/my_fantastic_game
 /examples/research_special_rendering_methods/dynamic_ambient_occlusion/dynamic_ambient_occlusion
 /examples/research_special_rendering_methods/new_renderer_skeleton/new_renderer_skeleton
 /examples/research_special_rendering_methods/plane_mirror_and_shadow/plane_mirror_and_shadow
 /examples/research_special_rendering_methods/shadow_fields/precompute_shadow_field
 /examples/research_special_rendering_methods/shadow_fields/shadow_fields
-/examples/research_special_rendering_methods/transform_feedback/transform_feedback
+/examples/shaders/transform_feedback/transform_feedback
 /examples/research_special_rendering_methods/test_rendering_opengl_capabilities/test_rendering_opengl_capabilities
 /examples/screen_effects_demo/screen_effects_demo
 /examples/short_api_samples/animation_stop_notification/animation_stop_notification
@@ -189,7 +223,9 @@ castle-game-engine-*.fpm
 /examples/short_api_samples/transform_save_load/aaa.castle-transform
 /examples/short_api_samples/transform_save_load/transform_save_load
 /examples/short_api_samples/xml_utils/bookmarks_xml_demo
+/examples/space_shooter/space_shooter
 /examples/sprite_sheets/sprite_sheets_demo/sprite_sheets_demo
+/examples/steam/steam_test
 /examples/terrain/terrain
 /examples/test_local_filename_chars/test_local_filename_chars
 /examples/third_person_navigation/third_person_navigation
@@ -199,6 +235,7 @@ castle-game-engine-*.fpm
 /examples/user_interface/dragging_test/dragging_test
 /examples/user_interface/edit_test/edit_test
 /examples/user_interface/mask/mask
+/examples/user_interface/screen_resolution_change/screen_resolution_change
 /examples/user_interface/show_various_ui_controls/show_various_ui_controls
 /examples/user_interface/test_all_view_events/test_all_view_events
 /examples/user_interface/timer_test/timer_test
@@ -206,6 +243,7 @@ castle-game-engine-*.fpm
 /examples/user_interface/view_events/view_events
 /examples/user_interface/zombie_fighter/zombie_fighter
 /examples/user_interface/zombie_fighter_alternative_short_lived_views/zombie_fighter
+/examples/user_interface/progress_bar_ui_example/progress_bar_ui_example
 /examples/viewport_and_scenes/anisotropic_filtering/anisotropic_filtering
 /examples/viewport_and_scenes/billboards_blending_in_3d/billboards_blending_in_3d
 /examples/viewport_and_scenes/build_3d_object_by_code/build_3d_object_by_code
@@ -219,16 +257,19 @@ castle-game-engine-*.fpm
 /examples/viewport_and_scenes/detect_scene_hit/detect_scene_hit
 /examples/viewport_and_scenes/fog_and_distance_culling/fog_and_distance_culling
 /examples/viewport_and_scenes/headlight/headlight
+/examples/viewport_and_scenes/level_of_detail_demo/level_of_detail_demo
 /examples/viewport_and_scenes/listen_on_x3d_events/listen_on_x3d_events
 /examples/viewport_and_scenes/mesh_update/mesh_update
 /examples/viewport_and_scenes/multiple_viewports/multiple_viewports
 /examples/viewport_and_scenes/position_from_world/position_from_world
 /examples/viewport_and_scenes/render_3d_to_image/render_3d_to_image
 /examples/viewport_and_scenes/render_3d_to_texture_and_use_as_quad/render_3d_to_texture_and_use_as_quad
-/examples/viewport_and_scenes/shader_effects/shader-effects
-/examples/viewport_and_scenes/shader_override/shader_override
+/examples/shaders/shader_effects_on_shape/shader-effects
+/examples/shaders/shader_effects_on_texture/shader_effects_on_texture
+/examples/shaders/shader_effects_on_background/shader_effects_on_background
+/examples/shaders/shader_override/shader_override
 /examples/viewport_and_scenes/show_bounding_rect_in_2d/show_bounding_rect_in_2d
-/examples/viewport_and_scenes/test_triangulate/test_triangulate
+/examples/viewport_and_scenes/scene_information_cli_tool/scene_information_cli_tool
 /examples/viewport_and_scenes/test_was_visible/test_was_visible
 /examples/viewport_and_scenes/transform_hierarchy/transform_hierarchy
 /examples/viewport_and_scenes/transform_primitives/transform_primitives
@@ -243,32 +284,22 @@ castle-game-engine-*.fpm
 /examples/window/multi_window/multi_window
 /examples/window/multiple_windows_and_viewports/multiple_windows_and_viewports
 /examples/window/window_menu/window_menu
-/packages/alternative_castle_window_based_on_lcl.pas
-/packages/castle_base.pas
-/packages/castle_components.pas
-/packages/castle_editor_components.pas
-/packages/castle_indy.pas
-/packages/castle_window.pas
-/packages/lib/
-/src/deprecated_library/build-*
-/src/deprecated_library/ios-output/
-/src/deprecated_library/libcastleengine.dylib
-/src/deprecated_library/libcastleengine.so
+/examples/web/simplest/webgl-tests
+/examples/web/simplest_viewport/simplest_viewport
+/examples/web/simplest_invaders/simplest_invaders
 /tests/castle-tester
 /tests/test_castle_game_engine
+/tests/time_measurements_tests/time_measurements_tests
 /tools/build-tool/castle-engine
-/tools/build-tool/data/android/integrated-services/chartboost/app/libs/*.jar
-/tools/build-tool/data/android/integrated-services/game_analytics/app/libs/*.jar
-/tools/build-tool/data/android/integrated-services/startapp/app/libs/*.jar
-/tools/build-tool/data/ios/services/game_analytics/cge_project_name/game_analytics/GameAnalytics.h
-/tools/build-tool/data/ios/services/game_analytics/cge_project_name/game_analytics/libGameAnalytics.a
 /tools/build-tool/tests/test_cge_build_tool
 /tools/castle-curves/castle-curves
-/tools/castle-engine
+/tools/castle-editor-portable/castle-editor-portable
 /tools/image-to-pascal/image-to-pascal
 /tools/internal/check_packages/check_packages
 /tools/internal/check_units_dependencies/check_one_unit_dependencies
 /tools/internal/fpc-cge/fpc-cge
+/tools/internal/generate_webgl_flat_api/generate_webgl_flat_api
+/tools/internal/generate_ifc/generate_ifc
 /tools/internal/generate-persistent-vectors/generate-persistent-vectors
 /tools/internal/teapot-to-pascal/teapot-to-pascal
 /tools/internal/x3d-nodes-to-pascal/x3d-nodes-to-pascal

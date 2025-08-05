@@ -95,7 +95,7 @@ begin
   Viewport.Items.Add(CurrentLocation.ImageTransform);
   Viewport.Items.Add(CurrentLocation.Scene);
   { set as MainScene, to allow location VRML / X3D file to determine
-    headlight, viewpoint, shadow volumes light... }
+    headlight, initial viewpoint, shadow volumes light... }
   Viewport.Items.MainScene := CurrentLocation.Scene;
 
   Player := TPlayer.Create(CreatureKinds.PlayerKind);

@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2010-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
@@ -17,30 +17,41 @@ unit CastleTransform;
 
 {$I castleconf.inc}
 
+{ Hide Delphi warning about duplicate constructors in Kraft classes
+  not accessible from C++.
+  We don't need to expose Kraft classes to C++ anyway, they are internal for CGE. }
+{$ifndef FPC}
+  {$warn DUPLICATE_CTOR_DTOR off}
+{$endif}
+
 interface
 
 uses SysUtils, Classes, Math, Generics.Collections, Contnrs, Kraft,
   CastleVectors, CastleFrustum, CastleBoxes, CastleClassUtils, CastleKeysMouse,
   CastleRectangles, CastleUtils, CastleTimeUtils, CastleComponentSerialize,
   CastleSoundEngine, CastleTriangles, CastleRenderOptions, CastleProjection,
-  CastleUIControls, CastleQuaternions, CastleColors, CastleInternalClassUtils;
+  CastleUIControls, CastleQuaternions, CastleColors, CastleInternalClassUtils,
+  CastleInternalFileMonitor;
+
+{$define read_interface}
+{$I castletransform_physics_layers.inc}
 
 type
-  {$define read_interface}
   {$I castletransform_initial_types.inc}
   {$I castletransform_renderparams.inc}
   {$I castletransform_behavior.inc}
   {$I castletransform_transformlist.inc}
   {$I castletransform_transform.inc}
+  {$I castletransform_physics.inc}
   {$I castletransform_abstractroottransform.inc}
   {$I castletransform_design.inc}
   {$I castletransform_reference.inc}
   {$I castletransform_camera.inc}
+  {$I castletransform_joints.inc}
+  {$I castletransform_joints_experimental.inc}
 
-{$I castletransform_physics.inc}
-{$I castletransform_physics_deprecated.inc}
-{$I castletransform_joints.inc}
-{$I castletransform_joints_experimental.inc}
+// type section ends here
+
 {$I castletransform_serialize.inc}
 {$I castletransform_miscellaneous_globals.inc}
 {$I castletransform_camera_utils.inc}
@@ -51,13 +62,14 @@ implementation
 uses CastleLog, CastleApplicationProperties, CastleUriUtils, CastleInternalRays,
   CastleRenderContext,
   // TODO: this breaks unit dependencies, transform->scene
-  X3DNodes, CastleScene, CastleInternalPhysicsVisualization;
+  X3DNodes, CastleScene, CastleInternalPhysicsVisualization,
+  CastleInternalShapesRenderer;
 
 {$define read_implementation}
 {$I castletransform_initial_types.inc}
+{$I castletransform_physics_layers.inc}
 {$I castletransform_renderparams.inc}
 {$I castletransform_physics.inc}
-{$I castletransform_physics_deprecated.inc}
 {$I castletransform_joints.inc}
 {$I castletransform_joints_experimental.inc}
 {$I castletransform_collisions.inc}
@@ -80,7 +92,7 @@ initialization
   TCastleCollider.AutoSizeMinThickness := 0.01;
   TCastleCollider.AutoSizeMinThickness2D := 1;
   TCastleCollider.AutoSizeMinThickness2DDepth := 100;
-  GlobalIdentityMatrix := TMatrix4.Identity;
+  GlobalIdentityTransform.Init;
 
   RegisterSerializableComponent(TCastleTransform, 'Transform');
   RegisterSerializableComponent(TCastleTransformDesign, 'Transform Design (Use Another castle-transform File)');

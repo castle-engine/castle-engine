@@ -1,6 +1,6 @@
 {%MainUnit castlewindow.pas}
 {
-  Copyright 2004-2022 Michalis Kamburelis.
+  Copyright 2004-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -433,16 +433,30 @@
     property Selected: TMenuItemRadio read FSelected write SetSelected;
 
     { Return previous (from @link(Selected)) menu item in this group.
-      If there is no previous item, but still @link(Selected) <> nil,
-      return @link(Selected).
+
+      If there's no previous item:
+
+      @unorderedList(
+        @item(When Cycle = @true, return the last item.)
+        @item(When Cycle = @false and there is no previous item,
+          but still @link(Selected) <> nil, return @link(Selected).)
+      )
+
       Only when there's no @link(Selected) item, returns @false. }
-    function Previous(out Item: TMenuItemRadio): boolean;
+    function Previous(out Item: TMenuItemRadio; const Cycle: Boolean = false): Boolean;
 
     { Return next (from @link(Selected)) menu item in this group.
-      If there is no next item, but still @link(Selected) <> nil,
-      return @link(Selected).
+
+      If there's no next item:
+
+      @unorderedList(
+        @item(When Cycle = @true, return the first item.)
+        @item(When Cycle = @false and there is no next item,
+          but still @link(Selected) <> nil, return @link(Selected).)
+      )
+
       Only when there's no @link(Selected) item, returns @false. }
-    function Next(out Item: TMenuItemRadio): boolean;
+    function Next(out Item: TMenuItemRadio; const Cycle: Boolean = false): Boolean;
 
     (* procedure DebugWriteln; *)
   end;
@@ -1085,14 +1099,18 @@ begin
     Result := -1;
 end;
 
-function TMenuItemRadioGroup.Previous(out Item: TMenuItemRadio): boolean;
+function TMenuItemRadioGroup.Previous(out Item: TMenuItemRadio; const Cycle: Boolean): Boolean;
 var
-  SI: Integer;
+  SI, NewIndex: Integer;
 begin
   SI := SelectedIndex;
   if SI <> -1 then
   begin
-    Item := Items[Max(SI - 1, 0)];
+    if Cycle then
+      NewIndex := ChangeIntCycle(SI, -1, Count - 1)
+    else
+      NewIndex := Max(SI - 1, 0);
+    Item := Items[NewIndex];
     Result := true;
   end else
   begin
@@ -1101,14 +1119,18 @@ begin
   end;
 end;
 
-function TMenuItemRadioGroup.Next(out Item: TMenuItemRadio): boolean;
+function TMenuItemRadioGroup.Next(out Item: TMenuItemRadio; const Cycle: Boolean): Boolean;
 var
-  SI: Integer;
+  SI, NewIndex: Integer;
 begin
   SI := SelectedIndex;
   if SI <> -1 then
   begin
-    Item := Items[Min(SI + 1, Count - 1)];
+    if Cycle then
+      NewIndex := ChangeIntCycle(SI, +1, Count - 1)
+    else
+      NewIndex := Min(SI + 1, Count - 1);
+    Item := Items[NewIndex];
     Result := true;
   end else
   begin

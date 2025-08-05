@@ -18,14 +18,11 @@
             "ExposeTransforms" : [
             ],
             "Name" : "Scene1",
+            "PreciseCollisions" : true,
             "ProcessEvents" : true,
             "RenderOptions" : {
               "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
-            "Spatial" : [
-              "ssRendering",
-              "ssDynamicCollisions"
-            ],
             "URL" : "castle-data:/3d_model/bridge_final.x3dv"
           },
           {

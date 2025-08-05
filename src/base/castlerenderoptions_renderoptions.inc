@@ -1,6 +1,6 @@
 {%MainUnit castlerenderoptions.pas}
 {
-  Copyright 2002-2023 Michalis Kamburelis.
+  Copyright 2002-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -153,19 +153,23 @@ type
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure Assign(Source: TPersistent); override;
     procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
+    { Copies all propeties from Source,
+      the same properties that affect @link(Equals). }
+    procedure Assign(Source: TPersistent); override;
+
     { Equal TCastleRenderOptions produce the same effect when rendering
-      and can be treated as exactly equivalent by the @link(TCastleViewport.DynamicBatching)
-      algorithm. }
+      and can be treated as exactly equivalent by
+      the @link(TCastleViewport.DynamicBatching) algorithm. }
     function Equals(Obj: TObject): Boolean; override;
 
-    { Is the second TCastleRenderOptions instance on all fields
+    { Internal. Is the second TCastleRenderOptions instance on all fields
       that affect TShapeCache, that is things that affect generated geometry
       arrays or vbo. This compares the subset of variables that call
-      ReleaseCachedResources --- only the ones that affect TShapeCache. }
+      ReleaseCachedResources --- only the ones that affect TShapeCache.
+      @exclude }
     function EqualForShapeCache(SecondValue: TCastleRenderOptions): boolean; virtual;
 
     { Rendering mode, can be used to disable many rendering features at once. }
@@ -439,22 +443,60 @@ type
     property RobustNegativeScale: Boolean
       read FRobustNegativeScale write SetRobustNegativeScale default false;
 
-    { When considering this scene to be a shadow caster for shadow volumes,
-      assume it is 2-manifold when treated as whole scene (each separate
-      shape may be not 2-manifold). This means that you guarantee that
-      all border edges of all shapes match with each other, closing the skin
-      of the model perfectly.
-      See https://castle-engine.io/shadow_volumes
-      about using shadow volumes and the requirement to be 2-manifold.
+    { Use this scene as a shadow caster for shadow volumes,
+      regardless of whether it is detected as 2-manifold.
 
-      If this is @true then, even if some shapes are not 2-manifold,
-      we will generate shadow (using shadow volumes) from them.
-      And we will never reject shadows from a particular shape,
-      we will either reject whole scene shadow, or render whole scene shadow.
+      Note: The engine automatically detects if a scene is 2-manifold,
+      which can mean that:
 
-      It is the user responsibility to guarantee that whole scene is
-      really 2-manifold. If it is not, then shadow volumes may exhibit
-      weird artifacts. }
+      @orderedList(
+        @item(Either each shape is a 2-manifold (most optimal,
+          as then each shape can be an independent shadow caster for shadow
+          volumes)
+        )
+
+        @item(Or some shapes are not 2-manifold, but a whole scene is 2-manifold
+          (so shapes are maybe
+          not 2-manifold, but all shapes' border edges match with each other,
+          closing the skin of the model perfectly;
+          you can test what was detected looking
+          at @link(TCastleSceneCore.InternalDetectedWholeSceneManifold)).
+
+          The "only whole scene is 2-manifold" causes a little different
+          optimization than "each shape is 2-manifold" (because in the former
+          case, we have to render shadow quads for either the whole scene,
+          or not; in the latter case, rendering shadow quads is a per-shape
+          decision).
+
+          But from the usage point of view, both cases are similar,
+          the scene "works as a shadow caster for shadow volumes" automatically.
+        )
+      )
+
+      If the engine detected that scene is 2-manifold (regardless of whether
+      each shape was 2-manifold or only whole scene is 2-manifold)
+      then using this property is not necessary.
+
+      Setting this property to @true makes sense in 2 cases:
+
+      @orderedList(
+        @item(
+          You want to speedup loading of this scene, by skipping
+          the automatic detection done by
+          @link(TCastleSceneCore.InternalDetectedWholeSceneManifold).
+        )
+
+        @item(
+          Or if engine detected that this scene
+          is @italic(not) 2-manifold (so @link(TCastleSceneCore.InternalDetectedWholeSceneManifold)
+          = @false and some shapes have border egdes), but you want to force
+          using it as shadow caster anyway. In such case, set this to @true.
+          Rendering artifacts are possible in such case,
+          but in some cases they may be not noticeable.
+          See https://castle-engine.io/shadow_volumes
+          about using shadow volumes and the requirement to be 2-manifold.
+        )
+      ) }
     property WholeSceneManifold: Boolean
       read FWholeSceneManifold write SetWholeSceneManifold default false;
 
@@ -528,9 +570,26 @@ begin
     MagnificationFilter := TCastleRenderOptions(Source).MagnificationFilter;
     PointSize := TCastleRenderOptions(Source).PointSize;
     LineWidth := TCastleRenderOptions(Source).LineWidth;
+    BumpMapping := TCastleRenderOptions(Source).BumpMapping;
+    BumpMappingParallaxHeight := TCastleRenderOptions(Source).BumpMappingParallaxHeight;
+    Mode := TCastleRenderOptions(Source).Mode;
+    ShadowSampling := TCastleRenderOptions(Source).ShadowSampling;
+    DepthTest := TCastleRenderOptions(Source).DepthTest;
+    PhongShading := TCastleRenderOptions(Source).PhongShading;
+    SolidColor := TCastleRenderOptions(Source).SolidColor;
+    MaxLightsPerShape := TCastleRenderOptions(Source).MaxLightsPerShape;
     Blending := TCastleRenderOptions(Source).Blending;
     BlendingSourceFactor := TCastleRenderOptions(Source).BlendingSourceFactor;
     BlendingDestinationFactor := TCastleRenderOptions(Source).BlendingDestinationFactor;
+    WireframeColor := TCastleRenderOptions(Source).WireframeColor;
+    WireframeEffect := TCastleRenderOptions(Source).WireframeEffect;
+    SolidWireframeScale := TCastleRenderOptions(Source).SolidWireframeScale;
+    SolidWireframeBias := TCastleRenderOptions(Source).SolidWireframeBias;
+    SilhouetteScale := TCastleRenderOptions(Source).SilhouetteScale;
+    SilhouetteBias := TCastleRenderOptions(Source).SilhouetteBias;
+    RobustNegativeScale := TCastleRenderOptions(Source).RobustNegativeScale;
+    WholeSceneManifold := TCastleRenderOptions(Source).WholeSceneManifold;
+    InternalColorChannels := TCastleRenderOptions(Source).InternalColorChannels;
   end else
     inherited;
 end;

@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2024 Michalis Kamburelis.
+  Copyright 2015-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -28,6 +28,8 @@
     procedure SetCycleInterval(const Value: TFloatTime);
     function GetEnabled: Boolean;
     procedure SetEnabled(const Value: Boolean);
+    function GetDescription: String;
+    procedure SetDescription(const Value: String);
     function GetFractionIncreasing: Boolean;
     procedure SetFractionIncreasing(const Value: Boolean);
     function GetDetectAffectedFields: Boolean;
@@ -60,6 +62,12 @@
     public property FdEnabled: TSFBool read FFdEnabled;
     {  }
     property Enabled: Boolean read GetEnabled write SetEnabled;
+
+    strict private FFdDescription: TSFString;
+    { Internal wrapper for property @code(Description). This wrapper API may change, we advise to access simpler @code(Description) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdDescription: TSFString read FFdDescription;
+    {  }
+    property Description: String read GetDescription write SetDescription;
 
     strict private FFdFractionIncreasing: TSFBool;
     { Internal wrapper for property @code(FractionIncreasing). This wrapper API may change, we advise to access simpler @code(FractionIncreasing) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -97,6 +105,16 @@ end;
 procedure TTimeSensorNode.SetEnabled(const Value: Boolean);
 begin
   FdEnabled.Send(Value);
+end;
+
+function TTimeSensorNode.GetDescription: String;
+begin
+  Result := FdDescription.Value;
+end;
+
+procedure TTimeSensorNode.SetDescription(const Value: String);
+begin
+  FdDescription.Send(Value);
 end;
 
 function TTimeSensorNode.GetFractionIncreasing: Boolean;
@@ -144,6 +162,10 @@ begin
   FFdEnabled := TSFBool.Create(Self, True, 'enabled', true);
    FdEnabled.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdEnabled);
+
+  FFdDescription := TSFString.Create(Self, True, 'description', '');
+   FdDescription.ChangeAlways := chNone;
+  AddField(FFdDescription);
 
   FFdFractionIncreasing := TSFBool.Create(Self, True, 'fractionIncreasing', true);
    FdFractionIncreasing.ChangeAlways := chVisibleNonGeometry;

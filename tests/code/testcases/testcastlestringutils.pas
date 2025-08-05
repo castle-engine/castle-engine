@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestCastleStringUtils" -*-
 {
-  Copyright 2004-2021 Michalis Kamburelis.
+  Copyright 2004-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -40,6 +40,9 @@ type
     procedure TestAddMultiLine;
     procedure TestRegexpMatches;
     procedure TestIsWild;
+    procedure TestSAppendPart;
+    procedure TestStringListStrict;
+    procedure TestPrefixSuffix;
   end;
 
 implementation
@@ -84,12 +87,15 @@ begin
   AssertTrue(s = 'foobar');
 
   { Test RelatedWhitespaceChecking }
+
+  if CanCatchExceptions then
   try
     DeFormat('123  foo', '%d %s %s', [@i, @S, @S2], true, true);
     raise Exception.Create('"DeFormat(123  foo)" with relaxed should fail');
   except
     on EDeformatError do ;
   end;
+
   DeFormat('123  foo', '%d %s %s', [@i, @S, @S2], true, false);
   AssertTrue(I = 123);
   AssertTrue(S = '');
@@ -112,29 +118,33 @@ const
   Replaces: array[0..1]of TPercentReplace =
   ((c:'k'; s:'kot'), (c:'p'; s:'pies'));
 begin
- {$warnings off} // testing deprecated routine
- AssertTrue( SPercentReplace('bla%kkk%jk%pies', Replaces, false, '%', false)
-   = 'blakotkk%jkpiesies');
- try
-  SPercentReplace('bla%kkk%jk%pies', Replaces, true, '%', false);
-  raise Exception.Create('Last SPercentReplace SHOULD raise exception');
- except on E: EUnknownPercentFormat do AssertTrue(e.Message = 'Unknown format pattern in format "bla%kkk%jk%pies", wrong sequence is : "%j"'); end;
+  AssertTrue( SPercentReplace('bla%kkk%jk%pies', Replaces, false, '%', false)
+    = 'blakotkk%jkpiesies');
 
- AssertEquals('blakotkkkotkpiesies', SPercentReplace('bla%kkk%Kk%pies', Replaces, true, '%', true));
- try
-  SPercentReplace('bla%kkk%Kk%pies', Replaces, true, '%', false);
-  raise Exception.Create('Last SPercentReplace SHOULD raise exception');
- except on E: EUnknownPercentFormat do AssertTrue(e.Message = 'Unknown format pattern in format "bla%kkk%Kk%pies", wrong sequence is : "%K"'); end;
+  if CanCatchExceptions then
+  try
+    SPercentReplace('bla%kkk%jk%pies', Replaces, true, '%', false);
+    raise Exception.Create('Last SPercentReplace SHOULD raise exception');
+  except on E: EUnknownPercentFormat do AssertTrue(e.Message = 'Unknown format pattern in format "bla%kkk%jk%pies", wrong sequence is : "%j"'); end;
 
- AssertTrue( SPercentReplace('bla%k%%', Replaces, false, '%', false) = 'blakot%');
- AssertTrue( SPercentReplace('bla%k%%', Replaces, true, '%', false) = 'blakot%');
+  AssertEquals('blakotkkkotkpiesies', SPercentReplace('bla%kkk%Kk%pies', Replaces, true, '%', true));
 
- AssertTrue( SPercentReplace('foo%', Replaces, false, '%', false) = 'foo%');
- try
-  AssertTrue( SPercentReplace('foo%', Replaces, true, '%', false) = 'foo%');
-  raise Exception.Create('Last SPercentReplace SHOULD raise exception');
- except on E: EUnknownPercentFormat do AssertTrue(e.Message = 'Unknown format pattern in format "foo%", wrong sequence is : % at the end of the format string'); end;
- {$warnings on}
+  if CanCatchExceptions then
+  try
+    SPercentReplace('bla%kkk%Kk%pies', Replaces, true, '%', false);
+    raise Exception.Create('Last SPercentReplace SHOULD raise exception');
+  except on E: EUnknownPercentFormat do AssertTrue(e.Message = 'Unknown format pattern in format "bla%kkk%Kk%pies", wrong sequence is : "%K"'); end;
+
+  AssertTrue( SPercentReplace('bla%k%%', Replaces, false, '%', false) = 'blakot%');
+  AssertTrue( SPercentReplace('bla%k%%', Replaces, true, '%', false) = 'blakot%');
+
+  AssertTrue( SPercentReplace('foo%', Replaces, false, '%', false) = 'foo%');
+
+  if CanCatchExceptions then
+  try
+    AssertTrue( SPercentReplace('foo%', Replaces, true, '%', false) = 'foo%');
+    raise Exception.Create('Last SPercentReplace SHOULD raise exception');
+  except on E: EUnknownPercentFormat do AssertTrue(e.Message = 'Unknown format pattern in format "foo%", wrong sequence is : % at the end of the format string'); end;
 end;
 
 procedure TTestCastleStringUtils.TestIntToStr2;
@@ -504,6 +514,78 @@ begin
 
   AssertTrue(IsWild('TTestEventLoop.Test1', '*testeventloop*', true));
   AssertTrue(IsWild('TTestCastleWindow.TestEventLoop', '*testeventloop*', true));
+end;
+
+procedure TTestCastleStringUtils.TestSAppendPart;
+begin
+  AssertEquals('', SAppendPart('', '', ''));
+  AssertEquals('foo', SAppendPart('', ';', 'foo'));
+  AssertEquals('foo;foo', SAppendPart('foo', ';', 'foo'));
+  AssertEquals('foo;foo;foo', SAppendPart('foo;foo', ';', 'foo'));
+end;
+
+procedure TTestCastleStringUtils.TestStringListStrict;
+
+{ This code is similar to what CastleInternalDelphiDesign does in
+  TCastleDelphiIdeIntegration.AddPaths ,
+  TCastleDelphiIdeIntegration.RemovePaths . }
+
+const
+  InputStr = '$(BDSLIB)\$(Platform)\release;$(BDSUSERDIR)\Imports;$(BDSUSERDIR)\Imports\$(Platform);$(BDS)\Imports;$(BDSCOMMONDIR)\Dcp;$(BDS)\include;c:\path with spaces';
+  NewPath1 = 'C:\cygwin64\home\michalis\sources\castle-engine\castle-engine\src\base';
+  NewPath2 = 'C:\cygwin64\home\michalis\sources\castle-engine\castle-engine\src\common_includes';
+  OutputStr = InputStr + ';' + NewPath1 + ';' + NewPath2;
+var
+  List: TStringList;
+  I: Integer;
+begin
+  List := TStringList.Create;
+  try
+    List.Delimiter := ';';
+    { This is critically important to not break "c:\path with spaces" in InputStr.
+      See also https://github.com/castle-engine/castle-engine/issues/626 .
+      Another solution, aside from StrictDelimiter, would be to use
+      CGE SplitString + GlueString. }
+    List.StrictDelimiter := true;
+    List.DelimitedText := InputStr;
+    List.Add(NewPath1);
+    List.Add(NewPath2);
+    AssertEquals(OutputStr, List.DelimitedText);
+
+    I := List.IndexOf(NewPath1);
+    AssertFalse(I = -1);
+    List.Delete(I);
+
+    I := List.IndexOf(NewPath2);
+    AssertFalse(I = -1);
+    List.Delete(I);
+
+    AssertEquals(InputStr, List.DelimitedText);
+  finally FreeAndNil(List) end;
+end;
+
+procedure TTestCastleStringUtils.TestPrefixSuffix;
+begin
+  // IsPrefixSuffix checks overlapping
+  AssertFalse(IsPrefixSuffix('bla', 'abc', 'blaaaaa'));
+  AssertTrue(IsPrefixSuffix('bla', 'abc', 'blaaaaabc'));
+  AssertTrue(IsPrefixSuffix('bla', 'abc', 'blaabc'));
+  AssertFalse(IsPrefixSuffix('bla', 'abc', 'blabc'));
+
+  // IsPrefixSuffix honors IgnoreCase
+  AssertTrue(IsPrefixSuffix('bla', 'ABC', 'blaaaaabc'));
+  AssertTrue(IsPrefixSuffix('bla', 'abc', 'blaaaaaBc'));
+  AssertTrue(IsPrefixSuffix('bla', 'ABC', 'blaaaaabc', true));
+  AssertTrue(IsPrefixSuffix('bla', 'abc', 'blaaaaaBc', true));
+  AssertFalse(IsPrefixSuffix('bla', 'ABC', 'blaaaaabc', false));
+  AssertFalse(IsPrefixSuffix('bla', 'abc', 'blaaaaaBc', false));
+
+  // PrefixSuffixRemove checks both, and overlapping
+  AssertEquals('blaaaaa', PrefixSuffixRemove('bla', 'abc', 'blaaaaa', true));
+  AssertEquals('aaa', PrefixSuffixRemove('bla', 'abc', 'blaaaaabc', true));
+  AssertEquals('MIDDLE', PrefixSuffixRemove('bla', 'abc', 'blaMIDDLEabc', true));
+  AssertEquals('', PrefixSuffixRemove('bla', 'abc', 'blaabc', true));
+  AssertEquals('blabc', PrefixSuffixRemove('bla', 'abc', 'blabc', true));
 end;
 
 initialization

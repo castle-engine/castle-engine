@@ -1,5 +1,7 @@
 'use strict';
 
+/* Update .download width to fit alongside the column
+   with .thumbnails. No longer needed.
 function cge_update_download_size()
 {
   var thumbnails = jQuery('.thumbnails');
@@ -24,7 +26,9 @@ jQuery(window).resize(function() {
 jQuery(document).ready(function() {
   cge_update_download_size();
 });
+*/
 
+/* Simple JS to show/hide something, used by convert-output.php now. */
 jQuery("#toggle-details").click(function() {
   jQuery("#details").toggle(50);
 });

@@ -1,6 +1,6 @@
 {%MainUnit x3dnodes.pas}
 {
-  Copyright 2002-2024 Michalis Kamburelis.
+  Copyright 2002-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -65,10 +65,12 @@
     FTransformFunctionality: TTransformFunctionality;
     FTimeFunctionality: TTimeDependentFunctionality;
     FGenTexFunctionality: TGeneratedTextureFunctionality;
+    WithinDirectEnumerateAll: Boolean;
   private
     FX3DName: string;
     FBaseUrl: String;
     FVRML1Children, FVRML1Parents: TX3DNodeList;
+    FWaitsForRelease: Boolean;
     FKeepExisting: Cardinal;
     FParentFields: TX3DFieldList;
     FPrototypes: TX3DPrototypeBaseList;
@@ -501,20 +503,61 @@
       Methods KeepExistingBegin and KeepExistingEnd simply increase /
       decrease KeepExisting value by 1. This is the most usual usage. }
     property KeepExisting: Cardinal read FKeepExisting write FKeepExisting;
+      {$ifdef FPC}
+      deprecated 'do not access this directly; instead use TX3DNode.WaitForRelease and NodeRelease (eventually KeepExistingBegin and KeepExistingEnd) if you want to control node lifetime';
+      {$endif FPC}
 
-    { Increase @link(KeepExisting) property by 1, preventing the node from being
-      automatically freed when the reference count changes from non-zero to zero. }
+    { Increase "fake reference count" by 1, preventing the node from being
+      automatically freed when the reference count changes from non-zero to zero.
+
+      It is discouraged to use this method.
+      In most cases, @link(TX3DNode.WaitForRelease) and @link(NodeRelease)
+      are easier to use than @link(KeepExistingBegin) + @link(KeepExistingEnd)
+      + @link(FreeIfUnusedAndNil). }
     procedure KeepExistingBegin;
 
-    { Decrease @link(KeepExisting) property by 1. This should match previous
-      @link(KeepExistingBegin) call. When @link(KeepExisting) is zero,
-      the node will be automatically freed when the reference count
-      changes from non-zero to zero.
+    { Decrease "fake reference count" by 1. This should match previous
+      @link(KeepExistingBegin) call. When nothing will refer to this node,
+      and the "fake reference count" is zero, the node will be freed.
 
-      Note that merely calling KeepExistingEnd, or changing @link(KeepExisting)
-      property, @italic(will not) free the node. Follow this with @link(FreeIfUnused)
-      or @link(FreeIfUnusedAndNil) to actually free unused node. }
+      Note that merely calling KeepExistingEnd @italic(will not) free the node.
+      Follow this with @link(FreeIfUnused)
+      or (better) @link(FreeIfUnusedAndNil) to actually free unused node.
+
+      It is discouraged to use this method.
+      In most cases, @link(TX3DNode.WaitForRelease) and @link(NodeRelease)
+      are easier to use than @link(KeepExistingBegin) + @link(KeepExistingEnd)
+      + @link(FreeIfUnusedAndNil). }
     procedure KeepExistingEnd;
+
+    { Do not free this node, even if it will become unused.
+      You must call @link(NodeRelease) to free this node.
+
+      By default, if this method was not used, every X3D node is reference-counted.
+      This means that when the node starts being referenced by some other node
+      (e.g. @link(TAbstractShapeNode.Geometry) refers to @link(TIndexedFaceSetNode) instance),
+      the reference count is increased.
+      When the node stops being referenced (e.g. @link(TAbstractShapeNode.Geometry) is set to @nil),
+      the reference count is decreased.
+      When the reference count reaches zero, the node is freed.
+
+      Calling this routine pauses this "automatic freeing" of the node.
+
+      Calling this rouine multiple times on the same node has no effect.
+      So you don't need to pair every @name call with @link(NodeRelease),
+      it's enough to call @link(NodeRelease) once, no matter how many times
+      you called @name on the same node.
+
+      The reference count is still increased and decreased,
+      but we also keep additional "fake" reference to the node,
+      so it will not be freed.
+
+      This should be always paired with @link(NodeRelease),
+      that will remove this "fake" reference and free the node
+      (if it is unused).
+
+      See the https://castle-engine.io/shaders#node_release for an example of this. }
+    procedure WaitForRelease;
 
     { Name of this node. When saving/loading, this comes from VRML/X3D
       "DEF" construct. Empty value means that the name is not defined.
@@ -971,23 +1014,6 @@
       it's not linked anywhere. }
     function DeepCopy: TX3DNode;
 
-    { Internal notes:
-
-      TODO: memory leaks are known to be possible in some difficult cases
-      with PrototypeInstanceHelpers. See e.g.
-      ../../../demo-models/prototypes/warnings/errors/proto_leak.wrl and
-      ../../../demo-models/prototypes/warnings/errors/proto_leak_2.wrl
-      for simple testcases. Reason: PrototypeInstanceHelpers may contain,
-      by DEF statements, links to Self.
-      This causes circular dependency (Self is child of some node on
-      PrototypeInstanceHelpers, but PrototypeInstanceHelpers will
-      be freed only if Self is freed) causing some memory to be left
-      always allocated.
-
-      PrototypeInstanceHelpers are actually always TX3DRootNode,
-      may be declared as such in the future if needed.
-    }
-
     { PrototypeInstance = @true indicates that this node was created
       from a non-external prototype instantiation.
 
@@ -1143,7 +1169,7 @@
           This is done for speed, because it's not needed in 99% cases.
 
           However, if your scene contains some node that isn't freed
-          because of @link(KeepExistingBegin),
+          because of @link(KeepExistingBegin) or @link(WaitForRelease),
           then such node will remain attached to non-existing scene.
           You should call UnregisterScene on such node manually, for now.
         )
@@ -1351,7 +1377,8 @@ begin
   if (Self <> nil) and
      (VRML1ParentsCount = 0) and
      (FParentFields.Count = 0) and
-     (KeepExisting = 0) then
+     (FKeepExisting = 0) and
+     (not FWaitsForRelease) then
   begin
     { For FPC <= 2.2.2:
       This is written as "Self.Destroy" to actually do the desctruction,
@@ -1373,6 +1400,11 @@ end;
 procedure TX3DNode.KeepExistingEnd;
 begin
   Dec(FKeepExisting);
+end;
+
+procedure TX3DNode.WaitForRelease;
+begin
+  FWaitsForRelease := true;
 end;
 
 procedure TX3DNode.VRML1ChildAdd(const Index: Integer; const Child: TX3DNode);
@@ -1618,9 +1650,42 @@ begin
     Result := Func(Self, PrototypeInstanceSourceNode);
     if Result <> nil then Exit;
 
-    if PrototypeInstanceHelpers <> nil then
+    { Using WithinDirectEnumerateAll we avoid infinite recursion in some
+      edge-cases.
+
+      Testcases in tests/data/proto_reuse_first_node/ .
+      When the ProtoBody contains, as a first node, node that is also reUSEd
+      in further nodes, then we have a problem:
+
+      - Our prototype expansion
+        in TX3DPrototypeNode.Instantiate will set FPrototypeInstance,
+        FPrototypeInstanceSourceNode, FPrototypeInstanceHelpers on the first
+        node in ProtoBody.
+
+      - But in these edge-cases from tests/data/proto_reuse_first_node/,
+        this means that one of the nodes (maybe deep inside)
+        in FPrototypeInstanceHelpers will also have FPrototypeInstanceHelpers set,
+        since it reUSEs the first node. And this will cause
+        infinite recursion here.
+
+      TODO: The flag WithinDirectEnumerateAll is not a fool-proof solution.
+      If something will call
+      DirectEnumerateAll within a callback, like from EnumerateNodes callback,
+      then the WithinDirectEnumerateAll will prevent from visiting it at all.
+      But all "more involved" solutions seem to complicate code a lot,
+      just to address this one simple case:
+
+      - Not have the PrototypeInstanceHelpers? And define some special way
+        to get "prototype used to create this node" that isn't part of
+        TX3DNode information?
+    }
+    if (PrototypeInstanceHelpers <> nil) and
+       (not WithinDirectEnumerateAll) then
     begin
-      Result := Func(Self, PrototypeInstanceHelpers);
+      WithinDirectEnumerateAll := true;
+      try
+        Result := Func(Self, PrototypeInstanceHelpers);
+      finally WithinDirectEnumerateAll := false end;
       if Result <> nil then Exit;
     end;
   end;

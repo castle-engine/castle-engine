@@ -1,6 +1,6 @@
 {%MainUnit castlecontrols.pas}
 {
-  Copyright 2017-2023 Michalis Kamburelis.
+  Copyright 2017-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -151,7 +151,7 @@
       See example
       @url(https://github.com/castle-engine/castle-engine/tree/master/examples/mobile/on_screen_keyboard examples/mobile/on_screen_keyboard)
       and the @url(https://castle-engine.io/android_services Android service) documentation
-      for @url(https://github.com/castle-engine/castle-engine/tree/master/tools/build-tool/data/android/integrated-services/keyboard/README.adoc keyboard)
+      for @url(https://github.com/castle-engine/castle-engine/tree/master/tools/build-tool/data/android/services/keyboard/README.adoc keyboard)
       service. }
     property AutoOnScreenKeyboard: Boolean
       read FAutoOnScreenKeyboard write FAutoOnScreenKeyboard
@@ -247,6 +247,13 @@
     FMin: Int64;
     function GetValue: Int64;
     procedure SetValue(const AValue: Int64);
+    { The Int64 by default is always shown as modified in Object Inspector.
+      We need "stored" methods to make it right.
+      We also want to save Min to JSON when you set it to zero
+      (but we don't need it when you set it to one). }
+    function IsStoredValue: Boolean;
+    function IsStoredMin: Boolean;
+    function IsStoredMax: Boolean;
   public
     constructor Create(AOwner: TComponent); override;
     procedure SetFocused(const AValue: Boolean); override;
@@ -256,11 +263,16 @@
     property Text stored false;
     property TextTranslate default false;
 
-    property Value: Int64 read GetValue write SetValue default 0;
-    { Minimum and maximum limits.
+    { Current value, default 0. }
+    property Value: Int64 read GetValue write SetValue stored IsStoredValue nodefault;
+
+    { Minimum value, default 1.
       Applied only if Min <= Max, which is not the case by default. }
-    property Min: Int64 read FMin write FMin default 1;
-    property Max: Int64 read FMax write FMax default 0;
+    property Min: Int64 read FMin write FMin stored IsStoredMin nodefault;
+
+    { Minimum value, default 1.
+      Applied only if Min <= Max, which is not the case by default. }
+    property Max: Int64 read FMax write FMax stored IsStoredMax nodefault;
   end;
 
 {$endif read_interface}
@@ -618,13 +630,17 @@ begin
     end;
     Result := true;
   end else
-  if Event.IsKey(CtrlC) then
+  { Use keyC+mkCtrl to check for this, not CtrlC, this way on macOS we
+    allow Command+C to copy text. }
+  //if Event.IsKey(CtrlC) then
+  if Event.IsKey(keyC, [mkCtrl]) then
   begin
     if Text <> '' then
       Clipboard.AsText := Text;
     Result := true;
   end else
-  if Event.IsKey(CtrlX) then
+  //if Event.IsKey(CtrlX) then
+  if Event.IsKey(keyX, [mkCtrl]) then
   begin
     if Text <> '' then
     begin
@@ -634,7 +650,8 @@ begin
     end;
     Result := true;
   end else
-  if Event.IsKey(CtrlV) then
+  //if Event.IsKey(CtrlV) then
+  if Event.IsKey(keyV, [mkCtrl]) then
   begin
     Text := SDeleteChars(Clipboard.AsText, AllChars - FAllowedChars);
     DoChange;
@@ -782,7 +799,7 @@ begin
   FMin := 1;
   FMax := 0;
   Assert(not (Min <= Max)); // deliberately, so that limits do not work by default
-  AllowedChars := ['-', '+', '0'..'9'] + [{$ifdef FPC}DefaultFormatSettings.{$else}FormatSettings.{$endif}DecimalSeparator];
+  AllowedChars := ['-', '+', '0'..'9', '.'] + [{$ifdef FPC}DefaultFormatSettings.{$else}FormatSettings.{$endif}DecimalSeparator];
   FDecimalDigits := 2;
   Value := 0.0; // will also assign Text
 end;
@@ -798,9 +815,10 @@ function TCastleFloatEdit.PropertySections(const PropertyName: String): TPropert
 begin
   if (PropertyName = 'Text') then
     Result := [] // override TCastleEdit that made it [psBasic], we instead expose Value
-  else if (PropertyName = 'Value') or
-          (PropertyName = 'Min') or
-          (PropertyName = 'Max') then
+  else
+  if (PropertyName = 'Value') or
+     (PropertyName = 'Min') or
+     (PropertyName = 'Max') then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
@@ -818,8 +836,7 @@ begin
   if DecimalDigits < 0 then
     Text := FloatToStrDot(AValue)
   else
-    // TODO Add FloatToStrFDot, use it
-    Text := FloatToStrF(AValue, ffFixed, 0 { Precision doesn't matter }, DecimalDigits);
+    Text := FloatToStrDisplay(AValue, DecimalDigits);
 end;
 
 procedure TCastleFloatEdit.SetDecimalDigits(const AValue: Integer);
@@ -874,6 +891,21 @@ end;
 procedure TCastleIntegerEdit.SetValue(const AValue: Int64);
 begin
   Text := IntToStr(AValue);
+end;
+
+function TCastleIntegerEdit.IsStoredValue: Boolean;
+begin
+  Result := Value <> 0;
+end;
+
+function TCastleIntegerEdit.IsStoredMin: Boolean;
+begin
+  Result := Min <> 1;
+end;
+
+function TCastleIntegerEdit.IsStoredMax: Boolean;
+begin
+  Result := Max <> 0;
 end;
 
 {$endif read_implementation}

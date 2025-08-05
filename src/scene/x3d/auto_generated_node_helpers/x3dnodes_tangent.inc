@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2024 Michalis Kamburelis.
+  Copyright 2015-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -28,13 +28,13 @@
     procedure CreateNode; override;
     class function ClassX3DType: String; override;
 
-    strict private FFdVector: TMFVec3f;
+    strict private FFdVector: TMFVec4f;
     { Internal wrapper for property @code(Vector). This wrapper API may change, we advise to access simpler @code(Vector) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
-    public property FdVector: TMFVec3f read FFdVector;
+    public property FdVector: TMFVec4f read FFdVector;
     {  }
-    procedure SetVector(const Value: array of TVector3); overload;
+    procedure SetVector(const Value: array of TVector4); overload;
     {  }
-    procedure SetVector(const Value: TVector3List); overload;
+    procedure SetVector(const Value: TVector4List); overload;
 
 {$endif read_interface}
 
@@ -42,12 +42,12 @@
 
 { TTangentNode ----------------------------------------------- }
 
-procedure TTangentNode.SetVector(const Value: array of TVector3);
+procedure TTangentNode.SetVector(const Value: array of TVector4);
 begin
   FdVector.Send(Value);
 end;
 
-procedure TTangentNode.SetVector(const Value: TVector3List);
+procedure TTangentNode.SetVector(const Value: TVector4List);
 begin
   FdVector.Send(Value);
 end;
@@ -61,7 +61,7 @@ procedure TTangentNode.CreateNode;
 begin
   inherited;
 
-  FFdVector := TMFVec3f.Create(Self, True, 'vector', []);
+  FFdVector := TMFVec4f.Create(Self, True, 'vector', []);
    FdVector.ChangeAlways := chTangent;
   AddField(FFdVector);
 

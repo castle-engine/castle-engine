@@ -57,7 +57,7 @@ uses
   castlevectorsinternaldouble,
 
   // src/base_rendering
-  castlegles,
+  // castlegles, // don't include, as we cannot use this on web
   castleglversion,
   castleglimages,
   castleglutils,
@@ -74,6 +74,10 @@ uses
   castlephotoservice,
   castleopendocument,
   castletenjin,
+
+  // src/services/steam
+  castleinternalsteamapi,
+  castlesteam,
 
 {$ifdef ANDROID}
   // src/base/android
@@ -132,7 +136,7 @@ uses
   castledialogviews,
   castleflasheffect,
   castleinputs,
-  castlejoysticks,
+  castlegamecontrollers,
   castlekeysmouse,
   castlenotifications,
   castletiledmap,

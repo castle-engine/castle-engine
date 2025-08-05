@@ -24,7 +24,9 @@ procedure RenderMaterialsBegin;
   begin
     Result :=
       (Material is TPhongMaterialInfo) and
+      {$warnings off} // do not warn about PureEmissive usage, for now we keep this optimization working
       TPhongMaterialInfo(Material).PureEmissive and
+      {$warnings on}
       { Existence of Color/ColorRGBA nodes means that we cannot rely on simple
         "only emissive" lighting calculation, because Color/ColorRGBA
         nodes replace the diffuse factor, in case of Phong Material. }
@@ -108,15 +110,7 @@ var
   MaterialLit, MaterialAndShapeLit: Boolean;
 begin
   // calculate Material
-  if Shape.Geometry is TAbstractGeometryNode_1 then
-  begin
-    { VRML 1.0 }
-    Material := Shape.State.VRML1State.Material.MaterialInfo(0);
-  end else
-  begin
-    { VRML >= 2.0, X3D }
-    Material := Shape.State.MaterialInfo;
-  end;
+  Material := Shape.State.MaterialInfo;
 
   // calculate MaterialLit ("whether Material requires lighting calculation")
   MaterialLit :=

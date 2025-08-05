@@ -19,12 +19,14 @@ unit ToolIOS;
 interface
 
 uses Classes,
-  CastleUtils, CastleStringUtils,
-  ToolUtils, ToolArchitectures, ToolCompile, ToolProject, ToolPackageFormat,
+  CastleUtils, CastleStringUtils, CastleInternalArchitectures,
+  ToolUtils, ToolCompile, ToolProject, ToolPackageFormat,
   ToolManifest;
 
 var
   IosSimulatorSupport: Boolean = false;
+  { armv7 target was removed in Xcode 14, is no longer supported }
+  IosArm32Support: Boolean = false;
 
 type
   TIosArchiveType = (
@@ -65,7 +67,7 @@ implementation
 uses SysUtils, DOM,
   CastleImages, CastleUriUtils, CastleLog, CastleFilesUtils, CastleXmlUtils,
   ToolEmbeddedImages, ToolIosPbxGeneration, ToolServices, ToolCommonUtils,
-  ToolServicesOperations;
+  ToolServicesOperations, ToolProcessRun;
 
 const
   IOSPartialLibraryName = 'lib_cge_project.a';
@@ -128,7 +130,8 @@ begin
     //CompileLibrary(iphonesim, i386);
     CompileLibrary(iphonesim, x86_64);
   end;
-  CompileLibrary(iOS, arm);
+  if IosArm32Support then
+     CompileLibrary(iOS, arm);
   CompileLibrary(iOS, aarch64);
 end;
 
@@ -136,6 +139,13 @@ procedure LinkIOSLibrary(const Compiler: TCompiler; const CompilationWorkingDire
 var
   Options: TCastleStringList;
 begin
+  if (not IosSimulatorSupport) and (not IosArm32Support) then
+  begin
+    { the only remaining target is aarch64, not need to connect, just copy to output }
+    CheckCopyFile(CompilationOutputPath(Compiler, iOS, aarch64, CompilationWorkingDirectory) + IOSPartialLibraryName, OutputFile);
+    exit;
+  end;
+
   Options := TCastleStringList.Create;
   try
     Options.Add('-static');
@@ -149,9 +159,10 @@ begin
       //Options.Add(CompilationOutputPath(Compiler, iphonesim, i386   , CompilationWorkingDirectory) + IOSPartialLibraryName);
       Options.Add(CompilationOutputPath(Compiler, iphonesim, x86_64 , CompilationWorkingDirectory) + IOSPartialLibraryName);
     end;
-    Options.Add(CompilationOutputPath(Compiler, iOS   , arm    , CompilationWorkingDirectory) + IOSPartialLibraryName);
+    if IosArm32Support then
+       Options.Add(CompilationOutputPath(Compiler, iOS   , arm    , CompilationWorkingDirectory) + IOSPartialLibraryName);
     Options.Add(CompilationOutputPath(Compiler, iOS   , aarch64, CompilationWorkingDirectory) + IOSPartialLibraryName);
-    RunCommandSimple('libtool', Options.ToArray);
+    RunCommandSimple('libtool', Options.ToArray)
   finally FreeAndNil(Options) end;
 end;
 
@@ -177,7 +188,7 @@ var
       TemplatePath := 'ios/services/' + ServiceName + '/';
       Project.ExtractTemplate(TemplatePath, XcodeProject);
 
-      if URIFileExists(ApplicationData(TemplatePath + 'Podfile')) then
+      if URIFileExists('castle-data:/' + TemplatePath + 'Podfile') then
       begin
         if Verbose then
           Writeln(Format('Service "%s" requires using CocoaPods. Make sure you have CocoaPods ( https://cocoapods.org/ ) installed.',
@@ -342,9 +353,9 @@ var
     Default2048x1536 := nil;
     LaunchImages := TCastleImageList.Create(true);
     try
-      Default640x1136 := LoadImage(ApplicationData('default_launch_images/DefaultLaunchImage640x1136.png'));
-      Default1536x2048 := LoadImage(ApplicationData('default_launch_images/DefaultLaunchImage1536x2048.png'));
-      Default2048x1536 := LoadImage(ApplicationData('default_launch_images/DefaultLaunchImage2048x1536.png'));
+      Default640x1136 := LoadImage('castle-data:/default_launch_images/DefaultLaunchImage640x1136.png');
+      Default1536x2048 := LoadImage('castle-data:/default_launch_images/DefaultLaunchImage1536x2048.png');
+      Default2048x1536 := LoadImage('castle-data:/default_launch_images/DefaultLaunchImage2048x1536.png');
 
       for I := 0 to Project.LaunchImages.Count - 1 do
         LaunchImages.Add(LoadImage(Project.LaunchImages[I]));

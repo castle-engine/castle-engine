@@ -66,7 +66,7 @@ begin
   Writeln('AppConfigDir (global): ', GetAppConfigDir(true));
 
   // CGE data
-  Writeln('ApplicationData(''''): ', ApplicationData(''));
+  Writeln('castle-data:/: ', ResolveCastleDataURL('castle-data:/'));
 
   (*
   // Old code, when we needed to set ApplicationDataOverride.
@@ -80,7 +80,7 @@ begin
   {$endif}
   Writeln('Detected ExePath: ', ExePath);
   ApplicationDataOverride := FilenameToUriSafe(ExePath + 'data/');
-  Writeln('ApplicationData('''') after ApplicationDataOverride: ', ApplicationData(''));
+  Writeln('castle-data:/ after ApplicationDataOverride: ', ResolveCastleDataURL('castle-data:/'));
   *)
 
   Writeln('castle-data:/image.png: ', ResolveCastleDataURL('castle-data:/image.png'));
@@ -152,9 +152,9 @@ begin
   Assert(Filename = FilenameFromUri);
 
   FilenamePart := 'C:/Users/cge/AppData/Local/test_local_filename_chars/config with Polish chars ćma źrebak żmija wąż królik.txt';
-  FilenamePartPercent := InternalUriEscape(FilenamePart);
+  FilenamePartPercent := UrlEncode(FilenamePart);
   Assert('C:/Users/cge/AppData/Local/test_local_filename_chars/config%20with%20Polish%20chars%20%C4%87ma%20%C5%BArebak%20%C5%BCmija%20w%C4%85%C5%BC%20kr%C3%B3lik.txt' = FilenamePartPercent);
-  FilenamePartUnescaped := InternalUriUnescape(FilenamePartPercent);
+  FilenamePartUnescaped := UrlDecode(FilenamePartPercent);
   Assert(FilenamePart = FilenamePartUnescaped);
   {$endif}
 end;

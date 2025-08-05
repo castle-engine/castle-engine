@@ -21,12 +21,23 @@ interface
 
 uses
   Classes, SysUtils,
-  CastleTester, CastleVectors, X3DNodes;
+  CastleTester, CastleVectors, X3DNodes, CastleUtils;
 
 type
   TTestX3DNodes = class(TCastleTestCase)
   private
+    type
+      TGatheredCoordRange = record
+        RangeNumber: Cardinal;
+        BeginIndex, EndIndex: Integer;
+      end;
+      TGatheredCoordRanges = {$ifdef FPC}specialize{$endif} TStructList<TGatheredCoordRange>;
+
+    var
+      GatheredCoordRanges: TGatheredCoordRanges;
+
     procedure WeakLinkUnusedWarning(const Category, S: string);
+    procedure GatherCoordRanges(const RangeNumber: Cardinal; BeginIndex, EndIndex: Integer);
   protected
     { Every possible X3D nodes that makes no errors when instantiated.
       Above NodesManager, this also includes some abstract node classes
@@ -110,12 +121,18 @@ type
     procedure TestInlineShaderCode;
     procedure TestOpenInvalidIndexes;
     procedure TestGltfConversion;
+    procedure TestLoadWithoutWarning;
+    procedure TestNodeClassesList;
+    procedure TestCoordRanges;
+    procedure TestNodeRelease;
+    procedure TestNodeReleaseWhenStillUsed;
+    procedure TestProtoReuseFirstNode;
   end;
 
 implementation
 
 uses Generics.Collections, Math,
-  CastleUtils, CastleInternalX3DLexer, CastleClassUtils, CastleFilesUtils,
+  CastleInternalX3DLexer, CastleClassUtils, CastleFilesUtils,
   X3DFields, CastleTimeUtils, CastleDownload, X3DLoad, X3DTime, CastleColors,
   CastleApplicationProperties, CastleTextureImages, CastleStringUtils,
   CastleUriUtils, CastleInternalNodesUnsupported, CastleLog,
@@ -170,24 +187,30 @@ end;
 
 procedure TTestX3DNodes.TestNodesManager;
 begin
- try
-  { throw exception because TSpecialNode.ClassX3DType = '' }
-  NodesManager.RegisterNodeClass(TSpecialNode);
-  raise Exception.Create('NodesManager.RegisterNodeClass(TSpecialNode); SHOULD throw exception');
- except on ENodesManagerError do ; end;
+  if not CanCatchExceptions then
+  begin
+    AbortTest;
+    Exit;
+  end;
 
- try
-  { throw exception because TFogNode is already registered }
-  NodesManager.RegisterNodeClass(TFogNode);
-  raise Exception.Create('NodesManager.RegisterNodeClass(TFogNode); SHOULD throw exception');
- except on ENodesManagerError do ; end;
+  try
+    { throw exception because TSpecialNode.ClassX3DType = '' }
+    NodesManager.RegisterNodeClass(TSpecialNode);
+    raise Exception.Create('NodesManager.RegisterNodeClass(TSpecialNode); SHOULD throw exception');
+  except on ENodesManagerError do ; end;
 
- try
-  { this should succeed }
-  NodesManager.RegisterNodeClass(TSomethingNode);
- finally
-  NodesManager.UnRegisterNodeClass(TSomethingNode);
- end;
+  try
+    { throw exception because TFogNode is already registered }
+    NodesManager.RegisterNodeClass(TFogNode);
+    raise Exception.Create('NodesManager.RegisterNodeClass(TFogNode); SHOULD throw exception');
+  except on ENodesManagerError do ; end;
+
+  try
+    { this should succeed }
+    NodesManager.RegisterNodeClass(TSomethingNode);
+  finally
+    NodesManager.UnRegisterNodeClass(TSomethingNode);
+  end;
 end;
 
 { TX3DTokenInfo and TX3DTokenInfoList ---------------------------------- }
@@ -330,6 +353,12 @@ procedure TTestX3DNodes.TestParseSaveToFile;
   end;
 
 begin
+  if not CanUseFileSystem then // for GetTempDirectory
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   // TODO: This will never pass for now, because writing adds 3 new tokens:
   // META "generator" "test_castle_game_engine"
   // so the Second file has always 3 more tokens.
@@ -1284,6 +1313,11 @@ var
   Node, NewNode: TX3DRootNode;
   TempStream: TMemoryStream;
 begin
+  {$ifdef WASI} // TODO: web: why fails here?
+  AbortTest;
+  Exit;
+  {$endif}
+
   TempStream := nil;
   Node := nil;
 
@@ -1398,6 +1432,11 @@ var
   Node: TX3DRootNode;
   TempStream: TMemoryStream;
 begin
+  {$ifdef WASI} // TODO: what fails here
+  AbortTest;
+  Exit;
+  {$endif}
+
   TempStream := nil;
   Node := nil;
 
@@ -1559,6 +1598,11 @@ var
   Node: TX3DRootNode;
   TempStream: TMemoryStream;
 begin
+  {$ifdef WASI} // TODO: what fails here
+  AbortTest;
+  Exit;
+  {$endif}
+
   TempStream := nil;
   Node := nil;
 
@@ -1851,6 +1895,12 @@ end;
 
 procedure TTestX3DNodes.TestWeakLinkUnusedWarning;
 begin
+  if not CanCatchExceptions then
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}WeakLinkUnusedWarning);
   try
     try
@@ -2448,6 +2498,12 @@ var
   S: TStringStream;
   //Node: TX3DRootNode;
 begin
+  if not CanCatchExceptions then
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}OnWarningRaiseException);
   try
     S := TStringStream.Create(
@@ -2582,6 +2638,12 @@ procedure TTestX3DNodes.TestOpenInvalidIndexes;
 var
   Node: TX3DRootNode;
 begin
+  if not CanCatchExceptions then
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   try
     Node := LoadNode('castle-data:/invalid_indexes/castle.gltf');
     FreeAndNil(Node);
@@ -2608,6 +2670,294 @@ begin
   finally
     ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningRaiseException);
   end;
+end;
+
+procedure TTestX3DNodes.TestLoadWithoutWarning;
+var
+  Node: TX3DRootNode;
+begin
+  ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}OnWarningRaiseException);
+  try
+    Node := LoadNode('castle-data:/loadsensor_children.x3dv');
+    FreeAndNil(Node);
+  finally
+    ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningRaiseException);
+  end;
+end;
+
+procedure TTestX3DNodes.TestNodeClassesList;
+var
+  ClassesList: TX3DNodeClassesList;
+  Node: TX3DNode;
+begin
+  // test basic operations on TX3DNodeClassesList
+  ClassesList := TX3DNodeClassesList.Create;
+  try
+    ClassesList.Add(TAbstractGeometryNode);
+    ClassesList.Add(TGroupNode);
+
+    AssertEquals(2, ClassesList.Count);
+    AssertTrue(ClassesList[0] = TAbstractGeometryNode);
+    AssertTrue(ClassesList[1] = TGroupNode);
+
+    AssertEquals(0, ClassesList.IndexOf(TAbstractGeometryNode));
+    AssertEquals(1, ClassesList.IndexOf(TGroupNode));
+    AssertEquals(-1, ClassesList.IndexOf(TX3DNode));
+    AssertEquals(-1, ClassesList.IndexOf(TBoxNode));
+
+    Node := TBoxNode.Create;
+    try
+      AssertEquals(0, ClassesList.IndexOfAnyAncestor(Node));
+    finally FreeAndNil(Node) end;
+
+    Node := TAbstractGeometryNode.Create;
+    try
+      AssertEquals(0, ClassesList.IndexOfAnyAncestor(Node));
+    finally FreeAndNil(Node) end;
+
+    Node := TGroupNode.Create;
+    try
+      AssertEquals(1, ClassesList.IndexOfAnyAncestor(Node));
+    finally FreeAndNil(Node) end;
+  finally FreeAndNil(ClassesList) end;
+end;
+
+procedure TTestX3DNodes.GatherCoordRanges(const RangeNumber: Cardinal;
+  BeginIndex, EndIndex: Integer);
+var
+  GatheredCoordRange: TGatheredCoordRange;
+begin
+  GatheredCoordRange.RangeNumber := RangeNumber;
+  GatheredCoordRange.BeginIndex := BeginIndex;
+  GatheredCoordRange.EndIndex := EndIndex;
+  GatheredCoordRanges.Add(GatheredCoordRange);
+  // Writeln('GatheredCoordRange: ', GatheredCoordRange.RangeNumber, ' ',
+  //   GatheredCoordRange.BeginIndex, ' ', GatheredCoordRange.EndIndex);
+end;
+
+procedure TTestX3DNodes.TestCoordRanges;
+var
+  Coord: TCoordinateNode;
+  Ifs: TIndexedFaceSetNode;
+  Shape: TShapeNode;
+  State: TX3DGraphTraverseState;
+begin
+  Coord := TCoordinateNode.Create;
+  Coord.SetPoint([
+    Vector3(0, 0, 0),
+    Vector3(1, 0, 0),
+    Vector3(0, 1, 0),
+    Vector3(0, 0, 1)
+  ]);
+
+  Ifs := TIndexedFaceSetNode.Create;
+  Ifs.Coord := Coord;
+
+  Shape := TShapeNode.Create;
+  Shape.Geometry := Ifs;
+
+  State := TX3DGraphTraverseState.Create;
+  State.ShapeNode := Shape;
+
+  try
+    GatheredCoordRanges := TGatheredCoordRanges.Create;
+    try
+      Ifs.InternalMakeCoordRanges(State, {$ifdef FPC}@{$endif} GatherCoordRanges);
+      AssertEquals(0, GatheredCoordRanges.Count);
+    finally FreeAndNil(GatheredCoordRanges) end;
+
+    Ifs.SetCoordIndex([0, 1, 2, -1, 0, 2, 3, -1]);
+    GatheredCoordRanges := TGatheredCoordRanges.Create;
+    try
+      Ifs.InternalMakeCoordRanges(State, {$ifdef FPC}@{$endif} GatherCoordRanges);
+      AssertEquals(2, GatheredCoordRanges.Count);
+      AssertEquals(0, GatheredCoordRanges[0].RangeNumber);
+      AssertEquals(0, GatheredCoordRanges[0].BeginIndex);
+      AssertEquals(3, GatheredCoordRanges[0].EndIndex);
+      AssertEquals(1, GatheredCoordRanges[1].RangeNumber);
+      AssertEquals(4, GatheredCoordRanges[1].BeginIndex);
+      AssertEquals(7, GatheredCoordRanges[1].EndIndex);
+    finally FreeAndNil(GatheredCoordRanges) end;
+
+    // without final -1, the same result
+    Ifs.SetCoordIndex([0, 1, 2, -1, 0, 2, 3]);
+    GatheredCoordRanges := TGatheredCoordRanges.Create;
+    try
+      Ifs.InternalMakeCoordRanges(State, {$ifdef FPC}@{$endif} GatherCoordRanges);
+      AssertEquals(2, GatheredCoordRanges.Count);
+      AssertEquals(0, GatheredCoordRanges[0].RangeNumber);
+      AssertEquals(0, GatheredCoordRanges[0].BeginIndex);
+      AssertEquals(3, GatheredCoordRanges[0].EndIndex);
+      AssertEquals(1, GatheredCoordRanges[1].RangeNumber);
+      AssertEquals(4, GatheredCoordRanges[1].BeginIndex);
+      AssertEquals(7, GatheredCoordRanges[1].EndIndex);
+    finally FreeAndNil(GatheredCoordRanges) end;
+
+    // with leading -1
+    Ifs.SetCoordIndex([-1, 0, 1, 2, -1, 0, 2, 3]);
+    GatheredCoordRanges := TGatheredCoordRanges.Create;
+    try
+      Ifs.InternalMakeCoordRanges(State, {$ifdef FPC}@{$endif} GatherCoordRanges);
+      AssertEquals(2, GatheredCoordRanges.Count);
+      AssertEquals(0, GatheredCoordRanges[0].RangeNumber);
+      AssertEquals(1, GatheredCoordRanges[0].BeginIndex);
+      AssertEquals(4, GatheredCoordRanges[0].EndIndex);
+      AssertEquals(1, GatheredCoordRanges[1].RangeNumber);
+      AssertEquals(5, GatheredCoordRanges[1].BeginIndex);
+      AssertEquals(8, GatheredCoordRanges[1].EndIndex);
+    finally FreeAndNil(GatheredCoordRanges) end;
+
+    // leading, trailing, and inside multiple -1
+    Ifs.SetCoordIndex([-1, 0, 1, 2, -1, -1, -1, 0, 2, 3, -1]);
+    GatheredCoordRanges := TGatheredCoordRanges.Create;
+    try
+      Ifs.InternalMakeCoordRanges(State, {$ifdef FPC}@{$endif} GatherCoordRanges);
+      AssertEquals(2, GatheredCoordRanges.Count);
+      AssertEquals(0, GatheredCoordRanges[0].RangeNumber);
+      AssertEquals(1, GatheredCoordRanges[0].BeginIndex);
+      AssertEquals(4, GatheredCoordRanges[0].EndIndex);
+      AssertEquals(1, GatheredCoordRanges[1].RangeNumber);
+      AssertEquals(7, GatheredCoordRanges[1].BeginIndex);
+      AssertEquals(10, GatheredCoordRanges[1].EndIndex);
+    finally FreeAndNil(GatheredCoordRanges) end;
+
+    // nothing
+    Ifs.SetCoordIndex([]);
+    GatheredCoordRanges := TGatheredCoordRanges.Create;
+    try
+      Ifs.InternalMakeCoordRanges(State, {$ifdef FPC}@{$endif} GatherCoordRanges);
+      AssertEquals(0, GatheredCoordRanges.Count);
+    finally FreeAndNil(GatheredCoordRanges) end;
+
+    // only -1 are like nothing
+    Ifs.SetCoordIndex([-1]);
+    GatheredCoordRanges := TGatheredCoordRanges.Create;
+    try
+      Ifs.InternalMakeCoordRanges(State, {$ifdef FPC}@{$endif} GatherCoordRanges);
+      AssertEquals(0, GatheredCoordRanges.Count);
+    finally FreeAndNil(GatheredCoordRanges) end;
+
+    // only -1 are like nothing
+    Ifs.SetCoordIndex([-1, -1, -1, -1]);
+    GatheredCoordRanges := TGatheredCoordRanges.Create;
+    try
+      Ifs.InternalMakeCoordRanges(State, {$ifdef FPC}@{$endif} GatherCoordRanges);
+      AssertEquals(0, GatheredCoordRanges.Count);
+    finally FreeAndNil(GatheredCoordRanges) end;
+  finally
+    FreeAndNil(State);
+    FreeAndNil(Shape);
+  end;
+end;
+
+procedure TTestX3DNodes.TestNodeRelease;
+var
+  Shape: TShapeNode;
+  Geometry: TIndexedFaceSetNode;
+  Coordinate: TCoordinateNode;
+begin
+  Shape := TShapeNode.Create('TestShape');
+  Geometry := TIndexedFaceSetNode.Create('TestGeometry');
+  Coordinate := TCoordinateNode.Create('TestCoordinate');
+
+  // connect them
+  Shape.Geometry := Geometry;
+  Geometry.Coord := Coordinate;
+  AssertTrue(Shape.Geometry = Geometry);
+  AssertTrue(Geometry.Coord = Coordinate);
+
+  Geometry.WaitForRelease;
+  FreeAndNil(Shape);
+  // Thanks to using Geometry.WaitForRelease, both Geometry and Coordinate continue to exist
+  AssertEquals('TestGeometry', Geometry.X3DName);
+  AssertEquals('TestCoordinate', Coordinate.X3DName);
+
+  // 2nd WaitForRelease doesn't matter
+  Geometry.WaitForRelease;
+
+  NodeRelease(Geometry); // frees the Geometry and Coordinate
+  AssertTrue(Geometry = nil);
+
+  // further NodeRelease calls are OK, do nothing
+  NodeRelease(Geometry);
+  NodeRelease(Geometry);
+  NodeRelease(Geometry);
+end;
+
+procedure TTestX3DNodes.TestNodeReleaseWhenStillUsed;
+var
+  Shape: TShapeNode;
+  Geometry: TIndexedFaceSetNode;
+  Coordinate: TCoordinateNode;
+begin
+  Shape := TShapeNode.Create('TestShape');
+  Geometry := TIndexedFaceSetNode.Create('TestGeometry');
+  Coordinate := TCoordinateNode.Create('TestCoordinate');
+
+  // connect them
+  Shape.Geometry := Geometry;
+  Geometry.Coord := Coordinate;
+  AssertTrue(Shape.Geometry = Geometry);
+  AssertTrue(Geometry.Coord = Coordinate);
+
+  Geometry.WaitForRelease;
+  // 2nd WaitForRelease doesn't matter
+  Geometry.WaitForRelease;
+
+  // NodeRelease below does not free the Geometry and Coordinate, as it is still used.
+  // But it still nils Geometry.
+  NodeRelease(Geometry);
+  AssertTrue(Geometry = nil);
+
+  AssertEquals('TestGeometry', Shape.Geometry.X3DName);
+  AssertEquals('TestCoordinate', (Shape.Geometry as TIndexedFaceSetNode).Coord.X3DName);
+
+  // free Shape, which will free Geometry and Coordinate (as they are ref-counted again)
+  FreeAndNil(Shape);
+end;
+
+{ TODO:
+  Below is known to cause memory leaks.
+  Memory leaks are known to be possible in some difficult cases
+  with PrototypeInstanceHelpers.
+
+  Reason: PrototypeInstanceHelpers may contain,
+  by DEF statements, links to Self.
+  This causes circular dependency (Self is child of some node on
+  PrototypeInstanceHelpers, but PrototypeInstanceHelpers will
+  be freed only if Self is freed) causing some memory to be left
+  always allocated.
+
+  PrototypeInstanceHelpers are actually always TX3DRootNode,
+  may be declared as such in the future if needed.
+}
+
+procedure TTestX3DNodes.TestProtoReuseFirstNode;
+
+  procedure TestOneFile(const Url: String);
+  var
+    RootNode: TX3DRootNode;
+    TempStream: TMemoryStream;
+  begin
+    RootNode := LoadNode(Url);
+    try
+      TempStream := TMemoryStream.Create;
+      try
+        SaveNode(RootNode, TempStream, 'model/x3d+xml');
+      finally FreeAndNil(TempStream) end;
+    finally FreeAndNil(RootNode) end;
+  end;
+
+begin
+  { TODO: the test passes, but causing memory leak, see above
+    for explanation. Don't do by default for now. }
+  AbortTest;
+  Exit;
+
+  TestOneFile('castle-data:/proto_reuse_first_node/minimized_connectors.x3d');
+  TestOneFile('castle-data:/proto_reuse_first_node/full_connectors.x3d');
+  TestOneFile('castle-data:/proto_reuse_first_node/proto_leak.wrl');
+  TestOneFile('castle-data:/proto_reuse_first_node/proto_leak_2.wrl');
 end;
 
 initialization

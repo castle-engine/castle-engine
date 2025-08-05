@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2023 Michalis Kamburelis.
+  Copyright 2014-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -21,8 +21,8 @@ unit ToolCompile;
 interface
 
 uses Classes,
-  CastleStringUtils,
-  ToolManifest, ToolArchitectures;
+  CastleStringUtils, CastleInternalArchitectures,
+  ToolManifest;
 
 type
   TCompilationMode = (cmRelease, cmValgrind, cmDebug);
@@ -56,6 +56,16 @@ type
     ExtraOptions: TCastleStringList;
     { Allow using cache. @true by default. }
     AllowCache: Boolean;
+
+    { When not empty, this environment variable has set
+      value OverrideEnvironmentValue in the compiler process.) }
+    OverrideEnvironmentName: String;
+    OverrideEnvironmentValue: String;
+
+    { This parameter is filled by Compile procedure, and should contain the binary file produced at the link stage.
+      For now, only supported by CompileFpc. }
+    LinkerOutputFile: String;
+
     constructor Create;
     destructor Destroy; override;
   end;
@@ -112,7 +122,7 @@ implementation
 uses SysUtils, Process,
   CastleUtils, CastleLog, CastleFilesUtils, CastleFindFiles,
   CastleInternalTools,
-  ToolCommonUtils, ToolUtils, ToolFpcVersion, ToolCompilerInfo;
+  ToolCommonUtils, ToolUtils, ToolFpcVersion, ToolCompilerInfo, ToolProcessRun;
 
 { TCompilerOptions ----------------------------------------------------------- }
 
@@ -313,12 +323,20 @@ begin
   Result := not (
     { Occur without -vb }
     IsPrefix('generics.collections.pas(', LineLower, false) or
+    // generics.dictionaries.inc -> generics.dictionariesh.inc in FPC 3.3.1
     IsPrefix('generics.dictionaries.inc(', LineLower, false) or
+    IsPrefix('generics.dictionariesh.inc(', LineLower, false) or
     IsPrefix('generics.defaults.pas(', LineLower, false) or
     { Occur with -vb }
     (Pos('generics.collections.ppu:generics.collections.pas(', LineLower) <> 0) or
     (Pos('generics.collections.ppu:generics.dictionaries.inc(', LineLower) <> 0) or
+    (Pos('generics.collections.ppu:generics.dictionariesh.inc(', LineLower) <> 0) or
     (Pos('generics.defaults.ppu:generics.defaults.pas(', LineLower) <> 0) or
+    // with -vb and FPC 3.3.1 and our own generics collections copy
+    (Pos('generics.collections/generics.collections.pas(', LineLower) <> 0) or
+    (Pos('generics.collections/inc/generics.dictionaries.inc(', LineLower) <> 0) or
+    (Pos('generics.collections/inc/generics.dictionariesh.inc(', LineLower) <> 0) or
+    (Pos('generics.defaults/generics.defaults.pas(', LineLower) <> 0) or
     { Others }
     IsSuffix('warning: section "__datacoal_nt" is deprecated', LineLower, false) or
     IsSuffix('note: change section name to "__data"', LineLower, false) or
@@ -488,7 +506,7 @@ var
 
   procedure AddMacOSOptions;
   begin
-    if (Options.OS = darwin) and (Options.CPU = X86_64) then
+    if (Options.OS = darwin) and ((Options.CPU = X86_64) or (Options.CPU = Aarch64)) then
     begin
       // Lazarus passes such options to compile with Cocoa, so we do too. Do not seem necessary in practice.
       FpcOptions.Add('-k-framework');
@@ -524,6 +542,7 @@ var
 var
   FpcOutput, FpcExe, CompilationOutputPathFinal, FpcStandardUnitsPath: String;
   FpcExitStatus: Integer;
+  LinkerOutputBinaryPos: Integer;
 begin
   FpcVer := FpcVersion;
 
@@ -658,7 +677,19 @@ begin
         FpcOptions.Add('-O-');
         WritelnWarning('Disabling optimizations, because they are buggy on Aarch64 with older FPC. Upgrade to FPC >= 3.2.2.');
       end else
+      if Options.CPU = Wasm32 then
+      begin
+        { Wasm32 optimizations are buggy with FPC 3.3.1.
+          FPC crashes with
+            x3dnodes_coordinate3_1.inc(69,3) Fatal: Internal error 2018042601
+          I assume this is known, even wiki page about Wasm32 says to use -O-
+          TODO: web: submit FPC bug }
+        FpcOptions.Add('-O-');
+      end else
         FpcOptions.Add('-O2');
+        // Not using -O3: Fails badly on 64-bit Raspberry Pi (Linux/Aarch64),
+        // at TTestCastleComponentSerialize.TestCustomSerialization
+        //FpcOptions.Add('-O3');
       FpcOptions.Add('-dRELEASE');
     end;
 
@@ -670,18 +701,51 @@ begin
       cmValgrind:
         begin
           { See https://castle-engine.io/profiling_using_valgrind
-            for reasons of Valgrind options. }
-          FpcOptions.Add('-gv');
+            for reasons of Valgrind options.
+
+            For web:
+            Do not pass -gv for WebAssembly, it causes errors
+            "Can't find unit cmem used by castle_cache".
+            And we need Valgrind mode to compile without errors,
+            to enable "castle-engine cache --target=web". }
+
+          if Options.OS = WasiP1 then
+            Writeln('Warning: Valgrind is not supported on WebAssembly')
+          else
+            FpcOptions.Add('-gv');
           FpcOptions.Add('-gl');
         end;
       cmDebug:
         begin
-          FpcOptions.Add('-Cr');
-          FpcOptions.Add('-Co');
-          FpcOptions.Add('-Sa');
-          FpcOptions.Add('-CR');
-          FpcOptions.Add('-g');
-          FpcOptions.Add('-gl');
+          FpcOptions.Add('-Cr'); // Range checking, see https://github.com/modern-pascal/modern-pascal-introduction/wiki/What-are-range-and-overflow-checks-(and-errors)-in-Pascal
+          if Options.CPU <> Wasm32 then
+            FpcOptions.Add('-Co') // Overflow checking, see https://github.com/modern-pascal/modern-pascal-introduction/wiki/What-are-range-and-overflow-checks-(and-errors)-in-Pascal
+          else
+            { It seems that Overflow Checking is broken with WebAssembly,
+              it causes exceptions
+                EIntOverflow: Arithmetic overflow
+                  $EEEEEEEE
+              on definitely innocent operations, like TCastleWindow.GetColorBits
+              when it sums up 0 + 0 + 0 (on Cardinal; are the unsigned Cardinal
+              the reason for the problem?).
+              Simplifying TCastleWindow.GetColorBits only causes EIntOverflow
+              further down.
+              TODO: web: submit FPC bug }
+            FpcOptions.Add('-Co-');
+          FpcOptions.Add('-Sa'); // Assertions
+          FpcOptions.Add('-CR'); // Verify method calls
+          FpcOptions.Add('-g');  // Debug info (automatic), for debuggers
+          if Options.CPU <> Wasm32 then
+            FpcOptions.Add('-gl') // Line info (in backtraces)
+          else
+            { Without this, compiling
+                castle-engine compile --os=wasi --cpu=wasm32 --mode=debug
+              fails with
+                Fatal: Can't find unit lnfodwrf used by Program
+              The default fpc.cfg contains clause to do -gl when DEBUG is defined,
+              so we have to explicitly disable it with -gl-.
+            }
+            FpcOptions.Add('-gl-');
           FpcOptions.Add('-dDEBUG');
           { Disable -Ct (Stack checking) added to fpc.cfg in default
             fpcupdeluxe installation when DEBUG is defined.
@@ -733,10 +797,10 @@ begin
       //FpcOptions.Add('-CaEABIHF');
     end;
 
-    if Options.DetectMemoryLeaks then
+    if Options.DetectMemoryLeaks then // see https://castle-engine.io/memory_leaks
     begin
-      FpcOptions.Add('-gl');
-      FpcOptions.Add('-gh');
+      FpcOptions.Add('-gl'); // HeapTrc
+      FpcOptions.Add('-gh'); // LineInfo
     end;
 
     AddIOSOptions;
@@ -763,20 +827,45 @@ begin
       FpcOptions.Add('-viwn');
     end;
 
-    RunCommandIndirPassthrough(WorkingDirectory, FpcExe, FpcOptions.ToArray, FpcOutput, FpcExitStatus, '', '', @FilterFpcOutput);
+    RunCommandIndirPassthrough(WorkingDirectory, FpcExe, FpcOptions.ToArray, FpcOutput, FpcExitStatus,
+      Options.OverrideEnvironmentName, Options.OverrideEnvironmentValue, @FilterFpcOutput);
     if FpcExitStatus <> 0 then
     begin
       if (Pos('Fatal: Internal error', FpcOutput) <> 0) or
          (Pos('Error: Compilation raised exception internally', FpcOutput) <> 0) then
       begin
         FpcLazarusCrashRetry(WorkingDirectory, 'FPC', 'FPC');
-        RunCommandIndirPassthrough(WorkingDirectory, FpcExe, FpcOptions.ToArray, FpcOutput, FpcExitStatus, '', '', @FilterFpcOutput);
+        RunCommandIndirPassthrough(WorkingDirectory, FpcExe, FpcOptions.ToArray, FpcOutput, FpcExitStatus,
+          Options.OverrideEnvironmentName, Options.OverrideEnvironmentValue, @FilterFpcOutput);
         if FpcExitStatus <> 0 then
           { do not retry compiling in a loop, give up }
           raise Exception.Create('Failed to compile');
       end else
         raise Exception.Create('Failed to compile');
     end;
+    { Find the linker output from the Fpc output. The line starts with 'Linking '.
+
+      TODO: This search assumes an English output of FPC.
+      If user customizes FPC to use a different language (which can be done by
+      fpc.cfg, out of our control), then this message is translated (see
+      "exec_i_linking" in FPC translation files), and logic below will not work.
+
+      - See https://github.com/castle-engine/castle-engine/pull/629#issuecomment-2886020746
+        for possible ideas:
+        "I tried finding another way to get the Options.LinkerOutputFile,
+        but failed again. There could be a chance if ppaslink.sh file
+        was not automatically deleted by fpc, as there is a ld command line inside,
+        and the output file is after -o."
+
+      - Maybe we could force the FPC language on the command-line?
+    }
+    LinkerOutputBinaryPos := Pos('Linking ', FpcOutput);
+    if LinkerOutputBinaryPos <> 0 then
+    begin
+      LinkerOutputBinaryPos := LinkerOutputBinaryPos + StrLen('Linking ');
+      Options.LinkerOutputFile := Copy(FpcOutput, LinkerOutputBinaryPos, Pos(NL, FpcOutput, LinkerOutputBinaryPos) - LinkerOutputBinaryPos);
+    end else
+      Writeln('Warning: build-tool could not recognize the linker output binary name, may cause error later.');
   finally FreeAndNil(FpcOptions) end;
 end;
 
@@ -1038,10 +1127,10 @@ begin
     // register CGE packages first
     if CastleEnginePath <> '' then
     begin
-      LazbuildAddPackage('packages/castle_base.lpk');
-      LazbuildAddPackage('packages/castle_window.lpk');
-      LazbuildAddPackage('packages/castle_components.lpk');
-      LazbuildAddPackage('packages/castle_editor_components.lpk');
+      LazbuildAddPackage('packages/lazarus/castle_engine_base.lpk');
+      LazbuildAddPackage('packages/lazarus/castle_engine_window.lpk');
+      LazbuildAddPackage('packages/lazarus/castle_engine_lcl.lpk');
+      LazbuildAddPackage('packages/lazarus/castle_engine_editor_components.lpk');
     end;
 
     LazbuildOptions.Clear;
@@ -1079,7 +1168,7 @@ begin
       - 2 times (for both Debug/Release, I would need a copy DebugMacOS and ReleaseMacOS)
       - and require it in all user projects (this is not acceptable).
     }
-    if (Options.OS = darwin) and (Options.CPU = X86_64) then
+    if (Options.OS = darwin) and ((Options.CPU = X86_64) or (Options.CPU = Aarch64)) then
       LazbuildOptions.Add('--widgetset=cocoa');
     LazbuildOptions.Add(LazarusProjectFile);
 

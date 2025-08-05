@@ -1,5 +1,5 @@
 {
-  Copyright 2000-2023 Michalis Kamburelis.
+  Copyright 2000-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -49,18 +49,22 @@ uses Classes, SysUtils, Contnrs, Generics.Collections,
 { ---------------------------------------------------------------------------- }
 { @section(TStrings utilities) }
 
-{ Add some strings. }
-procedure StringsAdd(Strs: TStrings; Count: integer; itemVal: string='dummy'); overload;
+{ @deprecated }
+procedure StringsAdd(Strs: TStrings; Count: integer; itemVal: string='dummy');
+  deprecated 'this utility is very trivial and seldom useful; better implement it in yourself, without relying on CastleClassUtils';
 
-{ Add all strings from string array to TStrings instance. }
+{ Add all strings from the string array to the TStrings instance. }
 procedure AddStrArrayToStrings(const StrArr: array of string; strlist: TStrings);
+  deprecated 'use TStrings.AddStrings';
 
 type
-  { TStringList that is case sensitive. }
+  { TStringList that is case sensitive.
+    @deprecated
+    Deprecated, better use TStringList directly and set CaseSensitive to true. }
   TStringListCaseSens = class(TStringList)
     constructor Create;
     property CaseSensitive default true;
-  end;
+  end deprecated;
 
 { Splits S by Splitter, and adds each splitted part to Strings.
   Splitting is done by Splitter, i.e. if N is the number of occurrences
@@ -71,13 +75,29 @@ type
 procedure Strings_AddSplittedString(Strings: TStrings;
   const S, Splitter: string);
 
-{ Use this instead of @code(SList.Text := S) to workaround FPC 2.0.2 bug.
-  See [http://www.freepascal.org/mantis/view.php?id=6699] }
+{ @deprecated }
 procedure Strings_SetText(SList: TStrings; const S: String);
+  deprecated 'use SList.Text := S';
 
 { Make sure we don't have more than MaxCount strings on a list.
   Removes the last strings if necessary. }
 procedure Strings_Trim(Strings: TStrings; MaxCount: Cardinal);
+  deprecated 'this utility is very trivial and seldom useful; better implement it in yourself, without relying on CastleClassUtils';
+
+{$ifndef FPC}
+  {$define CASTLE_STRINGS_HELPER_ADDSTRINGS}
+{$endif}
+{$ifdef CASTLE_STRINGS_HELPER_ADDSTRINGS}
+{ AddStrings(array of String) method for TStrings.
+  We know this is
+  - not necessary with Delphi 12.2
+  - and it is necessary with 10.2 .
+  To keep things simple (and tested) we enable it for all Delphis. }
+type
+  TStringsHelper = class helper for TStringList
+    procedure AddStrings(const A: array of String); overload;
+  end;
+{$endif CASTLE_STRINGS_HELPER_ADDSTRINGS}
 
 { ---------------------------------------------------------------------------- }
 { @section(TStream utilities) }
@@ -415,7 +435,7 @@ type
 
   TCastleComponent = class;
 
-  { Use by @link(TCastleComponent.TranslateProperties). }
+  { Used by @link(TCastleComponent.TranslateProperties). }
   TTranslatePropertyEvent = procedure (const Sender: TCastleComponent;
     const PropertyName: String; var PropertyValue: String) of object;
 
@@ -509,6 +529,12 @@ type
     procedure ReadWriteList(const Key: String;
       const ListEnumerate: TListEnumerateEvent; const ListAdd: TListAddEvent;
       const ListClear: TListClearEvent); virtual; abstract;
+
+    { Is there set with the given Key, and non-empty?
+      Internal, because use-case small: backward compatibility for old designs
+      with "Spatial" set.
+      @exclude}
+    function InternalHasNonEmptySet(const Key: String): Boolean; virtual; abstract;
   end;
 
   { Component with various CGE extensions: can be a parent of other non-visual components
@@ -654,11 +680,11 @@ type
       @seealso NonVisualComponentsEnumerate }
     procedure InsertNonVisualComponent(const Index: Integer; const NonVisualComponent: TComponent);
 
-    { Remove component previously added by AddNonVisualComponent. }
+    { Removes the component previously added by AddNonVisualComponent. }
     procedure RemoveNonVisualComponent(const NonVisualComponent: TComponent);
 
-    { Index of component previously added non-visual component.
-      Returns -1 if component was not found. }
+    { Index of the previously added non-visual component.
+      Returns -1 if the component was not found. }
     function NonVisualComponentsIndexOf(const NonVisualComponent: TComponent): Integer;
 
     { Count of components added by AddNonVisualComponent.
@@ -755,13 +781,13 @@ var
   { Streams to read/write a standard input/output/error of the program.
 
     Tip: to read the standard input as a text file,
-    you can use @link(TTextReader) and @link(StdInStream):
+    you can use @link(TCastleTextReader) and @link(StdInStream):
 
     @longCode(#
     var
-      StdInReader: TTextReader;
+      StdInReader: TCastleTextReader;
     begin
-      StdInReader := TTextReader.Create(StdInStream, false);
+      StdInReader := TCastleTextReader.Create(StdInStream, false);
       try
         while not StdInReader.Eof do
           DoSomethingWithInputLine(StdInReader.Readln);
@@ -769,14 +795,14 @@ var
     end;
     #)
 
-    The advantage of using @link(TTextReader) above,
+    The advantage of using @link(TCastleTextReader) above,
     compared to using the standard Pascal @code(Readln) procedure
     to read from the standard Pascal @code(Input) text file,
     is that you can easily modify the above code to read from @italic(any)
     stream. So, instead of the standard input, you can easily read
     some stream that decompresses gzip data, or downloads data from
     the Internet... Actually, the overloaded constructor
-    @link(TTextReader.Create) can accept an URL, like a @code(file://...)
+    @link(TCastleTextReader.Create) can accept an URL, like a @code(file://...)
     or @code(http://...), and will internally use the stream returned
     by @link(Download) function for this URL.
 
@@ -867,11 +893,11 @@ type
     constructor CreateFromArray(const FreeObjects: boolean;
       const AItems: array of TObject);
 
-    { Add contents of given array to the list. }
+    { Add the contents of the given array to the list. }
     procedure AddRange(const A: array of TObject); overload;
     procedure AddArray(const A: array of TObject); deprecated 'use AddRange, consistent with other lists';
 
-    { Add contents of other TObjectList instance to the list. }
+    { Add the contents of another TObjectList instance to the list. }
     procedure AddRange(AList: Contnrs.TObjectList); overload;
     procedure AddList(AList: Contnrs.TObjectList); deprecated 'use AddRange, consistent with other lists';
 
@@ -909,11 +935,14 @@ type
       (or there was @nil inside the list and it got removed). }
     function Extract(RemoveClass: TClass): TObject; overload;
 
-    { Delete (do not free) all found instances of the given Item.
+    { Delete all found instances of the given Item.
       Shifts all other pointers to the left.
       Returns how many instances were removed (that is, how much Count
-      was decreased). }
-    function RemoveAll(Item: TObject): Cardinal;
+      was decreased).
+
+      This does not free the items,
+      unless the list has been created with OwnsObjects = @true. }
+    function RemoveAll(const Item: TObject): Cardinal;
 
     function IsFirst(Value: TObject): boolean;
     function IsLast(Value: TObject): boolean;
@@ -924,12 +953,36 @@ type
 
   TNotifyEventList = class({$ifdef FPC}specialize{$endif} TList<TNotifyEvent>)
   public
-    { Call all (non-nil) Items, from first to last. }
+    { Call all (assigned) Items, from first to last. }
     procedure ExecuteAll(Sender: TObject);
-    { Call all (non-nil) Items, from first to last. }
+
+    { Call all (assigned) Items, from first to last. }
     procedure ExecuteForward(Sender: TObject);
-    { Call all (non-nil) Items, from last to first. }
+
+    { Call all (assigned) Items, from last to first. }
     procedure ExecuteBackward(Sender: TObject);
+  end;
+
+  TSimpleNotifyEventList = class({$ifdef FPC}specialize{$endif} TList<TSimpleNotifyEvent>)
+  public
+    { Call all (assigned) Items, from first to last. }
+    procedure ExecuteAll;
+
+    { Remove all unassigned items. }
+    procedure Pack;
+
+    { Unassign all items equal this Event.
+      This is useful to do when (possibly) iterating over this list,
+      and doing Remove(Event) would be risky (shifting the items order).
+      So it's safer to do Unassign(Event) and call Pack once we don't iterate
+      over the list anymore. }
+    procedure Unassign(const Event: TSimpleNotifyEvent);
+  end;
+
+  TProcedureList = class({$ifdef FPC}specialize{$endif} TList<TProcedure>)
+  public
+    { Call all (assigned) Items, from first to last. }
+    procedure ExecuteAll;
   end;
 
 {$ifdef FPC}
@@ -1012,7 +1065,7 @@ type
 
     Using this is an alternative to observing freeing using
     standard TComponent.FreeNotification / TComponent.RemoveFreeNotification mechanism
-    https://castle-engine.io/modern_pascal_introduction.html#_free_notification .
+    https://castle-engine.io/modern_pascal#_free_notification .
     Using TFreeNotificationObserver is:
 
     @unorderedList(
@@ -1021,7 +1074,7 @@ type
         E.g. the line @code(FChildObserver.Observed := Value) is simpler
         than the typical equivalent lines required to unregister notification
         of the old value and register notification of the new value.
-        (See https://castle-engine.io/modern_pascal_introduction.html#_free_notification
+        (See https://castle-engine.io/modern_pascal#_free_notification
         example of FreeNotification usage.)
       )
 
@@ -1040,6 +1093,16 @@ type
         there's no additional code to handle this case. You just need different
         observer for each property to be observed.)
     )
+
+    As the owner of this TFreeNotificationObserver instance (given as parameter
+    to the constructor, TFreeNotificationObserver.Create) you almost always
+    want to pass the instance that has the method you will associate
+    with @link(OnFreeNotification). In most cases (see also example above) this is
+    available as just "Self". This means that TFreeNotificationObserver
+    will be freed (and will no longer generate @link(OnFreeNotification))
+    when the instance holding the associated method is freed, not later
+    (which would mean the notification callback is called on non-existing instance,
+    leading to an access violation).
   *)
   TFreeNotificationObserver = class(TComponent)
   strict private
@@ -1070,8 +1133,8 @@ implementation
 uses
   {$ifdef UNIX} {$ifdef FPC} Unix, {$endif} {$endif}
   {$ifdef MSWINDOWS} Windows, {$endif}
-  StrUtils, Math {$ifdef FPC}, StreamIO, RTTIUtils {$endif}, TypInfo,
-  CastleLog;
+  StrUtils, Math {$ifdef FPC}, StreamIO {$endif}, TypInfo,
+  CastleLog, CastleInternalRttiUtils;
 
 { TStrings helpers ------------------------------------------------------- }
 
@@ -1123,6 +1186,16 @@ begin
   while Cardinal(Strings.Count) > MaxCount do
     Strings.Delete(Strings.Count - 1);
 end;
+
+{$ifdef CASTLE_STRINGS_HELPER_ADDSTRINGS}
+procedure TStringsHelper.AddStrings(const A: array of String);
+var
+  S: String;
+begin
+  for S in A do
+    Add(S);
+end;
+{$endif CASTLE_STRINGS_HELPER_ADDSTRINGS}
 
 { TStream helpers -------------------------------------------------------- }
 
@@ -1198,7 +1271,7 @@ end;
 function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars;
   backEndingChar: boolean; out endingChar: AnsiChar): AnsiString; overload;
 var
-  readLen: integer; { ile znakow odczytales }
+  readLen: integer; { how many characters read }
   ch: AnsiChar;
 begin
   readLen := 0;
@@ -1244,7 +1317,7 @@ end;
 
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars;
   backEndingChar: boolean; out endingChar: integer): AnsiString; overload;
-var readLen: integer; { ile znakow odczytales }
+var readLen: integer; { how many characters read }
     ch: AnsiChar;
 begin
   readLen := 0;
@@ -1316,14 +1389,20 @@ const
   BufferSize = 1000 * 1000;
 var
   ReadCount: Integer;
-  TotalReadCount: Int64;
+  TotalReadCount: PtrUInt;
   MemoryStart: Pointer;
 begin
   Result := TMemoryStream.Create;
   try
     TotalReadCount := 0;
     repeat
-      Result.Size := TotalReadCount + BufferSize;
+      { Note: on 32-bit systems,
+        - TStream.Size is still Int64 (as on all platforms)
+        - But allocated memory for pointer is at most High(UInt32) = High(PtrUInt)
+        Let the assignment "Result.Size" below raise an exception
+        if trying to read file with size > High(UInt32). }
+      Result.Size := Int64(TotalReadCount) + BufferSize;
+
       MemoryStart := Pointer(PtrUInt(Result.Memory) + TotalReadCount);
       ReadCount := GrowingStream.Read(MemoryStart^, BufferSize);
       if ReadCount = 0 then Break;
@@ -1463,7 +1542,7 @@ function TPeekCharStream.Seek(const Offset: Int64; Origin: TSeekOrigin): Int64;
 begin
   raise EStreamNotImplementedSeek.Create('TPeekCharStream.Seek not supported');
   {$ifdef FPC}
-  Result := 0; { just to get rid of dummy fpc warning }
+  Result := 0; { Just to get rid of dummy FPC warning. }
   {$endif}
 end;
 
@@ -1471,7 +1550,7 @@ function TPeekCharStream.Write(const Buffer; Count: Longint): Longint;
 begin
   raise EStreamNotImplementedWrite.Create('TPeekCharStream.Write not supported');
   {$ifdef FPC}
-  Result := 0; { just to get rid of dummy fpc warning }
+  Result := 0; { Just to get rid of dummy FPC warning. }
   {$endif}
 end;
 
@@ -1506,7 +1585,7 @@ begin
     Peeked := PeekChar;
     if (Peeked = -1) or (AnsiChar(Peeked) in EndingChars) then
       Exit;
-    { ReadChar will return same thing as Peeked now }
+    { ReadChar will return the same thing as Peeked now. }
     Result := Result + AnsiChar(ReadChar);
   end;
 end;
@@ -1868,7 +1947,9 @@ end;
 
 function TCastleComponent.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'Name') then
+  if ArrayContainsString(PropertyName, [
+       'Name'
+     ]) then
     Result := [psBasic]
   else
     Result := [];
@@ -2010,6 +2091,7 @@ type
       const ListEnumerate: TSerializationProcess.TListEnumerateEvent;
       const ListAdd: TSerializationProcess.TListAddEvent;
       const ListClear: TSerializationProcess.TListClearEvent); override;
+    function InternalHasNonEmptySet(const Key: String): Boolean; override;
   end;
 
 procedure TTranslatePropertiesOnChildren.TranslatePropertiesOnChild(Child: TComponent);
@@ -2049,6 +2131,12 @@ end;
 procedure TTranslatePropertiesOnChildren.ReadWriteSingle(const Key: String; var Value: Single; const IsStored: Boolean);
 begin
   // just override abstract method to do nothing
+end;
+
+function TTranslatePropertiesOnChildren.InternalHasNonEmptySet(const Key: String): Boolean;
+begin
+  // just override abstract method to do nothing
+  Result := false;
 end;
 
 procedure TranslateProperties(const C: TComponent;
@@ -2107,18 +2195,17 @@ end;
 
 procedure InitStdStreams;
 
-{ Note that instead of GetStdHandle(STD_INPUT_HANDLE) I could just use
-  StdInputHandle, as this is initialized by FPC RTL exactly to
-  GetStdHandle(STD_INPUT_HANDLE). Same for other Std*Handle.
-  However
-  1. This would not allow me to write InitStdStream without any $ifdefs,
-     because Windows would still require checking for 0 and INVALID_HANDLE_VALUE
-  2. This is not documented, so I prefer to not depend on this.
-     For example, maybe in the future StdInputHandle will be always left as 0
-     when not IsConsole? I want to exactly avoid this for my Std*Stream.
-}
-
   {$ifdef MSWINDOWS}
+  { Note that instead of GetStdHandle(STD_INPUT_HANDLE) I could just use
+    StdInputHandle, as this is initialized by FPC RTL exactly to
+    GetStdHandle(STD_INPUT_HANDLE). Same for other Std*Handle.
+    However
+    1. This would not allow me to write InitStdStream without any $ifdefs,
+      because Windows would still require checking for 0 and INVALID_HANDLE_VALUE
+    2. This is not documented, so I prefer to not depend on this.
+      For example, maybe in the future StdInputHandle will be always left as 0
+      when not IsConsole? I want to exactly avoid this for my Std*Stream.
+  }
   procedure InitStdStream(var Stream: TStream; nStdHandle: DWord);
   var
     Handle: THandle;
@@ -2142,10 +2229,17 @@ procedure InitStdStreams;
   end;
   {$endif UNIX}
 
+  {$ifdef WASI}
+  procedure InitStdStream(var Stream: TStream);
+  begin
+    Stream := TMemoryStream.Create;
+  end;
+  {$endif WASI}
+
 begin
-  InitStdStream(StdInStream,  {$ifdef MSWINDOWS} STD_INPUT_HANDLE  {$else} StdInputHandle  {$endif});
-  InitStdStream(StdOutStream, {$ifdef MSWINDOWS} STD_OUTPUT_HANDLE {$else} StdOutputHandle {$endif});
-  InitStdStream(StdErrStream, {$ifdef MSWINDOWS} STD_ERROR_HANDLE  {$else} StdErrorHandle  {$endif});
+  InitStdStream(StdInStream  {$if defined(MSWINDOWS)} ,STD_INPUT_HANDLE  {$elseif defined(UNIX)} ,StdInputHandle  {$endif});
+  InitStdStream(StdOutStream {$if defined(MSWINDOWS)} ,STD_OUTPUT_HANDLE {$elseif defined(UNIX)} ,StdOutputHandle {$endif});
+  InitStdStream(StdErrStream {$if defined(MSWINDOWS)} ,STD_ERROR_HANDLE  {$elseif defined(UNIX)} ,StdErrorHandle  {$endif});
 end;
 
 procedure FiniStdStreams;
@@ -2285,7 +2379,7 @@ begin
   Result := nil;
 end;
 
-function TCastleObjectList.RemoveAll(Item: TObject): Cardinal;
+function TCastleObjectList.RemoveAll(const Item: TObject): Cardinal;
 var
   I: Integer;
 begin
@@ -2294,7 +2388,10 @@ begin
   while I < Count do
   begin
     if Items[I] = Item then
-      begin Delete(I); Inc(Result) end else
+    begin
+      Delete(I);
+      Inc(Result);
+    end else
       Inc(I);
   end;
 end;
@@ -2363,6 +2460,55 @@ begin
 
     if (I < Count) and Assigned(Items[I]) then
       Items[I](Sender);
+end;
+
+{ TSimpleNotifyEventList  ------------------------------------------------------ }
+
+procedure TSimpleNotifyEventList.ExecuteAll;
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    { See TNotifyEventList.ExecuteAll for explanation why the "I < Count"
+      adds a little safety here. }
+    if (I < Count) and Assigned(Items[I]) then
+      Items[I]();
+end;
+
+procedure TSimpleNotifyEventList.Pack;
+var
+  I: Integer;
+begin
+  I := 0;
+  while I < Count do
+  begin
+    if Assigned(Items[I]) then
+      Inc(I)
+    else
+      Delete(I);
+  end;
+end;
+
+procedure TSimpleNotifyEventList.Unassign(const Event: TSimpleNotifyEvent);
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    if SameMethods(TMethod(Event), TMethod(Items[I])) then
+      Items[I] := nil;
+end;
+
+{ TProcedureList ------------------------------------------------------ }
+
+procedure TProcedureList.ExecuteAll;
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    { See TNotifyEventList.ExecuteAll for explanation why the "I < Count"
+      adds a little safety here. }
+    if (I < Count) and Assigned(Items[I]) then
+      Items[I]();
 end;
 
 { DumpStack ------------------------------------------------------------------ }

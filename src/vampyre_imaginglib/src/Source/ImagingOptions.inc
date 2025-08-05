@@ -235,6 +235,19 @@
   { Hide some harmless notes, to have clean compiler output. }
   {$notes off}
   {$warnings off}
+
+  { FPC 3.3.1 false warning. }
+  {$ifndef VER3_0}
+    {$ifndef VER3_2}
+      { 2 warnings below are common because of case analysis.
+        We don't adjust Vampyre to them (to not cause a large diff from upstream),
+        and in CGE we also resigned from trying to adjust to them and
+        just disable them.
+        ( https://castle-engine.io/coding_conventions#case_analysis ) }
+      {$warn 6060 off} // case statement does not handle all possible cases
+    {$endif}
+  {$endif}
+
 {$else}
   { Hide some harmless hints/warnings, to have clean compiler output. }
   {$hints off}

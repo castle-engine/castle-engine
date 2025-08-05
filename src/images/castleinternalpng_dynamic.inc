@@ -902,8 +902,7 @@ procedure PngInitialization;
 implementation
 
 uses SysUtils,
-  CastleDynLib, CastleUtils, CastleLog
-  {$ifdef DARWIN}, { for BundlePath } CastleFilesUtils {$endif};
+  CastleDynLib, CastleUtils, CastleLog;
 
 var
   PngLibrary: TDynLib;
@@ -952,8 +951,8 @@ begin
   { libpng common names for macOS }
   if PngLibrary = nil then
     PngLibrary := TDynLib.Load('libpng.dylib', false);
-  if (PngLibrary = nil) and (BundlePath <> '') then
-    PngLibrary := TDynLib.Load(BundlePath + 'Contents/MacOS/libpng14.14.dylib', false);
+  if PngLibrary = nil then
+    PngLibrary := TDynLib.Load('libpng14.14.dylib', false);
 
   {$else DARWIN}
   { libpng common names for Linux, FreeBSD and other Unixes (except macOS)  }

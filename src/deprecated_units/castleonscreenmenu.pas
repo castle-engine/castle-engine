@@ -371,7 +371,8 @@ type
 implementation
 
 uses SysUtils, CastleUtils, CastleImages, CastleFilesUtils,
-  CastleStringUtils, CastleGLImages, CastleComponentSerialize;
+  CastleStringUtils, CastleGLImages, CastleComponentSerialize,
+  CastleRenderOptions;
 
 { TCastleMenuButton ---------------------------------------------------------- }
 

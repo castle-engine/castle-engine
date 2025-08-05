@@ -6,7 +6,7 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 -->
 
 <project name="generate-persistent-vectors"
-  standalone_source="generate-persistent-vectors.lpr"
+  standalone_source="generate_persistent_vectors.lpr"
   qualified_name="io.castleengine.generate.persistent.vectors"
 >
   <data exists="false" />

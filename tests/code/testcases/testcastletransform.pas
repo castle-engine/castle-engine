@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestCastleTransform" -*-
 {
-  Copyright 2012-2023 Michalis Kamburelis.
+  Copyright 2012-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -86,7 +86,7 @@ uses Math, Contnrs,
 
 type
   { Simple 3D axis-aligned box, resolving collisions with this box using
-    TCastleScene fallback methods when Spatial = []. }
+    TCastleScene fallback methods when PreciseCollisions=false. }
   TMy3D = class(TCastleSceneCore)
   private
     MyBox: TBox3D;
@@ -1207,11 +1207,11 @@ var
 
   procedure AssertBox(const TestName: string; const T: TCastleTransform; const B: TBox3D);
   begin
-    Scene.Spatial := [];
+    Scene.PreciseCollisions := false;
     AssertBox2(TestName + '_Scene as bbox', T, B);
-    Scene.Spatial := [ssDynamicCollisions];
+    Scene.PreciseCollisions := true;
     AssertBox2(TestName + '_Scene as ssDynamicCollisions octree', T, B);
-    Scene.Spatial := [ssStaticCollisions];
+    Scene.PreciseCollisions := true;
     AssertBox2(TestName + '_Scene as ssStaticCollisions octree', T, B);
   end;
 
@@ -1281,77 +1281,66 @@ procedure TTestCastleTransform.TestPhysicsWorldOwnerEmptyBox;
 var
   Viewport: TCastleViewport;
   Scene: TCastleSceneCore;
-  Body: TRigidBody;
-  //Collider: TBoxCollider;
+  Body: TCastleRigidBody;
+  Collider: TCastleBoxCollider;
 begin
+  Viewport := TCastleViewport.Create(nil);
   try
-    Viewport := TCastleViewport.Create(nil);
-    try
-      Scene := TCastleSceneCore.Create(Viewport.Items);
+    Scene := TCastleSceneCore.Create(Viewport.Items);
+    Body := TCastleRigidBody.Create(Viewport.Items);
+    Collider := TCastleBoxCollider.Create(Viewport.Items);
 
-      Body := TRigidBody.Create(Viewport.Items);
+    Viewport.Items.Add(Scene);
 
-      {Collider := }TBoxCollider.Create(Body);
+    Scene.AddBehavior(Body);
 
-      // add to Viewport before setting Scene.RigidBody,
-      // to provoke RigidBody.InitializeTransform to create all physics stuff
-      Viewport.Items.Add(Scene);
+    Collider.InternalAutoSize;
 
-      Scene.AddBehavior(Body);
-    finally FreeAndNil(Viewport) end;
-
-    Fail('This should raise EPhysicsError, as TBoxCollider is empty');
-  except on EPhysicsError do end;
+    AssertSameValue(TCastleCollider.AutoSizeMinThickness, Collider.Size.X);
+    AssertSameValue(TCastleCollider.AutoSizeMinThickness, Collider.Size.Y);
+    AssertSameValue(TCastleCollider.AutoSizeMinThickness, Collider.Size.Z);
+  finally FreeAndNil(Viewport) end;
 end;
 
 procedure TTestCastleTransform.TestPhysicsWorldOwnerEmptySphere;
 var
   Viewport: TCastleViewport;
   Scene: TCastleSceneCore;
-  Body: TRigidBody;
-  //Collider: TSphereCollider;
+  Body: TCastleRigidBody;
+  Collider: TCastleSphereCollider;
 begin
-  //try
-    Viewport := TCastleViewport.Create(nil);
-    try
-      Scene := TCastleSceneCore.Create(Viewport.Items);
+  Viewport := TCastleViewport.Create(nil);
+  try
+    Scene := TCastleSceneCore.Create(Viewport.Items);
+    Body := TCastleRigidBody.Create(Viewport.Items);
+    Collider := TCastleSphereCollider.Create(Viewport.Items);
 
-      Body := TRigidBody.Create(Viewport.Items);
+    Viewport.Items.Add(Scene);
 
-      {Collider := }TSphereCollider.Create(Body);
+    Scene.AddBehavior(Body);
 
-      // add to Viewport before setting Scene.RigidBody,
-      // to provoke RigidBody.InitializeTransform to create all physics stuff
-      Viewport.Items.Add(Scene);
+    Collider.InternalAutoSize;
 
-      Scene.AddBehavior(Body);
-    finally FreeAndNil(Viewport) end;
-
-    // OK, this can work without error now,
-    // although it's a little inconsistent with TestPhysicsWorldOwnerEmptyBox.
-
-    // Fail('This should raise EPhysicsError, as TSphereCollider is empty');
-  //except on EPhysicsError do end;
+    AssertSameValue(TCastleCollider.AutoSizeMinThickness, Collider.Radius);
+  finally FreeAndNil(Viewport) end;
 end;
 
 procedure TTestCastleTransform.TestPhysicsWorldOwner;
 var
   Viewport: TCastleViewport;
   Scene: TCastleSceneCore;
-  Body: TRigidBody;
-  Collider: TBoxCollider;
+  Body: TCastleRigidBody;
+  Collider: TCastleBoxCollider;
 begin
   Viewport := TCastleViewport.Create(nil);
   try
     Scene := TCastleSceneCore.Create(Viewport.Items);
 
-    Body := TRigidBody.Create(Viewport.Items);
+    Body := TCastleRigidBody.Create(Viewport.Items);
 
-    Collider := TBoxCollider.Create(Body);
+    Collider := TCastleBoxCollider.Create(Body);
     Collider.Size := Vector3(2, 2, 2);
 
-    // add to Viewport before setting Scene.RigidBody,
-    // to provoke RigidBody.InitializeTransform to create all physics stuff
     Viewport.Items.Add(Scene);
 
     Scene.AddBehavior(Body);
@@ -1944,6 +1933,12 @@ var
   Owner: TComponent;
   //T: TCastleTransform;
 begin
+  if not CanCatchExceptions then
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   try
     Owner := TComponent.Create(nil);
     try

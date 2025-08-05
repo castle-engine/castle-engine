@@ -85,6 +85,9 @@
       (@link(BeforeTraverse) collects transformation to space)
       and then use TCastleTransform.WorldTransform.
 
+      Call this only when scene is part of some TCastleViewport and thus its
+      world transformation is known.
+
       @groupBegin }
     function Transform: TMatrix4;
     function InverseTransform: TMatrix4;

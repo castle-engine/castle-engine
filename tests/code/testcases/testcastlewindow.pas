@@ -49,14 +49,18 @@ uses SysUtils, Classes, Math,
   CastleUIControls, CastleRectangles, CastleOnScreenMenu, CastleComponentSerialize,
   CastleCameras, {$ifdef FPC}CastleSceneManager,{$endif} CastleVectors,
   CastleTransform, CastleScene, CastleApplicationProperties, X3DCameraUtils,
-  CastleViewport, CastleInternalRenderer, CastleInternalShapesRenderer;
+  CastleViewport, CastleInternalRenderer, CastleInternalShapesRenderer,
+  CastleRenderOptions;
 
 procedure TTestCastleWindow.Test1;
 var
   Window: TCastleWindow;
 begin
   if not CanCreateWindowForTest then
+  begin
+    AbortTest;
     Exit;
+  end;
 
   Window := CreateWindowForTest;
   try
@@ -71,7 +75,10 @@ var
   C: TCastleButton;
 begin
   if not CanCreateWindowForTest then
+  begin
+    AbortTest;
     Exit;
+  end;
 
   Window := CreateWindowForTest;
   try
@@ -113,7 +120,10 @@ var
   Parent, Child1, Child2: TCastleUserInterface;
 begin
   if not CanCreateWindowForTest then
+  begin
+    AbortTest;
     Exit;
+  end;
 
   Window := CreateWindowForTest;
   try
@@ -219,21 +229,31 @@ var
   end;
 
   procedure MoveMouse(const Pos: TVector2);
-  // var
-  //   C: TCastleUserInterface;
+  { Useful to test current Focus value: }
+  {.$define CASTLE_DEBUG_FOCUS_TEST}
+  {$ifdef CASTLE_DEBUG_FOCUS_TEST}
+  var
+    C: TCastleUserInterface;
+  {$endif}
   begin
-    Window.InternalFakeMotion(InputMotion(Window.MousePosition, Pos, [], 0));
-    Window.Container.UpdateFocusAndMouseCursor;
-    { Useful to test current Focus value:
+    Window.InternalFakeMotion(InputMotion(Window.Container.MousePosition, Pos, [], 0));
+    { Do some other event than motion, to flush the motion events
+      collected by CASTLE_COLLECT_MOTION. }
+    Window.Container.EventPress(InputKey(Pos, keySpace, ' ', []));
+
+    {$ifdef CASTLE_DEBUG_FOCUS_TEST}
     Writeln('Focus now ', Window.Container.Focus.Count);
     for C in Window.Container.Focus do
       Writeln('  ', C.Name, ':', C.ClassName);
-    }
+    {$endif}
   end;
 
 begin
   if not CanCreateWindowForTest then
+  begin
+    AbortTest;
     Exit;
+  end;
 
   Window := CreateWindowForTest;
   try
@@ -303,7 +323,10 @@ var
   Viewport: TCastleViewport;
 begin
   if not CanCreateWindowForTest then
+  begin
+    AbortTest;
     Exit;
+  end;
 
   ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}OnWarningRaiseException);
   try
@@ -322,7 +345,7 @@ begin
         // in real applications, Viewport has its internal renderer
         Renderer := TRenderer.Create(nil);
         try
-          ShapesCollector := TShapesCollector.Create;
+          ShapesCollector := TShapesCollector.Create(true);
           try
             Box := TCastleBox.Create(nil);
             try
@@ -383,7 +406,10 @@ var
   Window: TCastleWindow;
 begin
   if not CanCreateWindowForTest then
+  begin
+    AbortTest;
     Exit;
+  end;
 
   Window := CreateWindowForTest;
   try
@@ -446,7 +472,10 @@ var
   SomeState: TCastleView;
 begin
   if not CanCreateWindowForTest then
+  begin
+    AbortTest;
     Exit;
+  end;
 
   Window := CreateWindowForTest;
   try
@@ -507,7 +536,10 @@ var
   StateTesting: TStateTestingSize;
 begin
   if not CanCreateWindowForTest then
+  begin
+    AbortTest;
     Exit;
+  end;
 
   Window := CreateWindowForTest;
   try
@@ -575,7 +607,10 @@ var
   StateTesting: TStateTestingSize2;
 begin
   if not CanCreateWindowForTest then
+  begin
+    AbortTest;
     Exit;
+  end;
 
   Window := CreateWindowForTest;
   try
@@ -608,7 +643,10 @@ var
   DummyHandleInput: Boolean;
 begin
   if not CanCreateWindowForTest then
+  begin
+    AbortTest;
     Exit;
+  end;
 
   Window := CreateWindowForTest;
   try
@@ -646,7 +684,10 @@ var
   Scene, Scene2: TCastleScene;
 begin
   if not CanCreateWindowForTest then
+  begin
+    AbortTest;
     Exit;
+  end;
 
   Window := CreateWindowForTest;
   try

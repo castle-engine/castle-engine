@@ -1,5 +1,5 @@
 /*
-  Copyright 2014 Jan Adamec, Michalis Kamburelis.
+  Copyright 2014-2024 Jan Adamec, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,24 +13,27 @@
   ----------------------------------------------------------------------------
 */
 
-#include <QtWidgets>
-#include <QtOpenGL>
+#include <QOpenGLFunctions>
+#include <QMouseEvent>
+#include <QStandardPaths>
+#include <QTimer>
+#include <castleengine.h>
 
 #include "glwidget.h"
 #include "mainwindow.h"
 
 GLWidget *g_pThis = NULL;
 
-GLWidget::GLWidget(const QSurfaceFormat &format, QWidget *parent) :
-    QOpenGLWidget(parent)
+GLWidget::GLWidget(const QSurfaceFormat &format, MainWindow *parent) :
+    QOpenGLWindow()
 {
     g_pThis = this;
+    m_pMainWnd = parent;
     m_bAfterInit = false;
     m_bLimitFPS = true;
     m_bNeedsDisplay = false;
+    m_bPrintContextInfoAtPaint = false;
     setFormat(format);
-    setMouseTracking(true);
-    setFocusPolicy(Qt::StrongFocus);    // accept key strokes
 
     QTimer *pUpdateTimer = new QTimer(this);
     connect(pUpdateTimer, SIGNAL(timeout()), this, SLOT(OnUpdateTimer()));
@@ -52,17 +55,7 @@ void GLWidget::OpenScene(QString const &sFilename)
     CGE_LoadSceneFromFile(sFilename.toUtf8());
     double dPixRatio = devicePixelRatioF();
     CGE_Resize(width()*dPixRatio, height()*dPixRatio);
-    ((MainWindow*)g_pThis->parent())->UpdateAfterSceneLoaded();
-}
-
-QSize GLWidget::minimumSizeHint() const
-{
-    return QSize(200, 200);
-}
-
-QSize GLWidget::sizeHint() const
-{
-    return QSize(400, 400);
+    m_pMainWnd->UpdateAfterSceneLoaded();
 }
 
 int CDECL GLWidget::OpenGlLibraryCallback(int eCode, int iParam1, int iParam2, const char *szParam)
@@ -91,7 +84,7 @@ int CDECL GLWidget::OpenGlLibraryCallback(int eCode, int iParam1, int iParam2, c
         return 1;
 
     case ecgelibNavigationTypeChanged:
-        ((MainWindow*)g_pThis->parent())->UpdateNavigationButtons();
+        g_pThis->m_pMainWnd->UpdateNavigationButtons();
         return 1;
 
     case ecgelibSetMousePosition:
@@ -104,7 +97,7 @@ int CDECL GLWidget::OpenGlLibraryCallback(int eCode, int iParam1, int iParam2, c
     case ecgelibWarning:
         {
             QString sWarning = QString::fromUtf8(szParam);
-            ((MainWindow*)g_pThis->parent())->AddNewWarning(sWarning);
+            g_pThis->m_pMainWnd->AddNewWarning(sWarning);
         }
         return 1;
     }
@@ -118,33 +111,51 @@ void GLWidget::initializeGL()
     QString configDir = QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation);
     CGE_Initialize(configDir.toUtf8());
     CGE_Open(ecgeofLog, width()*dPixRatio, height()*dPixRatio, logicalDpiY());
-    CGE_SetUserInterface(false);
+    CGE_SetAutoTouchInterface(false);
     CGE_SetLibraryCallbackProc(OpenGlLibraryCallback);
     m_bAfterInit = true;
     if (!m_sSceneToOpen.isEmpty())
         OpenScene(m_sSceneToOpen);
+
+    PrintContextInfo("initializeGL()");
+    m_bPrintContextInfoAtPaint = true;
+}
+
+void GLWidget::PrintContextInfo(const QString &sTitle)
+{
+    GLint iSampleBuffers = -1;
+    context()->functions()->glGetIntegerv(GL_SAMPLE_BUFFERS, &iSampleBuffers);
+    GLint iSamples = -1;
+    context()->functions()->glGetIntegerv(GL_SAMPLES, &iSamples);
+    qDebug() << "Context info at" << sTitle << "GL_SAMPLE_BUFFERS:" << iSampleBuffers << ", GL_SAMPLES:" << iSamples;
 }
 
 void GLWidget::OnUpdateTimer()
 {
     if (!m_bAfterInit) return;
 
+    makeCurrent();  // be sure we have the right context set
+
     CGE_Update();
+
+    doneCurrent();
+
     if (!m_bLimitFPS || m_bNeedsDisplay)
     {
         m_bNeedsDisplay = false;
-        updateGL();
+        update();
     }
-}
-
-void GLWidget::updateGL()
-{
-    update(); // TODO: Qt6 really?
 }
 
 void GLWidget::paintGL()
 {
     if (!m_bAfterInit) return;
+
+    if (m_bPrintContextInfoAtPaint)
+    {
+        PrintContextInfo("paintGL()");
+        m_bPrintContextInfoAtPaint = false;
+    }
 
     CGE_Render();
 }
@@ -152,7 +163,10 @@ void GLWidget::paintGL()
 void GLWidget::resizeGL(int width, int height)
 {
     if (m_bAfterInit && width > 0 && height > 0)
-        CGE_Resize(width, height);
+    {
+        double dPixRatio = devicePixelRatioF();
+        CGE_Resize(width * dPixRatio, height * dPixRatio);
+    }
 }
 
 QPoint GLWidget::PointFromMousePoint(const QPoint& pt)
@@ -190,7 +204,7 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
     if (!m_bAfterInit) return;
 
     QPoint pt(PointFromMousePoint(event->pos()));
-    CGE_MouseUp(pt.x(), pt.y(), event->button()==Qt::LeftButton, 0, true);
+    CGE_MouseUp(pt.x(), pt.y(), event->button()==Qt::LeftButton, 0);
 }
 
 #ifndef QT_NO_WHEELEVENT
@@ -204,7 +218,7 @@ void GLWidget::wheelEvent(QWheelEvent *event)
     if (m_bNeedsDisplay)
     {
         m_bNeedsDisplay = false;
-        updateGL();
+        update();
     }
 }
 #endif

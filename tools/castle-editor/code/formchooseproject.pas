@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2023 Michalis Kamburelis.
+  Copyright 2018-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -78,7 +78,7 @@ implementation
 uses CastleConfig, CastleLCLUtils, CastleUriUtils, CastleUtils, CastleOpenDocument,
   CastleFilesUtils, CastleParameters, CastleLog, CastleStringUtils, CastleGLUtils,
   CastleApplicationProperties, CastleInternalTools,
-  ProjectUtils, EditorUtils, FormNewProject, FormPreferences,
+  ProjectUtils, EditorUtils, FormNewProject, FormPreferences, DesignSteam,
   ToolCompilerInfo, ToolFpcVersion, ToolManifest, ToolCommonUtils,
   FormProject, FormNewUnit;
 
@@ -160,11 +160,11 @@ begin
         raise EInternalError.Create('Unknown project template selected');
 
       // Fill Options
-      Options.ParentDir := NewProjectForm.EditLocation.Text;
+      Options.ParentDirUrl := FilenameToUriSafe(NewProjectForm.EditLocation.Text);
       Options.TemplateName := TemplateName;
       Options.ProjectName := NewProjectForm.EditProjectName.Text;
       Options.ProjectCaption := NewProjectForm.EditProjectCaption.Text;
-      Options.MainView := NewProjectForm.EditStateName.Text;
+      Options.MainView := NewProjectForm.EditViewName.Text;
 
       ProjectCreateFromTemplate(CastleEnginePath, Options, ProjectDirUrl);
       GenerateProgramWithBuildTool(ProjectDirUrl);
@@ -252,6 +252,8 @@ procedure TChooseProjectForm.FormCreate(Sender: TObject);
     MuteOnRun := UserConfig.GetValue('sound/mute_on_run', DefaultMuteOnRun);
     EditorVolume := UserConfig.GetFloat('sound/editor_volume', DefaultEditorVolume);
     Compiler := StringToCompiler(UserConfig.GetValue('compiler', CompilerToString(DefaultCompiler)));
+    AndroidHome := UserConfig.GetValue('android_home', '');
+    JavaHome := UserConfig.GetValue('java_home', '');
     SoundEngineSetVolume;
   end;
 
@@ -263,7 +265,7 @@ begin
   ConfigLoad;
 
   UseEditorApplicationData;
-  InternalCastleDesignData := ApplicationData('');
+  InternalCastleDesignData := ResolveCastleDataUrl('castle-data:/');
 end;
 
 procedure TChooseProjectForm.FormDestroy(Sender: TObject);
@@ -280,6 +282,8 @@ procedure TChooseProjectForm.FormDestroy(Sender: TObject);
     UserConfig.SetDeleteValue('sound/mute_on_run', MuteOnRun, DefaultMuteOnRun);
     UserConfig.SetDeleteFloat('sound/editor_volume', EditorVolume, DefaultEditorVolume);
     UserConfig.SetDeleteValue('compiler', CompilerToString(Compiler), CompilerToString(DefaultCompiler));
+    UserConfig.SetDeleteValue('android_home', AndroidHome, '');
+    UserConfig.SetDeleteValue('java_home', JavaHome, '');
   end;
 
 begin
@@ -407,6 +411,7 @@ begin
          Halt;
        end;
     2: TGLFeatures.RequestCapabilities := StrToCapabilities(Argument);
+    3: SteamCommandLineParameter := true;
     else raise EInternalError.Create('ApplicationOptionProc: unhandled OptionNum');
   end;
 end;
@@ -440,11 +445,12 @@ procedure TChooseProjectForm.OpenProjectFromCommandLine;
   {$endif}
 
 const
-  Options: array [0..2] of TOption =
+  Options: array [0..3] of TOption =
   (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
     (Short: 'v'; Long: 'version'; Argument: oaNone),
-    (Short: #0 ; Long: 'capabilities'; Argument: oaRequired)
+    (Short: #0 ; Long: 'capabilities'; Argument: oaRequired),
+    (Short: #0 ; Long: 'steam'; Argument: oaNone)
   );
 
 begin
@@ -456,6 +462,8 @@ begin
   {$endif}
 
   Parameters.Parse(Options, @OptionProc, nil, true);
+
+  InitializeSteam;
 
   Parameters.CheckHighAtMost(1);
   if Parameters.High = 1 then
