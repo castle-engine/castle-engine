@@ -6374,7 +6374,7 @@ begin
     PanelLeft.Visible := false;
     FIsEditingTerrain := true;
     FDesignerLayer.Exists := false;
-    VisualizeTransformSelected.Parent := nil;
+    TransformManipulate.SetSelected([]);
     PanelEditTerrain.Visible := true;
     FWasTerrainUrlUpdate := false;
     SpinEditHeightMapHeight.Value := Terrain.EditMode.GetEditModeHeightMapSize.Y;
@@ -6412,7 +6412,7 @@ begin
     PanelLeft.Visible := true;
     FIsEditingTerrain := false;
     FDesignerLayer.Exists := true;
-    VisualizeTransformSelected.Parent := Terrain;
+    TransformManipulate.SetSelected([Terrain]);
     PanelEditTerrain.Visible := false;
     FIsFirstTerrainLevelFrame := true;
     ProjectForm.PageControlBottom.Show;
@@ -6468,7 +6468,7 @@ begin
   SaveHeightImageDialog := TCastleSaveImageDialog.Create(nil);
   try
     SaveHeightImageDialog.AdviceDataDirectory := true;
-    SaveHeightImageDialog.InitialDir := URIToFilenameSafe(ApplicationData('/'));
+    SaveHeightImageDialog.InitialDir := URIToFilenameSafe('castle-data:/');
     if SaveHeightImageDialog.Execute then
     begin
       try

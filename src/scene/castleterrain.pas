@@ -208,7 +208,7 @@ type
     destructor Destroy; override;
     function Height(const Coord, TexCoord: TVector2): Single; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
-    property Image: TGrayscaleImage read FImage;
+    property Image: TGrayscaleFloatImage read FImage;
   published
     { Image URL. Empty string means that no image is loaded. }
     property Url: String read FUrl write SetUrl;
@@ -532,8 +532,8 @@ type
     FEditModeSourceViewport: TCastleViewport;
     FEditModeHeightTextureScene: TCastleScene;
     FEditModeApperance: TAppearanceNode;
-    FTempContainer: TCastleContainer;
-    FEditModeBrush: TDrawableImage;
+    // FTempContainer: TCastleContainer;
+    // FEditModeBrush: TDrawableImage;
     FEditModeBrushShader: TGLSLProgram;
     FEditModeHeightMapSize: TVector2Integer;
     FTerrainModified: Boolean;
@@ -1910,8 +1910,8 @@ var
   PX, PY: Integer;
   TextureWidth, TextureHeight : Integer;
   Image: TCastleImage;
-  ViewportRect: TRectangle;
-  PreviousTextureId: TGLTextureId;
+  // ViewportRect: TRectangle;
+  // PreviousTextureId: TGLTextureId;
 
   function GetCurrentlyUsedTexture: TImageTextureNode;
   begin
