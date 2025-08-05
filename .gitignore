@@ -227,6 +227,7 @@ castle-game-engine-*.fpm
 /examples/sprite_sheets/sprite_sheets_demo/sprite_sheets_demo
 /examples/steam/steam_test
 /examples/terrain/terrain
+/examples/terrain/terrain_editing_in_game/terrain_editing_in_game
 /examples/test_local_filename_chars/test_local_filename_chars
 /examples/third_person_navigation/third_person_navigation
 /examples/tiled/map_viewer/map_viewer

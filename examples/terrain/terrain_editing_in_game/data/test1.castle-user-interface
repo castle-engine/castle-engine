@@ -1,0 +1,105 @@
+{
+  "$$ClassName" : "TCastleViewport",
+  "BackgroundColorPersistent" : {
+    "$$ClassName" : "TCastleColorPersistent",
+    "Blue" : 2.5000000000000000E-001,
+    "Green" : 2.5000000000000000E-001,
+    "Red" : 2.5000000000000000E-001
+  },
+  "Camera" : "Camera1",
+  "FullSize" : true,
+  "Height" : 6.4000000000000000E+001,
+  "Items" : {
+    "$$ClassName" : "TCastleRootTransform",
+    "PhysicsProperties" : {
+      "$$ClassName" : "TPhysicsProperties",
+      "LayerCollisions" : {
+        "$$ClassName" : "TCastleLayerCollisions"
+      },
+      "LayerNames" : {
+        "$$ClassName" : "TCastleLayerNames"
+      }
+    },
+    "$Children" : [
+      {
+        "$$ClassName" : "TCastleCamera",
+        "CastShadows" : false,
+        "Name" : "Camera1",
+        "Orthographic" : {
+          "$$ClassName" : "TCastleOrthographic",
+          "Height" : 6.4000000000000000E+001,
+          "Width" : 6.4000000000000000E+001
+        },
+        "Perspective" : {
+          "$$ClassName" : "TCastlePerspective"
+        },
+        "ProjectionType" : "ptOrthographic",
+        "RotationPersistent" : {
+          "$$ClassName" : "TCastleVector4RotationPersistent",
+          "Z" : 1.0000000000000000E+000
+        },
+        "TranslationPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "Z" : 5.0000000000000000E+002
+        }
+      },
+      {
+        "$$ClassName" : "TCastleScene",
+        "ExposeTransforms" : [
+        ],
+        "Name" : "Scene1",
+        "RenderOptions" : {
+          "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+        },
+        "TranslationPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "X" : 3.2000000000000000E+001,
+          "Y" : 3.2000000000000000E+001
+        },
+        "URL" : "castle-data:/teren2.png"
+      }
+    ]
+  },
+  "Name" : "Viewport1",
+  "Width" : 6.4000000000000000E+001,
+  "InternalDesignCamera" : {
+    "$$ClassName" : "TCastleCamera",
+    "Name" : "",
+    "Orthographic" : {
+      "$$ClassName" : "TCastleOrthographic",
+      "Height" : 1.2000000000000000E+003,
+      "OriginPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : 5.0000000000000000E-001,
+        "Y" : 5.0000000000000000E-001
+      }
+    },
+    "Perspective" : {
+      "$$ClassName" : "TCastlePerspective"
+    },
+    "ProjectionType" : "ptOrthographic",
+    "RotationPersistent" : {
+      "$$ClassName" : "TCastleVector4RotationPersistent",
+      "Z" : 1.0000000000000000E+000
+    },
+    "TranslationPersistent" : {
+      "$$ClassName" : "TCastleVector3Persistent",
+      "Z" : 6.0000000000000000E+002
+    }
+  },
+  "InternalDesignNavigationType" : 2,
+  "InternalDesignNavigations[dnFly]" : {
+    "$$ClassName" : "TCastleWalkNavigationDesign",
+    "Exists" : false,
+    "Name" : ""
+  },
+  "InternalDesignNavigations[dnExamine]" : {
+    "$$ClassName" : "TCastleExamineNavigationDesign",
+    "Exists" : false,
+    "Name" : ""
+  },
+  "InternalDesignNavigations[dn2D]" : {
+    "$$ClassName" : "TCastle2DNavigationDesign",
+    "Name" : ""
+  }
+}
