@@ -41,7 +41,7 @@ AppDelegate* getAppDelegate(void)
 
 @implementation AppDelegate
 
-- (void)initializeServices:(OpenGLController* )viewController
+- (void)initializeServices:(OpenGLController* )viewController window:(UIWindow*)sceneWindow
 {
     services = [[NSMutableArray alloc] init];
 
@@ -50,7 +50,7 @@ AppDelegate* getAppDelegate(void)
     MiscellaneousService* serviceInstance;
     serviceInstance = [[MiscellaneousService alloc] init];
     serviceInstance.mainController = viewController;
-    serviceInstance.window = self.window;
+    serviceInstance.window = sceneWindow;
     [services addObject: serviceInstance];
     }
 
@@ -100,7 +100,7 @@ AppDelegate* getAppDelegate(void)
     // initialize services once window and viewController are initialized,
     // but before doing [viewController viewDidLoad] which performs OpenGL initialization
     // including calling Application.OnInitialize (that may want to already use services).
-    [self initializeServices: viewController];
+    [self initializeServices:viewController window:sceneWindow];
 
     [viewController viewDidLoad];
 }
