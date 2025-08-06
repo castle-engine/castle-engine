@@ -4704,7 +4704,7 @@ See https://castle-engine.io/license for details.
         <Type Value="Include"/>
       </Item1153>
       <Item1154>
-        <Filename Value="../../src/scene/glsl/generated-pascal/terrain2.vs.inc"/>
+        <Filename Value="../../src/scene/glsl/generated-pascal/terrain_heights_in_texture.vs.inc"/>
         <Type Value="Include"/>
       </Item1154>
     </Files>

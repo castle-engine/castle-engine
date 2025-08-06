@@ -93,13 +93,13 @@ type
   );
 
   TCastleTerrainBrush = (
-    ctbFixedSquare = 1, // white square for testing purposes
-    ctbSquare = 2, // square texture with alpha using strength
-    ctbPyramid = 3, // square texture with alpha based on distance from center and strength
-    ctbCircle = 4, // circle texture with alpha using strength
-    ctbCone = 5, // circle with alpha based on distance from center and strength
-    ctbRing = 6, // volcano like brush?
-    ctbLyingCylinder = 7 // horizontal cylinder
+    ctbFixedSquare, // white square for testing purposes
+    ctbSquare, // square texture with alpha using strength
+    ctbPyramid, // square texture with alpha based on distance from center and strength
+    ctbCircle, // circle texture with alpha using strength
+    ctbCone, // circle with alpha based on distance from center and strength
+    ctbRing, // volcano like brush?
+    ctbLyingCylinder // horizontal cylinder
   );
 
   { Terrain (height map) data that can be used for @link(TCastleTerrain.Data). }
@@ -1682,116 +1682,11 @@ begin
   if FBrushShader = nil then
   begin
     FBrushShader := TGLSLProgram.Create;
-    FBrushShader.AttachVertexShader(
-      'attribute vec2 vertex;' + NL +
-      'attribute vec2 tex_coord;' + NL +
-      'uniform vec2 viewport_size;' + NL +
-      'varying vec2 tex_coord_frag;' + NL +
-      'void main(void)' + NL +
-      '{' + NL +
-      '  gl_Position = vec4(vertex * 2.0 / viewport_size - vec2(1.0), 0.0, 1.0);' + NL +
-      '  tex_coord_frag = tex_coord;' + NL +
-      '}'
-    );
-    FBrushShader.AttachFragmentShader(
-      'varying vec2 tex_coord_frag;' + NL +
-      ' ' + NL +
-      'uniform sampler2D image_texture;' + NL +
-      'uniform vec2 viewport_size;' + NL +
-      'uniform int brush_shape;' + NL + // brush shape
-      'uniform float strength;' + NL + // strength used for alpha channel (how strong is the terrain height change)
-      'uniform float max_terrain_height;' + NL +
-      'uniform float ring_thickness;' + NL +
-      'uniform int brush_size;' + NL +
-      ' ' + NL +
-      'void main(void)' + NL +
-      '{' + NL +
-      '  switch (brush_shape) {' + NL +
-      '  case 0:' + NL + // simply use the texture - needed to compile shader
-      '    gl_FragColor = texture2D(image_texture, tex_coord_frag);' + NL +
-      '    break;' + NL +
-      '  case 1:' + NL + // return square texture
-      '    gl_FragColor = vec4(vec3(max_terrain_height), 1.0);' + NL +
-      '    break;' + NL +
-      '  case 2:' + NL + // return square texture with alpha using strength
-      '    gl_FragColor = vec4(vec3(max_terrain_height), strength);' + NL +
-      '    break;' + NL +
-      '  case 3: {' + NL + // cbtPyramid -  with alpha based on distance from center and strength
-      '    if (brush_size < 2) {' + NL +
-      '      gl_FragColor = vec4(vec3(max_terrain_height), strength);' + NL +
-      '      return;  ' + NL +
-      '    } ' + NL +
-      '    vec2 pixelCoord = (tex_coord_frag * vec2(brush_size, brush_size));'  + NL +
-      '    vec2 center = vec2(brush_size / 2, brush_size / 2);' + NL +
-      '    float distance_x = abs((pixelCoord.x  + pixelCoord.y) - (center.x + center.y));' + NL +
-      '    vec4 col = vec4(vec3(max_terrain_height), strength * (1 - distance_x/(center.x/2)));' + NL +
-      '    distance_x = abs((pixelCoord.x  - pixelCoord.y) - (center.x - center.y));' + NL +
-      '    col += vec4(vec3(max_terrain_height), strength * (1 - distance_x/(center.x/2)));' + NL +
-      '    gl_FragColor = col;' + NL +
-      '    break;'  + NL +
-      '  }' + NL +
-      '  case 4: {' + NL + // cbtCircle - circle with alpha based on strength
-      '    if (brush_size < 2) {' + NL +
-      '      gl_FragColor = vec4(vec3(max_terrain_height), strength);' + NL +
-      '      return;  ' + NL +
-      '    } ' + NL +
-      '    vec2 pixelCoord = vec2(brush_size, brush_size) * tex_coord_frag;' + NL +
-      '    float radius = brush_size / 2;' + NL +
-      '    vec2 center = vec2(brush_size / 2, brush_size / 2);' + NL +
-      '    float distance = length(pixelCoord - center);' + NL +
-      '    if (distance <= radius) {' + NL +
-      '       gl_FragColor = vec4(vec3(max_terrain_height), strength);' + NL +
-      '     } else ' + NL +
-      '       gl_FragColor = vec4(0.0);' + NL +
-      '    break;' + NL +
-      '    } ' + NL +
-      '  case 5: {' + NL + // cbtCone - circle with alpha based on distance from center and strength
-      '    if (brush_size < 2) {' + NL +
-      '      gl_FragColor = vec4(vec3(max_terrain_height), strength);' + NL +
-      '      return;  ' + NL +
-      '    } ' + NL +
-      '    vec2 pixelCoord = vec2(brush_size, brush_size) * tex_coord_frag;' + NL +
-      '    float radius = brush_size / 2;' + NL +
-      '    vec2 center = vec2(brush_size / 2, brush_size / 2);' + NL +
-      '    float distance = length(pixelCoord - center);' + NL +
-      '    if (distance <= radius) {' + NL +
-      '       gl_FragColor = vec4(vec3(max_terrain_height), strength * (1 - distance / radius) );' + NL +
-      '     } else ' + NL +
-      '       gl_FragColor = vec4(0.0);' + NL +
-      '    break;' + NL +
-      '  }' + NL +
-      '  case 6: {' + NL + // cbtRing - circle with alpha based on strength
-      '    if (brush_size < 2) {' + NL +
-      '      gl_FragColor = vec4(vec3(max_terrain_height), strength);' + NL +
-      '      return;  ' + NL +
-      '    } ' + NL +
-      '    vec2 pixelCoord = vec2(brush_size, brush_size) * tex_coord_frag;' + NL +
-      '    float radius = brush_size / 2;' + NL +
-      '    vec2 center = vec2(brush_size / 2, brush_size / 2);' + NL +
-      '    float distance = length(pixelCoord - center);' + NL +
-      '    if ((distance <= radius) && (distance > radius - ring_thickness)) {' + NL +
-      '       gl_FragColor = vec4(vec3(max_terrain_height), strength);' + NL +
-      '     } else ' + NL +
-      '       gl_FragColor = vec4(0.0);' + NL +
-      '    break;' + NL +
-      '  }' + NL +
-      '  case 7: {' + NL + // cbtLyingCilinder -
-      '    if (brush_size < 2) {' + NL +
-      '      gl_FragColor = vec4(vec3(max_terrain_height), strength);' + NL +
-      '      return;  ' + NL +
-      '    } ' + NL +
-      '    vec2 pixelCoord = (tex_coord_frag * vec2(brush_size, brush_size));'  + NL +
-      '    vec2 center = vec2(brush_size / 2, brush_size / 2);' + NL +
-      '    float distance_x = abs(pixelCoord.x - center.x);' + NL +
-      '    gl_FragColor = vec4(vec3(max_terrain_height), strength * (1 - distance_x/(center.x/2)));' + NL +
-      '    break;'  + NL +
-      '  }' + NL +
-      '  } //switch end' + NL +
-      '} // main end'
-    );
+    FBrushShader.AttachVertexShader({$I terrain_edit_brush.vs.inc});
+    FBrushShader.AttachFragmentShader({$I terrain_edit_brush.fs.inc});
     FBrushShader.Link;
   end;
-  FBrushShader.Uniform('brush_shape').SetValue(Integer(BrushShape));
+  FBrushShader.Uniform('brush_shape').SetValue(Ord(BrushShape));
   FBrushShader.Uniform('strength').SetValue(Strength / 255);
   FBrushShader.Uniform('max_terrain_height').SetValue(BrushMaxHeight / 255);
   FBrushShader.Uniform('brush_size').SetValue(BrushSize);
@@ -2414,7 +2309,7 @@ constructor TCastleTerrain.Create(AOwner: TComponent);
     case FMode of
       ctmShader:
       begin
-        VertexPart.Contents := {$I terrain2.vs.inc};
+        VertexPart.Contents := {$I terrain_heights_in_texture.vs.inc};
       end;
       ctmMesh:
         VertexPart.Contents := {$I terrain.vs.inc};
@@ -2750,12 +2645,8 @@ begin
   VertexPart := TEffectPartNode.Create;
   VertexPart.ShaderType := stVertex;
   case FMode of
-    ctmShader:
-    begin
-      VertexPart.Contents := {$I terrain2.vs.inc};
-    end;
-    ctmMesh:
-      VertexPart.Contents := {$I terrain.vs.inc};
+    ctmShader: VertexPart.Contents := {$I terrain_heights_in_texture.vs.inc};
+    ctmMesh  : VertexPart.Contents := {$I terrain.vs.inc};
   end;
 
   Effect.SetParts([FragmentPart, VertexPart]);
