@@ -6064,9 +6064,6 @@ procedure TDesignFrame.ActionEditTerrainExecute(Sender: TObject);
   begin
     ActionEditTerrain.Caption := IfThen(FTerrainEditor.IsEditing,
       'Finish Terrain Editing', 'Edit Terrain');
-    ControlProperties.Visible := not FTerrainEditor.IsEditing;
-    PanelLeft.Visible := not FTerrainEditor.IsEditing;
-    ProjectForm.PageControlBottom.Visible := not FTerrainEditor.IsEditing;
   end;
 
   procedure StartEditing;
