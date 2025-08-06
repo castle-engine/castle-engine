@@ -408,6 +408,9 @@ object ProjectForm: TProjectForm
         Action = ActionShowStatistics
         AutoCheck = True
       end
+      object MenuItemMaximizePreview: TMenuItem
+        Action = ActionMaximizePreview
+      end
     end
     object MenuItemViewport: TMenuItem
       Caption = '&Viewport'
@@ -1450,6 +1453,12 @@ object ProjectForm: TProjectForm
       Caption = 'Duplicate Linked (TCastleTransformReference)'
       OnExecute = ActionComponentDuplicateLinkedExecute
       ShortCut = 24644
+    end
+    object ActionMaximizePreview: TAction
+      Category = 'Edit'
+      Caption = 'Maximize Preview'
+      OnExecute = ActionMaximizePreviewExecute
+      ShortCut = 8224
     end
   end
   object OpenPascalUnitDialog: TCastleOpenPascalUnitDialog

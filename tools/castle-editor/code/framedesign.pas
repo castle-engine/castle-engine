@@ -284,6 +284,7 @@ type
       LastSelected: TComponentList;
       FShowColliders: Boolean;
       FindActive: Boolean;
+      FMaximizePreview: Boolean;
       FTerrainEditor: TTerrainEditorFrame;
 
     { Create and add to the designed parent a new component,
@@ -549,6 +550,8 @@ type
       This way e.g. TransformManipulate also shows
       the transformation of selected behavior. }
     function CurrentTransform: TCastleTransform;
+
+    procedure SetMaximizePreview(const AValue: Boolean);
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
@@ -714,8 +717,8 @@ type
 
     procedure ExportToModel;
 
-    { Are we in terrain editing mode now. }
-    function IsEditingTerrain: Boolean;
+    property MaximizePreview: Boolean
+      read FMaximizePreview write SetMaximizePreview default false;
   end;
 
 implementation
@@ -3628,6 +3631,16 @@ begin
   end;
 end;
 
+procedure TDesignFrame.SetMaximizePreview(const AValue: Boolean);
+begin
+  if FMaximizePreview <> AValue then
+  begin
+    FMaximizePreview := AValue;
+    SetEnabledVisible(PanelRight, not AValue);
+    SetEnabledVisible(PanelLeft, not AValue);
+  end;
+end;
+
 function TDesignFrame.AddComponentFromUrl(const AddUrl: String;
   const ParentComponent: TComponent): TComponent;
 var
@@ -5419,6 +5432,9 @@ end;
 
 procedure TDesignFrame.RenameSelectedItem;
 begin
+  if MaximizePreview then // cannot focus edit control when PanelLeft invisible
+    Exit;
+
   if RenameSelectedPossible then
     ControlsTreeOneSelected.EditText;
 end;
