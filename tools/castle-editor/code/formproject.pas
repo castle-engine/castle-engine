@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2024 Michalis Kamburelis.
+  Copyright 2018-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -1075,7 +1075,7 @@ end;
 
 procedure TProjectForm.ActionComponentUpdate(Sender: TObject);
 begin
-  TAction(Sender).Enabled := (Design <> nil) and (not Design.IsEditingTerrain);
+  TAction(Sender).Enabled := Design <> nil;
 end;
 
 procedure TProjectForm.ActionPhysicsHideAllJointsToolsExecute(Sender: TObject);
@@ -1505,7 +1505,7 @@ procedure TProjectForm.ActionViewportUpdate(Sender: TObject);
 var
   ViewportActionsAllowed: Boolean;
 begin
-  ViewportActionsAllowed := (Design <> nil) and (Design.CurrentViewport <> nil) and (Design.IsEditingTerrain = false);
+  ViewportActionsAllowed := (Design <> nil) and (Design.CurrentViewport <> nil);
   (Sender as TAction).Enabled := ViewportActionsAllowed;
   // MenuItemViewport.Enabled := ViewportActionsAllowed; // TODO would disable everything without ability to restore
 end;

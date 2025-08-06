@@ -6772,11 +6772,6 @@ begin
   end;
 end;
 
-function TDesignFrame.IsEditingTerrain: Boolean;
-begin
-  Result := FTerrainEditor.IsEditing;
-end;
-
 initialization
   ColorHoverAndSelected := Yellow;
 
