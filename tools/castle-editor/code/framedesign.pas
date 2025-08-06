@@ -38,7 +38,7 @@ uses
   // editor units
   FrameAnchors, CastleShellCtrls, EditorUtils,
   CastleTransformManipulate, DesignUndoSystem, DesignCameraPreview,
-  DesignObjectInspector;
+  DesignObjectInspector, FrameTerrainEditor;
 
 type
   TProposeOpenDesignEvent = procedure (const DesignUrl: String) of object;
@@ -53,60 +53,22 @@ type
     moScale
   );
 
-  TTerrainEditMode = (
-    temRaise,
-    temLower,
-    temFlatten
-  );
-
   { Frame to visually design component hierarchy. }
   TDesignFrame = class(TFrame)
-    ActionChangeHeightMapSize: TAction;
-    ActionSaveTerrainAs: TAction;
-    ActionSaveTerrain: TAction;
-    ActionChooseFlattenTerrainTool: TAction;
-    ActionChooseLowerTerrainTool: TAction;
-    ActionChooseRaiseTerrainTool: TAction;
     ActionEditTerrain: TAction;
     ActionApiReferenceOfCurrent: TAction;
     ActionPlayStop: TAction;
     ActionSimulationPauseUnpause: TAction;
     ActionSimulationPlayStop: TAction;
     ActionListDesign: TActionList;
-    ButtonHeightMapChangeSize: TButton;
-    ButtonSaveTerrain: TButton;
-    ButtonSaveTerrainAs: TButton;
-    ButtonStartFinishEditMode: TButton;
     ButtonResetTransformation: TButton;
     ButtonClearTranslation: TButton;
     ButtonPlayStop: TSpeedButton;
     ButtonApiReferenceForCurrent: TSpeedButton;
+    ButtonStartFinishEditMode: TButton;
     EditFindInHierarchy: TEdit;
-    FloatSpinRaiseRingThickness: TFloatSpinEdit;
-    FloatSpinLowerRingThickness: TFloatSpinEdit;
-    FloatSpinLevelRingThickness: TFloatSpinEdit;
-    GroupBoxHeightMapSize: TGroupBox;
-    GroupBoxRaiseTerrainSettings: TGroupBox;
-    GroupBoxLowerTerrainSettings: TGroupBox;
-    GroupBoxFlattenTerrainSettings: TGroupBox;
-    Label1: TLabel;
-    Label2: TLabel;
-    Label3: TLabel;
-    Label4: TLabel;
-    Label5: TLabel;
-    LabelMaxHeight1: TLabel;
-    LabelRaiseRingThickness: TLabel;
-    LabelLowerRingThickness: TLabel;
-    LabelRaiseRingThickness1: TLabel;
-    LabelStrength: TLabel;
     LabelPhysics: TLabel;
     LabelPlayStop: TLabel;
-    LabelStrength1: TLabel;
-    LabelMaxHeight: TLabel;
-    LabelStrength2: TLabel;
-    LabelStrength3: TLabel;
-    LabelStrength4: TLabel;
-    LabelStrength5: TLabel;
     LabelViewport: TLabel;
     LabelHeaderUi: TLabel;
     LabelEventsInfo: TLabel;
@@ -114,9 +76,6 @@ type
     LabelSizeInfo: TLabel;
     MemoInfo: TMemo;
     MenuTreeViewItemDuplicateLinked: TMenuItem;
-    PanelEditTerrainSave: TPanel;
-    PanelEditTerrain: TPanel;
-    PanelExtraTools: TPanel;
     PanelSpinEditAllowVerticalCentering: TPanel;
     ExportToModelDialog: TCastleSaveDialog;
     SeparatorBeforeChangeClass: TMenuItem;
@@ -163,40 +122,6 @@ type
     ButtonTranslateMode: TSpeedButton;
     ButtonRotateMode: TSpeedButton;
     ButtonScaleMode: TSpeedButton;
-    SpeedButtonLowerCircle: TSpeedButton;
-    SpeedButtonLowerCone: TSpeedButton;
-    SpeedButtonLowerCylinder: TSpeedButton;
-    SpeedButtonLowerFixedSquare: TSpeedButton;
-    SpeedButtonLowerPyramid: TSpeedButton;
-    SpeedButtonLowerRing: TSpeedButton;
-    SpeedButtonLowerSquare: TSpeedButton;
-    SpeedButtonLevelCircle: TSpeedButton;
-    SpeedButtonLevelCone: TSpeedButton;
-    SpeedButtonLevelPyramid: TSpeedButton;
-    SpeedButtonLevelSquare: TSpeedButton;
-    SpeedButtonRaiseTerrain: TSpeedButton;
-    SpeedButtonLowerTerrain: TSpeedButton;
-    SpeedButtonFlattenTerrain: TSpeedButton;
-    SpeedButtonRaiseFixedSquare: TSpeedButton;
-    SpeedButtonRaiseSquare: TSpeedButton;
-    SpeedButtonRaisePyramid: TSpeedButton;
-    SpeedButtonRaiseCircle: TSpeedButton;
-    SpeedButtonRaiseCone: TSpeedButton;
-    SpeedButtonRaiseRing: TSpeedButton;
-    SpeedButtonRaiseCylinder: TSpeedButton;
-    SpinEditHeightMapWidth: TSpinEdit;
-    SpinEditHeightMapHeight: TSpinEdit;
-    SpinEditLowerBrushRotation: TSpinEdit;
-    SpinEditLowerBrushSize: TSpinEdit;
-    SpinEditLevelBrushRotation: TSpinEdit;
-    SpinEditLevelBrushSize: TSpinEdit;
-    SpinEditRaiseMaxHeight: TSpinEdit;
-    SpinEditRaiseBrushSize: TSpinEdit;
-    SpinEditLevelHeight: TSpinEdit;
-    SpinEditRaiseStrength: TSpinEdit;
-    SpinEditRaiseBrushRotation: TSpinEdit;
-    SpinEditLowerStrength: TSpinEdit;
-    SpinEditLevelStrength: TSpinEdit;
     SpinEditSnap: TSpinEdit;
     Splitter1: TSplitter;
     TabLayoutScrollBox: TScrollBox;
@@ -208,18 +133,10 @@ type
     TabBasic: TTabSheet;
     TabInfo: TTabSheet;
     UpdateObjectInspector: TTimer;
-    procedure ActionApiReferenceOfCurrentExecute(Sender: TObject);
-    procedure ActionChangeHeightMapSizeExecute(Sender: TObject);
-    procedure ActionChangeHeightMapSizeUpdate(Sender: TObject);
-    procedure ActionChooseFlattenTerrainToolExecute(Sender: TObject);
-    procedure ActionChooseLowerTerrainToolExecute(Sender: TObject);
-    procedure ActionChooseRaiseTerrainToolExecute(Sender: TObject);
     procedure ActionEditTerrainExecute(Sender: TObject);
-    procedure ActionEditTerrainUpdate(Sender: TObject);
+    procedure ActionApiReferenceOfCurrentExecute(Sender: TObject);
     procedure ActionPlayStopExecute(Sender: TObject);
     procedure ActionPlayStopUpdate(Sender: TObject);
-    procedure ActionSaveTerrainAsExecute(Sender: TObject);
-    procedure ActionSaveTerrainExecute(Sender: TObject);
     procedure ActionSimulationPauseUnpauseExecute(Sender: TObject);
     procedure ActionSimulationPauseUnpauseUpdate(Sender: TObject);
     procedure ActionSimulationPlayStopExecute(Sender: TObject);
@@ -261,7 +178,6 @@ type
     procedure PerformUndoRedo(const UHE: TUndoHistoryElement);
     procedure PerformRedo;
     procedure PerformUndo;
-    procedure SpinEditHeightMapWidthChange(Sender: TObject);
     procedure UpdateObjectInspectorTimer(Sender: TObject);
   protected
     procedure SetParent(AParent: TWinControl); override;
@@ -368,12 +284,7 @@ type
       LastSelected: TComponentList;
       FShowColliders: Boolean;
       FindActive: Boolean;
-
-      FIsEditingTerrain: Boolean;
-      FTerrainLevelHeight: Byte;
-      FIsFirstTerrainLevelFrame: Boolean;
-      FWasTerrainUrlUpdate: Boolean;
-      FTerrainEditMode: TTerrainEditMode;
+      FTerrainEditor: TTerrainEditorFrame;
 
     { Create and add to the designed parent a new component,
       whose type best matches currently selected file in SourceShellList.
@@ -638,9 +549,6 @@ type
       This way e.g. TransformManipulate also shows
       the transformation of selected behavior. }
     function CurrentTransform: TCastleTransform;
-
-    procedure UpdateTerrainEditMode;
-    procedure UpdateChoosenTerrainTool;
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
@@ -775,8 +683,6 @@ type
       @nil if none. }
     property CurrentViewport: TCastleViewport read FCurrentViewport;
 
-    property IsEditingTerrain: Boolean read FIsEditingTerrain;
-
     procedure ViewportViewAxis(const Dir, Up: TVector3);
     procedure ViewportViewAll;
     procedure ViewportViewSelected;
@@ -807,6 +713,9 @@ type
     procedure FindNext;
 
     procedure ExportToModel;
+
+    { Are we in terrain editing mode now. }
+    function IsEditingTerrain: Boolean;
   end;
 
 implementation
@@ -1813,6 +1722,12 @@ begin
 
   FindActive := false;
   SetEnabledVisible(EditFindInHierarchy, FindActive);
+
+  FTerrainEditor := TTerrainEditorFrame.Create(Self);
+  PanelRight.InsertControl(FTerrainEditor);
+
+  // UI to toggle terrain editing will be shown when we select some terrain
+  SetEnabledVisible(ActionEditTerrain, false);
 end;
 
 destructor TDesignFrame.Destroy;
@@ -2024,11 +1939,6 @@ begin
     UndoSystem.Undo;
   end;}
   PerformUndoRedo(UndoSystem.Undo);
-end;
-
-procedure TDesignFrame.SpinEditHeightMapWidthChange(Sender: TObject);
-begin
-  ActionChangeHeightMapSizeUpdate(ActionChangeHeightMapSize);
 end;
 
 procedure TDesignFrame.UpdateObjectInspectorTimer(Sender: TObject);
@@ -3467,7 +3377,7 @@ begin
   FDesignerLayer.LabelPhysicsSimulationRunning.Exists := CastleApplicationMode = appSimulation;
   FDesignerLayer.LabelPhysicsSimulationPaused.Exists := CastleApplicationMode = appSimulationPaused;
 
-  UpdateTerrainEditMode;
+  FTerrainEditor.UpdateEditing;
 end;
 
 procedure TDesignFrame.CastleControlDragOver(Sender, Source: TObject; X,
@@ -4994,212 +4904,6 @@ begin
     Result := SelectedTransform;
 end;
 
-procedure TDesignFrame.UpdateTerrainEditMode;
-
-  function GetTerrainBrush: TCastleTerrainBrush;
-  begin
-    case FTerrainEditMode of
-      temRaise:
-        begin
-          if SpeedButtonRaiseFixedSquare.Down then
-            Exit(ctbFixedSquare);
-
-          if SpeedButtonRaiseSquare.Down then
-            Exit(ctbSquare);
-
-          if SpeedButtonRaisePyramid.Down then
-            Exit(ctbPyramid);
-
-          if SpeedButtonRaiseCircle.Down then
-            Exit(ctbCircle);
-
-          if SpeedButtonRaiseCone.Down then
-            Exit(ctbCone);
-
-          if SpeedButtonRaiseRing.Down then
-            Exit(ctbRing);
-
-          if SpeedButtonRaiseCylinder.Down then
-            Exit(ctbLyingCylinder);
-        end;
-      temLower:
-        begin
-          if SpeedButtonLowerFixedSquare.Down then
-            Exit(ctbFixedSquare);
-
-          if SpeedButtonLowerSquare.Down then
-            Exit(ctbSquare);
-
-          if SpeedButtonLowerPyramid.Down then
-            Exit(ctbPyramid);
-
-          if SpeedButtonLowerCircle.Down then
-            Exit(ctbCircle);
-
-          if SpeedButtonLowerCone.Down then
-            Exit(ctbCone);
-
-          if SpeedButtonLowerRing.Down then
-            Exit(ctbRing);
-
-          if SpeedButtonLowerCylinder.Down then
-            Exit(ctbLyingCylinder);
-        end;
-      temFlatten:
-        begin
-          if SpeedButtonLevelSquare.Down then
-            Exit(ctbSquare);
-
-          if SpeedButtonLevelPyramid.Down then
-            Exit(ctbPyramid);
-
-          if SpeedButtonLevelCircle.Down then
-            Exit(ctbCircle);
-
-          if SpeedButtonLevelCone.Down then
-            Exit(ctbCone);
-        end;
-      {$ifndef CASE_ANALYSIS}
-      else raise EInternalError.Create('GetTerrainBrush: FTerrainEditMode?');
-      {$endif}
-    end;
-  end;
-
-  function GetTerrainBrushSize: Integer;
-  begin
-    case FTerrainEditMode of
-      temRaise: Exit(SpinEditRaiseBrushSize.Value);
-      temLower: Exit(SpinEditLowerBrushSize.Value);
-      temFlatten: Exit(SpinEditLevelBrushSize.Value);
-      {$ifndef CASE_ANALYSIS}
-      else raise EInternalError.Create('GetTerrainBrushSize: FTerrainEditMode?');
-      {$endif}
-    end;
-  end;
-
-  function GetTerrainToolStrength: Byte;
-  begin
-    case FTerrainEditMode of
-      temRaise: Exit(SpinEditRaiseStrength.Value);
-      temLower: Exit(SpinEditLowerStrength.Value);
-      temFlatten: Exit(SpinEditLevelStrength.Value);
-      {$ifndef CASE_ANALYSIS}
-      else raise EInternalError.Create('GetTerrainToolStrength: FTerrainEditMode?');
-      {$endif}
-    end;
-  end;
-
-  function GetTerrainBrushRotation: Single;
-  begin
-    case FTerrainEditMode of
-      temRaise: Exit(SpinEditRaiseBrushRotation.Value);
-      temLower: Exit(SpinEditLowerBrushRotation.Value);
-      temFlatten: Exit(SpinEditLevelBrushRotation.Value);
-      {$ifndef CASE_ANALYSIS}
-      else raise EInternalError.Create('GetTerrainBrushRotation: FTerrainEditMode?');
-      {$endif}
-    end;
-  end;
-
-  function GetTerrainMaxHeight: Byte;
-  begin
-    case FTerrainEditMode of
-      temRaise: Exit(SpinEditRaiseMaxHeight.Value);
-      temLower: Exit(0);
-      temFlatten: Exit(FTerrainLevelHeight);
-      {$ifndef CASE_ANALYSIS}
-      else raise EInternalError.Create('GetTerrainMaxHeight: FTerrainEditMode?');
-      {$endif}
-    end;
-  end;
-
-  function GetTerrainRingThickness: Single;
-  begin
-    case FTerrainEditMode of
-      temRaise: Exit(FloatSpinRaiseRingThickness.Value);
-      temLower: Exit(FloatSpinLowerRingThickness.Value);
-      temFlatten: Exit(FloatSpinLevelRingThickness.Value);
-      {$ifndef CASE_ANALYSIS}
-      else raise EInternalError.Create('GetTerrainRingThickness: FTerrainEditMode?');
-      {$endif}
-    end;
-  end;
-
-var
-  RayCollision: TRayCollision;
-  HitInfo: TRayCollisionNode;
-  Terrain: TCastleTerrain;
-  Container: TCastleContainer;
-begin
-  if not FIsEditingTerrain then
-    Exit;
-  if CurrentViewport = nil then
-    Exit;
-  { Right now, one can switch selection during terrain editing
-    (though we try to block it). So secure from crashes by checking
-    that CurrentTransform is still <> nil and still TCastleTerrain. }
-  if not (CurrentTransform is TCastleTerrain) then
-    Exit;
-
-  Terrain := CurrentTransform as TCastleTerrain;
-
-  Container := CastleControl.Container;
-
-  if Container.MousePressed = [buttonLeft] then
-  begin
-    RayCollision := CurrentViewport.MouseRayHit;
-    if (RayCollision <> nil) and RayCollision.Info(HitInfo) then
-    begin
-
-      if FIsFirstTerrainLevelFrame and ActionChooseFlattenTerrainTool.Checked then
-      begin
-        FTerrainLevelHeight := Terrain.Editor.TerrainHeight(HitInfo.Point);
-        SpinEditLevelHeight.Value := FTerrainLevelHeight;
-      end;
-
-      Terrain.Editor.AlterTerrain(Container, HitInfo.Point, GetTerrainBrush,
-        GetTerrainBrushSize, GetTerrainToolStrength, DegToRad(GetTerrainBrushRotation),
-        GetTerrainMaxHeight, GetTerrainRingThickness);
-
-      FIsFirstTerrainLevelFrame := false;
-    end;
-  end else
-  begin
-    FIsFirstTerrainLevelFrame := true;
-
-    // terrain leveling: change level value based on mouse position
-    if ActionChooseFlattenTerrainTool.Checked and (Container.MousePressed = []) then
-    begin
-      RayCollision := CurrentViewport.MouseRayHit;
-      if (RayCollision <> nil) and RayCollision.Info(HitInfo) then
-      begin
-        FTerrainLevelHeight := Terrain.Editor.TerrainHeight(HitInfo.Point);
-        SpinEditLevelHeight.Value := FTerrainLevelHeight;
-      end;
-    end;
-  end;
-end;
-
-procedure TDesignFrame.UpdateChoosenTerrainTool;
-var
-  VisibleGroup: TGroupBox;
-begin
-  GroupBoxRaiseTerrainSettings.Visible := FTerrainEditMode = temRaise;
-  GroupBoxLowerTerrainSettings.Visible := FTerrainEditMode = temLower;
-  GroupBoxFlattenTerrainSettings.Visible := FTerrainEditMode = temFlatten;
-
-  case FTerrainEditMode of
-    temRaise: VisibleGroup := GroupBoxRaiseTerrainSettings;
-    temLower: VisibleGroup := GroupBoxLowerTerrainSettings;
-    temFlatten: VisibleGroup := GroupBoxFlattenTerrainSettings;
-    {$ifndef CASE_ANALYSIS}
-    else raise EInternalError.Create('UpdateChoosenTerrainTool: FTerrainEditMode?');
-    {$endif}
-  end;
-
-  PanelEditTerrainSave.AnchorSideTop.Control := VisibleGroup;
-end;
-
 procedure TDesignFrame.UpdateSelectedInfo;
 var
   C: TComponent;
@@ -5368,7 +5072,7 @@ begin
 
     TransformManipulate.SetSelected(Selected);
 
-    PanelExtraTools.Visible := T is TCastleTerrain;
+    SetEnabledVisible(ActionEditTerrain, T is TCastleTerrain);
   finally FreeAndNil(Selected) end;
 
   if CameraPreview <> nil then
@@ -6337,137 +6041,66 @@ begin
   OnApiReferenceOfCurrent(Self);
 end;
 
-procedure TDesignFrame.ActionChangeHeightMapSizeExecute(Sender: TObject);
-var
-  Terrain: TCastleTerrain;
-begin
-  Terrain := CurrentTransform as TCastleTerrain;
-
-  Terrain.Editor.SetHeightMapSize(Vector2Integer(
-    SpinEditHeightMapWidth.Value, SpinEditHeightMapHeight.Value));
-end;
-
-procedure TDesignFrame.ActionChangeHeightMapSizeUpdate(Sender: TObject);
-var
-  Terrain: TCastleTerrain;
-begin
-  if not FIsEditingTerrain then
-  begin
-    ActionChangeHeightMapSize.Enabled := false;
-    Exit;
-  end;
-
-  if (CurrentTransform = nil) or (not (CurrentTransform is TCastleTerrain)) then
-  begin
-    ActionChangeHeightMapSize.Enabled := false;
-    Exit;
-  end;
-
-  Terrain := CurrentTransform as TCastleTerrain;
-
-  ActionChangeHeightMapSize.Enabled := FIsEditingTerrain and (
-  (SpinEditHeightMapHeight.Value <> Terrain.Editor.GetHeightMapSize.Y) or
-  (SpinEditHeightMapWidth.Value <> Terrain.Editor.GetHeightMapSize.X));
-end;
-
-procedure TDesignFrame.ActionChooseFlattenTerrainToolExecute(Sender: TObject);
-begin
-  FTerrainEditMode := temFlatten;
-  UpdateChoosenTerrainTool;
-end;
-
-procedure TDesignFrame.ActionChooseLowerTerrainToolExecute(Sender: TObject);
-begin
-  FTerrainEditMode := temLower;
-  UpdateChoosenTerrainTool;
-end;
-
-procedure TDesignFrame.ActionChooseRaiseTerrainToolExecute(Sender: TObject);
-begin
-  FTerrainEditMode := temRaise;
-  UpdateChoosenTerrainTool;
-end;
-
 procedure TDesignFrame.ActionEditTerrainExecute(Sender: TObject);
-var
-  Terrain: TCastleTerrain;
-  Mr: TModalResult;
-  UrlBuf: String;
-begin
-  if (CurrentTransform = nil) or (not (CurrentTransform is TCastleTerrain)) then
-    Exit;
 
-  Terrain := CurrentTransform as TCastleTerrain;
-  if Terrain.Mode = ctmMesh then
+  { Called after stop or start of terrain editing. }
+  procedure CommonAfter;
   begin
-    // Start edit mode
-    Terrain.Mode := ctmShader;
-    ControlProperties.Visible := false;
-    PanelLeft.Visible := false;
-    FIsEditingTerrain := true;
+    ActionEditTerrain.Caption := IfThen(FTerrainEditor.IsEditing,
+      'Finish Terrain Editing', 'Edit Terrain');
+    ControlProperties.Visible := not FTerrainEditor.IsEditing;
+    PanelLeft.Visible := not FTerrainEditor.IsEditing;
+    ProjectForm.PageControlBottom.Visible := not FTerrainEditor.IsEditing;
+  end;
+
+  procedure StartEditing;
+  var
+    Terrain: TCastleTerrain;
+  begin
+    if (CurrentViewport = nil) or
+       (CurrentTransform = nil) or
+       (not (CurrentTransform is TCastleTerrain)) then
+      Exit; // abort, cannot start editing
+
+    Terrain := CurrentTransform as TCastleTerrain;
+
+    // cannot abort past this point
+    FTerrainEditor.StartEditing(Terrain, CurrentViewport, CastleControl.Container);
     TransformManipulate.SetSelected([]);
-    PanelEditTerrain.Visible := true;
-    FWasTerrainUrlUpdate := false;
-    SpinEditHeightMapHeight.Value := Terrain.Editor.GetHeightMapSize.Y;
-    SpinEditHeightMapWidth.Value := Terrain.Editor.GetHeightMapSize.X;
-    ActionChangeHeightMapSizeUpdate(ActionChangeHeightMapSize);
-    ProjectForm.PageControlBottom.Hide;
-  end else
+    CommonAfter;
+  end;
+
+  procedure StopEditing;
+  var
+    Terrain: TCastleTerrain;
+    Mr: TModalResult;
   begin
-    // Finish edit mode
+    Terrain := FTerrainEditor.EditingTerrain;
+    // this should be only executed if FTerrainEditor.EditingTerrain <> nil
+    Assert(Terrain <> nil);
+
     if Terrain.Editor.TerrainModified then
     begin
       Mr := MessageDlg('Terrain editor',
         'Terrain was modified but not saved yet. Save changes?',
         mtConfirmation, mbYesNoCancel, 0);
       case Mr of
-        mrYes:
-        begin
-          ActionSaveTerrainExecute(Self);
-        end;
-        mrCancel: Exit;
+        mrYes: FTerrainEditor.ActionSaveTerrainExecute(FTerrainEditor);
+        mrCancel: Exit; // abort
       end;
     end;
-    Terrain.Mode := ctmMesh;
-    // TODO: better way to update TCastleTerrainImage
-    if FWasTerrainUrlUpdate then
-    begin
-      if (Terrain.Data <> nil) and (Terrain.Data is TCastleTerrainImage) then
-      begin
-        UrlBuf := TCastleTerrainImage(Terrain.Data).Url;
-        TCastleTerrainImage(Terrain.Data).Url := '';
-        TCastleTerrainImage(Terrain.Data).Url := UrlBuf;
-      end;
-    end;
-    ControlProperties.Visible := true;
-    PanelLeft.Visible := true;
-    FIsEditingTerrain := false;
+
+    // cannot abort past this point
+    FTerrainEditor.StopEditing;
     TransformManipulate.SetSelected([Terrain]);
-    PanelEditTerrain.Visible := false;
-    FIsFirstTerrainLevelFrame := true;
-    ProjectForm.PageControlBottom.Show;
+    CommonAfter;
   end;
 
-  if Terrain.Mode = ctmMesh then
-    ActionEditTerrain.Caption := 'Edit Terrain'
-  else
-    ActionEditTerrain.Caption := 'Finish Terrain Editing';
-end;
-
-procedure TDesignFrame.ActionEditTerrainUpdate(Sender: TObject);
-var
-  Terrain: TCastleTerrain;
 begin
-  ActionEditTerrain.Enabled := (CurrentTransform <> nil) and (CurrentTransform is TCastleTerrain);
-
-  if ActionEditTerrain.Enabled then
-  begin
-    Terrain := CurrentTransform as TCastleTerrain;
-    if Terrain.Mode = ctmMesh then
-      ActionEditTerrain.Caption := 'Edit Terrain'
-    else
-      ActionEditTerrain.Caption := 'Finish Terrain Editing';
-  end;
+  if not FTerrainEditor.IsEditing then
+    StartEditing
+  else
+    StopEditing;
 end;
 
 procedure TDesignFrame.ActionPlayStopUpdate(Sender: TObject);
@@ -6480,71 +6113,6 @@ begin
   else
     ActionPlayStop.ImageIndex := TImageIndex(iiPlay);
   ActionPlayStop.Checked := IsRunning;
-end;
-
-procedure TDesignFrame.ActionSaveTerrainAsExecute(Sender: TObject);
-var
-  SaveHeightImageDialog: TCastleSaveImageDialog;
-  Terrain: TCastleTerrain;
-begin
-  if not (CurrentTransform is TCastleTerrain) then
-  begin
-    ErrorBox('Wrong selected transform type. Should never happen, please report bug.');
-    Exit;
-  end;
-
-  Terrain := CurrentTransform as TCastleTerrain;
-
-  SaveHeightImageDialog := TCastleSaveImageDialog.Create(nil);
-  try
-    SaveHeightImageDialog.AdviceDataDirectory := true;
-    SaveHeightImageDialog.InitialDir := URIToFilenameSafe('castle-data:/');
-    if SaveHeightImageDialog.Execute then
-    begin
-      try
-        Terrain.Editor.SaveHeightMap(SaveHeightImageDialog.Url);
-        // update current image also in case the user selected
-        // the same file that is loaded
-        FWasTerrainUrlUpdate := true;
-      except
-        on E: Exception do
-          ErrorBox(E.Message);
-      end;
-    end;
-  finally
-    FreeAndNil(SaveHeightImageDialog);
-  end;
-end;
-
-procedure TDesignFrame.ActionSaveTerrainExecute(Sender: TObject);
-var
-  Terrain: TCastleTerrain;
-  TerrainUrl: String;
-
-  function GetTerrainUrl: String;
-  begin
-    if (Terrain.Data <> nil) and (Terrain.Data is TCastleTerrainImage) then
-      Exit(TCastleTerrainImage(Terrain.Data).Url);
-
-    Result := '';
-  end;
-
-begin
-  if not (CurrentTransform is TCastleTerrain) then
-  begin
-    ErrorBox('Wrong selected transform type. Should never happen, please report bug.');
-    Exit;
-  end;
-
-  Terrain := CurrentTransform as TCastleTerrain;
-  TerrainUrl := GetTerrainUrl;
-  if TerrainUrl <> '' then
-  begin
-    Terrain.Editor.SaveHeightMap(TerrainUrl);
-    FWasTerrainUrlUpdate := true;
-  end
-  else
-    ActionSaveTerrainAsExecute(Sender);
 end;
 
 procedure TDesignFrame.ButtonResetTransformationClick(Sender: TObject);
@@ -6601,7 +6169,8 @@ end;
 
 procedure TDesignFrame.FrameResize(Sender: TObject);
 
-  { Buttons on top PanelExtraTools are resized by LCL to have height equal PanelExtraTools height,
+  { Buttons on top PanelMiddleTop are resized by LCL to have height equal
+    PanelMiddleTop height,
     but this makes them non-square. Fix them to be square.
     Fixes problem observed on Windows. }
   procedure FixButtonSquare(const B: TSpeedButton);
@@ -7185,6 +6754,11 @@ begin
       SaveNode(RootNode, SaveUrl);
     finally FreeAndNil(RootNode) end;
   end;
+end;
+
+function TDesignFrame.IsEditingTerrain: Boolean;
+begin
+  Result := FTerrainEditor.IsEditing;
 end;
 
 initialization

@@ -1064,7 +1064,7 @@ end;
 
 procedure TProjectForm.ActionComponentUpdate(Sender: TObject);
 begin
-  TAction(Sender).Enabled := (Design <> nil) and (Design.IsEditingTerrain = false);
+  TAction(Sender).Enabled := (Design <> nil) and (not Design.IsEditingTerrain);
 end;
 
 procedure TProjectForm.ActionPhysicsHideAllJointsToolsExecute(Sender: TObject);
