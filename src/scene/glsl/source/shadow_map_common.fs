@@ -7,7 +7,7 @@
 //#define PCF4_BILINEAR
 //#define PCF16
 
-float castleShadow2D(sampler2DShadow shadowMap, const vec3 shadowMapCoord)
+float castleShadow2D(sampler2DShadow shadowMap, const shadowsPrecision vec3 shadowMapCoord)
 {
   /* On OpenGLES, we require GLSL "300 es" that allows (and requires) to query
      sampler2DShadow using texture*, not shadow2D* functions.
@@ -23,7 +23,7 @@ float castleShadow2D(sampler2DShadow shadowMap, const vec3 shadowMapCoord)
   #endif
 }
 
-float castleShadow2DProj(sampler2DShadow shadowMap, const vec4 shadowMapCoord)
+float castleShadow2DProj(sampler2DShadow shadowMap, const shadowsPrecision vec4 shadowMapCoord)
 {
   #ifdef CASTLE_GLSL_VERSION_UPGRADE
   return textureProj(shadowMap, shadowMapCoord);
@@ -32,7 +32,7 @@ float castleShadow2DProj(sampler2DShadow shadowMap, const vec4 shadowMapCoord)
   #endif
 }
 
-float shadow(sampler2DShadow shadowMap, const vec4 shadowMapCoord,
+float shadow(sampler2DShadow shadowMap, const shadowsPrecision vec4 shadowMapCoord,
   const in float size)
 {
   /* Avoid back-projecting shadows. */
