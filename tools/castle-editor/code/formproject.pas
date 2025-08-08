@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2024 Michalis Kamburelis.
+  Copyright 2018-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -356,6 +356,7 @@ type
     procedure ActionExportToModelExecute(Sender: TObject);
     procedure ActionFindNextExecute(Sender: TObject);
     procedure ActionFindToggleExecute(Sender: TObject);
+    procedure ActionComponentUpdate(Sender: TObject);
     procedure ActionImportSketchfabExecute(Sender: TObject);
     procedure ActionMaximizePreviewExecute(Sender: TObject);
     procedure ActionPhysicsShowAllJointsToolsExecute(Sender: TObject);
@@ -1070,6 +1071,11 @@ begin
   // synchronize with design (also when it's closed).
 
   Design.FindToggle;
+end;
+
+procedure TProjectForm.ActionComponentUpdate(Sender: TObject);
+begin
+  TAction(Sender).Enabled := Design <> nil;
 end;
 
 procedure TProjectForm.ActionPhysicsHideAllJointsToolsExecute(Sender: TObject);
