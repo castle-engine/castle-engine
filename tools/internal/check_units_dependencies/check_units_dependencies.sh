@@ -1,16 +1,26 @@
 #!/bin/bash
 set -euo pipefail
 
-# Extract information about unit dependencies,
-# including implementation dependencies.
-# Good script to keep track of dependencies between many CGE units.
+# ----------------------------------------------------------------------------
+# Extract and validate unit dependencies,
+# including implementation dependencies,
+# following https://castle-engine.io/units_map .
 #
-# This can only check units it can compile.
+# Note: This can only check units it can compile.
 # For now it assumes that it runs on a desktop Unix (like a Linux),
 # so it omits stuff specific to Windows, Android, it also omits stuff
 # that requires Lazarus LCL.
+#
+# It assumes we have castle-engine (build tool) somewhere on $PATH
+# that *will not* be cleaned by "make clean" in CGE.
+# In practice, this is executed by GitHub Action from
+# .github/workflows/check-dependencies.yml
+# which keeps castle-engine in installed/ (which is not cleaned).
+# ----------------------------------------------------------------------------
 
 CHECK_DIR=`pwd`
+# Rename check_one_unit_dependencies binary to avoid "make clean" removing it.
+mv -f check_one_unit_dependencies check_one_unit_dependencies_keep
 
 # Enter CGE src dir.
 cd "${CASTLE_ENGINE_PATH}"/src/
@@ -79,7 +89,7 @@ for F in `cat "${TMP_PAS_LIST}"`; do
   # echo "$DEPENDENCIES_TO_CHECK"
 
   set +e
-  "${CHECK_DIR}"/check_one_unit_dependencies "${TMP_PAS_LIST}" "$F" "$DEPENDENCIES_TO_CHECK"
+  "${CHECK_DIR}"/check_one_unit_dependencies_keep "${TMP_PAS_LIST}" "$F" "$DEPENDENCIES_TO_CHECK"
   if [ "$?" != 0 ]; then
     echo 'check_units_dependencies.sh: Failure detected, we will continue but exit with non-zero status at the end'
     SUCCESS='false'
