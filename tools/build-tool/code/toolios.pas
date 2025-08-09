@@ -601,7 +601,7 @@ const
     '%s* serviceInstance;' + NL +
     'serviceInstance = [[%0:s alloc] init];' + NL +
     'serviceInstance.mainController = viewController;' + NL +
-    'serviceInstance.window = self.window;' + NL +
+    'serviceInstance.window = sceneWindow;' + NL +
     '[services addObject: serviceInstance];' + NL +
     '}';
 
