@@ -24,6 +24,7 @@ See https://castle-engine.io/project_manifest for documentation of this file.
     <services>
       <service name="facebook">
         <parameter key="app_id" value="760026309941847" />
+        <parameter key="client_token" value="SECRET-ASK-MICHALIS" />
         <parameter key="app_title" value="Castle Game Engine Example" />
       </service>
     </services>

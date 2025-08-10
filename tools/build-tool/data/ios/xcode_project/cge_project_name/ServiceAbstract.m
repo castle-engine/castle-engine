@@ -39,6 +39,11 @@
     return NO;
 }
 
+- (BOOL)openURLContexts:(NSSet<UIOpenURLContext *> *)URLContexts
+{
+    return NO;
+}
+
 - (bool)messageReceived:(NSArray* )message
 {
     return FALSE;
