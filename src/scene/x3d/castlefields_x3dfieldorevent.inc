@@ -37,10 +37,10 @@
 
     { Implementation of AddAlternativeName uses it like this:
       - FAlternativeNames[0] is alternative for any VRML/X3D version
-      - FAlternativeNames[1], [2], [3] is alternative for VRML 1.0, VRML 2.0 (97) and X3D
-      - any FAlternativeNames[...] that is '' should be ignored
+      - FAlternativeNames[1..4] is alternative for VRML 1.0, VRML 2.0 (97), X3D 3.x, X3D 4.x
+      - if some FAlternativeNames[...] value is '' (not set) then it should be ignored
     }
-    FAlternativeNames: array of string;
+    FAlternativeNames: array of String;
   strict protected
     procedure FieldOrEventAssignCommon(Source: TX3DFieldOrEvent);
   public

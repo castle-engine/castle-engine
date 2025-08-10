@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="facebook_app_id" translatable="false">${ANDROID.FACEBOOK.APP_ID}</string>
+    <string name="facebook_client_token" translatable="false">${ANDROID.FACEBOOK.CLIENT_TOKEN}</string>
 </resources>

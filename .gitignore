@@ -169,6 +169,7 @@ castle-game-engine-*.fpm
 /examples/localization/deprecated_custom/castle_localization
 /examples/localization/gettext/localization_test
 /examples/localization/gettext/po_files/generator/po_generator
+/examples/mobile/facebook_integration/facebook_integration
 /examples/mobile/game_services/game_services_demo
 /examples/mobile/activity_recognition/activity_recognition
 /examples/mobile/drawing_toy/drawing_toy

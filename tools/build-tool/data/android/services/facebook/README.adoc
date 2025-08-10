@@ -6,14 +6,17 @@ This integration allows to use Facebook Analytics. Various events are logged aut
 
 You need to link the application to a Facebook application on http://developers.facebook.com/ :
 
-* In `CastleEngineManifest.xml`, you need to specify Facebook Application Id, like this:
+* In `CastleEngineManifest.xml`, you need to specify your Facebook Application _id_ and _client token_ like this:
 +
 [,xml]
 ----
   <service name="facebook">
     <parameter key="app_id" value="11223344" />
+    <parameter key="client_token" value="...." />
   </service>
 ----
++
+Follow the https://developers.facebook.com/docs/android/getting-started[Facebook SDK: Getting Started] for links how to get this information.
 
 * Fill the necessary information in the Facebook application settings. In particular:
 +

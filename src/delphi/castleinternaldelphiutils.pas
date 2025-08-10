@@ -72,7 +72,7 @@ implementation
 
 uses
   {$ifdef MSWINDOWS} CastleInternalContextWgl, {$endif}
-  {$ifdef LINUX} CastleInternalContextEgl, {$endif}
+  {$if defined(LINUX) or defined(ANDROID)} CastleInternalContextEgl, {$endif}
   CastleStringUtils, CastleLog;
 
 function MouseButtonToCastle(const MouseButton: TMouseButton;
@@ -613,7 +613,7 @@ function ContextCreateBestInstance: TGLContext;
 begin
   Result :=
     {$if defined(MSWINDOWS)} TGLContextWgl.Create
-    {$elseif defined(LINUX)} TGLContextEgl.Create
+    {$elseif defined(LINUX) or defined(ANDROID)} TGLContextEgl.Create
     {$else}
       {$message fatal 'Define how to create OpenGL context for this platform.'}
     {$endif}
