@@ -10,7 +10,9 @@ Follow links to Facebook integration docs from
 
 Using [Castle Game Engine](https://castle-engine.io/).
 
-![Screenshot](screenshot.png)
+<!-- ![Screenshot](screenshot.png) -->
+
+![Screenshot from iOS](screenshot_ios.jpg)
 
 ## Building
 
