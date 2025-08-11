@@ -41,7 +41,7 @@
         <PackageName Value="LCL"/>
       </Item4>
     </RequiredPackages>
-    <Units Count="31">
+    <Units Count="32">
       <Unit0>
         <Filename Value="castle_editor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -237,6 +237,13 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="DesignSteam"/>
       </Unit30>
+      <Unit31>
+        <Filename Value="code/frameterraineditor.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="TerrainEditorFrame"/>
+        <ResourceBaseClass Value="Frame"/>
+        <UnitName Value="FrameTerrainEditor"/>
+      </Unit31>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
