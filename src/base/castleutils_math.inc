@@ -291,8 +291,9 @@ function AngleRadPointToPoint(x1, y1, x2, y2: Single): Single;
 function NatNatPower(Base, Exponent: Cardinal): Cardinal;
 
 {$ifdef FPC}
-{ }
-function ArcCot(x: Float): Float;
+{ Calculate arc cotangent (inverse cotangent) of x, in radians.
+  Defined only for FPC, as Delphi features it in Math unit. }
+function ArcCot(const x: Float): Float;
 {$endif FPC}
 
 { Trivial factorial with Int64 result. Beware, the results very quickly
@@ -932,7 +933,7 @@ begin
 end;
 
 {$ifdef FPC}
-function ArcCot(x: Float): Float;
+function ArcCot(const x: Float): Float;
 begin
  result := ArcTan(1/x);
 end;
