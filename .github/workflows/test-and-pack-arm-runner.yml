@@ -53,7 +53,7 @@ jobs:
           base_image: raspios_lite_arm64:latest
           cpu_info: cpuinfo/raspberrypi_zero2_w_arm64_w
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: pguyot/arm-runner-action@v2
         with:
           base_image: ${{ matrix.base_image }}

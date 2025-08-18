@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     container: kambi/castle-engine-cloud-builds-tools:cge-none
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set environment
         run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
       - name: Set environment PATH to include cge installed/bin/
