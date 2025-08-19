@@ -12,7 +12,7 @@ object DesignFrame: TDesignFrame
   DesignLeft = 659
   DesignTop = 283
   object SplitterLeft: TSplitter
-    Left = 255
+    Left = 266
     Height = 522
     Top = 0
     Width = 8
@@ -38,7 +38,7 @@ object DesignFrame: TDesignFrame
     TabOrder = 2
     object LabelControlSelected: TLabel
       Left = 5
-      Height = 42
+      Height = 44
       Top = 5
       Width = 302
       Align = alTop
@@ -49,8 +49,8 @@ object DesignFrame: TDesignFrame
     end
     object ControlProperties: TPageControl
       Left = 0
-      Height = 470
-      Top = 52
+      Height = 468
+      Top = 54
       Width = 312
       ActivePage = TabInfo
       Align = alClient
@@ -63,12 +63,12 @@ object DesignFrame: TDesignFrame
       end
       object TabLayout: TTabSheet
         Caption = 'Layout'
-        ClientHeight = 435
+        ClientHeight = 432
         ClientWidth = 302
         ParentFont = False
         object PanelLayoutTop: TPanel
           Left = 0
-          Height = 316
+          Height = 319
           Top = 0
           Width = 302
           Align = alTop
@@ -77,20 +77,20 @@ object DesignFrame: TDesignFrame
           ChildSizing.ShrinkHorizontal = crsHomogenousSpaceResize
           ChildSizing.Layout = cclTopToBottomThenLeftToRight
           ChildSizing.ControlsPerLine = 100
-          ClientHeight = 316
+          ClientHeight = 319
           ClientWidth = 302
           ParentFont = False
           TabOrder = 0
           object PanelAnchors: TPanel
             Left = 0
-            Height = 263
+            Height = 265
             Top = 0
             Width = 318
             AutoSize = True
             BevelOuter = bvNone
             ChildSizing.LeftRightSpacing = 8
             ChildSizing.TopBottomSpacing = 8
-            ClientHeight = 263
+            ClientHeight = 265
             ClientWidth = 318
             ParentColor = False
             ParentFont = False
@@ -99,8 +99,8 @@ object DesignFrame: TDesignFrame
               AnchorSideTop.Control = SelfAnchorsFrame
               AnchorSideTop.Side = asrBottom
               Left = 8
-              Height = 25
-              Top = 230
+              Height = 26
+              Top = 231
               Width = 294
               BorderSpacing.Top = 8
               Caption = 'Anchor to the same side of Parent'
@@ -114,7 +114,7 @@ object DesignFrame: TDesignFrame
               AnchorSideTop.Side = asrBottom
               Left = 8
               Height = 169
-              Top = 53
+              Top = 54
               Width = 146
               BorderSpacing.Top = 8
               ClientHeight = 169
@@ -125,7 +125,7 @@ object DesignFrame: TDesignFrame
               inherited GroupBox1: TGroupBox
                 Height = 169
                 Width = 146
-                ClientHeight = 147
+                ClientHeight = 146
                 ClientWidth = 144
                 inherited ButtonLeftTop: TSpeedButton
                   Height = 42
@@ -184,7 +184,7 @@ object DesignFrame: TDesignFrame
               AnchorSideTop.Side = asrBottom
               Left = 164
               Height = 169
-              Top = 53
+              Top = 54
               Width = 146
               BorderSpacing.Left = 10
               BorderSpacing.Top = 8
@@ -197,7 +197,7 @@ object DesignFrame: TDesignFrame
                 Height = 169
                 Width = 146
                 Caption = 'Parent Side'
-                ClientHeight = 147
+                ClientHeight = 146
                 ClientWidth = 144
                 inherited ButtonLeftTop: TSpeedButton
                   Height = 42
@@ -252,7 +252,7 @@ object DesignFrame: TDesignFrame
             object ButtonClearTranslation: TButton
               AnchorSideLeft.Control = SelfAnchorsFrame
               Left = 8
-              Height = 37
+              Height = 38
               Top = 8
               Width = 170
               AutoSize = True
@@ -267,7 +267,7 @@ object DesignFrame: TDesignFrame
               AnchorSideTop.Control = ButtonClearTranslation
               AnchorSideRight.Side = asrBottom
               Left = 202
-              Height = 21
+              Height = 22
               Top = 8
               Width = 85
               BorderSpacing.Left = 24
@@ -282,8 +282,8 @@ object DesignFrame: TDesignFrame
           end
           object PanelLayoutTransform: TPanel
             Left = 0
-            Height = 53
-            Top = 263
+            Height = 54
+            Top = 265
             Width = 318
             AutoSize = True
             BevelOuter = bvNone
@@ -293,13 +293,13 @@ object DesignFrame: TDesignFrame
             ChildSizing.VerticalSpacing = 8
             ChildSizing.Layout = cclLeftToRightThenTopToBottom
             ChildSizing.ControlsPerLine = 10
-            ClientHeight = 53
+            ClientHeight = 54
             ClientWidth = 318
             ParentFont = False
             TabOrder = 1
             object ButtonResetTransformation: TButton
               Left = 8
-              Height = 37
+              Height = 38
               Top = 8
               Width = 188
               AutoSize = True
@@ -313,24 +313,24 @@ object DesignFrame: TDesignFrame
       end
       object TabEvents: TTabSheet
         Caption = 'Events'
-        ClientHeight = 435
+        ClientHeight = 432
         ClientWidth = 302
         ParentFont = False
         object PanelEventsInfo: TPanel
           Left = 0
-          Height = 100
+          Height = 104
           Top = 0
           Width = 302
           Align = alTop
           AutoSize = True
           BevelOuter = bvNone
-          ClientHeight = 100
+          ClientHeight = 104
           ClientWidth = 302
           ParentFont = False
           TabOrder = 0
           object LabelEventsInfo: TLabel
             Left = 8
-            Height = 84
+            Height = 88
             Top = 8
             Width = 286
             Align = alTop
@@ -348,11 +348,11 @@ object DesignFrame: TDesignFrame
       end
       object TabInfo: TTabSheet
         Caption = 'Info'
-        ClientHeight = 435
+        ClientHeight = 432
         ClientWidth = 302
         object MemoInfo: TMemo
           Left = 8
-          Height = 419
+          Height = 416
           Top = 8
           Width = 286
           Align = alClient
@@ -383,24 +383,37 @@ object DesignFrame: TDesignFrame
       ShowHint = True
       ParentShowHint = False
     end
+    object ButtonStartFinishEditMode: TButton
+      AnchorSideTop.Control = ButtonApiReferenceForCurrent
+      AnchorSideRight.Control = ButtonApiReferenceForCurrent
+      Left = 160
+      Height = 38
+      Top = 5
+      Width = 107
+      Action = ActionEditTerrain
+      Anchors = [akTop, akRight]
+      AutoSize = True
+      BorderSpacing.Right = 5
+      TabOrder = 1
+    end
   end
   object PanelLeft: TPanel
     Left = 0
     Height = 522
     Top = 0
-    Width = 255
+    Width = 266
     Align = alLeft
     BevelOuter = bvNone
     ClientHeight = 522
-    ClientWidth = 255
+    ClientWidth = 266
     ParentFont = False
     TabOrder = 3
     object ControlsTree: TTreeView
       Left = 0
-      Height = 453
+      Height = 451
       Hint = 'Select a component.'#10'Hold "Ctrl" or "Shift" to select multiple components.'#10#10'Drag the component to move it to the front, back or change the parent.'#10'Hold "Ctrl" when dropping to not preserve the world transformation when changing parent.'
-      Top = 69
-      Width = 255
+      Top = 71
+      Width = 266
       Align = alClient
       DragMode = dmAutomatic
       MultiSelect = True
@@ -424,9 +437,9 @@ object DesignFrame: TDesignFrame
     end
     object LabelHierarchy: TLabel
       Left = 5
-      Height = 21
+      Height = 22
       Top = 5
-      Width = 245
+      Width = 256
       Align = alTop
       BorderSpacing.Around = 5
       Caption = 'Hierarchy'
@@ -435,9 +448,9 @@ object DesignFrame: TDesignFrame
     end
     object EditFindInHierarchy: TEdit
       Left = 0
-      Height = 38
-      Top = 31
-      Width = 255
+      Height = 39
+      Top = 32
+      Width = 266
       Align = alTop
       Enabled = False
       TabOrder = 1
@@ -447,21 +460,21 @@ object DesignFrame: TDesignFrame
     end
   end
   object PanelMiddle: TPanel
-    Left = 263
+    Left = 274
     Height = 522
     Top = 0
-    Width = 654
+    Width = 643
     Align = alClient
     BevelOuter = bvNone
     ClientHeight = 522
-    ClientWidth = 654
+    ClientWidth = 643
     ParentFont = False
     TabOrder = 4
     object PanelMiddleTop: TPanel
       Left = 5
-      Height = 38
+      Height = 39
       Top = 5
-      Width = 644
+      Width = 633
       Align = alTop
       AutoSize = True
       BorderSpacing.Around = 5
@@ -469,15 +482,15 @@ object DesignFrame: TDesignFrame
       ChildSizing.HorizontalSpacing = 4
       ChildSizing.Layout = cclLeftToRightThenTopToBottom
       ChildSizing.ControlsPerLine = 100
-      ClientHeight = 38
-      ClientWidth = 644
+      ClientHeight = 39
+      ClientWidth = 633
       ParentFont = False
       ParentShowHint = False
       ShowHint = True
       TabOrder = 0
       object ButtonInteractMode: TSpeedButton
         Left = 0
-        Height = 38
+        Height = 39
         Hint = 'Interact with components like a normal user (click buttons, drag scrollbars etc.).'#10#10'(Alt+1)'
         Top = 0
         Width = 33
@@ -624,7 +637,7 @@ object DesignFrame: TDesignFrame
       end
       object ButtonSelectMode: TSpeedButton
         Left = 37
-        Height = 38
+        Height = 39
         Hint = 'Select components.'#10#10'(Alt+2)'
         Top = 0
         Width = 33
@@ -771,7 +784,7 @@ object DesignFrame: TDesignFrame
       end
       object ButtonTranslateMode: TSpeedButton
         Left = 74
-        Height = 38
+        Height = 39
         Hint = 'Move (and Select) components.'#10'Hold "Shift" to Move without changing the selection.'#10#10'(Alt+3)'
         Top = 0
         Width = 33
@@ -918,7 +931,7 @@ object DesignFrame: TDesignFrame
       end
       object ButtonRotateMode: TSpeedButton
         Left = 111
-        Height = 38
+        Height = 39
         Hint = 'Rotate (and Select) components.'#10'Hold "Shift" to Rotate without changing the selection.'#10#10'(Alt+4)'
         Top = 0
         Width = 33
@@ -1065,7 +1078,7 @@ object DesignFrame: TDesignFrame
       end
       object ButtonScaleMode: TSpeedButton
         Left = 148
-        Height = 38
+        Height = 39
         Hint = 'Scale (and Select) components.'#10'Hold "Shift" to Scale without changing the selection.'#10#10'(Alt+5)'
         Top = 0
         Width = 33
@@ -1212,7 +1225,7 @@ object DesignFrame: TDesignFrame
       end
       object LabelHeaderUi: TLabel
         Left = 191
-        Height = 38
+        Height = 39
         Top = 0
         Width = 62
         BorderSpacing.Left = 10
@@ -1224,20 +1237,20 @@ object DesignFrame: TDesignFrame
       end
       object PanelSpinEditAllowVerticalCentering: TPanel
         Left = 263
-        Height = 38
+        Height = 39
         Top = 0
         Width = 63
         AutoSize = True
         BorderSpacing.CellAlignHorizontal = ccaCenter
         BorderSpacing.CellAlignVertical = ccaCenter
         BevelOuter = bvNone
-        ClientHeight = 38
+        ClientHeight = 39
         ClientWidth = 63
         TabOrder = 0
         object SpinEditSnap: TSpinEdit
           AnchorSideLeft.Side = asrBottom
           Left = 0
-          Height = 38
+          Height = 39
           Hint = 'Snap (when moving/resizing UI)'
           Top = 0
           Width = 63
@@ -1249,7 +1262,7 @@ object DesignFrame: TDesignFrame
       end
       object ButtonPlayStop: TSpeedButton
         Left = 356
-        Height = 38
+        Height = 39
         Top = 0
         Width = 36
         Action = ActionPlayStop
@@ -1267,7 +1280,7 @@ object DesignFrame: TDesignFrame
       object LabelSimulation: TLabel
         AnchorSideTop.Side = asrCenter
         Left = 422
-        Height = 38
+        Height = 39
         Top = 0
         Width = 61
         BorderSpacing.Left = 30
@@ -1279,7 +1292,7 @@ object DesignFrame: TDesignFrame
       end
       object ButtonSimulationPlayStop: TSpeedButton
         Left = 493
-        Height = 38
+        Height = 39
         Top = 0
         Width = 36
         Action = ActionSimulationPlayStop
@@ -1295,7 +1308,7 @@ object DesignFrame: TDesignFrame
       end
       object ButtonSimulationPause: TSpeedButton
         Left = 533
-        Height = 38
+        Height = 39
         Top = 0
         Width = 36
         Action = ActionSimulationPauseUnpause
@@ -1311,7 +1324,7 @@ object DesignFrame: TDesignFrame
       end
       object LabelViewport: TLabel
         Left = 605
-        Height = 38
+        Height = 39
         Top = 0
         Width = 218
         BorderSpacing.Left = 36
@@ -1456,6 +1469,11 @@ object DesignFrame: TDesignFrame
       Hint = 'Help for Current Component / Property'#10'(F1)'
       ImageIndex = 12
       OnExecute = ActionApiReferenceOfCurrentExecute
+    end
+    object ActionEditTerrain: TAction
+      Category = 'Terrain'
+      Caption = 'Edit Terrain'
+      OnExecute = ActionEditTerrainExecute
     end
   end
   object ExportToModelDialog: TCastleSaveDialog

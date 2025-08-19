@@ -83,9 +83,25 @@ interface
 uses SysUtils, Classes,
   CastleClassUtils, CastleScript, CastleImages, X3DNodes, CastleVectors,
   CastleRectangles, CastleTransform, CastleScene, X3DFields, CastleRenderOptions,
-  CastleColors, CastleTriangles;
+  CastleColors, CastleTriangles, CastleViewport, CastleUIControls,
+  CastleGLImages, CastleGLShaders;
 
 type
+  TCastleTerrainMode = (
+    ctmMesh, // build mesh from image
+    ctmShader // simple mesh modified by vertex shader
+  );
+
+  TCastleTerrainBrush = (
+    ctbFixedSquare, // white square for testing purposes
+    ctbSquare, // square texture with alpha using strength
+    ctbPyramid, // square texture with alpha based on distance from center and strength
+    ctbCircle, // circle texture with alpha using strength
+    ctbCone, // circle with alpha based on distance from center and strength
+    ctbRing, // volcano like brush?
+    ctbLyingCylinder // horizontal cylinder
+  );
+
   { Terrain (height map) data that can be used for @link(TCastleTerrain.Data). }
   TCastleTerrainData = class(TCastleComponent)
   strict private
@@ -175,6 +191,9 @@ type
     that is: both MinLevel<MaxLevel and MinLevel>MaxLevel are valid.
 
     When image is not loaded, it behaves like all the image intensities are 0.5. }
+
+  { TCastleTerrainImage }
+
   TCastleTerrainImage = class(TCastleTerrainData)
   strict private
     { FImage = nil and FUrl = '' when not loaded. }
@@ -189,6 +208,7 @@ type
     destructor Destroy; override;
     function Height(const Coord, TexCoord: TVector2): Single; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
+    property Image: TGrayscaleFloatImage read FImage;
   published
     { Image URL. Empty string means that no image is loaded. }
     property Url: String read FUrl write SetUrl;
@@ -500,6 +520,74 @@ type
   {$undef read_interface_class}
   end;
 
+  { Editing operations on a terrain. }
+  TCastleTerrainEditor = class
+  strict private
+    FTerrain: TCastleTerrain;
+    FEffectTextureHeightField: TSFNode;
+    FShaderHeightTexture1: TImageTextureNode;
+    FShaderHeightTexture2: TImageTextureNode;
+    FSourceViewport: TCastleViewport;
+    FHeightTextureScene: TCastleScene;
+    FApperance: TAppearanceNode;
+    // FTempContainer: TCastleContainer;
+    // FBrush: TDrawableImage;
+    FBrushShader: TGLSLProgram;
+    FHeightMapSize: TVector2Integer;
+    FTerrainModified: Boolean;
+    DebugImage: TGrayscaleImage;
+
+    { Create edit mode viewport with texture based on copy of TextureNode
+      when we create viewport. This texture content is not important,
+      only the size is used becouse we change OpenGL texture id before redering. }
+    procedure PrepareViewport(const TextureNode: TImageTextureNode);
+    { Allows you to draw with another texture using its id. You need to call
+      ResetOpenGLTextureInViewport after drawing }
+    function ShareOpenGLTextureToViewport(const TextureNode: TImageTextureNode): TGLTextureId;
+    { Resets texture id to given one, should use id from
+      ShareOpenGLTextureToViewport result }
+    procedure ResetOpenGLTextureInViewport(const PreviousGLTextureId: TGLTextureId);
+
+    procedure PrepareBrushShader(const Brush: TDrawableImage;
+      const BrushShape: TCastleTerrainBrush; const BrushSize: Integer;
+      const Strength, BrushMaxHeight: Byte; const RingThickness: Single);
+
+    function CreateTerrainIndexedTriangleNode(const Subdivisions: TVector2;
+      const InputRange, OutputRange: TFloatRectangle;
+      const Appearance: TAppearanceNode): TAbstractChildNode;
+  private
+    function UpdateGeometry(const InputRange, OutputRange: TFloatRectangle;
+      const Appearance: TAppearanceNode): TAbstractChildNode;
+
+    procedure SetTerrainModified(const Modified: Boolean);
+  public
+    constructor Create(ATerrain: TCastleTerrain);
+    destructor Destroy; override;
+
+    { Raises, loweres or levels the terrain at a specified coordinate with,
+      a specified size, strength and maximum height.
+
+      Changing the maximum height from 255 to 0 loweres terrain,
+      intermediate values levels terrain. }
+    procedure AlterTerrain(
+      const Container: TCastleContainer; const Coord: TVector3;
+      const BrushShape: TCastleTerrainBrush; const BrushSize: Integer;
+      const Strength: Byte; const BrushRotation: Single = 0; const BrushMaxHeight: Byte = 255;
+      const RingBrushThickness: Single = 1.0);
+
+    procedure SetHeightMapSize(const NewSize: TVector2Integer);
+    function GetHeightMapSize: TVector2Integer;
+
+    procedure LoadHeightMapFromData;
+
+    { Returns terrain height in Coord }
+    function TerrainHeight(const Coord: TVector3): Byte;
+
+    procedure SaveHeightMap(const AUrl: String);
+
+    property TerrainModified: Boolean read FTerrainModified;
+  end;
+
   { Terrain.
 
     Assign @link(Data) to provide some non-trivial height map, you can use there:
@@ -558,7 +646,6 @@ type
   strict private
     TerrainNode: TAbstractChildNode;
     Appearance: TAppearanceNode;
-    Effect: TEffectNode;
     HeightsFields: array [1..HeightsCount] of TSFFloat;
     Layers: array [1..LayersCount] of TCastleTerrainLayer;
     FData: TCastleTerrainData;
@@ -570,6 +657,10 @@ type
     FSubdivisions: TVector2;
     FPreciseCollisions: Boolean;
     FUpdateGeometryWhenLoaded: Boolean;
+
+    FMode: TCastleTerrainMode;
+    FEditor: TCastleTerrainEditor;
+
     function GetRenderOptions: TCastleRenderOptions;
     function GetLayer(const Index: Integer): TCastleTerrainLayer;
     procedure DataFreeNotification(const Sender: TFreeNotificationObserver);
@@ -589,7 +680,10 @@ type
     procedure SetLayersInfluence(const Value: Single);
     procedure SetSteepEmphasize(const Value: Single);
     procedure SetPreciseCollisions(const Value: Boolean);
+
+    procedure SetMode(const NewMode: TCastleTerrainMode);
   private
+    Effect: TEffectNode;
     Scene: TCastleScene;
     UvScaleField, MetallicField, RoughnessField: TSFVec4f;
   protected
@@ -663,6 +757,13 @@ type
 
     property Triangulate: Boolean read FTriangulationIgnoreHeights write SetTriangulationIgnoreHeights;
       {$ifdef FPC}deprecated 'use TriangulationIgnoreHeights';{$endif}
+
+    property Mode: TCastleTerrainMode read FMode write SetMode;
+
+    { Perform editing operations using this editor.
+      Created on first access.
+      Requires @link(RenderMode) to be ctmShader. }
+    function Editor: TCastleTerrainEditor;
   published
     { Options used to render the terrain. Can be used e.g. to toggle wireframe rendering. }
     property RenderOptions: TCastleRenderOptions read GetRenderOptions;
@@ -744,7 +845,8 @@ implementation
 
 uses Math,
   CastleUtils, CastleScriptParser, CastleInternalNoise, CastleDownload, CastleLog,
-  CastleUriUtils, CastleComponentSerialize;
+  CastleUriUtils, CastleComponentSerialize, CastleInternalRenderer,
+  CastleGL, CastleProjection;
 
 { TCastleTerrainData ------------------------------------------------------------------- }
 
@@ -1460,6 +1562,549 @@ begin
   end;
 end;
 
+{ TCastleTerrainEditor ----------------------------------------------------- }
+
+procedure TCastleTerrainEditor.PrepareViewport(
+  const TextureNode: TImageTextureNode);
+var
+  QuadSet: TQuadSetNode;
+  Coord: TCoordinateNode;
+  TexCoord: TTextureCoordinateNode;
+  Shape: TShapeNode;
+  Root: TX3DRootNode;
+  Material: TUnlitMaterialNode;
+  TextureCopy: TImageTextureNode;
+  TexWidth, TexHeight: Integer;
+
+  Camera: TCastleCamera;
+
+  function TextureSizeChanged: Boolean;
+  begin
+    Result := ((TImageTextureNode(FApperance.Texture).TextureImage.Width <> TexWidth) or
+     (TImageTextureNode(FApperance.Texture).TextureImage.Height <> TexHeight));
+  end;
+
+begin
+  TexWidth := TextureNode.TextureImage.Width;
+  TexHeight := TextureNode.TextureImage.Height;
+
+  if (FSourceViewport <> nil) and TextureSizeChanged then
+  begin
+    FreeAndNil(FSourceViewport);
+    FApperance := nil;
+  end;
+
+  if FSourceViewport = nil then
+  begin
+    FSourceViewport := TCastleViewport.Create(FTerrain);
+
+    Coord := TCoordinateNode.Create;
+    Coord.SetPoint([
+          Vector3(0, TexHeight, 0),
+          Vector3(0, 0, 0),
+          Vector3(TexWidth, 0, 0),
+          Vector3(TexWidth, TexHeight, 0)
+        ]);
+
+    TexCoord := TTextureCoordinateNode.Create;
+    TexCoord.SetPoint([Vector2(0, 1), Vector2(0, 0), Vector2(1, 0), Vector2(1, 1)]);
+
+    QuadSet := TQuadSetNode.CreateWithShape(Shape);
+    QuadSet.Coord := Coord;
+    QuadSet.TexCoord := TexCoord;
+    QuadSet.Solid := false;
+
+    FApperance := TAppearanceNode.Create;
+
+    Material := TUnlitMaterialNode.Create;
+    Material.EmissiveColor := Vector3(1, 1, 1);
+
+    FApperance.Material := Material;
+
+    TextureCopy := TImageTextureNode.Create;
+    TextureCopy.LoadFromImage(TextureNode.TextureImage, false, '');
+    FApperance.Texture := TextureCopy;
+
+    Shape.Appearance := FApperance;
+
+    Root := TX3DRootNode.Create;
+    Root.AddChildren(Shape);
+
+    FHeightTextureScene := TCastleScene.Create(FSourceViewport);
+    FHeightTextureScene.Load(Root, true);
+
+    FSourceViewport.Items.Add(FHeightTextureScene);
+    Camera := TCastleCamera.Create(FHeightTextureScene);
+    FSourceViewport.Items.Add(Camera);
+    Camera.ProjectionType := ptOrthographic;
+    Camera.Orthographic.Width := TexWidth;
+    Camera.Orthographic.Height := TexHeight;
+    Camera.Orthographic.Origin := Vector2(0, 0);
+    Camera.Direction := Vector3(0, 0, -1);
+    Camera.Translation := Vector3(0,0, 500);
+
+    FSourceViewport.Camera := Camera;
+    FSourceViewport.Width := TexWidth;
+    FSourceViewport.Height := TexHeight;
+    FSourceViewport.EnableUIScaling := false;
+  end;
+end;
+
+function TCastleTerrainEditor.ShareOpenGLTextureToViewport(
+  const TextureNode: TImageTextureNode): TGLTextureId;
+var
+  TextureNodeTextureId: TGLTextureId;
+begin
+  TextureNodeTextureId := TImageTextureResource(TextureNode.InternalRendererResource).GLName;
+
+  if FApperance.Texture.InternalRendererResource = nil then
+    TTextureResources.Prepare(FTerrain.RenderOptions, FApperance.Texture);
+
+  Result := TImageTextureResource(FApperance.Texture.InternalRendererResource).GLName;
+
+  TImageTextureResource(FApperance.Texture.InternalRendererResource).InternalSetGLName(TextureNodeTextureId);
+end;
+
+procedure TCastleTerrainEditor.ResetOpenGLTextureInViewport(
+  const PreviousGLTextureId: TGLTextureId);
+begin
+  if FApperance.Texture.InternalRendererResource = nil then
+    Exit;
+
+  TImageTextureResource(FApperance.Texture.InternalRendererResource).InternalSetGLName(PreviousGLTextureId);
+end;
+
+procedure TCastleTerrainEditor.PrepareBrushShader(
+  const Brush: TDrawableImage; const BrushShape: TCastleTerrainBrush;
+  const BrushSize: Integer; const Strength, BrushMaxHeight: Byte;
+  const RingThickness: Single);
+begin
+  if FBrushShader = nil then
+  begin
+    FBrushShader := TGLSLProgram.Create;
+    FBrushShader.AttachVertexShader({$I terrain_edit_brush.vs.inc});
+    FBrushShader.AttachFragmentShader({$I terrain_edit_brush.fs.inc});
+    FBrushShader.Link;
+  end;
+  FBrushShader.Uniform('brush_shape').SetValue(Ord(BrushShape));
+  FBrushShader.Uniform('strength').SetValue(Strength / 255);
+  FBrushShader.Uniform('max_terrain_height').SetValue(BrushMaxHeight / 255);
+  FBrushShader.Uniform('brush_size').SetValue(BrushSize);
+  FBrushShader.Uniform('ring_thickness').SetValue(RingThickness);
+
+  Brush.CustomShader := FBrushShader;
+end;
+
+function TCastleTerrainEditor.CreateTerrainIndexedTriangleNode(
+  const Subdivisions: TVector2; const InputRange, OutputRange: TFloatRectangle;
+  const Appearance: TAppearanceNode): TAbstractChildNode;
+var
+  Transform: TTransformNode;
+  Shape: TShapeNode;
+  Grid: TElevationGridNode;
+  SubdivisionsX, SubdivisionsZ: Cardinal;
+begin
+  SubdivisionsX := Round(Subdivisions.X);
+  SubdivisionsZ := Round(Subdivisions.Y);
+
+  Transform := TTransformNode.Create;
+  Transform.ClearChildren;
+  Transform.Translation := Vector3(OutputRange.Left, 0, OutputRange.Bottom);
+
+  Shape := TShapeNode.Create;
+
+  Grid := TElevationGridNode.Create;
+  Shape.FdGeometry.Value := Grid;
+  Grid.FdCreaseAngle.Value := 4; { > pi, to be perfectly smooth }
+  Grid.FdXDimension.Value := SubdivisionsX;
+  Grid.FdZDimension.Value := SubdivisionsZ;
+  Grid.FdXSpacing.Value := OutputRange.Width  / (SubdivisionsX - 1);
+  Grid.FdZSpacing.Value := OutputRange.Height / (SubdivisionsZ - 1);
+  Grid.FdHeight.Items.Count := SubdivisionsX * SubdivisionsZ;
+
+  Shape.Appearance := Appearance;
+
+  if FShaderHeightTexture1 = nil then
+  begin
+    FShaderHeightTexture1 := TImageTextureNode.Create;
+    FShaderHeightTexture1.KeepExistingBegin;
+  end;
+  if FShaderHeightTexture2 = nil then
+  begin
+    FShaderHeightTexture2 := TImageTextureNode.Create;
+    FShaderHeightTexture2.KeepExistingBegin;
+  end;
+
+  LoadHeightMapFromData;
+
+  if FEffectTextureHeightField = nil then
+  begin
+    FEffectTextureHeightField := TSFNode.Create(FTerrain.Effect, true, 'heightTexture', [TImageTextureNode], FShaderHeightTexture1);
+    FTerrain.Effect.AddCustomField(FEffectTextureHeightField);
+  end else
+    FEffectTextureHeightField.Send(FShaderHeightTexture1);
+
+  // at the end, as this may cause Scene.ChangedAll
+  Transform.AddChildren(Shape);
+  Result := Transform;
+end;
+
+function TCastleTerrainEditor.UpdateGeometry(const InputRange, OutputRange: TFloatRectangle;
+      const Appearance: TAppearanceNode): TAbstractChildNode;
+var
+  Root: TX3DRootNode;
+begin
+  if FSourceViewport <> nil then
+  begin
+    FreeAndNil(FSourceViewport);
+    FApperance := nil;
+  end;
+
+  Root := TX3DRootNode.Create;
+  Result := CreateTerrainIndexedTriangleNode(FTerrain.Subdivisions, InputRange, OutputRange, Appearance);
+  Root.AddChildren(Result);
+  FTerrain.Scene.Load(Root, true);
+  FTerrain.Scene.RenderOptions.WireframeEffect := weSolidWireframe;
+end;
+
+procedure TCastleTerrainEditor.SetTerrainModified(const Modified: Boolean);
+begin
+  FTerrainModified := Modified;
+end;
+
+constructor TCastleTerrainEditor.Create(ATerrain: TCastleTerrain);
+begin
+  Assert(ATerrain <> nil, 'Terrain can''t be nil');
+
+  FTerrain := ATerrain;
+  FHeightMapSize.X := 64;
+  FHeightMapSize.Y := 64;
+end;
+
+destructor TCastleTerrainEditor.Destroy;
+begin
+  FShaderHeightTexture1.KeepExistingEnd;
+  FShaderHeightTexture2.KeepExistingEnd;
+
+  FreeAndNil(FSourceViewport);
+  inherited Destroy;
+end;
+
+procedure TCastleTerrainEditor.AlterTerrain(
+  const Container: TCastleContainer; const Coord: TVector3;
+  const BrushShape: TCastleTerrainBrush; const BrushSize: Integer;
+  const Strength: Byte; const BrushRotation: Single;
+  const BrushMaxHeight: Byte; const RingBrushThickness: Single);
+var
+  RenderToTexture: TGLRenderToTexture;
+  Source: TDrawableImage;
+  Brush: TDrawableImage;
+  TargetTexture: TImageTextureNode;
+  SourceTexture: TImageTextureNode;
+  LocalCoord: TVector3;
+  TexX, TexY: Single;
+  PX, PY: Integer;
+  TextureWidth, TextureHeight : Integer;
+  Image: TCastleImage;
+  // ViewportRect: TRectangle;
+  // PreviousTextureId: TGLTextureId;
+
+  function GetCurrentlyUsedTexture: TImageTextureNode;
+  begin
+    Result := TImageTextureNode(FEffectTextureHeightField.Value);
+  end;
+
+  function GetTargetTexture: TImageTextureNode;
+  begin
+    if FEffectTextureHeightField.Value = FShaderHeightTexture1 then
+      Result := FShaderHeightTexture2
+    else
+      Result := FShaderHeightTexture1;
+  end;
+
+  procedure DebugSaveImage;
+  begin
+    FreeAndNil(DebugImage);
+    DebugImage := TGrayscaleImage.Create(TextureWidth, TextureHeight);
+    SaveTextureContents(DebugImage, TImageTextureResource(SourceTexture.InternalRendererResource).GLName);
+  end;
+
+  procedure UpdateDebugImage;
+  var
+    TexNode: TImageTextureNode;
+  begin
+    if DebugImage <> nil then
+    begin
+      TexNode := TImageTextureNode.Create;
+      TexNode.LoadFromImage(DebugImage, false, '');
+      FApperance.Texture := TexNode;
+    end;
+  end;
+
+begin
+  if BrushSize = 0 then
+    Exit;
+
+  FTerrainModified := true;
+
+  SourceTexture := GetCurrentlyUsedTexture;
+  TargetTexture := GetTargetTexture;
+
+  TextureWidth := SourceTexture.TextureImage.Width;
+  TextureHeight := SourceTexture.TextureImage.Height;
+  RenderToTexture := TGLRenderToTexture.Create(TextureWidth, TextureHeight);
+  try
+    RenderToTexture.Buffer := tbColor;
+
+    if TargetTexture.InternalRendererResource = nil then
+      TTextureResources.Prepare(FTerrain.RenderOptions, TargetTexture);
+    if TargetTexture.InternalRendererResource = nil then
+    begin
+      WritelnLog('Texture not ready');
+      Exit;
+    end;
+    RenderToTexture.SetTexture(TImageTextureResource(TargetTexture.InternalRendererResource).GLName, GL_TEXTURE_2D);
+    RenderToTexture.GLContextOpen;
+    RenderToTexture.RenderBegin;
+
+
+    // not working because we have changes only on gpu side
+    //Source := TDrawableImage.Create(SourceTexture.TextureImage, true, false);
+
+    { This is slower aproach but works in TCastleControl. See below for a faster
+      solution (commented) but not working with TCastleControl. }
+    Image := TGrayscaleImage.Create(TextureWidth, TextureHeight);
+    try
+      SaveTextureContents(Image, TImageTextureResource(SourceTexture.InternalRendererResource).GLName);
+
+      Source := TDrawableImage.Create(Image, false, false);
+      try
+        //Source.Draw(0,0, TextureWidth, TextureHeight);
+        Source.Draw(0,0);
+      finally
+        FreeAndNil(Source);
+      end;
+    finally
+      FreeAndNil(Image);
+    end;
+
+    { After resize texture may be not ready (not Prepared in OpenGL). }
+    if SourceTexture.InternalRendererResource = nil then
+      TTextureResources.Prepare(FTerrain.RenderOptions, SourceTexture);
+    if SourceTexture.InternalRendererResource = nil then
+    begin
+      WritelnLog('Source texture not ready');
+      Exit;
+    end;
+
+    { This is faster aproach without copying from/to gpu on every frame
+      but not working in TCastleControl. }
+    {PrepareViewport(SourceTexture);
+    PreviousTextureId := ShareOpenGLTextureToViewport(SourceTexture);
+    try
+      WritelnLog('FHeightMapSize.X' + IntToStr(FHeightMapSize.X));
+      ViewportRect := Rectangle(0, 0, FHeightMapSize.X, FHeightMapSize.Y);
+      if Container.Controls.IndexOf(FSourceViewport) = -1 then
+        Container.Controls.InsertFront(FSourceViewport);
+      Container.RenderControl(FSourceViewport, ViewportRect);
+
+      DebugSaveImage;
+
+      //Container.Controls.Remove(FSourceViewport);
+    finally
+      ResetOpenGLTextureInViewport(PreviousTextureId);
+    end;
+    UpdateDebugImage;}
+
+    // TODO: don't do that every time
+    Image := TRGBAlphaImage.Create(BrushSize, BrushSize);
+    Brush := TDrawableImage.Create(Image, false, true);
+    try
+    PrepareBrushShader(Brush, BrushShape,
+      BrushSize, Strength, BrushMaxHeight, RingBrushThickness);
+
+    Brush.Rotation := BrushRotation;
+    // map to 0 - 1 range of texture.
+    LocalCoord := FTerrain.OutsideToLocal(Coord);
+    //WritelnLog('LocalCoord: ' + LocalCoord.ToString);
+    TexX := MapRangeTo01(LocalCoord.X + FTerrain.Size.X/2, 0, FTerrain.Size.X);
+    TexY := MapRangeTo01(LocalCoord.Z + FTerrain.Size.Y/2, 0, FTerrain.Size.Y);
+    TexY := 1 - TexY;
+    //WritelnLog('Texture Map coords: ' + FloatToStr(TexX) + ', ' + FloatToStr(TexY));
+
+    // map to pixels
+    PX := Floor(TexX * TextureWidth );
+    PY := Floor(TexY * TextureHeight);
+    ClampVar(PX, 0, TextureWidth  - 1);
+    ClampVar(PY, 0, TextureHeight - 1);
+
+    //WritelnLog('Height Map coords: ' + IntToStr(PX) + ', ' + IntToStr(PY));
+    Brush.Draw(PX - Brush.Width / 2, PY - Brush.Height / 2);
+
+    finally
+      FreeAndNil(Brush);
+    end;
+
+    RenderToTexture.RenderEnd;
+  finally
+    FreeAndNil(RenderToTexture);
+  end;
+  FEffectTextureHeightField.Send(TargetTexture);
+end;
+
+procedure TCastleTerrainEditor.SetHeightMapSize(
+  const NewSize: TVector2Integer);
+var
+  SrcImage: TGrayscaleImage;
+  Image: TGrayscaleImage;
+  CurrentShaderTextureNode: TImageTextureNode;
+  SrcWidth, SrcHeight : Integer;
+begin
+  if FHeightMapSize.Equals(FHeightMapSize, NewSize) then
+    Exit;
+
+  FHeightMapSize := NewSize;
+  FTerrainModified := true;
+
+  if (FShaderHeightTexture1 = nil) or (FShaderHeightTexture2 = nil) then
+    Exit;
+
+  CurrentShaderTextureNode := TImageTextureNode(FEffectTextureHeightField.Value);
+  SrcWidth := CurrentShaderTextureNode.TextureImage.Width;
+  SrcHeight := CurrentShaderTextureNode.TextureImage.Height;
+
+  SrcImage := TGrayscaleImage.Create(SrcWidth, SrcHeight);
+  try
+    SaveTextureContents(SrcImage, TImageTextureResource(CurrentShaderTextureNode.InternalRendererResource).GLName);
+
+    Image := TGrayscaleImage.Create(NewSize.X, NewSize.Y);
+    Image.Clear(Vector4Byte(0,0,0,255));
+    Image.DrawFrom(SrcImage, 0, 0, 0, 0, Min(SrcWidth, NewSize.X), Min(SrcHeight, NewSize.Y));
+
+    { Needed to properly load new image }
+    FShaderHeightTexture2.InternalRendererResourceFree;
+    FShaderHeightTexture1.InternalRendererResourceFree;
+
+    FShaderHeightTexture1.LoadFromImage(Image, false, '');
+    if FShaderHeightTexture1.InternalRendererResource = nil then
+      TTextureResources.Prepare(FTerrain.RenderOptions, FShaderHeightTexture1);
+    FEffectTextureHeightField.Send(FShaderHeightTexture1);
+
+    FShaderHeightTexture2.LoadFromImage(Image, true, '');
+    if FShaderHeightTexture1.InternalRendererResource = nil then
+      TTextureResources.Prepare(FTerrain.RenderOptions, FShaderHeightTexture2);
+  finally
+    FreeAndNil(SrcImage);
+  end;
+end;
+
+function TCastleTerrainEditor.GetHeightMapSize: TVector2Integer;
+begin
+  Result := FHeightMapSize;
+end;
+
+procedure TCastleTerrainEditor.LoadHeightMapFromData;
+var
+  DataTerrainImage: TCastleTerrainImage;
+  Image: TGrayscaleImage;
+begin
+  // TODO: terrain data layer flattening support
+  DataTerrainImage := nil;
+  if (FTerrain.Data <> nil) and (FTerrain.Data is TCastleTerrainImage) then
+    DataTerrainImage := FTerrain.Data as TCastleTerrainImage;
+  if DataTerrainImage <> nil then
+  begin
+    //FShaderHeightTexture1.SetUrl([DataTerrainImage.Url]);
+    //WritelnLog('Image size ' + IntToStr(DataTerrainImage.Image.Width) + ' x ' + IntToStr(DataTerrainImage.Image.Height));
+    FShaderHeightTexture1.InternalRendererResourceFree;
+    FShaderHeightTexture1.LoadFromImage(DataTerrainImage.Image.MakeCopy, true, '');
+    //FShaderHeightTexture2.SetUrl([DataTerrainImage.Url]);
+    FShaderHeightTexture2.InternalRendererResourceFree;
+    FShaderHeightTexture2.LoadFromImage(DataTerrainImage.Image.MakeCopy, true, '');
+    FHeightMapSize.X := FShaderHeightTexture2.TextureImage.Width;
+    FHeightMapSize.Y := FShaderHeightTexture2.TextureImage.Height;
+  end else
+  begin
+    Image := TGrayscaleImage.Create(FHeightMapSize.X, FHeightMapSize.Y);
+    Image.Clear(Vector4Byte(0,0,0,255));
+    FShaderHeightTexture1.InternalRendererResourceFree;
+    FShaderHeightTexture1.LoadFromImage(Image.MakeCopy, true, '');
+    FShaderHeightTexture2.InternalRendererResourceFree;
+    FShaderHeightTexture2.LoadFromImage(Image, true, '');
+  end;
+end;
+
+function TCastleTerrainEditor.TerrainHeight(const Coord: TVector3): Byte;
+var
+  SourceTexture: TImageTextureNode;
+  LocalCoord: TVector3;
+  TexX, TexY: Single;
+  PX, PY: Integer;
+  TextureWidth, TextureHeight : Integer;
+  Image: TCastleImage;
+
+  function GetCurrentlyUsedTexture: TImageTextureNode;
+  begin
+    Result := TImageTextureNode(FEffectTextureHeightField.Value);
+  end;
+
+begin
+  SourceTexture := GetCurrentlyUsedTexture;
+
+  TextureWidth := SourceTexture.TextureImage.Width;
+  TextureHeight := SourceTexture.TextureImage.Height;
+
+  Image := TGrayscaleImage.Create(TextureWidth, TextureHeight);
+  try
+    SaveTextureContents(Image, TImageTextureResource(SourceTexture.InternalRendererResource).GLName);
+
+    // map to 0 - 1 range of texture.
+    LocalCoord := FTerrain.OutsideToLocal(Coord);
+    TexX := MapRangeTo01(LocalCoord.X + FTerrain.Size.X/2, 0, FTerrain.Size.X);
+    TexY := MapRangeTo01(LocalCoord.Z + FTerrain.Size.Y/2, 0, FTerrain.Size.Y);
+    TexY := 1 - TexY;
+    // map to pixels
+    PX := Floor(TexX * TextureWidth );
+    PY := Floor(TexY * TextureHeight);
+    ClampVar(PX, 0, TextureWidth  - 1);
+    ClampVar(PY, 0, TextureHeight - 1);
+
+    Result := Byte(Image.PixelPtr(PX, PY)^);
+
+    //WritelnLog('Terrain height for coords: ' + IntToStr(PX) + ', ' + IntToStr(PY) + ' is ' + IntToStr(Result));
+  finally
+    FreeAndNil(Image);
+  end;
+end;
+
+procedure TCastleTerrainEditor.SaveHeightMap(const AUrl: String);
+var
+  Image: TGrayscaleImage;
+  TextureWidth, TextureHeight : Integer;
+  SourceTexture: TImageTextureNode;
+
+  function GetCurrentlyUsedTexture: TImageTextureNode;
+  begin
+    Result := TImageTextureNode(FEffectTextureHeightField.Value);
+  end;
+
+begin
+  SourceTexture := GetCurrentlyUsedTexture;
+
+  TextureWidth := SourceTexture.TextureImage.Width;
+  TextureHeight := SourceTexture.TextureImage.Height;
+
+  Image := TGrayscaleImage.Create(TextureWidth, TextureHeight);
+  try
+    SaveTextureContents(Image, TImageTextureResource(SourceTexture.InternalRendererResource).GLName);
+
+    SaveImage(Image, AUrl);
+    FTerrainModified := false;
+  finally
+    FreeAndNil(Image);
+  end;
+end;
+
 { TCastleTerrainLayer -------------------------------------------------------- }
 
 const
@@ -1611,7 +2256,7 @@ constructor TCastleTerrain.Create(AOwner: TComponent);
     { If no light sources are present, it is normal that almost all uniforms
       in this effect do not exist -- because they affect only
       the TPhysicalMaterialNode.BaseTexture, which is meaningless when no light shines. }
-    Effect.UniformMissing := umIgnore;
+    Effect.UniformMissing := umWarning;
     { TODO: web: fail to compile with:
         EGLSLShaderCompileError: Vertex shader not compiled:
         0(14) : error C1503: undefined variable "_uterrain_normal"
@@ -1652,6 +2297,7 @@ constructor TCastleTerrain.Create(AOwner: TComponent);
 
     Effect.AddCustomField(TSFFloat.Create(Effect, true, 'layers_influence', FLayersInfluence));
     Effect.AddCustomField(TSFFloat.Create(Effect, true, 'steep_emphasize', FSteepEmphasize));
+    Effect.AddCustomField(TSFVec2f.Create(Effect, true, 'terrain_size', FSize));
 
     { initialize 2 EffectPart nodes (one for vertex shader, one for fragment shader) }
     FragmentPart := TEffectPartNode.Create;
@@ -1660,7 +2306,15 @@ constructor TCastleTerrain.Create(AOwner: TComponent);
 
     VertexPart := TEffectPartNode.Create;
     VertexPart.ShaderType := stVertex;
-    VertexPart.Contents := {$I terrain.vs.inc};
+    case FMode of
+      ctmShader:
+      begin
+        VertexPart.Contents := {$I terrain_heights_in_texture.vs.inc};
+      end;
+      ctmMesh:
+        VertexPart.Contents := {$I terrain.vs.inc};
+    end;
+
 
     Effect.SetParts([FragmentPart, VertexPart]);
 
@@ -1672,6 +2326,8 @@ var
   Layer: Cardinal;
 begin
   inherited;
+
+  FMode := ctmMesh;
 
   FTriangulationIgnoreHeights := DefaultTriangulationIgnoreHeights;
   FSubdivisions := Vector2(DefaultSubdivisions, DefaultSubdivisions);
@@ -1714,6 +2370,7 @@ begin
   {$undef read_implementation_destructor}
   inherited;
 
+  FreeAndNil(FEditor);
   { Avoid Appearance having invalid reference in Appearance.Scene.
     Note that Scene was freed in "inherited" above,
     but Appearance.Scene may not have been cleared,
@@ -1757,7 +2414,7 @@ procedure TCastleTerrain.UpdateGeometry;
     Coord := TCoordinateNode.Create;
     Coord.SetPoint([
       { Order of these points matter, must be CCW when observed from top,
-        just like "real" terrain data generated by TCastleTerrainNoise.
+        just like "real" terrain data by TCastleTerrainNoise.
         This way backface culling works in the same way. }
       Vector3(          0, 0, Range.Height),
       Vector3(Range.Width, 0, Range.Height),
@@ -1802,32 +2459,43 @@ begin
   InputRange := OutputRange;
   InputRange.LeftBottom := InputRange.LeftBottom + QueryOffset;
 
-  if Data <> nil then
-  begin
-    if TerrainNode = nil then
+  case FMode of
+  ctmMesh:
     begin
-      TerrainNode := Data.CreateNode(Subdivisions, InputRange, OutputRange, Appearance, TriangulationIgnoreHeights);
-      Root := TX3DRootNode.Create;
-      Root.AddChildren(TerrainNode);
-      Scene.Load(Root, true);
-    end else
-    begin
-      Data.UpdateNode(TerrainNode, Subdivisions, InputRange, OutputRange, TriangulationIgnoreHeights);
+      if Data <> nil then
+      begin
+        if TerrainNode = nil then
+        begin
+          TerrainNode := Data.CreateNode(Subdivisions, InputRange, OutputRange, Appearance, TriangulationIgnoreHeights);
+          Root := TX3DRootNode.Create;
+          Root.AddChildren(TerrainNode);
+          Scene.Load(Root, true);
+          Scene.RenderOptions.WireframeEffect := weNormal;
+        end else
+        begin
+          Data.UpdateNode(TerrainNode, Subdivisions, InputRange, OutputRange, TriangulationIgnoreHeights);
+        end;
+      end else
+      begin
+        { When Data is empty, show a simple quad to visualize Size of the terrain. }
+        Root := TX3DRootNode.Create;
+        Root.AddChildren(CreateQuadShape(OutputRange));
+        Scene.Load(Root, true);
+        { Do not let subsequent calls to use TerrainNode as it was destroyed
+          by Scene.Load above.
+          Testcase: create TCastleTerrain and TCastleTerrainImage,
+          assign TCastleTerrain.Data to TCastleTerrainImage, to nil, again to TCastleTerrainImage. }
+        TerrainNode := nil;
+      end;
+
+      UpdateCollider;
     end;
-  end else
-  begin
-    { When Data is empty, show a simple quad to visualize Size of the terrain. }
-    Root := TX3DRootNode.Create;
-    Root.AddChildren(CreateQuadShape(OutputRange));
-    Scene.Load(Root, true);
-    { Do not let subsequent calls to use TerrainNode as it was destroyed
-      by Scene.Load above.
-      Testcase: create TCastleTerrain and TCastleTerrainImage,
-      assign TCastleTerrain.Data to TCastleTerrainImage, to nil, again to TCastleTerrainImage. }
-    TerrainNode := nil;
+  ctmShader:
+    begin
+      TerrainNode := Editor.UpdateGeometry(InputRange, OutputRange, Appearance);
+    end;
   end;
 
-  UpdateCollider;
 end;
 
 function TCastleTerrain.GetLayer(const Index: Integer): TCastleTerrainLayer;
@@ -1949,6 +2617,43 @@ begin
     FPreciseCollisions := Value;
     Scene.PreciseCollisions := Value;
   end;
+end;
+
+function TCastleTerrain.Editor: TCastleTerrainEditor;
+begin
+  if FMode <> ctmShader then
+    raise Exception.Create('Not in edit mode.');
+  if FEditor = nil then
+    FEditor := TCastleTerrainEditor.Create(Self);
+  Result := FEditor;
+end;
+
+procedure TCastleTerrain.SetMode(const NewMode: TCastleTerrainMode);
+var
+  FragmentPart, VertexPart: TEffectPartNode;
+begin
+  if FMode = NewMode then
+    Exit;
+
+  FMode:= NewMode;
+
+  { initialize 2 EffectPart nodes (one for vertex shader, one for fragment shader) }
+  FragmentPart := TEffectPartNode.Create;
+  FragmentPart.ShaderType := stFragment;
+  FragmentPart.Contents := {$I terrain.fs.inc};
+
+  VertexPart := TEffectPartNode.Create;
+  VertexPart.ShaderType := stVertex;
+  case FMode of
+    ctmShader: VertexPart.Contents := {$I terrain_heights_in_texture.vs.inc};
+    ctmMesh  : VertexPart.Contents := {$I terrain.vs.inc};
+  end;
+
+  Effect.SetParts([FragmentPart, VertexPart]);
+
+  TerrainNode := nil;
+  UpdateGeometry;
+  FEditor.SetTerrainModified(false);
 end;
 
 function TCastleTerrain.PropertySections(const PropertyName: String): TPropertySections;

@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2024 Michalis Kamburelis.
+  Copyright 2018-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -38,7 +38,7 @@ uses
   // editor units
   FrameAnchors, CastleShellCtrls, EditorUtils,
   CastleTransformManipulate, DesignUndoSystem, DesignCameraPreview,
-  DesignObjectInspector;
+  DesignObjectInspector, FrameTerrainEditor;
 
 type
   TProposeOpenDesignEvent = procedure (const DesignUrl: String) of object;
@@ -55,6 +55,7 @@ type
 
   { Frame to visually design component hierarchy. }
   TDesignFrame = class(TFrame)
+    ActionEditTerrain: TAction;
     ActionApiReferenceOfCurrent: TAction;
     ActionPlayStop: TAction;
     ActionSimulationPauseUnpause: TAction;
@@ -64,6 +65,7 @@ type
     ButtonClearTranslation: TButton;
     ButtonPlayStop: TSpeedButton;
     ButtonApiReferenceForCurrent: TSpeedButton;
+    ButtonStartFinishEditMode: TButton;
     EditFindInHierarchy: TEdit;
     LabelPhysics: TLabel;
     LabelPlayStop: TLabel;
@@ -131,6 +133,7 @@ type
     TabBasic: TTabSheet;
     TabInfo: TTabSheet;
     UpdateObjectInspector: TTimer;
+    procedure ActionEditTerrainExecute(Sender: TObject);
     procedure ActionApiReferenceOfCurrentExecute(Sender: TObject);
     procedure ActionPlayStopExecute(Sender: TObject);
     procedure ActionPlayStopUpdate(Sender: TObject);
@@ -282,6 +285,7 @@ type
       FShowColliders: Boolean;
       FindActive: Boolean;
       FMaximizePreview: Boolean;
+      FTerrainEditor: TTerrainEditorFrame;
 
     { Create and add to the designed parent a new component,
       whose type best matches currently selected file in SourceShellList.
@@ -728,7 +732,7 @@ uses
   CastleUtils, CastleComponentSerialize, CastleFileFilters, CastleGLUtils, CastleImages,
   CastleLog, CastleProjection, CastleStringUtils, CastleTimeUtils,
   CastleUriUtils, X3DLoad, CastleFilesUtils, CastleInternalPhysicsVisualization,
-  CastleInternalUrlUtils, CastleInternalFileMonitor, X3DNodes, CastleSoundEngine,
+  CastleInternalUrlUtils, CastleTerrain, CastleInternalFileMonitor, X3DNodes, CastleSoundEngine,
   CastleBehaviors,
   { Editor units }
   EditorRegisterAllComponents,
@@ -1721,6 +1725,12 @@ begin
 
   FindActive := false;
   SetEnabledVisible(EditFindInHierarchy, FindActive);
+
+  FTerrainEditor := TTerrainEditorFrame.Create(Self);
+  PanelRight.InsertControl(FTerrainEditor);
+
+  // UI to toggle terrain editing will be shown when we select some terrain
+  SetEnabledVisible(ActionEditTerrain, false);
 end;
 
 destructor TDesignFrame.Destroy;
@@ -3369,6 +3379,8 @@ begin
   FDesignerLayer.LayerPhysicsSimulation.Exists := CastleApplicationMode in [appSimulation, appSimulationPaused];
   FDesignerLayer.LabelPhysicsSimulationRunning.Exists := CastleApplicationMode = appSimulation;
   FDesignerLayer.LabelPhysicsSimulationPaused.Exists := CastleApplicationMode = appSimulationPaused;
+
+  FTerrainEditor.UpdateEditing;
 end;
 
 procedure TDesignFrame.CastleControlDragOver(Sender, Source: TObject; X,
@@ -5072,6 +5084,8 @@ begin
     *)
 
     TransformManipulate.SetSelected(Selected);
+
+    SetEnabledVisible(ActionEditTerrain, T is TCastleTerrain);
   finally FreeAndNil(Selected) end;
 
   if CameraPreview <> nil then
@@ -6043,6 +6057,65 @@ begin
   OnApiReferenceOfCurrent(Self);
 end;
 
+procedure TDesignFrame.ActionEditTerrainExecute(Sender: TObject);
+
+  { Called after stop or start of terrain editing. }
+  procedure CommonAfter;
+  begin
+    ActionEditTerrain.Caption := IfThen(FTerrainEditor.IsEditing,
+      'Finish Terrain Editing', 'Edit Terrain');
+  end;
+
+  procedure StartEditing;
+  var
+    Terrain: TCastleTerrain;
+  begin
+    if (CurrentViewport = nil) or
+       (CurrentTransform = nil) or
+       (not (CurrentTransform is TCastleTerrain)) then
+      Exit; // abort, cannot start editing
+
+    Terrain := CurrentTransform as TCastleTerrain;
+
+    // cannot abort past this point
+    FTerrainEditor.StartEditing(Terrain, CurrentViewport, CastleControl.Container);
+    TransformManipulate.SetSelected([]);
+    CommonAfter;
+  end;
+
+  procedure StopEditing;
+  var
+    Terrain: TCastleTerrain;
+    Mr: TModalResult;
+  begin
+    Terrain := FTerrainEditor.EditingTerrain;
+    // this should be only executed if FTerrainEditor.EditingTerrain <> nil
+    Assert(Terrain <> nil);
+
+    if Terrain.Editor.TerrainModified then
+    begin
+      Mr := MessageDlg('Terrain editor',
+        'Terrain was modified but not saved yet. Save changes?',
+        mtConfirmation, mbYesNoCancel, 0);
+      case Mr of
+        mrYes: FTerrainEditor.ActionSaveTerrainExecute(FTerrainEditor);
+        mrCancel: Exit; // abort
+      end;
+    end;
+
+    // cannot abort past this point
+    FTerrainEditor.StopEditing;
+    TransformManipulate.SetSelected([Terrain]);
+    CommonAfter;
+  end;
+
+begin
+  if not FTerrainEditor.IsEditing then
+    StartEditing
+  else
+    StopEditing;
+end;
+
 procedure TDesignFrame.ActionPlayStopUpdate(Sender: TObject);
 var
   IsRunning: Boolean;
@@ -6109,7 +6182,8 @@ end;
 
 procedure TDesignFrame.FrameResize(Sender: TObject);
 
-  { Buttons on top panel are resized by LCL to have height equal panel height,
+  { Buttons on top PanelMiddleTop are resized by LCL to have height equal
+    PanelMiddleTop height,
     but this makes them non-square. Fix them to be square.
     Fixes problem observed on Windows. }
   procedure FixButtonSquare(const B: TSpeedButton);
