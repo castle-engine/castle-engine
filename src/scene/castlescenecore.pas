@@ -7345,7 +7345,16 @@ var
   NavigationNode: TNavigationInfoNode;
   FieldOfView: TSingleList;
 begin
+  ViewpointNode := ViewpointStack.Top;
+  NavigationNode := NavigationInfoStack.Top;
+
   Radius := SensibleCameraRadius(RadiusAutoCalculated);
+
+  if (ViewpointNode <> nil) and
+     (ViewpointNode.NearDistance > 0) then
+    ACamera.ProjectionNear := ViewpointNode.NearDistance
+  else
+  // if ViewpointNode.NearDistance <= 0, calculate ACamera.ProjectionNear based on radius
   if RadiusAutoCalculated then
     { Set ProjectionNear to zero, this way we avoid serializing value
       when it is not necessary to serialize it
@@ -7366,9 +7375,6 @@ begin
   {$warnings off} // using deprecated to keep it working
   ACamera.Orthographic.Stretch := false;
   {$warnings on}
-
-  ViewpointNode := ViewpointStack.Top;
-  NavigationNode := NavigationInfoStack.Top;
 
   if ViewpointNode <> nil then
   begin
@@ -7448,6 +7454,9 @@ begin
 
   if NavigationNode <> nil then
     ACamera.ProjectionFar := NavigationNode.VisibilityLimit;
+  if (ViewpointNode <> nil) and
+     (ViewpointNode.FarDistance > 0) then
+    ACamera.ProjectionFar := ViewpointNode.FarDistance;
 
   ACamera.GravityUp := GravityUp;
 
