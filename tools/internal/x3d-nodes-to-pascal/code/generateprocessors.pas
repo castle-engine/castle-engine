@@ -65,6 +65,7 @@ type
     DefaultValue, Comment: String;
     AllowedChildrenNodes: TX3DNodeInformationList;
     NotSlim: Boolean;
+    BeforePublicInterface, AfterPublicInterface: String;
     ChangeAlways: String; //< Value of ChangeAlways for this field, as String
     Range: String; //< Allowed field values, in format specific to given field type
     Documentation: String;
@@ -172,19 +173,23 @@ begin
     if Node.IsFunctionality then
     begin
       OutputInterface +=
+        Field.BeforePublicInterface +
         Field.ConditionsBegin +
         '    { ' + DocToPascal(Field.Documentation) + ' }' + NL +
         '    // property ' + Field.PascalNamePrefixed + ': ' + Field.PascalClass + ';' + NL +
-        Field.ConditionsEnd;
+        Field.ConditionsEnd +
+        Field.AfterPublicInterface;
     end else
     begin
       OutputInterface +=
         NL +
+        Field.BeforePublicInterface +
         Field.ConditionsBegin +
         '    strict private F' + Field.PascalNamePrefixed + ': ' + Field.PascalClass + ';' + NL +
         '    { ' + DocToPascal(Field.Documentation) + ' }' + NL +
         '    public property ' + Field.PascalNamePrefixed + ': ' + Field.PascalClass + ' read F' + Field.PascalNamePrefixed + ';' + NL +
-        Field.ConditionsEnd;
+        Field.ConditionsEnd +
+        Field.AfterPublicInterface;
 
       OutputImplementation +=
         NL +
@@ -198,10 +203,12 @@ begin
     if Node.IsFunctionality then
     begin
       OutputInterface +=
+        Field.BeforePublicInterface +
         Field.ConditionsBegin +
         '    { ' + DocToPascal(Field.Documentation) + ' }' + NL +
         '    // property ' + Field.PascalNamePrefixed + ': ' + Field.PascalClass + ';' + NL +
-        Field.ConditionsEnd;
+        Field.ConditionsEnd +
+        Field.AfterPublicInterface;
     end else
     begin
       OutputInterface +=
@@ -1114,6 +1121,22 @@ begin
             LastField.SetterBefore := Trim(PrefixRemove('setter-before:', Trim(Line), false));
           end else
 
+          if Tokens[0] = 'before-public-interface:' then
+          begin
+            ValidatePerFieldCommand('before-public-interface');
+            LastField.BeforePublicInterface := Trim(PrefixRemove('before-public-interface:', Trim(Line), false));
+            if LastField.BeforePublicInterface = '"""' then
+              LastField.BeforePublicInterface := ReadMultilineString(F);
+          end else
+
+          if Tokens[0] = 'after-public-interface:' then
+          begin
+            ValidatePerFieldCommand('after-public-interface');
+            LastField.AfterPublicInterface := Trim(PrefixRemove('after-public-interface:', Trim(Line), false));
+            if LastField.AfterPublicInterface = '"""' then
+              LastField.AfterPublicInterface := ReadMultilineString(F);
+          end else
+
           { field/event inside node }
           begin
             if Node = nil then
@@ -1260,10 +1283,12 @@ begin
           '    procedure Set' + Field.PascalName + '(const Value: ' + AllowedPascalClass + ');' + NL +
           Field.ConditionsEnd;
         OutputPublicInterface +=
+          Field.BeforePublicInterface +
           Field.ConditionsBegin +
           '    { ' + DocToPascal(Field.Documentation) + ' }' + NL +
           '    property ' + Field.PascalName + ': ' + AllowedPascalClass + ' read Get' + Field.PascalName + ' write Set' + Field.PascalName + ';' + NL +
-          Field.ConditionsEnd;
+          Field.ConditionsEnd +
+          Field.AfterPublicInterface;
         OutputImplementation +=
           Field.ConditionsBegin +
           'function ' + Node.PascalType + '.Get' + Field.PascalName + ': ' + AllowedPascalClass + ';' + NL +
@@ -1284,10 +1309,12 @@ begin
       if Field.X3DType = 'MFNode' then
       begin
         OutputPublicInterface +=
+          Field.BeforePublicInterface +
           Field.ConditionsBegin +
           '    { ' + DocToPascal(Field.Documentation) + ' }' + NL +
           '    procedure Set' + Field.PascalName + '(const Value: array of ' + AllowedPascalClass + ');' + NL +
-          Field.ConditionsEnd;
+          Field.ConditionsEnd +
+          Field.AfterPublicInterface;
         OutputImplementation +=
           Field.ConditionsBegin +
           'procedure ' + Node.PascalType + '.Set' + Field.PascalName + '(const Value: array of ' + AllowedPascalClass + ');' + NL +
@@ -1316,10 +1343,12 @@ begin
       '    procedure SetBBox(const Value: TBox3D);' + NL +
       Field.ConditionsEnd;
     OutputPublicInterface +=
+      Field.BeforePublicInterface +
       Field.ConditionsBegin +
       '    { ' + DocToPascal(Field.Documentation) + ' }' + NL +
       '    property BBox: TBox3D read GetBBox write SetBBox;' + NL +
-      Field.ConditionsEnd;
+      Field.ConditionsEnd +
+      Field.AfterPublicInterface;
     OutputImplementation +=
       Field.ConditionsBegin +
       'function ' + Node.PascalType + '.GetBBox: TBox3D;' + NL +
@@ -1348,10 +1377,12 @@ begin
         '    procedure Set' + Field.PascalName + '(const Value: ' + Field.PascalHelperType + ');' + NL +
         Field.ConditionsEnd;
       OutputPublicInterface +=
+        Field.BeforePublicInterface +
         Field.ConditionsBegin +
         '    { ' + DocToPascal(Field.Documentation) + ' }' + NL +
         '    property ' + Field.PascalName + ': ' + Field.PascalHelperType + ' read Get' + Field.PascalName + ' write Set' + Field.PascalName + ';' + NL +
-        Field.ConditionsEnd;
+        Field.ConditionsEnd +
+        Field.AfterPublicInterface;
       OutputImplementation +=
         Field.ConditionsBegin +
         'function ' + Node.PascalType + '.Get' + Field.PascalName + ': ' + Field.PascalHelperType + ';' + NL +
@@ -1378,11 +1409,13 @@ begin
       for SetterType in SetterTypes do
       begin
         OutputPublicInterface +=
+          Field.BeforePublicInterface +
           Field.ConditionsBegin +
           '    { ' + DocToPascal(Field.Documentation) + ' }' + NL +
           '    procedure Set' + Field.PascalName + '(const Value: ' + SetterType + ');' +
           Iff(SetterTypes.Count > 1,' overload;', '')  + NL + // Delphi need overload when we have more than one setter wit hte same name
-          Field.ConditionsEnd;
+          Field.ConditionsEnd +
+          Field.AfterPublicInterface;
         OutputImplementation +=
           Field.ConditionsBegin +
           'procedure ' + Node.PascalType + '.Set' + Field.PascalName + '(const Value: ' + SetterType + ');' + NL +
