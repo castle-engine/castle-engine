@@ -1,8 +1,10 @@
 # Walking Talking Adventure, With Full Game Controller Support
 
-Simple 3D game where you can
+Walk around a 3D environment and unwind a mystery by talking to NPCs (horses) and interacting with objects. Features also full game controller (gamepad, joystick) support.
 
-- walk
+All features:
+
+- walking (with mouse look)
 
 - spawn and push physical objects
 
