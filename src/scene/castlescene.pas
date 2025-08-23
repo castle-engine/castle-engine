@@ -336,6 +336,8 @@ type
     function CreateShape(const AGeometry: TAbstractGeometryNode;
       const AState: TX3DGraphTraverseState;
       const ParentInfo: PTraversingInfo): TShape; override;
+
+    { @exclude }
     procedure InternalInvalidateBackgroundRenderer; override;
 
     procedure LocalRender(const Params: TRenderParams); override;
@@ -424,7 +426,8 @@ type
     FBackgroundRendererValid: boolean;
     procedure PrepareBackground;
   public
-    { Internal override test visibility. }
+    { Internal override test visibility.
+      @exclude }
     InternalVisibilityTest: TTestShapeVisibility;
 
     procedure FreeResources(Resources: TSceneFreeResources); override;
@@ -455,8 +458,10 @@ type
       @exclude }
     function InternalBackgroundRenderer: TBackgroundRenderer;
 
+    { @exclude }
     function Attributes: TCastleRenderOptions; deprecated 'use RenderOptions';
 
+    { @exclude }
     procedure InternalCameraChanged; override;
 
     { Screen effects information, used by TCastleViewport.ScreenEffects.
@@ -464,8 +469,8 @@ type
       @exclude
       @groupBegin }
     function InternalScreenEffects(Index: Integer): TGLSLProgram;
-    function InternalScreenEffectsCount: Integer;
-    function InternalScreenEffectsNeedDepth: boolean;
+    function InternalScreenEffectsCount: Integer; //< @exclude
+    function InternalScreenEffectsNeedDepth: boolean; //< @exclude
     { @groupEnd }
 
     { Make TGLShape.PrepareResources call on all shapes before next render.
