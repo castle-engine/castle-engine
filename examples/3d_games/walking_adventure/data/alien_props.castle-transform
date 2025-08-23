@@ -1,0 +1,240 @@
+{
+  "$$ClassName" : "TCastleTransform",
+  "Name" : "AlienProps",
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleCylinder",
+      "Bottom" : false,
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Alpha" : 2.3921568691730499E-001,
+        "Blue" : 0.0000000000000000E+000,
+        "Red" : 1.3725490868091583E-001
+      },
+      "DoubleSided" : true,
+      "Height" : 5.0000000000000000E+000,
+      "Name" : "AlienCylinder",
+      "RenderOptions" : {
+        "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+      },
+      "RotationPersistent" : {
+        "$$ClassName" : "TCastleVector4RotationPersistent",
+        "Z" : 1.0000000000000000E+000
+      },
+      "Top" : false,
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector3Persistent",
+        "X" : -3.8002934455871582E+000,
+        "Y" : 2.8417005538940430E+000,
+        "Z" : 7.6052355766296387E+000
+      },
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleScene",
+          "AutoAnimation" : "Alien_Idle",
+          "Exists" : false,
+          "ExposeTransforms" : [
+          ],
+          "Name" : "SceneAlien",
+          "ProcessEvents" : true,
+          "RenderOptions" : {
+            "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+            "WholeSceneManifold" : true
+          },
+          "RotationPersistent" : {
+            "$$ClassName" : "TCastleVector4RotationPersistent",
+            "Z" : 1.0000000000000000E+000
+          },
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector3Persistent",
+            "X" : 7.3942661285400391E-002,
+            "Y" : -1.3957810401916504E-001,
+            "Z" : -1.5400886535644531E-001
+          },
+          "Url" : "castle-data:/quaternius/modular_sci_fi/glTF/Aliens/Alien_Cyclop.gltf"
+        }
+      ],
+      "$Behaviors" : [
+        {
+          "$$ClassName" : "TCastleBoxCollider",
+          "Name" : "BoxCollider6"
+        },
+        {
+          "$$ClassName" : "TCastleRigidBody",
+          "Name" : "RigidBody6"
+        }
+      ]
+    },
+    {
+      "$$ClassName" : "TCastleScene",
+      "ExposeTransforms" : [
+      ],
+      "Name" : "SceneAlienComputer",
+      "RenderOptions" : {
+        "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+        "WholeSceneManifold" : true
+      },
+      "RotationPersistent" : {
+        "$$ClassName" : "TCastleVector4RotationPersistent",
+        "Z" : 1.0000000000000000E+000
+      },
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector3Persistent",
+        "X" : -3.9448380470275879E+000,
+        "Z" : 1.0151741981506348E+001
+      },
+      "Url" : "castle-data:/quaternius/modular_sci_fi/glTF/Props/Prop_Computer.gltf",
+      "$Behaviors" : [
+        {
+          "$$ClassName" : "TCastleBoxCollider",
+          "Name" : "BoxCollider5"
+        },
+        {
+          "$$ClassName" : "TCastleRigidBody",
+          "Name" : "RigidBody5"
+        }
+      ]
+    },
+    {
+      "$$ClassName" : "TCastleScene",
+      "ExposeTransforms" : [
+      ],
+      "Name" : "ScenePlatformPadded1",
+      "RenderOptions" : {
+        "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+        "WholeSceneManifold" : true
+      },
+      "RotationPersistent" : {
+        "$$ClassName" : "TCastleVector4RotationPersistent",
+        "Z" : 1.0000000000000000E+000
+      },
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector3Persistent",
+        "X" : -3.9960494041442871E+000,
+        "Y" : 3.3369243144989014E-002,
+        "Z" : 7.4643812179565430E+000
+      },
+      "Url" : "castle-data:/quaternius/modular_sci_fi/glTF/Platforms/Platform_Padded.gltf"
+    },
+    {
+      "$$ClassName" : "TCastleScene",
+      "ExposeTransforms" : [
+      ],
+      "Name" : "SceneColumnRound1",
+      "RenderOptions" : {
+        "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+        "WholeSceneManifold" : true
+      },
+      "RotationPersistent" : {
+        "$$ClassName" : "TCastleVector4RotationPersistent",
+        "Z" : 1.0000000000000000E+000
+      },
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector3Persistent",
+        "X" : -1.4284610748291016E+000,
+        "Z" : 4.7957544326782227E+000
+      },
+      "Url" : "castle-data:/quaternius/modular_sci_fi/glTF/Columns/Column_Round.gltf",
+      "$Behaviors" : [
+        {
+          "$$ClassName" : "TCastleBoxCollider",
+          "Name" : "BoxCollider1"
+        },
+        {
+          "$$ClassName" : "TCastleRigidBody",
+          "Name" : "RigidBody1"
+        }
+      ]
+    },
+    {
+      "$$ClassName" : "TCastleScene",
+      "ExposeTransforms" : [
+      ],
+      "Name" : "SceneColumnRound2",
+      "RenderOptions" : {
+        "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+        "WholeSceneManifold" : true
+      },
+      "RotationPersistent" : {
+        "$$ClassName" : "TCastleVector4RotationPersistent",
+        "Z" : 1.0000000000000000E+000
+      },
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector3Persistent",
+        "X" : -1.4284610748291016E+000,
+        "Z" : 9.9558534622192383E+000
+      },
+      "Url" : "castle-data:/quaternius/modular_sci_fi/glTF/Columns/Column_Round.gltf",
+      "$Behaviors" : [
+        {
+          "$$ClassName" : "TCastleBoxCollider",
+          "Name" : "BoxCollider2"
+        },
+        {
+          "$$ClassName" : "TCastleRigidBody",
+          "Name" : "RigidBody2"
+        }
+      ]
+    },
+    {
+      "$$ClassName" : "TCastleScene",
+      "ExposeTransforms" : [
+      ],
+      "Name" : "SceneColumnRound3",
+      "RenderOptions" : {
+        "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+        "WholeSceneManifold" : true
+      },
+      "RotationPersistent" : {
+        "$$ClassName" : "TCastleVector4RotationPersistent",
+        "Z" : 1.0000000000000000E+000
+      },
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector3Persistent",
+        "X" : -6.4557456970214844E+000,
+        "Z" : 9.9558534622192383E+000
+      },
+      "Url" : "castle-data:/quaternius/modular_sci_fi/glTF/Columns/Column_Round.gltf",
+      "$Behaviors" : [
+        {
+          "$$ClassName" : "TCastleBoxCollider",
+          "Name" : "BoxCollider3"
+        },
+        {
+          "$$ClassName" : "TCastleRigidBody",
+          "Name" : "RigidBody3"
+        }
+      ]
+    },
+    {
+      "$$ClassName" : "TCastleScene",
+      "ExposeTransforms" : [
+      ],
+      "Name" : "SceneColumnRound4",
+      "RenderOptions" : {
+        "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+        "WholeSceneManifold" : true
+      },
+      "RotationPersistent" : {
+        "$$ClassName" : "TCastleVector4RotationPersistent",
+        "Z" : 1.0000000000000000E+000
+      },
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector3Persistent",
+        "X" : -6.2070989608764648E+000,
+        "Z" : 5.0440030097961426E+000
+      },
+      "Url" : "castle-data:/quaternius/modular_sci_fi/glTF/Columns/Column_Round.gltf",
+      "$Behaviors" : [
+        {
+          "$$ClassName" : "TCastleBoxCollider",
+          "Name" : "BoxCollider4"
+        },
+        {
+          "$$ClassName" : "TCastleRigidBody",
+          "Name" : "RigidBody4"
+        }
+      ]
+    }
+  ]
+}

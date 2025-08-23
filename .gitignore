@@ -106,6 +106,7 @@ castle-game-engine-*.fpm
 /packages/lazarus/lib/
 
 # Unix binaries (keep this list alphabetic).
+/examples/3d_games/walking_adventure/walk_3d_game_controllers
 /examples/advanced_editor/advanced_loading_designs/advanced_loading_designs
 /examples/advanced_editor/custom_component/custom_component
 /examples/animations/animate_bones_by_code/animate_bones_by_code

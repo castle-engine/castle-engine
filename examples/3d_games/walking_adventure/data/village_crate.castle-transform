@@ -1,0 +1,23 @@
+{
+  "$$ClassName" : "TCastleScene",
+  "Cache" : true,
+  "ExposeTransforms" : [
+  ],
+  "Name" : "Scene1",
+  "RenderOptions" : {
+    "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+    "WholeSceneManifold" : true
+  },
+  "Url" : "castle-data:/quaternius_medieval_village/glTF/Prop_Crate.gltf",
+  "$Behaviors" : [
+    {
+      "$$ClassName" : "TCastleBoxCollider",
+      "Mass" : 3.0000000000000000E+000,
+      "Name" : "BoxCollider1"
+    },
+    {
+      "$$ClassName" : "TCastleRigidBody",
+      "Name" : "RigidBody1"
+    }
+  ]
+}
