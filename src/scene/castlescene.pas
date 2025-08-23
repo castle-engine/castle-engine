@@ -1288,7 +1288,7 @@ begin
     - examples/animations/split_long_animation
     - examples/creature_behaviors
     - examples/cpp_builder/window
-    - https://github.com/castle-engine/conference-delphi-summit-2025/tree/master/walk_3d_game_controllers
+    - examples/3d_games/walking_adventure
   }
 
   {

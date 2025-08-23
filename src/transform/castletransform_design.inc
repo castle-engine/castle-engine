@@ -34,7 +34,7 @@
         This way FDesignContainer is csTransient, not FDesign.
         This allows to detect hitting FDesign instance with Viewport.TransformHit,
         useful if FDesign is a TCastleScene.
-        Testcase: Enter to push on https://github.com/castle-engine/conference-delphi-summit-2025 }
+        Testcase: Enter to push on examples/3d_games/walking_adventure/ }
       FDesignContainer: TCastleTransform;
       FDesign: TCastleTransform;
       { We don't use Self as Owner of FDesign, to allow freeing everything
