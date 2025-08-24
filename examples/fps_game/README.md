@@ -1,38 +1,26 @@
-# First-Person Shooter example
+# Explore Impressive 3D Castle
 
-**TODO: This example is in the middle of a rework.** It not yet fully functional:
+- Walk in 3D exploring an impressive 3D castle.
 
-- Not all creatures have AI. This is in progress, see `TCastleMoveAttack`, https://castle-engine.io/wp/2024/10/21/demo-game-using-blender-sketchfab-quaternius-models-tcastlemoveattack-early-preview-of-tcastlemoveattack-merged-slides-from-conference-last-week/ . On creatures that have AI, you can shoot them.
+    - Castle graphics custom made by real graphic artists (thank you to [Adrianna Matejek](https://github.com/Sherchloex) and [Alya Vaneskehyan](https://github.com/AlyaVanes)) for our engine. Put together using [Blender](https://castle-engine.io/blender) and [Castle Game Engine Editor](https://castle-engine.io/editor).
 
-- No items pickup and inventory.
+- Shoot at enemies.
 
-Example of a fully-working 3D FPS game using _Castle Game Engine_.
+  - Right now, only one knight guards the entrance.
 
-With level designed using _Castle Game Engine_.
+  - The enemy logic is using [TCastleMoveAttack component](https://castle-engine.io/apidoc/html/CastleLivingBehaviors.TCastleMoveAttack.html).
+
+- Full game controller support (joystick, gamepad) using trivial [TCastleWalkNavigation.UseGameController](https://castle-engine.io/apidoc/html/CastleCameras.TCastleWalkNavigation.html#UseGameController-Integer-).
+
+    - See [documentation about implementing controller support](https://castle-engine.io/controllers) in our engine.
+
+- An extra viewport in right-top corner of the screen shows a mini-map (view from the top). See [Multiple viewports to display one world](https://castle-engine.io/multiple_viewports_to_display_one_world) for a documentation how to set this up.
+
+## Screenshots
 
 ![Screenshot working in editor](screenshot_editor.png)
 ![Screenshot 2](screenshot_2.png)
 ![Screenshot](screenshot.png)
-
-We have:
-
-- level,
-- creatures,
-- items (medkit and weapon),
-- inventory,
-- player can be hurt and die,
-- player can shoot and kill the creatures,
-- bump mapping,
-- move limit,
-- sectors/waypoints (for AI),
-- buttons,
-- notifications,
-- custom viewport,
-- sounds,
-- sky,
-- water,
-- footsteps
-- and a *lot* of comments.
 
 ## Inputs
 
@@ -41,14 +29,8 @@ Attack (with currently equipped weapon) by clicking with left mouse button.
 Move and rotate:
 
 - use AWSD or arrow keys,
-- you can activate "Mouse Look" by F4 or holding the right mouse button,
+- look around using _"Mouse Look"_ (move the mouse when in game),
 - hold Shift to run.
-
-TODO: Inventory:
-
-- use current item by Enter,
-- change current item by [ ] or mouse wheel,
-- drop item by R.
 
 Misc:
 
@@ -56,11 +38,10 @@ Misc:
 - fake win: P,
 - fake death: O.
 
-A lot more keys and mouse shortcuts are instantly working
-(and they all are configurable, too).
+Game controller inputs are documented at [TCastleWalkNavigation.UseGameController](https://castle-engine.io/apidoc/html/CastleCameras.TCastleWalkNavigation.html#UseGameController-Integer-).
 
-The `MapViewport` in right-bottom part of the screen shows a map view top.
-"Examine" view is available and you can zoom in/out using scroll.
+A lot more keys and mouse shortcuts are instantly working
+(and they all are configurable, too). See the [TCastleWalkNavigation](https://castle-engine.io/apidoc/html/CastleCameras.TCastleWalkNavigation.html) features.
 
 ## Building
 
