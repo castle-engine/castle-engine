@@ -16,7 +16,7 @@ This demonstrates creating a simple 3D FPS game, from start to finish. The level
 
 - [Quaternius models](https://quaternius.com/) (to add animated enemies)
 
-- `TCastleMoveAttack` (for ready logic of moving enemies and player hit points),
+- [TCastleMoveAttack component](https://castle-engine.io/apidoc/html/CastleLivingBehaviors.TCastleMoveAttack.html) (for ready logic of moving enemies and player hit points),
 
 - `TCastleWalkNavigation` (for ready handling of AWSD and similar keys, typical for FPS games).
 
