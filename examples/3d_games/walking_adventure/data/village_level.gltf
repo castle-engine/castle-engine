@@ -620,62 +620,62 @@
 		{
 			"mimeType":"image/png",
 			"name":"T_WoodTrim_Normal",
-			"uri":"quaternius_medieval_village/glTF/T_WoodTrim_Normal.png"
+			"uri":"quaternius/medieval_village/glTF/T_WoodTrim_Normal.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"T_WoodTrim_BaseColor",
-			"uri":"quaternius_medieval_village/glTF/T_WoodTrim_BaseColor.png"
+			"uri":"quaternius/medieval_village/glTF/T_WoodTrim_BaseColor.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"T_WoodTrim_Roughness",
-			"uri":"quaternius_medieval_village/glTF/T_WoodTrim_Roughness.png"
+			"uri":"quaternius/medieval_village/glTF/T_WoodTrim_Roughness.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"T_RoundTiles_Normal",
-			"uri":"quaternius_medieval_village/glTF/T_RoundTiles_Normal.png"
+			"uri":"quaternius/medieval_village/glTF/T_RoundTiles_Normal.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"T_RoundTiles_BaseColor",
-			"uri":"quaternius_medieval_village/glTF/T_RoundTiles_BaseColor.png"
+			"uri":"quaternius/medieval_village/glTF/T_RoundTiles_BaseColor.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"T_RoundTiles_Roughness",
-			"uri":"quaternius_medieval_village/glTF/T_RoundTiles_Roughness.png"
+			"uri":"quaternius/medieval_village/glTF/T_RoundTiles_Roughness.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"T_Plaster_Normal",
-			"uri":"quaternius_medieval_village/glTF/T_Plaster_Normal.png"
+			"uri":"quaternius/medieval_village/glTF/T_Plaster_Normal.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"T_Plaster_BaseColor",
-			"uri":"quaternius_medieval_village/glTF/T_Plaster_BaseColor.png"
+			"uri":"quaternius/medieval_village/glTF/T_Plaster_BaseColor.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"T_Plaster_ORM",
-			"uri":"quaternius_medieval_village/glTF/T_Plaster_ORM.png"
+			"uri":"quaternius/medieval_village/glTF/T_Plaster_ORM.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"T_Brick_Normal",
-			"uri":"quaternius_medieval_village/glTF/T_Brick_Normal.png"
+			"uri":"quaternius/medieval_village/glTF/T_Brick_Normal.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"T_Brick_BaseColor",
-			"uri":"quaternius_medieval_village/glTF/T_Brick_BaseColor.png"
+			"uri":"quaternius/medieval_village/glTF/T_Brick_BaseColor.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"T_Brick_Roughness",
-			"uri":"quaternius_medieval_village/glTF/T_Brick_Roughness.png"
+			"uri":"quaternius/medieval_village/glTF/T_Brick_Roughness.png"
 		}
 	],
 	"accessors":[

@@ -51,7 +51,7 @@
             "Y" : -1.3957810401916504E-001,
             "Z" : -1.5400886535644531E-001
           },
-          "Url" : "castle-data:/quaternius/modular_sci_fi/glTF/Aliens/Alien_Cyclop.gltf"
+          "Url" : "castle-data:/quaternius/modular_sci_fi/glTF/Alien_Cyclop.gltf"
         }
       ],
       "$Behaviors" : [
@@ -83,7 +83,7 @@
         "X" : -3.9448380470275879E+000,
         "Z" : 1.0151741981506348E+001
       },
-      "Url" : "castle-data:/quaternius/modular_sci_fi/glTF/Props/Prop_Computer.gltf",
+      "Url" : "castle-data:/quaternius/modular_sci_fi/glTF/Prop_Computer.gltf",
       "$Behaviors" : [
         {
           "$$ClassName" : "TCastleBoxCollider",
@@ -114,7 +114,7 @@
         "Y" : 3.3369243144989014E-002,
         "Z" : 7.4643812179565430E+000
       },
-      "Url" : "castle-data:/quaternius/modular_sci_fi/glTF/Platforms/Platform_Padded.gltf"
+      "Url" : "castle-data:/quaternius/modular_sci_fi/glTF/Platform_Padded.gltf"
     },
     {
       "$$ClassName" : "TCastleScene",
@@ -134,7 +134,7 @@
         "X" : -1.4284610748291016E+000,
         "Z" : 4.7957544326782227E+000
       },
-      "Url" : "castle-data:/quaternius/modular_sci_fi/glTF/Columns/Column_Round.gltf",
+      "Url" : "castle-data:/quaternius/modular_sci_fi/glTF/Column_Round.gltf",
       "$Behaviors" : [
         {
           "$$ClassName" : "TCastleBoxCollider",
@@ -164,7 +164,7 @@
         "X" : -1.4284610748291016E+000,
         "Z" : 9.9558534622192383E+000
       },
-      "Url" : "castle-data:/quaternius/modular_sci_fi/glTF/Columns/Column_Round.gltf",
+      "Url" : "castle-data:/quaternius/modular_sci_fi/glTF/Column_Round.gltf",
       "$Behaviors" : [
         {
           "$$ClassName" : "TCastleBoxCollider",
@@ -194,7 +194,7 @@
         "X" : -6.4557456970214844E+000,
         "Z" : 9.9558534622192383E+000
       },
-      "Url" : "castle-data:/quaternius/modular_sci_fi/glTF/Columns/Column_Round.gltf",
+      "Url" : "castle-data:/quaternius/modular_sci_fi/glTF/Column_Round.gltf",
       "$Behaviors" : [
         {
           "$$ClassName" : "TCastleBoxCollider",
@@ -224,7 +224,7 @@
         "X" : -6.2070989608764648E+000,
         "Z" : 5.0440030097961426E+000
       },
-      "Url" : "castle-data:/quaternius/modular_sci_fi/glTF/Columns/Column_Round.gltf",
+      "Url" : "castle-data:/quaternius/modular_sci_fi/glTF/Column_Round.gltf",
       "$Behaviors" : [
         {
           "$$ClassName" : "TCastleBoxCollider",

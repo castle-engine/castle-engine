@@ -77,17 +77,17 @@
 		{
 			"mimeType":"image/png",
 			"name":"T_Brick_Normal",
-			"uri":"quaternius_medieval_village/glTF/T_Brick_Normal.png"
+			"uri":"quaternius/medieval_village/glTF/T_Brick_Normal.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"T_Brick_BaseColor",
-			"uri":"quaternius_medieval_village/glTF/T_Brick_BaseColor.png"
+			"uri":"quaternius/medieval_village/glTF/T_Brick_BaseColor.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"T_Brick_Roughness",
-			"uri":"quaternius_medieval_village/glTF/T_Brick_Roughness.png"
+			"uri":"quaternius/medieval_village/glTF/T_Brick_Roughness.png"
 		}
 	],
 	"accessors":[

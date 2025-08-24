@@ -8,7 +8,7 @@
     "$$ClassName" : "TCastleScene.TSceneRenderOptions",
     "WholeSceneManifold" : true
   },
-  "Url" : "castle-data:/quaternius_medieval_village/glTF/Prop_Crate.gltf",
+  "Url" : "castle-data:/quaternius/medieval_village/glTF/Prop_Crate.gltf",
   "$Behaviors" : [
     {
       "$$ClassName" : "TCastleBoxCollider",
