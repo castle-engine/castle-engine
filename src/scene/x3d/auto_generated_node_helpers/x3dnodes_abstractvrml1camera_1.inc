@@ -28,10 +28,6 @@
     procedure SetPosition(const Value: TVector3);
     function GetFocalDistance: Single;
     procedure SetFocalDistance(const Value: Single);
-    function GetNearDistance: Single;
-    procedure SetNearDistance(const Value: Single);
-    function GetFarDistance: Single;
-    procedure SetFarDistance(const Value: Single);
   public
     { Create node fields and events. }
     procedure CreateNode; override;
@@ -49,18 +45,6 @@
     public property FdFocalDistance: TSFFloat read FFdFocalDistance;
     {  }
     property FocalDistance: Single read GetFocalDistance write SetFocalDistance;
-
-    strict private FFdNearDistance: TSFFloat;
-    { Internal wrapper for property @code(NearDistance). This wrapper API may change, we advise to access simpler @code(NearDistance) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
-    public property FdNearDistance: TSFFloat read FFdNearDistance;
-    { Ignored. Unknown extension to VRML 1.0 spec, found on models in http://www-vrl.umich.edu/sel_prj/EECS498/ . }
-    property NearDistance: Single read GetNearDistance write SetNearDistance;
-
-    strict private FFdFarDistance: TSFFloat;
-    { Internal wrapper for property @code(FarDistance). This wrapper API may change, we advise to access simpler @code(FarDistance) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
-    public property FdFarDistance: TSFFloat read FFdFarDistance;
-    { Ignored. Unknown extension to VRML 1.0 spec, found on models in http://www-vrl.umich.edu/sel_prj/EECS498/ . }
-    property FarDistance: Single read GetFarDistance write SetFarDistance;
 
 {$endif read_interface}
 
@@ -88,26 +72,6 @@ begin
   FdFocalDistance.Send(Value);
 end;
 
-function TAbstractCameraNode_1.GetNearDistance: Single;
-begin
-  Result := FdNearDistance.Value;
-end;
-
-procedure TAbstractCameraNode_1.SetNearDistance(const Value: Single);
-begin
-  FdNearDistance.Send(Value);
-end;
-
-function TAbstractCameraNode_1.GetFarDistance: Single;
-begin
-  Result := FdFarDistance.Value;
-end;
-
-procedure TAbstractCameraNode_1.SetFarDistance(const Value: Single);
-begin
-  FdFarDistance.Send(Value);
-end;
-
 class function TAbstractCameraNode_1.ForVRMLVersion(const Version: TX3DVersion): Boolean;
 begin
   Result := Version.Major <= 1; // parse this node only in VRML 1.0 and Inventor files
@@ -130,14 +94,6 @@ begin
    FdFocalDistance.ChangeAlways := chVisibleNonGeometry;
    FdFocalDistance.MustBeNonnegative := true;
   AddField(FFdFocalDistance);
-
-  FFdNearDistance := TSFFloat.Create(Self, True, 'nearDistance', 0);
-   FdNearDistance.ChangeAlways := chViewpointVectors;
-  AddField(FFdNearDistance);
-
-  FFdFarDistance := TSFFloat.Create(Self, True, 'farDistance', 0);
-   FdFarDistance.ChangeAlways := chViewpointVectors;
-  AddField(FFdFarDistance);
 end;
 
 {$endif read_implementation}
