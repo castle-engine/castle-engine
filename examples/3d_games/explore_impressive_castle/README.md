@@ -22,6 +22,44 @@
 ![Screenshot 2](screenshot_2.png)
 ![Screenshot](screenshot.png)
 
+## Performance of this demo
+
+This demo is admittedly more performance-demanding than most other examples of _Castle Game Engine_.
+
+### What features make this demo performance-demanding?
+
+- It uses a lot of light sources, and they are all dynamic.
+
+- We also use physical based lighting model, which is more realistic but a bit slower.
+
+### How to make your own games fast
+
+Every game has different system requirements, which are determined by the graphic features you use in the particular game (not just by the engine capabilities). Our _Castle Game Engine_ strives to support even very ancient systems, however you need to take some limits into account if you want to target low-end machines. If this is the case, be sure to read:
+
+- [Our guidlines how to optimize your game](https://castle-engine.io/manual_optimization.php).
+
+- If you really want to support extremely low-end machines, then be careful when using [some of the features that make rendering prettier](https://castle-engine.io/how_to_make_rendering_prettier). Some of them (though not all) have a performance cost. Again, be sure to test (don't guess :) ), every case is different.
+
+### Particular advises to make a demo like this (3D level and many lights) run faster
+
+1. For light sources, you can use less light sources and/or bake light sources. The information [how to use lights baking in Blender is here](https://castle-engine.io/blender#_baking_lighting).
+
+    Right now we don't support doing such _baking_ straight from Castle Game Engine editor (unlike e.g. _Unreal Engine_ which has this built-in) so you need to use [Blender](https://castle-engine.io/blender) (or other 3D authoring software) for this and export to Castle Game Engine a model with already baked lighting.
+
+    If this sounds complicated, then simply limit your lighting usage, or even use vertex colors.
+
+2. Consider switching from physical-based lighting model to Phong lighting model. How to do this depends on your models, but usually (if you use [glTF format](https://castle-engine.io/gltf), which we recommend) all you need to do is set the global boolean `GltfForcePhongMaterials` from `CastleLoadGltf` unit to `true`.
+
+    Do this early -- e.g. in the `AppplicationInitialize` in the unit `GameInitialize`.
+
+3. As a brute-force solution (that makes point 2. above completely unnecessary and makes 1. less necessary) you can also do
+
+    ```
+    TGLFeatures.RequestCapabilities := rcForceFixedFunction;
+    ```
+
+    This is somewhat brute-force solution, it makes a few things uglier, but it makes sense if you really want to target low-old GPUs. You can add this line to the `AppplicationInitialize` *or* you can choose in CGE editor menu item _"Run -> Run Parameters -> Force Ancient Rendering"_ and run the game. You will see the game looks worse -- but is also much faster.
+
 ## Inputs
 
 Attack (with currently equipped weapon) by clicking with left mouse button.
