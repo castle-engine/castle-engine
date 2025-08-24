@@ -546,7 +546,7 @@ begin
     This corresponds to Ubuntu 12.04.1 package fglrx 2:8.960-0ubuntu1.1.
     The bug is *not* present on Windows installed on the same hardware
     (or any other GPU, Linux or Windows).
-    Easily reproducible by fps_game: the ExtraViewport by default leaves
+    Reproducible by fps_game_old_ai: the ExtraViewport by default leaves
     glViewport at non-full-screen state at the end of EventDraw,
     causing following SwapBuffers in DoDraw to fail, leaving part
     of the screen not updated (black) without this workaround. }
