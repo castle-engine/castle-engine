@@ -107,6 +107,7 @@ castle-game-engine-*.fpm
 
 # Unix binaries (keep this list alphabetic).
 /examples/3d_games/walking_adventure/walk_3d_game_controllers
+/examples/3d_games/dungeons_and_skeletons_fight/game_3d
 /examples/advanced_editor/advanced_loading_designs/advanced_loading_designs
 /examples/advanced_editor/custom_component/custom_component
 /examples/animations/animate_bones_by_code/animate_bones_by_code
