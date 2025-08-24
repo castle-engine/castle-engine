@@ -5345,7 +5345,7 @@ var
 
       { Bounding box of the scene changed, and rendering octree changed,
         because bbox of shape changed.
-        Testcase: knight.gltf (from examples/fps_game/ ) animations or
+        Testcase: knight.gltf (in various CGE examples ) animations or
         lizardman.gltf (from demo-models/bump_mapping/ ) animations.
         We deliberately pass Shape=nil, to cause MaybeBoundingBoxChanged=true
         inside DoGeometryChanged. }
