@@ -1127,10 +1127,10 @@ begin
     // register CGE packages first
     if CastleEnginePath <> '' then
     begin
-      LazbuildAddPackage('packages/castle_base.lpk');
-      LazbuildAddPackage('packages/castle_window.lpk');
-      LazbuildAddPackage('packages/castle_components.lpk');
-      LazbuildAddPackage('packages/castle_editor_components.lpk');
+      LazbuildAddPackage('packages/lazarus/castle_engine_base.lpk');
+      LazbuildAddPackage('packages/lazarus/castle_engine_window.lpk');
+      LazbuildAddPackage('packages/lazarus/castle_engine_lcl.lpk');
+      LazbuildAddPackage('packages/lazarus/castle_engine_editor_components.lpk');
     end;
 
     LazbuildOptions.Clear;

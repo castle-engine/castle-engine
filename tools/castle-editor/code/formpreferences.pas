@@ -454,12 +454,12 @@ procedure TPreferencesForm.ButtonRegisterLazarusPackagesClick(Sender: TObject);
 
 begin
   try
-    RegisterPackage('packages/castle_base.lpk');
-    RegisterPackage('packages/castle_window.lpk');
-    RegisterPackage('packages/castle_components.lpk');
-    RegisterPackage('packages/castle_editor_components.lpk');
-    RegisterPackage('packages/alternative_castle_window_based_on_lcl.lpk');
-    RegisterPackage('packages/castle_indy.lpk');
+    RegisterPackage('packages/lazarus/castle_engine_base.lpk');
+    RegisterPackage('packages/lazarus/castle_engine_window.lpk');
+    RegisterPackage('packages/lazarus/castle_engine_lcl.lpk');
+    RegisterPackage('packages/lazarus/castle_engine_editor_components.lpk');
+    RegisterPackage('packages/lazarus/alternative_castle_engine_window_based_on_lcl.lpk');
+    RegisterPackage('packages/lazarus/castle_engine_indy.lpk');
 
     ShowMessage('Lazarus packages registered successfully.');
   except

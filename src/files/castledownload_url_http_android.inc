@@ -152,6 +152,8 @@ function THttpAndroidReader.HandleDownloadMessages(const Received: TCastleString
   end;
 
 begin
+  Result := false;
+
   if (Received.Count = 3) and
      (Received[0] = 'download-error') and
      (Received[1] = IntToStr(DownloadId)) then

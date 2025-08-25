@@ -653,7 +653,7 @@ function T3DResourceAnimation.SceneAtTime(const Time: TFloatTime;
     { Calculate Time with looping/clamping applied, because we want to have
       ForceNecessary = false as often as possible (to avoid doing work).
       Test Duration <> 0 to avoid dividing by 0 in FloatModulo(Time, 0)
-      (testcase: fps_game debug build on Android) }
+      (testcase: fps_game_old_ai debug build on Android) }
     if Loop and (Duration <> 0) then
       ActualTime := FloatModulo(Time, Duration)
     else
@@ -903,7 +903,7 @@ begin
   { When T3DResource (FAnimation.Owner) is freed, unassociate from FAnimation
     (that is/will be freed alongside), to avoid later crash at TResourceFrame.Destroy.
     The FreeAndNil(Resources) may happen before all creatures are destroyed.
-    Testcase: fps_game, crash at game exit. }
+    Testcase: fps_game_old_ai, crash at game exit. }
   SetFrame(nil, nil, 0, false);
   Assert(FAnimation = nil);
   Assert(not CurrentChildFromPool);
@@ -931,7 +931,7 @@ begin
     because inherited notifies all TResourceFrame about freeing of related T3DResource instance.
     At the point of that notification, TResourceFrame may assume that referenced FAnimation
     still exists.
-    Testcase: just run and close fps_game. }
+    Testcase: just run and close fps_game_old_ai. }
   FreeAndNil(FAnimations);
 end;
 

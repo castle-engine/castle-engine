@@ -322,7 +322,7 @@ var
 begin
   { Note about OpenDialog1 (TOpenDialog) usage:
     In a "real" Castle Game Engine application using LCL, we recommend to use
-    component TCastleOpenSceneDialog (from castle_components.lpk)
+    component TCastleOpenSceneDialog (from castle_engine_lcl.lpk)
     to have a dialog box to select a file to load in TCastleScene.
     However, in case of this application, it deliberately *does not* use CGE in a normal
     way (through Lazarus packages or Pascal units), it only accesses CGE as a shared library.

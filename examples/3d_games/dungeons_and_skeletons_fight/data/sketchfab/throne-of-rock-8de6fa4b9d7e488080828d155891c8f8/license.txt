@@ -1,0 +1,11 @@
+Model Information:
+* title:	throne of rock
+* source:	https://sketchfab.com/3d-models/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8
+* author:	MarcoConfente (https://sketchfab.com/MarcoConfente)
+
+Model License:
+* license type:	CC-BY-NC-4.0 (http://creativecommons.org/licenses/by-nc/4.0/)
+* requirements:	Author must be credited. No commercial use.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "throne of rock" (https://sketchfab.com/3d-models/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8) by MarcoConfente (https://sketchfab.com/MarcoConfente) licensed under CC-BY-NC-4.0 (http://creativecommons.org/licenses/by-nc/4.0/)

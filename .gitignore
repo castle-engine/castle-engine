@@ -102,15 +102,13 @@ castle-game-engine-*.fpm
 /src/deprecated_library/libcastleengine.so
 
 # Lazarus packages artifacts
-/packages/alternative_castle_window_based_on_lcl.pas
-/packages/castle_base.pas
-/packages/castle_components.pas
-/packages/castle_editor_components.pas
-/packages/castle_indy.pas
-/packages/castle_window.pas
-/packages/lib/
+/packages/lazarus/*castle_engine*.pas
+/packages/lazarus/lib/
 
 # Unix binaries (keep this list alphabetic).
+/examples/3d_games/walking_adventure/walk_3d_game_controllers
+/examples/3d_games/dungeons_and_skeletons_fight/game_3d
+/examples/3d_games/explore_impressive_castle/fps_game
 /examples/advanced_editor/advanced_loading_designs/advanced_loading_designs
 /examples/advanced_editor/custom_component/custom_component
 /examples/animations/animate_bones_by_code/animate_bones_by_code
@@ -146,8 +144,6 @@ castle-game-engine-*.fpm
 /examples/fonts/test_local_characters/test_local_characters
 /examples/fonts/text_tests/text_tests
 /examples/fonts/texture-font-to-pascal
-/examples/fps_game/fps_game
-/examples/deprecated_to_upgrade/fps_game_old_ai/fps_game
 /examples/ifc/ifc
 /examples/images_videos/image_decompose/image_decompose
 /examples/images_videos/deprecated_drawing_modes_test/drawing_modes_test
@@ -174,6 +170,7 @@ castle-game-engine-*.fpm
 /examples/localization/deprecated_custom/castle_localization
 /examples/localization/gettext/localization_test
 /examples/localization/gettext/po_files/generator/po_generator
+/examples/mobile/facebook_integration/facebook_integration
 /examples/mobile/game_services/game_services_demo
 /examples/mobile/activity_recognition/activity_recognition
 /examples/mobile/drawing_toy/drawing_toy

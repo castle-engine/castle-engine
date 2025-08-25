@@ -127,12 +127,14 @@ do_project examples/eye_of_beholder # TODO: web: fog
 do_project examples/creature_behaviors # TODO: web: bump mapping, mouse look
 do_project examples/third_person_navigation # TODO: web: mouse look
 do_project examples/physics/physics_3d_shooter # TODO: web: mouse look
+do_project examples/3d_games/dungeons_and_skeletons_fight # TODO: web: mouse look
+do_project examples/3d_games/walking_adventure # TODO: web: mouse look
 
 do_project tools/castle-editor-portable
 do_project tests
 
 # 3d, problems critical
-# do_project examples/fps_game # TODO: web: bump mapping, mouse look, weird blinking
+# do_project examples/3d_games/explore_impressive_castle # TODO: web: bump mapping, mouse look, weird blinking
 # do_project examples/terrain # TODO: web: terrain shader doesn't compile, water shader doesn't compile
 # do_project examples/research_special_rendering_methods/test_rendering_opengl_capabilities/ # TODO: web: EFramebufferInvalid: Framebuffer check failed: INCOMPLETE_ATTACHMENT: Not all framebuffer attachment points are "framebuffer attachment complete" (FBO error number 36054)
 
@@ -145,4 +147,3 @@ do_project examples/audio/play_sounds # TODO: silent without WebAudio, also "Exi
 # other repos (outside CGE), git clone them as siblings
 do_project_any "${CASTLE_ENGINE_PATH}/../castle-model-viewer-mobile" 'castle-model-viewer-mobile' # TODO: web: no open dialog
 do_project_any "${CASTLE_ENGINE_PATH}/../castle-dice-throwing" 'castle-dice-throwing'
-do_project_any "${CASTLE_ENGINE_PATH}/../conference-delphi-summit-2025/walk_3d_game_controllers" 'walk_3d_game_controllers'

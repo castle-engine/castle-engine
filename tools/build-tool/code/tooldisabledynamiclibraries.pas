@@ -25,7 +25,7 @@ implementation
 uses CastleDynLib;
 
 initialization
-  { Important on Windows, but defined everywhere for consistency.
+  { Important on Windows.
     This avoids the build tool locking DLL files of a project,
     when it is run inside the project's directory.
     This would prevent compile/clean options from removing/overwriting
@@ -33,8 +33,12 @@ initialization
 
     Since build tool right now doesn't actually need Zlib, Libpng, OpenAL
     libraries (but it would load them otherwise) this is a simple solution.
+
+    Note: This is actually reverted in ToolFonts (for web) now,
+    which needs FreeType. It's only used when building for web,
+    so it not a problem that it may lock project's DLLs, as it will not
+    try to remove/replace them.
   }
-  // TODO: web: ToolFonts needs FreeType now... hack to make this work on non-Windows at least for now
   {$ifdef MSWINDOWS}
   InternalDisableDynamicLibraries := true;
   {$endif}

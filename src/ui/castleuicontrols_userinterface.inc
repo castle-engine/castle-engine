@@ -1460,11 +1460,13 @@
       It's by default @true and it makes most sense to leave it @true for
       the majority of components. However some components are not only invisible,
       but also "user doesn't expect to select them by hovering". E.g. TCastleNavigation,
-      or DesignHud in examples/fps_game. It is more intuitive for user then that such
+      or DesignHud in examples/3d_games/explore_impressive_castle .
+      It is more intuitive for user then that such
       component doesn't obscure things underneath.
 
-      Note that hovering over children of UI with EditorSelectOnHover will still select them.
-      This is good e.g. for DesignHud in examples/fps_game. }
+      Note that hovering over children of UI with EditorSelectOnHover
+      will still select them.
+      This is good e.g. for DesignHud in examples/3d_games/explore_impressive_castle. }
     property EditorSelectOnHover: Boolean read FEditorSelectOnHover write FEditorSelectOnHover default true;
 
   {$define read_interface_class}

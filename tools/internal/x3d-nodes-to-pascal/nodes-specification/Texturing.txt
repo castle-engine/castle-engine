@@ -97,6 +97,15 @@ MultiTexture : X3DTextureNode {
   SFColor  [in,out] color    1 1 1
     range: [0,1]
     change: chTextureRendererProperties
+    before-public-interface: """
+      { Avoid Delphi warning that this hides ancestor Color.
+        We don't care about it now -- because ancestor's Color
+        method is not very useful on TMultiTextureNode anyway. }
+      {$warnings off}
+    """
+    after-public-interface: """
+      {$warnings on}
+    """
   MFString [in,out] function []
     change: chTextureRendererProperties
   MFString [in,out] mode     []

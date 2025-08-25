@@ -1372,7 +1372,7 @@ begin
     That's because Navigation could be changed after our Update,
     but before rendering.
     (Testcase: move/rotate using touch control
-    in fps_game when you have shooting_eye.) }
+    in fps_game_old_ai when you have shooting_eye.) }
   SynchronizeFromCamera;
 
   inherited;

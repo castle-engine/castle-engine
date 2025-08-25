@@ -671,14 +671,14 @@ begin
 
     if P > Length(S) then
     begin
-      WritelnLog('VRML/X3D', 'PLUG declaration unexpected end (no opening parenthesis "(") ');
+      WritelnLog('Shader', 'PLUG declaration unexpected end (no opening parenthesis "(") ');
       Exit(false);
     end;
 
     if (S[P] <> '(') and
        not CharInSet(S[P], WhiteSpaces) then
     begin
-      WritelnLog('VRML/X3D', Format('PLUG declaration unexpected character "%s" (expected opening parenthesis "(") in "%s"',
+      WritelnLog('Shader', Format('PLUG declaration unexpected character "%s" (expected opening parenthesis "(") in "%s"',
         [S[P], S]));
       Exit(false);
     end;
@@ -696,7 +696,7 @@ begin
     Inc(P);
     if P > Length(S) then
     begin
-      WritelnLog('VRML/X3D', 'PLUG declaration unexpected end (no closing parenthesis ")")');
+      WritelnLog('Shader', 'PLUG declaration unexpected end (no closing parenthesis ")")');
       Exit(false);
     end;
 
@@ -1070,7 +1070,7 @@ begin
       "OpenGL shading language (GLSL) binding".
       Remaining:
       SF/MFImage }
-    WritelnWarning('VRML/X3D', 'Setting uniform GLSL variable from X3D field type "' + UniformValue.X3DType + '" not supported');
+    WritelnWarning('Shader', 'Setting uniform GLSL variable from X3D field type "' + UniformValue.X3DType + '" not supported');
 
   if EnableDisable then
     { TODO: this should restore previously bound program }
@@ -1319,7 +1319,7 @@ procedure TShader.Plug(const EffectPartType: TShaderType; PlugValue: String;
       PEnd := PosEx('*/', Code, PBegin + Length(CommentBegin));
       Result :=  PEnd <> 0;
       if not Result then
-        WritelnWarning('VRML/X3D', Format('Plug comment "%s" not properly closed, treating like not declared',
+        WritelnWarning('Shader', Format('Plug comment "%s" not properly closed, treating like not declared',
           [CommentBegin]));
     end;
   end;
@@ -1425,7 +1425,7 @@ begin
       AnyOccurrences := LookForPlugDeclaration(Source[EffectPartType]);
 
     if (not AnyOccurrences) and WarnMissingPlugs then
-      WritelnWarning('VRML/X3D', Format('Plug name "%s" not declared (in shader type "%s")',
+      WritelnWarning('Shader', Format('Plug name "%s" not declared (in shader type "%s")',
         [PlugName, ShaderTypeName[EffectPartType]]));
   until false;
 
@@ -1459,7 +1459,7 @@ begin
   end;
 
   if (not Result) and WarnMissingPlugs then
-    WritelnWarning('VRML/X3D', Format('Plug point "%s" not found', [PlugName]));
+    WritelnWarning('Shader', Format('Plug point "%s" not found', [PlugName]));
 end;
 
 procedure TShader.Define(const DefineName: String; const ShaderType: TShaderType;
@@ -1524,7 +1524,7 @@ procedure TShader.EffectsGenerateCode(Effects: TX3DNodeList;
 
     if not (Effect.Language in [slDefault, slGLSL]) then
     begin
-      WritelnWarning('VRML/X3D', Format('Unknown shading language "%s" for Effect node',
+      WritelnWarning('Shader', Format('Unknown shading language "%s" for Effect node',
         [Effect.FdLanguage.Value]));
       Exit;
     end;

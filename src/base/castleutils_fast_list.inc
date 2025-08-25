@@ -202,10 +202,14 @@ end;
 
 procedure TCastleFastList{$ifndef FPC}<T>{$endif}.SetItems(const Index: Integer; const Value: T);
 begin
-  // looks much nicer, OK for FPC, but Delphi cannot handle this
-  // L[Index] := Value;
-
+  { Looks much nicer, and is OK for FPC, but Delphi cannot handle this.
+    Keep using it with FPC, as version with PtrUInt requires a few additional casts
+    to avoid FPC warnings. }
+  {$ifdef FPC}
+  L[Index] := Value;
+  {$else}
   PtrT(PtrUInt(FItems) + SizeOf(T) * Index)^ := Value;
+  {$endif}
 end;
 
 procedure TCastleFastList{$ifndef FPC}<T>{$endif}.Assign(const Source: TCastleFastList {$ifndef FPC}<T>{$endif});
@@ -222,8 +226,14 @@ begin
   NewCount := Count + Source.Count;
   AllocateAtLeast(NewCount);
   Move(Source.L^,
-    // L[Count], // looks much nicer, OK for FPC, but Delphi cannot handle this
+    { Looks much nicer, and is OK for FPC, but Delphi cannot handle this.
+      Keep using it with FPC, as version with PtrUInt requires a few additional casts
+      to avoid FPC warnings. }
+    {$ifdef FPC}
+    L[Count],
+    {$else}
     PtrT(PtrUInt(FItems) + SizeOf(T) * Count)^,
+    {$endif}
     Source.Count * SizeOf(T));
   FCount := NewCount;
 end;

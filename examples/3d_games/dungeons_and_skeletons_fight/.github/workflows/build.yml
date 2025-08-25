@@ -1,0 +1,140 @@
+# ----------------------------------------------------------------------------
+# GitHub Actions workflow to build this application.
+# Using latest Castle Game Engine ( https://castle-engine.io/ ) snapshot.
+# For multiple platforms (Linux, Windows).
+#
+# This uses GitHub-hosted runners, that is: you don't need to set up any server
+# infrastructure, GitHub provides it all for free for open-source projects.
+#
+# See docs:
+# - https://castle-engine.io/github_actions
+# - https://docs.github.com/en/actions
+# ----------------------------------------------------------------------------
+
+name: Build
+
+on:
+  pull_request:
+  # Run on push to any branch, not on tags.
+  # Checking tags is not useful for us (we check the commit when it happened
+  # at branch) and we would waste 2x time to update on every "snapshpt" tag change.
+  push:
+    branches:
+      - '**'
+
+jobs:
+  # Build for platforms supported by
+  # CGE Docker image https://hub.docker.com/r/kambi/castle-engine-cloud-builds-tools/ .
+  build-using-docker:
+    name: Build Using Docker
+    runs-on: ubuntu-latest
+    container: kambi/castle-engine-cloud-builds-tools:cge-unstable
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Package Windows
+        run: castle-engine package --os=win64 --cpu=x86_64 --verbose
+      - name: Archive Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-build
+          path: "*-win64-x86_64.zip"
+          if-no-files-found: error
+
+      - name: Package Linux
+        run: castle-engine package --os=linux --cpu=x86_64 --verbose
+      - name: Archive Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-build
+          path: "*-linux-x86_64.tar.gz"
+          if-no-files-found: error
+
+      # TODO: Use touch navigation to make it work on Android/iOS, see https://castle-engine.io/touch_input
+      #
+      # - name: Unpack Android Secrets
+      #   env:
+      #     ANDROID_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE }}
+      #     ANDROID_SIGNING_PROPERTIES: ${{ secrets.ANDROID_SIGNING_PROPERTIES }}
+      #   run: |
+      #     echo "$ANDROID_KEYSTORE" | base64 --decode > cge.keystore
+      #     echo "$ANDROID_SIGNING_PROPERTIES" | sed -e "s|WORKSPACE|${GITHUB_WORKSPACE}|" - > AndroidSigningProperties.txt
+      # - name: Package Android
+      #   run: castle-engine package --target=android --verbose
+      # - name: Archive Artifacts
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: android-build
+      #     path: "*.apk"
+      #     if-no-files-found: error
+
+  # TODO: fix mouse look for macOS.
+  #
+  # # Build for platforms supported from macOS.
+  # build-macos:
+  #   name: Build Using macOS
+  #   runs-on: macos-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Install FPC+Lazarus
+  #       uses: gcarreno/setup-lazarus@v3.2.17
+  #       with:
+  #         lazarus-version: stable
+  #     - name: Castle Game Engine - Env CASTLE_ENGINE_PATH
+  #       run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE/castle-engine" >> $GITHUB_ENV
+  #     - name: Castle Game Engine - Env PATH (non-Windows)
+  #       run: echo "PATH=$PATH:$CASTLE_ENGINE_PATH/tools/build-tool/" >> $GITHUB_ENV
+  #     - name: Castle Game Engine - Clone snapshot
+  #       run: git clone --depth 1 --single-branch --branch snapshot https://github.com/castle-engine/castle-engine/
+  #     - name: Castle Game Engine - Build
+  #       run: cd $CASTLE_ENGINE_PATH/tools/build-tool/ && ./castle-engine_compile.sh
+  #
+  #     - name: Package macOS
+  #       run: castle-engine package --os=darwin --cpu=x86_64 --verbose
+  #     - name: Archive Artifacts
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: macos-build
+  #         path: "*-darwin-x86_64.zip"
+  #         if-no-files-found: error
+
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    # Only upload release if all builds, on all runners, succeeded.
+    needs: [
+      build-using-docker
+      # TODO: #, build-macos
+      ]
+    steps:
+    - name: Download packaged releases
+      uses: actions/download-artifact@v5
+      with:
+        merge-multiple: true
+    - name: List downloaded files
+      run: ls -R
+    - name: GH CLI status
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: gh auth status
+    # Releases files in the "snapshot" release.
+    - name: Release Artifacts
+      if: ${{ github.ref == 'refs/heads/master' }}
+      run: gh release --repo ${{ github.repository }} upload snapshot --clobber *.zip *.tar.gz
+        # TODO: *.apk
+      env:
+        GH_TOKEN: ${{ github.token }}
+
+  update-release-tag:
+    name: Update Release Tag (make snapshot tag point to the build commit on master branch)
+    runs-on: ubuntu-latest
+    needs: [release]
+    steps:
+    - uses: actions/checkout@v4
+    - name: Update Release Tag
+      if: ${{ github.ref == 'refs/heads/master' }}
+      run: |
+        # --force allows to overwrite previous tag
+        git tag --force snapshot
+        # --force allows to push with overwritten tag
+        git push --force origin snapshot

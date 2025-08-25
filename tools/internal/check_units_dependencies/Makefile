@@ -1,7 +1,5 @@
-# This Makefile uses "castle-engine" build tool for most operations
-# (like compilation).
-# See https://github.com/castle-engine/castle-engine/wiki/Build-Tool
-# for instructions how to install/use this build tool.
+# Run the test by "make".
+# Cleanup by "make clean".
 
 .PHONY: run
 run: check_one_unit_dependencies

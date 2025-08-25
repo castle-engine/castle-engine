@@ -774,7 +774,7 @@ procedure FmodLibraryUsingEnd;
 
 { FMOD is linked statically on some platforms.
   Note that, fortunately, none of these platforms use LCL for OpenGL backend.
-  That's good, because castle_base.lpk has to include the FMOD unit,
+  That's good, because castle_engine_base.lpk has to include the FMOD unit,
   and including FMOD unit on platforms where static compilation is used
   *forces* the presence of FMOD libraries. }
 {$if not (defined(CASTLE_NINTENDO_SWITCH) or defined(CASTLE_IOS))}

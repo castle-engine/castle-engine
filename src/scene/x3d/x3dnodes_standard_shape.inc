@@ -983,6 +983,8 @@ begin
   Result := FNode.FdTransSpecularExp.Value;
 end;
 
+{$endif not CASTLE_SLIM_NODES}
+
 function TMaterialNode.TMyMaterialInfo.MainTexture(
   const Appearance: TAppearanceNode;
   const VRML1State: TVRML1State): TAbstractTextureNode;
@@ -1008,8 +1010,6 @@ begin
   Result := Appearance.Texture;
   TexCoordIndex := -1;
 end;
-
-{$endif not CASTLE_SLIM_NODES}
 
 { TPhysicalMaterialNode.TMyPhysicalMaterialInfo --------------------------------------------------- }
 

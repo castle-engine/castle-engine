@@ -1537,9 +1537,9 @@ begin
     ExtractTemplate('custom_editor_template/', EditorPath, true);
 
     // use lazbuild to compile CGE packages and CGE editor
-    RunLazbuild(Path, [CgePath + 'packages/castle_base.lpk']);
-    RunLazbuild(Path, [CgePath + 'packages/castle_components.lpk']);
-    RunLazbuild(Path, [CgePath + 'packages/castle_editor_components.lpk']);
+    RunLazbuild(Path, [CgePath + 'packages/lazarus/castle_engine_base.lpk']);
+    RunLazbuild(Path, [CgePath + 'packages/lazarus/castle_engine_lcl.lpk']);
+    RunLazbuild(Path, [CgePath + 'packages/lazarus/castle_engine_editor_components.lpk']);
     RunLazbuild(Path, [EditorPath + 'castle_editor_automatic_package.lpk']);
     RunLazbuild(Path, [EditorPath + 'castle_editor.lpi']);
   end;

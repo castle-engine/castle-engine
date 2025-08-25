@@ -1,0 +1,84 @@
+{
+  "$$ClassName" : "TCastleUserInterface",
+  "FullSize" : true,
+  "Name" : "Group1",
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleLabel",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000
+      },
+      "CustomFont" : "FontFamilyRoboto",
+      "FontSize" : 4.5000000000000000E+001,
+      "Html" : true,
+      "Name" : "LabelEngine",
+      "Text" : [
+        "<b>Castle Game Engine</b> ",
+        "Make games using Pascal!",
+        "Take the gamepad (<i>long press Xbox ball to wake it up</i>) and play.",
+        "Can you find the secret message?",
+        "And use laptop to tweak this demo code and data!"
+      ],
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : 2.0000000000000000E+001,
+        "Y" : -2.0000000000000000E+001
+      },
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "$NonVisualComponents" : [
+        {
+          "$$ClassName" : "TCastleFont",
+          "Name" : "FontRobotoRegular",
+          "OptimalSize" : 50,
+          "Url" : "castle-data:/fonts/Roboto_SemiCondensed-Regular.ttf"
+        },
+        {
+          "$$ClassName" : "TCastleFont",
+          "Name" : "FontRobotoItalic",
+          "OptimalSize" : 50,
+          "Url" : "castle-data:/fonts/Roboto_SemiCondensed-Italic.ttf"
+        },
+        {
+          "$$ClassName" : "TCastleFont",
+          "Name" : "FontRobotoBold",
+          "OptimalSize" : 50,
+          "Url" : "castle-data:/fonts/Roboto_SemiCondensed-Bold.ttf"
+        },
+        {
+          "$$ClassName" : "TCastleFont",
+          "Name" : "FontRobotoBoldItalic",
+          "OptimalSize" : 50,
+          "Url" : "castle-data:/fonts/Roboto_SemiCondensed-BoldItalic.ttf"
+        },
+        {
+          "$$ClassName" : "TCastleFontFamily",
+          "Bold" : "FontRobotoBold",
+          "BoldItalic" : "FontRobotoBoldItalic",
+          "Italic" : "FontRobotoItalic",
+          "Name" : "FontFamilyRoboto",
+          "Regular" : "FontRobotoRegular"
+        }
+      ]
+    },
+    {
+      "$$ClassName" : "TCastleImageControl",
+      "Content" : {
+        "$$ClassName" : "TCastleImagePersistent",
+        "Url" : "castle-data:/castle_game_engine_icon.png"
+      },
+      "HorizontalAnchorParent" : "hpRight",
+      "HorizontalAnchorSelf" : "hpRight",
+      "Name" : "ImageCastleGameEngineIcon1",
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : -2.0000000000000000E+001,
+        "Y" : -2.0000000000000000E+001
+      },
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
+    }
+  ]
+}

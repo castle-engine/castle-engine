@@ -99,7 +99,6 @@ type
       ProfilerDataFirst, ProfilerDataLast: Integer;
       LogCount: Cardinal;
       AutoSelect: TAutoSelect;
-
     procedure ChangeOpacity(Sender: TObject);
     procedure SetOpacity(const Value: Single);
     { Show component in hierarchy, allow to select it. }
