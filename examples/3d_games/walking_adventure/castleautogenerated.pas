@@ -22,7 +22,7 @@ uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
   ApplicationProperties.ApplicationName := 'walk_3d_game_controllers';
-  ApplicationProperties.Caption := '3D Walking With Game Controllers';
+  ApplicationProperties.Caption := 'Walking Talking Adventure, With Full Game Controller Support';
   ApplicationProperties.Version := '0.1';
 
   if not IsLibrary then

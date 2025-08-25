@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{4ADDEE6F-E3A3-4FAB-9F70-CA084468AAE9}</ProjectGuid>
+        <ProjectGuid>{D9104454-4226-43B9-34C7-5AEDE87B0EA1}</ProjectGuid>
         <MainSource>walk_3d_game_controllers_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
@@ -100,7 +100,7 @@
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;$(DCC_Namespace)</DCC_Namespace>
         <Icon_MainIcon>$(BDS)\bin\delphi_PROJECTICON.ico</Icon_MainIcon>
         <Icns_MainIcns>$(BDS)\bin\delphi_PROJECTICNS.icns</Icns_MainIcns>
-        <DCC_UnitSearchPath>C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/base;C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/common_includes;C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/base/android;C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/base/windows;C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/base/unix;C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/base/wasi;C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/base_rendering;C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/base_rendering/web;C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/base_rendering/dglopengl;C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/base_rendering/glsl/generated-pascal;C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/fonts;C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/window;C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/window/gtk;C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/window/windows;C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/window/unix;C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/window/deprecated_units;C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/images;C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/transform;C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/scene;C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/scene/glsl/generated-pascal;C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/scene/x3d;C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/scene/load;C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/scene/load/ifc;C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/scene/load/spine;C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/scene/load/md3;C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/scene/load/collada;C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/scene/load/pasgltf;C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/audio;C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/audio/fmod;C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/audio/openal;C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/audio/ogg_vorbis;C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/files;C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/files/indy;C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/files/tools;C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/castlescript;C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/ui;C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/ui/windows;C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/services;C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/services/steam;C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/physics;C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/physics/kraft;C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/deprecated_units;C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/vampyre_imaginglib/src/Source;C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/vampyre_imaginglib/src/Source/JpegLib;C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/vampyre_imaginglib/src/Source/ZLib;C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/vampyre_imaginglib/src/Extras/Extensions;C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/vampyre_imaginglib/src/Extensions/J2KObjects;C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/vampyre_imaginglib/src/Extensions/LibTiff;C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/vampyre_imaginglib/src/Extensions;C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/delphi;C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/compatibility/delphi-only;C:/cygwin64/home/michalis/sources/castle-engine/castle-engine/src/compatibility/delphi-only/fcl-json;code/;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>../../../src/base;../../../src/common_includes;../../../src/base/android;../../../src/base/windows;../../../src/base/unix;../../../src/base/wasi;../../../src/base_rendering;../../../src/base_rendering/web;../../../src/base_rendering/dglopengl;../../../src/base_rendering/glsl/generated-pascal;../../../src/fonts;../../../src/window;../../../src/window/gtk;../../../src/window/windows;../../../src/window/unix;../../../src/window/deprecated_units;../../../src/images;../../../src/transform;../../../src/scene;../../../src/scene/glsl/generated-pascal;../../../src/scene/x3d;../../../src/scene/load;../../../src/scene/load/ifc;../../../src/scene/load/spine;../../../src/scene/load/md3;../../../src/scene/load/collada;../../../src/scene/load/pasgltf;../../../src/audio;../../../src/audio/fmod;../../../src/audio/openal;../../../src/audio/ogg_vorbis;../../../src/files;../../../src/files/indy;../../../src/files/tools;../../../src/castlescript;../../../src/ui;../../../src/ui/windows;../../../src/services;../../../src/services/steam;../../../src/physics;../../../src/physics/kraft;../../../src/deprecated_units;../../../src/vampyre_imaginglib/src/Source;../../../src/vampyre_imaginglib/src/Source/JpegLib;../../../src/vampyre_imaginglib/src/Source/ZLib;../../../src/vampyre_imaginglib/src/Extras/Extensions;../../../src/vampyre_imaginglib/src/Extensions/J2KObjects;../../../src/vampyre_imaginglib/src/Extensions/LibTiff;../../../src/vampyre_imaginglib/src/Extensions;../../../src/delphi;../../../src/compatibility/delphi-only;../../../src/compatibility/delphi-only/fcl-json;code/;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <DCC_DcuOutput>castle-engine-output\delphi\$(Platform)\$(Config)</DCC_DcuOutput>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Android)'!=''">
@@ -294,6 +294,176 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
+<DeployFile LocalName="data\README.txt" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\alien_props.castle-transform" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>alien_props.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>alien_props.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>alien_props.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\castle_game_engine_icon.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>castle_game_engine_icon.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>castle_game_engine_icon.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>castle_game_engine_icon.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\engine_header.castle-user-interface" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>engine_header.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>engine_header.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>engine_header.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\fonts/AUTHORS.md" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\fonts/Roboto_SemiCondensed-Bold.ttf" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-Bold.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-Bold.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-Bold.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\fonts/Roboto_SemiCondensed-BoldItalic.ttf" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-BoldItalic.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-BoldItalic.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-BoldItalic.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\fonts/Roboto_SemiCondensed-ExtraBold.ttf" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-ExtraBold.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-ExtraBold.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-ExtraBold.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\fonts/Roboto_SemiCondensed-Italic.ttf" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-Italic.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-Italic.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-Italic.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\fonts/Roboto_SemiCondensed-Regular.ttf" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-Regular.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-Regular.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-Regular.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
 <DeployFile LocalName="data\gameviewmain.castle-user-interface" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/</RemoteDir>
@@ -311,20 +481,1125 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\README.txt" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\gameviewtalk.castle-user-interface" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
+  <RemoteName>gameviewtalk.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
   <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
+  <RemoteName>gameviewtalk.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
   <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
+  <RemoteName>gameviewtalk.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/AUTHORS.md" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/animals/License.txt" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/animals/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/animals/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/animals/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/animals/glTF/Horse.gltf" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/animals/glTF/</RemoteDir>
+  <RemoteName>Horse.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/animals/glTF/</RemoteDir>
+  <RemoteName>Horse.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/animals/glTF/</RemoteDir>
+  <RemoteName>Horse.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/animals/glTF/Horse_White.gltf" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/animals/glTF/</RemoteDir>
+  <RemoteName>Horse_White.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/animals/glTF/</RemoteDir>
+  <RemoteName>Horse_White.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/animals/glTF/</RemoteDir>
+  <RemoteName>Horse_White.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/medieval_village/AUTHORS.md" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/medieval_village/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/medieval_village/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/medieval_village/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/medieval_village/License_Standard.txt" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/medieval_village/</RemoteDir>
+  <RemoteName>License_Standard.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/medieval_village/</RemoteDir>
+  <RemoteName>License_Standard.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/medieval_village/</RemoteDir>
+  <RemoteName>License_Standard.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/medieval_village/glTF/Prop_Crate.bin" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>Prop_Crate.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>Prop_Crate.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>Prop_Crate.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/medieval_village/glTF/Prop_Crate.gltf" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>Prop_Crate.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>Prop_Crate.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>Prop_Crate.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/medieval_village/glTF/T_Brick_BaseColor.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Brick_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Brick_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Brick_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/medieval_village/glTF/T_Brick_Normal.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Brick_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Brick_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Brick_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/medieval_village/glTF/T_Brick_Roughness.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Brick_Roughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Brick_Roughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Brick_Roughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/medieval_village/glTF/T_Plaster_BaseColor.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Plaster_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Plaster_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Plaster_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/medieval_village/glTF/T_Plaster_Normal.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Plaster_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Plaster_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Plaster_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/medieval_village/glTF/T_Plaster_ORM.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Plaster_ORM.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Plaster_ORM.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Plaster_ORM.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/medieval_village/glTF/T_RoundTiles_BaseColor.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_RoundTiles_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_RoundTiles_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_RoundTiles_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/medieval_village/glTF/T_RoundTiles_Normal.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_RoundTiles_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_RoundTiles_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_RoundTiles_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/medieval_village/glTF/T_RoundTiles_Roughness.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_RoundTiles_Roughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_RoundTiles_Roughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_RoundTiles_Roughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/medieval_village/glTF/T_WoodTrim_BaseColor.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_WoodTrim_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_WoodTrim_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_WoodTrim_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/medieval_village/glTF/T_WoodTrim_Normal.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_WoodTrim_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_WoodTrim_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_WoodTrim_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/medieval_village/glTF/T_WoodTrim_Roughness.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_WoodTrim_Roughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_WoodTrim_Roughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_WoodTrim_Roughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/modular_sci_fi/License_Source.txt" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/</RemoteDir>
+  <RemoteName>License_Source.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/modular_sci_fi/</RemoteDir>
+  <RemoteName>License_Source.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/</RemoteDir>
+  <RemoteName>License_Source.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/Alien_Cyclop.bin" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Alien_Cyclop.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Alien_Cyclop.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Alien_Cyclop.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/Alien_Cyclop.gltf" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Alien_Cyclop.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Alien_Cyclop.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Alien_Cyclop.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/Column_Round.bin" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Column_Round.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Column_Round.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Column_Round.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/Column_Round.gltf" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Column_Round.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Column_Round.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Column_Round.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/Platform_Padded.bin" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Platform_Padded.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Platform_Padded.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Platform_Padded.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/Platform_Padded.gltf" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Platform_Padded.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Platform_Padded.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Platform_Padded.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/Prop_Computer.bin" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Prop_Computer.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Prop_Computer.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Prop_Computer.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/Prop_Computer.gltf" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Prop_Computer.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Prop_Computer.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Prop_Computer.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/T_Decals.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Decals.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Decals.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Decals.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/T_PaddedWall_BaseColor.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_PaddedWall_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_PaddedWall_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_PaddedWall_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/T_PaddedWall_Normal.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_PaddedWall_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_PaddedWall_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_PaddedWall_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/T_PaddedWall_ORM.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_PaddedWall_ORM.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_PaddedWall_ORM.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_PaddedWall_ORM.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/T_Trim_01_BaseColor_Red.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_01_BaseColor_Red.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_01_BaseColor_Red.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_01_BaseColor_Red.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/T_Trim_01_Normal.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_01_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_01_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_01_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/T_Trim_01_ORM.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_01_ORM.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_01_ORM.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_01_ORM.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/T_Trim_02_BaseColor_Red.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_02_BaseColor_Red.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_02_BaseColor_Red.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_02_BaseColor_Red.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/T_Trim_02_Normal.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_02_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_02_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_02_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/T_Trim_02_ORM.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_02_ORM.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_02_ORM.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_02_ORM.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/nature/License.txt" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/nature/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/nature/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/nature/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/nature/glTF/BirchTree_1.bin" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_1.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_1.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_1.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/nature/glTF/BirchTree_1.gltf" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_1.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_1.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_1.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/nature/glTF/BirchTree_Bark.jpg" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_Bark.jpg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_Bark.jpg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_Bark.jpg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/nature/glTF/BirchTree_Bark_Normal.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_Bark_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_Bark_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_Bark_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/nature/glTF/BirchTree_Leaves.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_Leaves.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_Leaves.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_Leaves.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/nature/glTF/MapleTree_2.bin" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_2.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_2.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_2.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/nature/glTF/MapleTree_2.gltf" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_2.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_2.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_2.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/nature/glTF/MapleTree_Bark.jpg" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_Bark.jpg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_Bark.jpg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_Bark.jpg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/nature/glTF/MapleTree_Bark_Normal.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_Bark_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_Bark_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_Bark_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/nature/glTF/MapleTree_Leaves.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_Leaves.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_Leaves.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_Leaves.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/stylized_nature/License_Standard.txt" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/stylized_nature/</RemoteDir>
+  <RemoteName>License_Standard.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/stylized_nature/</RemoteDir>
+  <RemoteName>License_Standard.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/stylized_nature/</RemoteDir>
+  <RemoteName>License_Standard.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/stylized_nature/glTF/Rock_Medium_1.bin" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/stylized_nature/glTF/</RemoteDir>
+  <RemoteName>Rock_Medium_1.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/stylized_nature/glTF/</RemoteDir>
+  <RemoteName>Rock_Medium_1.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/stylized_nature/glTF/</RemoteDir>
+  <RemoteName>Rock_Medium_1.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/stylized_nature/glTF/Rock_Medium_1.gltf" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/stylized_nature/glTF/</RemoteDir>
+  <RemoteName>Rock_Medium_1.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/stylized_nature/glTF/</RemoteDir>
+  <RemoteName>Rock_Medium_1.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/stylized_nature/glTF/</RemoteDir>
+  <RemoteName>Rock_Medium_1.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/stylized_nature/glTF/Rocks_Diffuse.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/stylized_nature/glTF/</RemoteDir>
+  <RemoteName>Rocks_Diffuse.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/stylized_nature/glTF/</RemoteDir>
+  <RemoteName>Rocks_Diffuse.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/stylized_nature/glTF/</RemoteDir>
+  <RemoteName>Rocks_Diffuse.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\skybox/sunset_neg_x_left.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_x_left.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_x_left.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_x_left.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\skybox/sunset_neg_y_bottom.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_y_bottom.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_y_bottom.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_y_bottom.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\skybox/sunset_neg_z_back.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_z_back.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_z_back.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_z_back.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\skybox/sunset_pos_x_right.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_x_right.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_x_right.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_x_right.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\skybox/sunset_pos_y_top.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_y_top.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_y_top.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_y_top.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\skybox/sunset_pos_z_front.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_z_front.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_z_front.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_z_front.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\village_crate.castle-transform" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>village_crate.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>village_crate.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>village_crate.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\village_level.bin" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>village_level.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>village_level.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>village_level.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\village_level.gltf" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>village_level.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>village_level.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>village_level.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\village_level_ground.bin" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>village_level_ground.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>village_level_ground.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>village_level_ground.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\village_level_ground.gltf" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>village_level_ground.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>village_level_ground.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>village_level_ground.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -345,6 +1620,176 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
+<DeployFile LocalName="data\README.txt" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\alien_props.castle-transform" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>alien_props.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>alien_props.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>alien_props.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\castle_game_engine_icon.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>castle_game_engine_icon.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>castle_game_engine_icon.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>castle_game_engine_icon.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\engine_header.castle-user-interface" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>engine_header.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>engine_header.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>engine_header.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\fonts/AUTHORS.md" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\fonts/Roboto_SemiCondensed-Bold.ttf" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-Bold.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-Bold.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-Bold.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\fonts/Roboto_SemiCondensed-BoldItalic.ttf" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-BoldItalic.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-BoldItalic.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-BoldItalic.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\fonts/Roboto_SemiCondensed-ExtraBold.ttf" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-ExtraBold.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-ExtraBold.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-ExtraBold.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\fonts/Roboto_SemiCondensed-Italic.ttf" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-Italic.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-Italic.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-Italic.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\fonts/Roboto_SemiCondensed-Regular.ttf" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-Regular.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-Regular.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-Regular.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
 <DeployFile LocalName="data\gameviewmain.castle-user-interface" Configuration="Release" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/</RemoteDir>
@@ -362,20 +1807,1125 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\README.txt" Configuration="Release" Class="File">
+<DeployFile LocalName="data\gameviewtalk.castle-user-interface" Configuration="Release" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
+  <RemoteName>gameviewtalk.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
   <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
+  <RemoteName>gameviewtalk.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
   <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
+  <RemoteName>gameviewtalk.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/AUTHORS.md" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/animals/License.txt" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/animals/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/animals/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/animals/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/animals/glTF/Horse.gltf" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/animals/glTF/</RemoteDir>
+  <RemoteName>Horse.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/animals/glTF/</RemoteDir>
+  <RemoteName>Horse.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/animals/glTF/</RemoteDir>
+  <RemoteName>Horse.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/animals/glTF/Horse_White.gltf" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/animals/glTF/</RemoteDir>
+  <RemoteName>Horse_White.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/animals/glTF/</RemoteDir>
+  <RemoteName>Horse_White.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/animals/glTF/</RemoteDir>
+  <RemoteName>Horse_White.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/medieval_village/AUTHORS.md" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/medieval_village/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/medieval_village/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/medieval_village/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/medieval_village/License_Standard.txt" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/medieval_village/</RemoteDir>
+  <RemoteName>License_Standard.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/medieval_village/</RemoteDir>
+  <RemoteName>License_Standard.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/medieval_village/</RemoteDir>
+  <RemoteName>License_Standard.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/medieval_village/glTF/Prop_Crate.bin" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>Prop_Crate.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>Prop_Crate.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>Prop_Crate.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/medieval_village/glTF/Prop_Crate.gltf" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>Prop_Crate.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>Prop_Crate.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>Prop_Crate.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/medieval_village/glTF/T_Brick_BaseColor.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Brick_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Brick_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Brick_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/medieval_village/glTF/T_Brick_Normal.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Brick_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Brick_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Brick_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/medieval_village/glTF/T_Brick_Roughness.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Brick_Roughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Brick_Roughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Brick_Roughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/medieval_village/glTF/T_Plaster_BaseColor.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Plaster_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Plaster_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Plaster_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/medieval_village/glTF/T_Plaster_Normal.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Plaster_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Plaster_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Plaster_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/medieval_village/glTF/T_Plaster_ORM.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Plaster_ORM.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Plaster_ORM.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Plaster_ORM.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/medieval_village/glTF/T_RoundTiles_BaseColor.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_RoundTiles_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_RoundTiles_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_RoundTiles_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/medieval_village/glTF/T_RoundTiles_Normal.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_RoundTiles_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_RoundTiles_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_RoundTiles_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/medieval_village/glTF/T_RoundTiles_Roughness.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_RoundTiles_Roughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_RoundTiles_Roughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_RoundTiles_Roughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/medieval_village/glTF/T_WoodTrim_BaseColor.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_WoodTrim_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_WoodTrim_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_WoodTrim_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/medieval_village/glTF/T_WoodTrim_Normal.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_WoodTrim_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_WoodTrim_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_WoodTrim_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/medieval_village/glTF/T_WoodTrim_Roughness.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_WoodTrim_Roughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_WoodTrim_Roughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_WoodTrim_Roughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/modular_sci_fi/License_Source.txt" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/</RemoteDir>
+  <RemoteName>License_Source.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/modular_sci_fi/</RemoteDir>
+  <RemoteName>License_Source.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/</RemoteDir>
+  <RemoteName>License_Source.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/Alien_Cyclop.bin" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Alien_Cyclop.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Alien_Cyclop.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Alien_Cyclop.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/Alien_Cyclop.gltf" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Alien_Cyclop.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Alien_Cyclop.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Alien_Cyclop.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/Column_Round.bin" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Column_Round.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Column_Round.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Column_Round.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/Column_Round.gltf" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Column_Round.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Column_Round.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Column_Round.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/Platform_Padded.bin" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Platform_Padded.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Platform_Padded.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Platform_Padded.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/Platform_Padded.gltf" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Platform_Padded.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Platform_Padded.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Platform_Padded.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/Prop_Computer.bin" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Prop_Computer.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Prop_Computer.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Prop_Computer.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/Prop_Computer.gltf" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Prop_Computer.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Prop_Computer.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Prop_Computer.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/T_Decals.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Decals.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Decals.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Decals.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/T_PaddedWall_BaseColor.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_PaddedWall_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_PaddedWall_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_PaddedWall_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/T_PaddedWall_Normal.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_PaddedWall_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_PaddedWall_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_PaddedWall_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/T_PaddedWall_ORM.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_PaddedWall_ORM.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_PaddedWall_ORM.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_PaddedWall_ORM.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/T_Trim_01_BaseColor_Red.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_01_BaseColor_Red.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_01_BaseColor_Red.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_01_BaseColor_Red.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/T_Trim_01_Normal.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_01_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_01_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_01_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/T_Trim_01_ORM.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_01_ORM.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_01_ORM.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_01_ORM.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/T_Trim_02_BaseColor_Red.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_02_BaseColor_Red.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_02_BaseColor_Red.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_02_BaseColor_Red.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/T_Trim_02_Normal.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_02_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_02_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_02_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/T_Trim_02_ORM.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_02_ORM.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_02_ORM.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_02_ORM.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/nature/License.txt" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/nature/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/nature/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/nature/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/nature/glTF/BirchTree_1.bin" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_1.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_1.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_1.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/nature/glTF/BirchTree_1.gltf" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_1.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_1.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_1.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/nature/glTF/BirchTree_Bark.jpg" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_Bark.jpg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_Bark.jpg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_Bark.jpg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/nature/glTF/BirchTree_Bark_Normal.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_Bark_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_Bark_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_Bark_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/nature/glTF/BirchTree_Leaves.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_Leaves.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_Leaves.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_Leaves.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/nature/glTF/MapleTree_2.bin" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_2.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_2.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_2.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/nature/glTF/MapleTree_2.gltf" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_2.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_2.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_2.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/nature/glTF/MapleTree_Bark.jpg" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_Bark.jpg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_Bark.jpg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_Bark.jpg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/nature/glTF/MapleTree_Bark_Normal.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_Bark_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_Bark_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_Bark_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/nature/glTF/MapleTree_Leaves.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_Leaves.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_Leaves.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_Leaves.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/stylized_nature/License_Standard.txt" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/stylized_nature/</RemoteDir>
+  <RemoteName>License_Standard.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/stylized_nature/</RemoteDir>
+  <RemoteName>License_Standard.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/stylized_nature/</RemoteDir>
+  <RemoteName>License_Standard.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/stylized_nature/glTF/Rock_Medium_1.bin" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/stylized_nature/glTF/</RemoteDir>
+  <RemoteName>Rock_Medium_1.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/stylized_nature/glTF/</RemoteDir>
+  <RemoteName>Rock_Medium_1.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/stylized_nature/glTF/</RemoteDir>
+  <RemoteName>Rock_Medium_1.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/stylized_nature/glTF/Rock_Medium_1.gltf" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/stylized_nature/glTF/</RemoteDir>
+  <RemoteName>Rock_Medium_1.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/stylized_nature/glTF/</RemoteDir>
+  <RemoteName>Rock_Medium_1.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/stylized_nature/glTF/</RemoteDir>
+  <RemoteName>Rock_Medium_1.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/stylized_nature/glTF/Rocks_Diffuse.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/stylized_nature/glTF/</RemoteDir>
+  <RemoteName>Rocks_Diffuse.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/stylized_nature/glTF/</RemoteDir>
+  <RemoteName>Rocks_Diffuse.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/stylized_nature/glTF/</RemoteDir>
+  <RemoteName>Rocks_Diffuse.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\skybox/sunset_neg_x_left.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_x_left.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_x_left.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_x_left.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\skybox/sunset_neg_y_bottom.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_y_bottom.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_y_bottom.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_y_bottom.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\skybox/sunset_neg_z_back.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_z_back.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_z_back.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_z_back.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\skybox/sunset_pos_x_right.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_x_right.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_x_right.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_x_right.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\skybox/sunset_pos_y_top.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_y_top.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_y_top.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_y_top.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\skybox/sunset_pos_z_front.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_z_front.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_z_front.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_z_front.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\village_crate.castle-transform" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>village_crate.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>village_crate.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>village_crate.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\village_level.bin" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>village_level.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>village_level.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>village_level.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\village_level.gltf" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>village_level.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>village_level.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>village_level.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\village_level_ground.bin" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>village_level_ground.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>village_level_ground.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>village_level_ground.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\village_level_ground.gltf" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>village_level_ground.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>village_level_ground.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>village_level_ground.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
