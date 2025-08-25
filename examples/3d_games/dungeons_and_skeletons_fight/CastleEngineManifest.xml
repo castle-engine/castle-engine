@@ -8,8 +8,8 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 <project name="game_3d"
   standalone_source="game_3d_standalone.dpr"
   game_units="GameInitialize"
-  qualified_name="com.mycompany.game3d"
-  caption="My New Project"
+  qualified_name="io.castleengine.dungeons.skeletons.fight"
+  caption="Dungeons and Skeletons Fight"
 >
   <compiler_options>
     <search_paths>
