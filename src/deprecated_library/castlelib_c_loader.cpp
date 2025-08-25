@@ -66,7 +66,7 @@ typedef void (CDECL *PFNRD_CGE_KeyDown)(int eKey);
 typedef void (CDECL *PFNRD_CGE_KeyUp)(int eKey);
 
 typedef void (CDECL *PFNRD_CGE_LoadSceneFromFile)(const char *szFile);
-typedef void (CDECL *PFNRD_CGE_SaveSceneToFile)(const char *szFile);
+typedef void (CDECL *PFNRD_CGE_SaveSceneToFile)(const char *szFile, int eUrlProcessing);
 
 typedef int (CDECL *PFNRD_CGE_GetViewpointsCount)();
 typedef void (CDECL *PFNRD_CGE_GetViewpointName)(int iViewpointIdx, char *szName, int nBufSize);
@@ -400,10 +400,10 @@ void CGE_LoadSceneFromFile(const char *szFile)
 }
 
 //-----------------------------------------------------------------------------
-void CGE_SaveSceneToFile(const char *szFile)
+void CGE_SaveSceneToFile(const char *szFile, int /*ECgeUrlProcessing*/ eUrlProcessing)
 {
 	if (pfrd_CGE_SaveSceneToFile!=NULL)
-		(*pfrd_CGE_SaveSceneToFile)(szFile);
+		(*pfrd_CGE_SaveSceneToFile)(szFile, eUrlProcessing);
 }
 
 //-----------------------------------------------------------------------------
