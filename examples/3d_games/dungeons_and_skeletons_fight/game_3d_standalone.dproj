@@ -1297,308 +1297,308 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/license.txt" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab/barrel/license.txt" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/scene.bin" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab/barrel/scene.bin" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/</RemoteDir>
   <RemoteName>scene.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/</RemoteDir>
   <RemoteName>scene.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/</RemoteDir>
   <RemoteName>scene.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/scene.gltf" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab/barrel/scene.gltf" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/</RemoteDir>
   <RemoteName>scene.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/</RemoteDir>
   <RemoteName>scene.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/</RemoteDir>
   <RemoteName>scene.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/textures/lambert2SG_baseColor.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab/barrel/textures/lambert2SG_baseColor.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
   <RemoteName>lambert2SG_baseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
   <RemoteName>lambert2SG_baseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
   <RemoteName>lambert2SG_baseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/textures/lambert2SG_metallicRoughness.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab/barrel/textures/lambert2SG_metallicRoughness.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
   <RemoteName>lambert2SG_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
   <RemoteName>lambert2SG_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
   <RemoteName>lambert2SG_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/textures/lambert2SG_normal.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab/barrel/textures/lambert2SG_normal.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
   <RemoteName>lambert2SG_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
   <RemoteName>lambert2SG_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
   <RemoteName>lambert2SG_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/textures/polySurface7SG_baseColor.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab/barrel/textures/polySurface7SG_baseColor.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
   <RemoteName>polySurface7SG_baseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
   <RemoteName>polySurface7SG_baseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
   <RemoteName>polySurface7SG_baseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/textures/polySurface7SG_metallicRoughness.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab/barrel/textures/polySurface7SG_metallicRoughness.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
   <RemoteName>polySurface7SG_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
   <RemoteName>polySurface7SG_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
   <RemoteName>polySurface7SG_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/textures/polySurface7SG_normal.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab/barrel/textures/polySurface7SG_normal.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
   <RemoteName>polySurface7SG_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
   <RemoteName>polySurface7SG_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
   <RemoteName>polySurface7SG_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/cobra-statue-528a0cb90bce46928dfb7b3a5e503684/license.txt" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab/cobra-statue/license.txt" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/cobra-statue-528a0cb90bce46928dfb7b3a5e503684/</RemoteDir>
+  <RemoteDir>./data/sketchfab/cobra-statue/</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/cobra-statue-528a0cb90bce46928dfb7b3a5e503684/</RemoteDir>
+  <RemoteDir>./data/sketchfab/cobra-statue/</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/cobra-statue-528a0cb90bce46928dfb7b3a5e503684/</RemoteDir>
+  <RemoteDir>./data/sketchfab/cobra-statue/</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/cobra-statue-528a0cb90bce46928dfb7b3a5e503684/scene.bin" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab/cobra-statue/scene.bin" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/cobra-statue-528a0cb90bce46928dfb7b3a5e503684/</RemoteDir>
+  <RemoteDir>./data/sketchfab/cobra-statue/</RemoteDir>
   <RemoteName>scene.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/cobra-statue-528a0cb90bce46928dfb7b3a5e503684/</RemoteDir>
+  <RemoteDir>./data/sketchfab/cobra-statue/</RemoteDir>
   <RemoteName>scene.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/cobra-statue-528a0cb90bce46928dfb7b3a5e503684/</RemoteDir>
+  <RemoteDir>./data/sketchfab/cobra-statue/</RemoteDir>
   <RemoteName>scene.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/cobra-statue-528a0cb90bce46928dfb7b3a5e503684/scene.gltf" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab/cobra-statue/scene.gltf" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/cobra-statue-528a0cb90bce46928dfb7b3a5e503684/</RemoteDir>
+  <RemoteDir>./data/sketchfab/cobra-statue/</RemoteDir>
   <RemoteName>scene.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/cobra-statue-528a0cb90bce46928dfb7b3a5e503684/</RemoteDir>
+  <RemoteDir>./data/sketchfab/cobra-statue/</RemoteDir>
   <RemoteName>scene.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/cobra-statue-528a0cb90bce46928dfb7b3a5e503684/</RemoteDir>
+  <RemoteDir>./data/sketchfab/cobra-statue/</RemoteDir>
   <RemoteName>scene.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/license.txt" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab/throne/license.txt" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/</RemoteDir>
+  <RemoteDir>./data/sketchfab/throne/</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/</RemoteDir>
+  <RemoteDir>./data/sketchfab/throne/</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/</RemoteDir>
+  <RemoteDir>./data/sketchfab/throne/</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/scene.bin" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab/throne/scene.bin" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/</RemoteDir>
+  <RemoteDir>./data/sketchfab/throne/</RemoteDir>
   <RemoteName>scene.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/</RemoteDir>
+  <RemoteDir>./data/sketchfab/throne/</RemoteDir>
   <RemoteName>scene.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/</RemoteDir>
+  <RemoteDir>./data/sketchfab/throne/</RemoteDir>
   <RemoteName>scene.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/scene.gltf" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab/throne/scene.gltf" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/</RemoteDir>
+  <RemoteDir>./data/sketchfab/throne/</RemoteDir>
   <RemoteName>scene.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/</RemoteDir>
+  <RemoteDir>./data/sketchfab/throne/</RemoteDir>
   <RemoteName>scene.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/</RemoteDir>
+  <RemoteDir>./data/sketchfab/throne/</RemoteDir>
   <RemoteName>scene.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/textures/Material_baseColor.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab/throne/textures/Material_baseColor.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/throne/textures/</RemoteDir>
   <RemoteName>Material_baseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/throne/textures/</RemoteDir>
   <RemoteName>Material_baseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/throne/textures/</RemoteDir>
   <RemoteName>Material_baseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/textures/Material_metallicRoughness.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab/throne/textures/Material_metallicRoughness.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/throne/textures/</RemoteDir>
   <RemoteName>Material_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/throne/textures/</RemoteDir>
   <RemoteName>Material_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/throne/textures/</RemoteDir>
   <RemoteName>Material_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/textures/Material_normal.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab/throne/textures/Material_normal.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/throne/textures/</RemoteDir>
   <RemoteName>Material_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/throne/textures/</RemoteDir>
   <RemoteName>Material_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/throne/textures/</RemoteDir>
   <RemoteName>Material_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -2657,308 +2657,308 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/license.txt" Configuration="Release" Class="File">
+<DeployFile LocalName="data\sketchfab/barrel/license.txt" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/scene.bin" Configuration="Release" Class="File">
+<DeployFile LocalName="data\sketchfab/barrel/scene.bin" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/</RemoteDir>
   <RemoteName>scene.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/</RemoteDir>
   <RemoteName>scene.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/</RemoteDir>
   <RemoteName>scene.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/scene.gltf" Configuration="Release" Class="File">
+<DeployFile LocalName="data\sketchfab/barrel/scene.gltf" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/</RemoteDir>
   <RemoteName>scene.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/</RemoteDir>
   <RemoteName>scene.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/</RemoteDir>
   <RemoteName>scene.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/textures/lambert2SG_baseColor.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\sketchfab/barrel/textures/lambert2SG_baseColor.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
   <RemoteName>lambert2SG_baseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
   <RemoteName>lambert2SG_baseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
   <RemoteName>lambert2SG_baseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/textures/lambert2SG_metallicRoughness.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\sketchfab/barrel/textures/lambert2SG_metallicRoughness.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
   <RemoteName>lambert2SG_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
   <RemoteName>lambert2SG_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
   <RemoteName>lambert2SG_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/textures/lambert2SG_normal.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\sketchfab/barrel/textures/lambert2SG_normal.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
   <RemoteName>lambert2SG_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
   <RemoteName>lambert2SG_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
   <RemoteName>lambert2SG_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/textures/polySurface7SG_baseColor.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\sketchfab/barrel/textures/polySurface7SG_baseColor.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
   <RemoteName>polySurface7SG_baseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
   <RemoteName>polySurface7SG_baseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
   <RemoteName>polySurface7SG_baseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/textures/polySurface7SG_metallicRoughness.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\sketchfab/barrel/textures/polySurface7SG_metallicRoughness.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
   <RemoteName>polySurface7SG_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
   <RemoteName>polySurface7SG_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
   <RemoteName>polySurface7SG_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/textures/polySurface7SG_normal.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\sketchfab/barrel/textures/polySurface7SG_normal.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
   <RemoteName>polySurface7SG_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
   <RemoteName>polySurface7SG_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
   <RemoteName>polySurface7SG_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/cobra-statue-528a0cb90bce46928dfb7b3a5e503684/license.txt" Configuration="Release" Class="File">
+<DeployFile LocalName="data\sketchfab/cobra-statue/license.txt" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/cobra-statue-528a0cb90bce46928dfb7b3a5e503684/</RemoteDir>
+  <RemoteDir>./data/sketchfab/cobra-statue/</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/cobra-statue-528a0cb90bce46928dfb7b3a5e503684/</RemoteDir>
+  <RemoteDir>./data/sketchfab/cobra-statue/</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/cobra-statue-528a0cb90bce46928dfb7b3a5e503684/</RemoteDir>
+  <RemoteDir>./data/sketchfab/cobra-statue/</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/cobra-statue-528a0cb90bce46928dfb7b3a5e503684/scene.bin" Configuration="Release" Class="File">
+<DeployFile LocalName="data\sketchfab/cobra-statue/scene.bin" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/cobra-statue-528a0cb90bce46928dfb7b3a5e503684/</RemoteDir>
+  <RemoteDir>./data/sketchfab/cobra-statue/</RemoteDir>
   <RemoteName>scene.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/cobra-statue-528a0cb90bce46928dfb7b3a5e503684/</RemoteDir>
+  <RemoteDir>./data/sketchfab/cobra-statue/</RemoteDir>
   <RemoteName>scene.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/cobra-statue-528a0cb90bce46928dfb7b3a5e503684/</RemoteDir>
+  <RemoteDir>./data/sketchfab/cobra-statue/</RemoteDir>
   <RemoteName>scene.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/cobra-statue-528a0cb90bce46928dfb7b3a5e503684/scene.gltf" Configuration="Release" Class="File">
+<DeployFile LocalName="data\sketchfab/cobra-statue/scene.gltf" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/cobra-statue-528a0cb90bce46928dfb7b3a5e503684/</RemoteDir>
+  <RemoteDir>./data/sketchfab/cobra-statue/</RemoteDir>
   <RemoteName>scene.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/cobra-statue-528a0cb90bce46928dfb7b3a5e503684/</RemoteDir>
+  <RemoteDir>./data/sketchfab/cobra-statue/</RemoteDir>
   <RemoteName>scene.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/cobra-statue-528a0cb90bce46928dfb7b3a5e503684/</RemoteDir>
+  <RemoteDir>./data/sketchfab/cobra-statue/</RemoteDir>
   <RemoteName>scene.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/license.txt" Configuration="Release" Class="File">
+<DeployFile LocalName="data\sketchfab/throne/license.txt" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/</RemoteDir>
+  <RemoteDir>./data/sketchfab/throne/</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/</RemoteDir>
+  <RemoteDir>./data/sketchfab/throne/</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/</RemoteDir>
+  <RemoteDir>./data/sketchfab/throne/</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/scene.bin" Configuration="Release" Class="File">
+<DeployFile LocalName="data\sketchfab/throne/scene.bin" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/</RemoteDir>
+  <RemoteDir>./data/sketchfab/throne/</RemoteDir>
   <RemoteName>scene.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/</RemoteDir>
+  <RemoteDir>./data/sketchfab/throne/</RemoteDir>
   <RemoteName>scene.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/</RemoteDir>
+  <RemoteDir>./data/sketchfab/throne/</RemoteDir>
   <RemoteName>scene.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/scene.gltf" Configuration="Release" Class="File">
+<DeployFile LocalName="data\sketchfab/throne/scene.gltf" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/</RemoteDir>
+  <RemoteDir>./data/sketchfab/throne/</RemoteDir>
   <RemoteName>scene.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/</RemoteDir>
+  <RemoteDir>./data/sketchfab/throne/</RemoteDir>
   <RemoteName>scene.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/</RemoteDir>
+  <RemoteDir>./data/sketchfab/throne/</RemoteDir>
   <RemoteName>scene.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/textures/Material_baseColor.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\sketchfab/throne/textures/Material_baseColor.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/throne/textures/</RemoteDir>
   <RemoteName>Material_baseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/throne/textures/</RemoteDir>
   <RemoteName>Material_baseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/throne/textures/</RemoteDir>
   <RemoteName>Material_baseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/textures/Material_metallicRoughness.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\sketchfab/throne/textures/Material_metallicRoughness.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/throne/textures/</RemoteDir>
   <RemoteName>Material_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/throne/textures/</RemoteDir>
   <RemoteName>Material_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/throne/textures/</RemoteDir>
   <RemoteName>Material_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/textures/Material_normal.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\sketchfab/throne/textures/Material_normal.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/throne/textures/</RemoteDir>
   <RemoteName>Material_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/throne/textures/</RemoteDir>
   <RemoteName>Material_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/textures/</RemoteDir>
+  <RemoteDir>./data/sketchfab/throne/textures/</RemoteDir>
   <RemoteName>Material_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
