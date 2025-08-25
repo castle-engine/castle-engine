@@ -4703,7 +4703,7 @@ See https://castle-engine.io/license for details.
         <Filename Value="../../src/base/castleutils_fast_list.inc"/>
         <Type Value="Include"/>
       </Item1153>
-      </Item1154>
+      <Item1154>
         <Filename Value="../../src/scene/x3d/x3dnodes_processurls.inc"/>
         <Type Value="Include"/>
       </Item1154>
