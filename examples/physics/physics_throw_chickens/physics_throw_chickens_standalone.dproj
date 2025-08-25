@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{283C9E3E-DED9-4B62-84F3-F5F5CBF62408}</ProjectGuid>
+        <ProjectGuid>{04582DFD-9C2B-9A98-57C4-7DEA0B78319E}</ProjectGuid>
         <MainSource>physics_throw_chickens_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
@@ -294,142 +294,6 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\gameviewmain.castle-user-interface" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\light_range.castle-user-interface" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>light_range.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>light_range.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>light_range.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius\AUTHORS.md" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius\</RemoteDir>
-  <RemoteName>AUTHORS.md</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius\</RemoteDir>
-  <RemoteName>AUTHORS.md</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius\</RemoteDir>
-  <RemoteName>AUTHORS.md</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius\Bull.gltf" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius\</RemoteDir>
-  <RemoteName>Bull.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius\</RemoteDir>
-  <RemoteName>Bull.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius\</RemoteDir>
-  <RemoteName>Bull.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius\T_Brick_BaseColor.png" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius\</RemoteDir>
-  <RemoteName>T_Brick_BaseColor.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius\</RemoteDir>
-  <RemoteName>T_Brick_BaseColor.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius\</RemoteDir>
-  <RemoteName>T_Brick_BaseColor.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius\T_Brick_Normal.png" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius\</RemoteDir>
-  <RemoteName>T_Brick_Normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius\</RemoteDir>
-  <RemoteName>T_Brick_Normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius\</RemoteDir>
-  <RemoteName>T_Brick_Normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius\T_UnevenBrick_BaseColor.png" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius\</RemoteDir>
-  <RemoteName>T_UnevenBrick_BaseColor.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius\</RemoteDir>
-  <RemoteName>T_UnevenBrick_BaseColor.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius\</RemoteDir>
-  <RemoteName>T_UnevenBrick_BaseColor.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius\T_UnevenBrick_Normal.png" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius\</RemoteDir>
-  <RemoteName>T_UnevenBrick_Normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius\</RemoteDir>
-  <RemoteName>T_UnevenBrick_Normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius\</RemoteDir>
-  <RemoteName>T_UnevenBrick_Normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
 <DeployFile LocalName="data\README.txt" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/</RemoteDir>
@@ -447,70 +311,223 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab\chicken-rig\license.txt" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\gameviewmain.castle-user-interface" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab\chicken-rig\</RemoteDir>
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/AUTHORS.md" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/Bull.gltf" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>Bull.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>Bull.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>Bull.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/T_Brick_BaseColor.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>T_Brick_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>T_Brick_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>T_Brick_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/T_Brick_Normal.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>T_Brick_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>T_Brick_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>T_Brick_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/T_UnevenBrick_BaseColor.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>T_UnevenBrick_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>T_UnevenBrick_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>T_UnevenBrick_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/T_UnevenBrick_Normal.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>T_UnevenBrick_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>T_UnevenBrick_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>T_UnevenBrick_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/chicken-rig/chicken_fixed_alpha.bin" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/chicken-rig/</RemoteDir>
+  <RemoteName>chicken_fixed_alpha.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/chicken-rig/</RemoteDir>
+  <RemoteName>chicken_fixed_alpha.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/chicken-rig/</RemoteDir>
+  <RemoteName>chicken_fixed_alpha.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/chicken-rig/chicken_fixed_alpha.gltf" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/chicken-rig/</RemoteDir>
+  <RemoteName>chicken_fixed_alpha.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/chicken-rig/</RemoteDir>
+  <RemoteName>chicken_fixed_alpha.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/chicken-rig/</RemoteDir>
+  <RemoteName>chicken_fixed_alpha.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/chicken-rig/license.txt" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/chicken-rig/</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab\chicken-rig\</RemoteDir>
+  <RemoteDir>./data/sketchfab/chicken-rig/</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab\chicken-rig\</RemoteDir>
+  <RemoteDir>./data/sketchfab/chicken-rig/</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab\chicken-rig\scene.bin" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab/chicken-rig/scene.bin" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab\chicken-rig\</RemoteDir>
+  <RemoteDir>./data/sketchfab/chicken-rig/</RemoteDir>
   <RemoteName>scene.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab\chicken-rig\</RemoteDir>
+  <RemoteDir>./data/sketchfab/chicken-rig/</RemoteDir>
   <RemoteName>scene.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab\chicken-rig\</RemoteDir>
+  <RemoteDir>./data/sketchfab/chicken-rig/</RemoteDir>
   <RemoteName>scene.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab\chicken-rig\scene.gltf" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab/chicken-rig/scene.gltf" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab\chicken-rig\</RemoteDir>
+  <RemoteDir>./data/sketchfab/chicken-rig/</RemoteDir>
   <RemoteName>scene.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab\chicken-rig\</RemoteDir>
+  <RemoteDir>./data/sketchfab/chicken-rig/</RemoteDir>
   <RemoteName>scene.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab\chicken-rig\</RemoteDir>
+  <RemoteDir>./data/sketchfab/chicken-rig/</RemoteDir>
   <RemoteName>scene.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab\chicken-rig\textures\Main_baseColor.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab/chicken-rig/textures/Main_baseColor.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab\chicken-rig\textures\</RemoteDir>
+  <RemoteDir>./data/sketchfab/chicken-rig/textures/</RemoteDir>
   <RemoteName>Main_baseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab\chicken-rig\textures\</RemoteDir>
+  <RemoteDir>./data/sketchfab/chicken-rig/textures/</RemoteDir>
   <RemoteName>Main_baseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab\chicken-rig\textures\</RemoteDir>
+  <RemoteDir>./data/sketchfab/chicken-rig/textures/</RemoteDir>
   <RemoteName>Main_baseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -532,142 +549,6 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\gameviewmain.castle-user-interface" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\light_range.castle-user-interface" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>light_range.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>light_range.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>light_range.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius\AUTHORS.md" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius\</RemoteDir>
-  <RemoteName>AUTHORS.md</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius\</RemoteDir>
-  <RemoteName>AUTHORS.md</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius\</RemoteDir>
-  <RemoteName>AUTHORS.md</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius\Bull.gltf" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius\</RemoteDir>
-  <RemoteName>Bull.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius\</RemoteDir>
-  <RemoteName>Bull.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius\</RemoteDir>
-  <RemoteName>Bull.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius\T_Brick_BaseColor.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius\</RemoteDir>
-  <RemoteName>T_Brick_BaseColor.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius\</RemoteDir>
-  <RemoteName>T_Brick_BaseColor.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius\</RemoteDir>
-  <RemoteName>T_Brick_BaseColor.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius\T_Brick_Normal.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius\</RemoteDir>
-  <RemoteName>T_Brick_Normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius\</RemoteDir>
-  <RemoteName>T_Brick_Normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius\</RemoteDir>
-  <RemoteName>T_Brick_Normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius\T_UnevenBrick_BaseColor.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius\</RemoteDir>
-  <RemoteName>T_UnevenBrick_BaseColor.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius\</RemoteDir>
-  <RemoteName>T_UnevenBrick_BaseColor.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius\</RemoteDir>
-  <RemoteName>T_UnevenBrick_BaseColor.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius\T_UnevenBrick_Normal.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius\</RemoteDir>
-  <RemoteName>T_UnevenBrick_Normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius\</RemoteDir>
-  <RemoteName>T_UnevenBrick_Normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius\</RemoteDir>
-  <RemoteName>T_UnevenBrick_Normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
 <DeployFile LocalName="data\README.txt" Configuration="Release" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/</RemoteDir>
@@ -685,70 +566,223 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab\chicken-rig\license.txt" Configuration="Release" Class="File">
+<DeployFile LocalName="data\gameviewmain.castle-user-interface" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab\chicken-rig\</RemoteDir>
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/AUTHORS.md" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/Bull.gltf" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>Bull.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>Bull.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>Bull.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/T_Brick_BaseColor.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>T_Brick_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>T_Brick_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>T_Brick_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/T_Brick_Normal.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>T_Brick_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>T_Brick_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>T_Brick_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/T_UnevenBrick_BaseColor.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>T_UnevenBrick_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>T_UnevenBrick_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>T_UnevenBrick_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius/T_UnevenBrick_Normal.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>T_UnevenBrick_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>T_UnevenBrick_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>T_UnevenBrick_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/chicken-rig/chicken_fixed_alpha.bin" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/chicken-rig/</RemoteDir>
+  <RemoteName>chicken_fixed_alpha.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/chicken-rig/</RemoteDir>
+  <RemoteName>chicken_fixed_alpha.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/chicken-rig/</RemoteDir>
+  <RemoteName>chicken_fixed_alpha.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/chicken-rig/chicken_fixed_alpha.gltf" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/chicken-rig/</RemoteDir>
+  <RemoteName>chicken_fixed_alpha.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/chicken-rig/</RemoteDir>
+  <RemoteName>chicken_fixed_alpha.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/chicken-rig/</RemoteDir>
+  <RemoteName>chicken_fixed_alpha.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/chicken-rig/license.txt" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/chicken-rig/</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab\chicken-rig\</RemoteDir>
+  <RemoteDir>./data/sketchfab/chicken-rig/</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab\chicken-rig\</RemoteDir>
+  <RemoteDir>./data/sketchfab/chicken-rig/</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab\chicken-rig\scene.bin" Configuration="Release" Class="File">
+<DeployFile LocalName="data\sketchfab/chicken-rig/scene.bin" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab\chicken-rig\</RemoteDir>
+  <RemoteDir>./data/sketchfab/chicken-rig/</RemoteDir>
   <RemoteName>scene.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab\chicken-rig\</RemoteDir>
+  <RemoteDir>./data/sketchfab/chicken-rig/</RemoteDir>
   <RemoteName>scene.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab\chicken-rig\</RemoteDir>
+  <RemoteDir>./data/sketchfab/chicken-rig/</RemoteDir>
   <RemoteName>scene.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab\chicken-rig\scene.gltf" Configuration="Release" Class="File">
+<DeployFile LocalName="data\sketchfab/chicken-rig/scene.gltf" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab\chicken-rig\</RemoteDir>
+  <RemoteDir>./data/sketchfab/chicken-rig/</RemoteDir>
   <RemoteName>scene.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab\chicken-rig\</RemoteDir>
+  <RemoteDir>./data/sketchfab/chicken-rig/</RemoteDir>
   <RemoteName>scene.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab\chicken-rig\</RemoteDir>
+  <RemoteDir>./data/sketchfab/chicken-rig/</RemoteDir>
   <RemoteName>scene.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab\chicken-rig\textures\Main_baseColor.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\sketchfab/chicken-rig/textures/Main_baseColor.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab\chicken-rig\textures\</RemoteDir>
+  <RemoteDir>./data/sketchfab/chicken-rig/textures/</RemoteDir>
   <RemoteName>Main_baseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab\chicken-rig\textures\</RemoteDir>
+  <RemoteDir>./data/sketchfab/chicken-rig/textures/</RemoteDir>
   <RemoteName>Main_baseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab\chicken-rig\textures\</RemoteDir>
+  <RemoteDir>./data/sketchfab/chicken-rig/textures/</RemoteDir>
   <RemoteName>Main_baseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>

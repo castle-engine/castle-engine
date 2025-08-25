@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{6BF1B262-83EA-473A-B07C-5DAD2005F574}</ProjectGuid>
+        <ProjectGuid>{5B2869C5-D5F3-D460-CF3C-F56283F0A916}</ProjectGuid>
         <MainSource>shader_effects_simple_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
@@ -328,6 +328,193 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
+<DeployFile LocalName="data\shader_color_effect.fs" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>shader_color_effect.fs</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>shader_color_effect.fs</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>shader_color_effect.fs</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/cat-16c3444c8d1440fc97fdf10f60ec58b0.zip" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/</RemoteDir>
+  <RemoteName>cat-16c3444c8d1440fc97fdf10f60ec58b0.zip</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/</RemoteDir>
+  <RemoteName>cat-16c3444c8d1440fc97fdf10f60ec58b0.zip</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/</RemoteDir>
+  <RemoteName>cat-16c3444c8d1440fc97fdf10f60ec58b0.zip</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/cat-soldier/license.txt" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/cat-soldier/</RemoteDir>
+  <RemoteName>license.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/cat-soldier/</RemoteDir>
+  <RemoteName>license.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/cat-soldier/</RemoteDir>
+  <RemoteName>license.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/cat-soldier/scene.bin" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/cat-soldier/</RemoteDir>
+  <RemoteName>scene.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/cat-soldier/</RemoteDir>
+  <RemoteName>scene.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/cat-soldier/</RemoteDir>
+  <RemoteName>scene.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/cat-soldier/scene.gltf" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/cat-soldier/</RemoteDir>
+  <RemoteName>scene.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/cat-soldier/</RemoteDir>
+  <RemoteName>scene.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/cat-soldier/</RemoteDir>
+  <RemoteName>scene.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/cat-soldier/textures/lambert2_baseColor.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/cat-soldier/textures/</RemoteDir>
+  <RemoteName>lambert2_baseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/cat-soldier/textures/</RemoteDir>
+  <RemoteName>lambert2_baseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/cat-soldier/textures/</RemoteDir>
+  <RemoteName>lambert2_baseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/cat-soldier/textures/lambert2_metallicRoughness.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/cat-soldier/textures/</RemoteDir>
+  <RemoteName>lambert2_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/cat-soldier/textures/</RemoteDir>
+  <RemoteName>lambert2_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/cat-soldier/textures/</RemoteDir>
+  <RemoteName>lambert2_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/cat-soldier/textures/lambert2_normal.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/cat-soldier/textures/</RemoteDir>
+  <RemoteName>lambert2_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/cat-soldier/textures/</RemoteDir>
+  <RemoteName>lambert2_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/cat-soldier/textures/</RemoteDir>
+  <RemoteName>lambert2_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/cat-soldier/textures/lambert3_baseColor.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/cat-soldier/textures/</RemoteDir>
+  <RemoteName>lambert3_baseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/cat-soldier/textures/</RemoteDir>
+  <RemoteName>lambert3_baseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/cat-soldier/textures/</RemoteDir>
+  <RemoteName>lambert3_baseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/cat-soldier/textures/lambert3_metallicRoughness.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/cat-soldier/textures/</RemoteDir>
+  <RemoteName>lambert3_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/cat-soldier/textures/</RemoteDir>
+  <RemoteName>lambert3_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/cat-soldier/textures/</RemoteDir>
+  <RemoteName>lambert3_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/cat-soldier/textures/lambert3_normal.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/cat-soldier/textures/</RemoteDir>
+  <RemoteName>lambert3_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/cat-soldier/textures/</RemoteDir>
+  <RemoteName>lambert3_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/cat-soldier/textures/</RemoteDir>
+  <RemoteName>lambert3_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
 <DeployFile LocalName="data\CastleSettings.xml" Configuration="Release" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/</RemoteDir>
@@ -376,6 +563,193 @@
  <Platform Name="Win64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\shader_color_effect.fs" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>shader_color_effect.fs</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>shader_color_effect.fs</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>shader_color_effect.fs</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/cat-16c3444c8d1440fc97fdf10f60ec58b0.zip" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/</RemoteDir>
+  <RemoteName>cat-16c3444c8d1440fc97fdf10f60ec58b0.zip</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/</RemoteDir>
+  <RemoteName>cat-16c3444c8d1440fc97fdf10f60ec58b0.zip</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/</RemoteDir>
+  <RemoteName>cat-16c3444c8d1440fc97fdf10f60ec58b0.zip</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/cat-soldier/license.txt" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/cat-soldier/</RemoteDir>
+  <RemoteName>license.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/cat-soldier/</RemoteDir>
+  <RemoteName>license.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/cat-soldier/</RemoteDir>
+  <RemoteName>license.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/cat-soldier/scene.bin" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/cat-soldier/</RemoteDir>
+  <RemoteName>scene.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/cat-soldier/</RemoteDir>
+  <RemoteName>scene.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/cat-soldier/</RemoteDir>
+  <RemoteName>scene.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/cat-soldier/scene.gltf" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/cat-soldier/</RemoteDir>
+  <RemoteName>scene.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/cat-soldier/</RemoteDir>
+  <RemoteName>scene.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/cat-soldier/</RemoteDir>
+  <RemoteName>scene.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/cat-soldier/textures/lambert2_baseColor.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/cat-soldier/textures/</RemoteDir>
+  <RemoteName>lambert2_baseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/cat-soldier/textures/</RemoteDir>
+  <RemoteName>lambert2_baseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/cat-soldier/textures/</RemoteDir>
+  <RemoteName>lambert2_baseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/cat-soldier/textures/lambert2_metallicRoughness.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/cat-soldier/textures/</RemoteDir>
+  <RemoteName>lambert2_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/cat-soldier/textures/</RemoteDir>
+  <RemoteName>lambert2_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/cat-soldier/textures/</RemoteDir>
+  <RemoteName>lambert2_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/cat-soldier/textures/lambert2_normal.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/cat-soldier/textures/</RemoteDir>
+  <RemoteName>lambert2_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/cat-soldier/textures/</RemoteDir>
+  <RemoteName>lambert2_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/cat-soldier/textures/</RemoteDir>
+  <RemoteName>lambert2_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/cat-soldier/textures/lambert3_baseColor.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/cat-soldier/textures/</RemoteDir>
+  <RemoteName>lambert3_baseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/cat-soldier/textures/</RemoteDir>
+  <RemoteName>lambert3_baseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/cat-soldier/textures/</RemoteDir>
+  <RemoteName>lambert3_baseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/cat-soldier/textures/lambert3_metallicRoughness.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/cat-soldier/textures/</RemoteDir>
+  <RemoteName>lambert3_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/cat-soldier/textures/</RemoteDir>
+  <RemoteName>lambert3_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/cat-soldier/textures/</RemoteDir>
+  <RemoteName>lambert3_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/cat-soldier/textures/lambert3_normal.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/cat-soldier/textures/</RemoteDir>
+  <RemoteName>lambert3_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/cat-soldier/textures/</RemoteDir>
+  <RemoteName>lambert3_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/cat-soldier/textures/</RemoteDir>
+  <RemoteName>lambert3_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>

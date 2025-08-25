@@ -22,7 +22,7 @@ uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
   ApplicationProperties.ApplicationName := 'new_renderer_skeleton';
-  ApplicationProperties.Caption := 'new_renderer_skeleton';
+  ApplicationProperties.Caption := 'Skeleton Code to Experiment With a New Renderer';
   ApplicationProperties.Version := '0.1';
 
   if not IsLibrary then
