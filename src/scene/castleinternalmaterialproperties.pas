@@ -138,8 +138,8 @@ type
 
     { Load material properties from given XML file.
       Set this to empty string to unload previously loaded properties.
-      See Castle1 and fps_game data for examples how this looks like,
-      in @code(material_properties.xml). }
+      See https://castle-engine.io/creating_data_auto_generated_textures.php
+      for examples how this looks like. }
     property Url: String read FUrl write SetUrl;
 
     { Get the Urls of all textures that should have automatically

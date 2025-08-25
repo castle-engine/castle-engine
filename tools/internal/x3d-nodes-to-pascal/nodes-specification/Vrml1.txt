@@ -277,12 +277,19 @@ AbstractVrml1Camera : X3DViewpointNode {
     change: chViewpointVectors
   SFFloat [in,out] focalDistance 5
     range: (0,Inf)
-  SFFloat [in,out] nearDistance 0
-    change: chViewpointVectors
-    doc: Ignored. Unknown extension to VRML 1.0 spec, found on models in http://www-vrl.umich.edu/sel_prj/EECS498/ .
-  SFFloat [in,out] farDistance 0
-    change: chViewpointVectors
-    doc: Ignored. Unknown extension to VRML 1.0 spec, found on models in http://www-vrl.umich.edu/sel_prj/EECS498/ .
+
+  # By complete accident, X3D 4.0 introduced nearDistance and farDistance fields that match
+  # these fields, that we added (and ignored) as VRML 1.0 extensions.
+  # So they are now handled... following X3D 4.0 semantics.
+  # Which is OK, frankly VRML 1.0 is dead, and these extensions were not used anyway.
+  # Commenting out below, to prevent failing TTestX3DNodes.TestUniqueFields .
+  #
+  #  SFFloat [in,out] nearDistance 0
+  #    change: chViewpointVectors
+  #    doc: Ignored. Unknown extension to VRML 1.0 spec, found on models in http://www-vrl.umich.edu/sel_prj/EECS498/ .
+  #  SFFloat [in,out] farDistance 0
+  #    change: chViewpointVectors
+  #    doc: Ignored. Unknown extension to VRML 1.0 spec, found on models in http://www-vrl.umich.edu/sel_prj/EECS498/ .
 }
 
 OrthographicCamera : AbstractVrml1Camera {

@@ -29,7 +29,7 @@ jobs:
         lazarus-versions: [stable]
     runs-on: ${{ matrix.operating-system }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Install FPC+Lazarus
         uses: gcarreno/setup-lazarus@v3.3.1
         with:
@@ -54,8 +54,8 @@ jobs:
         run: ./tools/build-tool/castle-engine_compile.ps1
       - name: Build Editor
         run: ./tools/build-tool/castle-engine compile --project ./tools/castle-editor/
-      - name: Build FPS Game
-        run: ./tools/build-tool/castle-engine compile --project ./examples/fps_game/
+      - name: Build examples/3d_games/explore_impressive_castle
+        run: ./tools/build-tool/castle-engine compile --project ./examples/3d_games/explore_impressive_castle/
       - name: Run Autotests
         run: |
           ./tools/build-tool/castle-engine --project ./tests/ compile --mode=debug

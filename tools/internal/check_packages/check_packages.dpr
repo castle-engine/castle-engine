@@ -279,6 +279,8 @@ type
   end;
 
 constructor TLazarusPackage.Create(const APackageFileName: String);
+const
+  RelativePathFromLpkToCgeRoot = '../../';
 var
   Doc: TXMLDocument;
   FilesElement, FileElement: TDOMElement;
@@ -299,9 +301,9 @@ begin
     begin
       FileElement := FilesElement.Child('Item' + IntToStr(I));
       FileName := FileElement.Child('Filename').AttributeString('Value');
-      if not IsPrefix('../', FileName, not FileNameCaseSensitive) then
+      if not IsPrefix(RelativePathFromLpkToCgeRoot, FileName, not FileNameCaseSensitive) then
         PackageWarning('All filenames in lpk must be in CGE root, invalid: %s', [FileName]);
-      FileName := PrefixRemove('../', FileName, not FileNameCaseSensitive);
+      FileName := PrefixRemove(RelativePathFromLpkToCgeRoot, FileName, not FileNameCaseSensitive);
       Files.Append(FileName);
     end;
   finally FreeAndNil(Doc) end;
@@ -581,7 +583,7 @@ begin
   CgePathExpanded := SReplaceChars(CgePathExpanded, '\', '/'); // replace backslashes with slashes
   Writeln('Checking CGE in directory: ', CgePathExpanded);
 
-  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/castle_base.lpk');
+  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/lazarus/castle_engine_base.lpk');
   try
     Package.CheckFiles([
       'src/common_includes/',
@@ -609,7 +611,7 @@ begin
     ]);
   finally FreeAndNil(Package) end;
 
-  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/castle_window.lpk');
+  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/lazarus/castle_engine_window.lpk');
   try
     Package.CheckFiles([
       'src/window/'
@@ -618,7 +620,7 @@ begin
     [ ]);
   finally FreeAndNil(Package) end;
 
-  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/alternative_castle_window_based_on_lcl.lpk');
+  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/lazarus/alternative_castle_engine_window_based_on_lcl.lpk');
   try
     Package.CheckFiles([
       'src/window/'
@@ -627,7 +629,7 @@ begin
     [ ]);
   finally FreeAndNil(Package) end;
 
-  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/castle_components.lpk');
+  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/lazarus/castle_engine_lcl.lpk');
   try
     Package.CheckFiles([
       'src/lcl/'
@@ -636,7 +638,7 @@ begin
     [ ]);
   finally FreeAndNil(Package) end;
 
-  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/castle_indy.lpk');
+  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/lazarus/castle_engine_indy.lpk');
   try
     Package.CheckFiles([
       'src/files/indy/'
@@ -645,7 +647,7 @@ begin
     [ ]);
   finally FreeAndNil(Package) end;
 
-  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/castle_editor_components.lpk');
+  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/lazarus/castle_engine_editor_components.lpk');
   try
     Package.CheckFiles([
       'tools/castle-editor/components/'

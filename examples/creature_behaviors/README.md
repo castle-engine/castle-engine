@@ -9,7 +9,7 @@ See [behaviors](https://castle-engine.io/behaviors) about using behaviors and im
 
 Note: This example runs much faster in the _Release_ mode (when optimizations are enabled). In _Debug_ mode, the FPS is noticeably much slower. This is true of all CGE applications, but it's especially noticeable here. See [how to optimize your applications](https://castle-engine.io/manual_optimization.php).
 
-More: [See example of a full game, using TCastleMoveAttack, engine editor, Sketchfab, Blender - demo for "Zlot Delphi 2024"](https://github.com/castle-engine/conference-zlot-delphi-2024). See also [slides from the related presentation (in Polish)](https://castle-engine.io/zlot2024).
+More: [See example of a full game, using TCastleMoveAttack, engine editor, Sketchfab, Blender (examples/3d_games/dungeons_and_skeletons_fight)](https://github.com/castle-engine/castle-engine/tree/master/examples/3d_games/dungeons_and_skeletons_fight).
 
 ## Screenshots
 

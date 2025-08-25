@@ -744,8 +744,7 @@ begin
   Light.X3DName := TPasJSON.GetString(LightObject.Properties['name'], '');
   { Note that glTF intensity may be very large according to KHR_lights_punctual
     (there is no upper limit, since in physics it has no upper limit).
-    And Blender can indeed set it to a very large value, like 1000,
-    see castle-engine/examples/fps_game/data/example_level/ .
+    And Blender can indeed set it to a very large value, like 1000 .
     This is not a problem for CGE,
     and X3D >= 4.0 also allows any large intensity.
     (only X3D 3 and VRML limited it to [0..1] range). }

@@ -36,6 +36,10 @@
     procedure SetOrientation(const Value: TVector4);
     function GetRetainUserOffsets: Boolean;
     procedure SetRetainUserOffsets(const Value: Boolean);
+    function GetNearDistance: Single;
+    procedure SetNearDistance(const Value: Single);
+    function GetFarDistance: Single;
+    procedure SetFarDistance(const Value: Single);
     function GetCameraMatrixSendAlsoOnOffscreenRendering: Boolean;
     procedure SetCameraMatrixSendAlsoOnOffscreenRendering(const Value: Boolean);
     function GetGravityUp: TVector3;
@@ -84,6 +88,32 @@
     public property FdRetainUserOffsets: TSFBool read FFdRetainUserOffsets;
     {  }
     property RetainUserOffsets: Boolean read GetRetainUserOffsets write SetRetainUserOffsets;
+
+    strict private FFdNearDistance: TSFFloat;
+    { Internal wrapper for property @code(NearDistance). This wrapper API may change, we advise to access simpler @code(NearDistance) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdNearDistance: TSFFloat read FFdNearDistance;
+    { Near clipping distance to the camera.
+
+      This value is used only if it is positive and this is the currently "bound" viewpoint node (see @link(TAbstractBindableNode.Bound)). Otherwise we fallback of @link(TNavigationInfoNode) information.
+
+      Note: In Castle Game Engine, by default near and far clipping planes are determined by the explicitly set @link(TCastleCamera.ProjectionNear) and @link(TCastleCamera.ProjectionFar) values. They do not depend on the X3D model contents. To make them follow the X3D contents, you need to
+
+      @orderedlist(
+        @item(set @link(TCastleCamera.ProjectionNear) and @link(TCastleCamera.ProjectionFar) to 0 (meaning "autocalculate"),)
+        @item(set deprecated @link(TCastlViewport.MainScene) to point to the scene that contains this Viewpoint node,)
+        @item(call @link(TCastleSceneCore.AssignDefaultCamera) or set deprecated @link(TCastlViewport.AutoCamera).)
+      )
+
+      The model viewers, like Castle Model Viewer, have the relevant code to make @link(TCastleCamera) follow the X3D settings automatically. }
+    property NearDistance: Single read GetNearDistance write SetNearDistance;
+
+    strict private FFdFarDistance: TSFFloat;
+    { Internal wrapper for property @code(FarDistance). This wrapper API may change, we advise to access simpler @code(FarDistance) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdFarDistance: TSFFloat read FFdFarDistance;
+    { Far clipping distance to the camera.
+
+      See @link(NearDistance) for more information when it is used. }
+    property FarDistance: Single read GetFarDistance write SetFarDistance;
 
     strict private FEventCameraMatrix: TSFMatrix4fEvent;
     {  }
@@ -193,6 +223,26 @@ begin
   FdRetainUserOffsets.Send(Value);
 end;
 
+function TAbstractViewpointNode.GetNearDistance: Single;
+begin
+  Result := FdNearDistance.Value;
+end;
+
+procedure TAbstractViewpointNode.SetNearDistance(const Value: Single);
+begin
+  FdNearDistance.Send(Value);
+end;
+
+function TAbstractViewpointNode.GetFarDistance: Single;
+begin
+  Result := FdFarDistance.Value;
+end;
+
+procedure TAbstractViewpointNode.SetFarDistance(const Value: Single);
+begin
+  FdFarDistance.Send(Value);
+end;
+
 function TAbstractViewpointNode.GetCameraMatrixSendAlsoOnOffscreenRendering: Boolean;
 begin
   Result := FdCameraMatrixSendAlsoOnOffscreenRendering.Value;
@@ -255,6 +305,14 @@ begin
   FFdRetainUserOffsets := TSFBool.Create(Self, True, 'retainUserOffsets', false);
    FdRetainUserOffsets.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdRetainUserOffsets);
+
+  FFdNearDistance := TSFFloat.Create(Self, True, 'nearDistance', -1);
+   FdNearDistance.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdNearDistance);
+
+  FFdFarDistance := TSFFloat.Create(Self, True, 'farDistance', -1);
+   FdFarDistance.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdFarDistance);
 
   FEventCameraMatrix := TSFMatrix4fEvent.Create(Self, 'cameraMatrix', false);
   AddEvent(FEventCameraMatrix);

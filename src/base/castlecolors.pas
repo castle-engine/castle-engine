@@ -55,6 +55,12 @@ const
   Fuchsia: TCastleColor = (X: 1.0; Y: 0.0; Z: 1.0; W: 1.0);
   White  : TCastleColor = (X: 1.0; Y: 1.0; Z: 1.0; W: 1.0);
   Lime   : TCastleColor = (X: 0.0; Y: 1.0; Z: 0.0; W: 1.0);
+  { Opaque green, equal to (0,1,0) in RGB.
+
+    Note that this constant definition is inconsistent with CSS green
+    constant (which is (0,0.5,0)). Moreover this constant is just equal to Lime.
+    But we consider below "Green" definition more obvious to developers
+    -- people expect "green" to have max value in the green channel. }
   Green  : TCastleColor = (X: 0.0; Y: 1.0; Z: 0.0; W: 1.0);
   Navy   : TCastleColor = (X: 0.0; Y: 0.0; Z: 0.5; W: 1.0);
   Blue   : TCastleColor = (X: 0.0; Y: 0.0; Z: 1.0; W: 1.0);

@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2024 Michalis Kamburelis.
+  Copyright 2018-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -21,7 +21,7 @@ unit EditorUtils;
 interface
 
 uses Classes, Types, Controls, StdCtrls, Process, Menus, Generics.Collections,
-  Dialogs, Contnrs,
+  Dialogs, Contnrs, ActnList,
   CastleStringUtils, CastleInternalTools, CastleInternalArchitectures,
   ToolManifest, ToolProcess;
 
@@ -166,7 +166,8 @@ function YesNoBox(const Message: String): Boolean;
 function YesNoBox(const Caption, Message: String): Boolean;
 
 { Set both C.Enabled and C.Exists. }
-procedure SetEnabledVisible(const C: TControl; const Value: Boolean);
+procedure SetEnabledVisible(const C: TControl; const Value: Boolean); overload;
+procedure SetEnabledVisible(const Action: TAction; const Value: Boolean); overload;
 
 const
   FpcRtlApiReferenceUrl = 'https://www.freepascal.org/docs-html/rtl/';
@@ -856,6 +857,12 @@ procedure SetEnabledVisible(const C: TControl; const Value: Boolean);
 begin
   C.Enabled := Value;
   C.Visible := Value;
+end;
+
+procedure SetEnabledVisible(const Action: TAction; const Value: Boolean);
+begin
+  Action.Enabled := Value;
+  Action.Visible := Value;
 end;
 
 function ApiReferenceUrl: String;

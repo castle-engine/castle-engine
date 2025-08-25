@@ -646,6 +646,88 @@ begin
   end;
 end;
 
+{ This is an (attempt! doesn't work!) at cleaner solution for
+  the problems we have when
+
+  - the 1st node of ProtoBody
+    (which is Result in TX3DPrototypeNode.Instantiate,
+    passed as TargetOfWeakLink now)
+
+  - ... is referenced another time (by DEF/USE) in the subsequent nodes
+    (which are NewPrototypeInstanceHelpers in TX3DPrototypeNode.Instantiate,
+    passed as ScanNodes now).
+
+  This creates:
+
+  - Loop during enumeration because we would set PrototypeInstanceHelpers <> nil
+    to some subsequent node.
+    We already have code to break these loops, grep WithinDirectEnumerateAll.
+    If the solution below would work, we would remove WithinDirectEnumerateAll
+    hack.
+
+  - Also loop in reference counting of nodes, so we will memory leaks.
+    This cannot be solved by the WithinDirectEnumerateAll hack.
+    This is reproducible by TTestX3DNodes.TestProtoReuseFirstNode .
+
+  This attempts to solve this by setting appropriate links to be "weak".
+  At least SFNodes refering to the TargetOfWeakLink.
+
+  TODO:
+
+  - This would still not be a complete solution - MFNode would also need
+    something like "WeakLink" (independent for all possible items)
+    to also mark all referenced to TargetOfWeakLink with weak link.
+
+  - But testing shows this does not work for SFNode anyway.
+    It should at least solve memory leaks in
+    proto_reuse_first_node/proto_leak.wrl , but it does not. }
+{.$define CASTLE_PROTO_WEAK_LINKER}
+{$ifdef CASTLE_PROTO_WEAK_LINKER}
+type
+  TMakeReferencesWeakUtility = class
+    TargetOfWeakLink: TX3DNode;
+    function EnumNodes(Node, Child: TX3DNode): Pointer;
+  end;
+
+function TMakeReferencesWeakUtility.EnumNodes(Node, Child: TX3DNode): Pointer;
+var
+  I: Integer;
+  SF: TSFNode;
+begin
+  Result := nil;
+  if Child.FFieldsSFNode <> nil then
+    for I := 0 to Child.FFieldsSFNode.Count - 1 do
+    begin
+      SF := TSFNode(Child.FFieldsSFNode[I]);
+      if SF.Value = TargetOfWeakLink then
+      begin
+        TargetOfWeakLink.KeepExistingBegin;
+        { Set SF.WeakLink to true.
+          To do this, we need to temporarily make SF.Value = nil.
+          To do this in turn, we need to make sure we don't free TargetOfWeakLink
+          by accident. }
+        SF.Value := nil;
+        SF.WeakLink := true;
+        SF.Value := TargetOfWeakLink;
+        TargetOfWeakLink.KeepExistingEnd;
+      end;
+    end;
+end;
+
+{ Make all TSFNode links inside ScanNodes to TargetOfWeakLink have
+  WeakLink = @true. }
+procedure MakeReferencesWeak(const ScanNodes, TargetOfWeakLink: TX3DNode);
+var
+  Utility: TMakeReferencesWeakUtility;
+begin
+  Utility := TMakeReferencesWeakUtility.Create;
+  try
+    Utility.TargetOfWeakLink := TargetOfWeakLink;
+    ScanNodes.DirectEnumerateAll({$ifdef FPC}@{$endif} Utility.EnumNodes);
+  finally FreeAndNil(Utility) end;
+end;
+{$endif}
+
 function TX3DPrototypeNode.Instantiate: TX3DNode;
 
   procedure InstantiateNonExternalPrototype(Proto: TX3DPrototype);
@@ -703,6 +785,10 @@ function TX3DPrototypeNode.Instantiate: TX3DNode;
     { NewPrototypeInstanceHelpers is used to keep the rest of
       NodeCopy.FdChildren[1...] that should accompany this node. }
     NewPrototypeInstanceHelpers := NodeCopy;
+
+    {$ifdef CASTLE_PROTO_WEAK_LINKER}
+    MakeReferencesWeak(NewPrototypeInstanceHelpers, Result);
+    {$endif}
 
     Result.X3DName := X3DName;
 
@@ -946,6 +1032,9 @@ begin
   try
     Reader.Prototypes.Assign(OldReader.Prototypes);
     FNode := ParseStatements(E, false, nil, Reader);
+    { Uncomment this to debug some issues, so that TX3DRootNode instances
+      created by PROTO expansion have useful names. }
+    // FNode.X3DName := 'ProtoBody_from_PROTO_' + NewName;
   finally
     FreeAndNil(Reader);
     Reader := OldReader;

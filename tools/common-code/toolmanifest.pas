@@ -169,7 +169,7 @@ type
     const
       { Android SDK versions.
         See https://castle-engine.io/project_manifest#_android_information . }
-      DefaultAndroidCompileSdkVersion = 34;
+      DefaultAndroidCompileSdkVersion = 35;
       DefaultAndroidTargetSdkVersion = DefaultAndroidCompileSdkVersion;
       { See https://castle-engine.io/android_faq
         for reasons behind this minimal version. }

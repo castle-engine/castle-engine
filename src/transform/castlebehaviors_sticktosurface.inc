@@ -1,6 +1,6 @@
 {%MainUnit castlebehaviors.pas}
 {
-  Copyright 2022-2022 Michalis Kamburelis.
+  Copyright 2022-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,6 +26,7 @@ type
     FTargetObserver: TFreeNotificationObserver;
     FDirection: TVector3;
     FOnlyAtDesign: Boolean;
+    DoneWarningTerrainChild, DoneWarningExpectedTarget: Boolean;
     procedure SetTarget(const Value: TCastleTransform);
     procedure TargetFreeNotification(const Sender: TFreeNotificationObserver);
   protected
@@ -100,20 +101,53 @@ end;
 
 procedure TCastleStickToSurface.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 
+  procedure WarningTerrainChild;
+  begin
+    WritelnWarningOnce(DoneWarningTerrainChild, 'TCastleStickToSurface "%s" with parent "%s": Testing for collision with Target "%s" resulted in a collision with ourselves, aborting. ' +
+      'The object with TCastleStickToSurface should not be a child of Target.', [
+      Name,
+      Parent.Name,
+      Target.Name
+    ]);
+  end;
+
+  procedure WarningExpectedTarget;
+  begin
+    WritelnWarningOnce(DoneWarningExpectedTarget, 'TCastleStickToSurface "%s" with parent "%s": Testing for collision with Target "%s" resolved, but Target not on colliders list', [
+      Name,
+      Parent.Name,
+      Target.Name
+    ]);
+  end;
+
   { Find a position of collision point with Target.
     Returned position is in the coordinate system of Target.Parent
     (or world, if Target.Parent = nil).
 
-    @raises(EInternalError If no collision with Target.
-      Use this only when such collision should definitely happen.)  }
-  function FindPositionInTarget(const RayCollision: TRayCollision): TVector3;
+    Returns @false if a weird/invalid setup detected and we should
+    abort trying to stick to surface. }
+  function FindPositionInTarget(const RayCollision: TRayCollision;
+    out PositionInTarget: TVector3): Boolean;
   var
     I: Integer;
   begin
     for I := 0 to RayCollision.Count - 1 do
+    begin
+      if RayCollision[I].Item = Parent then
+      begin
+        WarningTerrainChild;
+        Exit(false);
+      end;
+
       if RayCollision[I].Item = Target then
-        Exit(RayCollision[I].Point);
-    raise EInternalError.Create('Collision with Target resolved, but Target not on colliders list');
+      begin
+        PositionInTarget := RayCollision[I].Point;
+        Exit(true);
+      end;
+    end;
+
+    WarningExpectedTarget;
+    Exit(false);
   end;
 
 var
@@ -157,7 +191,8 @@ begin
     RayCollision := Target.InternalRayCollision(RayOrigin, RayDirection);
     if RayCollision <> nil then
     try
-      Collision := FindPositionInTarget(RayCollision);
+      if not FindPositionInTarget(RayCollision, Collision) then
+        Exit;
       { Convert collision from Target.Parent coordinate system to world.
         Testcase: move Terrain in examples/terrain/, trees should follow. }
       if Target.Parent <> nil then
@@ -188,6 +223,8 @@ begin
   begin
     FTarget := Value;
     FTargetObserver.Observed := Value;
+    DoneWarningExpectedTarget := false;
+    DoneWarningTerrainChild := false;
   end;
 end;
 

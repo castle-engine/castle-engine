@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     container: kambi/castle-engine-cloud-builds-tools:cge-none
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Make API Reference
       run: make clean html -C doc/pasdoc/
     - name: Pack API Reference

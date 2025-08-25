@@ -1740,7 +1740,7 @@ begin
         cause InternalMiddleForceBoxValue change after each SetState to the box
         from previous state, and we'll be in a similar trouble
         (but with box values always from previous state).
-        Trouble (without this safeguard) is reproducible on fps_game
+        Trouble (without this safeguard) is reproducible on fps_game_old_ai
         with knight flying.
 
       - Don't set to "forced" when switching between other states than idle/walk,

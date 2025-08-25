@@ -25,15 +25,15 @@ do_run ()
 do_test_one_backend_lcl ()
 {
   LAZBUILD_OPTIONS="--os=$1 --cpu=$2"
-  lazbuild $LAZBUILD_OPTIONS packages/alternative_castle_window_based_on_lcl.lpk
+  lazbuild $LAZBUILD_OPTIONS packages/lazarus/alternative_castle_engine_window_based_on_lcl.lpk
 
-  # Depend on alternative_castle_window_based_on_lcl from TEST_LPI
-  sed -e 's|<PackageName Value="castle_window"/>|<PackageName Value="alternative_castle_window_based_on_lcl"/>|' \
+  # Depend on alternative_castle_engine_window_based_on_lcl from TEST_LPI
+  sed -e 's|<PackageName Value="castle_engine_window"/>|<PackageName Value="alternative_castle_engine_window_based_on_lcl"/>|' \
     --in-place "${TEST_LPI}"
   do_run lazbuild $LAZBUILD_OPTIONS "${TEST_LPI}"
 
   # Restore original view_3d_model_advanced.lpi
-  sed -e 's|<PackageName Value="alternative_castle_window_based_on_lcl"/>|<PackageName Value="castle_window"/>|' \
+  sed -e 's|<PackageName Value="alternative_castle_engine_window_based_on_lcl"/>|<PackageName Value="castle_engine_window"/>|' \
     --in-place "${TEST_LPI}"
 }
 
