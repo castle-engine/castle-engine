@@ -114,7 +114,6 @@ castle-game-engine-*.fpm
 /examples/animations/animate_bones_by_code/animate_bones_by_code
 /examples/animations/animate_transform_by_code/animate_transform_by_code
 /examples/animations/animate_transform_by_code_2/animate_transform_by_code_2
-/examples/animations/deprecated_resource_animations/resource_animations
 /examples/animations/expose_transformations_to_animate_children/expose_transformations_demo
 /examples/animations/play_animation/play_animation
 /examples/animations/simultaneous_animations_one_scene/simultaneous_animations_one_scene
@@ -135,7 +134,6 @@ castle-game-engine-*.fpm
 /examples/curves/use_designed_curve/use_designed_curve
 /examples/delphi/fmx/CastleFmx
 /examples/delphi/fmx_play_animation/CastleFmxPlayAnimation
-/examples/deprecated_to_upgrade/fixed_camera_game/rift
 /examples/eye_of_beholder/eye_of_beholder
 /examples/fonts/distance_field_fonts/distance_field_fonts
 /examples/fonts/font_draw_over_image/font_draw_over_image
