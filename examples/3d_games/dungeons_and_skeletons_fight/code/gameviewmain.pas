@@ -1,8 +1,19 @@
-{ Main view, where most of the application logic takes place.
+{
+  Copyright 2025-2025 Michalis Kamburelis.
 
-  Feel free to use this code as a starting point for your own projects.
-  This template code is in public domain, unlike most other CGE code which
-  is covered by BSD or LGPL (see https://castle-engine.io/license). }
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
+{ Main view, where most of the application logic takes place. }
 unit GameViewMain;
 
 interface

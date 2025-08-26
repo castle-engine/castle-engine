@@ -160,7 +160,7 @@
               "X" : 2.7174448013305664E+001,
               "Y" : 1.0040702670812607E-001
             },
-            "Url" : "castle-data:/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/scene.gltf"
+            "Url" : "castle-data:/sketchfab/barrel/scene.gltf"
           },
           {
             "$$ClassName" : "TCastleScene",
@@ -183,7 +183,7 @@
               "Y" : 8.6917847394943237E-002,
               "Z" : 4.2875485420227051E+000
             },
-            "Url" : "castle-data:/sketchfab/barrel-341eecd25e7f4914a6d321e71e5629af/scene.gltf"
+            "Url" : "castle-data:/sketchfab/barrel/scene.gltf"
           },
           {
             "$$ClassName" : "TCastleScene",
@@ -206,7 +206,7 @@
               "Y" : 2.5349935889244080E-001,
               "Z" : -1.7332448959350586E+001
             },
-            "Url" : "castle-data:/sketchfab/cobra-statue-528a0cb90bce46928dfb7b3a5e503684/scene.gltf"
+            "Url" : "castle-data:/sketchfab/cobra-statue/scene.gltf"
           },
           {
             "$$ClassName" : "TCastleTransform",
@@ -237,7 +237,7 @@
                   "Y" : 9.9999997764825821E-003,
                   "Z" : 9.9999997764825821E-003
                 },
-                "Url" : "castle-data:/sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/scene.gltf"
+                "Url" : "castle-data:/sketchfab/throne/scene.gltf"
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -258,7 +258,7 @@
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 1.8576750755310059E+000
                 },
-                "Url" : "castle-data:/sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/scene.gltf"
+                "Url" : "castle-data:/sketchfab/throne/scene.gltf"
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -279,7 +279,7 @@
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 3.8029577732086182E+000
                 },
-                "Url" : "castle-data:/sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/scene.gltf"
+                "Url" : "castle-data:/sketchfab/throne/scene.gltf"
               }
             ]
           },
@@ -312,7 +312,7 @@
                   "Y" : 9.9999997764825821E-003,
                   "Z" : 9.9999997764825821E-003
                 },
-                "Url" : "castle-data:/sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/scene.gltf"
+                "Url" : "castle-data:/sketchfab/throne/scene.gltf"
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -333,7 +333,7 @@
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 1.8576750755310059E+000
                 },
-                "Url" : "castle-data:/sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/scene.gltf"
+                "Url" : "castle-data:/sketchfab/throne/scene.gltf"
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -354,7 +354,7 @@
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 3.8029577732086182E+000
                 },
-                "Url" : "castle-data:/sketchfab/throne-of-rock-8de6fa4b9d7e488080828d155891c8f8/scene.gltf"
+                "Url" : "castle-data:/sketchfab/throne/scene.gltf"
               }
             ]
           },

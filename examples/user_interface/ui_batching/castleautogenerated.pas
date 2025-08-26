@@ -22,7 +22,7 @@ uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
   ApplicationProperties.ApplicationName := 'ui_batching';
-  ApplicationProperties.Caption := 'My New Project';
+  ApplicationProperties.Caption := 'User Interface Batching';
   ApplicationProperties.Version := '0.1';
 
   if not IsLibrary then

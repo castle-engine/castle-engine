@@ -22,7 +22,7 @@ uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
   ApplicationProperties.ApplicationName := 'render_3d_to_image';
-  ApplicationProperties.Caption := 'render_3d_to_image';
+  ApplicationProperties.Caption := 'Render 3D Scene To Image';
   ApplicationProperties.Version := '0.1';
 
   if not IsLibrary then

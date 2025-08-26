@@ -22,7 +22,7 @@ uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
   ApplicationProperties.ApplicationName := 'draw_images_on_gpu';
-  ApplicationProperties.Caption := 'draw_images_on_gpu';
+  ApplicationProperties.Caption := 'Draw Images On GPU (using TDrawableImage)';
   ApplicationProperties.Version := '0.1';
 
   if not IsLibrary then
