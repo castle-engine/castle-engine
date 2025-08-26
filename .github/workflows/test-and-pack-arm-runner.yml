@@ -60,7 +60,7 @@ jobs:
           cpu: ${{ matrix.cpu }}
 
           shell: /bin/bash -eo pipefail
-          image_additional_mb: 6000
+          image_additional_mb: 8000
           # Avoids the need for copy_artifact_path later.
           bind_mount_repository: true
           commands: |

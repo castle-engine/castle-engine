@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{58A96491-2AED-491F-9969-0DE8A269616B}</ProjectGuid>
+        <ProjectGuid>{347FC98A-39E8-3B7B-DE71-B84B2ABD0497}</ProjectGuid>
         <MainSource>facebook_integration_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

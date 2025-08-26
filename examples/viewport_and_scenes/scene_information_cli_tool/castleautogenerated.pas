@@ -22,7 +22,7 @@ uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
   ApplicationProperties.ApplicationName := 'scene_information_cli_tool';
-  ApplicationProperties.Caption := 'scene_information_cli_tool';
+  ApplicationProperties.Caption := 'Utility to write information about 3D models';
   ApplicationProperties.Version := '0.1';
 
   if not IsLibrary then

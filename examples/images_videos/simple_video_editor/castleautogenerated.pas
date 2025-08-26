@@ -22,7 +22,7 @@ uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
   ApplicationProperties.ApplicationName := 'simple_video_editor';
-  ApplicationProperties.Caption := 'simple_video_editor';
+  ApplicationProperties.Caption := 'Simple Video Editor';
   ApplicationProperties.Version := '0.1';
 
   if not IsLibrary then

@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{D2A55AE2-C7D1-4F4D-884C-5CF1B80E0F07}</ProjectGuid>
+        <ProjectGuid>{9F70E885-8733-85A0-8FFC-B52243B069D6}</ProjectGuid>
         <MainSource>shader_effects_primitives_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
@@ -328,6 +328,74 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
+<DeployFile LocalName="data\shaders/color.fs" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/shaders/</RemoteDir>
+  <RemoteName>color.fs</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/shaders/</RemoteDir>
+  <RemoteName>color.fs</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/shaders/</RemoteDir>
+  <RemoteName>color.fs</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\shaders/enlarge.vs" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/shaders/</RemoteDir>
+  <RemoteName>enlarge.vs</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/shaders/</RemoteDir>
+  <RemoteName>enlarge.vs</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/shaders/</RemoteDir>
+  <RemoteName>enlarge.vs</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\test_textures/AUTHORS.md" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/test_textures/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/test_textures/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/test_textures/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\test_textures/handpaintedwall2.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/test_textures/</RemoteDir>
+  <RemoteName>handpaintedwall2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/test_textures/</RemoteDir>
+  <RemoteName>handpaintedwall2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/test_textures/</RemoteDir>
+  <RemoteName>handpaintedwall2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
 <DeployFile LocalName="data\CastleSettings.xml" Configuration="Release" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/</RemoteDir>
@@ -376,6 +444,74 @@
  <Platform Name="Win64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\shaders/color.fs" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/shaders/</RemoteDir>
+  <RemoteName>color.fs</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/shaders/</RemoteDir>
+  <RemoteName>color.fs</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/shaders/</RemoteDir>
+  <RemoteName>color.fs</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\shaders/enlarge.vs" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/shaders/</RemoteDir>
+  <RemoteName>enlarge.vs</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/shaders/</RemoteDir>
+  <RemoteName>enlarge.vs</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/shaders/</RemoteDir>
+  <RemoteName>enlarge.vs</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\test_textures/AUTHORS.md" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/test_textures/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/test_textures/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/test_textures/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\test_textures/handpaintedwall2.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/test_textures/</RemoteDir>
+  <RemoteName>handpaintedwall2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/test_textures/</RemoteDir>
+  <RemoteName>handpaintedwall2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/test_textures/</RemoteDir>
+  <RemoteName>handpaintedwall2.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>

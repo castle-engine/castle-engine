@@ -1,0 +1,11 @@
+Model Information:
+* title:	Barrel
+* source:	https://sketchfab.com/3d-models/barrel-341eecd25e7f4914a6d321e71e5629af
+* author:	Maria Stashko (https://sketchfab.com/maria_stashko)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Barrel" (https://sketchfab.com/3d-models/barrel-341eecd25e7f4914a6d321e71e5629af) by Maria Stashko (https://sketchfab.com/maria_stashko) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

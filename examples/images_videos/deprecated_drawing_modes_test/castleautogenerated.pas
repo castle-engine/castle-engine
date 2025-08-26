@@ -22,7 +22,7 @@ uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
   ApplicationProperties.ApplicationName := 'drawing_modes_test';
-  ApplicationProperties.Caption := 'drawing_modes_test';
+  ApplicationProperties.Caption := 'Deprecated: Test TCastleImage.DrawFrom modes';
   ApplicationProperties.Version := '0.1';
 
   if not IsLibrary then
