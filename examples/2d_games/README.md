@@ -1,4 +1,4 @@
-# 3D Games Demos
+# 2D Games Demos
 
 These "game demos" show a number of engine features used together to create a game... or at least a start of a game :)
 
