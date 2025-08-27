@@ -2,6 +2,8 @@
 
 Use OpenAI API from _Caste Game Engine_. Ask a question, it gets an answer using OpenAI "assistant".
 
+See also [news post describing this example](https://castle-engine.io/wp/2024/05/28/example-talking-with-openai-chatgpt-assistant-using-castle-game-engine-from-desktop-or-android/).
+
 ## Screenshot
 
 Below I'm using an assistant that has been given these instructions: _"Call the person asking the question "Gary" (emphasize this name a few times in the answer). Also, add a cat joke to every answer."_
