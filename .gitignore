@@ -105,6 +105,9 @@ castle-game-engine-*.fpm
 /packages/lazarus/*castle_engine*.pas
 /packages/lazarus/lib/
 
+# may contain secrets
+/examples/network/ask_openai_assistant/code/openai_config.inc
+
 # Unix binaries (keep this list alphabetic).
 /examples/3d_games/walking_adventure/walk_3d_game_controllers
 /examples/3d_games/dungeons_and_skeletons_fight/game_3d
@@ -181,6 +184,7 @@ castle-game-engine-*.fpm
 /examples/viewport_and_scenes/shadows/shadows
 /examples/viewport_and_scenes/shadow_volumes_whole_scene_manifold/shadow_volumes_whole_scene_manifold
 /examples/viewport_and_scenes/bump_mapping/bump_mapping
+/examples/network/ask_openai_assistant/castle-openai
 /examples/network/asynchronous_download/asynchronous_download
 /examples/network/castle_download/castle_download
 /examples/network/custom_url_handler/read_game_data_from_zip
