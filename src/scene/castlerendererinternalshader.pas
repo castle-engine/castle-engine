@@ -2792,8 +2792,8 @@ end;
 function TShader.DeclareShadowFunctions: String;
 const
   ShadowDeclare: array [boolean { vsm? }] of string =
-  ('float shadow(sampler2DShadow shadowMap, const vec4 shadowMapCoord, const in float size);',
-   'float shadow(sampler2D       shadowMap, const vec4 shadowMapCoord, const in float size);');
+  ('float shadow(sampler2DShadow shadowMap, const shadowsPrecision vec4 shadowMapCoord, const in float size);',
+   'float shadow(sampler2D       shadowMap, const shadowsPrecision vec4 shadowMapCoord, const in float size);');
 begin
   Result := ShadowDeclare[ShadowSampling = ssVarianceShadowMaps];
 end;
