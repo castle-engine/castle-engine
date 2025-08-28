@@ -26,19 +26,33 @@ uses Classes;
 { Get stream with image data (JPG) from Unsplash.
 
   @param(UnsplashImageId Unique ID of the image specific to Unsplash.
-    Can be used as any unique id, or to later refer to the image on Unsplash.)
+
+    The image can be accessed online at URL
+    @code('https://unsplash.com/photos/' + UnsplashImageId)
+    (such URL will redirect to nicer-looking URL on access,
+    that nicer URL will contain also image textual name,
+    but the really important part is this unique id).
+
+    This id can also be used as any unique id for your own purpses.
+    It contains only safe characters,so can be used even as filename/URL part,
+    e.g. you can save it as @code('castle-config:/' + UnsplashImageId + '.jpg').
+    ( Though for security purposes, don't trust, and better check
+    whether UnsplashImageId is really safe, before doing such thing. )
+  )
 
   @param(SearchQuery Optional search query to filter images.
     If empty, return any random image.)
 
   @param(Collections Optional comma-separated list of public
-    collection IDs to filter images.)
+    collection IDs to filter images.
+    Use https://unsplash.com/collections to browse collections.
+    If empty, don't filter by collections.)
 
   @param(Orientation Optional orientation to filter images.
-    Allowed values: landscape, portrait, squarish )
+    Allowed values: 'landscape', 'portrait', squarish'.)
 
   @param(Size Optional size of the image.
-    Allowed values: full, raw, regular, small, thumb )
+    Allowed values: 'full', 'raw', 'regular', 'small', 'thumb'.)
 }
 function UnsplashGetRandomImage(out UnsplashImageId: String;
   const SearchQuery: String = '';
