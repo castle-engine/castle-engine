@@ -257,6 +257,9 @@ prepare-examples:
 	# setup non-functional openai_config.inc, to test example compiles OK.
 	cp -f examples/network/ask_openai_assistant/code/openai_config.inc.template \
 	      examples/network/ask_openai_assistant/code/openai_config.inc
+	# setup non-functional unsplash_secrets.inc, to test example compiles OK.
+	cp -f examples/network/random_image_from_unsplash/code/unsplash_secrets.inc.template \
+	      examples/network/random_image_from_unsplash/code/unsplash_secrets.inc
 
 .PHONY: examples
 examples: prepare-examples

@@ -107,6 +107,7 @@ castle-game-engine-*.fpm
 
 # may contain secrets
 /examples/network/ask_openai_assistant/code/openai_config.inc
+/examples/network/random_image_from_unsplash/code/unsplash_secrets.inc
 
 # Unix binaries (keep this list alphabetic).
 /examples/3d_games/walking_adventure/walk_3d_game_controllers
@@ -189,6 +190,7 @@ castle-game-engine-*.fpm
 /examples/network/castle_download/castle_download
 /examples/network/custom_url_handler/read_game_data_from_zip
 /examples/network/put_data/put_data
+/examples/network/random_image_from_unsplash/random_image_from_unsplash
 /examples/network/remote_logging/remote_logging
 /examples/network/tcp_connection/client/client
 /examples/network/tcp_connection/server/server

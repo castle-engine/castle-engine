@@ -1,0 +1,199 @@
+{
+  "$$ClassName" : "TCastleUserInterface",
+  "FullSize" : true,
+  "Name" : "RootGroup",
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleLabel",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Blue" : 1.7647059261798859E-001,
+        "Green" : 6.1176472902297974E-001,
+        "Red" : 9.8823529481887817E-001
+      },
+      "FontSize" : 2.0000000000000000E+001,
+      "HorizontalAnchorParent" : "hpRight",
+      "HorizontalAnchorSelf" : "hpRight",
+      "Name" : "LabelFps",
+      "Text" : [
+        "FPS: xxx"
+      ],
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : -2.0000000000000000E+001,
+        "Y" : -2.0000000000000000E+001
+      },
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
+    },
+    {
+      "$$ClassName" : "TCastleViewport",
+      "Background" : "Background1",
+      "Camera" : "Camera1",
+      "FullSize" : true,
+      "Items" : {
+        "$$ClassName" : "TCastleRootTransform",
+        "PhysicsProperties" : {
+          "$$ClassName" : "TPhysicsProperties",
+          "LayerCollisions" : {
+            "$$ClassName" : "TCastleLayerCollisions"
+          },
+          "LayerNames" : {
+            "$$ClassName" : "TCastleLayerNames"
+          }
+        },
+        "$Children" : [
+          {
+            "$$ClassName" : "TCastleCamera",
+            "Name" : "Camera1",
+            "Orthographic" : {
+              "$$ClassName" : "TCastleOrthographic"
+            },
+            "Perspective" : {
+              "$$ClassName" : "TCastlePerspective"
+            },
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4RotationPersistent",
+              "W" : 7.8700757026672363E-001,
+              "X" : -3.0333840847015381E-001,
+              "Y" : 9.4584280252456665E-001,
+              "Z" : 1.1561696976423264E-001
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 3.8995206356048584E+000,
+              "Y" : 1.7459058761596680E+000,
+              "Z" : 4.5314712524414062E+000
+            }
+          },
+          {
+            "$$ClassName" : "TCastlePointLight",
+            "Name" : "PointLight1",
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 4.0000000000000000E+000,
+              "Y" : 2.5110991001129150E+000,
+              "Z" : 9.2835670709609985E-001
+            }
+          },
+          {
+            "$$ClassName" : "TCastlePointLight",
+            "Name" : "PointLight3",
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 9.2118394374847412E-001,
+              "Y" : 2.5110991001129150E+000,
+              "Z" : 5.2943372726440430E+000
+            }
+          },
+          {
+            "$$ClassName" : "TCastlePointLight",
+            "Name" : "PointLight2",
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -2.7491261959075928E+000,
+              "Y" : -1.9964370727539063E+000,
+              "Z" : -1.5722029209136963E+000
+            }
+          },
+          {
+            "$$ClassName" : "TCastleBox",
+            "Name" : "BoxTextureFromUnsplash",
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            }
+          }
+        ]
+      },
+      "Name" : "Viewport1",
+      "$NonVisualComponents" : [
+        {
+          "$$ClassName" : "TCastleBackground",
+          "Name" : "Background1"
+        }
+      ],
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleExamineNavigation",
+          "Name" : "ExamineNavigation1"
+        }
+      ],
+      "InternalDesignCamera" : {
+        "$$ClassName" : "TCastleCamera",
+        "Name" : "",
+        "Orthographic" : {
+          "$$ClassName" : "TCastleOrthographic"
+        },
+        "Perspective" : {
+          "$$ClassName" : "TCastlePerspective"
+        },
+        "RotationPersistent" : {
+          "$$ClassName" : "TCastleVector4RotationPersistent",
+          "W" : 8.5161811113357544E-001,
+          "X" : -4.2728587985038757E-001,
+          "Y" : 8.8801646232604980E-001,
+          "Z" : 1.6986383497714996E-001
+        },
+        "TranslationPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "X" : 7.9075918197631836E+000,
+          "Y" : 6.9993071556091309E+000,
+          "Z" : 6.7147526741027832E+000
+        }
+      },
+      "InternalDesignNavigations[dnFly]" : {
+        "$$ClassName" : "TCastleWalkNavigationDesign",
+        "Name" : ""
+      },
+      "InternalDesignNavigations[dnExamine]" : {
+        "$$ClassName" : "TCastleExamineNavigationDesign",
+        "Exists" : false,
+        "Name" : ""
+      },
+      "InternalDesignNavigations[dn2D]" : {
+        "$$ClassName" : "TCastle2DNavigationDesign",
+        "Exists" : false,
+        "Name" : ""
+      }
+    },
+    {
+      "$$ClassName" : "TCastleImageControl",
+      "Content" : {
+        "$$ClassName" : "TCastleImagePersistent"
+      },
+      "Name" : "ImageUiFromUnsplash",
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : 1.0000000000000000E+001,
+        "Y" : 1.0000000000000000E+001
+      }
+    },
+    {
+      "$$ClassName" : "TCastleButton",
+      "Caption" : "Get New Random Image From Unsplash",
+      "CustomBackgroundDisabled" : {
+        "$$ClassName" : "TCastleImagePersistent"
+      },
+      "CustomBackgroundFocused" : {
+        "$$ClassName" : "TCastleImagePersistent"
+      },
+      "CustomBackgroundNormal" : {
+        "$$ClassName" : "TCastleImagePersistent"
+      },
+      "CustomBackgroundPressed" : {
+        "$$ClassName" : "TCastleImagePersistent"
+      },
+      "Image" : {
+        "$$ClassName" : "TCastleImagePersistent"
+      },
+      "Name" : "ButtonNewImage",
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : 1.0000000000000000E+001,
+        "Y" : -1.0000000000000000E+001
+      },
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
+    }
+  ]
+}
