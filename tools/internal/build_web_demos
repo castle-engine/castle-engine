@@ -111,7 +111,7 @@ do_project examples/web/simplest_viewport
 do_project examples/web/simplest_invaders
 
 # 2d
-do_project examples/2d_games/platformer # TODO: web: no OpenUrl
+do_project examples/2d_games/platformer
 do_project examples/component_gallery
 do_project examples/animations/play_animation
 do_project examples/2d_games/space_shooter
