@@ -10,11 +10,14 @@ Ask [Unsplash](https://unsplash.com/) for a random image:
 
 The images are generally [free to use (see Unsplash license)](https://unsplash.com/license) for various, though not all, purposes. And there's a ton of high-quality images.
 
-The image is downloaded using our `TCastleDownload` in an asynchronous fashion, so your interactive application can keep going while the download goes in the background. If you want to just wait for the download to finish (block) that's of course also trivially possible, see the example code.
+The example contains a unit `code/gameunsplash.pas` that you can copy and use in your applications. Read the documentation of the it to learn how to use it.
+
+Under the hood, the image is downloaded using our `TCastleDownload` in an asynchronous fashion, so your interactive application can keep going while the download goes in the background. If you want to just wait for the download to finish (block) that's of course also trivially possible, just use `WaitForFinish` method.
 
 ## Screenshot
 
 ![Screenshot](screenshot.png)
+![Screenshot](screenshot_2.png)
 
 ## Use-cases
 

@@ -20,7 +20,8 @@ interface
 
 uses Classes,
   CastleVectors, CastleComponentSerialize, CastleScene, CastleTimeUtils,
-  CastleUIControls, CastleControls, CastleKeysMouse;
+  CastleUIControls, CastleControls, CastleKeysMouse,
+  GameUnsplash;
 
 type
   { Main view, where most of the application logic takes place. }
@@ -32,12 +33,16 @@ type
     ButtonNewImage: TCastleButton;
     ImageUiFromUnsplash: TCastleImageControl;
     BoxTextureFromUnsplash: TCastleBox;
+    LabelUnsplashDownloadStatus: TCastleLabel;
   private
     LifeTime: TFloatTime;
+    UnsplashDownload: TUnsplashDownload;
     procedure ClickNewImage(Sender: TObject);
+    procedure UnsplashDownloadFinish(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
+    procedure Stop; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
   end;
 
@@ -47,8 +52,7 @@ var
 implementation
 
 uses SysUtils,
-  CastleDownload, CastleClassUtils,
-  GameUnsplash;
+  CastleDownload, CastleClassUtils, CastleLog;
 
 { TViewMain ----------------------------------------------------------------- }
 
@@ -61,16 +65,37 @@ end;
 procedure TViewMain.Start;
 begin
   inherited;
+
+  UnsplashDownload := TUnsplashDownload.Create;
+  UnsplashDownload.OnFinish := {$ifdef FPC}@{$endif} UnsplashDownloadFinish;
+
   ButtonNewImage.OnClick := {$ifdef FPC}@{$endif} ClickNewImage;
   ClickNewImage(nil);
 end;
 
+procedure TViewMain.Stop;
+begin
+  FreeAndNil(UnsplashDownload);
+  inherited;
+end;
+
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
+const
+  UnsplashDownloadStatusToStr: array [TUnsplashDownloadStatus] of String = (
+    'Not started',
+    'Working: Random image query',
+    'Working: Downloading image contents',
+    'Error',
+    'Success'
+  );
 begin
   inherited;
   { This virtual method is executed every frame (many times per second). }
   Assert(LabelFps <> nil, 'If you remove LabelFps from the design, remember to remove also the assignment "LabelFps.Caption := ..." from code');
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
+
+  LabelUnsplashDownloadStatus.Caption := 'Unsplash Download Status: ' +
+    UnsplashDownloadStatusToStr[UnsplashDownload.Status];
 
   LifeTime := LifeTime + SecondsPassed;
   // rotate BoxTextureFromUnsplash, just to keep things interesting looking
@@ -78,6 +103,15 @@ begin
 end;
 
 procedure TViewMain.ClickNewImage(Sender: TObject);
+begin
+  UnsplashDownload.SearchQuery := 'cute fox';
+  UnsplashDownload.Collections := ''; //'8343314', // https://unsplash.com/collections/8343314/adorable-animals
+  UnsplashDownload.Start;
+
+  // TODO: test WaitForFinish
+end;
+
+procedure TViewMain.UnsplashDownloadFinish(Sender: TObject);
 
   procedure SaveStreamToFile(const Stream: TStream; const FileName: String);
   var
@@ -90,20 +124,16 @@ procedure TViewMain.ClickNewImage(Sender: TObject);
   end;
 
 var
-  UnsplashImageId, ImageUrl: String;
-  ImageStream: TMemoryStream;
+  ImageUrl: String;
 begin
-  ImageStream := UnsplashGetRandomImage(UnsplashImageId,
-    { SearchQuery } 'cute fox',
-    { Collections } '', //'8343314', // https://unsplash.com/collections/8343314/adorable-animals
-    { Orientation } 'landscape');
-  try
-    ImageUrl := 'castle-config:/' + UnsplashImageId + '.jpg';
-    SaveStreamToFile(ImageStream, ImageUrl);
-  finally FreeAndNil(ImageStream) end;
-
-  ImageUiFromUnsplash.Url := ImageUrl;
-  BoxTextureFromUnsplash.Texture := ImageUrl;
+  if UnsplashDownload.Status = usSuccess then
+  begin
+    ImageUrl := 'castle-config:/' + UnsplashDownload.UnsplashImageId + '.jpg';
+    SaveStreamToFile(UnsplashDownload.ImageStream, ImageUrl);
+    ImageUiFromUnsplash.Url := ImageUrl;
+    BoxTextureFromUnsplash.Texture := ImageUrl;
+  end else
+    WritelnWarning('Failed to download image from Unsplash');
 end;
 
 end.
