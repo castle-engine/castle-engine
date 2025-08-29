@@ -4,7 +4,7 @@ path = "./platformer"
 
 [[actions]]
 name = "manual"
-path = "https://github.com/castle-engine/castle-engine/blob/master/examples/platformer/README.md"
+path = "https://github.com/castle-engine/castle-engine/blob/master/examples/2d_games/platformer/README.md"
 
 [[actions]]
 name = "forums"

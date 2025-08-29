@@ -87,7 +87,7 @@ end;
 
 procedure TViewCredits.ClickSources(Sender: TObject);
 begin
-  OpenURL('https://github.com/castle-engine/castle-engine/tree/master/examples/platformer');
+  OpenURL('https://github.com/castle-engine/castle-engine/tree/master/examples/2d_games/platformer');
 end;
 
 end.

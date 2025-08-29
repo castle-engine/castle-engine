@@ -10,7 +10,7 @@ IFS=$'\n\t'
 # ---------------------------------------------------------------------
 
 if [ ! -f ./CastleEngineManifest.xml ]; then
-  echo 'Run this script from examples/platformer/ directory (not anything else, like subdirectory itch.io).'
+  echo 'Run this script from examples/2d_games/platformer/ directory (not anything else, like subdirectory itch.io).'
   exit 1
 fi
 
