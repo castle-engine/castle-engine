@@ -108,7 +108,25 @@ begin
   UnsplashDownload.Collections := ''; //'8343314', // https://unsplash.com/collections/8343314/adorable-animals
   UnsplashDownload.Start;
 
-  // TODO: test WaitForFinish
+  { If you would want to block the process, waiting for download to finish,
+    e.g. because you develop a command-line tool and want to keep things
+    simple:
+
+    Then you can just wait for finish like this:
+
+      UnsplashDownload.WaitForFinish;
+
+    Afterwards, check UnsplashDownload.Status to see if it was successful,
+    and if so, read UnsplashDownload.ImageStream for the image data.
+
+    What we do in this example is different:
+    - We never call WaitForFinish
+    - We use *asynchronous* download,
+      so the application keeps running while the download goes in the background.
+    - We wait to be notified about the download finish by
+      UnsplashDownload.OnFinish execution (set to our
+      UnsplashDownloadFinish method).
+  }
 end;
 
 procedure TViewMain.UnsplashDownloadFinish(Sender: TObject);
