@@ -1,3 +1,7 @@
+X3DVolumeRenderStyleNode : X3DNode {
+  SFBool   [in,out] enabled  TRUE
+}
+
 X3DComposableVolumeRenderStyleNode : X3DVolumeRenderStyleNode {
 }
 
@@ -10,10 +14,6 @@ X3DVolumeDataNode : X3DChildNode, X3DBoundedObject {
     range: (-Inf,Inf)
   SFVec3f []       bboxSize    -1 -1 -1
     range: [0,Inf) or -1 -1 -1
-}
-
-X3DVolumeRenderStyleNode : X3DNode {
-  SFBool   [in,out] enabled  TRUE
 }
 
 BlendedVolumeStyle : X3DComposableVolumeRenderStyleNode {

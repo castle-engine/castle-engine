@@ -51,6 +51,10 @@ type
     function PascalType(const ForceAsFunctionality: boolean = false): String;
     function IsFunctionality: boolean;
     function IsAbstract: boolean;
+    function IncludeFileName: String;
+    { For now, only auto-generated documentation pointing out this node
+      functionality is not implemented yet. }
+    function Documentation: String;
   end;
 
   TX3DNodeInformationList = class(specialize TObjectList<TX3DNodeInformation>)
@@ -119,7 +123,8 @@ type
     procedure NodeField(const Node: TX3DNodeInformation;
       const Field: TX3DFieldInformation); virtual;
     procedure NodeEnd(const Node: TX3DNodeInformation); virtual;
-    procedure ComponentEnd(const ComponentName: String); virtual;
+    procedure ComponentEnd(const ComponentName: String;
+      const Nodes: TX3DNodeInformationList); virtual;
   end;
 
   THelperProcessor = class(TProcessor)
@@ -131,6 +136,8 @@ type
     procedure NodeField(const Node: TX3DNodeInformation;
       const Field: TX3DFieldInformation); override;
     procedure NodeEnd(const Node: TX3DNodeInformation); override;
+    procedure ComponentEnd(const ComponentName: String;
+      const Nodes: TX3DNodeInformationList); override;
   end;
 
 var
@@ -355,6 +362,20 @@ begin
 
     Result := 'T' + Result;
   end;
+end;
+
+function TX3DNodeInformation.IncludeFileName: String;
+begin
+  Result := 'x3dnodes_' + LowerCase(X3DType) + Iff(Vrml1, '_1', '') + '.inc';
+end;
+
+function TX3DNodeInformation.Documentation: String;
+begin
+  Result := 'X3D node "' + X3DType + '".' + NL +
+    '    Consult the @url(https://castle-engine.io/x3d X3D specification)' + NL +
+    '    for documentation of this node.' + NL +
+    '    @italic(Warning: Functionality of this node is not implemented yet.' + NL +
+    '    The node is defined only for parsing and validation purposes for now.)';
 end;
 
 { TX3DNodeInformationList ---------------------------------------------------- }
@@ -645,7 +666,7 @@ begin
     { in case of SFNode / MFNode, convert the Range into NodeAllowedChildren }
     AllowedChildrenNodesSplitted := CreateTokens(
       PrefixSuffixRemove('[', ']', Range, false),
-       WhiteSpaces + [',', '|']);
+      WhiteSpaces + [',', '|']);
     try
       for I := 0 to AllowedChildrenNodesSplitted.Count - 1 do
       begin
@@ -677,6 +698,8 @@ end;
 { TProcessor ----------------------------------------------------------------- }
 
 procedure TProcessor.ProcessFile(const InputFileName: String);
+var
+  ComponentNodes: TX3DNodeInformationList;
 
   { Parse field information.
     Note that the Line parameters should receive the LineWithComment value.
@@ -919,8 +942,9 @@ procedure TProcessor.ProcessFile(const InputFileName: String);
         NodeField(Node, Field);
       end;
       NodeEnd(Node);
+      ComponentNodes.Add(Node);
     end;
-    FreeAndNil(Node);
+    Node := nil;
   end;
 
 var
@@ -972,6 +996,8 @@ var
   Ancestor: TX3DNodeInformation;
 begin
   Node := nil;
+
+  ComponentNodes := TX3DNodeInformationList.Create(true);
 
   WritelnVerbose('Processing ' + InputFileName);
   F := TCastleTextReader.Create(InputFileName);
@@ -1147,9 +1173,14 @@ begin
     end;
   finally FreeAndNil(F) end;
 
-  FreeAndNil(Node);
+  if Node <> nil then
+  begin
+    Writeln('WARNING: Node does not have closing "}" in ' + InputFileName);
+    FreeAndNil(Node);
+  end;
 
-  ComponentEnd(DeleteFileExt(ExtractFileName(InputFileName)));
+  ComponentEnd(DeleteFileExt(ExtractFileName(InputFileName)), ComponentNodes);
+  FreeAndNil(ComponentNodes);
 end;
 
 procedure TProcessor.NodeBegin(const Node: TX3DNodeInformation);
@@ -1165,7 +1196,8 @@ procedure TProcessor.NodeEnd(const Node: TX3DNodeInformation);
 begin
 end;
 
-procedure TProcessor.ComponentEnd(const ComponentName: String);
+procedure TProcessor.ComponentEnd(const ComponentName: String;
+  const Nodes: TX3DNodeInformationList);
 begin
 end;
 
@@ -1445,33 +1477,38 @@ begin
   Result := YearBegin + IntToStr(YearOf(BuildDate));
 end;
 
+{ Common prefix of include files, both for per-node helpers,
+  and per-component registration. }
+function IncludeFilesPrefix: String;
+begin
+  Result :=
+    '{ -*- buffer-read-only: t -*-' + NL +
+    '' + NL +
+    '  Copyright ' + CopyrightYears + ' Michalis Kamburelis.' + NL +
+    '' + NL +
+    '  This file is part of "Castle Game Engine".' + NL +
+    '' + NL +
+    '  "Castle Game Engine" is free software; see the file COPYING.txt,' + NL +
+    '  included in this distribution, for details about the copyright.' + NL +
+    '' + NL +
+    '  "Castle Game Engine" is distributed in the hope that it will be useful,' + NL +
+    '  but WITHOUT ANY WARRANTY; without even the implied warranty of' + NL +
+    '  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.' + NL +
+    '' + NL +
+    '  ----------------------------------------------------------------------------' + NL +
+    '}' + NL +
+    '' + NL;
+end;
+
 procedure THelperProcessor.NodeEnd(const Node: TX3DNodeInformation);
 
   procedure GenerateOutput(const OutputInterface, OutputImplementation: String);
   var
     OutputFileName: String;
   begin
-    OutputFileName := InclPathDelim(OutputPath) +
-      'x3dnodes_' + LowerCase(Node.X3DType) +
-      Iff(Node.Vrml1, '_1', '') + '.inc';
-
+    OutputFileName := InclPathDelim(OutputPath) + Node.IncludeFileName;
     StringToFile(OutputFileName,
-      '{ -*- buffer-read-only: t -*-' + NL +
-      '' + NL +
-      '  Copyright ' + CopyrightYears + ' Michalis Kamburelis.' + NL +
-      '' + NL +
-      '  This file is part of "Castle Game Engine".' + NL +
-      '' + NL +
-      '  "Castle Game Engine" is free software; see the file COPYING.txt,' + NL +
-      '  included in this distribution, for details about the copyright.' + NL +
-      '' + NL +
-      '  "Castle Game Engine" is distributed in the hope that it will be useful,' + NL +
-      '  but WITHOUT ANY WARRANTY; without even the implied warranty of' + NL +
-      '  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.' + NL +
-      '' + NL +
-      '  ----------------------------------------------------------------------------' + NL +
-      '}' + NL +
-      '' + NL +
+      IncludeFilesPrefix +
       '{ Automatically generated node properties.' + NL +
       '' + NL +
       '  Do not edit this file manually!' + NL +
@@ -1531,6 +1568,77 @@ begin
   OutputPublicInterface := '';
   OutputImplementation := '';
   OutputCreateImplementation := '';
+end;
+
+procedure THelperProcessor.ComponentEnd(const ComponentName: String;
+  const Nodes: TX3DNodeInformationList);
+
+  procedure GenerateComponentIncludeFile;
+  var
+    Node: TX3DNodeInformation;
+    OutputFileName, NodeInclude,
+      SectionForwards, SectionInterface,
+      SectionImplementation, SectionRegistration: String;
+  begin
+    SectionForwards := '';
+    SectionInterface := '';
+    SectionImplementation := '';
+    SectionRegistration := '';
+
+    for Node in Nodes do
+    begin
+      NodeInclude := '{$I auto_generated_node_helpers/' + Node.IncludeFileName + '}';
+      // to enable references from any node, define forward declarations for all classes
+      SectionForwards += '  ' + Node.PascalType + ' = class;' + NL;
+      SectionInterface += '  { ' + DocToPascal(Node.Documentation) + ' }' + NL +
+        '  ' + Node.PascalType + ' = class(' + Node.Ancestors[0].PascalType + ')' + NL +
+        '  ' + NodeInclude + NL +
+        '  end;' + NL +
+        NL;
+      SectionImplementation +=
+        NodeInclude + NL;
+      if not Node.IsAbstract then
+        SectionRegistration := SAppendPart(SectionRegistration,
+          ',' + NL,
+          '    ' + Node.PascalType);
+    end;
+
+    OutputFileName := InclPathDelim(OutputPath) +
+      'x3dnodes_section_' + LowerCase(ComponentName) + '.inc';
+    StringToFile(OutputFileName,
+      IncludeFilesPrefix +
+      '{ X3D section "' + ComponentName + '".' + NL +
+      '  Automatically generated by x3d-nodes-to-pascal. }' + NL +
+      '' + NL +
+      '{$ifdef read_interface_forwards}' + NL +
+      SectionForwards +
+      '{$endif read_interface_forwards}' + NL +
+      '' + NL +
+      '{$ifdef read_interface}' + NL +
+      NL +
+      SectionInterface +
+      '{$endif read_interface}' + NL +
+      '' + NL +
+      '{$ifdef read_implementation}' + NL +
+      NL +
+      SectionImplementation +
+      NL +
+      'procedure Register' + ComponentName + 'Nodes;' + NL +
+      'begin' + NL +
+      '  NodesManager.RegisterNodeClasses([' + NL +
+      SectionRegistration + NL +
+      '  ]);' + NL +
+      'end;' + NL +
+      NL +
+      '{$endif read_implementation}' + NL
+    );
+  end;
+
+begin
+  { For some X3D components, generate an additional include file,
+    that registers all nodes. }
+  if ArrayContainsString(ComponentName, ['VolumeRendering', 'SoundX3D4']) then
+    GenerateComponentIncludeFile;
 end;
 
 end.
