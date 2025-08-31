@@ -642,13 +642,10 @@ begin
         DefaultValue
       ]);
 
-    if IsPrefix('[', Range, false) or
-       IsSuffix(']', Range, false) then
-      raise EInvalidSpecificationFile.Create('Do not surround SFNode / MFNode range in [...] anymore: ' + X3DName);
-
-    { in case of SFNode / MFNode, convert the Range into
-      NodeAllowedChildren }
-    AllowedChildrenNodesSplitted := CreateTokens(Range, WhiteSpaces + [',', '|']);
+    { in case of SFNode / MFNode, convert the Range into NodeAllowedChildren }
+    AllowedChildrenNodesSplitted := CreateTokens(
+      PrefixSuffixRemove('[', ']', Range, false),
+       WhiteSpaces + [',', '|']);
     try
       for I := 0 to AllowedChildrenNodesSplitted.Count - 1 do
       begin
