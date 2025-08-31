@@ -1,5 +1,5 @@
 {
-  Copyright 2023-2023 Michalis Kamburelis.
+  Copyright 2023-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -34,9 +34,8 @@ interface
 uses X3DNodes, X3DFields, CastleVectors, CastleStringUtils, CastleColors,
   CastleTimeUtils, CastleUtils, CastleBoxes;
 
-{$define read_interface}
-
 type
+  {$define read_interface_forwards}
   {$I x3dnodes_standard_geospatial.inc}
   {$I x3dnodes_standard_dis.inc}
   {$I x3dnodes_standard_layering.inc}
@@ -46,8 +45,23 @@ type
   {$I x3dnodes_standard_followers.inc}
   {$I x3dnodes_standard_particlesystems.inc}
   {$I x3dnodes_standard_textureprojector.inc}
+  {$I auto_generated_node_helpers/x3dnodes_section_soundx3d4.inc}
+  {$I auto_generated_node_helpers/x3dnodes_section_volumerendering.inc}
+  {$undef read_interface_forwards}
 
-{$undef read_interface}
+  {$define read_interface}
+  {$I x3dnodes_standard_geospatial.inc}
+  {$I x3dnodes_standard_dis.inc}
+  {$I x3dnodes_standard_layering.inc}
+  {$I x3dnodes_standard_layout.inc}
+  {$I x3dnodes_standard_rigidbodyphysics.inc}
+  {$I x3dnodes_standard_picking.inc}
+  {$I x3dnodes_standard_followers.inc}
+  {$I x3dnodes_standard_particlesystems.inc}
+  {$I x3dnodes_standard_textureprojector.inc}
+  {$I auto_generated_node_helpers/x3dnodes_section_soundx3d4.inc}
+  {$I auto_generated_node_helpers/x3dnodes_section_volumerendering.inc}
+  {$undef read_interface}
 
 procedure RegisterUnsupportedNodes;
 
@@ -66,6 +80,8 @@ uses SysUtils;
 {$I x3dnodes_standard_followers.inc}
 {$I x3dnodes_standard_particlesystems.inc}
 {$I x3dnodes_standard_textureprojector.inc}
+{$I auto_generated_node_helpers/x3dnodes_section_soundx3d4.inc}
+{$I auto_generated_node_helpers/x3dnodes_section_volumerendering.inc}
 
 procedure RegisterUnsupportedNodes;
 begin
@@ -78,6 +94,8 @@ begin
   RegisterFollowersNodes;
   RegisterParticleSystemsNodes;
   RegisterTextureProjectorNodes;
+  RegisterSoundX3D4Nodes;
+  RegisterVolumeRenderingNodes;
 end;
 
 end.
