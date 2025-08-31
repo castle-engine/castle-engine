@@ -5,7 +5,6 @@ X3DSoundChannelNode : X3DSoundNode {
     range: ["SPEAKERS", "DISCRETE"]
   MFNode   [in,out] children              NULL
     range: [X3DSoundChannelNode, X3DSoundProcessingNode, X3DSoundSourceNode]
-  SFString [in,out] description           ""
   SFBool   [in,out] enabled               TRUE
   SFFloat  [in,out] gain                  1
     range: (-∞,∞)
@@ -20,7 +19,6 @@ X3DSoundDestinationNode : X3DSoundNode {
     range: ["SPEAKERS", "DISCRETE"]
   MFNode   [in,out] children              NULL
     range: [X3DSoundChannelNode, X3DSoundProcessingNode, X3DSoundSourceNode]
-  SFString [in,out] description           ""
   SFBool   [in,out] enabled               TRUE
   SFFloat  [in,out] gain                  1
     range: (-∞,∞)
@@ -37,7 +35,6 @@ X3DSoundProcessingNode : X3DTimeDependentNode {
     range: ["SPEAKERS", "DISCRETE"]
   MFNode   [in,out] children              NULL
     range: [X3DSoundChannelNode, X3DSoundProcessingNode, X3DSoundSourceNode]
-  SFString [in,out] description           ""
   SFBool   [in,out] enabled               TRUE
   SFFloat  [in,out] gain                  1
     range: (-∞,∞)
@@ -144,7 +141,6 @@ Convolver : X3DSoundProcessingNode {
 Delay : X3DSoundProcessingNode {
   SFTime   [in,out] delayTime             0
     range: [0,Inf)
-  SFString [in,out] description           ""
   SFBool   [in,out] enabled               TRUE
   SFFloat  [in,out] gain                  1
     range: (-Inf,Inf)
@@ -195,7 +191,6 @@ Oscillator : X3DSoundSourceNode {
 }
 
 PeriodicWave : X3DSoundNode {
-  SFString [in,out] description ""
   SFBool   [in,out] enabled     TRUE
   MFFloat  [in,out] optionsReal []
   MFFloat  [in,out] optionsImag []
@@ -212,7 +207,6 @@ SpatialSound : X3DSoundNode  {
     range: [0,2*Pi]
   SFFloat  [in,out] coneOuterGain     0
     range: (-Inf,Inf)
-  SFString [in,out] description       ""
   SFVec3f  [in,out] direction         0 0 1
     range: (-Inf,Inf)
   SFString [in,out] distanceModel     "INVERSE"
@@ -246,7 +240,6 @@ StreamAudioSource : X3DSoundSourceNode {
     range: ["MAX", "CLAMPED_MAX", "EXPLICIT"]
   SFString [in,out] channelInterpretation "SPEAKERS"
     range: ["SPEAKERS", "DISCRETE"]
-  SFString [in,out] description           ""
   SFBool   [in,out] enabled               TRUE
   SFFloat  [in,out] gain                  1
     range: (-Inf,Inf)

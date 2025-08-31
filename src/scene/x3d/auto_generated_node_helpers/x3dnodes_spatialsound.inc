@@ -30,8 +30,6 @@
     procedure SetConeOuterAngle(const Value: Single);
     function GetConeOuterGain: Single;
     procedure SetConeOuterGain(const Value: Single);
-    function GetDescription: String;
-    procedure SetDescription(const Value: String);
     function GetDirection: TVector3;
     procedure SetDirection(const Value: TVector3);
     function GetDistanceModel: String;
@@ -86,12 +84,6 @@
     public property FdConeOuterGain: TSFFloat read FFdConeOuterGain;
     {  }
     property ConeOuterGain: Single read GetConeOuterGain write SetConeOuterGain;
-
-    strict private FFdDescription: TSFString;
-    { Internal wrapper for property @code(Description). This wrapper API may change, we advise to access simpler @code(Description) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
-    public property FdDescription: TSFString read FFdDescription;
-    {  }
-    property Description: String read GetDescription write SetDescription;
 
     strict private FFdDirection: TSFVec3f;
     { Internal wrapper for property @code(Direction). This wrapper API may change, we advise to access simpler @code(Direction) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -217,16 +209,6 @@ end;
 procedure TSpatialSoundNode.SetConeOuterGain(const Value: Single);
 begin
   FdConeOuterGain.Send(Value);
-end;
-
-function TSpatialSoundNode.GetDescription: String;
-begin
-  Result := FdDescription.Value;
-end;
-
-procedure TSpatialSoundNode.SetDescription(const Value: String);
-begin
-  FdDescription.Send(Value);
 end;
 
 function TSpatialSoundNode.GetDirection: TVector3;
@@ -383,10 +365,6 @@ begin
   FFdConeOuterGain := TSFFloat.Create(Self, True, 'coneOuterGain', 0);
    FdConeOuterGain.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdConeOuterGain);
-
-  FFdDescription := TSFString.Create(Self, True, 'description', '');
-   FdDescription.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdDescription);
 
   FFdDirection := TSFVec3f.Create(Self, True, 'direction', Vector3(0, 0, 1));
    FdDirection.ChangeAlways := chVisibleNonGeometry;

@@ -8,8 +8,6 @@ X3DSoundNode : X3DChildNode {
 X3DSoundSourceNode : X3DTimeDependentNode {
   default-container-field: children
 
-  SFString [in,out] description      ""
-    change: chNone
   SFBool   [in,out] enabled          TRUE
   SFFloat  [in,out] gain             1
     range: (-Inf,Inf)

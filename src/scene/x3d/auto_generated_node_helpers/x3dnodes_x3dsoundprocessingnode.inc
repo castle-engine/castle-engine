@@ -28,8 +28,6 @@
     procedure SetChannelCountMode(const Value: String);
     function GetChannelInterpretation: String;
     procedure SetChannelInterpretation(const Value: String);
-    function GetDescription: String;
-    procedure SetDescription(const Value: String);
     function GetEnabled: Boolean;
     procedure SetEnabled(const Value: Boolean);
     function GetGain: Single;
@@ -58,12 +56,6 @@
     public property FdChildren: TMFNode read FFdChildren;
     {  }
     procedure SetChildren(const Value: array of TX3DNode);
-
-    strict private FFdDescription: TSFString;
-    { Internal wrapper for property @code(Description). This wrapper API may change, we advise to access simpler @code(Description) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
-    public property FdDescription: TSFString read FFdDescription;
-    {  }
-    property Description: String read GetDescription write SetDescription;
 
     strict private FFdEnabled: TSFBool;
     { Internal wrapper for property @code(Enabled). This wrapper API may change, we advise to access simpler @code(Enabled) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -125,16 +117,6 @@ begin
   FdChildren.Send(A);
 end;
 
-function TAbstractSoundProcessingNode.GetDescription: String;
-begin
-  Result := FdDescription.Value;
-end;
-
-procedure TAbstractSoundProcessingNode.SetDescription(const Value: String);
-begin
-  FdDescription.Send(Value);
-end;
-
 function TAbstractSoundProcessingNode.GetEnabled: Boolean;
 begin
   Result := FdEnabled.Value;
@@ -185,10 +167,6 @@ begin
   FFdChildren := TMFNode.Create(Self, True, 'children', [TAbstractSoundChannelNode, TAbstractSoundProcessingNode, TAbstractSoundSourceNode]);
    FdChildren.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdChildren);
-
-  FFdDescription := TSFString.Create(Self, True, 'description', '');
-   FdDescription.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdDescription);
 
   FFdEnabled := TSFBool.Create(Self, True, 'enabled', true);
    FdEnabled.ChangeAlways := chVisibleNonGeometry;

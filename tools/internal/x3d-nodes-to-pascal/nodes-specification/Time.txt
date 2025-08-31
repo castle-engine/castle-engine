@@ -1,4 +1,6 @@
 X3DTimeDependentNode : X3DChildNode {
+  SFString [in,out] description  ""
+    change: chNone
   SFBool  [in,out] loop         FALSE
   SFTime  [in,out] pauseTime    0
     range: (-Inf,Inf)
