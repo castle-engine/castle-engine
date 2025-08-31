@@ -34,6 +34,8 @@
     procedure SetShadows(const Value: Boolean);
     function GetSurfaceNormals: TAbstractTexture3DNode;
     procedure SetSurfaceNormals(const Value: TAbstractTexture3DNode);
+    function GetPhaseFunction: String;
+    procedure SetPhaseFunction(const Value: String);
   public
     { Create node fields and events. }
     procedure CreateNode; override;
@@ -73,9 +75,11 @@
     {  }
     property SurfaceNormals: TAbstractTexture3DNode read GetSurfaceNormals write SetSurfaceNormals;
 
-    strict private FFdPhaseFunction: TSFStringEnum;
+    strict private FFdPhaseFunction: TSFString;
     { Internal wrapper for property @code(PhaseFunction). This wrapper API may change, we advise to access simpler @code(PhaseFunction) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
-    public property FdPhaseFunction: TSFStringEnum read FFdPhaseFunction;
+    public property FdPhaseFunction: TSFString read FFdPhaseFunction;
+    {  }
+    property PhaseFunction: String read GetPhaseFunction write SetPhaseFunction;
 
 {$endif read_interface}
 
@@ -139,6 +143,16 @@ begin
   FdSurfaceNormals.Send(Value);
 end;
 
+function TShadedVolumeStyleNode.GetPhaseFunction: String;
+begin
+  Result := FdPhaseFunction.Value;
+end;
+
+procedure TShadedVolumeStyleNode.SetPhaseFunction(const Value: String);
+begin
+  FdPhaseFunction.Send(Value);
+end;
+
 class function TShadedVolumeStyleNode.ClassX3DType: String;
 begin
   Result := 'ShadedVolumeStyle';
@@ -172,7 +186,7 @@ begin
    FdSurfaceNormals.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdSurfaceNormals);
 
-  FFdPhaseFunction := TSFStringEnum.Create(Self, False, 'phaseFunction', @, Ord(High()) + 1, Ord());
+  FFdPhaseFunction := TSFString.Create(Self, False, 'phaseFunction', 'Henyey-Greenstein');
    FdPhaseFunction.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdPhaseFunction);
 end;

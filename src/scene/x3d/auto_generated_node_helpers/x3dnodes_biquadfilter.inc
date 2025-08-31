@@ -30,6 +30,8 @@
     procedure SetFrequency(const Value: Single);
     function GetQualityFactor: Single;
     procedure SetQualityFactor(const Value: Single);
+    function GetType: String;
+    procedure SetType(const Value: String);
   public
     { Create node fields and events. }
     procedure CreateNode; override;
@@ -53,9 +55,11 @@
     {  }
     property QualityFactor: Single read GetQualityFactor write SetQualityFactor;
 
-    strict private FFdType: TSFStringEnum;
+    strict private FFdType: TSFString;
     { Internal wrapper for property @code(Type). This wrapper API may change, we advise to access simpler @code(Type) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
-    public property FdType: TSFStringEnum read FFdType;
+    public property FdType: TSFString read FFdType;
+    {  }
+    property Type: String read GetType write SetType;
 
 {$endif read_interface}
 
@@ -93,6 +97,16 @@ begin
   FdQualityFactor.Send(Value);
 end;
 
+function TBiquadFilterNode.GetType: String;
+begin
+  Result := FdType.Value;
+end;
+
+procedure TBiquadFilterNode.SetType(const Value: String);
+begin
+  FdType.Send(Value);
+end;
+
 class function TBiquadFilterNode.ClassX3DType: String;
 begin
   Result := 'BiquadFilter';
@@ -117,7 +131,7 @@ begin
    FdQualityFactor.MustBeNonnegative := true;
   AddField(FFdQualityFactor);
 
-  FFdType := TSFStringEnum.Create(Self, True, 'type', @, Ord(High()) + 1, Ord());
+  FFdType := TSFString.Create(Self, True, 'type', 'LOWPASS');
    FdType.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdType);
 end;

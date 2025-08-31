@@ -34,6 +34,8 @@
     procedure SetDescription(const Value: String);
     function GetDirection: TVector3;
     procedure SetDirection(const Value: TVector3);
+    function GetDistanceModel: String;
+    procedure SetDistanceModel(const Value: String);
     function GetDopplerEnabled: Boolean;
     procedure SetDopplerEnabled(const Value: Boolean);
     function GetEnabled: Boolean;
@@ -97,9 +99,11 @@
     {  }
     property Direction: TVector3 read GetDirection write SetDirection;
 
-    strict private FFdDistanceModel: TSFStringEnum;
+    strict private FFdDistanceModel: TSFString;
     { Internal wrapper for property @code(DistanceModel). This wrapper API may change, we advise to access simpler @code(DistanceModel) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
-    public property FdDistanceModel: TSFStringEnum read FFdDistanceModel;
+    public property FdDistanceModel: TSFString read FFdDistanceModel;
+    {  }
+    property DistanceModel: String read GetDistanceModel write SetDistanceModel;
 
     strict private FFdDopplerEnabled: TSFBool;
     { Internal wrapper for property @code(DopplerEnabled). This wrapper API may change, we advise to access simpler @code(DopplerEnabled) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -233,6 +237,16 @@ end;
 procedure TSpatialSoundNode.SetDirection(const Value: TVector3);
 begin
   FdDirection.Send(Value);
+end;
+
+function TSpatialSoundNode.GetDistanceModel: String;
+begin
+  Result := FdDistanceModel.Value;
+end;
+
+procedure TSpatialSoundNode.SetDistanceModel(const Value: String);
+begin
+  FdDistanceModel.Send(Value);
 end;
 
 function TSpatialSoundNode.GetDopplerEnabled: Boolean;
@@ -378,7 +392,7 @@ begin
    FdDirection.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdDirection);
 
-  FFdDistanceModel := TSFStringEnum.Create(Self, True, 'distanceModel', @, Ord(High()) + 1, Ord());
+  FFdDistanceModel := TSFString.Create(Self, True, 'distanceModel', 'INVERSE');
    FdDistanceModel.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdDistanceModel);
 

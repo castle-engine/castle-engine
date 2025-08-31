@@ -26,6 +26,8 @@
   strict private
     function GetIntensityThreshold: Single;
     procedure SetIntensityThreshold(const Value: Single);
+    function GetType: String;
+    procedure SetType(const Value: String);
   public
     { Create node fields and events. }
     procedure CreateNode; override;
@@ -37,9 +39,11 @@
     {  }
     property IntensityThreshold: Single read GetIntensityThreshold write SetIntensityThreshold;
 
-    strict private FFdType: TSFStringEnum;
+    strict private FFdType: TSFString;
     { Internal wrapper for property @code(Type). This wrapper API may change, we advise to access simpler @code(Type) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
-    public property FdType: TSFStringEnum read FFdType;
+    public property FdType: TSFString read FFdType;
+    {  }
+    property Type: String read GetType write SetType;
 
 {$endif read_interface}
 
@@ -57,6 +61,16 @@ begin
   FdIntensityThreshold.Send(Value);
 end;
 
+function TProjectionVolumeStyleNode.GetType: String;
+begin
+  Result := FdType.Value;
+end;
+
+procedure TProjectionVolumeStyleNode.SetType(const Value: String);
+begin
+  FdType.Send(Value);
+end;
+
 class function TProjectionVolumeStyleNode.ClassX3DType: String;
 begin
   Result := 'ProjectionVolumeStyle';
@@ -71,7 +85,7 @@ begin
    FdIntensityThreshold.MustBeNonnegative := true;
   AddField(FFdIntensityThreshold);
 
-  FFdType := TSFStringEnum.Create(Self, True, 'type', @, Ord(High()) + 1, Ord());
+  FFdType := TSFString.Create(Self, True, 'type', 'MAX');
    FdType.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdType);
 end;

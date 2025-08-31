@@ -32,6 +32,10 @@
     procedure SetWeightConstant1(const Value: Single);
     function GetWeightConstant2: Single;
     procedure SetWeightConstant2(const Value: Single);
+    function GetWeightFunction1: String;
+    procedure SetWeightFunction1(const Value: String);
+    function GetWeightFunction2: String;
+    procedure SetWeightFunction2(const Value: String);
     function GetWeightTransferFunction1: TAbstractTexture2DNode;
     procedure SetWeightTransferFunction1(const Value: TAbstractTexture2DNode);
     function GetWeightTransferFunction2: TAbstractTexture2DNode;
@@ -65,13 +69,17 @@
     {  }
     property WeightConstant2: Single read GetWeightConstant2 write SetWeightConstant2;
 
-    strict private FFdWeightFunction1: TSFStringEnum;
+    strict private FFdWeightFunction1: TSFString;
     { Internal wrapper for property @code(WeightFunction1). This wrapper API may change, we advise to access simpler @code(WeightFunction1) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
-    public property FdWeightFunction1: TSFStringEnum read FFdWeightFunction1;
+    public property FdWeightFunction1: TSFString read FFdWeightFunction1;
+    {  }
+    property WeightFunction1: String read GetWeightFunction1 write SetWeightFunction1;
 
-    strict private FFdWeightFunction2: TSFStringEnum;
+    strict private FFdWeightFunction2: TSFString;
     { Internal wrapper for property @code(WeightFunction2). This wrapper API may change, we advise to access simpler @code(WeightFunction2) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
-    public property FdWeightFunction2: TSFStringEnum read FFdWeightFunction2;
+    public property FdWeightFunction2: TSFString read FFdWeightFunction2;
+    {  }
+    property WeightFunction2: String read GetWeightFunction2 write SetWeightFunction2;
 
     strict private FFdWeightTransferFunction1: TSFNode;
     { Internal wrapper for property @code(WeightTransferFunction1). This wrapper API may change, we advise to access simpler @code(WeightTransferFunction1) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -137,6 +145,26 @@ begin
   FdWeightConstant2.Send(Value);
 end;
 
+function TBlendedVolumeStyleNode.GetWeightFunction1: String;
+begin
+  Result := FdWeightFunction1.Value;
+end;
+
+procedure TBlendedVolumeStyleNode.SetWeightFunction1(const Value: String);
+begin
+  FdWeightFunction1.Send(Value);
+end;
+
+function TBlendedVolumeStyleNode.GetWeightFunction2: String;
+begin
+  Result := FdWeightFunction2.Value;
+end;
+
+procedure TBlendedVolumeStyleNode.SetWeightFunction2(const Value: String);
+begin
+  FdWeightFunction2.Send(Value);
+end;
+
 function TBlendedVolumeStyleNode.GetWeightTransferFunction1: TAbstractTexture2DNode;
 begin
   if FdWeightTransferFunction1.Value is TAbstractTexture2DNode then
@@ -190,11 +218,11 @@ begin
    FdWeightConstant2.MustBeNonnegative := true;
   AddField(FFdWeightConstant2);
 
-  FFdWeightFunction1 := TSFStringEnum.Create(Self, True, 'weightFunction1', @, Ord(High()) + 1, Ord());
+  FFdWeightFunction1 := TSFString.Create(Self, True, 'weightFunction1', 'CONSTANT');
    FdWeightFunction1.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdWeightFunction1);
 
-  FFdWeightFunction2 := TSFStringEnum.Create(Self, True, 'weightFunction2', @, Ord(High()) + 1, Ord());
+  FFdWeightFunction2 := TSFString.Create(Self, True, 'weightFunction2', 'CONSTANT');
    FdWeightFunction2.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdWeightFunction2);
 
