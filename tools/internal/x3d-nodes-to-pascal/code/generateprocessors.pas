@@ -160,6 +160,16 @@ begin
   Result := Trim(S);
 end;
 
+{ Output Pascal identifier S.
+  Generally, just outputs S, but prefix with & if S is a Pascal keyword. }
+function PascalIdentifier(const S: String): String;
+begin
+  if SameText(S, 'type') then
+    Result := '&Type' // use & to avoid collision with "type" keyword in new nodes
+  else
+    Result := S;
+end;
+
 procedure WritelnVerbose(const S: String);
 begin
   if Verbose then
@@ -1312,7 +1322,7 @@ begin
           Field.BeforePublicInterface +
           Field.ConditionsBegin +
           '    { ' + DocToPascal(Field.Documentation) + ' }' + NL +
-          '    property ' + Field.PascalName + ': ' + AllowedPascalClass + ' read Get' + Field.PascalName + ' write Set' + Field.PascalName + ';' + NL +
+          '    property ' + PascalIdentifier(Field.PascalName) + ': ' + AllowedPascalClass + ' read Get' + Field.PascalName + ' write Set' + Field.PascalName + ';' + NL +
           Field.ConditionsEnd +
           Field.AfterPublicInterface;
         OutputImplementation +=
@@ -1406,7 +1416,7 @@ begin
         Field.BeforePublicInterface +
         Field.ConditionsBegin +
         '    { ' + DocToPascal(Field.Documentation) + ' }' + NL +
-        '    property ' + Field.PascalName + ': ' + Field.PascalHelperType + ' read Get' + Field.PascalName + ' write Set' + Field.PascalName + ';' + NL +
+        '    property ' + PascalIdentifier(Field.PascalName) + ': ' + Field.PascalHelperType + ' read Get' + Field.PascalName + ' write Set' + Field.PascalName + ';' + NL +
         Field.ConditionsEnd +
         Field.AfterPublicInterface;
       OutputImplementation +=

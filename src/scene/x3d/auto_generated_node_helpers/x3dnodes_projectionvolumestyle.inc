@@ -43,7 +43,7 @@
     { Internal wrapper for property @code(Type). This wrapper API may change, we advise to access simpler @code(Type) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdType: TSFString read FFdType;
     {  }
-    property Type: String read GetType write SetType;
+    property &Type: String read GetType write SetType;
 
 {$endif read_interface}
 
