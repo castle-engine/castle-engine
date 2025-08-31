@@ -130,8 +130,6 @@ ShadedVolumeStyle : X3DComposableVolumeRenderStyleNode {
   SFBool   [in,out] lighting       FALSE
   SFNode   [in,out] material       NULL
     range: [X3DMaterialNode]
-  SFNode   [in,out] metadata       NULL
-    range: [X3DMetadataObject]
   SFBool   [in,out] shadows        FALSE
   SFNode   [in,out] surfaceNormals NULL
     range: [X3DTexture3DNode]

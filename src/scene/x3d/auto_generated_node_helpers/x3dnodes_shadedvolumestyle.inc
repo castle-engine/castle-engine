@@ -59,10 +59,6 @@
     {  }
     property Material: TAbstractMaterialNode read GetMaterial write SetMaterial;
 
-    strict private FFdMetadata: TSFNode;
-    { Internal wrapper for property @code(Metadata). This wrapper API may change, we advise to access simpler @code(Metadata) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
-    public property FdMetadata: TSFNode read FFdMetadata;
-
     strict private FFdShadows: TSFBool;
     { Internal wrapper for property @code(Shadows). This wrapper API may change, we advise to access simpler @code(Shadows) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdShadows: TSFBool read FFdShadows;
@@ -173,10 +169,6 @@ begin
   FFdMaterial := TSFNode.Create(Self, True, 'material', [TAbstractMaterialNode]);
    FdMaterial.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdMaterial);
-
-  FFdMetadata := TSFNode.Create(Self, True, 'metadata', [TMetadataFunctionality]);
-   FdMetadata.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdMetadata);
 
   FFdShadows := TSFBool.Create(Self, True, 'shadows', false);
    FdShadows.ChangeAlways := chVisibleNonGeometry;
