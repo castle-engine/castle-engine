@@ -134,7 +134,6 @@ begin
     See TTestX3DNodes.TestProtoReuseFirstNode for explanation. }
   if ParentDirName = 'proto_reuse_first_node' then Exit;
 
-
   TestScene(FileInfo.AbsoluteName);
 end;
 
