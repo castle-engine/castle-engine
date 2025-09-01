@@ -344,6 +344,7 @@ uses Math, StrUtils, URIParser,
 {$I auto_generated_node_helpers/x3dnodes_abstractvrml1indexed_1.inc}
 {$I auto_generated_node_helpers/x3dnodes_abstractvrml1separator_1.inc}
 {$I auto_generated_node_helpers/x3dnodes_abstractvrml1transformation_1.inc}
+{$I auto_generated_node_helpers/x3dnodes_acousticproperties.inc}
 {$I auto_generated_node_helpers/x3dnodes_anchor.inc}
 {$I auto_generated_node_helpers/x3dnodes_appearance.inc}
 {$I auto_generated_node_helpers/x3dnodes_arc2d.inc}
