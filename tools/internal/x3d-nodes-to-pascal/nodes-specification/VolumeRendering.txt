@@ -27,8 +27,10 @@ BlendedVolumeStyle : X3DComposableVolumeRenderStyleNode {
     range: [0,1]
   SFString [in,out] weightFunction1         "CONSTANT"
     range: ["CONSTANT", "ALPHA1", "ALPHA2", "TABLE","ONE_MINUS_ALPHA1", "ONE_MINUS_ALPHA2"]
+    enumerated-type: TWeightFunction WeightFunctionNames wfConstant
   SFString [in,out] weightFunction2         "CONSTANT"
     range: ["CONSTANT", "ALPHA1", "ALPHA2", "TABLE","ONE_MINUS_ALPHA1", "ONE_MINUS_ALPHA2"]
+    enumerated-type: TWeightFunction WeightFunctionNames wfConstant
   SFNode   [in,out] weightTransferFunction1 NULL
     range: [X3DTexture2DNode]
   SFNode   [in,out] weightTransferFunction2 NULL
@@ -96,6 +98,7 @@ ProjectionVolumeStyle : X3DVolumeRenderStyleNode {
     range: [0,1]
   SFString [in,out] type               "MAX"
     range: ["MAX", "MIN", "AVERAGE"]
+    enumerated-type: TProjectionVolumeType ProjectionVolumeTypeNames ptMax
 }
 
 SegmentedVolumeData : X3DVolumeDataNode {

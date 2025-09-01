@@ -26,8 +26,8 @@
   strict private
     function GetIntensityThreshold: Single;
     procedure SetIntensityThreshold(const Value: Single);
-    function GetType: String;
-    procedure SetType(const Value: String);
+    function GetType: TProjectionVolumeType;
+    procedure SetType(const Value: TProjectionVolumeType);
   public
     { Create node fields and events. }
     procedure CreateNode; override;
@@ -39,11 +39,11 @@
     {  }
     property IntensityThreshold: Single read GetIntensityThreshold write SetIntensityThreshold;
 
-    strict private FFdType: TSFString;
+    strict private FFdType: TSFStringEnum;
     { Internal wrapper for property @code(Type). This wrapper API may change, we advise to access simpler @code(Type) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
-    public property FdType: TSFString read FFdType;
+    public property FdType: TSFStringEnum read FFdType;
     {  }
-    property &Type: String read GetType write SetType;
+    property &Type: TProjectionVolumeType read GetType write SetType;
 
 {$endif read_interface}
 
@@ -61,14 +61,14 @@ begin
   FdIntensityThreshold.Send(Value);
 end;
 
-function TProjectionVolumeStyleNode.GetType: String;
+function TProjectionVolumeStyleNode.GetType: TProjectionVolumeType;
 begin
-  Result := FdType.Value;
+  Result := TProjectionVolumeType(FdType.EnumValue);
 end;
 
-procedure TProjectionVolumeStyleNode.SetType(const Value: String);
+procedure TProjectionVolumeStyleNode.SetType(const Value: TProjectionVolumeType);
 begin
-  FdType.Send(Value);
+  FdType.SendEnumValue(Ord(Value));
 end;
 
 class function TProjectionVolumeStyleNode.ClassX3DType: String;
@@ -85,7 +85,7 @@ begin
    FdIntensityThreshold.MustBeNonnegative := true;
   AddField(FFdIntensityThreshold);
 
-  FFdType := TSFString.Create(Self, True, 'type', 'MAX');
+  FFdType := TSFStringEnum.Create(Self, True, 'type', @ProjectionVolumeTypeNames, Ord(High(ProjectionVolumeTypeNames)) + 1, Ord(ptMax));
    FdType.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdType);
 end;
