@@ -358,7 +358,7 @@ begin
       Inc(FilesCount); // ItemXxx numbering is 1-based, so increment FilesCount first
       FileElement := FilesElement.CreateChild('Item' + IntToStr(FilesCount));
       FileFilenameElement := FileElement.CreateChild('Filename');
-      FileFilenameElement.AttributeSet('Value', '../' + MissingFile);
+      FileFilenameElement.AttributeSet('Value', '../../' + MissingFile);
       if ExtractFileExt(MissingFile) = '.inc' then
       begin
         FileTypeElement := FileElement.CreateChild('Type');
