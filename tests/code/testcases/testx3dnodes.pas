@@ -1181,7 +1181,14 @@ procedure TTestX3DNodes.TestTimeDependentFunctionality;
       B := F.IsActive;
       C := F.CycleInterval;
       AssertFalse(B); // time-dependent node is not active before it is inserted into scene with ProcessEvents
-      WritelnLog('Default CycleInterval of %s is %f', [N.NiceName, C]);
+      //WritelnLog('Default CycleInterval of %s is %f', [N.NiceName, C]);
+      if C <= 0 then
+        WritelnWarning('CycleInterval of %s is %f, which is <= 0, this is normal for new X3D 4.x audio nodes or AudioClip or MovieTexture without loaded file', [
+          N.NiceName,
+          C
+        ]);
+      if N is TTimeSensorNode then
+        AssertTrue(C > 0); // in this case it should be > 0
     end;
   end;
 

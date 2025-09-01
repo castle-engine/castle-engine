@@ -47,6 +47,14 @@
     { May be @nil if node doesn't have a "cycleTime" event. }
     EventCycleTime: TSFTimeEvent;
 
+    { Query for "cycle interval" which determines at which moment
+      we should, if looping, restart from the beginning.
+
+      May be @nil if node doesn't define what is "cycle interval"
+      (so also looping doesn't make sense).
+      CycleInterval is then always 0.
+      This is the case now for X3D 4.x new audio time-dependent nodes
+      like Analyser. }
     OnCycleInterval: TTimeFunction;
   public
     { Propagate this to all send events, to make animation fade-in/out. }
@@ -54,16 +62,26 @@
 
     { Final duration (in seconds) of this animation.
       For a looping animation, this is the time it takes to make a single cycle.
-      Should always be > 0.
 
-      The final length, returned here, is
+      This is > 0 in normal circumstances, but can also be 0 or negative in
+      special cases -- see below.
+
+      The final length, returned here, is:
 
       @unorderedList(
-        @item(In case of TAudioClipNode: sound duration divided by @link(TAbstractSoundSourceNode.Pitch).)
+        @item(In case of TAudioClipNode: sound file duration divided by
+          @link(TAbstractSoundSourceNode.Pitch).
+          0 if sound file is not loaded.)
 
-        @item(In case of TMovieTextureNode: movie duration divided by @link(TMovieTextureNode.Speed).)
+        @item(In case of TMovieTextureNode: movie duration divided by
+          @link(TMovieTextureNode.Speed).
+          Negative if movie duration is unknown, like when movie is not loaded.
+          0 if movie is loaded, but has speed = 0.)
 
         @item(In case of TTimeSensorNode: just @link(TTimeSensorNode.CycleInterval).)
+
+        @item(In case of X3D 4.x new audio time-dependent nodes, like TAnalyserNode:
+          It is always 0, unknown, these nodes don't support looping.)
       ) }
     function CycleInterval: TFloatTime;
 
@@ -111,8 +129,17 @@
       not counting any time while in pause state.
 
       This is like @link(ElapsedTime), but counting only the current cycle.
-      When @link(CycleInterval) = 0, this is always 0.
-      When @link(CycleInterval) <> 0, this is always >= 0 and < CycleInterval . }
+
+      @unorderedList(
+        @item(
+          When @link(CycleInterval) <= 0 (cycle not defined, e.g. because
+          movie or audio clip not loaded), this is always 0.
+        )
+        @item(
+          When @link(CycleInterval) > 0 (normal situation),
+          then this is always >= 0 and < CycleInterval.
+        )
+      ) }
     property ElapsedTimeInCycle: TFloatTime read FElapsedTimeInCycle;
 
     { Call this when world time increases.
@@ -319,8 +346,10 @@ end;
 
 function TTimeDependentFunctionality.CycleInterval: TFloatTime;
 begin
-  Assert(Assigned(OnCycleInterval));
-  Result := OnCycleInterval();
+  if Assigned(OnCycleInterval) then
+    Result := OnCycleInterval()
+  else
+    Result := 0;
 end;
 
 function TTimeDependentFunctionality.SetTime(
@@ -360,7 +389,7 @@ var
 
     if FElapsedTimeInCycle > CycleInterval then
     begin
-      if CycleInterval <> 0 then
+      if CycleInterval > 0 then
       begin
         if FdLoop.Value then
         begin
@@ -376,7 +405,7 @@ var
         end;
       end else
       begin
-        { for cycleInterval = 0 this always remains 0 }
+        { for cycleInterval <= 0 this always remains 0 }
         FElapsedTimeInCycle := 0;
       end;
 
