@@ -24,8 +24,8 @@
 {$ifdef read_interface}
 
   strict private
-    function GetOversample: String;
-    procedure SetOversample(const Value: String);
+    function GetOversample: TOversample;
+    procedure SetOversample(const Value: TOversample);
   public
     { Create node fields and events. }
     procedure CreateNode; override;
@@ -39,11 +39,11 @@
     {  }
     procedure SetCurve(const Value: TSingleList); overload;
 
-    strict private FFdOversample: TSFString;
+    strict private FFdOversample: TSFStringEnum;
     { Internal wrapper for property @code(Oversample). This wrapper API may change, we advise to access simpler @code(Oversample) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
-    public property FdOversample: TSFString read FFdOversample;
+    public property FdOversample: TSFStringEnum read FFdOversample;
     {  }
-    property Oversample: String read GetOversample write SetOversample;
+    property Oversample: TOversample read GetOversample write SetOversample;
 
 {$endif read_interface}
 
@@ -61,14 +61,14 @@ begin
   FdCurve.Send(Value);
 end;
 
-function TWaveShaperNode.GetOversample: String;
+function TWaveShaperNode.GetOversample: TOversample;
 begin
-  Result := FdOversample.Value;
+  Result := TOversample(FdOversample.EnumValue);
 end;
 
-procedure TWaveShaperNode.SetOversample(const Value: String);
+procedure TWaveShaperNode.SetOversample(const Value: TOversample);
 begin
-  FdOversample.Send(Value);
+  FdOversample.SendEnumValue(Ord(Value));
 end;
 
 class function TWaveShaperNode.ClassX3DType: String;
@@ -84,7 +84,7 @@ begin
    FdCurve.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdCurve);
 
-  FFdOversample := TSFString.Create(Self, True, 'oversample', 'NONE');
+  FFdOversample := TSFStringEnum.Create(Self, True, 'oversample', @OversampleNames, Ord(High(OversampleNames)) + 1, Ord(osNone));
    FdOversample.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdOversample);
 end;

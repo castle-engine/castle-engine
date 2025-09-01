@@ -32,8 +32,8 @@
     procedure SetConeOuterGain(const Value: Single);
     function GetDirection: TVector3;
     procedure SetDirection(const Value: TVector3);
-    function GetDistanceModel: String;
-    procedure SetDistanceModel(const Value: String);
+    function GetDistanceModel: TDistanceModel;
+    procedure SetDistanceModel(const Value: TDistanceModel);
     function GetDopplerEnabled: Boolean;
     procedure SetDopplerEnabled(const Value: Boolean);
     function GetEnableHRTF: Boolean;
@@ -89,11 +89,11 @@
     {  }
     property Direction: TVector3 read GetDirection write SetDirection;
 
-    strict private FFdDistanceModel: TSFString;
+    strict private FFdDistanceModel: TSFStringEnum;
     { Internal wrapper for property @code(DistanceModel). This wrapper API may change, we advise to access simpler @code(DistanceModel) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
-    public property FdDistanceModel: TSFString read FFdDistanceModel;
+    public property FdDistanceModel: TSFStringEnum read FFdDistanceModel;
     {  }
-    property DistanceModel: String read GetDistanceModel write SetDistanceModel;
+    property DistanceModel: TDistanceModel read GetDistanceModel write SetDistanceModel;
 
     strict private FFdDopplerEnabled: TSFBool;
     { Internal wrapper for property @code(DopplerEnabled). This wrapper API may change, we advise to access simpler @code(DopplerEnabled) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -213,14 +213,14 @@ begin
   FdDirection.Send(Value);
 end;
 
-function TSpatialSoundNode.GetDistanceModel: String;
+function TSpatialSoundNode.GetDistanceModel: TDistanceModel;
 begin
-  Result := FdDistanceModel.Value;
+  Result := TDistanceModel(FdDistanceModel.EnumValue);
 end;
 
-procedure TSpatialSoundNode.SetDistanceModel(const Value: String);
+procedure TSpatialSoundNode.SetDistanceModel(const Value: TDistanceModel);
 begin
-  FdDistanceModel.Send(Value);
+  FdDistanceModel.SendEnumValue(Ord(Value));
 end;
 
 function TSpatialSoundNode.GetDopplerEnabled: Boolean;
@@ -352,7 +352,7 @@ begin
    FdDirection.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdDirection);
 
-  FFdDistanceModel := TSFString.Create(Self, True, 'distanceModel', 'INVERSE');
+  FFdDistanceModel := TSFStringEnum.Create(Self, True, 'distanceModel', @DistanceModelNames, Ord(High(DistanceModelNames)) + 1, Ord(dmInverse));
    FdDistanceModel.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdDistanceModel);
 

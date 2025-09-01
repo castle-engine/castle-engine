@@ -1,8 +1,10 @@
 X3DSoundChannelNode : X3DSoundNode {
   SFString [in,out] channelCountMode      "MAX"
     range: ["MAX", "CLAMPED_MAX", "EXPLICIT"]
+    enumerated-type: TChannelCountMode ChannelCountModeNames ccmMax
   SFString [in,out] channelInterpretation "SPEAKERS"
     range: ["SPEAKERS", "DISCRETE"]
+    enumerated-type: TChannelInterpretation ChannelInterpretationNames ciSpeakers
   MFNode   [in,out] children              NULL
     range: [X3DSoundChannelNode, X3DSoundProcessingNode, X3DSoundSourceNode]
   SFFloat  [in,out] gain                  1
@@ -14,8 +16,10 @@ X3DSoundChannelNode : X3DSoundNode {
 X3DSoundDestinationNode : X3DSoundNode {
   SFString [in,out] channelCountMode      "MAX"
     range: ["MAX", "CLAMPED_MAX", "EXPLICIT"]
+    enumerated-type: TChannelCountMode ChannelCountModeNames ccmMax
   SFString [in,out] channelInterpretation "SPEAKERS"
     range: ["SPEAKERS", "DISCRETE"]
+    enumerated-type: TChannelInterpretation ChannelInterpretationNames ciSpeakers
   MFNode   [in,out] children              NULL
     range: [X3DSoundChannelNode, X3DSoundProcessingNode, X3DSoundSourceNode]
   SFFloat  [in,out] gain                  1
@@ -29,8 +33,10 @@ X3DSoundDestinationNode : X3DSoundNode {
 X3DSoundProcessingNode : X3DTimeDependentNode {
   SFString [in,out] channelCountMode      "MAX"
     range: ["MAX", "CLAMPED_MAX", "EXPLICIT"]
+    enumerated-type: TChannelCountMode ChannelCountModeNames ccmMax
   SFString [in,out] channelInterpretation "SPEAKERS"
     range: ["SPEAKERS", "DISCRETE"]
+    enumerated-type: TChannelInterpretation ChannelInterpretationNames ciSpeakers
   MFNode   [in,out] children              NULL
     range: [X3DSoundChannelNode, X3DSoundProcessingNode, X3DSoundSourceNode]
   SFBool   [in,out] enabled               TRUE
@@ -69,6 +75,7 @@ BiquadFilter : X3DSoundProcessingNode {
     range: [0,Inf)
   SFString [in,out] type                  "LOWPASS"
     range: ["LOWPASS",   "HIGHPASS", "BANDPASS", "LOWSHELF", "HIGHSHELF", "PEAKING",  "NOTCH",    "ALLPASS"]
+    enumerated-type: TBiquadFilterType BiquadFilterTypeNames bftLowpass
 }
 
 BufferAudioSource : X3DSoundSourceNode, X3DUrlObject {
@@ -82,8 +89,10 @@ BufferAudioSource : X3DSoundSourceNode, X3DUrlObject {
     range: [0,Inf)
   SFString [in,out] channelCountMode      "MAX"
     range: ["MAX", "CLAMPED_MAX", "EXPLICIT"]
+    enumerated-type: TChannelCountMode ChannelCountModeNames ccmMax
   SFString [in,out] channelInterpretation "SPEAKERS"
     range: ["SPEAKERS", "DISCRETE"]
+    enumerated-type: TChannelInterpretation ChannelInterpretationNames ciSpeakers
   SFFloat  [in,out] detune                0
     range: [0,Inf)
   SFBool   [in,out] load                  TRUE
@@ -178,6 +187,7 @@ PeriodicWave : X3DSoundNode {
   MFFloat  [in,out] optionsImag []
   SFString [in,out] type        "SQUARE"
     range: ["SINE", "SQUARE", "SAWTOOTH", "TRIANGLE", "CUSTOM"]
+    enumerated-type: TPeriodicWaveType PeriodicWaveTypeNames pwtSquare
 }
 
 SpatialSound : X3DSoundNode  {
@@ -193,6 +203,7 @@ SpatialSound : X3DSoundNode  {
     range: (-Inf,Inf)
   SFString [in,out] distanceModel     "INVERSE"
     range: ["LINEAR" "INVERSE" "EXPONENTIAL"]
+    enumerated-type: TDistanceModel DistanceModelNames dmInverse
   SFBool   [in,out] dopplerEnabled    FALSE
   SFBool   [in,out] enableHRTF        FALSE
   SFFloat  [in,out] gain              1
@@ -219,8 +230,10 @@ StreamAudioDestination : X3DSoundDestinationNode {
 StreamAudioSource : X3DSoundSourceNode {
   SFString [in,out] channelCountMode      "MAX"
     range: ["MAX", "CLAMPED_MAX", "EXPLICIT"]
+    enumerated-type: TChannelCountMode ChannelCountModeNames ccmMax
   SFString [in,out] channelInterpretation "SPEAKERS"
     range: ["SPEAKERS", "DISCRETE"]
+    enumerated-type: TChannelInterpretation ChannelInterpretationNames ciSpeakers
   MFString [in,out] streamIdentifier      []
   SFInt32  [out]    channelCount
     range: [0,Inf)
@@ -231,4 +244,5 @@ WaveShaper : X3DSoundProcessingNode {
     range: [-1,-1]
   SFString [in,out] oversample            "NONE"
     range: ["NONE", "2X", "4X"]
+    enumerated-type: TOversample OversampleNames osNone
 }

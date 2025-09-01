@@ -24,10 +24,10 @@
 {$ifdef read_interface}
 
   strict private
-    function GetChannelCountMode: String;
-    procedure SetChannelCountMode(const Value: String);
-    function GetChannelInterpretation: String;
-    procedure SetChannelInterpretation(const Value: String);
+    function GetChannelCountMode: TChannelCountMode;
+    procedure SetChannelCountMode(const Value: TChannelCountMode);
+    function GetChannelInterpretation: TChannelInterpretation;
+    procedure SetChannelInterpretation(const Value: TChannelInterpretation);
     function GetGain: Single;
     procedure SetGain(const Value: Single);
     function GetMediaDeviceID: String;
@@ -37,17 +37,17 @@
     procedure CreateNode; override;
     class function ClassX3DType: String; override;
 
-    strict private FFdChannelCountMode: TSFString;
+    strict private FFdChannelCountMode: TSFStringEnum;
     { Internal wrapper for property @code(ChannelCountMode). This wrapper API may change, we advise to access simpler @code(ChannelCountMode) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
-    public property FdChannelCountMode: TSFString read FFdChannelCountMode;
+    public property FdChannelCountMode: TSFStringEnum read FFdChannelCountMode;
     {  }
-    property ChannelCountMode: String read GetChannelCountMode write SetChannelCountMode;
+    property ChannelCountMode: TChannelCountMode read GetChannelCountMode write SetChannelCountMode;
 
-    strict private FFdChannelInterpretation: TSFString;
+    strict private FFdChannelInterpretation: TSFStringEnum;
     { Internal wrapper for property @code(ChannelInterpretation). This wrapper API may change, we advise to access simpler @code(ChannelInterpretation) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
-    public property FdChannelInterpretation: TSFString read FFdChannelInterpretation;
+    public property FdChannelInterpretation: TSFStringEnum read FFdChannelInterpretation;
     {  }
-    property ChannelInterpretation: String read GetChannelInterpretation write SetChannelInterpretation;
+    property ChannelInterpretation: TChannelInterpretation read GetChannelInterpretation write SetChannelInterpretation;
 
     strict private FFdChildren: TMFNode;
     { Internal wrapper for property @code(Children). This wrapper API may change, we advise to access simpler @code(Children) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -81,24 +81,24 @@
 
 { TAbstractSoundDestinationNode ----------------------------------------------- }
 
-function TAbstractSoundDestinationNode.GetChannelCountMode: String;
+function TAbstractSoundDestinationNode.GetChannelCountMode: TChannelCountMode;
 begin
-  Result := FdChannelCountMode.Value;
+  Result := TChannelCountMode(FdChannelCountMode.EnumValue);
 end;
 
-procedure TAbstractSoundDestinationNode.SetChannelCountMode(const Value: String);
+procedure TAbstractSoundDestinationNode.SetChannelCountMode(const Value: TChannelCountMode);
 begin
-  FdChannelCountMode.Send(Value);
+  FdChannelCountMode.SendEnumValue(Ord(Value));
 end;
 
-function TAbstractSoundDestinationNode.GetChannelInterpretation: String;
+function TAbstractSoundDestinationNode.GetChannelInterpretation: TChannelInterpretation;
 begin
-  Result := FdChannelInterpretation.Value;
+  Result := TChannelInterpretation(FdChannelInterpretation.EnumValue);
 end;
 
-procedure TAbstractSoundDestinationNode.SetChannelInterpretation(const Value: String);
+procedure TAbstractSoundDestinationNode.SetChannelInterpretation(const Value: TChannelInterpretation);
 begin
-  FdChannelInterpretation.Send(Value);
+  FdChannelInterpretation.SendEnumValue(Ord(Value));
 end;
 
 procedure TAbstractSoundDestinationNode.SetChildren(const Value: array of TX3DNode);
@@ -142,11 +142,11 @@ procedure TAbstractSoundDestinationNode.CreateNode;
 begin
   inherited;
 
-  FFdChannelCountMode := TSFString.Create(Self, True, 'channelCountMode', 'MAX');
+  FFdChannelCountMode := TSFStringEnum.Create(Self, True, 'channelCountMode', @ChannelCountModeNames, Ord(High(ChannelCountModeNames)) + 1, Ord(ccmMax));
    FdChannelCountMode.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdChannelCountMode);
 
-  FFdChannelInterpretation := TSFString.Create(Self, True, 'channelInterpretation', 'SPEAKERS');
+  FFdChannelInterpretation := TSFStringEnum.Create(Self, True, 'channelInterpretation', @ChannelInterpretationNames, Ord(High(ChannelInterpretationNames)) + 1, Ord(ciSpeakers));
    FdChannelInterpretation.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdChannelInterpretation);
 

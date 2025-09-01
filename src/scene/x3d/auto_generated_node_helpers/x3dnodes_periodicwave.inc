@@ -24,8 +24,8 @@
 {$ifdef read_interface}
 
   strict private
-    function GetType: String;
-    procedure SetType(const Value: String);
+    function GetType: TPeriodicWaveType;
+    procedure SetType(const Value: TPeriodicWaveType);
   public
     { Create node fields and events. }
     procedure CreateNode; override;
@@ -47,11 +47,11 @@
     {  }
     procedure SetOptionsImag(const Value: TSingleList); overload;
 
-    strict private FFdType: TSFString;
+    strict private FFdType: TSFStringEnum;
     { Internal wrapper for property @code(Type). This wrapper API may change, we advise to access simpler @code(Type) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
-    public property FdType: TSFString read FFdType;
+    public property FdType: TSFStringEnum read FFdType;
     {  }
-    property &Type: String read GetType write SetType;
+    property &Type: TPeriodicWaveType read GetType write SetType;
 
 {$endif read_interface}
 
@@ -79,14 +79,14 @@ begin
   FdOptionsImag.Send(Value);
 end;
 
-function TPeriodicWaveNode.GetType: String;
+function TPeriodicWaveNode.GetType: TPeriodicWaveType;
 begin
-  Result := FdType.Value;
+  Result := TPeriodicWaveType(FdType.EnumValue);
 end;
 
-procedure TPeriodicWaveNode.SetType(const Value: String);
+procedure TPeriodicWaveNode.SetType(const Value: TPeriodicWaveType);
 begin
-  FdType.Send(Value);
+  FdType.SendEnumValue(Ord(Value));
 end;
 
 class function TPeriodicWaveNode.ClassX3DType: String;
@@ -106,7 +106,7 @@ begin
    FdOptionsImag.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdOptionsImag);
 
-  FFdType := TSFString.Create(Self, True, 'type', 'SQUARE');
+  FFdType := TSFStringEnum.Create(Self, True, 'type', @PeriodicWaveTypeNames, Ord(High(PeriodicWaveTypeNames)) + 1, Ord(pwtSquare));
    FdType.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdType);
 end;
