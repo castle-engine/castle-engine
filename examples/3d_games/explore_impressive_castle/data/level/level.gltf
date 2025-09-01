@@ -17511,12 +17511,12 @@
         {
             "mimeType" : "image/png",
             "name" : "WoodPlanks_N",
-            "uri" : "textures/WoodPlanks_N.png"
+            "uri" : "textures/WoodPlanks_N.jpg"
         },
         {
             "mimeType" : "image/png",
             "name" : "WoodPlanks_D",
-            "uri" : "textures/WoodPlanks_D.png"
+            "uri" : "textures/WoodPlanks_D.jpg"
         },
         {
             "mimeType" : "image/png",

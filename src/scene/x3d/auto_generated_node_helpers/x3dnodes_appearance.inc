@@ -36,6 +36,8 @@
     procedure SetTexture(const Value: TAbstractTextureNode);
     function GetTextureTransform: TAbstractTextureTransformNode;
     procedure SetTextureTransform(const Value: TAbstractTextureTransformNode);
+    function GetAcousticProperties: TAcousticPropertiesNode;
+    procedure SetAcousticProperties(const Value: TAcousticPropertiesNode);
     function GetBackMaterial: TAbstractOneSidedMaterialNode;
     procedure SetBackMaterial(const Value: TAbstractOneSidedMaterialNode);
     function GetAlphaMode: TAlphaMode;
@@ -100,6 +102,12 @@
     public property FdTextureTransform: TSFNode read FFdTextureTransform;
     { Texture transformation. }
     property TextureTransform: TAbstractTextureTransformNode read GetTextureTransform write SetTextureTransform;
+
+    strict private FFdAcousticProperties: TSFNode;
+    { Internal wrapper for property @code(AcousticProperties). This wrapper API may change, we advise to access simpler @code(AcousticProperties) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdAcousticProperties: TSFNode read FFdAcousticProperties;
+    {  }
+    property AcousticProperties: TAcousticPropertiesNode read GetAcousticProperties write SetAcousticProperties;
 
     strict private FFdBackMaterial: TSFNode;
     { Internal wrapper for property @code(BackMaterial). This wrapper API may change, we advise to access simpler @code(BackMaterial) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -254,6 +262,19 @@ end;
 procedure TAppearanceNode.SetTextureTransform(const Value: TAbstractTextureTransformNode);
 begin
   FdTextureTransform.Send(Value);
+end;
+
+function TAppearanceNode.GetAcousticProperties: TAcousticPropertiesNode;
+begin
+  if FdAcousticProperties.Value is TAcousticPropertiesNode then
+    Result := TAcousticPropertiesNode(FdAcousticProperties.Value)
+  else
+    Result := nil;
+end;
+
+procedure TAppearanceNode.SetAcousticProperties(const Value: TAcousticPropertiesNode);
+begin
+  FdAcousticProperties.Send(Value);
 end;
 
 function TAppearanceNode.GetBackMaterial: TAbstractOneSidedMaterialNode;
@@ -419,6 +440,10 @@ begin
   FFdTextureTransform := TSFNode.Create(Self, True, 'textureTransform', [TAbstractTextureTransformNode]);
    FdTextureTransform.ChangeAlways := chEverything;
   AddField(FFdTextureTransform);
+
+  FFdAcousticProperties := TSFNode.Create(Self, True, 'acousticProperties', [TAcousticPropertiesNode]);
+   FdAcousticProperties.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdAcousticProperties);
 
   FFdBackMaterial := TSFNode.Create(Self, True, 'backMaterial', [TAbstractOneSidedMaterialNode]);
    FdBackMaterial.ChangeAlways := chNone;

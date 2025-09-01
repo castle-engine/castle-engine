@@ -111,10 +111,10 @@ do_project examples/web/simplest_viewport
 do_project examples/web/simplest_invaders
 
 # 2d
-do_project examples/platformer # TODO: web: no OpenUrl
+do_project examples/2d_games/platformer
 do_project examples/component_gallery
 do_project examples/animations/play_animation
-do_project examples/space_shooter
+do_project examples/2d_games/space_shooter
 do_project examples/tiled/map_viewer # TODO: web: no open dialog (works, but could be more impressive)
 do_project examples/tiled/strategy_game_demo
 
@@ -123,7 +123,7 @@ do_project examples/ifc # TODO: web: no open dialog (works, but could be more im
 do_project examples/user_interface/zombie_fighter
 do_project examples/viewport_and_scenes/cars_demo
 do_project examples/viewport_and_scenes/collisions
-do_project examples/eye_of_beholder # TODO: web: fog
+do_project examples/3d_games/eye_of_beholder # TODO: web: fog
 do_project examples/creature_behaviors # TODO: web: bump mapping, mouse look
 do_project examples/third_person_navigation # TODO: web: mouse look
 do_project examples/physics/physics_3d_shooter # TODO: web: mouse look

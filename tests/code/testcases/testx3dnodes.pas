@@ -406,10 +406,28 @@ end;
 
 procedure TTestX3DNodes.TestUniqueFields;
 var
+  HadFailures: boolean;
+
+  { Assert given condition.
+    But fail later, after all tests are done.
+    This allows to see all errors after 1 run of TestUniqueFields,
+    useful as you usually want to fix all errors at once. }
+  procedure AssertTrueFailLater(const S: string; const B: boolean);
+  begin
+    if not B then
+    begin
+      Writeln('Failure: ' + S);
+      HadFailures := true;
+    end;
+  end;
+
+var
   I, J, K: Integer;
   N: TX3DNode;
   CurrentName: string;
 begin
+  HadFailures := false;
+
   for I := 0 to InstantiableNodes.Count - 1 do
   begin
     N := InstantiableNodes[I].Create;
@@ -426,10 +444,10 @@ begin
       begin
         CurrentName := N.Fields[J].X3DName;
         for K := 0 to N.FieldsCount - 1 do
-          AssertTrue(N.X3DType + '.' + CurrentName + ' must be unique field name',
+          AssertTrueFailLater(N.X3DType + '.' + CurrentName + ' must be unique field name',
             (K = J) or (not N.Fields[K].IsName(CurrentName)));
         for K := 0 to N.EventsCount - 1 do
-          AssertTrue(N.X3DType + '.' + CurrentName + ' must be unique event name',
+          AssertTrueFailLater(N.X3DType + '.' + CurrentName + ' must be unique event name',
             not N.Events[K].IsName(CurrentName));
       end;
 
@@ -437,14 +455,16 @@ begin
       begin
         CurrentName := N.Events[J].X3DName;
         for K := 0 to N.FieldsCount - 1 do
-          AssertTrue(N.X3DType + '.' + CurrentName + ' must be unique field name',
+          AssertTrueFailLater(N.X3DType + '.' + CurrentName + ' must be unique field name',
             not N.Fields[K].IsName(CurrentName));
         for K := 0 to N.EventsCount - 1 do
-          AssertTrue(N.X3DType + '.' + CurrentName + ' must be unique event name',
+          AssertTrueFailLater(N.X3DType + '.' + CurrentName + ' must be unique event name',
             (K = J) or (not N.Events[K].IsName(CurrentName)));
       end;
     finally FreeAndNil(N) end;
   end;
+
+  AssertFalse('Some failures in TestUniqueFields occurred, see above for details', HadFailures);
 end;
 
 procedure TTestX3DNodes.TestAllowedChildren;
@@ -1161,7 +1181,14 @@ procedure TTestX3DNodes.TestTimeDependentFunctionality;
       B := F.IsActive;
       C := F.CycleInterval;
       AssertFalse(B); // time-dependent node is not active before it is inserted into scene with ProcessEvents
-      WritelnLog('Default CycleInterval of %s is %f', [N.NiceName, C]);
+      //WritelnLog('Default CycleInterval of %s is %f', [N.NiceName, C]);
+      if C <= 0 then
+        WritelnWarning('CycleInterval of %s is %f, which is <= 0, this is normal for new X3D 4.x audio nodes or AudioClip or MovieTexture without loaded file', [
+          N.NiceName,
+          C
+        ]);
+      if N is TTimeSensorNode then
+        AssertTrue(C > 0); // in this case it should be > 0
     end;
   end;
 

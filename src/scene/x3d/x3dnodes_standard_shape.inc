@@ -436,6 +436,13 @@
   {$I auto_generated_node_helpers/x3dnodes_unlitmaterial.inc}
   end;
 
+  { Interaction of sound waves with the characteristics of objects in the scene.
+    Functionality not implemented yet --
+    defined only for parsing and validation of X3D. }
+  TAcousticPropertiesNode = class(TAbstractAppearanceChildNode)
+  {$I auto_generated_node_helpers/x3dnodes_acousticproperties.inc}
+  end;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -1445,7 +1452,8 @@ begin
     TPhysicalMaterialNode,
     TShapeNode,
     TTwoSidedMaterialNode,
-    TUnlitMaterialNode
+    TUnlitMaterialNode,
+    TAcousticPropertiesNode
   ]);
 end;
 

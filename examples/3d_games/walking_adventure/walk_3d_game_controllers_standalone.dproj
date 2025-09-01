@@ -1229,20 +1229,20 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/nature/glTF/BirchTree_Bark_Normal.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius/nature/glTF/BirchTree_Bark_Normal.jpg" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
-  <RemoteName>BirchTree_Bark_Normal.png</RemoteName>
+  <RemoteName>BirchTree_Bark_Normal.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
   <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
-  <RemoteName>BirchTree_Bark_Normal.png</RemoteName>
+  <RemoteName>BirchTree_Bark_Normal.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
   <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
-  <RemoteName>BirchTree_Bark_Normal.png</RemoteName>
+  <RemoteName>BirchTree_Bark_Normal.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -1314,20 +1314,20 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/nature/glTF/MapleTree_Bark_Normal.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius/nature/glTF/MapleTree_Bark_Normal.jpg" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
-  <RemoteName>MapleTree_Bark_Normal.png</RemoteName>
+  <RemoteName>MapleTree_Bark_Normal.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
   <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
-  <RemoteName>MapleTree_Bark_Normal.png</RemoteName>
+  <RemoteName>MapleTree_Bark_Normal.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
   <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
-  <RemoteName>MapleTree_Bark_Normal.png</RemoteName>
+  <RemoteName>MapleTree_Bark_Normal.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -2555,20 +2555,20 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/nature/glTF/BirchTree_Bark_Normal.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\quaternius/nature/glTF/BirchTree_Bark_Normal.jpg" Configuration="Release" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
-  <RemoteName>BirchTree_Bark_Normal.png</RemoteName>
+  <RemoteName>BirchTree_Bark_Normal.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
   <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
-  <RemoteName>BirchTree_Bark_Normal.png</RemoteName>
+  <RemoteName>BirchTree_Bark_Normal.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
   <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
-  <RemoteName>BirchTree_Bark_Normal.png</RemoteName>
+  <RemoteName>BirchTree_Bark_Normal.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -2640,20 +2640,20 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/nature/glTF/MapleTree_Bark_Normal.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\quaternius/nature/glTF/MapleTree_Bark_Normal.jpg" Configuration="Release" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
-  <RemoteName>MapleTree_Bark_Normal.png</RemoteName>
+  <RemoteName>MapleTree_Bark_Normal.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
   <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
-  <RemoteName>MapleTree_Bark_Normal.png</RemoteName>
+  <RemoteName>MapleTree_Bark_Normal.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
   <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
-  <RemoteName>MapleTree_Bark_Normal.png</RemoteName>
+  <RemoteName>MapleTree_Bark_Normal.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>

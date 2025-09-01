@@ -51,6 +51,10 @@ type
     function PascalType(const ForceAsFunctionality: boolean = false): String;
     function IsFunctionality: boolean;
     function IsAbstract: boolean;
+    function IncludeFileName: String;
+    { For now, only auto-generated documentation pointing out this node
+      functionality is not implemented yet. }
+    function Documentation: String;
   end;
 
   TX3DNodeInformationList = class(specialize TObjectList<TX3DNodeInformation>)
@@ -62,6 +66,9 @@ type
     X3DName, PascalName, PascalNamePrefixed: String;
     X3DAccessType: String;
     EnumType, EnumNames, EnumDefault: String;
+    { Field is SFString / MFString with a strictly limited set of values.
+      This implies that EnumType, EnumNames, EnumDefault are all <> ''. }
+    IsEnum: Boolean;
     DefaultValue, Comment: String;
     AllowedChildrenNodes: TX3DNodeInformationList;
     NotSlim: Boolean;
@@ -77,7 +84,7 @@ type
     Vrml1BitMaskNames: String;
     { Alternative names for this field/event, for different VRML/X3D versions
       (or all versions for index 0). }
-    AlternativeNames: array[0..4] of String;
+    AlternativeNames: array [0..4] of String;
     constructor Create;
     destructor Destroy; override;
     function AccessType: TX3DAccessType;
@@ -99,13 +106,12 @@ type
     function ConditionsBegin: String;
     function ConditionsEnd: String;
 
-    { Field is SFString / MFString with a strictly limited set of values. }
-    function IsEnumString: Boolean;
-
     { Field type is numeric, and range indicates it must be >= 0. }
     function MustBeNonnegative: Boolean;
 
-    { Call when the field is completely parsed, e.g. Range is known. }
+    { Call when the field is completely parsed and all information is known,
+      e.g. Range is known.
+      Used to calculate some final information, like IsEnum. }
     procedure Finished;
   end;
 
@@ -119,7 +125,8 @@ type
     procedure NodeField(const Node: TX3DNodeInformation;
       const Field: TX3DFieldInformation); virtual;
     procedure NodeEnd(const Node: TX3DNodeInformation); virtual;
-    procedure ComponentEnd(const ComponentName: String); virtual;
+    procedure ComponentEnd(const ComponentName: String;
+      const Nodes: TX3DNodeInformationList); virtual;
   end;
 
   THelperProcessor = class(TProcessor)
@@ -131,6 +138,8 @@ type
     procedure NodeField(const Node: TX3DNodeInformation;
       const Field: TX3DFieldInformation); override;
     procedure NodeEnd(const Node: TX3DNodeInformation); override;
+    procedure ComponentEnd(const ComponentName: String;
+      const Nodes: TX3DNodeInformationList); override;
   end;
 
 var
@@ -149,6 +158,16 @@ begin
   if Pos('}', S) <> 0 then
     raise Exception.Create('Node documentation cannot use "}" character (Pascal comment closing char) for now');
   Result := Trim(S);
+end;
+
+{ Output Pascal identifier S.
+  Generally, just outputs S, but prefix with & if S is a Pascal keyword. }
+function PascalIdentifier(const S: String): String;
+begin
+  if SameText(S, 'type') then
+    Result := '&Type' // use & to avoid collision with "type" keyword in new nodes
+  else
+    Result := S;
 end;
 
 procedure WritelnVerbose(const S: String);
@@ -266,7 +285,7 @@ begin
         if Field.X3DType = 'SFBitMask' then
           FieldDefaultValue := Field.Vrml1BitMaskNames + ', ' + Field.DefaultValue
         else
-        if Field.IsEnumString then
+        if Field.IsEnum then
           FieldDefaultValue := '@' + Field.EnumNames + ', Ord(High(' + Field.EnumNames + ')) + 1, Ord(' + Field.EnumDefault + ')'
         else
           FieldDefaultValue := Field.DefaultValue;
@@ -357,6 +376,20 @@ begin
   end;
 end;
 
+function TX3DNodeInformation.IncludeFileName: String;
+begin
+  Result := 'x3dnodes_' + LowerCase(X3DType) + Iff(Vrml1, '_1', '') + '.inc';
+end;
+
+function TX3DNodeInformation.Documentation: String;
+begin
+  Result := 'X3D node "' + X3DType + '".' + NL +
+    '    Consult the @url(https://castle-engine.io/x3d X3D specification)' + NL +
+    '    for documentation of this node.' + NL +
+    '    @italic(Warning: Functionality of this node is not implemented yet.' + NL +
+    '    The node is defined only for parsing and validation purposes for now.)';
+end;
+
 { TX3DNodeInformationList ---------------------------------------------------- }
 
 function TX3DNodeInformationList.PascalTypesList: String;
@@ -414,10 +447,10 @@ begin
   if AccessType in [atInputOnly, atOutputOnly] then
     Result := 'T' + X3DType + 'Event'
   else
-  if (X3DType = 'SFString') and IsEnumString then
+  if (X3DType = 'SFString') and IsEnum then
     Result := 'TSFStringEnum'
   else
-  if (X3DType = 'MFString') and IsEnumString then
+  if (X3DType = 'MFString') and IsEnum then
     Result := 'TMFStringEnum' // for things like TFontStyleNode.Justify
   else
     Result := 'T' + X3DType;
@@ -425,7 +458,7 @@ end;
 
 function TX3DFieldInformation.PascalHelperType: String;
 begin
-  if (X3DType = 'SFString') and IsEnumString and (EnumType <> '') then
+  if (X3DType = 'SFString') and IsEnum then
     Result := EnumType
   else
   if X3DType = 'SFFloat' then
@@ -493,7 +526,7 @@ end;
 
 procedure TX3DFieldInformation.PascalSetterTypes(const Names: TCastleStringList);
 begin
-  if (X3DType = 'MFString') and IsEnumString and (EnumType <> '') then
+  if (X3DType = 'MFString') and IsEnum then
   begin
     Names.Add('array of ' + EnumType);
     Names.Add('T' + EnumType + 'List');
@@ -611,23 +644,24 @@ begin
     Result := '';
 end;
 
-function TX3DFieldInformation.IsEnumString: Boolean;
-begin
-  { TODO: MFString is not yet detected as IsEnumString,
-    as our TMFStringEnum is not yet implemented. }
-  Result :=
-   ((X3DType = 'SFString') {or (X3DType = 'MFString')}) and
-    IsPrefix('["', Range, false) and
-   (IsSuffix('"]', Range, false) or
-    IsSuffix('...]', Range, false));
-end;
-
 procedure TX3DFieldInformation.Finished;
 var
   I: Integer;
   AllowedChildrenNodesSplitted: TCastleStringList;
   AllowedChildren: TX3DNodeInformation;
+  DetectIsEnum: Boolean;
 begin
+  { Does X3DType and Range suggest this is enumerated type?
+    Note that we don't detect MFString as enumerated type for now,
+    as our MFStringEnum is not ready (and maybe not neecessary at all),
+    so we don't want to output it. }
+  DetectIsEnum :=
+    ((X3DType = 'SFString') {or (X3DType = 'MFString')}) and
+    IsPrefix('["', Range, false) and
+    (IsSuffix('"]', Range, false) or
+     IsSuffix('...]', Range, false));
+  IsEnum := DetectIsEnum and (EnumType <> '') and (EnumNames <> '') and (EnumDefault <> '');
+
   if IsNode and
      (AccessType in [atInitializeOnly, atInputOutput]) then
   begin
@@ -642,13 +676,10 @@ begin
         DefaultValue
       ]);
 
-    if IsPrefix('[', Range, false) or
-       IsSuffix(']', Range, false) then
-      raise EInvalidSpecificationFile.Create('Do not surround SFNode / MFNode range in [...] anymore: ' + X3DName);
-
-    { in case of SFNode / MFNode, convert the Range into
-      NodeAllowedChildren }
-    AllowedChildrenNodesSplitted := CreateTokens(Range, WhiteSpaces + [',', '|']);
+    { in case of SFNode / MFNode, convert the Range into NodeAllowedChildren }
+    AllowedChildrenNodesSplitted := CreateTokens(
+      PrefixSuffixRemove('[', ']', Range, false),
+      WhiteSpaces + [',', '|']);
     try
       for I := 0 to AllowedChildrenNodesSplitted.Count - 1 do
       begin
@@ -680,6 +711,8 @@ end;
 { TProcessor ----------------------------------------------------------------- }
 
 procedure TProcessor.ProcessFile(const InputFileName: String);
+var
+  ComponentNodes: TX3DNodeInformationList;
 
   { Parse field information.
     Note that the Line parameters should receive the LineWithComment value.
@@ -922,8 +955,9 @@ procedure TProcessor.ProcessFile(const InputFileName: String);
         NodeField(Node, Field);
       end;
       NodeEnd(Node);
+      ComponentNodes.Add(Node);
     end;
-    FreeAndNil(Node);
+    Node := nil;
   end;
 
 var
@@ -975,6 +1009,8 @@ var
   Ancestor: TX3DNodeInformation;
 begin
   Node := nil;
+
+  ComponentNodes := TX3DNodeInformationList.Create(true);
 
   WritelnVerbose('Processing ' + InputFileName);
   F := TCastleTextReader.Create(InputFileName);
@@ -1077,10 +1113,6 @@ begin
              (Tokens[0] = 'enumerated-type:') then
           begin
             ValidatePerFieldCommand('enumerated-type');
-            if not LastField.IsEnumString then
-              raise EInvalidSpecificationFile.CreateFmt('enumerated-type only available for SFString / MFString fields detected as enumerated, but used with %s', [
-                LastField.X3DName
-              ]);
             LastField.EnumType := Tokens[1];
             LastField.EnumNames := Tokens[2];
             LastField.EnumDefault := Tokens[3];
@@ -1150,9 +1182,14 @@ begin
     end;
   finally FreeAndNil(F) end;
 
-  FreeAndNil(Node);
+  if Node <> nil then
+  begin
+    Writeln('WARNING: Node does not have closing "}" in ' + InputFileName);
+    FreeAndNil(Node);
+  end;
 
-  ComponentEnd(DeleteFileExt(ExtractFileName(InputFileName)));
+  ComponentEnd(DeleteFileExt(ExtractFileName(InputFileName)), ComponentNodes);
+  FreeAndNil(ComponentNodes);
 end;
 
 procedure TProcessor.NodeBegin(const Node: TX3DNodeInformation);
@@ -1168,7 +1205,8 @@ procedure TProcessor.NodeEnd(const Node: TX3DNodeInformation);
 begin
 end;
 
-procedure TProcessor.ComponentEnd(const ComponentName: String);
+procedure TProcessor.ComponentEnd(const ComponentName: String;
+  const Nodes: TX3DNodeInformationList);
 begin
 end;
 
@@ -1217,8 +1255,6 @@ var
 begin
   AddAutoGeneratedField(Node, Field, OutputPublicInterface, OutputCreateImplementation);
 
-  if Field.IsEnumString and (Field.EnumType = '') then
-    Exit;
   if (Field.X3DName = 'solid') or
      (Field.X3DName = 'linetype') or
      (Field.X3DName = 'bboxSize') or // this is accounted already by writing out bboxCenter as public BBox
@@ -1286,7 +1322,7 @@ begin
           Field.BeforePublicInterface +
           Field.ConditionsBegin +
           '    { ' + DocToPascal(Field.Documentation) + ' }' + NL +
-          '    property ' + Field.PascalName + ': ' + AllowedPascalClass + ' read Get' + Field.PascalName + ' write Set' + Field.PascalName + ';' + NL +
+          '    property ' + PascalIdentifier(Field.PascalName) + ': ' + AllowedPascalClass + ' read Get' + Field.PascalName + ' write Set' + Field.PascalName + ';' + NL +
           Field.ConditionsEnd +
           Field.AfterPublicInterface;
         OutputImplementation +=
@@ -1380,14 +1416,14 @@ begin
         Field.BeforePublicInterface +
         Field.ConditionsBegin +
         '    { ' + DocToPascal(Field.Documentation) + ' }' + NL +
-        '    property ' + Field.PascalName + ': ' + Field.PascalHelperType + ' read Get' + Field.PascalName + ' write Set' + Field.PascalName + ';' + NL +
+        '    property ' + PascalIdentifier(Field.PascalName) + ': ' + Field.PascalHelperType + ' read Get' + Field.PascalName + ' write Set' + Field.PascalName + ';' + NL +
         Field.ConditionsEnd +
         Field.AfterPublicInterface;
       OutputImplementation +=
         Field.ConditionsBegin +
         'function ' + Node.PascalType + '.Get' + Field.PascalName + ': ' + Field.PascalHelperType + ';' + NL +
         'begin' + NL +
-        Iff(Field.IsEnumString,
+        Iff(Field.IsEnum,
         '  Result := ' + Field.EnumType + '(' + Field.PascalNamePrefixed + '.EnumValue);',
         '  Result := ' + Field.PascalNamePrefixed + '.Value;') + NL +
         'end;' + NL +
@@ -1395,7 +1431,7 @@ begin
         'procedure ' + Node.PascalType + '.Set' + Field.PascalName + '(const Value: ' + Field.PascalHelperType + ');' + NL +
         'begin' + NL +
         Iff(Field.SetterBefore <> '', '  ' + Field.SetterBefore + '(Value);' + NL, '') +
-        Iff(Field.IsEnumString,
+        Iff(Field.IsEnum,
         '  ' + Field.PascalNamePrefixed + '.SendEnumValue(Ord(Value));',
         '  ' + Field.PascalNamePrefixed + '.Send(Value);') + NL +
         'end;' + NL +
@@ -1448,33 +1484,38 @@ begin
   Result := YearBegin + IntToStr(YearOf(BuildDate));
 end;
 
+{ Common prefix of include files, both for per-node helpers,
+  and per-component registration. }
+function IncludeFilesPrefix: String;
+begin
+  Result :=
+    '{ -*- buffer-read-only: t -*-' + NL +
+    '' + NL +
+    '  Copyright ' + CopyrightYears + ' Michalis Kamburelis.' + NL +
+    '' + NL +
+    '  This file is part of "Castle Game Engine".' + NL +
+    '' + NL +
+    '  "Castle Game Engine" is free software; see the file COPYING.txt,' + NL +
+    '  included in this distribution, for details about the copyright.' + NL +
+    '' + NL +
+    '  "Castle Game Engine" is distributed in the hope that it will be useful,' + NL +
+    '  but WITHOUT ANY WARRANTY; without even the implied warranty of' + NL +
+    '  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.' + NL +
+    '' + NL +
+    '  ----------------------------------------------------------------------------' + NL +
+    '}' + NL +
+    '' + NL;
+end;
+
 procedure THelperProcessor.NodeEnd(const Node: TX3DNodeInformation);
 
   procedure GenerateOutput(const OutputInterface, OutputImplementation: String);
   var
     OutputFileName: String;
   begin
-    OutputFileName := InclPathDelim(OutputPath) +
-      'x3dnodes_' + LowerCase(Node.X3DType) +
-      Iff(Node.Vrml1, '_1', '') + '.inc';
-
+    OutputFileName := InclPathDelim(OutputPath) + Node.IncludeFileName;
     StringToFile(OutputFileName,
-      '{ -*- buffer-read-only: t -*-' + NL +
-      '' + NL +
-      '  Copyright ' + CopyrightYears + ' Michalis Kamburelis.' + NL +
-      '' + NL +
-      '  This file is part of "Castle Game Engine".' + NL +
-      '' + NL +
-      '  "Castle Game Engine" is free software; see the file COPYING.txt,' + NL +
-      '  included in this distribution, for details about the copyright.' + NL +
-      '' + NL +
-      '  "Castle Game Engine" is distributed in the hope that it will be useful,' + NL +
-      '  but WITHOUT ANY WARRANTY; without even the implied warranty of' + NL +
-      '  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.' + NL +
-      '' + NL +
-      '  ----------------------------------------------------------------------------' + NL +
-      '}' + NL +
-      '' + NL +
+      IncludeFilesPrefix +
       '{ Automatically generated node properties.' + NL +
       '' + NL +
       '  Do not edit this file manually!' + NL +
@@ -1534,6 +1575,77 @@ begin
   OutputPublicInterface := '';
   OutputImplementation := '';
   OutputCreateImplementation := '';
+end;
+
+procedure THelperProcessor.ComponentEnd(const ComponentName: String;
+  const Nodes: TX3DNodeInformationList);
+
+  procedure GenerateComponentIncludeFile;
+  var
+    Node: TX3DNodeInformation;
+    OutputFileName, NodeInclude,
+      SectionForwards, SectionInterface,
+      SectionImplementation, SectionRegistration: String;
+  begin
+    SectionForwards := '';
+    SectionInterface := '';
+    SectionImplementation := '';
+    SectionRegistration := '';
+
+    for Node in Nodes do
+    begin
+      NodeInclude := '{$I auto_generated_node_helpers/' + Node.IncludeFileName + '}';
+      // to enable references from any node, define forward declarations for all classes
+      SectionForwards += '  ' + Node.PascalType + ' = class;' + NL;
+      SectionInterface += '  { ' + DocToPascal(Node.Documentation) + ' }' + NL +
+        '  ' + Node.PascalType + ' = class(' + Node.Ancestors[0].PascalType + ')' + NL +
+        '  ' + NodeInclude + NL +
+        '  end;' + NL +
+        NL;
+      SectionImplementation +=
+        NodeInclude + NL;
+      if not Node.IsAbstract then
+        SectionRegistration := SAppendPart(SectionRegistration,
+          ',' + NL,
+          '    ' + Node.PascalType);
+    end;
+
+    OutputFileName := InclPathDelim(OutputPath) +
+      'x3dnodes_section_' + LowerCase(ComponentName) + '.inc';
+    StringToFile(OutputFileName,
+      IncludeFilesPrefix +
+      '{ X3D section "' + ComponentName + '".' + NL +
+      '  Automatically generated by x3d-nodes-to-pascal. }' + NL +
+      '' + NL +
+      '{$ifdef read_interface_forwards}' + NL +
+      SectionForwards +
+      '{$endif read_interface_forwards}' + NL +
+      '' + NL +
+      '{$ifdef read_interface}' + NL +
+      NL +
+      SectionInterface +
+      '{$endif read_interface}' + NL +
+      '' + NL +
+      '{$ifdef read_implementation}' + NL +
+      NL +
+      SectionImplementation +
+      NL +
+      'procedure Register' + ComponentName + 'Nodes;' + NL +
+      'begin' + NL +
+      '  NodesManager.RegisterNodeClasses([' + NL +
+      SectionRegistration + NL +
+      '  ]);' + NL +
+      'end;' + NL +
+      NL +
+      '{$endif read_implementation}' + NL
+    );
+  end;
+
+begin
+  { For some X3D components, generate an additional include file,
+    that registers all nodes. }
+  if ArrayContainsString(ComponentName, ['VolumeRendering', 'SoundX3D4']) then
+    GenerateComponentIncludeFile;
 end;
 
 end.

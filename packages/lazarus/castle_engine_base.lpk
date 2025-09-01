@@ -60,7 +60,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license for details.
 "/>
     <Version Major="6" Minor="93" Release="1"/>
-    <Files Count="1153">
+    <Files Count="1196">
       <Item1>
         <Filename Value="../../src/audio/castleinternalabstractsoundbackend.pas"/>
         <UnitName Value="CastleInternalAbstractSoundBackend"/>
@@ -4703,6 +4703,178 @@ See https://castle-engine.io/license for details.
         <Filename Value="../../src/base/castleutils_fast_list.inc"/>
         <Type Value="Include"/>
       </Item1153>
+      <Item1154>
+        <Filename Value="../../src/scene/x3d/auto_generated_node_helpers/x3dnodes_channelsplitter.inc"/>
+        <Type Value="Include"/>
+      </Item1154>
+      <Item1155>
+        <Filename Value="../../src/scene/x3d/auto_generated_node_helpers/x3dnodes_dynamicscompressor.inc"/>
+        <Type Value="Include"/>
+      </Item1155>
+      <Item1156>
+        <Filename Value="../../src/scene/x3d/auto_generated_node_helpers/x3dnodes_acousticproperties.inc"/>
+        <Type Value="Include"/>
+      </Item1156>
+      <Item1157>
+        <Filename Value="../../src/scene/x3d/auto_generated_node_helpers/x3dnodes_silhouetteenhancementvolumestyle.inc"/>
+        <Type Value="Include"/>
+      </Item1157>
+      <Item1158>
+        <Filename Value="../../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dsoundprocessingnode.inc"/>
+        <Type Value="Include"/>
+      </Item1158>
+      <Item1159>
+        <Filename Value="../../src/scene/x3d/auto_generated_node_helpers/x3dnodes_blendedvolumestyle.inc"/>
+        <Type Value="Include"/>
+      </Item1159>
+      <Item1160>
+        <Filename Value="../../src/scene/x3d/auto_generated_node_helpers/x3dnodes_microphonesource.inc"/>
+        <Type Value="Include"/>
+      </Item1160>
+      <Item1161>
+        <Filename Value="../../src/scene/x3d/auto_generated_node_helpers/x3dnodes_opacitymapvolumestyle.inc"/>
+        <Type Value="Include"/>
+      </Item1161>
+      <Item1162>
+        <Filename Value="../../src/scene/x3d/auto_generated_node_helpers/x3dnodes_tonemappedvolumestyle.inc"/>
+        <Type Value="Include"/>
+      </Item1162>
+      <Item1163>
+        <Filename Value="../../src/scene/x3d/auto_generated_node_helpers/x3dnodes_analyser.inc"/>
+        <Type Value="Include"/>
+      </Item1163>
+      <Item1164>
+        <Filename Value="../../src/scene/x3d/auto_generated_node_helpers/x3dnodes_cartoonvolumestyle.inc"/>
+        <Type Value="Include"/>
+      </Item1164>
+      <Item1165>
+        <Filename Value="../../src/scene/x3d/auto_generated_node_helpers/x3dnodes_boundaryenhancementvolumestyle.inc"/>
+        <Type Value="Include"/>
+      </Item1165>
+      <Item1166>
+        <Filename Value="../../src/scene/x3d/auto_generated_node_helpers/x3dnodes_composedvolumestyle.inc"/>
+        <Type Value="Include"/>
+      </Item1166>
+      <Item1167>
+        <Filename Value="../../src/scene/x3d/auto_generated_node_helpers/x3dnodes_segmentedvolumedata.inc"/>
+        <Type Value="Include"/>
+      </Item1167>
+      <Item1168>
+        <Filename Value="../../src/scene/x3d/auto_generated_node_helpers/x3dnodes_volumedata.inc"/>
+        <Type Value="Include"/>
+      </Item1168>
+      <Item1169>
+        <Filename Value="../../src/scene/x3d/auto_generated_node_helpers/x3dnodes_audiodestination.inc"/>
+        <Type Value="Include"/>
+      </Item1169>
+      <Item1170>
+        <Filename Value="../../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dsoundchannelnode.inc"/>
+        <Type Value="Include"/>
+      </Item1170>
+      <Item1171>
+        <Filename Value="../../src/scene/x3d/auto_generated_node_helpers/x3dnodes_periodicwave.inc"/>
+        <Type Value="Include"/>
+      </Item1171>
+      <Item1172>
+        <Filename Value="../../src/scene/x3d/auto_generated_node_helpers/x3dnodes_waveshaper.inc"/>
+        <Type Value="Include"/>
+      </Item1172>
+      <Item1173>
+        <Filename Value="../../src/scene/x3d/auto_generated_node_helpers/x3dnodes_biquadfilter.inc"/>
+        <Type Value="Include"/>
+      </Item1173>
+      <Item1174>
+        <Filename Value="../../src/scene/x3d/auto_generated_node_helpers/x3dnodes_shadedvolumestyle.inc"/>
+        <Type Value="Include"/>
+      </Item1174>
+      <Item1175>
+        <Filename Value="../../src/scene/x3d/auto_generated_node_helpers/x3dnodes_convolver.inc"/>
+        <Type Value="Include"/>
+      </Item1175>
+      <Item1176>
+        <Filename Value="../../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dsounddestinationnode.inc"/>
+        <Type Value="Include"/>
+      </Item1176>
+      <Item1177>
+        <Filename Value="../../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dvolumedatanode.inc"/>
+        <Type Value="Include"/>
+      </Item1177>
+      <Item1178>
+        <Filename Value="../../src/scene/x3d/auto_generated_node_helpers/x3dnodes_section_volumerendering.inc"/>
+        <Type Value="Include"/>
+      </Item1178>
+      <Item1179>
+        <Filename Value="../../src/scene/x3d/auto_generated_node_helpers/x3dnodes_spatialsound.inc"/>
+        <Type Value="Include"/>
+      </Item1179>
+      <Item1180>
+        <Filename Value="../../src/scene/x3d/auto_generated_node_helpers/x3dnodes_streamaudiodestination.inc"/>
+        <Type Value="Include"/>
+      </Item1180>
+      <Item1181>
+        <Filename Value="../../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dvolumerenderstylenode.inc"/>
+        <Type Value="Include"/>
+      </Item1181>
+      <Item1182>
+        <Filename Value="../../src/scene/x3d/auto_generated_node_helpers/x3dnodes_oscillator.inc"/>
+        <Type Value="Include"/>
+      </Item1182>
+      <Item1183>
+        <Filename Value="../../src/scene/x3d/auto_generated_node_helpers/x3dnodes_gain.inc"/>
+        <Type Value="Include"/>
+      </Item1183>
+      <Item1184>
+        <Filename Value="../../src/scene/x3d/auto_generated_node_helpers/x3dnodes_edgeenhancementvolumestyle.inc"/>
+        <Type Value="Include"/>
+      </Item1184>
+      <Item1185>
+        <Filename Value="../../src/scene/x3d/auto_generated_node_helpers/x3dnodes_isosurfacevolumedata.inc"/>
+        <Type Value="Include"/>
+      </Item1185>
+      <Item1186>
+        <Filename Value="../../src/scene/x3d/auto_generated_node_helpers/x3dnodes_projectionvolumestyle.inc"/>
+        <Type Value="Include"/>
+      </Item1186>
+      <Item1187>
+        <Filename Value="../../src/scene/x3d/auto_generated_node_helpers/x3dnodes_listenerpointsource.inc"/>
+        <Type Value="Include"/>
+      </Item1187>
+      <Item1188>
+        <Filename Value="../../src/scene/x3d/auto_generated_node_helpers/x3dnodes_section_soundx3d4.inc"/>
+        <Type Value="Include"/>
+      </Item1188>
+      <Item1189>
+        <Filename Value="../../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dcomposablevolumerenderstylenode.inc"/>
+        <Type Value="Include"/>
+      </Item1189>
+      <Item1190>
+        <Filename Value="../../src/scene/x3d/auto_generated_node_helpers/x3dnodes_delay.inc"/>
+        <Type Value="Include"/>
+      </Item1190>
+      <Item1191>
+        <Filename Value="../../src/scene/x3d/auto_generated_node_helpers/x3dnodes_channelselector.inc"/>
+        <Type Value="Include"/>
+      </Item1191>
+      <Item1192>
+        <Filename Value="../../src/scene/x3d/auto_generated_node_helpers/x3dnodes_streamaudiosource.inc"/>
+        <Type Value="Include"/>
+      </Item1192>
+      <Item1193>
+        <Filename Value="../../src/scene/x3d/auto_generated_node_helpers/x3dnodes_bufferaudiosource.inc"/>
+        <Type Value="Include"/>
+      </Item1193>
+      <Item1194>
+        <Filename Value="../../src/scene/x3d/auto_generated_node_helpers/x3dnodes_channelmerger.inc"/>
+        <Type Value="Include"/>
+      </Item1194>
+      <Item1195>
+        <Filename Value="../../src/scene/x3d/x3dnodes_section_soundx3d4_enums.inc"/>
+        <Type Value="Include"/>
+      </Item1195>
+      <Item1196>
+        <Filename Value="../../src/scene/x3d/x3dnodes_section_volumerendering_enums.inc"/>
+        <Type Value="Include"/>
+      </Item1196>
     </Files>
     <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="1">

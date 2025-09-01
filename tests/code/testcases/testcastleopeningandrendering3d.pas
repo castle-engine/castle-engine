@@ -129,6 +129,10 @@ begin
   { do not check files in "errors" subdir, these are known to cause trouble }
   ParentDirName := ExtractFileName(ExclPathDelim(ExtractFileDir(FileInfo.AbsoluteName)));
   if ParentDirName = 'errors' then Exit;
+  { do not check files in "proto_reuse_first_node" subdir,
+    these are known to cause memory leaks.
+    See TTestX3DNodes.TestProtoReuseFirstNode for explanation. }
+  if ParentDirName = 'proto_reuse_first_node' then Exit;
 
   TestScene(FileInfo.AbsoluteName);
 end;
