@@ -993,7 +993,9 @@ begin
     FCurrentMultiSampling := 1;
 
   FPackedDepthStencil :=
-    {$ifdef OpenGLES} HasExtension('GL_OES_packed_depth_stencil') {$ifdef iOS} or VersionES_3_0 {$endif}
+    {$ifdef OpenGLES} HasExtension('GL_OES_packed_depth_stencil')
+      // Looks like OpenGLES 3 has always "packed depth stencil", required to make FBO creation work.
+      {$ifdef iOS} or VersionES_3_0 {$endif}
     // macOS doesn't have GL_EXT_packed_depth_stencil, but FBO creation only works when using packed depth+stencil
     {$else} HasExtension('GL_EXT_packed_depth_stencil') {$ifdef DARWIN} or true {$endif}
     {$endif};

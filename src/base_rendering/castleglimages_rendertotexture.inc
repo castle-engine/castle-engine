@@ -517,7 +517,6 @@ procedure TGLRenderToTexture.GLContextOpen;
     const InternalFormat: TGLenum; const AttachmentDepthAndStencil: boolean;
     Attachment: TGLenum);
   begin
-    //CheckGLErrors('TGLRenderToTexture.GLContextOpen GenBindRenderbuffer start, fmt: $' + IntToHex(InternalFormat, 4));
     if GLFeatures.Framebuffer then
     begin
       RenderbufferId := glCreateRenderbuffer();
@@ -527,7 +526,6 @@ procedure TGLRenderToTexture.GLContextOpen;
         glRenderbufferStorageMultisample(GL_RENDERBUFFER, MultiSampling, InternalFormat, Width, Height) else
       {$endif}
         glRenderbufferStorage(GL_RENDERBUFFER, InternalFormat, Width, Height);
-      //CheckGLErrors('TGLRenderToTexture.GLContextOpen GenBindRenderbuffer after glRenderbufferStorage fmt: $' + IntToHex(InternalFormat, 4));
       if AttachmentDepthAndStencil then
       begin
         // WritelnLog('FBO', 'Setting GL_DEPTH_ATTACHMENT and GL_STENCIL_ATTACHMENT to the same renderbuffer');
@@ -537,7 +535,6 @@ procedure TGLRenderToTexture.GLContextOpen;
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RenderbufferId);
       end else
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, Attachment, GL_RENDERBUFFER, RenderbufferId);
-      //CheckGLErrors('TGLRenderToTexture.GLContextOpen GenBindRenderbuffer end, fmt: $' + IntToHex(InternalFormat, 4));
     end;
   end;
 
@@ -557,8 +554,6 @@ var
   PreviousFboDefaultBuffer: TGLenum;
 begin
   Assert(not FGLInitialized, 'You cannot call TGLRenderToTexture.GLContextInit on already OpenGL-initialized instance. Call GLContextClose first if this is really what you want.');
-
-  //CheckGLErrors('At start of TGLRenderToTexture.GLContextOpen');
 
   if GLFeatures.Framebuffer and
      (not (GLVersion.BuggyFBOCubeMap and TargetIsCubeMapSide(TextureTarget))) then
@@ -636,11 +631,8 @@ begin
 
     { setup separate stencil buffer }
     if Stencil and not GLFeatures.PackedDepthStencil then
-    begin
-      //CheckGLErrors('Check errors before GenBindRenderbuffer Stencil');
       { initialize RenderbufferStencil, attach it to FBO stencil }
       GenBindRenderbuffer(RenderbufferStencil, GL_STENCIL_INDEX, false, GL_STENCIL_ATTACHMENT);
-    end;
 
     Success := false;
     try

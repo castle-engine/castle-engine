@@ -443,7 +443,6 @@ var
     end;
 
   begin
-    //CheckGLErrors('At CreateScreenEffectTexture start');
     Result := glCreateTexture();
     glBindTexture(ScreenEffectTextureTarget, Result);
     {$ifndef OpenGLES}
@@ -461,17 +460,12 @@ var
     end;
     if Depth then
     begin
-      //CheckGLErrors('At CreateScreenEffectTexture before creating depth');
-      {$ifndef OpenGLES}
       if GLFeatures.ShadowVolumesPossible and GLFeatures.PackedDepthStencil then
-        TexImage2D(GL_DEPTH24_STENCIL8_EXT, GL_DEPTH_STENCIL_EXT, GL_UNSIGNED_INT_24_8_EXT) else
-      {$else}
-      // TODO-es What do we use here? See TGLRenderToTexture TODO at similar place
-        {$ifdef iOS}
-      if GLFeatures.ShadowVolumesPossible and GLFeatures.PackedDepthStencil then
-        TexImage2D(GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8) else
-        {$endif}
-      {$endif}
+        TexImage2D(
+          {$ifdef OpenGLES} GL_DEPTH24_STENCIL8 {$else} GL_DEPTH24_STENCIL8_EXT {$endif},
+          {$ifdef OpenGLES} GL_DEPTH_STENCIL {$else} GL_DEPTH_STENCIL_EXT {$endif},
+          {$ifdef OpenGLES} GL_UNSIGNED_INT_24_8 {$else} GL_UNSIGNED_INT_24_8_EXT {$endif})
+      else
         TexImage2D(GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT,
           { On OpenGLES, using GL_UNSIGNED_BYTE will result in FBO failing
             with INCOMPLETE_ATTACHMENT.
@@ -480,7 +474,6 @@ var
           {$ifdef OpenGLES} GL_UNSIGNED_SHORT {$else} GL_UNSIGNED_BYTE {$endif});
       //glTexParameteri(ScreenEffectTextureTarget, GL_TEXTURE_COMPARE_MODE_ARB, GL_NONE);
       //glTexParameteri(ScreenEffectTextureTarget, GL_DEPTH_TEXTURE_MODE_ARB, GL_LUMINANCE);
-      //CheckGLErrors('At CreateScreenEffectTexture after creating depth');
     end else
       TexImage2D({$ifdef OpenGLES} GL_RGB {$else} GL_RGB8 {$endif},
         GL_RGB, GL_UNSIGNED_BYTE);

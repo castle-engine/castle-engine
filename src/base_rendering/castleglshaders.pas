@@ -1411,7 +1411,7 @@ begin
       GL_UNSIGNED_INT_SAMPLER_2D_RECT: Result := 'UNSIGNED_INT_SAMPLER_2D_RECT';
       GL_SAMPLER_2D_MULTISAMPLE: Result := 'SAMPLER_2D_MULTISAMPLE';
       {$endif}
-      else Result := Format('Unrecognized uniform type "$%.4x"', [AType]);
+      else Result := Format('Unrecognized uniform type "%d"', [AType]);
     end;
   end;
 
@@ -1709,6 +1709,9 @@ const
     '#define texture3DProj textureProj' + NL +
     '#define gl_FragColor castle_FragColor' + NL +
     'out mediump vec4 castle_FragColor;' + NL +
+    { We need to use highp for shadow maps processing on mobile,
+      to make the shadows look good,
+      see https://github.com/castle-engine/castle-engine/pull/674 }
     '#define shadowsPrecision highp' + NL +
     'precision lowp sampler2DShadow;' + NL +
     'precision lowp sampler3D;' + NL
