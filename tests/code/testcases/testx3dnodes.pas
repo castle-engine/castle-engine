@@ -416,7 +416,7 @@ var
   begin
     if not B then
     begin
-      Writeln('Failure:' + S);
+      Writeln('Failure: ' + S);
       HadFailures := true;
     end;
   end;

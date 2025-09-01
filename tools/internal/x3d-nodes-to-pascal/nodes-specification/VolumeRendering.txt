@@ -74,9 +74,6 @@ EdgeEnhancementVolumeStyle : X3DComposableVolumeRenderStyleNode {
 IsoSurfaceVolumeData : X3DVolumeDataNode {
   SFFloat [in,out] contourStepSize  0
     range: (-Inf,Inf)
-  SFVec3f [in,out] dimensions       1 1 1
-    range: (0,Inf)
-  SFBool  [in,out] bboxDisplay      FALSE
   SFNode  [in,out] gradients        NULL
     range: [X3DTexture3DNode]
   MFNode  [in,out] renderStyle      []
@@ -87,15 +84,9 @@ IsoSurfaceVolumeData : X3DVolumeDataNode {
     range: (-Inf,Inf)
   SFNode  [in,out] voxels           NULL
     range: [X3DTexture3DNode]
-  SFBool  [in,out] visible          TRUE
-  SFVec3f []       bboxCenter       0 0 0
-    range: (-Inf,Inf)
-  SFVec3f []       bboxSize         -1 -1 -1
-    range: [0,Inf) or -1 -1 -1
 }
 
 OpacityMapVolumeStyle : X3DComposableVolumeRenderStyleNode {
-  SFBool [in,out] enabled          TRUE
   SFNode [in,out] transferFunction NULL
     range: [X3DTexture2DNode, X3DTexture3DNode]
 }
@@ -108,25 +99,16 @@ ProjectionVolumeStyle : X3DVolumeRenderStyleNode {
 }
 
 SegmentedVolumeData : X3DVolumeDataNode {
-  SFVec3f [in,out] dimensions         1 1 1
-    range: (0,Inf)
-  SFBool  [in,out] bboxDisplay        FALSE
   MFNode  [in,out] renderStyle        []
     range: [X3DVolumeRenderStyleNode]
   MFBool  [in,out] segmentEnabled     []
   SFNode  [in,out] segmentIdentifiers NULL
     range: [X3DTexture3DNode]
-  SFBool  [in,out] visible            TRUE
   SFNode  [in,out] voxels             NULL
     range: [X3DTexture3DNode]
-  SFVec3f []       bboxCenter         0 0 0
-    range: (-Inf,Inf)
-  SFVec3f []       bboxSize           -1 -1 -1
-    range: [0,Inf) or -1 -1 -1
 }
 
 ShadedVolumeStyle : X3DComposableVolumeRenderStyleNode {
-  SFBool   [in,out] enabled        TRUE
   SFBool   [in,out] lighting       FALSE
   SFNode   [in,out] material       NULL
     range: [X3DMaterialNode]
@@ -138,7 +120,6 @@ ShadedVolumeStyle : X3DComposableVolumeRenderStyleNode {
 }
 
 SilhouetteEnhancementVolumeStyle : X3DComposableVolumeRenderStyleNode {
-  SFBool  [in,out] enabled                   TRUE
   SFFloat [in,out] silhouetteBoundaryOpacity 0
     range: [0,1]
   SFFloat [in,out] silhouetteRetainedOpacity 1
@@ -152,7 +133,6 @@ SilhouetteEnhancementVolumeStyle : X3DComposableVolumeRenderStyleNode {
 ToneMappedVolumeStyle : X3DComposableVolumeRenderStyleNode {
   SFColorRGBA [in,out] coolColor      0 0 1 0
     range: [0,1]
-  SFBool      [in,out] enabled        TRUE
   SFNode      [in,out] surfaceNormals NULL
     range: [X3DTexture3DNode]
   SFColorRGBA [in,out] warmColor      1 1 0 0
@@ -160,16 +140,8 @@ ToneMappedVolumeStyle : X3DComposableVolumeRenderStyleNode {
 }
 
 VolumeData : X3DVolumeDataNode {
-  SFVec3f [in,out] dimensions      1 1 1
-    range: (0,Inf)
-  SFBool  [in,out] bboxDisplay     FALSE
   SFNode  [in,out] renderStyle     NULL
     range: [X3DVolumeRenderStyleNode]
   SFNode  [in,out] voxels          NULL
     range: [X3DTexture3DNode]
-  SFBool  [in,out] visible         TRUE
-  SFVec3f []       bboxCenter      0 0 0
-    range: (-Inf,Inf)
-  SFVec3f []       bboxSize        -1 -1 -1
-    range: [0,Inf) or -1 -1 -1
 }

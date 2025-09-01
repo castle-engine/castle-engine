@@ -28,8 +28,6 @@
     procedure SetChannelCountMode(const Value: String);
     function GetChannelInterpretation: String;
     procedure SetChannelInterpretation(const Value: String);
-    function GetEnabled: Boolean;
-    procedure SetEnabled(const Value: Boolean);
     function GetGain: Single;
     procedure SetGain(const Value: Single);
   public
@@ -54,12 +52,6 @@
     public property FdChildren: TMFNode read FFdChildren;
     {  }
     procedure SetChildren(const Value: array of TX3DNode);
-
-    strict private FFdEnabled: TSFBool;
-    { Internal wrapper for property @code(Enabled). This wrapper API may change, we advise to access simpler @code(Enabled) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
-    public property FdEnabled: TSFBool read FFdEnabled;
-    {  }
-    property Enabled: Boolean read GetEnabled write SetEnabled;
 
     strict private FFdGain: TSFFloat;
     { Internal wrapper for property @code(Gain). This wrapper API may change, we advise to access simpler @code(Gain) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -109,16 +101,6 @@ begin
   FdChildren.Send(A);
 end;
 
-function TAbstractSoundChannelNode.GetEnabled: Boolean;
-begin
-  Result := FdEnabled.Value;
-end;
-
-procedure TAbstractSoundChannelNode.SetEnabled(const Value: Boolean);
-begin
-  FdEnabled.Send(Value);
-end;
-
 function TAbstractSoundChannelNode.GetGain: Single;
 begin
   Result := FdGain.Value;
@@ -149,10 +131,6 @@ begin
   FFdChildren := TMFNode.Create(Self, True, 'children', [TAbstractSoundChannelNode, TAbstractSoundProcessingNode, TAbstractSoundSourceNode]);
    FdChildren.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdChildren);
-
-  FFdEnabled := TSFBool.Create(Self, True, 'enabled', true);
-   FdEnabled.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdEnabled);
 
   FFdGain := TSFFloat.Create(Self, True, 'gain', 1);
    FdGain.ChangeAlways := chVisibleNonGeometry;

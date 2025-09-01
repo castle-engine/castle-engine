@@ -38,26 +38,16 @@
     procedure SetDetune(const Value: Single);
     function GetLoad: Boolean;
     procedure SetLoad(const Value: Boolean);
-    function GetLoop: Boolean;
-    procedure SetLoop(const Value: Boolean);
     function GetLoopEnd: TFloatTime;
     procedure SetLoopEnd(const Value: TFloatTime);
     function GetLoopStart: TFloatTime;
     procedure SetLoopStart(const Value: TFloatTime);
     function GetNumberOfChannels: Integer;
     procedure SetNumberOfChannels(const Value: Integer);
-    function GetPauseTime: TFloatTime;
-    procedure SetPauseTime(const Value: TFloatTime);
     function GetPlaybackRate: Single;
     procedure SetPlaybackRate(const Value: Single);
-    function GetResumeTime: TFloatTime;
-    procedure SetResumeTime(const Value: TFloatTime);
     function GetSampleRate: Single;
     procedure SetSampleRate(const Value: Single);
-    function GetStartTime: TFloatTime;
-    procedure SetStartTime(const Value: TFloatTime);
-    function GetStopTime: TFloatTime;
-    procedure SetStopTime(const Value: TFloatTime);
   public
     { Create node fields and events. }
     procedure CreateNode; override;
@@ -113,12 +103,6 @@
     {  }
     property Load: Boolean read GetLoad write SetLoad;
 
-    strict private FFdLoop: TSFBool;
-    { Internal wrapper for property @code(Loop). This wrapper API may change, we advise to access simpler @code(Loop) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
-    public property FdLoop: TSFBool read FFdLoop;
-    {  }
-    property Loop: Boolean read GetLoop write SetLoop;
-
     strict private FFdLoopEnd: TSFTime;
     { Internal wrapper for property @code(LoopEnd). This wrapper API may change, we advise to access simpler @code(LoopEnd) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdLoopEnd: TSFTime read FFdLoopEnd;
@@ -137,41 +121,17 @@
     {  }
     property NumberOfChannels: Integer read GetNumberOfChannels write SetNumberOfChannels;
 
-    strict private FFdPauseTime: TSFTime;
-    { Internal wrapper for property @code(PauseTime). This wrapper API may change, we advise to access simpler @code(PauseTime) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
-    public property FdPauseTime: TSFTime read FFdPauseTime;
-    {  }
-    property PauseTime: TFloatTime read GetPauseTime write SetPauseTime;
-
     strict private FFdPlaybackRate: TSFFloat;
     { Internal wrapper for property @code(PlaybackRate). This wrapper API may change, we advise to access simpler @code(PlaybackRate) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdPlaybackRate: TSFFloat read FFdPlaybackRate;
     {  }
     property PlaybackRate: Single read GetPlaybackRate write SetPlaybackRate;
 
-    strict private FFdResumeTime: TSFTime;
-    { Internal wrapper for property @code(ResumeTime). This wrapper API may change, we advise to access simpler @code(ResumeTime) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
-    public property FdResumeTime: TSFTime read FFdResumeTime;
-    {  }
-    property ResumeTime: TFloatTime read GetResumeTime write SetResumeTime;
-
     strict private FFdSampleRate: TSFFloat;
     { Internal wrapper for property @code(SampleRate). This wrapper API may change, we advise to access simpler @code(SampleRate) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSampleRate: TSFFloat read FFdSampleRate;
     {  }
     property SampleRate: Single read GetSampleRate write SetSampleRate;
-
-    strict private FFdStartTime: TSFTime;
-    { Internal wrapper for property @code(StartTime). This wrapper API may change, we advise to access simpler @code(StartTime) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
-    public property FdStartTime: TSFTime read FFdStartTime;
-    {  }
-    property StartTime: TFloatTime read GetStartTime write SetStartTime;
-
-    strict private FFdStopTime: TSFTime;
-    { Internal wrapper for property @code(StopTime). This wrapper API may change, we advise to access simpler @code(StopTime) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
-    public property FdStopTime: TSFTime read FFdStopTime;
-    {  }
-    property StopTime: TFloatTime read GetStopTime write SetStopTime;
 
     strict private FFdUrl: TMFString;
     { Internal wrapper for property @code(Url). This wrapper API may change, we advise to access simpler @code(Url) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -188,18 +148,6 @@
     strict private FEventChannelCount: TSFInt32Event;
     {  }
     public property EventChannelCount: TSFInt32Event read FEventChannelCount;
-
-    strict private FEventElapsedTime: TSFTimeEvent;
-    {  }
-    public property EventElapsedTime: TSFTimeEvent read FEventElapsedTime;
-
-    strict private FEventIsActive: TSFBoolEvent;
-    {  }
-    public property EventIsActive: TSFBoolEvent read FEventIsActive;
-
-    strict private FEventIsPaused: TSFBoolEvent;
-    {  }
-    public property EventIsPaused: TSFBoolEvent read FEventIsPaused;
 
 {$endif read_interface}
 
@@ -287,16 +235,6 @@ begin
   FdLoad.Send(Value);
 end;
 
-function TBufferAudioSourceNode.GetLoop: Boolean;
-begin
-  Result := FdLoop.Value;
-end;
-
-procedure TBufferAudioSourceNode.SetLoop(const Value: Boolean);
-begin
-  FdLoop.Send(Value);
-end;
-
 function TBufferAudioSourceNode.GetLoopEnd: TFloatTime;
 begin
   Result := FdLoopEnd.Value;
@@ -327,16 +265,6 @@ begin
   FdNumberOfChannels.Send(Value);
 end;
 
-function TBufferAudioSourceNode.GetPauseTime: TFloatTime;
-begin
-  Result := FdPauseTime.Value;
-end;
-
-procedure TBufferAudioSourceNode.SetPauseTime(const Value: TFloatTime);
-begin
-  FdPauseTime.Send(Value);
-end;
-
 function TBufferAudioSourceNode.GetPlaybackRate: Single;
 begin
   Result := FdPlaybackRate.Value;
@@ -347,16 +275,6 @@ begin
   FdPlaybackRate.Send(Value);
 end;
 
-function TBufferAudioSourceNode.GetResumeTime: TFloatTime;
-begin
-  Result := FdResumeTime.Value;
-end;
-
-procedure TBufferAudioSourceNode.SetResumeTime(const Value: TFloatTime);
-begin
-  FdResumeTime.Send(Value);
-end;
-
 function TBufferAudioSourceNode.GetSampleRate: Single;
 begin
   Result := FdSampleRate.Value;
@@ -365,26 +283,6 @@ end;
 procedure TBufferAudioSourceNode.SetSampleRate(const Value: Single);
 begin
   FdSampleRate.Send(Value);
-end;
-
-function TBufferAudioSourceNode.GetStartTime: TFloatTime;
-begin
-  Result := FdStartTime.Value;
-end;
-
-procedure TBufferAudioSourceNode.SetStartTime(const Value: TFloatTime);
-begin
-  FdStartTime.Send(Value);
-end;
-
-function TBufferAudioSourceNode.GetStopTime: TFloatTime;
-begin
-  Result := FdStopTime.Value;
-end;
-
-procedure TBufferAudioSourceNode.SetStopTime(const Value: TFloatTime);
-begin
-  FdStopTime.Send(Value);
 end;
 
 procedure TBufferAudioSourceNode.SetUrl(const Value: array of string);
@@ -439,10 +337,6 @@ begin
    FdLoad.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdLoad);
 
-  FFdLoop := TSFBool.Create(Self, True, 'loop', false);
-   FdLoop.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdLoop);
-
   FFdLoopEnd := TSFTime.Create(Self, True, 'loopEnd', 0);
    FdLoopEnd.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdLoopEnd);
@@ -456,30 +350,14 @@ begin
    FdNumberOfChannels.MustBeNonnegative := true;
   AddField(FFdNumberOfChannels);
 
-  FFdPauseTime := TSFTime.Create(Self, True, 'pauseTime', 0);
-   FdPauseTime.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdPauseTime);
-
   FFdPlaybackRate := TSFFloat.Create(Self, True, 'playbackRate', 1);
    FdPlaybackRate.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdPlaybackRate);
-
-  FFdResumeTime := TSFTime.Create(Self, True, 'resumeTime', 0);
-   FdResumeTime.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdResumeTime);
 
   FFdSampleRate := TSFFloat.Create(Self, True, 'sampleRate', 0);
    FdSampleRate.ChangeAlways := chVisibleNonGeometry;
    FdSampleRate.MustBeNonnegative := true;
   AddField(FFdSampleRate);
-
-  FFdStartTime := TSFTime.Create(Self, True, 'startTime', 0);
-   FdStartTime.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdStartTime);
-
-  FFdStopTime := TSFTime.Create(Self, True, 'stopTime', 0);
-   FdStopTime.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdStopTime);
 
   FFdUrl := TMFString.Create(Self, True, 'url', []);
    FdUrl.ChangeAlways := chVisibleNonGeometry;
@@ -490,15 +368,6 @@ begin
 
   FEventChannelCount := TSFInt32Event.Create(Self, 'channelCount', false);
   AddEvent(FEventChannelCount);
-
-  FEventElapsedTime := TSFTimeEvent.Create(Self, 'elapsedTime', false);
-  AddEvent(FEventElapsedTime);
-
-  FEventIsActive := TSFBoolEvent.Create(Self, 'isActive', false);
-  AddEvent(FEventIsActive);
-
-  FEventIsPaused := TSFBoolEvent.Create(Self, 'isPaused', false);
-  AddEvent(FEventIsPaused);
 end;
 
 {$endif read_implementation}

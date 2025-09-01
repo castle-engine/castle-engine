@@ -24,34 +24,14 @@
 {$ifdef read_interface}
 
   strict private
-    function GetDimensions: TVector3;
-    procedure SetDimensions(const Value: TVector3);
-    function GetBboxDisplay: Boolean;
-    procedure SetBboxDisplay(const Value: Boolean);
     function GetRenderStyle: TAbstractVolumeRenderStyleNode;
     procedure SetRenderStyle(const Value: TAbstractVolumeRenderStyleNode);
     function GetVoxels: TAbstractTexture3DNode;
     procedure SetVoxels(const Value: TAbstractTexture3DNode);
-    function GetVisible: Boolean;
-    procedure SetVisible(const Value: Boolean);
-    function GetBBox: TBox3D;
-    procedure SetBBox(const Value: TBox3D);
   public
     { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: String; override;
-
-    strict private FFdDimensions: TSFVec3f;
-    { Internal wrapper for property @code(Dimensions). This wrapper API may change, we advise to access simpler @code(Dimensions) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
-    public property FdDimensions: TSFVec3f read FFdDimensions;
-    {  }
-    property Dimensions: TVector3 read GetDimensions write SetDimensions;
-
-    strict private FFdBboxDisplay: TSFBool;
-    { Internal wrapper for property @code(BboxDisplay). This wrapper API may change, we advise to access simpler @code(BboxDisplay) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
-    public property FdBboxDisplay: TSFBool read FFdBboxDisplay;
-    {  }
-    property BboxDisplay: Boolean read GetBboxDisplay write SetBboxDisplay;
 
     strict private FFdRenderStyle: TSFNode;
     { Internal wrapper for property @code(RenderStyle). This wrapper API may change, we advise to access simpler @code(RenderStyle) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -65,47 +45,11 @@
     {  }
     property Voxels: TAbstractTexture3DNode read GetVoxels write SetVoxels;
 
-    strict private FFdVisible: TSFBool;
-    { Internal wrapper for property @code(Visible). This wrapper API may change, we advise to access simpler @code(Visible) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
-    public property FdVisible: TSFBool read FFdVisible;
-    {  }
-    property Visible: Boolean read GetVisible write SetVisible;
-
-    strict private FFdBboxCenter: TSFVec3f;
-    { Internal wrapper for property @code(BboxCenter). This wrapper API may change, we advise to access simpler @code(BboxCenter) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
-    public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
-    {  }
-    property BBox: TBox3D read GetBBox write SetBBox;
-
-    strict private FFdBboxSize: TSFVec3f;
-    { Internal wrapper for property @code(BboxSize). This wrapper API may change, we advise to access simpler @code(BboxSize) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
-    public property FdBboxSize: TSFVec3f read FFdBboxSize;
-
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TVolumeDataNode ----------------------------------------------- }
-
-function TVolumeDataNode.GetDimensions: TVector3;
-begin
-  Result := FdDimensions.Value;
-end;
-
-procedure TVolumeDataNode.SetDimensions(const Value: TVector3);
-begin
-  FdDimensions.Send(Value);
-end;
-
-function TVolumeDataNode.GetBboxDisplay: Boolean;
-begin
-  Result := FdBboxDisplay.Value;
-end;
-
-procedure TVolumeDataNode.SetBboxDisplay(const Value: Boolean);
-begin
-  FdBboxDisplay.Send(Value);
-end;
 
 function TVolumeDataNode.GetRenderStyle: TAbstractVolumeRenderStyleNode;
 begin
@@ -133,30 +77,6 @@ begin
   FdVoxels.Send(Value);
 end;
 
-function TVolumeDataNode.GetVisible: Boolean;
-begin
-  Result := FdVisible.Value;
-end;
-
-procedure TVolumeDataNode.SetVisible(const Value: Boolean);
-begin
-  FdVisible.Send(Value);
-end;
-
-function TVolumeDataNode.GetBBox: TBox3D;
-begin
-  Result := TBox3D.FromCenterSize(FdBBoxCenter.Value, FdBBoxSize.Value);
-end;
-
-procedure TVolumeDataNode.SetBBox(const Value: TBox3D);
-var
-  ValueCenter, ValueSize: TVector3;
-begin
-  Value.ToCenterSize(ValueCenter, ValueSize);
-  FdBBoxCenter.Send(ValueCenter);
-  FdBBoxSize.Send(ValueSize);
-end;
-
 class function TVolumeDataNode.ClassX3DType: String;
 begin
   Result := 'VolumeData';
@@ -166,14 +86,6 @@ procedure TVolumeDataNode.CreateNode;
 begin
   inherited;
 
-  FFdDimensions := TSFVec3f.Create(Self, True, 'dimensions', Vector3(1, 1, 1));
-   FdDimensions.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdDimensions);
-
-  FFdBboxDisplay := TSFBool.Create(Self, True, 'bboxDisplay', false);
-   FdBboxDisplay.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdBboxDisplay);
-
   FFdRenderStyle := TSFNode.Create(Self, True, 'renderStyle', [TAbstractVolumeRenderStyleNode]);
    FdRenderStyle.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdRenderStyle);
@@ -181,18 +93,6 @@ begin
   FFdVoxels := TSFNode.Create(Self, True, 'voxels', [TAbstractTexture3DNode]);
    FdVoxels.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdVoxels);
-
-  FFdVisible := TSFBool.Create(Self, True, 'visible', true);
-   FdVisible.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdVisible);
-
-  FFdBboxCenter := TSFVec3f.Create(Self, False, 'bboxCenter', Vector3(0, 0, 0));
-   FdBboxCenter.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdBboxCenter);
-
-  FFdBboxSize := TSFVec3f.Create(Self, False, 'bboxSize', Vector3(-1, -1, -1));
-   FdBboxSize.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdBboxSize);
 end;
 
 {$endif read_implementation}

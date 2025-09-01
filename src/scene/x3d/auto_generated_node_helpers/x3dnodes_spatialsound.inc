@@ -36,8 +36,6 @@
     procedure SetDistanceModel(const Value: String);
     function GetDopplerEnabled: Boolean;
     procedure SetDopplerEnabled(const Value: Boolean);
-    function GetEnabled: Boolean;
-    procedure SetEnabled(const Value: Boolean);
     function GetEnableHRTF: Boolean;
     procedure SetEnableHRTF(const Value: Boolean);
     function GetGain: Single;
@@ -102,12 +100,6 @@
     public property FdDopplerEnabled: TSFBool read FFdDopplerEnabled;
     {  }
     property DopplerEnabled: Boolean read GetDopplerEnabled write SetDopplerEnabled;
-
-    strict private FFdEnabled: TSFBool;
-    { Internal wrapper for property @code(Enabled). This wrapper API may change, we advise to access simpler @code(Enabled) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
-    public property FdEnabled: TSFBool read FFdEnabled;
-    {  }
-    property Enabled: Boolean read GetEnabled write SetEnabled;
 
     strict private FFdEnableHRTF: TSFBool;
     { Internal wrapper for property @code(EnableHRTF). This wrapper API may change, we advise to access simpler @code(EnableHRTF) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -241,16 +233,6 @@ begin
   FdDopplerEnabled.Send(Value);
 end;
 
-function TSpatialSoundNode.GetEnabled: Boolean;
-begin
-  Result := FdEnabled.Value;
-end;
-
-procedure TSpatialSoundNode.SetEnabled(const Value: Boolean);
-begin
-  FdEnabled.Send(Value);
-end;
-
 function TSpatialSoundNode.GetEnableHRTF: Boolean;
 begin
   Result := FdEnableHRTF.Value;
@@ -377,10 +359,6 @@ begin
   FFdDopplerEnabled := TSFBool.Create(Self, True, 'dopplerEnabled', false);
    FdDopplerEnabled.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdDopplerEnabled);
-
-  FFdEnabled := TSFBool.Create(Self, True, 'enabled', true);
-   FdEnabled.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdEnabled);
 
   FFdEnableHRTF := TSFBool.Create(Self, True, 'enableHRTF', false);
    FdEnableHRTF.ChangeAlways := chVisibleNonGeometry;

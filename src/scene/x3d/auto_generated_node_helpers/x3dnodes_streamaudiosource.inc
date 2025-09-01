@@ -28,18 +28,6 @@
     procedure SetChannelCountMode(const Value: String);
     function GetChannelInterpretation: String;
     procedure SetChannelInterpretation(const Value: String);
-    function GetEnabled: Boolean;
-    procedure SetEnabled(const Value: Boolean);
-    function GetGain: Single;
-    procedure SetGain(const Value: Single);
-    function GetPauseTime: TFloatTime;
-    procedure SetPauseTime(const Value: TFloatTime);
-    function GetResumeTime: TFloatTime;
-    procedure SetResumeTime(const Value: TFloatTime);
-    function GetStartTime: TFloatTime;
-    procedure SetStartTime(const Value: TFloatTime);
-    function GetStopTime: TFloatTime;
-    procedure SetStopTime(const Value: TFloatTime);
   public
     { Create node fields and events. }
     procedure CreateNode; override;
@@ -57,42 +45,6 @@
     {  }
     property ChannelInterpretation: String read GetChannelInterpretation write SetChannelInterpretation;
 
-    strict private FFdEnabled: TSFBool;
-    { Internal wrapper for property @code(Enabled). This wrapper API may change, we advise to access simpler @code(Enabled) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
-    public property FdEnabled: TSFBool read FFdEnabled;
-    {  }
-    property Enabled: Boolean read GetEnabled write SetEnabled;
-
-    strict private FFdGain: TSFFloat;
-    { Internal wrapper for property @code(Gain). This wrapper API may change, we advise to access simpler @code(Gain) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
-    public property FdGain: TSFFloat read FFdGain;
-    {  }
-    property Gain: Single read GetGain write SetGain;
-
-    strict private FFdPauseTime: TSFTime;
-    { Internal wrapper for property @code(PauseTime). This wrapper API may change, we advise to access simpler @code(PauseTime) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
-    public property FdPauseTime: TSFTime read FFdPauseTime;
-    {  }
-    property PauseTime: TFloatTime read GetPauseTime write SetPauseTime;
-
-    strict private FFdResumeTime: TSFTime;
-    { Internal wrapper for property @code(ResumeTime). This wrapper API may change, we advise to access simpler @code(ResumeTime) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
-    public property FdResumeTime: TSFTime read FFdResumeTime;
-    {  }
-    property ResumeTime: TFloatTime read GetResumeTime write SetResumeTime;
-
-    strict private FFdStartTime: TSFTime;
-    { Internal wrapper for property @code(StartTime). This wrapper API may change, we advise to access simpler @code(StartTime) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
-    public property FdStartTime: TSFTime read FFdStartTime;
-    {  }
-    property StartTime: TFloatTime read GetStartTime write SetStartTime;
-
-    strict private FFdStopTime: TSFTime;
-    { Internal wrapper for property @code(StopTime). This wrapper API may change, we advise to access simpler @code(StopTime) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
-    public property FdStopTime: TSFTime read FFdStopTime;
-    {  }
-    property StopTime: TFloatTime read GetStopTime write SetStopTime;
-
     strict private FFdStreamIdentifier: TMFString;
     { Internal wrapper for property @code(StreamIdentifier). This wrapper API may change, we advise to access simpler @code(StreamIdentifier) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdStreamIdentifier: TMFString read FFdStreamIdentifier;
@@ -104,18 +56,6 @@
     strict private FEventChannelCount: TSFInt32Event;
     {  }
     public property EventChannelCount: TSFInt32Event read FEventChannelCount;
-
-    strict private FEventElapsedTime: TSFTimeEvent;
-    {  }
-    public property EventElapsedTime: TSFTimeEvent read FEventElapsedTime;
-
-    strict private FEventIsActive: TSFBoolEvent;
-    {  }
-    public property EventIsActive: TSFBoolEvent read FEventIsActive;
-
-    strict private FEventIsPaused: TSFBoolEvent;
-    {  }
-    public property EventIsPaused: TSFBoolEvent read FEventIsPaused;
 
 {$endif read_interface}
 
@@ -141,66 +81,6 @@ end;
 procedure TStreamAudioSourceNode.SetChannelInterpretation(const Value: String);
 begin
   FdChannelInterpretation.Send(Value);
-end;
-
-function TStreamAudioSourceNode.GetEnabled: Boolean;
-begin
-  Result := FdEnabled.Value;
-end;
-
-procedure TStreamAudioSourceNode.SetEnabled(const Value: Boolean);
-begin
-  FdEnabled.Send(Value);
-end;
-
-function TStreamAudioSourceNode.GetGain: Single;
-begin
-  Result := FdGain.Value;
-end;
-
-procedure TStreamAudioSourceNode.SetGain(const Value: Single);
-begin
-  FdGain.Send(Value);
-end;
-
-function TStreamAudioSourceNode.GetPauseTime: TFloatTime;
-begin
-  Result := FdPauseTime.Value;
-end;
-
-procedure TStreamAudioSourceNode.SetPauseTime(const Value: TFloatTime);
-begin
-  FdPauseTime.Send(Value);
-end;
-
-function TStreamAudioSourceNode.GetResumeTime: TFloatTime;
-begin
-  Result := FdResumeTime.Value;
-end;
-
-procedure TStreamAudioSourceNode.SetResumeTime(const Value: TFloatTime);
-begin
-  FdResumeTime.Send(Value);
-end;
-
-function TStreamAudioSourceNode.GetStartTime: TFloatTime;
-begin
-  Result := FdStartTime.Value;
-end;
-
-procedure TStreamAudioSourceNode.SetStartTime(const Value: TFloatTime);
-begin
-  FdStartTime.Send(Value);
-end;
-
-function TStreamAudioSourceNode.GetStopTime: TFloatTime;
-begin
-  Result := FdStopTime.Value;
-end;
-
-procedure TStreamAudioSourceNode.SetStopTime(const Value: TFloatTime);
-begin
-  FdStopTime.Send(Value);
 end;
 
 procedure TStreamAudioSourceNode.SetStreamIdentifier(const Value: array of string);
@@ -230,45 +110,12 @@ begin
    FdChannelInterpretation.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdChannelInterpretation);
 
-  FFdEnabled := TSFBool.Create(Self, True, 'enabled', true);
-   FdEnabled.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdEnabled);
-
-  FFdGain := TSFFloat.Create(Self, True, 'gain', 1);
-   FdGain.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdGain);
-
-  FFdPauseTime := TSFTime.Create(Self, True, 'pauseTime', 0);
-   FdPauseTime.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdPauseTime);
-
-  FFdResumeTime := TSFTime.Create(Self, True, 'resumeTime', 0);
-   FdResumeTime.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdResumeTime);
-
-  FFdStartTime := TSFTime.Create(Self, True, 'startTime', 0);
-   FdStartTime.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdStartTime);
-
-  FFdStopTime := TSFTime.Create(Self, True, 'stopTime', 0);
-   FdStopTime.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdStopTime);
-
   FFdStreamIdentifier := TMFString.Create(Self, True, 'streamIdentifier', []);
    FdStreamIdentifier.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdStreamIdentifier);
 
   FEventChannelCount := TSFInt32Event.Create(Self, 'channelCount', false);
   AddEvent(FEventChannelCount);
-
-  FEventElapsedTime := TSFTimeEvent.Create(Self, 'elapsedTime', false);
-  AddEvent(FEventElapsedTime);
-
-  FEventIsActive := TSFBoolEvent.Create(Self, 'isActive', false);
-  AddEvent(FEventIsActive);
-
-  FEventIsPaused := TSFBoolEvent.Create(Self, 'isPaused', false);
-  AddEvent(FEventIsPaused);
 end;
 
 {$endif read_implementation}

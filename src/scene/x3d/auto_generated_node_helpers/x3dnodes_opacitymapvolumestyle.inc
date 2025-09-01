@@ -24,20 +24,12 @@
 {$ifdef read_interface}
 
   strict private
-    function GetEnabled: Boolean;
-    procedure SetEnabled(const Value: Boolean);
     function GetTransferFunction: TX3DNode;
     procedure SetTransferFunction(const Value: TX3DNode);
   public
     { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: String; override;
-
-    strict private FFdEnabled: TSFBool;
-    { Internal wrapper for property @code(Enabled). This wrapper API may change, we advise to access simpler @code(Enabled) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
-    public property FdEnabled: TSFBool read FFdEnabled;
-    {  }
-    property Enabled: Boolean read GetEnabled write SetEnabled;
 
     strict private FFdTransferFunction: TSFNode;
     { Internal wrapper for property @code(TransferFunction). This wrapper API may change, we advise to access simpler @code(TransferFunction) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -50,16 +42,6 @@
 {$ifdef read_implementation}
 
 { TOpacityMapVolumeStyleNode ----------------------------------------------- }
-
-function TOpacityMapVolumeStyleNode.GetEnabled: Boolean;
-begin
-  Result := FdEnabled.Value;
-end;
-
-procedure TOpacityMapVolumeStyleNode.SetEnabled(const Value: Boolean);
-begin
-  FdEnabled.Send(Value);
-end;
 
 function TOpacityMapVolumeStyleNode.GetTransferFunction: TX3DNode;
 begin
@@ -82,10 +64,6 @@ end;
 procedure TOpacityMapVolumeStyleNode.CreateNode;
 begin
   inherited;
-
-  FFdEnabled := TSFBool.Create(Self, True, 'enabled', true);
-   FdEnabled.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdEnabled);
 
   FFdTransferFunction := TSFNode.Create(Self, True, 'transferFunction', [TAbstractTexture2DNode, TAbstractTexture3DNode]);
    FdTransferFunction.ChangeAlways := chVisibleNonGeometry;

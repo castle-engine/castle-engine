@@ -5,7 +5,6 @@ X3DSoundChannelNode : X3DSoundNode {
     range: ["SPEAKERS", "DISCRETE"]
   MFNode   [in,out] children              NULL
     range: [X3DSoundChannelNode, X3DSoundProcessingNode, X3DSoundSourceNode]
-  SFBool   [in,out] enabled               TRUE
   SFFloat  [in,out] gain                  1
     range: (-∞,∞)
   SFInt32  [out]    channelCount
@@ -19,7 +18,6 @@ X3DSoundDestinationNode : X3DSoundNode {
     range: ["SPEAKERS", "DISCRETE"]
   MFNode   [in,out] children              NULL
     range: [X3DSoundChannelNode, X3DSoundProcessingNode, X3DSoundSourceNode]
-  SFBool   [in,out] enabled               TRUE
   SFFloat  [in,out] gain                  1
     range: (-∞,∞)
   SFString [in,out] mediaDeviceID         ""
@@ -89,34 +87,22 @@ BufferAudioSource : X3DSoundSourceNode, X3DUrlObject {
   SFFloat  [in,out] detune                0
     range: [0,Inf)
   SFBool   [in,out] load                  TRUE
-  SFBool   [in,out] loop                  FALSE
   SFTime   [in,out] loopEnd               0
     range: [0,Inf)
   SFTime   [in,out] loopStart             0
     range: [0,Inf)
   SFInt32  [in,out] numberOfChannels      0
     range: [0,Inf)
-  SFTime   [in,out] pauseTime             0
-    range: (-Inf,Inf)
   SFFloat  [in,out] playbackRate          1
-    range: (-Inf,Inf)
-  SFTime   [in,out] resumeTime            0
     range: (-Inf,Inf)
   SFFloat  [in,out] sampleRate            0
     range: [0,Inf)
-  SFTime   [in,out] startTime             0
-    range: (-Inf,Inf)
-  SFTime   [in,out] stopTime              0
-    range: (-Inf,Inf)
   MFString [in,out] url                   []
     range: [URI]
   SFInt32  [out]    bufferLength          0
     range: [0,Inf)
   SFInt32  [out]    channelCount
     range: [0,Inf)
-  SFTime   [out]    elapsedTime
-  SFBool   [out]    isActive
-  SFBool   [out]    isPaused
 }
 
 ChannelMerger : X3DSoundChannelNode {
@@ -141,9 +127,6 @@ Convolver : X3DSoundProcessingNode {
 Delay : X3DSoundProcessingNode {
   SFTime   [in,out] delayTime             0
     range: [0,Inf)
-  SFBool   [in,out] enabled               TRUE
-  SFFloat  [in,out] gain                  1
-    range: (-Inf,Inf)
   SFTime   [in,out] maxDelayTime          1
     range: [0,Inf)
 }
@@ -191,7 +174,6 @@ Oscillator : X3DSoundSourceNode {
 }
 
 PeriodicWave : X3DSoundNode {
-  SFBool   [in,out] enabled     TRUE
   MFFloat  [in,out] optionsReal []
   MFFloat  [in,out] optionsImag []
   SFString [in,out] type        "SQUARE"
@@ -212,7 +194,6 @@ SpatialSound : X3DSoundNode  {
   SFString [in,out] distanceModel     "INVERSE"
     range: ["LINEAR" "INVERSE" "EXPONENTIAL"]
   SFBool   [in,out] dopplerEnabled    FALSE
-  SFBool   [in,out] enabled           TRUE
   SFBool   [in,out] enableHRTF        FALSE
   SFFloat  [in,out] gain              1
     range: (-Inf,Inf)
@@ -240,23 +221,9 @@ StreamAudioSource : X3DSoundSourceNode {
     range: ["MAX", "CLAMPED_MAX", "EXPLICIT"]
   SFString [in,out] channelInterpretation "SPEAKERS"
     range: ["SPEAKERS", "DISCRETE"]
-  SFBool   [in,out] enabled               TRUE
-  SFFloat  [in,out] gain                  1
-    range: (-Inf,Inf)
-  SFTime   [in,out] pauseTime             0
-    range: (-Inf,Inf)
-  SFTime   [in,out] resumeTime            0
-    range: (-Inf,Inf)
-  SFTime   [in,out] startTime             0
-    range: (-Inf,Inf)
-  SFTime   [in,out] stopTime              0
-    range: (-Inf,Inf)
   MFString [in,out] streamIdentifier      []
   SFInt32  [out]    channelCount
     range: [0,Inf)
-  SFTime   [out]    elapsedTime
-  SFBool   [out]    isActive
-  SFBool   [out]    isPaused
 }
 
 WaveShaper : X3DSoundProcessingNode {

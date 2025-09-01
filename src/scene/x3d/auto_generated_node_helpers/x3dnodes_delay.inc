@@ -26,10 +26,6 @@
   strict private
     function GetDelayTime: TFloatTime;
     procedure SetDelayTime(const Value: TFloatTime);
-    function GetEnabled: Boolean;
-    procedure SetEnabled(const Value: Boolean);
-    function GetGain: Single;
-    procedure SetGain(const Value: Single);
     function GetMaxDelayTime: TFloatTime;
     procedure SetMaxDelayTime(const Value: TFloatTime);
   public
@@ -42,18 +38,6 @@
     public property FdDelayTime: TSFTime read FFdDelayTime;
     {  }
     property DelayTime: TFloatTime read GetDelayTime write SetDelayTime;
-
-    strict private FFdEnabled: TSFBool;
-    { Internal wrapper for property @code(Enabled). This wrapper API may change, we advise to access simpler @code(Enabled) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
-    public property FdEnabled: TSFBool read FFdEnabled;
-    {  }
-    property Enabled: Boolean read GetEnabled write SetEnabled;
-
-    strict private FFdGain: TSFFloat;
-    { Internal wrapper for property @code(Gain). This wrapper API may change, we advise to access simpler @code(Gain) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
-    public property FdGain: TSFFloat read FFdGain;
-    {  }
-    property Gain: Single read GetGain write SetGain;
 
     strict private FFdMaxDelayTime: TSFTime;
     { Internal wrapper for property @code(MaxDelayTime). This wrapper API may change, we advise to access simpler @code(MaxDelayTime) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -75,26 +59,6 @@ end;
 procedure TDelayNode.SetDelayTime(const Value: TFloatTime);
 begin
   FdDelayTime.Send(Value);
-end;
-
-function TDelayNode.GetEnabled: Boolean;
-begin
-  Result := FdEnabled.Value;
-end;
-
-procedure TDelayNode.SetEnabled(const Value: Boolean);
-begin
-  FdEnabled.Send(Value);
-end;
-
-function TDelayNode.GetGain: Single;
-begin
-  Result := FdGain.Value;
-end;
-
-procedure TDelayNode.SetGain(const Value: Single);
-begin
-  FdGain.Send(Value);
 end;
 
 function TDelayNode.GetMaxDelayTime: TFloatTime;
@@ -119,14 +83,6 @@ begin
   FFdDelayTime := TSFTime.Create(Self, True, 'delayTime', 0);
    FdDelayTime.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdDelayTime);
-
-  FFdEnabled := TSFBool.Create(Self, True, 'enabled', true);
-   FdEnabled.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdEnabled);
-
-  FFdGain := TSFFloat.Create(Self, True, 'gain', 1);
-   FdGain.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdGain);
 
   FFdMaxDelayTime := TSFTime.Create(Self, True, 'maxDelayTime', 1);
    FdMaxDelayTime.ChangeAlways := chVisibleNonGeometry;
