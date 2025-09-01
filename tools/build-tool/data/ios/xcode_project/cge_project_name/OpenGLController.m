@@ -56,20 +56,6 @@ typedef struct TouchInfo {
     if (context == nil) {
         context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
     }
-    /* TODO: OpenGLES 3 commented out for now.
-       It breaks Unholy rendering of "evil plane".
-       Looks like on iOS, something in OpenGLES3 is subtly broken compared to OpenGLES2,
-       maybe related to ScreenFbo which is already weird (non-zero) in OpenGLES2,
-       see
-       src/images/opengl/castleglimages_rendertotexture.inc
-       https://stackoverflow.com/questions/11617013/why-would-glbindframebuffergl-framebuffer-0-result-in-blank-screen-in-cocos2d)
-
-       Ideally we should just fix it, and work flawlessly in both OpenGLES2 and OpenGLES3 on iOS.
-
-       Eventually we can add a flag, like IOS_ENABLE_ES3, to make it optional decision
-       per-application.
-    */
-    //EAGLContext *context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
 
     self.context = context;
 
@@ -79,11 +65,38 @@ typedef struct TouchInfo {
 
     GLKView *view = (GLKView *)self.view;
     view.context = self.context;
-    view.drawableColorFormat = GLKViewDrawableColorFormatRGBA8888;
-    view.drawableDepthFormat = GLKViewDrawableDepthFormat24;
-    view.drawableStencilFormat = GLKViewDrawableStencilFormat8;
-    view.drawableMultisample = GLKViewDrawableMultisampleNone;
+
+    /* Configure OpenGLES buffer sizes.
+       GLKView provides very limited configuration options, see
+       https://developer.apple.com/library/archive/documentation/3DDrawing/Conceptual/OpenGLES_ProgrammingGuide/DrawingWithOpenGLES/DrawingWithOpenGLES.html#//apple_ref/doc/uid/TP40008793-CH503-SW1
+       https://developer.apple.com/documentation/glkit/glkview
+    */
+    int redBits, greenBits, blueBits, alphaBits, depthBits, stencilBits, multiSampling;
+    CGEApp_ContextProperties(&redBits, &greenBits, &blueBits, &alphaBits, &depthBits, &stencilBits, &multiSampling);
+    // view.drawableColorFormat = GLKViewDrawableColorFormatRGBA8888; // default
+
+    if (depthBits == 0) {
+        view.drawableDepthFormat = GLKViewDrawableDepthFormatNone;
+    } else
+    if (depthBits <= 16) {
+        view.drawableDepthFormat = GLKViewDrawableDepthFormat16;
+    } else {
+        view.drawableDepthFormat = GLKViewDrawableDepthFormat24;
+    }
+
+    if (stencilBits == 0) {
+        view.drawableStencilFormat = GLKViewDrawableStencilFormatNone;
+    } else {
+        view.drawableStencilFormat = GLKViewDrawableStencilFormat8;
+    }
+
+    if (multiSampling < 4) {
+        view.drawableMultisample = GLKViewDrawableMultisampleNone;
+    } else {
+        view.drawableMultisample = GLKViewDrawableMultisample4X;
+    }
     self.preferredFramesPerSecond = 60;
+
     /*
      We call view.display to reflect the changes in drawable format properties above (buffer format gets changed after next draw, not now).
      Without this, CGE reads DEPTH_BITS as 32 during initialization, while depth is 24 in normal Draw function.
@@ -234,7 +247,7 @@ typedef struct TouchInfo {
         m_currentViewWidth  = newViewWidth;
         m_currentViewHeight = newViewHeight;
         m_currentSafeAreaBorders = newSafeAreaBorders;
-        
+
         CGEApp_Resize(newViewWidth, newViewHeight, (unsigned)newSafeAreaBorders.top, (unsigned)newSafeAreaBorders.right, (unsigned)newSafeAreaBorders.bottom, (unsigned)newSafeAreaBorders.left);
     }
 
