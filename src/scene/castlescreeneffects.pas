@@ -460,11 +460,12 @@ var
     end;
     if Depth then
     begin
-      {$ifndef OpenGLES}
-      // TODO-es What do we use here? See TGLRenderToTexture TODO at similar place
       if GLFeatures.ShadowVolumesPossible and GLFeatures.PackedDepthStencil then
-        TexImage2D(GL_DEPTH24_STENCIL8_EXT, GL_DEPTH_STENCIL_EXT, GL_UNSIGNED_INT_24_8_EXT) else
-      {$endif}
+        TexImage2D(
+          {$ifdef OpenGLES} GL_DEPTH24_STENCIL8 {$else} GL_DEPTH24_STENCIL8_EXT {$endif},
+          {$ifdef OpenGLES} GL_DEPTH_STENCIL {$else} GL_DEPTH_STENCIL_EXT {$endif},
+          {$ifdef OpenGLES} GL_UNSIGNED_INT_24_8 {$else} GL_UNSIGNED_INT_24_8_EXT {$endif})
+      else
         TexImage2D(GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT,
           { On OpenGLES, using GL_UNSIGNED_BYTE will result in FBO failing
             with INCOMPLETE_ATTACHMENT.
