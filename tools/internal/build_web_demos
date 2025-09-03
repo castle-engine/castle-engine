@@ -8,14 +8,14 @@ set -eu
 # After executing this, to update website:
 #
 # - update binaries outside of GIT:
-#   rsync -av ~/sources/castle-engine/cge-www/htdocs/web-demos/ ssh.castle-engine.io:/home/michalis/cge-www/htdocs/web-demos
-#   ssh ssh.castle-engine.io
+#   rsync -av ~/sources/castle-engine/cge-www/htdocs/web-demos/ castle-engine.io:/home/michalis/cge-www/htdocs/web-demos
+#   ssh castle-engine.io
 #     ~/bin/purge_cache.sh
 #
 # - not necessary anymore (web-demos in cge-www/.gitignore):
 #   update things tracked in GIT:
 #   commit + push in cge-www
-#   ssh ssh.castle-engine.io
+#   ssh castle-engine.io
 #     ~/bin/www_synchronize_noimages.sh
 # ------------------------------------------------------------------------
 
