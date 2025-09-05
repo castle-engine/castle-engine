@@ -40,7 +40,7 @@
     /* When user opens a file associated with the app,
        and the app is not running yet (so it launches because of opening),
        we get the URL in connectionOptions.URLContexts .
-       See https://stackoverflow.com/a/59370934 .
+       See https://stackoverflow.com/a/58638919 .
 
        So pass to "[appDelegate onOpenURLContexts...]",
        which will open the associated file through CGEApp_HandleOpenUrl . */
