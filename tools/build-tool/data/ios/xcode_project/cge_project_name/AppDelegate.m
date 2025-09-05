@@ -71,13 +71,13 @@ AppDelegate* getAppDelegate(void)
     }
     else {
         self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
-        
+
         [self initializeRootViewControllerInWindow:self.window];
-        
+
         // Although the window seems already visible, but makeKeyAndVisible call is still
         // needed to keep visible after application:didFinishLaunchingWithOptions call.
         [self.window makeKeyAndVisible];
-        
+
         // call application:didFinishLaunchingWithOptions on all services
         for (int i = 0; i < [services count]; i++) {
             ServiceAbstract* service = [services objectAtIndex: i];
@@ -192,7 +192,7 @@ AppDelegate* getAppDelegate(void)
     return NO;
 }
 
-// called in iOS 13 and later
+// called in iOS 13 and later, when user opens a file associated with the app.
 - (BOOL)onOpenURLContexts:(NSSet<UIOpenURLContext *> *)URLContexts  API_AVAILABLE(ios(13.0))
 {
     // call application:openURL:options on all services
@@ -203,7 +203,7 @@ AppDelegate* getAppDelegate(void)
             return result;
         }
     }
-    
+
     UIOpenURLContext* context = URLContexts.anyObject;
     if (context != nil)
     {
