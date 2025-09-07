@@ -228,6 +228,19 @@ begin
     #9#9#9'<string>' + ProjectCaption + '</string>' + NL +
     #9#9#9'<key>CFBundleTypeRole</key>' + NL +
     #9#9#9'<string>Viewer</string>' + NL +
+
+    { Without this, when uploading to AppStore, we get
+      """
+      ITMS-90788: Incomplete Document Type Configuration -
+      The CFBundleDocumentTypes dictionary array in the
+      '....' Info.plist should contain an LSHandlerRank value
+      for the CFBundleTypeName 'Castle Model Viewer' entry.
+      Refer to https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html#//apple_ref/doc/uid/TP40009249-SW1
+      for more information on the LSHandlerRank key.
+      """ }
+    #9#9#9'<key>LSHandlerRank</key>' + NL +
+    #9#9#9'<string>Default</string>' + NL +
+
     #9#9#9'<key>CFBundleTypeExtensions</key>' + NL +
     #9#9#9'<array>' + NL +
     #9#9#9#9'<string>*</string>' + NL +
