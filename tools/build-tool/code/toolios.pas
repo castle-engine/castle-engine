@@ -238,17 +238,26 @@ var
     end;
 
   begin
-    Icon := Project.Icons.FindReadable;
-    if Icon = nil then
+    // get icon from <ios override_icon=...> if specified
+    if Project.IOSOverrideIconFullUrl <> '' then
     begin
-      WritelnWarning('Icon', 'No icon in a format readable by our engine (for example, png or jpg) is specified in CastleEngineManifest.xml. Using default icon.');
-      { Use DefaultIconSquare, not DefaultIcon for iOS, since we cannot have
-        transparency on iOS icon (it's replaced by an ugly blackness).
-        See
-        https://stackoverflow.com/questions/959864/is-is-possible-to-use-transparency-in-an-iphone-app-icon
-        https://stackoverflow.com/questions/22858501/ios-app-icon-with-transparent-background-showing-black-background-on-device }
-      Icon := DefaultIconSquare;
+      Icon := LoadImage(Project.IOSOverrideIconFullUrl)
+    end else
+    // otherwise get icon from <icons>, fallback on CGE default
+    begin
+      Icon := Project.Icons.FindReadable;
+      if Icon = nil then
+      begin
+        WritelnWarning('Icon', 'No icon in a format readable by our engine (for example, png or jpg) is specified in CastleEngineManifest.xml. Using default icon.');
+        { Use DefaultIconSquare, not DefaultIcon for iOS, since we cannot have
+          transparency on iOS icon (it's replaced by an ugly blackness).
+          See
+          https://stackoverflow.com/questions/959864/is-is-possible-to-use-transparency-in-an-iphone-app-icon
+          https://stackoverflow.com/questions/22858501/ios-app-icon-with-transparent-background-showing-black-background-on-device }
+        Icon := DefaultIconSquare;
+      end;
     end;
+
     try
       SaveResized(57);
       SaveResized(72);

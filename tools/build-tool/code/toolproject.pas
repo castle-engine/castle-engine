@@ -200,6 +200,7 @@ type
     function LaunchImages: TImageFileNames;
     function AndroidServices: TServiceList;
     function IOSServices: TServiceList;
+    function IOSOverrideIconFullUrl: String;
     function AssociateDocumentTypes: TAssociatedDocTypeList;
     function LocalizedAppNames: TLocalizedAppNameList;
     function LaunchImageStoryboard: TLaunchImageStoryboard;
@@ -2869,6 +2870,14 @@ end;
 function TCastleProject.IOSServices: TServiceList;
 begin
   Result := Manifest.IOSServices;
+end;
+
+function TCastleProject.IOSOverrideIconFullUrl: String;
+begin
+  if Manifest.IOSOverrideIcon <> '' then
+    Result := CombineUri(Manifest.PathUrl, Manifest.IOSOverrideIcon)
+  else
+    Result := '';
 end;
 
 function TCastleProject.AssociateDocumentTypes: TAssociatedDocTypeList;

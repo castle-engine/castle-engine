@@ -113,7 +113,7 @@ type
       OwnerComponent: TComponent;
       FName, FExecutableName, FQualifiedName, FAuthor, FCaption: String;
       FProposedUnitPrefix: String;
-      FIOSOverrideQualifiedName: String;
+      FIOSOverrideQualifiedName, FIOSOverrideIcon: String;
       FIOSOverrideVersion: TProjectVersion; //< nil if not overridden, should use FVersion then
       FUsesNonExemptEncryption: boolean;
       FDataExists: Boolean;
@@ -261,6 +261,7 @@ type
 
     { iOS-specific things }
     property IOSOverrideQualifiedName: String read FIOSOverrideQualifiedName;
+    property IOSOverrideIcon: String read FIOSOverrideIcon;
     property IOSOverrideVersion: TProjectVersion read FIOSOverrideVersion; //< nil if not overridden, should use FVersion then
     property UsesNonExemptEncryption: boolean read FUsesNonExemptEncryption;
     property IOSServices: TServiceList read FIOSServices;
@@ -729,6 +730,8 @@ begin
       FIOSOverrideQualifiedName := Element.AttributeStringDef('override_qualified_name', '');
       if FIOSOverrideQualifiedName <> '' then
         CheckValidQualifiedName('override_qualified_name', FIOSOverrideQualifiedName);
+
+      FIOSOverrideIcon := Element.AttributeStringDef('override_icon', '');
 
       FIOSOverrideVersion := ReadVersion(Element.Child('override_version', false));
 
