@@ -1,7 +1,7 @@
 /* -*- tab-width: 4 -*- */
 
 /*
-  Copyright 2018-2021 Michalis Kamburelis.
+  Copyright 2018-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -27,23 +27,26 @@ import java.util.Map.Entry;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.android.billingclient.api.PendingPurchasesParams;
+import com.android.billingclient.api.ProductDetails;
+import com.android.billingclient.api.QueryProductDetailsResult;
 import com.android.billingclient.api.AcknowledgePurchaseParams;
 import com.android.billingclient.api.AcknowledgePurchaseResponseListener;
 import com.android.billingclient.api.BillingClient;
-import com.android.billingclient.api.BillingClient.SkuType;
 import com.android.billingclient.api.BillingClient.BillingResponseCode;
 import com.android.billingclient.api.BillingClientStateListener;
 import com.android.billingclient.api.BillingFlowParams;
 import com.android.billingclient.api.BillingResult;
 import com.android.billingclient.api.ConsumeParams;
 import com.android.billingclient.api.ConsumeResponseListener;
+import com.android.billingclient.api.ProductDetailsResponseListener;
 import com.android.billingclient.api.Purchase;
 import com.android.billingclient.api.Purchase.PurchaseState;
 import com.android.billingclient.api.PurchasesResponseListener;
 import com.android.billingclient.api.PurchasesUpdatedListener;
-import com.android.billingclient.api.SkuDetails;
-import com.android.billingclient.api.SkuDetailsParams;
-import com.android.billingclient.api.SkuDetailsResponseListener;
+import com.android.billingclient.api.QueryProductDetailsParams;
+import com.android.billingclient.api.QueryProductDetailsParams.Product;
+import com.android.billingclient.api.QueryPurchasesParams;
 
 /**
  * Integration of Google Billing API with Castle Game Engine.
@@ -144,30 +147,41 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
      * billingClientConnected may be false).
      */
     private class OperationRefreshPrices extends Operation
-        implements SkuDetailsResponseListener
+        implements ProductDetailsResponseListener
     {
         @Override
-        public void onSkuDetailsResponse(@NonNull BillingResult billingResult,
-                                         @Nullable List<SkuDetails> skuDetailsList) {
+        public void onProductDetailsResponse(
+            @NonNull BillingResult billingResult,
+            @NonNull QueryProductDetailsResult productDetailsResult)
+        {
             try {
-                if (billingResult.getResponseCode() == BillingResponseCode.OK && skuDetailsList != null) {
-                    logInfo(CATEGORY, skuDetailsList.size() + " items available for purchase.");
-                    for (SkuDetails skuDetails : skuDetailsList) {
-                        String productId = skuDetails.getSku();
+                if (billingResult.getResponseCode() == BillingResponseCode.OK) {
+                    List<ProductDetails> productDetailsList = productDetailsResult.getProductDetailsList();
+                    logInfo(CATEGORY, productDetailsList.size() + " items available for purchase.");
+                    for (ProductDetails skuDetails : productDetailsList) {
+                        String productId = skuDetails.getProductId();
                         AvailableProduct product;
                         if (availableProducts.containsKey(productId)) {
                             product = availableProducts.get(productId);
+                            if (product == null) {
+                                throw new RuntimeException("availableProducts has null product, report a bug");
+                            }
                         } else {
                             logWarning(CATEGORY, "Product " + productId + " reported by querySkuDetailsAsync, but not in availableProducts");
                             product = new AvailableProduct(productId);
                             availableProducts.put(product.id, product);
                         }
 
-                        product.price = skuDetails.getPrice();
+                        ProductDetails.OneTimePurchaseOfferDetails offerDetails = skuDetails.getOneTimePurchaseOfferDetails();
+                        if (offerDetails == null) {
+                            throw new RuntimeException("offerDetails == null, report a bug");
+                        }
+
+                        product.price = offerDetails.getFormattedPrice();
                         product.title = skuDetails.getTitle();
                         product.description = skuDetails.getDescription();
-                        product.priceAmountMicros = skuDetails.getPriceAmountMicros();
-                        product.priceCurrencyCode = skuDetails.getPriceCurrencyCode();
+                        product.priceAmountMicros = offerDetails.getPriceAmountMicros();
+                        product.priceCurrencyCode = offerDetails.getPriceCurrencyCode();
                         product.skuDetails = skuDetails;
                         messageSend(new String[]{"in-app-purchases-can-purchase",
                                 product.id,
@@ -180,6 +194,10 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
                         if (debug) {
                             logInfo(CATEGORY, "Product " + productId + " available for purchase, price: " + product.price + " " + product.priceCurrencyCode);
                         }
+                    }
+                    if (!productDetailsResult.getUnfetchedProductList().isEmpty()) {
+                        int unfetchedCount = productDetailsResult.getUnfetchedProductList().size();
+                        logWarning(CATEGORY, "Found " + unfetchedCount + " unfetched products, this means that some queried product ids are not defined in Google Play.");
                     }
                     messageSend(new String[]{"in-app-purchases-refreshed-prices"});
                 } else {
@@ -195,14 +213,18 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
             if (availableProducts != null && billingClientConnected) {
                 // calculate productList
 
-                List<String> productList = new ArrayList<>();
+                List<Product> productList = new ArrayList<>();
                 for (Entry<String, AvailableProduct> entry : availableProducts.entrySet()) {
-                    productList.add(entry.getKey());
+                    Product product = Product.newBuilder().
+                            setProductId(entry.getKey()).
+                            setProductType(BillingClient.ProductType.INAPP).
+                            build();
+                    productList.add(product);
                 }
 
-                SkuDetailsParams.Builder params = SkuDetailsParams.newBuilder();
-                params.setSkusList(productList).setType(SkuType.INAPP);
-                billingClient.querySkuDetailsAsync(params.build(), this);
+                QueryProductDetailsParams.Builder params = QueryProductDetailsParams.newBuilder();
+                params.setProductList(productList);
+                billingClient.queryProductDetailsAsync(params.build(), this);
             } else {
                 currentOperationFinished();
             }
@@ -248,7 +270,10 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
         public final void run()
         {
             if (availableProducts != null && billingClientConnected) {
-                billingClient.queryPurchasesAsync(SkuType.INAPP, this);
+                QueryPurchasesParams params = QueryPurchasesParams.newBuilder().
+                        setProductType(BillingClient.ProductType.INAPP).
+                        build();
+                billingClient.queryPurchasesAsync(params, this);
             } else {
                 currentOperationFinished();
             }
@@ -275,14 +300,23 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
                 }
 
                 AvailableProduct product = availableProducts.get(productName);
+                if (product == null) {
+                    throw new RuntimeException("availableProducts has null product, report a bug");
+                }
                 if (product.skuDetails == null) {
                     logError(CATEGORY, "Cannot purchase " + productName + " because skuDetails not known yet (Google Play Billing did not initialize yet the information about products)");
                     return;
                 }
 
-                BillingFlowParams purchaseParams = BillingFlowParams.newBuilder()
-                    .setSkuDetails((SkuDetails)product.skuDetails)
-                    .build();
+                BillingFlowParams.ProductDetailsParams productDetailsParams = BillingFlowParams.ProductDetailsParams.newBuilder().
+                        setProductDetails((ProductDetails)product.skuDetails).
+                        build();
+                List<BillingFlowParams.ProductDetailsParams> productDetailsParamsList = new ArrayList<>();
+                productDetailsParamsList.add(productDetailsParams);
+
+                BillingFlowParams purchaseParams = BillingFlowParams.newBuilder().
+                    setProductDetailsParamsList(productDetailsParamsList).
+                    build();
 
                 BillingResult billingResult = billingClient.launchBillingFlow(getActivity(), purchaseParams);
                 if (billingResult.getResponseCode() != BillingResponseCode.OK) {
@@ -324,6 +358,10 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
                 return;
             }
             String purchaseToken = purchaseTokens.get(productName);
+            if (purchaseToken == null) {
+                logError(CATEGORY, "purchaseToken == null, ignoring");
+                return;
+            }
 
             ConsumeParams consumeParams = ConsumeParams.newBuilder()
                 .setPurchaseToken(purchaseToken)
@@ -416,7 +454,7 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
                 if (!purchaseTokens.containsValue(purchaseToken)) {
                     acknowledgeIfNeeded(purchase);
 
-                    for (String productName : purchase.getSkus()) {
+                    for (String productName : purchase.getProducts()) {
                         purchaseTokens.put(productName, purchaseToken);
 
                         if (debug) {
@@ -426,6 +464,9 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
                         AvailableProduct product;
                         if (availableProducts.containsKey(productName)) {
                             product = availableProducts.get(productName);
+                            if (product == null) {
+                                throw new RuntimeException("availableProducts has null product, report a bug");
+                            }
                         } else {
                             product = new AvailableProduct(productName);
                         }
@@ -478,8 +519,11 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
     @Override
     public void onCreate()
     {
+        PendingPurchasesParams pendingPurchasesParams = PendingPurchasesParams.newBuilder().
+                enableOneTimeProducts().
+                build();
         billingClient = BillingClient.newBuilder(getActivity())
-            .enablePendingPurchases()
+            .enablePendingPurchases(pendingPurchasesParams)
             .setListener(this)
             .build();
         billingClient.startConnection(new BillingClientStateListener() {

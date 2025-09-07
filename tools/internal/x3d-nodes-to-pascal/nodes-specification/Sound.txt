@@ -8,8 +8,6 @@ X3DSoundNode : X3DChildNode {
 X3DSoundSourceNode : X3DTimeDependentNode {
   default-container-field: children
 
-  SFString [in,out] description      ""
-    change: chNone
   SFBool   [in,out] enabled          TRUE
   SFFloat  [in,out] gain             1
     range: (-Inf,Inf)
@@ -36,9 +34,8 @@ AudioClip : X3DSoundSourceNode, X3DUrlObject {
 }
 
 Sound : X3DSoundNode {
-  # TODO: X3D 4:
-  # MFNode   [in,out] children   NULL  [X3DSoundChannelNode,X3DSoundProcessingNode,X3DSoundSourceNode]
-  # https://www.web3d.org/specifications/X3Dv4Draft/ISO-IEC19775-1v4-IS.proof/Part01/components/sound.html#Sound
+  MFNode   [in,out] children   NULL
+    range: [X3DSoundChannelNode,X3DSoundProcessingNode,X3DSoundSourceNode]
 
   SFVec3f [in,out] direction  0 0 1
     range: (-Inf,Inf)

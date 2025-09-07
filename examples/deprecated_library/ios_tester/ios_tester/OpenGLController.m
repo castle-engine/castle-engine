@@ -26,6 +26,7 @@
 
 @interface OpenGLController () <ViewpointCtlDelegate, FileOpenCtlDelegate>
 {
+    bool m_bInitialized;
     bool m_bIsPanning;
     CGPoint m_ptPanningMousePos;
     CGFloat m_fScale;
@@ -57,6 +58,7 @@
 
     m_nViewpointCount = 0;
     m_bIsPanning = false;
+    m_bInitialized = false;
 
     EAGLContext *context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3];
     if (context == nil)
@@ -73,6 +75,12 @@
     view.drawableDepthFormat = GLKViewDrawableDepthFormat24;
     view.drawableStencilFormat = GLKViewDrawableStencilFormat8;
     self.preferredFramesPerSecond = 60;
+    /*
+     We call view.display to reflect the changes in drawable format properties above (buffer format gets changed after next draw, not now).
+     Without this, CGE reads DEPTH_BITS as 32 during initialization, while depth is 24 in normal Draw function.
+     Also fixes error with framebuffer incomplete.
+     */
+    [view display];
 
     // setup recognizers
 #ifdef USE_GESTURE_RECOGNIZERS
@@ -130,6 +138,7 @@
     }
 
     [self setupGL];
+    m_bInitialized = true;
 }
 
 //-----------------------------------------------------------------
@@ -283,6 +292,8 @@
 //-----------------------------------------------------------------
 - (void)glkView:(GLKView *)view drawInRect:(CGRect)rect
 {
+    if (!m_bInitialized)
+        return;
     CGE_Render();
 }
 

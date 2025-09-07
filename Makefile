@@ -41,6 +41,11 @@
 #     and compiles every program by the lazbuild utility.
 #     Lazarus and FPC installation is required.
 #
+#   examples-delphi --
+#     Compile all examples using Delphi.
+#     This uses CGE build tool, that (when invoked with --compiler=delphi)
+#     executes Delphi command-line compiler.
+#
 #   build-using-fpmake:
 #     Compile all units using FpMake.
 #     We support this as an optional build approach to CGE and applications using CGE.
@@ -245,8 +250,19 @@ test-editor-templates:
 	$(MAKE) --no-print-directory test-editor-template CGE_TEMPLATE=empty
 	$(MAKE) --no-print-directory test-editor-template CGE_TEMPLATE=3d_model_viewer
 
+# Various tasks that should be done before examples* targets,
+# to make examples ready to build.
+.PHONY: prepare-examples
+prepare-examples:
+	# setup non-functional openai_config.inc, to test example compiles OK.
+	cp -f examples/network/ask_openai_assistant/code/openai_config.inc.template \
+	      examples/network/ask_openai_assistant/code/openai_config.inc
+	# setup non-functional unsplash_secrets.inc, to test example compiles OK.
+	cp -f examples/network/random_image_from_unsplash/code/unsplash_secrets.inc.template \
+	      examples/network/random_image_from_unsplash/code/unsplash_secrets.inc
+
 .PHONY: examples
-examples:
+examples: prepare-examples
 # Compile build tool first, used to compile other tools and examples.
 	tools/build-tool/castle-engine_compile.sh
 
@@ -305,7 +321,7 @@ examples:
 # TODO: We don't automatically build examples/delphi/cpp_builder,
 # our build tool doesn't support C++ Builder compilation now.
 .PHONY: examples-delphi
-examples-delphi:
+examples-delphi: prepare-examples
 	"$(FIND)" ./examples/ \
 	  '(' -path ./examples/castlescript/image_make_by_script -prune ')' -o \
 	  '(' -path ./examples/localization -prune ')' -o \
@@ -324,7 +340,7 @@ examples-delphi:
 	done
 
 .PHONY: examples-laz
-examples-laz:
+examples-laz: prepare-examples
 	lazbuild $(CASTLE_LAZBUILD_OPTIONS) packages/lazarus/castle_engine_base.lpk
 	lazbuild $(CASTLE_LAZBUILD_OPTIONS) packages/lazarus/castle_engine_window.lpk
 	lazbuild $(CASTLE_LAZBUILD_OPTIONS) packages/lazarus/castle_engine_lcl.lpk

@@ -3031,37 +3031,37 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\level/textures/WoodPlanks_D.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\level/textures/WoodPlanks_D.jpg" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>WoodPlanks_D.png</RemoteName>
+  <RemoteName>WoodPlanks_D.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
   <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>WoodPlanks_D.png</RemoteName>
+  <RemoteName>WoodPlanks_D.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
   <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>WoodPlanks_D.png</RemoteName>
+  <RemoteName>WoodPlanks_D.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\level/textures/WoodPlanks_N.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\level/textures/WoodPlanks_N.jpg" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>WoodPlanks_N.png</RemoteName>
+  <RemoteName>WoodPlanks_N.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
   <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>WoodPlanks_N.png</RemoteName>
+  <RemoteName>WoodPlanks_N.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
   <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>WoodPlanks_N.png</RemoteName>
+  <RemoteName>WoodPlanks_N.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -6856,37 +6856,37 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\level/textures/WoodPlanks_D.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\level/textures/WoodPlanks_D.jpg" Configuration="Release" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>WoodPlanks_D.png</RemoteName>
+  <RemoteName>WoodPlanks_D.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
   <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>WoodPlanks_D.png</RemoteName>
+  <RemoteName>WoodPlanks_D.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
   <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>WoodPlanks_D.png</RemoteName>
+  <RemoteName>WoodPlanks_D.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\level/textures/WoodPlanks_N.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\level/textures/WoodPlanks_N.jpg" Configuration="Release" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>WoodPlanks_N.png</RemoteName>
+  <RemoteName>WoodPlanks_N.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
   <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>WoodPlanks_N.png</RemoteName>
+  <RemoteName>WoodPlanks_N.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
   <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>WoodPlanks_N.png</RemoteName>
+  <RemoteName>WoodPlanks_N.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>

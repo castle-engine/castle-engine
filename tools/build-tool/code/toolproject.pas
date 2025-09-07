@@ -200,6 +200,7 @@ type
     function LaunchImages: TImageFileNames;
     function AndroidServices: TServiceList;
     function IOSServices: TServiceList;
+    function IOSOverrideIconFullUrl: String;
     function AssociateDocumentTypes: TAssociatedDocTypeList;
     function LocalizedAppNames: TLocalizedAppNameList;
     function LaunchImageStoryboard: TLaunchImageStoryboard;
@@ -1994,7 +1995,7 @@ begin
   Macros.Add('IOS_STATUSBAR_HIDDEN', Iff(FullscreenImmersive, 'YES', 'NO'));
   Macros.Add('IOS_SCREEN_ORIENTATION', IOSScreenOrientation[ScreenOrientation]);
   InfoPList := SAppendPart(InfoPList, NL,
-    AssociateDocumentTypes.ToPListSection(IOSQualifiedName, 'AppIcon'));
+    AssociateDocumentTypes.ToPListSection(IOSQualifiedName, Caption, 'AppIcon'));
   if not Manifest.UsesNonExemptEncryption then
     InfoPList := SAppendPart(InfoPList, NL,
       '<key>ITSAppUsesNonExemptEncryption</key> <false/>');
@@ -2458,7 +2459,7 @@ begin
     Macros.Add('ICO_PATH', IcoPath);
     Macros.Add('PROJECT_GUID', ProjectGuid);
     Macros.Add('APPLE_BUNDLE_SIGNATURE', Copy(ExecutableName + '????', 1, 4));
-    Macros.Add('APPLE_ASSOCIATE_DOCUMENT_TYPES', AssociateDocumentTypes.ToPListSection(QualifiedName, Name));
+    Macros.Add('APPLE_ASSOCIATE_DOCUMENT_TYPES', AssociateDocumentTypes.ToPListSection(QualifiedName, Caption, Name));
     Macros.Add('RANDOM_URL_SUFFIX', '?random_suffix_to_avoid_cache=' + RandomString);
 
     AddMacrosAndroid(Macros);
@@ -2869,6 +2870,14 @@ end;
 function TCastleProject.IOSServices: TServiceList;
 begin
   Result := Manifest.IOSServices;
+end;
+
+function TCastleProject.IOSOverrideIconFullUrl: String;
+begin
+  if Manifest.IOSOverrideIcon <> '' then
+    Result := CombineUri(Manifest.PathUrl, Manifest.IOSOverrideIcon)
+  else
+    Result := '';
 end;
 
 function TCastleProject.AssociateDocumentTypes: TAssociatedDocTypeList;

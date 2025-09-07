@@ -114,6 +114,8 @@ Appearance : X3DAppearanceNode {
     doc: Texture transformation.
 
   # X3D 4
+  SFNode [in,out] acousticProperties NULL
+    range: [AcousticProperties]
   SFNode [in,out] backMaterial     NULL
     range: X3DOneSidedMaterialNode
     change: chNone
@@ -312,4 +314,17 @@ UnlitMaterial : X3DOneSidedMaterialNode {
   SFFloat [in,out] transparency             0
     range: [0,1]
     doc: Setting @name to value > 0 makes the object partially-transparent. Setting it to 1.0 makes it even invisible (but still collidable). If you want to render the object using blending (which is usually the case for partially-transparent) it is recommended to specify it explicitly using @link(TAppearanceNode.AlphaMode).
+}
+
+AcousticProperties : X3DAppearanceChildNode  {
+  SFFloat  [in,out] absorption  0
+    range: [0,1]
+  SFString [in,out] description ""
+  SFFloat  [in,out] diffuse     0
+    range: [0,1]
+  SFBool   [in,out] enabled     TRUE
+  SFFloat  [in,out] refraction  0
+    range: [0,1]
+  SFFloat  [in,out] specular    0
+    range: [0,1]
 }

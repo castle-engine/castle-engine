@@ -27,7 +27,7 @@
     // Use this method to optionally configure and attach the UIWindow `window` to the provided UIWindowScene `scene`.
     // If using a storyboard, the `window` property will automatically be initialized and attached to the scene.
     // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
-    
+
     AppDelegate *appDelegate = (AppDelegate*)[[UIApplication sharedApplication] delegate];
     if ([scene isKindOfClass:[UIWindowScene class]]) {
         UIWindowScene *windowScene = (UIWindowScene *)scene;
@@ -35,6 +35,18 @@
         [appDelegate initializeRootViewControllerInWindow:self.window];
         [self.window makeKeyAndVisible];
         [appDelegate onSceneDidFinishLaunching];
+    }
+
+    /* When user opens a file associated with the app,
+       and the app is not running yet (so it launches because of opening),
+       we get the URL in connectionOptions.URLContexts .
+       See https://stackoverflow.com/a/58638919 .
+
+       So pass to "[appDelegate onOpenURLContexts...]",
+       which will open the associated file through CGEApp_HandleOpenUrl . */
+    if (connectionOptions.URLContexts.count > 0) {
+        NSLog(@"willConnectToSession received with URLContexts.count > 0, routing to onOpenURLContexts");
+        [appDelegate onOpenURLContexts:connectionOptions.URLContexts];
     }
 }
 
@@ -67,11 +79,18 @@
     // Called as the scene transitions from the foreground to the background.
     // Use this method to save data, release shared resources, and store enough scene-specific state information
     // to restore the scene back to its current state.
-    
+
     AppDelegate *appDelegate = (AppDelegate*)[[UIApplication sharedApplication] delegate];
     [appDelegate onSceneDidEnterBackground];
 }
 
+// Called in iOS 13 and later, when user opens a file associated with the app,
+// and the app is already running.
+//
+// Note: If the app was not already running (it is launched because of file
+// opening) then only willConnectToSession gets the URLs in
+// connectionOptions.URLContexts. We handle this case above in willConnectToSession
+// implementation.
 - (void)scene:(UIScene *)scene openURLContexts:(NSSet<UIOpenURLContext *> *)URLContexts  API_AVAILABLE(ios(13.0)) {
     AppDelegate *appDelegate = (AppDelegate*)[[UIApplication sharedApplication] delegate];
     [appDelegate onOpenURLContexts:URLContexts];
