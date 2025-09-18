@@ -20,7 +20,7 @@ interface
 
 uses Classes,
   { Enable https downloads. }
-  {$ifdef FPC} OpenSslSockets, {$endif}
+  CastleHttps,
   FpJson, JsonParser,
   CastleVectors, CastleComponentSerialize, CastleDownload,
   CastleUIControls, CastleControls, CastleKeysMouse, CastleTimeUtils;

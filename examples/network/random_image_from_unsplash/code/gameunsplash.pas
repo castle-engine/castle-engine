@@ -164,8 +164,8 @@ implementation
 
 uses SysUtils, FpJson, JsonParser,
   // enable https with FPC and TCastleDownload
-  {$ifdef FPC} {$ifndef VER3_0} OpenSSLSockets, {$endif} {$endif}
-  CastleUriUtils, CastleApplicationProperties, CastleUtils, CastleLog;
+  CastleHttps, CastleUriUtils, CastleApplicationProperties, CastleUtils,
+  CastleLog;
 
 { TUnsplashDownload ----------------------------------------------------------- }
 

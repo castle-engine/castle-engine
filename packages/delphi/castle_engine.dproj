@@ -233,6 +233,7 @@
         <DCCReference Include="..\..\src\files\castlefilefilters.pas"/>
         <DCCReference Include="..\..\src\files\castlefilesutils.pas"/>
         <DCCReference Include="..\..\src\files\castlefindfiles.pas"/>
+        <DCCReference Include="..\..\src\files\castlehttps.pas"/>
         <DCCReference Include="..\..\src\files\castleinternaldatauri.pas"/>
         <DCCReference Include="..\..\src\files\castleinternaldirectoryinformation.pas"/>
         <DCCReference Include="..\..\src\files\castlerecentfiles.pas"/>
