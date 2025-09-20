@@ -11,10 +11,10 @@ object PreferencesForm: TPreferencesForm
   OnCloseQuery = FormCloseQuery
   OnShow = FormShow
   Position = poMainFormCenter
-  LCLVersion = '3.2.0.0'
+  LCLVersion = '3.4.0.0'
   object ListPages: TListBox
     Left = 8
-    Height = 691
+    Height = 690
     Top = 8
     Width = 168
     Align = alLeft
@@ -27,15 +27,15 @@ object PreferencesForm: TPreferencesForm
       'Sound'
       'Android'
     )
-    ItemHeight = 28
+    ItemHeight = 29
     ScrollWidth = 166
     TabOrder = 1
     OnClick = ListPagesClick
   end
   object ButtonPanel1: TButtonPanel
     Left = 8
-    Height = 46
-    Top = 707
+    Height = 47
+    Top = 706
     Width = 1067
     BorderSpacing.Around = 8
     OKButton.Name = 'OKButton'
@@ -51,17 +51,17 @@ object PreferencesForm: TPreferencesForm
   end
   object PanelSound: TPanel
     Left = 184
-    Height = 699
+    Height = 698
     Top = 0
     Width = 899
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 699
+    ClientHeight = 698
     ClientWidth = 899
     TabOrder = 4
     object LabelSound: TLabel
       Left = 8
-      Height = 22
+      Height = 23
       Top = 16
       Width = 136
       Caption = 'Sound Settings:'
@@ -81,14 +81,14 @@ object PreferencesForm: TPreferencesForm
     end
     object LabelVolume: TLabel
       Left = 8
-      Height = 22
+      Height = 23
       Top = 56
       Width = 68
       Caption = 'Volume:'
     end
     object CheckBoxMuteOnRun: TCheckBox
       Left = 8
-      Height = 26
+      Height = 27
       Top = 148
       Width = 319
       Caption = 'Stay mute when the application runs'
@@ -97,17 +97,17 @@ object PreferencesForm: TPreferencesForm
   end
   object PanelCompilation: TPanel
     Left = 184
-    Height = 699
+    Height = 698
     Top = 0
     Width = 899
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 699
+    ClientHeight = 698
     ClientWidth = 899
     TabOrder = 5
     object LabelCompilationHeader: TLabel
       Left = 8
-      Height = 22
+      Height = 23
       Top = 16
       Width = 85
       Caption = 'Compiler:'
@@ -119,8 +119,8 @@ object PreferencesForm: TPreferencesForm
       AnchorSideTop.Control = LabelCompilationHeader
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 26
-      Top = 46
+      Height = 27
+      Top = 47
       Width = 683
       BorderSpacing.Top = 8
       Caption = 'Autodetect (compiler indicated in project manifest, otherwise find FPC or Delphi)'
@@ -134,8 +134,8 @@ object PreferencesForm: TPreferencesForm
       AnchorSideTop.Control = LabelCompilerAutodetect
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 26
-      Top = 110
+      Height = 27
+      Top = 113
       Width = 243
       BorderSpacing.Top = 8
       Caption = 'FPC (Free Pascal Compiler)'
@@ -147,8 +147,8 @@ object PreferencesForm: TPreferencesForm
       AnchorSideTop.Control = LabelCompilerFpc
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 26
-      Top = 174
+      Height = 27
+      Top = 179
       Width = 79
       BorderSpacing.Top = 8
       Caption = 'Delphi'
@@ -159,8 +159,8 @@ object PreferencesForm: TPreferencesForm
       AnchorSideTop.Control = RadioCompilerAutodetect
       AnchorSideTop.Side = asrBottom
       Left = 40
-      Height = 22
-      Top = 80
+      Height = 23
+      Top = 82
       Width = 146
       BorderSpacing.Left = 32
       BorderSpacing.Top = 8
@@ -172,8 +172,8 @@ object PreferencesForm: TPreferencesForm
       AnchorSideTop.Control = RadioCompilerFpc
       AnchorSideTop.Side = asrBottom
       Left = 40
-      Height = 22
-      Top = 144
+      Height = 23
+      Top = 148
       Width = 110
       BorderSpacing.Left = 32
       BorderSpacing.Top = 8
@@ -185,8 +185,8 @@ object PreferencesForm: TPreferencesForm
       AnchorSideTop.Control = RadioCompilerDelphi
       AnchorSideTop.Side = asrBottom
       Left = 40
-      Height = 22
-      Top = 208
+      Height = 23
+      Top = 214
       Width = 81
       BorderSpacing.Left = 32
       BorderSpacing.Top = 8
@@ -197,17 +197,17 @@ object PreferencesForm: TPreferencesForm
   end
   object PanelCodeEditor: TPanel
     Left = 184
-    Height = 699
+    Height = 698
     Top = 0
     Width = 899
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 699
+    ClientHeight = 698
     ClientWidth = 899
     TabOrder = 3
     object LabelCodeEditorHeader: TLabel
       Left = 8
-      Height = 22
+      Height = 23
       Top = 16
       Width = 194
       Caption = 'Edit Pascal Code With:'
@@ -219,8 +219,8 @@ object PreferencesForm: TPreferencesForm
       AnchorSideTop.Control = LabelCodeEditorHeader
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 26
-      Top = 46
+      Height = 27
+      Top = 47
       Width = 419
       BorderSpacing.Top = 8
       Caption = 'Autodetect (Lazarus, Delphi, Visual Studio Code)'
@@ -234,8 +234,8 @@ object PreferencesForm: TPreferencesForm
       AnchorSideTop.Control = LabelCodeEditorVSCode
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 26
-      Top = 302
+      Height = 27
+      Top = 311
       Width = 185
       BorderSpacing.Top = 8
       Caption = 'Custom Commands'
@@ -247,8 +247,8 @@ object PreferencesForm: TPreferencesForm
       AnchorSideTop.Control = EditCodeEditorCommandProject
       AnchorSideTop.Side = asrBottom
       Left = 40
-      Height = 154
-      Top = 453
+      Height = 161
+      Top = 463
       Width = 699
       BorderSpacing.Top = 8
       Caption = 'In all above fields: Choose the executable file of your editor and add macros.'#10#10'Recognized macros:'#10'- ${PAS} - Pascal file to edit'#10'- ${LINE}, ${COLUMN} - Line and column numbers to open at'#10'- ${STANDALONE_SOURCE} - Main program source code (dpr) for standalone platform'#10'- ${PROJECT_DIR} - Project directory'#10#10'The only required command is "Open Pascal file".'
@@ -258,8 +258,8 @@ object PreferencesForm: TPreferencesForm
       AnchorSideTop.Control = LabelCodeEditorCommand
       AnchorSideTop.Side = asrCenter
       Left = 336
-      Height = 39
-      Top = 328
+      Height = 40
+      Top = 337
       Width = 514
       OnAcceptFileName = EditCodeEditorCommandAcceptFileName
       FilterIndex = 0
@@ -276,8 +276,8 @@ object PreferencesForm: TPreferencesForm
       AnchorSideTop.Control = RadioCodeEditorCustom
       AnchorSideTop.Side = asrBottom
       Left = 40
-      Height = 22
-      Top = 336
+      Height = 23
+      Top = 346
       Width = 134
       BorderSpacing.Left = 32
       BorderSpacing.Top = 8
@@ -288,8 +288,8 @@ object PreferencesForm: TPreferencesForm
       AnchorSideTop.Control = EditCodeEditorCommandLineColumn
       AnchorSideTop.Side = asrBottom
       Left = 40
-      Height = 22
-      Top = 414
+      Height = 23
+      Top = 424
       Width = 192
       BorderSpacing.Top = 8
       Caption = 'Open project directory:'
@@ -299,8 +299,8 @@ object PreferencesForm: TPreferencesForm
       AnchorSideTop.Control = LabelCodeEditorCommandProjectInstructions
       AnchorSideTop.Side = asrCenter
       Left = 336
-      Height = 39
-      Top = 406
+      Height = 40
+      Top = 415
       Width = 514
       OnAcceptFileName = EditCodeEditorCommandProjectAcceptFileName
       FilterIndex = 0
@@ -317,8 +317,8 @@ object PreferencesForm: TPreferencesForm
       AnchorSideTop.Control = LabelCodeEditorAutodetect
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 26
-      Top = 110
+      Height = 27
+      Top = 113
       Width = 86
       BorderSpacing.Top = 8
       Caption = 'Lazarus'
@@ -330,8 +330,8 @@ object PreferencesForm: TPreferencesForm
       AnchorSideTop.Control = LabelCodeEditorLazarus
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 26
-      Top = 174
+      Height = 27
+      Top = 179
       Width = 79
       BorderSpacing.Top = 8
       Caption = 'Delphi'
@@ -343,8 +343,8 @@ object PreferencesForm: TPreferencesForm
       AnchorSideTop.Control = LabelCodeEditorDelphi
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 26
-      Top = 238
+      Height = 27
+      Top = 245
       Width = 178
       BorderSpacing.Top = 8
       Caption = 'Visual Studio Code'
@@ -356,8 +356,8 @@ object PreferencesForm: TPreferencesForm
       AnchorSideTop.Control = RadioCodeEditorAutodetect
       AnchorSideTop.Side = asrBottom
       Left = 40
-      Height = 22
-      Top = 80
+      Height = 23
+      Top = 82
       Width = 146
       BorderSpacing.Left = 32
       BorderSpacing.Top = 8
@@ -370,8 +370,8 @@ object PreferencesForm: TPreferencesForm
       AnchorSideTop.Control = RadioCodeEditorLazarus
       AnchorSideTop.Side = asrBottom
       Left = 40
-      Height = 22
-      Top = 144
+      Height = 23
+      Top = 148
       Width = 110
       BorderSpacing.Left = 32
       BorderSpacing.Top = 8
@@ -384,8 +384,8 @@ object PreferencesForm: TPreferencesForm
       AnchorSideTop.Control = RadioCodeEditorDelphi
       AnchorSideTop.Side = asrBottom
       Left = 40
-      Height = 22
-      Top = 208
+      Height = 23
+      Top = 214
       Width = 81
       BorderSpacing.Left = 32
       BorderSpacing.Top = 8
@@ -398,8 +398,8 @@ object PreferencesForm: TPreferencesForm
       AnchorSideTop.Control = RadioCodeEditorVSCode
       AnchorSideTop.Side = asrBottom
       Left = 40
-      Height = 22
-      Top = 272
+      Height = 23
+      Top = 280
       Width = 81
       BorderSpacing.Left = 32
       BorderSpacing.Top = 8
@@ -412,8 +412,8 @@ object PreferencesForm: TPreferencesForm
       AnchorSideTop.Control = EditCodeEditorCommand
       AnchorSideTop.Side = asrBottom
       Left = 40
-      Height = 22
-      Top = 375
+      Height = 23
+      Top = 385
       Width = 254
       BorderSpacing.Left = 32
       BorderSpacing.Top = 8
@@ -424,8 +424,8 @@ object PreferencesForm: TPreferencesForm
       AnchorSideTop.Control = LabelCodeEditorCommandLineColumn
       AnchorSideTop.Side = asrCenter
       Left = 336
-      Height = 39
-      Top = 367
+      Height = 40
+      Top = 376
       Width = 512
       OnAcceptFileName = EditCodeEditorCommandLineColumnAcceptFileName
       FilterIndex = 0
@@ -440,20 +440,20 @@ object PreferencesForm: TPreferencesForm
   end
   object PanelFpcLazarusConfig: TPanel
     Left = 184
-    Height = 699
+    Height = 698
     Top = 0
     Width = 899
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 699
+    ClientHeight = 698
     ClientWidth = 899
     TabOrder = 0
     object DirectoryEditFpc: TDirectoryEdit
       AnchorSideTop.Control = LabelFpc
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 39
-      Top = 87
+      Height = 40
+      Top = 89
       Width = 860
       ShowHidden = False
       ButtonWidth = 29
@@ -468,8 +468,8 @@ object PreferencesForm: TPreferencesForm
       AnchorSideTop.Control = LabelTitle
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 22
-      Top = 65
+      Height = 23
+      Top = 66
       Width = 73
       BorderSpacing.Top = 27
       Caption = 'FPC Path'
@@ -479,8 +479,8 @@ object PreferencesForm: TPreferencesForm
       AnchorSideTop.Control = LabelFpcAutoDetected
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 22
-      Top = 197
+      Height = 23
+      Top = 202
       Width = 101
       BorderSpacing.Top = 27
       Caption = 'Lazarus Path'
@@ -490,8 +490,8 @@ object PreferencesForm: TPreferencesForm
       AnchorSideTop.Control = LabelLazarus
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 39
-      Top = 219
+      Height = 40
+      Top = 225
       Width = 860
       ShowHidden = False
       ButtonWidth = 29
@@ -504,7 +504,7 @@ object PreferencesForm: TPreferencesForm
     end
     object LabelTitle: TLabel
       Left = 8
-      Height = 22
+      Height = 23
       Top = 16
       Width = 285
       Caption = 'Configure FPC and Lazarus Paths'
@@ -515,8 +515,8 @@ object PreferencesForm: TPreferencesForm
       AnchorSideTop.Control = LabelFpcAutoDetectedCaption
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 22
-      Top = 148
+      Height = 23
+      Top = 152
       Width = 135
       Caption = 'Auto-detecting...'
       Font.Style = [fsItalic]
@@ -526,8 +526,8 @@ object PreferencesForm: TPreferencesForm
       AnchorSideTop.Control = LabelLazarusAutoDetectedCaption
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 22
-      Top = 280
+      Height = 23
+      Top = 288
       Width = 135
       Caption = 'Auto-detecting...'
       Font.Style = [fsItalic]
@@ -537,8 +537,8 @@ object PreferencesForm: TPreferencesForm
       AnchorSideTop.Control = DirectoryEditFpc
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 22
-      Top = 126
+      Height = 23
+      Top = 129
       Width = 222
       Caption = 'Leave empty to auto-detect.'
       Font.Style = [fsItalic]
@@ -548,8 +548,8 @@ object PreferencesForm: TPreferencesForm
       AnchorSideTop.Control = DirectoryEditLazarus
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 22
-      Top = 258
+      Height = 23
+      Top = 265
       Width = 222
       Caption = 'Leave empty to auto-detect.'
       Font.Style = [fsItalic]
@@ -560,9 +560,9 @@ object PreferencesForm: TPreferencesForm
       AnchorSideTop.Control = LabelLazarusAutoDetected
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 38
+      Height = 39
       Hint = 'Register Castle Game Engine packages (lpk) with Lazarus. Do this once for a new Lazarus installation.'
-      Top = 310
+      Top = 319
       Width = 228
       AutoSize = True
       BorderSpacing.Top = 8
@@ -575,22 +575,22 @@ object PreferencesForm: TPreferencesForm
       AnchorSideTop.Control = ButtonRegisterLazarusPackages
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 333
-      Top = 364
+      Height = 322
+      Top = 374
       Width = 880
       Anchors = [akTop, akLeft, akRight, akBottom]
       BorderSpacing.Top = 16
       BevelInner = bvLowered
       BevelOuter = bvNone
-      ClientHeight = 333
+      ClientHeight = 322
       ClientWidth = 880
       TabOrder = 3
       object LabelInstructions0: TLabel
         AnchorSideTop.Control = ButtonRegisterLazarusPackages
         AnchorSideTop.Side = asrBottom
         Left = 8
-        Height = 22
-        Top = 6
+        Height = 23
+        Top = 5
         Width = 274
         Anchors = [akLeft]
         BorderSpacing.Top = 8
@@ -602,7 +602,7 @@ object PreferencesForm: TPreferencesForm
         AnchorSideTop.Control = LabelInstructions0
         AnchorSideTop.Side = asrBottom
         Left = 8
-        Height = 44
+        Height = 46
         Top = 55
         Width = 873
         Anchors = [akTop, akLeft, akRight]
@@ -616,8 +616,8 @@ object PreferencesForm: TPreferencesForm
         AnchorSideTop.Side = asrBottom
         Cursor = crHandPoint
         Left = 8
-        Height = 22
-        Top = 113
+        Height = 23
+        Top = 115
         Width = 237
         BorderSpacing.Top = 14
         Caption = 'https://www.lazarus-ide.org/'
@@ -630,8 +630,8 @@ object PreferencesForm: TPreferencesForm
         AnchorSideTop.Control = LabelLazarusWebsite
         AnchorSideTop.Side = asrBottom
         Left = 8
-        Height = 88
-        Top = 149
+        Height = 92
+        Top = 152
         Width = 873
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Top = 14
@@ -643,18 +643,18 @@ object PreferencesForm: TPreferencesForm
   end
   object PanelGeneral: TPanel
     Left = 184
-    Height = 699
+    Height = 698
     Top = 0
     Width = 899
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 699
+    ClientHeight = 698
     ClientWidth = 899
     TabOrder = 6
     object LabelCgePath: TLabel
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 22
+      Height = 23
       Top = 16
       Width = 201
       BorderSpacing.Top = 27
@@ -666,8 +666,8 @@ object PreferencesForm: TPreferencesForm
       AnchorSideTop.Control = LabelCgePath
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 39
-      Top = 38
+      Height = 40
+      Top = 39
       Width = 860
       ShowHidden = False
       ButtonWidth = 29
@@ -682,8 +682,8 @@ object PreferencesForm: TPreferencesForm
       AnchorSideTop.Control = DirectoryEditCgePath
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 22
-      Top = 77
+      Height = 23
+      Top = 79
       Width = 222
       Caption = 'Leave empty to auto-detect.'
       Font.Style = [fsItalic]
@@ -693,8 +693,8 @@ object PreferencesForm: TPreferencesForm
       AnchorSideTop.Control = LabelCgePathAutoDetectedCaption
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 22
-      Top = 99
+      Height = 23
+      Top = 102
       Width = 135
       Caption = 'Auto-detecting...'
       Font.Style = [fsItalic]
@@ -703,18 +703,18 @@ object PreferencesForm: TPreferencesForm
   end
   object PanelAndroid: TPanel
     Left = 184
-    Height = 699
+    Height = 698
     Top = 0
     Width = 899
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 699
+    ClientHeight = 698
     ClientWidth = 899
     TabOrder = 7
     object LabelAndroidHome: TLabel
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 22
+      Height = 23
       Top = 16
       Width = 182
       BorderSpacing.Top = 27
@@ -726,8 +726,8 @@ object PreferencesForm: TPreferencesForm
       AnchorSideTop.Control = LabelAndroidHome
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 39
-      Top = 38
+      Height = 40
+      Top = 39
       Width = 860
       OnAcceptDirectory = DirectoryEditAndroidHomeAcceptDirectory
       ShowHidden = False
@@ -743,8 +743,8 @@ object PreferencesForm: TPreferencesForm
       AnchorSideTop.Control = DirectoryEditAndroidHome
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 66
-      Top = 77
+      Height = 69
+      Top = 79
       Width = 569
       Caption = 'Should contain subdirectories like "tools" and "platform-tools".'#10'Leave empty to auto-detect.'#10'Alternative to this, you can set ANDROID_HOME environment variable.'
       Font.Style = [fsItalic]
@@ -755,8 +755,8 @@ object PreferencesForm: TPreferencesForm
       AnchorSideTop.Control = LabelAndroidHomeHint
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 22
-      Top = 163
+      Height = 23
+      Top = 168
       Width = 114
       BorderSpacing.Top = 20
       Caption = 'Java Location:'
@@ -767,8 +767,8 @@ object PreferencesForm: TPreferencesForm
       AnchorSideTop.Control = LabelJavaHome
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 39
-      Top = 185
+      Height = 40
+      Top = 191
       Width = 859
       ShowHidden = False
       ButtonWidth = 29
@@ -784,8 +784,8 @@ object PreferencesForm: TPreferencesForm
       AnchorSideTop.Control = DirectoryEditJavaHome
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 44
-      Top = 224
+      Height = 46
+      Top = 231
       Width = 530
       Caption = 'Leave empty to auto-detect.'#10'Alternative to this, you can set JAVA_HOME environment variable.'
       Font.Style = [fsItalic]
@@ -796,8 +796,8 @@ object PreferencesForm: TPreferencesForm
       AnchorSideTop.Control = LabelJavaHomeHint
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 22
-      Top = 288
+      Height = 23
+      Top = 297
       Width = 226
       BorderSpacing.Top = 20
       Caption = 'See Android documentation:'
@@ -810,8 +810,8 @@ object PreferencesForm: TPreferencesForm
       AnchorSideTop.Side = asrBottom
       Cursor = crHandPoint
       Left = 8
-      Height = 22
-      Top = 310
+      Height = 23
+      Top = 320
       Width = 258
       Caption = 'https://castle-engine.io/android'
       Font.Color = clBlue
