@@ -819,5 +819,19 @@ object PreferencesForm: TPreferencesForm
       Font.Style = [fsItalic]
       ParentFont = False
     end
+    object ButtonOpenCgePath: TButton
+      AnchorSideLeft.Control = LabelCgePathAutoDetected
+      AnchorSideTop.Control = LabelCgePathAutoDetected
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 39
+      Top = 145
+      Width = 320
+      AutoSize = True
+      BorderSpacing.Top = 20
+      Caption = 'Open Engine Location in File Manager'
+      TabOrder = 1
+      OnClick = ButtonOpenCgePathClick
+    end
   end
 end
