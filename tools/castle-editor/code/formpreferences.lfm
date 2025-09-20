@@ -641,66 +641,6 @@ object PreferencesForm: TPreferencesForm
       end
     end
   end
-  object PanelGeneral: TPanel
-    Left = 184
-    Height = 698
-    Top = 0
-    Width = 899
-    Align = alClient
-    BevelOuter = bvNone
-    ClientHeight = 698
-    ClientWidth = 899
-    TabOrder = 6
-    object LabelCgePath: TLabel
-      AnchorSideTop.Side = asrBottom
-      Left = 8
-      Height = 23
-      Top = 16
-      Width = 201
-      BorderSpacing.Top = 27
-      Caption = 'Castle Game Engine Path'
-      ParentFont = False
-    end
-    object DirectoryEditCgePath: TDirectoryEdit
-      AnchorSideLeft.Control = LabelCgePath
-      AnchorSideTop.Control = LabelCgePath
-      AnchorSideTop.Side = asrBottom
-      Left = 8
-      Height = 40
-      Top = 39
-      Width = 860
-      ShowHidden = False
-      ButtonWidth = 29
-      NumGlyphs = 1
-      Anchors = [akTop, akLeft, akRight]
-      MaxLength = 0
-      ParentFont = False
-      TabOrder = 0
-      OnChange = DirectoryEditCgePathChange
-    end
-    object LabelCgePathAutoDetectedCaption: TLabel
-      AnchorSideTop.Control = DirectoryEditCgePath
-      AnchorSideTop.Side = asrBottom
-      Left = 8
-      Height = 23
-      Top = 79
-      Width = 222
-      Caption = 'Leave empty to auto-detect.'
-      Font.Style = [fsItalic]
-      ParentFont = False
-    end
-    object LabelCgePathAutoDetected: TLabel
-      AnchorSideTop.Control = LabelCgePathAutoDetectedCaption
-      AnchorSideTop.Side = asrBottom
-      Left = 8
-      Height = 23
-      Top = 102
-      Width = 135
-      Caption = 'Auto-detecting...'
-      Font.Style = [fsItalic]
-      ParentFont = False
-    end
-  end
   object PanelAndroid: TPanel
     Left = 184
     Height = 698
@@ -818,6 +758,66 @@ object PreferencesForm: TPreferencesForm
       Font.Style = [fsUnderline]
       ParentFont = False
       OnClick = LabelAndroidDocsWwwClick
+    end
+  end
+  object PanelGeneral: TPanel
+    Left = 184
+    Height = 698
+    Top = 0
+    Width = 899
+    Align = alClient
+    BevelOuter = bvNone
+    ClientHeight = 698
+    ClientWidth = 899
+    TabOrder = 6
+    object LabelCgePath: TLabel
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 23
+      Top = 16
+      Width = 201
+      BorderSpacing.Top = 27
+      Caption = 'Castle Game Engine Path'
+      ParentFont = False
+    end
+    object DirectoryEditCgePath: TDirectoryEdit
+      AnchorSideLeft.Control = LabelCgePath
+      AnchorSideTop.Control = LabelCgePath
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 40
+      Top = 39
+      Width = 860
+      ShowHidden = False
+      ButtonWidth = 29
+      NumGlyphs = 1
+      Anchors = [akTop, akLeft, akRight]
+      MaxLength = 0
+      ParentFont = False
+      TabOrder = 0
+      OnChange = DirectoryEditCgePathChange
+    end
+    object LabelCgePathAutoDetectedCaption: TLabel
+      AnchorSideTop.Control = DirectoryEditCgePath
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 23
+      Top = 79
+      Width = 222
+      Caption = 'Leave empty to auto-detect.'
+      Font.Style = [fsItalic]
+      ParentFont = False
+    end
+    object LabelCgePathAutoDetected: TLabel
+      AnchorSideTop.Control = LabelCgePathAutoDetectedCaption
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 23
+      Top = 102
+      Width = 135
+      Caption = 'Auto-detecting...'
+      Font.Style = [fsItalic]
+      ParentFont = False
     end
   end
 end
