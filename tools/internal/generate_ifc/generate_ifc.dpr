@@ -17,7 +17,7 @@
 {$I castleconf.inc}
 
 uses SysUtils, Classes, Dom, XmlRead, Generics.Defaults, Generics.Collections,
-  {$ifdef FPC} OpenSSLSockets, {$endif} // support HTTPS
+  CastleHttps, // support HTTPS
   CastleStringUtils, CastleClassUtils, CastleDownload, CastleXmlUtils,
   CastleUtils, CastleFilesUtils;
 

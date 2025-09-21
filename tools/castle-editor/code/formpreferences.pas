@@ -24,6 +24,7 @@ uses
 
 type
   TPreferencesForm = class(TForm)
+    ButtonOpenCgePath: TButton;
     ButtonRegisterLazarusPackages: TButton;
     ButtonPanel1: TButtonPanel;
     CheckBoxMuteOnRun: TCheckBox;
@@ -87,6 +88,7 @@ type
     RadioCompilerFpc: TRadioButton;
     RadioCodeEditorVSCode: TRadioButton;
     TrackVolume: TTrackBar;
+    procedure ButtonOpenCgePathClick(Sender: TObject);
     procedure ButtonRegisterLazarusPackagesClick(Sender: TObject);
     procedure DirectoryEditAndroidHomeAcceptDirectory(Sender: TObject;
       var Value: String);
@@ -172,6 +174,10 @@ var
 begin
   CgePathStatus(CastleEnginePath, CgePathStatusText);
   LabelCgePathAutoDetected.Caption := CgePathAutodetectedLine + CgePathStatusText;
+
+  ButtonOpenCgePath.Enabled :=
+    (CastleEnginePath <> '') or
+    (CastleEngineOverridePath <> '');
 
   FpcExe := '';
   try
@@ -454,18 +460,29 @@ procedure TPreferencesForm.ButtonRegisterLazarusPackagesClick(Sender: TObject);
 
 begin
   try
-    RegisterPackage('packages/castle_base.lpk');
-    RegisterPackage('packages/castle_window.lpk');
-    RegisterPackage('packages/castle_components.lpk');
-    RegisterPackage('packages/castle_editor_components.lpk');
-    RegisterPackage('packages/alternative_castle_window_based_on_lcl.lpk');
-    RegisterPackage('packages/castle_indy.lpk');
+    RegisterPackage('packages/lazarus/castle_engine_base.lpk');
+    RegisterPackage('packages/lazarus/castle_engine_window.lpk');
+    RegisterPackage('packages/lazarus/castle_engine_lcl.lpk');
+    RegisterPackage('packages/lazarus/castle_engine_editor_components.lpk');
+    RegisterPackage('packages/lazarus/alternative_castle_engine_window_based_on_lcl.lpk');
+    RegisterPackage('packages/lazarus/castle_engine_indy.lpk');
 
     ShowMessage('Lazarus packages registered successfully.');
   except
     on E: Exception do
       ErrorBox(E.Message);
   end;
+end;
+
+procedure TPreferencesForm.ButtonOpenCgePathClick(Sender: TObject);
+begin
+  if (CastleEngineOverridePath <> '') and DirectoryExists(CastleEngineOverridePath) then
+    OpenDocument(CastleEngineOverridePath)
+  else
+  if (CastleEnginePath <> '') and DirectoryExists(CastleEnginePath) then
+    OpenDocument(CastleEnginePath)
+  else
+    ErrorBox('No valid engine path detected.');
 end;
 
 procedure TPreferencesForm.DirectoryEditAndroidHomeAcceptDirectory(

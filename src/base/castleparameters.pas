@@ -788,7 +788,7 @@ begin
       to Google Pixel 6a as we could).
 
     Define CASTLE_ANDROID_ARGV_LOGGING to observe
-    (testing with CGE examples/eye_of_beholder below, but it affects any
+    (testing with CGE examples/3d_games/eye_of_beholder below, but it affects any
     CGE application):
 
       ... I eye_of_beholder: Argc: 6

@@ -43,6 +43,7 @@ const
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ActionMaximizePreview: TAction;
     ActionComponentDuplicateLinked: TAction;
     ActionUnInstall: TAction;
     ActionDevices: TAction;
@@ -114,6 +115,7 @@ type
     BitBtnNewView: TBitBtn;
     LabelOpenExistingView: TLabel;
     ListOpenExistingView: TListView;
+    MenuItemMaximizePreview: TMenuItem;
     MenuItemDuplicateLinkedComponent: TMenuItem;
     MenuItem10: TMenuItem;
     MenuItem11: TMenuItem;
@@ -355,6 +357,7 @@ type
     procedure ActionFindNextExecute(Sender: TObject);
     procedure ActionFindToggleExecute(Sender: TObject);
     procedure ActionImportSketchfabExecute(Sender: TObject);
+    procedure ActionMaximizePreviewExecute(Sender: TObject);
     procedure ActionPhysicsShowAllJointsToolsExecute(Sender: TObject);
     procedure ActionPhysicsHideAllJointsToolsExecute(Sender: TObject);
     procedure ActionFocusDesignExecute(Sender: TObject);
@@ -1018,6 +1021,14 @@ begin
   ImportSketchfabForm.OnCanAddImported := @CanAddImported;
   ImportSketchfabForm.OnAddImported := @AddImported;
   ImportSketchfabForm.Show;
+end;
+
+procedure TProjectForm.ActionMaximizePreviewExecute(Sender: TObject);
+begin
+  ActionMaximizePreview.Checked := not ActionMaximizePreview.Checked;
+  if Design <> nil then
+    Design.MaximizePreview := ActionMaximizePreview.Checked;
+  SetEnabledVisible(PageControlBottom, not ActionMaximizePreview.Checked);
 end;
 
 procedure TProjectForm.ActionFindNextExecute(Sender: TObject);
@@ -2559,9 +2570,13 @@ begin
   ActionModeRotate.Enabled := Design <> nil;
   ActionModeScale.Enabled := Design <> nil;
   ActionShowStatistics.Enabled := Design <> nil;
-  ActionFindToggle.Enabled := Design <> nil;
-  ActionFindNext.Enabled := Design <> nil;
   ActionExportToModel.Enabled := Design <> nil;
+
+  // disable ActionFindToggle, as cannot focus when edit hidden
+  ActionFindToggle.Enabled := (Design <> nil) and (not ActionMaximizePreview.Checked);
+  // disable ActionFindNext for consistency with ActionFindToggle,
+  // and would be confusing when hierarchy not visible
+  ActionFindNext.Enabled := (Design <> nil) and (not ActionMaximizePreview.Checked);
 
   { Options that toggle InternalForceWireframe could actually work with Design=nil,
     with current implementation.
@@ -2638,6 +2653,7 @@ begin
     Design.OnShowStatistics  := @ShowStatistics;
     Design.OnRunningToggle  := @RunningToggle;
     Design.OnApiReferenceOfCurrent := @MenuItemReferenceOfCurrentClick;
+    Design.MaximizePreview := ActionMaximizePreview.Checked;
 
     // Update Design.ActionPlayStop, after OnIsRunning and OnRunningToggle are set
     Design.ActionPlayStopUpdate(Design.ActionPlayStop);

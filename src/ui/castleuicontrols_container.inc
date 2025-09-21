@@ -1341,9 +1341,12 @@ var
     if OverrideCursor <> mcDefault then
       Result := OverrideCursor;
 
-    { do not hide when container is not focused (mouse look doesn't work
-      then too, so better to not hide mouse) }
-    if (not Focused) and (Result in [mcNone, mcForceNone]) then
+    { Do not hide when
+      - container is not focused (mouse look doesn't work
+        then too, so better to not hide mouse)
+      - inspector is active (we should then see the mouse on top of inspector). }
+    if ( (not Focused) or (FInspector <> nil) ) and
+       (Result in [mcNone, mcForceNone]) then
       Result := mcDefault;
   end;
 
@@ -2366,11 +2369,11 @@ begin
       (clicking buttonLeft while holding buttonRight)
       stops mouse look, even though user still holds buttonRight.
 
-    - examples/fps_game/
+    - examples/3d_games/explore_impressive_castle/
 
-      As above, though mouse look can also be permanent (after F4).
+      As above, though mouse look is permanent (as long as in game view).
 
-      It's a problem in any case (whether mouse look is permanent by F4,
+      It's a problem in any case (whether mouse look is permanent,
       or temporary by holding buttonRight): clicking with buttonLeft stops
       mouse look from working.
 

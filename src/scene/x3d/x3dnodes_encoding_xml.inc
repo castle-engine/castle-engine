@@ -209,7 +209,14 @@ function ParseXMLNode(const Element: TDOMElement;
             FieldIndex := Result.IndexOfField(FieldName);
             if FieldIndex = -1 then
             begin
-              WritelnWarning('X3D', Format('X3D XML: <fieldValue> element references unknown field name "%s"', [FieldName]));
+              { If the FieldName refers to event, make a better warning about it,
+                so it's not confusing to X3D authors. }
+              if Result.IndexOfEvent(FieldName) <> -1 then
+                WritelnWarning('X3D', Format('X3D XML: <fieldValue> references an event name "%s". ' +
+                  'This is invalid, as only fields (not events) can have values assigned at prototype instantiation. ' +
+                  'Consider changing prototype definition to use "inputOutput" or "initializeOnly" instead.', [FieldName]))
+              else
+                WritelnWarning('X3D', Format('X3D XML: <fieldValue> references unknown field name "%s"', [FieldName]));
               Continue;
             end;
 

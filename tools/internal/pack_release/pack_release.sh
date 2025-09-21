@@ -437,10 +437,10 @@ pack_platform_dir ()
   # update environment to use CGE in temporary location
   export CASTLE_ENGINE_PATH="${TEMP_PATH_CGE}"
 
-  lazbuild_twice $CASTLE_LAZBUILD_OPTIONS packages/castle_base.lpk
-  lazbuild_twice $CASTLE_LAZBUILD_OPTIONS packages/castle_window.lpk
-  lazbuild_twice $CASTLE_LAZBUILD_OPTIONS packages/castle_components.lpk
-  lazbuild_twice $CASTLE_LAZBUILD_OPTIONS packages/castle_editor_components.lpk
+  lazbuild_twice $CASTLE_LAZBUILD_OPTIONS packages/lazarus/castle_engine_base.lpk
+  lazbuild_twice $CASTLE_LAZBUILD_OPTIONS packages/lazarus/castle_engine_window.lpk
+  lazbuild_twice $CASTLE_LAZBUILD_OPTIONS packages/lazarus/castle_engine_lcl.lpk
+  lazbuild_twice $CASTLE_LAZBUILD_OPTIONS packages/lazarus/castle_engine_editor_components.lpk
 
   # Make sure no leftovers from previous compilations remain,
   # to not pack them in release.

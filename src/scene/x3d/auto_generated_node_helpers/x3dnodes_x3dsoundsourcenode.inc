@@ -24,8 +24,6 @@
 {$ifdef read_interface}
 
   strict private
-    function GetDescription: String;
-    procedure SetDescription(const Value: String);
     function GetEnabled: Boolean;
     procedure SetEnabled(const Value: Boolean);
     function GetGain: Single;
@@ -36,12 +34,6 @@
     { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: String; override;
-
-    strict private FFdDescription: TSFString;
-    { Internal wrapper for property @code(Description). This wrapper API may change, we advise to access simpler @code(Description) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
-    public property FdDescription: TSFString read FFdDescription;
-    {  }
-    property Description: String read GetDescription write SetDescription;
 
     strict private FFdEnabled: TSFBool;
     { Internal wrapper for property @code(Enabled). This wrapper API may change, we advise to access simpler @code(Enabled) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -70,16 +62,6 @@
 {$ifdef read_implementation}
 
 { TAbstractSoundSourceNode ----------------------------------------------- }
-
-function TAbstractSoundSourceNode.GetDescription: String;
-begin
-  Result := FdDescription.Value;
-end;
-
-procedure TAbstractSoundSourceNode.SetDescription(const Value: String);
-begin
-  FdDescription.Send(Value);
-end;
 
 function TAbstractSoundSourceNode.GetEnabled: Boolean;
 begin
@@ -119,10 +101,6 @@ end;
 procedure TAbstractSoundSourceNode.CreateNode;
 begin
   inherited;
-
-  FFdDescription := TSFString.Create(Self, True, 'description', '');
-   FdDescription.ChangeAlways := chNone;
-  AddField(FFdDescription);
 
   FFdEnabled := TSFBool.Create(Self, True, 'enabled', true);
    FdEnabled.ChangeAlways := chVisibleNonGeometry;

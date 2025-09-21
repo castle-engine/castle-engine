@@ -2941,12 +2941,13 @@ begin
 
       { Fix the loaded image class.
         Although loaders should also attempt to do it inside (with better speed),
-        but it is not required, e.g. Load_VampyreImaging ignores AllowedImageClasses value.
+        but it is not required, e.g. Load_VampyreImaging ignores
+        AllowedImageClasses value.
         And we want code like
 
           LoadImage('a.png', [TRGBImage]) as TRGBImage
 
-        to always work, testcase: examples/fps_game.
+        to always work, i.e. return TRGBImage regardless of a.png contents.
       }
       FixImageClass;
     end else

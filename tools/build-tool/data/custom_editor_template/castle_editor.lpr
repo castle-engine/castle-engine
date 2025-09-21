@@ -36,7 +36,7 @@ uses
   {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
   // packages:
-  castle_components,
+  castle_engine_lcl,
   // This line was uncommented by tools/build-tool/data/custom_editor_template_rebuild.sh
   castle_editor_automatic_package,
   Forms, anchordockpkg, FormChooseProject, ProjectUtils, FormNewProject,

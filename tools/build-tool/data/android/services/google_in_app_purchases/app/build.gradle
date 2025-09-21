@@ -2,7 +2,7 @@
 <build_gradle_merge>
   <!-- See https://developer.android.com/google/play/billing/migrate -->
   <dependencies>
-    <dependency>def billing_version = "4.0.0"
+    <dependency>def billing_version = "8.0.0"
 implementation "com.android.billingclient:billing:$billing_version"</dependency>
   </dependencies>
 </build_gradle_merge>

@@ -54,7 +54,7 @@ var
 implementation
 
 uses SysUtils, Math,
-  {$ifdef FPC} OpenSSLSockets, {$endif} // https support
+  CastleHttps, // https support
   CastleComponentSerialize, CastleUtils, CastleStringUtils, CastleLog,
   CastleUriUtils;
 

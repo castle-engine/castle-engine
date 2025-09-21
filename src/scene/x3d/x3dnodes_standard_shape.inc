@@ -436,6 +436,13 @@
   {$I auto_generated_node_helpers/x3dnodes_unlitmaterial.inc}
   end;
 
+  { Interaction of sound waves with the characteristics of objects in the scene.
+    Functionality not implemented yet --
+    defined only for parsing and validation of X3D. }
+  TAcousticPropertiesNode = class(TAbstractAppearanceChildNode)
+  {$I auto_generated_node_helpers/x3dnodes_acousticproperties.inc}
+  end;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -983,6 +990,8 @@ begin
   Result := FNode.FdTransSpecularExp.Value;
 end;
 
+{$endif not CASTLE_SLIM_NODES}
+
 function TMaterialNode.TMyMaterialInfo.MainTexture(
   const Appearance: TAppearanceNode;
   const VRML1State: TVRML1State): TAbstractTextureNode;
@@ -1008,8 +1017,6 @@ begin
   Result := Appearance.Texture;
   TexCoordIndex := -1;
 end;
-
-{$endif not CASTLE_SLIM_NODES}
 
 { TPhysicalMaterialNode.TMyPhysicalMaterialInfo --------------------------------------------------- }
 
@@ -1445,7 +1452,8 @@ begin
     TPhysicalMaterialNode,
     TShapeNode,
     TTwoSidedMaterialNode,
-    TUnlitMaterialNode
+    TUnlitMaterialNode,
+    TAcousticPropertiesNode
   ]);
 end;
 

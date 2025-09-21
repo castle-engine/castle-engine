@@ -41,6 +41,11 @@
 #     and compiles every program by the lazbuild utility.
 #     Lazarus and FPC installation is required.
 #
+#   examples-delphi --
+#     Compile all examples using Delphi.
+#     This uses CGE build tool, that (when invoked with --compiler=delphi)
+#     executes Delphi command-line compiler.
+#
 #   build-using-fpmake:
 #     Compile all units using FpMake.
 #     We support this as an optional build approach to CGE and applications using CGE.
@@ -109,10 +114,10 @@ BUILD_TOOL = ./tools/build-tool/castle-engine$(EXE_EXTENSION)
 
 .PHONY: default
 default: tools
-	lazbuild $(CASTLE_LAZBUILD_OPTIONS) --add-package-link packages/castle_base.lpk
-	lazbuild $(CASTLE_LAZBUILD_OPTIONS) --add-package-link packages/castle_window.lpk
-	lazbuild $(CASTLE_LAZBUILD_OPTIONS) --add-package-link packages/castle_components.lpk
-	lazbuild $(CASTLE_LAZBUILD_OPTIONS) --add-package-link packages/castle_editor_components.lpk
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) --add-package-link packages/lazarus/castle_engine_base.lpk
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) --add-package-link packages/lazarus/castle_engine_window.lpk
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) --add-package-link packages/lazarus/castle_engine_lcl.lpk
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) --add-package-link packages/lazarus/castle_engine_editor_components.lpk
 	lazbuild $(CASTLE_LAZBUILD_OPTIONS) tools/castle-editor/castle_editor.lpi
 # move binaries to bin/
 	$(INSTALL) -d bin/
@@ -245,8 +250,19 @@ test-editor-templates:
 	$(MAKE) --no-print-directory test-editor-template CGE_TEMPLATE=empty
 	$(MAKE) --no-print-directory test-editor-template CGE_TEMPLATE=3d_model_viewer
 
+# Various tasks that should be done before examples* targets,
+# to make examples ready to build.
+.PHONY: prepare-examples
+prepare-examples:
+	# setup non-functional openai_config.inc, to test example compiles OK.
+	cp -f examples/network/ask_openai_assistant/code/openai_config.inc.template \
+	      examples/network/ask_openai_assistant/code/openai_config.inc
+	# setup non-functional unsplash_secrets.inc, to test example compiles OK.
+	cp -f examples/network/random_image_from_unsplash/code/unsplash_secrets.inc.template \
+	      examples/network/random_image_from_unsplash/code/unsplash_secrets.inc
+
 .PHONY: examples
-examples:
+examples: prepare-examples
 # Compile build tool first, used to compile other tools and examples.
 	tools/build-tool/castle-engine_compile.sh
 
@@ -305,7 +321,7 @@ examples:
 # TODO: We don't automatically build examples/delphi/cpp_builder,
 # our build tool doesn't support C++ Builder compilation now.
 .PHONY: examples-delphi
-examples-delphi:
+examples-delphi: prepare-examples
 	"$(FIND)" ./examples/ \
 	  '(' -path ./examples/castlescript/image_make_by_script -prune ')' -o \
 	  '(' -path ./examples/localization -prune ')' -o \
@@ -324,11 +340,11 @@ examples-delphi:
 	done
 
 .PHONY: examples-laz
-examples-laz:
-	lazbuild $(CASTLE_LAZBUILD_OPTIONS) packages/castle_base.lpk
-	lazbuild $(CASTLE_LAZBUILD_OPTIONS) packages/castle_window.lpk
-	lazbuild $(CASTLE_LAZBUILD_OPTIONS) packages/castle_components.lpk
-	lazbuild $(CASTLE_LAZBUILD_OPTIONS) packages/castle_editor_components.lpk
+examples-laz: prepare-examples
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) packages/lazarus/castle_engine_base.lpk
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) packages/lazarus/castle_engine_window.lpk
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) packages/lazarus/castle_engine_lcl.lpk
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) packages/lazarus/castle_engine_editor_components.lpk
 	set -e && for PROJECT_LPI in $(EXAMPLES_BASE_NAMES) $(EXAMPLES_LAZARUS_BASE_NAMES); do \
 	  ./tools/internal/lazbuild_retry $${PROJECT_LPI}.lpi; \
 	done
@@ -412,11 +428,11 @@ clean: cleanexamples
 	     -exec rm -Rf '{}' ';' -prune
 	rm -Rf bin/ \
 	  castle-engine-copy$(EXE_EXTENSION) \
-	  packages/castle_base.pas \
-	  packages/castle_window.pas \
-	  packages/castle_components.pas \
-	  packages/castle_editor_components.pas \
-	  packages/alternative_castle_window_based_on_lcl.pas \
+	  packages/lazarus/castle_engine_base.pas \
+	  packages/lazarus/castle_engine_window.pas \
+	  packages/lazarus/castle_engine_lcl.pas \
+	  packages/lazarus/castle_engine_editor_components.pas \
+	  packages/alternative_castle_engine_window_based_on_lcl.pas \
 	  tests/test_castle_game_engine \
 	  tests/test_castle_game_engine.exe \
 	  tests/castle-tester \
@@ -437,13 +453,23 @@ clean: cleanexamples
 # Avoid project in build-tool/tests/data that is not a real project
 # (will never be compiled).
 #
-# Note: This may cause errors if build tool doesn't exist anymore, ignore them.
-	"$(FIND)" . \
+# Note: Build tool may not exist anymore at this point, ignore this then.
+#
+# Note: Do not use -execdir, only -exec, as BUILD_TOOL may be relative.
+# This also implies to pass project using --project.
+	if [ -x $(BUILD_TOOL) ]; then \
+	  "$(FIND)" . \
 	  '(' -path ./tools/castle-editor/data/project_templates -prune ')' -or \
 	  '(' -path ./tools/castle-editor-portable/data/project_templates -prune ')' -or \
 	  '(' -path ./tools/build-tool/tests/data -prune ')' -or \
 	  '(' -iname CastleEngineManifest.xml \
-	      -execdir $(BUILD_TOOL) clean ';' ')'
+		    -exec echo 'Cleaning project:' '{}' ';' \
+	      -exec $(BUILD_TOOL) --project '{}' clean ';' ')'; \
+	else \
+	  echo 'Build tool $(BUILD_TOOL) does not exist.'; \
+		echo 'This is completely normal during "make clean", if you did not take special care to make/preserve it.'; \
+		echo 'In effect, not doing extra cleaning of projects with CastleEngineManifest.xml.'; \
+	fi
 
 # tests ----------------------------------------
 

@@ -289,11 +289,16 @@ function TCastleAbstractSlider.XCoordToSliderPosition(
   const XCoord: Single; const ARenderRect: TFloatRectangle): Single;
 var
   ThumbSize: TVector2;
+  ThumbHalfWidth: Single;
 begin
   ThumbSize := GetThumbSize(ARenderRect);
+  ThumbHalfWidth := ThumbSize.X / 2;
+  { Using ThumbHalfWidth to make it such that click with mouse repositions
+    the middle of the thumb image.
+    See https://forum.castle-engine.io/t/tcastlefloatslider-anchor-point-of-the-thumb/1983 }
   Result := MapRangeClamped(XCoord,
-    ARenderRect.Left + 0,
-    ARenderRect.Left + ARenderRect.Width - ThumbSize.X, 0, 1);
+    ARenderRect.Left + ThumbHalfWidth,
+    ARenderRect.Left + ARenderRect.Width - ThumbHalfWidth, 0, 1);
 end;
 
 procedure TCastleAbstractSlider.DrawSliderText(

@@ -57,13 +57,13 @@
     </BuildModes>
     <RequiredPackages Count="2">
       <Item1>
-        <PackageName Value="castle_window"/>
+        <PackageName Value="castle_engine_window"/>
       </Item1>
       <Item2>
-        <PackageName Value="castle_base"/>
+        <PackageName Value="castle_engine_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="3">
+    <Units Count="5">
       <Unit0>
         <Filename Value="game_controllers_demo_standalone.dpr"/>
         <IsPartOfProject Value="True"/>
@@ -78,6 +78,16 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="gameinitialize"/>
       </Unit2>
+      <Unit3>
+        <Filename Value="code/gameutils.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="gameutils"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="code/gameviewmain.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="gameviewmain"/>
+      </Unit4>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

@@ -1,0 +1,3 @@
+{%MainUnit gameviewmain.pas}
+OpenAIApiKey = 'TODO-FILL-THIS'; // https://platform.openai.com/api-keys
+OpenAIAssistantId = 'asst_TODO-FILL-THIS'; // https://platform.openai.com/assistants

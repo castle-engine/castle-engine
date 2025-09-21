@@ -3744,6 +3744,11 @@ function TChangedAllTraverser.Traverse(
     Instances.Add(VSI);
   end;
 
+  function ParentNodeIsShape: Boolean;
+  begin
+    Result := (ParentInfo <> nil) and (ParentInfo^.Node is TShapeNode);
+  end;
+
 var
   Shape: TShape;
 begin
@@ -3751,23 +3756,22 @@ begin
 
   if Node is TAbstractGeometryNode then
   begin
-    if (not (Node is TAbstractGeometryNode_1)) and
-       ( (ParentInfo = nil) or
-         (not (ParentInfo^.Node is TShapeNode) ) ) then
-    begin
-      { Detect and reject trying to use geometry nodes incorrectly in X3D or
-        VRML 2.0.
+    { We only take into account geometry nodes inside TShapeNode
+      and VRML 1.0 geometry nodes (they can have any parent).
 
-        Testcase: tests/data/geometry_not_in_shape.x3dv
+      Ignore (do not call ParentScene.CreateShape):
 
-        Without this safeguard, in debug mode, it would cause failure
-        at "Assert(State.ShapeNode <> nil)" in
-        src/scene/castleinternalarraysgenerator.pas .
-      }
-      WritelnWarning('Node "%s" is a geometry node, it has to be placed within a Shape node', [
-        Node.NiceName
-      ]);
-    end else
+      - Invalid geometry nodes, like tests/data/geometry_not_in_shape.x3dv .
+        (a warning that they are invalid will be done by parser already,
+        it knows allowed children),
+
+      - Valid geometry nodes in other contexts.
+        In particular, X3D "Particle systems" component allows geometry
+        nodes in BoundedPhysicsModel.geometry.
+
+      This allows TShape to safely assume that, for non-VRML 1.0,
+      we always have TShapeNode available in State.ShapeNode. }
+    if (Node is TAbstractGeometryNode_1) or ParentNodeIsShape then
     begin
       { Add shape to Shapes }
       Shape := ParentScene.CreateShape(Node as TAbstractGeometryNode,
@@ -5363,7 +5367,7 @@ var
 
       { Bounding box of the scene changed, and rendering octree changed,
         because bbox of shape changed.
-        Testcase: knight.gltf (from examples/fps_game/ ) animations or
+        Testcase: knight.gltf (in various CGE examples ) animations or
         lizardman.gltf (from demo-models/bump_mapping/ ) animations.
         We deliberately pass Shape=nil, to cause MaybeBoundingBoxChanged=true
         inside DoGeometryChanged. }
@@ -7362,7 +7366,16 @@ var
   NavigationNode: TNavigationInfoNode;
   FieldOfView: TSingleList;
 begin
+  ViewpointNode := ViewpointStack.Top;
+  NavigationNode := NavigationInfoStack.Top;
+
   Radius := SensibleCameraRadius(RadiusAutoCalculated);
+
+  if (ViewpointNode <> nil) and
+     (ViewpointNode.NearDistance > 0) then
+    ACamera.ProjectionNear := ViewpointNode.NearDistance
+  else
+  // if ViewpointNode.NearDistance <= 0, calculate ACamera.ProjectionNear based on radius
   if RadiusAutoCalculated then
     { Set ProjectionNear to zero, this way we avoid serializing value
       when it is not necessary to serialize it
@@ -7383,9 +7396,6 @@ begin
   {$warnings off} // using deprecated to keep it working
   ACamera.Orthographic.Stretch := false;
   {$warnings on}
-
-  ViewpointNode := ViewpointStack.Top;
-  NavigationNode := NavigationInfoStack.Top;
 
   if ViewpointNode <> nil then
   begin
@@ -7465,6 +7475,9 @@ begin
 
   if NavigationNode <> nil then
     ACamera.ProjectionFar := NavigationNode.VisibilityLimit;
+  if (ViewpointNode <> nil) and
+     (ViewpointNode.FarDistance > 0) then
+    ACamera.ProjectionFar := ViewpointNode.FarDistance;
 
   ACamera.GravityUp := GravityUp;
 

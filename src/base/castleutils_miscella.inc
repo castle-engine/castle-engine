@@ -66,18 +66,42 @@ procedure Check(TrueValue: boolean; const ErrMessage: string = 'Check failed');
   #) }
 function ArrayPosStr(const A: String; const Arr: array of String): Integer; overload;
 function ArrayPosText(const A: String; const Arr: array of String;
-  IgnoreCase: boolean = true): Integer; overload;
+  const IgnoreCase: boolean = true): Integer; overload;
 
 function ArrayContainsString(const A: String; const Arr: array of String): Boolean;
 
 { Iff functions ------------------------------------------------------------- }
 
-{ }
+{ Simple conditional function.
+  Returns trueval if boolval is true, falseval otherwise.
+
+  This can be used in a similar way to the ternary operator from C-like languages,
+  e.g. like this
+
+  @longCode(#
+  AvatarHeight := Iff(AvatarCrouch, 0.5, 2.0);
+  #)
+
+  However, remember that this is just a regular function, so both arguments
+  are evaluated before the result is calculated. For example, this code
+  is incorrect:
+
+  @longCode(#
+  // INCORRECT EXAMPLE, DO NOT COPY
+  AvatarHeight := Iff(Avatar <> nil, Avatar.Height, 0.0);
+  #)
+
+  @deprecated
+  Do not use this, as equivalent functions are available in standard
+  Pascal libraries now. Use Math.IfThen, StrUtils.IfThen instead.
+
+  @groupBegin }
 function Iff(boolval: boolean; trueval, falseval: string)  : string;   overload;
 function Iff(boolval: boolean; trueval, falseval: Integer) : Integer;  overload;
 function Iff(boolval: boolean; trueval, falseval: Float)   : Float;    overload;
 function Iff(boolval: boolean; trueval, falseval: Cardinal): Cardinal; overload;
 function Iff(boolval: boolean; trueval, falseval: char)    : char;     overload;
+{ @groupEnd }
 
 { Some helpful version stuff ------------------------------------------------ }
 
@@ -290,7 +314,7 @@ begin
 end;
 
 function ArrayPosText(const A: String; const Arr: array of String;
-  IgnoreCase: boolean): Integer;
+  const IgnoreCase: boolean): Integer;
 var
   AA: string;
 begin

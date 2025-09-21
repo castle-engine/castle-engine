@@ -102,21 +102,22 @@ castle-game-engine-*.fpm
 /src/deprecated_library/libcastleengine.so
 
 # Lazarus packages artifacts
-/packages/alternative_castle_window_based_on_lcl.pas
-/packages/castle_base.pas
-/packages/castle_components.pas
-/packages/castle_editor_components.pas
-/packages/castle_indy.pas
-/packages/castle_window.pas
-/packages/lib/
+/packages/lazarus/*castle_engine*.pas
+/packages/lazarus/lib/
+
+# may contain secrets
+/examples/network/ask_openai_assistant/code/openai_config.inc
+/examples/network/random_image_from_unsplash/code/unsplash_secrets.inc
 
 # Unix binaries (keep this list alphabetic).
+/examples/3d_games/walking_adventure/walk_3d_game_controllers
+/examples/3d_games/dungeons_and_skeletons_fight/game_3d
+/examples/3d_games/explore_impressive_castle/fps_game
 /examples/advanced_editor/advanced_loading_designs/advanced_loading_designs
 /examples/advanced_editor/custom_component/custom_component
 /examples/animations/animate_bones_by_code/animate_bones_by_code
 /examples/animations/animate_transform_by_code/animate_transform_by_code
 /examples/animations/animate_transform_by_code_2/animate_transform_by_code_2
-/examples/animations/deprecated_resource_animations/resource_animations
 /examples/animations/expose_transformations_to_animate_children/expose_transformations_demo
 /examples/animations/play_animation/play_animation
 /examples/animations/simultaneous_animations_one_scene/simultaneous_animations_one_scene
@@ -137,8 +138,7 @@ castle-game-engine-*.fpm
 /examples/curves/use_designed_curve/use_designed_curve
 /examples/delphi/fmx/CastleFmx
 /examples/delphi/fmx_play_animation/CastleFmxPlayAnimation
-/examples/deprecated_to_upgrade/fixed_camera_game/rift
-/examples/eye_of_beholder/eye_of_beholder
+/examples/3d_games/eye_of_beholder/eye_of_beholder
 /examples/fonts/distance_field_fonts/distance_field_fonts
 /examples/fonts/font_draw_over_image/font_draw_over_image
 /examples/fonts/font_draw_over_image/font_draw_over_image_output.png
@@ -146,8 +146,6 @@ castle-game-engine-*.fpm
 /examples/fonts/test_local_characters/test_local_characters
 /examples/fonts/text_tests/text_tests
 /examples/fonts/texture-font-to-pascal
-/examples/fps_game/fps_game
-/examples/deprecated_to_upgrade/fps_game_old_ai/fps_game
 /examples/ifc/ifc
 /examples/images_videos/image_decompose/image_decompose
 /examples/images_videos/deprecated_drawing_modes_test/drawing_modes_test
@@ -174,6 +172,7 @@ castle-game-engine-*.fpm
 /examples/localization/deprecated_custom/castle_localization
 /examples/localization/gettext/localization_test
 /examples/localization/gettext/po_files/generator/po_generator
+/examples/mobile/facebook_integration/facebook_integration
 /examples/mobile/game_services/game_services_demo
 /examples/mobile/activity_recognition/activity_recognition
 /examples/mobile/drawing_toy/drawing_toy
@@ -186,10 +185,12 @@ castle-game-engine-*.fpm
 /examples/viewport_and_scenes/shadows/shadows
 /examples/viewport_and_scenes/shadow_volumes_whole_scene_manifold/shadow_volumes_whole_scene_manifold
 /examples/viewport_and_scenes/bump_mapping/bump_mapping
+/examples/network/ask_openai_assistant/castle-openai
 /examples/network/asynchronous_download/asynchronous_download
 /examples/network/castle_download/castle_download
 /examples/network/custom_url_handler/read_game_data_from_zip
 /examples/network/put_data/put_data
+/examples/network/random_image_from_unsplash/random_image_from_unsplash
 /examples/network/remote_logging/remote_logging
 /examples/network/tcp_connection/client/client
 /examples/network/tcp_connection/server/server
@@ -212,7 +213,7 @@ castle-game-engine-*.fpm
 /examples/physics/physics_test_scaled_mesh_collider/physics_test_scaled_mesh_collider
 /examples/physics/physics_test_transformation_sync/physics_test_transformation_sync
 /examples/physics/physics_throw_chickens/physics_throw_chickens
-/examples/platformer/platformer
+/examples/2d_games/platformer/platformer
 /examples/portable_game_skeleton/my_fantastic_game
 /examples/research_special_rendering_methods/dynamic_ambient_occlusion/dynamic_ambient_occlusion
 /examples/research_special_rendering_methods/new_renderer_skeleton/new_renderer_skeleton
@@ -228,7 +229,7 @@ castle-game-engine-*.fpm
 /examples/short_api_samples/transform_save_load/aaa.castle-transform
 /examples/short_api_samples/transform_save_load/transform_save_load
 /examples/short_api_samples/xml_utils/bookmarks_xml_demo
-/examples/space_shooter/space_shooter
+/examples/2d_games/space_shooter/space_shooter
 /examples/sprite_sheets/sprite_sheets_demo/sprite_sheets_demo
 /examples/steam/steam_test
 /examples/terrain/terrain

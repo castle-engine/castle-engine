@@ -29,6 +29,7 @@ typedef struct TouchInfo {
 
 @interface OpenGLController ()
 {
+    bool m_bInitialized;
     CGFloat m_fScale;
     TouchInfo m_touches[MAX_TOUCHES];
     int m_currentViewWidth;
@@ -47,28 +48,14 @@ typedef struct TouchInfo {
 {
     [super viewDidLoad];
 
+    m_bInitialized = false;
+
     // Try to initialize OpenGLES 3, fallback on version 2
     // (following https://developer.apple.com/library/archive/documentation/3DDrawing/Conceptual/OpenGLES_ProgrammingGuide/WorkingwithOpenGLESContexts/WorkingwithOpenGLESContexts.html )
-    /*
     EAGLContext *context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3];
     if (context == nil) {
         context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
     }
-    */
-    /* TODO: OpenGLES 3 commented out for now.
-       It breaks Unholy rendering of "evil plane".
-       Looks like on iOS, something in OpenGLES3 is subtly broken compared to OpenGLES2,
-       maybe related to ScreenFbo which is already weird (non-zero) in OpenGLES2,
-       see
-       src/images/opengl/castleglimages_rendertotexture.inc
-       https://stackoverflow.com/questions/11617013/why-would-glbindframebuffergl-framebuffer-0-result-in-blank-screen-in-cocos2d)
-
-       Ideally we should just fix it, and work flawlessly in both OpenGLES2 and OpenGLES3 on iOS.
-
-       Eventually we can add a flag, like IOS_ENABLE_ES3, to make it optional decision
-       per-application.
-    */
-    EAGLContext *context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
 
     self.context = context;
 
@@ -108,6 +95,14 @@ typedef struct TouchInfo {
     } else {
         view.drawableMultisample = GLKViewDrawableMultisample4X;
     }
+    self.preferredFramesPerSecond = 60;
+
+    /*
+     We call view.display to reflect the changes in drawable format properties above (buffer format gets changed after next draw, not now).
+     Without this, CGE reads DEPTH_BITS as 32 during initialization, while depth is 24 in normal Draw function.
+     Also fixes error with framebuffer incomplete.
+     */
+    [view display];
 
     // initialize input
 
@@ -118,6 +113,7 @@ typedef struct TouchInfo {
     }
 
     [self setupGL];
+    m_bInitialized = true;
 }
 
 //-----------------------------------------------------------------
@@ -251,7 +247,7 @@ typedef struct TouchInfo {
         m_currentViewWidth  = newViewWidth;
         m_currentViewHeight = newViewHeight;
         m_currentSafeAreaBorders = newSafeAreaBorders;
-        
+
         CGEApp_Resize(newViewWidth, newViewHeight, (unsigned)newSafeAreaBorders.top, (unsigned)newSafeAreaBorders.right, (unsigned)newSafeAreaBorders.bottom, (unsigned)newSafeAreaBorders.left);
     }
 
@@ -273,6 +269,8 @@ typedef struct TouchInfo {
 //-----------------------------------------------------------------
 - (void)glkView:(GLKView *)view drawInRect:(CGRect)rect
 {
+    if (!m_bInitialized)
+        return;
     CGEApp_Render();
 }
 

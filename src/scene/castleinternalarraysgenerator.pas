@@ -1869,8 +1869,9 @@ begin
       ColorIndex is set but always equal to CoordIndex.
       This means we don't have to disable AllowIndexed (which is beneficial for speed).
 
-      Testcase: test examples/fps_game/data/knight_creature/knight.gltf
-      with LogShapes, observe it should have AllowIndexed=true
+      Testcase: test fps_game_old_ai (example now in castle-engine/private-assets
+      as it uses some deprecated API) with LogShapes,
+      observe it should have AllowIndexed=true
       and CoordinatePreserveGeometryOrder=true. }
     if ((ColorIndex <> nil) and (ColorIndex <> CoordIndex)) or
        (not ColorPerVertex) then

@@ -38,7 +38,7 @@ type
   TAssociatedDocTypeList = class({$ifdef FPC}specialize{$endif} TObjectList<TAssocDocType>)
   public
     procedure ReadCastleEngineManifest(const Element: TDOMElement);
-    function ToPListSection(const ProjectQualifiedName, DefaultIcon: string): string;
+    function ToPListSection(const ProjectQualifiedName, ProjectCaption, DefaultIcon: string): string;
     function ToIntentFilter: string;
   end;
 
@@ -205,7 +205,7 @@ begin
   finally FreeAndNil(ChildElements) end;
 end;
 
-function TAssociatedDocTypeList.ToPListSection(const ProjectQualifiedName, DefaultIcon: string): string;
+function TAssociatedDocTypeList.ToPListSection(const ProjectQualifiedName, ProjectCaption, DefaultIcon: string): string;
 var
   BundleDocumentTypes, ExportedTypeDeclarations: string;
   DocType: TAssocDocType;
@@ -224,8 +224,23 @@ begin
     #9'<key>CFBundleDocumentTypes</key>' + NL +
     #9'<array>' + NL +
     #9#9'<dict>' + NL +
+    #9#9#9'<key>CFBundleTypeName</key>' + NL +
+    #9#9#9'<string>' + ProjectCaption + '</string>' + NL +
     #9#9#9'<key>CFBundleTypeRole</key>' + NL +
     #9#9#9'<string>Viewer</string>' + NL +
+
+    { Without this, when uploading to AppStore, we get
+      """
+      ITMS-90788: Incomplete Document Type Configuration -
+      The CFBundleDocumentTypes dictionary array in the
+      '....' Info.plist should contain an LSHandlerRank value
+      for the CFBundleTypeName 'Castle Model Viewer' entry.
+      Refer to https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html#//apple_ref/doc/uid/TP40009249-SW1
+      for more information on the LSHandlerRank key.
+      """ }
+    #9#9#9'<key>LSHandlerRank</key>' + NL +
+    #9#9#9'<string>Default</string>' + NL +
+
     #9#9#9'<key>CFBundleTypeExtensions</key>' + NL +
     #9#9#9'<array>' + NL +
     #9#9#9#9'<string>*</string>' + NL +

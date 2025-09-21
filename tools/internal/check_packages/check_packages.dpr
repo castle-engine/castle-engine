@@ -279,6 +279,8 @@ type
   end;
 
 constructor TLazarusPackage.Create(const APackageFileName: String);
+const
+  RelativePathFromLpkToCgeRoot = '../../';
 var
   Doc: TXMLDocument;
   FilesElement, FileElement: TDOMElement;
@@ -299,9 +301,9 @@ begin
     begin
       FileElement := FilesElement.Child('Item' + IntToStr(I));
       FileName := FileElement.Child('Filename').AttributeString('Value');
-      if not IsPrefix('../', FileName, not FileNameCaseSensitive) then
+      if not IsPrefix(RelativePathFromLpkToCgeRoot, FileName, not FileNameCaseSensitive) then
         PackageWarning('All filenames in lpk must be in CGE root, invalid: %s', [FileName]);
-      FileName := PrefixRemove('../', FileName, not FileNameCaseSensitive);
+      FileName := PrefixRemove(RelativePathFromLpkToCgeRoot, FileName, not FileNameCaseSensitive);
       Files.Append(FileName);
     end;
   finally FreeAndNil(Doc) end;
@@ -356,7 +358,7 @@ begin
       Inc(FilesCount); // ItemXxx numbering is 1-based, so increment FilesCount first
       FileElement := FilesElement.CreateChild('Item' + IntToStr(FilesCount));
       FileFilenameElement := FileElement.CreateChild('Filename');
-      FileFilenameElement.AttributeSet('Value', '../' + MissingFile);
+      FileFilenameElement.AttributeSet('Value', '../../' + MissingFile);
       if ExtractFileExt(MissingFile) = '.inc' then
       begin
         FileTypeElement := FileElement.CreateChild('Type');
@@ -581,7 +583,7 @@ begin
   CgePathExpanded := SReplaceChars(CgePathExpanded, '\', '/'); // replace backslashes with slashes
   Writeln('Checking CGE in directory: ', CgePathExpanded);
 
-  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/castle_base.lpk');
+  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/lazarus/castle_engine_base.lpk');
   try
     Package.CheckFiles([
       'src/common_includes/',
@@ -602,14 +604,17 @@ begin
     [
       'src/base/android/',
       'src/files/indy/',
-      'src/base_rendering/web/'
+      'src/base_rendering/web/',
+
+      // Ignore units that are only to be compiled when pulled by CastleHttps with FPC 3.2.x
+      'src/files/castleinternalforfpc32x*.pas'
     ],
     [
       'src/vampyre_imaginglib/'
     ]);
   finally FreeAndNil(Package) end;
 
-  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/castle_window.lpk');
+  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/lazarus/castle_engine_window.lpk');
   try
     Package.CheckFiles([
       'src/window/'
@@ -618,7 +623,7 @@ begin
     [ ]);
   finally FreeAndNil(Package) end;
 
-  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/alternative_castle_window_based_on_lcl.lpk');
+  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/lazarus/alternative_castle_engine_window_based_on_lcl.lpk');
   try
     Package.CheckFiles([
       'src/window/'
@@ -627,7 +632,7 @@ begin
     [ ]);
   finally FreeAndNil(Package) end;
 
-  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/castle_components.lpk');
+  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/lazarus/castle_engine_lcl.lpk');
   try
     Package.CheckFiles([
       'src/lcl/'
@@ -636,7 +641,7 @@ begin
     [ ]);
   finally FreeAndNil(Package) end;
 
-  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/castle_indy.lpk');
+  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/lazarus/castle_engine_indy.lpk');
   try
     Package.CheckFiles([
       'src/files/indy/'
@@ -645,7 +650,7 @@ begin
     [ ]);
   finally FreeAndNil(Package) end;
 
-  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/castle_editor_components.lpk');
+  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/lazarus/castle_engine_editor_components.lpk');
   try
     Package.CheckFiles([
       'tools/castle-editor/components/'
@@ -720,7 +725,10 @@ begin
       'src/ui/windows/castleinternaltdxinput_tlb.pas',
 
       // This is only supported with FPC, but planned to be removed from CGE
-      'src/scene/castleraytracer.pas'
+      'src/scene/castleraytracer.pas',
+
+      // Ignore units that are only to be compiled when pulled by CastleHttps with FPC 3.2.x
+      'src/files/castleinternalforfpc32x*.pas'
     ],
     [
       'src/vampyre_imaginglib/'
@@ -791,7 +799,10 @@ begin
     ],
     [
       'src/files/indy/',
-      'src/base_rendering/web/'
+      'src/base_rendering/web/',
+
+      // Ignore units that are only to be compiled when pulled by CastleHttps with FPC 3.2.x
+      'src/files/castleinternalforfpc32x*.pas'
     ],
     [
       'src/vampyre_imaginglib/'

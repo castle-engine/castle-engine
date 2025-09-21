@@ -107,7 +107,7 @@
 
     examples/physics/physics_2d_game_sopwith
     examples/physics/physics_3d_game
-    examples/platformer
+    examples/2d_games/platformer
 
   With at least FPC 3.2.0 (but did not check other FPC versions).
   As this is an i386-specific optimization only (and our focus is on 64-bit platforms

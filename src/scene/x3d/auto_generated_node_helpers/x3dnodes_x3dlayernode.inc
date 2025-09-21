@@ -24,20 +24,30 @@
 {$ifdef read_interface}
 
   strict private
-    function GetIsPickable: Boolean;
-    procedure SetIsPickable(const Value: Boolean);
+    function GetPickable: Boolean;
+    procedure SetPickable(const Value: Boolean);
     function GetViewport: TAbstractViewportNode;
     procedure SetViewport(const Value: TAbstractViewportNode);
+    function GetVisible: Boolean;
+    procedure SetVisible(const Value: Boolean);
   public
     { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: String; override;
 
-    strict private FFdIsPickable: TSFBool;
-    { Internal wrapper for property @code(IsPickable). This wrapper API may change, we advise to access simpler @code(IsPickable) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
-    public property FdIsPickable: TSFBool read FFdIsPickable;
+    strict private FFdObjectType: TMFString;
+    { Internal wrapper for property @code(ObjectType). This wrapper API may change, we advise to access simpler @code(ObjectType) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdObjectType: TMFString read FFdObjectType;
     {  }
-    property IsPickable: Boolean read GetIsPickable write SetIsPickable;
+    procedure SetObjectType(const Value: array of string); overload;
+    {  }
+    procedure SetObjectType(const Value: TCastleStringList); overload;
+
+    strict private FFdPickable: TSFBool;
+    { Internal wrapper for property @code(Pickable). This wrapper API may change, we advise to access simpler @code(Pickable) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdPickable: TSFBool read FFdPickable;
+    {  }
+    property Pickable: Boolean read GetPickable write SetPickable;
 
     strict private FFdViewport: TSFNode;
     { Internal wrapper for property @code(Viewport). This wrapper API may change, we advise to access simpler @code(Viewport) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -45,20 +55,36 @@
     {  }
     property Viewport: TAbstractViewportNode read GetViewport write SetViewport;
 
+    strict private FFdVisible: TSFBool;
+    { Internal wrapper for property @code(Visible). This wrapper API may change, we advise to access simpler @code(Visible) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdVisible: TSFBool read FFdVisible;
+    {  }
+    property Visible: Boolean read GetVisible write SetVisible;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TAbstractLayerNode ----------------------------------------------- }
 
-function TAbstractLayerNode.GetIsPickable: Boolean;
+procedure TAbstractLayerNode.SetObjectType(const Value: array of string);
 begin
-  Result := FdIsPickable.Value;
+  FdObjectType.Send(Value);
 end;
 
-procedure TAbstractLayerNode.SetIsPickable(const Value: Boolean);
+procedure TAbstractLayerNode.SetObjectType(const Value: TCastleStringList);
 begin
-  FdIsPickable.Send(Value);
+  FdObjectType.Send(Value);
+end;
+
+function TAbstractLayerNode.GetPickable: Boolean;
+begin
+  Result := FdPickable.Value;
+end;
+
+procedure TAbstractLayerNode.SetPickable(const Value: Boolean);
+begin
+  FdPickable.Send(Value);
 end;
 
 function TAbstractLayerNode.GetViewport: TAbstractViewportNode;
@@ -74,6 +100,16 @@ begin
   FdViewport.Send(Value);
 end;
 
+function TAbstractLayerNode.GetVisible: Boolean;
+begin
+  Result := FdVisible.Value;
+end;
+
+procedure TAbstractLayerNode.SetVisible(const Value: Boolean);
+begin
+  FdVisible.Send(Value);
+end;
+
 class function TAbstractLayerNode.ClassX3DType: String;
 begin
   Result := 'X3DLayerNode';
@@ -83,13 +119,22 @@ procedure TAbstractLayerNode.CreateNode;
 begin
   inherited;
 
-  FFdIsPickable := TSFBool.Create(Self, True, 'isPickable', true);
-   FdIsPickable.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdIsPickable);
+  FFdObjectType := TMFString.Create(Self, True, 'objectType', ['ALL']);
+   FdObjectType.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdObjectType);
+
+  FFdPickable := TSFBool.Create(Self, True, 'pickable', true);
+   FdPickable.ChangeAlways := chVisibleNonGeometry;
+   FdPickable.AddAlternativeName('isPickable', 0);
+  AddField(FFdPickable);
 
   FFdViewport := TSFNode.Create(Self, True, 'viewport', [TAbstractViewportNode]);
    FdViewport.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdViewport);
+
+  FFdVisible := TSFBool.Create(Self, True, 'visible', true);
+   FdVisible.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdVisible);
 
   DefaultContainerField := 'layers';
 end;

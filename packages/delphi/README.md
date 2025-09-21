@@ -62,11 +62,11 @@ Which package is run-time, which is design-time?
 
 Platforms:
 
-- `castle_engine_design.bpl` has to be for Win32 only, as it depends on `designide` package which is only for Win32.
+- `castle_engine_design.bpl` is only for platforms where Delphi IDE runs, as it depends on `designide` package. This means Win32 and Win64 now.
 
 - `castle_engine_vcl.bpl` can be only for platforms supported by VCL, which means Win32 and Win64.
 
-- Other packages are for all platforms supported by CGE (with Delphi), which right now means Win32, Win64, Linux 64-bit.
+- Other packages are for all platforms supported by CGE (with Delphi), which right now means Win32, Win64, Linux 64-bit. [More targets are coming and are actually enabled in packages too now.](https://castle-engine.io/delphi_more_platforms).
 
 ## Various notes about why packages are configured like this
 
@@ -78,11 +78,13 @@ Platforms:
 
     NOTE: Your applications can target all platforms supported by CGE with Delphi: _"Windows 32-bit"_, _"Windows 64-bit"_, _"Linux 64-bit"_. Here you select _"Windows 32-bit"_ just because Delphi IDE is Win32 application.
 
+    NOTE: Newer Delphi versions have also 64-bit IDE. If you have such Delphi, you can also _"Install"_ for _"Windows 64-bit"_.
+
 - The packages that register components (`TCastleControl` for both VCL and FMX) and their dependencies must include all platforms supported by Castle Game Engine with Delphi.
 
     This means _"Windows 32-bit"_, _"Windows 64-bit"_, _"Linux 64-bit"_. This allows to drop `TCastleControl` on a form when your application platform is set to any platform supported by CGE.
 
-- The `castle_engine_design` package _"Target platforms"_ must be only Win32. Because `designide` package is only for Windows 32-bit, just like Delphi IDE.
+- The `castle_engine_design` package _"Target platforms"_ must be only Win32 or Win64. Because `designide` package is only for Windows 32-bit and Windows 64-bit, just like Delphi IDE.
 
     And `designide` includes unit `ToolsAPI` which is in turn used by `CastleInternalDelphiDesign` unit.
 

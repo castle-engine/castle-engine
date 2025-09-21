@@ -41,7 +41,7 @@ implementation
 
 uses SysUtils, Generics.Collections,
   CastleFindFiles, CastleFileFilters, CastleTextureFontData, CastleUtils,
-  CastleUnicode,
+  CastleUnicode, CastleDynLib, CastleInternalFreeTypeH,
   CastleStringUtils, CastleFontToPascal, CastleUriUtils, CastleFilesUtils,
   ToolCommonUtils, ToolUtils;
 
@@ -164,6 +164,14 @@ var
   AllFontsUnit: String;
   FontUnit: TFontUnit;
 begin
+  { Revert InternalDisableDynamicLibraries, as it's not necessary
+    when building for web, and we need InternalDisableDynamicLibraries=false
+    to use FreeType to open fonts. }
+  {$ifdef MSWINDOWS}
+  InternalDisableDynamicLibraries := false;
+  LoadFreeTypeLibrary; // reload DLL now
+  {$endif}
+
   Helper := TGenerateEmbeddedFontsHelper.Create;
   try
     Helper.FontUnitsOutputPath := FontUnitsOutputPath;

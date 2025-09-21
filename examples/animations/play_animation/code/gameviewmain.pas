@@ -151,11 +151,6 @@ end;
 procedure TViewMain.ClickButtonOpen3D(Sender: TObject);
 begin
   OpenScene('castle-data:/gltf_knight/knight.gltf');
-
-  { Note: TransitionDuration is not supported for castle-anim-frames.
-    TransitionDuration is supported on other model formats (in particular
-    glTF, Spine, X3D support animations too). }
-  //OpenScene('../../deprecated_resource_animations/data/deprecated/knight_single_castle_anim_frames/knight.castle-anim-frames');
 end;
 
 procedure TViewMain.ClickButtonOpen2DSpine(Sender: TObject);

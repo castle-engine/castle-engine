@@ -49,6 +49,20 @@
     ];
 }
 
+- (BOOL)openURLContexts:(NSSet<UIOpenURLContext *> *)URLContexts
+{
+    UIOpenURLContext* context = URLContexts.anyObject;
+    if (context != nil)
+    {
+        return [[FBSDKApplicationDelegate sharedInstance] application:[UIApplication sharedApplication]
+            openURL:context.URL
+            sourceApplication:context.options.sourceApplication
+            annotation:context.options.annotation
+        ];
+    }
+    return NO;
+}
+
 - (void)facebookLoginButton
 {
     FBSDKLoginButton *loginButton = [[FBSDKLoginButton alloc] init];

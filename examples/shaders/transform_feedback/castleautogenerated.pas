@@ -22,7 +22,7 @@ uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
   ApplicationProperties.ApplicationName := 'transform_feedback';
-  ApplicationProperties.Caption := 'transform_feedback';
+  ApplicationProperties.Caption := 'Using OpenGL(ES) transform feedback';
   ApplicationProperties.Version := '0.1';
 
   if not IsLibrary then
