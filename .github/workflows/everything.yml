@@ -106,7 +106,7 @@ jobs:
     #     ssh-keyscan -H 'frs.sourceforge.net'
     - name: Upload to SourceForge
       if: ${{ github.ref == 'refs/heads/master' }}
-      run:
+      run: |
         # creates dir ~/.ssh and file ~/.ssh/id_rsa inside with secure permissions from the start
         install -m 600 -D /dev/null ~/.ssh/id_rsa
         echo "$SSH_PRIVATE_KEY_SOURCEFORGE" > ~/.ssh/id_rsa
