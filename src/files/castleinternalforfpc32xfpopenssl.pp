@@ -13,7 +13,7 @@
 
  **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit ForFpc32xfpopenssl;
+unit CastleInternalForFpc32xfpopenssl;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
@@ -26,7 +26,7 @@ uses
   System.Classes, System.SysUtils, System.Net.Sslbase, Api.Openssl, System.CTypes;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  Classes, SysUtils, sslbase, ForFpc32xopenssl, ctypes;
+  Classes, SysUtils, sslbase, CastleInternalForFpc32xopenssl, ctypes;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$IFDEF DUMPCERT}

@@ -1,5 +1,5 @@
 {$IFNDEF FPC_DOTTEDUNITS}
-unit ForFpc32xOpenSslSockets;
+unit CastleInternalForFpc32xOpenSslSockets;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
@@ -11,7 +11,7 @@ uses
   System.Classes, System.SysUtils, System.Net.Sockets, System.Net.Ssockets, System.Net.Sslsockets, System.Net.Sslbase, Api.Openssl, System.Net.Fpopenssl;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  Classes, SysUtils, sockets, ssockets, sslsockets, sslbase, ForFpc32xopenssl, ForFpc32xfpopenssl;
+  Classes, SysUtils, sockets, ssockets, sslsockets, sslbase, CastleInternalForFpc32xopenssl, CastleInternalForFpc32xfpopenssl;
 {$ENDIF FPC_DOTTEDUNITS}
 
 Type

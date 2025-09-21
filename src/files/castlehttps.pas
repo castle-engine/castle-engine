@@ -33,7 +33,7 @@
   unit to enable HTTPS.
 
   Moreover, with FPC 3.2.2 and Linux (or Unix, more generally)
-  we need to use our custom ForFpc32xOpenSslSockets unit, otherwise we
+  we need to use our custom CastleInternalForFpc32xOpenSslSockets unit, otherwise we
   get "Could not initialize OpenSSL library", as FPC is trying to access
   outdated OpenSSL version (not available in latest Linux distros).
 
@@ -52,7 +52,7 @@ interface
     { FPC 3.2.2 OpenSsl on Linux does not work with OpenSSL library,
       it tries to access outdated OpenSSL version (not available on latest
       Linux). }
-    uses ForFpc32xOpenSslSockets;
+    uses CastleInternalForFpc32xOpenSslSockets;
   {$else}
     uses OpenSslSockets;
   {$endif}

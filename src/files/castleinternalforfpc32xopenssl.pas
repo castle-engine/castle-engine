@@ -1,5 +1,5 @@
 {$IFNDEF FPC_DOTTEDUNITS}
-unit ForFpc32xopenssl;
+unit CastleInternalForFpc32xopenssl;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {==============================================================================|
