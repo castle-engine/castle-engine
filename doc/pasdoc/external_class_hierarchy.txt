@@ -194,4 +194,6 @@ TComponentEditorDesigner=TObject
 TCustomControl=TObject
 TPresentedControl=TObject
 TCustomOpenGLControl=TObject
-TStringPropertyEditor=TObject
+TPropertyEditor=TObject
+TStringPropertyEditor=TPropertyEditor
+TClassPropertyEditor=TPropertyEditor
