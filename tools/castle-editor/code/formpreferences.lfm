@@ -651,7 +651,7 @@ object PreferencesForm: TPreferencesForm
     BevelOuter = bvNone
     ClientHeight = 698
     ClientWidth = 899
-    TabOrder = 7
+    TabOrder = 8
     object LabelAndroidHome: TLabel
       AnchorSideTop.Side = asrBottom
       Left = 8
@@ -775,74 +775,104 @@ object PreferencesForm: TPreferencesForm
       Left = 8
       Height = 23
       Top = 16
-      Width = 156
+      Width = 184
       Caption = 'MCP Server Settings:'
       Font.Style = [fsBold]
       ParentFont = False
     end
     object CheckBoxEnableMcpServer: TCheckBox
+      AnchorSideTop.Control = LabelMcpServer
+      AnchorSideTop.Side = asrBottom
       Left = 8
       Height = 27
-      Top = 56
-      Width = 159
+      Top = 49
+      Width = 180
+      BorderSpacing.Top = 10
       Caption = 'Enable MCP Server'
       TabOrder = 0
       OnChange = CheckBoxEnableMcpServerChange
     end
     object LabelMcpServerDescription: TLabel
+      AnchorSideTop.Control = CheckBoxEnableMcpServer
+      AnchorSideTop.Side = asrBottom
       Left = 8
       Height = 69
-      Top = 96
-      Width = 600
+      Top = 86
+      Width = 691
+      BorderSpacing.Top = 10
       Caption = 'The MCP (Model Context Protocol) server allows AI clients to interact with the editor.'#10'When enabled, the server will listen for connections and provide access to project'#10'information, component hierarchy, and design tools.'
       WordWrap = True
     end
     object LabelMcpServerPort: TLabel
+      AnchorSideTop.Control = LabelMcpServerDescription
+      AnchorSideTop.Side = asrBottom
       Left = 8
       Height = 23
-      Top = 184
-      Width = 32
+      Top = 175
+      Width = 41
+      BorderSpacing.Top = 20
       Caption = 'Port:'
     end
     object SpinEditMcpServerPort: TSpinEdit
-      Left = 48
-      Height = 33
-      Top = 180
+      AnchorSideLeft.Control = LabelMcpServerPort
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = LabelMcpServerPort
+      AnchorSideTop.Side = asrCenter
+      Left = 59
+      Height = 40
+      Top = 166
       Width = 100
+      BorderSpacing.Left = 10
       MaxValue = 65535
       MinValue = 1024
       TabOrder = 1
       Value = 3000
     end
     object LabelMcpServerStatus: TLabel
+      AnchorSideTop.Control = LabelMcpServerPort
+      AnchorSideTop.Side = asrBottom
       Left = 8
       Height = 23
-      Top = 232
-      Width = 49
+      Top = 218
+      Width = 56
+      BorderSpacing.Top = 20
       Caption = 'Status:'
     end
     object LabelMcpServerStatusValue: TLabel
-      Left = 64
+      AnchorSideLeft.Control = LabelMcpServerStatus
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = LabelMcpServerStatus
+      AnchorSideTop.Side = asrCenter
+      AnchorSideRight.Control = LabelMcpServerStatus
+      Left = 74
       Height = 23
-      Top = 232
-      Width = 56
+      Top = 218
+      Width = 65
+      BorderSpacing.Left = 10
       Caption = 'Stopped'
       Font.Style = [fsItalic]
       ParentFont = False
     end
     object ButtonMcpServerStart: TButton
+      AnchorSideTop.Control = LabelMcpServerStatus
+      AnchorSideTop.Side = asrBottom
       Left = 8
       Height = 39
-      Top = 272
+      Top = 251
       Width = 75
+      BorderSpacing.Top = 10
       Caption = 'Start'
       TabOrder = 2
       OnClick = ButtonMcpServerStartClick
     end
     object ButtonMcpServerStop: TButton
-      Left = 96
+      AnchorSideLeft.Control = ButtonMcpServerStart
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = ButtonMcpServerStart
+      AnchorSideTop.Side = asrCenter
+      Left = 83
       Height = 39
-      Top = 272
+      Top = 251
       Width = 75
       Caption = 'Stop'
       Enabled = False
