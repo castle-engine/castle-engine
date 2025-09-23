@@ -134,6 +134,13 @@ After successful initialization, you should receive a response like:
 }
 ```
 
+### Step 4: AI Assistant Integration
+
+For detailed instructions on integrating with specific AI assistants:
+
+- **Auggie**: See [Auggie Integration Guide](mcp_server_auggie_integration.md) for complete setup instructions
+- **Other MCP Clients**: Use the standard MCP protocol as documented in this guide
+
 ## Complete API Reference
 
 ### Core MCP Methods
@@ -906,6 +913,9 @@ WritelnLog('MCP', 'Debug message here');
 
 ## References
 
+- [Auggie Integration Guide](mcp_server_auggie_integration.md) - Step-by-step guide for using with Auggie AI assistant
+- [Quick Reference Guide](mcp_server_quick_reference.md) - One-page developer cheat sheet
+- [Implementation Summary](mcp_server_implementation_summary.md) - Technical overview and achievements
 - [Model Context Protocol Specification](https://spec.modelcontextprotocol.io/)
 - [Castle Game Engine Documentation](https://castle-engine.io/documentation.php)
 - [JSON-RPC 2.0 Specification](https://www.jsonrpc.org/specification)
