@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="mcp_server_simple" standalone_source="mcp_server_simple.dpr">
+  <data exists="false" />
+  <compiler_options>
+    <search_paths>
+      <path value="../../../castle-editor/code/" />
+    </search_paths>
+  </compiler_options>
+</project>
