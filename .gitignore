@@ -47,6 +47,11 @@ xcuserdata
 !xcshareddata
 /bin/
 /tools/castle-editor/Castle Game Engine.app/
+
+# MCP server binaries (should be compiled by users)
+/tools/castle-editor/mcp_server_simple_standalone
+/tools/castle-editor/mcp_server_standalone
+/tools/castle-editor/code/test_mcp_compile
 # used by https://marketplace.visualstudio.com/items?itemName=alefragnani.jenkins-status
 /.jenkins
 AndroidSigningProperties.txt
