@@ -185,6 +185,71 @@ implementation
 uses
   Variants, TypInfo, base64;
 
+{ Helper functions for JSON creation }
+
+function CreateJsonArray(const StringArray: array of String): TJsonArray;
+var
+  I: Integer;
+begin
+  Result := TJsonArray.Create;
+  for I := Low(StringArray) to High(StringArray) do
+    Result.Add(StringArray[I]);
+end;
+
+function CreateJsonArrayWithTextContent(const Text: String): TJsonArray;
+var
+  ContentObj: TJsonObject;
+begin
+  Result := TJsonArray.Create;
+  ContentObj := TJsonObject.Create;
+  ContentObj.Add('type', 'text');
+  ContentObj.Add('text', Text);
+  Result.Add(ContentObj);
+end;
+
+function CreateJsonArrayWithPromptArgument(const Name, Description: String; Required: Boolean): TJsonArray;
+var
+  ArgObj: TJsonObject;
+begin
+  Result := TJsonArray.Create;
+  ArgObj := TJsonObject.Create;
+  ArgObj.Add('name', Name);
+  ArgObj.Add('description', Description);
+  ArgObj.Add('required', Required);
+  Result.Add(ArgObj);
+end;
+
+function CreatePropertySchema(const PropType, Description: String): TJsonObject;
+begin
+  Result := TJsonObject.Create;
+  Result.Add('type', PropType);
+  Result.Add('description', Description);
+end;
+
+function CreatePropertiesObject(const ComponentPathDesc, PropertyNameDesc: String; const ValueDesc: String = ''): TJsonObject;
+begin
+  Result := TJsonObject.Create;
+  Result.Add('componentPath', CreatePropertySchema('string', ComponentPathDesc));
+  Result.Add('propertyName', CreatePropertySchema('string', PropertyNameDesc));
+  if ValueDesc <> '' then
+    Result.Add('value', CreatePropertySchema('string', ValueDesc));
+end;
+
+function CreateInputSchema(Properties: TJsonObject; Required: TJsonArray): TJsonObject;
+begin
+  Result := TJsonObject.Create;
+  Result.Add('type', 'object');
+  Result.Add('properties', Properties);
+  Result.Add('required', Required);
+end;
+
+function CreateTextContent(const Text: String): TJsonObject;
+begin
+  Result := TJsonObject.Create;
+  Result.Add('type', 'text');
+  Result.Add('text', Text);
+end;
+
 { TMockProjectProvider }
 
 constructor TMockProjectProvider.Create(const AProjectName, AProjectCaption, AProjectPath: String);
@@ -380,7 +445,12 @@ begin
     case MessageType of
       jrmtRequest:
         begin
-          JsonObj.Add('id', Id);
+          if VarIsNull(Id) then
+            JsonObj.Add('id', TJsonNull.Create)
+          else if VarIsStr(Id) then
+            JsonObj.Add('id', VarToStr(Id))
+          else
+            JsonObj.Add('id', Integer(Id));
           JsonObj.Add('method', Method);
           if Assigned(Params) then
             JsonObj.Add('params', Params.Clone);
@@ -393,15 +463,25 @@ begin
         end;
       jrmtResponse:
         begin
-          JsonObj.Add('id', Id);
-          if Assigned(Result) then
-            JsonObj.Add('result', Result.Clone)
+          if VarIsNull(Id) then
+            JsonObj.Add('id', TJsonNull.Create)
+          else if VarIsStr(Id) then
+            JsonObj.Add('id', VarToStr(Id))
+          else
+            JsonObj.Add('id', Integer(Id));
+          if Assigned(Self.Result) then
+            JsonObj.Add('result', Self.Result.Clone)
           else
             JsonObj.Add('result', TJsonNull.Create);
         end;
       jrmtError:
         begin
-          JsonObj.Add('id', Id);
+          if VarIsNull(Id) then
+            JsonObj.Add('id', TJsonNull.Create)
+          else if VarIsStr(Id) then
+            JsonObj.Add('id', VarToStr(Id))
+          else
+            JsonObj.Add('id', Integer(Id));
           if Assigned(Error) then
             JsonObj.Add('error', Error.Clone);
         end;
@@ -582,10 +662,13 @@ begin
   // Extract client capabilities
   if ParamsObj.IndexOfName('capabilities') >= 0 then
   begin
-    Capabilities := TJsonObject(ParamsObj.Get('capabilities'));
-    FClientCapabilities.Roots := Capabilities.IndexOfName('roots') >= 0;
-    FClientCapabilities.Sampling := Capabilities.IndexOfName('sampling') >= 0;
-    FClientCapabilities.Elicitation := Capabilities.IndexOfName('elicitation') >= 0;
+    Capabilities := ParamsObj.Objects['capabilities'];
+    if Assigned(Capabilities) then
+    begin
+      FClientCapabilities.Roots := Capabilities.IndexOfName('roots') >= 0;
+      FClientCapabilities.Sampling := Capabilities.IndexOfName('sampling') >= 0;
+      FClientCapabilities.Elicitation := Capabilities.IndexOfName('elicitation') >= 0;
+    end;
   end;
 
   // Create response
@@ -797,29 +880,27 @@ begin
   Tool := TJsonObject.Create;
   Tool.Add('name', 'get_component_property');
   Tool.Add('description', 'Get the value of a component property');
-  Tool.Add('inputSchema', TJsonObject.Create([
-    'type', 'object',
-    'properties', TJsonObject.Create([
-      'componentPath', TJsonObject.Create(['type', 'string', 'description', 'Path to the component (e.g., "ViewMain.ButtonStart")']),
-      'propertyName', TJsonObject.Create(['type', 'string', 'description', 'Name of the property to get'])
-    ]),
-    'required', TJsonArray.Create(['componentPath', 'propertyName'])
-  ]));
+  Tool.Add('inputSchema', CreateInputSchema(
+    CreatePropertiesObject(
+      'Path to the component (e.g., "ViewMain.ButtonStart")',
+      'Name of the property to get'
+    ),
+    CreateJsonArray(['componentPath', 'propertyName'])
+  ));
   Result.Add(Tool);
 
   // Set component property tool
   Tool := TJsonObject.Create;
   Tool.Add('name', 'set_component_property');
   Tool.Add('description', 'Set the value of a component property');
-  Tool.Add('inputSchema', TJsonObject.Create([
-    'type', 'object',
-    'properties', TJsonObject.Create([
-      'componentPath', TJsonObject.Create(['type', 'string', 'description', 'Path to the component (e.g., "ViewMain.ButtonStart")']),
-      'propertyName', TJsonObject.Create(['type', 'string', 'description', 'Name of the property to set']),
-      'value', TJsonObject.Create(['type', 'string', 'description', 'New value for the property'])
-    ]),
-    'required', TJsonArray.Create(['componentPath', 'propertyName', 'value'])
-  ]));
+  Tool.Add('inputSchema', CreateInputSchema(
+    CreatePropertiesObject(
+      'Path to the component (e.g., "ViewMain.ButtonStart")',
+      'Name of the property to set',
+      'New value for the property'
+    ),
+    CreateJsonArray(['componentPath', 'propertyName', 'value'])
+  ));
   Result.Add(Tool);
 end;
 
@@ -845,10 +926,13 @@ begin
     raise Exception.Create('tools/call params must be an object');
 
   ParamsObj := TJsonObject(Params);
-  ToolName := ParamsObj.Get('name', '');
+  if ParamsObj.IndexOfName('name') >= 0 then
+    ToolName := ParamsObj.Strings['name']
+  else
+    ToolName := '';
 
   if ParamsObj.IndexOfName('arguments') >= 0 then
-    Arguments := TJsonObject(ParamsObj.Get('arguments'))
+    Arguments := ParamsObj.Objects['arguments']
   else
     Arguments := nil;
 
@@ -859,8 +943,14 @@ begin
     if not Assigned(Arguments) then
       raise Exception.Create('arguments required for get_component_property');
 
-    ComponentPath := Arguments.Get('componentPath', '');
-    PropertyName := Arguments.Get('propertyName', '');
+    if Arguments.IndexOfName('componentPath') >= 0 then
+      ComponentPath := Arguments.Strings['componentPath']
+    else
+      ComponentPath := '';
+    if Arguments.IndexOfName('propertyName') >= 0 then
+      PropertyName := Arguments.Strings['propertyName']
+    else
+      PropertyName := '';
 
     if (ComponentPath = '') or (PropertyName = '') then
       raise Exception.Create('componentPath and propertyName are required');
@@ -869,16 +959,25 @@ begin
       raise Exception.Create('No design is currently open');
 
     PropertyValue := FDesignProvider.GetComponentProperty(ComponentPath, PropertyName);
-    TJsonObject(Result).Add('content', TJsonArray.Create([TJsonObject.Create(['type', 'text'], ['text', PropertyValue])]));
+    TJsonObject(Result).Add('content', CreateJsonArrayWithTextContent(PropertyValue));
   end
   else if ToolName = 'set_component_property' then
   begin
     if not Assigned(Arguments) then
       raise Exception.Create('arguments required for set_component_property');
 
-    ComponentPath := Arguments.Get('componentPath', '');
-    PropertyName := Arguments.Get('propertyName', '');
-    Value := Arguments.Get('value', '');
+    if Arguments.IndexOfName('componentPath') >= 0 then
+      ComponentPath := Arguments.Strings['componentPath']
+    else
+      ComponentPath := '';
+    if Arguments.IndexOfName('propertyName') >= 0 then
+      PropertyName := Arguments.Strings['propertyName']
+    else
+      PropertyName := '';
+    if Arguments.IndexOfName('value') >= 0 then
+      Value := Arguments.Strings['value']
+    else
+      Value := '';
 
     if (ComponentPath = '') or (PropertyName = '') then
       raise Exception.Create('componentPath and propertyName are required');
@@ -887,7 +986,7 @@ begin
       raise Exception.Create('No design is currently open');
 
     Success := FDesignProvider.SetComponentProperty(ComponentPath, PropertyName, Value);
-    TJsonObject(Result).Add('content', TJsonArray.Create([TJsonObject.Create(['type', 'text'], ['text', Format('Property %s.%s set to "%s": %s', [ComponentPath, PropertyName, Value, BoolToStr(Success, True)])])]));
+    TJsonObject(Result).Add('content', CreateJsonArrayWithTextContent(Format('Property %s.%s set to "%s": %s', [ComponentPath, PropertyName, Value, BoolToStr(Success, True)])));
   end
   else
     raise Exception.CreateFmt('Unknown tool: %s', [ToolName]);
@@ -909,7 +1008,7 @@ begin
   Prompt := TJsonObject.Create;
   Prompt.Add('name', 'component_analysis');
   Prompt.Add('description', 'Analyze the component hierarchy of the current design');
-  Prompt.Add('arguments', TJsonArray.Create([TJsonObject.Create(['name', 'focus'], ['description', 'Specific component to focus on'], ['required', False])]));
+  Prompt.Add('arguments', CreateJsonArrayWithPromptArgument('focus', 'Specific component to focus on', False));
   Result.Add(Prompt);
 end;
 
@@ -952,7 +1051,7 @@ begin
 
       Message := TJsonObject.Create;
       Message.Add('role', 'user');
-      Message.Add('content', TJsonObject.Create(['type', 'text'], ['text', 'Please analyze this Castle Game Engine project:' + LineEnding + ProjectInfo]));
+      Message.Add('content', CreateTextContent('Please analyze this Castle Game Engine project:' + LineEnding + ProjectInfo));
       Messages.Add(Message);
     end;
   end
@@ -964,7 +1063,7 @@ begin
       try
         Message := TJsonObject.Create;
         Message.Add('role', 'user');
-        Message.Add('content', TJsonObject.Create(['type', 'text'], ['text', 'Please analyze this component hierarchy:' + LineEnding + Hierarchy.AsJSON]));
+        Message.Add('content', CreateTextContent('Please analyze this component hierarchy:' + LineEnding + Hierarchy.AsJSON));
         Messages.Add(Message);
       finally
         FreeAndNil(Hierarchy);

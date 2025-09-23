@@ -5,14 +5,14 @@ uses
   CThreads,
   {$endif}
   Classes, SysUtils, CastleLog, CastleApplicationProperties,
-  castlemcpserver_simple;
+  CastleClassUtils, castlemcpserver_simple;
 
 var
   Server: TSimpleMcpServer;
 
 begin
-  { Initialize logging }
-  InitializeLog;
+  { Initialize logging to stderr for MCP compatibility }
+  InitializeLog(StdErrStream);
 
   { Create simple MCP server }
   WritelnLog('Starting Castle Game Engine MCP Server (simple standalone mode)');
