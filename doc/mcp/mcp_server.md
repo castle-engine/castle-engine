@@ -141,6 +141,8 @@ For detailed instructions on integrating with specific AI assistants:
 - **Auggie**: See [Auggie Integration Guide](mcp_server_auggie_integration.md) for complete setup instructions
 - **Other MCP Clients**: Use the standard MCP protocol as documented in this guide
 
+**Note**: The standalone MCP server executable is not included in the repository. Users must compile it locally using the provided source code.
+
 ## Complete API Reference
 
 ### Core MCP Methods

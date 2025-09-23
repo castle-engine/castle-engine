@@ -34,6 +34,8 @@ fpc -Fi../../src/common_includes -Fi../../src/common_includes/unix -Fi../../src/
     -Fu../../src -Fu../../src/base -Fu../../src/files -Fu../../src/ui -Fu../../src/fonts \
     -Fu../../src/audio -Fu../../src/scene -Fu../../src/transform -Fu../../src/base_rendering \
     -Fu../../src/window -Fu../../src/services -Fucode mcp_server_simple_standalone.dpr
+
+# This creates the executable: mcp_server_simple_standalone
 ```
 
 #### Step 2: Configure Auggie
@@ -282,6 +284,13 @@ Get AI-friendly project analysis prompts.
 ```bash
 # Check if executable exists and is compiled
 ls -la /path/to/castle-engine/tools/castle-editor/mcp_server_simple_standalone
+
+# If not found, compile it first:
+cd /path/to/castle-engine/tools/castle-editor
+fpc -Fi../../src/common_includes -Fi../../src/common_includes/unix -Fi../../src/base/unix \
+    -Fu../../src -Fu../../src/base -Fu../../src/files -Fu../../src/ui -Fu../../src/fonts \
+    -Fu../../src/audio -Fu../../src/scene -Fu../../src/transform -Fu../../src/base_rendering \
+    -Fu../../src/window -Fu../../src/services -Fucode mcp_server_simple_standalone.dpr
 
 # Test manual execution
 ./mcp_server_simple_standalone
