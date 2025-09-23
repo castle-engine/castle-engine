@@ -19,7 +19,7 @@ unit TestCastleMcpServerSimple;
 interface
 
 uses
-  Classes, SysUtils, CastleTester, fpjson, jsonparser;
+  Classes, SysUtils, CastleTester, FpJson, JsonParser;
 
 type
   TTestCastleMcpServerSimple = class(TCastleTestCase)
@@ -117,18 +117,18 @@ begin
     // Test initialize request
     Request := '{"jsonrpc":"2.0","id":"1","method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"test-client","version":"1.0.0"}}}';
     Response := Server.ProcessMessage(Request);
-    
+
     AssertTrue('Response should not be empty', Response <> '');
-    
+
     ResponseJson := GetJSON(Response);
     try
       AssertTrue('Response should be JSON object', ResponseJson is TJsonObject);
       ResponseObj := TJsonObject(ResponseJson);
-      
+
       AssertEquals('Should be JSON-RPC 2.0', '2.0', ResponseObj.Get('jsonrpc', ''));
       AssertEquals('ID should match', '1', ResponseObj.Get('id', ''));
       AssertTrue('Should have result', ResponseObj.IndexOfName('result') >= 0);
-      
+
       // Check result structure
       ResponseObj := TJsonObject(ResponseObj.Get('result'));
       AssertEquals('Protocol version should match', '2025-06-18', ResponseObj.Get('protocolVersion', ''));
@@ -137,7 +137,7 @@ begin
     finally
       FreeAndNil(ResponseJson);
     end;
-    
+
     AssertTrue('Server should be initialized', Server.Initialized);
   finally
     FreeAndNil(Server);
@@ -157,24 +157,24 @@ begin
     // Initialize first
     Request := '{"jsonrpc":"2.0","id":"1","method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{}}}';
     Server.ProcessMessage(Request);
-    
+
     // Test resources/list
     Request := '{"jsonrpc":"2.0","id":"2","method":"resources/list","params":{}}';
     Response := Server.ProcessMessage(Request);
-    
+
     AssertTrue('Response should not be empty', Response <> '');
-    
+
     ResponseJson := GetJSON(Response);
     try
       ResponseObj := TJsonObject(ResponseJson);
       AssertTrue('Should have result', ResponseObj.IndexOfName('result') >= 0);
-      
+
       ResponseObj := TJsonObject(ResponseObj.Get('result'));
       AssertTrue('Should have resources array', ResponseObj.IndexOfName('resources') >= 0);
-      
+
       Resources := TJsonArray(ResponseObj.Get('resources'));
       AssertTrue('Should have at least one resource', Resources.Count > 0);
-      
+
       // Check first resource structure
       ResponseObj := TJsonObject(Resources.Items[0]);
       AssertTrue('Resource should have uri', ResponseObj.IndexOfName('uri') >= 0);
@@ -201,24 +201,24 @@ begin
     // Initialize first
     Request := '{"jsonrpc":"2.0","id":"1","method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{}}}';
     Server.ProcessMessage(Request);
-    
+
     // Test tools/list
     Request := '{"jsonrpc":"2.0","id":"2","method":"tools/list","params":{}}';
     Response := Server.ProcessMessage(Request);
-    
+
     AssertTrue('Response should not be empty', Response <> '');
-    
+
     ResponseJson := GetJSON(Response);
     try
       ResponseObj := TJsonObject(ResponseJson);
       AssertTrue('Should have result', ResponseObj.IndexOfName('result') >= 0);
-      
+
       ResponseObj := TJsonObject(ResponseObj.Get('result'));
       AssertTrue('Should have tools array', ResponseObj.IndexOfName('tools') >= 0);
-      
+
       Tools := TJsonArray(ResponseObj.Get('tools'));
       AssertTrue('Should have at least one tool', Tools.Count > 0);
-      
+
       // Check first tool structure
       ResponseObj := TJsonObject(Tools.Items[0]);
       AssertTrue('Tool should have name', ResponseObj.IndexOfName('name') >= 0);
@@ -244,21 +244,21 @@ begin
     // Initialize first
     Request := '{"jsonrpc":"2.0","id":"1","method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{}}}';
     Server.ProcessMessage(Request);
-    
+
     // Test prompts/list
     Request := '{"jsonrpc":"2.0","id":"2","method":"prompts/list","params":{}}';
     Response := Server.ProcessMessage(Request);
-    
+
     AssertTrue('Response should not be empty', Response <> '');
-    
+
     ResponseJson := GetJSON(Response);
     try
       ResponseObj := TJsonObject(ResponseJson);
       AssertTrue('Should have result', ResponseObj.IndexOfName('result') >= 0);
-      
+
       ResponseObj := TJsonObject(ResponseObj.Get('result'));
       AssertTrue('Should have prompts array', ResponseObj.IndexOfName('prompts') >= 0);
-      
+
       Prompts := TJsonArray(ResponseObj.Get('prompts'));
       AssertTrue('Should have at least one prompt', Prompts.Count > 0);
     finally
