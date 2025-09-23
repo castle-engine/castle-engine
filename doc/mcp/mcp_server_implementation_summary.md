@@ -28,9 +28,9 @@ Successfully implemented a comprehensive MCP (Model Context Protocol) server for
 - **Performance Guidelines**: Best practices and optimization tips
 
 **Documentation Structure:**
-- `doc/mcp_server.md` - Complete documentation (900+ lines)
-- `doc/mcp_server_quick_reference.md` - Quick reference guide
-- `doc/mcp_server_implementation_summary.md` - This summary
+- `doc/mcp/mcp_server.md` - Complete documentation (900+ lines)
+- `doc/mcp/mcp_server_quick_reference.md` - Quick reference guide
+- `doc/mcp/mcp_server_implementation_summary.md` - This summary
 
 ### 3. Network Server ✅ **FRAMEWORK COMPLETED**
 - **UI Integration**: Complete preferences interface with start/stop controls
