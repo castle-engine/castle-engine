@@ -1089,7 +1089,10 @@ begin
     begin
       Response := ProcessMessage(InputLine);
       if Response <> '' then
+      begin
         WriteLn(Response);
+        Flush(Output); // Ensure response is sent immediately
+      end;
     end;
   end;
 
