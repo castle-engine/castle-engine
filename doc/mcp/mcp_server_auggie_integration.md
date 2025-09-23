@@ -25,28 +25,20 @@ The standalone server provides a working MCP interface with mock data, perfect f
 #### Step 1: Build the Standalone Server
 
 ```bash
-# Navigate to Castle Game Engine directory
-cd /path/to/castle-engine
-
 # Compile the standalone MCP server
-cd tools/castle-editor
-fpc -Fi../../src/common_includes -Fi../../src/common_includes/unix -Fi../../src/base/unix \
-    -Fu../../src -Fu../../src/base -Fu../../src/files -Fu../../src/ui -Fu../../src/fonts \
-    -Fu../../src/audio -Fu../../src/scene -Fu../../src/transform -Fu../../src/base_rendering \
-    -Fu../../src/window -Fu../../src/services -Fucode mcp_server_simple_standalone.dpr
-
-# This creates the executable: mcp_server_simple_standalone
+cd tools/internal/mcp-server-tests/mcp_server_simple
+castle-engine compile
 ```
 
 #### Step 2: Configure Auggie
 
-Add the following to your Auggie MCP client configuration:
+Add the following to your Augment (and thus also Auggie) MCP client configuration in `~/.augment/settings.json`:
 
 ```json
 {
   "mcpServers": {
     "castle-engine": {
-      "command": "/path/to/castle-engine/tools/castle-editor/mcp_server_simple_standalone",
+      "command": "/path/to/castle-engine/tools/internal/mcp-server-tests/mcp_server_simple/mcp_server_simple",
       "args": [],
       "env": {}
     }
@@ -54,11 +46,21 @@ Add the following to your Auggie MCP client configuration:
 }
 ```
 
+Or execute this command:
+
+```
+auggie mcp add castle-engine --command /path/to/castle-engine/tools/internal/mcp-server-tests/mcp_server_simple/mcp_server_simple
+auggie mcp list
+```
+
+See https://docs.augmentcode.com/cli/integrations
+
 #### Step 3: Test the Connection
 
 ```bash
 # Test basic functionality
-echo '{"jsonrpc":"2.0","id":"1","method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"test","version":"1.0.0"}}}' | ./mcp_server_simple_standalone
+cd /path/to/castle-engine/tools/internal/mcp-server-tests/mcp_server_simple/
+echo '{"jsonrpc":"2.0","id":"1","method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"test","version":"1.0.0"}}}' | ./mcp_server_simple
 ```
 
 Expected response:
