@@ -14,11 +14,11 @@
 }
 
 { MCP (Model Context Protocol) server implementation for Castle Game Engine editor.
-  
+
   This unit implements a JSON-RPC 2.0 server following the MCP specification
   (https://modelcontextprotocol.io/specification/2025-06-18) to allow AI clients
   to interact with the Castle Game Engine editor.
-  
+
   Features:
   - Project information (name, caption, file listings)
   - Component hierarchy access when design is open
@@ -33,7 +33,7 @@ unit CastleMcpServer;
 interface
 
 uses
-  Classes, SysUtils, fpjson, jsonparser, CastleUtils, CastleStringUtils,
+  Classes, SysUtils, FpJson, JsonParser, CastleUtils, CastleStringUtils,
   CastleClassUtils, CastleLog, CastleApplicationProperties,
   CastleUriUtils, CastleFilesUtils, CastleFindFiles;
 
@@ -110,25 +110,25 @@ type
     Params: TJsonData; // for requests and notifications
     Result: TJsonData; // for responses
     Error: TJsonObject; // for error responses
-    
+
     constructor Create;
     destructor Destroy; override;
-    
+
     { Parse JSON-RPC message from JSON string }
     class function FromJson(const JsonStr: String): TJsonRpcMessage;
-    
+
     { Convert to JSON string }
     function ToJson: String;
-    
+
     { Create request message }
     class function CreateRequest(const AId: Variant; const AMethod: String; AParams: TJsonData = nil): TJsonRpcMessage;
-    
+
     { Create response message }
     class function CreateResponse(const AId: Variant; AResult: TJsonData): TJsonRpcMessage;
-    
+
     { Create error response }
     class function CreateError(const AId: Variant; ACode: Integer; const AMessage: String; AData: TJsonData = nil): TJsonRpcMessage;
-    
+
     { Create notification }
     class function CreateNotification(const AMethod: String; AParams: TJsonData = nil): TJsonRpcMessage;
   end;
@@ -142,7 +142,7 @@ type
     FClientCapabilities: TMcpClientCapabilities;
     FInitialized: Boolean;
     FServerInfo: TJsonObject;
-    
+
     { Message handlers }
     function HandleInitialize(const Params: TJsonData): TJsonData;
     function HandleInitialized(const Params: TJsonData): TJsonData;
@@ -152,7 +152,7 @@ type
     function HandleToolsCall(const Params: TJsonData): TJsonData;
     function HandlePromptsList(const Params: TJsonData): TJsonData;
     function HandlePromptsGet(const Params: TJsonData): TJsonData;
-    
+
     { Helper methods }
     function CreateServerInfo: TJsonObject;
     function CreateServerCapabilities: TJsonObject;
@@ -160,17 +160,17 @@ type
     function GetDesignResources: TJsonArray;
     function GetAvailableTools: TJsonArray;
     function GetAvailablePrompts: TJsonArray;
-    
+
   public
     constructor Create(AProjectProvider: IMcpProjectProvider = nil; ADesignProvider: IMcpDesignProvider = nil);
     destructor Destroy; override;
-    
+
     { Process a JSON-RPC message and return response }
     function ProcessMessage(const JsonStr: String): String;
-    
+
     { Run server in stdio mode (read from stdin, write to stdout) }
     procedure RunStdio;
-    
+
     { Properties }
     property Initialized: Boolean read FInitialized;
     property ProjectProvider: IMcpProjectProvider read FProjectProvider write FProjectProvider;
@@ -249,21 +249,21 @@ begin
   Result.Add('name', 'ViewMain');
   Result.Add('class', 'TCastleView');
   Result.Add('path', 'ViewMain');
-  
+
   Children := TJsonArray.Create;
-  
+
   Child1 := TJsonObject.Create;
   Child1.Add('name', 'LabelTitle');
   Child1.Add('class', 'TCastleLabel');
   Child1.Add('path', 'ViewMain.LabelTitle');
   Children.Add(Child1);
-  
+
   Child2 := TJsonObject.Create;
   Child2.Add('name', 'ButtonStart');
   Child2.Add('class', 'TCastleButton');
   Child2.Add('path', 'ViewMain.ButtonStart');
   Children.Add(Child2);
-  
+
   Result.Add('children', Children);
 end;
 
@@ -322,13 +322,13 @@ begin
     try
       if not (JsonData is TJsonObject) then
         raise Exception.Create('JSON-RPC message must be an object');
-      
+
       JsonObj := TJsonObject(JsonData);
-      
+
       // Check for required jsonrpc field
       if JsonObj.Get('jsonrpc', '') <> '2.0' then
         raise Exception.Create('Invalid JSON-RPC version');
-      
+
       // Determine message type and parse accordingly
       if JsonObj.IndexOfName('method') >= 0 then
       begin
@@ -341,7 +341,7 @@ begin
         begin
           Result.MessageType := jrmtNotification;
         end;
-        
+
         if JsonObj.IndexOfName('params') >= 0 then
           Result.Params := JsonObj.Extract('params');
       end
@@ -359,7 +359,7 @@ begin
       end
       else
         raise Exception.Create('Invalid JSON-RPC message format');
-        
+
     finally
       FreeAndNil(JsonData);
     end;
@@ -376,7 +376,7 @@ begin
   JsonObj := TJsonObject.Create;
   try
     JsonObj.Add('jsonrpc', '2.0');
-    
+
     case MessageType of
       jrmtRequest:
         begin
@@ -406,7 +406,7 @@ begin
             JsonObj.Add('error', Error.Clone);
         end;
     end;
-    
+
     Result := JsonObj.AsJSON;
   finally
     FreeAndNil(JsonObj);
@@ -458,12 +458,12 @@ begin
   FProjectProvider := AProjectProvider;
   FDesignProvider := ADesignProvider;
   FInitialized := False;
-  
+
   // Set default capabilities
   FServerCapabilities.Resources := True;
   FServerCapabilities.Tools := True;
   FServerCapabilities.Prompts := True;
-  
+
   FServerInfo := CreateServerInfo;
 end;
 

@@ -14,7 +14,7 @@
 }
 
 { Simple MCP (Model Context Protocol) server implementation for Castle Game Engine editor.
-  
+
   This is a simplified version that focuses on basic JSON-RPC functionality
   without complex dependencies.
 }
@@ -25,7 +25,7 @@ unit castlemcpserver_simple;
 interface
 
 uses
-  Classes, SysUtils, fpjson, jsonparser, CastleUtils, CastleStringUtils,
+  Classes, SysUtils, FpJson, JsonParser, CastleUtils, CastleStringUtils,
   CastleClassUtils, CastleLog, CastleApplicationProperties, ssockets, sockets,
   SyncObjs;
 
@@ -134,13 +134,13 @@ begin
     try
       if not (JsonData is TJsonObject) then
         raise Exception.Create('JSON-RPC message must be an object');
-      
+
       JsonObj := TJsonObject(JsonData);
-      
+
       // Check for required jsonrpc field
       if JsonObj.Get('jsonrpc', '') <> '2.0' then
         raise Exception.Create('Invalid JSON-RPC version');
-      
+
       // Determine message type and parse accordingly
       if JsonObj.IndexOfName('method') >= 0 then
       begin
@@ -153,7 +153,7 @@ begin
         begin
           Result.MessageType := jrmtNotification;
         end;
-        
+
         if JsonObj.IndexOfName('params') >= 0 then
         begin
           if JsonObj.Items[JsonObj.IndexOfName('params')] is TJsonObject then
@@ -176,7 +176,7 @@ begin
       end
       else
         raise Exception.Create('Invalid JSON-RPC message format');
-        
+
     finally
       FreeAndNil(JsonData);
     end;
@@ -193,7 +193,7 @@ begin
   JsonObj := TJsonObject.Create;
   try
     JsonObj.Add('jsonrpc', '2.0');
-    
+
     case MessageType of
       jrmtRequest:
         begin
@@ -223,7 +223,7 @@ begin
             JsonObj.Add('error', Error.Clone);
         end;
     end;
-    
+
     Result := JsonObj.AsJSON;
   finally
     FreeAndNil(JsonObj);
@@ -276,7 +276,7 @@ begin
   try
     try
       Request := TSimpleJsonRpcMessage.FromJson(JsonStr);
-      
+
       case Request.MessageType of
         jrmtRequest:
           begin
@@ -292,7 +292,7 @@ begin
                 ResponseData := HandlePromptsList(Request.Params)
               else
                 raise Exception.CreateFmt('Unknown method: %s', [Request.Method]);
-              
+
               Response := TSimpleJsonRpcMessage.Create;
               Response.MessageType := jrmtResponse;
               Response.Id := Request.Id;
@@ -314,10 +314,10 @@ begin
         else
           raise Exception.Create('Invalid message type for server');
       end;
-      
+
       if Assigned(Response) then
         Result := Response.ToJson;
-        
+
     except
       on E: Exception do
       begin
