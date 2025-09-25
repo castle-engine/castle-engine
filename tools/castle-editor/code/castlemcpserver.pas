@@ -1,5 +1,5 @@
 {
-  Copyright 2024 Michalis Kamburelis.
+  Copyright 2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -104,15 +104,39 @@ type
   { JSON-RPC 2.0 message types }
   TJsonRpcMessageType = (jrmtRequest, jrmtResponse, jrmtNotification, jrmtError);
 
+  TMcpIdType = (jritEmpty, jritInt, jritString);
+
+  { ID in MCP is either string or integer,
+    so one (not more, not less) of Int, Str is used. }
+  TMcpId = record
+    { Define whether id is available at all, and if yes -> what type.
+      Note that integer id = 0 is a valid id, so we cannot use Int <> 0 to check
+      whether id is available, that is why we have IdType. }
+    IdType: TMcpIdType;
+    Int: Int64;
+    Str: String;
+
+    { Parse from JSON data, either string or number. }
+    class function FromJson(const JsonData: TJsonData): TMcpId; static;
+
+    { Set 'id' of given JsonObj, if we are not empty. }
+    procedure ToJson(const JsonObj: TJsonObject);
+
+    { Empty ID (no int or string), special value we use in some cases. }
+    class function Empty: TMcpId; static;
+
+    function ToString: String;
+  end;
+
   { JSON-RPC 2.0 message }
   TJsonRpcMessage = class
   public
     MessageType: TJsonRpcMessageType;
-    Id: Variant; // can be string, number, or null
+    Id: TMcpId;
     Method: String; // for requests and notifications
     Params: TJsonData; // for requests and notifications
-    Result: TJsonData; // for responses
-    Error: TJsonObject; // for error responses
+    JsonResult: TJsonData; // for JSON-RPC response
+    Error: TJsonObject; // for error response
 
     constructor Create;
     destructor Destroy; override;
@@ -124,16 +148,20 @@ type
     function ToJson: String;
 
     { Create request message }
-    class function CreateRequest(const AId: Variant; const AMethod: String; AParams: TJsonData = nil): TJsonRpcMessage;
+    constructor CreateRequest(const AId: TMcpId; const AMethod: String;
+      const AParams: TJsonData = nil);
 
     { Create response message }
-    class function CreateResponse(const AId: Variant; AResult: TJsonData): TJsonRpcMessage;
+    constructor CreateResponse(const AId: TMcpId;
+      const AResult: TJsonData);
 
     { Create error response }
-    class function CreateError(const AId: Variant; ACode: Integer; const AMessage: String; AData: TJsonData = nil): TJsonRpcMessage;
+    constructor CreateError(const AId: TMcpId; const ACode: Integer;
+      const AMessage: String; const AData: TJsonData = nil);
 
     { Create notification }
-    class function CreateNotification(const AMethod: String; AParams: TJsonData = nil): TJsonRpcMessage;
+    constructor CreateNotification(const AMethod: String;
+      const AParams: TJsonData = nil);
   end;
 
   { MCP Server implementation }
@@ -147,14 +175,14 @@ type
     FServerInfo: TJsonObject;
 
     { Message handlers }
-    function HandleInitialize(const Params: TJsonData): TJsonData;
-    function HandleInitialized(const Params: TJsonData): TJsonData;
-    function HandleResourcesList(const Params: TJsonData): TJsonData;
-    function HandleResourcesRead(const Params: TJsonData): TJsonData;
-    function HandleToolsList(const Params: TJsonData): TJsonData;
-    function HandleToolsCall(const Params: TJsonData): TJsonData;
-    function HandlePromptsList(const Params: TJsonData): TJsonData;
-    function HandlePromptsGet(const Params: TJsonData): TJsonData;
+    function HandleInitialize(const Params: TJsonData): TJsonObject;
+    function HandleInitialized(const Params: TJsonData): TJsonObject;
+    function HandleResourcesList(const Params: TJsonData): TJsonObject;
+    function HandleResourcesRead(const Params: TJsonData): TJsonObject;
+    function HandleToolsList(const Params: TJsonData): TJsonObject;
+    function HandleToolsCall(const Params: TJsonData): TJsonObject;
+    function HandlePromptsList(const Params: TJsonData): TJsonObject;
+    function HandlePromptsGet(const Params: TJsonData): TJsonObject;
 
     { Helper methods }
     function CreateServerInfo: TJsonObject;
@@ -165,7 +193,8 @@ type
     function GetAvailablePrompts: TJsonArray;
 
   public
-    constructor Create(AProjectProvider: IMcpProjectProvider = nil; ADesignProvider: IMcpDesignProvider = nil);
+    constructor Create(const AProjectProvider: IMcpProjectProvider = nil;
+      const ADesignProvider: IMcpDesignProvider = nil);
     destructor Destroy; override;
 
     { Process a JSON-RPC message and return response }
@@ -185,8 +214,50 @@ function CreateMockMcpServer: TMcpServer;
 
 implementation
 
-uses
-  Variants, TypInfo, base64;
+uses base64;
+
+{ TMcpId --------------------------------------------------------------------- }
+
+class function TMcpId.FromJson(const JsonData: TJsonData): TMcpId; static;
+begin
+  if JsonData is TJSONNumber then
+  begin
+    Result.Int := JsonData.AsInt64;
+    Result.IdType := jritInt;
+  end else
+  if JsonData is TJSONString then
+  begin
+    Result.IdType := jritString;
+    Result.Str := JsonData.AsString
+  end else
+    raise Exception.CreateFmt('Invalid JSON-RPC id type: %s', [JsonData.ClassName]);
+end;
+
+procedure TMcpId.ToJson(const JsonObj: TJsonObject);
+begin
+  case IdType of
+    jritInt: JsonObj.Add('id', Int);
+    jritString: JsonObj.Add('id', Str);
+  end;
+end;
+
+class function TMcpId.Empty: TMcpId; static;
+begin
+  Result.IdType := jritEmpty;
+  // Int and Str are not important, but set to be deterministic for easier debugging
+  Result.Int := 0;
+  Result.Str := '';
+end;
+
+function TMcpId.ToString: String;
+begin
+  case IdType of
+    jritEmpty: Result := 'empty';
+    jritInt: Result := 'integer ' + IntToStr(Int);
+    jritString: Result := 'string "' + Str + '"';
+    else raise Exception.Create('Invalid TMcpId.IdType');
+  end;
+end;
 
 { Helper functions for JSON creation }
 
@@ -253,7 +324,7 @@ begin
   Result.Add('text', Text);
 end;
 
-{ TMockProjectProvider }
+{ TMockProjectProvider ------------------------------------------------------- }
 
 constructor TMockProjectProvider.Create(const AProjectName, AProjectCaption, AProjectPath: String);
 begin
@@ -295,7 +366,7 @@ begin
   Result.Add('data/models/character.gltf');
 end;
 
-{ TMockDesignProvider }
+{ TMockDesignProvider -------------------------------------------------------- }
 
 constructor TMockDesignProvider.Create(ADesignOpen: Boolean);
 begin
@@ -310,7 +381,7 @@ end;
 
 function TMockDesignProvider.GetComponentHierarchy: TJsonObject;
 var
-  Root, Child1, Child2: TJsonObject;
+  Child1, Child2: TJsonObject;
   Children: TJsonArray;
 begin
   Result := TJsonObject.Create;
@@ -365,16 +436,16 @@ end;
 constructor TJsonRpcMessage.Create;
 begin
   inherited Create;
-  Id := Null;
+  Id := TMcpId.Empty;
   Params := nil;
-  Result := nil;
+  JsonResult := nil;
   Error := nil;
 end;
 
 destructor TJsonRpcMessage.Destroy;
 begin
   FreeAndNil(Params);
-  FreeAndNil(Result);
+  FreeAndNil(JsonResult);
   FreeAndNil(Error);
   inherited Destroy;
 end;
@@ -383,6 +454,7 @@ class function TJsonRpcMessage.FromJson(const JsonStr: String): TJsonRpcMessage;
 var
   JsonData: TJsonData;
   JsonObj: TJsonObject;
+  IdData: TJsonData;
 begin
   Result := TJsonRpcMessage.Create;
   try
@@ -397,35 +469,34 @@ begin
       if JsonObj.Get('jsonrpc', '') <> '2.0' then
         raise Exception.Create('Invalid JSON-RPC version');
 
+      IdData := JsonObj.Find('id');
+      if IdData <> nil then
+        Result.Id := TMcpId.FromJson(IdData)
+      else
+        Result.Id := TMcpId.Empty;
+
       // Determine message type and parse accordingly
       if JsonObj.IndexOfName('method') >= 0 then
       begin
         Result.Method := JsonObj.Get('method', '');
-        if JsonObj.IndexOfName('id') >= 0 then
-        begin
-          Result.MessageType := jrmtRequest;
-          Result.Id := JsonObj.Get('id');
-        end else
-        begin
+        if Result.Id.IdType <> jritEmpty then
+          Result.MessageType := jrmtRequest
+        else
           Result.MessageType := jrmtNotification;
-        end;
 
         if JsonObj.IndexOfName('params') >= 0 then
           Result.Params := JsonObj.Extract('params');
-      end
-      else if JsonObj.IndexOfName('result') >= 0 then
+      end else
+      if JsonObj.IndexOfName('result') >= 0 then
       begin
         Result.MessageType := jrmtResponse;
-        Result.Id := JsonObj.Get('id');
-        Result.Result := JsonObj.Extract('result');
-      end
-      else if JsonObj.IndexOfName('error') >= 0 then
+        Result.JsonResult := JsonObj.Extract('result');
+      end else
+      if JsonObj.IndexOfName('error') >= 0 then
       begin
         Result.MessageType := jrmtError;
-        Result.Id := JsonObj.Get('id');
         Result.Error := TJsonObject(JsonObj.Extract('error'));
-      end
-      else
+      end else
         raise Exception.Create('Invalid JSON-RPC message format');
 
     finally
@@ -448,12 +519,7 @@ begin
     case MessageType of
       jrmtRequest:
         begin
-          if VarIsNull(Id) then
-            JsonObj.Add('id', TJsonNull.Create)
-          else if VarIsStr(Id) then
-            JsonObj.Add('id', VarToStr(Id))
-          else
-            JsonObj.Add('id', Integer(Id));
+          Id.ToJson(JsonObj);
           JsonObj.Add('method', Method);
           if Assigned(Params) then
             JsonObj.Add('params', Params.Clone);
@@ -466,25 +532,15 @@ begin
         end;
       jrmtResponse:
         begin
-          if VarIsNull(Id) then
-            JsonObj.Add('id', TJsonNull.Create)
-          else if VarIsStr(Id) then
-            JsonObj.Add('id', VarToStr(Id))
-          else
-            JsonObj.Add('id', Integer(Id));
-          if Assigned(Self.Result) then
-            JsonObj.Add('result', Self.Result.Clone)
+          Id.ToJson(JsonObj);
+          if Assigned(JsonResult) then
+            JsonObj.Add('result', JsonResult.Clone)
           else
             JsonObj.Add('result', TJsonNull.Create);
         end;
       jrmtError:
         begin
-          if VarIsNull(Id) then
-            JsonObj.Add('id', TJsonNull.Create)
-          else if VarIsStr(Id) then
-            JsonObj.Add('id', VarToStr(Id))
-          else
-            JsonObj.Add('id', Integer(Id));
+          Id.ToJson(JsonObj);
           if Assigned(Error) then
             JsonObj.Add('error', Error.Clone);
         end;
@@ -496,46 +552,51 @@ begin
   end;
 end;
 
-class function TJsonRpcMessage.CreateRequest(const AId: Variant; const AMethod: String; AParams: TJsonData): TJsonRpcMessage;
+constructor TJsonRpcMessage.CreateRequest(const AId: TMcpId;
+  const AMethod: String; const AParams: TJsonData);
 begin
-  Result := TJsonRpcMessage.Create;
-  Result.MessageType := jrmtRequest;
-  Result.Id := AId;
-  Result.Method := AMethod;
-  Result.Params := AParams;
+  inherited Create;
+  MessageType := jrmtRequest;
+  Id := AId;
+  Method := AMethod;
+  Params := AParams;
 end;
 
-class function TJsonRpcMessage.CreateResponse(const AId: Variant; AResult: TJsonData): TJsonRpcMessage;
+constructor TJsonRpcMessage.CreateResponse(const AId: TMcpId;
+  const AResult: TJsonData);
 begin
-  Result := TJsonRpcMessage.Create;
-  Result.MessageType := jrmtResponse;
-  Result.Id := AId;
-  Result.Result := AResult;
+  inherited Create;
+  MessageType := jrmtResponse;
+  Id := AId;
+  JsonResult := AResult;
 end;
 
-class function TJsonRpcMessage.CreateError(const AId: Variant; ACode: Integer; const AMessage: String; AData: TJsonData): TJsonRpcMessage;
+constructor TJsonRpcMessage.CreateError(const AId: TMcpId;
+  const ACode: Integer; const AMessage: String; const AData: TJsonData);
 begin
-  Result := TJsonRpcMessage.Create;
-  Result.MessageType := jrmtError;
-  Result.Id := AId;
-  Result.Error := TJsonObject.Create;
-  Result.Error.Add('code', ACode);
-  Result.Error.Add('message', AMessage);
-  if Assigned(AData) then
-    Result.Error.Add('data', AData);
+  inherited Create;
+  MessageType := jrmtError;
+  Id := AId;
+  Error := TJsonObject.Create;
+  Error.Add('code', ACode);
+  Error.Add('message', AMessage);
+  if AData <> nil then
+    Error.Add('data', AData);
 end;
 
-class function TJsonRpcMessage.CreateNotification(const AMethod: String; AParams: TJsonData): TJsonRpcMessage;
+constructor TJsonRpcMessage.CreateNotification(const AMethod: String;
+  const AParams: TJsonData);
 begin
-  Result := TJsonRpcMessage.Create;
-  Result.MessageType := jrmtNotification;
-  Result.Method := AMethod;
-  Result.Params := AParams;
+  inherited Create;
+  MessageType := jrmtNotification;
+  Method := AMethod;
+  Params := AParams;
 end;
 
-{ TMcpServer }
+{ TMcpServer ---------------------------------------------------------------- }
 
-constructor TMcpServer.Create(AProjectProvider: IMcpProjectProvider; ADesignProvider: IMcpDesignProvider);
+constructor TMcpServer.Create(const AProjectProvider: IMcpProjectProvider;
+  const ADesignProvider: IMcpDesignProvider);
 begin
   inherited Create;
   FProjectProvider := AProjectProvider;
@@ -641,7 +702,7 @@ begin
       on E: Exception do
       begin
         FreeAndNil(Response);
-        Response := TJsonRpcMessage.CreateError(Null, -32700, 'Parse error: ' + E.Message);
+        Response := TJsonRpcMessage.CreateError(TMcpId.Empty, -32700, 'Parse error: ' + E.Message);
         Result := Response.ToJson;
       end;
     end;
@@ -651,10 +712,9 @@ begin
   end;
 end;
 
-function TMcpServer.HandleInitialize(const Params: TJsonData): TJsonData;
+function TMcpServer.HandleInitialize(const Params: TJsonData): TJsonObject;
 var
   ParamsObj: TJsonObject;
-  ClientInfo: TJsonObject;
   Capabilities: TJsonObject;
 begin
   if not (Params is TJsonObject) then
@@ -676,12 +736,12 @@ begin
 
   // Create response
   Result := TJsonObject.Create;
-  TJsonObject(Result).Add('protocolVersion', '2025-06-18');
-  TJsonObject(Result).Add('serverInfo', FServerInfo.Clone);
-  TJsonObject(Result).Add('capabilities', CreateServerCapabilities);
+  Result.Add('protocolVersion', '2025-06-18');
+  Result.Add('serverInfo', FServerInfo.Clone);
+  Result.Add('capabilities', CreateServerCapabilities);
 end;
 
-function TMcpServer.HandleInitialized(const Params: TJsonData): TJsonData;
+function TMcpServer.HandleInitialized(const Params: TJsonData): TJsonObject;
 begin
   FInitialized := True;
   WritelnLog('MCP Server initialized');
@@ -766,7 +826,7 @@ begin
   Result.Add(Resource);
 end;
 
-function TMcpServer.HandleResourcesList(const Params: TJsonData): TJsonData;
+function TMcpServer.HandleResourcesList(const Params: TJsonData): TJsonObject;
 var
   Resources: TJsonArray;
   ProjectResources, DesignResources: TJsonArray;
@@ -793,20 +853,18 @@ begin
   end;
 
   Result := TJsonObject.Create;
-  TJsonObject(Result).Add('resources', Resources);
+  Result.Add('resources', Resources);
 end;
 
-function TMcpServer.HandleResourcesRead(const Params: TJsonData): TJsonData;
+function TMcpServer.HandleResourcesRead(const Params: TJsonData): TJsonObject;
 var
   ParamsObj: TJsonObject;
   Uri: String;
-  Content: String;
-  ProjectInfo: TJsonObject;
   Hierarchy: TJsonObject;
   Base64Data: String;
   ContentArray: TJsonArray;
   ContentItem: TJsonObject;
-  ResourceObj: TJsonObject;
+  ResourceObj, ProjectInfo: TJsonObject;
 begin
   if not (Params is TJsonObject) then
     raise Exception.Create('resources/read params must be an object');
@@ -834,7 +892,7 @@ begin
     ContentItem.Add('type', 'text');
     ContentItem.Add('text', ProjectInfo.AsJSON);
     ContentArray.Add(ContentItem);
-    TJsonObject(Result).Add('contents', ContentArray);
+    Result.Add('contents', ContentArray);
     FreeAndNil(ProjectInfo);
   end
   else if Uri = 'design://hierarchy' then
@@ -849,7 +907,7 @@ begin
       ContentItem.Add('type', 'text');
       ContentItem.Add('text', Hierarchy.AsJSON);
       ContentArray.Add(ContentItem);
-      TJsonObject(Result).Add('contents', ContentArray);
+      Result.Add('contents', ContentArray);
     finally
       FreeAndNil(Hierarchy);
     end;
@@ -867,7 +925,7 @@ begin
     ResourceObj.Add('uri', 'data:image/png;base64,' + Base64Data);
     ContentItem.Add('resource', ResourceObj);
     ContentArray.Add(ContentItem);
-    TJsonObject(Result).Add('contents', ContentArray);
+    Result.Add('contents', ContentArray);
   end
   else
     raise Exception.CreateFmt('Unknown resource URI: %s', [Uri]);
@@ -907,16 +965,16 @@ begin
   Result.Add(Tool);
 end;
 
-function TMcpServer.HandleToolsList(const Params: TJsonData): TJsonData;
+function TMcpServer.HandleToolsList(const Params: TJsonData): TJsonObject;
 var
   Tools: TJsonArray;
 begin
   Tools := GetAvailableTools;
   Result := TJsonObject.Create;
-  TJsonObject(Result).Add('tools', Tools);
+  Result.Add('tools', Tools);
 end;
 
-function TMcpServer.HandleToolsCall(const Params: TJsonData): TJsonData;
+function TMcpServer.HandleToolsCall(const Params: TJsonData): TJsonObject;
 var
   ParamsObj: TJsonObject;
   ToolName: String;
@@ -962,7 +1020,7 @@ begin
       raise Exception.Create('No design is currently open');
 
     PropertyValue := FDesignProvider.GetComponentProperty(ComponentPath, PropertyName);
-    TJsonObject(Result).Add('content', CreateJsonArrayWithTextContent(PropertyValue));
+    Result.Add('content', CreateJsonArrayWithTextContent(PropertyValue));
   end
   else if ToolName = 'set_component_property' then
   begin
@@ -989,7 +1047,7 @@ begin
       raise Exception.Create('No design is currently open');
 
     Success := FDesignProvider.SetComponentProperty(ComponentPath, PropertyName, Value);
-    TJsonObject(Result).Add('content', CreateJsonArrayWithTextContent(Format('Property %s.%s set to "%s": %s', [ComponentPath, PropertyName, Value, BoolToStr(Success, True)])));
+    Result.Add('content', CreateJsonArrayWithTextContent(Format('Property %s.%s set to "%s": %s', [ComponentPath, PropertyName, Value, BoolToStr(Success, True)])));
   end
   else
     raise Exception.CreateFmt('Unknown tool: %s', [ToolName]);
@@ -1015,16 +1073,16 @@ begin
   Result.Add(Prompt);
 end;
 
-function TMcpServer.HandlePromptsList(const Params: TJsonData): TJsonData;
+function TMcpServer.HandlePromptsList(const Params: TJsonData): TJsonObject;
 var
   Prompts: TJsonArray;
 begin
   Prompts := GetAvailablePrompts;
   Result := TJsonObject.Create;
-  TJsonObject(Result).Add('prompts', Prompts);
+  Result.Add('prompts', Prompts);
 end;
 
-function TMcpServer.HandlePromptsGet(const Params: TJsonData): TJsonData;
+function TMcpServer.HandlePromptsGet(const Params: TJsonData): TJsonObject;
 var
   ParamsObj: TJsonObject;
   PromptName: String;
@@ -1076,7 +1134,7 @@ begin
   else
     raise Exception.CreateFmt('Unknown prompt: %s', [PromptName]);
 
-  TJsonObject(Result).Add('messages', Messages);
+  Result.Add('messages', Messages);
 end;
 
 procedure TMcpServer.RunStdio;
