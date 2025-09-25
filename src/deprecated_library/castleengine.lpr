@@ -133,7 +133,7 @@ begin
     TouchNavigation := TCastleTouchNavigation.Create(nil);
     TouchNavigation.FullSize := true;
     TouchNavigation.Viewport := Viewport;
-    Viewport.InsertFront(TouchNavigation);
+    Window.Controls.InsertFront(TouchNavigation);
 
     PreviousNavigationType := Viewport.NavigationType;
 
