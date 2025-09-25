@@ -95,9 +95,10 @@ begin
   Message := TJsonRpcMessage.CreateRequest(TestId, 'test_method', Params);
   try
     JsonStr := Message.ToJson;
-    AssertTrue('JSON should contain jsonrpc', Pos('"jsonrpc":"2.0"', JsonStr) > 0);
-    AssertTrue('JSON should contain method', Pos('"method":"test_method"', JsonStr) > 0);
-    AssertTrue('JSON should contain id', Pos('"id":1', JsonStr) > 0);
+    // debug: Writeln('Output:' + JsonStr);
+    AssertTrue('JSON should contain jsonrpc', Pos('"jsonrpc" : "2.0"', JsonStr) > 0);
+    AssertTrue('JSON should contain method', Pos('"method" : "test_method"', JsonStr) > 0);
+    AssertTrue('JSON should contain id', Pos('"id" : 1', JsonStr) > 0);
   finally
     FreeAndNil(Message);
   end;
@@ -110,9 +111,9 @@ begin
   Message := TJsonRpcMessage.CreateResponse(TestId, Params);
   try
     JsonStr := Message.ToJson;
-    AssertTrue('JSON should contain jsonrpc', Pos('"jsonrpc":"2.0"', JsonStr) > 0);
-    AssertTrue('JSON should contain result', Pos('"result":', JsonStr) > 0);
-    AssertTrue('JSON should contain id', Pos('"id":1', JsonStr) > 0);
+    AssertTrue('JSON should contain jsonrpc', Pos('"jsonrpc" : "2.0"', JsonStr) > 0);
+    AssertTrue('JSON should contain result', Pos('"result" :', JsonStr) > 0);
+    AssertTrue('JSON should contain id', Pos('"id" : 1', JsonStr) > 0);
   finally
     FreeAndNil(Message);
   end;
@@ -150,6 +151,12 @@ begin
     finally
       FreeAndNil(ResponseJson);
     end;
+
+    AssertFalse('Server should NOT be initialized yet', Server.Initialized);
+
+    Request := '{"method":"notifications/initialized","jsonrpc":"2.0"}';
+    Response := Server.ProcessMessage(Request);
+    AssertTrue('Response should not be empty (for notification)', Response = '');
 
     AssertTrue('Server should be initialized', Server.Initialized);
   finally
@@ -408,4 +415,6 @@ begin
   end;
 end;
 
+initialization
+  RegisterTest(TTestCastleMcpServer);
 end.

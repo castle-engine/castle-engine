@@ -421,7 +421,7 @@ function TMockDesignProvider.SetComponentProperty(const ComponentPath, PropertyN
 begin
   // Mock implementation - always succeeds
   WritelnLog('Mock: Setting %s.%s = %s', [ComponentPath, PropertyName, Value]);
-  Result := True;
+  Result := true;
 end;
 
 function TMockDesignProvider.GetDesignScreenshot: String;
@@ -521,19 +521,19 @@ begin
         begin
           Id.ToJson(JsonObj);
           JsonObj.Add('method', Method);
-          if Assigned(Params) then
+          if Params <> nil then
             JsonObj.Add('params', Params.Clone);
         end;
       jrmtNotification:
         begin
           JsonObj.Add('method', Method);
-          if Assigned(Params) then
+          if Params <> nil then
             JsonObj.Add('params', Params.Clone);
         end;
       jrmtResponse:
         begin
           Id.ToJson(JsonObj);
-          if Assigned(JsonResult) then
+          if JsonResult <> nil then
             JsonObj.Add('result', JsonResult.Clone)
           else
             JsonObj.Add('result', TJsonNull.Create);
@@ -541,7 +541,7 @@ begin
       jrmtError:
         begin
           Id.ToJson(JsonObj);
-          if Assigned(Error) then
+          if Error <> nil then
             JsonObj.Add('error', Error.Clone);
         end;
     end;
@@ -601,12 +601,12 @@ begin
   inherited Create;
   FProjectProvider := AProjectProvider;
   FDesignProvider := ADesignProvider;
-  FInitialized := False;
+  FInitialized := false;
 
   // Set default capabilities
-  FServerCapabilities.Resources := True;
-  FServerCapabilities.Tools := True;
-  FServerCapabilities.Prompts := True;
+  FServerCapabilities.Resources := true;
+  FServerCapabilities.Tools := true;
+  FServerCapabilities.Prompts := true;
 
   FServerInfo := CreateServerInfo;
 end;
@@ -657,19 +657,23 @@ begin
               // Route to appropriate handler
               if Request.Method = 'initialize' then
                 ResponseData := HandleInitialize(Request.Params)
-              else if Request.Method = 'initialized' then
-                ResponseData := HandleInitialized(Request.Params)
-              else if Request.Method = 'resources/list' then
+              else
+              if Request.Method = 'resources/list' then
                 ResponseData := HandleResourcesList(Request.Params)
-              else if Request.Method = 'resources/read' then
+              else
+              if Request.Method = 'resources/read' then
                 ResponseData := HandleResourcesRead(Request.Params)
-              else if Request.Method = 'tools/list' then
+              else
+              if Request.Method = 'tools/list' then
                 ResponseData := HandleToolsList(Request.Params)
-              else if Request.Method = 'tools/call' then
+              else
+              if Request.Method = 'tools/call' then
                 ResponseData := HandleToolsCall(Request.Params)
-              else if Request.Method = 'prompts/list' then
+              else
+              if Request.Method = 'prompts/list' then
                 ResponseData := HandlePromptsList(Request.Params)
-              else if Request.Method = 'prompts/get' then
+              else
+              if Request.Method = 'prompts/get' then
                 ResponseData := HandlePromptsGet(Request.Params)
               else
                 raise Exception.CreateFmt('Unknown method: %s', [Request.Method]);
@@ -686,7 +690,7 @@ begin
         jrmtNotification:
           begin
             // Handle notifications (no response needed)
-            if Request.Method = 'initialized' then
+            if Request.Method = 'notifications/initialized' then
               HandleInitialized(Request.Params);
             // For notifications, we don't send a response
             Exit;
@@ -743,7 +747,7 @@ end;
 
 function TMcpServer.HandleInitialized(const Params: TJsonData): TJsonObject;
 begin
-  FInitialized := True;
+  FInitialized := true;
   WritelnLog('MCP Server initialized');
   Result := nil; // No response for initialized notification
 end;
