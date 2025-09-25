@@ -18,11 +18,11 @@ The Castle Game Engine MCP server enables AI assistants to:
 
 ## 📦 Testing Methods
 
-### Method 1: Mock standalone MCP Server
+### Testing the mock / standalone MCP Server
 
-The standalone server provides a working MCP interface with mock data, perfect for testing and development.
+The standalone server provides a working MCP interface with mock data, useful for basic testing and development.
 
-#### Step 1: Build the Standalone Server
+#### Step 1: Build the Mock / Standalone Server
 
 ```bash
 # Compile the mock MCP server
@@ -30,48 +30,17 @@ cd tools/internal/mcp_server_mock/
 castle-engine compile
 ```
 
-#### Step 2: Configure Auggie
 
-Add the following to your Augment (and thus also Auggie) MCP client configuration in `~/.augment/settings.json`:
+#### Step 2: Test the mock server from cli
 
-```json
-{
-  "mcpServers": {
-    "castle-engine": {
-      "command": "/path/to/castle-engine/tools/internal/mcp_server_mock/mcp_server_mock",
-      "args": [],
-      "env": {}
-    }
-  }
-}
-```
-
-Or execute this command:
-
-```
-auggie mcp add castle-engine --command /path/to/castle-engine/tools/internal/mcp_server_mock/mcp_server_mock
-auggie mcp list
-```
-
-See https://docs.augmentcode.com/cli/integrations
-
-Adding MCP server to _Augment_ GUI in VS Code is also possible -- e.g. use _"Import from JSON"_ is Augument settings in VS Code, and provide JSON snippet like above.
-
-Our MCP server should be also available from:
-
-- GitHub Copilot in VS Code: https://code.visualstudio.com/docs/copilot/customization/mcp-servers
-
-- Claude Desktop: https://modelcontextprotocol.io/docs/develop/connect-local-servers
-
-#### Step 3: Test the Connection
+After building (in the previous step), execute this:
 
 ```bash
-# Test basic functionality
-cd /path/to/castle-engine/tools/internal/mcp_server_mock/
 echo '{"jsonrpc":"2.0","id":"1","method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"test","version":"1.0.0"}}}' | ./mcp_server_mock
 ```
 
 Expected response:
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -91,7 +60,82 @@ Expected response:
 }
 ```
 
-### Method 2: Full Editor Integration (Future)
+#### Step 3: Configure your AI
+
+##### Auggie
+
+Following https://docs.augmentcode.com/cli/integrations
+
+Add the following to your Augment (and thus also Auggie) MCP client configuration
+
+- Linux: in `~/.augment/settings.json`
+- Windows: in `C:\Users\<username>\.augment\settings.json`
+
+```json
+{
+  "mcpServers": {
+    "castle-engine": {
+      "command": "/path/to/castle-engine/tools/internal/mcp_server_mock/mcp_server_mock",
+      "args": [],
+      "env": {}
+    }
+  }
+}
+```
+
+Once you run `auggie`, check whether MCP server was initialized OK with `/mcp-status`.
+
+Or execute this command:
+
+```
+auggie mcp add castle-engine --command /path/to/castle-engine/tools/internal/mcp_server_mock/mcp_server_mock
+auggie mcp list
+```
+
+See https://docs.augmentcode.com/cli/integrations
+
+##### Augment in VS Code
+
+Adding MCP server to _Augment_ GUI in VS Code is also possible -- e.g. use _"Import from JSON"_ is Augument settings in VS Code, and provide JSON snippet like above.
+
+#### GitHub Copilot in VS Code
+
+https://code.visualstudio.com/docs/copilot/customization/mcp-servers
+
+#### Claude Desktop
+
+https://modelcontextprotocol.io/docs/develop/connect-local-servers
+
+Edit `C:\Users\<username>\AppData\Roaming\Claude\claude_desktop_config.json`
+
+Put there content like
+
+```
+{
+  "mcpServers": {
+    "castle-engine": {
+      "command": "C:\\cygwin64\\home\\michalis\\sources\\castle-engine\\castle-engine\\tools\\internal\\mcp_server_mock\\mcp_server_mock.exe",
+      "args": [],
+      "env": {}
+    }
+  }
+}
+```
+
+( Sadly _Claude Desktop_ is only for Windows and macOS, not Linux. There's an official Linux version, but so far I failed to make it aware of local MCP. )
+
+#### Step 4: Tell your AI to do something with castle-engine MCP
+
+Tell it things like
+
+- what resources does mcp castle-engine-mock give me?
+- do not look in the codebase, it is irrelevant. you, auggie, has mcp called castle-engine enabled. In settings, and /mcp-status confirms it is ready. connect to it, tell me what it supports.
+- what is the caption of ButtonStart?
+- change caption of ButtonStart to something in german
+- what is the caption of ButtonStart now?
+  - note to the last test: it corretly realizes this is mock, which doesn't change the caption.
+
+### TODO: Method 2: Full Editor Integration (Future)
 
 When the TCP server implementation is complete, you'll be able to connect directly to the running Castle Game Engine editor.
 
