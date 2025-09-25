@@ -55,6 +55,14 @@ auggie mcp list
 
 See https://docs.augmentcode.com/cli/integrations
 
+Adding MCP server to _Augment_ GUI in VS Code is also possible -- e.g. use _"Import from JSON"_ is Augument settings in VS Code, and provide JSON snippet like above.
+
+Our MCP server should be also available from:
+
+- GitHub Copilot in VS Code: https://code.visualstudio.com/docs/copilot/customization/mcp-servers
+
+- Claude Desktop: https://modelcontextprotocol.io/docs/develop/connect-local-servers
+
 #### Step 3: Test the Connection
 
 ```bash
