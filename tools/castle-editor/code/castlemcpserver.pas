@@ -104,7 +104,7 @@ type
   { JSON-RPC 2.0 message types }
   TJsonRpcMessageType = (jrmtRequest, jrmtResponse, jrmtNotification, jrmtError);
 
-  TMcpIdType = (jritEmpty, jritInt, jritString);
+  TMcpIdType = (itEmpty, itInteger, itString);
 
   { ID in MCP is either string or integer,
     so one (not more, not less) of Int, Str is used. }
@@ -223,11 +223,11 @@ begin
   if JsonData is TJSONNumber then
   begin
     Result.Int := JsonData.AsInt64;
-    Result.IdType := jritInt;
+    Result.IdType := itInteger;
   end else
   if JsonData is TJSONString then
   begin
-    Result.IdType := jritString;
+    Result.IdType := itString;
     Result.Str := JsonData.AsString
   end else
     raise Exception.CreateFmt('Invalid JSON-RPC id type: %s', [JsonData.ClassName]);
@@ -236,14 +236,14 @@ end;
 procedure TMcpId.ToJson(const JsonObj: TJsonObject);
 begin
   case IdType of
-    jritInt: JsonObj.Add('id', Int);
-    jritString: JsonObj.Add('id', Str);
+    itInteger: JsonObj.Add('id', Int);
+    itString: JsonObj.Add('id', Str);
   end;
 end;
 
 class function TMcpId.Empty: TMcpId; static;
 begin
-  Result.IdType := jritEmpty;
+  Result.IdType := itEmpty;
   // Int and Str are not important, but set to be deterministic for easier debugging
   Result.Int := 0;
   Result.Str := '';
@@ -252,9 +252,9 @@ end;
 function TMcpId.ToString: String;
 begin
   case IdType of
-    jritEmpty: Result := 'empty';
-    jritInt: Result := 'integer ' + IntToStr(Int);
-    jritString: Result := 'string "' + Str + '"';
+    itEmpty: Result := 'empty';
+    itInteger: Result := 'integer ' + IntToStr(Int);
+    itString: Result := 'string "' + Str + '"';
     else raise Exception.Create('Invalid TMcpId.IdType');
   end;
 end;
@@ -479,7 +479,7 @@ begin
       if JsonObj.IndexOfName('method') >= 0 then
       begin
         Result.Method := JsonObj.Get('method', '');
-        if Result.Id.IdType <> jritEmpty then
+        if Result.Id.IdType <> itEmpty then
           Result.MessageType := jrmtRequest
         else
           Result.MessageType := jrmtNotification;

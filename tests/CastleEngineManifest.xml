@@ -21,6 +21,7 @@ See https://castle-engine.io/project_manifest for documentation of this file.
       <path value="code/testcases/" />
       <path value="code/tester-castle/" />
       <path value="../tools/common-code/" />
+      <path value="../tools/castle-editor/code/" />
     </search_paths>
     <custom_options>
       <!--
