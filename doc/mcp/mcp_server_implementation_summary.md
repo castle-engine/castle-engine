@@ -49,7 +49,7 @@ Successfully implemented a comprehensive MCP (Model Context Protocol) server for
 
 ### Core Components
 
-1. **MCP Server Core** (`castlemcpserver_simple.pas`)
+1. **MCP Server Core** (`castlemcpserver.pas`)
    - JSON-RPC 2.0 compliant message handling
    - All standard MCP protocol methods implemented
    - Extensible architecture for new capabilities
@@ -117,7 +117,7 @@ curl -X POST http://localhost:3000 -H "Content-Type: application/json" \
 ```python
 import requests
 response = requests.post('http://localhost:3000', json={
-    "jsonrpc": "2.0", "id": "2", "method": "resources/read", 
+    "jsonrpc": "2.0", "id": "2", "method": "resources/read",
     "params": {"uri": "project://info"}
 })
 ```
@@ -174,7 +174,7 @@ const response = await fetch('http://localhost:3000', {
 The Castle Game Engine MCP server implementation is **production-ready** and provides a solid foundation for AI-assisted game development. All priority tasks have been completed successfully:
 
 1. ✅ **Screenshot Capture**: Real design viewport image capture implemented
-2. ✅ **Documentation**: Comprehensive user guide and API reference completed  
+2. ✅ **Documentation**: Comprehensive user guide and API reference completed
 3. ✅ **Network Server**: UI framework and protocol foundation ready
 
 The implementation follows best practices for both the MCP protocol and Castle Game Engine architecture, ensuring maintainability, extensibility, and reliability. AI clients can now connect to Castle Game Engine projects and provide intelligent assistance with game development tasks.

@@ -34,8 +34,7 @@ type
 
 implementation
 
-uses
-  castlemcpserver_simple, CastleUtils, CastleStringUtils;
+uses CastleMcpServer, CastleUtils, CastleStringUtils;
 
 { TTestCastleMcpServerSimple }
 

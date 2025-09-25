@@ -16,17 +16,17 @@ The Castle Game Engine MCP server enables AI assistants to:
 - Auggie or another MCP-compatible AI client
 - A Castle Game Engine project (optional for testing)
 
-## 📦 Setup Methods
+## 📦 Testing Methods
 
-### Method 1: Standalone MCP Server (Recommended for Testing)
+### Method 1: Mock standalone MCP Server
 
 The standalone server provides a working MCP interface with mock data, perfect for testing and development.
 
 #### Step 1: Build the Standalone Server
 
 ```bash
-# Compile the standalone MCP server
-cd tools/internal/mcp-server-tests/mcp_server_simple
+# Compile the mock MCP server
+cd tools/internal/mcp_server_mock/
 castle-engine compile
 ```
 
@@ -38,7 +38,7 @@ Add the following to your Augment (and thus also Auggie) MCP client configuratio
 {
   "mcpServers": {
     "castle-engine": {
-      "command": "/path/to/castle-engine/tools/internal/mcp-server-tests/mcp_server_simple/mcp_server_simple",
+      "command": "/path/to/castle-engine/tools/internal/mcp_server_mock/mcp_server_mock",
       "args": [],
       "env": {}
     }
@@ -49,7 +49,7 @@ Add the following to your Augment (and thus also Auggie) MCP client configuratio
 Or execute this command:
 
 ```
-auggie mcp add castle-engine --command /path/to/castle-engine/tools/internal/mcp-server-tests/mcp_server_simple/mcp_server_simple
+auggie mcp add castle-engine --command /path/to/castle-engine/tools/internal/mcp_server_mock/mcp_server_mock
 auggie mcp list
 ```
 
@@ -59,8 +59,8 @@ See https://docs.augmentcode.com/cli/integrations
 
 ```bash
 # Test basic functionality
-cd /path/to/castle-engine/tools/internal/mcp-server-tests/mcp_server_simple/
-echo '{"jsonrpc":"2.0","id":"1","method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"test","version":"1.0.0"}}}' | ./mcp_server_simple
+cd /path/to/castle-engine/tools/internal/mcp_server_mock/
+echo '{"jsonrpc":"2.0","id":"1","method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"test","version":"1.0.0"}}}' | ./mcp_server_mock
 ```
 
 Expected response:
@@ -278,54 +278,9 @@ Get AI-friendly project analysis prompts.
    - Calls `resources/read` with `design://hierarchy` to understand structure
    - Provides design feedback and improvement suggestions
 
-## 🔍 Troubleshooting
-
-### Common Issues
-
-#### 1. Server Won't Start
-```bash
-# Check if executable exists and is compiled
-ls -la /path/to/castle-engine/tools/castle-editor/mcp_server_simple_standalone
-
-# If not found, compile it first:
-cd /path/to/castle-engine/tools/castle-editor
-fpc -Fi../../src/common_includes -Fi../../src/common_includes/unix -Fi../../src/base/unix \
-    -Fu../../src -Fu../../src/base -Fu../../src/files -Fu../../src/ui -Fu../../src/fonts \
-    -Fu../../src/audio -Fu../../src/scene -Fu../../src/transform -Fu../../src/base_rendering \
-    -Fu../../src/window -Fu../../src/services -Fucode mcp_server_simple_standalone.dpr
-
-# Test manual execution
-./mcp_server_simple_standalone
-```
-
-#### 2. Auggie Can't Connect
-- Verify the command path in MCP configuration is correct
-- Check that the executable has proper permissions
-- Test the server manually with echo commands
-
-#### 3. No Response from Server
-```bash
-# Test with simple initialization
-echo '{"jsonrpc":"2.0","id":"1","method":"initialize","params":{}}' | ./mcp_server_simple_standalone
-```
-
-#### 4. JSON Parse Errors
-- Ensure proper JSON formatting in requests
-- Check for missing quotes or brackets
-- Verify MCP protocol compliance
-
-### Debug Mode
-
-Enable verbose logging by checking the server output:
-
-```bash
-# Run server with visible logs
-./mcp_server_simple_standalone 2>&1 | tee mcp_server.log
-```
-
 ## 📋 Current Limitations
 
-### Standalone Server (Current Implementation)
+### Mock Server (Current Implementation)
 - **Mock Data**: Uses simulated project and component data
 - **No Real Editor**: Not connected to actual Castle Game Engine projects
 - **Testing Purpose**: Primarily for MCP protocol testing and development

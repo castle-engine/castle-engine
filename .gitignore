@@ -48,12 +48,7 @@ xcuserdata
 /bin/
 /tools/castle-editor/Castle Game Engine.app/
 
-# MCP server binaries (should be compiled by users)
-/tools/castle-editor/mcp_server_simple_standalone
-/tools/castle-editor/mcp_server_standalone
-/tools/castle-editor/code/test_mcp_compile
-# used by https://marketplace.visualstudio.com/items?itemName=alefragnani.jenkins-status
-/.jenkins
+# may contain secrets, don't commit by accident
 AndroidSigningProperties.txt
 
 # Visual Studio stuff
@@ -314,9 +309,7 @@ castle-game-engine-*.fpm
 /tools/internal/generate-persistent-vectors/generate-persistent-vectors
 /tools/internal/teapot-to-pascal/teapot-to-pascal
 /tools/internal/x3d-nodes-to-pascal/x3d-nodes-to-pascal
-/tools/internal/mcp-server-tests/mcp_server_mock/mcp_server_mock
-/tools/internal/mcp-server-tests/mcp_server_simple/mcp_server_simple
-/tools/internal/mcp-server-tests/test_mcp_compile/test_mcp_compile
+/tools/internal/mcp_server_mock/mcp_server_mock
 /tools/sprite-sheet-to-x3d/sprite-sheet-to-x3d
 /tools/texture-font-to-pascal/texture-font-to-pascal
 /tools/to-data-uri/to-data-uri

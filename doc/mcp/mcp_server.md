@@ -524,7 +524,7 @@ For detailed instructions on integrating with specific AI assistants:
 
 ### Core Components
 
-1. **MCP Server Core** (`tools/castle-editor/code/castlemcpserver_simple.pas`)
+1. **MCP Server Core** (`tools/castle-editor/code/castlemcpserver.pas`)
    - JSON-RPC 2.0 message handling
    - MCP protocol implementation
    - Network communication (stdio and TCP)
