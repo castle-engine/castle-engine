@@ -4,8 +4,18 @@ uses
   {$ifdef UNIX}
   CThreads,
   {$endif}
-  Classes, SysUtils, CastleLog, CastleApplicationProperties,
-  CastleClassUtils, CastleMcpServer, CastleFilesUtils;
+  Classes, SysUtils, CastleLog, CastleApplicationProperties, CastleFilesUtils,
+  CastleMcpServer;
+
+function GetTempFileNameWithDateTime: String;
+var
+  DateTimeStr: String;
+begin
+  { Convert current time to string, such that files sorted alphabetically
+    are also sorted by time. Makes it easy to look at correct log. }
+  DateTimeStr := FormatDateTime('YYYY-MM-DD_HH-MM-SS', Now);
+  Result := GetTempFileName('', ApplicationName + '_' + DateTimeStr);
+end;
 
 var
   Server: TMcpServer;
@@ -13,7 +23,7 @@ var
 begin
   { Note: Do not send log to stdout, as it may be confused with MCP responses.
     Stderr is fine, or any dedicated file. }
-  LogFileName := GetTempFileNameCheck + '.log';
+  LogFileName := GetTempFileNameWithDateTime + '.log';
   InitializeLog;
   // Pointless, you will not see this from MCP user output
   // Writeln(ErrOutput, 'Logging to: ' + LogOutput);

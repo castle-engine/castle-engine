@@ -30,6 +30,9 @@ unit CastleMcpServer;
 
 {$I castleconf.inc}
 
+{ Log every request and response. }
+{$define MCP_VERBOSE_LOG}
+
 interface
 
 uses
@@ -1087,12 +1090,15 @@ begin
     ReadLn(InputLine);
     if InputLine <> '' then
     begin
+      {$ifdef MCP_VERBOSE_LOG} WritelnLog('Input: ' + InputLine); {$endif}
       Response := ProcessMessage(InputLine);
       if Response <> '' then
       begin
+        {$ifdef MCP_VERBOSE_LOG} WritelnLog('Output: ' + Response); {$endif}
         WriteLn(Response);
         Flush(Output); // Ensure response is sent immediately
-      end;
+      end else
+        {$ifdef MCP_VERBOSE_LOG}  WritelnLog('No output') {$endif};
     end;
   end;
 

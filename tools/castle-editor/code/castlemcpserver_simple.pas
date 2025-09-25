@@ -22,6 +22,13 @@ unit castlemcpserver_simple;
 
 {$I castleconf.inc}
 
+{ Log every request and response. }
+{$define MCP_VERBOSE_LOG}
+
+// TODO: This code repeats lots of IndexOfName.
+// TODO: split request / response into 2 classes from 1 common ancestor?
+// would make it where we deal with what.
+
 interface
 
 uses
@@ -36,11 +43,32 @@ type
   { JSON-RPC 2.0 message types }
   TJsonRpcMessageType = (jrmtRequest, jrmtResponse, jrmtNotification, jrmtError);
 
+  TMcpIdType = (jritEmpty, jritInt, jritString);
+
+  { ID in MCP is either string or integer,
+    so one (not more, not less) of Int, Str is used. }
+  TMcpId = record
+    { Define whether id is available at all, and if yes -> what type.
+      Note that integer id = 0 is a valid id, so we cannot use Int <> 0 to check
+      whether id is available, that is why we have IdType. }
+    IdType: TMcpIdType;
+    Int: Int64;
+    Str: String;
+
+    { Parse from JSON data, either string or number. }
+    class function FromJson(const JsonData: TJsonData): TMcpId; static;
+
+    { Empty ID (no int or string), special value we use in some cases. }
+    class function Empty: TMcpId; static;
+
+    function ToString: String;
+  end;
+
   { Simple JSON-RPC 2.0 message }
   TSimpleJsonRpcMessage = class
   public
     MessageType: TJsonRpcMessageType;
-    Id: String;
+    Id: TMcpId;
     Method: String;
     Params: TJsonObject;
     ResultData: TJsonObject;
@@ -56,10 +84,10 @@ type
     function ToJson: String;
 
     { Create simple response }
-    class function CreateResponse(const AId: String; const ResultStr: String): TSimpleJsonRpcMessage;
+    class function CreateResponse(const AId: TMcpId; const ResultStr: String): TSimpleJsonRpcMessage;
 
     { Create simple error response }
-    class function CreateError(const AId: String; ACode: Integer; const AMessage: String): TSimpleJsonRpcMessage;
+    class function CreateError(const AId: TMcpId; ACode: Integer; const AMessage: String): TSimpleJsonRpcMessage;
   end;
 
   { Future: Network server implementation will be added here }
@@ -103,12 +131,46 @@ function CreateSimpleMcpServer: TSimpleMcpServer;
 
 implementation
 
-{ TSimpleJsonRpcMessage }
+{ TMcpId --------------------------------------------------------------------- }
+
+class function TMcpId.FromJson(const JsonData: TJsonData): TMcpId; static;
+begin
+  if JsonData is TJSONNumber then
+  begin
+    Result.Int := JsonData.AsInt64;
+    Result.IdType := jritInt;
+  end else
+  if JsonData is TJSONString then
+  begin
+    Result.IdType := jritString;
+    Result.Str := JsonData.AsString
+  end else
+    raise Exception.CreateFmt('Invalid JSON-RPC id type: %s', [JsonData.ClassName]);
+end;
+
+class function TMcpId.Empty: TMcpId; static;
+begin
+  Result.IdType := jritEmpty;
+  // Int and Str are not important, but set to be deterministic for easier debugging
+  Result.Int := 0;
+  Result.Str := '';
+end;
+
+function TMcpId.ToString: String;
+begin
+  case IdType of
+    jritEmpty: Result := 'empty';
+    jritInt: Result := 'integer ' + IntToStr(Int);
+    jritString: Result := 'string "' + Str + '"';
+    else raise Exception.Create('Invalid TMcpId.IdType');
+  end;
+end;
+
+{ TSimpleJsonRpcMessage ------------------------------------------------------ }
 
 constructor TSimpleJsonRpcMessage.Create;
 begin
   inherited Create;
-  Id := '';
   Method := '';
   Params := nil;
   ResultData := nil;
@@ -125,7 +187,7 @@ end;
 
 class function TSimpleJsonRpcMessage.FromJson(const JsonStr: String): TSimpleJsonRpcMessage;
 var
-  JsonData: TJsonData;
+  JsonData, IdData: TJsonData;
   JsonObj: TJsonObject;
 begin
   Result := TSimpleJsonRpcMessage.Create;
@@ -145,10 +207,14 @@ begin
       if JsonObj.IndexOfName('method') >= 0 then
       begin
         Result.Method := JsonObj.Get('method', '');
-        if JsonObj.IndexOfName('id') >= 0 then
+        IdData := JsonObj.Find('id');
+        if IdData <> nil then
         begin
           Result.MessageType := jrmtRequest;
-          Result.Id := JsonObj.Get('id', '');
+          Result.Id := TMcpId.FromJson(IdData);
+          WritelnLog('Got message request, with id %s', [
+            Result.Id.ToString
+          ]);
         end else
         begin
           Result.MessageType := jrmtNotification;
@@ -163,14 +229,12 @@ begin
       else if JsonObj.IndexOfName('result') >= 0 then
       begin
         Result.MessageType := jrmtResponse;
-        Result.Id := JsonObj.Get('id', '');
         if JsonObj.Items[JsonObj.IndexOfName('result')] is TJsonObject then
           Result.ResultData := TJsonObject(JsonObj.Items[JsonObj.IndexOfName('result')].Clone);
       end
       else if JsonObj.IndexOfName('error') >= 0 then
       begin
         Result.MessageType := jrmtError;
-        Result.Id := JsonObj.Get('id', '');
         if JsonObj.Items[JsonObj.IndexOfName('error')] is TJsonObject then
           Result.Error := TJsonObject(JsonObj.Items[JsonObj.IndexOfName('error')].Clone);
       end
@@ -194,10 +258,14 @@ begin
   try
     JsonObj.Add('jsonrpc', '2.0');
 
+    case Id.IdType of
+      jritInt: JsonObj.Add('id', Id.Int);
+      jritString: JsonObj.Add('id', Id.Str);
+    end;
+
     case MessageType of
       jrmtRequest:
         begin
-          JsonObj.Add('id', Id);
           JsonObj.Add('method', Method);
           if Assigned(Params) then
             JsonObj.Add('params', Params.Clone);
@@ -210,7 +278,6 @@ begin
         end;
       jrmtResponse:
         begin
-          JsonObj.Add('id', Id);
           if Assigned(ResultData) then
             JsonObj.Add('result', ResultData.Clone)
           else
@@ -218,7 +285,6 @@ begin
         end;
       jrmtError:
         begin
-          JsonObj.Add('id', Id);
           if Assigned(Error) then
             JsonObj.Add('error', Error.Clone);
         end;
@@ -230,7 +296,7 @@ begin
   end;
 end;
 
-class function TSimpleJsonRpcMessage.CreateResponse(const AId: String; const ResultStr: String): TSimpleJsonRpcMessage;
+class function TSimpleJsonRpcMessage.CreateResponse(const AId: TMcpId; const ResultStr: String): TSimpleJsonRpcMessage;
 begin
   Result := TSimpleJsonRpcMessage.Create;
   Result.MessageType := jrmtResponse;
@@ -239,7 +305,7 @@ begin
   Result.ResultData.Add('message', ResultStr);
 end;
 
-class function TSimpleJsonRpcMessage.CreateError(const AId: String; ACode: Integer; const AMessage: String): TSimpleJsonRpcMessage;
+class function TSimpleJsonRpcMessage.CreateError(const AId: TMcpId; ACode: Integer; const AMessage: String): TSimpleJsonRpcMessage;
 begin
   Result := TSimpleJsonRpcMessage.Create;
   Result.MessageType := jrmtError;
@@ -322,7 +388,7 @@ begin
       on E: Exception do
       begin
         FreeAndNil(Response);
-        Response := TSimpleJsonRpcMessage.CreateError('', -32700, 'Parse error: ' + E.Message);
+        Response := TSimpleJsonRpcMessage.CreateError(TMcpId.Empty, -32700, 'Parse error: ' + E.Message);
         Result := Response.ToJson;
       end;
     end;
@@ -380,6 +446,17 @@ begin
   Tool := TJsonObject.Create;
   Tool.Add('name', 'get_project_info');
   Tool.Add('description', 'Get basic project information');
+  Tool.Add('inputSchema', TJsonObject.Create);
+  TJsonObject(Tool.Find('inputSchema')).Add('type', 'object');
+  TJsonObject(Tool.Find('inputSchema')).Add('properties', TJsonObject.Create);
+  TJsonObject(TJsonObject(Tool.Find('inputSchema')).Find('properties')).Add('path', TJsonObject.Create);
+  TJsonObject(TJsonObject(Tool.Find('inputSchema')).Find('properties')).Objects['path'].Add('type', 'string');
+  TJsonObject(TJsonObject(Tool.Find('inputSchema')).Find('properties')).Objects['path'].Add('description', 'Project path');
+  TJsonObject(TJsonObject(Tool.Find('inputSchema')).Find('properties')).Add('detailed', TJsonObject.Create);
+  TJsonObject(TJsonObject(Tool.Find('inputSchema')).Find('properties')).Objects['detailed'].Add('type', 'boolean');
+  TJsonObject(TJsonObject(Tool.Find('inputSchema')).Find('properties')).Objects['detailed'].Add('description', 'Include detailed information');
+  TJsonObject(Tool.Find('inputSchema')).Add('required', TJsonArray.Create);
+  TJsonArray(TJsonObject(Tool.Find('inputSchema')).Arrays['required']).Add('path');
   Tools.Add(Tool);
 
   Result.Add('tools', Tools);
@@ -442,12 +519,15 @@ begin
     ReadLn(InputLine);
     if InputLine <> '' then
     begin
+      {$ifdef MCP_VERBOSE_LOG} WritelnLog('Input: ' + InputLine); {$endif}
       Response := ProcessMessage(InputLine);
       if Response <> '' then
       begin
+        {$ifdef MCP_VERBOSE_LOG} WritelnLog('Output: ' + Response); {$endif}
         WriteLn(Response);
         Flush(Output); // Ensure response is sent immediately
-      end;
+      end else
+        {$ifdef MCP_VERBOSE_LOG} WritelnLog('No output') {$endif};
     end;
   end;
 end;
