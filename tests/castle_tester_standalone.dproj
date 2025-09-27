@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{0A083739-9CAF-9B1C-3BA8-61CE87F4AD1A}</ProjectGuid>
+        <ProjectGuid>{3E556FE1-2263-45A1-9FE8-98947302ECE4}</ProjectGuid>
         <MainSource>castle_tester_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
@@ -100,10 +100,8 @@
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;$(DCC_Namespace)</DCC_Namespace>
         <Icon_MainIcon>$(BDS)\bin\delphi_PROJECTICON.ico</Icon_MainIcon>
         <Icns_MainIcns>$(BDS)\bin\delphi_PROJECTICNS.icns</Icns_MainIcns>
-        <DCC_UnitSearchPath>../src/base;../src/common_includes;../src/base/android;../src/base/windows;../src/base/unix;../src/base/wasi;../src/base_rendering;../src/base_rendering/web;../src/base_rendering/dglopengl;../src/base_rendering/glsl/generated-pascal;../src/fonts;../src/window;../src/window/gtk;../src/window/windows;../src/window/unix;../src/window/deprecated_units;../src/images;../src/transform;../src/scene;../src/scene/glsl/generated-pascal;../src/scene/x3d;../src/scene/load;../src/scene/load/ifc;../src/scene/load/spine;../src/scene/load/md3;../src/scene/load/collada;../src/scene/load/pasgltf;../src/audio;../src/audio/fmod;../src/audio/openal;../src/audio/ogg_vorbis;../src/files;../src/files/indy;../src/files/tools;../src/castlescript;../src/ui;../src/ui/windows;../src/services;../src/services/steam;../src/physics;../src/physics/kraft;../src/deprecated_units;../src/vampyre_imaginglib/src/Source;../src/vampyre_imaginglib/src/Source/JpegLib;../src/vampyre_imaginglib/src/Source/ZLib;../src/vampyre_imaginglib/src/Extras/Extensions;../src/vampyre_imaginglib/src/Extensions/J2KObjects;../src/vampyre_imaginglib/src/Extensions/LibTiff;../src/vampyre_imaginglib/src/Extensions;../src/delphi;../src/compatibility/delphi-only;../src/compatibility/delphi-only/fcl-json;code/;code/testcases/;code/tester-castle/;../tools/common-code/;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>../src/base;../src/common_includes;../src/base/android;../src/base/windows;../src/base/unix;../src/base/wasi;../src/base_rendering;../src/base_rendering/web;../src/base_rendering/dglopengl;../src/base_rendering/glsl/generated-pascal;../src/fonts;../src/window;../src/window/gtk;../src/window/windows;../src/window/unix;../src/window/deprecated_units;../src/images;../src/transform;../src/scene;../src/scene/glsl/generated-pascal;../src/scene/x3d;../src/scene/load;../src/scene/load/ifc;../src/scene/load/spine;../src/scene/load/md3;../src/scene/load/collada;../src/scene/load/pasgltf;../src/audio;../src/audio/fmod;../src/audio/openal;../src/audio/ogg_vorbis;../src/files;../src/files/indy;../src/files/tools;../src/castlescript;../src/ui;../src/ui/windows;../src/services;../src/services/steam;../src/physics;../src/physics/kraft;../src/deprecated_units;../src/vampyre_imaginglib/src/Source;../src/vampyre_imaginglib/src/Source/JpegLib;../src/vampyre_imaginglib/src/Source/ZLib;../src/vampyre_imaginglib/src/Extras/Extensions;../src/vampyre_imaginglib/src/Extensions/J2KObjects;../src/vampyre_imaginglib/src/Extensions/LibTiff;../src/vampyre_imaginglib/src/Extensions;../src/delphi;../src/compatibility/delphi-only;../src/compatibility/delphi-only/fcl-json;code/;code/testcases/;code/tester-castle/;../src/common_includes;../tools/common-code/;../tools/castle-editor/code/;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <DCC_DcuOutput>castle-engine-output\delphi\$(Platform)\$(Config)</DCC_DcuOutput>
-        <DCC_SYMBOL_DEPRECATED>false</DCC_SYMBOL_DEPRECATED>
-        <DCC_UNIT_DEPRECATED>false</DCC_UNIT_DEPRECATED>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Android)'!=''">
         <VerInfo_Keys>package=com.embarcadero.$(MSBuildProjectName);label=$(MSBuildProjectName);versionCode=1;versionName=1.0.0;persistent=False;restoreAnyVersion=False;installLocation=auto;largeHeap=False;theme=TitleBar;hardwareAccelerated=true;apiKey=</VerInfo_Keys>
@@ -616,6 +614,91 @@
  <Platform Name="Win64">
   <RemoteDir>./data/demo-models-copy/</RemoteDir>
   <RemoteName>tricky_def_use.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\designs/box_with_physics.castle-transform" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/designs/</RemoteDir>
+  <RemoteName>box_with_physics.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/designs/</RemoteDir>
+  <RemoteName>box_with_physics.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/designs/</RemoteDir>
+  <RemoteName>box_with_physics.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\designs/gh_664_references_and_light_radius/README.md" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/designs/gh_664_references_and_light_radius/</RemoteDir>
+  <RemoteName>README.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/designs/gh_664_references_and_light_radius/</RemoteDir>
+  <RemoteName>README.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/designs/gh_664_references_and_light_radius/</RemoteDir>
+  <RemoteName>README.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\designs/gh_664_references_and_light_radius/cube.glb" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/designs/gh_664_references_and_light_radius/</RemoteDir>
+  <RemoteName>cube.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/designs/gh_664_references_and_light_radius/</RemoteDir>
+  <RemoteName>cube.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/designs/gh_664_references_and_light_radius/</RemoteDir>
+  <RemoteName>cube.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\designs/gh_664_references_and_light_radius/gameviewmain.castle-user-interface" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/designs/gh_664_references_and_light_radius/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/designs/gh_664_references_and_light_radius/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/designs/gh_664_references_and_light_radius/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\designs/group_with_buttons.castle-user-interface" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/designs/</RemoteDir>
+  <RemoteName>group_with_buttons.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/designs/</RemoteDir>
+  <RemoteName>group_with_buttons.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/designs/</RemoteDir>
+  <RemoteName>group_with_buttons.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -2625,6 +2708,91 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
+<DeployFile LocalName="data\manifold_tests/manifold_not_shapes_but_scene.glb" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/manifold_tests/</RemoteDir>
+  <RemoteName>manifold_not_shapes_but_scene.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/manifold_tests/</RemoteDir>
+  <RemoteName>manifold_not_shapes_but_scene.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/manifold_tests/</RemoteDir>
+  <RemoteName>manifold_not_shapes_but_scene.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\manifold_tests/manifold_shapes.glb" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/manifold_tests/</RemoteDir>
+  <RemoteName>manifold_shapes.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/manifold_tests/</RemoteDir>
+  <RemoteName>manifold_shapes.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/manifold_tests/</RemoteDir>
+  <RemoteName>manifold_shapes.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\manifold_tests/not_manifold_1.glb" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/manifold_tests/</RemoteDir>
+  <RemoteName>not_manifold_1.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/manifold_tests/</RemoteDir>
+  <RemoteName>not_manifold_1.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/manifold_tests/</RemoteDir>
+  <RemoteName>not_manifold_1.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\manifold_tests/not_manifold_2.glb" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/manifold_tests/</RemoteDir>
+  <RemoteName>not_manifold_2.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/manifold_tests/</RemoteDir>
+  <RemoteName>not_manifold_2.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/manifold_tests/</RemoteDir>
+  <RemoteName>not_manifold_2.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\manifold_tests/not_manifold_3.glb" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/manifold_tests/</RemoteDir>
+  <RemoteName>not_manifold_3.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/manifold_tests/</RemoteDir>
+  <RemoteName>not_manifold_3.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/manifold_tests/</RemoteDir>
+  <RemoteName>not_manifold_3.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
 <DeployFile LocalName="data\model_manifold.wrl" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/</RemoteDir>
@@ -2843,6 +3011,91 @@
  <Platform Name="Win64">
   <RemoteDir>./data/proto_copy_test/</RemoteDir>
   <RemoteName>texture.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\proto_reuse_first_node/AUTHORS.md" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/proto_reuse_first_node/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/proto_reuse_first_node/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/proto_reuse_first_node/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\proto_reuse_first_node/full_connectors.x3d" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/proto_reuse_first_node/</RemoteDir>
+  <RemoteName>full_connectors.x3d</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/proto_reuse_first_node/</RemoteDir>
+  <RemoteName>full_connectors.x3d</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/proto_reuse_first_node/</RemoteDir>
+  <RemoteName>full_connectors.x3d</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\proto_reuse_first_node/minimized_connectors.x3d" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/proto_reuse_first_node/</RemoteDir>
+  <RemoteName>minimized_connectors.x3d</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/proto_reuse_first_node/</RemoteDir>
+  <RemoteName>minimized_connectors.x3d</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/proto_reuse_first_node/</RemoteDir>
+  <RemoteName>minimized_connectors.x3d</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\proto_reuse_first_node/proto_leak.wrl" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/proto_reuse_first_node/</RemoteDir>
+  <RemoteName>proto_leak.wrl</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/proto_reuse_first_node/</RemoteDir>
+  <RemoteName>proto_leak.wrl</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/proto_reuse_first_node/</RemoteDir>
+  <RemoteName>proto_leak.wrl</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\proto_reuse_first_node/proto_leak_2.wrl" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/proto_reuse_first_node/</RemoteDir>
+  <RemoteName>proto_leak_2.wrl</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/proto_reuse_first_node/</RemoteDir>
+  <RemoteName>proto_leak_2.wrl</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/proto_reuse_first_node/</RemoteDir>
+  <RemoteName>proto_leak_2.wrl</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -3883,6 +4136,74 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
+<DeployFile LocalName="data\test_material_info/no_texture.x3dv" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/test_material_info/</RemoteDir>
+  <RemoteName>no_texture.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/test_material_info/</RemoteDir>
+  <RemoteName>no_texture.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/test_material_info/</RemoteDir>
+  <RemoteName>no_texture.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\test_material_info/texture_in_appearance.x3dv" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/test_material_info/</RemoteDir>
+  <RemoteName>texture_in_appearance.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/test_material_info/</RemoteDir>
+  <RemoteName>texture_in_appearance.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/test_material_info/</RemoteDir>
+  <RemoteName>texture_in_appearance.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\test_material_info/texture_in_appearance_without_material.x3dv" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/test_material_info/</RemoteDir>
+  <RemoteName>texture_in_appearance_without_material.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/test_material_info/</RemoteDir>
+  <RemoteName>texture_in_appearance_without_material.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/test_material_info/</RemoteDir>
+  <RemoteName>texture_in_appearance_without_material.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\test_material_info/texture_in_physical_material.x3dv" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/test_material_info/</RemoteDir>
+  <RemoteName>texture_in_physical_material.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/test_material_info/</RemoteDir>
+  <RemoteName>texture_in_physical_material.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/test_material_info/</RemoteDir>
+  <RemoteName>texture_in_physical_material.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
 <DeployFile LocalName="data\test_script.kscript" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/</RemoteDir>
@@ -4716,6 +5037,91 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
+<DeployFile LocalName="data\zip/packed żółć.zip" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/zip/</RemoteDir>
+  <RemoteName>packed żółć.zip</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/zip/</RemoteDir>
+  <RemoteName>packed żółć.zip</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/zip/</RemoteDir>
+  <RemoteName>packed żółć.zip</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\zip/subdir/test filename żółć in subdir.txt" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/zip/subdir/</RemoteDir>
+  <RemoteName>test filename żółć in subdir.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/zip/subdir/</RemoteDir>
+  <RemoteName>test filename żółć in subdir.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/zip/subdir/</RemoteDir>
+  <RemoteName>test filename żółć in subdir.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\zip/test filename żółć.txt" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/zip/</RemoteDir>
+  <RemoteName>test filename żółć.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/zip/</RemoteDir>
+  <RemoteName>test filename żółć.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/zip/</RemoteDir>
+  <RemoteName>test filename żółć.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\zip/test.txt" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/zip/</RemoteDir>
+  <RemoteName>test.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/zip/</RemoteDir>
+  <RemoteName>test.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/zip/</RemoteDir>
+  <RemoteName>test.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\zip/test_texture.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/zip/</RemoteDir>
+  <RemoteName>test_texture.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/zip/</RemoteDir>
+  <RemoteName>test_texture.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/zip/</RemoteDir>
+  <RemoteName>test_texture.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
 <DeployFile LocalName="data\CastleSettings.xml" Configuration="Release" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/</RemoteDir>
@@ -5053,6 +5459,91 @@
  <Platform Name="Win64">
   <RemoteDir>./data/demo-models-copy/</RemoteDir>
   <RemoteName>tricky_def_use.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\designs/box_with_physics.castle-transform" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/designs/</RemoteDir>
+  <RemoteName>box_with_physics.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/designs/</RemoteDir>
+  <RemoteName>box_with_physics.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/designs/</RemoteDir>
+  <RemoteName>box_with_physics.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\designs/gh_664_references_and_light_radius/README.md" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/designs/gh_664_references_and_light_radius/</RemoteDir>
+  <RemoteName>README.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/designs/gh_664_references_and_light_radius/</RemoteDir>
+  <RemoteName>README.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/designs/gh_664_references_and_light_radius/</RemoteDir>
+  <RemoteName>README.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\designs/gh_664_references_and_light_radius/cube.glb" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/designs/gh_664_references_and_light_radius/</RemoteDir>
+  <RemoteName>cube.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/designs/gh_664_references_and_light_radius/</RemoteDir>
+  <RemoteName>cube.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/designs/gh_664_references_and_light_radius/</RemoteDir>
+  <RemoteName>cube.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\designs/gh_664_references_and_light_radius/gameviewmain.castle-user-interface" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/designs/gh_664_references_and_light_radius/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/designs/gh_664_references_and_light_radius/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/designs/gh_664_references_and_light_radius/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\designs/group_with_buttons.castle-user-interface" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/designs/</RemoteDir>
+  <RemoteName>group_with_buttons.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/designs/</RemoteDir>
+  <RemoteName>group_with_buttons.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/designs/</RemoteDir>
+  <RemoteName>group_with_buttons.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -7062,6 +7553,91 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
+<DeployFile LocalName="data\manifold_tests/manifold_not_shapes_but_scene.glb" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/manifold_tests/</RemoteDir>
+  <RemoteName>manifold_not_shapes_but_scene.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/manifold_tests/</RemoteDir>
+  <RemoteName>manifold_not_shapes_but_scene.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/manifold_tests/</RemoteDir>
+  <RemoteName>manifold_not_shapes_but_scene.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\manifold_tests/manifold_shapes.glb" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/manifold_tests/</RemoteDir>
+  <RemoteName>manifold_shapes.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/manifold_tests/</RemoteDir>
+  <RemoteName>manifold_shapes.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/manifold_tests/</RemoteDir>
+  <RemoteName>manifold_shapes.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\manifold_tests/not_manifold_1.glb" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/manifold_tests/</RemoteDir>
+  <RemoteName>not_manifold_1.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/manifold_tests/</RemoteDir>
+  <RemoteName>not_manifold_1.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/manifold_tests/</RemoteDir>
+  <RemoteName>not_manifold_1.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\manifold_tests/not_manifold_2.glb" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/manifold_tests/</RemoteDir>
+  <RemoteName>not_manifold_2.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/manifold_tests/</RemoteDir>
+  <RemoteName>not_manifold_2.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/manifold_tests/</RemoteDir>
+  <RemoteName>not_manifold_2.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\manifold_tests/not_manifold_3.glb" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/manifold_tests/</RemoteDir>
+  <RemoteName>not_manifold_3.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/manifold_tests/</RemoteDir>
+  <RemoteName>not_manifold_3.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/manifold_tests/</RemoteDir>
+  <RemoteName>not_manifold_3.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
 <DeployFile LocalName="data\model_manifold.wrl" Configuration="Release" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/</RemoteDir>
@@ -7280,6 +7856,91 @@
  <Platform Name="Win64">
   <RemoteDir>./data/proto_copy_test/</RemoteDir>
   <RemoteName>texture.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\proto_reuse_first_node/AUTHORS.md" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/proto_reuse_first_node/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/proto_reuse_first_node/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/proto_reuse_first_node/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\proto_reuse_first_node/full_connectors.x3d" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/proto_reuse_first_node/</RemoteDir>
+  <RemoteName>full_connectors.x3d</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/proto_reuse_first_node/</RemoteDir>
+  <RemoteName>full_connectors.x3d</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/proto_reuse_first_node/</RemoteDir>
+  <RemoteName>full_connectors.x3d</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\proto_reuse_first_node/minimized_connectors.x3d" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/proto_reuse_first_node/</RemoteDir>
+  <RemoteName>minimized_connectors.x3d</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/proto_reuse_first_node/</RemoteDir>
+  <RemoteName>minimized_connectors.x3d</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/proto_reuse_first_node/</RemoteDir>
+  <RemoteName>minimized_connectors.x3d</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\proto_reuse_first_node/proto_leak.wrl" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/proto_reuse_first_node/</RemoteDir>
+  <RemoteName>proto_leak.wrl</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/proto_reuse_first_node/</RemoteDir>
+  <RemoteName>proto_leak.wrl</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/proto_reuse_first_node/</RemoteDir>
+  <RemoteName>proto_leak.wrl</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\proto_reuse_first_node/proto_leak_2.wrl" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/proto_reuse_first_node/</RemoteDir>
+  <RemoteName>proto_leak_2.wrl</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/proto_reuse_first_node/</RemoteDir>
+  <RemoteName>proto_leak_2.wrl</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/proto_reuse_first_node/</RemoteDir>
+  <RemoteName>proto_leak_2.wrl</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -8320,6 +8981,74 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
+<DeployFile LocalName="data\test_material_info/no_texture.x3dv" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/test_material_info/</RemoteDir>
+  <RemoteName>no_texture.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/test_material_info/</RemoteDir>
+  <RemoteName>no_texture.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/test_material_info/</RemoteDir>
+  <RemoteName>no_texture.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\test_material_info/texture_in_appearance.x3dv" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/test_material_info/</RemoteDir>
+  <RemoteName>texture_in_appearance.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/test_material_info/</RemoteDir>
+  <RemoteName>texture_in_appearance.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/test_material_info/</RemoteDir>
+  <RemoteName>texture_in_appearance.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\test_material_info/texture_in_appearance_without_material.x3dv" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/test_material_info/</RemoteDir>
+  <RemoteName>texture_in_appearance_without_material.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/test_material_info/</RemoteDir>
+  <RemoteName>texture_in_appearance_without_material.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/test_material_info/</RemoteDir>
+  <RemoteName>texture_in_appearance_without_material.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\test_material_info/texture_in_physical_material.x3dv" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/test_material_info/</RemoteDir>
+  <RemoteName>texture_in_physical_material.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/test_material_info/</RemoteDir>
+  <RemoteName>texture_in_physical_material.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/test_material_info/</RemoteDir>
+  <RemoteName>texture_in_physical_material.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
 <DeployFile LocalName="data\test_script.kscript" Configuration="Release" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/</RemoteDir>
@@ -9150,6 +9879,91 @@
  <Platform Name="Win64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>warning_when_new_node_as_shadow_map_light.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\zip/packed żółć.zip" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/zip/</RemoteDir>
+  <RemoteName>packed żółć.zip</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/zip/</RemoteDir>
+  <RemoteName>packed żółć.zip</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/zip/</RemoteDir>
+  <RemoteName>packed żółć.zip</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\zip/subdir/test filename żółć in subdir.txt" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/zip/subdir/</RemoteDir>
+  <RemoteName>test filename żółć in subdir.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/zip/subdir/</RemoteDir>
+  <RemoteName>test filename żółć in subdir.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/zip/subdir/</RemoteDir>
+  <RemoteName>test filename żółć in subdir.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\zip/test filename żółć.txt" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/zip/</RemoteDir>
+  <RemoteName>test filename żółć.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/zip/</RemoteDir>
+  <RemoteName>test filename żółć.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/zip/</RemoteDir>
+  <RemoteName>test filename żółć.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\zip/test.txt" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/zip/</RemoteDir>
+  <RemoteName>test.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/zip/</RemoteDir>
+  <RemoteName>test.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/zip/</RemoteDir>
+  <RemoteName>test.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\zip/test_texture.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/zip/</RemoteDir>
+  <RemoteName>test_texture.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/zip/</RemoteDir>
+  <RemoteName>test_texture.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/zip/</RemoteDir>
+  <RemoteName>test_texture.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
