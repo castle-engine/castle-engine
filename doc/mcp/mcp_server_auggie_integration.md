@@ -102,6 +102,8 @@ Adding MCP server to _Augment_ GUI in VS Code is also possible -- e.g. use _"Imp
 
 https://code.visualstudio.com/docs/copilot/customization/mcp-servers
 
+E.g. choose from palette VS Code command _"MCP: Add Server..."_ and follow the instructions. Add "stdio" as the server type, as command use `/path/to/castle-engine/tools/internal/mcp_server_mock/mcp_server_mock`.
+
 #### Claude Desktop
 
 https://modelcontextprotocol.io/docs/develop/connect-local-servers
