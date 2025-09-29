@@ -309,6 +309,14 @@ begin
     Result.Add('value', CreatePropertySchema('string', ValueDesc));
 end;
 
+function CreateInputSchemaEmpty: TJsonObject;
+begin
+  Result := TJsonObject.Create;
+  Result.Add('type', 'object');
+  // other inputSchema fields are not needed
+  // https://modelcontextprotocol.io/specification/2025-06-18/schema#tool
+end;
+
 function CreateInputSchema(Properties: TJsonObject; Required: TJsonArray): TJsonObject;
 begin
   Result := TJsonObject.Create;
@@ -967,6 +975,39 @@ begin
     CreateJsonArray(['componentPath', 'propertyName', 'value'])
   ));
   Result.Add(Tool);
+
+  { Get screenshot resource.
+    Following https://modelcontextprotocol.io/specification/2025-06-18/server/tools ,
+    tools can return resources.
+    And it's worthwhile to do this, as model (like Auggie) will automatically
+    use tools, but it does not automatically use resources:
+    https://medium.com/@laurentkubaski/mcp-resources-explained-and-how-they-differ-from-mcp-tools-096f9d15f767 . }
+  Tool := TJsonObject.Create;
+  Tool.Add('name', 'get_design_screenshot');
+  Tool.Add('description', 'Get a screenshot of the current design viewport');
+  Tool.Add('type', 'resource_link');
+  Tool.Add('uri', 'design://screenshot');
+  Tool.Add('mimeType', 'image/png');
+  Tool.Add('inputSchema', CreateInputSchemaEmpty);
+  Result.Add(Tool);
+
+  Tool := TJsonObject.Create;
+  Tool.Add('name', 'get_project_info');
+  Tool.Add('description', 'Get basic project information including name and caption');
+  Tool.Add('type', 'resource_link');
+  Tool.Add('uri', 'project://info');
+  Tool.Add('mimeType', 'application/json');
+  Tool.Add('inputSchema', CreateInputSchemaEmpty);
+  Result.Add(Tool);
+
+  Tool := TJsonObject.Create;
+  Tool.Add('name', 'get_design_hierarchy');
+  Tool.Add('description', 'Get the current design component hierarchy');
+  Tool.Add('type', 'resource_link');
+  Tool.Add('uri', 'design://hierarchy');
+  Tool.Add('mimeType', 'application/json');
+  Tool.Add('inputSchema', CreateInputSchemaEmpty);
+  Result.Add(Tool);
 end;
 
 function TMcpServer.HandleToolsList(const Params: TJsonData): TJsonObject;
@@ -1025,8 +1066,8 @@ begin
 
     PropertyValue := FDesignProvider.GetComponentProperty(ComponentPath, PropertyName);
     Result.Add('content', CreateJsonArrayWithTextContent(PropertyValue));
-  end
-  else if ToolName = 'set_component_property' then
+  end else
+  if ToolName = 'set_component_property' then
   begin
     if not Assigned(Arguments) then
       raise Exception.Create('arguments required for set_component_property');
@@ -1052,8 +1093,19 @@ begin
 
     Success := FDesignProvider.SetComponentProperty(ComponentPath, PropertyName, Value);
     Result.Add('content', CreateJsonArrayWithTextContent(Format('Property %s.%s set to "%s": %s', [ComponentPath, PropertyName, Value, BoolToStr(Success, True)])));
-  end
-  else
+  end else
+  if ToolName = 'get_design_screenshot' then
+  begin
+    Result.Add('content', CreateJsonArrayWithTextContent('The linked resource contains the screenshot.'));
+  end else
+  if ToolName = 'get_project_info' then
+  begin
+    Result.Add('content', CreateJsonArrayWithTextContent('The linked resource contains the project information.'));
+  end else
+  if ToolName = 'get_design_hierarchy' then
+  begin
+    Result.Add('content', CreateJsonArrayWithTextContent('The linked resource contains the design hierarchy.'));
+  end else
     raise Exception.CreateFmt('Unknown tool: %s', [ToolName]);
 end;
 
