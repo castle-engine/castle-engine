@@ -55,10 +55,7 @@ type
     On platforms other than Android / iOS, it simply does nothing
     --- messsages are not send anywhere.
 
-    To make this work, on Android you need to declare your Android project type
-    as "integrated" (this is actually the default now).
-    See https://castle-engine.io/android-Services .
-    For iOS it is always enabled.
+    This is automatically enabled on Android and iOS.
 
     All the communication is asynchronous on all platforms -- Pascal code sends a message,
     and any answers will come asynchronously later. This means that e.g.
