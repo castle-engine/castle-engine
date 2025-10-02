@@ -532,12 +532,16 @@ begin
     end else
     begin
       FStatus := dsError;
-      raise EDownloadError.CreateFmt('Cannot read URLs with protocol "%s"', [P]);
+      FErrorMessage := Format('Cannot read URLs with protocol "%s"', [P]);
+      if ApplicationProperties.CanCatchExceptions then
+        raise EDownloadError.Create(FErrorMessage);
     end;
   end else
   begin
     FStatus := dsError;
-    raise EDownloadError.CreateFmt('Downloading from protocol "%s" is not supported', [P]);
+    FErrorMessage := Format('Downloading from protocol "%s" is not supported', [P]);
+    if ApplicationProperties.CanCatchExceptions then
+      raise EDownloadError.Create(FErrorMessage);
   end;
 end;
 
