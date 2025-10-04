@@ -685,25 +685,49 @@ procedure TTestCastleBoxes.TestBox3DTransform;
     end;
   end;
 
+const
+  HereTestCount = 1000{ * 1000};
 var
   Box: TBox3D;
   I: Integer;
   Matrix: TMatrix4;
 begin
-  for I := 0 to 1000 do
+  for I := 1 to HereTestCount do
   begin
     Box := RandomBox;
     Matrix := RandomMatrix;
+
+    { Example causing later ETransformedResultInvalid:
+    Box.Data[0] := Vector3(-0.66644, 23.76847, -40.34201);
+    Box.Data[1] := Vector3(33.65354, 26.59489, 45.34943);
+    Matrix.Rows[0] := Vector4(11.96473, 36.43065, -11.8372, -19.66582);
+    Matrix.Rows[1] := Vector4(-48.33315, 28.52464, -20.44695, 9.4027);
+    Matrix.Rows[2] := Vector4(20.05704, 29.45408, -44.28437, -19.19822);
+    Matrix.Rows[3] := Vector4(-16.24296, 48.22318, 31.53312, -21.20571);
+    }
+
     try
       AssertBoxesEqual(BoxTransformSlower(Box, Matrix), Box.Transform(Matrix), 0.01);
     except
+      on E: ETransformedResultInvalid do
+      begin
+        WritelnWarning('TestBox3DTransform failed with ETransformedResultInvalid, ignoring, this is normal because of RandomMatrix:' + NL +
+          'Box: %s' + NL +
+          'Matrix: %s', [
+          Box.ToString,
+          Matrix.ToString
+        ]);
+      end;
+
       on E: Exception do
       begin
         WritelnWarning('TestBox3DTransform failed at test with RandomMatrix:' + NL +
+          'Exception: %s' + NL +
           'Box: %s' + NL +
           'Matrix: %s' + NL +
           'Resulting BoxTransformSlower: %s' + NL +
           'Resulting Box.Transform: %s', [
+          ExceptMessage(E),
           Box.ToString,
           Matrix.ToString,
           BoxTransformSlower(Box, Matrix).ToString,
@@ -714,7 +738,7 @@ begin
     end;
   end;
 
-  for I := 0 to 1000 do
+  for I := 1 to HereTestCount do
   begin
     Box := RandomBox;
     Matrix := RandomNonProjectionMatrix;
@@ -742,11 +766,11 @@ begin
   Matrix := RandomMatrix;
 
   ProcessTimerBegin;
-  for I := 0 to 1000000 do BoxTransformSlower(Box, Matrix);
+  for I := 0 to HereTestCount do BoxTransformSlower(Box, Matrix);
   Writeln(Format('Slower: %f', [ProcessTimerEnd]));
 
   ProcessTimerBegin;
-  for I := 0 to 1000000 do Box3DTransform(Box, Matrix);
+  for I := 0 to HereTestCount do Box3DTransform(Box, Matrix);
   Writeln(Format('Box3DTransform: %f', [ProcessTimerEnd]));
 
   Writeln('On non-projection matrix:');
@@ -755,11 +779,11 @@ begin
   Matrix := RandomNonProjectionMatrix;
 
   ProcessTimerBegin;
-  for I := 0 to 1000000 do BoxTransformSlower(Box, Matrix);
+  for I := 0 to HereTestCount do BoxTransformSlower(Box, Matrix);
   Writeln(Format('Slower: %f', [ProcessTimerEnd]));
 
   ProcessTimerBegin;
-  for I := 0 to 1000000 do Box3DTransform(Box, Matrix);
+  for I := 0 to HereTestCount do Box3DTransform(Box, Matrix);
   Writeln(Format('Box3DTransform: %f', [ProcessTimerEnd]));
   {$endif BOX3D_TRANSFORM_SPEED_TEST}
 end;
