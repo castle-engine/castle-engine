@@ -501,7 +501,7 @@ begin
   end;
 
   if LogAllLoading then
-    WritelnLog('Loading', 'Loading "%s"', [UriDisplay(FFinalUrl)]);
+    WritelnLog('Loading', '"%s"', [UriDisplay(FFinalUrl)]);
 
   // Extra check to debug WebAssembly
   {$ifdef WASI}
