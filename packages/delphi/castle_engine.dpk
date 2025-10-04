@@ -72,6 +72,7 @@ contains
   castlefilefilters in '..\..\src\files\castlefilefilters.pas',
   castlefilesutils in '..\..\src\files\castlefilesutils.pas',
   castlefindfiles in '..\..\src\files\castlefindfiles.pas',
+  castlehttps in '..\..\src\files\castlehttps.pas',
   castleinternaldatauri in '..\..\src\files\castleinternaldatauri.pas',
   castleinternaldirectoryinformation in '..\..\src\files\castleinternaldirectoryinformation.pas',
   castlerecentfiles in '..\..\src\files\castlerecentfiles.pas',

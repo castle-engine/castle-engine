@@ -396,6 +396,7 @@ begin
     P.Targets.AddUnit('castlefilefilters.pas');
     P.Targets.AddUnit('castlefilesutils.pas');
     P.Targets.AddUnit('castlefindfiles.pas');
+    P.Targets.AddUnit('castlehttps.pas');
     P.Targets.AddUnit('castleinternaldirectoryinformation.pas');
     P.Targets.AddUnit('castleinternalfilemonitor.pas');
     P.Targets.AddUnit('castleinternalurlutils.pas');

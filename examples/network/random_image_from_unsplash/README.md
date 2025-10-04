@@ -35,12 +35,6 @@ To use this example, you need an API key ("access key") from Unsplash. Don't wor
 
 Place your access key in the `code/unsplash_secrets.inc` file. Copy the file `code/unsplash_secrets.inc.template` to `code/unsplash_secrets.inc` and edit it to fill the `UnsplashAccessKey` constant.
 
-## FPC + HTTPS + Linux
-
-If you use FPC on Linux, note that older FPC (including 3.2.2) does not handle latest OpenSSL library versions.
-
-If you get errors related to OpenSSL, upgrade to latest FPC (from GitLab) e.g. using [fpcupdeluxe](https://castle-engine.io/fpcupdeluxe).
-
 ## Building
 
 Using [Castle Game Engine](https://castle-engine.io/).

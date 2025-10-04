@@ -24,6 +24,7 @@ uses
 
 type
   TPreferencesForm = class(TForm)
+    ButtonOpenCgePath: TButton;
     ButtonRegisterLazarusPackages: TButton;
     ButtonPanel1: TButtonPanel;
     CheckBoxMuteOnRun: TCheckBox;
@@ -87,6 +88,7 @@ type
     RadioCompilerFpc: TRadioButton;
     RadioCodeEditorVSCode: TRadioButton;
     TrackVolume: TTrackBar;
+    procedure ButtonOpenCgePathClick(Sender: TObject);
     procedure ButtonRegisterLazarusPackagesClick(Sender: TObject);
     procedure DirectoryEditAndroidHomeAcceptDirectory(Sender: TObject;
       var Value: String);
@@ -172,6 +174,10 @@ var
 begin
   CgePathStatus(CastleEnginePath, CgePathStatusText);
   LabelCgePathAutoDetected.Caption := CgePathAutodetectedLine + CgePathStatusText;
+
+  ButtonOpenCgePath.Enabled :=
+    (CastleEnginePath <> '') or
+    (CastleEngineOverridePath <> '');
 
   FpcExe := '';
   try
@@ -466,6 +472,17 @@ begin
     on E: Exception do
       ErrorBox(E.Message);
   end;
+end;
+
+procedure TPreferencesForm.ButtonOpenCgePathClick(Sender: TObject);
+begin
+  if (CastleEngineOverridePath <> '') and DirectoryExists(CastleEngineOverridePath) then
+    OpenDocument(CastleEngineOverridePath)
+  else
+  if (CastleEnginePath <> '') and DirectoryExists(CastleEnginePath) then
+    OpenDocument(CastleEnginePath)
+  else
+    ErrorBox('No valid engine path detected.');
 end;
 
 procedure TPreferencesForm.DirectoryEditAndroidHomeAcceptDirectory(

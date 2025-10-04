@@ -604,7 +604,10 @@ begin
     [
       'src/base/android/',
       'src/files/indy/',
-      'src/base_rendering/web/'
+      'src/base_rendering/web/',
+
+      // Ignore units that are only to be compiled when pulled by CastleHttps with FPC 3.2.x
+      'src/files/castleinternalforfpc32x*.pas'
     ],
     [
       'src/vampyre_imaginglib/'
@@ -722,7 +725,10 @@ begin
       'src/ui/windows/castleinternaltdxinput_tlb.pas',
 
       // This is only supported with FPC, but planned to be removed from CGE
-      'src/scene/castleraytracer.pas'
+      'src/scene/castleraytracer.pas',
+
+      // Ignore units that are only to be compiled when pulled by CastleHttps with FPC 3.2.x
+      'src/files/castleinternalforfpc32x*.pas'
     ],
     [
       'src/vampyre_imaginglib/'
@@ -793,7 +799,10 @@ begin
     ],
     [
       'src/files/indy/',
-      'src/base_rendering/web/'
+      'src/base_rendering/web/',
+
+      // Ignore units that are only to be compiled when pulled by CastleHttps with FPC 3.2.x
+      'src/files/castleinternalforfpc32x*.pas'
     ],
     [
       'src/vampyre_imaginglib/'

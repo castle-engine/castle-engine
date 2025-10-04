@@ -47,8 +47,8 @@ type
 implementation
 
 uses
-  {$if defined(CASTLE_ONLINE_TESTS) and defined(FPC)}
-  OpenSslSockets,
+  {$if defined(CASTLE_ONLINE_TESTS)}
+  CastleHttps,
   {$endif}
   CastleZip, CastleUriUtils, CastleClassUtils, CastleDownload,
   CastleUtils, CastleFilesUtils, CastleLog, CastleFindFiles;

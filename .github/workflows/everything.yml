@@ -97,6 +97,25 @@ jobs:
       env:
         GH_TOKEN: ${{ github.token }}
 
+    # Upload files to SourceForge too, to serve as a mirror.
+    #
+    # Secrets setup (see https://stackoverflow.com/questions/60477061/github-actions-how-to-deploy-to-remote-server-using-ssh ) :
+    # - SSH_PRIVATE_KEY_SOURCEFORGE
+    #     ssh-keygen -t rsa -C "cge-github-actions-uploads" -N '' -f id_for_sourceforge_uploads
+    # - SSH_KNOWN_HOSTS_SOURCEFORGE
+    #     ssh-keyscan -H 'frs.sourceforge.net'
+    - name: Upload to SourceForge
+      if: ${{ github.ref == 'refs/heads/master' }}
+      run: |
+        # creates dir ~/.ssh and file ~/.ssh/id_rsa inside with secure permissions from the start
+        install -m 600 -D /dev/null ~/.ssh/id_rsa
+        echo "$SSH_PRIVATE_KEY_SOURCEFORGE" > ~/.ssh/id_rsa
+        echo "$SSH_KNOWN_HOSTS_SOURCEFORGE" > ~/.ssh/known_hosts
+        scp castle-engine*.zip castle-engine-setup-*.exe kambi,castle-engine@frs.sourceforge.net:/home/frs/project/c/ca/castle-engine/castle_game_engine/
+      env:
+        SSH_PRIVATE_KEY_SOURCEFORGE: ${{ secrets.SSH_PRIVATE_KEY_SOURCEFORGE }}
+        SSH_KNOWN_HOSTS_SOURCEFORGE: ${{ secrets.SSH_KNOWN_HOSTS_SOURCEFORGE }}
+
   update-release-tag:
     name: Update Release Tag (make release tag point to the build commit on master branch)
     runs-on: ubuntu-latest
