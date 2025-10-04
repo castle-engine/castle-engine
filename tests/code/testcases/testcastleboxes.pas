@@ -29,6 +29,10 @@ type
     procedure TestBox3DPlaneCollision;
     procedure TestIsBox3DTriangleCollision;
     procedure TestIsBox3DTriangleCollisionEpsilons;
+    { Test TBox3D.Transform for correctness and speed.
+      Compare with a slower implementation (BoxTransformSlower inside this unit),
+      that should be slower (on non-projection matrices)
+      but give the same results. }
     procedure TestBox3DTransform;
     procedure TestBoxTransform1;
     procedure TestBox3DMaximumPlane;
@@ -662,9 +666,6 @@ begin
 end;
 
 procedure TTestCastleBoxes.TestBox3DTransform;
-{ Test Box3DTransform for correctness and speed.
-  Compare with Slower implementation, that should be slower
-  (on non-projection matrices) but give the same results. }
 
   function RandomBox: TBox3D;
   var
@@ -687,6 +688,7 @@ procedure TTestCastleBoxes.TestBox3DTransform;
 
 const
   HereTestCount = 1000{ * 1000};
+  SpeedTestCount = 1000 * 1000;
 var
   Box: TBox3D;
   I: Integer;
@@ -758,34 +760,31 @@ begin
     end;
   end;
 
-  { $define BOX3D_TRANSFORM_SPEED_TEST}
-  {$ifdef BOX3D_TRANSFORM_SPEED_TEST}
-  Writeln('On possibly projection matrix:');
+  WritelnLog('Speed test, on possibly projection matrix:');
 
   Box := RandomBox;
   Matrix := RandomMatrix;
 
   ProcessTimerBegin;
-  for I := 0 to HereTestCount do BoxTransformSlower(Box, Matrix);
-  Writeln(Format('Slower: %f', [ProcessTimerEnd]));
+  for I := 0 to SpeedTestCount do BoxTransformSlower(Box, Matrix);
+  WritelnLog('  BoxTransformSlower: %f', [ProcessTimerEnd]);
 
   ProcessTimerBegin;
-  for I := 0 to HereTestCount do Box3DTransform(Box, Matrix);
-  Writeln(Format('Box3DTransform: %f', [ProcessTimerEnd]));
+  for I := 0 to SpeedTestCount do Box.Transform(Matrix);
+  WritelnLog('  TBox3D.Transform: %f', [ProcessTimerEnd]);
 
-  Writeln('On non-projection matrix:');
+  WritelnLog('Speed test, on non-projection matrix:');
 
   Box := RandomBox;
   Matrix := RandomNonProjectionMatrix;
 
   ProcessTimerBegin;
-  for I := 0 to HereTestCount do BoxTransformSlower(Box, Matrix);
-  Writeln(Format('Slower: %f', [ProcessTimerEnd]));
+  for I := 0 to SpeedTestCount do BoxTransformSlower(Box, Matrix);
+  WritelnLog('  BoxTransformSlower: %f', [ProcessTimerEnd]);
 
   ProcessTimerBegin;
-  for I := 0 to HereTestCount do Box3DTransform(Box, Matrix);
-  Writeln(Format('Box3DTransform: %f', [ProcessTimerEnd]));
-  {$endif BOX3D_TRANSFORM_SPEED_TEST}
+  for I := 0 to SpeedTestCount do Box.Transform(Matrix);
+  WritelnLog('  TBox3D.Transform: %f', [ProcessTimerEnd]);
 end;
 
 procedure TTestCastleBoxes.TestBoxTransform1;
