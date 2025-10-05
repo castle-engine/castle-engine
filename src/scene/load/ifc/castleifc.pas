@@ -23,7 +23,7 @@ unit CastleIfc;
 interface
 
 uses Contnrs, Generics.Collections, SysUtils, Classes,
-  FpJson, JSONParser, JSONScanner,
+  FpJson, JsonParser, JsonScanner,
   CastleUtils, CastleVectors, X3DNodes, CastleUriUtils, CastleLog,
   CastleStringUtils, CastleBoxes;
 
