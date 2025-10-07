@@ -2061,7 +2061,7 @@
                     }
                 }
             ],
-            "name" : "Attack_Headbutt",
+            "name" : "CastleDoNotLoad_Attack_Headbutt",
             "samplers" : [
                 {
                     "input" : 36,
@@ -3868,7 +3868,7 @@
                     }
                 }
             ],
-            "name" : "Attack_Kick",
+            "name" : "CastleDoNotLoad_Attack_Kick",
             "samplers" : [
                 {
                     "input" : 187,
@@ -5675,7 +5675,7 @@
                     }
                 }
             ],
-            "name" : "Death",
+            "name" : "CastleDoNotLoad_Death",
             "samplers" : [
                 {
                     "input" : 187,
@@ -7482,7 +7482,7 @@
                     }
                 }
             ],
-            "name" : "Eating",
+            "name" : "CastleDoNotLoad_Eating",
             "samplers" : [
                 {
                     "input" : 488,
@@ -11096,7 +11096,7 @@
                     }
                 }
             ],
-            "name" : "Gallop_Jump",
+            "name" : "CastleDoNotLoad_Gallop_Jump",
             "samplers" : [
                 {
                     "input" : 790,
@@ -18324,7 +18324,7 @@
                     }
                 }
             ],
-            "name" : "Idle_HitReact1",
+            "name" : "CastleDoNotLoad_Idle_HitReact1",
             "samplers" : [
                 {
                     "input" : 1392,
@@ -20131,7 +20131,7 @@
                     }
                 }
             ],
-            "name" : "Idle_HitReact2",
+            "name" : "CastleDoNotLoad_Idle_HitReact2",
             "samplers" : [
                 {
                     "input" : 1392,
@@ -21938,7 +21938,7 @@
                     }
                 }
             ],
-            "name" : "Jump_toIdle",
+            "name" : "CastleDoNotLoad_Jump_toIdle",
             "samplers" : [
                 {
                     "input" : 1693,
@@ -23745,7 +23745,7 @@
                     }
                 }
             ],
-            "name" : "Walk",
+            "name" : "CastleDoNotLoad_Walk",
             "samplers" : [
                 {
                     "input" : 1844,

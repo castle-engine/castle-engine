@@ -2265,6 +2265,30 @@ var
     InterpolatorRec: TInterpolator;
     Path: TGltfSamplerPath;
   begin
+    { Extremely hacky way to avoid loading some animations,
+      so that they don't take up memory and loading time.
+      Just rename them in glTF file to add prefix "CastleDoNotLoad_", e.g.
+
+        "name" : "Attack",
+
+      ->
+
+        "name" : "CastleDoNotLoad_Attack",
+
+      This avoids loading them anywhere (in editor, in game).
+
+      Hint: searching for "samplers" is often nice way to jump
+      to animation names.
+    }
+    if IsPrefix('CastleDoNotLoad_', Animation.Name, false) then
+    begin
+      WritelnLog('Not loading animation "%s" from "%s"', [
+        Animation.Name,
+        UriDisplay(BaseUrl)
+      ]);
+      Exit;
+    end;
+
     Anim := TAnimation.Create;
     Animations.Add(Anim);
 
