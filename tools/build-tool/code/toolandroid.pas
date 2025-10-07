@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2024 Michalis Kamburelis.
+  Copyright 2014-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -559,14 +559,36 @@ var
   end;
 
 var
-  PackageName: string;
+  PackageName: String;
   PackageMode: TCompilationMode;
+  AndroidProjectPathNoDelim, RandomAndroidProjectPath: String;
 begin
   { calculate clean AndroidProjectPath }
-  AndroidProjectPath := TempOutputPath(Project.Path) +
-    'android' + PathDelim + 'project' + PathDelim;
+  AndroidProjectPathNoDelim := TempOutputPath(Project.Path) +
+    'android' + PathDelim + 'project';
+  AndroidProjectPath := AndroidProjectPathNoDelim + PathDelim;
   if DirectoryExists(AndroidProjectPath) then
+  try
     RemoveNonEmptyDir(AndroidProjectPath);
+  except
+    on E: ERemoveFailed do
+    begin
+      RandomAndroidProjectPath := AndroidProjectPathNoDelim + '-old-' + IntToStr(Random(1000000));
+      WritelnWarning('Removing "%s" failed with error: %s. As a workaround we will try to rename the directory to new random name "%s".', [
+        AndroidProjectPath,
+        E.Message,
+        RandomAndroidProjectPath
+      ]);
+      if not RenameFile(
+        AndroidProjectPathNoDelim,
+        RandomAndroidProjectPath) then
+      begin
+        raise ERemoveFailed.CreateFmt('Cannot remove or rename the directory "%s". Some application has "locked" it -- try to kill processes, like Android tools and Gradle daemon, that possibly keep this directory open. Then remove this directory manually and retry.', [
+          AndroidProjectPathNoDelim
+        ]);
+      end;
+    end;
+  end;
 
   PackageMode := SuggestedPackageMode;
 
