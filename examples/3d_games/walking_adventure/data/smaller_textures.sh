@@ -19,7 +19,7 @@ find . \
   '(' -iname '*.png' -or -iname '*.jpg' ')' \
   '(' -not -ipath '*castle_game_engine_icon.png' ')' \
   '(' -not -ipath '*/skybox/*' ')' \
-  -exec convert {} -resize 512x512 {} \;
+  -exec convert {} -resize 1024x1024 {} \;
 
 echo '----------------------------------------------------------------------'
 echo 'After:'
