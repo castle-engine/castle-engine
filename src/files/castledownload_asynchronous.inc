@@ -549,6 +549,8 @@ procedure TCastleDownload.WaitForFinish;
 begin
   while Status = dsDownloading do
   begin
+    Assert(Reader <> nil);
+    Reader.UpdateOnlySynchronous;
     Update(nil);
     Sleep(10);
   end;

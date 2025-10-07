@@ -91,6 +91,17 @@ type
       (so it is not some bug in code), this method should set Status to dsError
       and not raise an exception. }
     procedure Update; virtual;
+
+    { Called continuously to push the download further
+      only when we're doing synchronous download and waiting
+      in @link(TCastleDownload.WaitForFinish).
+
+      This allows to do additional tasks, before what @link(Update)
+      is doing, to push the download. For example, if you rely on
+      CastleMessaging processing, you can call @code(ApplicationProperties._Update)
+      from here, as it will happen automatically during
+      @link(TCastleDownload.WaitForFinish). }
+    procedure UpdateOnlySynchronous; virtual;
   end;
 
   TUrlAsynchronousReaderClass = class of TUrlAsynchronousReader;
@@ -293,6 +304,10 @@ begin
 end;
 
 procedure TUrlAsynchronousReader.Update;
+begin
+end;
+
+procedure TUrlAsynchronousReader.UpdateOnlySynchronous;
 begin
 end;
 
