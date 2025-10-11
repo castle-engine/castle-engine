@@ -3665,6 +3665,8 @@ begin
 end;
 
 procedure TCastleViewport.BeforeRender;
+var
+  TimeStart: TCastleProfilerTime;
 begin
   inherited;
 
@@ -3673,7 +3675,12 @@ begin
     the TCastleScene are already prepared). }
   if not PrepareResourcesDone then
   begin
-    PrepareResources;
+    { This is often eating non-trivial time, e.g. loading textures.
+      So display it by default. }
+    TimeStart := Profiler.Start(Format('TCastleViewport(%s).PrepareResources', [Name]));
+    try
+      PrepareResources;
+    finally Profiler.Stop(TimeStart, true, true) end;
     PrepareResourcesDone := true;
   end;
 end;
