@@ -1,5 +1,5 @@
 {
-  Copyright 2022-2023 Michalis Kamburelis.
+  Copyright 2022-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -23,23 +23,47 @@ uses Classes,
   X3DNodes;
 
 type
+  TAnimationMode = (
+    amNone,
+    { Animate most of the body by playing 'walk' animation designed in Blender. }
+    amWalk,
+    { Animate head by changing TransformNeck.Rotation in Pascal code. }
+    amHead,
+    { Both amWalk and amHead at the same time. }
+    amBoth
+  );
+
   { Main view, where most of the application logic takes place. }
   TViewMain = class(TCastleView)
   published
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
     LabelFps: TCastleLabel;
-    SceneHumanoid: TCastleScene;
+    LabelSkinUsesShaders: TCastleLabel;
+    CheckboxCastShadows: TCastleCheckbox;
+    SceneHumanoidNoSkinnedAnim, SceneHumanoidWithSkinnedAnim: TCastleScene;
     ButtonPlayWalk, ButtonPlayHead, ButtonPlayBoth: TCastleButton;
+    ButtonNoSkinnedAnim, ButtonWithSkinnedAnim: TCastleButton;
   private
-    { Other fields }
+    SceneHumanoid: TCastleScene; //< Either SceneHumanoidNoSkinnedAnim or SceneHumanoidWithSkinnedAnim
     TransformNeck: TTransformNode;
-    HeadAnimation: Boolean; //< whether we play animation of TransformNeck, controled by code
     HeadAnimationTime: TFloatTime;
+    AnimationMode: TAnimationMode;
+    SkinNode: TSkinNode;
     procedure DebugLogNodeName(Node: TX3DNode);
     procedure ClickPlayWalk(Sender: TObject);
     procedure ClickPlayHead(Sender: TObject);
     procedure ClickPlayBoth(Sender: TObject);
+    procedure ClickNoSkinnedAnim(Sender: TObject);
+    procedure ClickWithSkinnedAnim(Sender: TObject);
+    procedure CheckboxCastShadowsChange(Sender: TObject);
+    { Switch UI and variables to use
+      SceneHumanoidNoSkinnedAnim or SceneHumanoidWithSkinnedAnim }
+    procedure ChooseSkinnedAnim(const UseSkinnedAnim: boolean);
+    procedure ChooseAnimationMode(const NewAnimationMode: TAnimationMode);
+    { Remove all X3D ROUTEs (used by animations) that can affect this Joint. }
+    procedure RemoveAnimationsAffectingJoint(
+      const Scene: TCastleScene; const Joint: TTransformNode);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -49,10 +73,12 @@ type
 var
   ViewMain: TViewMain;
 
+  VerboseLog: Boolean = false;
+
 implementation
 
 uses SysUtils,
-  CastleLog, CastleUtils;
+  CastleLog, CastleUtils, CastleStringUtils;
 
 { TViewMain ----------------------------------------------------------------- }
 
@@ -65,23 +91,25 @@ end;
 procedure TViewMain.DebugLogNodeName(Node: TX3DNode);
 var
   ParentNode: TX3DNode;
-  ParentNodeStr: String;
+  ParentNodeStr, AllParents: String;
+  I: Integer;
 begin
-  case Node.ParentFieldsCount of
-    0: ParentNodeStr := '(no parent)'; // possible for root node
-    1: begin
-         ParentNode := Node.ParentFields[0].ParentNode as TX3DNode;
-         ParentNodeStr := ParentNode.X3DName;
-         if ParentNodeStr = '' then
-           ParentNodeStr := '(unnamed)';
-       end;
-    else
-       ParentNodeStr := '(multiple parents)';
+  AllParents := '';
+  if Node.ParentFieldsCount = 0 then
+    AllParents := '(no parent)' // possible for root node in non-skinned animation
+  else
+  begin
+    for I := 0 to Node.ParentFieldsCount - 1 do
+    begin
+      ParentNode := Node.ParentFields[I].ParentNode as TX3DNode;
+      ParentNodeStr := ParentNode.NiceName;
+      AllParents := SAppendPart(AllParents, ', ', ParentNodeStr);
+    end;
   end;
 
-  WritelnLog('Found node: %s, parent: %s', [
-    Node.X3DName,
-    ParentNodeStr
+  WritelnLog('Found transformation (possible joint) node: %s, parents: %s', [
+    Node.NiceName,
+    AllParents
   ]);
 end;
 
@@ -89,32 +117,99 @@ procedure TViewMain.Start;
 begin
   inherited;
 
-  { for debug: write to log all transform nodes }
-  SceneHumanoid.RootNode.EnumerateNodes(TTransformNode, {$ifdef FPC}@{$endif} DebugLogNodeName, false);
-
   ButtonPlayWalk.OnClick := {$ifdef FPC}@{$endif} ClickPlayWalk;
   ButtonPlayHead.OnClick := {$ifdef FPC}@{$endif} ClickPlayHead;
   ButtonPlayBoth.OnClick := {$ifdef FPC}@{$endif} ClickPlayBoth;
+  ButtonNoSkinnedAnim.OnClick := {$ifdef FPC}@{$endif} ClickNoSkinnedAnim;
+  ButtonWithSkinnedAnim.OnClick := {$ifdef FPC}@{$endif} ClickWithSkinnedAnim;
+  CheckboxCastShadows.OnChange := {$ifdef FPC}@{$endif} CheckboxCastShadowsChange;
+
+  { Remove any animation affecting Neck from SceneHumanoidWithSkinnedAnim.
+    This simple solution avoids tweaking animation on the Blender side,
+    we just "disconnect" it from changing the Neck on the engine side.
+    And we need to do this, to show amBoth mode on SceneHumanoidWithSkinnedAnim,
+    where Pascal code animates Neck. }
+  RemoveAnimationsAffectingJoint(SceneHumanoidWithSkinnedAnim,
+    SceneHumanoidWithSkinnedAnim.Node('Neck') as TTransformNode);
+
+  { In normal usage, you don't need to access the TSkinNode inside.
+    We access it only to debug whether InternalUsesShaders is true. }
+  SkinNode := SceneHumanoidWithSkinnedAnim.Node('HumanArmature') as TSkinNode;
+
+  // change all UI and variables to use SceneHumanoidWithSkinnedAnim and hide SceneHumanoidNoSkinnedAnim
+  ClickWithSkinnedAnim(nil);
+end;
+
+procedure TViewMain.ClickNoSkinnedAnim(Sender: TObject);
+begin
+  ChooseSkinnedAnim(false);
+end;
+
+procedure TViewMain.ClickWithSkinnedAnim(Sender: TObject);
+begin
+  ChooseSkinnedAnim(true);
+end;
+
+procedure TViewMain.ChooseSkinnedAnim(const UseSkinnedAnim: boolean);
+begin
+  if UseSkinnedAnim then
+    SceneHumanoid := SceneHumanoidWithSkinnedAnim
+  else
+    SceneHumanoid := SceneHumanoidNoSkinnedAnim;
+
+  { for debug: write to log transform node names }
+  if VerboseLog then
+    SceneHumanoid.RootNode.EnumerateNodes(TTransformNode,
+      {$ifdef FPC}@{$endif} DebugLogNodeName, false);
 
   TransformNeck := SceneHumanoid.Node('Neck') as TTransformNode;
+
+  SceneHumanoidWithSkinnedAnim.Exists := UseSkinnedAnim;
+  SceneHumanoidNoSkinnedAnim.Exists := not UseSkinnedAnim;
+
+  ButtonWithSkinnedAnim.Pressed := UseSkinnedAnim;
+  ButtonNoSkinnedAnim.Pressed := not UseSkinnedAnim;
+
+  LabelSkinUsesShaders.Exists := UseSkinnedAnim;
+
+  // reinitialize AnimationMode, to e.g. start 'walk' on new model
+  ChooseAnimationMode(AnimationMode);
 end;
 
 procedure TViewMain.ClickPlayWalk(Sender: TObject);
 begin
-  SceneHumanoid.AutoAnimation := 'walk';
-  HeadAnimation := false;
+  ChooseAnimationMode(amWalk);
 end;
 
 procedure TViewMain.ClickPlayHead(Sender: TObject);
 begin
-  SceneHumanoid.AutoAnimation := ''; // stop walking
-  HeadAnimation := true;
+  ChooseAnimationMode(amHead);
 end;
 
 procedure TViewMain.ClickPlayBoth(Sender: TObject);
 begin
-  SceneHumanoid.AutoAnimation := 'walk';
-  HeadAnimation := true;
+  ChooseAnimationMode(amBoth);
+end;
+
+procedure TViewMain.ChooseAnimationMode(const NewAnimationMode: TAnimationMode);
+begin
+  if NewAnimationMode in [amWalk, amBoth] then
+    SceneHumanoid.AutoAnimation := 'walk'
+  else
+    SceneHumanoid.AutoAnimation := ''; // stop walking
+
+  AnimationMode := NewAnimationMode;
+
+  // update buttons
+  ButtonPlayWalk.Pressed := AnimationMode = amWalk;
+  ButtonPlayHead.Pressed := AnimationMode = amHead;
+  ButtonPlayBoth.Pressed := AnimationMode = amBoth;
+end;
+
+procedure TViewMain.CheckboxCastShadowsChange(Sender: TObject);
+begin
+  SceneHumanoidNoSkinnedAnim.CastShadows := CheckboxCastShadows.Checked;
+  SceneHumanoidWithSkinnedAnim.CastShadows := CheckboxCastShadows.Checked;
 end;
 
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
@@ -145,7 +240,11 @@ begin
   { This virtual method is executed every frame (many times per second). }
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
 
-  if HeadAnimation then
+  LabelSkinUsesShaders.Caption :=
+    'Skin is calculated using shaders (faster, but not always possible): ' +
+    BoolToStr(SkinNode.InternalUsesShaders, true);
+
+  if AnimationMode in [amHead, amBoth] then
   begin
     HeadAnimationTime := HeadAnimationTime + SecondsPassed;
     TransformNeck.Rotation := Vector4(
@@ -158,6 +257,54 @@ begin
       )
     );
   end;
+end;
+
+type
+  { Utility for TViewMain.RemoveAnimationsAffectingJoint }
+  TRemoveAnimationsAffectingJointUtility = class
+  public
+    Joint: TTransformNode;
+    procedure Handler(Node: TX3DNode);
+  end;
+
+procedure TRemoveAnimationsAffectingJointUtility.Handler(Node: TX3DNode);
+var
+  Route: TX3DRoute;
+  I: Integer;
+begin
+  I := 0;
+  while I < Node.RoutesCount do
+  begin
+    Route := Node.Routes[I];
+    if Route.DestinationNode = Joint then
+    begin
+      if VerboseLog then
+        WritelnLog('Removing ROUTE affecting %s.%s (from %s.%s)', [
+          Route.DestinationNode.NiceName,
+          Route.DestinationEvent.X3DName,
+          Route.SourceNode.NiceName,
+          Route.SourceEvent.X3DName
+        ]);
+      Node.RemoveRoute(I);
+    end else
+      Inc(I);
+  end;
+end;
+
+procedure TViewMain.RemoveAnimationsAffectingJoint(
+  const Scene: TCastleScene; const Joint: TTransformNode);
+var
+  Utility: TRemoveAnimationsAffectingJointUtility;
+begin
+  if Scene.RootNode = nil then
+    Exit; // nothing to do on empty scene
+
+  Utility := TRemoveAnimationsAffectingJointUtility.Create;
+  try
+    Utility.Joint := Joint;
+    Scene.RootNode.EnumerateNodes(TX3DNode,
+      {$ifdef FPC}@{$endif} Utility.Handler, false);
+  finally FreeAndNil(Utility) end;
 end;
 
 end.

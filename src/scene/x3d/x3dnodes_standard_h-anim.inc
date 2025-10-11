@@ -73,7 +73,7 @@
       Returns changed X3D coordinates field (or @nil if there is no skin).
       You should call TX3DField.Changed on it (unless you use it from some
       TCastleSceneCore initialization, when there's no point in notifying about this). }
-    function AnimateSkin: TMFVec3f;
+    procedure InternalUpdateSkin;
 
     { Fill the FdJoints array, if it is empty.
 
@@ -313,7 +313,7 @@ begin
   FTransformFunctionality.ApplyTransform(StateStack.Top.Transformation);
 end;
 
-function THAnimHumanoidNode.AnimateSkin: TMFVec3f;
+procedure THAnimHumanoidNode.InternalUpdateSkin;
 
   function UpdateVertex(const VJ: TVertexJoints): TVector3;
   var
@@ -337,24 +337,28 @@ function THAnimHumanoidNode.AnimateSkin: TMFVec3f;
 
 var
   I: Integer;
+  SkinField: TMFVec3f;
   SkinCoord: TVector3List;
 begin
   if not (
     (FdSkinCoord.Value <> nil) and
     (FdSkinCoord.Value is TCoordinateNode) and
-    (VertexJoints <> nil)) then Exit(nil);
+    (VertexJoints <> nil)) then
+    Exit;
 
-  Result := TCoordinateNode(FdSkinCoord.Value).FdPoint;
-  SkinCoord := Result.Items;
-  if SkinCoord.Count <> VertexJoints.Count then Exit(nil);
+  SkinField := TCoordinateNode(FdSkinCoord.Value).FdPoint;
+  SkinCoord := SkinField.Items;
+  if SkinCoord.Count <> VertexJoints.Count then Exit;
 
   for I := 0 to VertexJoints.Count - 1 do
     SkinCoord.L[I] := UpdateVertex(VertexJoints.L[I]);
+
+  SkinField.Changed;
 end;
 
 procedure THAnimHumanoidNode.AfterTraverse(StateStack: TX3DGraphTraverseStateStack);
 begin
-  AnimateSkin;
+  InternalUpdateSkin;
   StateStack.Pop;
   inherited;
 end;

@@ -54,7 +54,7 @@ var
   C: TUnicodeChar;
   G: TTextureFontData.TGlyph;
   ImageInterface, ImageImplementation, ImageInitialization, ImageFinalization: string;
-  LoadedGlyphs: TUnicodeCharList;
+  LoadedGlyphs: TUnicodeCharSet;
 begin
   WriteStr(Stream,
     '{ -*- buffer-read-only: t -*- }' +NL+

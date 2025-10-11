@@ -127,6 +127,7 @@ type
     procedure TestNodeRelease;
     procedure TestNodeReleaseWhenStillUsed;
     procedure TestProtoReuseFirstNode;
+    procedure TestRemoveRoute;
   end;
 
 implementation
@@ -2687,7 +2688,7 @@ var
 begin
   ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}OnWarningRaiseException);
   try
-    Node := LoadNode('castle-data:/quaternius/Bunny.gltf');
+    Node := LoadNode('castle-data:/gltf/quaternius/Bunny.gltf');
     try
       OutputStream := TMemoryStream.Create;
       try
@@ -2985,6 +2986,30 @@ begin
   TestOneFile('castle-data:/proto_reuse_first_node/full_connectors.x3d');
   TestOneFile('castle-data:/proto_reuse_first_node/proto_leak.wrl');
   TestOneFile('castle-data:/proto_reuse_first_node/proto_leak_2.wrl');
+end;
+
+procedure TTestX3DNodes.TestRemoveRoute;
+var
+  PositionInterpolator: TPositionInterpolatorNode;
+  TransformNode: TTransformNode;
+  Route: TX3DRoute;
+begin
+  PositionInterpolator := TPositionInterpolatorNode.Create;
+  TransformNode := TTransformNode.Create;
+
+  Route := TX3DRoute.Create;
+  Route.SetSourceDirectly(PositionInterpolator.EventValue_Changed);
+  Route.SetDestinationDirectly(TransformNode.FdTranslation.EventIn);
+
+  PositionInterpolator.AddRoute(Route);
+  AssertEquals(1, PositionInterpolator.RoutesCount);
+
+  PositionInterpolator.RemoveRoute(Route);
+  AssertEquals(0, PositionInterpolator.RoutesCount);
+
+  FreeAndNil(PositionInterpolator);
+  FreeAndNil(TransformNode);
+  //FreeAndNil(Route); // already freed by RemoveRoute
 end;
 
 initialization

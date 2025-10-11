@@ -60,7 +60,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license for details.
 "/>
     <Version Major="6" Minor="93" Release="1"/>
-    <Files Count="1198">
+    <Files Count="1202">
       <Item1>
         <Filename Value="../../src/audio/castleinternalabstractsoundbackend.pas"/>
         <UnitName Value="CastleInternalAbstractSoundBackend"/>
@@ -4880,9 +4880,25 @@ See https://castle-engine.io/license for details.
         <UnitName Value="CastleHttps"/>
       </Item1197>
       <Item1198>
-        <Filename Value="../../src/images/castleimages_castle_format.inc"/>
+        <Filename Value="../../src/scene/x3d/auto_generated_node_helpers/x3dnodes_skin.inc"/>
         <Type Value="Include"/>
       </Item1198>
+      <Item1199>
+        <Filename Value="../../src/scene/castlerendererinternalshader_skin.inc"/>
+        <Type Value="Include"/>
+      </Item1199>
+      <Item1200>
+        <Filename Value="../../src/scene/glsl/generated-pascal/skin_animation.vs.inc"/>
+        <Type Value="Include"/>
+      </Item1200>
+      <Item1201>
+        <Filename Value="../../src/scene/castleinternalscenereference.pas"/>
+        <UnitName Value="CastleInternalSceneReference"/>
+      </Item1201>
+      <Item1202>
+        <Filename Value="../../src/images/castleimages_castle_format.inc"/>
+        <Type Value="Include"/>
+      </Item1202>
     </Files>
     <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="1">

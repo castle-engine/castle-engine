@@ -75,7 +75,7 @@ type
       This allows to achieve better look than TTexturedFont with one size. }
     procedure Load(const Url: String;
       const ASizes: array of Integer; const AnAntiAliased: boolean;
-      const ACharacters: TUnicodeCharList = nil);
+      const ACharacters: TUnicodeCharSet = nil);
 
     { Return SourceFont or one of the fonts added by @link(AddAlternativeSourceFont),
       to have the font with @link(TCastleAbstractFont.Size) closest to the given ASize. }
@@ -343,7 +343,7 @@ end;
 
 procedure TCustomizedFont.Load(const Url: String;
   const ASizes: array of Integer; const AnAntiAliased: boolean;
-  const ACharacters: TUnicodeCharList);
+  const ACharacters: TUnicodeCharSet);
 var
   F: TCastleFont;
   I: Integer;
@@ -359,7 +359,7 @@ begin
   begin
     F := TCastleFont.Create(Self);
     {$warnings off}
-    { Using deprecated, as we have to better alternative to pass ACharacters: TUnicodeCharList.
+    { Using deprecated, as we have to better alternative to pass ACharacters: TUnicodeCharSet.
       In the future TCustomizedFont may be deprecated, we need to have alternative sizes
       at TCastleFont probably. }
     F.Load(Url, ASizes[I], AnAntiAliased, ACharacters);

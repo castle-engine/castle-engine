@@ -202,10 +202,12 @@
       grouping node, they all work.) }
     PointingDeviceSensors: TPointingDeviceSensorList;
 
-    { For Humanoid skeleton, these contain cummulated joint transformation. }
-    HumanoidTransformation: TTransformation;
     { Humanoid node containing us, or @nil if none. }
     Humanoid: THAnimHumanoidNode;
+    { For Humanoid skeleton, these contain cummulated joint transformation. }
+    HumanoidTransformation: TTransformation;
+    { Skin node containing us, or @nil if none. }
+    Skin: TSkinNode;
 
     { ClipPlanes affecting nodes within this state.
 
@@ -239,6 +241,12 @@
       Material or CommonSurfaceShader node exists.
       Do not free it yourself, it will be automatically freed. }
     function MaterialInfo: TMaterialInfo;
+
+    { Is current shape animated using skinned animation by being inside
+      @link(TSkinNode.FdShapes).
+      Shapes that are rigid children of joints, in @link(TSkinNode.FdSkeleton),
+      are not considered skinned animated by this method. }
+    function SkinnedAnimatedShape: Boolean;
   end;
 
   { Stack of TX3DGraphTraverseState.
@@ -399,6 +407,7 @@ begin
   InsideIgnoreCollision := Source.InsideIgnoreCollision;
   InsideInvisible := Source.InsideInvisible;
   Humanoid := Source.Humanoid;
+  Skin := Source.Skin;
   LocalFog := Source.LocalFog;
 
   PointingDeviceSensors.Assign(Source.PointingDeviceSensors);
@@ -536,6 +545,14 @@ begin
       So return nil, not VRML1 info. }
   end else
     Result := VRML1State.Material.MaterialInfo;
+end;
+
+function TX3DGraphTraverseState.SkinnedAnimatedShape: Boolean;
+begin
+  Result :=
+    (Skin <> nil) and
+    (ShapeNode <> nil) and
+    Skin.FdShapes.Contains(ShapeNode);
 end;
 
 { TX3DGraphTraverseStateStack --------------------------------------------- }

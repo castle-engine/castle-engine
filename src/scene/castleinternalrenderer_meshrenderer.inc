@@ -150,7 +150,18 @@ type
     procedure RenderCoordinateEnd; override;
   end;
 
-  TShaderCoordinateRenderer = class(TColorPerVertexCoordinateRenderer)
+  TSkinnedRenderer = class(TColorPerVertexCoordinateRenderer)
+  protected
+    procedure RenderCoordinateBegin; override;
+  end;
+
+  { In RenderCoordinateBegin,
+    this calculates @link(CurrentMeshShader) and sets RenderContext.CurrentProgram,
+    possibly linking the shader configured in @link(Shader).
+
+    So everything that needs to be done before linking @link(Shader),
+    everything that can change shader code, shader hash... has to be done earlier. }
+  TShaderCoordinateRenderer = class(TSkinnedRenderer)
   protected
     procedure RenderCoordinateBegin; override;
   end;
@@ -436,6 +447,19 @@ begin
         begin
           CurrentMeshShader.AttributeCastle_FogCoord.EnableArraySingle(Vao, Arrays.AttributeSize, PtrUInt(Arrays.FogCoord));
           Attribs.Add(CurrentMeshShader.AttributeCastle_FogCoord);
+        end;
+
+        if Shader.NeedsSkinWeightsJoints then
+        begin
+          { We should only has Shader.NeedsSkinWeightsJoints if
+            Shape.Geometry.SkinWeightsJoints returned true in
+            TSkinnedRenderer.RenderCoordinateBegin. }
+          Assert(Arrays.HasSkinWeights0);
+          Assert(Arrays.HasSkinJoints0);
+          CurrentMeshShader.AttributeCastle_SkinWeights0.EnableArrayVector4(Vao, Arrays.AttributeSize, PtrUInt(Arrays.SkinWeights0));
+          CurrentMeshShader.AttributeCastle_SkinJoints0.EnableArrayVector4(Vao, Arrays.AttributeSize, PtrUInt(Arrays.SkinJoints0));
+          Attribs.Add(CurrentMeshShader.AttributeCastle_SkinWeights0);
+          Attribs.Add(CurrentMeshShader.AttributeCastle_SkinJoints0);
         end;
 
         for I := 0 to Arrays.TexCoords.Count - 1 do
@@ -977,6 +1001,23 @@ begin
   {$endif}
 
   inherited;
+end;
+
+{ TSkinnedRenderer --------------------------------------------------- }
+
+procedure TSkinnedRenderer.RenderCoordinateBegin;
+var
+  Weights0: TVector4List;
+  Joints0: TInt32List;
+begin
+  inherited;
+
+  if State.SkinnedAnimatedShape and
+     (State.Skin.InternalUsesShaders) and
+     (State.Skin.InternalJointMatrix <> nil) and
+     (State.Skin.InternalJointMatrix.Count = State.Skin.FdJoints.Count) and
+     (Geometry.SkinWeightsJoints(Weights0, Joints0)) then
+    Shader.EnableSkinnedAnimation(State.Skin.InternalJointMatrix);
 end;
 
 { TShaderCoordinateRenderer -------------------------------------------------- }

@@ -471,6 +471,7 @@ begin
     P.Targets.AddUnit('castleinternalnormals.pas');
     P.Targets.AddUnit('castleinternalprimitivematerial.pas');
     P.Targets.AddUnit('castleinternalrenderer.pas');
+    P.Targets.AddUnit('castleinternalscenereference.pas');
     P.Targets.AddUnit('castleinternalshadowmaps.pas');
     P.Targets.AddUnit('castleinternalshapesrenderer.pas');
     P.Targets.AddUnit('castleinternalshapeoctree.pas');

@@ -156,6 +156,11 @@ type
     FogCoordOffset: Integer;
     FFogDirectValues: boolean;
 
+    FHasSkinWeights0: Boolean;
+    FSkinWeights0Offset: Integer;
+    FHasSkinJoints0: Boolean;
+    FSkinJoints0Offset: Integer;
+
     FTexCoords: TGeometryTexCoordList;
     FAttribs: TGeometryAttribList;
 
@@ -311,6 +316,14 @@ type
       before being used to blend pixel colors. }
     property FogDirectValues: boolean
       read FFogDirectValues write FFogDirectValues default false;
+
+    procedure AddSkinWeights0;
+    function SkinWeights0(const Index: Cardinal = 0): PVector4;
+    property HasSkinWeights0: Boolean read FHasSkinWeights0;
+
+    procedure AddSkinJoints0;
+    function SkinJoints0(const Index: Cardinal = 0): PVector4;
+    property HasSkinJoints0: Boolean read FHasSkinJoints0;
 
     { Allocated in AttributeArray texture coords.
       Index is texture unit (counted from renderer first available texture
@@ -551,6 +564,44 @@ begin
     { When DataFreed, FAttributeArray is already nil }
     Result := PSingle(PtrUInt(PtrUInt(FAttributeArray) +
       FogCoordOffset + Index * AttributeSize)) else
+    Result := nil;
+end;
+
+procedure TGeometryArrays.AddSkinWeights0;
+begin
+  if not FHasSkinWeights0 then
+  begin
+    FHasSkinWeights0 := true;
+    FSkinWeights0Offset := AttributeSize;
+    FAttributeSize := FAttributeSize + SizeOf(TVector4);
+  end;
+end;
+
+function TGeometryArrays.SkinWeights0(const Index: Cardinal = 0): PVector4;
+begin
+  if HasSkinWeights0 then
+    { When DataFreed, FAttributeArray is already nil }
+    Result := PVector4(PtrUInt(PtrUInt(FAttributeArray) +
+      FSkinWeights0Offset + Index * AttributeSize)) else
+    Result := nil;
+end;
+
+procedure TGeometryArrays.AddSkinJoints0;
+begin
+  if not FHasSkinJoints0 then
+  begin
+    FHasSkinJoints0 := true;
+    FSkinJoints0Offset := AttributeSize;
+    FAttributeSize := FAttributeSize + SizeOf(TVector4);
+  end;
+end;
+
+function TGeometryArrays.SkinJoints0(const Index: Cardinal = 0): PVector4;
+begin
+  if HasSkinJoints0 then
+    { When DataFreed, FAttributeArray is already nil }
+    Result := PVector4(PtrUInt(PtrUInt(FAttributeArray) +
+      FSkinJoints0Offset + Index * AttributeSize)) else
     Result := nil;
 end;
 

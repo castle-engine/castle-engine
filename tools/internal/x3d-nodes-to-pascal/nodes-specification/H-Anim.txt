@@ -59,7 +59,7 @@ HAnimHumanoid : X3DChildNode, X3DBoundedObject {
     change: chTransform
   SFString   [in,out] version          ""
   MFNode     [in,out] viewpoints       []
-    # X3D specificaion indicates that HAnimSite is allowed here,
+    # X3D specification indicates that HAnimSite is allowed here,
     # but textual description in HAnim specification indicates that
     # it's an error: viewpoints should be allowed here.
     # Confirmed by testing models from

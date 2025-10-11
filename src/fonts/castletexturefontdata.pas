@@ -203,7 +203,7 @@ type
       @raises EFreeTypeLibraryNotFound If the freetype library is not installed. }
     constructor Create(const AUrl: String;
       const ASize: Cardinal; const AnAntiAliased: Boolean;
-      ACharacters: TUnicodeCharList = nil; const ADistanceField: Boolean = false);
+      ACharacters: TUnicodeCharSet = nil; const ADistanceField: Boolean = false);
 
     { Create from a ready data for glyphs and image.
       Useful when font data is embedded inside the Pascal source code.
@@ -268,7 +268,7 @@ type
     { List all characters for which glyphs are actually loaded.
       @link(Glyph) will answer non-nil exactly for these characters.
       The resulting list instance is owned by caller, so take care to free it. }
-    function LoadedGlyphs: TUnicodeCharList;
+    function LoadedGlyphs: TUnicodeCharSet;
 
     function TextWidth(const S: string): Integer;
     function TextHeight(const S: string): Integer;
@@ -392,7 +392,7 @@ end;
 
 constructor TTextureFontData.Create(const AUrl: String;
   const ASize: Cardinal; const AnAntiAliased: Boolean;
-  ACharacters: TUnicodeCharList; const ADistanceField: Boolean);
+  ACharacters: TUnicodeCharSet; const ADistanceField: Boolean);
 var
   FontId: Integer;
 
@@ -625,7 +625,7 @@ begin
   TemporaryCharacters := ACharacters = nil;
   if TemporaryCharacters then
   begin
-    ACharacters := TUnicodeCharList.Create;
+    ACharacters := TUnicodeCharSet.Create;
     ACharacters.Add(SimpleAsciiCharacters);
   end;
 
@@ -847,11 +847,11 @@ begin
   end;
 end;
 
-function TTextureFontData.LoadedGlyphs: TUnicodeCharList;
+function TTextureFontData.LoadedGlyphs: TUnicodeCharSet;
 var
   C: TUnicodeChar;
 begin
-  Result := TUnicodeCharList.Create;
+  Result := TUnicodeCharSet.Create;
   for C := 0 to High(FGlyphsByte) do
     if FGlyphsByte[C] <> nil then
       Result.Add(C);

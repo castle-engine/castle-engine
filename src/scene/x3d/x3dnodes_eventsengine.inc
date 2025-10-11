@@ -48,6 +48,7 @@
     procedure BeforeNodesFree(const InternalChangedAll: boolean = false); virtual; abstract;
     procedure InternalChangedField(const Field: TX3DField; const Change: TX3DChange); overload; virtual; abstract;
     procedure InternalChangedField(const Field: TX3DField); overload;
+    function InternalCastingShadowVolumesNow: Boolean; virtual; abstract;
   end;
 
   TX3DEventsEngineList = class({$ifdef FPC}specialize{$endif} TObjectList<TX3DEventsEngine>)

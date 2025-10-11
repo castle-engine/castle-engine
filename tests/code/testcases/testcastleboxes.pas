@@ -731,8 +731,14 @@ begin
           'Resulting Box.Transform: %s', [
           ExceptMessage(E),
           Box.ToString,
-          Matrix.ToString,
-          BoxTransformSlower(Box, Matrix).ToString,
+          Matrix.ToString
+        ]);
+        WritelnWarning('  More info for TestBox3DTransform failed:' + NL +
+          'Resulting BoxTransformSlower: %s', [
+          BoxTransformSlower(Box, Matrix).ToString
+        ]);
+        WritelnWarning('  More info for TestBox3DTransform failed:' + NL +
+          'Resulting Box.Transform: %s', [
           Box.Transform(Matrix).ToString
         ]);
         raise;

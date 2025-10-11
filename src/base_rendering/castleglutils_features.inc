@@ -36,24 +36,52 @@ const
   ( 'None', 'Extension', 'Standard' );
 
 type
-  { OpenGL memory information. }
+  { OpenGL memory information.
+
+    Information comes from either
+    @unorderedList(
+      @item(@url(https://registry.khronos.org/OpenGL/extensions/NVX/NVX_gpu_memory_info.txt NVX_gpu_memory_info)
+        for NVidia GPUs)
+      @item(@url(https://registry.khronos.org/OpenGL/extensions/ATI/ATI_meminfo.txt ATI_meminfo)
+        for AMD GPUs)
+    )
+    See the respective extension documentation for more information.
+
+    As the two extensions (NVidia and AMD) expose somewhat different information,
+    we do not try to present "uniform" API that hides their differences
+    (because it seems we cannot).
+    Simply be prepared that some sets of fields below will be always zero. }
   TGLMemoryInfo = class
   strict private
     ExtensionNVidia, ExtensionATI: Boolean;
   public
-    { Total and current memory available, in Kb.
-      May be zero if unknown (only some NVidia GPUs support this). }
-    Total, Current: TGLint;
+    { Dedicated video memory, total size (in kb) of the GPU memory.
+
+      Zero if unknown. Available only on (some) NVidia GPUs.  }
+    DedicatedVideoMemory: TGLint;
+
+    { Total available memory, total size (in Kb) of the memory
+      available for allocations.
+
+      Zero if unknown. Available only on (some) NVidia GPUs.  }
+    TotalAvailableMemory: TGLint;
+
+    { Currently available dedicated video memory (in kb),
+      currently unused GPU memory.
+
+      Zero if unknown. Available only on (some) NVidia GPUs.  }
+    CurrentAvailableVideoMemory: TGLint;
 
     { Current memory free for a particular feature, in Kb.
-      May be zero if unknown (only some AMD GPUs support this). }
-    CurrentVbo, CurrentTexture, CurrentRenderbuffer: TGLint;
+
+      Zero if unknown. Available only on (some) AMD GPUs.  }
+    VboFreeMemory, TextureFreeMemory, RenderbufferFreeMemory: TGLint;
 
     constructor Create;
     procedure Refresh;
 
     { Detect GPUs with low texture memory.
-      Looks at @link(Current) or @link(CurrentTexture), whichever is available.
+      Looks at @link(CurrentAvailableVideoMemory) or @link(CurrentTexture), whichever is available.
 
       This is useful to detect at runtime when to use e.g. compressed textures
       (S3TC and such) or downscaled textures (using @link(GLTextureScale) or
@@ -508,7 +536,7 @@ type
       See https://www.khronos.org/opengl/wiki/Debug_Output . }
     class property Debug: Boolean read FDebug write SetDebug;
 
-    { Total and current memory available.
+    { Total and current memory available on GPU.
       Call Memory.Refresh whenever needed. }
     property Memory: TGLMemoryInfo read FMemory;
 
@@ -1401,8 +1429,11 @@ end;
 
 procedure TGLMemoryInfo.Refresh;
 const
+  { From https://registry.khronos.org/OpenGL/extensions/NVX/NVX_gpu_memory_info.txt }
+  GL_GPU_MEMORY_INFO_DEDICATED_VIDMEM_NVX   = $9047;
   GL_GPU_MEM_INFO_TOTAL_AVAILABLE_MEM_NVX   = $9048;
   GL_GPU_MEM_INFO_CURRENT_AVAILABLE_MEM_NVX = $9049;
+  { From https://registry.khronos.org/OpenGL/extensions/ATI/ATI_meminfo.txt }
   GL_VBO_FREE_MEMORY_ATI          = $87FB;
   GL_TEXTURE_FREE_MEMORY_ATI      = $87FC;
   GL_RENDERBUFFER_FREE_MEMORY_ATI = $87FD;
@@ -1416,8 +1447,9 @@ begin
   // http://developer.download.nvidia.com/opengl/specs/GL_NVX_gpu_memory_info.txt
   if ExtensionNVidia then
   begin
-    Total := glGetInteger(GL_GPU_MEM_INFO_TOTAL_AVAILABLE_MEM_NVX);
-    Current := glGetInteger(GL_GPU_MEM_INFO_CURRENT_AVAILABLE_MEM_NVX);
+    DedicatedVideoMemory := glGetInteger(GL_GPU_MEMORY_INFO_DEDICATED_VIDMEM_NVX);
+    TotalAvailableMemory := glGetInteger(GL_GPU_MEM_INFO_TOTAL_AVAILABLE_MEM_NVX);
+    CurrentAvailableVideoMemory := glGetInteger(GL_GPU_MEM_INFO_CURRENT_AVAILABLE_MEM_NVX);
   end;
 
   {$ifndef CASTLE_WEBGL}
@@ -1427,16 +1459,16 @@ begin
     if GLFeatures.VertexBufferObject then
     begin
       glGetIntegerv(GL_VBO_FREE_MEMORY_ATI, @FreeMemory);
-      CurrentVbo := FreeMemory[0];
+      VboFreeMemory := FreeMemory[0];
     end;
 
     glGetIntegerv(GL_TEXTURE_FREE_MEMORY_ATI, @FreeMemory);
-    CurrentTexture := FreeMemory[0];
+    TextureFreeMemory := FreeMemory[0];
 
     if GLFeatures.Framebuffer then
     begin
       glGetIntegerv(GL_RENDERBUFFER_FREE_MEMORY_ATI, @FreeMemory);
-      CurrentRenderbuffer := FreeMemory[0];
+      RenderbufferFreeMemory := FreeMemory[0];
     end;
   end;
   {$endif}
@@ -1444,11 +1476,11 @@ end;
 
 function TGLMemoryInfo.LessTextureMemoryThan(const RequiredMemoryKb: Integer): Boolean;
 begin
-  if Current <> 0 then
-    Result := Current < RequiredMemoryKb
+  if CurrentAvailableVideoMemory <> 0 then
+    Result := CurrentAvailableVideoMemory < RequiredMemoryKb
   else
-  if CurrentTexture <> 0 then
-    Result := CurrentTexture < RequiredMemoryKb
+  if TextureFreeMemory <> 0 then
+    Result := TextureFreeMemory < RequiredMemoryKb
   else
     // unknown memory, assume old GPU with low memory
     Result := true;

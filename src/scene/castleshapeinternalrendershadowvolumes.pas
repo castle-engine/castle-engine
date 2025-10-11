@@ -68,7 +68,8 @@ implementation
 
 uses SysUtils,
   {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
-  CastleGLUtils, CastleUtils, CastleShapes, CastleImages, CastleRenderContext;
+  CastleGLUtils, CastleUtils, CastleShapes, CastleImages, CastleRenderContext,
+  CastleTimeUtils;
 
 { Return vertex Original extruded into infinity, as seen from light
   at position LightPos.
@@ -409,7 +410,8 @@ begin
      (not WholeSceneManifold) then
     Exit;
 
-  Mesh.ModelViewProjection := RenderContext.ProjectionMatrix * Params.RenderingCamera.CurrentMatrix;
+  Mesh.ModelViewProjection := RenderContext.ProjectionMatrix *
+    Params.RenderingCamera.CurrentMatrix;
 
   Triangles := TrianglesListShadowCasters;
 

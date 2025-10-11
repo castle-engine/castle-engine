@@ -474,11 +474,16 @@ type
 
     WatchForTransitionComplete: boolean;
 
-    { Humanoids on which we should call AnimateSkin.
-      We don't do AnimateSkin immediately, as it would force slowdown
-      when many joints are changed at once (e.g. many joints, and each one
-      animated with it's own OrientationInterpolator). }
-    ScheduledHumanoidAnimateSkin: TX3DNodeList;
+    { TSkinNode instances (in ScheduledSkinUpdates)
+      and THAnimHumanoidNode instances (in ScheduledHumanoidSkinUpdates)
+      on which we should call InternalUpdateSkin.
+
+      Note that we don't call InternalUpdateSkin immediately when joint
+      changes, as it would cause a slowdown when many joints are changed
+      at once, which is a common case.
+      Better to update skin once, after all joints have changed their place. }
+    ScheduledSkinUpdates: TX3DNodeList;
+    ScheduledHumanoidSkinUpdates: TX3DNodeList;
 
     { NewPlayingAnimationXxx describe scheduled animation to change.
       They are set by PlayAnimation, and used by UpdateNewPlayingAnimation.
@@ -568,6 +573,11 @@ type
     procedure TransformationChanged(const TransformFunctionality: TTransformFunctionality);
     { Like TransformationChanged, but specialized for TransformNode = RootNode. }
     procedure RootTransformationChanged;
+    { Schedule update of skin through THAnimHumanoidNode or TSkinNode,
+      in case this TransformNode is a joint.
+      This is common work for TransformationChanged and RootTransformationChanged. }
+    procedure TransformationChangedUpdateSkin(
+      const TransformNode: TX3DNode; const State: TX3DGraphTraverseState);
 
     function LocalBoundingVolumeMoveCollision(
       const OldPos, NewPos: TVector3;
@@ -956,6 +966,7 @@ type
     constructor Create(AOwner: TComponent); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
     procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
+    function InternalCastingShadowVolumesNow: Boolean; override;
 
     { Load the given model.
       This replaces @link(RootNode) with new value.
@@ -3062,7 +3073,8 @@ begin
   ProximitySensors := TProximitySensorInstanceList.Create(false);
   FVisibilitySensors := TVisibilitySensors.Create;
   ScreenEffectNodes := TX3DNodeList.Create(false);
-  ScheduledHumanoidAnimateSkin := TX3DNodeList.Create(false);
+  ScheduledSkinUpdates := TX3DNodeList.Create(false);
+  ScheduledHumanoidSkinUpdates := TX3DNodeList.Create(false);
   KeyDeviceSensorNodes := TX3DNodeList.Create(false);
   BillboardNodes := TX3DNodeList.Create(false);
   TimeDependentList := TTimeDependentList.Create(false);
@@ -3111,7 +3123,8 @@ destructor TCastleSceneCore.Destroy;
 begin
   FreeAndNil(FExposeTransforms);
   FreeAndNil(FExposedTransforms);
-  FreeAndNil(ScheduledHumanoidAnimateSkin);
+  FreeAndNil(ScheduledSkinUpdates);
+  FreeAndNil(ScheduledHumanoidSkinUpdates);
   FreeAndNil(ScreenEffectNodes);
   FreeAndNil(ProximitySensors);
   FreeAndNil(FVisibilitySensors);
@@ -3871,7 +3884,8 @@ begin
   ProximitySensors.Count := 0;
   VisibilitySensors.Clear;
   ScreenEffectNodes.Count := 0;
-  ScheduledHumanoidAnimateSkin.Count := 0;
+  ScheduledSkinUpdates.Count := 0;
+  ScheduledHumanoidSkinUpdates.Count := 0;
   KeyDeviceSensorNodes.Clear;
   TimeDependentList.Clear;
   FExposedTransforms.Clear;
@@ -4541,6 +4555,23 @@ begin
   end;
 end;
 
+procedure TCastleSceneCore.TransformationChangedUpdateSkin(
+  const TransformNode: TX3DNode; const State: TX3DGraphTraverseState);
+begin
+  { Call InternalUpdateSkin soon, to recalculate skin based on this joint.
+
+    Note: We check for Humanoid = nil, even when TransformNode is THAnimJointNode,
+    which may happen if joint is outside of HAnimHumanoid.
+    Testcase: VRML 97 test
+    ~/3dmodels/vrmlx3d/hanim/tecfa.unige.ch/vrml/objects/avatars/blaxxun/kambi_hanim_10_test.wrl . }
+  if (State.Humanoid <> nil) and
+     (TransformNode is THAnimJointNode) then
+    ScheduledHumanoidSkinUpdates.AddIfNotExists(State.Humanoid);
+
+  if State.Skin <> nil then
+    ScheduledSkinUpdates.AddIfNotExists(State.Skin);
+end;
+
 procedure TCastleSceneCore.TransformationChanged(const TransformFunctionality: TTransformFunctionality);
 var
   TransformChangeHelper: TTransformChangeHelper;
@@ -4622,14 +4653,7 @@ begin
         if TransformChangeHelper.AnythingChanged then
           DoVisibleChanged := true;
 
-        { take care of calling THAnimHumanoidNode.AnimateSkin when joint is
-          animated. Secure from Humanoid = nil (may happen if Joint
-          is outside Humanoid node, see VRML 97 test
-          ~/3dmodels/vrmlx3d/hanim/tecfa.unige.ch/vrml/objects/avatars/blaxxun/kambi_hanim_10_test.wrl)  }
-        if (TransformNode is THAnimJointNode) and
-           (TransformShapeTree.TransformState.Humanoid <> nil) then
-          ScheduledHumanoidAnimateSkin.AddIfNotExists(
-            TransformShapeTree.TransformState.Humanoid);
+        TransformationChangedUpdateSkin(TransformNode, TransformShapeTree.TransformState);
       end;
     finally
       FreeAndNil(TraverseStack);
@@ -4647,6 +4671,8 @@ var
   TransformShapesParentInfo: TShapesParentInfo;
   TraverseStack: TX3DGraphTraverseStateStack;
   DoVisibleChanged: boolean;
+  C, I: Integer;
+  TransformShapeTree: TShapeTreeTransform;
 begin
   if LogChanges then
     WritelnLog('X3D changes', 'Transform root node change');
@@ -4716,16 +4742,12 @@ begin
       if TransformChangeHelper.AnythingChanged then
         DoVisibleChanged := true;
 
-      { take care of calling THAnimHumanoidNode.AnimateSkin when joint is
-        animated. Secure from Humanoid = nil (may happen if Joint
-        is outside Humanoid node, see VRML 97 test
-        ~/3dmodels/vrmlx3d/hanim/tecfa.unige.ch/vrml/objects/avatars/blaxxun/kambi_hanim_10_test.wrl)  }
-      { TODO:
-      if (RootNode is THAnimJointNode) and
-         (TransformShapeTree.TransformState.Humanoid <> nil) then
-        ScheduledHumanoidAnimateSkin.AddIfNotExists(
-          TransformShapeTree.TransformState.Humanoid);
-      }
+      C := TShapeTree.AssociatedShapesCount(RootNode);
+      for I := 0 to C - 1 do
+      begin
+        TransformShapeTree := TShapeTree.AssociatedShape(RootNode, I) as TShapeTreeTransform;
+        TransformationChangedUpdateSkin(RootNode, TransformShapeTree.TransformState);
+      end;
     finally
       FreeAndNil(TraverseStack);
       FreeAndNil(TransformChangeHelper);
@@ -6699,22 +6721,21 @@ procedure TCastleSceneCore.InternalSetTime(
     IsVisibleNow := false;
   end;
 
-  { Call humanoids AnimateSkin.
-    This could actually be done from anywhere, as long as it gets called
-    fairly soon after every HAnimJoint animation. }
-  procedure UpdateHumanoidSkin;
+  { Call InternalUpdateSkin.
+    This can be done from anywhere, as long as it gets called
+    fairly soon after every transformation (possible joint node) animation. }
+  procedure UpdateSkin;
   var
     I: Integer;
-    ChangedSkin: TMFVec3f;
   begin
-    for I := 0 to ScheduledHumanoidAnimateSkin.Count - 1 do
-    begin
-      ChangedSkin := (ScheduledHumanoidAnimateSkin.Items[I]
-        as THAnimHumanoidNode).AnimateSkin;
-      if ChangedSkin <> nil then
-        ChangedSkin.Changed;
-    end;
-    ScheduledHumanoidAnimateSkin.Count := 0;
+    // process ScheduledSkinUpdates
+    for I := 0 to ScheduledSkinUpdates.Count - 1 do
+      (ScheduledSkinUpdates.Items[I] as TSkinNode).InternalUpdateSkin;
+    ScheduledSkinUpdates.Count := 0;
+    // process ScheduledHumanoidSkinUpdates
+    for I := 0 to ScheduledHumanoidSkinUpdates.Count - 1 do
+      (ScheduledHumanoidSkinUpdates.Items[I] as THAnimHumanoidNode).InternalUpdateSkin;
+    ScheduledHumanoidSkinUpdates.Count := 0;
   end;
 
 var
@@ -6734,7 +6755,7 @@ begin
         (making it useful to call ResetAnimationState right after StopAnimation call). }
       UpdateNewPlayingAnimation(NeedsUpdateTimeDependent);
       UpdateTimeDependentListIfVisible(NeedsUpdateTimeDependent);
-      UpdateHumanoidSkin;
+      UpdateSkin;
       { Process TransformationDirty at the end of increasing time, to apply scheduled
         TransformationDirty in the same Update, as soon as possible
         (useful e.g. for mana shot animation in dragon_squash). }
@@ -8599,6 +8620,14 @@ begin
     WritelnWarning('Scene %s: Spatial property is deprecated, use PreciseCollisions instead', [Name]);
     PreciseCollisions := true;
   end;
+end;
+
+function TCastleSceneCore.InternalCastingShadowVolumesNow: Boolean;
+begin
+  { Will be overriden by TCastleScene.
+    Here we define it, to make TCastleSceneCore non-abstract to allow
+    some code to instantiate TCastleSceneCore. }
+  Result := false;
 end;
 
 function TCastleSceneCore.InternalBuildNodeInside: TObject;

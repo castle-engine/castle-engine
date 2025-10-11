@@ -330,6 +330,8 @@ type
         end;
       end;
       #)
+
+      @exclude
     *)
     InternalOverrideRenderOptions: TCastleRenderOptions;
 
@@ -431,6 +433,13 @@ type
     InternalVisibilityTest: TTestShapeVisibility;
 
     procedure FreeResources(Resources: TSceneFreeResources); override;
+
+    { Are we really using shadow volumes right now (that is, have light
+      source casting shadows with shadow volumes), see
+      TRenderParams.UsingShadowVolumes?
+      And scene casts shadows?
+      @exclude }
+    function InternalCastingShadowVolumesNow: Boolean; override;
 
     { TBackgroundRenderer instance to render the background defined in this scene.
       Current background is the top node on the BackgroundStack of this scene,
@@ -1267,6 +1276,11 @@ begin
       Shadow volumes assume that object is closed (2-manifold),
       otherwise weird artifacts are visible. }
     (RenderOptions.WireframeEffect <> weWireframeOnly);
+end;
+
+function TCastleScene.InternalCastingShadowVolumesNow: Boolean;
+begin
+  Result := RenderUsingShadowVolumes and EffectiveCastShadowVolumes;
 end;
 
 function TCastleScene.EffectiveWholeSceneManifold: Boolean;
@@ -2106,7 +2120,15 @@ begin
   Result := FGlobalLights;
 end;
 
+procedure InitializeSkinInShaders;
+begin
+  TSkinNode.InternalUsesShadersPossible := GLFeatures.Shaders;
+end;
+
 initialization
+  ApplicationProperties.OnGLContextEarlyOpen.Add(
+    {$ifdef FPC}@{$endif} InitializeSkinInShaders);
+
   RegisterSerializableComponent(TCastleScene, 'Scene');
   RegisterSerializableComponent(TCastleBox, 'Box');
   RegisterSerializableComponent(TCastleSphere, 'Sphere');

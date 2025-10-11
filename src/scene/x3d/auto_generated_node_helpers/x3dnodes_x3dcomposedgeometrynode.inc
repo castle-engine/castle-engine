@@ -143,6 +143,74 @@
     procedure SetRadianceTransfer(const Value: TVector3List); overload;
 {$endif not CASTLE_SLIM_NODES}
 
+    strict private FFdSkinWeights0: TMFVec4f;
+    { Internal wrapper for property @code(SkinWeights0). This wrapper API may change, we advise to access simpler @code(SkinWeights0) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdSkinWeights0: TMFVec4f read FFdSkinWeights0;
+    { Weights for the skinned animation.
+
+    If non-empty, the count of this array should be:
+
+    @unorderedList(
+      @item(Equal to the count of coordinates in @link(Coord),)
+      @item(Equal to @link(FdSkinJoints0) count divided by 4.)
+    )
+
+    For each vertex, this array specifies a 4D vector, which determines the 4 weights for the "most important" joints that affect this vertex. The "most important" joints are determined by the @link(FdSkinJoints0).
+
+    This corresponds to the WEIGHTS_0 attribute in glTF.
+
+    It is possible we will introduce in the future @code(FdSkinWeights1), @code(FdSkinJoints1)  and more, to allow vertexes to be influenced by more than 4 joints at the same time. For now, in practice, 4 joints for each vertex is enough. }
+    procedure SetSkinWeights0(const Value: array of TVector4); overload;
+    { Weights for the skinned animation.
+
+    If non-empty, the count of this array should be:
+
+    @unorderedList(
+      @item(Equal to the count of coordinates in @link(Coord),)
+      @item(Equal to @link(FdSkinJoints0) count divided by 4.)
+    )
+
+    For each vertex, this array specifies a 4D vector, which determines the 4 weights for the "most important" joints that affect this vertex. The "most important" joints are determined by the @link(FdSkinJoints0).
+
+    This corresponds to the WEIGHTS_0 attribute in glTF.
+
+    It is possible we will introduce in the future @code(FdSkinWeights1), @code(FdSkinJoints1)  and more, to allow vertexes to be influenced by more than 4 joints at the same time. For now, in practice, 4 joints for each vertex is enough. }
+    procedure SetSkinWeights0(const Value: TVector4List); overload;
+
+    strict private FFdSkinJoints0: TMFInt32;
+    { Internal wrapper for property @code(SkinJoints0). This wrapper API may change, we advise to access simpler @code(SkinJoints0) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdSkinJoints0: TMFInt32 read FFdSkinJoints0;
+    { Joints for the skinned animation.
+
+    Note: In the perfect world, we'd like to express this as an array of 4D integer vectors, like @link(TVector4IntegerList) in Castle Game Engine, or "VEC4 of unsigned byte or unsigned short" in glTF. However, X3D doesn't have a field type that allows to express this in natural way. So we express this using TMFInt32, with a constraint that each 4 consecutive values form a 4D vector.
+
+    The count of this array must be divisible by 4.
+
+    If not empty, the count of this array divided by 4 should be:
+
+    @unorderedList(
+      @item(Equal to the count of coordinates in @link(Coord),)
+      @item(Equal to @link(FdSkinWeights0) count.)
+    )
+
+    For each vertex, this array specifies indexes of the 4 "most important" joints that affect this vertex. The weights for these joints are specified by @link(FdSkinWeights0). If you have less than 4 "most important" joints, just specify any (but valid) joint index and give it a zero weight using @link(FdSkinWeights0). }
+    procedure SetSkinJoints0(const Value: array of Int32); overload;
+    { Joints for the skinned animation.
+
+    Note: In the perfect world, we'd like to express this as an array of 4D integer vectors, like @link(TVector4IntegerList) in Castle Game Engine, or "VEC4 of unsigned byte or unsigned short" in glTF. However, X3D doesn't have a field type that allows to express this in natural way. So we express this using TMFInt32, with a constraint that each 4 consecutive values form a 4D vector.
+
+    The count of this array must be divisible by 4.
+
+    If not empty, the count of this array divided by 4 should be:
+
+    @unorderedList(
+      @item(Equal to the count of coordinates in @link(Coord),)
+      @item(Equal to @link(FdSkinWeights0) count.)
+    )
+
+    For each vertex, this array specifies indexes of the 4 "most important" joints that affect this vertex. The weights for these joints are specified by @link(FdSkinWeights0). If you have less than 4 "most important" joints, just specify any (but valid) joint index and give it a zero weight using @link(FdSkinWeights0). }
+    procedure SetSkinJoints0(const Value: TInt32List); overload;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -287,6 +355,26 @@ begin
 end;
 
 {$endif not CASTLE_SLIM_NODES}
+procedure TAbstractComposedGeometryNode.SetSkinWeights0(const Value: array of TVector4);
+begin
+  FdSkinWeights0.Send(Value);
+end;
+
+procedure TAbstractComposedGeometryNode.SetSkinWeights0(const Value: TVector4List);
+begin
+  FdSkinWeights0.Send(Value);
+end;
+
+procedure TAbstractComposedGeometryNode.SetSkinJoints0(const Value: array of Int32);
+begin
+  FdSkinJoints0.Send(Value);
+end;
+
+procedure TAbstractComposedGeometryNode.SetSkinJoints0(const Value: TInt32List);
+begin
+  FdSkinJoints0.Send(Value);
+end;
+
 class function TAbstractComposedGeometryNode.ClassX3DType: String;
 begin
   Result := 'X3DComposedGeometryNode';
@@ -354,6 +442,14 @@ begin
    FdRadianceTransfer.ChangeAlways := chGeometry;
   AddField(FFdRadianceTransfer);
 {$endif not CASTLE_SLIM_NODES}
+
+  FFdSkinWeights0 := TMFVec4f.Create(Self, True, 'skinWeights0', []);
+   FdSkinWeights0.ChangeAlways := chGeometry;
+  AddField(FFdSkinWeights0);
+
+  FFdSkinJoints0 := TMFInt32.Create(Self, True, 'skinJoints0', []);
+   FdSkinJoints0.ChangeAlways := chGeometry;
+  AddField(FFdSkinJoints0);
 end;
 
 {$endif read_implementation}

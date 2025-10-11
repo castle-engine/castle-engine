@@ -38,6 +38,7 @@
   TX3DEventsEngine = class;
   TClipPlaneNode = class;
   THAnimHumanoidNode = class;
+  TSkinNode = class;
   TLocalFogNode = class;
   TEffectNode = class;
   TX3DRootNode = class;
