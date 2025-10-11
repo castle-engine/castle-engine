@@ -51,8 +51,8 @@ end;
 
 initialization
   // Measure what takes time during loading
-  // Profiler.Enabled := true;
-  // TCastleView.Log := true;
+  Profiler.Enabled := true;
+  TCastleView.Log := true;
 
   { This initialization section configures:
     - Application.OnInitialize
