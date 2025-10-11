@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestImages" -*-
 {
-  Copyright 2004-2024 Michalis Kamburelis.
+  Copyright 2004-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -47,6 +47,7 @@ type
     procedure TestUInt16SinglePrecision;
     procedure TestPngFloat;
     procedure TestKtxFloat;
+    procedure TestCastleImageFormat;
   end;
 
 implementation
@@ -602,6 +603,35 @@ begin
     AssertEquals(16, Img.Height);
     AssertTrue(Img is TRGBAlphaFloatImage);
   finally FreeAndNil(Img) end;
+end;
+
+procedure TTestImages.TestCastleImageFormat;
+
+  procedure TestRoundTrip(const ImageUrl: String);
+  var
+    Img1, Img2: TEncodedImage;
+    TempStream: TMemoryStream;
+  begin
+    Img2 := nil; // to have reliable finally clause
+    Img1 := LoadEncodedImage(ImageUrl);
+    TempStream := TMemoryStream.Create;
+    try
+      SaveImage(Img1, 'application/x-castle-image', TempStream);
+      TempStream.Position := 0;
+      Img2 := LoadEncodedImage(TempStream, 'application/x-castle-image', []);
+      AssertImagesEqual(Img1, Img2);
+    finally
+      FreeAndNil(Img1);
+      FreeAndNil(Img2);
+      FreeAndNil(TempStream);
+    end;
+  end;
+
+begin
+  TestRoundTrip('castle-data:/test_texture.png');
+  TestRoundTrip('castle-data:/images/alpha.png');
+  TestRoundTrip('castle-data:/images/alpha_grayscale.png');
+  TestRoundTrip('castle-data:/images/metal_decal_dxt5.dds');
 end;
 
 initialization

@@ -225,7 +225,7 @@ type
     procedure AssertBoxesEqual(const Msg: String; const Expected, Actual: TBox3D;
       const Epsilon: Double; AddrOfError: Pointer = nil); overload;
 
-    procedure AssertImagesEqual(const Expected, Actual: TCastleImage;
+    procedure AssertImagesEqual(const Expected, Actual: TEncodedImage;
       AddrOfError: Pointer = nil);
 
     procedure AssertRectsEqual(const Expected, Actual: TRectangle;
@@ -941,7 +941,7 @@ begin
 end;
 
 procedure TCastleTestCase.AssertImagesEqual(
-  const Expected, Actual: TCastleImage; AddrOfError: Pointer);
+  const Expected, Actual: TEncodedImage; AddrOfError: Pointer);
 begin
   if AddrOfError = nil then
     AddrOfError := {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif};
@@ -953,6 +953,19 @@ begin
 
   AssertTrue(CompareMemDebug(Expected.RawPixels, Actual.RawPixels, Expected.Size));
   AssertTrue(CompareMem     (Expected.RawPixels, Actual.RawPixels, Expected.Size));
+
+  // either both are TGPUCompressedImage, or both are not
+  AssertTrue(
+    (Expected.ClassType = TGPUCompressedImage) =
+    (Actual.ClassType = TGPUCompressedImage));
+
+  // if both are TGPUCompressedImage, check Compression matches
+  if Expected is TGPUCompressedImage then
+  begin
+    AssertTrue(
+      TGPUCompressedImage(Expected).Compression =
+      TGPUCompressedImage(Actual).Compression);
+  end;
 end;
 
 procedure TCastleTestCase.AssertFrustumNormalized(const F: TFrustum);
