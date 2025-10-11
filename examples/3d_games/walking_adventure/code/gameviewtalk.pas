@@ -54,6 +54,8 @@ begin
   inherited;
   DesignUrl := 'castle-data:/gameviewtalk.castle-user-interface';
   InterceptInput := true;
+  // preload, to make 1st dialog appear instantly
+  DesignPreload := true;
 end;
 
 procedure TViewTalk.Start;
