@@ -6123,8 +6123,10 @@ end;
 
 Function LoadLibraries(Const aSSLName, aCryptoName : AnsiString) : Boolean;
 
+{$IF DEFINED(WINDOWS) OR DEFINED(OS2)}
 var
   Idx: Integer;
+{$ENDIF}
 
 begin
   Result:=False;

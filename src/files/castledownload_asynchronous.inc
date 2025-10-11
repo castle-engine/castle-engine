@@ -501,7 +501,7 @@ begin
   end;
 
   if LogAllLoading then
-    WritelnLog('Loading', 'Loading "%s"', [UriDisplay(FFinalUrl)]);
+    WritelnLog('Loading', '"%s"', [UriDisplay(FFinalUrl)]);
 
   // Extra check to debug WebAssembly
   {$ifdef WASI}
@@ -532,12 +532,16 @@ begin
     end else
     begin
       FStatus := dsError;
-      raise EDownloadError.CreateFmt('Cannot read URLs with protocol "%s"', [P]);
+      FErrorMessage := Format('Cannot read URLs with protocol "%s"', [P]);
+      if ApplicationProperties.CanCatchExceptions then
+        raise EDownloadError.Create(FErrorMessage);
     end;
   end else
   begin
     FStatus := dsError;
-    raise EDownloadError.CreateFmt('Downloading from protocol "%s" is not supported', [P]);
+    FErrorMessage := Format('Downloading from protocol "%s" is not supported', [P]);
+    if ApplicationProperties.CanCatchExceptions then
+      raise EDownloadError.Create(FErrorMessage);
   end;
 end;
 
@@ -545,6 +549,8 @@ procedure TCastleDownload.WaitForFinish;
 begin
   while Status = dsDownloading do
   begin
+    Assert(Reader <> nil);
+    Reader.UpdateOnlySynchronous;
     Update(nil);
     Sleep(10);
   end;

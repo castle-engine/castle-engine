@@ -3665,6 +3665,8 @@ begin
 end;
 
 procedure TCastleViewport.BeforeRender;
+var
+  TimeStart: TCastleProfilerTime;
 begin
   inherited;
 
@@ -3673,7 +3675,12 @@ begin
     the TCastleScene are already prepared). }
   if not PrepareResourcesDone then
   begin
-    PrepareResources;
+    { This is often eating non-trivial time, e.g. loading textures.
+      So display it by default. }
+    TimeStart := Profiler.Start(Format('TCastleViewport(%s).PrepareResources', [Name]));
+    try
+      PrepareResources;
+    finally Profiler.Stop(TimeStart, true, true) end;
     PrepareResourcesDone := true;
   end;
 end;
@@ -3760,27 +3767,27 @@ function TCastleViewport.PointingDevicePress: Boolean;
       begin
         Result := CallPress(RayHit[I], Distance);
 
-        if Result then
-        begin
-          { This check avoids assigning to CapturePointingDevice something
-            that is no longer part of our Items after it handled PointingDevicePress. }
-          if RayHit[I].Item.World = Items then
-            CapturePointingDevice := RayHit[I].Item;
-          Exit;
-        end;
-
         { In case CallPress caused some ClearMouseRayHit call,
           we may have FMouseRayHit (and thus RayHit) invalidated in the middle
           of iterating over it.
           Check it, and abort iteration then.
           Testcase: anchor_test on castle-model-viewer (crashes without this check).
           See TCastleViewport.ItemsNodesFree for detailed description of this testcase. }
-        if not FMouseRayHitValid then
+        if (not FMouseRayHitValid) or (I >= RayHit.Count) then
         begin
           {.$define CASTLE_DEBUG_MouseRayHitValid_Check}
           {$ifdef CASTLE_DEBUG_MouseRayHitValid_Check}
           WritelnWarning('MouseRayHit changed during PointingDevicePress iteration (even though TCastleTransform handler answered "false"), aborting iteration');
           {$endif CASTLE_DEBUG_MouseRayHitValid_Check}
+          Exit;
+        end;
+
+        if Result then
+        begin
+          { This check avoids assigning to CapturePointingDevice something
+            that is no longer part of our Items after it handled PointingDevicePress. }
+          if RayHit[I].Item.World = Items then
+            CapturePointingDevice := RayHit[I].Item;
           Exit;
         end;
       end;

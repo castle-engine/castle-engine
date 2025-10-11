@@ -71,7 +71,10 @@ type
       However, you can also load/convert such image format
       to normal 8-bits image formats (like TRGBImage),
       if you're Ok with losing some of the precision. }
-    ifRGBE
+    ifRGBE,
+
+    { .castle-image format }
+    ifCastleImage
 
     {$ifdef CASTLE_ENABLE_PLATFORM_SPECIFIC_IMAGE_FORMATS}
     ,
@@ -158,6 +161,9 @@ function LoadKTX(const Stream: TStream;
 function LoadASTC(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
 
+function Load_CastleImageFormat(const Stream: TStream;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
+
 { Saving image (format-specific) --------------------------------------------
 
   SaveXxx. Each file format may have specialized SaveXxx that allows
@@ -185,6 +191,7 @@ procedure SavePNM(const Img: TEncodedImage; const Stream: TStream); forward;
 procedure SaveJPEG(const Img: TEncodedImage; const Stream: TStream); forward;
 procedure SaveRGBE(const Img: TEncodedImage; const Stream: TStream); forward;
 procedure SaveDDS(const Img: TEncodedImage; const Stream: TStream); forward;
+procedure Save_CastleImageFormat(const Img: TEncodedImage; const Stream: TStream); forward;
 {$ifdef CASTLE_ENABLE_PLATFORM_SPECIFIC_IMAGE_FORMATS}
 procedure SaveTIFF(const Img: TEncodedImage; const Stream: TStream); forward;
 procedure SaveJP2(const Img: TEncodedImage; const Stream: TStream); forward;
@@ -537,6 +544,15 @@ const
       ExtsCount: 3; Exts: ('rgbe', 'pic', 'hdr', '');
       Load: {$ifdef FPC}@{$endif}LoadRGBE;
       Save: {$ifdef FPC}@{$endif}SaveRGBE;
+      DetectClass: nil;
+    ),
+
+    ( FormatName: 'Castle Game Engine Image';
+      MimeTypesCount: 1;
+      MimeTypes: ('application/x-castle-image', '', '', '', '', '', '');
+      ExtsCount: 1; Exts: ('castle-image', '', '', '');
+      Load: {$ifdef FPC}@{$endif}Load_CastleImageFormat;
+      Save: {$ifdef FPC}@{$endif}Save_CastleImageFormat;
       DetectClass: nil;
     )
 

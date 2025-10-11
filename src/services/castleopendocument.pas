@@ -1,5 +1,5 @@
 {
-  Copyright 2012-2024 Michalis Kamburelis and Lazarus developers.
+  Copyright 2012-2025 Michalis Kamburelis and Lazarus developers.
 
   This file is part of "Castle Game Engine".
 
@@ -31,12 +31,24 @@ resourcestring
   This detects and handles also local files (as filenames, or URLs with "file:"
   protocol).
 
-  On Android and iOS, it uses the OS functions to open the URL,
-  supporting all URL types that are handled by the installed applications.
-  For example, it will support the market:// URLs on Android.
+  @unorderedList(
+    @item(
+      On Android and iOS, it uses the OS functions to open the URL,
+      supporting all URL types that are handled by the installed applications.
+      For example, it will support the market:// URLs on Android.
+    )
 
-  To use this on Android, declare your Android project type as "integrated",
-  see https://castle-engine.io/android-Project-Services-Integrated-with-Castle-Game-Engine . }
+    @item(
+      On the @url(https://castle-engine.io/web web), we open the URL
+      by navigating to using
+      @url(https://developer.mozilla.org/en-US/docs/Web/API/Window/open window.open).
+    )
+
+    @item(
+      On desktops, it opens the URL using the default browser.
+    )
+  )
+}
 function OpenUrl(AUrl: String): Boolean;
 
 { Open a local file or directory.
@@ -47,8 +59,6 @@ function OpenDocument(APath: String): Boolean;
 { Share a text/link through user-choosen application.
 
   This works only on Android and iOS right now.
-  For Android, you need to declare the project type as "integrated":
-  See https://castle-engine.io/android-Project-Services-Integrated-with-Castle-Game-Engine .
 
   @param(Title The short title of the share.)
   @param(Subject Used as an email subject, and any other app on Android
@@ -64,11 +74,8 @@ procedure ShareText(const Title, Subject, Content: string);
     @itemSpacing Compact
     @item(On Android, ApplicationId should be the qualitied name of the application
       (same thing you use as qualified_name in CastleEngineManifest.xml).
-
-      To include the necessary integration code in your Android project,
-      you must declare your Android project type as "integrated".
-      See https://castle-engine.io/android-Project-Services-Integrated-with-Castle-Game-Engine .
     )
+
     @item(On iOS, ApplicationId has to be the "Apple ID" number of your application
       (you can see it e.g. in https://itunesconnect.apple.com/ page of your application).
     )
@@ -80,17 +87,12 @@ procedure OpenApplicationStore(const ApplicationId: string);
   Available on Android, iOS and Nintendo Switch now. Ignored on other platforms.
 
   To include the necessary integration code in your Android project,
-  declare your Android project type as "integrated" with
-  the "vibrate" service inside CastleEngineManifest.xml.
-  See https://castle-engine.io/android-Project-Services-Integrated-with-Castle-Game-Engine . }
+  add the "vibrate" service inside CastleEngineManifest.xml,
+  see https://castle-engine.io/android_services . }
 procedure Vibrate(const Miliseconds: Cardinal);
 
 { Simple on-screen notification using Android "toast" call.
-
-  This is available only on Android right now, ignored elsewhere.
-  To include the necessary integration code in your Android project,
-  you must declare your Android project type as "integrated".
-  See https://castle-engine.io/android-Project-Services-Integrated-with-Castle-Game-Engine . }
+  This is available only on Android right now, ignored elsewhere. }
 procedure OnScreenNotification(const Message: string);
   deprecated 'This is Android-specific and probably will not be ever supported on other platforms. Better use CGE UI to make cros-platform UI notifications, like TCastleNotifications or just TCastleLabel with animated color/background.';
 
