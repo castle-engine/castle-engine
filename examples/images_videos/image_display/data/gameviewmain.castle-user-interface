@@ -22,23 +22,29 @@
         "Red" : 1.0000000000000000E+000
       },
       "FontSize" : 2.0000000000000000E+001,
-      "HorizontalAnchorDelta" : -2.0000000000000000E+001,
       "HorizontalAnchorParent" : "hpRight",
       "HorizontalAnchorSelf" : "hpRight",
       "Name" : "LabelFps",
       "Text" : [
         "FPS: xxx"
       ],
-      "VerticalAnchorDelta" : -2.0000000000000000E+001,
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : -2.0000000000000000E+001,
+        "Y" : -2.0000000000000000E+001
+      },
       "VerticalAnchorParent" : "vpTop",
       "VerticalAnchorSelf" : "vpTop"
     },
     {
       "$$ClassName" : "TCastleUserInterface",
       "Height" : 3.3000000000000000E+002,
-      "HorizontalAnchorDelta" : 1.0000000000000000E+001,
       "Name" : "Group2",
-      "VerticalAnchorDelta" : 1.0000000000000000E+001,
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : 1.0000000000000000E+001,
+        "Y" : 1.0000000000000000E+001
+      },
       "Width" : 3.2000000000000000E+002,
       "$Children" : [
         {
@@ -49,25 +55,31 @@
             "Green" : 7.5294119119644165E-001,
             "Red" : 7.5294119119644165E-001
           },
-          "HorizontalAnchorDelta" : 3.0000000000000000E+001,
           "Name" : "Label1",
           "Text" : [
             "JPG"
           ],
-          "VerticalAnchorDelta" : 2.9000000000000000E+002
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 3.0000000000000000E+001,
+            "Y" : 2.9000000000000000E+002
+          }
         },
         {
           "$$ClassName" : "TCastleImageControl",
           "Content" : {
             "$$ClassName" : "TCastleImagePersistent",
-            "URL" : "castle-data:/images/bricks2.jpg"
+            "Url" : "castle-data:/images/bricks2.jpg"
           },
           "Height" : 2.5600000000000000E+002,
-          "HorizontalAnchorDelta" : 3.0000000000000000E+001,
           "Name" : "ImageControl1",
           "ProportionalScaling" : "psEnclose",
           "Stretch" : true,
-          "VerticalAnchorDelta" : 2.0000000000000000E+001,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 3.0000000000000000E+001,
+            "Y" : 2.0000000000000000E+001
+          },
           "Width" : 2.5600000000000000E+002
         }
       ]
@@ -75,9 +87,12 @@
     {
       "$$ClassName" : "TCastleUserInterface",
       "Height" : 3.3000000000000000E+002,
-      "HorizontalAnchorDelta" : 3.2000000000000000E+002,
       "Name" : "Group3",
-      "VerticalAnchorDelta" : 1.0000000000000000E+001,
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : 3.2000000000000000E+002,
+        "Y" : 1.0000000000000000E+001
+      },
       "Width" : 3.2000000000000000E+002,
       "$Children" : [
         {
@@ -88,25 +103,31 @@
             "Green" : 7.5294119119644165E-001,
             "Red" : 7.5294119119644165E-001
           },
-          "HorizontalAnchorDelta" : 3.0000000000000000E+001,
           "Name" : "Label2",
           "Text" : [
             "GIF"
           ],
-          "VerticalAnchorDelta" : 2.9000000000000000E+002
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 3.0000000000000000E+001,
+            "Y" : 2.9000000000000000E+002
+          }
         },
         {
           "$$ClassName" : "TCastleImageControl",
           "Content" : {
             "$$ClassName" : "TCastleImagePersistent",
-            "URL" : "castle-data:/images/crown.gif"
+            "Url" : "castle-data:/images/crown.gif"
           },
           "Height" : 2.5600000000000000E+002,
-          "HorizontalAnchorDelta" : 3.0000000000000000E+001,
           "Name" : "ImageControl2",
           "ProportionalScaling" : "psFit",
           "Stretch" : true,
-          "VerticalAnchorDelta" : 2.0000000000000000E+001,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 3.0000000000000000E+001,
+            "Y" : 2.0000000000000000E+001
+          },
           "Width" : 2.5600000000000000E+002
         }
       ]
@@ -114,9 +135,12 @@
     {
       "$$ClassName" : "TCastleUserInterface",
       "Height" : 3.2000000000000000E+002,
-      "HorizontalAnchorDelta" : 9.7000000000000000E+002,
       "Name" : "Group4",
-      "VerticalAnchorDelta" : 3.6000000000000000E+002,
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : 9.7000000000000000E+002,
+        "Y" : 3.6000000000000000E+002
+      },
       "Width" : 3.2000000000000000E+002,
       "$Children" : [
         {
@@ -127,25 +151,31 @@
             "Green" : 7.5294119119644165E-001,
             "Red" : 7.5294119119644165E-001
           },
-          "HorizontalAnchorDelta" : 3.0000000000000000E+001,
           "Name" : "Label3",
           "Text" : [
             "RGBE"
           ],
-          "VerticalAnchorDelta" : 2.9000000000000000E+002
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 3.0000000000000000E+001,
+            "Y" : 2.9000000000000000E+002
+          }
         },
         {
           "$$ClassName" : "TCastleImageControl",
           "Content" : {
             "$$ClassName" : "TCastleImagePersistent",
-            "URL" : "castle-data:/images/sky_red_right.rgbe"
+            "Url" : "castle-data:/images/sky_red_right.rgbe"
           },
           "Height" : 2.5600000000000000E+002,
-          "HorizontalAnchorDelta" : 3.0000000000000000E+001,
           "Name" : "ImageControl3",
           "ProportionalScaling" : "psEnclose",
           "Stretch" : true,
-          "VerticalAnchorDelta" : 2.0000000000000000E+001,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 3.0000000000000000E+001,
+            "Y" : 2.0000000000000000E+001
+          },
           "Width" : 2.5600000000000000E+002
         }
       ]
@@ -153,9 +183,12 @@
     {
       "$$ClassName" : "TCastleUserInterface",
       "Height" : 3.2000000000000000E+002,
-      "HorizontalAnchorDelta" : 1.2900000000000000E+003,
       "Name" : "Group13",
-      "VerticalAnchorDelta" : 3.6000000000000000E+002,
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : 1.2900000000000000E+003,
+        "Y" : 3.6000000000000000E+002
+      },
       "Width" : 3.2000000000000000E+002,
       "$Children" : [
         {
@@ -166,25 +199,31 @@
             "Green" : 7.5294119119644165E-001,
             "Red" : 7.5294119119644165E-001
           },
-          "HorizontalAnchorDelta" : 3.0000000000000000E+001,
           "Name" : "Label12",
           "Text" : [
             "TGA"
           ],
-          "VerticalAnchorDelta" : 2.9000000000000000E+002
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 3.0000000000000000E+001,
+            "Y" : 2.9000000000000000E+002
+          }
         },
         {
           "$$ClassName" : "TCastleImageControl",
           "Content" : {
             "$$ClassName" : "TCastleImagePersistent",
-            "URL" : "castle-data:/images/test_texture.tga"
+            "Url" : "castle-data:/images/test_texture.tga"
           },
           "Height" : 2.5600000000000000E+002,
-          "HorizontalAnchorDelta" : 3.0000000000000000E+001,
           "Name" : "ImageControl12",
           "ProportionalScaling" : "psEnclose",
           "Stretch" : true,
-          "VerticalAnchorDelta" : 2.0000000000000000E+001,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 3.0000000000000000E+001,
+            "Y" : 2.0000000000000000E+001
+          },
           "Width" : 2.5600000000000000E+002
         }
       ]
@@ -192,9 +231,12 @@
     {
       "$$ClassName" : "TCastleUserInterface",
       "Height" : 2.2000000000000000E+002,
-      "HorizontalAnchorDelta" : 6.6000000000000000E+002,
       "Name" : "Group11",
-      "VerticalAnchorDelta" : 6.7000000000000000E+002,
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : 6.6000000000000000E+002,
+        "Y" : 6.7000000000000000E+002
+      },
       "Width" : 2.0000000000000000E+002,
       "$Children" : [
         {
@@ -205,25 +247,31 @@
             "Green" : 7.5294119119644165E-001,
             "Red" : 7.5294119119644165E-001
           },
-          "HorizontalAnchorDelta" : 3.0000000000000000E+001,
           "Name" : "Label10",
           "Text" : [
             "KTX (RGB ref)"
           ],
-          "VerticalAnchorDelta" : 1.8000000000000000E+002
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 3.0000000000000000E+001,
+            "Y" : 1.8000000000000000E+002
+          }
         },
         {
           "$$ClassName" : "TCastleImageControl",
           "Content" : {
             "$$ClassName" : "TCastleImagePersistent",
-            "URL" : "castle-data:/images/rgb-reference.ktx"
+            "Url" : "castle-data:/images/rgb-reference.ktx"
           },
           "Height" : 1.4600000000000000E+002,
-          "HorizontalAnchorDelta" : 3.0000000000000000E+001,
           "Name" : "ImageControl10",
           "ProportionalScaling" : "psEnclose",
           "Stretch" : true,
-          "VerticalAnchorDelta" : 2.0000000000000000E+001,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 3.0000000000000000E+001,
+            "Y" : 2.0000000000000000E+001
+          },
           "Width" : 1.1600000000000000E+002
         }
       ]
@@ -231,9 +279,12 @@
     {
       "$$ClassName" : "TCastleUserInterface",
       "Height" : 2.2000000000000000E+002,
-      "HorizontalAnchorDelta" : 8.8000000000000000E+002,
       "Name" : "Group12",
-      "VerticalAnchorDelta" : 6.7000000000000000E+002,
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : 8.8000000000000000E+002,
+        "Y" : 6.7000000000000000E+002
+      },
       "Width" : 2.0000000000000000E+002,
       "$Children" : [
         {
@@ -244,25 +295,31 @@
             "Green" : 7.5294119119644165E-001,
             "Red" : 7.5294119119644165E-001
           },
-          "HorizontalAnchorDelta" : 3.0000000000000000E+001,
           "Name" : "Label11",
           "Text" : [
             "KTX (orient up)"
           ],
-          "VerticalAnchorDelta" : 1.8000000000000000E+002
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 3.0000000000000000E+001,
+            "Y" : 1.8000000000000000E+002
+          }
         },
         {
           "$$ClassName" : "TCastleImageControl",
           "Content" : {
             "$$ClassName" : "TCastleImagePersistent",
-            "URL" : "castle-data:/images/orient-up.ktx"
+            "Url" : "castle-data:/images/orient-up.ktx"
           },
           "Height" : 1.4600000000000000E+002,
-          "HorizontalAnchorDelta" : 3.0000000000000000E+001,
           "Name" : "ImageControl11",
           "ProportionalScaling" : "psEnclose",
           "Stretch" : true,
-          "VerticalAnchorDelta" : 2.0000000000000000E+001,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 3.0000000000000000E+001,
+            "Y" : 2.0000000000000000E+001
+          },
           "Width" : 1.1600000000000000E+002
         }
       ]
@@ -270,9 +327,12 @@
     {
       "$$ClassName" : "TCastleUserInterface",
       "Height" : 2.2000000000000000E+002,
-      "HorizontalAnchorDelta" : 1.1000000000000000E+003,
       "Name" : "Group14",
-      "VerticalAnchorDelta" : 6.7000000000000000E+002,
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : 1.1000000000000000E+003,
+        "Y" : 6.7000000000000000E+002
+      },
       "Width" : 2.0000000000000000E+002,
       "$Children" : [
         {
@@ -283,25 +343,31 @@
             "Green" : 7.5294119119644165E-001,
             "Red" : 7.5294119119644165E-001
           },
-          "HorizontalAnchorDelta" : 3.0000000000000000E+001,
           "Name" : "Label13",
           "Text" : [
             "XPM"
           ],
-          "VerticalAnchorDelta" : 1.8000000000000000E+002
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 3.0000000000000000E+001,
+            "Y" : 1.8000000000000000E+002
+          }
         },
         {
           "$$ClassName" : "TCastleImageControl",
           "Content" : {
             "$$ClassName" : "TCastleImagePersistent",
-            "URL" : "castle-data:/images/test_texture.xpm"
+            "Url" : "castle-data:/images/test_texture.xpm"
           },
           "Height" : 1.4600000000000000E+002,
-          "HorizontalAnchorDelta" : 3.0000000000000000E+001,
           "Name" : "ImageControl13",
           "ProportionalScaling" : "psEnclose",
           "Stretch" : true,
-          "VerticalAnchorDelta" : 2.0000000000000000E+001,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 3.0000000000000000E+001,
+            "Y" : 2.0000000000000000E+001
+          },
           "Width" : 1.1600000000000000E+002
         }
       ]
@@ -309,9 +375,12 @@
     {
       "$$ClassName" : "TCastleUserInterface",
       "Height" : 3.3000000000000000E+002,
-      "HorizontalAnchorDelta" : 6.5000000000000000E+002,
       "Name" : "Group5",
-      "VerticalAnchorDelta" : 3.6000000000000000E+002,
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : 6.5000000000000000E+002,
+        "Y" : 3.6000000000000000E+002
+      },
       "Width" : 3.2000000000000000E+002,
       "$Children" : [
         {
@@ -322,25 +391,31 @@
             "Green" : 7.5294119119644165E-001,
             "Red" : 7.5294119119644165E-001
           },
-          "HorizontalAnchorDelta" : 3.0000000000000000E+001,
           "Name" : "Label4",
           "Text" : [
             "PNG (grayscale)"
           ],
-          "VerticalAnchorDelta" : 2.9000000000000000E+002
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 3.0000000000000000E+001,
+            "Y" : 2.9000000000000000E+002
+          }
         },
         {
           "$$ClassName" : "TCastleImageControl",
           "Content" : {
             "$$ClassName" : "TCastleImagePersistent",
-            "URL" : "castle-data:/images/test_texture_grayscale.png"
+            "Url" : "castle-data:/images/test_texture_grayscale.png"
           },
           "Height" : 2.5600000000000000E+002,
-          "HorizontalAnchorDelta" : 3.0000000000000000E+001,
           "Name" : "ImageControl4",
           "ProportionalScaling" : "psEnclose",
           "Stretch" : true,
-          "VerticalAnchorDelta" : 2.0000000000000000E+001,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 3.0000000000000000E+001,
+            "Y" : 2.0000000000000000E+001
+          },
           "Width" : 2.5600000000000000E+002
         }
       ]
@@ -348,9 +423,12 @@
     {
       "$$ClassName" : "TCastleUserInterface",
       "Height" : 3.3000000000000000E+002,
-      "HorizontalAnchorDelta" : 3.2000000000000000E+002,
       "Name" : "Group6",
-      "VerticalAnchorDelta" : 3.6000000000000000E+002,
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : 3.2000000000000000E+002,
+        "Y" : 3.6000000000000000E+002
+      },
       "Width" : 3.2000000000000000E+002,
       "$Children" : [
         {
@@ -361,25 +439,31 @@
             "Green" : 7.5294119119644165E-001,
             "Red" : 7.5294119119644165E-001
           },
-          "HorizontalAnchorDelta" : 3.0000000000000000E+001,
           "Name" : "Label5",
           "Text" : [
             "PNG (RGBA)"
           ],
-          "VerticalAnchorDelta" : 2.9000000000000000E+002
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 3.0000000000000000E+001,
+            "Y" : 2.9000000000000000E+002
+          }
         },
         {
           "$$ClassName" : "TCastleImageControl",
           "Content" : {
             "$$ClassName" : "TCastleImagePersistent",
-            "URL" : "castle-data:/images/texture_alpha.png"
+            "Url" : "castle-data:/images/texture_alpha.png"
           },
           "Height" : 2.5600000000000000E+002,
-          "HorizontalAnchorDelta" : 3.0000000000000000E+001,
           "Name" : "ImageControl5",
           "ProportionalScaling" : "psEnclose",
           "Stretch" : true,
-          "VerticalAnchorDelta" : 2.0000000000000000E+001,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 3.0000000000000000E+001,
+            "Y" : 2.0000000000000000E+001
+          },
           "Width" : 2.5600000000000000E+002
         }
       ]
@@ -387,9 +471,12 @@
     {
       "$$ClassName" : "TCastleUserInterface",
       "Height" : 3.3000000000000000E+002,
-      "HorizontalAnchorDelta" : 1.0000000000000000E+001,
       "Name" : "Group7",
-      "VerticalAnchorDelta" : 3.6000000000000000E+002,
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : 1.0000000000000000E+001,
+        "Y" : 3.6000000000000000E+002
+      },
       "Width" : 3.2000000000000000E+002,
       "$Children" : [
         {
@@ -400,25 +487,31 @@
             "Green" : 7.5294119119644165E-001,
             "Red" : 7.5294119119644165E-001
           },
-          "HorizontalAnchorDelta" : 3.0000000000000000E+001,
           "Name" : "Label6",
           "Text" : [
             "PNG (RGB)"
           ],
-          "VerticalAnchorDelta" : 2.9000000000000000E+002
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 3.0000000000000000E+001,
+            "Y" : 2.9000000000000000E+002
+          }
         },
         {
           "$$ClassName" : "TCastleImageControl",
           "Content" : {
             "$$ClassName" : "TCastleImagePersistent",
-            "URL" : "castle-data:/images/test_texture.png"
+            "Url" : "castle-data:/images/test_texture.png"
           },
           "Height" : 2.5600000000000000E+002,
-          "HorizontalAnchorDelta" : 3.0000000000000000E+001,
           "Name" : "ImageControl6",
           "ProportionalScaling" : "psEnclose",
           "Stretch" : true,
-          "VerticalAnchorDelta" : 2.0000000000000000E+001,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 3.0000000000000000E+001,
+            "Y" : 2.0000000000000000E+001
+          },
           "Width" : 2.5600000000000000E+002
         }
       ]
@@ -426,9 +519,12 @@
     {
       "$$ClassName" : "TCastleUserInterface",
       "Height" : 3.3000000000000000E+002,
-      "HorizontalAnchorDelta" : 1.2900000000000000E+003,
       "Name" : "Group8",
-      "VerticalAnchorDelta" : 1.0000000000000000E+001,
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : 1.2900000000000000E+003,
+        "Y" : 1.0000000000000000E+001
+      },
       "Width" : 3.2000000000000000E+002,
       "$Children" : [
         {
@@ -439,25 +535,31 @@
             "Green" : 7.5294119119644165E-001,
             "Red" : 7.5294119119644165E-001
           },
-          "HorizontalAnchorDelta" : 3.0000000000000000E+001,
           "Name" : "Label7",
           "Text" : [
             "PPM"
           ],
-          "VerticalAnchorDelta" : 2.9000000000000000E+002
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 3.0000000000000000E+001,
+            "Y" : 2.9000000000000000E+002
+          }
         },
         {
           "$$ClassName" : "TCastleImageControl",
           "Content" : {
             "$$ClassName" : "TCastleImagePersistent",
-            "URL" : "castle-data:/images/sky_red_left.ppm"
+            "Url" : "castle-data:/images/sky_red_left.ppm"
           },
           "Height" : 2.5600000000000000E+002,
-          "HorizontalAnchorDelta" : 3.0000000000000000E+001,
           "Name" : "ImageControl7",
           "ProportionalScaling" : "psEnclose",
           "Stretch" : true,
-          "VerticalAnchorDelta" : 2.0000000000000000E+001,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 3.0000000000000000E+001,
+            "Y" : 2.0000000000000000E+001
+          },
           "Width" : 2.5600000000000000E+002
         }
       ]
@@ -465,9 +567,12 @@
     {
       "$$ClassName" : "TCastleUserInterface",
       "Height" : 3.3000000000000000E+002,
-      "HorizontalAnchorDelta" : 9.7000000000000000E+002,
       "Name" : "Group9",
-      "VerticalAnchorDelta" : 1.0000000000000000E+001,
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : 9.7000000000000000E+002,
+        "Y" : 1.0000000000000000E+001
+      },
       "Width" : 3.2000000000000000E+002,
       "$Children" : [
         {
@@ -478,25 +583,31 @@
             "Green" : 7.5294119119644165E-001,
             "Red" : 7.5294119119644165E-001
           },
-          "HorizontalAnchorDelta" : 3.0000000000000000E+001,
           "Name" : "Label8",
           "Text" : [
             "BMP"
           ],
-          "VerticalAnchorDelta" : 2.9000000000000000E+002
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 3.0000000000000000E+001,
+            "Y" : 2.9000000000000000E+002
+          }
         },
         {
           "$$ClassName" : "TCastleImageControl",
           "Content" : {
             "$$ClassName" : "TCastleImagePersistent",
-            "URL" : "castle-data:/images/sky_red_back.bmp"
+            "Url" : "castle-data:/images/sky_red_back.bmp"
           },
           "Height" : 2.5600000000000000E+002,
-          "HorizontalAnchorDelta" : 3.0000000000000000E+001,
           "Name" : "ImageControl8",
           "ProportionalScaling" : "psEnclose",
           "Stretch" : true,
-          "VerticalAnchorDelta" : 2.0000000000000000E+001,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 3.0000000000000000E+001,
+            "Y" : 2.0000000000000000E+001
+          },
           "Width" : 2.5600000000000000E+002
         }
       ]
@@ -504,9 +615,12 @@
     {
       "$$ClassName" : "TCastleUserInterface",
       "Height" : 3.3000000000000000E+002,
-      "HorizontalAnchorDelta" : 6.5000000000000000E+002,
       "Name" : "Group10",
-      "VerticalAnchorDelta" : 1.0000000000000000E+001,
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : 6.5000000000000000E+002,
+        "Y" : 1.0000000000000000E+001
+      },
       "Width" : 3.2000000000000000E+002,
       "$Children" : [
         {
@@ -517,25 +631,31 @@
             "Green" : 7.5294119119644165E-001,
             "Red" : 7.5294119119644165E-001
           },
-          "HorizontalAnchorDelta" : 3.0000000000000000E+001,
           "Name" : "Label9",
           "Text" : [
             "DDS"
           ],
-          "VerticalAnchorDelta" : 2.9000000000000000E+002
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 3.0000000000000000E+001,
+            "Y" : 2.9000000000000000E+002
+          }
         },
         {
           "$$ClassName" : "TCastleImageControl",
           "Content" : {
             "$$ClassName" : "TCastleImagePersistent",
-            "URL" : "castle-data:/images/metal_decal.dds"
+            "Url" : "castle-data:/images/metal_decal.dds"
           },
           "Height" : 2.5600000000000000E+002,
-          "HorizontalAnchorDelta" : 3.0000000000000000E+001,
           "Name" : "ImageControl9",
           "ProportionalScaling" : "psEnclose",
           "Stretch" : true,
-          "VerticalAnchorDelta" : 2.0000000000000000E+001,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 3.0000000000000000E+001,
+            "Y" : 2.0000000000000000E+001
+          },
           "Width" : 2.5600000000000000E+002
         }
       ]
@@ -555,12 +675,15 @@
       "CustomBackgroundPressed" : {
         "$$ClassName" : "TCastleImagePersistent"
       },
-      "HorizontalAnchorDelta" : 3.0000000000000000E+001,
       "Image" : {
         "$$ClassName" : "TCastleImagePersistent"
       },
       "Name" : "ButtonQuit",
-      "VerticalAnchorDelta" : -8.0000000000000000E+001,
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : 3.0000000000000000E+001,
+        "Y" : -8.0000000000000000E+001
+      },
       "VerticalAnchorParent" : "vpTop",
       "VerticalAnchorSelf" : "vpTop"
     },
@@ -579,12 +702,15 @@
       "CustomBackgroundPressed" : {
         "$$ClassName" : "TCastleImagePersistent"
       },
-      "HorizontalAnchorDelta" : 3.0000000000000000E+001,
       "Image" : {
         "$$ClassName" : "TCastleImagePersistent"
       },
       "Name" : "ButtonGoSpeedTest",
-      "VerticalAnchorDelta" : -2.0000000000000000E+001,
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : 3.0000000000000000E+001,
+        "Y" : -2.0000000000000000E+001
+      },
       "VerticalAnchorParent" : "vpTop",
       "VerticalAnchorSelf" : "vpTop"
     }
