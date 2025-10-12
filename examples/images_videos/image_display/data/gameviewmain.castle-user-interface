@@ -39,7 +39,7 @@
     {
       "$$ClassName" : "TCastleUserInterface",
       "Height" : 3.3000000000000000E+002,
-      "Name" : "Group2",
+      "Name" : "GroupJpg",
       "TranslationPersistent" : {
         "$$ClassName" : "TCastleVector2Persistent",
         "X" : 1.0000000000000000E+001,
@@ -87,7 +87,7 @@
     {
       "$$ClassName" : "TCastleUserInterface",
       "Height" : 3.3000000000000000E+002,
-      "Name" : "Group3",
+      "Name" : "GroupGif",
       "TranslationPersistent" : {
         "$$ClassName" : "TCastleVector2Persistent",
         "X" : 3.2000000000000000E+002,
@@ -135,7 +135,7 @@
     {
       "$$ClassName" : "TCastleUserInterface",
       "Height" : 3.2000000000000000E+002,
-      "Name" : "Group4",
+      "Name" : "GroupRgbe",
       "TranslationPersistent" : {
         "$$ClassName" : "TCastleVector2Persistent",
         "X" : 9.7000000000000000E+002,
@@ -183,7 +183,7 @@
     {
       "$$ClassName" : "TCastleUserInterface",
       "Height" : 3.2000000000000000E+002,
-      "Name" : "Group13",
+      "Name" : "GroupTga",
       "TranslationPersistent" : {
         "$$ClassName" : "TCastleVector2Persistent",
         "X" : 1.2900000000000000E+003,
@@ -231,7 +231,7 @@
     {
       "$$ClassName" : "TCastleUserInterface",
       "Height" : 2.2000000000000000E+002,
-      "Name" : "Group11",
+      "Name" : "GroupKtxRgb",
       "TranslationPersistent" : {
         "$$ClassName" : "TCastleVector2Persistent",
         "X" : 6.6000000000000000E+002,
@@ -279,7 +279,7 @@
     {
       "$$ClassName" : "TCastleUserInterface",
       "Height" : 2.2000000000000000E+002,
-      "Name" : "Group12",
+      "Name" : "GroupKtxOrientUp",
       "TranslationPersistent" : {
         "$$ClassName" : "TCastleVector2Persistent",
         "X" : 8.8000000000000000E+002,
@@ -327,7 +327,7 @@
     {
       "$$ClassName" : "TCastleUserInterface",
       "Height" : 2.2000000000000000E+002,
-      "Name" : "Group14",
+      "Name" : "GroupXpm",
       "TranslationPersistent" : {
         "$$ClassName" : "TCastleVector2Persistent",
         "X" : 1.1000000000000000E+003,
@@ -375,7 +375,7 @@
     {
       "$$ClassName" : "TCastleUserInterface",
       "Height" : 3.3000000000000000E+002,
-      "Name" : "Group5",
+      "Name" : "GroupPngGray",
       "TranslationPersistent" : {
         "$$ClassName" : "TCastleVector2Persistent",
         "X" : 6.5000000000000000E+002,
@@ -423,7 +423,7 @@
     {
       "$$ClassName" : "TCastleUserInterface",
       "Height" : 3.3000000000000000E+002,
-      "Name" : "Group6",
+      "Name" : "GroupPngRgba",
       "TranslationPersistent" : {
         "$$ClassName" : "TCastleVector2Persistent",
         "X" : 3.2000000000000000E+002,
@@ -471,7 +471,7 @@
     {
       "$$ClassName" : "TCastleUserInterface",
       "Height" : 3.3000000000000000E+002,
-      "Name" : "Group7",
+      "Name" : "GroupPngRgb",
       "TranslationPersistent" : {
         "$$ClassName" : "TCastleVector2Persistent",
         "X" : 1.0000000000000000E+001,
@@ -519,7 +519,7 @@
     {
       "$$ClassName" : "TCastleUserInterface",
       "Height" : 3.3000000000000000E+002,
-      "Name" : "Group8",
+      "Name" : "GroupPpm",
       "TranslationPersistent" : {
         "$$ClassName" : "TCastleVector2Persistent",
         "X" : 1.2900000000000000E+003,
@@ -567,7 +567,7 @@
     {
       "$$ClassName" : "TCastleUserInterface",
       "Height" : 3.3000000000000000E+002,
-      "Name" : "Group9",
+      "Name" : "GroupBmp",
       "TranslationPersistent" : {
         "$$ClassName" : "TCastleVector2Persistent",
         "X" : 9.7000000000000000E+002,
@@ -615,7 +615,7 @@
     {
       "$$ClassName" : "TCastleUserInterface",
       "Height" : 3.3000000000000000E+002,
-      "Name" : "Group10",
+      "Name" : "GroupDds",
       "TranslationPersistent" : {
         "$$ClassName" : "TCastleVector2Persistent",
         "X" : 6.5000000000000000E+002,
