@@ -37,630 +37,6 @@
       "VerticalAnchorSelf" : "vpTop"
     },
     {
-      "$$ClassName" : "TCastleUserInterface",
-      "Height" : 3.3000000000000000E+002,
-      "Name" : "GroupJpg",
-      "TranslationPersistent" : {
-        "$$ClassName" : "TCastleVector2Persistent",
-        "X" : 1.0000000000000000E+001,
-        "Y" : 1.0000000000000000E+001
-      },
-      "Width" : 3.2000000000000000E+002,
-      "$Children" : [
-        {
-          "$$ClassName" : "TCastleLabel",
-          "ColorPersistent" : {
-            "$$ClassName" : "TCastleColorPersistent",
-            "Blue" : 7.5294119119644165E-001,
-            "Green" : 7.5294119119644165E-001,
-            "Red" : 7.5294119119644165E-001
-          },
-          "Name" : "Label1",
-          "Text" : [
-            "JPG"
-          ],
-          "TranslationPersistent" : {
-            "$$ClassName" : "TCastleVector2Persistent",
-            "X" : 3.0000000000000000E+001,
-            "Y" : 2.9000000000000000E+002
-          }
-        },
-        {
-          "$$ClassName" : "TCastleImageControl",
-          "Content" : {
-            "$$ClassName" : "TCastleImagePersistent",
-            "Url" : "castle-data:/images/bricks2.jpg"
-          },
-          "Height" : 2.5600000000000000E+002,
-          "Name" : "ImageControl1",
-          "ProportionalScaling" : "psEnclose",
-          "Stretch" : true,
-          "TranslationPersistent" : {
-            "$$ClassName" : "TCastleVector2Persistent",
-            "X" : 3.0000000000000000E+001,
-            "Y" : 2.0000000000000000E+001
-          },
-          "Width" : 2.5600000000000000E+002
-        }
-      ]
-    },
-    {
-      "$$ClassName" : "TCastleUserInterface",
-      "Height" : 3.3000000000000000E+002,
-      "Name" : "GroupGif",
-      "TranslationPersistent" : {
-        "$$ClassName" : "TCastleVector2Persistent",
-        "X" : 3.2000000000000000E+002,
-        "Y" : 1.0000000000000000E+001
-      },
-      "Width" : 3.2000000000000000E+002,
-      "$Children" : [
-        {
-          "$$ClassName" : "TCastleLabel",
-          "ColorPersistent" : {
-            "$$ClassName" : "TCastleColorPersistent",
-            "Blue" : 7.5294119119644165E-001,
-            "Green" : 7.5294119119644165E-001,
-            "Red" : 7.5294119119644165E-001
-          },
-          "Name" : "Label2",
-          "Text" : [
-            "GIF"
-          ],
-          "TranslationPersistent" : {
-            "$$ClassName" : "TCastleVector2Persistent",
-            "X" : 3.0000000000000000E+001,
-            "Y" : 2.9000000000000000E+002
-          }
-        },
-        {
-          "$$ClassName" : "TCastleImageControl",
-          "Content" : {
-            "$$ClassName" : "TCastleImagePersistent",
-            "Url" : "castle-data:/images/crown.gif"
-          },
-          "Height" : 2.5600000000000000E+002,
-          "Name" : "ImageControl2",
-          "ProportionalScaling" : "psFit",
-          "Stretch" : true,
-          "TranslationPersistent" : {
-            "$$ClassName" : "TCastleVector2Persistent",
-            "X" : 3.0000000000000000E+001,
-            "Y" : 2.0000000000000000E+001
-          },
-          "Width" : 2.5600000000000000E+002
-        }
-      ]
-    },
-    {
-      "$$ClassName" : "TCastleUserInterface",
-      "Height" : 3.2000000000000000E+002,
-      "Name" : "GroupRgbe",
-      "TranslationPersistent" : {
-        "$$ClassName" : "TCastleVector2Persistent",
-        "X" : 9.7000000000000000E+002,
-        "Y" : 3.6000000000000000E+002
-      },
-      "Width" : 3.2000000000000000E+002,
-      "$Children" : [
-        {
-          "$$ClassName" : "TCastleLabel",
-          "ColorPersistent" : {
-            "$$ClassName" : "TCastleColorPersistent",
-            "Blue" : 7.5294119119644165E-001,
-            "Green" : 7.5294119119644165E-001,
-            "Red" : 7.5294119119644165E-001
-          },
-          "Name" : "Label3",
-          "Text" : [
-            "RGBE"
-          ],
-          "TranslationPersistent" : {
-            "$$ClassName" : "TCastleVector2Persistent",
-            "X" : 3.0000000000000000E+001,
-            "Y" : 2.9000000000000000E+002
-          }
-        },
-        {
-          "$$ClassName" : "TCastleImageControl",
-          "Content" : {
-            "$$ClassName" : "TCastleImagePersistent",
-            "Url" : "castle-data:/images/sky_red_right.rgbe"
-          },
-          "Height" : 2.5600000000000000E+002,
-          "Name" : "ImageControl3",
-          "ProportionalScaling" : "psEnclose",
-          "Stretch" : true,
-          "TranslationPersistent" : {
-            "$$ClassName" : "TCastleVector2Persistent",
-            "X" : 3.0000000000000000E+001,
-            "Y" : 2.0000000000000000E+001
-          },
-          "Width" : 2.5600000000000000E+002
-        }
-      ]
-    },
-    {
-      "$$ClassName" : "TCastleUserInterface",
-      "Height" : 3.2000000000000000E+002,
-      "Name" : "GroupTga",
-      "TranslationPersistent" : {
-        "$$ClassName" : "TCastleVector2Persistent",
-        "X" : 1.2900000000000000E+003,
-        "Y" : 3.6000000000000000E+002
-      },
-      "Width" : 3.2000000000000000E+002,
-      "$Children" : [
-        {
-          "$$ClassName" : "TCastleLabel",
-          "ColorPersistent" : {
-            "$$ClassName" : "TCastleColorPersistent",
-            "Blue" : 7.5294119119644165E-001,
-            "Green" : 7.5294119119644165E-001,
-            "Red" : 7.5294119119644165E-001
-          },
-          "Name" : "Label12",
-          "Text" : [
-            "TGA"
-          ],
-          "TranslationPersistent" : {
-            "$$ClassName" : "TCastleVector2Persistent",
-            "X" : 3.0000000000000000E+001,
-            "Y" : 2.9000000000000000E+002
-          }
-        },
-        {
-          "$$ClassName" : "TCastleImageControl",
-          "Content" : {
-            "$$ClassName" : "TCastleImagePersistent",
-            "Url" : "castle-data:/images/test_texture.tga"
-          },
-          "Height" : 2.5600000000000000E+002,
-          "Name" : "ImageControl12",
-          "ProportionalScaling" : "psEnclose",
-          "Stretch" : true,
-          "TranslationPersistent" : {
-            "$$ClassName" : "TCastleVector2Persistent",
-            "X" : 3.0000000000000000E+001,
-            "Y" : 2.0000000000000000E+001
-          },
-          "Width" : 2.5600000000000000E+002
-        }
-      ]
-    },
-    {
-      "$$ClassName" : "TCastleUserInterface",
-      "Height" : 2.2000000000000000E+002,
-      "Name" : "GroupKtxRgb",
-      "TranslationPersistent" : {
-        "$$ClassName" : "TCastleVector2Persistent",
-        "X" : 6.6000000000000000E+002,
-        "Y" : 6.7000000000000000E+002
-      },
-      "Width" : 2.0000000000000000E+002,
-      "$Children" : [
-        {
-          "$$ClassName" : "TCastleLabel",
-          "ColorPersistent" : {
-            "$$ClassName" : "TCastleColorPersistent",
-            "Blue" : 7.5294119119644165E-001,
-            "Green" : 7.5294119119644165E-001,
-            "Red" : 7.5294119119644165E-001
-          },
-          "Name" : "Label10",
-          "Text" : [
-            "KTX (RGB ref)"
-          ],
-          "TranslationPersistent" : {
-            "$$ClassName" : "TCastleVector2Persistent",
-            "X" : 3.0000000000000000E+001,
-            "Y" : 1.8000000000000000E+002
-          }
-        },
-        {
-          "$$ClassName" : "TCastleImageControl",
-          "Content" : {
-            "$$ClassName" : "TCastleImagePersistent",
-            "Url" : "castle-data:/images/rgb-reference.ktx"
-          },
-          "Height" : 1.4600000000000000E+002,
-          "Name" : "ImageControl10",
-          "ProportionalScaling" : "psEnclose",
-          "Stretch" : true,
-          "TranslationPersistent" : {
-            "$$ClassName" : "TCastleVector2Persistent",
-            "X" : 3.0000000000000000E+001,
-            "Y" : 2.0000000000000000E+001
-          },
-          "Width" : 1.1600000000000000E+002
-        }
-      ]
-    },
-    {
-      "$$ClassName" : "TCastleUserInterface",
-      "Height" : 2.2000000000000000E+002,
-      "Name" : "GroupKtxOrientUp",
-      "TranslationPersistent" : {
-        "$$ClassName" : "TCastleVector2Persistent",
-        "X" : 8.8000000000000000E+002,
-        "Y" : 6.7000000000000000E+002
-      },
-      "Width" : 2.0000000000000000E+002,
-      "$Children" : [
-        {
-          "$$ClassName" : "TCastleLabel",
-          "ColorPersistent" : {
-            "$$ClassName" : "TCastleColorPersistent",
-            "Blue" : 7.5294119119644165E-001,
-            "Green" : 7.5294119119644165E-001,
-            "Red" : 7.5294119119644165E-001
-          },
-          "Name" : "Label11",
-          "Text" : [
-            "KTX (orient up)"
-          ],
-          "TranslationPersistent" : {
-            "$$ClassName" : "TCastleVector2Persistent",
-            "X" : 3.0000000000000000E+001,
-            "Y" : 1.8000000000000000E+002
-          }
-        },
-        {
-          "$$ClassName" : "TCastleImageControl",
-          "Content" : {
-            "$$ClassName" : "TCastleImagePersistent",
-            "Url" : "castle-data:/images/orient-up.ktx"
-          },
-          "Height" : 1.4600000000000000E+002,
-          "Name" : "ImageControl11",
-          "ProportionalScaling" : "psEnclose",
-          "Stretch" : true,
-          "TranslationPersistent" : {
-            "$$ClassName" : "TCastleVector2Persistent",
-            "X" : 3.0000000000000000E+001,
-            "Y" : 2.0000000000000000E+001
-          },
-          "Width" : 1.1600000000000000E+002
-        }
-      ]
-    },
-    {
-      "$$ClassName" : "TCastleUserInterface",
-      "Height" : 2.2000000000000000E+002,
-      "Name" : "GroupXpm",
-      "TranslationPersistent" : {
-        "$$ClassName" : "TCastleVector2Persistent",
-        "X" : 1.1000000000000000E+003,
-        "Y" : 6.7000000000000000E+002
-      },
-      "Width" : 2.0000000000000000E+002,
-      "$Children" : [
-        {
-          "$$ClassName" : "TCastleLabel",
-          "ColorPersistent" : {
-            "$$ClassName" : "TCastleColorPersistent",
-            "Blue" : 7.5294119119644165E-001,
-            "Green" : 7.5294119119644165E-001,
-            "Red" : 7.5294119119644165E-001
-          },
-          "Name" : "Label13",
-          "Text" : [
-            "XPM"
-          ],
-          "TranslationPersistent" : {
-            "$$ClassName" : "TCastleVector2Persistent",
-            "X" : 3.0000000000000000E+001,
-            "Y" : 1.8000000000000000E+002
-          }
-        },
-        {
-          "$$ClassName" : "TCastleImageControl",
-          "Content" : {
-            "$$ClassName" : "TCastleImagePersistent",
-            "Url" : "castle-data:/images/test_texture.xpm"
-          },
-          "Height" : 1.4600000000000000E+002,
-          "Name" : "ImageControl13",
-          "ProportionalScaling" : "psEnclose",
-          "Stretch" : true,
-          "TranslationPersistent" : {
-            "$$ClassName" : "TCastleVector2Persistent",
-            "X" : 3.0000000000000000E+001,
-            "Y" : 2.0000000000000000E+001
-          },
-          "Width" : 1.1600000000000000E+002
-        }
-      ]
-    },
-    {
-      "$$ClassName" : "TCastleUserInterface",
-      "Height" : 3.3000000000000000E+002,
-      "Name" : "GroupPngGray",
-      "TranslationPersistent" : {
-        "$$ClassName" : "TCastleVector2Persistent",
-        "X" : 6.5000000000000000E+002,
-        "Y" : 3.6000000000000000E+002
-      },
-      "Width" : 3.2000000000000000E+002,
-      "$Children" : [
-        {
-          "$$ClassName" : "TCastleLabel",
-          "ColorPersistent" : {
-            "$$ClassName" : "TCastleColorPersistent",
-            "Blue" : 7.5294119119644165E-001,
-            "Green" : 7.5294119119644165E-001,
-            "Red" : 7.5294119119644165E-001
-          },
-          "Name" : "Label4",
-          "Text" : [
-            "PNG (grayscale)"
-          ],
-          "TranslationPersistent" : {
-            "$$ClassName" : "TCastleVector2Persistent",
-            "X" : 3.0000000000000000E+001,
-            "Y" : 2.9000000000000000E+002
-          }
-        },
-        {
-          "$$ClassName" : "TCastleImageControl",
-          "Content" : {
-            "$$ClassName" : "TCastleImagePersistent",
-            "Url" : "castle-data:/images/test_texture_grayscale.png"
-          },
-          "Height" : 2.5600000000000000E+002,
-          "Name" : "ImageControl4",
-          "ProportionalScaling" : "psEnclose",
-          "Stretch" : true,
-          "TranslationPersistent" : {
-            "$$ClassName" : "TCastleVector2Persistent",
-            "X" : 3.0000000000000000E+001,
-            "Y" : 2.0000000000000000E+001
-          },
-          "Width" : 2.5600000000000000E+002
-        }
-      ]
-    },
-    {
-      "$$ClassName" : "TCastleUserInterface",
-      "Height" : 3.3000000000000000E+002,
-      "Name" : "GroupPngRgba",
-      "TranslationPersistent" : {
-        "$$ClassName" : "TCastleVector2Persistent",
-        "X" : 3.2000000000000000E+002,
-        "Y" : 3.6000000000000000E+002
-      },
-      "Width" : 3.2000000000000000E+002,
-      "$Children" : [
-        {
-          "$$ClassName" : "TCastleLabel",
-          "ColorPersistent" : {
-            "$$ClassName" : "TCastleColorPersistent",
-            "Blue" : 7.5294119119644165E-001,
-            "Green" : 7.5294119119644165E-001,
-            "Red" : 7.5294119119644165E-001
-          },
-          "Name" : "Label5",
-          "Text" : [
-            "PNG (RGBA)"
-          ],
-          "TranslationPersistent" : {
-            "$$ClassName" : "TCastleVector2Persistent",
-            "X" : 3.0000000000000000E+001,
-            "Y" : 2.9000000000000000E+002
-          }
-        },
-        {
-          "$$ClassName" : "TCastleImageControl",
-          "Content" : {
-            "$$ClassName" : "TCastleImagePersistent",
-            "Url" : "castle-data:/images/texture_alpha.png"
-          },
-          "Height" : 2.5600000000000000E+002,
-          "Name" : "ImageControl5",
-          "ProportionalScaling" : "psEnclose",
-          "Stretch" : true,
-          "TranslationPersistent" : {
-            "$$ClassName" : "TCastleVector2Persistent",
-            "X" : 3.0000000000000000E+001,
-            "Y" : 2.0000000000000000E+001
-          },
-          "Width" : 2.5600000000000000E+002
-        }
-      ]
-    },
-    {
-      "$$ClassName" : "TCastleUserInterface",
-      "Height" : 3.3000000000000000E+002,
-      "Name" : "GroupPngRgb",
-      "TranslationPersistent" : {
-        "$$ClassName" : "TCastleVector2Persistent",
-        "X" : 1.0000000000000000E+001,
-        "Y" : 3.6000000000000000E+002
-      },
-      "Width" : 3.2000000000000000E+002,
-      "$Children" : [
-        {
-          "$$ClassName" : "TCastleLabel",
-          "ColorPersistent" : {
-            "$$ClassName" : "TCastleColorPersistent",
-            "Blue" : 7.5294119119644165E-001,
-            "Green" : 7.5294119119644165E-001,
-            "Red" : 7.5294119119644165E-001
-          },
-          "Name" : "Label6",
-          "Text" : [
-            "PNG (RGB)"
-          ],
-          "TranslationPersistent" : {
-            "$$ClassName" : "TCastleVector2Persistent",
-            "X" : 3.0000000000000000E+001,
-            "Y" : 2.9000000000000000E+002
-          }
-        },
-        {
-          "$$ClassName" : "TCastleImageControl",
-          "Content" : {
-            "$$ClassName" : "TCastleImagePersistent",
-            "Url" : "castle-data:/images/test_texture.png"
-          },
-          "Height" : 2.5600000000000000E+002,
-          "Name" : "ImageControl6",
-          "ProportionalScaling" : "psEnclose",
-          "Stretch" : true,
-          "TranslationPersistent" : {
-            "$$ClassName" : "TCastleVector2Persistent",
-            "X" : 3.0000000000000000E+001,
-            "Y" : 2.0000000000000000E+001
-          },
-          "Width" : 2.5600000000000000E+002
-        }
-      ]
-    },
-    {
-      "$$ClassName" : "TCastleUserInterface",
-      "Height" : 3.3000000000000000E+002,
-      "Name" : "GroupPpm",
-      "TranslationPersistent" : {
-        "$$ClassName" : "TCastleVector2Persistent",
-        "X" : 1.2900000000000000E+003,
-        "Y" : 1.0000000000000000E+001
-      },
-      "Width" : 3.2000000000000000E+002,
-      "$Children" : [
-        {
-          "$$ClassName" : "TCastleLabel",
-          "ColorPersistent" : {
-            "$$ClassName" : "TCastleColorPersistent",
-            "Blue" : 7.5294119119644165E-001,
-            "Green" : 7.5294119119644165E-001,
-            "Red" : 7.5294119119644165E-001
-          },
-          "Name" : "Label7",
-          "Text" : [
-            "PPM"
-          ],
-          "TranslationPersistent" : {
-            "$$ClassName" : "TCastleVector2Persistent",
-            "X" : 3.0000000000000000E+001,
-            "Y" : 2.9000000000000000E+002
-          }
-        },
-        {
-          "$$ClassName" : "TCastleImageControl",
-          "Content" : {
-            "$$ClassName" : "TCastleImagePersistent",
-            "Url" : "castle-data:/images/sky_red_left.ppm"
-          },
-          "Height" : 2.5600000000000000E+002,
-          "Name" : "ImageControl7",
-          "ProportionalScaling" : "psEnclose",
-          "Stretch" : true,
-          "TranslationPersistent" : {
-            "$$ClassName" : "TCastleVector2Persistent",
-            "X" : 3.0000000000000000E+001,
-            "Y" : 2.0000000000000000E+001
-          },
-          "Width" : 2.5600000000000000E+002
-        }
-      ]
-    },
-    {
-      "$$ClassName" : "TCastleUserInterface",
-      "Height" : 3.3000000000000000E+002,
-      "Name" : "GroupBmp",
-      "TranslationPersistent" : {
-        "$$ClassName" : "TCastleVector2Persistent",
-        "X" : 9.7000000000000000E+002,
-        "Y" : 1.0000000000000000E+001
-      },
-      "Width" : 3.2000000000000000E+002,
-      "$Children" : [
-        {
-          "$$ClassName" : "TCastleLabel",
-          "ColorPersistent" : {
-            "$$ClassName" : "TCastleColorPersistent",
-            "Blue" : 7.5294119119644165E-001,
-            "Green" : 7.5294119119644165E-001,
-            "Red" : 7.5294119119644165E-001
-          },
-          "Name" : "Label8",
-          "Text" : [
-            "BMP"
-          ],
-          "TranslationPersistent" : {
-            "$$ClassName" : "TCastleVector2Persistent",
-            "X" : 3.0000000000000000E+001,
-            "Y" : 2.9000000000000000E+002
-          }
-        },
-        {
-          "$$ClassName" : "TCastleImageControl",
-          "Content" : {
-            "$$ClassName" : "TCastleImagePersistent",
-            "Url" : "castle-data:/images/sky_red_back.bmp"
-          },
-          "Height" : 2.5600000000000000E+002,
-          "Name" : "ImageControl8",
-          "ProportionalScaling" : "psEnclose",
-          "Stretch" : true,
-          "TranslationPersistent" : {
-            "$$ClassName" : "TCastleVector2Persistent",
-            "X" : 3.0000000000000000E+001,
-            "Y" : 2.0000000000000000E+001
-          },
-          "Width" : 2.5600000000000000E+002
-        }
-      ]
-    },
-    {
-      "$$ClassName" : "TCastleUserInterface",
-      "Height" : 3.3000000000000000E+002,
-      "Name" : "GroupDds",
-      "TranslationPersistent" : {
-        "$$ClassName" : "TCastleVector2Persistent",
-        "X" : 6.5000000000000000E+002,
-        "Y" : 1.0000000000000000E+001
-      },
-      "Width" : 3.2000000000000000E+002,
-      "$Children" : [
-        {
-          "$$ClassName" : "TCastleLabel",
-          "ColorPersistent" : {
-            "$$ClassName" : "TCastleColorPersistent",
-            "Blue" : 7.5294119119644165E-001,
-            "Green" : 7.5294119119644165E-001,
-            "Red" : 7.5294119119644165E-001
-          },
-          "Name" : "Label9",
-          "Text" : [
-            "DDS"
-          ],
-          "TranslationPersistent" : {
-            "$$ClassName" : "TCastleVector2Persistent",
-            "X" : 3.0000000000000000E+001,
-            "Y" : 2.9000000000000000E+002
-          }
-        },
-        {
-          "$$ClassName" : "TCastleImageControl",
-          "Content" : {
-            "$$ClassName" : "TCastleImagePersistent",
-            "Url" : "castle-data:/images/metal_decal.dds"
-          },
-          "Height" : 2.5600000000000000E+002,
-          "Name" : "ImageControl9",
-          "ProportionalScaling" : "psEnclose",
-          "Stretch" : true,
-          "TranslationPersistent" : {
-            "$$ClassName" : "TCastleVector2Persistent",
-            "X" : 3.0000000000000000E+001,
-            "Y" : 2.0000000000000000E+001
-          },
-          "Width" : 2.5600000000000000E+002
-        }
-      ]
-    },
-    {
       "$$ClassName" : "TCastleButton",
       "Caption" : "Quit",
       "CustomBackgroundDisabled" : {
@@ -713,6 +89,617 @@
       },
       "VerticalAnchorParent" : "vpTop",
       "VerticalAnchorSelf" : "vpTop"
+    },
+    {
+      "$$ClassName" : "TCastleVerticalGroup",
+      "Name" : "VerticalGroup1",
+      "Spacing" : 3.0000000000000000E+001,
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : 3.0000000000000000E+001,
+        "Y" : -1.5000000000000000E+002
+      },
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleHorizontalGroup",
+          "Name" : "HorizontalGroup1",
+          "Spacing" : 5.0000000000000000E+001,
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "$Children" : [
+            {
+              "$$ClassName" : "TCastleUserInterface",
+              "Height" : 1.6000000000000000E+002,
+              "Name" : "GroupPngRgb",
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle",
+              "Width" : 1.2800000000000000E+002,
+              "$Children" : [
+                {
+                  "$$ClassName" : "TCastleLabel",
+                  "ColorPersistent" : {
+                    "$$ClassName" : "TCastleColorPersistent",
+                    "Blue" : 7.5294119119644165E-001,
+                    "Green" : 7.5294119119644165E-001,
+                    "Red" : 7.5294119119644165E-001
+                  },
+                  "Name" : "Label6",
+                  "Text" : [
+                    "PNG (RGB)"
+                  ],
+                  "VerticalAnchorParent" : "vpTop",
+                  "VerticalAnchorSelf" : "vpTop"
+                },
+                {
+                  "$$ClassName" : "TCastleImageControl",
+                  "Content" : {
+                    "$$ClassName" : "TCastleImagePersistent",
+                    "Url" : "castle-data:/images/test_texture.png"
+                  },
+                  "Height" : 1.2800000000000000E+002,
+                  "Name" : "ImageControl6",
+                  "ProportionalScaling" : "psEnclose",
+                  "Stretch" : true,
+                  "Width" : 1.2800000000000000E+002
+                }
+              ]
+            },
+            {
+              "$$ClassName" : "TCastleUserInterface",
+              "Height" : 1.6000000000000000E+002,
+              "Name" : "GroupPngRgba",
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "X" : 1.7800000000000000E+002
+              },
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle",
+              "Width" : 1.2800000000000000E+002,
+              "$Children" : [
+                {
+                  "$$ClassName" : "TCastleLabel",
+                  "ColorPersistent" : {
+                    "$$ClassName" : "TCastleColorPersistent",
+                    "Blue" : 7.5294119119644165E-001,
+                    "Green" : 7.5294119119644165E-001,
+                    "Red" : 7.5294119119644165E-001
+                  },
+                  "Name" : "Label5",
+                  "Text" : [
+                    "PNG (RGBA)"
+                  ],
+                  "VerticalAnchorParent" : "vpTop",
+                  "VerticalAnchorSelf" : "vpTop"
+                },
+                {
+                  "$$ClassName" : "TCastleImageControl",
+                  "Content" : {
+                    "$$ClassName" : "TCastleImagePersistent",
+                    "Url" : "castle-data:/images/texture_alpha.png"
+                  },
+                  "Height" : 1.2800000000000000E+002,
+                  "Name" : "ImageControl5",
+                  "ProportionalScaling" : "psEnclose",
+                  "Stretch" : true,
+                  "Width" : 1.2800000000000000E+002
+                }
+              ]
+            },
+            {
+              "$$ClassName" : "TCastleUserInterface",
+              "Height" : 1.6000000000000000E+002,
+              "Name" : "GroupPngGray",
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "X" : 3.5600000000000000E+002
+              },
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle",
+              "Width" : 1.2800000000000000E+002,
+              "$Children" : [
+                {
+                  "$$ClassName" : "TCastleLabel",
+                  "ColorPersistent" : {
+                    "$$ClassName" : "TCastleColorPersistent",
+                    "Blue" : 7.5294119119644165E-001,
+                    "Green" : 7.5294119119644165E-001,
+                    "Red" : 7.5294119119644165E-001
+                  },
+                  "Name" : "Label4",
+                  "Text" : [
+                    "PNG (grayscale)"
+                  ],
+                  "VerticalAnchorParent" : "vpTop",
+                  "VerticalAnchorSelf" : "vpTop"
+                },
+                {
+                  "$$ClassName" : "TCastleImageControl",
+                  "Content" : {
+                    "$$ClassName" : "TCastleImagePersistent",
+                    "Url" : "castle-data:/images/test_texture_grayscale.png"
+                  },
+                  "Height" : 1.2800000000000000E+002,
+                  "Name" : "ImageControl4",
+                  "ProportionalScaling" : "psEnclose",
+                  "Stretch" : true,
+                  "Width" : 1.2800000000000000E+002
+                }
+              ]
+            },
+            {
+              "$$ClassName" : "TCastleUserInterface",
+              "Height" : 1.6000000000000000E+002,
+              "Name" : "GroupRgbe",
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "X" : 5.3400000000000000E+002
+              },
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle",
+              "Width" : 1.2800000000000000E+002,
+              "$Children" : [
+                {
+                  "$$ClassName" : "TCastleLabel",
+                  "ColorPersistent" : {
+                    "$$ClassName" : "TCastleColorPersistent",
+                    "Blue" : 7.5294119119644165E-001,
+                    "Green" : 7.5294119119644165E-001,
+                    "Red" : 7.5294119119644165E-001
+                  },
+                  "Name" : "Label3",
+                  "Text" : [
+                    "RGBE"
+                  ],
+                  "VerticalAnchorParent" : "vpTop",
+                  "VerticalAnchorSelf" : "vpTop"
+                },
+                {
+                  "$$ClassName" : "TCastleImageControl",
+                  "Content" : {
+                    "$$ClassName" : "TCastleImagePersistent",
+                    "Url" : "castle-data:/images/sky_red_right.rgbe"
+                  },
+                  "Height" : 1.2800000000000000E+002,
+                  "Name" : "ImageControl3",
+                  "ProportionalScaling" : "psEnclose",
+                  "Stretch" : true,
+                  "Width" : 1.2800000000000000E+002
+                }
+              ]
+            },
+            {
+              "$$ClassName" : "TCastleUserInterface",
+              "Height" : 1.6000000000000000E+002,
+              "Name" : "GroupTga",
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "X" : 7.1200000000000000E+002
+              },
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle",
+              "Width" : 1.2800000000000000E+002,
+              "$Children" : [
+                {
+                  "$$ClassName" : "TCastleLabel",
+                  "ColorPersistent" : {
+                    "$$ClassName" : "TCastleColorPersistent",
+                    "Blue" : 7.5294119119644165E-001,
+                    "Green" : 7.5294119119644165E-001,
+                    "Red" : 7.5294119119644165E-001
+                  },
+                  "Name" : "Label12",
+                  "Text" : [
+                    "TGA"
+                  ],
+                  "VerticalAnchorParent" : "vpTop",
+                  "VerticalAnchorSelf" : "vpTop"
+                },
+                {
+                  "$$ClassName" : "TCastleImageControl",
+                  "Content" : {
+                    "$$ClassName" : "TCastleImagePersistent",
+                    "Url" : "castle-data:/images/test_texture.tga"
+                  },
+                  "Height" : 1.2800000000000000E+002,
+                  "Name" : "ImageControl12",
+                  "ProportionalScaling" : "psEnclose",
+                  "Stretch" : true,
+                  "Width" : 1.2800000000000000E+002
+                }
+              ]
+            },
+            {
+              "$$ClassName" : "TCastleUserInterface",
+              "Height" : 1.6000000000000000E+002,
+              "Name" : "GroupCastleImageFormat",
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "X" : 8.9000000000000000E+002
+              },
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle",
+              "Width" : 1.2800000000000000E+002,
+              "$Children" : [
+                {
+                  "$$ClassName" : "TCastleLabel",
+                  "ColorPersistent" : {
+                    "$$ClassName" : "TCastleColorPersistent",
+                    "Blue" : 7.5294119119644165E-001,
+                    "Green" : 7.5294119119644165E-001,
+                    "Red" : 7.5294119119644165E-001
+                  },
+                  "Name" : "Label14",
+                  "Text" : [
+                    ".castle-image"
+                  ],
+                  "VerticalAnchorParent" : "vpTop",
+                  "VerticalAnchorSelf" : "vpTop"
+                },
+                {
+                  "$$ClassName" : "TCastleImageControl",
+                  "Content" : {
+                    "$$ClassName" : "TCastleImagePersistent",
+                    "Url" : "castle-data:/images/test_texture.castle-image"
+                  },
+                  "Height" : 1.2800000000000000E+002,
+                  "Name" : "ImageControl14",
+                  "ProportionalScaling" : "psEnclose",
+                  "Stretch" : true,
+                  "Width" : 1.2800000000000000E+002
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "$$ClassName" : "TCastleHorizontalGroup",
+          "Name" : "HorizontalGroup2",
+          "Spacing" : 5.0000000000000000E+001,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -1.9000000000000000E+002
+          },
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "$Children" : [
+            {
+              "$$ClassName" : "TCastleUserInterface",
+              "Height" : 1.6000000000000000E+002,
+              "Name" : "GroupJpg",
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle",
+              "Width" : 1.2800000000000000E+002,
+              "$Children" : [
+                {
+                  "$$ClassName" : "TCastleLabel",
+                  "ColorPersistent" : {
+                    "$$ClassName" : "TCastleColorPersistent",
+                    "Blue" : 7.5294119119644165E-001,
+                    "Green" : 7.5294119119644165E-001,
+                    "Red" : 7.5294119119644165E-001
+                  },
+                  "Name" : "Label1",
+                  "Text" : [
+                    "JPG"
+                  ],
+                  "VerticalAnchorParent" : "vpTop",
+                  "VerticalAnchorSelf" : "vpTop"
+                },
+                {
+                  "$$ClassName" : "TCastleImageControl",
+                  "Content" : {
+                    "$$ClassName" : "TCastleImagePersistent",
+                    "Url" : "castle-data:/images/bricks2.jpg"
+                  },
+                  "Height" : 1.2800000000000000E+002,
+                  "Name" : "ImageControl1",
+                  "ProportionalScaling" : "psEnclose",
+                  "Stretch" : true,
+                  "Width" : 1.2800000000000000E+002
+                }
+              ]
+            },
+            {
+              "$$ClassName" : "TCastleUserInterface",
+              "Height" : 1.6000000000000000E+002,
+              "Name" : "GroupGif",
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "X" : 1.7800000000000000E+002
+              },
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle",
+              "Width" : 1.2800000000000000E+002,
+              "$Children" : [
+                {
+                  "$$ClassName" : "TCastleLabel",
+                  "ColorPersistent" : {
+                    "$$ClassName" : "TCastleColorPersistent",
+                    "Blue" : 7.5294119119644165E-001,
+                    "Green" : 7.5294119119644165E-001,
+                    "Red" : 7.5294119119644165E-001
+                  },
+                  "Name" : "Label2",
+                  "Text" : [
+                    "GIF"
+                  ],
+                  "VerticalAnchorParent" : "vpTop",
+                  "VerticalAnchorSelf" : "vpTop"
+                },
+                {
+                  "$$ClassName" : "TCastleImageControl",
+                  "Content" : {
+                    "$$ClassName" : "TCastleImagePersistent",
+                    "Url" : "castle-data:/images/crown.gif"
+                  },
+                  "Height" : 1.2800000000000000E+002,
+                  "Name" : "ImageControl2",
+                  "ProportionalScaling" : "psFit",
+                  "Stretch" : true,
+                  "Width" : 1.2800000000000000E+002
+                }
+              ]
+            },
+            {
+              "$$ClassName" : "TCastleUserInterface",
+              "Height" : 1.6000000000000000E+002,
+              "Name" : "GroupDds",
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "X" : 3.5600000000000000E+002
+              },
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle",
+              "Width" : 1.2800000000000000E+002,
+              "$Children" : [
+                {
+                  "$$ClassName" : "TCastleLabel",
+                  "ColorPersistent" : {
+                    "$$ClassName" : "TCastleColorPersistent",
+                    "Blue" : 7.5294119119644165E-001,
+                    "Green" : 7.5294119119644165E-001,
+                    "Red" : 7.5294119119644165E-001
+                  },
+                  "Name" : "Label9",
+                  "Text" : [
+                    "DDS"
+                  ],
+                  "VerticalAnchorParent" : "vpTop",
+                  "VerticalAnchorSelf" : "vpTop"
+                },
+                {
+                  "$$ClassName" : "TCastleImageControl",
+                  "Content" : {
+                    "$$ClassName" : "TCastleImagePersistent",
+                    "Url" : "castle-data:/images/metal_decal.dds"
+                  },
+                  "Height" : 1.2800000000000000E+002,
+                  "Name" : "ImageControl9",
+                  "ProportionalScaling" : "psEnclose",
+                  "Stretch" : true,
+                  "Width" : 1.2800000000000000E+002
+                }
+              ]
+            },
+            {
+              "$$ClassName" : "TCastleUserInterface",
+              "Height" : 1.6000000000000000E+002,
+              "Name" : "GroupBmp",
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "X" : 5.3400000000000000E+002
+              },
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle",
+              "Width" : 1.2800000000000000E+002,
+              "$Children" : [
+                {
+                  "$$ClassName" : "TCastleLabel",
+                  "ColorPersistent" : {
+                    "$$ClassName" : "TCastleColorPersistent",
+                    "Blue" : 7.5294119119644165E-001,
+                    "Green" : 7.5294119119644165E-001,
+                    "Red" : 7.5294119119644165E-001
+                  },
+                  "Name" : "Label8",
+                  "Text" : [
+                    "BMP"
+                  ],
+                  "VerticalAnchorParent" : "vpTop",
+                  "VerticalAnchorSelf" : "vpTop"
+                },
+                {
+                  "$$ClassName" : "TCastleImageControl",
+                  "Content" : {
+                    "$$ClassName" : "TCastleImagePersistent",
+                    "Url" : "castle-data:/images/sky_red_back.bmp"
+                  },
+                  "Height" : 1.2800000000000000E+002,
+                  "Name" : "ImageControl8",
+                  "ProportionalScaling" : "psEnclose",
+                  "Stretch" : true,
+                  "Width" : 1.2800000000000000E+002
+                }
+              ]
+            },
+            {
+              "$$ClassName" : "TCastleUserInterface",
+              "Height" : 1.6000000000000000E+002,
+              "Name" : "GroupPpm",
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "X" : 7.1200000000000000E+002
+              },
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle",
+              "Width" : 1.2800000000000000E+002,
+              "$Children" : [
+                {
+                  "$$ClassName" : "TCastleLabel",
+                  "ColorPersistent" : {
+                    "$$ClassName" : "TCastleColorPersistent",
+                    "Blue" : 7.5294119119644165E-001,
+                    "Green" : 7.5294119119644165E-001,
+                    "Red" : 7.5294119119644165E-001
+                  },
+                  "Name" : "Label7",
+                  "Text" : [
+                    "PPM"
+                  ],
+                  "VerticalAnchorParent" : "vpTop",
+                  "VerticalAnchorSelf" : "vpTop"
+                },
+                {
+                  "$$ClassName" : "TCastleImageControl",
+                  "Content" : {
+                    "$$ClassName" : "TCastleImagePersistent",
+                    "Url" : "castle-data:/images/sky_red_left.ppm"
+                  },
+                  "Height" : 1.2800000000000000E+002,
+                  "Name" : "ImageControl7",
+                  "ProportionalScaling" : "psEnclose",
+                  "Stretch" : true,
+                  "Width" : 1.2800000000000000E+002
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "$$ClassName" : "TCastleHorizontalGroup",
+          "Name" : "HorizontalGroup3",
+          "Spacing" : 5.0000000000000000E+001,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -3.8000000000000000E+002
+          },
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "$Children" : [
+            {
+              "$$ClassName" : "TCastleUserInterface",
+              "Height" : 1.6000000000000000E+002,
+              "Name" : "GroupKtxRgb",
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle",
+              "Width" : 1.2800000000000000E+002,
+              "$Children" : [
+                {
+                  "$$ClassName" : "TCastleLabel",
+                  "ColorPersistent" : {
+                    "$$ClassName" : "TCastleColorPersistent",
+                    "Blue" : 7.5294119119644165E-001,
+                    "Green" : 7.5294119119644165E-001,
+                    "Red" : 7.5294119119644165E-001
+                  },
+                  "Name" : "Label10",
+                  "Text" : [
+                    "KTX (RGB ref)"
+                  ],
+                  "VerticalAnchorParent" : "vpTop",
+                  "VerticalAnchorSelf" : "vpTop"
+                },
+                {
+                  "$$ClassName" : "TCastleImageControl",
+                  "Content" : {
+                    "$$ClassName" : "TCastleImagePersistent",
+                    "Url" : "castle-data:/images/rgb-reference.ktx"
+                  },
+                  "Height" : 1.2800000000000000E+002,
+                  "Name" : "ImageControl10",
+                  "ProportionalScaling" : "psEnclose",
+                  "Stretch" : true,
+                  "Width" : 1.2800000000000000E+002
+                }
+              ]
+            },
+            {
+              "$$ClassName" : "TCastleUserInterface",
+              "Height" : 1.6000000000000000E+002,
+              "Name" : "GroupKtxOrientUp",
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "X" : 1.7800000000000000E+002
+              },
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle",
+              "Width" : 1.2800000000000000E+002,
+              "$Children" : [
+                {
+                  "$$ClassName" : "TCastleLabel",
+                  "ColorPersistent" : {
+                    "$$ClassName" : "TCastleColorPersistent",
+                    "Blue" : 7.5294119119644165E-001,
+                    "Green" : 7.5294119119644165E-001,
+                    "Red" : 7.5294119119644165E-001
+                  },
+                  "Name" : "Label11",
+                  "Text" : [
+                    "KTX (orient up)"
+                  ],
+                  "VerticalAnchorParent" : "vpTop",
+                  "VerticalAnchorSelf" : "vpTop"
+                },
+                {
+                  "$$ClassName" : "TCastleImageControl",
+                  "Content" : {
+                    "$$ClassName" : "TCastleImagePersistent",
+                    "Url" : "castle-data:/images/orient-up.ktx"
+                  },
+                  "Height" : 1.2800000000000000E+002,
+                  "Name" : "ImageControl11",
+                  "ProportionalScaling" : "psEnclose",
+                  "Stretch" : true,
+                  "Width" : 1.2800000000000000E+002
+                }
+              ]
+            },
+            {
+              "$$ClassName" : "TCastleUserInterface",
+              "Height" : 1.6000000000000000E+002,
+              "Name" : "GroupXpm",
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "X" : 3.5600000000000000E+002
+              },
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle",
+              "Width" : 1.2800000000000000E+002,
+              "$Children" : [
+                {
+                  "$$ClassName" : "TCastleLabel",
+                  "ColorPersistent" : {
+                    "$$ClassName" : "TCastleColorPersistent",
+                    "Blue" : 7.5294119119644165E-001,
+                    "Green" : 7.5294119119644165E-001,
+                    "Red" : 7.5294119119644165E-001
+                  },
+                  "Name" : "Label13",
+                  "Text" : [
+                    "XPM"
+                  ],
+                  "VerticalAnchorParent" : "vpTop",
+                  "VerticalAnchorSelf" : "vpTop"
+                },
+                {
+                  "$$ClassName" : "TCastleImageControl",
+                  "Content" : {
+                    "$$ClassName" : "TCastleImagePersistent",
+                    "Url" : "castle-data:/images/test_texture.xpm"
+                  },
+                  "Height" : 1.2800000000000000E+002,
+                  "Name" : "ImageControl13",
+                  "ProportionalScaling" : "psEnclose",
+                  "Stretch" : true,
+                  "Width" : 1.2800000000000000E+002
+                }
+              ]
+            }
+          ]
+        }
+      ]
     }
   ]
 }
