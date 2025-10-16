@@ -53,7 +53,26 @@ begin
   if not Assigned(cf) then
     Exit(False);
   url := CFUrlCreateWithString(nil, cf, nil);
+
+  {$ifdef CpuAarch64}
+  { When this is used, fails to link any CGE application on Aarch64
+    (Apple Silicon) with FPC 3.2.2, with:
+
+    Undefined symbols for architecture arm64:
+    "_LSOpenCFURLRef", referenced from:
+      _CASTLEOPENDOCUMENT_$$_OPENURL$ANSISTRING$$BOOLEAN in castleopendocument.o
+
+    Reproducible with all macos GitHub Actions runners so far.
+    Reasons unknown, it works OK with Intel-based GHA runners, like macos-13
+    and macos-15-intel.
+  }
+  WritelnWarning('OpenUrl (used with "%s") not implemented for macOS Aarch64 (Apple Silicon) yet', [
+    AUrl
+  ]);
+  Result := false;
+  {$else}
   Result := LSOpenCFUrlRef(url, nil) = 0;
+  {$endif}
 
   CFRelease(url);
   CFRelease(cf);
