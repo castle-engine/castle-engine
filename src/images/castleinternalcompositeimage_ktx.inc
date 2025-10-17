@@ -323,11 +323,11 @@ begin
   end else
     WritelnWarning('KTX', 'Unrecognized KTX orientation "%s"', [Value]);
 
-  WritelnLog('KTX', 'Got KTX orientation "%s". RowsTopToBottom: %s, SlicesFrontToBack: %s.',
-    [Value,
-     BoolToStr(RowsTopToBottom, true),
-     BoolToStr(SlicesFrontToBack, true)
-    ]);
+  WritelnLog('KTX', 'Got KTX orientation "%s". RowsTopToBottom: %s, SlicesFrontToBack: %s.', [
+    Value,
+    BoolToStr(RowsTopToBottom, true),
+    BoolToStr(SlicesFrontToBack, true)
+  ]);
 end;
 
 procedure TKTXHandler.ReadKeyValues(const Stream: TStream);
