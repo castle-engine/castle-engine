@@ -75,18 +75,34 @@ type
 
       GL_RGB8           = $8051;
       GL_SRGB8          = $8C41;
+
       GL_R16            = $822A;
+      GL_RG16           = $822C;
+      GL_RGB16          = $8054;
+      GL_RGBA16         = $805B;
+
       GL_RG8            = $822B;
       GL_RG             = $8227;
       //GL_R16F           = $822D;
+
       GL_R32F           = $822E;
       GL_RG32F          = $8230;
       GL_RGB32F         = $8815;
       GL_RGBA32F        = $8814;
+
       GL_R16UI          = $8234;
+      GL_RG16UI         = $823A;
+      GL_RGB16UI        = $8D77;
+      GL_RGBA16UI       = $8D76;
+
       GL_SRGB8_ALPHA8   = $8C43;
 
       GL_RED_INTEGER    = $8D94;
+      GL_RG_INTEGER     = $8228;
+      GL_RGB_INTEGER    = $8D98;
+      GL_RGBA_INTEGER   = $8D99;
+      //GL_BGR_INTEGER  = $8D9A; // for now unused
+      //GL_BGRA_INTEGER = $8D9B; // for now unused
 
     var
       Header: TKTXHeader;
@@ -450,6 +466,24 @@ begin
      IsType(GL_UNSIGNED_SHORT, 2, GL_RED, GL_R16, GL_RED) then
   begin
     Images.Add(ReadOneImage_16ToFloat(Stream, TGrayscaleFloatImage.Create(W, H, D)));
+  end else
+  if IsType(GL_UNSIGNED_SHORT, 2, GL_RG_INTEGER, GL_RG16UI, GL_RG_INTEGER) or
+     IsType(GL_UNSIGNED_SHORT, 2, GL_RG, GL_RG16, GL_RG) then
+  begin
+    // TODO: Should be good, but untested
+    Images.Add(ReadOneImage_16ToFloat(Stream, TGrayscaleAlphaFloatImage.Create(W, H, D)));
+  end else
+  if IsType(GL_UNSIGNED_SHORT, 2, GL_RGB_INTEGER, GL_RGB16UI, GL_RGB_INTEGER) or
+     IsType(GL_UNSIGNED_SHORT, 2, GL_RGB, GL_RGB16, GL_RGB) then
+  begin
+    // TODO: Should be good, but untested
+    Images.Add(ReadOneImage_16ToFloat(Stream, TRGBFloatImage.Create(W, H, D)));
+  end else
+  if IsType(GL_UNSIGNED_SHORT, 2, GL_RGBA_INTEGER, GL_RGBA16UI, GL_RGBA_INTEGER) or
+     IsType(GL_UNSIGNED_SHORT, 2, GL_RGBA, GL_RGBA16, GL_RGBA) then
+  begin
+    // TODO: Should be good, but untested
+    Images.Add(ReadOneImage_16ToFloat(Stream, TRGBAlphaFloatImage.Create(W, H, D)));
   end else
 
   { float-based image formats }
