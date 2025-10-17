@@ -382,131 +382,91 @@ procedure TKTXHandler.ReadOneImage(const Stream: TStream; const W, H, D: Cardina
 {$I gl_texture_compression_constants.inc}
 var
   Compression: TTextureCompression;
+
+  { Do the GlType etc. fields of the header match. }
+  function IsType(const GlType, GlTypeSize, GlFormat, GlInternalFormat,
+    GlBaseInternalFormat: UInt32): Boolean;
+  begin
+    Result :=
+      (Header.GlType = GlType) and
+      (Header.GlTypeSize = GlTypeSize) and
+      (Header.GlFormat = GlFormat) and
+      (Header.GlInternalFormat = GlInternalFormat) and
+      (Header.GlBaseInternalFormat = GlBaseInternalFormat);
+  end;
+
 begin
   { 8-bit image formats, no RB swap }
-  if (Header.GlType = GL_UNSIGNED_BYTE) and
-     (Header.GlTypeSize = 1) and
-     (Header.GlFormat = GL_LUMINANCE) and
-     (Header.GlInternalFormat = GL_LUMINANCE8_EXT) and
-     (Header.GlBaseInternalFormat = GL_LUMINANCE) then
+  if IsType(GL_UNSIGNED_BYTE, 1, GL_LUMINANCE, GL_LUMINANCE8_EXT, GL_LUMINANCE) then
   begin
     Images.Add(ReadOneImage_Universal(Stream, TGrayscaleImage.Create(W, H, D)));
   end else
-  if (Header.GlType = GL_UNSIGNED_BYTE) and
-     (Header.GlTypeSize = 1) and
-     (Header.GlFormat = GL_RG) and
-     (Header.GlInternalFormat = GL_RG8) and
-     (Header.GlBaseInternalFormat = GL_RG) then
+  if IsType(GL_UNSIGNED_BYTE, 1, GL_RG, GL_RG8, GL_RG) then
   begin
     Images.Add(ReadOneImage_Universal(Stream, TGrayscaleAlphaImage.Create(W, H, D)));
   end else
-  if (Header.GlType = GL_UNSIGNED_BYTE) and
-     (Header.GlTypeSize = 1) and
-     (Header.GlFormat = GL_RGB) and
-     ( (Header.GlInternalFormat = GL_RGB) or
-       (Header.GlInternalFormat = GL_RGB8) or
-        { TODO: for now SRGB8 is read the same way,
-          we ignore information that it is in sRGB color-space.
-          Whether the image is assumed to be in sRGB or linear color-space
-          depends in CGE on the image function (whether it is placed in
-          e.g. TPhysicalMaterial.BaseTexture or NormalTexture)
-          and global @link(ColorSpace) variable. }
-       (Header.GlInternalFormat = GL_SRGB8) ) and
-     (Header.GlBaseInternalFormat = GL_RGB) then
+  if IsType(GL_UNSIGNED_BYTE, 1, GL_RGB, GL_RGB, GL_RGB) or
+     IsType(GL_UNSIGNED_BYTE, 1, GL_RGB, GL_RGB8, GL_RGB) or
+     { TODO: for now SRGB8 is read the same way,
+        we ignore information that it is in sRGB color-space.
+        Whether the image is assumed to be in sRGB or linear color-space
+        depends in CGE on the image function (whether it is placed in
+        e.g. TPhysicalMaterial.BaseTexture or NormalTexture)
+        and global @link(ColorSpace) variable. }
+     IsType(GL_UNSIGNED_BYTE, 1, GL_RGB, GL_SRGB8, GL_RGB) then
   begin
     Images.Add(ReadOneImage_Universal(Stream, TRGBImage.Create(W, H, D)));
   end else
-  if (Header.GlType = GL_UNSIGNED_BYTE) and
-     (Header.GlTypeSize = 1) and
-     (Header.GlFormat = GL_RGBA) and
-     (
-       (Header.GlInternalFormat = GL_RGBA) or
-       { Testcase: rgba-reference.ktx from https://github.com/KhronosGroup/KTX-Software/tree/master/tests/testimages
-         Note that we ignore sRGB here for now, we read it just like regular image.
-         In CGE we don't have a control per-image for sRGB, yet. }
-       (Header.GlInternalFormat = GL_SRGB8_ALPHA8)
-     ) and
-     (Header.GlBaseInternalFormat = GL_RGBA) then
+  if IsType(GL_UNSIGNED_BYTE, 1, GL_RGBA, GL_RGBA, GL_RGBA) or
+    { Testcase: rgba-reference.ktx from https://github.com/KhronosGroup/KTX-Software/tree/master/tests/testimages
+      Note that we ignore sRGB here for now, we read it just like regular image.
+      In CGE we don't have a control per-image for sRGB, yet. }
+     IsType(GL_UNSIGNED_BYTE, 1, GL_RGBA, GL_SRGB8_ALPHA8, GL_RGBA) then
   begin
     Images.Add(ReadOneImage_Universal(Stream, TRGBAlphaImage.Create(W, H, D)));
   end else
 
   { 8-bit image formats, with RB swap }
 
-  if (Header.GlType = GL_UNSIGNED_BYTE) and
-     (Header.GlTypeSize = 1) and
-     (Header.GlFormat = GL_BGRA) and
-     (Header.GlInternalFormat = GL_BGRA) and
-     (Header.GlBaseInternalFormat = GL_BGRA) then
+  if IsType(GL_UNSIGNED_BYTE, 1, GL_BGRA, GL_BGRA, GL_BGRA) then
   begin
     Images.Add(SwapRedBlue(ReadOneImage_Universal(Stream, TRGBAlphaImage.Create(W, H, D))));
   end else
-  if (Header.GlType = GL_UNSIGNED_BYTE) and
-     (Header.GlTypeSize = 1) and
-     (Header.GlFormat = GL_BGR) and
-     (Header.GlInternalFormat = GL_BGR) and
-     (Header.GlBaseInternalFormat = GL_BGR) then
+  if IsType(GL_UNSIGNED_BYTE, 1, GL_BGR, GL_BGR, GL_BGR) then
   begin
     Images.Add(SwapRedBlue(ReadOneImage_Universal(Stream, TRGBImage.Create(W, H, D))));
   end else
 
   { 16-bit image formats }
 
-  if (
-       { You can generate this with
-         - PowerVR Texture Tool GUI with "Encode" to R16
-         - PowerVR Texture Tool CLI with "-f r16,US" encoding
-       }
-       (Header.GlType = GL_UNSIGNED_SHORT) and
-       (Header.GlTypeSize = 2) and
-       (Header.GlFormat = GL_RED_INTEGER) and
-       (Header.GlInternalFormat = GL_R16UI) and
-       (Header.GlBaseInternalFormat = GL_RED_INTEGER)
-     ) or (
-       { You can generate this with
-         - PowerVR Texture Tool CLI with "-f r16,USN" encoding
-       }
-       (Header.GlType = GL_UNSIGNED_SHORT) and
-       (Header.GlTypeSize = 2) and
-       (Header.GlFormat = GL_RED) and
-       (Header.GlInternalFormat = GL_R16) and
-       (Header.GlBaseInternalFormat = GL_RED)
-     ) then
+  if { You can generate this with
+      - PowerVR Texture Tool GUI with "Encode" to R16
+      - PowerVR Texture Tool CLI with "-f r16,US" encoding
+     }
+     IsType(GL_UNSIGNED_SHORT, 2, GL_RED_INTEGER, GL_R16UI, GL_RED_INTEGER) or
+     { You can generate this with
+       - PowerVR Texture Tool CLI with "-f r16,USN" encoding
+     }
+     IsType(GL_UNSIGNED_SHORT, 2, GL_RED, GL_R16, GL_RED) then
   begin
     Images.Add(ReadOneImage_16ToFloat(Stream, TGrayscaleFloatImage.Create(W, H, D)));
   end else
 
   { float-based image formats }
 
-  if (Header.GlType = GL_FLOAT) and
-     (Header.GlTypeSize = SizeOf(Single)) and
-     (Header.GlFormat = GL_RED) and
-     (Header.GlInternalFormat = GL_R32F) and
-     (Header.GlBaseInternalFormat = GL_RED) then
+  if IsType(GL_FLOAT, SizeOf(Single), GL_RED, GL_R32F, GL_RED) then
   begin
     Images.Add(ReadOneImage_Universal(Stream, TGrayscaleFloatImage.Create(W, H, D)));
   end else
-  if (Header.GlType = GL_FLOAT) and
-     (Header.GlTypeSize = SizeOf(Single)) and
-     (Header.GlFormat = GL_RG) and
-     (Header.GlInternalFormat = GL_RG32F) and
-     (Header.GlBaseInternalFormat = GL_RG) then
+  if IsType(GL_FLOAT, SizeOf(Single), GL_RG, GL_RG32F, GL_RG) then
   begin
     Images.Add(ReadOneImage_Universal(Stream, TGrayscaleAlphaFloatImage.Create(W, H, D)));
   end else
-  if (Header.GlType = GL_FLOAT) and
-     (Header.GlTypeSize = SizeOf(Single)) and
-     (Header.GlFormat = GL_RGB) and
-     (Header.GlInternalFormat = GL_RGB32F) and
-     (Header.GlBaseInternalFormat = GL_RGB) then
+  if IsType(GL_FLOAT, SizeOf(Single), GL_RGB, GL_RGB32F, GL_RGB) then
   begin
     Images.Add(ReadOneImage_Universal(Stream, TRGBFloatImage.Create(W, H, D)));
   end else
-  if (Header.GlType = GL_FLOAT) and
-     (Header.GlTypeSize = SizeOf(Single)) and
-     (Header.GlFormat = GL_RGBA) and
-     (Header.GlInternalFormat = GL_RGBA32F) and
-     (Header.GlBaseInternalFormat = GL_RGBA) then
+  if IsType(GL_FLOAT, SizeOf(Single), GL_RGBA, GL_RGBA32F, GL_RGBA) then
   begin
     Images.Add(ReadOneImage_Universal(Stream, TRGBAlphaFloatImage.Create(W, H, D)));
   end else
