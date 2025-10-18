@@ -368,7 +368,7 @@ begin
     Handler := TDDSHandler.Create(Self)
   else
   if MimeType = 'image/ktx' then
-    raise EInvalidCompositeImage.Create('Cannot save to the KTX format now')
+    Handler := TKTXHandler.Create(Self)
   else
     raise EInvalidCompositeImage.CreateFmt('Cannot recognize composite image MIME type: %s',
       [MimeType]);
