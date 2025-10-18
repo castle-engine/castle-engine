@@ -1,12 +1,12 @@
 (******************************************************************************
  *                                 PasJSON                                    *
  ******************************************************************************
- *                          Version 2020-03-04-02-20                          *
+ *                          Version 2025-10-13-10-19                          *
  ******************************************************************************
  *                                zlib license                                *
  *============================================================================*
  *                                                                            *
- * Copyright (C) 2016-2020, Benjamin Rosseaux (benjamin@rosseaux.de)          *
+ * Copyright (C) 2016-2025, Benjamin Rosseaux (benjamin@rosseaux.de)          *
  *                                                                            *
  * This software is provided 'as-is', without any express or implied          *
  * warranty. In no event will the authors be held liable for any damages      *
@@ -451,11 +451,28 @@ type PPPasJSONInt8=^PPasJSONInt8;
 
      TPasJSONMergeFlags=set of TPasJSONMergeFlag;
 
+     TPasJSONItemType=
+      (
+       Unknown,
+       Null,
+       Boolean_,
+       Number,
+       String_,
+       Object_,
+       Array_
+      );
+     PPasJSONItemType=^TPasJSONItemType;
+
      TPasJSONItem=class
+      private
+       fItemType:TPasJSONItemType;
       public
        constructor Create;
        destructor Destroy; override;
+       function Clone:TPasJSONItem; virtual; abstract;
        procedure Merge(const aWith:TPasJSONItem;const aFlags:TPasJSONMergeFlags=[]); virtual;
+      published
+       property ItemType:TPasJSONItemType read fItemType;
      end;
 
      TPasJSONItems=array of TPasJSONItem;
@@ -464,6 +481,7 @@ type PPPasJSONInt8=^PPasJSONInt8;
       public
        constructor Create;
        destructor Destroy; override;
+       function Clone:TPasJSONItem; override;
        procedure Merge(const aWith:TPasJSONItem;const aFlags:TPasJSONMergeFlags=[]); override;
      end;
 
@@ -473,6 +491,7 @@ type PPPasJSONInt8=^PPasJSONInt8;
       public
        constructor Create(const AValue:boolean);
        destructor Destroy; override;
+       function Clone:TPasJSONItem; override;
        procedure Merge(const aWith:TPasJSONItem;const aFlags:TPasJSONMergeFlags=[]); override;
       published
        property Value:boolean read fValue write fValue;
@@ -484,6 +503,7 @@ type PPPasJSONInt8=^PPasJSONInt8;
       public
        constructor Create(const AValue:TPasJSONDouble);
        destructor Destroy; override;
+       function Clone:TPasJSONItem; override;
        procedure Merge(const aWith:TPasJSONItem;const aFlags:TPasJSONMergeFlags=[]); override;
       published
        property Value:TPasJSONDouble read fValue write fValue;
@@ -495,6 +515,7 @@ type PPPasJSONInt8=^PPasJSONInt8;
       public
        constructor Create(const AValue:TPasJSONUTF8String);
        destructor Destroy; override;
+       function Clone:TPasJSONItem; override;
        procedure Merge(const aWith:TPasJSONItem;const aFlags:TPasJSONMergeFlags=[]); override;
       published
        property Value:TPasJSONUTF8String read fValue write fValue;
@@ -540,6 +561,7 @@ type PPPasJSONInt8=^PPasJSONInt8;
       public
        constructor Create;
        destructor Destroy; override;
+       function Clone:TPasJSONItem; override;
        function GetEnumerator:TPasJSONItemObjectEnumerator; inline;
        procedure Clear;
        procedure Add(const aKey:TPasJSONUTF8String;const aValue:TPasJSONItem);
@@ -574,6 +596,7 @@ type PPPasJSONInt8=^PPasJSONInt8;
       public
        constructor Create;
        destructor Destroy; override;
+       function Clone:TPasJSONItem; override;
        function GetEnumerator:TPasJSONItemArrayEnumerator; inline;
        procedure Clear;
        procedure Add(const aValue:TPasJSONItem);
@@ -627,6 +650,7 @@ type PPPasJSONInt8=^PPasJSONInt8;
        class procedure StringifyToStream(const aStream:TStream;const aJSONItem:TPasJSONItem;const aFormatting:boolean=false;const aModeFlags:TPasJSONModeFlags=[];const aLevel:TPasJSONInt32=0); static;
        class function GetNumber(const aItem:TPasJSONItem;const aDefault:TPasJSONDouble=0.0):TPasJSONDouble; static;
        class function GetInt64(const aItem:TPasJSONItem;const aDefault:TPasJSONInt64=0):TPasJSONInt64; static;
+       class function GetUInt64(const aItem:TPasJSONItem;const aDefault:TPasJSONUInt64=0):TPasJSONUInt64; static;
        class function GetString(const aItem:TPasJSONItem;const aDefault:TPasJSONUTF8String=''):TPasJSONUTF8String; static;
        class function GetBoolean(const aItem:TPasJSONItem;const aDefault:boolean=false):boolean; static;
        class function LoadBinaryFromStream(const aStream:TStream):TPasJSONItem; static;
@@ -756,6 +780,7 @@ end;
 constructor TPasJSONItem.Create;
 begin
  inherited Create;
+ fItemType:=TPasJSONItemType.Unknown;
 end;
 
 destructor TPasJSONItem.Destroy;
@@ -773,11 +798,17 @@ end;
 constructor TPasJSONItemNull.Create;
 begin
  inherited Create;
+ fItemType:=TPasJSONItemType.Null;
 end;
 
 destructor TPasJSONItemNull.Destroy;
 begin
  inherited Destroy;
+end;
+
+function TPasJSONItemNull.Clone:TPasJSONItem;
+begin
+ result:=TPasJSONItemNull.Create;
 end;
 
 procedure TPasJSONItemNull.Merge(const aWith:TPasJSONItem;const aFlags:TPasJSONMergeFlags=[]);
@@ -790,12 +821,18 @@ end;
 constructor TPasJSONItemBoolean.Create(const AValue:boolean);
 begin
  inherited Create;
+ fItemType:=TPasJSONItemType.Boolean_;
  fValue:=AValue;
 end;
 
 destructor TPasJSONItemBoolean.Destroy;
 begin
  inherited Destroy;
+end;
+
+function TPasJSONItemBoolean.Clone:TPasJSONItem;
+begin
+ result:=TPasJSONItemBoolean.Create(fValue);
 end;
 
 procedure TPasJSONItemBoolean.Merge(const aWith:TPasJSONItem;const aFlags:TPasJSONMergeFlags=[]);
@@ -809,12 +846,18 @@ end;
 constructor TPasJSONItemNumber.Create(const AValue:TPasJSONDouble);
 begin
  inherited Create;
+ fItemType:=TPasJSONItemType.Number;
  fValue:=AValue;
 end;
 
 destructor TPasJSONItemNumber.Destroy;
 begin
  inherited Destroy;
+end;
+
+function TPasJSONItemNumber.Clone:TPasJSONItem;
+begin
+ result:=TPasJSONItemNumber.Create(fValue);
 end;
 
 procedure TPasJSONItemNumber.Merge(const aWith:TPasJSONItem;const aFlags:TPasJSONMergeFlags=[]);
@@ -828,6 +871,7 @@ end;
 constructor TPasJSONItemString.Create(const AValue:TPasJSONUTF8String);
 begin
  inherited Create;
+ fItemType:=TPasJSONItemType.String_;
  fValue:=AValue;
 end;
 
@@ -835,6 +879,11 @@ destructor TPasJSONItemString.Destroy;
 begin
  fValue:='';
  inherited Destroy;
+end;
+
+function TPasJSONItemString.Clone:TPasJSONItem;
+begin
+ result:=TPasJSONItemString.Create(fValue);
 end;
 
 procedure TPasJSONItemString.Merge(const aWith:TPasJSONItem;const aFlags:TPasJSONMergeFlags=[]);
@@ -879,6 +928,7 @@ end;
 constructor TPasJSONItemObject.Create;
 begin
  inherited Create;
+ fItemType:=TPasJSONItemType.Object_;
  fProperties:=nil;
  fCount:=0;
 end;
@@ -891,6 +941,17 @@ begin
  end;
  SetLength(fProperties,0);
  inherited Destroy;
+end;
+
+function TPasJSONItemObject.Clone:TPasJSONItem;
+var ClonedObject:TPasJSONItemObject;
+    Index:TPasJSONInt32;
+begin
+ ClonedObject:=TPasJSONItemObject.Create;
+ for Index:=0 to fCount-1 do begin
+  ClonedObject.Add(fProperties[Index].Key,fProperties[Index].Value.Clone);
+ end;
+ result:=ClonedObject;
 end;
 
 function TPasJSONItemObject.GetKeyIndex(const aKey:TPasJSONUTF8String):TPasJSONInt32;
@@ -1052,6 +1113,7 @@ end;
 constructor TPasJSONItemArray.Create;
 begin
  inherited Create;
+ fItemType:=TPasJSONItemType.Array_;
  fItems:=nil;
  fCount:=0;
 end;
@@ -1064,6 +1126,17 @@ begin
  end;
  SetLength(fItems,0);
  inherited Destroy;
+end;
+
+function TPasJSONItemArray.Clone:TPasJSONItem;
+var ClonedArray:TPasJSONItemArray;
+    Index:TPasJSONInt32;
+begin
+ ClonedArray:=TPasJSONItemArray.Create;
+ for Index:=0 to fCount-1 do begin
+  ClonedArray.Add(fItems[Index].Clone);
+ end;
+ result:=ClonedArray;
 end;
 
 function TPasJSONItemArray.GetValue(const Index:TPasJSONInt32):TPasJSONItem;
@@ -1185,8 +1258,8 @@ begin
      $0000..$d7ff,$f000..$fffc:begin
       result:=result+'\u'+HexChars[false,(c shr 12) and $f]+HexChars[false,(c shr 8) and $f]+HexChars[false,(c shr 4) and $f]+HexChars[false,c and $f];
      end;
-     $100000..$10ffff:begin
-      dec(c,$100000);
+     $10000..$10ffff:begin
+      dec(c,$10000);
       t:=(c shr 10) or $d800;
       result:=result+'\u'+HexChars[false,(t shr 12) and $f]+HexChars[false,(t shr 8) and $f]+HexChars[false,(t shr 4) and $f]+HexChars[false,t and $f];
       t:=(c and $3ff) or $dc00;
@@ -1341,10 +1414,35 @@ var Position:TPasJSONInt32;
   var w:TPasJSONUTF16String; // <= because of easy correct handling of UTF16 surrogates (see ECMAScript and JSON specs)
       wl:TPasJSONInt32;
       wc:TPasJSONUInt32;
+   procedure AddChar16(c:TPasJSONUInt32);
+   var cl:TPasJSONInt32;
+   begin
+    if (c>=$10000) and (c<=$10ffff) then begin
+     cl:=2;
+    end else begin
+     cl:=1;
+    end;
+    if (wl+cl)>length(w) then begin
+     SetLength(w,(wl+cl) shl 1);
+    end;
+    if c<=$ffff then begin
+     inc(wl);
+     w[wl]:=TPasJSONUTF16Char(UInt16(c));
+    end else if c<=$10ffff then begin
+     dec(c,$10000);
+     inc(wl);
+     w[wl]:=TPasJSONUTF16Char(UInt16((c shr 10) or $d800));
+     inc(wl);
+     w[wl]:=TPasJSONUTF16Char(UInt16((c and $3ff) or $dc00));
+    end else begin
+     inc(wl);
+     w[wl]:=TPasJSONUTF16Char(UInt16($fffd));
+    end;
+   end;
    procedure AddChar(c:TPasJSONUInt32);
    var cl:TPasJSONInt32;
    begin
-    if (c>=$100000) and (c<=$10ffff) then begin
+    if (c>=$10000) and (c<=$10ffff) then begin
      cl:=2;
     end else begin
      cl:=1;
@@ -1463,7 +1561,7 @@ var Position:TPasJSONInt32;
                end else if (CurrentChar>=ord('A')) and (CurrentChar<=ord('F')) then begin
                 wc:=wc or UInt16((UInt16(CurrentChar)-ord('A'))+$a);
                end;
-               AddChar(wc);
+               AddChar16(wc);
                NextChar;
               end else begin
                JSONError;
@@ -1835,6 +1933,8 @@ class function TPasJSON.Stringify(const aJSONItem:TPasJSONItem;const aFormatting
    end;
   end;
  end;
+{$undef TPasJSONStringifyRealRecursive}
+{$if defined(TPasJSONStringifyRealRecursive)}
 var Index,Count,Ident,LevelOffset:TPasJSONInt32;
     IntegerValue:Int64;
     Key:TPasJSONUTF8String;
@@ -1864,7 +1964,7 @@ begin
    end else begin
     IntegerValue:=trunc(TPasJSONItemNumber(aJSONItem).Value);
     if TPasJSONItemNumber(aJSONItem).Value=IntegerValue then begin
-     Str(IntegerValue,result);
+     result:=IntToStr(IntegerValue);
     end else begin
      result:=ConvertDoubleToString(TPasJSONItemNumber(aJSONItem).Value,omStandard,0);
     end;
@@ -1916,7 +2016,7 @@ begin
    end else begin
     LevelOffset:=0;
    end;
-   Count:=TPasJSONItemArray(aJSONItem).Count;
+   Count:=TPasJSONItemObject(aJSONItem).Count;
    for Index:=0 to Count-1 do begin
     if aFormatting then begin
      for Ident:=0 to aLevel+LevelOffset do begin
@@ -1963,6 +2063,385 @@ begin
   result:='null';
  end;
 end;
+{$else}
+{$define UseOwnStringBuilder} // For better performance
+type TStackItem=record
+      JSONItem:TPasJSONItem;
+      State:TPasJSONSizeInt;
+      Index:TPasJSONSizeInt;
+      Level:TPasJSONSizeInt;
+     end;
+     PStackItem=^TStackItem;
+     TStackItems=array of TStackItem;
+var StackItems:TStackItems;
+    StackItemPointer:TPasJSONSizeInt;
+{$ifdef UseOwnStringBuilder}
+    OutputString:TPasJSONUTF8String;
+    OutputStringLen:TPasJSONSizeInt;
+{$endif}
+{$ifdef UseOwnStringBuilder}
+ procedure AddString(const aString:TPasJSONUTF8String);
+ var StringLen,NewOutputStringLen:TPasJSONSizeInt;
+ begin
+  StringLen:=length(aString);
+  if StringLen>0 then begin
+   NewOutputStringLen:=OutputStringLen+StringLen;
+   if length(OutputString)<NewOutputStringLen then begin
+    SetLength(OutputString,NewOutputStringLen+((NewOutputStringLen+1) shr 1));
+   end;
+   Move(aString[1],OutputString[OutputStringLen+1],StringLen);
+   OutputStringLen:=NewOutputStringLen;
+  end;
+ end;
+{$endif}
+ procedure Push(const aJSONItem:TPasJSONItem;const aState,aIndex,aLevel:TPasJSONSizeInt);
+ var StackItem:PStackItem;
+ begin
+  inc(StackItemPointer);
+  if StackItemPointer>=length(StackItems) then begin
+   SetLength(StackItems,StackItemPointer+(((StackItemPointer+1) shr 1)+1));
+  end;
+  StackItem:=@StackItems[StackItemPointer-1];
+  StackItem^.JSONItem:=aJSONItem;
+  StackItem^.State:=aState;
+  StackItem^.Index:=aIndex;
+  StackItem^.Level:=aLevel;
+ end;
+var StackItem:TStackItem;
+    LevelOffset,Ident:TPasJSONSizeInt;
+    IntegerValue:Int64;
+    Key:TPasJSONUTF8String;
+begin
+ if assigned(aJSONItem) then begin
+{$ifdef UseOwnStringBuilder}
+  OutputString:='';
+  OutputStringLen:=0;
+{$else}
+  result:='';
+{$endif}
+  StackItems:=nil;
+  try
+   StackItemPointer:=0;
+   Push(aJSONItem,0,0,aLevel);
+   while StackItemPointer>0 do begin
+    dec(StackItemPointer);
+    StackItem:=StackItems[StackItemPointer];
+    case StackItem.State of
+     0:begin
+      if assigned(StackItem.JSONItem) then begin
+       if StackItem.JSONItem is TPasJSONItemNull then begin
+{$ifdef UseOwnStringBuilder}
+        AddString('null');
+{$else}
+        result:=result+'null';
+{$endif}
+       end else if StackItem.JSONItem is TPasJSONItemBoolean then begin
+        if TPasJSONItemBoolean(StackItem.JSONItem).Value then begin
+{$ifdef UseOwnStringBuilder}
+         AddString('true');
+{$else}
+         result:=result+'true';
+{$endif}
+        end else begin
+{$ifdef UseOwnStringBuilder}
+         AddString('false');
+{$else}
+         result:=result+'false';
+{$endif}
+        end;
+       end else if StackItem.JSONItem is TPasJSONItemNumber then begin
+        if IsInfinite(TPasJSONItemNumber(StackItem.JSONItem).Value) then begin
+         if (TPasJSONUInt64(Pointer(@TPasJSONItemNumber(StackItem.JSONItem).Value)^) shr 63)<>0 then begin
+{$ifdef UseOwnStringBuilder}
+          AddString(TPasJSON.StringQuote('-Infinity'));
+{$else}
+          result:=result+TPasJSON.StringQuote('-Infinity');
+{$endif}
+         end else begin
+{$ifdef UseOwnStringBuilder}
+          AddString(TPasJSON.StringQuote('Infinity'));
+{$else}
+          result:=result+TPasJSON.StringQuote('Infinity');
+{$endif}
+         end;
+        end else if IsNaN(TPasJSONItemNumber(StackItem.JSONItem).Value) then begin
+         if (TPasJSONUInt64(Pointer(@TPasJSONItemNumber(StackItem.JSONItem).Value)^) shr 63)<>0 then begin
+{$ifdef UseOwnStringBuilder}
+          AddString(TPasJSON.StringQuote('-NaN'));
+{$else}
+          result:=result+TPasJSON.StringQuote('-NaN');
+{$endif}
+         end else begin
+{$ifdef UseOwnStringBuilder}
+          AddString(TPasJSON.StringQuote('NaN'));
+{$else}
+          result:=result+TPasJSON.StringQuote('NaN');
+{$endif}
+         end;
+        end else begin
+         IntegerValue:=trunc(TPasJSONItemNumber(StackItem.JSONItem).Value);
+         if TPasJSONItemNumber(StackItem.JSONItem).Value=IntegerValue then begin
+{$ifdef UseOwnStringBuilder}
+          AddString(IntToStr(IntegerValue));
+{$else}
+          result:=result+IntToStr(IntegerValue);
+{$endif}
+         end else begin
+{$ifdef UseOwnStringBuilder}
+          AddString(ConvertDoubleToString(TPasJSONItemNumber(StackItem.JSONItem).Value,omStandard,0));
+{$else}
+          result:=result+ConvertDoubleToString(TPasJSONItemNumber(StackItem.JSONItem).Value,omStandard,0);
+{$endif}
+         end;
+        end;
+       end else if StackItem.JSONItem is TPasJSONItemString then begin
+{$ifdef UseOwnStringBuilder}
+        AddString(TPasJSON.StringQuote(TPasJSONItemString(StackItem.JSONItem).Value));
+{$else}
+        result:=result+TPasJSON.StringQuote(TPasJSONItemString(StackItem.JSONItem).Value);
+{$endif}
+       end else if StackItem.JSONItem is TPasJSONItemArray then begin
+{$ifdef UseOwnStringBuilder}
+        AddString('[');
+        if aFormatting then begin
+         AddString(#13#10);
+        end;
+{$else}
+        result:=result+'[';
+        if aFormatting then begin
+         result:=result+#13#10;
+        end;
+{$endif}
+        Push(StackItem.JSONItem,1,0,StackItem.Level);
+        if TPasJSONModeFlag.ImplicitRootObject in aModeFlags then begin
+         LevelOffset:=-1;
+        end else begin
+         LevelOffset:=0;
+        end;
+        Push(StackItem.JSONItem,2,0,StackItem.Level+LevelOffset);
+       end else if StackItem.JSONItem is TPasJSONItemObject then begin
+        if (not (TPasJSONModeFlag.ImplicitRootObject in aModeFlags)) or (aLevel<>0) then begin
+{$ifdef UseOwnStringBuilder}
+         AddString('{');
+         if aFormatting then begin
+          AddString(#13#10);
+         end;
+{$else}
+         result:=result+'{';
+         if aFormatting then begin
+          result:=result+#13#10;
+         end;
+{$endif}
+        end else begin
+{$ifdef UseOwnStringBuilder}
+         OutputString:='';
+         OutputStringLen:=0;
+{$else}
+         result:='';
+{$endif}
+        end;
+        Push(StackItem.JSONItem,4,0,StackItem.Level);
+        if TPasJSONModeFlag.ImplicitRootObject in aModeFlags then begin
+         LevelOffset:=-1;
+        end else begin
+         LevelOffset:=0;
+        end;
+        Push(StackItem.JSONItem,5,0,StackItem.Level+LevelOffset);
+       end else begin
+{$ifdef UseOwnStringBuilder}
+        AddString('null');
+{$else}
+        result:=result+'null';
+{$endif}
+       end;
+      end else begin
+{$ifdef UseOwnStringBuilder}
+       AddString('null');
+{$else}
+       result:=result+'null';
+{$endif}
+      end;
+     end;
+     1:begin
+{$ifdef UseOwnStringBuilder}
+      if aFormatting then begin
+       for Ident:=0 to StackItem.Level do begin
+        AddString('  ');
+       end;
+      end;
+      AddString(']');
+{$else}
+      if aFormatting then begin
+       for Ident:=1 to StackItem.Level do begin
+        result:=result+'  ';
+       end;
+      end;
+      result:=result+']';
+{$endif}
+     end;
+     2:begin
+      if StackItem.Index<TPasJSONItemArray(StackItem.JSONItem).Count then begin
+{$ifdef UseOwnStringBuilder}
+       if aFormatting then begin
+        for Ident:=0 to StackItem.Level do begin
+         AddString('  ');
+        end;
+       end;
+{$else}
+       if aFormatting then begin
+        for Ident:=0 to StackItem.Level do begin
+         result:=result+'  ';
+        end;
+       end;
+{$endif}
+       Push(StackItem.JSONItem,3,StackItem.Index,StackItem.Level);
+       Push(TPasJSONItemArray(StackItem.JSONItem).Items[StackItem.Index],0,0,StackItem.Level+1);
+      end;
+     end;
+     3:begin
+{$ifdef UseOwnStringBuilder}
+      if ((StackItem.Index+1)<TPasJSONItemArray(StackItem.JSONItem).Count) and not (TPasJSONModeFlag.OptionalCommas in aModeFlags) then begin
+       AddString(',');
+      end;
+      if aFormatting then begin
+       AddString(#13#10);
+      end;
+      if aFormatting then begin
+       for Ident:=1 to StackItem.Level do begin
+        AddString('  ');
+       end;
+      end;
+{$else}
+      if ((StackItem.Index+1)<TPasJSONItemArray(StackItem.JSONItem).Count) and not (TPasJSONModeFlag.OptionalCommas in aModeFlags) then begin
+       result:=result+',';
+      end;
+      if aFormatting then begin
+        result:=result+#13#10;
+      end;
+      if aFormatting then begin
+       for Ident:=1 to StackItem.Level do begin
+        result:=result+'  ';
+       end;
+      end;
+{$endif}
+      if (StackItem.Index+1)<TPasJSONItemArray(StackItem.JSONItem).Count then begin
+       Push(StackItem.JSONItem,2,StackItem.Index+1,StackItem.Level);
+      end;
+     end;
+     4:begin
+{$ifdef UseOwnStringBuilder}
+      if aFormatting then begin
+       for Ident:=0 to StackItem.Level do begin
+        AddString('  ');
+       end;
+      end;
+      if (not (TPasJSONModeFlag.ImplicitRootObject in aModeFlags)) or (StackItem.Level<>0) then begin
+       AddString('}');
+      end;
+{$else}
+      if aFormatting then begin
+       for Ident:=1 to StackItem.Level do begin
+        result:=result+'  ';
+       end;
+      end;
+      if (not (TPasJSONModeFlag.ImplicitRootObject in aModeFlags)) or (StackItem.Level<>0) then begin
+       result:=result+'}';
+      end;
+{$endif}
+     end;
+     5:begin
+      if StackItem.Index<TPasJSONItemObject(StackItem.JSONItem).Count then begin
+       if aFormatting then begin
+        for Ident:=0 to StackItem.Level do begin
+{$ifdef UseOwnStringBuilder}
+         AddString('  ');
+{$else}
+         result:=result+'  ';
+{$endif}
+        end;
+       end;
+       Key:=TPasJSONItemObject(StackItem.JSONItem).Keys[StackItem.Index];
+       if (TPasJSONModeFlag.UnquotedKeys in aModeFlags) and IsIdentifier(Key) then begin
+{$ifdef UseOwnStringBuilder}
+        AddString(TPasJSONRawByteString(Key));
+{$else}
+        result:=result+TPasJSONRawByteString(Key);
+{$endif}
+       end else begin
+{$ifdef UseOwnStringBuilder}
+        AddString(TPasJSON.StringQuote(Key));
+{$else}
+        result:=result+TPasJSON.StringQuote(Key);
+{$endif}
+       end;
+       if TPasJSONModeFlag.EqualsForColon in aModeFlags then begin
+        if aFormatting then begin
+{$ifdef UseOwnStringBuilder}
+         AddString(' ');
+{$else}
+         result:=result+' ';
+{$endif}
+        end;
+{$ifdef UseOwnStringBuilder}
+        AddString('=');
+{$else}
+        result:=result+'=';
+{$endif}
+       end else begin
+{$ifdef UseOwnStringBuilder}
+        AddString(':');
+{$else}
+        result:=result+':';
+{$endif}
+       end;
+       if aFormatting then begin
+{$ifdef UseOwnStringBuilder}
+        AddString(' ');
+{$else}
+        result:=result+' ';
+{$endif}
+       end;
+       Push(StackItem.JSONItem,6,StackItem.Index,StackItem.Level);
+       Push(TPasJSONItemObject(StackItem.JSONItem).Values[StackItem.Index],0,0,StackItem.Level+1);
+      end;
+     end;
+     6:begin
+      if ((StackItem.Index+1)<TPasJSONItemObject(StackItem.JSONItem).Count) and not (TPasJSONModeFlag.OptionalCommas in aModeFlags) then begin
+{$ifdef UseOwnStringBuilder}
+       AddString(',');
+{$else}
+       result:=result+',';
+{$endif}
+      end;
+      if aFormatting then begin
+{$ifdef UseOwnStringBuilder}
+       AddString(#13#10);
+{$else}
+       result:=result+#13#10;
+{$endif}
+      end;
+      if (StackItem.Index+1)<TPasJSONItemObject(StackItem.JSONItem).Count then begin
+       Push(StackItem.JSONItem,5,StackItem.Index+1,StackItem.Level);
+      end;
+     end;
+    end;
+   end;
+  finally
+   StackItems:=nil;
+  end;
+{$ifdef UseOwnStringBuilder}
+  if OutputStringLen>0 then begin
+   SetLength(OutputString,OutputStringLen);
+   result:=OutputString;
+  end else begin
+   result:='null';
+  end;
+{$endif}
+ end else begin
+  result:='null';
+ end;
+end;
+{$ifend}
 
 class procedure TPasJSON.StringifyToStream(const aStream:TStream;const aJSONItem:TPasJSONItem;const aFormatting:boolean=false;const aModeFlags:TPasJSONModeFlags=[];const aLevel:TPasJSONInt32=0);
 var StringValue:TPasJSONRawByteString;
@@ -2001,6 +2480,19 @@ begin
   result:=Trunc(TPasJSONItemNumber(aItem).Value);
  end else if assigned(aItem) and (aItem is TPasJSONItemString) then begin
   result:=StrToInt64Def(TPasJSONItemString(aItem).Value,aDefault);
+ end else if assigned(aItem) and (aItem is TPasJSONItemBoolean) then begin
+  result:=ord(TPasJSONItemBoolean(aItem).Value) and 1;
+ end else begin
+  result:=aDefault;
+ end;
+end;
+
+class function TPasJSON.GetUInt64(const aItem:TPasJSONItem;const aDefault:TPasJSONUInt64=0):TPasJSONUInt64;
+begin
+ if assigned(aItem) and (aItem is TPasJSONItemNumber) then begin
+  result:=Trunc(TPasJSONItemNumber(aItem).Value);
+ end else if assigned(aItem) and (aItem is TPasJSONItemString) then begin
+  result:=StrToUInt64Def(TPasJSONItemString(aItem).Value,aDefault);
  end else if assigned(aItem) and (aItem is TPasJSONItemBoolean) then begin
   result:=ord(TPasJSONItemBoolean(aItem).Value) and 1;
  end else begin

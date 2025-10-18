@@ -820,10 +820,24 @@ var
         end;
       end else
       begin
+        { Read unknown data types as JSON string.
         WritelnWarning('Cannot read glTF extra "%s", unexpected type inside array %s', [
           Key,
           JsonArray[0].ClassName
         ]);
+        }
+
+        Node.MetadataStringArray[Key, JsonArray.Count - 1] := ''; // set array size
+        for J := 0 to JsonArray.Count - 1 do
+        begin
+          Node.MetadataStringArray[Key, J] := TPasJSON.Stringify(JsonArray[J]);
+          { WritelnWarning('Saving glTF extra "%s" index %d as JSON string, unhandled type %s, saved as "%s"', [
+            Key,
+            J,
+            JsonArray[J].ClassName,
+            Node.MetadataStringArray[Key, J]
+          ]); }
+        end;
       end;
     end;
   end;
@@ -867,11 +881,29 @@ var
         MetadataSet.FdValue.Add(DoubleNode);
       end else
       begin
+        { Anything else, like TPasJSONItemNull or TPasJSONItemObject,
+          convert to JSON string, and save like that to X3D metadata. }
+        StrNode := TMetadataStringNode.Create;
+        StrNode.NameField := JsonObject.Keys[I];
+        StrNode.SetValue([TPasJSON.Stringify(JsonObject.Values[I])]);
+        MetadataSet.FdValue.Add(StrNode);
+
+        {
+        WritelnWarning('Saving glTF object "%s" inside extra metadata, field "%s", unhandled type %s as JSON string, saved as "%s"', [
+          Key,
+          JsonObject.Keys[I],
+          JsonObject.Values[I].ClassName,
+          TPasJSON.Stringify(JsonObject.Values[I])
+        ]);
+        }
+
+        {
         WritelnWarning('Cannot read glTF object "%s" inside extra metadata, field "%s", unhandled type %s', [
           Key,
           JsonObject.Keys[I],
           JsonObject.Values[I].ClassName
         ]);
+        }
       end;
     end;
   end;
