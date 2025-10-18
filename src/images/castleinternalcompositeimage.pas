@@ -320,13 +320,9 @@ procedure TCompositeImage.LoadFromStream(Stream: TStream; const Url: String;
   const Options: TLoadImageOptions = []);
 var
   Handler: TCompositeFormatHandler;
+  Image: TEncodedImage;
 begin
   Close;
-
-  if liFlipVertically in Options then
-    WritelnWarning('ImageTexture.flipVertically for DDS/KTX not implemented yet, the image will be inverted: %s', [
-      UriDisplay(Url)
-    ]);
 
   if MimeType = '' then
     MimeType := UriMimeType(Url);
@@ -342,6 +338,12 @@ begin
 
   try
     Handler.LoadFromStream(Stream, Url);
+
+    if liFlipVertically in Options then
+    begin
+      for Image in Images do
+        Image.FlipVertical;
+    end;
   finally FreeAndNil(Handler) end;
 end;
 
