@@ -14,7 +14,12 @@
   ----------------------------------------------------------------------------
 }
 
-{ KTX loading and saving. See https://castle-engine.io/ktx }
+{ KTX loading and saving.
+  See https://castle-engine.io/ktx for KTX overview and how to use
+  it in Castle Game Engine.
+
+  See KTX specs https://registry.khronos.org/KTX/ .
+  This file implements KTX 1, https://registry.khronos.org/KTX/specs/1.0/ktxspec.v1.html  }
 
 { Log do we use fast or slow speed-path for loading / saving.
   "Fast speed path" means we can use 1x ReadBuffer call to move entire data
@@ -614,6 +619,9 @@ begin
       Header.NumberOfFaces         := Swap32(Header.NumberOfFaces        );
       Header.NumberOfMipmapLevels  := Swap32(Header.NumberOfMipmapLevels );
       Header.BytesOfKeyValueData   := Swap32(Header.BytesOfKeyValueData  );
+
+      if Header.GlTypeSize > 1 then
+        WritelnWarning('We need to swap for endianess the texture data (GlTypeSize > 1) but this is not implemented yet.');
     end;
 
     if Header.Endianness <> $04030201 then
