@@ -27,6 +27,9 @@ type
     procedure TestLoadSave;
     procedure TestLoadSaveS3TC;
     procedure TestLoadKtx;
+    procedure TestSaveKtxGrayscale;
+    procedure TestSaveKtxGrayscaleAligned;
+    procedure TestSaveKtxRGBAlpha;
     { TODO: Test reading KTX with cubemap, with and without mipmaps }
   end;
 
@@ -265,6 +268,84 @@ procedure TTestCastleCompositeImage.TestLoadKtx;
 begin
   TestLoadKtxCore(false);
   TestLoadKtxCore(true);
+end;
+
+procedure TTestCastleCompositeImage.TestSaveKtxGrayscale;
+var
+  Img, NewImg: TGrayscaleImage;
+  Stream: TMemoryStream;
+begin
+  { Note that this also forces slow saving and loading using padding,
+    as row byte size is 2, should be aligned to 4. }
+  Img := TGrayscaleImage.Create(2, 2);
+  try
+    Img.PixelPtr(0, 0)^ := 100;
+    Img.PixelPtr(1, 0)^ := 101;
+    Img.PixelPtr(0, 1)^ := 102;
+    Img.PixelPtr(1, 1)^ := 103;
+
+    Stream := TMemoryStream.Create;
+    try
+      SaveImage(Img, 'image/ktx', Stream);
+      Stream.Position := 0;
+
+      NewImg := LoadImage(Stream, 'image/ktx', []) as TGrayscaleImage;
+      try
+        AssertImagesEqual(Img, NewImg);
+      finally FreeAndNil(NewImg) end;
+    finally FreeAndNil(Stream) end;
+  finally FreeAndNil(Img) end;
+end;
+
+procedure TTestCastleCompositeImage.TestSaveKtxGrayscaleAligned;
+var
+  Img, NewImg: TGrayscaleImage;
+  Stream: TMemoryStream;
+begin
+  { This should be saved using fast path, no padding. }
+  Img := TGrayscaleImage.Create(4, 1);
+  try
+    Img.PixelPtr(0, 0)^ := 100;
+    Img.PixelPtr(1, 0)^ := 101;
+    Img.PixelPtr(2, 0)^ := 102;
+    Img.PixelPtr(3, 0)^ := 103;
+
+    Stream := TMemoryStream.Create;
+    try
+      SaveImage(Img, 'image/ktx', Stream);
+      Stream.Position := 0;
+
+      NewImg := LoadImage(Stream, 'image/ktx', []) as TGrayscaleImage;
+      try
+        AssertImagesEqual(Img, NewImg);
+      finally FreeAndNil(NewImg) end;
+    finally FreeAndNil(Stream) end;
+  finally FreeAndNil(Img) end;
+end;
+
+procedure TTestCastleCompositeImage.TestSaveKtxRGBAlpha;
+var
+  Img, NewImg: TRGBAlphaImage;
+  Stream: TMemoryStream;
+begin
+  Img := TRGBAlphaImage.Create(2, 2);
+  try
+    Img.PixelPtr(0, 0)^ := Vector4Byte(100, 101, 102, 103);
+    Img.PixelPtr(1, 0)^ := Vector4Byte(104, 105, 106, 107);
+    Img.PixelPtr(0, 1)^ := Vector4Byte(108, 109, 110, 111);
+    Img.PixelPtr(1, 1)^ := Vector4Byte(112, 113, 114, 115);
+
+    Stream := TMemoryStream.Create;
+    try
+      SaveImage(Img, 'image/ktx', Stream);
+      Stream.Position := 0;
+
+      NewImg := LoadImage(Stream, 'image/ktx', []) as TRGBAlphaImage;
+      try
+        AssertImagesEqual(Img, NewImg);
+      finally FreeAndNil(NewImg) end;
+    finally FreeAndNil(Stream) end;
+  finally FreeAndNil(Img) end;
 end;
 
 initialization

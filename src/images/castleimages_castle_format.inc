@@ -15,46 +15,7 @@
 }
 
 { Support for loading and saving images in .castle-image format.
-
-  Features of .castle-image format:
-
-  - .castle-image is a super-simple image file format that matches
-    the structure of images in CGE memory.
-
-    After a short binary header (that specified the image class, size)
-    the image data follows,
-    with layout that matches the memory layout of TEncodedImage.RawPixels
-    (on little-endian CPUs).
-
-  - The format can be both loaded and saved extremely efficiently by CGE.
-
-    That's a consequence of the above:
-    we can just copy the memory contents of TEncodedImage.RawPixels
-    to the file, and back.
-
-  - It can represent any TEncodedImage descendant,
-    so both TGPUCompressedImage and TCastleImage.
-
-  - It can represent 3D images (Depth > 1).
-
-  Limitations:
-
-  - For now, it cannot represent
-    - mipmaps of the image
-    - cubemaps
-    (for that, use DDS or KTX).
-
-  - The file size is large -- it's just equal to the size of
-    TEncodedImage.RawPixels.
-
-    Which is just uncompressed image data (in case of TCastleImage) or
-    GPU-compressed data (in case of TGPUCompressedImage),
-    but even GPU-compression algorithms are not very efficient for size
-    (that's not their point, their point is to enable decompression
-    on GPU of only the necessary data).
-
-    So, this is *not* the format to use if you care
-    about file size. Use standard PNG or JPEG instead in that case.
+  See https://castle-engine.io/castle_image_file_format .
 }
 
 type
@@ -76,7 +37,14 @@ type
     cicRGBAlphaFloat
   );
 
-  { Header that starts every .castle-image file. }
+  { Header that starts every .castle-image file.
+
+    Endianess: Everything is in
+    @url(https://en.wikipedia.org/wiki/Endianness little-endian order).
+    Our read/write code converts little-endian <-> native,
+    though note that ~all our existing systems are little-endian now,
+    so NToLE/LEtoN conversions do nothing in most cases.
+  }
   TCastleImageFormatHeader = packed record
     { Always "CastleImage" (11 bytes). }
     Initial: array [0 .. 10] of AnsiChar; // "CastleImage"

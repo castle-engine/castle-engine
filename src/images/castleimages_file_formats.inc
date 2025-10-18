@@ -191,6 +191,7 @@ procedure SavePNM(const Img: TEncodedImage; const Stream: TStream); forward;
 procedure SaveJPEG(const Img: TEncodedImage; const Stream: TStream); forward;
 procedure SaveRGBE(const Img: TEncodedImage; const Stream: TStream); forward;
 procedure SaveDDS(const Img: TEncodedImage; const Stream: TStream); forward;
+procedure SaveKTX(const Img: TEncodedImage; const Stream: TStream); forward;
 procedure Save_CastleImageFormat(const Img: TEncodedImage; const Stream: TStream); forward;
 {$ifdef CASTLE_ENABLE_PLATFORM_SPECIFIC_IMAGE_FORMATS}
 procedure SaveTIFF(const Img: TEncodedImage; const Stream: TStream); forward;
@@ -526,7 +527,7 @@ const
       MimeTypes: ('image/ktx', '', '', '', '', '', '');
       ExtsCount: 1; Exts: ('ktx', '', '', '');
       Load: {$ifdef FPC}@{$endif}LoadKTX;
-      Save: nil;
+      Save: {$ifdef FPC}@{$endif}SaveKTX;
       DetectClass: nil;
     ),
     { ASTC } { }

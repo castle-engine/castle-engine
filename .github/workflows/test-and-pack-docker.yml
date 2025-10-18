@@ -116,7 +116,6 @@ jobs:
       - name: Build Examples Using Lazarus (FPC / Lazarus Stable)
         run: make clean examples-laz CASTLE_CONSERVE_DISK_SPACE=true
 
-
   pack_1:
     name: Pack to zip (1)
 
@@ -155,7 +154,7 @@ jobs:
           path: "castle-engine*.zip"
           if-no-files-found: error
 
-  # We split pack into two jobs to avoid running out of disk space
+  # We split pack into more>1 jobs to avoid running out of disk space
   # on GH hosted runners, no other reason.
   pack_2:
     name: Pack to zip (2)
@@ -177,12 +176,38 @@ jobs:
           fileName: "*"
       - name: Pack With Bundled FPC for Win64/x86_64
         run: CGE_PACK_BUNDLE=yes ./tools/internal/pack_release/pack_release.sh win64 x86_64
+
+      - name: Archive Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-and-linux-release-from-docker-2
+          path: "castle-engine*.zip"
+          if-no-files-found: error
+
+  pack_3:
+    name: Pack to zip (3)
+    # TODO: Just like above, workaround zip crashes by using older Ubuntu LTS.
+    #runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
+    container: kambi/castle-engine-cloud-builds-tools:cge-none
+    steps:
+      - uses: actions/checkout@v5
+      - name: Set environment
+        run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+
+      - name: Download bundled FPC
+        uses: robinraju/release-downloader@v1.12
+        with:
+          repository: "castle-engine/cge-fpc"
+          latest: true
+          # Docs suggest we need a wildcard to get all files: https://github.com/marketplace/actions/release-downloader
+          fileName: "*"
       - name: Pack With Bundled FPC for Linux/x86_64
         run: CGE_PACK_BUNDLE=yes ./tools/internal/pack_release/pack_release.sh linux x86_64
 
       - name: Archive Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: windows-and-linux-release-from-docker-2
+          name: windows-and-linux-release-from-docker-3
           path: "castle-engine*.zip"
           if-no-files-found: error
