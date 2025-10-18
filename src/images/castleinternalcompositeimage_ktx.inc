@@ -24,7 +24,7 @@
 { Log do we use fast or slow speed-path for loading / saving.
   "Fast speed path" means we can use 1x ReadBuffer call to move entire data
   between TStream and TEncodedImage.RawPixels, so this is ideal situation. }
-{.$define CASTLE_KTX_LOG_SPEED}
+{$define CASTLE_KTX_LOG_SPEED}
 
 { TKTXHandler ----------------------------------------------------------------- }
 

@@ -13,7 +13,7 @@ See https://castle-engine.io/creating_data_auto_generated_textures.php
   The castle-image format will load faster than anything else in CGE.
   -->
   <auto_generated_textures>
-    <preferred_output_format extension=".castle-image" />
+    <preferred_output_format extension=".ktx" />
     <trivial_uncompressed_convert />
     <include path="quaternius/*" recursive="True" />
   </auto_generated_textures>
