@@ -164,13 +164,28 @@ type
 type
   { Information about skin, to be used later. }
   TSkinToInitialize = class
-    { Direct children of this grouping node
+    { Each item here is a TAbstractGroupingNode.
+      Direct children of each of TAbstractGroupingNode (grouping node) here
       (that are TShapeNode and have SkinWeights0 and SkinJoints0 fields)
       should have skinning applied. }
-    Shapes: TAbstractGroupingNode;
+    ParentsOfShapes: TX3DNodeList;
+    constructor Create;
+    destructor Destroy; override;
   end;
 
   TSkinToInitializeList = {$ifdef FPC}specialize{$endif} TObjectDictionary<TPasGLTF.TSkin, TSkinToInitialize>;
+
+constructor TSkinToInitialize.Create;
+begin
+  inherited;
+  ParentsOfShapes := TX3DNodeList.Create(false);
+end;
+
+destructor TSkinToInitialize.Destroy;
+begin
+  FreeAndNil(ParentsOfShapes);
+  inherited;
+end;
 
 { TAnimation ----------------------------------------------------------------- }
 
@@ -1939,20 +1954,22 @@ var
     procedure ApplySkin(const Skin: TPasGLTF.TSkin);
     var
       SkinToInitialize: TSkinToInitialize;
-      Shapes: TAbstractGroupingNode;
+      ParentOfShapes: TAbstractGroupingNode;
     begin
-      if SkinsToInitialize.ContainsKey(Skin) then
+      { Look for existing Skin in SkinsToInitialize first,
+        in case the same Skin is used by multiple nodes.
+        Testcases:
+        - Bunny.gltf in data/ of tests/, both Bunny and Carrot meshes refer to same skin.
+        - Naxiah from Seeds. }
+      if not SkinsToInitialize.TryGetValue(Skin, SkinToInitialize) then
       begin
-        // Testcase: Bunny.gltf in data/ of this project, both Bunny and Carrot meshes refer to same skin.
-        WritelnWarning('TODO: Skin used by multiple nodes, not supported now');
-        Exit;
+        SkinToInitialize := TSkinToInitialize.Create;
+        SkinsToInitialize.Add(Skin, SkinToInitialize);
       end;
 
-      SkinToInitialize := TSkinToInitialize.Create;
-      SkinsToInitialize.Add(Skin, SkinToInitialize);
-      // Shapes is the group created inside ReadMesh
-      Shapes := Transform.FdChildren.InternalItems.Last as TAbstractGroupingNode;
-      SkinToInitialize.Shapes := Shapes;
+      // ParentOfShapes is the group created inside ReadMesh
+      ParentOfShapes := Transform.FdChildren.InternalItems.Last as TAbstractGroupingNode;
+      SkinToInitialize.ParentsOfShapes.Add(ParentOfShapes);
     end;
 
   var
@@ -2342,7 +2359,8 @@ var
     SkinNode: TSkinNode;
     SkeletonRootIndex: Integer;
     I: Integer;
-    Shapes: TAbstractGroupingNode;
+    ParentOfShapesUncasted: TX3DNode;
+    ParentOfShapes: TAbstractGroupingNode;
     ShapeNode: TShapeNode;
   begin
     SkinNode := TSkinNode.Create(Skin.Name, BaseUrl);
@@ -2398,41 +2416,44 @@ var
         Exit;
       end;
 
-      // move shapes tp SkinNode.Shapes
-      Shapes := SkinToInitialize.Shapes;
-      I := 0;
-      while I < Shapes.FdChildren.Count do
+      // move shapes underneath SkinToInitialize.ParentsOfShapes to SkinNode.Shapes
+      for ParentOfShapesUncasted in SkinToInitialize.ParentsOfShapes do
       begin
-        if Shapes.FdChildren[I] is TShapeNode then
+        ParentOfShapes := ParentOfShapesUncasted as TAbstractGroupingNode;
+        I := 0;
+        while I < ParentOfShapes.FdChildren.Count do
         begin
-          ShapeNode := TShapeNode(Shapes.FdChildren[I]);
+          if ParentOfShapes.FdChildren[I] is TShapeNode then
+          begin
+            ShapeNode := TShapeNode(ParentOfShapes.FdChildren[I]);
 
-          { Make shapes collide as simple boxes.
-            We don't want to recalculate octree of their triangles each frame,
-            and their boxes are easy, since we fill shape's bbox.
-            TODO: Shape.BBox is not calculated now. }
-          ShapeNode.Collision := scBox;
+            { Make shapes collide as simple boxes.
+              We don't want to recalculate octree of their triangles each frame,
+              and their boxes are easy, since we fill shape's bbox.
+              TODO: Shape.BBox is not calculated now. }
+            ShapeNode.Collision := scBox;
 
-          ShapeNode.BBox := EnlargeBoxForAnimation(ShapeNode.BBox);
+            ShapeNode.BBox := EnlargeBoxForAnimation(ShapeNode.BBox);
 
-          { To satisfy glTF requirements
-            """
-            Client implementations should apply only the transform of the skeleton root
-            node to the skinned mesh while ignoring the transform of the skinned mesh node.
-            """
-            (later rephrased in glTF as
-            """
-            Only the joint transforms are applied to the skinned mesh;
-            the transform of the skinned mesh node MUST be ignored.
-            """
+            { To satisfy glTF requirements
+              """
+              Client implementations should apply only the transform of the skeleton root
+              node to the skinned mesh while ignoring the transform of the skinned mesh node.
+              """
+              (later rephrased in glTF as
+              """
+              Only the joint transforms are applied to the skinned mesh;
+              the transform of the skinned mesh node MUST be ignored.
+              """
 
-            Solution: Just reparent the meshes under TSkinNode.
+              Solution: Just reparent the meshes under TSkinNode.
 
-            Testcase: demo-models/blender/skinned_animation/skinned_anim.glb . }
-          SkinNode.FdShapes.Add(ShapeNode);
-          Shapes.FdChildren.Delete(I);
-        end else
-          Inc(I);
+              Testcase: demo-models/blender/skinned_animation/skinned_anim.glb . }
+            SkinNode.FdShapes.Add(ShapeNode);
+            ParentOfShapes.FdChildren.Delete(I);
+          end else
+            Inc(I);
+        end;
       end;
     finally
       // If we Exit above prematurely, because some check fails,
