@@ -273,18 +273,30 @@
 
   See https://castle-engine.io/coding_conventions#case_analysis .
 
-  This is true for FPC > 3.2 now. }
+  This is true for FPC > 3.2 now.
+
+  Note: We disable the related warnings (see lower in this file),
+  because in some cases there's just no good solution.
+  And it makes it hard to write code that also works
+  for compilers without case analysis, like FPC 3.2.x and Delphi.
+
+  However, we still define COMPILER_CASE_ANALYSIS, because when it is undefined
+  -- another FPC problem strikes, $warning off + $warning on
+  seems to reset the state of warnings, so the warning "Unreachable code"
+  is reported for all "else ..." for case that exhausts all options.
+
+  Looks like the only way to have sane behavior with FPC 3.3.1
+  (no flood of warnings, and code that works with various compilers)
+  is to behave as if COMPILER_CASE_ANALYSIS, but also have
+  "$warn 6060 off" // case statement does not handle all possible cases
+  lower.
+}
 
 {$ifdef FPC}
   {$ifndef VER3_0}
     {$ifndef VER3_1}
       {$ifndef VER3_2}
-        {...But we disable the related warnings (see lower in this file),
-          because in some cases there's just no good solution.
-          And it makes it hard to write code that also works
-          for compilers without case analysis, like FPC 3.2.x and Delphi.
-          So now we don't define COMPILER_CASE_ANALYSIS at all. }
-        {.$define COMPILER_CASE_ANALYSIS}
+        {$define COMPILER_CASE_ANALYSIS}
       {$endif}
     {$endif}
   {$endif}
