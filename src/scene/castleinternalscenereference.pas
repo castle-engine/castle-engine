@@ -21,6 +21,7 @@ unit CastleInternalSceneReference;
 
 interface
 
+(*// not ready now, doesn't compile
 uses Generics.Collections,
   CastleShapes;
 
@@ -68,6 +69,7 @@ type
     { Original scene that we customize in this TCastleSceneInstance. }
     property Reference: TCastleScene read FReference write SetReference;
   end;
+*)
 
 implementation
 
