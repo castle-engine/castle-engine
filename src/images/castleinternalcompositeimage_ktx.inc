@@ -24,7 +24,7 @@
 { Log do we use fast or slow speed-path for loading / saving.
   "Fast speed path" means we can use 1x ReadBuffer call to move entire data
   between TStream and TEncodedImage.RawPixels, so this is ideal situation. }
-{$define CASTLE_KTX_LOG_SPEED}
+{.$define CASTLE_KTX_LOG_SPEED}
 
 { TKTXHandler ----------------------------------------------------------------- }
 
@@ -334,11 +334,13 @@ begin
   end else
     WritelnWarning('KTX', 'Unrecognized KTX orientation "%s"', [Value]);
 
+  {$ifdef CASTLE_KTX_LOG_SPEED}
   WritelnLog('KTX', 'Got KTX orientation "%s". RowsTopToBottom: %s, SlicesFrontToBack: %s.', [
     Value,
     BoolToStr(RowsTopToBottom, true),
     BoolToStr(SlicesFrontToBack, true)
   ]);
+  {$endif CASTLE_KTX_LOG_SPEED}
 end;
 
 procedure TKTXHandler.ReadKeyValues(const Stream: TStream);
