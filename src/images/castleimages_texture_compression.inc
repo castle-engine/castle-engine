@@ -376,7 +376,7 @@ begin
     tcASTC_12x12_SRGB8_ALPHA8 : Result := GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x12_KHR;
 
     {$ifndef COMPILER_CASE_ANALYSIS}
-    else raise EImageClassNotSupportedForOpenGL.Create('TGPUCompressedImage.Compression not supported by OpenGL');
+    else raise EInternalError.Create('Compression value not supported by OpenGL / KTX constant, which should be impossible for current TTextureCompression values.');
     {$endif}
   end;
 end;
