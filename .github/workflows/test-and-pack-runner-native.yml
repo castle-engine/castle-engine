@@ -26,21 +26,43 @@ jobs:
     name: Test and Pack
     strategy:
       matrix:
-        # TODO:
-        # Readd macos-latest:
-        #
-        # Fails teapot-to-pascal compilation with:
-        #
-        # Undefined symbols for architecture arm64:
-        #   "_LSOpenCFURLRef", referenced from:
-        #       _CASTLEOPENDOCUMENT_$$_OPENURL$ANSISTRING$$BOOLEAN in castleopendocument.o
-        #
-        # Note: We cannot macos-12 (last Intel-based mac), it's removed now: https://github.com/actions/runner-images/issues/10721
-        #
-        # TODO: Using ubuntu-22.04 instead of ubuntu-latest as a workaround for zip crashes,
-        # see test-and-pack-docker.yml notes.
+        runner: [
+          macos_x64,
 
-        runner: [macos_x64, ubuntu-22.04, windows-latest]
+          # TODO: Using GH-hosted mac + Lazarus (not only bare FPC)
+          # seems impossible now, even for Intel-based mac.
+          #
+          # - gcarreno/setup-lazarus@v3.3.1 fails on macos-15-intel with
+          #   "This package is incompatible with this version of macOS. Contact the developer for support."
+          #
+          # - gcarreno/setup-lazarus@v3.3.1 worked on macos-13,
+          #   but macos-13 is removed now from GitHub.
+          #
+          # - brew "lazarus" package depends on fpc-laz and is deprecated
+          #   and fails to install with
+          #   "This package is incompatible with this version of macOS. Contact the developer for support."
+          #
+          # Note that GH-hosted mac + FPC is still OK, as "brew install fpc" is OK.
+          # But this workflow needs lazbuild.
+          #macos-15-intel,
+
+          # TODO: Using GH-hosted mac with FPC/Aarch64 is also not OK.
+          #
+          # FPC 3.2.2 fails to link on macOS/Aarch64 for now.
+          # 1. Undefined symbols for architecture arm64: "_LSOpenCFURLRef",
+          #   but even after removing it's usage from OpenDocument:
+          # 2. ./ppaslink.sh: line 9:  5516 Segmentation fault: 11 ...
+          #
+          # In addition see above about problems with macos-15-intel.
+
+          # TODO: Using ubuntu-22.04 instead of ubuntu-latest as a workaround
+          # for zip crashes,
+          # see test-and-pack-docker.yml notes.
+          #ubuntu-latest,
+          ubuntu-22.04,
+
+          windows-latest
+        ]
         include:
           # To not overload the slower RPi, use it only with master
           # Later: removed using self-hosted runners for RPi, to cut costs.
@@ -56,9 +78,10 @@ jobs:
           - is_macos: false
           - runner: macos_x64
             is_macos: true
-          - runner: macos-13
-            is_macos: true
-          # Uncomment this once we reeanable macos-latest
+          # TODO: See above for reasons why this is disabled.
+          # - runner: macos-15-intel
+          #   is_macos: true
+          # TODO: See above for reasons why this is disabled.
           # - runner: macos-latest
           #   is_macos: true
 
@@ -72,10 +95,14 @@ jobs:
 
     - name: Install FPC+Lazarus
       # On GH hosted runners, install FPC+Lazarus
-      if: ${{ matrix.is_gh_ubuntu || matrix.runner == 'macos-latest' || matrix.runner == 'macos-13' || matrix.runner == 'windows-latest'}}
+      if: ${{ matrix.is_gh_ubuntu || matrix.runner == 'windows-latest'}}
       uses: gcarreno/setup-lazarus@v3.3.1
       with:
         lazarus-version: stable
+    - name: Install FPC+Lazarus (brew)
+      # On GH hosted runners, install FPC+Lazarus
+      if: ${{ matrix.runner == 'macos-latest' || matrix.runner == 'macos-15-intel'}}
+      run: brew install fpc lazarus
     - name: Install Linux dependencies
       if: ${{ matrix.is_gh_ubuntu }}
       # Run "apt-get update" before installing, following https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners/customizing-github-hosted-runners
@@ -84,7 +111,7 @@ jobs:
         sudo apt-get --no-install-recommends -y install libgl-dev
     - name: Install macOS dependencies (on GH hosted macs)
       # We do this only on GH hosted macs, not on our macos_x64, because on our mac: 1. this is already installed, 2. ci user doesn't have permissions to install more.
-      if: ${{ matrix.runner == 'macos-latest' || matrix.runner == 'macos-13'}}
+      if: ${{ matrix.runner == 'macos-latest' || matrix.runner == 'macos-15-intel'}}
       run: brew install gnu-sed coreutils findutils
     - name: Install Windows dependencies
       if: ${{ matrix.runner == 'windows-latest' }}
@@ -248,7 +275,8 @@ jobs:
     - name: Archive Artifacts (zip)
       # We don't archive build on:
       #
-      # - macos-13, because build on macos_x64 is already good for us.
+      # - macos-xxx (GH hosted),
+      #   because build on macos_x64 (self-hosted) is already good for us.
       #   Testing, both these runners produce the functionally equivalent zip
       #   (there are small differences in binaries, though both use the same FPC version
       #   but e.g. FPC puts absolute paths in some binaries, so they differ).
@@ -280,7 +308,7 @@ jobs:
       #   PasDoc version in Docker is more consistent,
       #   and the build does not rely on cge_clean_all.
       #
-      if: ${{ matrix.runner != 'macos-13' && matrix.runner != 'windows-latest' && !matrix.is_gh_ubuntu }}
+      if: ${{ matrix.runner != 'macos-15-intel' && matrix.runner != 'windows-latest' && !matrix.is_gh_ubuntu }}
       uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.runner }}-release

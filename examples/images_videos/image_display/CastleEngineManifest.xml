@@ -12,11 +12,6 @@ See https://castle-engine.io/project_manifest for documentation of this file.
   caption="Test Image Loading and Displaying"
 >
   <compiler_options>
-    <custom_options>
-      <!-- Without Vampyre, XPM reading will fail -->
-      <!-- Using Vampyre is the default now -->
-      <!-- <option>-dUSE_VAMPYRE_IMAGING</option> -->
-    </custom_options>
     <search_paths>
       <path value="code/" />
     </search_paths>

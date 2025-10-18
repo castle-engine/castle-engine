@@ -13,8 +13,7 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 >
   <compiler_options detect_memory_leaks="true">
     <defines>
-      <!-- nothing necessary now -->
-      <!--define>....</define-->
+      <define>CASTLE_KTX_LOG_SPEED</define>
     </defines>
     <search_paths>
       <path value="code/" />

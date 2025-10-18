@@ -1,6 +1,6 @@
 {%MainUnit castleinternalcompositeimage.pas}
 {
-  Copyright 2009-2024 Michalis Kamburelis.
+  Copyright 2009-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,7 +14,17 @@
   ----------------------------------------------------------------------------
 }
 
-{ KTX loading. }
+{ KTX loading and saving.
+  See https://castle-engine.io/ktx for KTX overview and how to use
+  it in Castle Game Engine.
+
+  See KTX specs https://registry.khronos.org/KTX/ .
+  This file implements KTX 1, https://registry.khronos.org/KTX/specs/1.0/ktxspec.v1.html  }
+
+{ Log do we use fast or slow speed-path for loading / saving.
+  "Fast speed path" means we can use 1x ReadBuffer call to move entire data
+  between TStream and TEncodedImage.RawPixels, so this is ideal situation. }
+{.$define CASTLE_KTX_LOG_SPEED}
 
 { TKTXHandler ----------------------------------------------------------------- }
 
@@ -70,18 +80,36 @@ type
 
       GL_RGB8           = $8051;
       GL_SRGB8          = $8C41;
+
+      GL_RGBA8 = $8058;
+
       GL_R16            = $822A;
+      GL_RG16           = $822C;
+      GL_RGB16          = $8054;
+      GL_RGBA16         = $805B;
+
       GL_RG8            = $822B;
       GL_RG             = $8227;
       //GL_R16F           = $822D;
+
       GL_R32F           = $822E;
       GL_RG32F          = $8230;
       GL_RGB32F         = $8815;
       GL_RGBA32F        = $8814;
+
       GL_R16UI          = $8234;
+      GL_RG16UI         = $823A;
+      GL_RGB16UI        = $8D77;
+      GL_RGBA16UI       = $8D76;
+
       GL_SRGB8_ALPHA8   = $8C43;
 
       GL_RED_INTEGER    = $8D94;
+      GL_RG_INTEGER     = $8228;
+      GL_RGB_INTEGER    = $8D98;
+      GL_RGBA_INTEGER   = $8D99;
+      //GL_BGR_INTEGER  = $8D9A; // for now unused
+      //GL_BGRA_INTEGER = $8D9B; // for now unused
 
     var
       Header: TKTXHeader;
@@ -91,10 +119,19 @@ type
     procedure ReadKeyValues(const Stream: TStream);
     procedure ReadOrientation(const Value: String);
 
-    { The KTX specification says
-      "Uncompressed texture data matches a GL_UNPACK_ALIGNMENT of 4." }
+    { Bytes to skip after each row.
+
+      Following the KTX specification:
+      "Uncompressed texture data matches a GL_UNPACK_ALIGNMENT of 4."
+      Note that our TCastleImage uses no padding
+      (see src/base_rendering/castleglimages_packing.inc ),
+      though in practice it is often equivalent to padding by 4
+      (since if you have 8-bit RGBA data, or 32-bit float data,
+      or image width divisible by 4, then "align to 4 bytes"
+      is the same as "no padding at all"). }
     function RowBytePadding(const Image: TCastleImage): Integer;
 
+    { Read one image (one TEncodedImage) from Stream. }
     procedure ReadOneImage(const Stream: TStream; const W, H, D: Cardinal);
 
     { Optionally invert Y, depending on RowsTopToBottom.
@@ -105,19 +142,61 @@ type
       D should be depth of the current image. }
     function TargetZ(const Z: Integer; const D: Cardinal): Integer;
 
-    procedure ReadG(const Stream: TStream; const W, H, D: Cardinal);
-    procedure ReadG16(const Stream: TStream; const W, H, D: Cardinal);
-    procedure ReadGA(const Stream: TStream; const W, H, D: Cardinal);
-    procedure ReadRGB(const Stream: TStream; const W, H, D: Cardinal);
-    procedure ReadBGR(const Stream: TStream; const W, H, D: Cardinal);
-    procedure ReadRGBA(const Stream: TStream; const W, H, D: Cardinal);
-    procedure ReadBGRA(const Stream: TStream; const W, H, D: Cardinal);
-    procedure ReadFloatImage(const ImageClass: TCastleImageClass;
-      const Stream: TStream; const W, H, D: Cardinal);
-    procedure ReadCompressed(const Stream: TStream; const Compression: TTextureCompression; const W, H, D: Cardinal);
+    { Read one image, assuming it is using GPU compression.
+
+      @returns Image, for convenience. }
+    function ReadOneImage_Compressed(const Stream: TStream;
+      const Image: TGPUCompressedImage): TGPUCompressedImage;
+
+    { Read one image where:
+      - the memory format for each pixel is the same as the on-disk format,
+      - but we potentially need to:
+        - invert rows (maybe RowsTopToBottom = true),
+        - slices (maybe SlicesFrontToBack = true),
+        - or skip padding (maybe RowBytePadding is non-zero).
+
+      @returns Image, for convenience. }
+    function ReadOneImage_Universal(const Stream: TStream;
+      const Image: TCastleImage): TCastleImage;
+
+    { Read one image where:
+      - the memory format for each pixel is 16-bit integer,
+        but we need to convert it to 32-bit float,
+      - and we potentially need to:
+        - invert rows (maybe RowsTopToBottom = true),
+        - slices (maybe SlicesFrontToBack = true),
+        - or skip padding (maybe RowBytePadding is non-zero).
+
+      @returns Image, for convenience. }
+    function ReadOneImage_16ToFloat(const Stream: TStream;
+      const Image: TCastleImage): TCastleImage;
+
+    { Swap red<->blue in TRGBImage or TRGBAlphaImage.
+
+      @returns Image, for convenience. }
+    function SwapRedBlue(const Image: TCastleImage): TCastleImage;
+
+    { Write to Stream one TEncodedImage. }
+    procedure WriteOneImage(const Stream: TStream; const Image: TEncodedImage);
+
+    {$ifdef CASTLE_KTX_LOG_SPEED}
+    procedure LogSpeed(const Image: TEncodedImage; const S: String);
+    {$endif}
   public
     procedure LoadFromStream(const Stream: TStream; const Url: String); override;
+    procedure SaveToStream(const Stream: TStream); override;
   end;
+
+{$ifdef CASTLE_KTX_LOG_SPEED}
+procedure TKTXHandler.LogSpeed(const Image: TEncodedImage; const S: String);
+begin
+  WritelnLog('KTX', '%s(%dx%dx%d): %s', [
+    Image.ClassName,
+    Image.Width, Image.Height, Image.Depth,
+    S
+  ]);
+end;
+{$endif}
 
 function TKTXHandler.TargetY(const Y: Integer; const H: Cardinal): Integer;
 begin
@@ -135,38 +214,54 @@ begin
     Result := Z;
 end;
 
-procedure TKTXHandler.ReadG(const Stream: TStream; const W, H, D: Cardinal);
+function TKTXHandler.ReadOneImage_Universal(const Stream: TStream;
+  const Image: TCastleImage): TCastleImage;
 var
+  W, H, D: Cardinal;
   Y, Z: Integer;
-  Row: PByteArray;
-  Image: TGrayscaleImage;
+  Row: Pointer;
   Padding: Integer;
 begin
-  Image := TGrayscaleImage.Create(W, H, D);
-  Images.Add(Image);
+  Result := Image;
+  W := Image.Width;
+  H := Image.Height;
+  D := Image.Depth;
 
   Padding := RowBytePadding(Image);
 
-  for Z := 0 to D - 1 do
-    for Y := 0 to H - 1 do
-    begin
-      Row := Image.RowPtr(TargetY(Y, H), TargetZ(Z, D));
-      Stream.ReadBuffer(Row^, Image.PixelSize * W);
-      if Padding <> 0 then
-        Stream.Seek(Padding, soFromCurrent);
-    end;
+  if (Padding = 0) and (not RowsTopToBottom) and (not SlicesFrontToBack) then
+  begin
+    {$ifdef CASTLE_KTX_LOG_SPEED} LogSpeed(Image, 'FAST'); {$endif}
+    Stream.ReadBuffer(Image.RawPixels^, Image.Size);
+  end else
+  begin
+    {$ifdef CASTLE_KTX_LOG_SPEED} LogSpeed(Image, 'SLOW (needs to invert rows, slices, or has padding)'); {$endif}
+    for Z := 0 to D - 1 do
+      for Y := 0 to H - 1 do
+      begin
+        Row := Image.RowPtr(TargetY(Y, H), TargetZ(Z, D));
+        Stream.ReadBuffer(Row^, Image.PixelSize * W);
+        if Padding <> 0 then
+          Stream.Seek(Padding, soFromCurrent);
+      end;
+  end;
 end;
 
-procedure TKTXHandler.ReadG16(const Stream: TStream; const W, H, D: Cardinal);
+function TKTXHandler.ReadOneImage_16ToFloat(
+  const Stream: TStream; const Image: TCastleImage): TCastleImage;
 var
+  W, H, D: Cardinal;
   RowData: TWordList;
-  TargetRow: PByteArray;
+  TargetRow: PFloat;
   X, Y, Z: Integer;
-  Image: TGrayscaleImage;
   Padding: Integer;
 begin
-  Image := TGrayscaleImage.Create(W, H, D);
-  Images.Add(Image);
+  Result := Image;
+  W := Image.Width;
+  H := Image.Height;
+  D := Image.Depth;
+
+  {$ifdef CASTLE_KTX_LOG_SPEED} LogSpeed(Image, 'SLOW (needs to convert 16-bit to 32-bit float)'); {$endif}
 
   Padding := RowBytePadding(Image);
 
@@ -177,152 +272,37 @@ begin
     for Z := 0 to D - 1 do
       for Y := 0 to H - 1 do
       begin
-        Stream.ReadBuffer(RowData.L^, W * SizeOf(Word));
-        { convert row of Words to Bytes }
+        Stream.ReadBuffer(RowData.L^, W * Image.ColorComponentsCount * SizeOf(Word));
+        { convert row of Words to Floats }
         TargetRow := Image.RowPtr(TargetY(Y, H), TargetZ(Z, D));
-        for X := 0 to W - 1 do
-          TargetRow^[X] := RowData.L[X] shr 8;
+        for X := 0 to W * Image.ColorComponentsCount - 1 do
+          TargetRow[X] := RowData.L[X] / High(Word);
          if Padding <> 0 then
            Stream.Seek(Padding, soFromCurrent);
        end;
   finally FreeAndNil(RowData) end;
 end;
 
-procedure TKTXHandler.ReadGA(const Stream: TStream; const W, H, D: Cardinal);
+function TKTXHandler.SwapRedBlue(const Image: TCastleImage): TCastleImage;
 var
-  Y, Z: Integer;
-  Row: PVector2ByteArray;
-  Image: TGrayscaleAlphaImage;
-  Padding: Integer;
-begin
-  Image := TGrayscaleAlphaImage.Create(W, H, D);
-  Images.Add(Image);
-
-  Padding := RowBytePadding(Image);
-
-  for Z := 0 to D - 1 do
-    for Y := 0 to H - 1 do
-    begin
-      Row := Image.RowPtr(TargetY(Y, H), TargetZ(Z, D));
-      Stream.ReadBuffer(Row^, Image.PixelSize * W);
-      if Padding <> 0 then
-        Stream.Seek(Padding, soFromCurrent);
-    end;
-end;
-
-procedure TKTXHandler.ReadRGB(const Stream: TStream; const W, H, D: Cardinal);
-var
-  Y, Z: Integer;
-  Row: PVector3ByteArray;
-  Image: TRGBImage;
-  Padding: Integer;
-begin
-  Image := TRGBImage.Create(W, H, D);
-  Images.Add(Image);
-
-  Padding := RowBytePadding(Image);
-
-  for Z := 0 to D - 1 do
-    for Y := 0 to H - 1 do
-    begin
-      Row := Image.RowPtr(TargetY(Y, H), TargetZ(Z, D));
-      Stream.ReadBuffer(Row^, Image.PixelSize * W);
-      if Padding <> 0 then
-        Stream.Seek(Padding, soFromCurrent);
-    end;
-end;
-
-procedure TKTXHandler.ReadBGR(const Stream: TStream; const W, H, D: Cardinal);
-var
+  W, H, D: Cardinal;
   X, Y, Z: Integer;
-  Row: PVector3Byte;
-  Image: TRGBImage;
-  Padding: Integer;
+  PixelPtr: PVector3Byte;
 begin
-  Image := TRGBImage.Create(W, H, D);
-  Images.Add(Image);
+  Result := Image;
+  W := Image.Width;
+  H := Image.Height;
+  D := Image.Depth;
 
-  Padding := RowBytePadding(Image);
+  {$ifdef CASTLE_KTX_LOG_SPEED} LogSpeed(Image, 'SLOWDOWN (needs to swap red<->blue)'); {$endif}
 
   for Z := 0 to D - 1 do
     for Y := 0 to H - 1 do
     begin
-      Row := PVector3Byte(Image.RowPtr(TargetY(Y, H), TargetZ(Z, D)));
-      Stream.ReadBuffer(Row^, Image.PixelSize * W);
-      { Now invert red and blue. }
+      PixelPtr := PVector3Byte(Image.RowPtr(Y, Z));
       for X := 0 to W - 1 do
-      begin
-        SwapValues(Row^.Z, Row^.X);
-        Inc(Row);
-      end;
-      if Padding <> 0 then
-        Stream.Seek(Padding, soFromCurrent);
-    end;
-end;
-
-procedure TKTXHandler.ReadRGBA(const Stream: TStream; const W, H, D: Cardinal);
-var
-  Y, Z: Integer;
-  Row: PVector4ByteArray;
-  Image: TRGBAlphaImage;
-begin
-  Image := TRGBAlphaImage.Create(W, H, D);
-  // when Image.PixelSize is 4, there is never any padding
-  Assert(RowBytePadding(Image) = 0);
-  Images.Add(Image);
-
-  for Z := 0 to D - 1 do
-    for Y := 0 to H - 1 do
-    begin
-      Row := Image.RowPtr(TargetY(Y, H), TargetZ(Z, D));
-      Stream.ReadBuffer(Row^, Image.PixelSize * W);
-    end;
-end;
-
-procedure TKTXHandler.ReadBGRA(const Stream: TStream; const W, H, D: Cardinal);
-var
-  X, Y, Z: Integer;
-  Row: PVector4Byte;
-  Image: TRGBAlphaImage;
-begin
-  Image := TRGBAlphaImage.Create(W, H, D);
-  // when Image.PixelSize is 4, there is never any padding
-  Assert(RowBytePadding(Image) = 0);
-  Images.Add(Image);
-
-  for Z := 0 to D - 1 do
-    for Y := 0 to H - 1 do
-    begin
-      Row := PVector4Byte(Image.RowPtr(TargetY(Y, H), TargetZ(Z, D)));
-      Stream.ReadBuffer(Row^, Image.PixelSize * W);
-      { Now invert red and blue. }
-      for X := 0 to W - 1 do
-      begin
-        SwapValues(Row^.Z, Row^.X);
-        Inc(Row);
-      end;
-    end;
-end;
-
-procedure TKTXHandler.ReadFloatImage(const ImageClass: TCastleImageClass;
-  const Stream: TStream; const W, H, D: Cardinal);
-var
-  Y, Z: Integer;
-  Image: TCastleImage;
-  ImageRow: Pointer;
-begin
-  Image := ImageClass.Create(W, H, D);
-  // Image.PixelSize is always multiple of SizeOf(Single)
-  Assert(Image.PixelSize mod 4 = 0);
-  // when Image.PixelSize is divisible by 4, there is never any padding
-  Assert(RowBytePadding(Image) = 0);
-  Images.Add(Image);
-
-  for Z := 0 to D - 1 do
-    for Y := 0 to H - 1 do
-    begin
-      ImageRow := Image.RowPtr(TargetY(Y, H), TargetZ(Z, D));
-      Stream.ReadBuffer(ImageRow^, Image.PixelSize * W);
+        SwapValues(PixelPtr^.Z, PixelPtr^.X);
+      Inc(PByte(PixelPtr), Image.ColorComponentsCount);
     end;
 end;
 
@@ -354,11 +334,13 @@ begin
   end else
     WritelnWarning('KTX', 'Unrecognized KTX orientation "%s"', [Value]);
 
-  WritelnLog('KTX', 'Got KTX orientation "%s". RowsTopToBottom: %s, SlicesFrontToBack: %s.',
-    [Value,
-     BoolToStr(RowsTopToBottom, true),
-     BoolToStr(SlicesFrontToBack, true)
-    ]);
+  {$ifdef CASTLE_KTX_LOG_SPEED}
+  WritelnLog('KTX', 'Got KTX orientation "%s". RowsTopToBottom: %s, SlicesFrontToBack: %s.', [
+    Value,
+    BoolToStr(RowsTopToBottom, true),
+    BoolToStr(SlicesFrontToBack, true)
+  ]);
+  {$endif CASTLE_KTX_LOG_SPEED}
 end;
 
 procedure TKTXHandler.ReadKeyValues(const Stream: TStream);
@@ -404,17 +386,18 @@ begin
   end;
 end;
 
-procedure TKTXHandler.ReadCompressed(const Stream: TStream; const Compression: TTextureCompression; const W, H, D: Cardinal);
-var
-  Image: TGPUCompressedImage;
+function TKTXHandler.ReadOneImage_Compressed(const Stream: TStream;
+  const Image: TGPUCompressedImage): TGPUCompressedImage;
 begin
-  Image := TGPUCompressedImage.Create(W, H, D, Compression);
-  Images.Add(Image);
-
+  {$ifdef CASTLE_KTX_LOG_SPEED} LogSpeed(Image, 'FAST'); {$endif}
+  Result := Image;
   Stream.ReadBuffer(Image.RawPixels^, Image.Size);
 
   if RowsTopToBottom then
+  begin
     Image.FlipVertical;
+    {$ifdef CASTLE_KTX_LOG_SPEED} LogSpeed(Image, 'SLOWDOWN (needs to vertically flip)'); {$endif}
+  end;
 end;
 
 function TKTXHandler.RowBytePadding(const Image: TCastleImage): Integer;
@@ -425,131 +408,126 @@ begin
 end;
 
 procedure TKTXHandler.ReadOneImage(const Stream: TStream; const W, H, D: Cardinal);
-{$I gl_texture_compression_constants.inc}
 var
   Compression: TTextureCompression;
+
+  { Do the GlType etc. fields of the header match. }
+  function IsType(const GlType, GlTypeSize, GlFormat, GlInternalFormat,
+    GlBaseInternalFormat: UInt32): Boolean;
+  begin
+    Result :=
+      (Header.GlType = GlType) and
+      (Header.GlTypeSize = GlTypeSize) and
+      (Header.GlFormat = GlFormat) and
+      (Header.GlInternalFormat = GlInternalFormat) and
+      (Header.GlBaseInternalFormat = GlBaseInternalFormat);
+  end;
+
 begin
-  if (Header.GlType = GL_UNSIGNED_BYTE) and
-     (Header.GlTypeSize = 1) and
-     (Header.GlFormat = GL_LUMINANCE) and
-     (Header.GlInternalFormat = GL_LUMINANCE8_EXT) and
-     (Header.GlBaseInternalFormat = GL_LUMINANCE) then
+  { 8-bit image formats, no RB swap }
+  if IsType(GL_UNSIGNED_BYTE, 1, GL_LUMINANCE, GL_LUMINANCE8_EXT, GL_LUMINANCE) then
   begin
-    ReadG(Stream, W, H, D);
+    Images.Add(ReadOneImage_Universal(Stream, TGrayscaleImage.Create(W, H, D)));
   end else
-  if (
-       { You can generate this with
-         - PowerVR Texture Tool GUI with "Encode" to R16
-         - PowerVR Texture Tool CLI with "-f r16,US" encoding
-       }
-       (Header.GlType = GL_UNSIGNED_SHORT) and
-       (Header.GlTypeSize = 2) and
-       (Header.GlFormat = GL_RED_INTEGER) and
-       (Header.GlInternalFormat = GL_R16UI) and
-       (Header.GlBaseInternalFormat = GL_RED_INTEGER)
-     ) or (
-       { You can generate this with
-         - PowerVR Texture Tool CLI with "-f r16,USN" encoding
-       }
-       (Header.GlType = GL_UNSIGNED_SHORT) and
-       (Header.GlTypeSize = 2) and
-       (Header.GlFormat = GL_RED) and
-       (Header.GlInternalFormat = GL_R16) and
-       (Header.GlBaseInternalFormat = GL_RED)
-     ) then
+  if IsType(GL_UNSIGNED_BYTE, 1, GL_RG, GL_RG8, GL_RG) then
   begin
-    ReadG16(Stream, W, H, D);
+    Images.Add(ReadOneImage_Universal(Stream, TGrayscaleAlphaImage.Create(W, H, D)));
   end else
-  if (Header.GlType = GL_UNSIGNED_BYTE) and
-     (Header.GlTypeSize = 1) and
-     (Header.GlFormat = GL_RG) and
-     (Header.GlInternalFormat = GL_RG8) and
-     (Header.GlBaseInternalFormat = GL_RG) then
+  if IsType(GL_UNSIGNED_BYTE, 1, GL_RGB, GL_RGB, GL_RGB) or
+     { The "sized internal format" GL_RGB8 is recommended by KTX 1 spec. }
+     IsType(GL_UNSIGNED_BYTE, 1, GL_RGB, GL_RGB8, GL_RGB) or
+     { TODO: for now SRGB8 is read the same way,
+        we ignore information that it is in sRGB color-space.
+        Whether the image is assumed to be in sRGB or linear color-space
+        depends in CGE on the image function (whether it is placed in
+        e.g. TPhysicalMaterial.BaseTexture or NormalTexture)
+        and global @link(ColorSpace) variable. }
+     IsType(GL_UNSIGNED_BYTE, 1, GL_RGB, GL_SRGB8, GL_RGB) then
   begin
-    ReadGA(Stream, W, H, D);
+    Images.Add(ReadOneImage_Universal(Stream, TRGBImage.Create(W, H, D)));
   end else
-  if (Header.GlType = GL_UNSIGNED_BYTE) and
-     (Header.GlTypeSize = 1) and
-     (Header.GlFormat = GL_BGRA) and
-     (Header.GlInternalFormat = GL_BGRA) and
-     (Header.GlBaseInternalFormat = GL_BGRA) then
+  if IsType(GL_UNSIGNED_BYTE, 1, GL_RGBA, GL_RGBA, GL_RGBA) or
+     IsType(GL_UNSIGNED_BYTE, 1, GL_RGBA, GL_RGBA8, GL_RGBA) or
+     { Testcase: rgba-reference.ktx from https://github.com/KhronosGroup/KTX-Software/tree/master/tests/testimages
+       Note that we ignore sRGB here for now, we read it just like regular image.
+       In CGE we don't have a control per-image for sRGB, yet. }
+     IsType(GL_UNSIGNED_BYTE, 1, GL_RGBA, GL_SRGB8_ALPHA8, GL_RGBA) then
   begin
-    ReadBGRA(Stream, W, H, D);
+    Images.Add(ReadOneImage_Universal(Stream, TRGBAlphaImage.Create(W, H, D)));
   end else
-  if (Header.GlType = GL_UNSIGNED_BYTE) and
-     (Header.GlTypeSize = 1) and
-     (Header.GlFormat = GL_RGBA) and
-     (
-       (Header.GlInternalFormat = GL_RGBA) or
-       { Testcase: rgba-reference.ktx from https://github.com/KhronosGroup/KTX-Software/tree/master/tests/testimages
-         Note that we ignore sRGB here for now, we read it just like regular image.
-         In CGE we don't have a control per-image for sRGB, yet. }
-       (Header.GlInternalFormat = GL_SRGB8_ALPHA8)
-     ) and
-     (Header.GlBaseInternalFormat = GL_RGBA) then
+
+  { 8-bit image formats, with RB swap }
+
+  if IsType(GL_UNSIGNED_BYTE, 1, GL_BGRA, GL_BGRA, GL_BGRA) then
   begin
-    ReadRGBA(Stream, W, H, D);
+    Images.Add(SwapRedBlue(ReadOneImage_Universal(Stream, TRGBAlphaImage.Create(W, H, D))));
   end else
-  if (Header.GlType = GL_UNSIGNED_BYTE) and
-     (Header.GlTypeSize = 1) and
-     (Header.GlFormat = GL_BGR) and
-     (Header.GlInternalFormat = GL_BGR) and
-     (Header.GlBaseInternalFormat = GL_BGR) then
+  if IsType(GL_UNSIGNED_BYTE, 1, GL_BGR, GL_BGR, GL_BGR) then
   begin
-    ReadBGR(Stream, W, H, D);
+    Images.Add(SwapRedBlue(ReadOneImage_Universal(Stream, TRGBImage.Create(W, H, D))));
   end else
-  if (Header.GlType = GL_UNSIGNED_BYTE) and
-     (Header.GlTypeSize = 1) and
-     (Header.GlFormat = GL_RGB) and
-     ( (Header.GlInternalFormat = GL_RGB) or
-       (Header.GlInternalFormat = GL_RGB8) or
-        { TODO: for now SRGB8 is read the same way,
-          we ignore information that it is in sRGB color-space.
-          Whether the image is assumed to be in sRGB or linear color-space
-          depends in CGE on the image function (whether it is placed in
-          e.g. TPhysicalMaterial.BaseTexture or NormalTexture)
-          and global @link(ColorSpace) variable. }
-       (Header.GlInternalFormat = GL_SRGB8) ) and
-     (Header.GlBaseInternalFormat = GL_RGB) then
+
+  { 16-bit image formats }
+
+  if { You can generate this with
+      - PowerVR Texture Tool GUI with "Encode" to R16
+      - PowerVR Texture Tool CLI with "-f r16,US" encoding
+     }
+     IsType(GL_UNSIGNED_SHORT, 2, GL_RED_INTEGER, GL_R16UI, GL_RED_INTEGER) or
+     { You can generate this with
+       - PowerVR Texture Tool CLI with "-f r16,USN" encoding
+     }
+     IsType(GL_UNSIGNED_SHORT, 2, GL_RED, GL_R16, GL_RED) then
   begin
-    ReadRGB(Stream, W, H, D);
+    Images.Add(ReadOneImage_16ToFloat(Stream, TGrayscaleFloatImage.Create(W, H, D)));
   end else
-  if (Header.GlType = GL_FLOAT) and
-     (Header.GlTypeSize = SizeOf(Single)) and
-     (Header.GlFormat = GL_RED) and
-     (Header.GlInternalFormat = GL_R32F) and
-     (Header.GlBaseInternalFormat = GL_RED) then
+  if IsType(GL_UNSIGNED_SHORT, 2, GL_RG_INTEGER, GL_RG16UI, GL_RG_INTEGER) or
+     IsType(GL_UNSIGNED_SHORT, 2, GL_RG, GL_RG16, GL_RG) then
   begin
-    ReadFloatImage(TGrayscaleFloatImage, Stream, W, H, D);
+    // TODO: Should be good, but untested
+    Images.Add(ReadOneImage_16ToFloat(Stream, TGrayscaleAlphaFloatImage.Create(W, H, D)));
   end else
-  if (Header.GlType = GL_FLOAT) and
-     (Header.GlTypeSize = SizeOf(Single)) and
-     (Header.GlFormat = GL_RG) and
-     (Header.GlInternalFormat = GL_RG32F) and
-     (Header.GlBaseInternalFormat = GL_RG) then
+  if IsType(GL_UNSIGNED_SHORT, 2, GL_RGB_INTEGER, GL_RGB16UI, GL_RGB_INTEGER) or
+     IsType(GL_UNSIGNED_SHORT, 2, GL_RGB, GL_RGB16, GL_RGB) then
   begin
-    ReadFloatImage(TGrayscaleAlphaFloatImage, Stream, W, H, D);
+    // TODO: Should be good, but untested
+    Images.Add(ReadOneImage_16ToFloat(Stream, TRGBFloatImage.Create(W, H, D)));
   end else
-  if (Header.GlType = GL_FLOAT) and
-     (Header.GlTypeSize = SizeOf(Single)) and
-     (Header.GlFormat = GL_RGB) and
-     (Header.GlInternalFormat = GL_RGB32F) and
-     (Header.GlBaseInternalFormat = GL_RGB) then
+  if IsType(GL_UNSIGNED_SHORT, 2, GL_RGBA_INTEGER, GL_RGBA16UI, GL_RGBA_INTEGER) or
+     IsType(GL_UNSIGNED_SHORT, 2, GL_RGBA, GL_RGBA16, GL_RGBA) then
   begin
-    ReadFloatImage(TRGBFloatImage, Stream, W, H, D);
+    // TODO: Should be good, but untested
+    Images.Add(ReadOneImage_16ToFloat(Stream, TRGBAlphaFloatImage.Create(W, H, D)));
   end else
-  if (Header.GlType = GL_FLOAT) and
-     (Header.GlTypeSize = SizeOf(Single)) and
-     (Header.GlFormat = GL_RGBA) and
-     (Header.GlInternalFormat = GL_RGBA32F) and
-     (Header.GlBaseInternalFormat = GL_RGBA) then
+
+  { float-based image formats }
+
+  if IsType(GL_FLOAT, SizeOf(Single), GL_RED, GL_R32F, GL_RED) then
   begin
-    ReadFloatImage(TRGBAlphaFloatImage, Stream, W, H, D);
+    Images.Add(ReadOneImage_Universal(Stream, TGrayscaleFloatImage.Create(W, H, D)));
   end else
+  if IsType(GL_FLOAT, SizeOf(Single), GL_RG, GL_RG32F, GL_RG) then
+  begin
+    Images.Add(ReadOneImage_Universal(Stream, TGrayscaleAlphaFloatImage.Create(W, H, D)));
+  end else
+  if IsType(GL_FLOAT, SizeOf(Single), GL_RGB, GL_RGB32F, GL_RGB) then
+  begin
+    Images.Add(ReadOneImage_Universal(Stream, TRGBFloatImage.Create(W, H, D)));
+  end else
+  if IsType(GL_FLOAT, SizeOf(Single), GL_RGBA, GL_RGBA32F, GL_RGBA) then
+  begin
+    Images.Add(ReadOneImage_Universal(Stream, TRGBAlphaFloatImage.Create(W, H, D)));
+  end else
+
+  { Not supported: half floats }
+
   if Header.GlType = GL_HALF_FLOAT then
   begin
     raise EInvalidKTX.Create('Cannot handle KTX with half-float (16-bit floats) data');
   end else
+
+  { GPU-Compressed images }
+
   if (Header.GlType = 0) and
      { Header.GlTypeSize is commonly 1,
        but Header.GlTypeSize = 0 is used by Apple, see https://github.com/castle-engine/castle-image-viewer/issues/1 .
@@ -559,60 +537,12 @@ begin
      (Header.GlFormat = 0) and
      ((Header.GlBaseInternalFormat = GL_RGBA) or (Header.GlBaseInternalFormat = GL_RGB)) then // GL_RGB is needed by ETC1
   begin
-    case Header.GlInternalFormat of
-      GL_COMPRESSED_RGB_S3TC_DXT1_EXT          : Compression := tcDxt1_RGB;
-      GL_COMPRESSED_RGBA_S3TC_DXT1_EXT         : Compression := tcDxt1_RGBA;
-      GL_COMPRESSED_RGBA_S3TC_DXT3_EXT         : Compression := tcDxt3;
-      GL_COMPRESSED_RGBA_S3TC_DXT5_EXT         : Compression := tcDxt5;
+    if not OpenGLToTextureCompression(Header.GlInternalFormat, Compression) then
+      raise EInvalidKTX.CreateFmt('GPU compression 0x%.4x not supported', [
+        Header.GlInternalFormat
+      ]);
 
-      GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG       : Compression := tcPvrtc1_4bpp_RGB;
-      GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG       : Compression := tcPvrtc1_2bpp_RGB;
-      GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG      : Compression := tcPvrtc1_4bpp_RGBA;
-      GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG      : Compression := tcPvrtc1_2bpp_RGBA;
-      GL_COMPRESSED_RGBA_PVRTC_4BPPV2_IMG      : Compression := tcPvrtc2_4bpp;
-      GL_COMPRESSED_RGBA_PVRTC_2BPPV2_IMG      : Compression := tcPvrtc2_2bpp;
-
-      GL_ATC_RGB_AMD                           : Compression := tcATITC_RGB;
-      GL_ATC_RGBA_INTERPOLATED_ALPHA_AMD       : Compression := tcATITC_RGBA_InterpolatedAlpha;
-      GL_ATC_RGBA_EXPLICIT_ALPHA_AMD           : Compression := tcATITC_RGBA_ExplicitAlpha;
-
-      GL_ETC1_RGB8_OES                         : Compression := tcETC1;
-
-      GL_COMPRESSED_RGBA_ASTC_4x4_KHR          : Compression := tcASTC_4x4_RGBA;
-      GL_COMPRESSED_RGBA_ASTC_5x4_KHR          : Compression := tcASTC_5x4_RGBA;
-      GL_COMPRESSED_RGBA_ASTC_5x5_KHR          : Compression := tcASTC_5x5_RGBA;
-      GL_COMPRESSED_RGBA_ASTC_6x5_KHR          : Compression := tcASTC_6x5_RGBA;
-      GL_COMPRESSED_RGBA_ASTC_6x6_KHR          : Compression := tcASTC_6x6_RGBA;
-      GL_COMPRESSED_RGBA_ASTC_8x5_KHR          : Compression := tcASTC_8x5_RGBA;
-      GL_COMPRESSED_RGBA_ASTC_8x6_KHR          : Compression := tcASTC_8x6_RGBA;
-      GL_COMPRESSED_RGBA_ASTC_8x8_KHR          : Compression := tcASTC_8x8_RGBA;
-      GL_COMPRESSED_RGBA_ASTC_10x5_KHR         : Compression := tcASTC_10x5_RGBA;
-      GL_COMPRESSED_RGBA_ASTC_10x6_KHR         : Compression := tcASTC_10x6_RGBA;
-      GL_COMPRESSED_RGBA_ASTC_10x8_KHR         : Compression := tcASTC_10x8_RGBA;
-      GL_COMPRESSED_RGBA_ASTC_10x10_KHR        : Compression := tcASTC_10x10_RGBA;
-      GL_COMPRESSED_RGBA_ASTC_12x10_KHR        : Compression := tcASTC_12x10_RGBA;
-      GL_COMPRESSED_RGBA_ASTC_12x12_KHR        : Compression := tcASTC_12x12_RGBA;
-
-      GL_COMPRESSED_SRGB8_ALPHA8_ASTC_4x4_KHR  : Compression := tcASTC_4x4_SRGB8_ALPHA8;
-      GL_COMPRESSED_SRGB8_ALPHA8_ASTC_5x4_KHR  : Compression := tcASTC_5x4_SRGB8_ALPHA8;
-      GL_COMPRESSED_SRGB8_ALPHA8_ASTC_5x5_KHR  : Compression := tcASTC_5x5_SRGB8_ALPHA8;
-      GL_COMPRESSED_SRGB8_ALPHA8_ASTC_6x5_KHR  : Compression := tcASTC_6x5_SRGB8_ALPHA8;
-      GL_COMPRESSED_SRGB8_ALPHA8_ASTC_6x6_KHR  : Compression := tcASTC_6x6_SRGB8_ALPHA8;
-      GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x5_KHR  : Compression := tcASTC_8x5_SRGB8_ALPHA8;
-      GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x6_KHR  : Compression := tcASTC_8x6_SRGB8_ALPHA8;
-      GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x8_KHR  : Compression := tcASTC_8x8_SRGB8_ALPHA8;
-      GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x5_KHR : Compression := tcASTC_10x5_SRGB8_ALPHA8;
-      GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x6_KHR : Compression := tcASTC_10x6_SRGB8_ALPHA8;
-      GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x8_KHR : Compression := tcASTC_10x8_SRGB8_ALPHA8;
-      GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x10_KHR: Compression := tcASTC_10x10_SRGB8_ALPHA8;
-      GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x10_KHR: Compression := tcASTC_12x10_SRGB8_ALPHA8;
-      GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x12_KHR: Compression := tcASTC_12x12_SRGB8_ALPHA8;
-
-      else raise EInvalidKTX.CreateFmt('GPU compression 0x%.4x not supported',
-        [Header.GlInternalFormat]);
-    end;
-
-    ReadCompressed(Stream, Compression, W, H, D);
+    Images.Add(ReadOneImage_Compressed(Stream, TGPUCompressedImage.Create(W, H, D, Compression)));
   end else
   begin
     if (Header.GlType = 0) and (Header.GlFormat = 0) then
@@ -699,6 +629,9 @@ begin
       Header.NumberOfFaces         := Swap32(Header.NumberOfFaces        );
       Header.NumberOfMipmapLevels  := Swap32(Header.NumberOfMipmapLevels );
       Header.BytesOfKeyValueData   := Swap32(Header.BytesOfKeyValueData  );
+
+      if Header.GlTypeSize > 1 then
+        WritelnWarning('We need to swap for endianess the texture data (GlTypeSize > 1) but this is not implemented yet.');
     end;
 
     if Header.Endianness <> $04030201 then
@@ -755,4 +688,163 @@ begin
     on E: EReadError do raise EInvalidKTX.Create('Read error: ' + E.Message);
     on E: ECheckFailed do raise EInvalidKTX.Create('Invalid KTX file: ' + E.Message);
   end;
+end;
+
+const
+  { Bytes to write as padding. }
+  ZeroBytes: array [0..3] of Byte = (0, 0, 0, 0);
+
+procedure TKTXHandler.WriteOneImage(const Stream: TStream; const Image: TEncodedImage);
+var
+  Y, Z: Integer;
+  Img: TCastleImage;
+begin
+  if (Image is TGPUCompressedImage) or
+     (RowBytePadding(Image as TCastleImage) = 0) then
+  begin
+    {$ifdef CASTLE_KTX_LOG_SPEED} LogSpeed(Image, 'SAVE: FAST'); {$endif}
+    Stream.WriteBuffer(Image.RawPixels^, Image.Size);
+  end else
+  begin
+    {$ifdef CASTLE_KTX_LOG_SPEED} LogSpeed(Image, 'SAVE: SLOW (needs to add row padding)'); {$endif}
+    Img := Image as TCastleImage;
+    for Z := 0 to Image.Depth - 1 do
+      for Y := 0 to Image.Height - 1 do
+      begin
+        Stream.WriteBuffer(Img.RowPtr(Y)^, Img.Width * Img.PixelSize);
+        Stream.WriteBuffer(ZeroBytes, RowBytePadding(Img));
+      end;
+  end;
+end;
+
+procedure TKTXHandler.SaveToStream(const Stream: TStream);
+var
+  Image: TEncodedImage;
+
+  { Calculate 5 TKTXHeader fields that correspond to the image type:
+    GlType, GlTypeSize, GlFormat, GlInternalFormat, GlBaseInternalFormat. }
+  procedure CalculateHeaderImageType;
+
+    procedure HeaderSetType(const GlType, GlTypeSize, GlFormat, GlInternalFormat, GlBaseInternalFormat: UInt32);
+    begin
+      Header.GlType := GlType;
+      Header.GlTypeSize := GlTypeSize;
+      Header.GlFormat := GlFormat;
+      Header.GlInternalFormat := GlInternalFormat;
+      Header.GlBaseInternalFormat := GlBaseInternalFormat;
+    end;
+
+  var
+    Compression: TTextureCompression;
+    HasAlpha: Boolean;
+  begin
+    { 8-bit image formats }
+    if Image is TGrayscaleImage then
+      HeaderSetType(GL_UNSIGNED_BYTE, 1, GL_LUMINANCE, GL_LUMINANCE8_EXT, GL_LUMINANCE)
+    else
+    if Image is TGrayscaleAlphaImage then
+      HeaderSetType(GL_UNSIGNED_BYTE, 1, GL_RG, GL_RG8, GL_RG)
+    else
+    if Image is TRGBImage then
+      HeaderSetType(GL_UNSIGNED_BYTE, 1, GL_RGB, GL_RGB8, GL_RGB)
+    else
+    if Image is TRGBAlphaImage then
+      HeaderSetType(GL_UNSIGNED_BYTE, 1, GL_RGBA, GL_RGBA8, GL_RGBA)
+    else
+
+    { float image formats }
+    if Image is TGrayscaleFloatImage then
+      HeaderSetType(GL_FLOAT, SizeOf(Single), GL_RED, GL_R32F, GL_RED)
+    else
+    if Image is TGrayscaleAlphaFloatImage then
+      HeaderSetType(GL_FLOAT, SizeOf(Single), GL_RG, GL_RG32F, GL_RG)
+    else
+    if Image is TRGBFloatImage then
+      HeaderSetType(GL_FLOAT, SizeOf(Single), GL_RGB, GL_RGB32F, GL_RGB)
+    else
+    if Image is TRGBAlphaFloatImage then
+      HeaderSetType(GL_FLOAT, SizeOf(Single), GL_RGBA, GL_RGBA32F, GL_RGBA)
+    else
+
+    { GPU-compressed image formats }
+    if Image is TGPUCompressedImage then
+    begin
+      Compression := TGPUCompressedImage(Image).Compression;
+      HasAlpha := TextureCompressionInfo[Compression].AlphaChannel <> acNone;
+      HeaderSetType(0, 1, 0, TextureCompressionToOpenGL(Compression), Iff(HasAlpha, GL_RGBA, GL_RGB));
+    end else
+
+      raise EInvalidCompositeImage.CreateFmt('Cannot save to KTX format, unsupported image class %s', [
+        Image.ClassName
+      ]);
+  end;
+
+const
+  KeyValueName = 'KTXorientation';
+  // Match KTX orientation with our optimal directions: RowsTopToBottom = false, SlicesFrontToBack = false
+  KeyValueValue = 'S=r,T=u';
+  KeyValueData = KeyValueName + #0 + KeyValueValue + #0;
+
+  { We only write out single key-pair.
+    Calculate properties of it, and set Header.BytesOfKeyValueData. }
+  procedure CalculateHeaderKeyValuePairs(out KeyAndValueByteSize, ValuePadding: UInt32);
+  begin
+    KeyAndValueByteSize := Length(KeyValueData);
+    // padding of KeyAndValueByteSize to 4 bytes
+    ValuePadding := (4 - (KeyAndValueByteSize mod 4)) mod 4;
+    Header.BytesOfKeyValueData := KeyAndValueByteSize +
+      ValuePadding +
+      SizeOf(KeyAndValueByteSize);
+  end;
+
+var
+  KeyAndValueByteSize, ValuePadding, ImageSize, RowByteSize: UInt32;
+begin
+  if Images.Count = 0 then
+    raise EInvalidCompositeImage.Create('Cannot save to KTX format, no images (TCompositeImage.Images.Count = 0)');
+  if Images.Count > 1 then
+    WritelnWarning('Saving to KTX more than 1 image not supported yet, only the 1st image in TCompositeImage.Images will be saved');
+  Image := Images[0];
+
+  { Initialize some fields. These should not be really used by writing
+    routines (that can assume these values), but let's initialize them to be safe. }
+  RowsTopToBottom := false;
+  SlicesFrontToBack := false;
+  SwapEndianness := false;
+
+  FillChar(Header, SizeOf(Header), 0);
+  Move(CorrectFileId, Header.FileId, SizeOf(Header.FileId));
+  Header.Endianness := $04030201;
+  Header.Width := Image.Width;
+  // KTX spec says to use 0 for 1D images
+  Header.Height := Iff(Image.Height = 1, 0, Image.Height);
+  // KTX spec says to use 0 for 1D and 2D images
+  Header.Depth := Iff(Image.Depth = 1, 0, Image.Depth);
+  Header.NumberOfArrayElements := 0;
+  Header.NumberOfFaces := 1; // for non-cubemaps this should be 1
+  Header.NumberOfMipmapLevels := 1; // for non-mipmapped textures
+
+  CalculateHeaderImageType;
+  CalculateHeaderKeyValuePairs(KeyAndValueByteSize, ValuePadding);
+
+  Stream.WriteBuffer(Header, SizeOf(Header));
+
+  // write one key-value pair with KTXorientation
+  Stream.WriteBuffer(KeyAndValueByteSize, SizeOf(KeyAndValueByteSize));
+  Stream.WriteBuffer(KeyValueData[1], Length(KeyValueData));
+  // add padding from ValuePadding
+  Stream.WriteBuffer(ZeroBytes, ValuePadding);
+
+  if Image is TCastleImage then
+  begin
+    { Calculate row size with padding, since KTX requires 4-byte alignment
+      while our data has no alignment. }
+    RowByteSize := Image.Width * TCastleImage(Image).PixelSize +
+      RowBytePadding(TCastleImage(Image));
+    ImageSize := RowByteSize * Image.Height * Image.Depth;
+  end else
+    ImageSize := Image.Size;
+  Stream.WriteBuffer(ImageSize, SizeOf(ImageSize));
+
+  WriteOneImage(Stream, Image);
 end;

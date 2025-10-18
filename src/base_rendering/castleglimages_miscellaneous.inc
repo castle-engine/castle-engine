@@ -287,7 +287,6 @@ begin
 end;
 
 function ImageGLInternalFormat(const Img: TEncodedImage): TGLenum;
-{$I gl_texture_compression_constants.inc}
 var
   IgnoredImageFormat: TGLenum;
   IgnoredImageSwizzle: TVector4Integer;
@@ -298,58 +297,7 @@ begin
   end else
   if Img is TGPUCompressedImage then
   begin
-    case TGPUCompressedImage(Img).Compression of
-      tcDxt1_RGB        : Result := GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
-      tcDxt1_RGBA       : Result := GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
-      tcDxt3            : Result := GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
-      tcDxt5            : Result := GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
-
-      tcPvrtc1_4bpp_RGB : Result := GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG;
-      tcPvrtc1_2bpp_RGB : Result := GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG;
-      tcPvrtc1_4bpp_RGBA: Result := GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG;
-      tcPvrtc1_2bpp_RGBA: Result := GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG;
-      tcPvrtc2_4bpp     : Result := GL_COMPRESSED_RGBA_PVRTC_4BPPV2_IMG;
-      tcPvrtc2_2bpp     : Result := GL_COMPRESSED_RGBA_PVRTC_2BPPV2_IMG;
-
-      tcATITC_RGB                   : Result := GL_ATC_RGB_AMD;
-      tcATITC_RGBA_InterpolatedAlpha: Result := GL_ATC_RGBA_INTERPOLATED_ALPHA_AMD;
-      tcATITC_RGBA_ExplicitAlpha    : Result := GL_ATC_RGBA_EXPLICIT_ALPHA_AMD;
-
-      tcETC1            : Result := GL_ETC1_RGB8_OES;
-
-      tcASTC_4x4_RGBA           : Result := GL_COMPRESSED_RGBA_ASTC_4x4_KHR;
-      tcASTC_5x4_RGBA           : Result := GL_COMPRESSED_RGBA_ASTC_5x4_KHR;
-      tcASTC_5x5_RGBA           : Result := GL_COMPRESSED_RGBA_ASTC_5x5_KHR;
-      tcASTC_6x5_RGBA           : Result := GL_COMPRESSED_RGBA_ASTC_6x5_KHR;
-      tcASTC_6x6_RGBA           : Result := GL_COMPRESSED_RGBA_ASTC_6x6_KHR;
-      tcASTC_8x5_RGBA           : Result := GL_COMPRESSED_RGBA_ASTC_8x5_KHR;
-      tcASTC_8x6_RGBA           : Result := GL_COMPRESSED_RGBA_ASTC_8x6_KHR;
-      tcASTC_8x8_RGBA           : Result := GL_COMPRESSED_RGBA_ASTC_8x8_KHR;
-      tcASTC_10x5_RGBA          : Result := GL_COMPRESSED_RGBA_ASTC_10x5_KHR;
-      tcASTC_10x6_RGBA          : Result := GL_COMPRESSED_RGBA_ASTC_10x6_KHR;
-      tcASTC_10x8_RGBA          : Result := GL_COMPRESSED_RGBA_ASTC_10x8_KHR;
-      tcASTC_10x10_RGBA         : Result := GL_COMPRESSED_RGBA_ASTC_10x10_KHR;
-      tcASTC_12x10_RGBA         : Result := GL_COMPRESSED_RGBA_ASTC_12x10_KHR;
-      tcASTC_12x12_RGBA         : Result := GL_COMPRESSED_RGBA_ASTC_12x12_KHR;
-      tcASTC_4x4_SRGB8_ALPHA8   : Result := GL_COMPRESSED_SRGB8_ALPHA8_ASTC_4x4_KHR;
-      tcASTC_5x4_SRGB8_ALPHA8   : Result := GL_COMPRESSED_SRGB8_ALPHA8_ASTC_5x4_KHR;
-      tcASTC_5x5_SRGB8_ALPHA8   : Result := GL_COMPRESSED_SRGB8_ALPHA8_ASTC_5x5_KHR;
-      tcASTC_6x5_SRGB8_ALPHA8   : Result := GL_COMPRESSED_SRGB8_ALPHA8_ASTC_6x5_KHR;
-      tcASTC_6x6_SRGB8_ALPHA8   : Result := GL_COMPRESSED_SRGB8_ALPHA8_ASTC_6x6_KHR;
-      tcASTC_8x5_SRGB8_ALPHA8   : Result := GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x5_KHR;
-      tcASTC_8x6_SRGB8_ALPHA8   : Result := GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x6_KHR;
-      tcASTC_8x8_SRGB8_ALPHA8   : Result := GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x8_KHR;
-      tcASTC_10x5_SRGB8_ALPHA8  : Result := GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x5_KHR;
-      tcASTC_10x6_SRGB8_ALPHA8  : Result := GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x6_KHR;
-      tcASTC_10x8_SRGB8_ALPHA8  : Result := GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x8_KHR;
-      tcASTC_10x10_SRGB8_ALPHA8 : Result := GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x10_KHR;
-      tcASTC_12x10_SRGB8_ALPHA8 : Result := GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x10_KHR;
-      tcASTC_12x12_SRGB8_ALPHA8 : Result := GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x12_KHR;
-
-      {$ifndef COMPILER_CASE_ANALYSIS}
-      else raise EImageClassNotSupportedForOpenGL.Create('TGPUCompressedImage.Compression not supported by OpenGL');
-      {$endif}
-    end;
+    Result := TextureCompressionToOpenGL(TGPUCompressedImage(Img).Compression);
   end else
     raise EImageClassNotSupportedForOpenGL.CreateFmt('Image class %s cannot be loaded to OpenGL',
       [Img.ClassName]);
