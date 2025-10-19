@@ -1507,10 +1507,6 @@ end;
 
 procedure TCastleTestCase.OnWarningRaiseException(const Category, S: string);
 begin
-  // Ignore this warning now, we know it's a TODO to support these things
-  if S = 'TODO: Skin used by multiple nodes, not supported now' then
-    Exit;
-
   raise Exception.CreateFmt(ClassName +
     ': received a warning, and any warning here is an error: %s: %s',
     [Category,
