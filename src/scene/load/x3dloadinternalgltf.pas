@@ -2448,7 +2448,8 @@ var
 
               Solution: Just reparent the meshes under TSkinNode.
 
-              Testcase: demo-models/blender/skinned_animation/skinned_anim.glb . }
+              Testcase:
+              https://github.com/castle-engine/demo-models/blob/master/animation/blender_skinned_animation/skinned_anim.glb . }
             SkinNode.FdShapes.Add(ShapeNode);
             ParentOfShapes.FdChildren.Delete(I);
           end else
@@ -2473,7 +2474,7 @@ var
   end;
 
   { EXPORT nodes, so that using glTF animations in X3D is possible, like on
-    demo-models/blender/skinned_animation/skinned_anim_run_animations_from_x3d.x3dv }
+    https://github.com/castle-engine/demo-models/blob/master/animation/blender_skinned_animation/skinned_anim_run_animations_from_x3d.x3dv }
   procedure DoExportNodes;
   var
     N: TX3DNode;
