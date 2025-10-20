@@ -590,7 +590,34 @@ procedure TSkinNode.InternalUpdateSkin;
     I: Integer;
     SkeletonRootInverse: TMatrix4;
   begin
-    SkeletonRootInverse := JointParentTransform(Skeleton)^.InverseTransform;
+    { Skin.Skeleton may be non-transformation node, e.g. Group.
+      This happens often with our glTF importer,
+      when the glTF model doesn't specify skin.skeleton
+      (which is OK for glTF, https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_skin_skeleton )
+      and then we just place Skin node under the X3D root node,
+      and Skin.Skeleton is a Group containing everything from glTF
+      (see "if SkeletonRootIndex = -1 then SkinNode.Skeleton := CurrentScene"
+      in X3DLoadInternalGltf).
+
+      In this case, Skeleton is not a transformation node,
+      so it doesn't correspond to TShapeTreeTransform,
+      so JointParentTransform(Skeleton) would make a warning and return identity.
+      Simpler (and avoids warning) to just use SkeletonRootInverse:=identity.
+
+      Testcases(s):
+      - open with Castle Model Viewer or animate_bones_by_code any of:
+          - Bunny.gltf from tests/
+          - Stag.gltf from tests/
+          - skinned_anim.glb from https://github.com/castle-engine/demo-models/tree/master/animation/blender_skinned_animation
+          - Alien_Scolitex.gltf from https://github.com/castle-engine/demo-models/tree/master/animation/gltf_skinned_animation/alien_from_quaternius
+          - Woman from examples/animations/animate_bones_by_code/data/skinned_animation/
+      One of the few glTF models that *does not* reproduce this is
+      - Fox.gltf from tests/data/gltf/skinned_animation_skeleton_root_specified/
+        that has explicit skin.skeleton joint. }
+    if Skeleton.TransformFunctionality <> nil then
+      SkeletonRootInverse := JointParentTransform(Skeleton)^.InverseTransform
+    else
+      SkeletonRootInverse := TMatrix4.Identity;
 
     { For each Joint, we calculate JointMatrix following
       https://www.slideshare.net/Khronos_Group/gltf-20-reference-guide }
