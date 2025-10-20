@@ -6,7 +6,7 @@ To experiment with the performance, make sure to make a _release_ (not _debug_) 
 
 The options demonstrated here are:
 
-- [OptimizeExtensiveTransformations](https://castle-engine.io/apidoc/html/CastleSceneCore.html#InternalFastTransformUpdate)
+- [OptimizeExtensiveTransformations](https://castle-engine.io/apidoc/html/CastleSceneCore.html#OptimizeExtensiveTransformations)
 
     Optimize animated transformation hierarchies when many transformations change every frame. Like typical animations done using skeleton, in Spine or glTF.
 
