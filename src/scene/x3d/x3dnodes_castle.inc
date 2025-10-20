@@ -875,7 +875,9 @@ procedure TSkinNode.InternalUpdateSkin;
           { Note that this code executes only calculating skin on CPU, not GPU.
             To see this warning, force InternalUsesShadersPossible to false. }
           WritelnWarningOnce(DoneWarningZeroWeights,
-            'Encountered a vertex with zero weights, transforming it with weight 1 by the joint number 0. This is workarounding known Blender < 3.2 bug. We recommend to upgrade to Blender 3.2 or newer and use "Vertex Groups" instead of "Bone Envelopes" at "Armature" modifier to avoid this issue.');
+            'Encountered a vertex with zero weights, transforming it with weight 1 by the joint number 0. ' +
+            'This is workarounding known Blender < 3.2 bug. ' +
+            'We recommend to upgrade to Blender 3.2 or newer and use "Vertex Groups" instead of "Bone Envelopes" at "Armature" modifier to avoid this issue.');
         end else
         begin
           SkinMatrix :=
