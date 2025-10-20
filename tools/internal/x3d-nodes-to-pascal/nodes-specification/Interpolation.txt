@@ -39,13 +39,6 @@ CoordinateInterpolator2D : X3DInterpolatorNode {
   MFVec2f [out]    value_changed
 }
 
-CoordinateInterpolator4D : X3DInterpolatorNode {
-  MFVec4f [in,out] keyValue      []
-    range: (-Inf,Inf)
-    change: chNone
-  MFVec4f [out]    value_changed
-}
-
 # Note: X3D spec doesn't say this descends from X3DChildNode,
 # but it is natural (where else would you put this node?)
 EaseInEaseOut : X3DChildNode {

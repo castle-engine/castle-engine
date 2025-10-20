@@ -382,7 +382,6 @@ uses Math, StrUtils, URIParser,
 {$I auto_generated_node_helpers/x3dnodes_coordinatedouble.inc}
 {$I auto_generated_node_helpers/x3dnodes_coordinateinterpolator.inc}
 {$I auto_generated_node_helpers/x3dnodes_coordinateinterpolator2d.inc}
-{$I auto_generated_node_helpers/x3dnodes_coordinateinterpolator4d.inc}
 {$I auto_generated_node_helpers/x3dnodes_cube_1.inc}
 {$I auto_generated_node_helpers/x3dnodes_cubicbezier2dorientationinterpolator.inc}
 {$I auto_generated_node_helpers/x3dnodes_cubicbeziercoordinateinterpolator.inc}
