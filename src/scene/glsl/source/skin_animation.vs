@@ -17,10 +17,18 @@ void PLUG_vertex_object_space_change(
   inout vec3 normal_object)
 {
   mat4 skinMatrix =
-    castle_SkinWeights0.x * castle_JointMatrix[int(castle_SkinJoints0.x)] +
-    castle_SkinWeights0.y * castle_JointMatrix[int(castle_SkinJoints0.y)] +
-    castle_SkinWeights0.z * castle_JointMatrix[int(castle_SkinJoints0.z)] +
-    castle_SkinWeights0.w * castle_JointMatrix[int(castle_SkinJoints0.w)];
+    /* Special case to handle weights=(0,0,0,0) to workaround Blender -> glTF
+       exporter bug. See for explanation and testcase:
+       https://github.com/castle-engine/demo-models/tree/master/animation/blender_skinned_animation/blender_zero_weights_bug */
+    ( castle_SkinWeights0 == vec4(0.0)
+      ?
+      castle_JointMatrix[0]
+      :
+      castle_SkinWeights0.x * castle_JointMatrix[int(castle_SkinJoints0.x)] +
+      castle_SkinWeights0.y * castle_JointMatrix[int(castle_SkinJoints0.y)] +
+      castle_SkinWeights0.z * castle_JointMatrix[int(castle_SkinJoints0.z)] +
+      castle_SkinWeights0.w * castle_JointMatrix[int(castle_SkinJoints0.w)]
+    );
   vertex_object = skinMatrix * vertex_object;
   normal_object = mat3(skinMatrix) * normal_object;
 }
