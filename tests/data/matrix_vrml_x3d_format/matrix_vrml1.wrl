@@ -1,0 +1,24 @@
+#VRML V1.0 ascii
+
+Separator {
+  # From real-life example VRML 1.0 model.
+  # This specifies translation.
+  DEF MyMatrixSample MatrixTransform {
+    matrix
+      1.000000 0.000000 0.000000 0.000000
+      0.000000 1.000000 0.000000 0.000000
+      0.000000 0.000000 1.000000 0.000000
+      -1.24 -2.61 -0.52 1.000000
+  }
+}
+
+# Test all matrix elements.
+Separator {
+  DEF MyMatrixSampleFull MatrixTransform {
+    matrix
+      1 2 3 4
+      5 6 7 8
+      9 10 11 12
+      13 14 15 16
+  }
+}

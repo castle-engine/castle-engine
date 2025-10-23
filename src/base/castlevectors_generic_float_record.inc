@@ -482,9 +482,14 @@ type
       makes a component-wise multiplication. }
     class operator {$ifdef FPC}*{$else}Multiply{$endif} (const M1, M2: TGenericMatrix2): TGenericMatrix2;
 
+    { Convert to multi-line string.
+
+      The output follows the natural mathematical look of the matrix,
+      so the first line shows the firt row, and so on.
+      This matches X3D matrix notation and contrasts with VRML 1.0 notation. }
     function ToString(const LineIndent: string = ''): string;
 
-    { Convert to string using the most precise (not always easily readable
+    { Convert to multi-line string using the most precise (not always easily readable
       by humans) float format. This may use the exponential
       (scientific) notation to represent the floating-point value,
       if needed.
@@ -576,9 +581,14 @@ type
       makes a component-wise multiplication. }
     class operator {$ifdef FPC}*{$else}Multiply{$endif} (const M1, M2: TGenericMatrix3): TGenericMatrix3;
 
+    { Convert to multi-line string.
+
+      The output follows the natural mathematical look of the matrix,
+      so the first line shows the firt row, and so on.
+      This matches X3D matrix notation and contrasts with VRML 1.0 notation. }
     function ToString(const LineIndent: string = ''): string;
 
-    { Convert to string using the most precise (not always easily readable
+    { Convert to multi-line string using the most precise (not always easily readable
       by humans) float format. This may use the exponential
       (scientific) notation to represent the floating-point value,
       if needed.
@@ -675,9 +685,14 @@ type
       (without spending *any* time on calculating transposition). }
     function TransposeMultiply(const V: TGenericVector4): TGenericVector4; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
 
+    { Convert to multi-line string.
+
+      The output follows the natural mathematical look of the matrix,
+      so the first line shows the firt row, and so on.
+      This matches X3D matrix notation and contrasts with VRML 1.0 notation. }
     function ToString(const LineIndent: string = ''): string;
 
-    { Convert to string using the most precise (not always easily readable
+    { Convert to multi-line string using the most precise (not always easily readable
       by humans) float format. This may use the exponential
       (scientific) notation to represent the floating-point value,
       if needed.

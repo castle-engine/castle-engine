@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestX3DNodes" -*-
 {
-  Copyright 2004-2024 Michalis Kamburelis.
+  Copyright 2004-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -128,6 +128,17 @@ type
     procedure TestNodeReleaseWhenStillUsed;
     procedure TestProtoReuseFirstNode;
     procedure TestRemoveRoute;
+
+    { VRML 1.0 loads/save matrix per-column. }
+    procedure TestSaveLoadMatrix_Vrml1;
+
+    { VRML 2.0 loads/save matrix just like VRML 1.0.
+      See tests/data/matrix_vrml_x3d_format/README.md . }
+    procedure TestSaveLoadMatrix_Vrml2;
+
+    { X3D loads/save matrix per-row. }
+    procedure TestSaveLoadMatrix_X3DClassic;
+    procedure TestSaveLoadMatrix_X3DXml;
   end;
 
 implementation
@@ -3010,6 +3021,231 @@ begin
   FreeAndNil(PositionInterpolator);
   FreeAndNil(TransformNode);
   //FreeAndNil(Route); // already freed by RemoveRoute
+end;
+
+procedure TTestX3DNodes.TestSaveLoadMatrix_Vrml1;
+var
+  RootNode, NewRootNode: TX3DRootNode;
+  MatrixTransform: TMatrixTransformNode_1;
+  Matrix, GoodMatrix: TMatrix4;
+  Stream: TMemoryStream;
+begin
+  Stream := TMemoryStream.Create;
+  try
+    RootNode := LoadNode('castle-data:/matrix_vrml_x3d_format/matrix_vrml1.wrl');
+    try
+      MatrixTransform := RootNode.FindNode('MyMatrixSample') as TMatrixTransformNode_1;
+      Matrix := MatrixTransform.FdMatrix.Value;
+      GoodMatrix.Columns[0] := Vector4(1, 0, 0, 0);
+      GoodMatrix.Columns[1] := Vector4(0, 1, 0, 0);
+      GoodMatrix.Columns[2] := Vector4(0, 0, 1, 0);
+      GoodMatrix.Columns[3] := Vector4(-1.24, -2.61, -0.52, 1);
+      AssertMatrixEquals(Matrix, GoodMatrix, 0.01);
+
+      // BTW test Columns vs Rows
+      AssertVectorEquals(GoodMatrix.Rows[0], Vector4(1, 0, 0, -1.24), 0.01);
+      AssertVectorEquals(GoodMatrix.Rows[1], Vector4(0, 1, 0, -2.61), 0.01);
+      AssertVectorEquals(GoodMatrix.Rows[2], Vector4(0, 0, 1, -0.52), 0.01);
+      AssertVectorEquals(GoodMatrix.Rows[3], Vector4(0, 0, 0, 1), 0.01);
+
+      MatrixTransform := RootNode.FindNode('MyMatrixSampleFull') as TMatrixTransformNode_1;
+      Matrix := MatrixTransform.FdMatrix.Value;
+      GoodMatrix.Columns[0] := Vector4(1, 2, 3, 4);
+      GoodMatrix.Columns[1] := Vector4(5, 6, 7, 8);
+      GoodMatrix.Columns[2] := Vector4(9, 10, 11, 12);
+      GoodMatrix.Columns[3] := Vector4(13, 14, 15, 16);
+      AssertMatrixEquals(Matrix, GoodMatrix, 0.01);
+
+      // save and load again
+      SaveNode(RootNode, Stream, 'model/vrml', '', '');
+    finally FreeAndNil(RootNode) end;
+
+    Stream.Position := 0;
+    NewRootNode := LoadNode(Stream, '', 'model/vrml');
+    try
+      MatrixTransform := NewRootNode.FindNode('MyMatrixSample') as TMatrixTransformNode_1;
+      Matrix := MatrixTransform.FdMatrix.Value;
+      GoodMatrix.Columns[0] := Vector4(1, 0, 0, 0);
+      GoodMatrix.Columns[1] := Vector4(0, 1, 0, 0);
+      GoodMatrix.Columns[2] := Vector4(0, 0, 1, 0);
+      GoodMatrix.Columns[3] := Vector4(-1.24, -2.61, -0.52, 1);
+      AssertMatrixEquals(Matrix, GoodMatrix, 0.01);
+
+      MatrixTransform := NewRootNode.FindNode('MyMatrixSampleFull') as TMatrixTransformNode_1;
+      Matrix := MatrixTransform.FdMatrix.Value;
+      GoodMatrix.Columns[0] := Vector4(1, 2, 3, 4);
+      GoodMatrix.Columns[1] := Vector4(5, 6, 7, 8);
+      GoodMatrix.Columns[2] := Vector4(9, 10, 11, 12);
+      GoodMatrix.Columns[3] := Vector4(13, 14, 15, 16);
+      AssertMatrixEquals(Matrix, GoodMatrix, 0.01);
+    finally FreeAndNil(NewRootNode) end;
+  finally
+    FreeAndNil(Stream);
+  end;
+end;
+
+procedure TTestX3DNodes.TestSaveLoadMatrix_Vrml2;
+var
+  RootNode, NewRootNode: TX3DRootNode;
+  MatrixTransform: TMatrixTransformNode;
+  Matrix, GoodMatrix: TMatrix4;
+  Stream: TMemoryStream;
+begin
+  Stream := TMemoryStream.Create;
+  try
+    RootNode := LoadNode('castle-data:/matrix_vrml_x3d_format/matrix_vrml2.wrl');
+    try
+      MatrixTransform := RootNode.FindNode('MyMatrixSample') as TMatrixTransformNode;
+      Matrix := MatrixTransform.FdMatrix.Value;
+      GoodMatrix.Columns[0] := Vector4(1, 0, 0, 0);
+      GoodMatrix.Columns[1] := Vector4(0, 1, 0, 0);
+      GoodMatrix.Columns[2] := Vector4(0, 0, 1, 0);
+      GoodMatrix.Columns[3] := Vector4(-1.24, -2.61, -0.52, 1);
+      AssertMatrixEquals(Matrix, GoodMatrix, 0.01);
+
+      MatrixTransform := RootNode.FindNode('MyMatrixSampleFull') as TMatrixTransformNode;
+      Matrix := MatrixTransform.FdMatrix.Value;
+      GoodMatrix.Columns[0] := Vector4(1, 2, 3, 4);
+      GoodMatrix.Columns[1] := Vector4(5, 6, 7, 8);
+      GoodMatrix.Columns[2] := Vector4(9, 10, 11, 12);
+      GoodMatrix.Columns[3] := Vector4(13, 14, 15, 16);
+      AssertMatrixEquals(Matrix, GoodMatrix, 0.01);
+
+      SaveNode(RootNode, Stream, 'model/vrml', '', '');
+    finally FreeAndNil(RootNode) end;
+
+    Stream.Position := 0;
+    NewRootNode := LoadNode(Stream, '', 'model/vrml');
+    try
+      MatrixTransform := NewRootNode.FindNode('MyMatrixSample') as TMatrixTransformNode;
+      Matrix := MatrixTransform.FdMatrix.Value;
+      GoodMatrix.Columns[0] := Vector4(1, 0, 0, 0);
+      GoodMatrix.Columns[1] := Vector4(0, 1, 0, 0);
+      GoodMatrix.Columns[2] := Vector4(0, 0, 1, 0);
+      GoodMatrix.Columns[3] := Vector4(-1.24, -2.61, -0.52, 1);
+      AssertMatrixEquals(Matrix, GoodMatrix, 0.01);
+
+      MatrixTransform := NewRootNode.FindNode('MyMatrixSampleFull') as TMatrixTransformNode;
+      Matrix := MatrixTransform.FdMatrix.Value;
+      GoodMatrix.Columns[0] := Vector4(1, 2, 3, 4);
+      GoodMatrix.Columns[1] := Vector4(5, 6, 7, 8);
+      GoodMatrix.Columns[2] := Vector4(9, 10, 11, 12);
+      GoodMatrix.Columns[3] := Vector4(13, 14, 15, 16);
+      AssertMatrixEquals(Matrix, GoodMatrix, 0.01);
+    finally FreeAndNil(NewRootNode) end;
+  finally
+    FreeAndNil(Stream);
+  end;
+end;
+
+procedure TTestX3DNodes.TestSaveLoadMatrix_X3DClassic;
+var
+  RootNode, NewRootNode: TX3DRootNode;
+  MatrixTransform: TMatrixTransformNode;
+  Matrix, GoodMatrix: TMatrix4;
+  Stream: TMemoryStream;
+begin
+  Stream := TMemoryStream.Create;
+  try
+    RootNode := LoadNode('castle-data:/matrix_vrml_x3d_format/matrix_x3d_classic.x3dv');
+    try
+      MatrixTransform := RootNode.FindNode('MyMatrixSample') as TMatrixTransformNode;
+      Matrix := MatrixTransform.FdMatrix.Value;
+
+      // The X3D syntax matches per-row, not per-column
+      GoodMatrix.Rows[0] := Vector4(1, 0, 0, -1.24);
+      GoodMatrix.Rows[1] := Vector4(0, 1, 0, -2.61);
+      GoodMatrix.Rows[2] := Vector4(0, 0, 1, -0.52);
+      GoodMatrix.Rows[3] := Vector4(0, 0, 0, 1);
+      AssertMatrixEquals(Matrix, GoodMatrix, 0.01);
+
+      MatrixTransform := RootNode.FindNode('MyMatrixSampleFull') as TMatrixTransformNode;
+      Matrix := MatrixTransform.FdMatrix.Value;
+      GoodMatrix.Rows[0] := Vector4(1, 2, 3, 4);
+      GoodMatrix.Rows[1] := Vector4(5, 6, 7, 8);
+      GoodMatrix.Rows[2] := Vector4(9, 10, 11, 12);
+      GoodMatrix.Rows[3] := Vector4(13, 14, 15, 16);
+      AssertMatrixEquals(Matrix, GoodMatrix, 0.01);
+      SaveNode(RootNode, Stream, 'model/x3d+vrml', '', '');
+    finally FreeAndNil(RootNode) end;
+
+    Stream.Position := 0;
+    NewRootNode := LoadNode(Stream, '', 'model/x3d+vrml');
+    try
+      MatrixTransform := NewRootNode.FindNode('MyMatrixSample') as TMatrixTransformNode;
+      Matrix := MatrixTransform.FdMatrix.Value;
+      GoodMatrix.Rows[0] := Vector4(1, 0, 0, -1.24);
+      GoodMatrix.Rows[1] := Vector4(0, 1, 0, -2.61);
+      GoodMatrix.Rows[2] := Vector4(0, 0, 1, -0.52);
+      GoodMatrix.Rows[3] := Vector4(0, 0, 0, 1);
+      AssertMatrixEquals(Matrix, GoodMatrix, 0.01);
+
+      MatrixTransform := NewRootNode.FindNode('MyMatrixSampleFull') as TMatrixTransformNode;
+      Matrix := MatrixTransform.FdMatrix.Value;
+      GoodMatrix.Rows[0] := Vector4(1, 2, 3, 4);
+      GoodMatrix.Rows[1] := Vector4(5, 6, 7, 8);
+      GoodMatrix.Rows[2] := Vector4(9, 10, 11, 12);
+      GoodMatrix.Rows[3] := Vector4(13, 14, 15, 16);
+      AssertMatrixEquals(Matrix, GoodMatrix, 0.01);
+    finally FreeAndNil(NewRootNode) end;
+  finally
+    FreeAndNil(Stream);
+  end;
+end;
+
+procedure TTestX3DNodes.TestSaveLoadMatrix_X3DXml;
+var
+  RootNode, NewRootNode: TX3DRootNode;
+  MatrixTransform: TMatrixTransformNode;
+  Matrix, GoodMatrix: TMatrix4;
+  Stream: TMemoryStream;
+begin
+  Stream := TMemoryStream.Create;
+  try
+    RootNode := LoadNode('castle-data:/matrix_vrml_x3d_format/matrix_x3d_xml.x3d');
+    try
+      MatrixTransform := RootNode.FindNode('MyMatrixSample') as TMatrixTransformNode;
+      Matrix := MatrixTransform.FdMatrix.Value;
+
+      // The X3D syntax matches per-row, not per-column
+      GoodMatrix.Rows[0] := Vector4(1, 0, 0, -1.24);
+      GoodMatrix.Rows[1] := Vector4(0, 1, 0, -2.61);
+      GoodMatrix.Rows[2] := Vector4(0, 0, 1, -0.52);
+      GoodMatrix.Rows[3] := Vector4(0, 0, 0, 1);
+      AssertMatrixEquals(Matrix, GoodMatrix, 0.01);
+
+      MatrixTransform := RootNode.FindNode('MyMatrixSampleFull') as TMatrixTransformNode;
+      Matrix := MatrixTransform.FdMatrix.Value;
+      GoodMatrix.Rows[0] := Vector4(1, 2, 3, 4);
+      GoodMatrix.Rows[1] := Vector4(5, 6, 7, 8);
+      GoodMatrix.Rows[2] := Vector4(9, 10, 11, 12);
+      GoodMatrix.Rows[3] := Vector4(13, 14, 15, 16);
+      AssertMatrixEquals(Matrix, GoodMatrix, 0.01);
+      SaveNode(RootNode, Stream, 'model/x3d+xml', '', '');
+    finally FreeAndNil(RootNode) end;
+
+    Stream.Position := 0;
+    NewRootNode := LoadNode(Stream, '', 'model/x3d+xml');
+    try
+      MatrixTransform := NewRootNode.FindNode('MyMatrixSample') as TMatrixTransformNode;
+      Matrix := MatrixTransform.FdMatrix.Value;
+      GoodMatrix.Rows[0] := Vector4(1, 0, 0, -1.24);
+      GoodMatrix.Rows[1] := Vector4(0, 1, 0, -2.61);
+      GoodMatrix.Rows[2] := Vector4(0, 0, 1, -0.52);
+      GoodMatrix.Rows[3] := Vector4(0, 0, 0, 1);
+      AssertMatrixEquals(Matrix, GoodMatrix, 0.01);
+
+      MatrixTransform := NewRootNode.FindNode('MyMatrixSampleFull') as TMatrixTransformNode;
+      Matrix := MatrixTransform.FdMatrix.Value;
+      GoodMatrix.Rows[0] := Vector4(1, 2, 3, 4);
+      GoodMatrix.Rows[1] := Vector4(5, 6, 7, 8);
+      GoodMatrix.Rows[2] := Vector4(9, 10, 11, 12);
+      GoodMatrix.Rows[3] := Vector4(13, 14, 15, 16);
+      AssertMatrixEquals(Matrix, GoodMatrix, 0.01);
+    finally FreeAndNil(NewRootNode) end;
+  finally
+    FreeAndNil(Stream);
+  end;
 end;
 
 initialization
