@@ -1958,9 +1958,9 @@ procedure TSFMatrix3f.SaveToStreamValue(Writer: TX3DWriter);
 
   { Save matrix to Writer (X3D classic encoding / VRML)
     assuming MatrixFormatPerRow = true. }
-  procedure SaveMatrix(const Matrix: TItem);
+  procedure SaveMatrix(const Matrix: TMatrix3);
   var
-    V: TItemColumn;
+    V: TVector3;
     Row: Integer;
   begin
     V := Matrix.Rows[0];
@@ -2112,9 +2112,9 @@ procedure TSFMatrix3d.SaveToStreamValue(Writer: TX3DWriter);
 
   { Save matrix to Writer (X3D classic encoding / VRML)
     assuming MatrixFormatPerRow = true. }
-  procedure SaveMatrix(const Matrix: TItem);
+  procedure SaveMatrix(const Matrix: TMatrix3Double);
   var
-    V: TItemColumn;
+    V: TVector3Double;
     Row: Integer;
   begin
     V := Matrix.Rows[0];
@@ -2265,9 +2265,9 @@ procedure TSFMatrix4f.SaveToStreamValue(Writer: TX3DWriter);
 
   { Save matrix to Writer (X3D classic encoding / VRML)
     assuming MatrixFormatPerRow = true. }
-  procedure SaveMatrix(const Matrix: TItem);
+  procedure SaveMatrix(const Matrix: TMatrix4);
   var
-    V: TItemColumn;
+    V: TVector4;
     Row: Integer;
   begin
     V := Matrix.Rows[0];
@@ -2419,9 +2419,9 @@ procedure TSFMatrix4d.SaveToStreamValue(Writer: TX3DWriter);
 
   { Save matrix to Writer (X3D classic encoding / VRML)
     assuming MatrixFormatPerRow = true. }
-  procedure SaveMatrix(const Matrix: TItem);
+  procedure SaveMatrix(const Matrix: TMatrix4Double);
   var
-    V: TItemColumn;
+    V: TVector4Double;
     Row: Integer;
   begin
     V := Matrix.Rows[0];
