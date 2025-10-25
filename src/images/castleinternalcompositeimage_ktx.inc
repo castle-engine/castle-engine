@@ -21,11 +21,6 @@
   See KTX specs https://registry.khronos.org/KTX/ .
   This file implements KTX 1, https://registry.khronos.org/KTX/specs/1.0/ktxspec.v1.html  }
 
-{ Log do we use fast or slow speed-path for loading / saving.
-  "Fast speed path" means we can use 1x ReadBuffer call to move entire data
-  between TStream and TEncodedImage.RawPixels, so this is ideal situation. }
-{.$define CASTLE_KTX_LOG_SPEED}
-
 { TKTXHandler ----------------------------------------------------------------- }
 
 type
@@ -179,24 +174,21 @@ type
     { Write to Stream one TEncodedImage. }
     procedure WriteOneImage(const Stream: TStream; const Image: TEncodedImage);
 
-    {$ifdef CASTLE_KTX_LOG_SPEED}
     procedure LogSpeed(const Image: TEncodedImage; const S: String);
-    {$endif}
   public
     procedure LoadFromStream(const Stream: TStream; const Url: String); override;
     procedure SaveToStream(const Stream: TStream); override;
   end;
 
-{$ifdef CASTLE_KTX_LOG_SPEED}
 procedure TKTXHandler.LogSpeed(const Image: TEncodedImage; const S: String);
 begin
-  WritelnLog('KTX', '%s(%dx%dx%d): %s', [
-    Image.ClassName,
-    Image.Width, Image.Height, Image.Depth,
-    S
-  ]);
+  if LogVerboseKtx then
+    WritelnLog('KTX', '%s(%dx%dx%d): %s', [
+      Image.ClassName,
+      Image.Width, Image.Height, Image.Depth,
+      S
+    ]);
 end;
-{$endif}
 
 function TKTXHandler.TargetY(const Y: Integer; const H: Cardinal): Integer;
 begin
@@ -231,11 +223,11 @@ begin
 
   if (Padding = 0) and (not RowsTopToBottom) and (not SlicesFrontToBack) then
   begin
-    {$ifdef CASTLE_KTX_LOG_SPEED} LogSpeed(Image, 'FAST'); {$endif}
+    LogSpeed(Image, 'FAST');
     Stream.ReadBuffer(Image.RawPixels^, Image.Size);
   end else
   begin
-    {$ifdef CASTLE_KTX_LOG_SPEED} LogSpeed(Image, 'SLOW (needs to invert rows, slices, or has padding)'); {$endif}
+    LogSpeed(Image, 'SLOW (needs to invert rows, slices, or has padding)');
     for Z := 0 to D - 1 do
       for Y := 0 to H - 1 do
       begin
@@ -261,7 +253,7 @@ begin
   H := Image.Height;
   D := Image.Depth;
 
-  {$ifdef CASTLE_KTX_LOG_SPEED} LogSpeed(Image, 'SLOW (needs to convert 16-bit to 32-bit float)'); {$endif}
+  LogSpeed(Image, 'SLOW (needs to convert 16-bit to 32-bit float)');
 
   Padding := RowBytePadding(Image);
 
@@ -294,7 +286,7 @@ begin
   H := Image.Height;
   D := Image.Depth;
 
-  {$ifdef CASTLE_KTX_LOG_SPEED} LogSpeed(Image, 'SLOWDOWN (needs to swap red<->blue)'); {$endif}
+  LogSpeed(Image, 'SLOWDOWN (needs to swap red<->blue)');
 
   for Z := 0 to D - 1 do
     for Y := 0 to H - 1 do
@@ -334,13 +326,11 @@ begin
   end else
     WritelnWarning('KTX', 'Unrecognized KTX orientation "%s"', [Value]);
 
-  {$ifdef CASTLE_KTX_LOG_SPEED}
   WritelnLog('KTX', 'Got KTX orientation "%s". RowsTopToBottom: %s, SlicesFrontToBack: %s.', [
     Value,
     BoolToStr(RowsTopToBottom, true),
     BoolToStr(SlicesFrontToBack, true)
   ]);
-  {$endif CASTLE_KTX_LOG_SPEED}
 end;
 
 procedure TKTXHandler.ReadKeyValues(const Stream: TStream);
@@ -389,14 +379,14 @@ end;
 function TKTXHandler.ReadOneImage_Compressed(const Stream: TStream;
   const Image: TGPUCompressedImage): TGPUCompressedImage;
 begin
-  {$ifdef CASTLE_KTX_LOG_SPEED} LogSpeed(Image, 'FAST'); {$endif}
+  LogSpeed(Image, 'FAST');
   Result := Image;
   Stream.ReadBuffer(Image.RawPixels^, Image.Size);
 
   if RowsTopToBottom then
   begin
     Image.FlipVertical;
-    {$ifdef CASTLE_KTX_LOG_SPEED} LogSpeed(Image, 'SLOWDOWN (needs to vertically flip)'); {$endif}
+    LogSpeed(Image, 'SLOWDOWN (needs to vertically flip)');
   end;
 end;
 
@@ -702,11 +692,11 @@ begin
   if (Image is TGPUCompressedImage) or
      (RowBytePadding(Image as TCastleImage) = 0) then
   begin
-    {$ifdef CASTLE_KTX_LOG_SPEED} LogSpeed(Image, 'SAVE: FAST'); {$endif}
+    LogSpeed(Image, 'SAVE: FAST');
     Stream.WriteBuffer(Image.RawPixels^, Image.Size);
   end else
   begin
-    {$ifdef CASTLE_KTX_LOG_SPEED} LogSpeed(Image, 'SAVE: SLOW (needs to add row padding)'); {$endif}
+    LogSpeed(Image, 'SAVE: SLOW (needs to add row padding)');
     Img := Image as TCastleImage;
     for Z := 0 to Image.Depth - 1 do
       for Y := 0 to Image.Height - 1 do
