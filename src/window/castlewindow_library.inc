@@ -71,10 +71,15 @@ procedure CGEApp_Motion(X, Y: CInt32; FingerIndex: CInt32); cdecl;
 procedure CGEApp_MouseUp(X, Y: cInt32; bLeftBtn: cBool; FingerIndex: CInt32); cdecl;
 procedure CGEApp_KeyDown(eKey: CInt32); cdecl;
 procedure CGEApp_KeyUp(eKey: CInt32); cdecl;
+
+{ Report to the engine events of the game controller(s). }
 procedure CGEApp_ControllerAxisLeft(ControllerIndex: CInt32; X, Y: CFloat); cdecl;
 procedure CGEApp_ControllerAxisRight(ControllerIndex: CInt32; X, Y: CFloat); cdecl;
+procedure CGEApp_ControllerAxisLeftTrigger(ControllerIndex: CInt32; Axis: CFloat); cdecl;
+procedure CGEApp_ControllerAxisRightTrigger(ControllerIndex: CInt32; Axis: CFloat); cdecl;
 procedure CGEApp_ControllerCount(ControllerCount: CInt32); cdecl;
 procedure CGEApp_ControllerButton(ControllerIndex: CInt32; Button: CInt32; Pressed: CBool); cdecl;
+
 function CGEApp_HandleOpenUrl(szUrl: PChar): CInt32; cdecl;
 
 const
@@ -614,7 +619,7 @@ begin
   end;
 end;
 
-procedure CGEApp_ControllerAxisLeft(ControllerIndex: CInt; X, Y: Single); cdecl;
+procedure CGEApp_ControllerAxisLeft(ControllerIndex: CInt32; X, Y: CFloat); cdecl;
 var
   Backend: TExplicitControllerManagerBackend;
 begin
@@ -627,7 +632,7 @@ begin
   end;
 end;
 
-procedure CGEApp_ControllerAxisRight(ControllerIndex: CInt; X, Y: Single); cdecl;
+procedure CGEApp_ControllerAxisRight(ControllerIndex: CInt32; X, Y: CFloat); cdecl;
 var
   Backend: TExplicitControllerManagerBackend;
 begin
@@ -640,7 +645,33 @@ begin
   end;
 end;
 
-procedure CGEApp_ControllerButton(ControllerIndex: CInt; Button: CInt; Pressed: CBool); cdecl;
+procedure CGEApp_ControllerAxisLeftTrigger(ControllerIndex: CInt32; Axis: CFloat); cdecl;
+var
+  Backend: TExplicitControllerManagerBackend;
+begin
+  try
+    CheckMainWindow;
+    Backend := Controllers.InternalExplicitBackend as TExplicitControllerManagerBackend;
+    Backend.SetAxisLeftTrigger(ControllerIndex, Axis);
+  except
+    on E: TObject do WritelnWarning('CGEApp_ControllerAxisLeftTrigger', ExceptMessage(E));
+  end;
+end;
+
+procedure CGEApp_ControllerAxisRightTrigger(ControllerIndex: CInt32; Axis: CFloat); cdecl;
+var
+  Backend: TExplicitControllerManagerBackend;
+begin
+  try
+    CheckMainWindow;
+    Backend := Controllers.InternalExplicitBackend as TExplicitControllerManagerBackend;
+    Backend.SetAxisRightTrigger(ControllerIndex, Axis);
+  except
+    on E: TObject do WritelnWarning('CGEApp_ControllerAxisRightTrigger', ExceptMessage(E));
+  end;
+end;
+
+procedure CGEApp_ControllerButton(ControllerIndex: CInt32; Button: CInt32; Pressed: CBool); cdecl;
 var
   Backend: TExplicitControllerManagerBackend;
 begin

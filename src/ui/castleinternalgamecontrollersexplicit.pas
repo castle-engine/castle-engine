@@ -29,6 +29,8 @@ type
     procedure SetCount(const NewControllerCount: Integer);
     procedure SetAxisLeft(const ControllerIndex: Integer; const Axis: TVector2);
     procedure SetAxisRight(const ControllerIndex: Integer; const Axis: TVector2);
+    procedure SetAxisLeftTrigger(const ControllerIndex: Integer; const Axis: Single);
+    procedure SetAxisRightTrigger(const ControllerIndex: Integer; const Axis: Single);
     procedure SetButton(const ControllerIndex: Integer; const Button: TGameControllerButton; const Pressed: Boolean);
   end;
 
@@ -43,6 +45,7 @@ type
     { Last set axis values.
       Explicit backend ignores the InternalAxis[...] values. }
     FAxisLeft, FAxisRight: TVector2;
+    FAxisLeftTrigger, FAxisRightTrigger: Single;
     function AxisLeft: TVector2; override;
     function AxisRight: TVector2; override;
     function AxisLeftTrigger: Single; override;
@@ -61,14 +64,12 @@ end;
 
 function TExplicitControllerBackend.AxisLeftTrigger: Single;
 begin
-  { Explicit backend does not support triggers for now, so we return 0. }
-  Result := 0;
+  Result := FAxisLeftTrigger;
 end;
 
 function TExplicitControllerBackend.AxisRightTrigger: Single;
 begin
-  { Explicit backend does not support triggers for now, so we return 0. }
-  Result := 0;
+  Result := FAxisRightTrigger;
 end;
 
 { TExplicitControllerManagerBackend ----------------------------------------- }
@@ -126,6 +127,36 @@ begin
     ControllerBackend.FAxisRight := Axis;
   end else
     WriteLnWarning('Controller index %d given to CGEApp_ControllerAxisRight is incorrect. Current controller count (given to CGEApp_ControllerCount) is %d.', [
+      ControllerIndex,
+      List.Count
+    ]);
+end;
+
+procedure TExplicitControllerManagerBackend.SetAxisLeftTrigger(const ControllerIndex: Integer; const Axis: Single);
+var
+  ControllerBackend: TExplicitControllerBackend;
+begin
+  if Between(ControllerIndex, 0, List.Count - 1) then
+  begin
+    ControllerBackend := List[ControllerIndex].InternalBackend as TExplicitControllerBackend;
+    ControllerBackend.FAxisLeftTrigger := Axis;
+  end else
+    WriteLnWarning('Controller index %d given to CGEApp_ControllerAxisLeftTrigger is incorrect. Current controller count (given to CGEApp_ControllerCount) is %d.', [
+      ControllerIndex,
+      List.Count
+    ]);
+end;
+
+procedure TExplicitControllerManagerBackend.SetAxisRightTrigger(const ControllerIndex: Integer; const Axis: Single);
+var
+  ControllerBackend: TExplicitControllerBackend;
+begin
+  if Between(ControllerIndex, 0, List.Count - 1) then
+  begin
+    ControllerBackend := List[ControllerIndex].InternalBackend as TExplicitControllerBackend;
+    ControllerBackend.FAxisRightTrigger := Axis;
+  end else
+    WriteLnWarning('Controller index %d given to CGEApp_ControllerAxisRightTrigger is incorrect. Current controller count (given to CGEApp_ControllerCount) is %d.', [
       ControllerIndex,
       List.Count
     ]);

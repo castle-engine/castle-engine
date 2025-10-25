@@ -224,6 +224,8 @@ extern void CGEApp_KeyUp(int /*ECgeKey*/ eKey);
 
 extern void CGEApp_ControllerAxisLeft(int controllerIndex, float x, float y);
 extern void CGEApp_ControllerAxisRight(int controllerIndex, float x, float y);
+extern void CGEApp_ControllerAxisLeftTrigger(int controllerIndex, float axis);
+extern void CGEApp_ControllerAxisRightTrigger(int controllerIndex, float axis);
 extern void CGEApp_ControllerCount(int controllerCount);
 extern void CGEApp_ControllerButton(int controllerIndex, int /*ECgeGameControllerButton*/ button, bool pressed);
 
