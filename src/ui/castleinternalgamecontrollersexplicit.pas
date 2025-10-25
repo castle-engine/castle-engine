@@ -19,7 +19,7 @@ unit CastleInternalGameControllersExplicit;
 
 interface
 
-uses CastleGameControllers, CastleVectors;
+uses CastleGameControllers, CastleKeysMouse, CastleVectors;
 
 type
   TExplicitControllerManagerBackend = class(TInternalControllerManagerBackend)
@@ -29,11 +29,12 @@ type
     procedure SetCount(const NewControllerCount: Integer);
     procedure SetAxisLeft(const ControllerIndex: Integer; const Axis: TVector2);
     procedure SetAxisRight(const ControllerIndex: Integer; const Axis: TVector2);
+    procedure SetButton(const ControllerIndex: Integer; const Button: TGameControllerButton; const Pressed: Boolean);
   end;
 
 implementation
 
-uses CastleUtils, CastleLog, CastleKeysMouse;
+uses CastleUtils, CastleLog;
 
 { TExplicitControllerBackend ------------------------------------------------- }
 
@@ -125,6 +126,21 @@ begin
     ControllerBackend.FAxisRight := Axis;
   end else
     WriteLnWarning('Controller index %d given to CGEApp_ControllerAxisRight is incorrect. Current controller count (given to CGEApp_ControllerCount) is %d.', [
+      ControllerIndex,
+      List.Count
+    ]);
+end;
+
+procedure TExplicitControllerManagerBackend.SetButton(const ControllerIndex: Integer; const Button: TGameControllerButton; const Pressed: Boolean);
+var
+  ControllerBackend: TExplicitControllerBackend;
+begin
+  if Between(ControllerIndex, 0, List.Count - 1) then
+  begin
+    ControllerBackend := List[ControllerIndex].InternalBackend as TExplicitControllerBackend;
+    ControllerBackend.Controller.InternalPressedToReport[Button] := Pressed;
+  end else
+    WriteLnWarning('Controller index %d given to CGEApp_ControllerButton is incorrect. Current controller count (given to CGEApp_ControllerCount) is %d.', [
       ControllerIndex,
       List.Count
     ]);

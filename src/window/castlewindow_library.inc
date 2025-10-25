@@ -71,9 +71,10 @@ procedure CGEApp_Motion(X, Y: CInt32; FingerIndex: CInt32); cdecl;
 procedure CGEApp_MouseUp(X, Y: cInt32; bLeftBtn: cBool; FingerIndex: CInt32); cdecl;
 procedure CGEApp_KeyDown(eKey: CInt32); cdecl;
 procedure CGEApp_KeyUp(eKey: CInt32); cdecl;
-procedure CGEApp_ControllerAxisLeft(ControllerIndex: CInt; X, Y: Single); cdecl;
-procedure CGEApp_ControllerAxisRight(ControllerIndex: CInt; X, Y: Single); cdecl;
-procedure CGEApp_ControllerCount(ControllerCount: CInt); cdecl;
+procedure CGEApp_ControllerAxisLeft(ControllerIndex: CInt32; X, Y: CFloat); cdecl;
+procedure CGEApp_ControllerAxisRight(ControllerIndex: CInt32; X, Y: CFloat); cdecl;
+procedure CGEApp_ControllerCount(ControllerCount: CInt32); cdecl;
+procedure CGEApp_ControllerButton(ControllerIndex: CInt32; Button: CInt32; Pressed: CBool); cdecl;
 function CGEApp_HandleOpenUrl(szUrl: PChar): CInt32; cdecl;
 
 const
@@ -636,6 +637,19 @@ begin
     Backend.SetAxisRight(ControllerIndex, Vector2(X, Y));
   except
     on E: TObject do WritelnWarning('CGEApp_ControllerAxisRight', ExceptMessage(E));
+  end;
+end;
+
+procedure CGEApp_ControllerButton(ControllerIndex: CInt; Button: CInt; Pressed: CBool); cdecl;
+var
+  Backend: TExplicitControllerManagerBackend;
+begin
+  try
+    CheckMainWindow;
+    Backend := Controllers.InternalExplicitBackend as TExplicitControllerManagerBackend;
+    Backend.SetButton(ControllerIndex, TGameControllerButton(Button), Pressed);
+  except
+    on E: TObject do WritelnWarning('CGEApp_ControllerButton', ExceptMessage(E));
   end;
 end;
 
