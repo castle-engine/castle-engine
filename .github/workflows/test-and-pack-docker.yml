@@ -116,8 +116,8 @@ jobs:
       - name: Build Examples Using Lazarus (FPC / Lazarus Stable)
         run: make clean examples-laz CASTLE_CONSERVE_DISK_SPACE=true
 
-  pack_1:
-    name: Pack to zip (1)
+  pack:
+    name: Pack release
 
     # TODO: With Ubuntu 24 LTS, we hit weird "*** buffer overflow detected ***:"
     # from "zip -r castle-engine-7.0-alpha.3.snapshot-linux-x86_64.zip castle_game_engine/"
@@ -132,82 +132,68 @@ jobs:
     #runs-on: ubuntu-latest
     runs-on: ubuntu-22.04
 
+    # We split pack into more>1 jobs (using matrix) to avoid running out of disk space
+    # on GH hosted runners.
+
     container: kambi/castle-engine-cloud-builds-tools:cge-none
+    strategy:
+      matrix:
+        pack-job-name: [
+          win64-x86_64,
+          win32-i386,
+          linux-x86_64,
+          win64-x86_64-bundle,
+          linux-x86_64-bundle
+        ]
+        include:
+          - pack-job-name: win64-x86_64
+            os: win64
+            cpu: x86_64
+            bundle: false
+          - pack-job-name: win32-i386
+            os: win32
+            cpu: i386
+            bundle: false
+          - pack-job-name: linux-x86_64
+            os: linux
+            cpu: x86_64
+            bundle: false
+          - pack-job-name: win64-x86_64-bundle
+            os: win64
+            cpu: x86_64
+            bundle: true
+          - pack-job-name: linux-x86_64-bundle
+            os: linux
+            cpu: x86_64
+            bundle: true
     steps:
       - uses: actions/checkout@v5
       - name: Set environment
         run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+
+      # Not really necessary since this runs on GH-hosted runners that are always cleaned at start.
       - name: Remove previous artifacts
         run: rm -f castle-engine*.zip
 
-      - name: Pack Win64/x86_64
-        run: ./tools/internal/pack_release/pack_release.sh win64 x86_64
-      - name: Pack Win32/i386
-        run: ./tools/internal/pack_release/pack_release.sh win32 i386
-      - name: Pack Linux/x86_64
-        run: ./tools/internal/pack_release/pack_release.sh linux x86_64
-
-      - name: Archive Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-and-linux-release-from-docker-1
-          path: "castle-engine*.zip"
-          if-no-files-found: error
-
-  # We split pack into more>1 jobs to avoid running out of disk space
-  # on GH hosted runners, no other reason.
-  pack_2:
-    name: Pack to zip (2)
-    # TODO: Just like above, workaround zip crashes by using older Ubuntu LTS.
-    #runs-on: ubuntu-latest
-    runs-on: ubuntu-22.04
-    container: kambi/castle-engine-cloud-builds-tools:cge-none
-    steps:
-      - uses: actions/checkout@v5
-      - name: Set environment
-        run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-
       - name: Download bundled FPC
+        if: ${{ matrix.bundle }}
         uses: robinraju/release-downloader@v1.12
         with:
           repository: "castle-engine/cge-fpc"
           latest: true
           # Docs suggest we need a wildcard to get all files: https://github.com/marketplace/actions/release-downloader
           fileName: "*"
-      - name: Pack With Bundled FPC for Win64/x86_64
-        run: CGE_PACK_BUNDLE=yes ./tools/internal/pack_release/pack_release.sh win64 x86_64
+
+      - name: Define CGE_PACK_BUNDLE
+        if: ${{ matrix.bundle }}
+        run: echo "CGE_PACK_BUNDLE=true" >> $GITHUB_ENV
+
+      - name: Pack
+        run: ./tools/internal/pack_release/pack_release.sh ${{ matrix.os }} ${{ matrix.cpu }}
 
       - name: Archive Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: windows-and-linux-release-from-docker-2
-          path: "castle-engine*.zip"
-          if-no-files-found: error
-
-  pack_3:
-    name: Pack to zip (3)
-    # TODO: Just like above, workaround zip crashes by using older Ubuntu LTS.
-    #runs-on: ubuntu-latest
-    runs-on: ubuntu-22.04
-    container: kambi/castle-engine-cloud-builds-tools:cge-none
-    steps:
-      - uses: actions/checkout@v5
-      - name: Set environment
-        run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-
-      - name: Download bundled FPC
-        uses: robinraju/release-downloader@v1.12
-        with:
-          repository: "castle-engine/cge-fpc"
-          latest: true
-          # Docs suggest we need a wildcard to get all files: https://github.com/marketplace/actions/release-downloader
-          fileName: "*"
-      - name: Pack With Bundled FPC for Linux/x86_64
-        run: CGE_PACK_BUNDLE=yes ./tools/internal/pack_release/pack_release.sh linux x86_64
-
-      - name: Archive Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-and-linux-release-from-docker-3
+          name: release-from-docker-${{ matrix.pack-job-name }}
           path: "castle-engine*.zip"
           if-no-files-found: error
