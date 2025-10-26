@@ -139,6 +139,8 @@ type
     { X3D loads/save matrix per-row. }
     procedure TestSaveLoadMatrix_X3DClassic;
     procedure TestSaveLoadMatrix_X3DXml;
+
+    procedure TestNodeListAutoRemove;
   end;
 
 implementation
@@ -3246,6 +3248,56 @@ begin
   finally
     FreeAndNil(Stream);
   end;
+end;
+
+procedure TTestX3DNodes.TestNodeListAutoRemove;
+var
+  L: TX3DNodeList;
+  N1, N2: TX3DNode;
+begin
+  L := TX3DNodeList.Create(false);
+  try
+    L.AutoRemove := true;
+
+    N1 := TBoxNode.Create;
+    L.Add(N1);
+    AssertTrue(L.Count = 1);
+    AssertTrue(L[0] = N1);
+
+    N2 := TBoxNode.Create;
+    L.Add(N2);
+    AssertTrue(L.Count = 2);
+    AssertTrue(L[0] = N1);
+    AssertTrue(L[1] = N2);
+
+    N1.Free;
+    AssertTrue(L.Count = 1);
+    AssertTrue(L[0] = N2);
+  finally FreeAndNil(L) end;
+
+  L := TX3DNodeList.Create(false);
+  try
+    L.AutoRemove := true;
+
+    N1 := TBoxNode.Create;
+    L.Add(N1);
+    AssertTrue(L.Count = 1);
+    AssertTrue(L[0] = N1);
+
+    N2 := TBoxNode.Create;
+    L.Add(N2);
+    AssertTrue(L.Count = 2);
+    AssertTrue(L[0] = N1);
+    AssertTrue(L[1] = N2);
+
+    // let's add N1 multiple times, all should still be OK
+    L.Add(N1);
+    L.Add(N1);
+
+    N1.Free;
+    AssertTrue(L.Count = 1);
+    AssertTrue(L[0] = N2);
+  finally FreeAndNil(L) end;
 end;
 
 initialization

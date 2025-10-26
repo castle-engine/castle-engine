@@ -86,6 +86,7 @@
     FInterfaceDeclarations: TX3DInterfaceDeclarationList;
     FCDataField: TMFString;
     FDestructionNotifications: TNodeDestructionNotificationList;
+    FCallingDestructionNotifications: Boolean;
     FScene: TX3DEventsEngine;
     FInternalSceneShape: TObject;
 
@@ -1209,13 +1210,24 @@
     property GenTexFunctionality: TGeneratedTextureFunctionality read FGenTexFunctionality;
   end;
 
+  { List of TX3DNode. }
   TX3DNodeList = class({$ifdef FPC}specialize{$endif} TObjectList<TX3DNode>)
-    { Find node by name, @nil if not found.
+  strict private
+    FAutoRemove: Boolean;
+    procedure DestructionNotification(const Node: TX3DNode);
+    procedure SetAutoRemove(const Value: Boolean);
+  protected
+    procedure Notify(
+      {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} Value: TX3DNode;
+      Action: TCollectionNotification); override;
+  public
+    { Find node by name (TX3DNode.X3DName), @nil if not found.
 
-      For empty node name, always returns @nil. This follows the definition
-      of @link(TX3DNode.X3DName):
+      If called with Name = '', always returns @nil (does not search
+      for node with MyNode.X3DName = '' condition).
+      This follows the meaning of @link(TX3DNode.X3DName):
       empty means that node has no name, so it should not be found
-      by searches by name, ever.
+      when searching by name, ever.
 
       @seealso(IndexOfName Returns the node index. This is sometimes more
         flexible (you can always quickly get actual node knowing the index,
@@ -1223,13 +1235,36 @@
         less comfortable (often you're not interested in node index).) }
     function FindName(const Name: string): TX3DNode;
 
-    { Find index of a node with given name, -1 if not found. }
+    { Find index of a node with given name (TX3DNode.X3DName), -1 if not found.
+
+      Consistently with @link(FindName), always returns -1 when Name = ''. }
     function IndexOfName(const Name: string): Integer;
 
+    { Add node only if it's not already on the list. }
     procedure AddIfNotExists(const Node: TX3DNode);
-    function Equals(SecondValue: TObject): boolean; {$ifdef TOBJECT_HAS_EQUALS} override; {$endif}
+
+    { Does the SecondValue list has equal length and instances.
+      The instances on the list are compared exactly, i.e. reference
+      must match, not only some node properties. }
+    function Equals(SecondValue: TObject): Boolean; {$ifdef TOBJECT_HAS_EQUALS} override; {$endif}
+
+    { Assign from Source. Equivalent to Clear and then AddRange(Source). }
     procedure Assign(const Source: TX3DNodeList); overload;
+
+    { Assign from Source. Equivalent to Clear and then AddRange(Source). }
     procedure Assign(const Source: array of TX3DNode); overload;
+
+    { If @true then destroyed nodes will be automatically removed from this list.
+      This allows you to safely destroy node instances during the
+      lifetime of this list, without worrying that some dangling pointers remain
+      on this list.
+
+      You can only change this property when the list is empty.
+      Otherwise we could have a weird situation when some nodes are automatically
+      removed from the list, and some are not, which seems counter-intuitive.
+
+      Internally, this is done using TX3DNode.AddDestructionNotification. }
+    property AutoRemove: Boolean read FAutoRemove write SetAutoRemove default false;
   end;
 
 {$endif read_interface}
@@ -1304,7 +1339,15 @@ begin
     instances. }
   if FDestructionNotifications <> nil then
   begin
-    FDestructionNotifications.ExecuteAll(Self);
+    { Use FCallingDestructionNotifications to robustly handle trying to
+      modify the destruction notifications while we're in the middle of
+      iterating over them. }
+    FCallingDestructionNotifications := true;
+    try
+      FDestructionNotifications.ExecuteAll(Self);
+    finally
+      FCallingDestructionNotifications := false;
+    end;
     FreeAndNil(FDestructionNotifications);
   end;
 
@@ -1365,6 +1408,11 @@ end;
 
 procedure TX3DNode.AddDestructionNotification(const Event: TNodeDestructionNotification);
 begin
+  if CallingDestructionNotifications then
+    raise Exception.Create('Calling AddDestructionNotification on TX3DNode %s while we iterate over its destruction notifications. This is not allowed, it is too late now to add more destruction notifications.', [
+      NiceName
+    ]);
+
   { create FDestructionNotifications on demand }
   if FDestructionNotifications = nil then
     FDestructionNotifications := TNodeDestructionNotificationList.Create;
@@ -1373,6 +1421,11 @@ end;
 
 procedure TX3DNode.RemoveDestructionNotification(const Event: TNodeDestructionNotification);
 begin
+  { RemoveDestructionNotification calls can be gracefully ignored in this case.
+    It's OK, we iterate over FDestructionNotifications and will destroy
+    FDestructionNotifications when we finish. }
+  if CallingDestructionNotifications then
+    Exit;
   if FDestructionNotifications <> nil then
     FDestructionNotifications.Remove(Event);
 end;
@@ -3813,6 +3866,67 @@ procedure TX3DNodeList.Assign(const Source: array of TX3DNode);
 begin
   Clear;
   AddRange(Source);
+end;
+
+procedure TX3DNodeList.SetAutoRemove(const Value: Boolean);
+begin
+  if FAutoRemove <> Value then
+  begin
+    if Count <> 0 then
+      raise Exception.Create('Cannot change TX3DNodeList.AutoRemove when list is not empty');
+    FAutoRemove := Value;
+  end;
+end;
+
+procedure TX3DNodeList.Notify(
+  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} Value: TX3DNode;
+  Action: TCollectionNotification);
+begin
+  if FAutoRemove then
+    case Action of
+      cnAdded: Value.AddDestructionNotification(
+        {$ifdef FPC}@{$endif} DestructionNotification);
+      { Note that this may call RemoveDestructionNotification on node being
+        destroyed right now, while in the middle of node's FDestructionNotifications
+        iteration. But that's OK, FCallingDestructionNotifications will handle
+        it OK. }
+      cnExtracted, cnRemoved: Value.RemoveDestructionNotification(
+        {$ifdef FPC}@{$endif} DestructionNotification);
+      { FPC 3.3.1 introduced new notifications cnDeleting, cnExtracting
+        which we ignore for now. }
+      else ;
+    end;
+
+  { Do above actions before calling inherited, as inherited
+    may free the Value if cnDeleted and OwnsObjects. }
+  inherited;
+end;
+
+procedure TX3DNodeList.DestructionNotification(const Node: TX3DNode);
+
+  { Extract from list (remove without freeing, regardless of OwnsObjects)
+    all occurrences of Item. }
+  function ExtractAll(const Item: TObject): Cardinal;
+  var
+    I: Integer;
+  begin
+    I := 0;
+    while I < Count do
+    begin
+      if Items[I] = Item then
+      begin
+        Extract(I);
+      end else
+        Inc(I);
+    end;
+  end;
+
+begin
+  { We use ExtractAll, not something like Removeall,
+    so that removing the nodes from list,
+    while in the middle of their destructor, does not call their destructor again. }
+
+  ExtractAll(Node);
 end;
 
 {$endif read_implementation}
