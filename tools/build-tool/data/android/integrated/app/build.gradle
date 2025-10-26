@@ -24,8 +24,13 @@ android {
                 /* -DANDROID_STL=c++_shared:
                    Necessary for OpenAL and Oboe, see
                    https://developer.android.com/games/sdk/oboe/update-build-settings
+
+                   -DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON
+                   for 16k page sizes
+                   https://developer.android.com/guide/practices/page-sizes#groovy_1
+                   if we use NDK >= 27
                 */
-                arguments '-DANDROID_STL=c++_shared', '-DCMAKE_BUILD_TYPE=Release'
+                arguments '-DANDROID_STL=c++_shared', '-DCMAKE_BUILD_TYPE=Release', '-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON'
             }
         }
 
