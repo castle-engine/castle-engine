@@ -34,9 +34,10 @@ Upgrading Gradle:
 
 2. Upgrade Gradle wrapper:
 
-    - See latest Gradle version on https://docs.gradle.org/current/userguide/gradle_wrapper.html
+    - See required Gradle version for desired AGP (Android Gradle Plugin) version at https://developer.android.com/build/releases/gradle-plugin?buildsystem=ndk-build#updating-gradle .
+        - See also Gradle version on https://docs.gradle.org/current/userguide/gradle_wrapper.html .
     - Change `gradle/wrapper/gradle-wrapper.properties` to use new version
-    - Run `bash ./gradlew wrapper --gradle-version 8.7` or `./gradlew wrapper --gradle-version latest`
+    - Run `bash ./gradlew wrapper --gradle-version 8.13` or `./gradlew wrapper --gradle-version latest`
     - Copy `gradle/wrapper/` contents (2 files: `gradle-wrapper.properties`, `gradle-wrapper.jar`) over CGE files in `integrated/gradle/wrapper`.
 
     See https://docs.gradle.org/current/userguide/gradle_wrapper.html#sec:upgrading_wrapper for explanation.
