@@ -78,7 +78,7 @@
     FImports, FExports: TX3DFileItemList;
     FFields, FFieldsSFNode, FFieldsMFNode: TX3DFieldList;
     FEvents: TX3DEventList;
-    FPrototypeInstance: boolean;
+    FPrototypeInstance: Boolean;
     FPrototypeInstanceSourceNode: TX3DPrototypeNode;
     FPrototypeInstanceHelpers: TX3DNode;
     FDefaultContainerField: string;
@@ -96,7 +96,7 @@
       This is always @false outside of TX3DPrototypeNode.Instantiate
       implementation (as TX3DPrototypeNode.Instantiate sets it to @true
       and changes back to @false for appropriate nodes). }
-    NeedsInstantiateIsClause: boolean;
+    NeedsInstantiateIsClause: Boolean;
 
     function GetVRML1Child(const I: Integer): TX3DNode;
     function GetVRML1Parent(const I: Integer): TX3DNode;
@@ -112,10 +112,10 @@
     procedure NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerField: string = '');
     function TryFindNodeStateTraverse(
       ANode: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
-      ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean): Pointer;
+      ParentInfo: PTraversingInfo; var TraverseIntoChildren: Boolean): Pointer;
     function TryFindNodeTransformTraverse(
       ANode: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
-      ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean): Pointer;
+      ParentInfo: PTraversingInfo; var TraverseIntoChildren: Boolean): Pointer;
     function GetPrototypes(const Index: Integer): TX3DPrototypeBase;
     function GetRoutes(const Index: Integer): TX3DRoute;
     function GetImports(const Index: Integer): TX3DImport;
@@ -140,7 +140,7 @@
     { Make a specified warning, but only once for this node instance.
       Uses WarningDone to track if warning was already done.
       Warning will contain automatically NiceName, so X3D node name and type. }
-    procedure WarningOnce(var WarningDone: boolean; const Message: string);
+    procedure WarningOnce(var WarningDone: Boolean; const Message: string);
 
     { Does actual DeepCopy work. You can override this to copy some
       more properties for descendants. }
@@ -174,7 +174,7 @@
       Currently, this may concern TX3DUnknownNode.
 
       Default @false. }
-    VRML1ChildrenAllowed: boolean;
+    VRML1ChildrenAllowed: Boolean;
 
     { VRML 1.0 children allowed to be added during parsing.
       This is used only by *Inline nodes for now, that do not allow
@@ -186,14 +186,14 @@
       also be @false.
 
       Default @false. }
-    VRML1ChildrenParsingAllowed: boolean;
+    VRML1ChildrenParsingAllowed: Boolean;
 
     { Should SaveToStream save our VRML1Children.
       In this class default implementation returns @true,
       this is what you will want in 99% of cases.
       It's useful to set this to false if you use
       VRML1Children internally, e.g. *Inline nodes. }
-    class function VRML1ChildrenSaveToStream: boolean; virtual;
+    class function VRML1ChildrenSaveToStream: Boolean; virtual;
 
     { Enumerate all active child nodes of given node.
 
@@ -247,7 +247,7 @@
       DirectEnumerateAll, depending on value of OnlyActive param. }
     function DirectEnumerate(
       Func: TEnumerateChildrenFunction;
-      OnlyActive: boolean): Pointer;
+      OnlyActive: Boolean): Pointer;
 
     { Override these methods to determine what happens when
       given node is traversed during Traverse call.
@@ -296,7 +296,7 @@
       (Lexer should advance to the position of next "nodeBodyElement").
       Or return @false without changing Lexer position. }
     function ParseNodeBodyElement(Lexer: TX3DLexer; Reader: TX3DReaderNames;
-      const APositionInParent: Integer): boolean; virtual;
+      const APositionInParent: Integer): Boolean; virtual;
 
     { Called at the end of parsing this node (including children) in any encoding. }
     procedure ParseAfter(Reader: TX3DReaderNames); virtual;
@@ -766,12 +766,12 @@
 
       @groupBegin }
     procedure EnumerateNodes(
-      proc: TX3DNodeProc; OnlyActive: boolean); overload;
+      proc: TX3DNodeProc; OnlyActive: Boolean); overload;
     procedure EnumerateNodes(nodeClass: TX3DNodeClass;
-      proc: TX3DNodeProc; OnlyActive: boolean); overload;
+      proc: TX3DNodeProc; OnlyActive: Boolean); overload;
     procedure EnumerateNodes(nodeClass: TX3DNodeClass;
       const SeekNodeName: string;
-      proc: TX3DNodeProc; OnlyActive: boolean); overload;
+      proc: TX3DNodeProc; OnlyActive: Boolean); overload;
     { @groupEnd }
 
     { Search nodes, like enumerating nodes but allows early exit during
@@ -783,7 +783,7 @@
       the enumeration of the following nodes stops,
       and we return the callback result. }
     function SearchNodes(const Proc: TX3DNodeSearchProc;
-      const OnlyActive: boolean): Pointer;
+      const OnlyActive: Boolean): Pointer;
 
     { TryFindNodeByName and TryFindNode seek for a node with
       given class (and node name, in case of TryFindNodeByName).
@@ -801,14 +801,14 @@
       @groupBegin }
     function TryFindNodeByName(FindClass: TX3DNodeClass;
       const FindName: string;
-      OnlyActive: boolean): TX3DNode; deprecated 'use FindNode(NodeClass: TX3DNodeClass, FindName: String, Options: TFindNodeOptions = [])';
+      OnlyActive: Boolean): TX3DNode; deprecated 'use FindNode(NodeClass: TX3DNodeClass, FindName: String, Options: TFindNodeOptions = [])';
     function FindNodeByName(FindClass: TX3DNodeClass;
       const FindName: string;
-      OnlyActive: boolean): TX3DNode; deprecated 'use FindNode(NodeClass: TX3DNodeClass, FindName: String, Options: TFindNodeOptions = [])';
+      OnlyActive: Boolean): TX3DNode; deprecated 'use FindNode(NodeClass: TX3DNodeClass, FindName: String, Options: TFindNodeOptions = [])';
     function TryFindNode(FindClass: TX3DNodeClass;
-      OnlyActive: boolean): TX3DNode; deprecated 'use FindNode(NodeClass: TX3DNodeClass, FindName: String, Options: TFindNodeOptions = [])';
+      OnlyActive: Boolean): TX3DNode; deprecated 'use FindNode(NodeClass: TX3DNodeClass, FindName: String, Options: TFindNodeOptions = [])';
     function FindNode(FindClass: TX3DNodeClass;
-      OnlyActive: boolean): TX3DNode; overload; deprecated 'use FindNode(NodeClass: TX3DNodeClass, FindName: String, Options: TFindNodeOptions = [])';
+      OnlyActive: Boolean): TX3DNode; overload; deprecated 'use FindNode(NodeClass: TX3DNodeClass, FindName: String, Options: TFindNodeOptions = [])';
     { @groupEnd }
 
     { Find a node by name and class, in this node and children (recursively).
@@ -844,12 +844,12 @@
     function TryFindNodeState(
       NodeClass: TX3DNodeClass;
       out Node: TX3DNode;
-      out State: TX3DGraphTraverseState): boolean; deprecated 'use FindNode to look for nodes easier; or iterate over TCastleScene.Shapes.TraverseList if you really need to know nodes with their TX3DGraphTraverseState';
+      out State: TX3DGraphTraverseState): Boolean; deprecated 'use FindNode to look for nodes easier; or iterate over TCastleScene.Shapes.TraverseList if you really need to know nodes with their TX3DGraphTraverseState';
     function TryFindNodeTransform(
       NodeClass: TX3DNodeClass;
       out Node: TX3DNode;
       out Transform: TMatrix4;
-      out TransformScale: Single): boolean; deprecated 'use FindNode to look for nodes easier; or iterate over TCastleScene.Shapes.TraverseList if you really need to know nodes with their transformations';
+      out TransformScale: Single): Boolean; deprecated 'use FindNode to look for nodes easier; or iterate over TCastleScene.Shapes.TraverseList if you really need to know nodes with their transformations';
     { @groupEnd }
 
     { Seeks Self and parent nodes (from VRML1Parents and ParentFields,
@@ -872,7 +872,7 @@
 
     { Looks for a given Node in parents (and self), recursively.
       Similar to TryFindParentByName. Returns @true only if found. }
-    function HasParentNode(Node: TX3DNode): boolean;
+    function HasParentNode(Node: TX3DNode): Boolean;
 
     { Search immediate parents of this node for a node with given FindName.
       Returns @nil if not found. }
@@ -881,7 +881,7 @@
     { Looks for a given node in our children (direct and not, including self).
       If OnlyActive, then only active parts are searched
       ("active" as defined by @link(Traverse)). }
-    function IsNodePresent(Node: TX3DNode; OnlyActive: boolean): boolean;
+    function IsNodePresent(Node: TX3DNode; OnlyActive: Boolean): Boolean;
 
     { Count the occurrences of given node class in our children.
       For example, you can pass NodeClass = TAbstractLightNode to count
@@ -893,7 +893,7 @@
       This traverses both VRML 1.0 children nodes and VRML 2.0 nodes
       inside SFNode and MFNode fields. }
     function NodesCount(NodeClass: TX3DNodeClass;
-      CountOnlyActiveNodes: boolean): integer;
+      CountOnlyActiveNodes: Boolean): integer;
 
     { Save node to a stream. Saves everything, including node name,
       node type, and node contents. }
@@ -901,7 +901,7 @@
 
     { Do the nodes of (exactly) this class should be included
       in VRML 1.0 state (see TX3DGraphTraverseState.VRML1State). }
-    class function VRML1StateNode(out StateNode: TVRML1StateNode): boolean;
+    class function VRML1StateNode(out StateNode: TVRML1StateNode): Boolean;
 
     { Some nodes are present only in specific VRML/X3D version.
       This functions decides it.
@@ -941,7 +941,7 @@
           we look in parent Shape's "appearance" field. So once again
           two different Sphere classes are needed.)
       ) }
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): Boolean;
       virtual;
 
     { Enumerates all children nodes (recursively),
@@ -1053,7 +1053,7 @@
       gory details about this.)
 
       @groupBegin }
-    property PrototypeInstance: boolean read FPrototypeInstance;
+    property PrototypeInstance: Boolean read FPrototypeInstance;
     property PrototypeInstanceSourceNode: TX3DPrototypeNode
       read FPrototypeInstanceSourceNode;
     property PrototypeInstanceHelpers: TX3DNode read FPrototypeInstanceHelpers;
@@ -1698,7 +1698,7 @@ end;
 
 function TX3DNode.DirectEnumerate(
   Func: TEnumerateChildrenFunction;
-  OnlyActive: boolean): Pointer;
+  OnlyActive: Boolean): Pointer;
 begin
   if OnlyActive then
     Result := DirectEnumerateActive(Func) else
@@ -1750,7 +1750,7 @@ type
     Node, Child: TX3DNode): Pointer;
   var
     StateNode: TVRML1StateNode;
-    IsTraverseIntoChildren: boolean;
+    IsTraverseIntoChildren: Boolean;
   begin
     Result := nil;
 
@@ -1845,7 +1845,7 @@ begin
  result := '';
 end;
 
-function BlenderRelativePath(const RelativePath: string): boolean;
+function BlenderRelativePath(const RelativePath: string): Boolean;
 begin
   Result := IsPrefix('//', RelativePath, false);
 end;
@@ -1864,7 +1864,7 @@ end;
 
 procedure TX3DNode.Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames);
 var
-  Handled: boolean;
+  Handled: Boolean;
   Position: Integer;
   ChildNode: TX3DNode;
   SavedParentNode: TX3DNode;
@@ -1915,7 +1915,7 @@ begin
 end;
 
 function TX3DNode.ParseNodeBodyElement(Lexer: TX3DLexer; Reader: TX3DReaderNames;
-  const APositionInParent: Integer): boolean;
+  const APositionInParent: Integer): Boolean;
 
   procedure ParseExtensibilityFields;
 
@@ -2296,7 +2296,7 @@ var
   procedure ParseXMLCdata;
   var
     I: TXMLCDataIterator;
-    CDataExists: boolean;
+    CDataExists: Boolean;
     CData: string;
   begin
     CDataExists := false;
@@ -2353,7 +2353,7 @@ end;
 type
   TEnumerateNodes0Enumerator = class
     Proc: TX3DNodeProc;
-    OnlyActive: boolean;
+    OnlyActive: Boolean;
     function EnumerateChildrenFunction(Node, Child: TX3DNode): Pointer;
   end;
 
@@ -2366,7 +2366,7 @@ type
   end;
 
 procedure TX3DNode.EnumerateNodes(
-  Proc: TX3DNodeProc; OnlyActive: boolean);
+  Proc: TX3DNodeProc; OnlyActive: Boolean);
 var
   Enumerator: TEnumerateNodes0Enumerator;
 begin
@@ -2382,7 +2382,7 @@ type
   TEnumerateNodes1Enumerator = class
     NodeClass: TX3DNodeClass;
     Proc: TX3DNodeProc;
-    OnlyActive: boolean;
+    OnlyActive: Boolean;
     function EnumerateChildrenFunction(Node, Child: TX3DNode): Pointer;
   end;
 
@@ -2395,7 +2395,7 @@ type
   end;
 
 procedure TX3DNode.EnumerateNodes(nodeClass: TX3DNodeClass;
-  Proc: TX3DNodeProc; OnlyActive: boolean);
+  Proc: TX3DNodeProc; OnlyActive: Boolean);
 var
   Enumerator: TEnumerateNodes1Enumerator;
 begin
@@ -2413,7 +2413,7 @@ type
     NodeClass: TX3DNodeClass;
     SeekNodeName: string;
     Proc: TX3DNodeProc;
-    OnlyActive: boolean;
+    OnlyActive: Boolean;
     function EnumerateChildrenFunction(Node, Child: TX3DNode): Pointer;
   end;
 
@@ -2429,7 +2429,7 @@ type
 
 procedure TX3DNode.EnumerateNodes(NodeClass: TX3DNodeClass;
   const SeekNodeName: string;
-  Proc: TX3DNodeProc; OnlyActive: boolean);
+  Proc: TX3DNodeProc; OnlyActive: Boolean);
 var
   Enumerator: TEnumerateNodes2Enumerator;
 begin
@@ -2446,7 +2446,7 @@ end;
 type
   TSearchNodes0Helper = class
     Proc: TX3DNodeSearchProc;
-    OnlyActive: boolean;
+    OnlyActive: Boolean;
     function Callback(Node, Child: TX3DNode): Pointer;
   end;
 
@@ -2460,7 +2460,7 @@ type
   end;
 
 function TX3DNode.SearchNodes(
-  const Proc: TX3DNodeSearchProc; const OnlyActive: boolean): Pointer;
+  const Proc: TX3DNodeSearchProc; const OnlyActive: Boolean): Pointer;
 var
   Helper: TSearchNodes0Helper;
 begin
@@ -2485,7 +2485,7 @@ type
       Result := nil;
   end;
 
-function TX3DNode.TryFindNode(FindClass: TX3DNodeClass; OnlyActive: boolean): TX3DNode;
+function TX3DNode.TryFindNode(FindClass: TX3DNodeClass; OnlyActive: Boolean): TX3DNode;
 var
   Helper: TFindNodeHelper;
 begin
@@ -2496,7 +2496,7 @@ begin
   finally FreeAndNil(Helper) end;
 end;
 
-function TX3DNode.FindNode(FindClass: TX3DNodeClass; OnlyActive: boolean): TX3DNode;
+function TX3DNode.FindNode(FindClass: TX3DNodeClass; OnlyActive: Boolean): TX3DNode;
 begin
   {$warnings off} // usind deprecated in deprecated
   result := TryFindNode(FindClass, OnlyActive);
@@ -2520,7 +2520,7 @@ type
   end;
 
 function TX3DNode.TryFindNodeByName(
-  FindClass: TX3DNodeClass; const FindName: string; OnlyActive: boolean): TX3DNode;
+  FindClass: TX3DNodeClass; const FindName: string; OnlyActive: Boolean): TX3DNode;
 var
   Helper: TFindNodeByNameHelper;
 begin
@@ -2534,7 +2534,7 @@ end;
 
 function TX3DNode.FindNodeByName(
   FindClass: TX3DNodeClass; const FindName: string;
-  OnlyActive: boolean): TX3DNode;
+  OnlyActive: Boolean): TX3DNode;
 begin
   {$warnings off} // usind deprecated in deprecated
   Result := TryFindNodeByName(FindClass, FindName, OnlyActive);
@@ -2591,7 +2591,7 @@ type
 
 function TX3DNode.TryFindNodeStateTraverse(
   ANode: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
-  ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean): Pointer;
+  ParentInfo: PTraversingInfo; var TraverseIntoChildren: Boolean): Pointer;
 var
   Res: TTryFindNodeStateResult;
 begin
@@ -2603,7 +2603,7 @@ end;
 
 function TX3DNode.TryFindNodeState(
   NodeClass: TX3DNodeClass;
-  out Node: TX3DNode; out State: TX3DGraphTraverseState): boolean;
+  out Node: TX3DNode; out State: TX3DGraphTraverseState): Boolean;
 var
   Res: TTryFindNodeStateResult;
 begin
@@ -2625,7 +2625,7 @@ type
 
 function TX3DNode.TryFindNodeTransformTraverse(
   ANode: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
-  ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean): Pointer;
+  ParentInfo: PTraversingInfo; var TraverseIntoChildren: Boolean): Pointer;
 var
   Res: TTryFindNodeTransformResult;
 begin
@@ -2640,7 +2640,7 @@ function TX3DNode.TryFindNodeTransform(
   NodeClass: TX3DNodeClass;
   out Node: TX3DNode;
   out Transform: TMatrix4;
-  out TransformScale: Single): boolean;
+  out TransformScale: Single): Boolean;
 var
   Res: TTryFindNodeTransformResult;
 begin
@@ -2704,7 +2704,7 @@ begin
   Result := nil;
 end;
 
-function TX3DNode.HasParentNode(Node: TX3DNode): boolean;
+function TX3DNode.HasParentNode(Node: TX3DNode): Boolean;
 var
   I: Integer;
 begin
@@ -2734,7 +2734,7 @@ type
       Result := nil;
   end;
 
-function TX3DNode.IsNodePresent(Node: TX3DNode; OnlyActive: boolean): boolean;
+function TX3DNode.IsNodePresent(Node: TX3DNode; OnlyActive: Boolean): Boolean;
 var
   Helper: TIsNodePresentHelper;
 begin
@@ -2755,7 +2755,7 @@ type
   begin Inc(Counter) end;
 
 function TX3DNode.NodesCount(NodeClass: TX3DNodeClass;
-  CountOnlyActiveNodes: boolean): integer;
+  CountOnlyActiveNodes: Boolean): integer;
 var
   C: TNodesCountHelper;
 begin
@@ -2931,11 +2931,11 @@ procedure TX3DNode.NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerFi
   procedure Xml;
   var
     FileItems: TX3DFileItemList;
-    HasContent: boolean;
+    HasContent: Boolean;
     I: Integer;
     WriteContainerField: string;
     ElementName: string;
-    ProtoInstance: boolean;
+    ProtoInstance: Boolean;
     NodeFields, ProtoFields: TCastleStringList;
     SavedParentNode: TX3DNode;
   begin
@@ -3097,7 +3097,7 @@ begin
 end;
 
 {$warnings off} // using deprecated to keep supporting VRML 1
-class function TX3DNode.VRML1StateNode(out StateNode: TVRML1StateNode): boolean;
+class function TX3DNode.VRML1StateNode(out StateNode: TVRML1StateNode): Boolean;
 var
   SN: TVRML1StateNode;
 begin
@@ -3114,7 +3114,7 @@ begin
 end;
 {$warnings on}
 
-class function TX3DNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
+class function TX3DNode.ForVRMLVersion(const Version: TX3DVersion): Boolean;
 begin
   Result := true;
 end;
@@ -3134,7 +3134,7 @@ begin
   FParentFields.Add(Field);
 end;
 
-class function TX3DNode.VRML1ChildrenSaveToStream: boolean;
+class function TX3DNode.VRML1ChildrenSaveToStream: Boolean;
 begin
   Result := true;
 end;
@@ -3224,7 +3224,7 @@ end;
   type
     TRemoveChildrenWithMatchingNameHelper = class
       Wildcard: string;
-      IgnoreCase: boolean;
+      IgnoreCase: Boolean;
       procedure DoIt(ParentNode: TX3DNode; var Node: TX3DNode);
     end;
 
@@ -3738,7 +3738,7 @@ begin
     Scene.InternalMoveShapeAssociations(Sender.Value, NewNode, InternalSceneShape);
 end;
 
-procedure TX3DNode.WarningOnce(var WarningDone: boolean; const Message: string);
+procedure TX3DNode.WarningOnce(var WarningDone: Boolean; const Message: string);
 begin
   if not WarningDone then
   begin
@@ -3788,7 +3788,7 @@ begin
     Add(Node);
 end;
 
-function TX3DNodeList.Equals(SecondValue: TObject): boolean;
+function TX3DNodeList.Equals(SecondValue: TObject): Boolean;
 var
   I: Integer;
 begin
