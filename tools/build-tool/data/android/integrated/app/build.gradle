@@ -5,6 +5,14 @@ android {
 
     compileSdkVersion ${ANDROID_COMPILE_SDK_VERSION}
 
+    // Require NDK version that ships with 16 kb aligned libraries,
+    // like libc++_shared.so .
+    // While we use flags to build our libraries (game and CGE, openal, tremolo,
+    // freetype, libpng...) with 16 kb even with older NDKs,
+    // but to have libc++_shared.so we just need NDK version that includes them.
+    // Version below is latest LTS from https://developer.android.com/ndk/downloads
+    ndkVersion "27.3.13750724"
+
     defaultConfig {
         applicationId "${QUALIFIED_NAME}"
         minSdkVersion    ${ANDROID_MIN_SDK_VERSION}
