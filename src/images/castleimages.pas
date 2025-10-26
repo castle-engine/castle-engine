@@ -1437,7 +1437,6 @@ function GrayscaleValueFromByteToSingle(const V: TVector4Byte): Single; overload
 {$I castleimages_vcl_imaging.inc}
 {$I castleimages_png.inc} // must be included after castleimages_libpng.inc and castleimages_fpimage.inc
 {$I castleimages_composite.inc}
-{$I castleimages_castle_format.inc}
 {$I castleimages_assign.inc}
 {$I castleimages_texture_compression.inc}
 
