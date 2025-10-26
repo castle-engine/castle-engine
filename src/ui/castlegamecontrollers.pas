@@ -342,17 +342,52 @@ begin
 end;
 
 const
-  { Map TGameControllerButton to additional information, like Caption.
-    Specific to the XBox Controller, more specifically
-    https://en.wikipedia.org/wiki/Xbox_Wireless_Controller }
-  XBoxMap: array[TGameControllerButton] of record
+  { Map TGameControllerButton to additional information, like Caption. }
+  ButtonsInfo: array[TGameControllerButton] of record
     Caption: String;
     Meaning: TGameControllerButtonMeaning;
-    { For now, always @true, because we declare all and only buttons for
-      XBox Controller, and we treat all controlles as XBox Controller.
-      But it will not be such always. }
     Handled: Boolean;
-  end = (
+  end =
+
+  {$ifdef CASTLE_NINTENDO_SWITCH}
+  { Information specific to the Nintendo Switch controller.
+    Caption follows Nintendo naming:
+    https://www.nintendo.com/en-gb/Support/Nintendo-Switch/Joy-Con-Controller-Diagram-1518877.html
+    https://en-americas-support.nintendo.com/app/answers/detail/a_id/22634/~/joy-con-controller-diagram
+  }
+  (
+    { gbNorth }           (Caption: 'X'                ; Meaning: gmNone   ; Handled: true),
+    { gbEast }            (Caption: 'A'                ; Meaning: gmConfirm; Handled: true),
+    { gbSouth }           (Caption: 'B'                ; Meaning: gmCancel ; Handled: true),
+    { gbWest }            (Caption: 'Y'                ; Meaning: gmNone   ; Handled: true),
+    // { gbLeftTrigger }     (Caption: 'L'; Meaning: gmNone   ; Handled: true),
+    // { gbRightTrigger }    (Caption: 'R'; Meaning: gmNone   ; Handled: true),
+    { gpLeftBumper }      (Caption: 'ZL'     ; Meaning: gmNone   ; Handled: true),
+    { gpRightBumper }     (Caption: 'ZR'     ; Meaning: gmNone   ; Handled: true),
+    { gbLeftStickClick }  (Caption: 'Left Stick Click' ; Meaning: gmNone   ; Handled: true),
+    { gbRightStickClick } (Caption: 'Right Stick Click'; Meaning: gmNone   ; Handled: true),
+    { gbDPadUp }          (Caption: 'D-Pad Up'         ; Meaning: gmNone   ; Handled: true),
+    { gbDPadRight }       (Caption: 'D-Pad Right'      ; Meaning: gmNone   ; Handled: true),
+    { gbDPadDown }        (Caption: 'D-Pad Down'       ; Meaning: gmNone   ; Handled: true),
+    { gbDPadLeft }        (Caption: 'D-Pad Left'       ; Meaning: gmNone   ; Handled: true),
+    { gpView }            (Caption: '-'             ; Meaning: gmNone   ; Handled: true),
+    { gpMenu }            (Caption: '+'             ; Meaning: gmNone   ; Handled: true),
+    // While this button exists on the Nintendo Switch controller,
+    // it is handled by the system, so we cannot detect it in CGE applications.
+    { gpGuide }           (Caption: 'Home'          ; Meaning: gmNone   ; Handled: false),
+    // While this button exists on the Nintendo Switch controller,
+    // it is handled by the system, so we cannot detect it in CGE applications.
+    { gpShare }           (Caption: 'Capture'       ; Meaning: gmNone   ; Handled: false)
+  )
+  {$else}
+  { Information specific to the XBox Controller, more specifically
+    https://en.wikipedia.org/wiki/Xbox_Wireless_Controller
+    Note that Handled is always true,
+    because for now we declare all and only buttons that are
+    the XBox Controller, and we treat all controlles on non-Nintendo as XBox Controller.
+    But it will not be such always.
+  }
+  (
     { gbNorth }           (Caption: 'Y'                ; Meaning: gmNone   ; Handled: true),
     { gbEast }            (Caption: 'B'                ; Meaning: gmCancel ; Handled: true),
     { gbSouth }           (Caption: 'A'                ; Meaning: gmConfirm; Handled: true),
@@ -371,11 +406,13 @@ const
     { gpMenu }            (Caption: 'Menu'             ; Meaning: gmNone   ; Handled: true),
     { gpGuide }           (Caption: 'Guide'            ; Meaning: gmNone   ; Handled: true),
     { gpShare }           (Caption: 'Share'            ; Meaning: gmNone   ; Handled: true)
-  );
+  )
+  {$endif}
+  ;
 
 function TGameController.ButtonCaption(const Button: TGameControllerButton): String;
 begin
-  if not XBoxMap[Button].Handled then
+  if not ButtonsInfo[Button].Handled then
   begin
     WritelnWarning('TGameController.ButtonCaption: Button %d is not handled by the game controller "%s".', [
       Ord(Button),
@@ -383,12 +420,12 @@ begin
       Name
     ]);
   end;
-  Result := XBoxMap[Button].Caption;
+  Result := ButtonsInfo[Button].Caption;
 end;
 
 function TGameController.ButtonMeaning(const Button: TGameControllerButton): TGameControllerButtonMeaning;
 begin
-  if not XBoxMap[Button].Handled then
+  if not ButtonsInfo[Button].Handled then
   begin
     WritelnWarning('TGameController.ButtonMeaning: Button %d is not handled by the game controller "%s".', [
       Ord(Button),
@@ -396,7 +433,7 @@ begin
       Name
     ]);
   end;
-  Result := XBoxMap[Button].Meaning;
+  Result := ButtonsInfo[Button].Meaning;
 end;
 
 { TInternalControllerManagerBackend ------------------------------------------ }

@@ -797,6 +797,18 @@ begin
       //FpcOptions.Add('-CaEABIHF');
     end;
 
+    { Align memory to 16 KB, to satisfy Goole Play requirements, following
+      https://developer.android.com/guide/practices/page-sizes
+      see also useful:
+      - https://forum.lazarus.freepascal.org/index.php?topic=71336.15
+      - https://medium.com/@contact2kalshetty/android-15-16kb-page-size-a-complete-handbook-for-android-developers-detect-fix-ship-6c4df068aef6
+    }
+    if Options.OS = Android then
+    begin
+      FpcOptions.Add('-k-z common-page-size=16384');
+      FpcOptions.Add('-k-z max-page-size=16384');
+    end;
+
     if Options.DetectMemoryLeaks then // see https://castle-engine.io/memory_leaks
     begin
       FpcOptions.Add('-gl'); // HeapTrc
