@@ -1408,8 +1408,8 @@ end;
 
 procedure TX3DNode.AddDestructionNotification(const Event: TNodeDestructionNotification);
 begin
-  if CallingDestructionNotifications then
-    raise Exception.Create('Calling AddDestructionNotification on TX3DNode %s while we iterate over its destruction notifications. This is not allowed, it is too late now to add more destruction notifications.', [
+  if FCallingDestructionNotifications then
+    raise Exception.CreateFmt('Calling AddDestructionNotification on TX3DNode %s while we iterate over its destruction notifications. This is not allowed, it is too late now to add more destruction notifications.', [
       NiceName
     ]);
 
@@ -1424,7 +1424,7 @@ begin
   { RemoveDestructionNotification calls can be gracefully ignored in this case.
     It's OK, we iterate over FDestructionNotifications and will destroy
     FDestructionNotifications when we finish. }
-  if CallingDestructionNotifications then
+  if FCallingDestructionNotifications then
     Exit;
   if FDestructionNotifications <> nil then
     FDestructionNotifications.Remove(Event);
@@ -3904,9 +3904,36 @@ end;
 
 procedure TX3DNodeList.DestructionNotification(const Node: TX3DNode);
 
+  { Extract (remove from the list, but never free) given item index.
+    This is similar TObjectList.Extract, except it takes an index. }
+  function Extract(const Index: Integer): TX3DNode;
+  {$ifdef FPC}
+  begin
+    Result := TObject(List^[Index]);
+
+    { Set to nil and then delete by index. This is a hack to prevent
+      TList implementation from making any notification about Result
+      delete/extraction. }
+    TObject(List^[Index]) := nil;
+    Delete(Index);
+
+    if Assigned(Result) then
+      Notify(Result, lnExtracted);
+  {$else}
+  var
+    OldOwnsObjects: Boolean;
+  begin
+    OldOwnsObjects := OwnsObjects;
+    OwnsObjects := false;
+    Result := Items[Index];
+    Delete(Index);
+    OwnsObjects := OldOwnsObjects;
+  {$endif}
+  end;
+
   { Extract from list (remove without freeing, regardless of OwnsObjects)
     all occurrences of Item. }
-  function ExtractAll(const Item: TObject): Cardinal;
+  procedure ExtractAll(const Item: TObject);
   var
     I: Integer;
   begin
