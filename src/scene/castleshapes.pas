@@ -3342,12 +3342,9 @@ begin
   NewTransformation := ParentTransformation;
 
   { Keep FTransformState up-to-date.
-    This is not necessary when OptimizeExtensiveTransformations = true,
-    so we don't do it to conserve speed. }
-  if not OptimizeExtensiveTransformations then
-  begin
-    FTransformState.Transformation := ParentTransformation;
-  end;
+    Useful in CastleSceneCore (when OptimizeExtensiveTransformations = false)
+    and by TSkinNode (regardless of OptimizeExtensiveTransformations). }
+  FTransformState.Transformation := ParentTransformation;
 
   TransformFunctionality.ApplyTransform(NewTransformation);
 
