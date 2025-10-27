@@ -3907,28 +3907,16 @@ procedure TX3DNodeList.DestructionNotification(const Node: TX3DNode);
   { Extract (remove from the list, but never free) given item index.
     This is similar TObjectList.Extract, except it takes an index. }
   function Extract(const Index: Integer): TX3DNode;
-  {$ifdef FPC}
-  begin
-    Result := TObject(List^[Index]);
-
-    { Set to nil and then delete by index. This is a hack to prevent
-      TList implementation from making any notification about Result
-      delete/extraction. }
-    TObject(List^[Index]) := nil;
-    Delete(Index);
-
-    if Assigned(Result) then
-      Notify(Result, lnExtracted);
-  {$else}
   var
     OldOwnsObjects: Boolean;
   begin
     OldOwnsObjects := OwnsObjects;
+    { In case of generic TObjectList, both FPC and Delphi allow
+      to change OwnsObjects at runtime. }
     OwnsObjects := false;
     Result := Items[Index];
     Delete(Index);
     OwnsObjects := OldOwnsObjects;
-  {$endif}
   end;
 
   { Extract from list (remove without freeing, regardless of OwnsObjects)
