@@ -522,8 +522,7 @@ type
     NeedsDetectAffectedFields: Boolean;
     AnimationAffectedFields: TX3DFieldList;
 
-    { The transformation change happened,
-      and should be processed (for the whole X3D graph inside RootNode).
+    { The transformation change happened and whole RootNode should be processed.
       Used only when OptimizeExtensiveTransformations. }
     TransformationDirty: Boolean;
 
@@ -563,21 +562,9 @@ type
       Changes must include chTransform, may also include other changes
       (this will be passed to shapes affected).
 
-      Do not ever call this when OptimizeExtensiveTransformations.
-      It would be buggy when both OptimizeExtensiveTransformations
-      and InternalFastTransformUpdate are set, because in this case,
-      TShapeTreeTransform.FastTransformUpdateCore leaves
-      TShapeTreeTransform.Transform invalid,
-      which will cause TransformationChanged result invalid.
-    }
+      When OptimizeExtensiveTransformations, this updates TransformationDirty
+      and makes fast early exit. }
     procedure TransformationChanged(const TransformFunctionality: TTransformFunctionality);
-    { Like TransformationChanged, but specialized for TransformNode = RootNode. }
-    procedure RootTransformationChanged;
-    { Schedule update of skin through THAnimHumanoidNode or TSkinNode,
-      in case this TransformNode is a joint.
-      This is common work for TransformationChanged and RootTransformationChanged. }
-    procedure TransformationChangedUpdateSkin(
-      const TransformNode: TX3DNode; const State: TX3DGraphTraverseState);
 
     function LocalBoundingVolumeMoveCollision(
       const OldPos, NewPos: TVector3;
@@ -4555,24 +4542,27 @@ begin
   end;
 end;
 
-procedure TCastleSceneCore.TransformationChangedUpdateSkin(
-  const TransformNode: TX3DNode; const State: TX3DGraphTraverseState);
-begin
-  { Call InternalUpdateSkin soon, to recalculate skin based on this joint.
-
-    Note: We check for Humanoid = nil, even when TransformNode is THAnimJointNode,
-    which may happen if joint is outside of HAnimHumanoid.
-    Testcase: VRML 97 test
-    ~/3dmodels/vrmlx3d/hanim/tecfa.unige.ch/vrml/objects/avatars/blaxxun/kambi_hanim_10_test.wrl . }
-  if (State.Humanoid <> nil) and
-     (TransformNode is THAnimJointNode) then
-    ScheduledHumanoidSkinUpdates.AddIfNotExists(State.Humanoid);
-
-  if State.Skin <> nil then
-    ScheduledSkinUpdates.AddIfNotExists(State.Skin);
-end;
-
 procedure TCastleSceneCore.TransformationChanged(const TransformFunctionality: TTransformFunctionality);
+
+  { Schedule update of skin through THAnimHumanoidNode or TSkinNode,
+    in case this TransformNode is a joint. }
+  procedure TransformationChangedUpdateSkin(
+    const TransformNode: TX3DNode; const State: TX3DGraphTraverseState);
+  begin
+    { Call InternalUpdateSkin soon, to recalculate skin based on this joint.
+
+      Note: We check for Humanoid = nil, even when TransformNode is THAnimJointNode,
+      which may happen if joint is outside of HAnimHumanoid.
+      Testcase: VRML 97 test
+      ~/3dmodels/vrmlx3d/hanim/tecfa.unige.ch/vrml/objects/avatars/blaxxun/kambi_hanim_10_test.wrl . }
+    if (State.Humanoid <> nil) and
+      (TransformNode is THAnimJointNode) then
+      ScheduledHumanoidSkinUpdates.AddIfNotExists(State.Humanoid);
+
+    if State.Skin <> nil then
+      ScheduledSkinUpdates.AddIfNotExists(State.Skin);
+  end;
+
 var
   TransformChangeHelper: TTransformChangeHelper;
   TransformShapesParentInfo: TShapesParentInfo;
@@ -4584,41 +4574,53 @@ var
 begin
   TransformNode := TransformFunctionality.Parent;
 
-  { This is the optimization for changing VRML >= 2.0 transformation
-    (most fields of Transform node like translation, scale, center etc.,
-    also some HAnim nodes like Joint and Humanoid have this behavior.).
-
-    In the simple cases, Transform node simply changes
-    TX3DGraphTraverseState.Transform for children nodes.
-
-    So we have to re-traverse from this Transform node, and change
-    states of affected children. Our TransformNodesInfo gives us
-    a list of TShapeTreeTransform corresponding to this transform node,
-    so we know we can traverse from this point.
-
-    In some cases, children of this Transform node may
-    be affected in other ways by transformation. For example,
-    Fog and Background nodes are affected by their parents transform.
-  }
-
-  Assert(not OptimizeExtensiveTransformations);
-
   C := TShapeTree.AssociatedShapesCount(TransformNode);
-
   if LogChanges then
     WritelnLog('X3D changes', Format('Transform node %s change: present %d times in the scene graph',
       [TransformNode.X3DType, C]));
+
+  { First,
+    regardless if we have OptimizeExtensiveTransformations or not,
+    regardless if we have InternalFastTransformUpdate or not,
+    call TransformationChangedUpdateSkin to schedule updating Skin/H-Anim nodes. }
+  for I := 0 to C - 1 do
+  begin
+    TransformShapeTree := TShapeTreeTransform(TShapeTree.AssociatedShape(TransformNode, I));
+    TransformationChangedUpdateSkin(TransformNode, TransformShapeTree.TransformState);
+  end;
+
+  if OptimizeExtensiveTransformations then
+  begin
+    TransformationDirty := true;
+    Exit;
+  end;
 
   DoVisibleChanged := false;
 
   if InternalFastTransformUpdate then
   begin
+    { Note that it would be an error to do this when OptimizeExtensiveTransformations.
+      In this case, TShapeTreeTransform.FastTransformUpdateCore leaves
+      TShapeTreeTransform.Transform invalid.
+      But luckily, this is never used when OptimizeExtensiveTransformations. }
     for I := 0 to C - 1 do
       TShapeTree.AssociatedShape(TransformNode, I).FastTransformUpdate(DoVisibleChanged);
     if DoVisibleChanged then
       Validities := Validities - [fvLocalBoundingBox];
   end else
   begin
+    { In the simple cases, Transform node simply changes
+      TX3DGraphTraverseState.Transform for children nodes.
+
+      So we have to re-traverse from this Transform node, and change
+      states of affected children. Our TransformNodesInfo gives us
+      a list of TShapeTreeTransform corresponding to this transform node,
+      so we know we can traverse from this point.
+
+      In some cases, children of this Transform node may
+      be affected in other ways by transformation. For example,
+      Fog and Background nodes are affected by their parents transform. }
+
     TraverseStack := nil;
     TransformChangeHelper := nil;
     try
@@ -4653,100 +4655,6 @@ begin
         if TransformChangeHelper.AnythingChanged then
           DoVisibleChanged := true;
 
-        TransformationChangedUpdateSkin(TransformNode, TransformShapeTree.TransformState);
-      end;
-    finally
-      FreeAndNil(TraverseStack);
-      FreeAndNil(TransformChangeHelper);
-    end;
-  end;
-
-  if DoVisibleChanged then
-    VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
-end;
-
-procedure TCastleSceneCore.RootTransformationChanged;
-var
-  TransformChangeHelper: TTransformChangeHelper;
-  TransformShapesParentInfo: TShapesParentInfo;
-  TraverseStack: TX3DGraphTraverseStateStack;
-  DoVisibleChanged: boolean;
-  C, I: Integer;
-  TransformShapeTree: TShapeTreeTransform;
-begin
-  if LogChanges then
-    WritelnLog('X3D changes', 'Transform root node change');
-
-  if RootNode = nil then Exit;
-  if not (Shapes is TShapeTreeGroup) then
-  begin
-    WritelnWarning('X3D changes', 'Root node did not create corresponding TShapeTreeGroup, transformation will not be applied correctly. Submit a bug');
-    Exit;
-  end;
-
-  DoVisibleChanged := false;
-
-  if InternalFastTransformUpdate then
-  begin
-    Shapes.FastTransformUpdate(DoVisibleChanged);
-    { Manually adjust Validities, because FastTransformUpdate doesn't call DoGeometryChanged.
-
-      TODO: If uncommenting Changed(false, [chTransform]) in TShape.FastTransformUpdateCore,
-      it should call DoGeometryChanged, but it still doesn't? Why?
-      In any case, it doesn't matter, it's faster to fix Validities manually below. }
-    if DoVisibleChanged then
-      Validities := Validities - [fvLocalBoundingBox];
-  end else
-  begin
-    TraverseStack := nil;
-    TransformChangeHelper := nil;
-    try
-      TraverseStack := TX3DGraphTraverseStateStack.Create;
-
-      { initialize TransformChangeHelper, set before the loop properties
-        that cannot change }
-      TransformChangeHelper := TTransformChangeHelper.Create;
-      TransformChangeHelper.ParentScene := Self;
-      TransformChangeHelper.ChangingNode := RootNode;
-
-      if not
-        ( (Shapes is TShapeTreeGroup) and
-          (TShapeTreeGroup(Shapes).Children.Count = 1) and
-          (TShapeTreeGroup(Shapes).Children[0] is TShapeTreeTransform) and
-          (TShapeTreeTransform(TShapeTreeGroup(Shapes).Children[0]).TransformFunctionality <> nil) and
-          (TShapeTreeTransform(TShapeTreeGroup(Shapes).Children[0]).TransformNode = RootNode) ) then
-      begin
-        raise EInternalError.Create('Scene Shapes should be TShapeTreeGroup with TShapeTreeTransform representing RootNode');
-      end;
-
-      { The logic in HandleTransform in TTransformChangeHelper.TransformChangeTraverse,
-        when Node = ChangingNode, assumes that TransformShapesParentInfo.Group
-        given here matches the *inside* of the node that is changing,
-        which is RootNode in this case.
-        So we don't set "TransformShapesParentInfo.Group := Shapes",
-        we go inside. }
-
-      TransformShapesParentInfo.Group := TShapeTreeGroup(Shapes).Children[0] as TShapeTreeGroup;
-      TransformShapesParentInfo.Index := 0;
-
-      { initialize TransformChangeHelper properties that may be changed
-        during Node.Traverse later }
-      TransformChangeHelper.Shapes := @TransformShapesParentInfo;
-      TransformChangeHelper.AnythingChanged := false;
-      TransformChangeHelper.Inside := false;
-      TransformChangeHelper.Inactive := 0;
-
-      RootNode.Traverse(TX3DNode,
-        {$ifdef FPC}@{$endif}TransformChangeHelper.TransformChangeTraverse);
-
-      if TransformChangeHelper.AnythingChanged then
-        DoVisibleChanged := true;
-
-      C := TShapeTree.AssociatedShapesCount(RootNode);
-      for I := 0 to C - 1 do
-      begin
-        TransformShapeTree := TShapeTree.AssociatedShape(RootNode, I) as TShapeTreeTransform;
-        TransformationChangedUpdateSkin(RootNode, TransformShapeTree.TransformState);
       end;
     finally
       FreeAndNil(TraverseStack);
@@ -4779,14 +4687,8 @@ var
   { Handle VRML >= 2.0 transformation changes (node with TTransformFunctionality). }
   procedure HandleChangeTransform;
   begin
-    if OptimizeExtensiveTransformations then
-    begin
-      TransformationDirty := true
-    end else
-    begin
-      Check(ANode.TransformFunctionality <> nil, 'chTransform flag may be set only for node with TTransformFunctionality');
-      TransformationChanged(ANode.TransformFunctionality);
-    end;
+    Check(ANode.TransformFunctionality <> nil, 'chTransform flag may be set only for node with TTransformFunctionality');
+    TransformationChanged(ANode.TransformFunctionality);
 
     if not ProcessEvents then
       { Otherwise FinishTransformationChanges would not be called in nearest Update,
@@ -6767,12 +6669,101 @@ begin
 end;
 
 procedure TCastleSceneCore.FinishTransformationChanges;
+
+  { A bit like TransformationChanged, but specialized to update whole graph,
+    so from RootNode.
+    Also, for TransformationChangedUpdateSkin,
+    considers all nodes in TransformationDirty. }
+  procedure ProcessTransformationDirty;
+  var
+    TransformChangeHelper: TTransformChangeHelper;
+    TransformShapesParentInfo: TShapesParentInfo;
+    TraverseStack: TX3DGraphTraverseStateStack;
+    DoVisibleChanged: boolean;
+  begin
+    if LogChanges then
+      WritelnLog('X3D changes', 'Transform root node change');
+
+    if RootNode = nil then Exit;
+    if not (Shapes is TShapeTreeGroup) then
+    begin
+      WritelnWarning('X3D changes', 'Root node did not create corresponding TShapeTreeGroup, transformation will not be applied correctly. Submit a bug');
+      Exit;
+    end;
+
+    DoVisibleChanged := false;
+
+    if InternalFastTransformUpdate then
+    begin
+      Shapes.FastTransformUpdate(DoVisibleChanged);
+      { Manually adjust Validities, because FastTransformUpdate doesn't call DoGeometryChanged.
+
+        TODO: If uncommenting Changed(false, [chTransform]) in TShape.FastTransformUpdateCore,
+        it should call DoGeometryChanged, but it still doesn't? Why?
+        In any case, it doesn't matter, it's faster to fix Validities manually below. }
+      if DoVisibleChanged then
+        Validities := Validities - [fvLocalBoundingBox];
+    end else
+    begin
+      TraverseStack := nil;
+      TransformChangeHelper := nil;
+      try
+        TraverseStack := TX3DGraphTraverseStateStack.Create;
+
+        { initialize TransformChangeHelper, set before the loop properties
+          that cannot change }
+        TransformChangeHelper := TTransformChangeHelper.Create;
+        TransformChangeHelper.ParentScene := Self;
+        TransformChangeHelper.ChangingNode := RootNode;
+
+        if not
+          ( (Shapes is TShapeTreeGroup) and
+            (TShapeTreeGroup(Shapes).Children.Count = 1) and
+            (TShapeTreeGroup(Shapes).Children[0] is TShapeTreeTransform) and
+            (TShapeTreeTransform(TShapeTreeGroup(Shapes).Children[0]).TransformFunctionality <> nil) and
+            (TShapeTreeTransform(TShapeTreeGroup(Shapes).Children[0]).TransformNode = RootNode) ) then
+        begin
+          raise EInternalError.Create('Scene Shapes should be TShapeTreeGroup with TShapeTreeTransform representing RootNode');
+        end;
+
+        { The logic in HandleTransform in TTransformChangeHelper.TransformChangeTraverse,
+          when Node = ChangingNode, assumes that TransformShapesParentInfo.Group
+          given here matches the *inside* of the node that is changing,
+          which is RootNode in this case.
+          So we don't set "TransformShapesParentInfo.Group := Shapes",
+          we go inside. }
+
+        TransformShapesParentInfo.Group := TShapeTreeGroup(Shapes).Children[0] as TShapeTreeGroup;
+        TransformShapesParentInfo.Index := 0;
+
+        { initialize TransformChangeHelper properties that may be changed
+          during Node.Traverse later }
+        TransformChangeHelper.Shapes := @TransformShapesParentInfo;
+        TransformChangeHelper.AnythingChanged := false;
+        TransformChangeHelper.Inside := false;
+        TransformChangeHelper.Inactive := 0;
+
+        RootNode.Traverse(TX3DNode,
+          {$ifdef FPC}@{$endif}TransformChangeHelper.TransformChangeTraverse);
+
+        if TransformChangeHelper.AnythingChanged then
+          DoVisibleChanged := true;
+      finally
+        FreeAndNil(TraverseStack);
+        FreeAndNil(TransformChangeHelper);
+      end;
+    end;
+
+    if DoVisibleChanged then
+      VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
+  end;
+
 var
   E: TExposedTransform;
 begin
   if TransformationDirty then
   begin
-    RootTransformationChanged;
+    ProcessTransformationDirty;
     TransformationDirty := false;
   end;
 
@@ -6847,6 +6838,7 @@ procedure TCastleSceneCore.InternalCameraChanged;
   procedure CameraProcessing(const CameraVectors: TViewVectors);
   var
     I: Integer;
+    Billboard: TBillboardNode;
   begin
     Assert(ProcessEvents);
 
@@ -6864,14 +6856,10 @@ procedure TCastleSceneCore.InternalCameraChanged;
       any parent Billboard nodes. }
     for I := 0 to BillboardNodes.Count - 1 do
     begin
-      (BillboardNodes[I] as TBillboardNode).InternalCameraChanged(CameraVectors);
-      { Apply transformation change to Shapes tree.
-        Note that we should never call TransformationChanged when
-        OptimizeExtensiveTransformations. }
-      if OptimizeExtensiveTransformations then
-        TransformationDirty := true
-      else
-        TransformationChanged(BillboardNodes[I].TransformFunctionality);
+      Billboard := BillboardNodes[I] as TBillboardNode;
+      Billboard.InternalCameraChanged(CameraVectors);
+      { Apply transformation change to Shapes tree. }
+      TransformationChanged(Billboard.TransformFunctionality);
     end;
   end;
 
