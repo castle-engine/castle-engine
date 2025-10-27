@@ -167,7 +167,12 @@ unit X3DNodes;
 
 interface
 
-uses SysUtils, Generics.Collections, Classes, XMLRead, DOM,
+uses SysUtils, Classes,
+  { Generics.Collections after Classes, so that TCollectionNotification
+    and related cnXxx constants are from Generics.Collections.
+    This is important for FPC that has 2 TCollectionNotification versions. }
+  Generics.Collections,
+  XMLRead, DOM,
   CastleVectors, CastleRectangles, CastleTimeUtils, CastleFonts,
   CastleInternalX3DLexer, CastleUtils, CastleClassUtils,
   X3DFields, CastleBoxes, CastleImages, CastleColors, CastleCameras,
