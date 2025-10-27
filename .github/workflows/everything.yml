@@ -71,7 +71,7 @@ jobs:
     # - other, including download using cli: https://stackoverflow.com/questions/60355925/share-artifacts-between-workflows-github-actions
 
     - name: Download packaged releases
-      uses: actions/download-artifact@v5
+      uses: actions/download-artifact@v6
       with:
         merge-multiple: true
     - name: List downloaded files
