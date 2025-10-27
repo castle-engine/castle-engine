@@ -1219,7 +1219,7 @@
   protected
     procedure Notify(
       {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} Value: TX3DNode;
-      Action: TCollectionNotification); override;
+      Action: Generics.Collections.TCollectionNotification); override;
   public
     { Find node by name (TX3DNode.X3DName), @nil if not found.
 
@@ -3880,7 +3880,7 @@ end;
 
 procedure TX3DNodeList.Notify(
   {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} Value: TX3DNode;
-  Action: TCollectionNotification);
+  Action: Generics.Collections.TCollectionNotification);
 begin
   if FAutoRemove then
     case Action of
