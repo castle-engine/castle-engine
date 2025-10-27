@@ -3275,6 +3275,8 @@ begin
     AssertTrue(L[0] = N2);
   finally FreeAndNil(L) end;
 
+  FreeAndNil(N2);
+
   L := TX3DNodeList.Create(false);
   try
     L.AutoRemove := true;
@@ -3298,6 +3300,8 @@ begin
     AssertTrue(L.Count = 1);
     AssertTrue(L[0] = N2);
   finally FreeAndNil(L) end;
+
+  FreeAndNil(N2);
 end;
 
 initialization
