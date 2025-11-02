@@ -2823,7 +2823,7 @@ begin
 
   Assert(C = 1);
   ShapeTransform := TShapeTree.AssociatedShape(Node, 0) as TShapeTreeTransform;
-  T :=  ShapeTransform.TransformState.Transformation;
+  T := ShapeTransform.TransformState.Transformation;
   FTransformFunctionality.ApplyTransform(T);
   MatrixDecompose(T.Transform, Translation, Rotation, Scale);
 
