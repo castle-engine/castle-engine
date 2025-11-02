@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2024 Michalis Kamburelis.
+  Copyright 2003-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -199,14 +199,39 @@ type
       { OnlyCollidable } Boolean ] of TShapesHash;
     { Automatically set when adding item to TShapeTreeGroup. }
     FParent: TShapeTree;
-    function MaxShapesCountCore: Integer; virtual; abstract;
+
+    { Upper bound on the number of TShape instances within this tree.
+
+      Descendants: Implementation in this class assumes this is empty
+      (returns 0). Descendants should override in they are a group
+      or anything else that can contain shapes.
+
+      Calling inherited is not necessary. }
+    function MaxShapesCountCore: Integer; virtual;
+
     procedure InvalidateMaxShapesCount;
+
+    { Enumerate all TShape instances within this tree.
+
+      Descendants: Implementation in this class does nothing.
+      Descendants should override in they are a group
+      or anything else that can contain shapes.
+
+      Calling inherited is not necessary. }
     procedure TraverseCore(const Func: TShapeTraverseFunc;
       const OnlyActive: boolean;
       const OnlyVisible: boolean;
-      const OnlyCollidable: boolean); virtual; abstract;
+      const OnlyCollidable: boolean); virtual;
+
+    { Apply transformation change to this tree.
+      This is called from @link(FastTransformUpdate).
+
+      Descendants: Implementation in this class does nothing.
+      Descendants should override in they want to react to transformation change.
+
+      Calling inherited is not necessary. }
     procedure FastTransformUpdateCore(var AnythingChanged: Boolean;
-      const ParentTransformation: TTransformation); virtual; abstract;
+      const ParentTransformation: TTransformation); virtual;
   public
     constructor Create(const AParentScene: TX3DEventsEngine);
     destructor Destroy; override;
@@ -265,16 +290,23 @@ type
     function FindShapeWithParentNamed(const ParentNodeName: string;
       OnlyActive: boolean = false): TShape;
 
-    { Enumerate all single texture nodes (possibly) used by the shapes.
+    { Enumerate all single texture nodes (possibly) used by the shapes (TShape)
+      in this tree.
       This looks into all shapes (not only active, so e.g. it looks into all
       Switch/LOD children, not only the chosen one).
       This checks all possible ways how a texture may be used by a shape,
       so it looks at material fields,
       shaders (ComposedShader, CommonSurfaceShader) and more.
 
-      If Enumerate callbacks returns non-nil for some texture, returns it immediately,
-      and stops further processing. }
-    function EnumerateTextures(const Enumerate: TEnumerateShapeTexturesFunction): Pointer; virtual; abstract;
+      If Enumerate callbacks returns non-nil for some texture, it should return
+      the given value immediately, and stop further processing.
+
+      Descendants: Implementation in this class does nothing, assuming this
+      tree doesn't have any TShape that use any texture.
+      Override it in descendants that contain TShape.
+
+      Calling inherited is not necessary. }
+    function EnumerateTextures(const Enumerate: TEnumerateShapeTexturesFunction): Pointer; virtual;
 
     { Describe the shapes tree, recursively (with children),
       multi-line (ends with newline too). }
@@ -963,48 +995,45 @@ type
     function DebugInfoWithoutChildren: String; override;
   end;
 
+  { Represents TProximitySensorInstance in a Scene.Shapes (TShapeTree). }
   TProximitySensorInstance = class(TShapeTree)
   strict private
     FNode: TProximitySensorNode;
-  private
-    function MaxShapesCountCore: Integer; override;
-    procedure TraverseCore(const Func: TShapeTraverseFunc;
-      const OnlyActive: boolean;
-      const OnlyVisible: boolean = false;
-      const OnlyCollidable: boolean = false); override;
-    procedure FastTransformUpdateCore(var AnythingChanged: Boolean;
-      const ParentTransformation: TTransformation); override;
   public
     InverseTransform: TMatrix4;
     IsActive: boolean;
-
     property Node: TProximitySensorNode read FNode write FNode;
-
-    function EnumerateTextures(const Enumerate: TEnumerateShapeTexturesFunction): Pointer; override;
     function DebugInfoWithoutChildren: String; override;
   end;
 
+  { Represents TVisibilitySensorNode in a Scene.Shapes (TShapeTree). }
   TVisibilitySensorInstance = class(TShapeTree)
   strict private
     FNode: TVisibilitySensorNode;
+  public
+    { Bounding box of this visibility sensor instance,
+      already transformed to scene coordinates.
+      That is, this is transformed by parent TShapeTreeTransform . }
+    Box: TBox3D;
+    Transform: TMatrix4;
+    property Node: TVisibilitySensorNode read FNode write FNode;
+    function DebugInfoWithoutChildren: String; override;
+  end;
+
+  { Represents TAbstractLightNode in a Scene.Shapes (TShapeTree).
+
+    TODO: This should be combined with TLightInstance.
+    Ideally we should remove TLightInstance record, and only use this thing,
+    and rename this to TLightInstance. }
+  TLightShapeTreeInstance = class(TShapeTree)
+  strict private
+    FNode: TAbstractLightNode;
+    DoneWarningLightTransformChanged: Boolean;
   private
-    function MaxShapesCountCore: Integer; override;
-    procedure TraverseCore(const Func: TShapeTraverseFunc;
-      const OnlyActive: boolean;
-      const OnlyVisible: boolean = false;
-      const OnlyCollidable: boolean = false); override;
     procedure FastTransformUpdateCore(var AnythingChanged: Boolean;
       const ParentTransformation: TTransformation); override;
   public
-    { Bounding box of this visibility sensor instance,
-      already transformed to global VRML/X3D scene coordinates.
-      That is, transformed by parent Transform and similar nodes. }
-    Box: TBox3D;
-    Transform: TMatrix4;
-
-    property Node: TVisibilitySensorNode read FNode write FNode;
-
-    function EnumerateTextures(const Enumerate: TEnumerateShapeTexturesFunction): Pointer; override;
+    property Node: TAbstractLightNode read FNode write FNode;
     function DebugInfoWithoutChildren: String; override;
   end;
 
@@ -1420,6 +1449,26 @@ end;
 function TShapeTree.DebugInfoWithoutChildren: String;
 begin
   Result := ClassName;
+end;
+
+procedure TShapeTree.TraverseCore(const Func: TShapeTraverseFunc;
+  const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
+begin
+end;
+
+function TShapeTree.MaxShapesCountCore: Integer;
+begin
+  Result := 0;
+end;
+
+procedure TShapeTree.FastTransformUpdateCore(var AnythingChanged: Boolean;
+  const ParentTransformation: TTransformation);
+begin
+end;
+
+function TShapeTree.EnumerateTextures(const Enumerate: TEnumerateShapeTexturesFunction): Pointer;
+begin
+  Result := nil;
 end;
 
 { TShape -------------------------------------------------------------- }
@@ -3468,30 +3517,6 @@ end;
 
 { TProximitySensorInstance ---------------------------------------------- }
 
-procedure TProximitySensorInstance.TraverseCore(const Func: TShapeTraverseFunc;
-  const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
-begin
-  { Nothing to do: no geometry shapes, no children here }
-end;
-
-function TProximitySensorInstance.MaxShapesCountCore: Integer;
-begin
-  { This is not a TShape instance, and has no TShape children. }
-  Result := 0;
-end;
-
-procedure TProximitySensorInstance.FastTransformUpdateCore(var AnythingChanged: Boolean;
-  const ParentTransformation: TTransformation);
-begin
-  { Nothing to do: This is not a TShape instance, and has no TShape children. }
-end;
-
-function TProximitySensorInstance.EnumerateTextures(const Enumerate: TEnumerateShapeTexturesFunction): Pointer;
-begin
-  { Nothing to do: no geometry shapes, no children here }
-  Result := nil;
-end;
-
 function TProximitySensorInstance.DebugInfoWithoutChildren: String;
 begin
   Result := 'ProximitySensor (' + Node.X3DName + ')';
@@ -3499,33 +3524,80 @@ end;
 
 { TVisibilitySensorInstance ---------------------------------------------- }
 
-procedure TVisibilitySensorInstance.TraverseCore(const Func: TShapeTraverseFunc;
-  const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
-begin
-  { Nothing to do: no geometry shapes, no children here }
-end;
-
-procedure TVisibilitySensorInstance.FastTransformUpdateCore(var AnythingChanged: Boolean;
-  const ParentTransformation: TTransformation);
-begin
-  { Nothing to do: This is not a TShape instance, and has no TShape children. }
-end;
-
-function TVisibilitySensorInstance.MaxShapesCountCore: Integer;
-begin
-  { This is not a TShape instance, and has no TShape children. }
-  Result := 0;
-end;
-
-function TVisibilitySensorInstance.EnumerateTextures(const Enumerate: TEnumerateShapeTexturesFunction): Pointer;
-begin
-  { Nothing to do: no geometry shapes, no children here }
-  Result := nil;
-end;
-
 function TVisibilitySensorInstance.DebugInfoWithoutChildren: String;
 begin
   Result := 'VisibilitySensor (' + Node.X3DName + ')';
+end;
+
+{ TLightShapeTreeInstance ------------------------------------------------ }
+
+function TLightShapeTreeInstance.DebugInfoWithoutChildren: String;
+begin
+  Result := 'Light (' + Node.NiceName + ')';
+end;
+
+procedure TLightShapeTreeInstance.FastTransformUpdateCore(var AnythingChanged: Boolean;
+  const ParentTransformation: TTransformation);
+
+{ When the transformation of light node changes, we should update every
+  TLightInstance record of this light in every shape.
+
+  TODO:
+
+  - Code below is very unoptimal. It checks all lights, in all shapes.
+
+    At the very least, we should use TShapeTree.AssociatedShape,
+    to list "shapes that use this light" quickly.
+
+    Even better, if state of shapes would just refer to TLightShapeTreeInstance.
+
+  - If the light was instantiated many times then only some occurrences
+    should be updated, while this code updates all.
+    This is likely responsible for the bug in
+    https://github.com/castle-engine/demo-models/tree/master/gltf/multiple_animated_lights
+    where, once we animate, the 64 lights glue into one.
+
+  - For global lights, limited by radius field,
+    we should also add / remove this light from some
+    TX3DGraphTraverseState.Lights. }
+
+  procedure HandleLightsList(List: TLightInstancesList);
+  var
+    I: Integer;
+  begin
+    if List <> nil then
+      for I := 0 to List.Count - 1 do
+        if List.L[I].Node = Node then
+          Node.UpdateLightInstanceTransformation(List.L[I], ParentTransformation);
+  end;
+
+var
+  ShapeList: TShapeList;
+  Shape: TShape;
+begin
+  // TODO: Optimize using TShapeTree.AssociatedShape
+
+  ShapeList := TCastleSceneCore(ParentScene).Shapes.TraverseList(false);
+  for Shape in ShapeList do
+  begin
+    HandleLightsList(Shape.OriginalState.Lights);
+    if Shape.State <> Shape.OriginalState then
+      HandleLightsList(Shape.State.Lights);
+  end;
+
+  { Update also light state on GlobalLights list, in case other scenes
+    depend on this light. Testcase: planets-demo. }
+  HandleLightsList(TCastleSceneCore(ParentScene).InternalGlobalLights);
+
+  { force update of GeneratedShadowMap textures that used this light }
+  TCastleSceneCore(ParentScene).InternalGeneratedTextures.UpdateShadowMaps(Node);
+
+  WritelnWarningOnce(DoneWarningLightTransformChanged,
+    'Light %s transformation changed. This works, but is unoptimal and also buggy (in case of multiple light instances) in CGE.', [
+    Node.NiceName
+  ]);
+
+  AnythingChanged := true;
 end;
 
 { TShapeTreeIterator ----------------------------------------------------- }

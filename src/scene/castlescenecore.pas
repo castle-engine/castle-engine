@@ -953,7 +953,11 @@ type
     constructor Create(AOwner: TComponent); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
     procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
+
+    { @exclude }
     function InternalCastingShadowVolumesNow: Boolean; override;
+    { @exclude }
+    property InternalGeneratedTextures: TGeneratedTextureList read GeneratedTextures;
 
     { Load the given model.
       This replaces @link(RootNode) with new value.
@@ -1051,7 +1055,7 @@ type
     procedure BeforeDestruction; override;
     destructor Destroy; override;
 
-    { Tree of shapes in the scene, acting as a simplfied mirror
+    { Tree of shapes in the scene, acting as a simplified version
       of the X3D node graph.
       Contents of this tree are read-only from outside. }
     property Shapes: TShapeTree read FShapes;
@@ -3596,6 +3600,8 @@ function TChangedAllTraverser.Traverse(
 
   { Handle TAbstractLightNode. }
   procedure HandleLight(const Node: TAbstractLightNode);
+  var
+    LightShapeTreeInstance: TLightShapeTreeInstance;
   begin
     (*Global lights within inactive Switch child are not active.
       Although I didn't find where specification explicitly says this,
@@ -3615,9 +3621,13 @@ function TChangedAllTraverser.Traverse(
       global lights set. *)
 
     { Add lights to GlobalLights }
-    if Active and (TAbstractLightNode(Node).Scope = lsGlobal) then
+    if Active and (Node.Scope = lsGlobal) then
       ParentScene.InternalGlobalLights.Add(
-        TAbstractLightNode(Node).CreateLightInstance(StateStack.Top));
+        Node.CreateLightInstance(StateStack.Top.Transformation));
+
+    LightShapeTreeInstance := TLightShapeTreeInstance.Create(ParentScene);
+    LightShapeTreeInstance.Node := Node;
+    ShapesGroup.Children.Add(LightShapeTreeInstance);
   end;
 
   procedure HandleSwitch(SwitchNode: TSwitchNode);

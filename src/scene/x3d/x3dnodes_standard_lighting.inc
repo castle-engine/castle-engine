@@ -48,16 +48,16 @@
 
     { Create TLightInstance record describing this light node under given
       State. }
-    function CreateLightInstance(State: TX3DGraphTraverseState): TLightInstance;
+    function CreateLightInstance(const ParentTransformation: TTransformation): TLightInstance;
 
-    { Update TLightInstance record when lighting State changes.
+    { Update TLightInstance record when lighting transformation changes.
       Assumes that LightInstance.Node = Self.
 
       This will set LightInstance.Transform properties, and recalculate
-      all LightInstance properties based on Transform. }
-    procedure UpdateLightInstanceState(
+      all LightInstance properties based on ParentTransformation. }
+    procedure UpdateLightInstanceTransformation(
       var LightInstance: TLightInstance;
-      State: TX3DGraphTraverseState);
+      const ParentTransformation: TTransformation);
 
     { Update TLightInstance record when lighting location/direction (and other
       properties precalculated on TLightInstance) change.
@@ -337,7 +337,7 @@ procedure TAbstractLightNode.MiddleTraverse(StateStack: TX3DGraphTraverseStateSt
 begin
   inherited;
   if Scope = lsLocalVRML1 then
-    StateStack.Top.AddLight(CreateLightInstance(StateStack.Top));
+    StateStack.Top.AddLight(CreateLightInstance(StateStack.Top.Transformation));
 end;
 
 function TAbstractLightNode.Scope: TLightScope;
@@ -403,8 +403,10 @@ begin
 
     *)
 
-    { Note: We do CreateLightInstance with State from TAbstractInternalGroupingNode node,
-      while precisely we should rather use State from TAbstractLightNode
+    { Note: We do CreateLightInstance with State.Transformation from
+      TAbstractInternalGroupingNode node,
+      while precisely we should rather use State.Transformation from
+      TAbstractLightNode
       traverse. But, fortunately, State of TAbstractLightNode doesn't
       change inside (TAbstractLightNode doesn't do anything inside
       BeforeTraverse), so this is the same thing. }
@@ -414,24 +416,24 @@ begin
       E.g. PointLight with global = false should be limited by *both*
       scope (in graph hierarchy) and radius, as far as I understand. }
 
-    State.AddLight(CreateLightInstance(State));
+    State.AddLight(CreateLightInstance(State.Transformation));
   end;
 end;
 
 function TAbstractLightNode.CreateLightInstance(
-  State: TX3DGraphTraverseState): TLightInstance;
+  const ParentTransformation: TTransformation): TLightInstance;
 begin
   Result.Node := Self;
   Result.WorldCoordinates := false;
-  UpdateLightInstanceState(Result, State);
+  UpdateLightInstanceTransformation(Result, ParentTransformation);
 end;
 
-procedure TAbstractLightNode.UpdateLightInstanceState(
+procedure TAbstractLightNode.UpdateLightInstanceTransformation(
   var LightInstance: TLightInstance;
-  State: TX3DGraphTraverseState);
+  const ParentTransformation: TTransformation);
 begin
-  LightInstance.Transform := State.Transformation.Transform;
-  LightInstance.TransformScale := State.Transformation.Scale;
+  LightInstance.Transform := ParentTransformation.Transform;
+  LightInstance.TransformScale := ParentTransformation.Scale;
   UpdateLightInstance(LightInstance);
 end;
 
