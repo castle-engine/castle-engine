@@ -3549,64 +3549,75 @@ function TChangedAllTraverser.Traverse(
   Node: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
   ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean): Pointer;
 
-  { Handle node with TTransformFunctionality }
-  procedure HandleTransform(const TransformFunctionality: TTransformFunctionality);
+  { Add TShape to ShapesGroup, corresponding to this TAbstractGeometryNode instance. }
+  procedure HandleGeometry(const Node: TAbstractGeometryNode);
+
+    function ParentNodeIsShape: Boolean;
+    begin
+      Result := (ParentInfo <> nil) and (ParentInfo^.Node is TShapeNode);
+    end;
+
   var
-    TransformNode: TX3DNode;
-    TransformTree: TShapeTreeTransform;
-    Traverser: TChangedAllTraverser;
+    Shape: TShape;
   begin
-    TransformNode := TransformFunctionality.Parent;
+    { We only take into account geometry nodes inside TShapeNode
+      and VRML 1.0 geometry nodes (they can have any parent).
 
-    TransformTree := TShapeTreeTransform.Create(ParentScene);
-    TransformTree.TransformFunctionality := TransformFunctionality;
+      Ignore (do not call ParentScene.CreateShape):
 
-    { We want to save at TransformState the state right before traversing
-      inside this TransformNode.
+      - Invalid geometry nodes, like tests/data/geometry_not_in_shape.x3dv .
+        (a warning that they are invalid will be done by parser already,
+        it knows allowed children),
 
-      StateStack.Top is bad --- it is already modified by TransformNode
-      transformation, we don't want this, the very purpose of TransformState
-      is to later restart traversing from a TransformNode that changed
-      it's transformation. Clearly, TransformState must not depend on
-      current TransformNode transformation.
+      - Valid geometry nodes in other contexts.
+        In particular, X3D "Particle systems" component allows geometry
+        nodes in BoundedPhysicsModel.geometry.
 
-      So we cheat a little, knowing that internally every node implementing TTransformFunctionality
-      does StateStack.Push inside BeforeTraverse exactly once and then
-      modifies transformation.
-      (This happens for both TAbstractInternalGroupingNode and THAnimHumanoidNode.
-      Right now, node with TTransformFunctionality is always one of those.)
-      So we know that previous state lies safely at PreviousTop.
+      This allows TShape to safely assume that, for non-VRML 1.0,
+      we always have TShapeNode available in State.ShapeNode. }
+    if (Node is TAbstractGeometryNode_1) or ParentNodeIsShape then
+    begin
+      { Add shape to Shapes }
+      Shape := ParentScene.CreateShape(Node as TAbstractGeometryNode,
+        TX3DGraphTraverseState.CreateCopy(StateStack.Top), ParentInfo);
+      ShapesGroup.Children.Add(Shape);
 
-      Exception: As TX3DRootNode.SeparateGroup is false now,
-      it needs special case to look at just StateStack.Top.
-      TODO: This is wrong though, i.e. the StateStack.Top has the TX3DRootNode
-      already applied. There's no state without the TX3DRootNode applied... }
-    if TransformNode is TX3DRootNode then
-      TransformTree.TransformState.Assign(StateStack.Top)
-    else
-      TransformTree.TransformState.Assign(StateStack.PreviousTop);
+      { When Spatial contain ssDynamicCollisions, then each collidable
+        shape must have octree created. Normally, this is watched over by
+        SetSpatial. In this case, we just created new Shape, so we have
+        to set it's Spatial property correctly. }
+      if (ssDynamicCollisions in ParentScene.FSpatial) and
+        Shape.Collidable then
+      begin
+        Shape.InternalSpatial := [ssTriangles];
+      end;
+    end;
+  end;
 
-    ShapesGroup.Children.Add(TransformTree);
+  { Handle TAbstractLightNode. }
+  procedure HandleLight(const Node: TAbstractLightNode);
+  begin
+    (*Global lights within inactive Switch child are not active.
+      Although I didn't find where specification explicitly says this,
+      but it's natural. Allows e.g. to do
 
-    { update ParentScene.BillboardNodes }
-    if TransformNode is TBillboardNode then
-      ParentScene.BillboardNodes.Add(TransformNode);
+      Switch {
+        DEF SomeGroup1 { .. some lights and shapes .. }
+        DEF SomeGroup2 { .. some lights and shapes .. }
+      }
+      USE SomeGroup1
 
-    Traverser := TChangedAllTraverser.Create;
-    try
-      Traverser.ParentScene := ParentScene;
-      { No need to create another TShapeTreeGroup, like ChildGroup
-        for Switch/LOD nodes. We can just add new shapes to our TransformTree.
-        Reason: unlike Switch/LOD nodes, we don't care about keeping
-        the indexes of children stable. }
-      Traverser.ShapesGroup := TransformTree;
-      Traverser.Active := Active;
+      which is a trick used e.g. by our Collada importer.
+      Without this rule, SomeGroup1 would be affected be it's own lights
+      *two* times (and in addition by SomeGroup2 lights).
 
-      TransformNode.TraverseIntoChildren(StateStack, TX3DNode,
-        {$ifdef FPC}@{$endif}Traverser.Traverse, ParentInfo);
-    finally FreeAndNil(Traverser) end;
+      TODO: Changing things like Switch.FdWhichChoice should update
+      global lights set. *)
 
-    TraverseIntoChildren := false;
+    { Add lights to GlobalLights }
+    if Active and (TAbstractLightNode(Node).Scope = lsGlobal) then
+      ParentScene.InternalGlobalLights.Add(
+        TAbstractLightNode(Node).CreateLightInstance(StateStack.Top));
   end;
 
   procedure HandleSwitch(SwitchNode: TSwitchNode);
@@ -3685,6 +3696,67 @@ function TChangedAllTraverser.Traverse(
     TraverseIntoChildren := false;
   end;
 
+  { Add TShapeTreeTransform to ShapesGroup,
+    corresponding to node with TTransformFunctionality. }
+  procedure HandleTransform(const TransformFunctionality: TTransformFunctionality);
+  var
+    TransformNode: TX3DNode;
+    TransformTree: TShapeTreeTransform;
+    Traverser: TChangedAllTraverser;
+  begin
+    TransformNode := TransformFunctionality.Parent;
+
+    TransformTree := TShapeTreeTransform.Create(ParentScene);
+    TransformTree.TransformFunctionality := TransformFunctionality;
+
+    { We want to save at TransformState the state right before traversing
+      inside this TransformNode.
+
+      StateStack.Top is bad --- it is already modified by TransformNode
+      transformation, we don't want this, the very purpose of TransformState
+      is to later restart traversing from a TransformNode that changed
+      it's transformation. Clearly, TransformState must not depend on
+      current TransformNode transformation.
+
+      So we cheat a little, knowing that internally every node implementing TTransformFunctionality
+      does StateStack.Push inside BeforeTraverse exactly once and then
+      modifies transformation.
+      (This happens for both TAbstractInternalGroupingNode and THAnimHumanoidNode.
+      Right now, node with TTransformFunctionality is always one of those.)
+      So we know that previous state lies safely at PreviousTop.
+
+      Exception: As TX3DRootNode.SeparateGroup is false now,
+      it needs special case to look at just StateStack.Top.
+      TODO: This is wrong though, i.e. the StateStack.Top has the TX3DRootNode
+      already applied. There's no state without the TX3DRootNode applied... }
+    if TransformNode is TX3DRootNode then
+      TransformTree.TransformState.Assign(StateStack.Top)
+    else
+      TransformTree.TransformState.Assign(StateStack.PreviousTop);
+
+    ShapesGroup.Children.Add(TransformTree);
+
+    { update ParentScene.BillboardNodes }
+    if TransformNode is TBillboardNode then
+      ParentScene.BillboardNodes.Add(TransformNode);
+
+    Traverser := TChangedAllTraverser.Create;
+    try
+      Traverser.ParentScene := ParentScene;
+      { No need to create another TShapeTreeGroup, like ChildGroup
+        for Switch/LOD nodes. We can just add new shapes to our TransformTree.
+        Reason: unlike Switch/LOD nodes, we don't care about keeping
+        the indexes of children stable. }
+      Traverser.ShapesGroup := TransformTree;
+      Traverser.Active := Active;
+
+      TransformNode.TraverseIntoChildren(StateStack, TX3DNode,
+        {$ifdef FPC}@{$endif}Traverser.Traverse, ParentInfo);
+    finally FreeAndNil(Traverser) end;
+
+    TraverseIntoChildren := false;
+  end;
+
   procedure HandleProximitySensor(const Node: TProximitySensorNode);
   var
     PSI: TProximitySensorInstance;
@@ -3719,108 +3791,30 @@ function TChangedAllTraverser.Traverse(
     Instances.Add(VSI);
   end;
 
-  function ParentNodeIsShape: Boolean;
+  { Handle TAbstractBindableNode. }
+  procedure HandleBindable(const Node: TAbstractBindableNode);
   begin
-    Result := (ParentInfo <> nil) and (ParentInfo^.Node is TShapeNode);
-  end;
+    if { Do not look for first bindable node within inlined content,
+         this is following VRML spec. }
+       (StateStack.Top.InsideInline <> 0) or
+       { Do not look for first bindable node within inactive content.
+         TODO: Actually, where does spec precisely say that first bindable node
+         must be in active part? Although it seems most sensible... }
+       (not Active) then
+      Exit;
 
-var
-  Shape: TShape;
-begin
-  Result := nil;
-
-  if Node is TAbstractGeometryNode then
-  begin
-    { We only take into account geometry nodes inside TShapeNode
-      and VRML 1.0 geometry nodes (they can have any parent).
-
-      Ignore (do not call ParentScene.CreateShape):
-
-      - Invalid geometry nodes, like tests/data/geometry_not_in_shape.x3dv .
-        (a warning that they are invalid will be done by parser already,
-        it knows allowed children),
-
-      - Valid geometry nodes in other contexts.
-        In particular, X3D "Particle systems" component allows geometry
-        nodes in BoundedPhysicsModel.geometry.
-
-      This allows TShape to safely assume that, for non-VRML 1.0,
-      we always have TShapeNode available in State.ShapeNode. }
-    if (Node is TAbstractGeometryNode_1) or ParentNodeIsShape then
-    begin
-      { Add shape to Shapes }
-      Shape := ParentScene.CreateShape(Node as TAbstractGeometryNode,
-        TX3DGraphTraverseState.CreateCopy(StateStack.Top), ParentInfo);
-      ShapesGroup.Children.Add(Shape);
-
-      { When Spatial contain ssDynamicCollisions, then each collidable
-        shape must have octree created. Normally, this is watched over by
-        SetSpatial. In this case, we just created new Shape, so we have
-        to set it's Spatial property correctly. }
-      if (ssDynamicCollisions in ParentScene.FSpatial) and
-        Shape.Collidable then
-      begin
-        Shape.InternalSpatial := [ssTriangles];
-      end;
-    end;
-  end else
-
-  if Node is TAbstractLightNode then
-  begin
-    (*Global lights within inactive Switch child are not active.
-      Although I didn't find where specification explicitly says this,
-      but it's natural. Allows e.g. to do
-
-      Switch {
-        DEF SomeGroup1 { .. some lights and shapes .. }
-        DEF SomeGroup2 { .. some lights and shapes .. }
-      }
-      USE SomeGroup1
-
-      which is a trick used e.g. by our Collada importer.
-      Without this rule, SomeGroup1 would be affected be it's own lights
-      *two* times (and in addition by SomeGroup2 lights).
-
-      TODO: Changing things like Switch.FdWhichChoice should update
-      global lights set. *)
-
-    { Add lights to GlobalLights }
-    if Active and (TAbstractLightNode(Node).Scope = lsGlobal) then
-      ParentScene.InternalGlobalLights.Add(
-        TAbstractLightNode(Node).CreateLightInstance(StateStack.Top));
-  end else
-
-  if Node is TSwitchNode then
-  begin
-    HandleSwitch(TSwitchNode(Node));
-  end else
-  if Node is TLODNode then
-  begin
-    HandleLOD(TLODNode(Node));
-  end else
-  if Node.TransformFunctionality <> nil then
-  begin
-    HandleTransform(Node.TransformFunctionality);
-  end else
-
-  if (Node is TAbstractBindableNode) and
-     { Do not look for first bindable node within inlined content,
-       this is following VRML spec. }
-     (StateStack.Top.InsideInline = 0) and
-     { Do not look for first bindable node within inactive content.
-       TODO: Actually, where does spec precisely say that first bindable node
-       must be in active part? Although it seems most sensible... }
-     Active then
-  begin
     { If some bindable stack is empty, push the node to it.
       This way, upon reading VRML file, we will bind the first found
       node for each stack. }
     if Node is TAbstractBackgroundNode then
-      ParentScene.BackgroundStack.PushIfEmpty( TAbstractBackgroundNode(Node), true) else
+      ParentScene.BackgroundStack.PushIfEmpty( TAbstractBackgroundNode(Node), true)
+    else
     if Node is TFogNode then
-      ParentScene.FogStack.PushIfEmpty( TFogNode(Node), true) else
+      ParentScene.FogStack.PushIfEmpty( TFogNode(Node), true)
+    else
     if Node is TNavigationInfoNode then
-      ParentScene.NavigationInfoStack.PushIfEmpty( TNavigationInfoNode(Node), true) else
+      ParentScene.NavigationInfoStack.PushIfEmpty( TNavigationInfoNode(Node), true)
+    else
     if Node is TAbstractViewpointNode then
     begin
       { before binding viewpoint, check InitialViewpoint* conditions }
@@ -3834,15 +3828,42 @@ begin
       end;
       ParentScene.FViewpointsArray.Add(TAbstractViewpointNode(Node));
     end;
-  end else
-  if Node is TProximitySensorNode then
-    HandleProximitySensor(Node as TProximitySensorNode) else
-  if Node is TVisibilitySensorNode then
-    HandleVisibilitySensor(Node as TVisibilitySensorNode) else
-  if Node is TScreenEffectNode then
+  end;
+
+  procedure HandleScreenEffect(const Node: TScreenEffectNode);
   begin
     ParentScene.ScreenEffectNodes.Add(Node);
   end;
+
+begin
+  Result := nil;
+
+  if Node is TAbstractGeometryNode then
+    HandleGeometry(TAbstractGeometryNode(Node))
+  else
+  if Node is TAbstractLightNode then
+    HandleLight(TAbstractLightNode(Node))
+  else
+  if Node is TSwitchNode then
+    HandleSwitch(TSwitchNode(Node))
+  else
+  if Node is TLODNode then
+    HandleLOD(TLODNode(Node))
+  else
+  if Node.TransformFunctionality <> nil then
+    HandleTransform(Node.TransformFunctionality)
+  else
+  if Node is TAbstractBindableNode then
+    HandleBindable(TAbstractBindableNode(Node))
+  else
+  if Node is TProximitySensorNode then
+    HandleProximitySensor(TProximitySensorNode(Node))
+  else
+  if Node is TVisibilitySensorNode then
+    HandleVisibilitySensor(TVisibilitySensorNode(Node))
+  else
+  if Node is TScreenEffectNode then
+    HandleScreenEffect(TScreenEffectNode(Node));
 end;
 
 procedure TCastleSceneCore.BeforeNodesFree(const InternalChangedAll: boolean);
