@@ -3817,22 +3817,32 @@ function TChangedAllTraverser.Traverse(
        (not Active) then
       Exit;
 
-    Instance := TBindableInstance.Create(ParentScene);
-    Instance.Node := Node;
-    ShapesGroup.Children.Add(Instance);
-
     { If some bindable stack is empty, push the node to it.
       This way, upon reading VRML file, we will bind the first found
       node for each stack. }
     if Node is TAbstractBackgroundNode then
-      ParentScene.BackgroundStack.PushIfEmpty( TAbstractBackgroundNode(Node), true)
-    else
+    begin
+      ParentScene.BackgroundStack.PushIfEmpty( TAbstractBackgroundNode(Node), true);
+
+      Instance := TBindableInstance.Create(ParentScene);
+      Instance.Node := Node;
+      ShapesGroup.Children.Add(Instance);
+    end else
     if Node is TFogNode then
-      ParentScene.FogStack.PushIfEmpty( TFogNode(Node), true)
-    else
+    begin
+      ParentScene.FogStack.PushIfEmpty( TFogNode(Node), true);
+
+      Instance := TBindableInstance.Create(ParentScene);
+      Instance.Node := Node;
+      ShapesGroup.Children.Add(Instance);
+    end else
     if Node is TNavigationInfoNode then
-      ParentScene.NavigationInfoStack.PushIfEmpty( TNavigationInfoNode(Node), true)
-    else
+    begin
+      ParentScene.NavigationInfoStack.PushIfEmpty( TNavigationInfoNode(Node), true);
+
+      { No need for TBindableInstance, TNavigationInfoNode does not
+        use its transformation. }
+    end else
     if Node is TAbstractViewpointNode then
     begin
       { before binding viewpoint, check InitialViewpoint* conditions }
@@ -3845,6 +3855,11 @@ function TChangedAllTraverser.Traverse(
         Inc(ParentScene.ChangedAllCurrentViewpointIndex);
       end;
       ParentScene.FViewpointsArray.Add(TAbstractViewpointNode(Node));
+
+      // Note: special TViewpointInstance, not just TBindableInstance in this case
+      Instance := TViewpointInstance.Create(ParentScene);
+      Instance.Node := Node;
+      ShapesGroup.Children.Add(Instance);
     end;
   end;
 

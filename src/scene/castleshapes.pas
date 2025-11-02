@@ -1056,6 +1056,17 @@ type
     function DebugInfoWithoutChildren: String; override;
   end;
 
+  { Represents TViewpointNode in a Scene.Shapes (TShapeTree).
+    Descends from TBindableInstance, just like TViewpointNode descends
+    from TAbstractBindableNode. }
+  TViewpointInstance = class(TBindableInstance)
+  private
+    procedure FastTransformUpdateCore(var AnythingChanged: Boolean;
+      const ParentTransformation: TTransformation); override;
+  public
+    function DebugInfoWithoutChildren: String; override;
+  end;
+
   { Iterates over all TShape items that would be enumerated by
     Tree.Traverse. Sometimes it's easier to write code using this iterator
     than to create callbacks and use TShapeTree.Traverse. }
@@ -3693,7 +3704,39 @@ begin
   AnythingChanged := true;
 end;
 
-{ TShapeTreeIterator ----------------------------------------------------- }
+{ TViewpointInstance --------------------------------------------------------- }
+
+function TViewpointInstance.DebugInfoWithoutChildren: String;
+begin
+  Result := 'Viewpoint (' + Node.NiceName + ')';
+end;
+
+procedure TViewpointInstance.FastTransformUpdateCore(var AnythingChanged: Boolean;
+  const ParentTransformation: TTransformation);
+
+{ Handle the transformation of a TViewpointNode.
+  Testcase (will not work if this method is empty):
+  demo-models/navigation/viewpoint_transform.x3dv
+}
+
+begin
+  inherited;
+
+  if (Node = TCastleSceneCore(ParentScene).ViewpointStack.Top) and
+     { See TAbstractBindableNode.BeforeTraverse comments for
+       explanation why LastBeforeTraverseChangedTransform is important. }
+     TCastleSceneCore(ParentScene).ViewpointStack.Top.InternalLastBeforeTraverseChangedTransform then
+    TCastleSceneCore(ParentScene).DoBoundViewpointVectorsChanged;
+
+  { TODO: Transformation of viewpoint should also affect NavigationInfo,
+    according to spec: "The speed, avatarSize and visibilityLimit values
+    are all scaled by the transformation being applied to
+    the currently bound X3DViewpointNode node."
+    When this will be implemented, then also when transformation
+    of viewpoint changes here we'll have to do something. }
+end;
+
+{ TShapeTreeIterator --------------------------------------------------------- }
 
 { When SHAPE_ITERATOR_SOPHISTICATED is defined, we use a complicated
   implementation that has a nice O(1) speed for constructor and all
