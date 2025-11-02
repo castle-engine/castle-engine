@@ -31,14 +31,12 @@ type
     LabelFps: TCastleLabel;
     FlyNavigation: TCastleWalkNavigation;
     CheckboxOptimizeExtensiveTransformations: TCastleCheckbox;
-    CheckboxInternalFastTransformUpdate: TCastleCheckbox;
     CheckboxDynamicBatching: TCastleCheckbox;
     CheckboxAnimateOnlyWhenVisible: TCastleCheckbox;
     CheckboxAnimateSkipTicks1: TCastleCheckbox;
     MainViewport: TCastleViewport;
   private
     procedure CheckboxOptimizeExtensiveTransformationsChange(Sender: TObject);
-    procedure CheckboxInternalFastTransformUpdateChange(Sender: TObject);
     procedure CheckboxDynamicBatchingChange(Sender: TObject);
     procedure CheckboxAnimateOnlyWhenVisibleChange(Sender: TObject);
     procedure CheckboxAnimateSkipTicks1Change(Sender: TObject);
@@ -68,16 +66,13 @@ procedure TViewMain.Start;
 begin
   inherited;
   CheckboxOptimizeExtensiveTransformations.OnChange := {$ifdef FPC}@{$endif} CheckboxOptimizeExtensiveTransformationsChange;
-  CheckboxInternalFastTransformUpdate.OnChange := {$ifdef FPC}@{$endif} CheckboxInternalFastTransformUpdateChange;
   CheckboxDynamicBatching.OnChange := {$ifdef FPC}@{$endif} CheckboxDynamicBatchingChange;
   CheckboxAnimateOnlyWhenVisible.OnChange := {$ifdef FPC}@{$endif} CheckboxAnimateOnlyWhenVisibleChange;
   CheckboxAnimateSkipTicks1.OnChange := {$ifdef FPC}@{$endif} CheckboxAnimateSkipTicks1Change;
 
-  // make these 2 optimizations "on" by default in this demo
+  // make this optimizations "on" by default in this demo
   CheckboxOptimizeExtensiveTransformations.Checked := true;
   CheckboxOptimizeExtensiveTransformationsChange(nil);
-  CheckboxInternalFastTransformUpdate.Checked := true;
-  CheckboxInternalFastTransformUpdateChange(nil);
 end;
 
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
@@ -94,11 +89,6 @@ end;
 procedure TViewMain.CheckboxOptimizeExtensiveTransformationsChange(Sender: TObject);
 begin
   OptimizeExtensiveTransformations := CheckboxOptimizeExtensiveTransformations.Checked;
-end;
-
-procedure TViewMain.CheckboxInternalFastTransformUpdateChange(Sender: TObject);
-begin
-  InternalFastTransformUpdate := CheckboxInternalFastTransformUpdate.Checked;
 end;
 
 procedure TViewMain.CheckboxDynamicBatchingChange(Sender: TObject);

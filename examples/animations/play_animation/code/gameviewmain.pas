@@ -305,7 +305,6 @@ begin
     See examples/animations/optimize_animations_test/ for more notes
     about optimizing. }
   Viewport.DynamicBatching := SliderOptimization.Value > 0;
-  InternalFastTransformUpdate := SliderOptimization.Value > 0;
   OptimizeExtensiveTransformations := SliderOptimization.Value > 0;
   case SliderOptimization.Value of
     0, 1: Scene.AnimateSkipTicks := 0;

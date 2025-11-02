@@ -12,12 +12,6 @@ The options demonstrated here are:
 
     TODO: In the future, I hope to be able to remove this flag, and the respective gain should be automatic in the engine. See [roadmap](https://castle-engine.io/roadmap#animations_optimized).
 
-- [InternalFastTransformUpdate](https://castle-engine.io/apidoc/html/CastleSceneCore.html#InternalFastTransformUpdate)
-
-    Optimize animated transformation hierarchies when the transformations change only visible shapes. This is the most common case.
-
-    TODO: In the future, I hope to be able to remove this flag, and the respective gain should be automatic in the engine. See [roadmap](https://castle-engine.io/roadmap#animations_optimized).
-
 - [TCastleViewport.DynamicBatching](https://castle-engine.io/apidoc/html/CastleViewport.TCastleViewport.html#DynamicBatching)
 
     Rendering optimization (not really optimization of animation, still it is presented here as it can speed things up).
