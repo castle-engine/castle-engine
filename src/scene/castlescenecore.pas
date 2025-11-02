@@ -958,6 +958,8 @@ type
     function InternalCastingShadowVolumesNow: Boolean; override;
     { @exclude }
     property InternalGeneratedTextures: TGeneratedTextureList read GeneratedTextures;
+    { @exclude }
+    procedure InternalProximitySensorUpdate(const PSI: TProximitySensorInstance);
 
     { Load the given model.
       This replaces @link(RootNode) with new value.
@@ -6622,6 +6624,14 @@ begin
 end;
 
 { proximity sensor ----------------------------------------------------------- }
+
+procedure TCastleSceneCore.InternalProximitySensorUpdate(const PSI: TProximitySensorInstance);
+var
+  CameraVectors: TViewVectors;
+begin
+  if GetCameraLocal(CameraVectors) then
+    ProximitySensorUpdate(PSI, CameraVectors);
+end;
 
 procedure TCastleSceneCore.ProximitySensorUpdate(const PSI: TProximitySensorInstance;
   const CameraVectors: TViewVectors);

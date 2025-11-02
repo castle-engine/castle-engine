@@ -58,7 +58,7 @@ type
   TShape = class;
   TShapeList = class;
 
-  TShapeTraverseFunc = procedure (const  Shape: TShape) of object;
+  TShapeTraverseFunc = procedure (const Shape: TShape) of object;
 
   TEnumerateShapeTexturesFunction = function (Shape: TShape;
     Texture: TAbstractTextureNode): Pointer of object;
@@ -999,6 +999,9 @@ type
   TProximitySensorInstance = class(TShapeTree)
   strict private
     FNode: TProximitySensorNode;
+  private
+    procedure FastTransformUpdateCore(var AnythingChanged: Boolean;
+      const ParentTransformation: TTransformation); override;
   public
     InverseTransform: TMatrix4;
     IsActive: boolean;
@@ -1010,6 +1013,9 @@ type
   TVisibilitySensorInstance = class(TShapeTree)
   strict private
     FNode: TVisibilitySensorNode;
+  private
+    procedure FastTransformUpdateCore(var AnythingChanged: Boolean;
+      const ParentTransformation: TTransformation); override;
   public
     { Bounding box of this visibility sensor instance,
       already transformed to scene coordinates.
@@ -3522,11 +3528,49 @@ begin
   Result := 'ProximitySensor (' + Node.X3DName + ')';
 end;
 
+procedure TProximitySensorInstance.FastTransformUpdateCore(var AnythingChanged: Boolean;
+  const ParentTransformation: TTransformation);
+
+{ Update ProximitySensor when parent Transform changes.
+  Testcase (will not work if this method is empty):
+  demo-models/sensors_environmental/proximity_sensor_transformed.x3dv }
+
+begin
+  InverseTransform := ParentTransformation.InverseTransform;
+
+  { We only care about ProximitySensor in active graph parts.
+
+    Note that we make ProximitySensor events also when ProximitySensor
+    is in an inactive graph part. We have no knowledge, right now,
+    if we're in active or inactive graph part. }
+
+  { Call ProximitySensorUpdate, since the sensor's box is transformed,
+    so possibly it should be activated/deactivated,
+    position/orientation_changed called etc. }
+  TCastleSceneCore(ParentScene).InternalProximitySensorUpdate(Self);
+end;
+
 { TVisibilitySensorInstance ---------------------------------------------- }
 
 function TVisibilitySensorInstance.DebugInfoWithoutChildren: String;
 begin
   Result := 'VisibilitySensor (' + Node.X3DName + ')';
+end;
+
+procedure TVisibilitySensorInstance.FastTransformUpdateCore(var AnythingChanged: Boolean;
+  const ParentTransformation: TTransformation);
+
+{ Handle the transformation of VisibilitySensor change.
+  Testcase (will not work if this method is empty):
+  demo-models/sensors_environmental/visibility_sensor.x3dv
+  (observe from special viewpoint, the visibility should flip-flop
+  as the box animates). }
+
+begin
+  Transform := ParentTransformation.Transform;
+  Box := Node.Box.Transform(Transform);
+
+  AnythingChanged := true;
 end;
 
 { TLightShapeTreeInstance ------------------------------------------------ }
@@ -3541,6 +3585,8 @@ procedure TLightShapeTreeInstance.FastTransformUpdateCore(var AnythingChanged: B
 
 { When the transformation of light node changes, we should update every
   TLightInstance record of this light in every shape.
+  Testcase (will not work if this method is empty):
+  demo-models/lights_materials/light_transform_animated.x3dv .
 
   TODO:
 
