@@ -953,8 +953,7 @@ type
     (in scene coordinates) potentially changed. }
   TShapeTreeLOD = class(TShapeTreeGroup)
   strict private
-    FLODNode: TLODNode;
-    FLODInverseTransform: TMatrix4;
+    FNode: TLODNode;
     FLevel: Cardinal;
     FWasLevel_ChangedSend: boolean;
   private
@@ -962,18 +961,20 @@ type
       const OnlyActive: boolean;
       const OnlyVisible: boolean = false;
       const OnlyCollidable: boolean = false); override;
+    procedure FastTransformUpdateCore(var AnythingChanged: Boolean;
+      const ParentTransformation: TTransformation); override;
   public
-    property LODNode: TLODNode read FLODNode write FLODNode;
-    function LODInverseTransform: PMatrix4;
+    InverseTransform: TMatrix4;
+    property Node: TLODNode read FNode write FNode;
 
     { Calculate and set new value for @link(Level), thus changing which
       child is the active one.
 
-      Also, if ProcessEvents, send X3D output event LODNode.EventLevel_Changed
+      Also, if ProcessEvents, send X3D output event Node.EventLevel_Changed
       (whenever it should be send).
 
-      Looks at LOD node in @link(LODNode) and transformation in
-      @link(LODInverseTransform) to choose the current level.
+      Looks at LOD node in @link(Node) and transformation in
+      @link(InverseTransform) to choose the current level.
 
       @returns Whether the level changed. }
     function UpdateLevel(const CameraLocalPosition: TVector3;
@@ -3424,11 +3425,6 @@ end;
 
 { TShapeTreeLOD ------------------------------------------------------- }
 
-function TShapeTreeLOD.LODInverseTransform: PMatrix4;
-begin
-  Result := @FLODInverseTransform;
-end;
-
 function TShapeTreeLOD.UpdateLevel(const CameraLocalPosition: TVector3;
   const ProcessEvents: Boolean): Boolean;
 
@@ -3440,14 +3436,14 @@ function TShapeTreeLOD.UpdateLevel(const CameraLocalPosition: TVector3;
     Dummy: Single;
   begin
     if (Children.Count = 0) or
-      (LODNode.FdRange.Count = 0) then
+       (Node.FdRange.Count = 0) then
       Result := 0 else
     begin
       try
-        Camera := LODInverseTransform^.MultPoint(CameraPosition);
-        Result := KeyRange(LODNode.FdRange.Items,
-          PointsDistance(Camera, LODNode.FdCenter.Value), Dummy);
-        { Now we know Result is between 0..LODNode.FdRange.Count.
+        Camera := InverseTransform.MultPoint(CameraPosition);
+        Result := KeyRange(Node.FdRange.Items,
+          PointsDistance(Camera, Node.FdCenter.Value), Dummy);
+        { Now we know Result is between 0..Node.FdRange.Count.
           Following X3D spec "Specifying too few levels will result in
           the last level being used repeatedly for the lowest levels of detail",
           so just clamp to last children. }
@@ -3483,7 +3479,7 @@ begin
      (Children.Count <> 0) then
   begin
     FWasLevel_ChangedSend := true;
-    LODNode.EventLevel_Changed.Send(Integer(NewLevel));
+    Node.EventLevel_Changed.Send(Integer(NewLevel));
   end;
 end;
 
@@ -3518,7 +3514,20 @@ end;
 
 function TShapeTreeLOD.DebugInfoWithoutChildren: String;
 begin
-  Result := 'LOD (' + LODNode.X3DName + ')';
+  Result := 'LOD (' + Node.X3DName + ')';
+end;
+
+procedure TShapeTreeLOD.FastTransformUpdateCore(var AnythingChanged: Boolean;
+  const ParentTransformation: TTransformation);
+
+{ Update LOG when parent Transform changes.
+  Testcase (will not work if this method is empty):
+  demo-models/navigation/lod_test.x3dv (when animating movement of LOD) }
+
+begin
+  inherited;
+  InverseTransform := ParentTransformation.InverseTransform;
+  AnythingChanged := true; // redraw, to take into account InverseTransform in BeforeRender
 end;
 
 { TProximitySensorInstance ---------------------------------------------- }

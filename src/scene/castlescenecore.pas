@@ -3663,7 +3663,7 @@ function TChangedAllTraverser.Traverse(
     TraverseIntoChildren := false;
   end;
 
-  procedure HandleLOD(LODNode: TLODNode);
+  procedure HandleLOD(const LODNode: TLODNode);
   var
     LODTree: TShapeTreeLOD;
     Traverser: TChangedAllTraverser;
@@ -3672,8 +3672,8 @@ function TChangedAllTraverser.Traverse(
     I: Integer;
   begin
     LODTree := TShapeTreeLOD.Create(ParentScene);
-    LODTree.LODNode := LODNode;
-    LODTree.LODInverseTransform^ := StateStack.Top.Transformation.InverseTransform;
+    LODTree.Node := LODNode;
+    LODTree.InverseTransform := StateStack.Top.Transformation.InverseTransform;
     ShapesGroup.Children.Add(LODTree);
     ParentScene.ShapeLODs.Add(LODTree);
 
