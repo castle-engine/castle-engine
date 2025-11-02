@@ -37,8 +37,6 @@
   { Abstract type from which 3D backgrounds inherit. }
   TAbstract3DBackgroundNode = class(TAbstractBackgroundNode)
   public
-    function TransformationChange: TNodeTransformationChange; override;
-
     { Texture node for given background side.
       May return @nil if none.
 
@@ -101,7 +99,6 @@
       const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
   public
     constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
-    function TransformationChange: TNodeTransformationChange; override;
 
     { Fog type, but may also return ftNone if we are @nil (checks Self <> nil)
       or visibilityRange = 0. }
@@ -215,13 +212,6 @@ begin
   MatrixDecompose(Transform, IgnoreTranslation, Result, IgnoreScale);
 end;
 
-{ TAbstract3DBackgroundNode -------------------------------------------------- }
-
-function TAbstract3DBackgroundNode.TransformationChange: TNodeTransformationChange;
-begin
-  Result := ntcBackground;
-end;
-
 { TBackgroundNode ------------------------------------------------------------ }
 
 function TBackgroundNode.Texture(const Side: TBackgroundSide): TAbstractTextureNode;
@@ -315,11 +305,6 @@ begin
       automatically, as this is specific to Fog node. }
     Scene.VisibleChangeHere([vcVisibleNonGeometry]);
   end;
-end;
-
-function TFogNode.TransformationChange: TNodeTransformationChange;
-begin
-  Result := ntcFog;
 end;
 
 function TFogNode.FogTypeOrNone: TFogTypeOrNone;

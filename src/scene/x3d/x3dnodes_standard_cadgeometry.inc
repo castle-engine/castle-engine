@@ -59,7 +59,6 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
-    function TransformationChange: TNodeTransformationChange; override;
   {$I auto_generated_node_helpers/x3dnodes_cadpart.inc}
   end;
 
@@ -164,11 +163,6 @@ function TCADPartNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): P
 begin
   Result := FdChildren.Enumerate(Func);
   if Result <> nil then Exit;
-end;
-
-function TCADPartNode.TransformationChange: TNodeTransformationChange;
-begin
-  Result := ntcTransform;
 end;
 
 function TIndexedQuadSetNode.CoordIndexField: TMFLong;

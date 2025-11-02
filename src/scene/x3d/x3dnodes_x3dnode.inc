@@ -1138,13 +1138,6 @@
       HasInterfaceDeclarations = @true, like Script or ComposedShader. }
     procedure AddCustomFieldOrEvent(AFieldOrEvent: TX3DFieldOrEvent);
 
-    { What happens when transformation of the node changes.
-      This is internally used by TCastleSceneCore when Transform (or similar)
-      node affecting this node changes. It's an important optimization,
-      to avoid large if clause with many "is" checks that would be quite slow.
-      @exclude }
-    function TransformationChange: TNodeTransformationChange; virtual;
-
     { Nice and concise node description for user.
       Shows node type and name. }
     function NiceName: string;
@@ -3516,11 +3509,6 @@ end;
 procedure TX3DNode.AddCustomField(AField: TX3DField);
 begin
   AddCustomFieldOrEvent(AField);
-end;
-
-function TX3DNode.TransformationChange: TNodeTransformationChange;
-begin
-  Result := ntcNone;
 end;
 
 function TX3DNode.NiceName: string;

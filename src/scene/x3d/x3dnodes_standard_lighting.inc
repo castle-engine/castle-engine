@@ -92,9 +92,6 @@
     function Transform: TMatrix4;
     function InverseTransform: TMatrix4;
     { @groupEnd }
-
-    function TransformationChange: TNodeTransformationChange; override;
-
   {$I auto_generated_node_helpers/x3dnodes_x3dlightnode.inc}
   end;
 
@@ -469,11 +466,6 @@ begin
     WarningWorldTransformDone := true;
     WritelnWarning(NiceName + ' does not know the world transformation, results (like shadow maps) may be incorrect');
   end;
-end;
-
-function TAbstractLightNode.TransformationChange: TNodeTransformationChange;
-begin
-  Result := ntcLight;
 end;
 
 { TAbstractPunctualLightNode --------------------------------------------------------- }

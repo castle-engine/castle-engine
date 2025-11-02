@@ -220,7 +220,6 @@
 
     constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     destructor Destroy; override;
-    function TransformationChange: TNodeTransformationChange; override;
 
     { Should SaveToStream take care to nicely save us, treating as
       a root node of whole VRML file or prototype.
@@ -364,7 +363,6 @@
     constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
-    function TransformationChange: TNodeTransformationChange; override;
 
   {$I auto_generated_node_helpers/x3dnodes_switch.inc}
   end;
@@ -392,7 +390,6 @@
     constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
-    function TransformationChange: TNodeTransformationChange; override;
 
   {$I auto_generated_node_helpers/x3dnodes_transform.inc}
   end;
@@ -1149,11 +1146,6 @@ begin
   ExportNode(Node, Node.X3DName);
 end;
 
-function TX3DRootNode.TransformationChange: TNodeTransformationChange;
-begin
-  Result := ntcTransform;
-end;
-
 procedure TX3DRootNode.InternalFixNodeNames;
 var
   Handler: TFixNamesHandler;
@@ -1194,11 +1186,6 @@ begin
     Result := Func(Self, FdChildren[FdWhichChoice.Value]);
     if Result <> nil then Exit;
   end;
-end;
-
-function TSwitchNode.TransformationChange: TNodeTransformationChange;
-begin
-  Result := ntcSwitch;
 end;
 
 { TTransformNode.TTransformNodeTransformFunctionality --------------------------------------- }
@@ -1249,11 +1236,6 @@ function TTransformNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction):
 begin
   Result := FdChildren.Enumerate(Func);
   if Result <> nil then Exit;
-end;
-
-function TTransformNode.TransformationChange: TNodeTransformationChange;
-begin
-  Result := ntcTransform;
 end;
 
 procedure RegisterGroupingNodes;

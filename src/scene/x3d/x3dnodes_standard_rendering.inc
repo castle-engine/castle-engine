@@ -432,8 +432,6 @@
       to return @true. }
     function AutoGenerate3DTexCoords: boolean; virtual;
 
-    function TransformationChange: TNodeTransformationChange; override;
-
     { Calculate texture S, T coordinates for BOUNDS2D texture mapping.
       This mapping is like the default IndexedFaceSet texture mapping,
       following X3D spec. We also use it for other geometry nodes,
@@ -1083,11 +1081,6 @@ end;
 function TAbstractGeometryNode.AutoGenerate3DTexCoords: boolean;
 begin
   Result := false;
-end;
-
-function TAbstractGeometryNode.TransformationChange: TNodeTransformationChange;
-begin
-  Result := ntcGeometry;
 end;
 
 procedure TAbstractGeometryNode.GetTextureBounds2DST(const LocalBoxSizes: TVector3;

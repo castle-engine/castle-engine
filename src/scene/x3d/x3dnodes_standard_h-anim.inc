@@ -62,7 +62,6 @@
   public
     constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     destructor Destroy; override;
-    function TransformationChange: TNodeTransformationChange; override;
 
     { Change the skin (in skinCoord), to follow the animation of joints.
       Joints that changed are assumed to be already traversed by TX3DNode.Traverse
@@ -142,7 +141,6 @@
     procedure ParseAfter(Reader: TX3DReaderNames); override;
   public
     constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
-    function TransformationChange: TNodeTransformationChange; override;
 
     { Calculate some thigns neeeded for animation later,
       assuming the @italic(current state) is the rest position.
@@ -174,8 +172,6 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
-    function TransformationChange: TNodeTransformationChange; override;
-
   {$I auto_generated_node_helpers/x3dnodes_hanimsegment.inc}
   end;
 
@@ -212,8 +208,6 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
-    function TransformationChange: TNodeTransformationChange; override;
-
   {$I auto_generated_node_helpers/x3dnodes_hanimsite.inc}
   end;
 
@@ -444,11 +438,6 @@ begin
   ApplyRestPose;
 end;
 
-function THAnimHumanoidNode.TransformationChange: TNodeTransformationChange;
-begin
-  Result := ntcTransform;
-end;
-
 { THAnimJointNode.THAnimJointNodeTransformFunctionality -------------------------- }
 
 constructor THAnimJointNode.THAnimJointNodeTransformFunctionality.Create(const AParent: THAnimJointNode);
@@ -566,11 +555,6 @@ begin
   ApplyRestPose;
 end;
 
-function THAnimJointNode.TransformationChange: TNodeTransformationChange;
-begin
-  Result := ntcTransform;
-end;
-
 { THAnimMotionNode ----------------------------------------------------------- }
 
 function THAnimMotionNode.DefaultContainerFieldInContext(
@@ -614,11 +598,6 @@ begin
   if Result <> nil then Exit;
 end;
 
-function THAnimSegmentNode.TransformationChange: TNodeTransformationChange;
-begin
-  Result := ntcTransform;
-end;
-
 { THAnimSiteNode.THAnimSiteNodeTransformFunctionality ---------------------------------------- }
 
 constructor THAnimSiteNode.THAnimSiteNodeTransformFunctionality.Create(const AParent: THAnimSiteNode);
@@ -651,11 +630,6 @@ function THAnimSiteNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction):
 begin
   Result := FdChildren.Enumerate(Func);
   if Result <> nil then Exit;
-end;
-
-function THAnimSiteNode.TransformationChange: TNodeTransformationChange;
-begin
-  Result := ntcTransform;
 end;
 
 procedure RegisterHAnimNodes;
