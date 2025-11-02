@@ -3805,6 +3805,8 @@ function TChangedAllTraverser.Traverse(
 
   { Handle TAbstractBindableNode. }
   procedure HandleBindable(const Node: TAbstractBindableNode);
+  var
+    Instance: TBindableInstance;
   begin
     if { Do not look for first bindable node within inlined content,
          this is following VRML spec. }
@@ -3814,6 +3816,10 @@ function TChangedAllTraverser.Traverse(
          must be in active part? Although it seems most sensible... }
        (not Active) then
       Exit;
+
+    Instance := TBindableInstance.Create(ParentScene);
+    Instance.Node := Node;
+    ShapesGroup.Children.Add(Instance);
 
     { If some bindable stack is empty, push the node to it.
       This way, upon reading VRML file, we will bind the first found

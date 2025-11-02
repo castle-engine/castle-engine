@@ -1044,6 +1044,18 @@ type
     function DebugInfoWithoutChildren: String; override;
   end;
 
+  { Represents TAbstractBindableNode in a Scene.Shapes (TShapeTree). }
+  TBindableInstance = class(TShapeTree)
+  strict private
+    FNode: TAbstractBindableNode;
+  private
+    procedure FastTransformUpdateCore(var AnythingChanged: Boolean;
+      const ParentTransformation: TTransformation); override;
+  public
+    property Node: TAbstractBindableNode read FNode write FNode;
+    function DebugInfoWithoutChildren: String; override;
+  end;
+
   { Iterates over all TShape items that would be enumerated by
     Tree.Traverse. Sometimes it's easier to write code using this iterator
     than to create callbacks and use TShapeTree.Traverse. }
@@ -3652,6 +3664,32 @@ begin
     Node.NiceName
   ]);
 
+  AnythingChanged := true;
+end;
+
+{ TBindableInstance ---------------------------------------------- }
+
+function TBindableInstance.DebugInfoWithoutChildren: String;
+begin
+  Result := 'Bindable (' + Node.NiceName + ')';
+end;
+
+procedure TBindableInstance.FastTransformUpdateCore(var AnythingChanged: Boolean;
+  const ParentTransformation: TTransformation);
+
+{ Handle the transformation of a TAbstractBindableNode,
+  which is something visible (Fog, Background) but not geometry.
+
+  Testcases (will not work if this method is empty):
+  - Transform with Background:
+    demo-models/background/background_animate_rotation.wrl
+    demo-models/background/background_animate_colors.wrl
+  - Transform with Fog:
+    demo-models/fog/fog_animate_transform.x3dv
+}
+
+begin
+  Node.InternalUpdateTransformation(ParentTransformation);
   AnythingChanged := true;
 end;
 

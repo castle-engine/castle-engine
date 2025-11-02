@@ -187,6 +187,10 @@
     }
     property Bound: Boolean read FBound write SetBound;
 
+    { TCastleSceneCore calls this if transformation of this changed
+      and we didn't Traverse after this change. }
+    procedure InternalUpdateTransformation(const Transformation: TTransformation);
+
     { Transformation of this bindable node.
 
       Bound nodes cannot be instantiated multiple number of times
@@ -586,11 +590,8 @@ begin
   FTransformScale := 1;
 end;
 
-procedure TAbstractBindableNode.BeforeTraverse(
-  StateStack: TX3DGraphTraverseStateStack);
+procedure TAbstractBindableNode.InternalUpdateTransformation(const Transformation: TTransformation);
 begin
-  inherited;
-
   { We need to compare old and new matrix to determine
     FLastBeforeTraverseChangedTransform.
     Even though this may be wasteful, but FLastBeforeTraverseChangedTransform
@@ -618,13 +619,20 @@ begin
   }
 
   FLastBeforeTraverseChangedTransform :=
-    (not TMatrix4.PerfectlyEquals(FTransform, StateStack.Top.Transformation.Transform)) or
-    (FTransformScale <> StateStack.Top.Transformation.Scale);
+    (not TMatrix4.PerfectlyEquals(FTransform, Transformation.Transform)) or
+    (FTransformScale <> Transformation.Scale);
   if FLastBeforeTraverseChangedTransform then
   begin
-    FTransform := StateStack.Top.Transformation.Transform;
-    FTransformScale := StateStack.Top.Transformation.Scale;
+    FTransform := Transformation.Transform;
+    FTransformScale := Transformation.Scale;
   end;
+end;
+
+procedure TAbstractBindableNode.BeforeTraverse(
+  StateStack: TX3DGraphTraverseStateStack);
+begin
+  inherited;
+  InternalUpdateTransformation(StateStack.Top.Transformation);
 end;
 
 procedure TAbstractBindableNode.EventIsBoundReceive(
