@@ -559,9 +559,6 @@ type
     { Handle change of transformation of a node with TTransformFunctionality.
       TransformFunctionality.Parent must be associated only with TShapeTreeTransform,
       which must be true for all nodes implementing TTransformFunctionality.
-      Changes must include chTransform, may also include other changes
-      (this will be passed to shapes affected).
-
       When OptimizeExtensiveTransformations, this updates TransformationDirty
       and makes fast early exit. }
     procedure TransformationChanged(const TransformFunctionality: TTransformFunctionality);
@@ -6316,15 +6313,8 @@ procedure TCastleSceneCore.FinishTransformationChanges;
     if DoVisibleChanged then
     begin
       { Manually adjust Validities, because FastTransformUpdate doesn't call
-        DoGeometryChanged.
-
-        TODO: If uncommenting Changed(false, [chTransform]) in
-        TShape.FastTransformUpdateCore,
-        it should call DoGeometryChanged, but it still doesn't? Why?
-        In any case, it doesn't matter, it's faster to fix Validities manually
-        below. }
+        DoGeometryChanged. }
       Validities := Validities - [fvLocalBoundingBox];
-
       VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
     end;
   end;
