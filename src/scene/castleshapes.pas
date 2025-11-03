@@ -2063,9 +2063,9 @@ procedure TShape.Changed(const InactiveOnly: boolean;
     if ParentScene <> nil then
     begin
       if ChangedOnlyCoord then
-        TCastleSceneCore(ParentScene).DoGeometryChanged(gcLocalGeometryChangedCoord, Self)
+        TCastleSceneCore(ParentScene).InternalGeometryChanged([gcLocalGeometryChangedCoord], Self)
       else
-        TCastleSceneCore(ParentScene).DoGeometryChanged(gcLocalGeometryChanged, Self);
+        TCastleSceneCore(ParentScene).InternalGeometryChanged([gcLocalGeometryChanged], Self);
     end;
   end;
 

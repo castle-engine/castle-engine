@@ -252,7 +252,9 @@ type
 
     { What is considered "active" shapes changed. Like after Switch.whichChoice
       change. }
-    gcActiveShapesChanged);
+    gcActiveShapesChanged
+  );
+  TGeometryChanges = set of TGeometryChange;
 
   TStopAnimationEvent = procedure (const Scene: TCastleSceneCore;
     const Animation: TTimeSensorNode) of object;
@@ -1241,13 +1243,11 @@ type
 
     { Called when geometry changed.
       Does OnGeometryChanged, and does some other stuff necessary
-      (mark some octrees for regenerating at next access).
+      (mark octrees, scene bbox for recalculation at next access).
 
-      This is public only for overloading (and for internal TShape
-      access). Do not call this yourself --- TShape and TCastleSceneCore
-      implementations know when and how to call this. }
-    procedure DoGeometryChanged(const Change: TGeometryChange;
-      LocalGeometryShape: TShape); virtual;
+      @exclude }
+    procedure InternalGeometryChanged(const Changes: TGeometryChanges;
+      const LocalGeometryShape: TShape);
 
     { Call OnViewpointsChanged, if assigned. }
     procedure DoViewpointsChanged;
@@ -4087,7 +4087,7 @@ begin
 
   { Call DoGeometryChanged already here, as our old shapes already
     stopped to exist. }
-  DoGeometryChanged(gcAll, nil);
+  InternalGeometryChanged([gcAll], nil);
 
   { Delay calling OnBoundChanged from bindable stack changes.
 
@@ -4154,9 +4154,9 @@ begin
       ExposeTransformsChange(nil);
 
     { Call DoGeometryChanged here, as our new shapes are added.
-      Probably, only one DoGeometryChanged(gcAll) is needed, but for safety
+      Probably, only one InternalGeometryChanged([gcAll]) is needed, but for safety
       --- we can call it twice, it's ultra-fast right now. }
-    DoGeometryChanged(gcAll, nil);
+    InternalGeometryChanged([gcAll], nil);
 
     VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
     DoViewpointsChanged;
@@ -4279,7 +4279,7 @@ begin
 
   if DoVisibleChanged then
   begin
-    Validities := Validities - [fvLocalBoundingBox];
+    InternalGeometryChanged([gcVisibleTransformChanged, gcCollidableTransformChanged], nil);
     VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
   end;
 end;
@@ -4485,8 +4485,7 @@ var
       { Calculation traverses over active nodes (uses RootNode.Traverse). }
       fvMainLightForShadows];
 
-    DoGeometryChanged(gcActiveShapesChanged, nil);
-
+    InternalGeometryChanged([gcActiveShapesChanged], nil);
     VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
 
     InternalIncShapesHash; // TShapeTreeSwitch returns now different things
@@ -4891,7 +4890,7 @@ var
         lizardman.gltf (from demo-models/bump_mapping/ ) animations.
         We deliberately pass Shape=nil, to cause MaybeBoundingBoxChanged=true
         inside DoGeometryChanged. }
-      DoGeometryChanged(gcLocalGeometryChanged, nil);
+      InternalGeometryChanged([gcLocalGeometryChanged], nil);
     end;
   end;
 
@@ -4966,8 +4965,8 @@ begin
   finally EndChangesSchedule end;
 end;
 
-procedure TCastleSceneCore.DoGeometryChanged(const Change: TGeometryChange;
-  LocalGeometryShape: TShape);
+procedure TCastleSceneCore.InternalGeometryChanged(const Changes: TGeometryChanges;
+  const LocalGeometryShape: TShape);
 var
   MaybeBoundingBoxChanged: boolean;
 const
@@ -4980,7 +4979,7 @@ begin
       but TShapeNode provides explicit bbox information,
       so this shape has still the same bbox.
       This is the case with glTF skinned animation. }
-    (Change in [gcLocalGeometryChanged, gcLocalGeometryChangedCoord]) and
+    (Changes * [gcLocalGeometryChanged, gcLocalGeometryChangedCoord] <> []) and
     (LocalGeometryShape <> nil) and
     (LocalGeometryShape.Node <> nil) and
     (not LocalGeometryShape.Node.BBox.IsEmpty)
@@ -4996,11 +4995,11 @@ begin
     Validities := Validities - [fvLocalBoundingBox];
 
     if (FOctreeRendering <> nil) and
-       (Change in [gcVisibleTransformChanged, gcActiveShapesChanged] + SomeLocalGeometryChanged) then
+       (Changes * [gcVisibleTransformChanged, gcActiveShapesChanged] + SomeLocalGeometryChanged <> []) then
       FreeAndNil(FOctreeRendering);
 
     if (FOctreeDynamicCollisions <> nil) and
-       (Change in [gcCollidableTransformChanged, gcActiveShapesChanged] + SomeLocalGeometryChanged) then
+       (Changes * [gcCollidableTransformChanged, gcActiveShapesChanged] + SomeLocalGeometryChanged <> []) then
     begin
       FreeAndNil(FOctreeDynamicCollisions);
       // PointingDeviceClear; // do not free PTriangle records, the per-shape octrees remain valid. Testcase: Unholy clicking
@@ -5008,7 +5007,7 @@ begin
   end;
 
   if Assigned(OnGeometryChanged) then
-    OnGeometryChanged(Self, Change in SomeLocalGeometryChanged,
+    OnGeometryChanged(Self, Changes * SomeLocalGeometryChanged <> [],
       { We know LocalGeometryShape is nil now if Change does not contain
         gcLocalGeometryChanged*. }
       LocalGeometryShape);
@@ -6312,9 +6311,7 @@ procedure TCastleSceneCore.FinishTransformationChanges;
 
     if DoVisibleChanged then
     begin
-      { Manually adjust Validities, because FastTransformUpdate doesn't call
-        DoGeometryChanged. }
-      Validities := Validities - [fvLocalBoundingBox];
+      InternalGeometryChanged([gcVisibleTransformChanged, gcCollidableTransformChanged], nil);
       VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
     end;
   end;
@@ -8013,7 +8010,7 @@ procedure TCastleSceneCore.LocalRender(const Params: TRenderParams);
           { Calculation traverses over active nodes (uses RootNode.Traverse). }
           fvMainLightForShadows];
 
-        DoGeometryChanged(gcActiveShapesChanged, nil);
+        InternalGeometryChanged([gcActiveShapesChanged], nil);
 
         InternalIncShapesHash; // TShapeTreeLOD returns now different things
       end;
