@@ -3700,8 +3700,8 @@ procedure TBindableInstance.FastTransformUpdateCore(var AnythingChanged: Boolean
 }
 
 begin
-  Node.InternalUpdateTransformation(ParentTransformation);
-  AnythingChanged := true;
+  if Node.InternalUpdateTransformation(ParentTransformation) then
+    AnythingChanged := true;
 end;
 
 { TViewpointInstance --------------------------------------------------------- }
@@ -3720,20 +3720,50 @@ procedure TViewpointInstance.FastTransformUpdateCore(var AnythingChanged: Boolea
 }
 
 begin
-  inherited;
+  { Do not call inherited, we will call InternalUpdateTransformation here,
+    to know the result. }
+  // inherited;
 
-  if (Node = TCastleSceneCore(ParentScene).ViewpointStack.Top) and
-     { See TAbstractBindableNode.BeforeTraverse comments for
-       explanation why LastBeforeTraverseChangedTransform is important. }
-     TCastleSceneCore(ParentScene).ViewpointStack.Top.InternalLastBeforeTraverseChangedTransform then
-    TCastleSceneCore(ParentScene).DoBoundViewpointVectorsChanged;
+  if Node.InternalUpdateTransformation(ParentTransformation) then
+  begin
+    AnythingChanged := true;
 
-  { TODO: Transformation of viewpoint should also affect NavigationInfo,
-    according to spec: "The speed, avatarSize and visibilityLimit values
-    are all scaled by the transformation being applied to
-    the currently bound X3DViewpointNode node."
-    When this will be implemented, then also when transformation
-    of viewpoint changes here we'll have to do something. }
+    { Calling DoBoundViewpointVectorsChanged only when something
+      actually changed (when Node.InternalUpdateTransformation returns @true)
+      is extremely important:
+
+      Otherwise every frame we potentially change viewpoint,
+      we would call DoBoundViewpointVectorsChanged.
+      And such "every frame" may happen often, if we use
+      OptimizedExtensiveTransformations = true, and model has running animation
+      and TViewpointNode inside.
+
+      Testcase: cat in castle-model-viewer-mobile,
+      if DoBoundViewpointVectorsChanged would be called always
+      (regardless of Node.InternalUpdateTransformation result) then
+      - it would be impossible to rotate the cat model,
+      - it would be impossible to zoom it,
+      - and every viewpoint switch would be instant.
+
+      For this to happen, we need:
+      - some animation in the model playing that changes transformation each frame
+        (e.g. skeleton animation of the cat)
+      - OptimizedExtensiveTransformations = true (to process all nodes each time
+        some transformation changes)
+      - AutoCamera = true used (otherwise DoBoundViewpointVectorsChanged doesn't
+        really cause anything)
+    }
+
+    if Node = TCastleSceneCore(ParentScene).ViewpointStack.Top then
+      TCastleSceneCore(ParentScene).DoBoundViewpointVectorsChanged;
+
+    { TODO: Transformation of viewpoint should also affect NavigationInfo,
+      according to spec: "The speed, avatarSize and visibilityLimit values
+      are all scaled by the transformation being applied to
+      the currently bound X3DViewpointNode node."
+      When this will be implemented, then also when transformation
+      of viewpoint changes here we'll have to do something. }
+  end;
 end;
 
 { TShapeTreeIterator --------------------------------------------------------- }

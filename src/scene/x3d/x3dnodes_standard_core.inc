@@ -1,6 +1,6 @@
 {%MainUnit x3dnodes.pas}
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -149,7 +149,6 @@
     FBound: Boolean;
     FTransform: TMatrix4;
     FTransformScale: Single;
-    FLastBeforeTraverseChangedTransform: Boolean;
     procedure EventIsBoundReceive(const Event: TX3DEvent; const AValue: TX3DField;
       const Time: TX3DTime);
     procedure SetBound(const Value: Boolean);
@@ -188,8 +187,9 @@
     property Bound: Boolean read FBound write SetBound;
 
     { TCastleSceneCore calls this if transformation of this changed
-      and we didn't Traverse after this change. }
-    procedure InternalUpdateTransformation(const Transformation: TTransformation);
+      and we didn't Traverse after this change.
+      Returns if any change actually occurred. }
+    function InternalUpdateTransformation(const Transformation: TTransformation): Boolean;
 
     { Transformation of this bindable node.
 
@@ -201,28 +201,26 @@
 
       It is gathered during traversing. Last BeforeTraverse call for this
       node sets Transform properties. By default, these represent identity
-      transformation.
+      transformation. TCastleSceneCore also makes sure to keep it updated
+      when transformation changes without traversing, by calling
+      InternalUpdateTransformation .
 
-      Note that using TransformScale for bindable nodes like fog
+      Note that using TransformScale for bindable nodes (like TFogNode)
       is a little simplification. Theoretically, the scale can be non-uniform,
       and around an arbitrary axis. So to apply e.g. fog, we should
       transform the 3D world back into local fog coordinate system,
       and calculate the distances there. Instead right now we do
       the opposite: transform stuff like fog VisibilityRange by
       TransformScale, and calculate distances in world coordinate
-      system. This is a simplification, but in practice it's perfect
-      (who uses non-uniform fog scale?) and it can be expressed for renderers
-      (OpenGL) without any problems.
+      system. This is a simplification, but in practice we never found
+      a practical application using non-uniform fog scale,
+      and this makes implementation much simpler.
 
       @groupBegin }
     property Transform: TMatrix4 read FTransform;
     property TransformScale: Single read FTransformScale;
     { @groupEnd }
-
-    property InternalLastBeforeTraverseChangedTransform: Boolean
-      read FLastBeforeTraverseChangedTransform;
-
-    {$I auto_generated_node_helpers/x3dnodes_x3dbindablenode.inc}
+  {$I auto_generated_node_helpers/x3dnodes_x3dbindablenode.inc}
   end;
 
   { Base class for all nodes that contain only information without visual
@@ -590,38 +588,13 @@ begin
   FTransformScale := 1;
 end;
 
-procedure TAbstractBindableNode.InternalUpdateTransformation(const Transformation: TTransformation);
+function TAbstractBindableNode.InternalUpdateTransformation(
+  const Transformation: TTransformation): Boolean;
 begin
-  { We need to compare old and new matrix to determine
-    FLastBeforeTraverseChangedTransform.
-    Even though this may be wasteful, but FLastBeforeTraverseChangedTransform
-    is very desperately needed: otherwise every time
-    TTransformChangeHelper.TransformChangeTraverse processes
-    the bound viewpoint node (and it is processed in every frame,
-    if model has some animation and some Viewpoint node and OptimizeExtensiveTransformations),
-    and without FLastBeforeTraverseChangedTransform,
-    we'd have to report each frame "possibly viewpoint vectors changed".
-
-    Testcase: cat in castle-model-viewer-mobile,
-    if FLastBeforeTraverseChangedTransform would be missing (or always true)
-    then
-    - it would be impossible to rotate the cat model,
-    - it would be impossible to zoom it,
-    - and every viewpoint switch would be instant.
-
-    For this to happen, we need:
-    - some animation in the model playing that changes transformation each frame
-      (e.g. skeleton animation of the cat)
-    - OptimizedExtensiveTransformations = true (to process all nodes each time
-      some transformation changes)
-    - AutoCamera = true used (otherwise DoBoundViewpointVectorsChanged doesn't
-      really cause anything)
-  }
-
-  FLastBeforeTraverseChangedTransform :=
+  Result :=
     (not TMatrix4.PerfectlyEquals(FTransform, Transformation.Transform)) or
     (FTransformScale <> Transformation.Scale);
-  if FLastBeforeTraverseChangedTransform then
+  if Result then
   begin
     FTransform := Transformation.Transform;
     FTransformScale := Transformation.Scale;
