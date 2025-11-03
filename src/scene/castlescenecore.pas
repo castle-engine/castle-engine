@@ -4279,6 +4279,11 @@ begin
 
   if DoVisibleChanged then
   begin
+    { We need to call InternalGeometryChanged to not only recalculate bbox,
+      but also to recalculate octree.
+      Testcase: play_animation, move dragon up to the top edge of screen.
+      Without InternalGeometryChanged updating octrees,
+      one wing animation would disappear too soon. }
     InternalGeometryChanged([gcVisibleTransformChanged, gcCollidableTransformChanged], nil);
     VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
   end;
