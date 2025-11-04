@@ -112,12 +112,16 @@
       public
         constructor Create(const AParent: THAnimJointNode);
         property Parent: THAnimJointNode read FParent;
-        procedure ApplyTransform(const State: TX3DGraphTraverseState); override;
+        procedure ApplyTransform(var Transformation: TTransformation); override;
       end;
     var
       FTransformFunctionality: THAnimJointNodeTransformFunctionality;
+      // Root THAnimHumanoidNode that contains this joint.
+      FHumanoidRoot: THAnimHumanoidNode;
       AnimateSkinTransform: TMatrix4;
       RestCenter: TVector3;
+      DoneWarningHumanoidTransformCount0: Boolean;
+      DoneWarningHumanoidTransformCountTooMany: Boolean;
   private
     WarningSkinCoordReferences: Boolean;
 
@@ -138,6 +142,7 @@
     function AnimateSkinPoint(const Point: TVector3): TVector3;
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
+    procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
     procedure ParseAfter(Reader: TX3DReaderNames); override;
   public
     constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
@@ -300,10 +305,7 @@ procedure THAnimHumanoidNode.BeforeTraverse(StateStack: TX3DGraphTraverseStateSt
 begin
   inherited;
   StateStack.Push;
-
   StateStack.Top.Humanoid := Self;
-  StateStack.Top.HumanoidTransformation.Init;
-
   FTransformFunctionality.ApplyTransform(StateStack.Top.Transformation);
 end;
 
@@ -440,47 +442,89 @@ end;
 
 { THAnimJointNode.THAnimJointNodeTransformFunctionality -------------------------- }
 
-constructor THAnimJointNode.THAnimJointNodeTransformFunctionality.Create(const AParent: THAnimJointNode);
+constructor THAnimJointNode.THAnimJointNodeTransformFunctionality.Create(
+  const AParent: THAnimJointNode);
 begin
   inherited Create(AParent);
   FParent := AParent;
 end;
 
-procedure THAnimJointNode.THAnimJointNodeTransformFunctionality.ApplyTransform(const State: TX3DGraphTraverseState);
+procedure THAnimJointNode.BeforeTraverse(StateStack: TX3DGraphTraverseStateStack);
+begin
+  inherited;
+  FHumanoidRoot := StateStack.Top.Humanoid;
+end;
+
+procedure THAnimJointNode.THAnimJointNodeTransformFunctionality.ApplyTransform(
+  var Transformation: TTransformation);
+
+  { Given THAnimHumanoidNode, get it's TTransformation currently. }
+  function GetTransformationHumanoidRoot(const Humanoid: THAnimHumanoidNode): PTransformation;
+  var
+    ShapeTransform: TShapeTreeTransform;
+    C: Integer;
+  begin
+    C := TShapeTree.AssociatedShapesCount(Humanoid);
+
+    // check C is valid
+    if C = 0 then
+    begin
+      WritelnWarningOnce(Parent.DoneWarningHumanoidTransformCount0,
+        'HAnimHumanoid %s is not present in the scene, cannot determine transformation', [
+        Humanoid.X3DName
+      ]);
+      Exit(@IdentityTransformation);
+    end;
+    if C > 1 then
+    begin
+      WritelnWarningOnce(Parent.DoneWarningHumanoidTransformCountTooMany,
+        'HAnimHumanoid %s is present in the scene more than once, using random transformation', [
+        Humanoid.X3DName
+      ]);
+    end;
+
+    ShapeTransform := TShapeTree.AssociatedShape(Humanoid, 0) as TShapeTreeTransform;
+    Result := @ShapeTransform.TransformState.Transformation;
+  end;
+
 var
   I: Integer;
   ChildJoint: THAnimJointNode;
   LocalCenter, NewChildCenter: TVector3;
   TempToSend: TSFVec3f;
+  HumanoidRootTransformation: PTransformation;
 begin
   inherited;
+
+  if Parent.FHumanoidRoot = nil then Exit;
+  HumanoidRootTransformation := GetTransformationHumanoidRoot(Parent.FHumanoidRoot);
 
   { Spec says center / scale / scaleOrientation / translation
     are relative to humanoid root, but rotations are accumulated.
     http://h-anim.org/Specifications/H-Anim200x/ISO_IEC_FCD_19774/ObjectInterfaces.html
     So rotations are affected by center/etc. of joints above,
     which means that I have to apply here LocalCenter, LocalScale and such?
-    But how? TODO: for now, we only apply LocalCenter.
+    But how? TODO: for now, we only apply LocalCenter. }
 
-    Fortunately, normal State isn't really used for skinned animation. }
+  { Parent.Center is in humanoid root coordinates, convert it to LocalCenter
+    in local joint coordinates. }
+  LocalCenter :=
+    Transformation.InverseTransform.MultPoint(
+      HumanoidRootTransformation^.Transform.MultPoint(
+        Parent.Center
+      ));
 
-  LocalCenter := State.HumanoidTransformation.InverseTransform.MultPoint(Parent.Center);
-  State.Transformation.Multiply(
+  Transformation.Multiply(
     LocalCenter,
     Parent.Rotation,
     Parent.Scale,
     Parent.ScaleOrientation,
     Parent.Translation);
 
-  { update State.HumanoidTransformation for child joints. }
-  State.HumanoidTransformation.Multiply(
-    LocalCenter,
-    Parent.Rotation,
-    Parent.Scale,
-    Parent.ScaleOrientation,
-    Parent.Translation);
-
-  Parent.AnimateSkinTransform := State.HumanoidTransformation.Transform;
+  { Calculate matrix to convert from local joint to humanoid root coordinates. }
+  Parent.AnimateSkinTransform :=
+    HumanoidRootTransformation^.InverseTransform *
+      Transformation.Transform;
 
   { animate centers of children joints }
   for I := 0 to Parent.FdChildren.Count - 1 do
@@ -512,7 +556,7 @@ begin
         end;
 
         { Note that Send() above will use Scene.NextEventTime
-          which with increase time by a "tick".
+          which will increase time by a "tick".
           This is good --- if you'll next want to traverse a parent joint,
           this center will again be changed, and should be send (otherwise
           routes e.g. in Humanoid Visualization in castle-model-viewer will not work).

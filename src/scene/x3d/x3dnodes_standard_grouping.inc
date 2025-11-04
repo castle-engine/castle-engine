@@ -1,6 +1,6 @@
 {%MainUnit x3dnodes.pas}
 {
-  Copyright 2002-2024 Michalis Kamburelis.
+  Copyright 2002-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -153,11 +153,8 @@
     the transformation changes are automatically managed. }
   TTransformFunctionality = class(TNodeFunctionality)
   public
-    { Change State.Transformation for children nodes.
-      Almost all descendants should override only the overload changing
-      TTransformation. }
-    procedure ApplyTransform(const State: TX3DGraphTraverseState); overload; virtual;
-    procedure ApplyTransform(var Transformation: TTransformation); overload; virtual;
+    { Change Transformation for children nodes. }
+    procedure ApplyTransform(var Transformation: TTransformation); virtual;
   end;
 
   { A top-level VRML/X3D node. This is what you get by loading 3D model from file.
@@ -467,7 +464,7 @@ begin
       implementation... So ApplyTransform must happen in the middle of
       TAbstractInternalGroupingNode.BeforeTraverse call. }
 
-    TransformFunctionality.ApplyTransform(StateStack.Top);
+    TransformFunctionality.ApplyTransform(StateStack.Top.Transformation);
   end;
 
   { We also use it to collect State.PointingDeviceSensors,
@@ -685,11 +682,6 @@ begin
 end;
 
 { TTransformFunctionality ---------------------------------------------------- }
-
-procedure TTransformFunctionality.ApplyTransform(const State: TX3DGraphTraverseState);
-begin
-  ApplyTransform(State.Transformation);
-end;
 
 procedure TTransformFunctionality.ApplyTransform(var Transformation: TTransformation);
 begin

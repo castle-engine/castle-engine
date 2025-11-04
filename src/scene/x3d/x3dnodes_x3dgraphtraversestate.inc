@@ -206,8 +206,6 @@
 
     { Humanoid node containing us, or @nil if none. }
     Humanoid: THAnimHumanoidNode;
-    { For Humanoid skeleton, these contain cummulated joint transformation. }
-    HumanoidTransformation: TTransformation;
     { Skin node containing us, or @nil if none. }
     Skin: TSkinNode;
 
@@ -336,17 +334,7 @@ end;
 constructor TX3DGraphTraverseState.Create;
 begin
   CommonCreate;
-
   Transformation.Init;
-
-  { THAnimHumanoidNode.BeforeTraverse will initialize it anyway.
-    But set it also here, just in case we have Joint without surrounding
-    Humanoid node. (Otherwise Matrix.MultPoint may raise errors in
-    THAnimJointNode.ApplyTransform, when multiplying points with 0 matrix,
-    testcase is
-    castle-model-viewer ~/3dmodels/vrmlx3d/hanim/tecfa.unige.ch/vrml/objects/avatars/blaxxun/kambi_hanim_10_test.wrl.) }
-  HumanoidTransformation.Init;
-
   Vrml1TextureTransform := TMatrix4.Identity;
   FVRML1State.Assign(VRML1DefaultState);
 end;
@@ -364,8 +352,6 @@ end;
 procedure TX3DGraphTraverseState.Clear;
 begin
   Transformation.Init;
-  HumanoidTransformation.Init;
-
   Vrml1TextureTransform := TMatrix4.Identity;
   FVRML1State.Assign(VRML1DefaultState);
   ShapeNode := nil;
@@ -427,7 +413,6 @@ procedure TX3DGraphTraverseState.AssignTransform(
   Source: TX3DGraphTraverseState);
 begin
   Transformation := Source.Transformation;
-  HumanoidTransformation := Source.HumanoidTransformation;
 
   if PointingDeviceSensors.Count <> 0 then
     PointingDeviceSensors.Transformation := Source.PointingDeviceSensors.Transformation;
