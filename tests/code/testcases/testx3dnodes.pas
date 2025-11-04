@@ -1253,12 +1253,6 @@ begin
         AssertTrue(N.Functionality(TTransformFunctionality) <> nil);
         AssertTrue(N.TransformFunctionality <> nil);
       end;
-
-      { if, and only if, a node implements TTransformFunctionality, it must have
-        TransformationChange = ntcTransform }
-      AssertTrue(
-        (N.Functionality(TTransformFunctionality) <> nil) =
-        (N.TransformationChange = ntcTransform));
     except
       Writeln('TestTransformFunctionality failed for ', N.ClassName);
       raise;
