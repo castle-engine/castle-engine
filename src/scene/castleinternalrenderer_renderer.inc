@@ -916,10 +916,10 @@ begin
           {$ifndef OpenGLES}
           ActiveTexture(FirstTexUnit);
           glPushMatrix;
-          glMultMatrix(State.TextureTransform);
+          glMultMatrix(State.Vrml1TextureTransform);
           {$endif}
         end;
-        Shader.EnableTextureTransform(FirstTexUnit, State.TextureTransform);
+        Shader.EnableTextureTransform(FirstTexUnit, State.Vrml1TextureTransform);
       end;
     end else
     begin

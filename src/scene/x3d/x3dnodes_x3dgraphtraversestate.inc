@@ -58,10 +58,12 @@
     function InvertedTransform: TMatrix4; deprecated 'use Transformation.InverseTransform';
 
   public
-    { Current texture transformation. Usable only for VRML 1.0, in VRML 2.0
-      texture transformations don't accumulate like modelview transformations. }
-    TextureTransform: TMatrix4;
+    { VRML 1.0 accumulated texture transformation.
+      Usable only for VRML 1.0, as in X3D / VRML 2.0
+      texture transformations don't accumulate. }
+    Vrml1TextureTransform: TMatrix4;
 
+    { Parent shape node in the current state. }
     ShapeNode: TAbstractShapeNode;
 
     { TAppearanceNode associated with the shape (only if ShapeNode<>nil)
@@ -345,7 +347,7 @@ begin
     castle-model-viewer ~/3dmodels/vrmlx3d/hanim/tecfa.unige.ch/vrml/objects/avatars/blaxxun/kambi_hanim_10_test.wrl.) }
   HumanoidTransformation.Init;
 
-  TextureTransform := TMatrix4.Identity;
+  Vrml1TextureTransform := TMatrix4.Identity;
   FVRML1State.Assign(VRML1DefaultState);
 end;
 
@@ -364,7 +366,7 @@ begin
   Transformation.Init;
   HumanoidTransformation.Init;
 
-  TextureTransform := TMatrix4.Identity;
+  Vrml1TextureTransform := TMatrix4.Identity;
   FVRML1State.Assign(VRML1DefaultState);
   ShapeNode := nil;
   Appearance := nil;
@@ -398,7 +400,7 @@ procedure TX3DGraphTraverseState.Assign(Source: TX3DGraphTraverseState);
 begin
   AssignTransform(Source);
 
-  TextureTransform := Source.TextureTransform;
+  Vrml1TextureTransform := Source.Vrml1TextureTransform;
   FVRML1State.Assign(Source.FVRML1State);
   ShapeNode := Source.ShapeNode;
   Appearance := Source.Appearance;
@@ -470,7 +472,7 @@ begin
     (IgnoreTransform or TMatrix4.PerfectlyEquals(
       Transformation.Transform,
       SecondValue.Transformation.Transform)) and
-    TMatrix4.PerfectlyEquals(TextureTransform, SecondValue.TextureTransform) and
+    TMatrix4.PerfectlyEquals(Vrml1TextureTransform, SecondValue.Vrml1TextureTransform) and
     (ShapeNode = SecondValue.ShapeNode) and
     (LocalFog = SecondValue.LocalFog);
 

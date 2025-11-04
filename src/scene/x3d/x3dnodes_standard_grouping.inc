@@ -405,7 +405,8 @@ function TAbstractInternalGroupingNode.TGeneralGroupingEnumerator.EnumerateChild
   Node, Child: TX3DNode): Pointer;
 begin
   Result := nil;
-  Child.GroupBeforeTraverse(State, WasPointingDeviceSensor);
+  if Child is TAbstractChildNode then
+    TAbstractChildNode(Child).GroupBeforeTraverse(State, WasPointingDeviceSensor);
 end;
 
 procedure GroupBeforeTraverse_AddPointingDeviceSensor(const Child: TX3DNode;

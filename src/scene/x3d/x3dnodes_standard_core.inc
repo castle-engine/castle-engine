@@ -140,6 +140,10 @@
     a child of a grouping node,
     e.g. inside @link(TAbstractGroupingNode.FdChildren). }
   TAbstractChildNode = class(TAbstractNode)
+  protected
+    { React when this node is processed as an immediate child of a grouping node,
+      within grouping node's BeforeTraverse. }
+    procedure GroupBeforeTraverse(const State: TX3DGraphTraverseState; var WasPointingDeviceSensor: Boolean); virtual;
   {$I auto_generated_node_helpers/x3dnodes_x3dchildnode.inc}
   end;
 
@@ -576,6 +580,12 @@ begin
     Result := 'value'
   else
     Result := 'metadata';
+end;
+
+{ TAbstractChildNode --------------------------------------------------------- }
+
+procedure TAbstractChildNode.GroupBeforeTraverse(const State: TX3DGraphTraverseState; var WasPointingDeviceSensor: Boolean);
+begin
 end;
 
 { TAbstractBindableNode ------------------------------------------------------ }
