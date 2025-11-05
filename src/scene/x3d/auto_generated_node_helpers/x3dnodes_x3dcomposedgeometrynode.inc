@@ -148,14 +148,14 @@
     public property FdSkinWeights0: TMFVec4f read FFdSkinWeights0;
     { Weights for the skinned animation.
 
+    For each vertex, this array specifies a 4D vector, which determines the 4 weights for the "most important" joints that affect this vertex. The "most important" joints are determined by the @link(FdSkinJoints0).
+
     If non-empty, the count of this array should be:
 
     @unorderedList(
       @item(Equal to the count of coordinates in @link(Coord),)
       @item(Equal to @link(FdSkinJoints0) count divided by 4.)
     )
-
-    For each vertex, this array specifies a 4D vector, which determines the 4 weights for the "most important" joints that affect this vertex. The "most important" joints are determined by the @link(FdSkinJoints0).
 
     This corresponds to the WEIGHTS_0 attribute in glTF.
 
@@ -163,14 +163,14 @@
     procedure SetSkinWeights0(const Value: array of TVector4); overload;
     { Weights for the skinned animation.
 
+    For each vertex, this array specifies a 4D vector, which determines the 4 weights for the "most important" joints that affect this vertex. The "most important" joints are determined by the @link(FdSkinJoints0).
+
     If non-empty, the count of this array should be:
 
     @unorderedList(
       @item(Equal to the count of coordinates in @link(Coord),)
       @item(Equal to @link(FdSkinJoints0) count divided by 4.)
     )
-
-    For each vertex, this array specifies a 4D vector, which determines the 4 weights for the "most important" joints that affect this vertex. The "most important" joints are determined by the @link(FdSkinJoints0).
 
     This corresponds to the WEIGHTS_0 attribute in glTF.
 
@@ -182,6 +182,8 @@
     public property FdSkinJoints0: TMFInt32 read FFdSkinJoints0;
     { Joints for the skinned animation.
 
+    For each vertex, this array specifies indexes of the 4 "most important" joints that affect this vertex. The weights for these joints are specified by @link(FdSkinWeights0). If you have less than 4 "most important" joints, just specify any (but valid) joint index and give it a zero weight using @link(FdSkinWeights0).
+
     Note: In the perfect world, we'd like to express this as an array of 4D integer vectors, like @link(TVector4IntegerList) in Castle Game Engine, or "VEC4 of unsigned byte or unsigned short" in glTF. However, X3D doesn't have a field type that allows to express this in natural way. So we express this using TMFInt32, with a constraint that each 4 consecutive values form a 4D vector.
 
     The count of this array must be divisible by 4.
@@ -191,12 +193,12 @@
     @unorderedList(
       @item(Equal to the count of coordinates in @link(Coord),)
       @item(Equal to @link(FdSkinWeights0) count.)
-    )
-
-    For each vertex, this array specifies indexes of the 4 "most important" joints that affect this vertex. The weights for these joints are specified by @link(FdSkinWeights0). If you have less than 4 "most important" joints, just specify any (but valid) joint index and give it a zero weight using @link(FdSkinWeights0). }
+    ) }
     procedure SetSkinJoints0(const Value: array of Int32); overload;
     { Joints for the skinned animation.
 
+    For each vertex, this array specifies indexes of the 4 "most important" joints that affect this vertex. The weights for these joints are specified by @link(FdSkinWeights0). If you have less than 4 "most important" joints, just specify any (but valid) joint index and give it a zero weight using @link(FdSkinWeights0).
+
     Note: In the perfect world, we'd like to express this as an array of 4D integer vectors, like @link(TVector4IntegerList) in Castle Game Engine, or "VEC4 of unsigned byte or unsigned short" in glTF. However, X3D doesn't have a field type that allows to express this in natural way. So we express this using TMFInt32, with a constraint that each 4 consecutive values form a 4D vector.
 
     The count of this array must be divisible by 4.
@@ -206,9 +208,7 @@
     @unorderedList(
       @item(Equal to the count of coordinates in @link(Coord),)
       @item(Equal to @link(FdSkinWeights0) count.)
-    )
-
-    For each vertex, this array specifies indexes of the 4 "most important" joints that affect this vertex. The weights for these joints are specified by @link(FdSkinWeights0). If you have less than 4 "most important" joints, just specify any (but valid) joint index and give it a zero weight using @link(FdSkinWeights0). }
+    ) }
     procedure SetSkinJoints0(const Value: TInt32List); overload;
 
 {$endif read_interface}

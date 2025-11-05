@@ -34,10 +34,8 @@
     strict private FFdJoints: TMFNode;
     { Internal wrapper for property @code(Joints). This wrapper API may change, we advise to access simpler @code(Joints) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdJoints: TMFNode read FFdJoints;
-    { When the joints are transformed (moved, rotated, scaled),  the skin (meshes listed in @link(FdShapes)) is updated accordingly.
-
-    Any X3D node class that can define a transformation can be used as a joint. If you don't have any special needs, then just use @link(TTransformNode). Implementations can assume that nodes here have non-nil @link(TX3DNode.TransformFunctionality). }
-    procedure SetJoints(const Value: array of TX3DNode);
+    { When the joints are transformed (moved, rotated, scaled), the skin (meshes listed in @link(FdShapes)) is updated accordingly. }
+    procedure SetJoints(const Value: array of TTransformNode);
 
     strict private FFdInverseBindMatrices: TMFMatrix4f;
     { Internal wrapper for property @code(InverseBindMatrices). This wrapper API may change, we advise to access simpler @code(InverseBindMatrices) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -86,7 +84,7 @@
 
 { TSkinNode ----------------------------------------------- }
 
-procedure TSkinNode.SetJoints(const Value: array of TX3DNode);
+procedure TSkinNode.SetJoints(const Value: array of TTransformNode);
 var
   L: Integer;
   A: array of TX3DNode;
@@ -94,7 +92,7 @@ begin
   L := High(Value) + 1;
   SetLength(A, L);
   if L > 0 then
-    Move(Value[0], A[0], L * SizeOf(TX3DNode));
+    Move(Value[0], A[0], L * SizeOf(TTransformNode));
   FdJoints.Send(A);
 end;
 
@@ -142,7 +140,7 @@ procedure TSkinNode.CreateNode;
 begin
   inherited;
 
-  FFdJoints := TMFNode.Create(Self, True, 'joints', [TTransformNode, THAnimJointNode]);
+  FFdJoints := TMFNode.Create(Self, True, 'joints', [TTransformNode]);
    FdJoints.ChangeAlways := chEverything;
   AddField(FFdJoints);
 

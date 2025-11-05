@@ -256,12 +256,10 @@ OrientationInterpolator2D : X3DInterpolatorNode {
 
 Skin : X3DChildNode {
   MFNode [in,out] joints []
-    range: Transform, HAnimJoint
+    range: Transform
     change: chEverything
     doc: """
-    When the joints are transformed (moved, rotated, scaled),  the skin (meshes listed in @link(FdShapes)) is updated accordingly.
-
-    Any X3D node class that can define a transformation can be used as a joint. If you don't have any special needs, then just use @link(TTransformNode). Implementations can assume that nodes here have non-nil @link(TX3DNode.TransformFunctionality).
+    When the joints are transformed (moved, rotated, scaled), the skin (meshes listed in @link(FdShapes)) is updated accordingly.
     """
 
   MFMatrix4f [in,out] inverseBindMatrices []
