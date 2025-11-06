@@ -565,6 +565,10 @@ type
       and makes fast early exit. }
     procedure TransformationChanged(const TransformFunctionality: TTransformFunctionality);
 
+    { Call after FastTransformUpdate was called and it set AnythingChanged
+      (it's parameter) to @true. }
+    procedure AfterFastTransformUpdateChanged;
+
     function LocalBoundingVolumeMoveCollision(
       const OldPos, NewPos: TVector3;
       const IsRadius: boolean; const Radius: Single;
@@ -4247,7 +4251,7 @@ procedure TCastleSceneCore.TransformationChanged(const TransformFunctionality: T
 var
   C, I: Integer;
   TransformShapeTree: TShapeTreeTransform;
-  DoVisibleChanged: boolean;
+  Changed: boolean;
   TransformNode: TX3DNode;
 begin
   TransformNode := TransformFunctionality.Parent;
@@ -4272,21 +4276,29 @@ begin
     Exit;
   end;
 
-  DoVisibleChanged := false;
+  Changed := false;
 
   for I := 0 to C - 1 do
-    TShapeTree.AssociatedShape(TransformNode, I).FastTransformUpdate(DoVisibleChanged);
+    TShapeTree.AssociatedShape(TransformNode, I).FastTransformUpdate(Changed);
 
-  if DoVisibleChanged then
-  begin
-    { We need to call InternalGeometryChanged to not only recalculate bbox,
-      but also to recalculate octree.
-      Testcase: play_animation, move dragon up to the top edge of screen.
-      Without InternalGeometryChanged updating octrees,
-      one wing animation would disappear too soon. }
-    InternalGeometryChanged([gcVisibleTransformChanged, gcCollidableTransformChanged], nil);
-    VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
-  end;
+  if Changed then
+    AfterFastTransformUpdateChanged;
+end;
+
+procedure TCastleSceneCore.AfterFastTransformUpdateChanged;
+begin
+  { Note: We need to call InternalGeometryChanged to not only recalculate bbox,
+    but also to recalculate octree.
+    Older version of the code was doing
+      Validities := Validities - [fvLocalBoundingBox];
+    but that's not enough.
+
+    Testcase: play_animation, move dragon up to the top edge of screen.
+    Without InternalGeometryChanged updating octrees,
+    one wing animation would disappear too soon. }
+  InternalGeometryChanged([gcVisibleTransformChanged, gcCollidableTransformChanged], nil);
+
+  VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
 end;
 
 procedure TCastleSceneCore.InternalChangedField(const Field: TX3DField; const Change: TX3DChange);
@@ -6298,7 +6310,7 @@ procedure TCastleSceneCore.FinishTransformationChanges;
     considers all nodes in TransformationDirty. }
   procedure ProcessTransformationDirty;
   var
-    DoVisibleChanged: boolean;
+    Changed: boolean;
   begin
     if LogChanges then
       WritelnLog('X3D changes', 'Transform root node change');
@@ -6310,15 +6322,12 @@ procedure TCastleSceneCore.FinishTransformationChanges;
       Exit;
     end;
 
-    DoVisibleChanged := false;
+    Changed := false;
 
-    Shapes.FastTransformUpdate(DoVisibleChanged);
+    Shapes.FastTransformUpdate(Changed);
 
-    if DoVisibleChanged then
-    begin
-      InternalGeometryChanged([gcVisibleTransformChanged, gcCollidableTransformChanged], nil);
-      VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
-    end;
+    if Changed then
+      AfterFastTransformUpdateChanged;
   end;
 
 var
