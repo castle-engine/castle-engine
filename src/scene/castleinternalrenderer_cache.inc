@@ -834,9 +834,8 @@ var
     if { Force CacheIgnoresTransform to be false if our shape uses shaders.
          Shaders may depend on coordinates in eye space, which obviously
          may be different for shapes that differ even only on transform. }
-      (Shape.Node <> nil) and
-      (Shape.Node.Appearance <> nil) and
-      (Shape.Node.Appearance.FdShaders.Count <> 0) then
+      (Shape.State.Appearance <> nil) and
+      (Shape.State.Appearance.FdShaders.Count <> 0) then
       Exit(false);
 
     { If we use any features that (may) render shape differently

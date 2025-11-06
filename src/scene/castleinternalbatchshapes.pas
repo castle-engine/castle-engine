@@ -1,5 +1,5 @@
 {
-  Copyright 2019-2023 Michalis Kamburelis.
+  Copyright 2019-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -152,6 +152,18 @@ uses SysUtils,
 
 {.$define CASTLE_DEBUG_BATCHING}
 
+{ Change the Apperance node used by the shape.
+  Changes
+  1. Shape.State.ShapeNode.FdAppearance.Value (without causing an event, and fastest)
+    - Note that this is equivalent to Shape.State.ShapeNode.Appearance.
+    - Note that this is equivalent to Shape.Node.Appearance.
+  2. Shape.State.Appearance (must be manually synched with 1) }
+procedure ChangeAppearance(const Shape: TGLShape; const NewAppearance: TAppearanceNode);
+begin
+  Shape.Node.FdAppearance.Value := NewAppearance;
+  Shape.State.Appearance := NewAppearance;
+end;
+
 constructor TBatchShapes.Create;
 
   function MergePipelineToStr(const P: TBatchShapes.TMergePipeline): String;
@@ -296,9 +308,8 @@ function TBatchShapes.Batch(const CollectedShape: TCollectedShape): Boolean;
            batching is not possible, as the tex coordinate generation looks at shape's bounding box.
            See https://github.com/castle-engine/castle-engine/issues/179 . }
          (GeometryComposed.FdTexCoord.Value = nil) and
-         (Shape.Node <> nil) and
-         (Shape.Node.Appearance <> nil) and
-         (Shape.Node.Appearance.Texture <> nil) ) then
+         (Shape.State.Appearance <> nil) and
+         (Shape.State.Appearance.Texture <> nil) ) then
       Exit;
 
     TexCoord := GeometryComposed.TexCoord;
@@ -552,7 +563,7 @@ function TBatchShapes.Batch(const CollectedShape: TCollectedShape): Boolean;
         Note that everything compared here must be also assigned in Merge
         (when FirstMerge), to make sure all merged instances keep the same values
         for this stuff. }
-      AppearancesMatch(Shape1.Node.Appearance, Shape2.Node.Appearance) and
+      AppearancesMatch(Shape1.State.Appearance, Shape2.State.Appearance) and
       AbstractGeometriesMatch(Geometry1, Geometry2) and
       (State1.LocalFog = State2.LocalFog) and
       (Shape1.Node.Shading = Shape2.Node.Shading) and
@@ -760,7 +771,7 @@ begin
         Assert(FMergeTarget[P, Slot].Shape <> nil);
 
         // don't wait for ClearMerge for this, do this earlier to release reference count
-        FMergeTarget[P, Slot].Shape.Node.FdAppearance.Value := nil;
+        ChangeAppearance(FMergeTarget[P, Slot].Shape, nil);
         // make sure this is unassigned, otherwise TX3DGraphTraverseState.Destroy would free it
         FMergeTarget[P, Slot].Shape.State.Lights := nil;
         FMergeTarget[P, Slot] := nil;
@@ -886,8 +897,7 @@ begin
     Target.Node.FdShading.Value := Source.Node.FdShading.Value;
     StateTarget.Lights := StateSource.Lights;
     StateTarget.LocalFog := StateSource.LocalFog;
-    // using here FdAppearance.Value is marginally faster than Appearance, it matters a bit
-    Target.Node.FdAppearance.Value := Source.Node.Appearance;
+    ChangeAppearance(Target, Source.State.Appearance);
     MeshTarget.FdNormalPerVertex.Value := MeshSource.FdNormalPerVertex.Value;
     MeshTarget.FdSolid          .Value := MeshSource.FdSolid          .Value;
     if MeshTarget is TIndexedFaceSetNode then

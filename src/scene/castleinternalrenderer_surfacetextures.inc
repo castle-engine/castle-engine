@@ -48,53 +48,50 @@ var
   App: TAppearanceNode;
 begin
   Result := false;
-  if Shape.Node <> nil then
+  App := Shape.State.Appearance;
+  if App <> nil then
   begin
-    App := Shape.Node.Appearance;
+    SurfaceShader := App.InternalCommonSurfaceShader;
+    if SurfaceShader <> nil then
+    begin
+      Result :=
+        (SurfaceShader.AmbientTexture <> nil) or
+        (SurfaceShader.EmissiveTexture <> nil) or
+        (SurfaceShader.NormalTexture <> nil) or
+        (SurfaceShader.ShininessTexture <> nil) or
+        (SurfaceShader.SpecularTexture <> nil);
+    end else
     if App <> nil then
     begin
-      SurfaceShader := App.InternalCommonSurfaceShader;
-      if SurfaceShader <> nil then
+      if App.NormalMap <> nil then
+        Exit(true);
+
+      if App.Material is TAbstractOneSidedMaterialNode then
       begin
-        Result :=
-          (SurfaceShader.AmbientTexture <> nil) or
-          (SurfaceShader.EmissiveTexture <> nil) or
-          (SurfaceShader.NormalTexture <> nil) or
-          (SurfaceShader.ShininessTexture <> nil) or
-          (SurfaceShader.SpecularTexture <> nil);
-      end else
-      if App <> nil then
-      begin
-        if App.NormalMap <> nil then
+        MatOne := TAbstractOneSidedMaterialNode(App.Material);
+        if (MatOne.EmissiveTexture <> nil) or
+          (MatOne.NormalTexture <> nil) then
           Exit(true);
+      end;
 
-        if App.Material is TAbstractOneSidedMaterialNode then
-        begin
-          MatOne := TAbstractOneSidedMaterialNode(App.Material);
-          if (MatOne.EmissiveTexture <> nil) or
-            (MatOne.NormalTexture <> nil) then
-            Exit(true);
-        end;
+      if App.Material is TMaterialNode then
+      begin
+        MatPhong := TMaterialNode(App.Material);
+        if (MatPhong.AmbientTexture <> nil) or
+          // (MatPhong.DiffuseTexture <> nil) or // this is OK for Gouraud shading
+          (MatPhong.ShininessTexture <> nil) or
+          (MatPhong.SpecularTexture <> nil) or
+          (MatPhong.OcclusionTexture <> nil) then
+          Exit(true);
+      end;
 
-        if App.Material is TMaterialNode then
-        begin
-          MatPhong := TMaterialNode(App.Material);
-          if (MatPhong.AmbientTexture <> nil) or
-            // (MatPhong.DiffuseTexture <> nil) or // this is OK for Gouraud shading
-            (MatPhong.ShininessTexture <> nil) or
-            (MatPhong.SpecularTexture <> nil) or
-            (MatPhong.OcclusionTexture <> nil) then
-            Exit(true);
-        end;
-
-        if App.Material is TPhysicalMaterialNode then
-        begin
-          MatPhysical := TPhysicalMaterialNode(App.Material);
-          if // (MatPhysical.BaseTexture <> nil) or // this is OK for Gouraud shading? Actually PhysicalMaterial always requires Phong shading anyway.
-            (MatPhysical.MetallicRoughnessTexture <> nil) or
-            (MatPhysical.OcclusionTexture <> nil) then
-            Exit(true);
-        end;
+      if App.Material is TPhysicalMaterialNode then
+      begin
+        MatPhysical := TPhysicalMaterialNode(App.Material);
+        if // (MatPhysical.BaseTexture <> nil) or // this is OK for Gouraud shading? Actually PhysicalMaterial always requires Phong shading anyway.
+          (MatPhysical.MetallicRoughnessTexture <> nil) or
+          (MatPhysical.OcclusionTexture <> nil) then
+          Exit(true);
       end;
     end;
   end;
