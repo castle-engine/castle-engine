@@ -1,5 +1,5 @@
 {
-  Copyright 2019-2023 Michalis Kamburelis.
+  Copyright 2019-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -151,6 +151,18 @@ uses SysUtils,
   CastleUtils, CastleLog, CastleVectors, CastleRenderOptions;
 
 {.$define CASTLE_DEBUG_BATCHING}
+
+{ Change the Apperance node used by the shape.
+  Changes
+  1. Shape.State.ShapeNode.FdAppearance.Value (without causing an event, and fastest)
+    - Note that this is equivalent to Shape.State.ShapeNode.Appearance.
+    - Note that this is equivalent to Shape.Node.Appearance.
+  2. Shape.State.Appearance (must be manually synched with 1) }
+procedure ChangeAppearance(const Shape: TGLShape; const NewAppearance: TAppearanceNode);
+begin
+  Shape.Node.FdAppearance.Value := NewAppearance;
+  Shape.State.Appearance := NewAppearance;
+end;
 
 constructor TBatchShapes.Create;
 
@@ -760,7 +772,7 @@ begin
         Assert(FMergeTarget[P, Slot].Shape <> nil);
 
         // don't wait for ClearMerge for this, do this earlier to release reference count
-        FMergeTarget[P, Slot].Shape.Node.FdAppearance.Value := nil;
+        ChangeAppearance(FMergeTarget[P, Slot].Shape, nil);
         // make sure this is unassigned, otherwise TX3DGraphTraverseState.Destroy would free it
         FMergeTarget[P, Slot].Shape.State.Lights := nil;
         FMergeTarget[P, Slot] := nil;
@@ -886,8 +898,7 @@ begin
     Target.Node.FdShading.Value := Source.Node.FdShading.Value;
     StateTarget.Lights := StateSource.Lights;
     StateTarget.LocalFog := StateSource.LocalFog;
-    // using here FdAppearance.Value is marginally faster than Appearance, it matters a bit
-    Target.Node.FdAppearance.Value := Source.Node.Appearance;
+    ChangeAppearance(Target, Source.Node.Appearance);
     MeshTarget.FdNormalPerVertex.Value := MeshSource.FdNormalPerVertex.Value;
     MeshTarget.FdSolid          .Value := MeshSource.FdSolid          .Value;
     if MeshTarget is TIndexedFaceSetNode then
