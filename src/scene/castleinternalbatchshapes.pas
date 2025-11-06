@@ -308,9 +308,8 @@ function TBatchShapes.Batch(const CollectedShape: TCollectedShape): Boolean;
            batching is not possible, as the tex coordinate generation looks at shape's bounding box.
            See https://github.com/castle-engine/castle-engine/issues/179 . }
          (GeometryComposed.FdTexCoord.Value = nil) and
-         (Shape.Node <> nil) and
-         (Shape.Node.Appearance <> nil) and
-         (Shape.Node.Appearance.Texture <> nil) ) then
+         (Shape.State.Appearance <> nil) and
+         (Shape.State.Appearance.Texture <> nil) ) then
       Exit;
 
     TexCoord := GeometryComposed.TexCoord;
@@ -564,7 +563,7 @@ function TBatchShapes.Batch(const CollectedShape: TCollectedShape): Boolean;
         Note that everything compared here must be also assigned in Merge
         (when FirstMerge), to make sure all merged instances keep the same values
         for this stuff. }
-      AppearancesMatch(Shape1.Node.Appearance, Shape2.Node.Appearance) and
+      AppearancesMatch(Shape1.State.Appearance, Shape2.State.Appearance) and
       AbstractGeometriesMatch(Geometry1, Geometry2) and
       (State1.LocalFog = State2.LocalFog) and
       (Shape1.Node.Shading = Shape2.Node.Shading) and
@@ -898,7 +897,7 @@ begin
     Target.Node.FdShading.Value := Source.Node.FdShading.Value;
     StateTarget.Lights := StateSource.Lights;
     StateTarget.LocalFog := StateSource.LocalFog;
-    ChangeAppearance(Target, Source.Node.Appearance);
+    ChangeAppearance(Target, Source.State.Appearance);
     MeshTarget.FdNormalPerVertex.Value := MeshSource.FdNormalPerVertex.Value;
     MeshTarget.FdSolid          .Value := MeshSource.FdSolid          .Value;
     if MeshTarget is TIndexedFaceSetNode then

@@ -594,10 +594,9 @@ procedure TRenderer.RenderShape(const Shape: TX3DRendererShape;
       I: Integer;
     begin
       Result := false;
-      if (Shape.Node <> nil) and
-        (Shape.Node.Appearance <> nil) then
+      if Shape.State.Appearance <> nil then
       begin
-        Tex := Shape.Node.Appearance.Texture;
+        Tex := Shape.State.Appearance.Texture;
 
         if Tex is TGeneratedShadowMapNode then
           Exit(true);
@@ -617,9 +616,8 @@ procedure TRenderer.RenderShape(const Shape: TX3DRendererShape;
     function ShapeMaterialRequiresPhongShading(const Shape: TX3DRendererShape): boolean;
     begin
       Result :=
-        (Shape.Node <> nil) and
-        (Shape.Node.Appearance <> nil) and
-        (Shape.Node.Appearance.Material is TPhysicalMaterialNode);
+        (Shape.State.Appearance <> nil) and
+        (Shape.State.Appearance.Material is TPhysicalMaterialNode);
     end;
 
   var
@@ -702,9 +700,8 @@ procedure TRenderer.RenderShapeLineProperties(const Shape: TX3DRendererShape;
 var
   LP: TLinePropertiesNode;
 begin
-  if (Shape.Node <> nil) and { Shape.Node is nil for VRML <= 1.0 }
-     (Shape.Node.Appearance <> nil) then
-    LP := Shape.Node.Appearance.LineProperties
+  if Shape.State.Appearance <> nil then
+    LP := Shape.State.Appearance.LineProperties
   else
     LP := nil;
 
@@ -1237,9 +1234,8 @@ begin
 
   UsedGLSLTexCoordsNeeded := 0;
 
-  if (Shape.Node <> nil) and
-     (Shape.Node.Appearance <> nil) and
-     Shader.EnableCustomShaderCode(Shape.Node.Appearance.FdShaders, UsedShaderNode) then
+  if (Shape.State.Appearance <> nil) and
+     Shader.EnableCustomShaderCode(Shape.State.Appearance.FdShaders, UsedShaderNode) then
   begin
     UsedGLSLTexCoordsNeeded := TextureUnitsDefined(UsedShaderNode);
 
@@ -1313,9 +1309,8 @@ procedure TRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
 
   function GetAlphaCutoff(const Shape: TShape): Single;
   begin
-    if (Shape.Node <> nil) and
-       (Shape.Node.Appearance <> nil) then
-      Result := Shape.Node.Appearance.AlphaCutoff
+    if Shape.State.Appearance <> nil then
+      Result := Shape.State.Appearance.AlphaCutoff
     else
       Result := DefaultAlphaCutoff;
   end;

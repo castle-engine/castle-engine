@@ -1027,9 +1027,8 @@ begin
   end else
   begin
     { Finalize Shader settings, before calculating Shader.CodeHash }
-    if (Shape.Node <> nil) and
-       (Shape.Node.Appearance <> nil) then
-      Shader.EnableAppearanceEffects(Shape.Node.Appearance.FdEffects);
+    if Shape.State.Appearance <> nil then
+      Shader.EnableAppearanceEffects(Shape.State.Appearance.FdEffects);
     if Shape.State.Effects <> nil then
       Shader.EnableGroupEffects(Shape.State.Effects);
     (*
