@@ -127,6 +127,7 @@ type
     procedure TestNodeRelease;
     procedure TestNodeReleaseWhenStillUsed;
     procedure TestProtoReuseFirstNode;
+    procedure TestImageFromDataUri;
     procedure TestRemoveRoute;
 
     { VRML 1.0 loads/save matrix per-column. }
@@ -2993,6 +2994,34 @@ begin
   TestOneFile('castle-data:/proto_reuse_first_node/full_connectors.x3d');
   TestOneFile('castle-data:/proto_reuse_first_node/proto_leak.wrl');
   TestOneFile('castle-data:/proto_reuse_first_node/proto_leak_2.wrl');
+end;
+
+procedure TTestX3DNodes.TestImageFromDataUri;
+const
+  ValidDataUriPrefix = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAYAAABccqhmAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB9gHFA8nFnqvaDMAACAASURBVHjaxL1psGXXdR72rbX2O' +
+    'ffeN/SEbqAxECAJEuAQDqA5ySRFUpQ4mBSnkhmXZTNySpZdJascR1XKDydVclKuMK6KKy6XHcepqCqlimzJjixbJEWadjRQNAdD1EQRBEEQYzfQGBrd/V6/9+49e6+VH2vtfc5r9H1gHDp5VY1udL9377nn7L32Wt/6vm/Rz/3sf2kEgOBfZgoCYP4/MDPUvzAzCBMIABPAzEgMCAjM' +
+    '9acUDIKZv14xg6oha4GaQURQikHNYOr/bvG+pv5+9XoYQGJ/bWECE6MAMFUABoP/DEAgIqj6tZaiyGYoChRTFDXkYlBTaHwO/3gGA';
+var
+  Root: TX3DRootNode;
+  ImageTexture: TImageTextureNode;
+begin
+  Root := LoadNode('castle-data:/texture_from_data_uri.x3dv');
+  try
+    ImageTexture := Root.FindNode('MyTexture') as TImageTextureNode;
+    AssertTrue(ImageTexture <> nil);
+    AssertFalse(ImageTexture.IsTextureLoaded); // not loaded without need
+    AssertEquals('', ImageTexture.TextureUsedFullUrl);
+    ImageTexture.IsTextureLoaded := true;
+    AssertTrue(ImageTexture.IsTextureLoaded);
+
+    { TextureUsedFullUrl should contain full data URI, otherwise
+      caching in TImageTextureResource.PrepareCore (that passes TextureUsedFullUrl
+      to RendererCache.TextureImage_IncReference) will break.
+      Testcase: conan_skin_test01.x3d from Aaron, H-Anim animation. }
+    AssertTrue(IsPrefix(ValidDataUriPrefix, ImageTexture.TextureUsedFullUrl, false));
+    AssertEquals(256, ImageTexture.TextureImage.Width);
+    AssertEquals(256, ImageTexture.TextureImage.Height);
+  finally FreeAndNil(Root) end;
 end;
 
 procedure TTestX3DNodes.TestRemoveRoute;
