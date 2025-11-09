@@ -290,16 +290,29 @@
     property IsTextureLoaded: boolean
       read FIsTextureLoaded write SetIsTextureLoaded;
 
-    { Once the texture data (image or video) is loaded,
-      this is set to the URL that was used to load,
-      or '' if no URL was used. "No URL was used" may mean that
-      no URL was valid, or inlined image was used.
+    { From which URL did we load the texture data, if any.
+
+      Once the texture data (image or video) is successfully loaded
+      from some URL, this property is updated to this URL.
+
+      When this property is empty then we didn't yet attempt to load
+      (e.g. IsTextureLoaded = @false) or no good URL (that we can successfully
+      load) was specified.
 
       This is always a full, expanded (i.e. not relative) URL.
+      It case of @url(https://castle-engine.io/url#_embedded_data_data data: URI
+      to embed data), this property contains the original data: URI.
+      This is important, it allows to use this property e.g. to determine
+      should we use some cached resource (TImageTextureResource.PrepareCore).
 
-      In case of data: URLs, this doesn't contain actual data (it would
-      be too long then, and TextureUsedFullUrl is mainly for showing to the
-      user), it's cutted. }
+      When displaying this property to the user, remember to process this with
+      @link(UriDisplay), to avoid displaying very long URLs in such cases.
+      Do it like this:
+
+      @longCode(#
+        WritelnLog('Loaded from %s', [UriDisplay(MyImageTextureNode.TextureUsedFullUrl)]);
+      #)
+    }
     property TextureUsedFullUrl: String read FTextureUsedFullUrl;
 
   {$I auto_generated_node_helpers/x3dnodes_x3dtexture2dnode.inc}
@@ -920,7 +933,7 @@ begin
            not BlenderRelativePath(FdUrl.Items[I]) then
           WritelnWarning('VRML/X3D', Format('Loaded data from an absolute filename "%s", this makes the data possibly unportable (it will probably not work on other systems/locations). Always use relative paths.',
             [FdUrl.Items[I]]));
-        FTextureUsedFullUrl := UriDisplay(FullUrl);
+        FTextureUsedFullUrl := FullUrl;
         Success := true;
         Break;
       except
@@ -946,7 +959,8 @@ end;
 function TImageTextureNode.TextureDescription: string;
 begin
   if TextureUsedFullUrl <> '' then
-    Result := 'image from file "' + TextureUsedFullUrl + '"' else
+    Result := 'image from file "' + UriDisplay(TextureUsedFullUrl) + '"'
+  else
     Result := 'none';
 end;
 
