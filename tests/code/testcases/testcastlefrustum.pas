@@ -358,7 +358,9 @@ var
     Result2: boolean;
   end;
   I: Integer;
+  {$ifdef WRITELN_TESTS}
   NoOutsideResults: Cardinal;
+  {$endif}
 begin
   SetLength(TestCases, Tests);
 

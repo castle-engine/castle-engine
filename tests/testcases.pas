@@ -100,7 +100,8 @@ uses
   TestCastleZip,
   TestCastleInternalUrlUtils,
   TestCastleTransformManipulate,
-  TestCastleSteam;
+  TestCastleSteam,
+  TestCastleMcpServer;
 
 implementation
 

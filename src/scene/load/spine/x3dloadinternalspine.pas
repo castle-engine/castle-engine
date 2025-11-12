@@ -33,7 +33,7 @@ var
 implementation
 
 uses SysUtils, Classes,
-  Generics.Collections, FpJson, JSONParser, JSONScanner, Math,
+  Generics.Collections, FpJson, JsonParser, JSONScanner, Math,
   X3DNodes, X3DLoad, CastleVectors, CastleCurves, CastleUtils, CastleLog,
   CastleUriUtils, CastleDownload,
   CastleStringUtils, CastleClassUtils, CastleColors, X3DLoadInternalUtils,

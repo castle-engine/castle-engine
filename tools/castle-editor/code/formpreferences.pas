@@ -20,7 +20,7 @@ interface
 
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, EditBtn, StdCtrls,
-  ExtCtrls, ButtonPanel, ComCtrls;
+  ExtCtrls, ButtonPanel, ComCtrls, Spin;
 
 type
   TPreferencesForm = class(TForm)
@@ -79,6 +79,16 @@ type
     PanelCodeEditor: TPanel;
     PanelSound: TPanel;
     PanelFpcLazarusConfig: TPanel;
+    PanelMcpServer: TPanel;
+    CheckBoxEnableMcpServer: TCheckBox;
+    LabelMcpServer: TLabel;
+    LabelMcpServerDescription: TLabel;
+    LabelMcpServerPort: TLabel;
+    SpinEditMcpServerPort: TSpinEdit;
+    LabelMcpServerStatus: TLabel;
+    LabelMcpServerStatusValue: TLabel;
+    ButtonMcpServerStart: TButton;
+    ButtonMcpServerStop: TButton;
     RadioCodeEditorAutodetect: TRadioButton;
     RadioCompilerAutodetect: TRadioButton;
     RadioCodeEditorCustom: TRadioButton;
@@ -109,16 +119,27 @@ type
     procedure ListPagesClick(Sender: TObject);
     procedure RadioCodeEditorAnyChange(Sender: TObject);
     procedure TrackVolumeChange(Sender: TObject);
+    procedure ButtonMcpServerStartClick(Sender: TObject);
+    procedure ButtonMcpServerStopClick(Sender: TObject);
+    procedure CheckBoxEnableMcpServerChange(Sender: TObject);
   private
     OriginalFpcCustomPath, OriginalLazarusCustomPath, OriginalCastleEngineOverridePath: String;
+    FMcpServerRunning: Boolean;
+    FMcpServerPort: Integer;
     procedure UpdateAutoDetectedLabels;
     procedure UpdatePageVisible;
+    procedure UpdateMcpServerUI;
   public
-
+    destructor Destroy; override;
   end;
 
 var
   PreferencesForm: TPreferencesForm;
+
+{ Global MCP server settings }
+var
+  McpServerEnabled: Boolean = False;
+  McpServerPort: Integer = 3000;
 
 implementation
 
@@ -305,6 +326,11 @@ begin
   // sound tab
   TrackVolume.Position := Round(EditorVolume * TrackVolume.Max);
   CheckBoxMuteOnRun.Checked := MuteOnRun;
+
+  // MCP server tab
+  CheckBoxEnableMcpServer.Checked := McpServerEnabled;
+  SpinEditMcpServerPort.Value := McpServerPort;
+  UpdateMcpServerUI;
 end;
 
 procedure TPreferencesForm.LabelAndroidDocsWwwClick(Sender: TObject);
@@ -392,6 +418,10 @@ begin
     // Android tab
     AndroidHome := DirectoryEditAndroidHome.Directory;
     JavaHome := DirectoryEditJavaHome.Directory;
+
+    // MCP server tab
+    McpServerEnabled := CheckBoxEnableMcpServer.Checked;
+    McpServerPort := SpinEditMcpServerPort.Value;
   end else
   begin
     { XxxCustomPath are special.
@@ -554,6 +584,7 @@ begin
     3: SelectedPage := PanelFpcLazarusConfig;
     4: SelectedPage := PanelSound;
     5: SelectedPage := PanelAndroid;
+    6: SelectedPage := PanelMcpServer;
     else raise Exception.CreateFmt('Unexpected ListPages.ItemIndex %d', [ListPages.ItemIndex]);
   end;
   SetEnabledVisible(PanelGeneral         , PanelGeneral          = SelectedPage);
@@ -562,6 +593,70 @@ begin
   SetEnabledVisible(PanelFpcLazarusConfig, PanelFpcLazarusConfig = SelectedPage);
   SetEnabledVisible(PanelSound           , PanelSound            = SelectedPage);
   SetEnabledVisible(PanelAndroid         , PanelAndroid          = SelectedPage);
+  SetEnabledVisible(PanelMcpServer       , PanelMcpServer        = SelectedPage);
+end;
+
+procedure TPreferencesForm.UpdateMcpServerUI;
+begin
+  SpinEditMcpServerPort.Enabled := CheckBoxEnableMcpServer.Checked and not FMcpServerRunning;
+  ButtonMcpServerStart.Enabled := CheckBoxEnableMcpServer.Checked and not FMcpServerRunning;
+  ButtonMcpServerStop.Enabled := CheckBoxEnableMcpServer.Checked and FMcpServerRunning;
+
+  if FMcpServerRunning then
+    LabelMcpServerStatusValue.Caption := Format('Running on port %d', [FMcpServerPort])
+  else
+    LabelMcpServerStatusValue.Caption := 'Stopped';
+end;
+
+procedure TPreferencesForm.CheckBoxEnableMcpServerChange(Sender: TObject);
+begin
+  McpServerEnabled := CheckBoxEnableMcpServer.Checked;
+  UpdateMcpServerUI;
+end;
+
+procedure TPreferencesForm.ButtonMcpServerStartClick(Sender: TObject);
+begin
+  McpServerPort := SpinEditMcpServerPort.Value;
+
+  try
+    // TODO: Implement actual MCP server startup
+    FMcpServerRunning := True;
+    FMcpServerPort := McpServerPort;
+    WritelnLog('MCP Server started on port %d (stub implementation)', [McpServerPort]);
+  except
+    on E: Exception do
+    begin
+      WritelnLog('Failed to start MCP Server: %s', [E.Message]);
+      ShowMessage('Failed to start MCP Server: ' + E.Message);
+    end;
+  end;
+
+  UpdateMcpServerUI;
+end;
+
+procedure TPreferencesForm.ButtonMcpServerStopClick(Sender: TObject);
+begin
+  try
+    // TODO: Implement actual MCP server shutdown
+    FMcpServerRunning := False;
+    FMcpServerPort := 0;
+    WritelnLog('MCP Server stopped (stub implementation)');
+  except
+    on E: Exception do
+    begin
+      WritelnLog('Error stopping MCP Server: %s', [E.Message]);
+      ShowMessage('Error stopping MCP Server: ' + E.Message);
+    end;
+  end;
+
+  UpdateMcpServerUI;
+end;
+
+destructor TPreferencesForm.Destroy;
+begin
+  // TODO: Cleanup MCP server when implemented
+  FMcpServerRunning := False;
+  inherited Destroy;
 end;
 
 end.
