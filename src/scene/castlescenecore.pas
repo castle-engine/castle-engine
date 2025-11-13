@@ -603,8 +603,9 @@ type
     function SensibleCameraRadius(out RadiusAutoCalculated: Boolean): Single;
 
     { Apply TransformationDirty effect
-      (necessary to finalize OptimizeExtensiveTransformations,
-      after TTransformNode values changed).
+      (necessary to update transformations calculated in the Shapes tree,
+      after TTransformNode values changed,
+      if OptimizeExtensiveTransformations).
       Always call this after doing something that could change
       TTransformNode values. }
     procedure FinishTransformationChanges;
@@ -4324,11 +4325,6 @@ var
   begin
     Check(ANode.TransformFunctionality <> nil, 'chTransform flag may be set only for node with TTransformFunctionality');
     TransformationChanged(ANode.TransformFunctionality);
-
-    if not ProcessEvents then
-      { Otherwise FinishTransformationChanges would not be called in nearest Update,
-        leaving transformation effects unapplied to the Shapes tree. }
-      FinishTransformationChanges;
   end;
 
   procedure HandleChangeCoordinate;
@@ -6280,7 +6276,7 @@ begin
   FTimeNow.Seconds := NewValue;
   FTimeNow.PlusTicks := 0; // using InternalSetTime always resets PlusTicks
 
-  if ProcessEvents and InternalEnableAnimation then
+  if InternalEnableAnimation then
   begin
     BeginChangesSchedule;
     try
@@ -6290,12 +6286,29 @@ begin
         so a stopped animation will *not* send any events after StopAnimation
         (making it useful to call ResetAnimationState right after StopAnimation call). }
       UpdateNewPlayingAnimation(NeedsUpdateTimeDependent);
-      UpdateTimeDependentListIfVisible(NeedsUpdateTimeDependent);
-      UpdateSkin;
-      { Process TransformationDirty at the end of increasing time, to apply scheduled
-        TransformationDirty in the same Update, as soon as possible
-        (useful e.g. for mana shot animation in dragon_squash). }
+
+      { Send new time to time-dependent nodes.
+
+        Only this is guarded by ProcessEvents check,
+        the rest (like FinishTransformationChanges) is executed always,
+        so that changing e.g. TTransformNode.Translation is properly
+        reflected (for both non-skinned and skinned animation) even if
+        ProcessEvents = false.
+        Testcase: examples/animations/animate_transform_by_code_2/
+        that modifies scene with ProcessEvents = false. }
+      if ProcessEvents then
+        UpdateTimeDependentListIfVisible(NeedsUpdateTimeDependent);
+
+      { Process TransformationDirty right after UpdateTimeDependentListIfVisible,
+        to update Shapes transformations after TTransformNode properties have
+        been modified by animations (so time sensor nodes events).
+        Testcase: mana shot animation in dragon_squash . }
       FinishTransformationChanges;
+
+      { If any Skin / HAnimHumanoid needs to be updated, do it now.
+        Note that this looks at Shapes transformations, so should be done
+        after FinishTransformationChanges to use latest transformations. }
+      UpdateSkin;
     finally
       EndChangesSchedule;
     end;
