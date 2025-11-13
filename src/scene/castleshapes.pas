@@ -199,6 +199,7 @@ type
       { OnlyCollidable } Boolean ] of TShapesHash;
     { Automatically set when adding item to TShapeTreeGroup. }
     FParent: TShapeTree;
+    FDepth: Cardinal;
 
     { Upper bound on the number of TShape instances within this tree.
 
@@ -352,7 +353,10 @@ type
     class function AssociatedShape(const Node: TX3DNode; const Index: Integer): TShapeTree; static;
     class function AssociatedShapesCount(const Node: TX3DNode): Integer; static;
 
-    procedure FastTransformUpdate(var AnythingChanged: Boolean); virtual;
+    { Depth in the shapes tree.
+      Root at TCastleSceneCore.Shapes starts with Depth = 0.
+      Automatically set when you insert this TShapeTree as child of another. }
+    property Depth: Cardinal read FDepth;
   end;
 
   { Shape is a geometry node @link(Geometry) instance and it's
@@ -911,10 +915,8 @@ type
   end;
 
   { Node of the TShapeTree transforming it's children.
-
-    It's ideal for handling VRML 2.0 / X3D Transform node,
-    and similar nodes (MatrixTransform and some H-Anim nodes also act
-    as a transformation node and also may be handled by this). }
+    Use this to handle X3D TTransformNode and similar nodes
+    (which define TTransformFunctionality). }
   TShapeTreeTransform = class(TShapeTreeGroup)
   strict private
     FTransformFunctionality: TTransformFunctionality;
@@ -924,9 +926,46 @@ type
     procedure FastTransformUpdateCore(var AnythingChanged: Boolean;
       const ParentTransformation: TTransformation); override;
   public
+    { Do we need call to FastTransformUpdateCore to recalculate our
+      transformation (in TransformState.Transformation). }
+    TransformNeedsUpdate: Boolean;
+
     constructor Create(const AParentScene: TX3DEventsEngine);
     destructor Destroy; override;
-    procedure FastTransformUpdate(var AnythingChanged: Boolean); override;
+
+    { Process transformation changes here and in child,
+      if only TransformNeedsUpdate = true.
+
+      This calls FastTransformUpdateCore if update is really necessary,
+      which in turn will make real update,
+      call FastTransformUpdateCore on all children,
+      and set TransformNeedsUpdate = false.
+
+      In effect, calling this may set TransformNeedsUpdate to false
+      both on this instance, and on some children.
+
+      This makes updating transformation hierarchy, from the instances
+      with smallest Depth, and looking only at shapes with possibly
+      TransformNeedsUpdate=true (stored in TransformationDirty by TCastleSceneCore)
+      optimal:
+
+      - We only enter subtrees with TransformNeedsUpdate=true, no need to
+        process whole Shapes tree (esp. important if only a small subset
+        of the transformations changed, e.g. we changed TTransformNode of
+        one object in a model with 10000 objects).
+
+      - We do not process the same subtree multiple times.
+        This is especially important for typical skeletons (glTF Skin, H-Anim
+        HAnimHumanoid, a regular Transform hierarchy with rigid objects,
+        Spine JSON skeletons...) where usually every frame, many joints
+        change transformation. In this case, FastTransformUpdate on smallest
+        depth will do the actual work -- it will be the skeleton root.
+        FastTransformUpdate on other depths will be usually ignored (if you
+        only have this one skeleton in entire model), because they've been
+        already updated.
+    }
+    procedure FastTransformUpdate(var AnythingChanged: Boolean); virtual;
+
     function DebugInfoWithoutChildren: String; override;
 
     property TransformFunctionality: TTransformFunctionality
@@ -936,9 +975,15 @@ type
 
     { State right before traversing the TransformNode.
       Owned by this TShapeTreeTransform instance. You should assign
-      to it when you set TransformNode. }
+      to it when you set TransformNode.
+
+      The TransformState.Transformation contains the @bold(parent transformation),
+      before the effect of the node in @link(TransformNode) is applied. }
     property TransformState: TX3DGraphTraverseState read FTransformState;
   end;
+
+  TShapeTreeTransformList = {$ifdef FPC}specialize{$endif} TObjectList<TShapeTreeTransform>;
+  TShapeTreeTransformListPerDepth = {$ifdef FPC}specialize{$endif} TObjectList<TShapeTreeTransformList>;
 
   { LOD (level of detail) alternative in the TShapeTree.
     At most one child (from it's children list) is active at a given time.
@@ -1461,14 +1506,6 @@ function TShapeTree.ShapesCount(
 begin
   // Since TraverseList is optimized now by caching, this method can just call TraverseList
   Result := TraverseList(OnlyActive, OnlyVisible, OnlyCollidable).Count;
-end;
-
-procedure TShapeTree.FastTransformUpdate(var AnythingChanged: Boolean);
-var
-  T: TTransformation;
-begin
-  T.Init;
-  FastTransformUpdateCore(AnythingChanged, T);
 end;
 
 function TShapeTree.DebugInfo(const Indent: String): String;
@@ -3257,7 +3294,10 @@ procedure TShapeTreeGroup.ChildrenChanged(Sender: TObject;
   Action: TCollectionNotification);
 begin
   if Action = cnAdded then
+  begin
     Item.FParent := Self;
+    Item.FDepth := Depth + 1;
+  end;
   if Action in [cnExtracted, cnRemoved] then
     Item.FParent := nil;
   InvalidateMaxShapesCount;
@@ -3410,7 +3450,22 @@ end;
 
 procedure TShapeTreeTransform.FastTransformUpdate(var AnythingChanged: Boolean);
 begin
-  FastTransformUpdateCore(AnythingChanged, FTransformState.Transformation);
+  if TransformNeedsUpdate then
+  begin
+    if LogChanges then
+      WritelnLog('X3D changes', 'Processing transform changes within %s at depth %d', [
+        TransformNode.NiceName,
+        Depth
+      ]);
+    FastTransformUpdateCore(AnythingChanged, FTransformState.Transformation);
+  end else
+  begin
+    if LogChanges then
+      WritelnLog('X3D changes', 'Avoided processing transform changes within %s at depth %d', [
+        TransformNode.NiceName,
+        Depth
+      ]);
+  end;
 end;
 
 procedure TShapeTreeTransform.FastTransformUpdateCore(var AnythingChanged: Boolean;
@@ -3421,12 +3476,18 @@ begin
   NewTransformation := ParentTransformation;
 
   { Keep FTransformState up-to-date.
-    Useful in CastleSceneCore (when OptimizeExtensiveTransformations = false)
-    and by TSkinNode (regardless of OptimizeExtensiveTransformations). }
+    We need to maintain it for every TShapeTreeTransform:
+    - to be able to start updating, using FastTransformUpdate,
+      from any point of the tree,
+    - because Skin node processing relies on it, for every joint,
+    - because HAnimJoint processing relies on it (for humanoid root). }
   FTransformState.Transformation := ParentTransformation;
 
   TransformFunctionality.ApplyTransform(NewTransformation);
 
+  TransformNeedsUpdate := false;
+
+  // call inherited to update children of TShapeTreeGroup
   inherited FastTransformUpdateCore(AnythingChanged, NewTransformation);
 end;
 
@@ -3543,7 +3604,7 @@ end;
 procedure TShapeTreeLOD.FastTransformUpdateCore(var AnythingChanged: Boolean;
   const ParentTransformation: TTransformation);
 
-{ Update LOG when parent Transform changes.
+{ Update LOD when parent Transform changes.
   Testcase (will not work if this method is empty):
   demo-models/navigation/lod_test.x3dv (when animating movement of LOD) }
 

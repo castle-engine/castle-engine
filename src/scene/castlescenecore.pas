@@ -524,9 +524,9 @@ type
     NeedsDetectAffectedFields: Boolean;
     AnimationAffectedFields: TX3DFieldList;
 
-    { The transformation change happened and whole RootNode should be processed.
-      Used only when OptimizeExtensiveTransformations. }
-    TransformationDirty: Boolean;
+    { Which TShapeTreeTransform instances have *potentially* the TransformDirty
+      = true. These will be processed in FinishTransformationChanges. }
+    TransformationDirty: TShapeTreeTransformListPerDepth;
 
     { This always holds pointers to all TShapeTreeLOD instances in Shapes
       tree. }
@@ -560,14 +560,8 @@ type
 
     { Handle change of transformation of a node with TTransformFunctionality.
       TransformFunctionality.Parent must be associated only with TShapeTreeTransform,
-      which must be true for all nodes implementing TTransformFunctionality.
-      When OptimizeExtensiveTransformations, this updates TransformationDirty
-      and makes fast early exit. }
+      which must be true for all nodes implementing TTransformFunctionality. }
     procedure TransformationChanged(const TransformFunctionality: TTransformFunctionality);
-
-    { Call after FastTransformUpdate was called and it set AnythingChanged
-      (it's parameter) to @true. }
-    procedure AfterFastTransformUpdateChanged;
 
     function LocalBoundingVolumeMoveCollision(
       const OldPos, NewPos: TVector3;
@@ -604,8 +598,7 @@ type
 
     { Apply TransformationDirty effect
       (necessary to update transformations calculated in the Shapes tree,
-      after TTransformNode values changed,
-      if OptimizeExtensiveTransformations).
+      after TTransformNode values changed).
       Always call this after doing something that could change
       TTransformNode values. }
     procedure FinishTransformationChanges;
@@ -2423,9 +2416,12 @@ var
 
     See @url(https://github.com/castle-engine/castle-engine/tree/master/examples/animations/optimize_animations_test
     examples/animations/optimize_animations_test) for a demo of this. }
-  OptimizeExtensiveTransformations: boolean = false;
+  OptimizeExtensiveTransformations: boolean = false
+    deprecated 'this does nothing now, the optimization is now default';
 
-var
+  { Internal: to disable all animation features.
+    Useful to compare speed of rendering with and without animation.
+    @exclude }
   InternalEnableAnimation: Boolean = true;
 
 implementation
@@ -3064,6 +3060,7 @@ begin
   FAnimationsList := TStringList.Create;
   TStringList(FAnimationsList).CaseSensitive := true; // X3D node names are case-sensitive
   AnimationAffectedFields := TX3DFieldList.Create(false);
+  TransformationDirty := TShapeTreeTransformListPerDepth.Create(true);
 
   FTimePlaying := true;
   FTimePlayingSpeed := 1.0;
@@ -3134,6 +3131,7 @@ begin
   FreeAndNil(FAnimationsList);
   FreeAndNil(AnimationAffectedFields);
   FreeAndNil(PreviousPartialAffectedFields);
+  FreeAndNil(TransformationDirty);
 
   inherited;
 end;
@@ -3940,6 +3938,7 @@ begin
     FreeAndNil(FShapes);
     FShapes := TShapeTreeGroup.Create(Self);
     ShapeLODs.Clear;
+    TransformationDirty.Clear;
     InternalIncShapesHash;
   end;
 end;
@@ -4228,7 +4227,8 @@ begin
   finally Profiler.Stop(TimeStart, true, true) end;
 end;
 
-procedure TCastleSceneCore.TransformationChanged(const TransformFunctionality: TTransformFunctionality);
+procedure TCastleSceneCore.TransformationChanged(
+  const TransformFunctionality: TTransformFunctionality);
 
   { Schedule update of skin through THAnimHumanoidNode or TSkinNode,
     in case this TransformNode is a joint. }
@@ -4249,10 +4249,38 @@ procedure TCastleSceneCore.TransformationChanged(const TransformFunctionality: T
       ScheduledSkinUpdates.AddIfNotExists(State.Skin);
   end;
 
+  { Add TransformShapeTree to TransformationDirty. }
+  procedure AddTransformationDirty(const TransformShapeTree: TShapeTreeTransform);
+  var
+    D: Integer;
+    DepthList: TShapeTreeTransformList;
+  begin
+    D := TransformShapeTree.Depth; // copy value for convenience
+
+    { Resize TransformationDirty to have TransformationDirty[D] available.
+      Note that we may leave some items (between old cound and new count)
+      as nil, no need to initialize them }
+    if D >= TransformationDirty.Count then
+      TransformationDirty.Count := D + 1;
+    if TransformationDirty[D] = nil then
+      TransformationDirty[D] := TShapeTreeTransformList.Create(false);
+    Assert(D < TransformationDirty.Count);
+    Assert(TransformationDirty[D] <> nil);
+
+    DepthList := TransformationDirty[D];
+    if not DepthList.Contains(TransformShapeTree) then
+      DepthList.Add(TransformShapeTree);
+
+    if LogChanges then
+      WritelnLog('X3D changes', Format('Transform node %s change: added to TransformationDirty at depth %d', [
+        TransformShapeTree.TransformNode.NiceName,
+        D
+      ]));
+  end;
+
 var
   C, I: Integer;
   TransformShapeTree: TShapeTreeTransform;
-  Changed: boolean;
   TransformNode: TX3DNode;
 begin
   TransformNode := TransformFunctionality.Parent;
@@ -4262,44 +4290,13 @@ begin
     WritelnLog('X3D changes', Format('Transform node %s change: present %d times in the scene graph',
       [TransformNode.X3DType, C]));
 
-  { First,
-    regardless if we have OptimizeExtensiveTransformations or not,
-    call TransformationChangedUpdateSkin to schedule updating Skin/H-Anim nodes. }
   for I := 0 to C - 1 do
   begin
     TransformShapeTree := TShapeTreeTransform(TShapeTree.AssociatedShape(TransformNode, I));
     TransformationChangedUpdateSkin(TransformNode, TransformShapeTree.TransformState);
+    TransformShapeTree.TransformNeedsUpdate := true;
+    AddTransformationDirty(TransformShapeTree);
   end;
-
-  if OptimizeExtensiveTransformations then
-  begin
-    TransformationDirty := true;
-    Exit;
-  end;
-
-  Changed := false;
-
-  for I := 0 to C - 1 do
-    TShapeTree.AssociatedShape(TransformNode, I).FastTransformUpdate(Changed);
-
-  if Changed then
-    AfterFastTransformUpdateChanged;
-end;
-
-procedure TCastleSceneCore.AfterFastTransformUpdateChanged;
-begin
-  { Note: We need to call InternalGeometryChanged to not only recalculate bbox,
-    but also to recalculate octree.
-    Older version of the code was doing
-      Validities := Validities - [fvLocalBoundingBox];
-    but that's not enough.
-
-    Testcase: play_animation, move dragon up to the top edge of screen.
-    Without InternalGeometryChanged updating octrees,
-    one wing animation would disappear too soon. }
-  InternalGeometryChanged([gcVisibleTransformChanged, gcCollidableTransformChanged], nil);
-
-  VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
 end;
 
 procedure TCastleSceneCore.InternalChangedField(const Field: TX3DField; const Change: TX3DChange);
@@ -6317,40 +6314,44 @@ end;
 
 procedure TCastleSceneCore.FinishTransformationChanges;
 
-  { A bit like TransformationChanged, but specialized to update whole graph,
-    so from RootNode.
-    Also, for TransformationChangedUpdateSkin,
-    considers all nodes in TransformationDirty. }
-  procedure ProcessTransformationDirty;
-  var
-    Changed: boolean;
+  { Call this after FastTransformUpdate was called and it set AnythingChanged
+    (it's parameter) to @true. }
+  procedure AfterFastTransformUpdateChanged;
   begin
-    if LogChanges then
-      WritelnLog('X3D changes', 'Transform root node change');
+    { Note: We need to call InternalGeometryChanged to not only recalculate bbox,
+      but also to recalculate octree.
+      Older version of the code was doing
+        Validities := Validities - [fvLocalBoundingBox];
+      but that's not enough.
 
-    if RootNode = nil then Exit;
-    if not (Shapes is TShapeTreeGroup) then
-    begin
-      WritelnWarning('X3D changes', 'Root node did not create corresponding TShapeTreeGroup, transformation will not be applied correctly. Submit a bug');
-      Exit;
-    end;
+      Testcase: play_animation, move dragon up to the top edge of screen.
+      Without InternalGeometryChanged updating octrees,
+      one wing animation would disappear too soon. }
+    InternalGeometryChanged([gcVisibleTransformChanged, gcCollidableTransformChanged], nil);
 
-    Changed := false;
-
-    Shapes.FastTransformUpdate(Changed);
-
-    if Changed then
-      AfterFastTransformUpdateChanged;
+    VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
   end;
 
 var
   E: TExposedTransform;
+  DepthList: TShapeTreeTransformList;
+  TransformShapeTree: TShapeTreeTransform;
+  Changed: boolean;
 begin
-  if TransformationDirty then
+  Changed := false;
+
+  for DepthList in TransformationDirty do
   begin
-    ProcessTransformationDirty;
-    TransformationDirty := false;
+    if DepthList <> nil then
+    begin
+      for TransformShapeTree in DepthList do
+        TransformShapeTree.FastTransformUpdate(Changed);
+      DepthList.Clear;
+    end;
   end;
+
+  if Changed then
+    AfterFastTransformUpdateChanged;
 
   for E in FExposedTransforms do
     E.Synchronize;
