@@ -987,24 +987,12 @@
       "$Children" : [
         {
           "$$ClassName" : "TCastleCheckbox",
-          "Caption" : "Optimize Extensive Transformations",
-          "Name" : "CheckboxOptimizeExtensiveTransformations",
-          "TranslationPersistent" : {
-            "$$ClassName" : "TCastleVector2Persistent",
-            "X" : 1.0000000000000000E+001,
-            "Y" : -1.0000000000000000E+001
-          },
-          "VerticalAnchorParent" : "vpTop",
-          "VerticalAnchorSelf" : "vpTop"
-        },
-        {
-          "$$ClassName" : "TCastleCheckbox",
           "Caption" : "Dynamic Batching (optimizes rendering, not animating)",
           "Name" : "CheckboxDynamicBatching",
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 1.0000000000000000E+001,
-            "Y" : -4.4000000000000000E+001
+            "Y" : -1.0000000000000000E+001
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
@@ -1016,7 +1004,7 @@
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 1.0000000000000000E+001,
-            "Y" : -7.8000000000000000E+001
+            "Y" : -4.4000000000000000E+001
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
@@ -1028,7 +1016,7 @@
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 1.0000000000000000E+001,
-            "Y" : -1.1200000000000000E+002
+            "Y" : -7.8000000000000000E+001
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"

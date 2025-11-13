@@ -30,13 +30,11 @@ type
       These fields will be automatically initialized at Start. }
     LabelFps: TCastleLabel;
     FlyNavigation: TCastleWalkNavigation;
-    CheckboxOptimizeExtensiveTransformations: TCastleCheckbox;
     CheckboxDynamicBatching: TCastleCheckbox;
     CheckboxAnimateOnlyWhenVisible: TCastleCheckbox;
     CheckboxAnimateSkipTicks1: TCastleCheckbox;
     MainViewport: TCastleViewport;
   private
-    procedure CheckboxOptimizeExtensiveTransformationsChange(Sender: TObject);
     procedure CheckboxDynamicBatchingChange(Sender: TObject);
     procedure CheckboxAnimateOnlyWhenVisibleChange(Sender: TObject);
     procedure CheckboxAnimateSkipTicks1Change(Sender: TObject);
@@ -65,14 +63,9 @@ end;
 procedure TViewMain.Start;
 begin
   inherited;
-  CheckboxOptimizeExtensiveTransformations.OnChange := {$ifdef FPC}@{$endif} CheckboxOptimizeExtensiveTransformationsChange;
   CheckboxDynamicBatching.OnChange := {$ifdef FPC}@{$endif} CheckboxDynamicBatchingChange;
   CheckboxAnimateOnlyWhenVisible.OnChange := {$ifdef FPC}@{$endif} CheckboxAnimateOnlyWhenVisibleChange;
   CheckboxAnimateSkipTicks1.OnChange := {$ifdef FPC}@{$endif} CheckboxAnimateSkipTicks1Change;
-
-  // make this optimizations "on" by default in this demo
-  CheckboxOptimizeExtensiveTransformations.Checked := true;
-  CheckboxOptimizeExtensiveTransformationsChange(nil);
 end;
 
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
@@ -84,11 +77,6 @@ begin
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
 
   FlyNavigation.MouseLook := buttonRight in Container.MousePressed;
-end;
-
-procedure TViewMain.CheckboxOptimizeExtensiveTransformationsChange(Sender: TObject);
-begin
-  OptimizeExtensiveTransformations := CheckboxOptimizeExtensiveTransformations.Checked;
 end;
 
 procedure TViewMain.CheckboxDynamicBatchingChange(Sender: TObject);

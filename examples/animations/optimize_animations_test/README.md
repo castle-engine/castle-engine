@@ -6,12 +6,6 @@ To experiment with the performance, make sure to make a _release_ (not _debug_) 
 
 The options demonstrated here are:
 
-- [OptimizeExtensiveTransformations](https://castle-engine.io/apidoc/html/CastleSceneCore.html#OptimizeExtensiveTransformations)
-
-    Optimize animated transformation hierarchies when many transformations change every frame. Like typical animations done using skeleton, in Spine or glTF.
-
-    TODO: In the future, I hope to be able to remove this flag, and the respective gain should be automatic in the engine. See [roadmap](https://castle-engine.io/roadmap#animations_optimized).
-
 - [TCastleViewport.DynamicBatching](https://castle-engine.io/apidoc/html/CastleViewport.TCastleViewport.html#DynamicBatching)
 
     Rendering optimization (not really optimization of animation, still it is presented here as it can speed things up).
