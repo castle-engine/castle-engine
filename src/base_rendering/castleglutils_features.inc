@@ -227,7 +227,7 @@ type
     FTransformFeedbackVaryings: Boolean;
     FMaxFragmentUniformComponents: Cardinal;
     FMaxVertexUniformComponents: Cardinal;
-    FMaxSkinnedJoints: Cardinal;
+    FMaxSkinJointsShaders: Cardinal;
     class var
       FRequestCapabilities: TGLRequestCapabilities;
       FDebug: Boolean;
@@ -603,7 +603,7 @@ type
 
     { Estimated maximum possible number of joints for skinning on GPU.
       Based on @link(MaxVertexUniformComponents). }
-    property MaxSkinnedJointsShaders: Cardinal read FMaxSkinnedJoints;
+    property MaxSkinJointsShaders: Cardinal read FMaxSkinJointsShaders;
   end;
 
 { Initialize GLVersion and GLFeatures. }
@@ -1364,7 +1364,7 @@ begin
   begin
     FMaxFragmentUniformComponents := glGetInteger(GL_MAX_FRAGMENT_UNIFORM_COMPONENTS);
     FMaxVertexUniformComponents := glGetInteger(GL_MAX_VERTEX_UNIFORM_COMPONENTS);
-    FMaxSkinnedJoints := (MaxVertexUniformComponents -
+    FMaxSkinJointsShaders := (MaxVertexUniformComponents -
         { very rough estimation of the rest of uniforms }
         4 * 10)
         { each joint is mat4 uniform }
@@ -1373,7 +1373,7 @@ begin
   begin
     FMaxFragmentUniformComponents := 0;
     FMaxVertexUniformComponents := 0;
-    FMaxSkinnedJoints := 0;
+    FMaxSkinJointsShaders := 0;
   end;
 
   // set GLFeatures singleton, TGLMemoryInfo.Create and TGLMemoryInfo.Refresh depend on it

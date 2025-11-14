@@ -628,6 +628,23 @@ var
   { Force given rendering for all scenes, if not weNormal. }
   InternalForceWireframe: TWireframeEffect;
 
+  { Maximum number of joints where the @url(https://castle-engine.io/skin
+    skinned animation) can be still performed using shaders (skinning on GPU).
+
+    The effective maximum value is also limited by
+    @link(TGLFeatures.MaxSkinJointsShaders GLFeatures.MaxSkinJointsShaders).
+    We effectively allocate uniforms for @code(Min(MaxPossibleSkinJointsShaders,
+    GLFeatures.MaxSkinJointsShaders)) joints. The MaxPossibleSkinJointsShaders
+    limit avoids using uniform space where not necessary.
+
+    Increase this if you have models that use more joints.
+
+    But remember that actually calculating many joints on GPU will also
+    require GPU with enough
+    @link(TGLFeatures.MaxSkinJointsShaders GLFeatures.MaxSkinJointsShaders),
+    otherwise we'll fallback to CPU skinning. }
+  MaxPossibleSkinJointsShaders: Cardinal = 128;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}

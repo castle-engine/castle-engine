@@ -8,7 +8,7 @@
 /* Note: We need to specify array size, otherwise we get
    "error C7559: OpenGL requires constant indexes for unsized array access(castle_JointMatrix)"
 */
-uniform mat4 castle_JointMatrix[128];
+uniform mat4 castle_JointMatrix[CASTLE_MAX_SKIN_JOINTS];
 attribute vec4 castle_SkinJoints0;
 attribute vec4 castle_SkinWeights0;
 

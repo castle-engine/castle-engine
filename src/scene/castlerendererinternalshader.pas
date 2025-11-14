@@ -20,7 +20,7 @@ unit CastleRendererInternalShader;
 
 interface
 
-uses Generics.Collections,
+uses Generics.Collections, Math,
   CastleVectors, CastleGLShaders, CastleColors,
   X3DTime, X3DFields, X3DNodes, CastleUtils, CastleBoxes,
   CastleRendererInternalTextureEnv, CastleStringUtils, CastleRenderOptions,

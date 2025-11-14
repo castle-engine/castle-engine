@@ -10,7 +10,7 @@
 '/* Note: We need to specify array size, otherwise we get' + LineEnding +
 '   "error C7559: OpenGL requires constant indexes for unsized array access(castle_JointMatrix)"' + LineEnding +
 '*/' + LineEnding +
-'uniform mat4 castle_JointMatrix[128];' + LineEnding +
+'uniform mat4 castle_JointMatrix[CASTLE_MAX_SKIN_JOINTS];' + LineEnding +
 'attribute vec4 castle_SkinJoints0;' + LineEnding +
 'attribute vec4 castle_SkinWeights0;' + LineEnding +
 '' + LineEnding +

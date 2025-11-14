@@ -243,6 +243,7 @@
         use shaders to animate skin.
         @exclude }
       InternalUsesShadersPossible: Boolean;
+      InternalUsesShadersMaxJoints: Cardinal;
     var
       { Current joint matrix.
         See https://www.khronos.org/files/gltf20-reference-guide.pdf
@@ -1022,19 +1023,10 @@ function TSkinNode.InternalUsesShaders: Boolean;
     Result := false;
   end;
 
-const
-  { Matches src/scene/glsl/source/skin_animation.vs limit. }
-  MaxJoints = 128;
 begin
   Result := InternalUsesShadersPossible and
-    (FdJoints.Count <= MaxJoints) and // shaders limit max joints count
+    (FdJoints.Count <= Min(MaxPossibleSkinJointsShaders, InternalUsesShadersMaxJoints)) and
     (not SomeShapeCastsShadowVolumes);
-
-  // debug:
-  // WritelnLog('TSkinNode.InternalUsesShaders? ' + Self.NiceName + ' = ' + BoolToStr(Result, true) +
-  //   ' because ' + BoolToStr(InternalUsesShadersPossible, true) + ' and ' +
-  //   BoolToStr(FdJoints.Count <= MaxJoints, true) + ' and ' +
-  //   BoolToStr(not SomeShapeCastsShadowVolumes, true));
 end;
 
 // TODO:

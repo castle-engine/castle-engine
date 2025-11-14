@@ -2123,6 +2123,7 @@ end;
 procedure InitializeSkinInShaders;
 begin
   TSkinNode.InternalUsesShadersPossible := GLFeatures.Shaders;
+  TSkinNode.InternalUsesShadersMaxJoints := GLFeatures.MaxSkinJointsShaders;
 end;
 
 initialization
