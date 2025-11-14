@@ -226,6 +226,7 @@
     DoneWarningJointTransformCountTooMany: Boolean;
     DoneWarningJointTransformNone: Boolean;
     DoneWarningZeroWeights: Boolean;
+    DoneWarningTooManyJoints: Boolean;
 
     { Calculate the current local bounding box of shape Shapes[ShapeIndex]
       within this skinned node.
@@ -1028,6 +1029,20 @@ begin
     (FdJoints.Count <= Min(MaxPossibleSkinJointsShaders, InternalUsesShadersMaxJoints)) and
     (not SomeShapeCastsShadowVolumes);
 
+  { Warning if we cannot use GPU shaders because of FdJoints.Count }
+  if (not Result) and
+     InternalUsesShadersPossible and
+     (not SomeShapeCastsShadowVolumes) then
+  begin
+    WritelnWarningOnce(DoneWarningTooManyJoints,
+      'Too many joints (%d) to perform skinning on GPU using shaders. The current GPU capabilities allow only %d joints and engine limit MaxPossibleSkinJointsShaders is %d. Consider adjusting your animation to use less joints and/or increase engine MaxPossibleSkinJointsShaders. ', [
+        FdJoints.Count,
+        InternalUsesShadersMaxJoints,
+        MaxPossibleSkinJointsShaders
+      ]);
+  end;
+
+  {.$define CASTLE_DEBUG_SKINNING_USES_SHADERS}
   {$ifdef CASTLE_DEBUG_SKINNING_USES_SHADERS}
   WritelnLog(
     'On %s, we use shaders for skinning? %s' + NL +
