@@ -1027,6 +1027,24 @@ begin
   Result := InternalUsesShadersPossible and
     (FdJoints.Count <= Min(MaxPossibleSkinJointsShaders, InternalUsesShadersMaxJoints)) and
     (not SomeShapeCastsShadowVolumes);
+
+  {$ifdef CASTLE_DEBUG_SKINNING_USES_SHADERS}
+  WritelnLog(
+    'On %s, we use shaders for skinning? %s' + NL +
+    '  Reason:' + NL +
+    '  1. InternalUsesShadersPossible = %s' + NL +
+    '  2. FdJoints.Count <= Min(MaxPossibleSkinJointsShaders, InternalUsesShadersMaxJoints) = %d < min(%d, %d) = %s' + NL +
+    '  3. not SomeShapeCastsShadowVolumes = %s', [
+      Self.NiceName,
+      BoolToStr(Result, true),
+      BoolToStr(InternalUsesShadersPossible, true),
+      FdJoints.Count,
+      MaxPossibleSkinJointsShaders,
+      InternalUsesShadersMaxJoints,
+      BoolToStr(FdJoints.Count <= Min(MaxPossibleSkinJointsShaders, InternalUsesShadersMaxJoints), true),
+      BoolToStr(not SomeShapeCastsShadowVolumes, true)
+    ]);
+  {$endif}
 end;
 
 // TODO:
