@@ -225,6 +225,9 @@ type
     FLineWidth: TVector2;
     FTextureMaxLevel: Boolean;
     FTransformFeedbackVaryings: Boolean;
+    FMaxFragmentUniformComponents: Cardinal;
+    FMaxVertexUniformComponents: Cardinal;
+    FMaxSkinnedJoints: Cardinal;
     class var
       FRequestCapabilities: TGLRequestCapabilities;
       FDebug: Boolean;
@@ -585,6 +588,22 @@ type
 
     { Supports glTransformFeedbackVaryings }
     property TransformFeedbackVaryings: Boolean read FTransformFeedbackVaryings;
+
+    { Limit on uniforms size in fragment stage.
+      See GL_MAX_FRAGMENT_UNIFORM_COMPONENTS
+      in https://wikis.khronos.org/opengl/Uniform_(GLSL).
+      0 if @link(Shaders) is @false. }
+    property MaxFragmentUniformComponents: Cardinal read FMaxFragmentUniformComponents;
+
+    { Limit on uniforms size in vertex stage.
+      See GL_MAX_FRAGMENT_UNIFORM_COMPONENTS
+      in https://wikis.khronos.org/opengl/Uniform_(GLSL).
+      0 if @link(Shaders) is @false. }
+    property MaxVertexUniformComponents: Cardinal read FMaxVertexUniformComponents;
+
+    { Estimated maximum possible number of joints for skinning on GPU.
+      Based on @link(MaxVertexUniformComponents). }
+    property MaxSkinnedJointsShaders: Cardinal read FMaxSkinnedJoints;
   end;
 
 { Initialize GLVersion and GLFeatures. }
@@ -1340,6 +1359,22 @@ begin
     {$elseif defined(OpenGLES)} VersionES_3_0
     {$else} Version_3_0 and Shaders
     {$endif};
+
+  if Shaders then
+  begin
+    FMaxFragmentUniformComponents := glGetInteger(GL_MAX_FRAGMENT_UNIFORM_COMPONENTS);
+    FMaxVertexUniformComponents := glGetInteger(GL_MAX_VERTEX_UNIFORM_COMPONENTS);
+    FMaxSkinnedJoints := (MaxVertexUniformComponents -
+        { very rough estimation of the rest of uniforms }
+        4 * 10)
+        { each joint is mat4 uniform }
+        div 16;
+  end else
+  begin
+    FMaxFragmentUniformComponents := 0;
+    FMaxVertexUniformComponents := 0;
+    FMaxSkinnedJoints := 0;
+  end;
 
   // set GLFeatures singleton, TGLMemoryInfo.Create and TGLMemoryInfo.Refresh depend on it
   GLFeatures := Self;

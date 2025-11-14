@@ -228,6 +228,7 @@ begin
     '  Shadow Volumes Possible (stencil buffer, two-sided stencil operations): ' + BoolToStr(GLFeatures.ShadowVolumesPossible, true) + NL +
     '  Occlusion Query: ' + BoolToStr(GLFeatures.OcclusionQuery, true) + NL +
     '  Texture Max Level: ' + BoolToStr(GLFeatures.TextureMaxLevel, true) + NL +
+    '  Transform Feedback Varyings: ' + BoolToStr(GLFeatures.TransformFeedbackVaryings, true) + NL +
     NL +
     '  Necessary to use deprecated fixed-function pipeline: ' + BoolToStr(GLFeatures.EnableFixedFunction, true) + NL +
     NL +
@@ -286,6 +287,9 @@ begin
     '  Occlusion query counter bits: ' +  GetOcclusionQueryCounterBits + NL +
     '  Max renderbuffer size: ' + IntToStr(GLFeatures.MaxRenderbufferSize) + NL +
     '  Max line width: ' + GLFeatures.LineWidth.ToString + NL +
+    '  Max fragment uniform components: ' + IntToStr(GLFeatures.MaxFragmentUniformComponents) + NL +
+    '  Max vertex uniform components: ' + IntToStr(GLFeatures.MaxVertexUniformComponents) + NL +
+    '  Estimated maximum number of joints for skinning on GPU: ' + IntToStr(GLFeatures.MaxSkinnedJointsShaders) + NL +
     NL +
 
     Section + NL +
