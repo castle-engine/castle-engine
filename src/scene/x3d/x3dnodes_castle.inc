@@ -1035,7 +1035,9 @@ begin
      (not SomeShapeCastsShadowVolumes) then
   begin
     WritelnWarningOnce(DoneWarningTooManyJoints,
-      'Too many joints (%d) to perform skinning on GPU using shaders. The current GPU capabilities allow only %d joints and engine limit MaxPossibleSkinJointsShaders is %d. Consider adjusting your animation to use less joints and/or increase engine MaxPossibleSkinJointsShaders. ', [
+      'Too many joints (%d) to perform skinning on GPU using shaders. ' +
+      'The current GPU capabilities allow only %d joints and engine limit MaxPossibleSkinJointsShaders is %d. ' +
+      'Consider adjusting your animation to use less joints and/or increase engine MaxPossibleSkinJointsShaders. ', [
         FdJoints.Count,
         InternalUsesShadersMaxJoints,
         MaxPossibleSkinJointsShaders
