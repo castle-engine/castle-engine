@@ -1080,7 +1080,7 @@ type
   TLightShapeTreeInstance = class(TShapeTree)
   strict private
     FNode: TAbstractLightNode;
-    DoneWarningLightTransformChanged: Boolean;
+    //DoneWarningLightTransformChanged: Boolean;
   private
     procedure FastTransformUpdateCore(var AnythingChanged: Boolean;
       const ParentTransformation: TTransformation); override;
@@ -3731,10 +3731,14 @@ begin
   { force update of GeneratedShadowMap textures that used this light }
   TCastleSceneCore(ParentScene).InternalGeneratedTextures.UpdateShadowMaps(Node);
 
-  WritelnWarningOnce(DoneWarningLightTransformChanged,
-    'Light %s transformation changed. This works, but is unoptimal and also buggy (in case of multiple light instances) in CGE.', [
-    Node.NiceName
-  ]);
+  { TODO: This is valid warning, but "also buggy" may be too scary
+    (it is not obvious when is it actually buggy),
+    and user doesn't have any simpler fix. }
+
+  // WritelnWarningOnce(DoneWarningLightTransformChanged,
+  //   'Light %s transformation changed. This works, but is unoptimal and also buggy (in case of multiple light instances) in CGE.', [
+  //   Node.NiceName
+  // ]);
 
   AnythingChanged := true;
 end;
