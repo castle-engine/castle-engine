@@ -333,7 +333,7 @@ const
         for Bee from https://github.com/castle-engine/castle-model-viewer/issues/27 .
 
         For now just avoid having RoughnessFactor ridiculously low. }
-      RoughnessFactor := Max(RoughnessFactor, 0.05);
+      RoughnessFactor := Max(RoughnessFactor, 0.5);
     end;
 
     (*
