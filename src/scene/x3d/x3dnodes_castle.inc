@@ -992,7 +992,7 @@ procedure TSkinNode.InternalUpdateSkin;
          (Shape.Geometry.InternalOriginalNormals <> nil) or
          (Shape.Geometry.InternalOriginalTangents <> nil) then
       begin
-        WritelnWarning('TCastleScene was doing skinned animation on CPU, now it will do it on GPU.' + NL +
+        WritelnLog('TCastleScene was doing skinned animation on CPU, now it will do it on GPU.' + NL +
           '  This may happen if you started animating it before rendering context was initialized, or if you toggle CastShadows at run-time.' + NL +
           '  This requires to reinitialize the Geometry.InternalXxx data, and shaders, so avoid changing this too often at run-time to avoid performance hit.');
         if not GetArrays(

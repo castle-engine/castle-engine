@@ -63,9 +63,21 @@ procedure TSkinShader.GenerateCode(const Shader: TShader);
 
 const
   ShaderSkinAnimation = {$I skin_animation.vs.inc};
+var
+  SavedWarnMissingPlugs: Boolean;
 begin
   if Enabled then
+  begin
+    SavedWarnMissingPlugs := Shader.WarnMissingPlugs;
+    { Do not warn that PLUG_tangent_object_space is missing, which is normal
+      when we do skinned animation on a shape without normal map.
+      Testcase: woman from animate_bones_by_code_standalone.dpr . }
+    Shader.WarnMissingPlugs := false;
+
     Shader.Plug(stVertex, DefineMaxSkinJoints + ShaderSkinAnimation);
+
+    Shader.WarnMissingPlugs := SavedWarnMissingPlugs;
+  end;
 end;
 
 procedure TSkinShader.SetDynamicUniforms(const AProgram: TX3DShaderProgram);
