@@ -93,6 +93,7 @@ void main(void)
     #endif
 
   /* PLUG: vertex_eye_space (castle_vertex_eye, castle_normal_eye) */
+  /* PLUG: vertex_eye_space_extended (castle_vertex_eye, castle_normal_eye, normal_object) */
 
   calculate_lighting(castle_Color, castle_vertex_eye, castle_normal_eye);
 

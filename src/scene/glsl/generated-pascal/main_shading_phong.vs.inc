@@ -76,6 +76,7 @@
 '    #endif' + LineEnding +
 '' + LineEnding +
 '  /* PLUG: vertex_eye_space (castle_vertex_eye, castle_normal_eye) */' + LineEnding +
+'  /* PLUG: vertex_eye_space_extended (castle_vertex_eye, castle_normal_eye, normal_object) */' + LineEnding +
 '' + LineEnding +
 '  gl_Position = castle_ProjectionMatrix * castle_vertex_eye;' + LineEnding +
 '}' + LineEnding +

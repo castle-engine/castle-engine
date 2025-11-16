@@ -12,11 +12,15 @@ uniform mat4 castle_JointMatrix[CASTLE_MAX_SKIN_JOINTS];
 attribute vec4 castle_SkinJoints0;
 attribute vec4 castle_SkinWeights0;
 
+/* Calculated and used by vertex_object_space_change below,
+   potentially used again by tangent_object_space */
+mat4 skinMatrix;
+
 void PLUG_vertex_object_space_change(
   inout vec4 vertex_object,
   inout vec3 normal_object)
 {
-  mat4 skinMatrix =
+  skinMatrix =
     /* Special case to handle weights=(0,0,0,0) to workaround Blender -> glTF
        exporter bug. See for explanation and testcase:
        https://github.com/castle-engine/demo-models/tree/master/animation/blender_skinned_animation/blender_zero_weights_bug */
@@ -31,4 +35,24 @@ void PLUG_vertex_object_space_change(
     );
   vertex_object = skinMatrix * vertex_object;
   normal_object = mat3(skinMatrix) * normal_object;
+}
+
+void PLUG_tangent_object_space(inout vec4 tangent_object)
+{
+  /* Modify tangent_object.xyz (direction),
+     leaving tangent_object.w (handedness) unchanged.
+
+     We need to animate tangent direction, since we also animate normals,
+     when the skinned animation is active.
+     The visual difference is subtle, but is there,
+     testcase: lizard hands when "walk" plays in
+     demo-models/bump_mapping/lizardman/lizardman.gltf .
+
+     See also
+     https://github.com/KhronosGroup/glTF-Sample-Viewer , actually
+     https://github.com/KhronosGroup/glTF-Sample-Renderer , animating tangents
+     in
+     https://github.com/KhronosGroup/glTF-Sample-Renderer/blob/4deade77ce977dcd1e7918c949c2289e80eac365/source/Renderer/shaders/primitive.vert#L102 .
+  */
+  tangent_object.xyz = mat3(skinMatrix) * tangent_object.xyz;
 }
