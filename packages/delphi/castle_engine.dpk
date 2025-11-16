@@ -282,7 +282,6 @@ contains
   castleinternalnormals in '..\..\src\scene\castleinternalnormals.pas',
   castleinternalprimitivematerial in '..\..\src\scene\castleinternalprimitivematerial.pas',
   castleinternalrenderer in '..\..\src\scene\castleinternalrenderer.pas',
-  castleinternalscenereference in '..\..\src\scene\castleinternalscenereference.pas',
   castleinternalshadowmaps in '..\..\src\scene\castleinternalshadowmaps.pas',
   castleinternalshapeoctree in '..\..\src\scene\castleinternalshapeoctree.pas',
   castleinternalspritesheet in '..\..\src\scene\castleinternalspritesheet.pas',

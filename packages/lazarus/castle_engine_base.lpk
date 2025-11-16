@@ -4888,8 +4888,8 @@ See https://castle-engine.io/license for details.
         <Type Value="Include"/>
       </Item1200>
       <Item1152>
-        <Filename Value="../../src/scene/castleinternalscenereference.pas"/>
-        <UnitName Value="CastleInternalSceneReference"/>
+        <Filename Value="../../src/scene/load/x3dloadinternalgltf_skin_bounding_box.inc"/>
+        <Type Value="Include"/>
       </Item1152>
     </Files>
     <CompatibilityMode Value="True"/>
