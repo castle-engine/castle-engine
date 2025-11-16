@@ -464,12 +464,13 @@ begin
     for I := 0 to Skin.FdShapes.Count - 1 do
       CalculateOneShape(Skin.FdShapes[I] as TShapeNode);
 
-    WritelnLog('Calculated skinned animation bounding box in %f secs, sampling %d animation frames from total %d frames. Shapes count: %d', [
-      TimeStart.ElapsedTime,
-      FramesSampled,
-      FramesAll,
-      Skin.FdShapes.Count
-    ]);
+    if TimeStart.ElapsedTime > 0.01 then
+      WritelnLog('Calculated skinned animation bounding box in %f secs, sampling %d animation frames from total %d frames. Shapes count: %d', [
+        TimeStart.ElapsedTime,
+        FramesSampled,
+        FramesAll,
+        Skin.FdShapes.Count
+      ]);
   finally
     FreeAndNil(JointMatrix);
     FreeAndNil(AnimationSampler);
