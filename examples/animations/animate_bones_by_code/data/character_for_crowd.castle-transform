@@ -1,0 +1,24 @@
+{
+  "$$ClassName" : "TCastleTransform",
+  "Name" : "Transform1",
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleScene",
+      "Cache" : true,
+      "ExposeTransforms" : [
+      ],
+      "Name" : "SceneSmoothFemaleDress1",
+      "RenderOptions" : {
+        "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+        "WholeSceneManifold" : true
+      },
+      "ScalePersistent" : {
+        "$$ClassName" : "TCastleVector3Persistent",
+        "X" : 3.4999999403953552E-001,
+        "Y" : 3.4999999403953552E-001,
+        "Z" : 3.4999999403953552E-001
+      },
+      "Url" : "castle-data:/skinned_animation/Smooth_Female_Dress.gltf"
+    }
+  ]
+}

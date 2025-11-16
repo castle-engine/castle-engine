@@ -19,8 +19,8 @@ interface
 
 uses Classes,
   CastleVectors, CastleComponentSerialize, CastleTimeUtils, CastleSceneCore,
-  CastleUIControls, CastleControls, CastleKeysMouse, CastleScene, CastleViewport,
-  X3DNodes;
+  CastleUIControls, CastleControls, CastleKeysMouse, CastleScene,
+  CastleViewport, CastleTransform, X3DNodes;
 
 type
   TAnimationMode = (
@@ -43,8 +43,9 @@ type
     CheckboxCastShadows: TCastleCheckbox;
     SceneHumanoidNoSkinnedAnim, SceneHumanoidWithSkinnedAnim: TCastleScene;
     ButtonPlayWalk, ButtonPlayHead, ButtonPlayBoth: TCastleButton;
-    ButtonNoSkinnedAnim, ButtonWithSkinnedAnim: TCastleButton;
+    ButtonNoSkinnedAnim, ButtonWithSkinnedAnim, ButtonTestCrowd: TCastleButton;
     MainViewport: TCastleViewport;
+    FactoryCharacterForCrowd: TCastleComponentFactory;
   private
     SceneHumanoid: TCastleScene; //< Either SceneHumanoidNoSkinnedAnim or SceneHumanoidWithSkinnedAnim
     TransformNeck: TTransformNode;
@@ -58,6 +59,7 @@ type
     procedure ClickNoSkinnedAnim(Sender: TObject);
     procedure ClickWithSkinnedAnim(Sender: TObject);
     procedure CheckboxCastShadowsChange(Sender: TObject);
+    procedure ClickTestCrowd(Sender: TObject);
     { Switch UI and variables to use
       SceneHumanoidNoSkinnedAnim or SceneHumanoidWithSkinnedAnim }
     procedure ChooseSkinnedAnim(const UseSkinnedAnim: boolean);
@@ -115,49 +117,6 @@ begin
 end;
 
 procedure TViewMain.Start;
-
-  { Clone SceneHumanoidWithSkinnedAnim to experiment how many we can clone
-    and animate without performance problems. }
-  procedure TestCloneHumanoid;
-  const
-    BaseCount = 5; // We will make BaseCount^3 instances, BaseCount^3-1 clones
-    Distance: TVector3 = (X: 1.5; Y: 1.5; Z: 2.1);
-  var
-    X, Y, Z: Integer;
-    NewScene: TCastleScene;
-    Params: TPlayAnimationParameters;
-  begin
-    for X := 0 to BaseCount - 1 do
-      for Y := 0 to BaseCount - 1 do
-        for Z := 0 to BaseCount - 1 do
-        begin
-          if (X = 0) and (Y = 0) and (Z = 0) then
-            Continue; // original instance, not a clone
-
-          NewScene := SceneHumanoidWithSkinnedAnim.Clone(FreeAtStop);
-          NewScene.CastShadows := false; // allows to calculate skinned animation on GPU, faster
-          //NewScene.CastShadows := true; // forces to calculate skinned animation on CPU, slower
-          NewScene.Translation := Distance * Vector3(X, Y, Z);
-          NewScene.Scale := SceneHumanoidWithSkinnedAnim.Scale;
-          NewScene.RenderOptions.WholeSceneManifold := SceneHumanoidWithSkinnedAnim.RenderOptions.WholeSceneManifold;
-
-          //NewScene.PlayAnimation('walk', true);
-          Params := TPlayAnimationParameters.Create;
-          try
-            Params.Name := 'walk';
-            Params.Loop := true;
-            { Randomize start a bit, to have each instance start at different time,
-              to show this is more powerful than TCastleTransformReference
-              as all instances of TCastleTransformReference can play different
-              animation. }
-            Params.InitialTime := Random * NewScene.AnimationDuration('walk') * 0.75;
-            NewScene.PlayAnimation(Params);
-          finally FreeAndNil(Params) end;
-
-          MainViewport.Items.Add(NewScene);
-        end;
-  end;
-
 begin
   inherited;
 
@@ -166,6 +125,7 @@ begin
   ButtonPlayBoth.OnClick := {$ifdef FPC}@{$endif} ClickPlayBoth;
   ButtonNoSkinnedAnim.OnClick := {$ifdef FPC}@{$endif} ClickNoSkinnedAnim;
   ButtonWithSkinnedAnim.OnClick := {$ifdef FPC}@{$endif} ClickWithSkinnedAnim;
+  ButtonTestCrowd.OnClick := {$ifdef FPC}@{$endif} ClickTestCrowd;
   CheckboxCastShadows.OnChange := {$ifdef FPC}@{$endif} CheckboxCastShadowsChange;
 
   { Remove any animation affecting Neck from SceneHumanoidWithSkinnedAnim.
@@ -182,9 +142,6 @@ begin
 
   // change all UI and variables to use SceneHumanoidWithSkinnedAnim and hide SceneHumanoidNoSkinnedAnim
   ClickWithSkinnedAnim(nil);
-
-  // test performance with many scenes
-  //TestCloneHumanoid;
 end;
 
 procedure TViewMain.ClickNoSkinnedAnim(Sender: TObject);
@@ -352,6 +309,54 @@ begin
     Scene.RootNode.EnumerateNodes(TX3DNode,
       {$ifdef FPC}@{$endif} Utility.Handler, false);
   finally FreeAndNil(Utility) end;
+end;
+
+procedure TViewMain.ClickTestCrowd(Sender: TObject);
+
+{ Clone SceneHumanoidWithSkinnedAnim to experiment how many we can clone
+  and animate without performance problems. }
+
+const
+  BaseCount = 5; // We will make BaseCount^3 instances, BaseCount^3-1 clones
+  Distance: TVector3 = (X: 1.5; Y: 1.5; Z: 2.1);
+var
+  X, Y, Z: Integer;
+  NewScene: TCastleScene;
+  NewCharacter: TCastleTransform;
+  Params: TPlayAnimationParameters;
+begin
+  for X := 0 to BaseCount - 1 do
+    for Y := 0 to BaseCount - 1 do
+      for Z := 0 to BaseCount - 1 do
+      begin
+        if (X = 0) and (Y = 0) and (Z = 0) then
+          Continue; // original instance, not a clone
+
+        NewCharacter := FactoryCharacterForCrowd.ComponentLoad(FreeAtStop) as TCastleTransform;
+        NewScene := NewCharacter[0] as TCastleScene; // we know it's TCastleScene
+
+        NewScene.CastShadows := false; // allows to calculate skinned animation on GPU, faster
+        //NewScene.CastShadows := true; // forces to calculate skinned animation on CPU, slower
+        NewScene.Translation := Distance * Vector3(X, Y, Z);
+
+        //NewScene.PlayAnimation('walk', true);
+        Params := TPlayAnimationParameters.Create;
+        try
+          Params.Name := 'walk';
+          Params.Loop := true;
+          { Randomize start a bit, to have each instance start at different time,
+            to show this is more powerful than TCastleTransformReference
+            as all instances of TCastleTransformReference can play different
+            animation. }
+          Params.InitialTime := Random * NewScene.AnimationDuration('walk') * 0.75;
+          NewScene.PlayAnimation(Params);
+        finally FreeAndNil(Params) end;
+
+        MainViewport.Items.Add(NewScene);
+      end;
+
+  // calling it multiple times would look bad with overlapping characters
+  ButtonTestCrowd.Enabled := false;
 end;
 
 end.
