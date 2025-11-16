@@ -239,12 +239,61 @@
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
     procedure AfterTraverse(StateStack: TX3DGraphTraverseStateStack); override;
   public
+    const
+      DefaultAnimationSamplingForBox = 30;
+
     class var
       { Set by TCastleScene to indicate is renderer (like OpenGL) capable to
         use shaders to animate skin.
         @exclude }
       InternalUsesShadersPossible: Boolean;
       InternalUsesShadersMaxJoints: Cardinal;
+
+      { Which animation frames to sample when calculating bounding box
+        of the animation.
+
+        In order to have correct frustum culling, we need to know
+        the bounding box of the animation.
+        See https://castle-engine.io/skin#_you_need_to_assign_proper_bounding_box_explicitly .
+        Also we don't want to spend too much time calculating it.
+
+        Solution: For each animation, we calculate the bounding box of:
+
+        @unorderedList(
+          @item first frame
+          @item last frame
+          @item every AnimationSamplingForBox frame.
+        )
+
+        E.g. when AnimationSampleForBox = 10, we sample frame 10, 20, 30 etc.
+        (in addition to the first (0) and last frames).
+
+        @unorderedList(
+          @item(Set this to 1 to sample every frame, which is most correct,
+            but also the slowest.)
+
+          @item(Set this to some large number to sample less frames.)
+
+          @item(As a special case, set this to 0 to sample no frames at all,
+            not even the first and last frame.
+
+            This means that if the skin animation will be done by shaders (GPU),
+            then the "T-pose" of the animation determines the object
+            bounding box for the purpose of frustum culling.
+
+            This is fastest, but also incorrect for many real models and
+            animations.)
+          )
+        )
+
+        Currently this is used only when creating TSkinNode from glTF animation.
+        TODO: But we plan to support this always, regardless of how
+        the skin node was created.
+
+        By default this is DefaultAnimationSamplingForBox.
+      }
+      AnimationSamplingForBox: Cardinal;
+
     var
       { Current joint matrix.
         See https://www.khronos.org/files/gltf20-reference-guide.pdf
@@ -1064,38 +1113,6 @@ begin
   {$endif}
 end;
 
-// TODO:
-//
-// function TSkinNode.ShapeBoundingBoxInInstance(const ShapeIndex: Integer;
-//   const Instance: TCastleSceneInstance): TBox3D;
-// begin
-//
-// end;
-//
-// TODO: full algo:
-//
-// from ChangedAll, once we know all TSkinNode instances:
-//
-// for their shapes with TShapeNode.InternalAnimatedBBoxKnown=false:
-// calculate TShapeNode.InternalAnimatedBBox.
-//
-// TCastleScene uses TCastleSceneInstance on itself.
-//
-// For skin node, looks at all animations affecting it
-// (how do we detect them? how this glTF precalculation detect them?).
-// Sets their times to start, end, and at keyframes, with increments >=
-// NextKeyframeTimeToConsider (to not consider too dense keyframes inside).
-//
-// Skips some vertexes to optimize?
-// Maybe just pick "max 1000 vertexes, interspersed in mesh" --
-// based on this, calculate SkipVertexIndex.
-//
-// Then sums, for each shape, ShapeBoundingBoxInInstance.
-//
-// At the end, use TShapeNode.InternalAnimatedBBox if exists.
-//
-// TODO: Time this calculation.
-
 { registration --------------------------------------------------------------- }
 
 procedure RegisterCastleEngineNodes;
@@ -1117,6 +1134,8 @@ begin
     TOrientationInterpolator2DNode,
     TSkinNode
   ]);
+
+  TSkinNode.AnimationSamplingForBox := TSkinNode.DefaultAnimationSamplingForBox;
 end;
 
 {$endif read_implementation}

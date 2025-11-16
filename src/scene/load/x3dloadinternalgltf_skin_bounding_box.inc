@@ -337,6 +337,8 @@ var
   AnimationSampler: TAnimationSampler;
   JointMatrix: TMatrix4List; //< coult be local to each SampleSkinAnimation, but created once to avoid wasting time on allocation
   KeyTimes: TSingleList;
+  FramesSampled, FramesAll: Cardinal;
+  TimeStart: TTimerResult;
 
   { Calculate shape bounding box for all animation frames. }
   procedure CalculateOneShape(const Shape: TShapeNode);
@@ -382,7 +384,11 @@ var
       GatherAnimationKeysToSample(KeyTimes, Anim.Interpolators);
 
       Box := TBox3D.Empty;
-      for I := 0 to KeyTimes.Count - 1 do
+
+      FramesAll := FramesAll + KeyTimes.Count;
+
+      I := 0;
+      while I < KeyTimes.Count do
       begin
         SampleSkinAnimation(AnimationSampler, I, KeyTimes[I],
           Coord.FdPoint.Items, Box,
@@ -390,12 +396,27 @@ var
           Skin.FdInverseBindMatrices.Items,
           SkeletonRootIndex,
           Joints0, Weights0);
+        Inc(FramesSampled);
+        I := I + TSkinNode.AnimationSamplingForBox;
+      end;
+
+      { Sample also last frame }
+      if I <> KeyTimes.Count - 1 then
+      begin
+        I := KeyTimes.Count - 1;
+        SampleSkinAnimation(AnimationSampler, I, KeyTimes[I],
+          Coord.FdPoint.Items, Box,
+          Skin.FdJoints.InternalItems, JointsGltf, JointMatrix,
+          Skin.FdInverseBindMatrices.Items,
+          SkeletonRootIndex,
+          Joints0, Weights0);
+        Inc(FramesSampled);
       end;
 
       { We want to use Shape.BBox for optimization (to avoid recalculating bbox).
         Simple version:
 
-          Shape.BBox := Shape.BBox + TBox3D.FromPoints(CoordInterpolator.FdKeyValue.Items);
+          Shape.BBox := Shape.BBox + Box;
 
         But it's more efficient to set bbox for specific animation
         once the animation starts.
@@ -413,6 +434,13 @@ var
 var
   I: Integer;
 begin
+  { AnimationSamplingForBox = 0 is a special case, leave shapes bbox
+    unassigned then. Engine will assume bounding box of the animation
+    is equal to the value of TCoordinateNode contents on CPU (not accounting
+    for skinned animation on GPU). }
+  if TSkinNode.AnimationSamplingForBox = 0 then
+    Exit;
+
   // nil local variables, to have easy finally section
   AnimationSampler := nil;
   JointMatrix := nil;
@@ -429,8 +457,19 @@ begin
 
     KeyTimes := TSingleList.Create;
 
+    FramesSampled := 0;
+    FramesAll := 0;
+    TimeStart := Timer;
+
     for I := 0 to Skin.FdShapes.Count - 1 do
       CalculateOneShape(Skin.FdShapes[I] as TShapeNode);
+
+    WritelnLog('Calculated skinned animation bounding box in %f secs, sampling %d animation frames from total %d frames. Shapes count: %d', [
+      TimeStart.ElapsedTime,
+      FramesSampled,
+      FramesAll,
+      Skin.FdShapes.Count
+    ]);
   finally
     FreeAndNil(JointMatrix);
     FreeAndNil(AnimationSampler);
