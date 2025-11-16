@@ -118,7 +118,7 @@
           }
         ]
       },
-      "Name" : "Viewport1",
+      "Name" : "MainViewport",
       "$NonVisualComponents" : [
         {
           "$$ClassName" : "TCastleBackground",

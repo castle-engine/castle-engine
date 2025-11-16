@@ -18,8 +18,8 @@ unit GameViewMain;
 interface
 
 uses Classes,
-  CastleVectors, CastleComponentSerialize, CastleTimeUtils,
-  CastleUIControls, CastleControls, CastleKeysMouse, CastleScene,
+  CastleVectors, CastleComponentSerialize, CastleTimeUtils, CastleSceneCore,
+  CastleUIControls, CastleControls, CastleKeysMouse, CastleScene, CastleViewport,
   X3DNodes;
 
 type
@@ -44,6 +44,7 @@ type
     SceneHumanoidNoSkinnedAnim, SceneHumanoidWithSkinnedAnim: TCastleScene;
     ButtonPlayWalk, ButtonPlayHead, ButtonPlayBoth: TCastleButton;
     ButtonNoSkinnedAnim, ButtonWithSkinnedAnim: TCastleButton;
+    MainViewport: TCastleViewport;
   private
     SceneHumanoid: TCastleScene; //< Either SceneHumanoidNoSkinnedAnim or SceneHumanoidWithSkinnedAnim
     TransformNeck: TTransformNode;
@@ -114,6 +115,49 @@ begin
 end;
 
 procedure TViewMain.Start;
+
+  { Clone SceneHumanoidWithSkinnedAnim to experiment how many we can clone
+    and animate without performance problems. }
+  procedure TestCloneHumanoid;
+  const
+    BaseCount = 5; // We will make BaseCount^3 instances, BaseCount^3-1 clones
+    Distance: TVector3 = (X: 1.5; Y: 1.5; Z: 2.1);
+  var
+    X, Y, Z: Integer;
+    NewScene: TCastleScene;
+    Params: TPlayAnimationParameters;
+  begin
+    for X := 0 to BaseCount - 1 do
+      for Y := 0 to BaseCount - 1 do
+        for Z := 0 to BaseCount - 1 do
+        begin
+          if (X = 0) and (Y = 0) and (Z = 0) then
+            Continue; // original instance, not a clone
+
+          NewScene := SceneHumanoidWithSkinnedAnim.Clone(FreeAtStop);
+          NewScene.CastShadows := false; // allows to calculate skinned animation on GPU, faster
+          //NewScene.CastShadows := true; // forces to calculate skinned animation on CPU, slower
+          NewScene.Translation := Distance * Vector3(X, Y, Z);
+          NewScene.Scale := SceneHumanoidWithSkinnedAnim.Scale;
+          NewScene.RenderOptions.WholeSceneManifold := SceneHumanoidWithSkinnedAnim.RenderOptions.WholeSceneManifold;
+
+          //NewScene.PlayAnimation('walk', true);
+          Params := TPlayAnimationParameters.Create;
+          try
+            Params.Name := 'walk';
+            Params.Loop := true;
+            { Randomize start a bit, to have each instance start at different time,
+              to show this is more powerful than TCastleTransformReference
+              as all instances of TCastleTransformReference can play different
+              animation. }
+            Params.InitialTime := Random * NewScene.AnimationDuration('walk') * 0.75;
+            NewScene.PlayAnimation(Params);
+          finally FreeAndNil(Params) end;
+
+          MainViewport.Items.Add(NewScene);
+        end;
+  end;
+
 begin
   inherited;
 
@@ -138,6 +182,9 @@ begin
 
   // change all UI and variables to use SceneHumanoidWithSkinnedAnim and hide SceneHumanoidNoSkinnedAnim
   ClickWithSkinnedAnim(nil);
+
+  // test performance with many scenes
+  //TestCloneHumanoid;
 end;
 
 procedure TViewMain.ClickNoSkinnedAnim(Sender: TObject);
