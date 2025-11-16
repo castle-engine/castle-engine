@@ -129,6 +129,7 @@ do_project examples/third_person_navigation # TODO: web: mouse look
 do_project examples/physics/physics_3d_shooter # TODO: web: mouse look
 do_project examples/3d_games/dungeons_and_skeletons_fight # TODO: web: mouse look
 do_project examples/3d_games/walking_adventure # TODO: web: mouse look
+do_project examples/animations/animate_bones_by_code
 
 do_project tools/castle-editor-portable
 do_project tests
