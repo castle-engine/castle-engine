@@ -227,6 +227,8 @@ begin
   inherited;
 end;
 
+{$I x3dloadinternalgltf_skin_bounding_box.inc}
+
 { TTexture ------------------------------------------------------------------- }
 
 type
@@ -697,6 +699,8 @@ end;
 function LoadGltf(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 var
   Document: TPasGLTF.TDocument;
+  // Current scene from Document.Scenes
+  SceneGltf: TPasGLTF.TScene;
   // List of TGltfAppearanceNode nodes, ordered just list glTF materials
   Appearances: TX3DNodeList;
   { List of TTransformNode nodes, ordered just list glTF nodes.
@@ -2039,13 +2043,12 @@ var
 
   procedure ReadScene(const SceneIndex: Integer; const ParentGroup: TAbstractGroupingNode);
   var
-    Scene: TPasGLTF.TScene;
     NodeIndex: Integer;
   begin
     if Between(SceneIndex, 0, Document.Scenes.Count - 1) then
     begin
-      Scene := Document.Scenes[SceneIndex];
-      for NodeIndex in Scene.Nodes do
+      SceneGltf := Document.Scenes[SceneIndex];
+      for NodeIndex in SceneGltf.Nodes do
         ReadNode(NodeIndex, ParentGroup);
     end else
       WritelnWarning('glTF', 'Scene index invalid: %d', [SceneIndex]);
@@ -2329,14 +2332,14 @@ var
     finally FreeAndNil(ParentFieldsCopy) end;
   end;
 
+  (*
   { This is a hacky way to determine bounding box after skin animation
     is applied. We just enlarge the box in all dimensions by a proportional
     size that "seems to be good enough for testcases".
     We need this, as otherwise too-small bounding box could result in
     frustum culling hiding the object. See https://castle-engine.io/skin
 
-    TODO: Try getting better data from glTF, they have bounds in various places,
-    can they be used? }
+    Should be unnecessary now that we have CalculateSkinnedShapesBoundingBoxes. }
   function EnlargeBoxForAnimation(const Box: TBox3D): TBox3D;
   var
     BoxIncrease: TVector3;
@@ -2351,6 +2354,7 @@ var
       Result.Data[1] := Result.Data[1] + BoxIncrease;
     end;
   end;
+  *)
 
   { Add skin information (TSkinNode) based on TSkinToInitialize. }
   procedure ReadSkin(const Skin: TPasGLTF.TSkin;
@@ -2433,7 +2437,7 @@ var
               TODO: Shape.BBox is not calculated now. }
             ShapeNode.Collision := scBox;
 
-            ShapeNode.BBox := EnlargeBoxForAnimation(ShapeNode.BBox);
+            //ShapeNode.BBox := EnlargeBoxForAnimation(ShapeNode.BBox);
 
             { To satisfy glTF requirements
               """
@@ -2456,6 +2460,9 @@ var
             Inc(I);
         end;
       end;
+
+      CalculateSkinnedShapesBoundingBoxes(SkinNode, Animations, Nodes,
+        Skin.Joints, Document.Nodes, SceneGltf.Nodes, SkeletonRootIndex);
     finally
       // If we Exit above prematurely, because some check fails,
       // SkinNode may remain initialized but unused.
@@ -2538,6 +2545,7 @@ begin
         Appearances.Add(ReadAppearance(Material));
 
       // read main scene
+      SceneGltf := nil;
       CurrentScene := TGroupNode.Create;
       Result.AddChildren(CurrentScene);
       Nodes := TX3DNodeList.Create(false);
