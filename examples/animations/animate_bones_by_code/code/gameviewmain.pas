@@ -46,6 +46,7 @@ type
     ButtonNoSkinnedAnim, ButtonWithSkinnedAnim, ButtonTestCrowd: TCastleButton;
     MainViewport: TCastleViewport;
     FactoryCharacterForCrowd: TCastleComponentFactory;
+    PlaneGround: TCastlePlane;
   private
     SceneHumanoid: TCastleScene; //< Either SceneHumanoidNoSkinnedAnim or SceneHumanoidWithSkinnedAnim
     TransformNeck: TTransformNode;
@@ -317,43 +318,48 @@ procedure TViewMain.ClickTestCrowd(Sender: TObject);
   and animate without performance problems. }
 
 const
-  BaseCount = 5; // We will make BaseCount^3 instances, BaseCount^3-1 clones
-  Distance: TVector3 = (X: 1.5; Y: 1.5; Z: 2.1);
+  BaseCount = 10; // We will make BaseCount^2-1 new instances
+  Distance: TVector3 = (X: 1.5; Y: 0; Z: -1.5);
 var
-  X, Y, Z: Integer;
+  X, Z: Integer;
   NewScene: TCastleScene;
   NewCharacter: TCastleTransform;
   Params: TPlayAnimationParameters;
 begin
   for X := 0 to BaseCount - 1 do
-    for Y := 0 to BaseCount - 1 do
-      for Z := 0 to BaseCount - 1 do
-      begin
-        if (X = 0) and (Y = 0) and (Z = 0) then
-          Continue; // original instance, not a clone
+    for Z := 0 to BaseCount - 1 do
+    begin
+      if (X = 0) and (Z = 0) then
+        Continue; // original instance, not a clone
 
-        NewCharacter := FactoryCharacterForCrowd.ComponentLoad(FreeAtStop) as TCastleTransform;
-        NewScene := NewCharacter[0] as TCastleScene; // we know it's TCastleScene
+      NewCharacter := FactoryCharacterForCrowd.ComponentLoad(FreeAtStop) as TCastleTransform;
+      NewScene := NewCharacter[0] as TCastleScene; // we know it's TCastleScene
 
-        NewScene.CastShadows := false; // allows to calculate skinned animation on GPU, faster
-        //NewScene.CastShadows := true; // forces to calculate skinned animation on CPU, slower
-        NewScene.Translation := Distance * Vector3(X, Y, Z);
+      NewScene.CastShadows := false; // allows to calculate skinned animation on GPU, faster
+      //NewScene.CastShadows := true; // forces to calculate skinned animation on CPU, slower
+      // TODO: enable shadows, by making shadow maps easier to set up, https://castle-engine.io/roadmap#shadow_maps
 
-        //NewScene.PlayAnimation('walk', true);
-        Params := TPlayAnimationParameters.Create;
-        try
-          Params.Name := 'walk';
-          Params.Loop := true;
-          { Randomize start a bit, to have each instance start at different time,
-            to show this is more powerful than TCastleTransformReference
-            as all instances of TCastleTransformReference can play different
-            animation. }
-          Params.InitialTime := Random * NewScene.AnimationDuration('walk') * 0.75;
-          NewScene.PlayAnimation(Params);
-        finally FreeAndNil(Params) end;
+      NewScene.Translation := Distance * Vector3(X, 0, Z);
 
-        MainViewport.Items.Add(NewScene);
-      end;
+      //NewScene.PlayAnimation('walk', true);
+      Params := TPlayAnimationParameters.Create;
+      try
+        Params.Name := 'walk';
+        Params.Loop := true;
+        { Randomize start a bit, to have each instance start at different time,
+          to show this is more powerful than TCastleTransformReference
+          as all instances of TCastleTransformReference can play different
+          animation. }
+        Params.InitialTime := Random * NewScene.AnimationDuration('walk') * 0.75;
+        NewScene.PlayAnimation(Params);
+      finally FreeAndNil(Params) end;
+
+      MainViewport.Items.Add(NewScene);
+    end;
+
+  PlaneGround.Size := Vector2(
+    BaseCount * Abs(Distance.X) * 2,
+    BaseCount * Abs(Distance.Z) * 2);
 
   // calling it multiple times would look bad with overlapping characters
   ButtonTestCrowd.Enabled := false;

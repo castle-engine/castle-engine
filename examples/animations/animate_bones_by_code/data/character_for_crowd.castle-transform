@@ -4,6 +4,7 @@
   "$Children" : [
     {
       "$$ClassName" : "TCastleScene",
+      "AnimateOnlyWhenVisible" : true,
       "Cache" : true,
       "ExposeTransforms" : [
       ],
