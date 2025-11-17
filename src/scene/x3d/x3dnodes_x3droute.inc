@@ -508,13 +508,13 @@ procedure TX3DRoute.SaveToStream(Writer: TX3DWriter);
   begin
     { Check Node }
     if Node = nil then
-      raise EX3DRouteSaveError.CreateFmt('Cannot save VRML route: %s node not assigned (look for warnings when reading this VRML file)', [S]);
+      raise EX3DRouteSaveError.CreateFmt('Cannot save X3D route: %s node not assigned (look for warnings when reading this VRML file)', [S]);
     if Node.X3DName = '' then
-      raise EX3DRouteSaveError.CreateFmt('Cannot save VRML route: %s node not named', [S]);
+      raise EX3DRouteSaveError.CreateFmt('Cannot save X3D route: %s node not named', [S]);
 
     BoundNode := (Writer as TX3DWriterNames).NodeNames.Bound(Node.X3DName, IgnoreNodeFinished);
     if BoundNode = nil then
-      raise EX3DRouteSaveError.CreateFmt('Cannot save VRML route: %s node name "%s" not bound',
+      raise EX3DRouteSaveError.CreateFmt('Cannot save X3D route: %s node name "%s" not bound',
         [S, Node.X3DName]);
 
     { Just like when setting node by TX3DRoute.SetEnding:
@@ -523,18 +523,18 @@ procedure TX3DRoute.SaveToStream(Writer: TX3DWriter);
     if BoundNode.PrototypeInstanceSourceNode <> nil then
       BoundNode := BoundNode.PrototypeInstanceSourceNode;
     if BoundNode <> Node then
-      raise EX3DRouteSaveError.CreateFmt('Cannot save VRML route: %s node name "%s" not bound (another node bound to the same name)',
+      raise EX3DRouteSaveError.CreateFmt('Cannot save X3D route: %s node name "%s" not bound (another node bound to the same name)',
         [S, Node.X3DName]);
 
     NodeName := Node.X3DName;
 
     { Check Event }
     if Event = nil then
-      raise EX3DRouteSaveError.CreateFmt('Cannot save VRML route: %s event not assigned', [S]);
+      raise EX3DRouteSaveError.CreateFmt('Cannot save X3D route: %s event not assigned', [S]);
 
     { Check we have a name. }
     if Event.X3DName = '' then
-      raise EX3DRouteSaveError.CreateFmt('Cannot save VRML route: %s event not named', [S]);
+      raise EX3DRouteSaveError.CreateFmt('Cannot save X3D route: %s event not named', [S]);
     EventName := Event.X3DName;
   end;
 
