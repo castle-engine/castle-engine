@@ -2462,7 +2462,13 @@ var
       end;
 
       CalculateSkinnedShapesBoundingBoxes(SkinNode, Animations, Nodes,
-        Skin.Joints, Document.Nodes, SceneGltf.Nodes, SkeletonRootIndex);
+        Skin.Joints, Document.Nodes, SceneGltf.Nodes, SkeletonRootIndex,
+        { Place the trigger nodes in the root of X3D file.
+          This allows to save the ROUTEs properly,
+          as they must be saved after the corresponding nodes.
+          Testcase: save from glTF to X3D quaternius/Bunny.gltf,
+          auto-tested by TTestX3DNodes.TestGltfConversion. }
+        Result);
     finally
       // If we Exit above prematurely, because some check fails,
       // SkinNode may remain initialized but unused.

@@ -326,13 +326,24 @@ begin
   ParentGroup.AddRoute(F, Shape.FdBboxSize);
 end;
 
-{ Calculate bounding box for all shapes for all animation frames. }
+{ Calculate bounding box for all shapes for all animation frames.
+
+  For each Skin.FdShapes, for each animation on Animations,
+  calculate shape bounding box for all animation frames
+  (following TSkinNode.AnimationSamplingForBox).
+
+  Then add a trigger that sets the TShapeNode.BBox to the proper value
+  when this animation starts.
+
+  ParentGroup can be really any grouping node,
+  we add there only trigger node and routes. }
 procedure CalculateSkinnedShapesBoundingBoxes(const Skin: TSkinNode;
   const Animations: TAnimationList; const TransformNodes: TX3DNodeList;
   const JointsGltf: TPasGLTF.TSkin.TJoints;
   const TransformNodesGltf: TPasGLTF.TNodes;
   const TransformNodesRoots: TPasGLTF.TScene.TNodes;
-  const SkeletonRootIndex: Integer);
+  const SkeletonRootIndex: Integer;
+  const ParentGroup: TAbstractGroupingNode);
 var
   AnimationSampler: TAnimationSampler;
   JointMatrix: TMatrix4List; //< coult be local to each SampleSkinAnimation, but created once to avoid wasting time on allocation
@@ -427,7 +438,7 @@ var
         This matters, because bbox is also used for collisions.
         E.g. knight in fps_game when Walking should not have huge bbox
         because of Dying animation. }
-      SetBBoxWhenAnimationStarts(Anim.TimeSensor, Shape, Box, Skin.Skeleton);
+      SetBBoxWhenAnimationStarts(Anim.TimeSensor, Shape, Box, ParentGroup);
     end;
   end;
 
