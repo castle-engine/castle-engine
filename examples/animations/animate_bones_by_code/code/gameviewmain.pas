@@ -314,24 +314,46 @@ end;
 
 procedure TViewMain.ClickTestCrowd(Sender: TObject);
 
-{ Clone SceneHumanoidWithSkinnedAnim to experiment how many we can clone
-  and animate without performance problems. }
+{ Create clones of TCastleScene using TCastleComponentFactory
+  (see https://castle-engine.io/reuse_design ).
+  They all play an animation (at different time) to experiment how many
+  (different) skinned animations we can handle without performance problems.
+
+  We also create even more copies of it using TCastleTransformReference
+  (such copy is linked to the same scene instance, so it's even more efficient,
+  but has to show the same animation, same animation time).
+  Just to show we may make a real crowd.
+}
+
+  // Add to each instance position, to make them look less regular.
+  {
+  function RandomShift: TVector3;
+  const
+    Spread = 0.5;
+  begin
+    Result := Vector3(
+      RandomFloatRange(-Spread, Spread),
+      0,
+      RandomFloatRange(-Spread, Spread)
+    );
+  end;
+  }
 
 const
-  BaseCount = 10; // We will make BaseCount^2-1 new instances
-  Distance: TVector3 = (X: 1.5; Y: 0; Z: -1.5);
+  InstancesCount = 8; // We will make InstancesCount^2 new instances
+  ReferencesCount = 3; // Each of InstancesCount^2 will have ReferencesCount^2-1 additional references
+  InstanceShift: TVector3 = (X: 2; Y: 0; Z: 0); // shift to avoid colliding with SceneHumanoidWithSkinnedAnim
+  InstanceSpread: TVector3 = (X: 1.5; Y: 0; Z: -1.5);
 var
-  X, Z: Integer;
+  X, Z, TX, TZ: Integer;
   NewScene: TCastleScene;
   NewCharacter: TCastleTransform;
+  NewReference: TCastleTransformReference;
   Params: TPlayAnimationParameters;
 begin
-  for X := 0 to BaseCount - 1 do
-    for Z := 0 to BaseCount - 1 do
+  for X := 0 to InstancesCount - 1 do
+    for Z := 0 to InstancesCount - 1 do
     begin
-      if (X = 0) and (Z = 0) then
-        Continue; // original instance, not a clone
-
       NewCharacter := FactoryCharacterForCrowd.ComponentLoad(FreeAtStop) as TCastleTransform;
       NewScene := NewCharacter[0] as TCastleScene; // we know it's TCastleScene
 
@@ -339,7 +361,9 @@ begin
       //NewScene.CastShadows := true; // forces to calculate skinned animation on CPU, slower
       // TODO: enable shadows, by making shadow maps easier to set up, https://castle-engine.io/roadmap#shadow_maps
 
-      NewScene.Translation := Distance * Vector3(X, 0, Z);
+      NewScene.Translation := {RandomShift +}
+        InstanceShift +
+        InstanceSpread * Vector3(X, 0, Z);
 
       //NewScene.PlayAnimation('walk', true);
       Params := TPlayAnimationParameters.Create;
@@ -355,14 +379,40 @@ begin
       finally FreeAndNil(Params) end;
 
       MainViewport.Items.Add(NewScene);
+
+      // create ReferencesCount^2-1 references to NewScene
+      for TX := 0 to ReferencesCount - 1 do
+        for TZ := 0 to ReferencesCount - 1 do
+        begin
+          if (TX = 0) and (TZ = 0) then
+            Continue; // original instance, not a reference
+
+          NewReference := TCastleTransformReference.Create(FreeAtStop);
+          NewReference.Reference := NewScene;
+          NewReference.Scale := NewScene.Scale;
+          NewReference.Translation := {RandomShift +}
+            InstanceShift +
+            InstanceSpread * Vector3(X, 0, Z) +
+            Vector3(
+              InstancesCount * Abs(InstanceSpread.X),
+              0,
+              -InstancesCount * Abs(InstanceSpread.Z)
+            ) * Vector3(TX, 0, TZ);
+          MainViewport.Items.Add(NewReference);
+        end;
     end;
 
   PlaneGround.Size := Vector2(
-    BaseCount * Abs(Distance.X) * 2,
-    BaseCount * Abs(Distance.Z) * 2);
+    ReferencesCount * InstancesCount * Abs(InstanceSpread.X) * 2,
+    ReferencesCount * InstancesCount * Abs(InstanceSpread.Z) * 2);
 
   // calling it multiple times would look bad with overlapping characters
   ButtonTestCrowd.Enabled := false;
+
+  WritelnLog('Added crowd with %d characters. %d of them have different animation time', [
+    Sqr(InstancesCount) * Sqr(ReferencesCount),
+    Sqr(InstancesCount)
+  ]);
 end;
 
 end.

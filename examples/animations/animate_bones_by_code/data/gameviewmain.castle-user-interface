@@ -107,6 +107,7 @@
           },
           {
             "$$ClassName" : "TCastleScene",
+            "Cache" : true,
             "ExposeTransforms" : [
             ],
             "Name" : "SceneHumanoidWithSkinnedAnim",
