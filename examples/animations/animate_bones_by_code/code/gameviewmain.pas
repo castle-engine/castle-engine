@@ -53,6 +53,7 @@ type
     HeadAnimationTime: TFloatTime;
     AnimationMode: TAnimationMode;
     SkinNode: TSkinNode;
+    CrowdScenes: TCastleSceneList;
     procedure DebugLogNodeName(Node: TX3DNode);
     procedure ClickPlayWalk(Sender: TObject);
     procedure ClickPlayHead(Sender: TObject);
@@ -71,6 +72,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
+    procedure Stop; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
   end;
 
@@ -143,6 +145,14 @@ begin
 
   // change all UI and variables to use SceneHumanoidWithSkinnedAnim and hide SceneHumanoidNoSkinnedAnim
   ClickWithSkinnedAnim(nil);
+
+  CrowdScenes := TCastleSceneList.Create(false);
+end;
+
+procedure TViewMain.Stop;
+begin
+  FreeAndNil(CrowdScenes);
+  inherited;
 end;
 
 procedure TViewMain.ClickNoSkinnedAnim(Sender: TObject);
@@ -212,9 +222,13 @@ begin
 end;
 
 procedure TViewMain.CheckboxCastShadowsChange(Sender: TObject);
+var
+  Scene: TCastleScene;
 begin
   SceneHumanoidNoSkinnedAnim.CastShadows := CheckboxCastShadows.Checked;
   SceneHumanoidWithSkinnedAnim.CastShadows := CheckboxCastShadows.Checked;
+  for Scene in CrowdScenes do
+    Scene.CastShadows := CheckboxCastShadows.Checked;
 end;
 
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
@@ -351,19 +365,24 @@ var
   NewReference: TCastleTransformReference;
   Params: TPlayAnimationParameters;
 begin
+  { TODO: Turn off shadows for crowd.
+    Reason: shadow volumes now disable skinned animation on GPU, making
+    it prohibitively slow for crowd (you can toggle CheckboxCastShadows to see it).
+    We will solve this by making shadow maps easier to set up, https://castle-engine.io/roadmap#shadow_maps }
+  CheckboxCastShadows.Checked := false;
+  CheckboxCastShadowsChange(nil);
+
   for X := 0 to InstancesCount - 1 do
     for Z := 0 to InstancesCount - 1 do
     begin
       NewCharacter := FactoryCharacterForCrowd.ComponentLoad(FreeAtStop) as TCastleTransform;
       NewScene := NewCharacter[0] as TCastleScene; // we know it's TCastleScene
-
-      NewScene.CastShadows := false; // allows to calculate skinned animation on GPU, faster
-      //NewScene.CastShadows := true; // forces to calculate skinned animation on CPU, slower
-      // TODO: enable shadows, by making shadow maps easier to set up, https://castle-engine.io/roadmap#shadow_maps
+      CrowdScenes.Add(NewScene);
 
       NewScene.Translation := {RandomShift +}
         InstanceShift +
         InstanceSpread * Vector3(X, 0, Z);
+      NewScene.CastShadows := CheckboxCastShadows.Checked;
 
       //NewScene.PlayAnimation('walk', true);
       Params := TPlayAnimationParameters.Create;
