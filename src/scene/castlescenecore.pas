@@ -3817,9 +3817,14 @@ function TChangedAllTraverser.Traverse(
        (not Active) then
       Exit;
 
-    { If some bindable stack is empty, push the node to it.
-      This way, upon reading VRML file, we will bind the first found
-      node for each stack. }
+    { If some bindable stack is empty, push the node to it, using
+
+        ParentScene.NavigationInfoStack.PushIfEmpty(...).
+
+      This way, upon reading X3D file, we will bind the first found
+      node for each stack.
+      Also, below we extend ShapesGroup to handle transformation change
+      of bindable nodes. }
     if Node is TAbstractBackgroundNode then
     begin
       ParentScene.BackgroundStack.PushIfEmpty( TAbstractBackgroundNode(Node), true);
