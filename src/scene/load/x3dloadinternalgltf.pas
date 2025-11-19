@@ -2433,8 +2433,7 @@ var
 
             { Make shapes collide as simple boxes.
               We don't want to recalculate octree of their triangles each frame,
-              and their boxes are easy, since we fill shape's bbox.
-              TODO: Shape.BBox is not calculated now. }
+              and their boxes are easy, since we fill shape's bbox. }
             ShapeNode.Collision := scBox;
 
             //ShapeNode.BBox := EnlargeBoxForAnimation(ShapeNode.BBox);

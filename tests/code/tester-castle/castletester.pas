@@ -915,7 +915,6 @@ begin
   if not Assigned(AddrOfError) then
     AddrOfError := {$ifdef FPC}get_caller_addr(get_frame){$else}ReturnAddress{$endif};
 
-
   AssertTrue(Msg, not ACondition, AddrOfError);
 end;
 

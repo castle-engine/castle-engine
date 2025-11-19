@@ -142,6 +142,7 @@ type
     procedure TestSaveLoadMatrix_X3DXml;
 
     procedure TestNodeListAutoRemove;
+    procedure TestGltfSkinnedAnimationBBox;
   end;
 
 implementation
@@ -3325,6 +3326,29 @@ begin
   finally FreeAndNil(L) end;
 
   FreeAndNil(N2);
+end;
+
+procedure TTestX3DNodes.TestGltfSkinnedAnimationBBox;
+var
+  StagRoot: TX3DRootNode;
+  MainShape, AntlersShape: TShapeNode;
+  Skin: TSkinNode;
+begin
+  StagRoot := LoadNode('castle-data:/gltf/quaternius/Stag.gltf');
+  try
+    MainShape := StagRoot.FindNode(TShapeNode, 'Cube_Primitive0') as TShapeNode;
+    AssertTrue(MainShape <> nil);
+    AssertTrue(MainShape.Collision = scBox);
+
+    // antlers are not skinned
+    AntlersShape := StagRoot.FindNode(TShapeNode, 'Cube.001_Primitive0') as TShapeNode;
+    AssertTrue(AntlersShape <> nil);
+    AssertTrue(AntlersShape.Collision = scDefault);
+
+    Skin := StagRoot.FindNode(TSkinNode, 'AnimalArmature') as TSkinNode;
+    AssertEquals(5, Skin.FdShapes.Count);
+    AssertTrue(Skin.Skeleton <> nil);
+  finally FreeAndNil(StagRoot) end;
 end;
 
 initialization
