@@ -1708,8 +1708,6 @@ procedure TCastleScene.Update(const SecondsPassed: Single; var RemoveMe: TRemove
     FrameProfiler.Stop(fmUpdateGeneratedTextures);
   end;
 
-var
-  BgRenderer: TBackgroundRenderer;
 begin
   inherited;
 
@@ -1719,10 +1717,6 @@ begin
       World.InternalRenderEverythingEvent,
       World.InternalProjectionNear,
       World.InternalProjectionFar);
-
-  BgRenderer := InternalBackgroundRenderer;
-  if BgRenderer <> nil then
-    BgRenderer.Update(SecondsPassed);
 end;
 
 procedure TCastleScene.ResetShapeVisible(const Shape: TShape);
