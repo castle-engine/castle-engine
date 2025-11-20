@@ -22,8 +22,8 @@
             <Filename Value="castle-tester"/>
           </Target>
           <SearchPaths>
-            <IncludeFiles Value="code/;code/testcases/;code/tester-castle/;../tools/common-code/"/>
-            <OtherUnitFiles Value="code/;code/testcases/;code/tester-castle/;../tools/common-code/"/>
+            <IncludeFiles Value="code/;code/testcases/;code/tester-castle/;../src/common_includes;../tools/common-code/;../tools/castle-editor/code/"/>
+            <OtherUnitFiles Value="code/;code/testcases/;code/tester-castle/;../src/common_includes;../tools/common-code/;../tools/castle-editor/code/"/>
             <UnitOutputDirectory Value="castle-engine-output/standalone/lazarus-lib/$(TargetCPU)-$(TargetOS)"/>
             <Libraries Value="" />
           </SearchPaths>
@@ -67,503 +67,719 @@
         <PackageName Value="castle_engine_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="100">
+    <Units Count="144">
       <Unit0>
         <Filename Value="castle_tester_standalone.dpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>
+        <Filename Value="../src/common_includes/castleconf.inc"/>
+        <IsPartOfProject Value="True"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="../src/common_includes/norqcheckbegin.inc"/>
+        <IsPartOfProject Value="True"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="../src/common_includes/norqcheckend.inc"/>
+        <IsPartOfProject Value="True"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="../tools/castle-editor/code/castlecomponenteditordesigner.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="castlecomponenteditordesigner"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="../tools/castle-editor/code/castlelcledithack.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="castlelcledithack"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="../tools/castle-editor/code/castlemcpeditorintegration.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="castlemcpeditorintegration"/>
+      </Unit6>
+      <Unit7>
+        <Filename Value="../tools/castle-editor/code/castlemcpserver.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="castlemcpserver"/>
+      </Unit7>
+      <Unit8>
+        <Filename Value="../tools/castle-editor/code/castleshellctrls.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="castleshellctrls"/>
+      </Unit8>
+      <Unit9>
+        <Filename Value="../tools/castle-editor/code/castlesketchfab.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="castlesketchfab"/>
+      </Unit9>
+      <Unit10>
+        <Filename Value="../tools/castle-editor/code/datamoduleicons.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="datamoduleicons"/>
+      </Unit10>
+      <Unit11>
+        <Filename Value="../tools/castle-editor/code/designcamerapreview.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="designcamerapreview"/>
+      </Unit11>
+      <Unit12>
+        <Filename Value="../tools/castle-editor/code/designobjectinspector.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="designobjectinspector"/>
+      </Unit12>
+      <Unit13>
+        <Filename Value="../tools/castle-editor/code/designsteam.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="designsteam"/>
+      </Unit13>
+      <Unit14>
+        <Filename Value="../tools/castle-editor/code/designundosystem.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="designundosystem"/>
+      </Unit14>
+      <Unit15>
+        <Filename Value="../tools/castle-editor/code/editorcodetools.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="editorcodetools"/>
+      </Unit15>
+      <Unit16>
+        <Filename Value="../tools/castle-editor/code/editorconf.inc"/>
+        <IsPartOfProject Value="True"/>
+      </Unit16>
+      <Unit17>
+        <Filename Value="../tools/castle-editor/code/editorutils.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="editorutils"/>
+      </Unit17>
+      <Unit18>
+        <Filename Value="../tools/castle-editor/code/formabout.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="formabout"/>
+      </Unit18>
+      <Unit19>
+        <Filename Value="../tools/castle-editor/code/formchooseproject.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="formchooseproject"/>
+      </Unit19>
+      <Unit20>
+        <Filename Value="../tools/castle-editor/code/formimportatlas.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="formimportatlas"/>
+      </Unit20>
+      <Unit21>
+        <Filename Value="../tools/castle-editor/code/formimportsketchfab.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="formimportsketchfab"/>
+      </Unit21>
+      <Unit22>
+        <Filename Value="../tools/castle-editor/code/formimportstarling.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="formimportstarling"/>
+      </Unit22>
+      <Unit23>
+        <Filename Value="../tools/castle-editor/code/formnewproject.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="formnewproject"/>
+      </Unit23>
+      <Unit24>
+        <Filename Value="../tools/castle-editor/code/formnewunit.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="formnewunit"/>
+      </Unit24>
+      <Unit25>
+        <Filename Value="../tools/castle-editor/code/formpreferences.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="formpreferences"/>
+      </Unit25>
+      <Unit26>
+        <Filename Value="../tools/castle-editor/code/formprogress.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="formprogress"/>
+      </Unit26>
+      <Unit27>
+        <Filename Value="../tools/castle-editor/code/formproject.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="formproject"/>
+      </Unit27>
+      <Unit28>
+        <Filename Value="../tools/castle-editor/code/formrestartcustomeditor.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="formrestartcustomeditor"/>
+      </Unit28>
+      <Unit29>
+        <Filename Value="../tools/castle-editor/code/formspritesheeteditor.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="formspritesheeteditor"/>
+      </Unit29>
+      <Unit30>
+        <Filename Value="../tools/castle-editor/code/formsysteminformation.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="formsysteminformation"/>
+      </Unit30>
+      <Unit31>
+        <Filename Value="../tools/castle-editor/code/frameanchors.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="frameanchors"/>
+      </Unit31>
+      <Unit32>
+        <Filename Value="../tools/castle-editor/code/framedesign.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="framedesign"/>
+      </Unit32>
+      <Unit33>
+        <Filename Value="../tools/castle-editor/code/frameviewfile.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="frameviewfile"/>
+      </Unit33>
+      <Unit34>
+        <Filename Value="../tools/castle-editor/code/projectutils.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="projectutils"/>
+      </Unit34>
+      <Unit35>
         <Filename Value="../tools/common-code/castlefonttopascal.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="castlefonttopascal"/>
-      </Unit1>
-      <Unit2>
+      </Unit35>
+      <Unit36>
+        <Filename Value="../tools/common-code/editorregisterallcomponents.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="editorregisterallcomponents"/>
+      </Unit36>
+      <Unit37>
         <Filename Value="../tools/common-code/toolassocdoctypes.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="toolassocdoctypes"/>
-      </Unit2>
-      <Unit3>
+      </Unit37>
+      <Unit38>
         <Filename Value="../tools/common-code/toolcommonutils.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="toolcommonutils"/>
-      </Unit3>
-      <Unit4>
+      </Unit38>
+      <Unit39>
         <Filename Value="../tools/common-code/toolcompilerinfo.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="toolcompilerinfo"/>
-      </Unit4>
-      <Unit5>
+      </Unit39>
+      <Unit40>
+        <Filename Value="../tools/common-code/tooleditorutils.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tooleditorutils"/>
+      </Unit40>
+      <Unit41>
         <Filename Value="../tools/common-code/toolfpcversion.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="toolfpcversion"/>
-      </Unit5>
-      <Unit6>
+      </Unit41>
+      <Unit42>
         <Filename Value="../tools/common-code/toolmanifest.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="toolmanifest"/>
-      </Unit6>
-      <Unit7>
+      </Unit42>
+      <Unit43>
         <Filename Value="../tools/common-code/toolpackageformat.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="toolpackageformat"/>
-      </Unit7>
-      <Unit8>
+      </Unit43>
+      <Unit44>
         <Filename Value="../tools/common-code/toolprocess.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="toolprocess"/>
-      </Unit8>
-      <Unit9>
+      </Unit44>
+      <Unit45>
+        <Filename Value="../tools/common-code/toolprocessrun.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="toolprocessrun"/>
+      </Unit45>
+      <Unit46>
         <Filename Value="../tools/common-code/toolservices.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="toolservices"/>
-      </Unit9>
-      <Unit10>
+      </Unit46>
+      <Unit47>
         <Filename Value="castleautogenerated.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="castleautogenerated"/>
-      </Unit10>
-      <Unit11>
+      </Unit47>
+      <Unit48>
         <Filename Value="code/testcases/castletestutils.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="castletestutils"/>
-      </Unit11>
-      <Unit12>
+      </Unit48>
+      <Unit49>
         <Filename Value="code/testcases/font_latoregular_300.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="font_latoregular_300"/>
-      </Unit12>
-      <Unit13>
+      </Unit49>
+      <Unit50>
         <Filename Value="code/testcases/norqcheckbegin.inc"/>
         <IsPartOfProject Value="True"/>
-      </Unit13>
-      <Unit14>
+      </Unit50>
+      <Unit51>
         <Filename Value="code/testcases/norqcheckend.inc"/>
         <IsPartOfProject Value="True"/>
-      </Unit14>
-      <Unit15>
+      </Unit51>
+      <Unit52>
         <Filename Value="code/testcases/test_font_image_to_compress.inc"/>
         <IsPartOfProject Value="True"/>
-      </Unit15>
-      <Unit16>
+      </Unit52>
+      <Unit53>
         <Filename Value="code/testcases/testcastleboxes.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastleboxes"/>
-      </Unit16>
-      <Unit17>
+      </Unit53>
+      <Unit54>
         <Filename Value="code/testcases/testcastlecameras.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastlecameras"/>
-      </Unit17>
-      <Unit18>
+      </Unit54>
+      <Unit55>
         <Filename Value="code/testcases/testcastleclassutils.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastleclassutils"/>
-      </Unit18>
-      <Unit19>
+      </Unit55>
+      <Unit56>
         <Filename Value="code/testcases/testcastlecolors.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastlecolors"/>
-      </Unit19>
-      <Unit20>
+      </Unit56>
+      <Unit57>
         <Filename Value="code/testcases/testcastlecomponentserialize.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastlecomponentserialize"/>
-      </Unit20>
-      <Unit21>
+      </Unit57>
+      <Unit58>
         <Filename Value="code/testcases/testcastlecompositeimage.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastlecompositeimage"/>
-      </Unit21>
-      <Unit22>
+      </Unit58>
+      <Unit59>
         <Filename Value="code/testcases/testcastlecontrols.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastlecontrols"/>
-      </Unit22>
-      <Unit23>
+      </Unit59>
+      <Unit60>
         <Filename Value="code/testcases/testcastlecubemaps.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastlecubemaps"/>
-      </Unit23>
-      <Unit24>
+      </Unit60>
+      <Unit61>
         <Filename Value="code/testcases/testcastlecurves.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastlecurves"/>
-      </Unit24>
-      <Unit25>
+      </Unit61>
+      <Unit62>
         <Filename Value="code/testcases/testcastledesigncomponents.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastledesigncomponents"/>
-      </Unit25>
-      <Unit26>
+      </Unit62>
+      <Unit63>
         <Filename Value="code/testcases/testcastledownload.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastledownload"/>
-      </Unit26>
-      <Unit27>
+      </Unit63>
+      <Unit64>
         <Filename Value="code/testcases/testcastlefilefilters.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastlefilefilters"/>
-      </Unit27>
-      <Unit28>
+      </Unit64>
+      <Unit65>
         <Filename Value="code/testcases/testcastlefilesutils.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastlefilesutils"/>
-      </Unit28>
-      <Unit29>
+      </Unit65>
+      <Unit66>
         <Filename Value="code/testcases/testcastlefindfiles.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastlefindfiles"/>
-      </Unit29>
-      <Unit30>
+      </Unit66>
+      <Unit67>
         <Filename Value="code/testcases/testcastlefonts.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastlefonts"/>
-      </Unit30>
-      <Unit31>
+      </Unit67>
+      <Unit68>
         <Filename Value="code/testcases/testcastlefrustum.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastlefrustum"/>
-      </Unit31>
-      <Unit32>
+      </Unit68>
+      <Unit69>
         <Filename Value="code/testcases/testcastlegame.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastlegame"/>
-      </Unit32>
-      <Unit33>
+      </Unit69>
+      <Unit70>
         <Filename Value="code/testcases/testcastleglversion.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastleglversion"/>
-      </Unit33>
-      <Unit34>
+      </Unit70>
+      <Unit71>
         <Filename Value="code/testcases/testcastleifc.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastleifc"/>
-      </Unit34>
-      <Unit35>
+      </Unit71>
+      <Unit72>
         <Filename Value="code/testcases/testcastleimages.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastleimages"/>
-      </Unit35>
-      <Unit36>
+      </Unit72>
+      <Unit73>
         <Filename Value="code/testcases/testcastleimagesdraw.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastleimagesdraw"/>
-      </Unit36>
-      <Unit37>
+      </Unit73>
+      <Unit74>
         <Filename Value="code/testcases/testcastleinternalautogenerated.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastleinternalautogenerated"/>
-      </Unit37>
-      <Unit38>
+      </Unit74>
+      <Unit75>
         <Filename Value="code/testcases/testcastleinternaldatacompression.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastleinternaldatacompression"/>
-      </Unit38>
-      <Unit39>
+      </Unit75>
+      <Unit76>
         <Filename Value="code/testcases/testcastleinternaldatauri.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastleinternaldatauri"/>
-      </Unit39>
-      <Unit40>
+      </Unit76>
+      <Unit77>
         <Filename Value="code/testcases/testcastleinternaldelphiutils.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastleinternaldelphiutils"/>
-      </Unit40>
-      <Unit41>
+      </Unit77>
+      <Unit78>
         <Filename Value="code/testcases/testcastleinternalegl.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastleinternalegl"/>
-      </Unit41>
-      <Unit42>
+      </Unit78>
+      <Unit79>
         <Filename Value="code/testcases/testcastleinternalglshadowvolumes.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastleinternalglshadowvolumes"/>
-      </Unit42>
-      <Unit43>
+      </Unit79>
+      <Unit80>
         <Filename Value="code/testcases/testcastleinternalrttiutils.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastleinternalrttiutils"/>
-      </Unit43>
-      <Unit44>
+      </Unit80>
+      <Unit81>
         <Filename Value="code/testcases/testcastleinternaltools.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastleinternaltools"/>
-      </Unit44>
-      <Unit45>
+      </Unit81>
+      <Unit82>
+        <Filename Value="code/testcases/testcastleinternalurlutils.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="testcastleinternalurlutils"/>
+      </Unit82>
+      <Unit83>
         <Filename Value="code/testcases/testcastlekeysmouse.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastlekeysmouse"/>
-      </Unit45>
-      <Unit46>
+      </Unit83>
+      <Unit84>
         <Filename Value="code/testcases/testcastlelevels.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastlelevels"/>
-      </Unit46>
-      <Unit47>
+      </Unit84>
+      <Unit85>
         <Filename Value="code/testcases/testcastlelocalizationgettext.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastlelocalizationgettext"/>
-      </Unit47>
-      <Unit48>
+      </Unit85>
+      <Unit86>
+        <Filename Value="code/testcases/testcastlemcpserver.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="testcastlemcpserver"/>
+      </Unit86>
+      <Unit87>
+        <Filename Value="code/testcases/testcastlemcpserversimple.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="testcastlemcpserversimple"/>
+      </Unit87>
+      <Unit88>
         <Filename Value="code/testcases/testcastleopeningandrendering3d.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastleopeningandrendering3d"/>
-      </Unit48>
-      <Unit49>
+      </Unit88>
+      <Unit89>
         <Filename Value="code/testcases/testcastleparameters.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastleparameters"/>
-      </Unit49>
-      <Unit50>
+      </Unit89>
+      <Unit90>
         <Filename Value="code/testcases/testcastlequaternions.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastlequaternions"/>
-      </Unit50>
-      <Unit51>
+      </Unit90>
+      <Unit91>
         <Filename Value="code/testcases/testcastlerectangles.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastlerectangles"/>
-      </Unit51>
-      <Unit52>
+      </Unit91>
+      <Unit92>
         <Filename Value="code/testcases/testcastlerendererinternalshader.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastlerendererinternalshader"/>
-      </Unit52>
-      <Unit53>
+      </Unit92>
+      <Unit93>
         <Filename Value="code/testcases/testcastlerenderoptions.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastlerenderoptions"/>
-      </Unit53>
-      <Unit54>
+      </Unit93>
+      <Unit94>
         <Filename Value="code/testcases/testcastleresources.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastleresources"/>
-      </Unit54>
-      <Unit55>
+      </Unit94>
+      <Unit95>
         <Filename Value="code/testcases/testcastlescene.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastlescene"/>
-      </Unit55>
-      <Unit56>
+      </Unit95>
+      <Unit96>
         <Filename Value="code/testcases/testcastlescenecore.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastlescenecore"/>
-      </Unit56>
-      <Unit57>
+      </Unit96>
+      <Unit97>
         <Filename Value="code/testcases/testcastlescenemanager.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastlescenemanager"/>
-      </Unit57>
-      <Unit58>
+      </Unit97>
+      <Unit98>
         <Filename Value="code/testcases/testcastlescript.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastlescript"/>
-      </Unit58>
-      <Unit59>
+      </Unit98>
+      <Unit99>
         <Filename Value="code/testcases/testcastlescriptvectors.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastlescriptvectors"/>
-      </Unit59>
-      <Unit60>
+      </Unit99>
+      <Unit100>
         <Filename Value="code/testcases/testcastleshapes.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastleshapes"/>
-      </Unit60>
-      <Unit61>
+      </Unit100>
+      <Unit101>
         <Filename Value="code/testcases/testcastlesoundengine.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastlesoundengine"/>
-      </Unit61>
-      <Unit62>
+      </Unit101>
+      <Unit102>
         <Filename Value="code/testcases/testcastlespacefillingcurves.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastlespacefillingcurves"/>
-      </Unit62>
-      <Unit63>
+      </Unit102>
+      <Unit103>
+        <Filename Value="code/testcases/testcastlesteam.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="testcastlesteam"/>
+      </Unit103>
+      <Unit104>
         <Filename Value="code/testcases/testcastlestringutils.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastlestringutils"/>
-      </Unit63>
-      <Unit64>
+      </Unit104>
+      <Unit105>
         <Filename Value="code/testcases/testcastletiledmap.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastletiledmap"/>
-      </Unit64>
-      <Unit65>
+      </Unit105>
+      <Unit106>
         <Filename Value="code/testcases/testcastletimeutils.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastletimeutils"/>
-      </Unit65>
-      <Unit66>
+      </Unit106>
+      <Unit107>
         <Filename Value="code/testcases/testcastletransform.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastletransform"/>
-      </Unit66>
-      <Unit67>
+      </Unit107>
+      <Unit108>
+        <Filename Value="code/testcases/testcastletransformmanipulate.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="testcastletransformmanipulate"/>
+      </Unit108>
+      <Unit109>
         <Filename Value="code/testcases/testcastletriangles.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastletriangles"/>
-      </Unit67>
-      <Unit68>
+      </Unit109>
+      <Unit110>
         <Filename Value="code/testcases/testcastletriangulate.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastletriangulate"/>
-      </Unit68>
-      <Unit69>
+      </Unit110>
+      <Unit111>
         <Filename Value="code/testcases/testcastleuicontrols.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastleuicontrols"/>
-      </Unit69>
-      <Unit70>
+      </Unit111>
+      <Unit112>
         <Filename Value="code/testcases/testcastleunicode.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastleunicode"/>
-      </Unit70>
-      <Unit71>
+      </Unit112>
+      <Unit113>
         <Filename Value="code/testcases/testcastleuriutils.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastleuriutils"/>
-      </Unit71>
-      <Unit72>
+      </Unit113>
+      <Unit114>
         <Filename Value="code/testcases/testcastleutils.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastleutils"/>
-      </Unit72>
-      <Unit73>
+      </Unit114>
+      <Unit115>
         <Filename Value="code/testcases/testcastleutilslists.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastleutilslists"/>
-      </Unit73>
-      <Unit74>
+      </Unit115>
+      <Unit116>
         <Filename Value="code/testcases/testcastlevectors.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastlevectors"/>
-      </Unit74>
-      <Unit75>
+      </Unit116>
+      <Unit117>
         <Filename Value="code/testcases/testcastlevideos.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastlevideos"/>
-      </Unit75>
-      <Unit76>
+      </Unit117>
+      <Unit118>
         <Filename Value="code/testcases/testcastleviewport.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastleviewport"/>
-      </Unit76>
-      <Unit77>
+      </Unit118>
+      <Unit119>
         <Filename Value="code/testcases/testcastlewindow.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastlewindow"/>
-      </Unit77>
-      <Unit78>
+      </Unit119>
+      <Unit120>
         <Filename Value="code/testcases/testcastlewindowopen.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastlewindowopen"/>
-      </Unit78>
-      <Unit79>
+      </Unit120>
+      <Unit121>
         <Filename Value="code/testcases/testcastlexmlutils.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastlexmlutils"/>
-      </Unit79>
-      <Unit80>
+      </Unit121>
+      <Unit122>
+        <Filename Value="code/testcases/testcastlezip.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="testcastlezip"/>
+      </Unit122>
+      <Unit123>
         <Filename Value="code/testcases/testcompiler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcompiler"/>
-      </Unit80>
-      <Unit81>
+      </Unit123>
+      <Unit124>
         <Filename Value="code/testcases/testfgl.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testfgl"/>
-      </Unit81>
-      <Unit82>
+      </Unit124>
+      <Unit125>
         <Filename Value="code/testcases/testfpimage.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testfpimage"/>
-      </Unit82>
-      <Unit83>
+      </Unit125>
+      <Unit126>
         <Filename Value="code/testcases/testgenericscollections.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testgenericscollections"/>
-      </Unit83>
-      <Unit84>
+      </Unit126>
+      <Unit127>
         <Filename Value="code/testcases/testoldfpcbugs.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testoldfpcbugs"/>
-      </Unit84>
-      <Unit85>
+      </Unit127>
+      <Unit128>
         <Filename Value="code/testcases/testsysutils.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testsysutils"/>
-      </Unit85>
-      <Unit86>
+      </Unit128>
+      <Unit129>
         <Filename Value="code/testcases/testtoolfpcversion.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testtoolfpcversion"/>
-      </Unit86>
-      <Unit87>
+      </Unit129>
+      <Unit130>
         <Filename Value="code/testcases/testx3dfields.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testx3dfields"/>
-      </Unit87>
-      <Unit88>
+      </Unit130>
+      <Unit131>
         <Filename Value="code/testcases/testx3dloadgltf.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testx3dloadgltf"/>
-      </Unit88>
-      <Unit89>
+      </Unit131>
+      <Unit132>
         <Filename Value="code/testcases/testx3dloadinternalcocos2d.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testx3dloadinternalcocos2d"/>
-      </Unit89>
-      <Unit90>
+      </Unit132>
+      <Unit133>
         <Filename Value="code/testcases/testx3dloadinternalutils.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testx3dloadinternalutils"/>
-      </Unit90>
-      <Unit91>
+      </Unit133>
+      <Unit134>
         <Filename Value="code/testcases/testx3dnodes.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testx3dnodes"/>
-      </Unit91>
-      <Unit92>
+      </Unit134>
+      <Unit135>
         <Filename Value="code/testcases/testx3dnodesnurbs.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testx3dnodesnurbs"/>
-      </Unit92>
-      <Unit93>
+      </Unit135>
+      <Unit136>
         <Filename Value="code/testcases/testx3dnodesoptimizedproxy.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testx3dnodesoptimizedproxy"/>
-      </Unit93>
-      <Unit94>
+      </Unit136>
+      <Unit137>
         <Filename Value="code/testcases/v3dsceneimages.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="v3dsceneimages"/>
-      </Unit94>
-      <Unit95>
+      </Unit137>
+      <Unit138>
         <Filename Value="code/tester-castle/castleconsoletester.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="castleconsoletester"/>
-      </Unit95>
-      <Unit96>
+      </Unit138>
+      <Unit139>
         <Filename Value="code/tester-castle/castletester.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="castletester"/>
-      </Unit96>
-      <Unit97>
+      </Unit139>
+      <Unit140>
         <Filename Value="code/tester-castle/castletesterparameters.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="castletesterparameters"/>
-      </Unit97>
-      <Unit98>
+      </Unit140>
+      <Unit141>
         <Filename Value="code/tester-castle/gameinitialize.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="gameinitialize"/>
-      </Unit98>
-      <Unit99>
+      </Unit141>
+      <Unit142>
         <Filename Value="code/tester-castle/gameviewmain.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="gameviewmain"/>
-      </Unit99>
+      </Unit142>
+      <Unit143>
+        <Filename Value="testcases.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="testcases"/>
+      </Unit143>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -572,8 +788,8 @@
       <Filename Value="castle-tester"/>
     </Target>
     <SearchPaths>
-      <IncludeFiles Value="code/;code/testcases/;code/tester-castle/;../tools/common-code/"/>
-      <OtherUnitFiles Value="code/;code/testcases/;code/tester-castle/;../tools/common-code/"/>
+      <IncludeFiles Value="code/;code/testcases/;code/tester-castle/;../src/common_includes;../tools/common-code/;../tools/castle-editor/code/"/>
+      <OtherUnitFiles Value="code/;code/testcases/;code/tester-castle/;../src/common_includes;../tools/common-code/;../tools/castle-editor/code/"/>
       <UnitOutputDirectory Value="castle-engine-output/standalone/lazarus-lib/$(TargetCPU)-$(TargetOS)"/>
       <Libraries Value="" />
     </SearchPaths>
