@@ -5225,7 +5225,7 @@ begin
     end else
     if New and not Old then
     begin
-      TimeStart := Profiler.Start('Creating octrees for all shapes from Scene.Spatial := [...]');
+      TimeStart := Profiler.Start('Creating ssTriangles octrees for all shapes');
       try
         { SetShapeSpatial cannot be done by the way of doing CreateShapeOctree,
           since in CreateShapeOctree we iterate over OnlyActive shapes,
