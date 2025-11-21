@@ -943,7 +943,8 @@ end;
 function AbsoluteUri(const Uri: String): String;
 begin
   if UriProtocol(Uri) = '' then
-    Result := FilenameToUriSafe(Uri) else
+    Result := FilenameToUriSafe(Uri)
+  else
     Result := Uri;
 end;
 
@@ -1033,6 +1034,15 @@ var
   I: Integer;
   FilenamePart: String;
 begin
+  {$ifdef WASI}
+  { Without this condition, our routine FilenameToUriSafe
+    (called also from AbsoluteUri with possibly '' as argument)
+    would call GetCurrentDir, which on WebAssembly raises an exception
+    "EInOutError: Invalid drive specified". }
+  if FileName = '' then
+    Exit('');
+  {$endif}
+
   FileName := ExpandFileNameFixed(FileName);
 
   Result := 'file:';

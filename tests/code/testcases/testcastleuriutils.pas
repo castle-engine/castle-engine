@@ -45,6 +45,8 @@ type
       it internally has additional logic to return each subdir only once
       (because it remembers only Files), make sure it works. }
     procedure TestMemoryFileSystemFindFilesSubdirs;
+    procedure TestFilenameToUriSafeEmpty;
+    procedure TestGetCurrentDir;
   end;
 
 implementation
@@ -623,6 +625,31 @@ begin
   finally
     FreeAndNil(Fs);
   end;
+end;
+
+procedure TTestUriUtils.TestFilenameToUriSafeEmpty;
+begin
+  { For '', FilenameToUriSafe tries to return current dir,
+    but it's impossible on WASI }
+  {$ifdef WASI}
+  AssertEquals('', FilenameToUriSafe(''));
+  {$else}
+  AssertEquals(FilenameToUriSafe(InclPathDelim(GetCurrentDir)), FilenameToUriSafe(''));
+  {$endif}
+
+  {$ifdef WASI}
+  AssertEquals('', AbsoluteUri(''));
+  {$else}
+  AssertEquals(FilenameToUriSafe(InclPathDelim(GetCurrentDir)), AbsoluteUri(''));
+  {$endif}
+end;
+
+procedure TTestUriUtils.TestGetCurrentDir;
+begin
+  // On WebAssembly, GetCurrentDir raises an exception "EInOutError: Invalid drive specified"
+  {$ifndef WASI}
+  AssertTrue(GetCurrentDir <> '');
+  {$endif}
 end;
 
 initialization
