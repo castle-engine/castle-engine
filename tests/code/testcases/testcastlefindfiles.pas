@@ -99,11 +99,17 @@ begin
   end;
 
   TestDir := UriToFilenameSafe(TestDirUrl);
-  Writeln(Format('Make tests in %s which maps to %s on disk', [
-    TestDirUrl,
-    TestDir
-  ]));
-  RemoveNonEmptyDir(TestDir, true);
+  if TestDir <> '' then
+  begin
+    Writeln(Format('Made tests in %s which maps to %s on disk', [
+      TestDirUrl,
+      TestDir
+    ]));
+    RemoveNonEmptyDir(TestDir, true);
+  end else
+    Writeln(Format('Made tests in %s which does not map to normal filesystem, assuming temp storage on web, not cleaning up', [
+      TestDirUrl
+    ]));
 end;
 
 initialization
