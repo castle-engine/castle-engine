@@ -976,6 +976,18 @@ begin
     Index := FEmbeddedFonts.IndexOf(FontUrl);
     if Index <> -1 then
       Result := FEmbeddedFonts.Objects[Index] as TTextureFontData;
+
+    if Index = -1 then
+    begin
+      Index := FEmbeddedFonts.IndexOf(UrlEncode(FontUrl));
+      if Index <> -1 then
+      begin
+        WritelnWarning('GetEmbeddedFont', 'Provided not escaped font URL "%s". We handle it for now (by searching for UrlEscape(FontUrl) instead of FontUrl) but this is an invalid URL, please fix your code to avoid this warning. Process things with UrlEncode to turn e.g. spaces into %20 in URL.', [
+          FontUrl
+        ]);
+        Result := FEmbeddedFonts.Objects[Index] as TTextureFontData;
+      end;
+    end;
   end;
 end;
 

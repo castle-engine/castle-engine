@@ -134,6 +134,7 @@ begin
         FontRelativeUrl := ExtractRelativePath(InclPathDelim(DataPath), FileInfo.AbsoluteName);
         // simple way to turn relative path into a relative URL
         FontRelativeUrl := SReplaceChars(FontRelativeUrl, PathDelim, '/');
+        FontRelativeUrl := UrlEncode(FontRelativeUrl); // convert spaces to %20 etc.
         FontRelativeUrl := 'castle-data:/' + FontRelativeUrl;
 
         // generate font file
