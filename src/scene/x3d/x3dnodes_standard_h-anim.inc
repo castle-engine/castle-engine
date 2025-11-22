@@ -116,7 +116,6 @@
       end;
     var
       FTransformFunctionality: THAnimJointNodeTransformFunctionality;
-      // Root THAnimHumanoidNode that contains this joint.
       FHumanoidRoot: THAnimHumanoidNode;
       AnimateSkinTransform: TMatrix4;
       RestCenter: TVector3;
@@ -154,6 +153,14 @@
       You only need to manually call this if you build X3D graph in some other
       way, e.g. loading other 3D model formats. }
     procedure ApplyRestPose;
+
+    { Root THAnimHumanoidNode that contains this joint.
+      Updated at node traverse time, which happens when loading nodes
+      in TCastleSceneCore.
+
+      @nil if not found, which may happen if THAnimJointNode is not
+      inside THAnimHumanoidNode -- which indicates invalid model. }
+    property Humanoid: THAnimHumanoidNode read FHumanoidRoot;
 
   {$I auto_generated_node_helpers/x3dnodes_hanimjoint.inc}
   end;
