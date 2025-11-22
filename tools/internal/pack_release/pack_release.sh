@@ -545,15 +545,25 @@ pack_platform_dir ()
 
   # Add bundled tools (FPC)
   ARCHIVE_NAME_BUNDLE=''
-  if [ "${CGE_PACK_BUNDLE:-}" == 'yes' ]; then
-    cd "${TEMP_PATH_CGE}"tools/contrib/
-    unzip "${ORIGINAL_CASTLE_ENGINE_PATH}/fpc-${OS}-${CPU}.zip"
-    ARCHIVE_NAME_BUNDLE='-bundle'
-    mv "${TEMP_PATH_CGE}"bin/fpc-cge"${EXE_EXTENSION}" "${TEMP_PATH_CGE}"tools/contrib/fpc/bin
-  else
-    # remove useless fpc-cge in this case
-    rm -f "${TEMP_PATH_CGE}"tools/contrib/fpc/bin/fpc-cge"${EXE_EXTENSION}"
-  fi
+  case "${CGE_PACK_BUNDLE:-}" in
+    'yes')
+      cd "${TEMP_PATH_CGE}"tools/contrib/
+      unzip "${ORIGINAL_CASTLE_ENGINE_PATH}/fpc-${OS}-${CPU}.zip"
+      ARCHIVE_NAME_BUNDLE='-bundle'
+      mv "${TEMP_PATH_CGE}"bin/fpc-cge"${EXE_EXTENSION}" "${TEMP_PATH_CGE}"tools/contrib/fpc/bin
+      ;;
+    'no'|'')
+      # remove useless fpc-cge in this case
+      rm -f "${TEMP_PATH_CGE}"tools/contrib/fpc/bin/fpc-cge"${EXE_EXTENSION}"
+      ;;
+    *)
+      # Clearly fail when CGE_PACK_BUNDLE is invalid, to avoid situation
+      # that bundle releases are silently not updated, see
+      # https://forum.castle-engine.io/t/cant-unpack-latest-release-of-cge/2052/2
+      echo "Unknown CGE_PACK_BUNDLE value: ${CGE_PACK_BUNDLE}"
+      exit 1
+      ;;
+  esac
 }
 
 # Prepare zip with precompiled CGE.

@@ -186,7 +186,7 @@ jobs:
 
       - name: Define CGE_PACK_BUNDLE
         if: ${{ matrix.bundle }}
-        run: echo "CGE_PACK_BUNDLE=true" >> $GITHUB_ENV
+        run: echo "CGE_PACK_BUNDLE=yes" >> $GITHUB_ENV
 
       - name: Pack
         run: ./tools/internal/pack_release/pack_release.sh ${{ matrix.os }} ${{ matrix.cpu }}
