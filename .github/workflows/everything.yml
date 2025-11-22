@@ -76,6 +76,8 @@ jobs:
         merge-multiple: true
     - name: List downloaded files
       run: ls -R
+    - name: SHA256 checksums of files
+      run: sha256sum *.zip *.exe
 
     # We use automatic GITHUB_TOKEN secret provided by GitHub with GH CLI, see
     # https://docs.github.com/en/actions/security-guides/automatic-token-authentication
