@@ -23,7 +23,13 @@ VRML 1.0 and X3D specifications differ in how to load / save matrix.
   the second row of the matrix.
   """
 
-  https://www.web3d.org/documents/specifications/19776-2/V3.3/Part02/EncodingOfFields.html#SFMatrix3f
+  Classic encoding:
+
+  https://www.web3d.org/documents/specifications/19776-2/V3.3/Part02/EncodingOfFields.html#SFMatrix4f
+
+  XML encoding:
+
+  https://www.web3d.org/documents/specifications/19776-1/V3.3/Part01/EncodingOfFields.html#SFMatrix4f
 
 To complicate matters:
 
@@ -34,6 +40,20 @@ To complicate matters:
   https://graphics.stanford.edu/courses/cs248-98-fall/Assignments/Assignment3/VRML2_Specification/spec/part1/fieldsRef.html
 
   We decided to use VRML 1.0 format for VRML 2.0.
+
+- There are not many nodes actually using `SFMatrix*` or `MFMatrix*` fields.
+
+  Looking at the X3D standard, there are really only 4:
+  - `RigidBody.inertia` (SFMatrix3f)
+  - `TextureTransformMatrix3D.matrix` (SFMatrix4f)
+  - `Matrix3VertexAttribute` and `Matrix4VertexAttribute` (MFMatrix3f, MFMatrix4f)
+
+  And the scripts, including shaders, may define own fields of matrix type.
+
+  Some notable extensions use this however:
+  - `MatrixTransform.matrix`
+  - `Skin.inverseBindMatrices` ( https://castle-engine.io/skin )
+  - `RenderedTexture.viewing` and `RenderedTexture.projection`
 
 See the `MatrixFormatPerRow` routine for code that decides which format to use.
 
