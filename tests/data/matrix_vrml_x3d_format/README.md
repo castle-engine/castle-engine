@@ -17,9 +17,9 @@ VRML 1.0 and X3D specifications differ in how to load / save matrix.
 - X3D implies the opposite notation for its `SFMatrix3f`, `SFMatrix4f`, `SFMatrix3d` and `SFMatrix4d` fields:
 
   """
-  The first three single-precision floating point numbers represent
+  The first four single-precision floating point numbers represent
   the top row of the matrix.
-  The second three single-precision floating point numbers represent
+  The second four single-precision floating point numbers represent
   the second row of the matrix.
   """
 
