@@ -1725,22 +1725,6 @@ end;
 
 { TSFGenericMatrix ---------------------------------------------------------------------------- }
 
-{ VRML 1.0 and X3D specifications differ in how to load / save matrix.
-
-  See tests/data/matrix_vrml_x3d_format/README.md
-  for details.
-
-  This routine decides which format to use.
-  - For VRML 1.0 and 2.0, we load/save one column after another
-    (returns @false).
-  - For X3D, we load/save one row after another
-    (returns @true; optimize for this, as the modern recommended format).
-}
-function MatrixFormatPerRow(const Version: TX3DVersion): Boolean;
-begin
-  Result := Version.Major >= 3;
-end;
-
 {$ifdef FPC}
 constructor TSFGenericMatrix{$ifndef FPC}<
   TItem,
@@ -1759,74 +1743,35 @@ procedure TSFGenericMatrix{$ifndef FPC}<
   TItemColumn,
   TEvent>{$endif} .
   ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
-
-  { TODO: Calling here global MatrixFormatPerRow causes FPC 3.2.2 error:
-    "Error: Global Generic template references static symtable".
-    Submit FPC bug.
-    Workaround: inline MatrixFormatPerRow. }
-  function MatrixFormatPerRow(const Version: TX3DVersion): Boolean;
-  begin
-    Result := Version.Major >= 3;
-  end;
-
-  { Read matrix to Result assuming MatrixFormatPerRow = true. }
-  function ReadMatrix: TItem;
-  var
-    Column, Row: integer;
+var
+  Column, Row: integer;
+begin
+  for Column := 0 to MatrixSize - 1 do
   begin
     for Row := 0 to MatrixSize - 1 do
     begin
-      for Column := 0 to MatrixSize - 1 do
-      begin
-        Lexer.CheckTokenIs(TokenNumbers, 'float number');
-        Result.Data[Column, Row] := Lexer.TokenFloat;
-        Lexer.NextToken;
-      end;
+      Lexer.CheckTokenIs(TokenNumbers, 'float number');
+      FValue.Data[Column, Row] := Lexer.TokenFloat;
+      Lexer.NextToken;
     end;
   end;
-
-begin
-  if MatrixFormatPerRow(Reader.Version) then
-    FValue := ReadMatrix
-  else
-    FValue := ReadMatrix.Transpose;
 end;
 
 procedure TSFGenericMatrix.SaveToStreamValue(Writer: TX3DWriter);
-
-  { TODO: Calling here global MatrixFormatPerRow causes FPC 3.2.2 error:
-    "Error: Global Generic template references static symtable".
-    Submit FPC bug.
-    Workaround: inline MatrixFormatPerRow. }
-  function MatrixFormatPerRow(const Version: TX3DVersion): Boolean;
-  begin
-    Result := Version.Major >= 3;
-  end;
-
-  { Save matrix to Writer (X3D classic encoding / VRML)
-    assuming MatrixFormatPerRow = true. }
-  procedure SaveMatrix(const Matrix: TItem);
-  var
-    V: TItemColumn;
-    Row: Integer;
-  begin
-    V := Matrix.Rows[0];
-    Writer.Writeln(V.ToRawString(FloatOutputFormat));
-
-    Writer.IncIndent;
-    for Row := 1 to MatrixSize - 1 do
-    begin
-      V := Matrix.Rows[Row];
-      Writer.WritelnIndent(V.ToRawString(FloatOutputFormat));
-    end;
-    Writer.DecIndent;
-  end;
-
+var
+  V: TItemColumn;
+  Column: Integer;
 begin
-  if MatrixFormatPerRow(Writer.Version) then
-    SaveMatrix(FValue)
-  else
-    SaveMatrix(FValue.Transpose);
+  V := FValue.Columns[0];
+  Writer.Writeln(V.ToRawString(FloatOutputFormat));
+
+  Writer.IncIndent;
+  for Column := 1 to MatrixSize - 1 do
+  begin
+    V := FValue.Columns[Column];
+    Writer.WritelnIndent(V.ToRawString(FloatOutputFormat));
+  end;
+  Writer.DecIndent;
 end;
 
 function TSFGenericMatrix.Equals(SecondValue: TX3DField): boolean;
@@ -1930,56 +1875,35 @@ begin
 end;
 
 procedure TSFMatrix3f.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
-
-  { Read matrix to Result assuming MatrixFormatPerRow = true. }
-  function ReadMatrix: TMatrix3;
-  var
-    Column, Row: integer;
+var
+  Column, Row: integer;
+begin
+  for Column := 0 to MatrixSize - 1 do
   begin
     for Row := 0 to MatrixSize - 1 do
     begin
-      for Column := 0 to MatrixSize - 1 do
-      begin
-        Lexer.CheckTokenIs(TokenNumbers, 'float number');
-        Result.Data[Column, Row] := Lexer.TokenFloat;
-        Lexer.NextToken;
-      end;
+      Lexer.CheckTokenIs(TokenNumbers, 'float number');
+      FValue.Data[Column, Row] := Lexer.TokenFloat;
+      Lexer.NextToken;
     end;
   end;
-
-begin
-  if MatrixFormatPerRow(Reader.Version) then
-    FValue := ReadMatrix
-  else
-    FValue := ReadMatrix.Transpose;
 end;
 
 procedure TSFMatrix3f.SaveToStreamValue(Writer: TX3DWriter);
-
-  { Save matrix to Writer (X3D classic encoding / VRML)
-    assuming MatrixFormatPerRow = true. }
-  procedure SaveMatrix(const Matrix: TMatrix3);
-  var
-    V: TVector3;
-    Row: Integer;
-  begin
-    V := Matrix.Rows[0];
-    Writer.Writeln(V.ToRawString(FloatOutputFormat));
-
-    Writer.IncIndent;
-    for Row := 1 to MatrixSize - 1 do
-    begin
-      V := Matrix.Rows[Row];
-      Writer.WritelnIndent(V.ToRawString(FloatOutputFormat));
-    end;
-    Writer.DecIndent;
-  end;
-
+var
+  V: TVector3;
+  Column: Integer;
 begin
-  if MatrixFormatPerRow(Writer.Version) then
-    SaveMatrix(FValue)
-  else
-    SaveMatrix(FValue.Transpose);
+  V := FValue.Columns[0];
+  Writer.Writeln(V.ToRawString(FloatOutputFormat));
+
+  Writer.IncIndent;
+  for Column := 1 to MatrixSize - 1 do
+  begin
+    V := FValue.Columns[Column];
+    Writer.WritelnIndent(V.ToRawString(FloatOutputFormat));
+  end;
+  Writer.DecIndent;
 end;
 
 function TSFMatrix3f.Equals(SecondValue: TX3DField): boolean;
@@ -2084,56 +2008,35 @@ begin
 end;
 
 procedure TSFMatrix3d.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
-
-  { Read matrix to Result assuming MatrixFormatPerRow = true. }
-  function ReadMatrix: TMatrix3Double;
-  var
-    Column, Row: integer;
+var
+  Column, Row: integer;
+begin
+  for Column := 0 to MatrixSize - 1 do
   begin
     for Row := 0 to MatrixSize - 1 do
     begin
-      for Column := 0 to MatrixSize - 1 do
-      begin
-        Lexer.CheckTokenIs(TokenNumbers, 'float number');
-        Result.Data[Column, Row] := Lexer.TokenFloat;
-        Lexer.NextToken;
-      end;
+      Lexer.CheckTokenIs(TokenNumbers, 'float number');
+      FValue.Data[Column, Row] := Lexer.TokenFloat;
+      Lexer.NextToken;
     end;
   end;
-
-begin
-  if MatrixFormatPerRow(Reader.Version) then
-    FValue := ReadMatrix
-  else
-    FValue := ReadMatrix.Transpose;
 end;
 
 procedure TSFMatrix3d.SaveToStreamValue(Writer: TX3DWriter);
-
-  { Save matrix to Writer (X3D classic encoding / VRML)
-    assuming MatrixFormatPerRow = true. }
-  procedure SaveMatrix(const Matrix: TMatrix3Double);
-  var
-    V: TVector3Double;
-    Row: Integer;
-  begin
-    V := Matrix.Rows[0];
-    Writer.Writeln(V.ToRawString(FloatOutputFormat));
-
-    Writer.IncIndent;
-    for Row := 1 to MatrixSize - 1 do
-    begin
-      V := Matrix.Rows[Row];
-      Writer.WritelnIndent(V.ToRawString(FloatOutputFormat));
-    end;
-    Writer.DecIndent;
-  end;
-
+var
+  V: TVector3;
+  Column: Integer;
 begin
-  if MatrixFormatPerRow(Writer.Version) then
-    SaveMatrix(FValue)
-  else
-    SaveMatrix(FValue.Transpose);
+  V := FValue.Columns[0];
+  Writer.Writeln(V.ToRawString(FloatOutputFormat));
+
+  Writer.IncIndent;
+  for Column := 1 to MatrixSize - 1 do
+  begin
+    V := FValue.Columns[Column];
+    Writer.WritelnIndent(V.ToRawString(FloatOutputFormat));
+  end;
+  Writer.DecIndent;
 end;
 
 function TSFMatrix3d.Equals(SecondValue: TX3DField): boolean;
@@ -2237,56 +2140,35 @@ begin
 end;
 
 procedure TSFMatrix4f.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
-
-  { Read matrix to Result assuming MatrixFormatPerRow = true. }
-  function ReadMatrix: TMatrix4;
-  var
-    Column, Row: integer;
+var
+  Column, Row: integer;
+begin
+  for Column := 0 to MatrixSize - 1 do
   begin
     for Row := 0 to MatrixSize - 1 do
     begin
-      for Column := 0 to MatrixSize - 1 do
-      begin
-        Lexer.CheckTokenIs(TokenNumbers, 'float number');
-        Result.Data[Column, Row] := Lexer.TokenFloat;
-        Lexer.NextToken;
-      end;
+      Lexer.CheckTokenIs(TokenNumbers, 'float number');
+      FValue.Data[Column, Row] := Lexer.TokenFloat;
+      Lexer.NextToken;
     end;
   end;
-
-begin
-  if MatrixFormatPerRow(Reader.Version) then
-    FValue := ReadMatrix
-  else
-    FValue := ReadMatrix.Transpose;
 end;
 
 procedure TSFMatrix4f.SaveToStreamValue(Writer: TX3DWriter);
-
-  { Save matrix to Writer (X3D classic encoding / VRML)
-    assuming MatrixFormatPerRow = true. }
-  procedure SaveMatrix(const Matrix: TMatrix4);
-  var
-    V: TVector4;
-    Row: Integer;
-  begin
-    V := Matrix.Rows[0];
-    Writer.Writeln(V.ToRawString(FloatOutputFormat));
-
-    Writer.IncIndent;
-    for Row := 1 to MatrixSize - 1 do
-    begin
-      V := Matrix.Rows[Row];
-      Writer.WritelnIndent(V.ToRawString(FloatOutputFormat));
-    end;
-    Writer.DecIndent;
-  end;
-
+var
+  V: TVector3;
+  Column: Integer;
 begin
-  if MatrixFormatPerRow(Writer.Version) then
-    SaveMatrix(FValue)
-  else
-    SaveMatrix(FValue.Transpose);
+  V := FValue.Columns[0];
+  Writer.Writeln(V.ToRawString(FloatOutputFormat));
+
+  Writer.IncIndent;
+  for Column := 1 to MatrixSize - 1 do
+  begin
+    V := FValue.Columns[Column];
+    Writer.WritelnIndent(V.ToRawString(FloatOutputFormat));
+  end;
+  Writer.DecIndent;
 end;
 
 function TSFMatrix4f.Equals(SecondValue: TX3DField): boolean;
@@ -2391,56 +2273,35 @@ begin
 end;
 
 procedure TSFMatrix4d.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
-
-  { Read matrix to Result assuming MatrixFormatPerRow = true. }
-  function ReadMatrix: TMatrix4Double;
-  var
-    Column, Row: integer;
+var
+  Column, Row: integer;
+begin
+  for Column := 0 to MatrixSize - 1 do
   begin
     for Row := 0 to MatrixSize - 1 do
     begin
-      for Column := 0 to MatrixSize - 1 do
-      begin
-        Lexer.CheckTokenIs(TokenNumbers, 'float number');
-        Result.Data[Column, Row] := Lexer.TokenFloat;
-        Lexer.NextToken;
-      end;
+      Lexer.CheckTokenIs(TokenNumbers, 'float number');
+      FValue.Data[Column, Row] := Lexer.TokenFloat;
+      Lexer.NextToken;
     end;
   end;
-
-begin
-  if MatrixFormatPerRow(Reader.Version) then
-    FValue := ReadMatrix
-  else
-    FValue := ReadMatrix.Transpose;
 end;
 
 procedure TSFMatrix4d.SaveToStreamValue(Writer: TX3DWriter);
-
-  { Save matrix to Writer (X3D classic encoding / VRML)
-    assuming MatrixFormatPerRow = true. }
-  procedure SaveMatrix(const Matrix: TMatrix4Double);
-  var
-    V: TVector4Double;
-    Row: Integer;
-  begin
-    V := Matrix.Rows[0];
-    Writer.Writeln(V.ToRawString(FloatOutputFormat));
-
-    Writer.IncIndent;
-    for Row := 1 to MatrixSize - 1 do
-    begin
-      V := Matrix.Rows[Row];
-      Writer.WritelnIndent(V.ToRawString(FloatOutputFormat));
-    end;
-    Writer.DecIndent;
-  end;
-
+var
+  V: TVector3;
+  Column: Integer;
 begin
-  if MatrixFormatPerRow(Writer.Version) then
-    SaveMatrix(FValue)
-  else
-    SaveMatrix(FValue.Transpose);
+  V := FValue.Columns[0];
+  Writer.Writeln(V.ToRawString(FloatOutputFormat));
+
+  Writer.IncIndent;
+  for Column := 1 to MatrixSize - 1 do
+  begin
+    V := FValue.Columns[Column];
+    Writer.WritelnIndent(V.ToRawString(FloatOutputFormat));
+  end;
+  Writer.DecIndent;
 end;
 
 function TSFMatrix4d.Equals(SecondValue: TX3DField): boolean;

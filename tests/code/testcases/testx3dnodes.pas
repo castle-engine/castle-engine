@@ -130,14 +130,16 @@ type
     procedure TestImageFromDataUri;
     procedure TestRemoveRoute;
 
-    { VRML 1.0 loads/save matrix per-column. }
+    { VRML 1.0 save/load matrix.
+      See tests/data/matrix_vrml_x3d_format/README.md . }
     procedure TestSaveLoadMatrix_Vrml1;
 
-    { VRML 2.0 loads/save matrix just like VRML 1.0.
+    { VRML 2.0 save/load matrix.
       See tests/data/matrix_vrml_x3d_format/README.md . }
     procedure TestSaveLoadMatrix_Vrml2;
 
-    { X3D loads/save matrix per-row. }
+    { X3D save/load matrix.
+      See tests/data/matrix_vrml_x3d_format/README.md . }
     procedure TestSaveLoadMatrix_X3DClassic;
     procedure TestSaveLoadMatrix_X3DXml;
 

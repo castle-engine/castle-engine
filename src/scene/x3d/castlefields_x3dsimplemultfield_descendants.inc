@@ -531,10 +531,7 @@ end;
 function TMFMatrix3f.RawItemToString(const ItemNum: Integer;
   const Encoding: TX3DEncoding; const Version: TX3DVersion): String;
 begin
-  if MatrixFormatPerRow(Version) then
-    Result := Items.L[ItemNum].ToRawString('', FloatOutputFormat)
-  else
-    Result := Items.L[ItemNum].Transpose.ToRawString('', FloatOutputFormat);
+  Result := Items.L[ItemNum].Transpose.ToRawString('', FloatOutputFormat);
 end;
 
 procedure TMFMatrix3f.AddToList(const ItemList: TMatrix3List; const Item: TSFMatrix3f);
@@ -572,10 +569,7 @@ end;
 function TMFMatrix3d.RawItemToString(const ItemNum: Integer;
   const Encoding: TX3DEncoding; const Version: TX3DVersion): String;
 begin
-  if MatrixFormatPerRow(Version) then
-    Result := Items.L[ItemNum].ToRawString('', FloatOutputFormat)
-  else
-    Result := Items.L[ItemNum].Transpose.ToRawString('', FloatOutputFormat);
+  Result := Items.L[ItemNum].Transpose.ToRawString('', FloatOutputFormat);
 end;
 
 procedure TMFMatrix3d.AddToList(const ItemList: TMatrix3DoubleList; const Item: TSFMatrix3d);
@@ -613,10 +607,7 @@ end;
 function TMFMatrix4f.RawItemToString(const ItemNum: Integer;
   const Encoding: TX3DEncoding; const Version: TX3DVersion): String;
 begin
-  if MatrixFormatPerRow(Version) then
-    Result := Items.L[ItemNum].ToRawString('', FloatOutputFormat)
-  else
-    Result := Items.L[ItemNum].Transpose.ToRawString('', FloatOutputFormat);
+  Result := Items.L[ItemNum].Transpose.ToRawString('', FloatOutputFormat);
 end;
 
 procedure TMFMatrix4f.AddToList(const ItemList: TMatrix4List; const Item: TSFMatrix4f);
@@ -654,10 +645,7 @@ end;
 function TMFMatrix4d.RawItemToString(const ItemNum: Integer;
   const Encoding: TX3DEncoding; const Version: TX3DVersion): String;
 begin
-  if MatrixFormatPerRow(Version) then
-    Result := Items.L[ItemNum].ToRawString('', FloatOutputFormat)
-  else
-    Result := Items.L[ItemNum].Transpose.ToRawString('', FloatOutputFormat);
+  Result := Items.L[ItemNum].Transpose.ToRawString('', FloatOutputFormat);
 end;
 
 procedure TMFMatrix4d.AddToList(const ItemList: TMatrix4DoubleList; const Item: TSFMatrix4d);
