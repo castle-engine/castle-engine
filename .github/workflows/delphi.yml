@@ -35,7 +35,7 @@ jobs:
     runs-on: ${{ matrix.host-label }}
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       # We want to provide multi-line scripts to "run" steps below,
       # which isn't easy with GH Actions + Windows it seems.

@@ -91,7 +91,7 @@ jobs:
             is_gh_ubuntu: true
     runs-on: ${{ matrix.runner }}
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
 
     - name: Install FPC+Lazarus
       # On GH hosted runners, install FPC+Lazarus
