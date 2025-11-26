@@ -199,8 +199,8 @@ procedure TTestUriUtils.TestUriDisplay;
 const
   DataUriX3D =
     'data:model/x3d+xml,<?xml version="1.0" encoding="UTF-8"?>' + LineEnding +
-    '<!DOCTYPE X3D PUBLIC "ISO//Web3D//DTD X3D 3.0//EN" "http://www.web3d.org/specifications/x3d-3.0.dtd">' + LineEnding +
-    '<X3D version="3.0" profile="Immersive" xmlns:xsd="http://www.w3.org/2001/XMLSchema-instance" xsd:noNamespaceSchemaLocation="http://www.web3d.org/specifications/x3d-3.0.xsd">' + LineEnding +
+    '<!DOCTYPE X3D PUBLIC "ISO//Web3D//DTD X3D 3.0//EN" "https://www.web3d.org/specifications/x3d-3.0.dtd">' + LineEnding +
+    '<X3D version="3.0" profile="Immersive" xmlns:xsd="http://www.w3.org/2001/XMLSchema-instance" xsd:noNamespaceSchemaLocation="https://www.web3d.org/specifications/x3d-3.0.xsd">' + LineEnding +
     '<head>' + LineEnding +
     '</head>' + LineEnding +
     '<Scene>' + LineEnding +

@@ -207,10 +207,10 @@ var
   begin
     Writer.Writeln(Format(
       '<?xml version="1.0" encoding="UTF-8"?>' + NL +
-      '<!DOCTYPE X3D PUBLIC "ISO//Web3D//DTD X3D %d.%d//EN" "http://www.web3d.org/specifications/x3d-%0:d.%1:d.dtd">' + NL+
+      '<!DOCTYPE X3D PUBLIC "ISO//Web3D//DTD X3D %d.%d//EN" "https://www.web3d.org/specifications/x3d-%0:d.%1:d.dtd">' + NL+
       '<X3D profile=%2:s version="%0:d.%1:d"' + NL+
       '     xmlns:xsd="http://www.w3.org/2001/XMLSchema-instance"' + NL+
-      '     xsd:noNamespaceSchemaLocation="http://www.web3d.org/specifications/x3d-%0:d.%1:d.xsd">' + NL+
+      '     xsd:noNamespaceSchemaLocation="https://www.web3d.org/specifications/x3d-%0:d.%1:d.xsd">' + NL+
       '<head>',
       [Version.Major, Version.Minor, StringToX3DXml(Profile)]));
     Writer.IncIndent;
