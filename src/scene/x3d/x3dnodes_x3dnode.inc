@@ -2288,27 +2288,8 @@ var
               if Fields[FieldIndex] is TSFNode then
               begin
                 SF := Fields[FieldIndex] as TSFNode;
-
                 if SF.Value <> nil then
                   WritelnWarning('X3D', 'X3D XML: More than one value specified for SFNode field ' + SF.NiceName);
-
-                { Although field doesn't have a set position in XML X3D
-                  encoding, when saving later in classic encoding we
-                  need some order of fields. This is yet another problem
-                  with non-unique names, something defined in XML X3D
-                  may be not possible to save in other encoding:
-
-                  <Group>
-                    <Shape> ... <Appearance DEF="XXX" ....> </Shape>
-                    <ROUTE ... using "XXX" name ...>
-                    <Shape> ... <Appearance DEF="XXX" ....> </Shape>
-                    <ROUTE ... using "XXX" name ...>
-                  </Group>
-
-                  This is uneasy to save in classic encoding, since
-                  you cannot insert ROUTE in the middle of "children"
-                  field of Group node in classic encoding.
-                }
                 Fields[FieldIndex].PositionInParent := Position;
                 SF.Value := Child;
                 SF.WarningIfChildNotAllowed(Child);
@@ -2316,7 +2297,48 @@ var
               if Fields[FieldIndex] is TMFNode then
               begin
                 MF := Fields[FieldIndex] as TMFNode;
-                Fields[FieldIndex].PositionInParent := Position;
+
+                { 1. Why Fields[FieldIndex].PositionInParent := Position?
+
+                    We need to set Fields[FieldIndex].PositionInParent,
+                    to later output child nodes (SFNode, MFNode) in correct
+                    order among other stuff in nodes (like ROUTEs
+                    that may rely that some node is already defined).
+
+                    Note that in X3D XML encoding, "fields" don't really have a position.
+                    But we need to assume node position = field position,
+                    to have something useful when saving later in classic encoding.
+
+                  2. Why special check for "if Fields[FieldIndex].PositionInParent  <> -1 then"
+                    used only for TMFNode case?
+
+                    MFNode in X3D XML is especially problematic here,
+                    as children nodes may be mixed with other content,
+                    see tests/data/x3d_xml_routes_nodes_mixed.x3d .
+                    Only *first* (not *last*) child should determine Position,
+                    to later output the MFNode *earlier* than other stuff
+                    (like ROUTEs that may depend on ot).
+                    
+                  3. Note that duplicate names create edge-cases that are
+                    impossible to convert between encodings.
+                    With non-unique names, something defined in XML X3D
+                    may be not possible to save in classic encoding:
+
+                    <Group>
+                      <Shape> ... <Appearance DEF="XXX" ....> </Shape>
+                      <ROUTE ... using "XXX" name ...>
+                      <Shape> ... <Appearance DEF="XXX" ....> </Shape>
+                      <ROUTE ... using "XXX" name ...>
+                    </Group>
+
+                    This is impossible to save in classic encoding, since
+                    you cannot insert ROUTE in the middle of "children"
+                    field of Group node in classic encoding.
+                }
+
+                if Fields[FieldIndex].PositionInParent  <> -1 then
+                  Fields[FieldIndex].PositionInParent := Position;
+
                 MF.Add(Child);
                 MF.WarningIfChildNotAllowed(Child);
               end else

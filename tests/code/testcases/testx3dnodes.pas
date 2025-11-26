@@ -145,6 +145,7 @@ type
 
     procedure TestNodeListAutoRemove;
     procedure TestGltfSkinnedAnimationBBox;
+    procedure TestRouteNodesPositions;
   end;
 
 implementation
@@ -3353,6 +3354,28 @@ begin
   finally FreeAndNil(StagRoot) end;
 end;
 
+procedure TTestX3DNodes.TestRouteNodesPositions;
+var 
+  Root: TX3DRootNode;
+  TempStream: TMemoryStream;
+begin
+  Root := LoadNode('castle-data:/x3d_xml_routes_nodes_mixed.x3d');
+  try
+    ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}OnWarningRaiseException);
+    try
+      TempStream := TMemoryStream.Create;
+      SaveNode(Root, TempStream, 'model/x3d+vrml', '', '');
+      FreeAndNil(TempStream);
+
+      TempStream := TMemoryStream.Create;
+      SaveNode(Root, TempStream, 'model/x3d+xml', '', '');
+      FreeAndNil(TempStream);
+    finally 
+      ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningRaiseException);
+    end;
+  finally FreeAndNil(Root) end;
+end;
+  
 initialization
   RegisterTest(TTestX3DNodes);
 end.
