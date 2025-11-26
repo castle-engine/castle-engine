@@ -349,5 +349,6 @@ begin
 end;
 
 initialization
+  LogVerboseKtx := true;
   RegisterTest(TTestCastleCompositeImage);
 end.
