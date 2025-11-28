@@ -715,8 +715,7 @@ procedure TSkinNode.InternalUpdateSkin;
       - Tangents are either @nil, or they are of the same count as Coords
 
       The Xxxs and XxxNode are always either both nil, or both non-nil.
-      E.g. we always return NormalNode = nil and Normals = nil, or both non-nil.
-       }
+      E.g. we always return NormalNode = nil and Normals = nil, or both non-nil. }
     function GetArrays(out Coords, Normals: TVector3List; out Tangents: TVector4List;
       out CoordNode: TCoordinateNode;
       out NormalNode: TNormalNode;
@@ -821,7 +820,7 @@ procedure TSkinNode.InternalUpdateSkin;
 
     { Update list supposed to contain original (before animation started) values
       of some array.
-      In way, this assigns OriginalArray := NewArray,
+      Conceptually, this assigns OriginalArray := NewArray,
       by making sure they have the same contents and are both nil or both non-nil. }
     procedure UpdateGeometryOriginalArray(var OriginalArray: TVector3List;
       const NewArray: TVector3List); overload;
