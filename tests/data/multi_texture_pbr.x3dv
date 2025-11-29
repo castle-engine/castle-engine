@@ -1,0 +1,22 @@
+#X3D V4.0 utf8
+
+# Testcase from
+# https://github.com/castle-engine/castle-model-viewer/issues/124
+
+PROFILE Full
+
+Viewpoint { position -2.43 -2.38 3.67 orientation .28 -.67 .69 1.05116212368 }
+
+Shape {
+ appearance Appearance {
+  texture MultiTexture {
+   texture [
+    PixelTexture3D { image [ 2 1 4 1 255 0 0 0 ] }
+    PixelTexture3D { image [ 2 1 4 1 0 0 255 0 ] }
+   ]
+   mode [ "REPLACE", "ADD" ]
+  }
+  material PhysicalMaterial { emissiveColor 1 0 1 }
+ }
+ geometry Sphere {}
+}

@@ -146,6 +146,7 @@ type
     procedure TestNodeListAutoRemove;
     procedure TestGltfSkinnedAnimationBBox;
     procedure TestRouteNodesPositions;
+    procedure TestNoFailMultiTexture;
   end;
 
 implementation
@@ -3355,7 +3356,7 @@ begin
 end;
 
 procedure TTestX3DNodes.TestRouteNodesPositions;
-var 
+var
   Root: TX3DRootNode;
   TempStream: TMemoryStream;
 begin
@@ -3370,12 +3371,21 @@ begin
       TempStream := TMemoryStream.Create;
       SaveNode(Root, TempStream, 'model/x3d+xml', '', '');
       FreeAndNil(TempStream);
-    finally 
+    finally
       ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningRaiseException);
     end;
   finally FreeAndNil(Root) end;
 end;
-  
+
+procedure TTestX3DNodes.TestNoFailMultiTexture;
+var
+  Root: TX3DRootNode;
+begin
+  Root := LoadNode('castle-data:/multi_texture_pbr.x3dv');
+  try
+  finally FreeAndNil(Root) end;
+end;
+
 initialization
   RegisterTest(TTestX3DNodes);
 end.

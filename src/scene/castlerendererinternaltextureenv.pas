@@ -467,9 +467,18 @@ constructor TTextureEnv.Init(const Mode, SourceStr, FunctionStr: string);
 begin
   ModeFromString(Mode, Combine, CurrentTextureArgument, SourceArgument, Scale, Disabled,
     NeedsConstantColor, BlendAlphaSource);
+
   if (SourceArgument[cRGB] <> taNone) or
      (SourceArgument[cAlpha] <> taNone) then
-    SourceFromString(SourceStr, Source, NeedsConstantColor);
+    SourceFromString(SourceStr, Source, NeedsConstantColor) else
+  begin
+    { In this case, Source value can be anything. But make it defined,
+      in case something will rely it is a valid enum.
+      Testcase: https://github.com/castle-engine/castle-model-viewer/issues/124 }
+    Source[cRGB  ] := csMaterial;
+    Source[cAlpha] := csMaterial;
+  end;
+
   TextureFunction := FunctionFromString(FunctionStr);
 end;
 
