@@ -1414,7 +1414,14 @@ begin
       Exit;
     end;
 
+    { Trying to compile this with Delphi 13, win32, release mode, fails
+      with "F2084 Internal Error: G16451".
+      Worked OK with Delphi 12, works OK with FPC.
+      See https://github.com/castle-engine/castle-engine/issues/699 }
+    {$if not (defined(DELPHI) and defined(RELEASE))}
     Assert(Node.InternalSceneShape is TShapeTreeList);
+    {$endif}
+
     if TShapeTreeList(Node.InternalSceneShape).Count = 1 then
     begin
       Assert(TShapeTreeList(Node.InternalSceneShape)[0] = Self);
