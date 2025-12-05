@@ -47,13 +47,14 @@ type
     procedure TestUInt16SinglePrecision;
     procedure TestPngFloat;
     procedure TestKtxFloat;
+    procedure TestPixel1x1;
   end;
 
 implementation
 
 uses SysUtils, Classes,
   CastleVectors, CastleImages, CastleFilesUtils, CastleDownload, CastleUriUtils,
-  CastleInternalPng, CastleLog;
+  CastleInternalPng, CastleLog, CastleColors;
 
 procedure TTestImages.TestBasicImageLoad;
 var
@@ -601,6 +602,22 @@ begin
     AssertEquals(16, Img.Width);
     AssertEquals(16, Img.Height);
     AssertTrue(Img is TRGBAlphaFloatImage);
+  finally FreeAndNil(Img) end;
+end;
+
+procedure TTestImages.TestPixel1x1;
+var
+  Img: TCastleImage;
+  Color: TCastleColor;
+begin
+  Img := LoadImage('castle-data:/pixel1x1.png');
+  try
+    AssertEquals(1, Img.Width);
+    AssertEquals(1, Img.Height);
+    AssertEquals(1, Img.Depth);
+    Color := Img.Colors[0, 0, 0];
+    Img.FlipVertical;
+    AssertVectorEquals(Color, Img.Colors[0, 0, 0]);
   finally FreeAndNil(Img) end;
 end;
 
