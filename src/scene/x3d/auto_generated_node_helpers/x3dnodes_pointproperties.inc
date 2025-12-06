@@ -58,7 +58,7 @@
     strict private FFdPointSizeScaleFactor: TSFFloat;
     { Internal wrapper for property @code(PointSizeScaleFactor). This wrapper API may change, we advise to access simpler @code(PointSizeScaleFactor) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdPointSizeScaleFactor: TSFFloat read FFdPointSizeScaleFactor;
-    { Point size scaling factor applied to the nominal point size specified by @link(TCastleRenderOptions.PointSize). The final scaling is also affected by @link(PointSizeMinValue), @link(PointSizeMaxValue) and @link(Attenuation). }
+    { Point size scaling factor applied to the point size specified by @link(TCastleRenderOptions.PointSize). The final scaling is also affected by @link(PointSizeMinValue), @link(PointSizeMaxValue) and @link(Attenuation). }
     property PointSizeScaleFactor: Single read GetPointSizeScaleFactor write SetPointSizeScaleFactor;
 
 {$endif read_interface}

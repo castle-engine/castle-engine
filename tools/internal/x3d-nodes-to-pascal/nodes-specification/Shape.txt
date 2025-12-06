@@ -293,7 +293,7 @@ PointProperties : X3DAppearanceChildNode {
     doc: Minimum point scaling factor. Always must be @link(PointSizeMinValue) <= @link(PointSizeMaxValue).
   SFFloat  [in,out] pointSizeScaleFactor  1
     range: [1,Inf)
-    doc: Point size scaling factor applied to the nominal point size specified by @link(TCastleRenderOptions.PointSize). The final scaling is also affected by @link(PointSizeMinValue), @link(PointSizeMaxValue) and @link(Attenuation).
+    doc: Point size scaling factor applied to the point size specified by @link(TCastleRenderOptions.PointSize). The final scaling is also affected by @link(PointSizeMinValue), @link(PointSizeMaxValue) and @link(Attenuation).
 }
 
 Shape : X3DShapeNode {
