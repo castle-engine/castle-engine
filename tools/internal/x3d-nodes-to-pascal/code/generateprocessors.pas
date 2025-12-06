@@ -701,6 +701,8 @@ begin
     ) and (
       (Range = '(0,Inf)') or
       (Range = '[0,Inf)') or
+      (Range = '(1,Inf)') or
+      (Range = '[1,Inf)') or
       (Range = '(0,1)') or
       (Range = '[0,1)') or
       (Range = '(0,1]') or

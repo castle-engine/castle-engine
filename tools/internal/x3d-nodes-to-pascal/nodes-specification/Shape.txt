@@ -102,6 +102,9 @@ Appearance : X3DAppearanceNode {
     change: chEverything
     doc: Material determines how the shape looks, and how it interacts with lighting.
     setter-before: MoveShapeAssociations
+  SFNode [in,out] pointProperties  NULL
+    range: PointProperties
+    doc: Properties how to display point geometry (point size and such).
   MFNode [in,out] shaders          []
     range: X3DShaderNode
     change: chEverything
@@ -275,6 +278,22 @@ PhysicalMaterial : X3DOneSidedMaterialNode {
   SFFloat  [in,out] transparency                    0
     range: [0,1]
     doc: Setting @name to value > 0 makes the object partially-transparent. Setting it to 1.0 makes it even invisible (but still collidable). If you want to render the object using blending (which is usually the case for partially-transparent) it is recommended to specify it explicitly using @link(TAppearanceNode.AlphaMode).
+}
+
+PointProperties : X3DAppearanceChildNode {
+  default-container-field: pointProperties
+  SFVec3f  [in,out] attenuation           1 0 0
+    range: [0,Inf)
+    doc: Optionally make points close to the viewer appear larger.
+  SFFloat  [in,out] pointSizeMaxValue     1
+    range: [0,Inf)
+    doc: Maximum point scaling factor. Always must be @link(PointSizeMinValue) <= @link(PointSizeMaxValue).
+  SFFloat  [in,out] pointSizeMinValue     1
+    range: [0,Inf)
+    doc: Minimum point scaling factor. Always must be @link(PointSizeMinValue) <= @link(PointSizeMaxValue).
+  SFFloat  [in,out] pointSizeScaleFactor  1
+    range: [1,Inf)
+    doc: Point size scaling factor applied to the nominal point size specified by @link(TCastleRenderOptions.PointSize). The final scaling is also affected by @link(PointSizeMinValue), @link(PointSizeMaxValue) and @link(Attenuation).
 }
 
 Shape : X3DShapeNode {

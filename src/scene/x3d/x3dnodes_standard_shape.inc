@@ -192,12 +192,12 @@
   {$I auto_generated_node_helpers/x3dnodes_appearance.inc}
   end;
 
-  { Additional visual properties to be applied to all polygonal areas. }
+  { How to display polygons, like in @link(TIndexedFaceSetNode). }
   TFillPropertiesNode = class(TAbstractAppearanceChildNode)
   {$I auto_generated_node_helpers/x3dnodes_fillproperties.inc}
   end;
 
-  { Additional visible properties to be applied to all line geometry. }
+  { How to display line geometry, like in @link(TLineSetNode). }
   TLinePropertiesNode = class(TAbstractAppearanceChildNode)
   strict private
     function GetLineType: TLineType;
@@ -344,6 +344,13 @@
   end;
 
   EInvalidGeometryIndex = class(Exception);
+
+  { How to display points, like in @link(TPointSetNode).
+
+    TODO: Functionality not supported yet. }
+  TPointPropertiesNode = class(TAbstractAppearanceChildNode)
+  {$I auto_generated_node_helpers/x3dnodes_pointproperties.inc}
+  end;
 
   { Shape is a rendered object in the world, with an appearance and geometry. }
   TShapeNode = class(TAbstractShapeNode)
@@ -1450,6 +1457,7 @@ begin
     TLinePropertiesNode,
     TMaterialNode,
     TPhysicalMaterialNode,
+    TPointPropertiesNode,
     TShapeNode,
     TTwoSidedMaterialNode,
     TUnlitMaterialNode,

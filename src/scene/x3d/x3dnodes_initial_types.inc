@@ -84,6 +84,7 @@
   TLinePropertiesNode = class;
   TCommonSurfaceShaderNode = class;
   TAcousticPropertiesNode = class;
+  TPointPropertiesNode = class;
 
   TX3DNodeClass = class of TX3DNode;
 

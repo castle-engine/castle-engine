@@ -234,6 +234,7 @@ begin
 
   FFdAnisotropicDegree := TSFFloat.Create(Self, True, 'anisotropicDegree', 1.0);
    FdAnisotropicDegree.ChangeAlways := chTexturePropertiesNode;
+   FdAnisotropicDegree.MustBeNonnegative := true;
   AddField(FFdAnisotropicDegree);
 
   FFdBorderColor := TSFColorRGBA.Create(Self, True, 'borderColor', Vector4(0, 0, 0, 0));
