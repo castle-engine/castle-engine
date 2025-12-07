@@ -171,7 +171,9 @@ jobs:
       - name: Set environment
         run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
 
-      # Not really necessary since this runs on GH-hosted runners that are always cleaned at start.
+      # Remove previous output.
+      # Not necessary in practice, since this runs on GH-hosted runners that are
+      # always cleaned at start, but also doesn't hurt.
       - name: Remove previous artifacts
         run: rm -f castle-engine*.zip
 
@@ -181,8 +183,7 @@ jobs:
         with:
           repository: "castle-engine/cge-fpc"
           latest: true
-          # Docs suggest we need a wildcard to get all files: https://github.com/marketplace/actions/release-downloader
-          fileName: "*"
+          fileName: "fpc-${{ matrix.os }}-${{ matrix.cpu }}.zip"
 
       - name: Define CGE_PACK_BUNDLE
         if: ${{ matrix.bundle }}
