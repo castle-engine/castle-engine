@@ -192,7 +192,9 @@
   {$I auto_generated_node_helpers/x3dnodes_appearance.inc}
   end;
 
-  { How to display polygons, like in @link(TIndexedFaceSetNode). }
+  { How to display polygons, like in @link(TIndexedFaceSetNode).
+
+    TODO: Functionality not supported yet. }
   TFillPropertiesNode = class(TAbstractAppearanceChildNode)
   {$I auto_generated_node_helpers/x3dnodes_fillproperties.inc}
   end;
@@ -345,9 +347,7 @@
 
   EInvalidGeometryIndex = class(Exception);
 
-  { How to display points, like in @link(TPointSetNode).
-
-    TODO: Functionality not supported yet. }
+  { How to display points, like in @link(TPointSetNode). }
   TPointPropertiesNode = class(TAbstractAppearanceChildNode)
   {$I auto_generated_node_helpers/x3dnodes_pointproperties.inc}
   end;
