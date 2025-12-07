@@ -23,6 +23,26 @@
   We want to calculate such bounding box,
   but without effectively simulating all the animation frames at loading time,
   which would make loading slow.
+
+  Note about CASTLE_BBOX_DETERMINE_TRANSFORMING_ALL_ROOTS:
+
+  - When defined, we calculate bounding box of animations by:
+    1. sampling joints from all document roots
+       (glTF document may have multiple roots)
+    2. and calculate bbox with respect to whole document, not to skeleton root.
+
+  - AD 2 is not correct: see Low_doe_v01.gltf testcase from Erik
+    (run animation like "eat" and check is bbox visually shifted).
+    Resulting bbox is transformed by Skin transformations, and it should not be,
+    as it's used as local shape bbox.
+
+  - AD 1 is not efficient and unnnecessarily complex. It's easier to calculate
+    from only a single root in SkeletonRootIndex (unless it's -1, then we
+    enumerate all roots anyway). It's faster to not have to
+    multiply by SkeletonRootInverse.
+
+  - So there's no point in using CASTLE_BBOX_DETERMINE_TRANSFORMING_ALL_ROOTS
+    at all now! It remains just a test of alternative approach.
 }
 
 { TAnimationSampler --------------------------------------------------------------- }
@@ -51,6 +71,12 @@ type
 
       Set this before @link(SetTime). }
     TransformNodesGltf: TPasGLTF.TNodes;
+
+    { Index of skeleton root node in @link(TransformNodes) and
+      @link(TransformNodesGltf).
+
+      Set this before @link(SetTime). }
+    SkeletonRootIndex: Integer;
 
     { Indexes of root nodes in TransformNodesGltf.
       In PasGLTF, this comes from Scene.Nodes.
@@ -178,15 +204,11 @@ procedure TAnimationSampler.SetTime(const Time: TFloatTime);
         UpdateChildMatrix(ChildNodeIndex, T^);
     end;
 
-  var
-    T: PTransformation;
-    RootNodeIndex, ChildNodeIndex: Integer;
-  begin
-    for RootNodeIndex in TransformNodesRoots do
+    procedure UpdateFromRoot(const RootNodeIndex: Integer);
+    var
+      T: PTransformation;
+      ChildNodeIndex: Integer;
     begin
-      if not Between(RootNodeIndex, 0, Transformations.Count - 1) then
-        Continue; // warning about it was already done by ReadScene
-
       T := PTransformation(Transformations.Ptr(RootNodeIndex));
       T^.Init;
       T^.Multiply(
@@ -196,6 +218,25 @@ procedure TAnimationSampler.SetTime(const Time: TFloatTime);
 
       for ChildNodeIndex in TransformNodesGltf[RootNodeIndex].Children do
         UpdateChildMatrix(ChildNodeIndex, T^);
+    end;
+
+  var
+    RootNodeIndex: Integer;
+  begin
+    {$ifndef CASTLE_BBOX_DETERMINE_TRANSFORMING_ALL_ROOTS}
+    // Try to enumerate from SkeletonRootIndex, if it's specified.
+    if SkeletonRootIndex <> -1 then
+    begin
+      UpdateFromRoot(SkeletonRootIndex);
+      Exit;
+    end;
+    {$endif not CASTLE_BBOX_DETERMINE_TRANSFORMING_ALL_ROOTS}
+
+    for RootNodeIndex in TransformNodesRoots do
+    begin
+      if not Between(RootNodeIndex, 0, Transformations.Count - 1) then
+        Continue; // warning about it was already done by ReadScene
+      UpdateFromRoot(RootNodeIndex);
     end;
   end;
 
@@ -247,27 +288,36 @@ procedure SampleSkinAnimation(const AnimationSampler: TAnimationSampler;
   const Joints: TX3DNodeList; const JointsGltf: TPasGLTF.TSkin.TJoints;
   const JointMatrix: TMatrix4List;
   const InverseBindMatrices: TMatrix4List;
-  const SkeletonRootIndex: Integer;
   const Joints0: TInt32List;
   const Weights0: TVector4List);
 var
   I: Integer;
   NewCoordinate: TVector3;
-  SkinMatrix, SkeletonRootInverse: TMatrix4;
+  SkinMatrix: TMatrix4;
+  {$ifdef CASTLE_BBOX_DETERMINE_TRANSFORMING_ALL_ROOTS}
+  SkeletonRootInverse: TMatrix4;
+  {$endif CASTLE_BBOX_DETERMINE_TRANSFORMING_ALL_ROOTS}
   VertexJointsPtr: PVector4Integer;
   VertexWeights: TVector4;
 begin
   AnimationSampler.SetTime(TimeFraction);
 
-  if SkeletonRootIndex <> -1 then
-    SkeletonRootInverse := AnimationSampler.Transformations.L[SkeletonRootIndex].InverseTransform
+  {$ifdef CASTLE_BBOX_DETERMINE_TRANSFORMING_ALL_ROOTS}
+  if AnimationSampler.SkeletonRootIndex <> -1 then
+    SkeletonRootInverse := AnimationSampler.Transformations.L[
+        AnimationSampler.SkeletonRootIndex
+      ].InverseTransform
   else
     SkeletonRootInverse := TMatrix4.Identity;
+  {$endif CASTLE_BBOX_DETERMINE_TRANSFORMING_ALL_ROOTS}
 
   { For each Joint, we calculate JointMatrix following
     https://www.slideshare.net/Khronos_Group/gltf-20-reference-guide }
   for I := 0 to Joints.Count - 1 do
-    JointMatrix[I] := SkeletonRootInverse *
+    JointMatrix[I] :=
+      {$ifdef CASTLE_BBOX_DETERMINE_TRANSFORMING_ALL_ROOTS}
+      SkeletonRootInverse *
+      {$endif CASTLE_BBOX_DETERMINE_TRANSFORMING_ALL_ROOTS}
       AnimationSampler.Transformations.L[JointsGltf[I]].Transform *
       InverseBindMatrices[I];
 
@@ -405,7 +455,6 @@ var
           Coord.FdPoint.Items, Box,
           Skin.FdJoints.InternalItems, JointsGltf, JointMatrix,
           Skin.FdInverseBindMatrices.Items,
-          SkeletonRootIndex,
           Joints0, Weights0);
         Inc(FramesSampled);
         I := I + TSkinNode.AnimationSamplingForBox;
@@ -419,7 +468,6 @@ var
           Coord.FdPoint.Items, Box,
           Skin.FdJoints.InternalItems, JointsGltf, JointMatrix,
           Skin.FdInverseBindMatrices.Items,
-          SkeletonRootIndex,
           Joints0, Weights0);
         Inc(FramesSampled);
       end;
@@ -461,6 +509,7 @@ begin
     AnimationSampler := TAnimationSampler.Create;
     AnimationSampler.TransformNodes := TransformNodes;
     AnimationSampler.TransformNodesGltf := TransformNodesGltf;
+    AnimationSampler.SkeletonRootIndex := SkeletonRootIndex;
     AnimationSampler.TransformNodesRoots := TransformNodesRoots;
 
     JointMatrix := TMatrix4List.Create;
