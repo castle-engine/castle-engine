@@ -139,7 +139,7 @@
       Assumes that the nodes have been updated to reflect the latest state
       of the IFC classes using @link(Update).
 
-      @seealso ProductToNode }
+      @seealso ProductToNodes }
     function NodeToProduct(const Node: TAbstractShapeNode): TIfcProduct;
 
     { For IFC product, return the corresponding shape nodes.
