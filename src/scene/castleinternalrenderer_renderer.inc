@@ -140,6 +140,9 @@
     procedure RenderShapeLineProperties(const Shape: TX3DRendererShape;
       const RenderOptions: TCastleRenderOptions;
       const Shader: TShader);
+    procedure RenderShapePointProperties(const Shape: TX3DRendererShape;
+      const RenderOptions: TCastleRenderOptions;
+      const Shader: TShader);
     procedure RenderShapeMaterials(const Shape: TX3DRendererShape;
       const RenderOptions: TCastleRenderOptions;
       const Shader: TShader);
@@ -425,7 +428,7 @@ var
 begin
   { Restore defaults, for other rendering code outside of TRenderer.
 
-    These RenderContext properties are always set before rendering every shape,
+    These RenderContext properties are always set before rendering any shape,
     so ClassRenderBegin doesn't care to set them to any value,
     and we just reset them in ClassRenderEnd. }
   RenderContext.CullFace := false;
@@ -437,8 +440,11 @@ begin
 
   { Restore defaults, for other rendering code outside of TRenderer.
 
-    These RenderContext properties are always set in InitializeFromRenderOptions,
-    so they are constant for each shape.
+    These RenderContext properties are always set before rendering any shape, in
+    - InitializeFromRenderOptions,
+    - RenderShapeLineProperties,
+    - RenderShapePointProperties
+    and later they remain constant during shape rendering.
     So ClassRenderBegin doesn't care to set them to any value,
     and we just reset them in ClassRenderEnd. }
   RenderContext.PointSize := 1;
@@ -714,6 +720,35 @@ begin
     RenderContext.LineWidth := RenderOptions.LineWidth;
     RenderContext.LineType := ltSolid;
   end;
+
+  RenderShapePointProperties(Shape, RenderOptions, Shader);
+end;
+
+procedure TRenderer.RenderShapePointProperties(const Shape: TX3DRendererShape;
+  const RenderOptions: TCastleRenderOptions;
+  const Shader: TShader);
+var
+  PP: TPointPropertiesNode;
+  PointSize: Single;
+begin
+  if Shape.State.Appearance <> nil then
+    PP := Shape.State.Appearance.PointProperties
+  else
+    PP := nil;
+
+  // calculate PointSize
+  PointSize := RenderOptions.PointSize;
+  if PP <> nil then
+    PointSize := PointSize * Clamped(
+      PP.FdPointSizeScaleFactor.Value,
+      PP.FdPointSizeMinValue.Value,
+      PP.FdPointSizeMaxValue.Value);
+
+  { set RenderContext.PointSize.
+    Do this once PointSize is fully calculated, as this changes GL state
+    (if RenderContext.PointSize changes) so avoid changing RenderContext.PointSize
+    multiple times. }
+  RenderContext.PointSize := PointSize;
 
   RenderShapeMaterials(Shape, RenderOptions, Shader);
 end;
