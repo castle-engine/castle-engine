@@ -81,7 +81,8 @@ type
     procedure Refresh;
 
     { Detect GPUs with low texture memory.
-      Looks at @link(CurrentAvailableVideoMemory) or @link(CurrentTexture), whichever is available.
+      Looks at @link(CurrentAvailableVideoMemory) or @link(TextureFreeMemory),
+      whichever is available.
 
       This is useful to detect at runtime when to use e.g. compressed textures
       (S3TC and such) or downscaled textures (using @link(GLTextureScale) or
