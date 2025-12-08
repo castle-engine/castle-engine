@@ -51,6 +51,8 @@ fi
 
 VERBOSE=true
 
+# Note: This directory disappears after single pack_platform_dir execution
+# when CASTLE_PACK_GHA_DISK_SPACE_SAVE=true .
 ORIGINAL_CASTLE_ENGINE_PATH="${CASTLE_ENGINE_PATH}"
 
 # Deal with temporary dir -------------------------------------------------
@@ -62,7 +64,7 @@ ORIGINAL_CASTLE_ENGINE_PATH="${CASTLE_ENGINE_PATH}"
 # - We make it unique, using process ID, just in case multiple jobs run in parallel.
 # - This cannot be subdirectory of CI workspace (like ${GITHUB_WORKSPACE})
 #   as then we'll have "cp -R ..." fail "we cannot copy directory into itself".
-#   To clean it up, we use bash trap.
+# - To clean it up, we use bash trap.
 TEMP_PARENT="/tmp/castle-engine-release-$$/"
 
 cleanup_temp ()
@@ -387,6 +389,12 @@ pack_platform_dir ()
   # restore CGE path, otherwise it points to a temporary (and no longer existing)
   # dir after one execution of do_pack_platform
   export CASTLE_ENGINE_PATH="${ORIGINAL_CASTLE_ENGINE_PATH}"
+  if [ ! -d "${CASTLE_ENGINE_PATH}" ]; then
+    echo "Error: CASTLE_ENGINE_PATH does not point to a valid directory: ${CASTLE_ENGINE_PATH}."
+    echo "  This may be a consequence of using pack_release.sh with multiple platforms and CASTLE_PACK_GHA_DISK_SPACE_SAVE=true."
+    echo "  Using CASTLE_PACK_GHA_DISK_SPACE_SAVE=true is mostly for one-shot CI job in a new machine each time, like on GH-hosted runners."
+    exit 1
+  fi
 
   case "$OS" in
     win32|win64) local EXE_EXTENSION='.exe' ;;
@@ -419,7 +427,12 @@ pack_platform_dir ()
   fi
   mkdir -p "$TEMP_PATH"
   local TEMP_PATH_CGE="${TEMP_PATH}castle_game_engine/"
-  cp -R "${CASTLE_ENGINE_PATH}" "${TEMP_PATH_CGE}"
+  if [ "${CASTLE_PACK_GHA_DISK_SPACE_SAVE:-}" = 'true' ]; then
+    # move instead of copy, to save disk space
+    mv "${CASTLE_ENGINE_PATH}" "${TEMP_PATH_CGE}"
+  else
+    cp -R "${CASTLE_ENGINE_PATH}" "${TEMP_PATH_CGE}"
+  fi
 
   cd "${TEMP_PATH_CGE}"
 
@@ -548,7 +561,9 @@ pack_platform_dir ()
   case "${CGE_PACK_BUNDLE:-}" in
     'yes')
       cd "${TEMP_PATH_CGE}"tools/contrib/
-      unzip "${ORIGINAL_CASTLE_ENGINE_PATH}/fpc-${OS}-${CPU}.zip"
+      gh release download --repo castle-engine/cge-fpc --pattern "fpc-${OS}-${CPU}.zip"
+      unzip "fpc-${OS}-${CPU}.zip"
+      rm -f "fpc-${OS}-${CPU}.zip" # remove as soon as no longer needed, to save disk space, important for GHA on GH-hosted runners
       ARCHIVE_NAME_BUNDLE='-bundle'
       mv "${TEMP_PATH_CGE}"bin/fpc-cge"${EXE_EXTENSION}" "${TEMP_PATH_CGE}"tools/contrib/fpc/bin
       ;;
@@ -613,7 +628,7 @@ pack_windows_installer ()
   # See https://jrsoftware.org/ishelp/index.php?topic=compilercmdline
   # and https://jrsoftware.org/ispphelp/index.php?topic=isppcc (for preprocessor additional options).
   "${INNO_SETUP_CLI}" \
-    "${ORIGINAL_CASTLE_ENGINE_PATH}/tools/internal/pack_release/cge-windows-setup.iss" \
+    "${CASTLE_ENGINE_PATH}/tools/internal/pack_release/cge-windows-setup.iss" \
     "/O${OUTPUT_DIRECTORY}" \
     "/F${ARCHIVE_NAME}" \
     "/DMyAppSrcDir=${TEMP_PATH}castle_game_engine" \

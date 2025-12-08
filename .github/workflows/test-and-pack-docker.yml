@@ -177,17 +177,22 @@ jobs:
       - name: Remove previous artifacts
         run: rm -f castle-engine*.zip
 
-      - name: Download bundled FPC
-        if: ${{ matrix.bundle }}
-        uses: robinraju/release-downloader@v1.12
-        with:
-          repository: "castle-engine/cge-fpc"
-          latest: true
-          fileName: "fpc-${{ matrix.os }}-${{ matrix.cpu }}.zip"
+      # No need to download fpc-xxx.zip here anymore,
+      # this is downloaded from pack_release.sh if necessary.
+      # - name: Download bundled FPC
+      #   if: ${{ matrix.bundle }}
+      #   uses: robinraju/release-downloader@v1.12
+      #   with:
+      #     repository: "castle-engine/cge-fpc"
+      #     latest: true
+      #     fileName: "fpc-${{ matrix.os }}-${{ matrix.cpu }}.zip"
 
       - name: Define CGE_PACK_BUNDLE
         if: ${{ matrix.bundle }}
         run: echo "CGE_PACK_BUNDLE=yes" >> $GITHUB_ENV
+
+      - name: Define CGE_PACK_GHA_DISK_SPACE_SAVE
+        run: echo "CASTLE_PACK_GHA_DISK_SPACE_SAVE=true" >> $GITHUB_ENV
 
       - name: Pack
         run: ./tools/internal/pack_release/pack_release.sh ${{ matrix.os }} ${{ matrix.cpu }}
