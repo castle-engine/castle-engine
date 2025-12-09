@@ -168,8 +168,15 @@ jobs:
             bundle: true
     steps:
       - uses: actions/checkout@v6
+        # Using CASTLE_PACK_GHA_DISK_SPACE_SAVE=true assumes that
+        # - we have dir named exactly "castle_game_engine"
+        # - parent dir of it is writeable.
+        # So checkout into castle_game_engine/ subdirectory.
+        with:
+          path: castle_game_engine
+
       - name: Set environment
-        run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+        run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE/castle_game_engine" >> $GITHUB_ENV
 
       # Remove previous output.
       # Not necessary in practice, since this runs on GH-hosted runners that are
@@ -195,7 +202,7 @@ jobs:
         run: echo "CASTLE_PACK_GHA_DISK_SPACE_SAVE=true" >> $GITHUB_ENV
 
       - name: Pack
-        run: ./tools/internal/pack_release/pack_release.sh ${{ matrix.os }} ${{ matrix.cpu }}
+        run: ./castle_game_engine/tools/internal/pack_release/pack_release.sh ${{ matrix.os }} ${{ matrix.cpu }}
 
       - name: Archive Artifacts
         uses: actions/upload-artifact@v5

@@ -51,8 +51,6 @@ fi
 
 VERBOSE=true
 
-# Note: This directory disappears after single pack_platform_dir execution
-# when CASTLE_PACK_GHA_DISK_SPACE_SAVE=true .
 ORIGINAL_CASTLE_ENGINE_PATH="${CASTLE_ENGINE_PATH}"
 
 # Deal with temporary dir -------------------------------------------------
@@ -391,8 +389,6 @@ pack_platform_dir ()
   export CASTLE_ENGINE_PATH="${ORIGINAL_CASTLE_ENGINE_PATH}"
   if [ ! -d "${CASTLE_ENGINE_PATH}" ]; then
     echo "Error: CASTLE_ENGINE_PATH does not point to a valid directory: ${CASTLE_ENGINE_PATH}."
-    echo "  This may be a consequence of using pack_release.sh with multiple platforms and CASTLE_PACK_GHA_DISK_SPACE_SAVE=true."
-    echo "  Using CASTLE_PACK_GHA_DISK_SPACE_SAVE=true is mostly for one-shot CI job in a new machine each time, like on GH-hosted runners."
     exit 1
   fi
 
@@ -427,9 +423,15 @@ pack_platform_dir ()
   fi
   mkdir -p "$TEMP_PATH"
   local TEMP_PATH_CGE="${TEMP_PATH}castle_game_engine/"
+
   if [ "${CASTLE_PACK_GHA_DISK_SPACE_SAVE:-}" = 'true' ]; then
-    # move instead of copy, to save disk space
-    mv "${CASTLE_ENGINE_PATH}" "${TEMP_PATH_CGE}"
+    # Instead of copying, which uses 2x disk space, just reuse existing dir.
+    # This dir will be cleaned and transformed into release contents.
+    # So the CASTLE_PACK_GHA_DISK_SPACE_SAVE is only good to make 1 release
+    # (for 1 OS/CPU) after which the directory should be discarded,
+    # which happens when we use GitHub Actions + GH-hosted runner
+    # with just 1 platform per job.
+    TEMP_PATH_CGE="${CASTLE_ENGINE_PATH}"
   else
     cp -R "${CASTLE_ENGINE_PATH}" "${TEMP_PATH_CGE}"
   fi
@@ -598,7 +600,7 @@ pack_platform_zip ()
 
   local ARCHIVE_NAME="castle-engine-${CGE_VERSION}-${OS}-${CPU}${ARCHIVE_NAME_BUNDLE}.zip"
 
-  cd "${TEMP_PATH}"
+  cd "${CASTLE_ENGINE_PATH}"/..
   rm -f "${ARCHIVE_NAME}"
   zip -r "${ARCHIVE_NAME}" castle_game_engine/
   mv -f "${ARCHIVE_NAME}" "${OUTPUT_DIRECTORY}"
