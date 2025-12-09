@@ -603,7 +603,20 @@ pack_platform_zip ()
   cd "${CASTLE_ENGINE_PATH}"/..
   rm -f "${ARCHIVE_NAME}"
   zip -r "${ARCHIVE_NAME}" castle_game_engine/
-  mv -f "${ARCHIVE_NAME}" "${OUTPUT_DIRECTORY}"
+
+  # move ARCHIVE_NAME to OUTPUT_DIRECTORY
+  local CURRENT_DIRECTORY=`pwd`
+  if which cygpath.exe > /dev/null; then
+    CURRENT_DIRECTORY="`cygpath --mixed \"${CURRENT_DIRECTORY}\"`"
+  fi
+  # Do not try to move if archive is already in OUTPUT_DIRECTORY.
+  # This can happen when CASTLE_PACK_GHA_DISK_SPACE_SAVE=true,
+  # then zip is not created in /tmp/... but in parent of castle_game_engine,
+  # which may be exactly OUTPUT_DIRECTORY.
+  if [ "${CURRENT_DIRECTORY}" '!=' "${OUTPUT_DIRECTORY}" ]; then
+    mv -f "${ARCHIVE_NAME}" "${OUTPUT_DIRECTORY}"
+  fi
+
   # seems to sometimes fail with "rm: fts_read failed: No such file or directory" on GH hosted windows runner
   set +e
   rm -Rf "${TEMP_PATH}"
