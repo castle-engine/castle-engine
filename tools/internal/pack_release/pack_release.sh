@@ -431,7 +431,7 @@ pack_platform_dir ()
     # (for 1 OS/CPU) after which the directory should be discarded,
     # which happens when we use GitHub Actions + GH-hosted runner
     # with just 1 platform per job.
-    TEMP_PATH_CGE="${CASTLE_ENGINE_PATH}"
+    TEMP_PATH_CGE="${CASTLE_ENGINE_PATH}/"
   else
     cp -R "${CASTLE_ENGINE_PATH}" "${TEMP_PATH_CGE}"
   fi
