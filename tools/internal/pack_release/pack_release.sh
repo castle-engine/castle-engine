@@ -678,7 +678,7 @@ pack_windows_installer ()
   # Remove trailing slash from CASTLE_ENGINE_PATH, to be safe it's good for
   # MyAppSrcDir. This is just paranoid, possibly original CASTLE_ENGINE_PATH
   # would be handled OK as well.
-  CASTLE_ENGINE_PATH_STRIP_FINAL_SLASH="${CASTLE_ENGINE_PATH%/}
+  CASTLE_ENGINE_PATH_STRIP_FINAL_SLASH="${CASTLE_ENGINE_PATH%/}"
 
   # See https://jrsoftware.org/ishelp/index.php?topic=compilercmdline
   # and https://jrsoftware.org/ispphelp/index.php?topic=isppcc (for preprocessor additional options).
