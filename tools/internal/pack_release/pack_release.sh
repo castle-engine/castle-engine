@@ -185,10 +185,11 @@ detect_platform ()
   echo "Using sed: ${SED}" `${SED} --version | head -n 1`
 }
 
-# Compile build tool, put it on $PATH
+# Compile build tool (castle-engine executable), put it on $PATH .
+# Makes it for the *host* OS/CPU, so it's e.g. castle-engine Linux binary
+# if we run on Linux, even if we're cross-compiling for Windows.
 prepare_build_tool ()
 {
-
   if [ "${VERBOSE}" '!=' 'true' ]; then
     CASTLE_FPC_OPTIONS="-vi-"
   fi
@@ -197,7 +198,11 @@ prepare_build_tool ()
   tools/build-tool/castle-engine_compile.sh
   local BIN_TEMP_PATH="${TEMP_PARENT}bin/"
   mkdir -p "${BIN_TEMP_PATH}"
-  cp "tools/build-tool/castle-engine${HOST_EXE_EXTENSION}" "${BIN_TEMP_PATH}"
+  # Below move, not copy, the castle-engine[.exe] binary.
+  # This way we avoid packaging host-specific castle-engine[.exe] binary,
+  # e.g. we don't want to package Linux castle-engine into Windows release
+  # just because we built it on Linux.
+  mv "tools/build-tool/castle-engine${HOST_EXE_EXTENSION}" "${BIN_TEMP_PATH}"
   export PATH="${BIN_TEMP_PATH}:${PATH}"
 
   # sanity checks
