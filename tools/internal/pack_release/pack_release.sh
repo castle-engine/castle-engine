@@ -370,9 +370,23 @@ cge_clean_all ()
 # - $2: CPU
 #
 # Output:
-# - $TEMP_PATH: absolute directory that contains castle_game_engine subdir
-#   (guaranteed to end with path delimiter,
+#
+# - $TEMP_PATH: absolute directory that contains various temp stuff.
+#   Clean it afterwards.
+#
+# - $CASTLE_ENGINE_PATH: absolute path to dir with compiled engine,
+#   always named 'castle_game_engine',
+#   ready to be packed in to zip / installer etc.
+#
+#   Note that, depending on $CASTLE_PACK_GHA_DISK_SPACE_SAVE,
+#   this is either:
+#   - transformed original CASTLE_ENGINE_PATH
+#     (when $CASTLE_PACK_GHA_DISK_SPACE_SAVE=true)
+#   - or subdirectory of $TEMP_PATH, named castle_game_engine
+#
+#   (This CASTLE_ENGINE_PATH is guaranteed to end with path delimiter,
 #   i.e. slash on Unix or backslash on Windows).
+#
 # - $ARCHIVE_NAME_BUNDLE: empty string or '-bundle',
 #   depending on whether CGE_PACK_BUNDLE was defined.
 pack_platform_dir ()
@@ -434,6 +448,20 @@ pack_platform_dir ()
     TEMP_PATH_CGE="${CASTLE_ENGINE_PATH}/"
   else
     cp -R "${CASTLE_ENGINE_PATH}" "${TEMP_PATH_CGE}"
+  fi
+
+  # Do some checks:
+  # - TEMP_PATH_CGE, determined above,
+  #   must end with / . It will be used for new CASTLE_ENGINE_PATH
+  #   which we gaurantee ends with / .
+  # - TEMP_PATH_CGE last subdir must be castle_game_engine .
+  if [ "`basename \"${TEMP_PATH_CGE}\"`" '!=' 'castle_game_engine' ]; then
+    echo "Error: TEMP_PATH_CGE last subdir must be castle_game_engine. But TEMP_PATH_CGE is ${TEMP_PATH_CGE}"
+    exit 1
+  fi
+  if [ "${TEMP_PATH_CGE: -1}" '!=' '/' ]; then
+    echo "Error: TEMP_PATH_CGE must end with /. But TEMP_PATH_CGE is ${TEMP_PATH_CGE}"
+    exit 1
   fi
 
   cd "${TEMP_PATH_CGE}"
@@ -642,13 +670,18 @@ pack_windows_installer ()
     INNO_SETUP_CLI='c:/Program Files (x86)/Inno Setup 6/iscc.exe'
   fi
 
+  # Remove trailing slash from CASTLE_ENGINE_PATH, to be safe it's good for
+  # MyAppSrcDir. This is just paranoid, possibly original CASTLE_ENGINE_PATH
+  # would be handled OK as well.
+  CASTLE_ENGINE_PATH_STRIP_FINAL_SLASH="${CASTLE_ENGINE_PATH%/}
+
   # See https://jrsoftware.org/ishelp/index.php?topic=compilercmdline
   # and https://jrsoftware.org/ispphelp/index.php?topic=isppcc (for preprocessor additional options).
   "${INNO_SETUP_CLI}" \
     "${CASTLE_ENGINE_PATH}/tools/internal/pack_release/cge-windows-setup.iss" \
     "/O${OUTPUT_DIRECTORY}" \
     "/F${ARCHIVE_NAME}" \
-    "/DMyAppSrcDir=${TEMP_PATH}castle_game_engine" \
+    "/DMyAppSrcDir=${CASTLE_ENGINE_PATH_STRIP_FINAL_SLASH}" \
     "/DMyAppVersion=${CGE_VERSION}"
 
   # cleanup to save disk space
