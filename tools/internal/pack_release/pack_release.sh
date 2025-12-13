@@ -366,6 +366,11 @@ cge_clean_all ()
   # Made by "make examples-laz", not cleaned up by "make clean".
   rm -f examples/audio/test_sound_source_allocator/mainf.lrs \
         examples/lazarus/model_3d_with_2d_controls/model_3d_with_2d_controls.obj
+
+  # Sometimes made by "make prepare-examples", not cleaned up by "make clean"
+  # (as may contain user data, API keys, that is also not auto-generated).
+  rm -f examples/network/ask_openai_assistant/code/openai_config.inc \
+        examples/network/random_image_from_unsplash/code/unsplash_secrets.inc
 }
 
 # Prepare directory with precompiled CGE.
