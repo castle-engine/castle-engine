@@ -432,7 +432,7 @@ clean: cleanexamples
 	  packages/lazarus/castle_engine_window.pas \
 	  packages/lazarus/castle_engine_lcl.pas \
 	  packages/lazarus/castle_engine_editor_components.pas \
-	  packages/alternative_castle_engine_window_based_on_lcl.pas \
+	  packages/lazarus/alternative_castle_engine_window_based_on_lcl.pas \
 	  tests/test_castle_game_engine \
 	  tests/test_castle_game_engine.exe \
 	  tests/castle-tester \
