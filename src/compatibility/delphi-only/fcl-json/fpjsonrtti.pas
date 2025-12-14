@@ -8,7 +8,7 @@ unit fpjsonrtti;
 interface
 
 uses
-  Classes, SysUtils, contnrs, typinfo, fpjson, jsonparser,
+  Classes, SysUtils, contnrs, typinfo, FpJson, JsonParser,
   // For TPropInfoList, compatible with FPC RttiUtils
   CastleInternalRttiUtils;
 

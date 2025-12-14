@@ -389,7 +389,7 @@ end;
 procedure TTestCastleClassUtils.TestSimpleNotifyEventListPack;
 var
   L: TSimpleNotifyEventList;
-  M: TSimpleNotifyEvent;
+  // M: TSimpleNotifyEvent;
 begin
   L := TSimpleNotifyEventList.Create;
   try
@@ -420,7 +420,7 @@ end;
 procedure TTestCastleClassUtils.TestSimpleNotifyEventListUnassign;
 var
   L: TSimpleNotifyEventList;
-  M: TSimpleNotifyEvent;
+  // M: TSimpleNotifyEvent;
 begin
   L := TSimpleNotifyEventList.Create;
   try

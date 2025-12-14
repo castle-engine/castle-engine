@@ -41,7 +41,7 @@
         <PackageName Value="LCL"/>
       </Item4>
     </RequiredPackages>
-    <Units Count="31">
+    <Units Count="33">
       <Unit0>
         <Filename Value="castle_editor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -237,6 +237,16 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="DesignSteam"/>
       </Unit30>
+      <Unit31>
+        <Filename Value="code/castlemcpserver.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="CastleMcpServer"/>
+      </Unit31>
+      <Unit32>
+        <Filename Value="code/castlemcpeditorintegration.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="CastleMcpEditorIntegration"/>
+      </Unit32>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
