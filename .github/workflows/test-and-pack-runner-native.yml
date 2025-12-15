@@ -309,7 +309,7 @@ jobs:
       #   and the build does not rely on cge_clean_all.
       #
       if: ${{ matrix.runner != 'macos-15-intel' && matrix.runner != 'windows-latest' && !matrix.is_gh_ubuntu }}
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       with:
         name: ${{ matrix.runner }}-release
         path: "castle-engine*.zip"
@@ -328,7 +328,7 @@ jobs:
       run: CGE_PACK_BUNDLE=yes ./tools/internal/pack_release/pack_release.sh windows_installer
     - name: Archive Artifacts (exe)
       if: ${{ matrix.runner == 'windows-latest' }}
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       with:
         name: ${{ matrix.runner }}-installer-release
         path: "castle-engine-setup-*.exe"
