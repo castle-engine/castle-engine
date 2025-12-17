@@ -205,7 +205,7 @@ jobs:
         run: ./castle_game_engine/tools/internal/pack_release/pack_release.sh ${{ matrix.os }} ${{ matrix.cpu }}
 
       - name: Archive Artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: release-from-docker-${{ matrix.pack-job-name }}
           path: "castle-engine*.zip"

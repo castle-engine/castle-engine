@@ -153,7 +153,7 @@ jobs:
             ./tools/internal/pack_release/pack_release.sh ${FPC_OS} ${FPC_CPU}
 
       - name: Archive Artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: raspberry-pi-${{ matrix.arch }}-release
           path: "castle-engine*.zip"
