@@ -90,6 +90,13 @@
       FFreeAtStop: TComponent;
       FWaitingForRender: TNotifyEventList;
       FCallBeforeUpdate: TNotifyEventList;
+      { Are we between Resume and Pause.
+        Note that we *do not* expose this property, because from outside
+        it should be enough to check if view equals Container.FrontView.
+        Only internally, these checks may be not equivalent,
+        due to InternalPopView usage with PauseAndResume = false,
+        which may make some view equal to Container.FrontView but not resumed. }
+      FResumed: Boolean;
 
       { Design* private fields }
       FDesignUrl: String;
@@ -102,6 +109,8 @@
 
     procedure InternalStart(const AContainer: TCastleContainer);
     procedure InternalStop;
+    procedure InternalResume;
+    procedure InternalPause;
     procedure StartContainerFreeNotification(const Sender: TFreeNotificationObserver);
     { Stop yourself and remove from FViewStack, if present there. }
     procedure StopIfStarted;
@@ -248,6 +257,10 @@
 
     { Executed when view becomes active, it's now part of the view stack.
 
+      Never call this method directly (it should be called by TCastleContainer
+      methods like @link(TCastleContainer.PushView) or @link(TCastleContainer.View)
+      setter). It is exposed only so that you can override it.
+
       Started view is part of the ViewStack, and will soon become
       running (top-most on the stack). When the view is set to be current,
       by @code(Container.View := MyView), this happens:
@@ -265,6 +278,10 @@
     procedure Start; virtual;
 
     { Executed when view is no longer active, no longer part of view stack.
+
+      Never call this method directly (it should be called by TCastleContainer
+      methods like @link(TCastleContainer.Pop) or @link(TCastleContainer.View)
+      setter). It is exposed only so that you can override it.
 
       When the view stops becoming active, this happens:
 
@@ -288,14 +305,22 @@
     { Executed when view is now the top-most view. See @link(Start) and @link(Stop)
       docs about view lifecycle methods.
       This is called after @link(Start), it is also called
-      when you pop another view, making this view the top-most. }
+      when you pop another view, making this view the top-most.
+
+      Never call this method directly (it should be called by TCastleContainer
+      methods like @link(TCastleContainer.PushView) or @link(TCastleContainer.View)
+      setter). It is exposed only so that you can override it. }
     procedure Resume; virtual;
 
     { Executed when view is no longer the top-most view. See @link(Start) and @link(Stop)
       docs about view lifecycle methods.
       This is called before @link(Stop), it is also called
       when another view is pushed over this view, so this stops
-      being the the top-most view. }
+      being the the top-most view.
+
+      Never call this method directly (it should be called by TCastleContainer
+      methods like @link(TCastleContainer.Pop) or @link(TCastleContainer.View)
+      setter). It is exposed only so that you can override it. }
     procedure Pause; virtual;
 
     procedure Finish; virtual; deprecated 'use Stop';
@@ -704,16 +729,41 @@ begin
   inherited;
 end;
 
-procedure TCastleView.Resume;
+procedure TCastleView.InternalResume;
 begin
   if Log then
     WritelnLog('TCastleView', 'Resuming: ' + Name + ': ' + ClassName);
+  if FResumed then
+    WritelnWarning('TCastleView', 'Resuming view that is already resumed, submit a bug');
+  FResumed := true;
+  Resume;
+end;
+
+procedure TCastleView.InternalPause;
+begin
+  if Log then
+    WritelnLog('TCastleView', 'Paused: ' + Name + ': ' + ClassName);
+  if not FResumed then
+    WritelnWarning('TCastleView', 'Pausing view that is already paused, submit a bug');
+  Pause;
+  { Change FResumed *after* Pause call, so FResumed=true during both Resume
+    and Pause.
+    This is consistent with Active that is true during both Start and Stop. }
+  FResumed := false;
+end;
+
+procedure TCastleView.Resume;
+begin
+  { Do not place here any logic, to make sure TCastleView works reliably even when
+    descendant doesn't have "inherited" call.
+    Same as in Start. }
 end;
 
 procedure TCastleView.Pause;
 begin
-  if Log then
-    WritelnLog('TCastleView', 'Paused: ' + Name + ': ' + ClassName);
+  { Do not place here any logic, to make sure TCastleView works reliably even when
+    descendant doesn't have "inherited" call.
+    Same as in Start. }
 end;
 
 procedure TCastleView.Start;
