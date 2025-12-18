@@ -584,6 +584,14 @@ end;
 
 procedure TSkinNode.InternalUpdateSkin;
 
+  function SceneName: String;
+  begin
+    if Scene <> nil then
+      Result := Scene.Name + ':' + Scene.ClassName
+    else
+      Result := 'nil';
+  end;
+
   { Calculate our JointMatrix based on current transformation of FdJoints.
     This work is independent of any particular shape.
     This work also makes sense for both GPU skinning and CPU skinning. }
@@ -991,9 +999,13 @@ procedure TSkinNode.InternalUpdateSkin;
          (Shape.Geometry.InternalOriginalNormals <> nil) or
          (Shape.Geometry.InternalOriginalTangents <> nil) then
       begin
-        WritelnLog('TCastleScene was doing skinned animation on CPU, now it will do it on GPU.' + NL +
+        WritelnLog('Shape %s (geometry: %s, scene: %s) was doing skinned animation on CPU, now it will do it on GPU.' + NL +
           '  This may happen if you started animating it before rendering context was initialized, or if you toggle CastShadows at run-time.' + NL +
-          '  This requires to reinitialize the Geometry.InternalXxx data, and shaders, so avoid changing this too often at run-time to avoid performance hit.');
+          '  This requires to reinitialize the Geometry.InternalXxx data, and shaders, so avoid changing this too often at run-time to avoid performance hit.', [
+          Shape.NiceName,
+          Shape.Geometry.NiceName,
+          SceneName
+        ]);
         if not GetArrays(
             Coords, Normals, Tangents,
             CoordNode, NormalNode, TangentNode,

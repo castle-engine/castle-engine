@@ -394,6 +394,8 @@ begin
         InstanceShift +
         InstanceSpread * Vector3(X, 0, Z);
       NewScene.CastShadows := CheckboxCastShadows.Checked;
+      // assigning nice name is optional, but makes it easier to debug, various log messages may use it
+      NewScene.Name := Format('SceneForCrowd_%d_%d', [X, Z]);
 
       //NewScene.PlayAnimation('walk', true);
       Params := TPlayAnimationParameters.Create;
