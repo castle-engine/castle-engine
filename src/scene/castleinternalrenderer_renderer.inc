@@ -1467,6 +1467,11 @@ procedure TRenderer.RenderShapeInside(const Shape: TX3DRendererShape;
     case RenderingCamera.Target of
       rtVarianceShadowMap:
         begin
+          { TODO: If we enable plugs in shadow_map_generate, then we could
+            make shadow maps shader cooperate with skinned animation on shaders,
+            and thus be optimal and also correct with Variance Shadow Maps. }
+          if Shader.NeedsSkinWeightsJoints then
+            WritelnWarning('TODO: rtVarianceShadowMap is not correct togetehr with skinned animation on shaders');
           if VarianceShadowMapsShaders = nil then
             VarianceShadowMapsShaders := TCustomShaders.Create(
               '#define VARIANCE_SHADOW_MAPS' + NL + {$I shadow_map_generate.vs.inc},
@@ -1475,11 +1480,26 @@ procedure TRenderer.RenderShapeInside(const Shape: TX3DRendererShape;
         end;
       rtShadowMap:
         begin
-          if ShadowMapsShaders = nil then
-            ShadowMapsShaders := TCustomShaders.Create(
-              {$I shadow_map_generate.vs.inc},
-              {$I shadow_map_generate.fs.inc});
-          MeshRenderer.CustomShaders := ShadowMapsShaders;
+          { Do not assign MeshRenderer.CustomShaders when we make skinned animation.
+            We need to do full shader then, to apply skinned animation on GPU,
+            and thus render animated mesh to a shadow map.
+            Test below is a subset of tests before doing Shader.EnableSkinnedAnimation
+            in TSkinnedRenderer.RenderCoordinateBegin .
+            Testcase that this is necessary:
+            https://forum.castle-engine.io/t/shadow-map-not-updating-from-an-animated-tcastlescene/2062/4 .
+
+            TODO: This could be more optimal, if we enable shadow_map_generate.vs
+            to have plugs and expose PLUG_vertex_object_space_change .
+            Then we could still have special minimal shader,
+            but doing skinned animation on GPU. }
+          if not (Shape.State.SkinnedAnimatedShape and Shape.State.Skin.InternalUsesShaders) then
+          begin
+            if ShadowMapsShaders = nil then
+              ShadowMapsShaders := TCustomShaders.Create(
+                {$I shadow_map_generate.vs.inc},
+                {$I shadow_map_generate.fs.inc});
+            MeshRenderer.CustomShaders := ShadowMapsShaders;
+          end;
         end;
       else
         begin
