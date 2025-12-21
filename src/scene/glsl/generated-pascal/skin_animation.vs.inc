@@ -2,21 +2,41 @@
 { DON'T EDIT -- this file was automatically generated from "source/skin_animation.vs" }
 '/*' + LineEnding +
 '  Perform skin animation on GPU.' + LineEnding +
-'  See https://castle-engine.io/skin,' + LineEnding +
-'  the implementation is almost literally taken from' + LineEnding +
-'  https://www.khronos.org/files/gltf20-reference-guide.pdf' + LineEnding +
+'  See https://castle-engine.io/skin .' + LineEnding +
 '*/' + LineEnding +
 '' + LineEnding +
-'/* Note: We need to specify array size, otherwise we get' + LineEnding +
-'   "error C7559: OpenGL requires constant indexes for unsized array access(castle_JointMatrix)"' + LineEnding +
-'*/' + LineEnding +
-'uniform mat4 castle_JointMatrix[CASTLE_MAX_SKIN_JOINTS];' + LineEnding +
+'#ifdef CASTLE_JOINT_TEXTURE' + LineEnding +
+'  uniform sampler2D castle_JointTexture;' + LineEnding +
+'#else' + LineEnding +
+'  /* Note: We need to specify array size, otherwise we get' + LineEnding +
+'    "error C7559: OpenGL requires constant indexes for unsized array access(castle_JointMatrix)"' + LineEnding +
+'  */' + LineEnding +
+'  uniform mat4 castle_JointMatrix[CASTLE_MAX_SKIN_JOINTS];' + LineEnding +
+'#endif' + LineEnding +
+'' + LineEnding +
 'attribute vec4 castle_SkinJoints0;' + LineEnding +
 'attribute vec4 castle_SkinWeights0;' + LineEnding +
 '' + LineEnding +
 '/* Calculated and used by vertex_object_space_change below,' + LineEnding +
 '   potentially used again by tangent_object_space */' + LineEnding +
 'mat4 skinMatrix;' + LineEnding +
+'' + LineEnding +
+'#ifdef CASTLE_JOINT_TEXTURE' + LineEnding +
+'mat4 getJointMatrix(int jointIndex)' + LineEnding +
+'{' + LineEnding +
+'  return mat4(' + LineEnding +
+'    texelFetch(castle_JointTexture, ivec2(jointIndex, 0), 0),' + LineEnding +
+'    texelFetch(castle_JointTexture, ivec2(jointIndex, 1), 0),' + LineEnding +
+'    texelFetch(castle_JointTexture, ivec2(jointIndex, 2), 0),' + LineEnding +
+'    texelFetch(castle_JointTexture, ivec2(jointIndex, 3), 0)' + LineEnding +
+'  );' + LineEnding +
+'}' + LineEnding +
+'#else' + LineEnding +
+'mat4 getJointMatrix(int jointIndex)' + LineEnding +
+'{' + LineEnding +
+'  return castle_JointMatrix[jointIndex];' + LineEnding +
+'}' + LineEnding +
+'#endif' + LineEnding +
 '' + LineEnding +
 'void PLUG_vertex_object_space_change(' + LineEnding +
 '  inout vec4 vertex_object,' + LineEnding +
@@ -28,12 +48,18 @@
 '       https://github.com/castle-engine/demo-models/tree/master/animation/blender_skinned_animation/blender_zero_weights_bug */' + LineEnding +
 '    ( castle_SkinWeights0 == vec4(0.0)' + LineEnding +
 '      ?' + LineEnding +
-'      castle_JointMatrix[0]' + LineEnding +
+'      getJointMatrix(0)' + LineEnding +
 '      :' + LineEnding +
-'      castle_SkinWeights0.x * castle_JointMatrix[int(castle_SkinJoints0.x)] +' + LineEnding +
-'      castle_SkinWeights0.y * castle_JointMatrix[int(castle_SkinJoints0.y)] +' + LineEnding +
-'      castle_SkinWeights0.z * castle_JointMatrix[int(castle_SkinJoints0.z)] +' + LineEnding +
-'      castle_SkinWeights0.w * castle_JointMatrix[int(castle_SkinJoints0.w)]' + LineEnding +
+'      /* This is the core of the implementation, where 4 joints' + LineEnding +
+'         with their 4 weights determine the final skinMatrix' + LineEnding +
+'         that determines the vertex position.' + LineEnding +
+'         This implementation follows' + LineEnding +
+'         https://www.khronos.org/files/gltf20-reference-guide.pdf' + LineEnding +
+'      */' + LineEnding +
+'      castle_SkinWeights0.x * getJointMatrix(int(castle_SkinJoints0.x)) +' + LineEnding +
+'      castle_SkinWeights0.y * getJointMatrix(int(castle_SkinJoints0.y)) +' + LineEnding +
+'      castle_SkinWeights0.z * getJointMatrix(int(castle_SkinJoints0.z)) +' + LineEnding +
+'      castle_SkinWeights0.w * getJointMatrix(int(castle_SkinJoints0.w))' + LineEnding +
 '    );' + LineEnding +
 '  vertex_object = skinMatrix * vertex_object;' + LineEnding +
 '  normal_object = mat3(skinMatrix) * normal_object;' + LineEnding +

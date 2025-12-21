@@ -1342,6 +1342,45 @@ procedure TRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
     end;
   end;
 
+  procedure EnableSkinJointTexture(var ABoundTextureUnits: Cardinal; const Shader: TShader);
+  var
+    JointTextureNode: TPixelTextureNode;
+    Res: TTextureResource;
+    Skin: TSkinNode;
+  begin
+    Skin := Shape.State.Skin;
+    if (Skin <> nil) and
+       (Skin.InternalMeshCalculation = mcGpuTexture) and
+       { Checking Skin.InternalJointMatrix makes sure that
+         TSkinNode.Update has actually run, so we started some skinned animation,
+         and we should have InternalJointMatrix and InternalJointTexture valid. }
+       (Skin.InternalJointMatrix <> nil) and
+       (Skin.InternalJointMatrix.Count = Skin.FdJoints.Count) then
+    begin
+      JointTextureNode := Skin.InternalJointTexture;
+      if JointTextureNode = nil then
+      begin
+        WritelnWarning('Skin', 'Skin "%s" has InternalMeshCalculation = mcGpuTexture but InternalJointTexture = nil, so we do not have texture to use', [
+          Shape.State.Skin.NiceName
+        ]);
+        Exit;
+      end;
+
+      Res := TTextureResources.Get(JointTextureNode);
+      if Res = nil then
+      begin
+        WritelnWarning('Skin', 'Skin "%s" has no renderer texture resource for joint texture, cannot use it', [
+          Skin.NiceName
+        ]);
+        Exit;
+      end;
+
+      Shader.SkinJointTextureUnit := ABoundTextureUnits;
+      Res.Bind(ABoundTextureUnits);
+      Inc(ABoundTextureUnits);
+    end;
+  end;
+
   function GetAlphaCutoff(const Shape: TShape): Single;
   begin
     if Shape.State.Appearance <> nil then
@@ -1413,6 +1452,7 @@ procedure TRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
 
       if Shape.InternalShadowMaps <> nil then
         EnableShadowMaps(Shape.InternalShadowMaps, BoundTextureUnits, Shader);
+      EnableSkinJointTexture(BoundTextureUnits, Shader);
 
       { If there is special texture like a normalmap, enable it. }
       BumpMappingEnable(Shape, RenderOptions, BoundTextureUnits, TexCoordsNeeded, Shader);

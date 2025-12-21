@@ -329,6 +329,7 @@
         we use this texture to pass joint matrices to shaders. }
       InternalJointTexture: TPixelTextureNode;
 
+    constructor Create(const AX3DName, ABaseUrl: String); override;
     destructor Destroy; override;
 
     { Update meshes in @link(FdShapes) to reflect the current joints transformation.
@@ -572,6 +573,32 @@ begin
 end;
 
 { TSkinNode ------------------------------------------------------------------ }
+
+constructor TSkinNode.Create(const AX3DName, ABaseUrl: String);
+var
+  TextureProperties: TTexturePropertiesNode;
+begin
+  inherited;
+
+  { Make sure InternalJointTexture is created.
+    It shall be only used when mcGpuTexture, but it is easiest to always have
+    it created, so that our renderer prepares resources for it on GPU. }
+  InternalJointTexture := TPixelTextureNode.Create;
+  InternalJointTexture.WaitForRelease; // never free it using ref-counting
+
+  { Filtering to nearest, to get precise values in shaders.
+    Boundary mode (repeat or not) should not really matter --
+    our shaders should never query outside of the 0..1 range of texture. }
+  TextureProperties := TTexturePropertiesNode.Create;
+  TextureProperties.MagnificationFilter := magNearest;
+  TextureProperties.MinificationFilter := minNearest;
+  TextureProperties.BoundaryModeS := bmClampToEdge;
+  TextureProperties.BoundaryModeT := bmClampToEdge;
+  InternalJointTexture.TextureProperties := TextureProperties;
+
+  // set any non-empty contents, to make our renderer prepare resources for it
+  InternalJointTexture.FdImage.Value := TRGBAlphaImage.Create(1, 4);
+end;
 
 destructor TSkinNode.Destroy;
 begin
@@ -1080,25 +1107,7 @@ var
   var
     Width, Height, I, J: Cardinal;
     Img: TRGBAlphaImage;
-    TextureProperties: TTexturePropertiesNode;
   begin
-    // make sure InternalJointTexture is created
-    if InternalJointTexture = nil then
-    begin
-      InternalJointTexture := TPixelTextureNode.Create;
-      InternalJointTexture.WaitForRelease; // never free it using ref-counting
-
-      { Filtering to nearest, to get precise values in shaders.
-        Boundary mode (repeat or not) should not really matter --
-        our shaders should never query outside of the 0..1 range of texture. }
-      TextureProperties := TTexturePropertiesNode.Create;
-      TextureProperties.MagnificationFilter := magNearest;
-      TextureProperties.MinificationFilter := minNearest;
-      TextureProperties.BoundaryModeS := bmClampToEdge;
-      TextureProperties.BoundaryModeT := bmClampToEdge;
-      InternalJointTexture.TextureProperties := TextureProperties;
-    end;
-
     // make sure InternalJointTexture.FdImage.Value has proper size
     Width := FdJoints.Count;
     Height := 4;

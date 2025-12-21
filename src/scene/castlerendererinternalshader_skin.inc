@@ -24,10 +24,15 @@
   TSkinShader = record
   public
     Enabled: Boolean;
+    { Texture unit containing skin joint matrices.
+      -1 if not used, then pass joint matrices in uniforms.
+      Set this before EnableAndPrepareHash. }
+    JointTextureUnit: Integer;
     JointMatrix: TMatrix4List;
     procedure Clear;
     procedure EnableAndPrepareHash(var Hash: TShaderCodeHash);
     procedure GenerateCode(const Shader: TShader);
+    procedure SetUniformsOnce(const AProgram: TX3DShaderProgram);
     procedure SetDynamicUniforms(const AProgram: TX3DShaderProgram);
   end;
 
@@ -46,24 +51,17 @@ begin
   begin
     Enabled := true;
     Hash.AddInteger(5683);
+    // make every possible value, even -1, change hash
+    Hash.AddInteger(5689 * (JointTextureUnit + 2));
   end;
 end;
 
 procedure TSkinShader.GenerateCode(const Shader: TShader);
-
-  { GLSL line that #defines value of CASTLE_MAX_SKIN_JOINTS. }
-  function DefineMaxSkinJoints: String;
-  begin
-    // WritelnLog('Allocating uniforms for max %d skin joints', [TSkinNode.InternalMaxJointsInUniforms]);
-    Result := Format('#define CASTLE_MAX_SKIN_JOINTS %d', [
-      TSkinNode.InternalMaxJointsInUniforms
-    ]) + NL;
-  end;
-
 const
   ShaderSkinAnimation = {$I skin_animation.vs.inc};
 var
   SavedWarnMissingPlugs: Boolean;
+  Defines: String;
 begin
   if Enabled then
   begin
@@ -73,15 +71,28 @@ begin
       Testcase: woman from animate_bones_by_code_standalone.dpr . }
     Shader.WarnMissingPlugs := false;
 
-    Shader.Plug(stVertex, DefineMaxSkinJoints + ShaderSkinAnimation);
+    if JointTextureUnit >= 0 then
+      Defines := '#define CASTLE_JOINT_TEXTURE' + NL
+    else
+      Defines := Format('#define CASTLE_MAX_SKIN_JOINTS %d', [
+        TSkinNode.InternalMaxJointsInUniforms
+      ]) + NL;
+
+    Shader.Plug(stVertex, Defines + ShaderSkinAnimation);
 
     Shader.WarnMissingPlugs := SavedWarnMissingPlugs;
   end;
 end;
 
+procedure TSkinShader.SetUniformsOnce(const AProgram: TX3DShaderProgram);
+begin
+  if Enabled and (JointTextureUnit >= 0) then
+    AProgram.SetUniform('castle_JointTexture', JointTextureUnit);
+end;
+
 procedure TSkinShader.SetDynamicUniforms(const AProgram: TX3DShaderProgram);
 begin
-  if Enabled then
+  if Enabled and (JointTextureUnit = -1) then
   begin
     // WritelnLog('Passing to shader castle_JointMatrix with count %d', [JointMatrix.Count]);
     AProgram.SetUniform('castle_JointMatrix', JointMatrix);

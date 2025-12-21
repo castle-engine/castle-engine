@@ -430,6 +430,11 @@ type
     { In case MultiTexture is used to render this, this is MultiTexture.color+alpha value. }
     MultiTextureColor: TCastleColor;
 
+    { Which texture unit has been initialized to contain skin joints.
+      -1 (default) if none.
+      Always set before EnableSkinnedAnimation. }
+    SkinJointTextureUnit: Integer;
+
     constructor Create;
     destructor Destroy; override;
 
@@ -1306,6 +1311,7 @@ begin
   MainTextureMapping := -1;
   ColorSpaceLinear := false;
   MultiTextureColor := White;
+  SkinJointTextureUnit := -1;
   FAlphaTest := false;
   UsesShadowMaps := false;
 end;
@@ -2086,6 +2092,7 @@ var
         LightShaders[I].SetUniformsOnce(AProgram);
 
     ShadowMapShaders.SetUniformsOnce(AProgram);
+    FSkinShader.SetUniformsOnce(AProgram);
 
     AProgram.Disable;
   end;
@@ -2907,6 +2914,7 @@ end;
 
 procedure TShader.EnableSkinnedAnimation(const JointMatrix: TMatrix4List);
 begin
+  FSkinShader.JointTextureUnit := SkinJointTextureUnit;
   FSkinShader.EnableAndPrepareHash(FCodeHash);
   FSkinShader.JointMatrix := JointMatrix;
 end;

@@ -1,20 +1,40 @@
 /*
   Perform skin animation on GPU.
-  See https://castle-engine.io/skin,
-  the implementation is almost literally taken from
-  https://www.khronos.org/files/gltf20-reference-guide.pdf
+  See https://castle-engine.io/skin .
 */
 
-/* Note: We need to specify array size, otherwise we get
-   "error C7559: OpenGL requires constant indexes for unsized array access(castle_JointMatrix)"
-*/
-uniform mat4 castle_JointMatrix[CASTLE_MAX_SKIN_JOINTS];
+#ifdef CASTLE_JOINT_TEXTURE
+  uniform sampler2D castle_JointTexture;
+#else
+  /* Note: We need to specify array size, otherwise we get
+    "error C7559: OpenGL requires constant indexes for unsized array access(castle_JointMatrix)"
+  */
+  uniform mat4 castle_JointMatrix[CASTLE_MAX_SKIN_JOINTS];
+#endif
+
 attribute vec4 castle_SkinJoints0;
 attribute vec4 castle_SkinWeights0;
 
 /* Calculated and used by vertex_object_space_change below,
    potentially used again by tangent_object_space */
 mat4 skinMatrix;
+
+#ifdef CASTLE_JOINT_TEXTURE
+mat4 getJointMatrix(int jointIndex)
+{
+  return mat4(
+    texelFetch(castle_JointTexture, ivec2(jointIndex, 0), 0),
+    texelFetch(castle_JointTexture, ivec2(jointIndex, 1), 0),
+    texelFetch(castle_JointTexture, ivec2(jointIndex, 2), 0),
+    texelFetch(castle_JointTexture, ivec2(jointIndex, 3), 0)
+  );
+}
+#else
+mat4 getJointMatrix(int jointIndex)
+{
+  return castle_JointMatrix[jointIndex];
+}
+#endif
 
 void PLUG_vertex_object_space_change(
   inout vec4 vertex_object,
@@ -26,12 +46,18 @@ void PLUG_vertex_object_space_change(
        https://github.com/castle-engine/demo-models/tree/master/animation/blender_skinned_animation/blender_zero_weights_bug */
     ( castle_SkinWeights0 == vec4(0.0)
       ?
-      castle_JointMatrix[0]
+      getJointMatrix(0)
       :
-      castle_SkinWeights0.x * castle_JointMatrix[int(castle_SkinJoints0.x)] +
-      castle_SkinWeights0.y * castle_JointMatrix[int(castle_SkinJoints0.y)] +
-      castle_SkinWeights0.z * castle_JointMatrix[int(castle_SkinJoints0.z)] +
-      castle_SkinWeights0.w * castle_JointMatrix[int(castle_SkinJoints0.w)]
+      /* This is the core of the implementation, where 4 joints
+         with their 4 weights determine the final skinMatrix
+         that determines the vertex position.
+         This implementation follows
+         https://www.khronos.org/files/gltf20-reference-guide.pdf
+      */
+      castle_SkinWeights0.x * getJointMatrix(int(castle_SkinJoints0.x)) +
+      castle_SkinWeights0.y * getJointMatrix(int(castle_SkinJoints0.y)) +
+      castle_SkinWeights0.z * getJointMatrix(int(castle_SkinJoints0.z)) +
+      castle_SkinWeights0.w * getJointMatrix(int(castle_SkinJoints0.w))
     );
   vertex_object = skinMatrix * vertex_object;
   normal_object = mat3(skinMatrix) * normal_object;
