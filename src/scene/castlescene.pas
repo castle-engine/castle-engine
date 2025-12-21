@@ -2122,8 +2122,9 @@ end;
 
 procedure InitializeSkinInShaders;
 begin
-  TSkinNode.InternalUsesShadersPossible := GLFeatures.Shaders;
-  TSkinNode.InternalUsesShadersMaxJoints := GLFeatures.MaxSkinJointsShaders;
+  TSkinNode.InternalFeatures.Shaders := GLFeatures.Shaders;
+  TSkinNode.InternalFeatures.MaxVertexUniformComponents := GLFeatures.MaxVertexUniformComponents;
+  TSkinNode.InternalFeatures.MaxTextureSize := GLFeatures.MaxTextureSize;
 end;
 
 initialization

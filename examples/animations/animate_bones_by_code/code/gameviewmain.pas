@@ -83,7 +83,7 @@ var
 
 implementation
 
-uses SysUtils,
+uses SysUtils, TypInfo,
   CastleLog, CastleUtils, CastleStringUtils;
 
 { TViewMain ----------------------------------------------------------------- }
@@ -140,7 +140,7 @@ begin
     SceneHumanoidWithSkinnedAnim.Node('Neck') as TTransformNode);
 
   { In normal usage, you don't need to access the TSkinNode inside.
-    We access it only to debug whether InternalUsesShaders is true. }
+    We access it only to debug InternalMeshCalculation. }
   SkinNode := SceneHumanoidWithSkinnedAnim.Node('HumanArmature') as TSkinNode;
 
   // change all UI and variables to use SceneHumanoidWithSkinnedAnim and hide SceneHumanoidNoSkinnedAnim
@@ -260,8 +260,8 @@ begin
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
 
   LabelSkinUsesShaders.Caption :=
-    'Skin is calculated using shaders (faster, but not always possible): ' +
-    BoolToStr(SkinNode.InternalUsesShaders, true);
+    'Skin is calculated using: ' +
+    GetEnumName(TypeInfo(TSkinNode.TInternalMeshCalculation), Ord(SkinNode.InternalMeshCalculation));
 
   if AnimationMode in [amHead, amBoth] then
   begin

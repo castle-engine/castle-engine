@@ -1492,7 +1492,10 @@ procedure TRenderer.RenderShapeInside(const Shape: TX3DRendererShape;
             to have plugs and expose PLUG_vertex_object_space_change .
             Then we could still have special minimal shader,
             but doing skinned animation on GPU. }
-          if not (Shape.State.SkinnedAnimatedShape and Shape.State.Skin.InternalUsesShaders) then
+          if not (
+            Shape.State.SkinnedAnimatedShape and
+            (Shape.State.Skin.InternalMeshCalculation <> mcCpu)
+          ) then
           begin
             if ShadowMapsShaders = nil then
               ShadowMapsShaders := TCustomShaders.Create(

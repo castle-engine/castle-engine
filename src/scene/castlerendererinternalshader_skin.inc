@@ -53,12 +53,11 @@ procedure TSkinShader.GenerateCode(const Shader: TShader);
 
   { GLSL line that #defines value of CASTLE_MAX_SKIN_JOINTS. }
   function DefineMaxSkinJoints: String;
-  var
-    MaxSkinJoints: Cardinal;
   begin
-    MaxSkinJoints := Min(MaxPossibleSkinJointsShaders, GLFeatures.MaxSkinJointsShaders);
-    // WritelnLog('Allocating uniforms for max %d skin joints', [MaxSkinJoints]);
-    Result := Format('#define CASTLE_MAX_SKIN_JOINTS %d', [MaxSkinJoints]) + NL;
+    // WritelnLog('Allocating uniforms for max %d skin joints', [TSkinNode.InternalMaxJointsInUniforms]);
+    Result := Format('#define CASTLE_MAX_SKIN_JOINTS %d', [
+      TSkinNode.InternalMaxJointsInUniforms
+    ]) + NL;
   end;
 
 const

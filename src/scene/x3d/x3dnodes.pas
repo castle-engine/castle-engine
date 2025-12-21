@@ -255,7 +255,7 @@ type
 
 implementation
 
-uses Math, StrUtils, URIParser,
+uses Math, StrUtils, URIParser, TypInfo,
   CastleTextureFont_Default3d_Sans,
   X3DLoad, CastleInternalZStream, X3DCameraUtils,
   CastleFilesUtils, CastleUriUtils, CastleUnicode, CastleCurves,

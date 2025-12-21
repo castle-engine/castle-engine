@@ -289,8 +289,6 @@ begin
     '  Max line width: ' + GLFeatures.LineWidth.ToString + NL +
     '  Max fragment uniform components: ' + IntToStr(GLFeatures.MaxFragmentUniformComponents) + NL +
     '  Max vertex uniform components: ' + IntToStr(GLFeatures.MaxVertexUniformComponents) + NL +
-    '  Estimated maximum number of joints for skinning on GPU: ' + IntToStr(GLFeatures.MaxSkinJointsShaders) + NL +
-    '  Used number of joints for skinning on GPU (above limited by MaxPossibleSkinJointsShaders): ' + IntToStr(Min(MaxPossibleSkinJointsShaders, GLFeatures.MaxSkinJointsShaders)) + NL +
     NL +
 
     Section + NL +

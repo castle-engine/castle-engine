@@ -242,12 +242,33 @@
     const
       DefaultAnimationSamplingForBox = 30;
 
+    type
+      { Renderer capabilities for @link(InternalFeatures). @exclude }
+      TInternalRendererFeatures = record
+        Shaders: Boolean;
+        MaxVertexUniformComponents: Cardinal;
+        MaxTextureSize: Cardinal;
+      end;
+
+      { How do we calculate mesh from joints, for @link(InternalMeshCalculation). @exclude }
+      TInternalMeshCalculation = (
+        { Calculate resulting mesh on CPU, using Pascal code. }
+        mcCpu,
+        { Calculate resulting mesh on GPU, using shaders, with joints
+          information passed in uniforms. }
+        mcGpuUniforms,
+        { Calculate resulting mesh on GPU, using shaders, with joints
+          information passed in a texture. }
+        mcGpuTexture
+      );
+
     class var
-      { Set by TCastleScene to indicate is renderer (like OpenGL) capable to
-        use shaders to animate skin.
+      { Set by TCastleScene to indicate renderer capabilities.
+        We need to know this, to decide whether we make skinned animation
+        using shaders (and whether we pass joints as uniforms or as texture).
+        All the fields are equivalent to GLFeatures fields.
         @exclude }
-      InternalUsesShadersPossible: Boolean;
-      InternalUsesShadersMaxJoints: Cardinal;
+      InternalFeatures: TInternalRendererFeatures;
 
       { Which animation frames to sample when calculating bounding box
         of the animation.
@@ -304,6 +325,10 @@
         @exclude }
       InternalJointMatrix: TMatrix4List;
 
+      { If @link(InternalMeshCalculation) is mcGpuTexture,
+        we use this texture to pass joint matrices to shaders. }
+      // TODO: InternalJointsTexture: TPixelTextureNode;
+
     destructor Destroy; override;
 
     { Update meshes in @link(FdShapes) to reflect the current joints transformation.
@@ -311,13 +336,17 @@
       @exclude }
     procedure InternalUpdateSkin;
 
-    { Do we use shaders for skinning.
-      This takes into account InternalUsesShadersPossible (is current rendering
+    { How is mesh updated from joints, in particular do we use shaders.
+      This takes into account InternalFeatures (is current rendering
       context capable enough) but also some shape-specific conditions
-      (e.g. too many joints, or being a shadow caster, prevents calculating
-      skin on GPU).
+      (e.g. too many joints, or being a "shadow volumes caster", prevent
+      calculating skin on GPU).
       @exclude }
-    function InternalUsesShaders: Boolean;
+    function InternalMeshCalculation: TInternalMeshCalculation;
+
+    // How many joints can we pass in uniforms?
+    class function InternalMaxJointsInUniforms: Cardinal;
+
   {$I auto_generated_node_helpers/x3dnodes_skin.inc}
   end;
 
@@ -958,7 +987,7 @@ procedure TSkinNode.InternalUpdateSkin;
           SkinMatrix := InternalJointMatrix.L[0];
 
           { Note that this code executes only calculating skin on CPU, not GPU.
-            To see this warning, force InternalUsesShadersPossible to false. }
+            To see this warning, force InternalMeshCalculation to mcCpu. }
           WritelnWarningOnce(DoneWarningZeroWeights,
             'Encountered a vertex with zero weights, transforming it with weight 1 by the joint number 0. ' +
             'This is workarounding known Blender < 3.2 bug. ' +
@@ -993,7 +1022,7 @@ procedure TSkinNode.InternalUpdateSkin;
     Weights0: TVector4List;
     Joints0: TInt32List;
   begin
-    if InternalUsesShaders then
+    if InternalMeshCalculation <> mcCpu then
     begin
       if (Shape.Geometry.InternalOriginalCoords <> nil) or
          (Shape.Geometry.InternalOriginalNormals <> nil) or
@@ -1057,7 +1086,16 @@ begin
       UpdateShape(TAbstractShapeNode(FdShapes.Items[I]));
 end;
 
-function TSkinNode.InternalUsesShaders: Boolean;
+class function TSkinNode.InternalMaxJointsInUniforms: Cardinal;
+begin
+  Result := (InternalFeatures.MaxVertexUniformComponents -
+    { very rough estimation of the rest of uniforms }
+    4 * 10)
+    { each joint is mat4 uniform }
+    div 16;
+end;
+
+function TSkinNode.InternalMeshCalculation: TInternalMeshCalculation;
 
   function SomeShapeCastsShadowVolumes: Boolean;
   var
@@ -1084,43 +1122,60 @@ function TSkinNode.InternalUsesShaders: Boolean;
     Result := false;
   end;
 
-begin
-  Result := InternalUsesShadersPossible and
-    (FdJoints.Count <= Min(MaxPossibleSkinJointsShaders, InternalUsesShadersMaxJoints)) and
-    (not SomeShapeCastsShadowVolumes);
-
-  { Warning if we cannot use GPU shaders because of FdJoints.Count }
-  if (not Result) and
-     InternalUsesShadersPossible and
-     (not SomeShapeCastsShadowVolumes) then
+  { How many joints can we pass in texture?
+    For now, assume 1 joint per 1 texture column, as we always create
+    texture with size joints x 4, using a column of 4 pixels to pass a 4D
+    matrix for one joint. }
+  function MaxJointsInTexture: Cardinal;
   begin
-    WritelnWarningOnce(DoneWarningTooManyJoints,
-      'Too many joints (%d) to perform skinning on GPU using shaders. ' +
-      'The current GPU capabilities allow only %d joints and engine limit MaxPossibleSkinJointsShaders is %d. ' +
-      'Consider adjusting your animation to use less joints and/or increase engine MaxPossibleSkinJointsShaders. ', [
-        FdJoints.Count,
-        InternalUsesShadersMaxJoints,
-        MaxPossibleSkinJointsShaders
-      ]);
+    Result := InternalFeatures.MaxTextureSize;
   end;
+
+begin
+  if InternalFeatures.Shaders and (not SomeShapeCastsShadowVolumes) then
+  begin
+    if FdJoints.Count <= InternalMaxJointsInUniforms then
+    begin
+      Result := mcGpuUniforms
+    end else
+    if FdJoints.Count <= MaxJointsInTexture then
+    begin
+      Result := mcGpuTexture
+    end else
+    begin
+      Result := mcCpu;
+      { Warning if we cannot use GPU shaders because of FdJoints.Count }
+      WritelnWarningOnce(DoneWarningTooManyJoints,
+        'Too many joints (%d) to perform skinning on GPU using shaders. ' +
+        'The current GPU capabilities allow only %d joints in uniforms, and %d joints in texture. ' +
+        'Consider adjusting your animation to use less joints. ', [
+        FdJoints.Count,
+        InternalMaxJointsInUniforms,
+        MaxJointsInTexture
+      ]);
+    end;
+
+  end else
+    Result := mcCpu;
 
   {.$define CASTLE_DEBUG_SKINNING_USES_SHADERS}
   {$ifdef CASTLE_DEBUG_SKINNING_USES_SHADERS}
   WritelnLog(
-    'On %s, we use shaders for skinning? %s' + NL +
+    'On %s, we calculate skinned mesh using method: %s' + NL +
     '  Reason:' + NL +
-    '  1. InternalUsesShadersPossible = %s' + NL +
-    '  2. FdJoints.Count <= Min(MaxPossibleSkinJointsShaders, InternalUsesShadersMaxJoints) = %d < min(%d, %d) = %s' + NL +
-    '  3. not SomeShapeCastsShadowVolumes = %s', [
-      Self.NiceName,
-      BoolToStr(Result, true),
-      BoolToStr(InternalUsesShadersPossible, true),
-      FdJoints.Count,
-      MaxPossibleSkinJointsShaders,
-      InternalUsesShadersMaxJoints,
-      BoolToStr(FdJoints.Count <= Min(MaxPossibleSkinJointsShaders, InternalUsesShadersMaxJoints), true),
-      BoolToStr(not SomeShapeCastsShadowVolumes, true)
-    ]);
+    '  - InternalFeatures.Shaders: %s' + NL +
+    '  - SomeShapeCastsShadowVolumes: %s' + NL +
+    '  - FdJoints.Count: %d' + NL +
+    '  - MaxJointsInUniforms: %d' + NL +
+    '  - MaxJointsInTexture: %d', [
+    Self.NiceName,
+    GetEnumName(TypeInfo(TInternalMeshCalculation), Ord(Result)),
+    BoolToStr(InternalFeatures.Shaders, true),
+    BoolToStr(SomeShapeCastsShadowVolumes, true),
+    FdJoints.Count,
+    InternalMaxJointsInUniforms,
+    MaxJointsInTexture
+  ]);
   {$endif}
 end;
 
