@@ -327,7 +327,7 @@
 
       { If @link(InternalMeshCalculation) is mcGpuTexture,
         we use this texture to pass joint matrices to shaders. }
-      // TODO: InternalJointsTexture: TPixelTextureNode;
+      InternalJointTexture: TPixelTextureNode;
 
     destructor Destroy; override;
 
@@ -576,6 +576,7 @@ end;
 destructor TSkinNode.Destroy;
 begin
   FreeAndNil(InternalJointMatrix);
+  NodeRelease(InternalJointTexture);
   inherited;
 end;
 
@@ -612,6 +613,8 @@ begin
 end;
 
 procedure TSkinNode.InternalUpdateSkin;
+var
+  MeshCalculation: TInternalMeshCalculation;
 
   function SceneName: String;
   begin
@@ -1022,7 +1025,7 @@ procedure TSkinNode.InternalUpdateSkin;
     Weights0: TVector4List;
     Joints0: TInt32List;
   begin
-    if InternalMeshCalculation <> mcCpu then
+    if MeshCalculation <> mcCpu then
     begin
       if (Shape.Geometry.InternalOriginalCoords <> nil) or
          (Shape.Geometry.InternalOriginalNormals <> nil) or
@@ -1073,17 +1076,65 @@ procedure TSkinNode.InternalUpdateSkin;
       TangentNode.FdVector.Changed;
   end;
 
+  procedure UpdateJointTexture;
+  var
+    Width, Height, I, J: Cardinal;
+    Img: TRGBAlphaImage;
+    TextureProperties: TTexturePropertiesNode;
+  begin
+    // make sure InternalJointTexture is created
+    if InternalJointTexture = nil then
+    begin
+      InternalJointTexture := TPixelTextureNode.Create;
+      InternalJointTexture.WaitForRelease; // never free it using ref-counting
+
+      { Filtering to nearest, to get precise values in shaders.
+        Boundary mode (repeat or not) should not really matter --
+        our shaders should never query outside of the 0..1 range of texture. }
+      TextureProperties := TTexturePropertiesNode.Create;
+      TextureProperties.MagnificationFilter := magNearest;
+      TextureProperties.MinificationFilter := minNearest;
+      TextureProperties.BoundaryModeS := bmClampToEdge;
+      TextureProperties.BoundaryModeT := bmClampToEdge;
+      InternalJointTexture.TextureProperties := TextureProperties;
+    end;
+
+    // make sure InternalJointTexture.FdImage.Value has proper size
+    Width := FdJoints.Count;
+    Height := 4;
+    if (not (InternalJointTexture.FdImage.Value is TRGBAlphaImage)) or
+       (InternalJointTexture.FdImage.Value.Width <> Width) or
+       (InternalJointTexture.FdImage.Value.Height <> Height) then
+    begin
+      InternalJointTexture.FdImage.Value := TRGBAlphaImage.Create(Width, Height);
+    end;
+    Img := InternalJointTexture.FdImage.Value as TRGBAlphaImage;
+    Assert(Img.Width = Width);
+    Assert(Img.Height = Height);
+
+    // fill the contents of the texture
+    for I := 0 to FdJoints.Count - 1 do
+      for J := 0 to 3 do
+        Img.PixelPtr(I, J)^ := Vector4Byte(InternalJointMatrix.L[I].Columns[J]);
+  end;
+
 var
   I: Integer;
 begin
   if FdShapes.Count = 0 then
     Exit; // early exit if nothing needs to be done
 
+  // calculate once in this method
+  MeshCalculation := InternalMeshCalculation;
+
   PrepareJointMatrix;
 
   for I := 0 to FdShapes.Count - 1 do
     if FdShapes.Items[I] is TAbstractShapeNode then
       UpdateShape(TAbstractShapeNode(FdShapes.Items[I]));
+
+  if MeshCalculation = mcGpuTexture then
+    UpdateJointTexture;
 end;
 
 class function TSkinNode.InternalMaxJointsInUniforms: Cardinal;
