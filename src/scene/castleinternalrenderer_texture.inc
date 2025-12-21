@@ -1119,10 +1119,6 @@ begin
 
   // TODO: for test, load using LoadGLGeneratedTexture which is not fastest
   // TODO: use https://registry.khronos.org/OpenGL-Refpages/gl4/html/glTexSubImage2D.xhtml
-  Writeln(Format('Updating texture contents %d x %d', [
-    TextureNode.TextureImage.Width,
-    TextureNode.TextureImage.Height
-  ]));
   LoadGLGeneratedTexture(FGLName, TextureNode.TextureImage,
     Filter, TextureWrap, nil, GUITexture);
 end;
