@@ -258,6 +258,10 @@
       Shader: TShader; const Env: TTextureEnv): boolean; override;
     function ShaderTextureType(out TextureType: TTextureType): Boolean; override;
     function GLName: TGLTextureId; override;
+
+    { Update GPU contents of the image based on TextureNode contents.
+      Tries to update the contents fast. }
+    procedure UpdateContents(const RenderOptions: TCastleRenderOptions);
   end;
 
   { Renderer resource for TMovieTextureNode. }
@@ -1093,6 +1097,34 @@ end;
 function TImageTextureResource.GLName: TGLTextureId;
 begin
   Result := FGLName;
+end;
+
+procedure TImageTextureResource.UpdateContents(const RenderOptions: TCastleRenderOptions);
+var
+  Filter: TTextureFilter;
+  Anisotropy: TGLfloat;
+  BoundaryModeS: TGLenum;
+  BoundaryModeT: TGLenum;
+  GUITexture: boolean;
+  TextureWrap: TTextureWrap2D;
+begin
+  if FGLName = GLObjectNone then
+    Exit;
+
+  HandleTextureProperties(TextureNode.TextureProperties, RenderOptions,
+    TextureRepeatToGL(TextureNode.RepeatS), TextureRepeatToGL(TextureNode.RepeatT),
+    Filter, BoundaryModeS, BoundaryModeT, Anisotropy, GUITexture);
+  TextureWrap.Data[0] := BoundaryModeS;
+  TextureWrap.Data[1] := BoundaryModeT;
+
+  // TODO: for test, load using LoadGLGeneratedTexture which is not fastest
+  // TODO: use https://registry.khronos.org/OpenGL-Refpages/gl4/html/glTexSubImage2D.xhtml
+  Writeln(Format('Updating texture contents %d x %d', [
+    TextureNode.TextureImage.Width,
+    TextureNode.TextureImage.Height
+  ]));
+  LoadGLGeneratedTexture(FGLName, TextureNode.TextureImage,
+    Filter, TextureWrap, nil, GUITexture);
 end;
 
 { TMovieTextureResource -------------------------------------------------------- }

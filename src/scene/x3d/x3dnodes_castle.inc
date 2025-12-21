@@ -594,6 +594,7 @@ begin
   TextureProperties.MinificationFilter := minNearest;
   TextureProperties.BoundaryModeS := bmClampToEdge;
   TextureProperties.BoundaryModeT := bmClampToEdge;
+  TextureProperties.GuiTexture := true; // don't force power of 2 on GPU
   InternalJointTexture.TextureProperties := TextureProperties;
 
   // set any non-empty contents, to make our renderer prepare resources for it
@@ -1125,6 +1126,10 @@ var
     for I := 0 to FdJoints.Count - 1 do
       for J := 0 to 3 do
         Img.PixelPtr(I, J)^ := Vector4Byte(InternalJointMatrix.L[I].Columns[J]);
+
+    // TODO: force reloading, inefficient
+    InternalJointTexture.IsTextureLoaded := false;
+    InternalJointTexture.IsTextureLoaded := true;
   end;
 
 var
