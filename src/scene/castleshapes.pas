@@ -2980,6 +2980,13 @@ begin
       Result := HandleTextureNode(InternalShadowMaps[I] as TGeneratedShadowMapNode);
       if Result <> nil then Exit;
     end;
+
+  if (State.Skin <> nil) and
+     (State.Skin.InternalJointTexture <> nil) then
+  begin
+    Result := HandleTextureNode(State.Skin.InternalJointTexture);
+    if Result <> nil then Exit;
+  end;
 end;
 
 type
