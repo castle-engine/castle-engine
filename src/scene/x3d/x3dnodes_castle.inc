@@ -248,6 +248,7 @@
         Shaders: Boolean;
         MaxVertexUniformComponents: Cardinal;
         MaxTextureSize: Cardinal;
+        TextureFloat: Boolean;
       end;
 
       { How do we calculate mesh from joints, for @link(InternalMeshCalculation). @exclude }
@@ -326,7 +327,10 @@
       InternalJointMatrix: TMatrix4List;
 
       { If @link(InternalMeshCalculation) is mcGpuTexture,
-        we use this texture to pass joint matrices to shaders. }
+        and once it is initialized (detect by FdJoints.Count = InternalJointMatrix.Count),
+        use this texture to pass joint matrices to shaders.
+
+        It has defined contents (and may be @nil) otherwise. }
       InternalJointTexture: TPixelTextureNode;
 
     constructor Create(const AX3DName, ABaseUrl: String); override;
@@ -580,25 +584,32 @@ var
 begin
   inherited;
 
-  { Make sure InternalJointTexture is created.
-    It shall be only used when mcGpuTexture, but it is easiest to always have
-    it created, so that our renderer prepares resources for it on GPU. }
-  InternalJointTexture := TPixelTextureNode.Create;
-  InternalJointTexture.WaitForRelease; // never free it using ref-counting
+  if InternalFeatures.Shaders and InternalFeatures.TextureFloat then
+  begin
+    { Make sure InternalJointTexture is created.
+      It will be used only when mcGpuTexture, but it is easiest to always have
+      it created, so that our renderer prepares resources for it on GPU.
 
-  { Filtering to nearest, to get precise values in shaders.
-    Boundary mode (repeat or not) should not really matter --
-    our shaders should never query outside of the 0..1 range of texture. }
-  TextureProperties := TTexturePropertiesNode.Create;
-  TextureProperties.MagnificationFilter := magNearest;
-  TextureProperties.MinificationFilter := minNearest;
-  TextureProperties.BoundaryModeS := bmClampToEdge;
-  TextureProperties.BoundaryModeT := bmClampToEdge;
-  TextureProperties.GuiTexture := true; // don't force power of 2 on GPU
-  InternalJointTexture.TextureProperties := TextureProperties;
+      To optimize, we don't create when Shaders or TextureFloat is not available,
+      as then mcGpuTexture is not possible. }
 
-  // set any non-empty contents, to make our renderer prepare resources for it
-  InternalJointTexture.FdImage.Value := TRGBAlphaFloatImage.Create(1, 4);
+    InternalJointTexture := TPixelTextureNode.Create;
+    InternalJointTexture.WaitForRelease; // never free it using ref-counting
+
+    { Filtering to nearest, to get precise values in shaders.
+      Boundary mode (repeat or not) should not really matter --
+      our shaders should never query outside of the 0..1 range of texture. }
+    TextureProperties := TTexturePropertiesNode.Create;
+    TextureProperties.MagnificationFilter := magNearest;
+    TextureProperties.MinificationFilter := minNearest;
+    TextureProperties.BoundaryModeS := bmClampToEdge;
+    TextureProperties.BoundaryModeT := bmClampToEdge;
+    TextureProperties.GuiTexture := true; // don't force power of 2 on GPU
+    InternalJointTexture.TextureProperties := TextureProperties;
+
+    // set any non-empty contents, to make our renderer prepare resources for it
+    InternalJointTexture.FdImage.Value := TRGBAlphaFloatImage.Create(1, 1);
+  end;
 end;
 
 destructor TSkinNode.Destroy;
@@ -1128,6 +1139,7 @@ var
         Img.PixelPtr(I, J)^ := InternalJointMatrix.L[I].Columns[J];
 
     // TODO: force reloading, inefficient
+    // TODO: just send InternalJointMatrix data to GPU straight, if already have GL resources for it
     InternalJointTexture.IsTextureLoaded := false;
     InternalJointTexture.IsTextureLoaded := true;
   end;
@@ -1199,13 +1211,21 @@ function TSkinNode.InternalMeshCalculation: TInternalMeshCalculation;
 begin
   if InternalFeatures.Shaders and (not SomeShapeCastsShadowVolumes) then
   begin
+    if InternalFeatures.TextureFloat and (FdJoints.Count <= MaxJointsInTexture) then
+    begin
+      { Prefer mcGpuTexture over mcGpuUniforms, even for low FdJoints.Count
+        values (when both could be possible) because this allows to use
+        the more common case (mcGpuTexture) always when possible.
+
+        So mcGpuUniforms becomes a fallback only if renderer doesn't have
+        InternalFeatures.TextureFloat, in practice.
+        Because MaxJointsInTexture is usually much higher than
+        InternalMaxJointsInUniforms.  }
+      Result := mcGpuTexture;
+    end else
     if FdJoints.Count <= InternalMaxJointsInUniforms then
     begin
-      Result := mcGpuUniforms
-    end else
-    if FdJoints.Count <= MaxJointsInTexture then
-    begin
-      Result := mcGpuTexture
+      Result := mcGpuUniforms;
     end else
     begin
       Result := mcCpu;
