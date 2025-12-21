@@ -598,7 +598,7 @@ begin
   InternalJointTexture.TextureProperties := TextureProperties;
 
   // set any non-empty contents, to make our renderer prepare resources for it
-  InternalJointTexture.FdImage.Value := TRGBAlphaImage.Create(1, 4);
+  InternalJointTexture.FdImage.Value := TRGBAlphaFloatImage.Create(1, 4);
 end;
 
 destructor TSkinNode.Destroy;
@@ -1107,25 +1107,25 @@ var
   procedure UpdateJointTexture;
   var
     Width, Height, I, J: Cardinal;
-    Img: TRGBAlphaImage;
+    Img: TRGBAlphaFloatImage;
   begin
     // make sure InternalJointTexture.FdImage.Value has proper size
     Width := FdJoints.Count;
     Height := 4;
-    if (not (InternalJointTexture.FdImage.Value is TRGBAlphaImage)) or
+    if (not (InternalJointTexture.FdImage.Value is TRGBAlphaFloatImage)) or
        (InternalJointTexture.FdImage.Value.Width <> Width) or
        (InternalJointTexture.FdImage.Value.Height <> Height) then
     begin
-      InternalJointTexture.FdImage.Value := TRGBAlphaImage.Create(Width, Height);
+      InternalJointTexture.FdImage.Value := TRGBAlphaFloatImage.Create(Width, Height);
     end;
-    Img := InternalJointTexture.FdImage.Value as TRGBAlphaImage;
+    Img := InternalJointTexture.FdImage.Value as TRGBAlphaFloatImage;
     Assert(Img.Width = Width);
     Assert(Img.Height = Height);
 
     // fill the contents of the texture
     for I := 0 to FdJoints.Count - 1 do
       for J := 0 to 3 do
-        Img.PixelPtr(I, J)^ := Vector4Byte(InternalJointMatrix.L[I].Columns[J]);
+        Img.PixelPtr(I, J)^ := InternalJointMatrix.L[I].Columns[J];
 
     // TODO: force reloading, inefficient
     InternalJointTexture.IsTextureLoaded := false;
