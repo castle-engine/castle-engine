@@ -1117,12 +1117,13 @@ var
 
   procedure UpdateJointTexture;
   var
-    Width, Height, I, J: Cardinal;
+    Width, Height: Cardinal;
+    //I, J: Cardinal;
     Img: TRGBAlphaFloatImage;
   begin
     // make sure InternalJointTexture.FdImage.Value has proper size
-    Width := FdJoints.Count;
-    Height := 4;
+    Width := 4;
+    Height := FdJoints.Count;
     if (not (InternalJointTexture.FdImage.Value is TRGBAlphaFloatImage)) or
        (InternalJointTexture.FdImage.Value.Width <> Width) or
        (InternalJointTexture.FdImage.Value.Height <> Height) then
@@ -1133,10 +1134,17 @@ var
     Assert(Img.Width = Width);
     Assert(Img.Height = Height);
 
-    // fill the contents of the texture
-    for I := 0 to FdJoints.Count - 1 do
-      for J := 0 to 3 do
-        Img.PixelPtr(I, J)^ := InternalJointMatrix.L[I].Columns[J];
+    { Fill the contents of the texture.
+      Naive approach:
+
+        for I := 0 to FdJoints.Count - 1 do
+          for J := 0 to 3 do
+            Img.PixelPtr(I, J)^ := InternalJointMatrix.L[I].Columns[J];
+
+      But we can do it faster.
+      We have deliberately chosen to encode data in texture in an obvious
+      way to allow to do this by a single Move. }
+    Move(InternalJointMatrix.L^, Img.RawPixels^, SizeOf(TMatrix4) * FdJoints.Count);
 
     // TODO: force reloading, inefficient
     // TODO: just send InternalJointMatrix data to GPU straight, if already have GL resources for it
@@ -1200,8 +1208,8 @@ function TSkinNode.InternalMeshCalculation: TInternalMeshCalculation;
   end;
 
   { How many joints can we pass in texture?
-    For now, assume 1 joint per 1 texture column, as we always create
-    texture with size joints x 4, using a column of 4 pixels to pass a 4D
+    For now, assume 1 joint per 1 texture row, as we always create
+    texture with size 4 x joints, using a row of 4 pixels to pass a 4D
     matrix for one joint. }
   function MaxJointsInTexture: Cardinal;
   begin

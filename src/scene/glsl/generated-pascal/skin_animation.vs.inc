@@ -25,10 +25,10 @@
 'mat4 getJointMatrix(int jointIndex)' + LineEnding +
 '{' + LineEnding +
 '  return mat4(' + LineEnding +
-'    texelFetch(castle_JointTexture, ivec2(jointIndex, 0), 0),' + LineEnding +
-'    texelFetch(castle_JointTexture, ivec2(jointIndex, 1), 0),' + LineEnding +
-'    texelFetch(castle_JointTexture, ivec2(jointIndex, 2), 0),' + LineEnding +
-'    texelFetch(castle_JointTexture, ivec2(jointIndex, 3), 0)' + LineEnding +
+'    texelFetch(castle_JointTexture, ivec2(0, jointIndex), 0),' + LineEnding +
+'    texelFetch(castle_JointTexture, ivec2(1, jointIndex), 0),' + LineEnding +
+'    texelFetch(castle_JointTexture, ivec2(2, jointIndex), 0),' + LineEnding +
+'    texelFetch(castle_JointTexture, ivec2(3, jointIndex), 0)' + LineEnding +
 '  );' + LineEnding +
 '}' + LineEnding +
 '#else' + LineEnding +

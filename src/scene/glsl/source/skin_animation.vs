@@ -23,10 +23,10 @@ mat4 skinMatrix;
 mat4 getJointMatrix(int jointIndex)
 {
   return mat4(
-    texelFetch(castle_JointTexture, ivec2(jointIndex, 0), 0),
-    texelFetch(castle_JointTexture, ivec2(jointIndex, 1), 0),
-    texelFetch(castle_JointTexture, ivec2(jointIndex, 2), 0),
-    texelFetch(castle_JointTexture, ivec2(jointIndex, 3), 0)
+    texelFetch(castle_JointTexture, ivec2(0, jointIndex), 0),
+    texelFetch(castle_JointTexture, ivec2(1, jointIndex), 0),
+    texelFetch(castle_JointTexture, ivec2(2, jointIndex), 0),
+    texelFetch(castle_JointTexture, ivec2(3, jointIndex), 0)
   );
 }
 #else
