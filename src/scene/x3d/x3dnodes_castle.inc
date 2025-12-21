@@ -1134,22 +1134,52 @@ var
     Assert(Img.Width = Width);
     Assert(Img.Height = Height);
 
-    { Fill the contents of the texture.
-      Naive approach:
+(* TODO:
+    if InternalJointTexture.InternalRendererResource <> nil then
+    begin
+      { If we already have data for renderer, then update it fast,
+        sending our data straight to GPU.
 
-        for I := 0 to FdJoints.Count - 1 do
-          for J := 0 to 3 do
-            Img.PixelPtr(I, J)^ := InternalJointMatrix.L[I].Columns[J];
+        No need to care about updating
+          InternalJointTexture.FdImage.Value,
+          InternalJointTexture.TextureImage,
+          InternalJointTexture.IsTextureLoaded,
+        it doesn't matter if we update the GPU data. }
 
-      But we can do it faster.
-      We have deliberately chosen to encode data in texture in an obvious
-      way to allow to do this by a single Move. }
-    Move(InternalJointMatrix.L^, Img.RawPixels^, SizeOf(TMatrix4) * FdJoints.Count);
+      // UpdateTextureContentsRgbaFloat docs:
+      { Update the data of this renderer resource, specialized for
+        if it's a float RGBA texture without mipmaps.
+        Makes an exception if it's a resource of any other type
+        (not texture, or not float RGBA texture).
+        Also makes an exception if texture has mipmaps, this method only updates
+        level 0.
 
-    // TODO: force reloading, inefficient
-    // TODO: just send InternalJointMatrix data to GPU straight, if already have GL resources for it
-    InternalJointTexture.IsTextureLoaded := false;
-    InternalJointTexture.IsTextureLoaded := true;
+        Checks that this texture size is correct (if not, fixes the size).
+
+        Sets the texture contents to the indicated ones.
+        Given Data pointer must point to Width * Height * SizeOf(TVector4) bytes.
+      }
+      InternalJointTexture.InternalRendererResource.UpdateTextureContentsRgbaFloat(
+        Width, Height, InternalJointMatrix.L^);
+    end else
+*)
+    begin
+      { Fill the contents of the texture.
+        Naive approach:
+
+          for I := 0 to FdJoints.Count - 1 do
+            for J := 0 to 3 do
+              Img.PixelPtr(I, J)^ := InternalJointMatrix.L[I].Columns[J];
+
+        But we can do it faster.
+        We have deliberately chosen to encode data in texture in an obvious
+        way to allow to do this by a single Move. }
+      Move(InternalJointMatrix.L^, Img.RawPixels^, SizeOf(TMatrix4) * FdJoints.Count);
+
+      { Force recreating InternalJointTexture.TextureImage from
+        InternalJointTexture.FdImage.Value }
+      InternalJointTexture.IsTextureLoaded := false;
+    end;
   end;
 
 var
