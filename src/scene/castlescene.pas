@@ -2124,6 +2124,7 @@ procedure InitializeSkinInShaders;
 begin
   TSkinNode.InternalFeatures.Shaders := GLFeatures.Shaders;
   TSkinNode.InternalFeatures.MaxVertexUniformComponents := GLFeatures.MaxVertexUniformComponents;
+  TSkinNode.InternalFeatures.MaxSkinJointsInUniforms := GLFeatures.MaxSkinJointsInUniforms;
   TSkinNode.InternalFeatures.MaxTextureSize := GLFeatures.MaxTextureSize;
   TSkinNode.InternalFeatures.TextureFloat := GLFeatures.TextureFloat;
 end;

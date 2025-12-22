@@ -247,6 +247,7 @@
       TInternalRendererFeatures = record
         Shaders: Boolean;
         MaxVertexUniformComponents: Cardinal;
+        MaxSkinJointsInUniforms: Cardinal;
         MaxTextureSize: Cardinal;
         TextureFloat: Boolean;
       end;
@@ -348,9 +349,6 @@
       calculating skin on GPU).
       @exclude }
     function InternalMeshCalculation: TInternalMeshCalculation;
-
-    // How many joints can we pass in uniforms?
-    class function InternalMaxJointsInUniforms: Cardinal;
 
   {$I auto_generated_node_helpers/x3dnodes_skin.inc}
   end;
@@ -1184,15 +1182,6 @@ begin
     UpdateJointTexture;
 end;
 
-class function TSkinNode.InternalMaxJointsInUniforms: Cardinal;
-begin
-  Result := (InternalFeatures.MaxVertexUniformComponents -
-    { very rough estimation of the rest of uniforms }
-    4 * 10)
-    { each joint is mat4 uniform }
-    div 16;
-end;
-
 function TSkinNode.InternalMeshCalculation: TInternalMeshCalculation;
 
   function SomeShapeCastsShadowVolumes: Boolean;
@@ -1232,22 +1221,49 @@ function TSkinNode.InternalMeshCalculation: TInternalMeshCalculation;
 begin
   if InternalFeatures.Shaders and (not SomeShapeCastsShadowVolumes) then
   begin
-    if InternalFeatures.TextureFloat and (FdJoints.Count <= MaxJointsInTexture) then
-    begin
-      { Prefer mcGpuTexture over mcGpuUniforms, even for low FdJoints.Count
-        values (when both could be possible) because this allows to use
+
+    { Which one to prefer when both are possible, mcGpuTexture or mcGpuUniforms?
+
+      - When PREFER_mcGpuTexture defined:
+
+        Prefer mcGpuTexture over mcGpuUniforms, even for low FdJoints.Count
+        values (when both could be possible).
+
+        Reason: this allows to use
         the more common case (mcGpuTexture) always when possible.
 
         So mcGpuUniforms becomes a fallback only if renderer doesn't have
         InternalFeatures.TextureFloat, in practice.
         Because MaxJointsInTexture is usually much higher than
-        InternalMaxJointsInUniforms.  }
-      Result := mcGpuTexture;
-    end else
-    if FdJoints.Count <= InternalMaxJointsInUniforms then
-    begin
-      Result := mcGpuUniforms;
-    end else
+        InternalMaxJointsInUniforms.
+
+      - When PREFER_mcGpuTexture not defined:
+
+        Prefer mcGpuUniforms over mcGpuTexture for low FdJoints.Count.
+
+        TODO: Reason: mcGpuUniforms is marginally faster.
+        Tests in progress still.
+
+      Note that in either case, we need mcGpuUniforms anyway, if renderer doesn't have
+      InternalFeatures.TextureFloat. }
+    {$define PREFER_mcGpuTexture}
+    {$ifdef PREFER_mcGpuTexture}
+    if InternalFeatures.TextureFloat and (FdJoints.Count <= MaxJointsInTexture) then
+      Result := mcGpuTexture
+    else
+    if FdJoints.Count <= InternalFeatures.MaxSkinJointsInUniforms then
+      Result := mcGpuUniforms
+    else
+    {$else}
+
+    if FdJoints.Count <= InternalFeatures.MaxSkinJointsInUniforms then
+      Result := mcGpuUniforms
+    else
+    if InternalFeatures.TextureFloat and (FdJoints.Count <= MaxJointsInTexture) then
+      Result := mcGpuTexture
+    else
+    {$endif}
+
     begin
       Result := mcCpu;
       { Warning if we cannot use GPU shaders because of FdJoints.Count }
@@ -1256,7 +1272,7 @@ begin
         'The current GPU capabilities allow only %d joints in uniforms, and %d joints in texture. ' +
         'Consider adjusting your animation to use less joints. ', [
         FdJoints.Count,
-        InternalMaxJointsInUniforms,
+        InternalFeatures.MaxSkinJointsInUniforms,
         MaxJointsInTexture
       ]);
     end;
@@ -1279,7 +1295,7 @@ begin
     BoolToStr(InternalFeatures.Shaders, true),
     BoolToStr(SomeShapeCastsShadowVolumes, true),
     FdJoints.Count,
-    InternalMaxJointsInUniforms,
+    InternalFeatures.MaxSkinJointsInUniforms,
     MaxJointsInTexture
   ]);
   {$endif}

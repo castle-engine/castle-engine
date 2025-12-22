@@ -600,6 +600,9 @@ type
       in https://wikis.khronos.org/opengl/Uniform_(GLSL).
       0 if @link(Shaders) is @false. }
     property MaxVertexUniformComponents: Cardinal read FMaxVertexUniformComponents;
+
+    { Maximum number of TSkinNode joints that can be passed in uniforms. }
+    function MaxSkinJointsInUniforms: Cardinal;
   end;
 
 { Initialize GLVersion and GLFeatures. }
@@ -1439,6 +1442,21 @@ begin
     if GLFeatures <> nil then
       raise Exception.CreateFmt(SCannotChangeAfterContextInitialized, ['TGLFeatures.Debug']);
     FDebug := Value;
+  end;
+end;
+
+function TGLFeatures.MaxSkinJointsInUniforms: Cardinal;
+const
+  // very rough estimation of the rest of uniforms
+  OtherUniformsSize = 4 * 20;
+begin
+  if MaxVertexUniformComponents < OtherUniformsSize then
+    Result := 0
+  else
+  begin
+    Result := (MaxVertexUniformComponents - OtherUniformsSize)
+      { each joint is mat4 uniform }
+      div 16;
   end;
 end;
 

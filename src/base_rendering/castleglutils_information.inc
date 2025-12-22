@@ -289,6 +289,7 @@ begin
     '  Max line width: ' + GLFeatures.LineWidth.ToString + NL +
     '  Max fragment uniform components: ' + IntToStr(GLFeatures.MaxFragmentUniformComponents) + NL +
     '  Max vertex uniform components: ' + IntToStr(GLFeatures.MaxVertexUniformComponents) + NL +
+    '  Max skin joints in uniforms: ' + IntToStr(GLFeatures.MaxSkinJointsInUniforms) + NL +
     NL +
 
     Section + NL +
