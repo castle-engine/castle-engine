@@ -1457,6 +1457,10 @@ begin
     Result := (MaxVertexUniformComponents - OtherUniformsSize)
       { each joint is mat4 uniform }
       div 16;
+    { Cap at 128, avoids conan Skin (testcase from Aaon) failing with
+      "Internal error: assembly compile error for vertex shader at offset 1832:"
+      at "NVIDIA GeForce RTX 3050 Ti Laptop GPU/PCIe/SSE2". }
+    MinVar(Result, 128);
   end;
 end;
 

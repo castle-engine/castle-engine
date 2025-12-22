@@ -1232,6 +1232,14 @@ begin
         there is no "magic" number of joints when we switch between
         mcGpuTexture and mcGpuUniforms.
 
+        And avoids the uncertain
+        "Internal error: assembly compile error for vertex shader at offset 1832:"
+        errors caused by mcGpuUniforms for many (251) uniforms.
+        It seems there is a limit on joints count that I don't understand
+        (analyzing MaxVertexUniformComponents pointed we should be good?).
+        Using mcGpuTexture avoids this, we don't rely on MaxSkinJointsInUniforms
+        then.
+
         So mcGpuUniforms becomes a fallback only if renderer doesn't have
         InternalFeatures.TextureFloat, in practice.
         Because MaxJointsInTexture is usually much higher than
@@ -1257,7 +1265,7 @@ begin
         then mcGpuUniforms is necessary
       - if we have too many joints,
         then mcGpuTexture is necessary. }
-    {.$define PREFER_mcGpuTexture}
+    {$define PREFER_mcGpuTexture}
     {$ifdef PREFER_mcGpuTexture}
     if InternalFeatures.TextureFloat and (FdJoints.Count <= MaxJointsInTexture) then
       Result := mcGpuTexture
