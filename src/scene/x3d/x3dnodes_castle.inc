@@ -1228,16 +1228,9 @@ begin
         values (when both could be possible).
 
         Reason:
-
-        - This allows to test the mcGpuTexture more often,
-          there is no "magic" number of joints when we switch between
-          mcGpuTexture and mcGpuUniforms.
-
-        - mcGpuTexture is also marginally faster,
-            Tested: with 500+ models in "Add Crowd" with -dRELEASE:
-            - mcGpuUniforms : 37 FPS
-            - mcGpuTexture : 41 FPS
-            This was done on NVIDIA GeForce RTX 3050 Ti Laptop GPU/PCIe/SSE2.
+        This allows to test the mcGpuTexture more often,
+        there is no "magic" number of joints when we switch between
+        mcGpuTexture and mcGpuUniforms.
 
         So mcGpuUniforms becomes a fallback only if renderer doesn't have
         InternalFeatures.TextureFloat, in practice.
@@ -1247,11 +1240,24 @@ begin
       - When PREFER_mcGpuTexture not defined:
         Prefer mcGpuUniforms over mcGpuTexture for low FdJoints.Count.
 
-        Reason: No good reason for this now :)
+      Is there speed difference?
+      Tests show that not.
+      Tested on
+      - animate_bones_by_code_standalone
+      - with 576 models make by "Add Crowd"
+      - with -dRELEASE
+      - hacked to not randomize animations (otherwise animation type would affect FPS)
+      - on NVIDIA GeForce RTX 3050 Ti Laptop GPU/PCIe/SSE2.
 
-      Note that in either case, we need mcGpuUniforms anyway, if renderer doesn't have
-      InternalFeatures.TextureFloat. }
-    {$define PREFER_mcGpuTexture}
+      Results:
+      - whichever you prefer, we get 38-39 FPS.
+
+      Note that in either case, we need both mcGpu* approaches anyway:
+      - if renderer doesn't have InternalFeatures.TextureFloat
+        then mcGpuUniforms is necessary
+      - if we have too many joints,
+        then mcGpuTexture is necessary. }
+    {.$define PREFER_mcGpuTexture}
     {$ifdef PREFER_mcGpuTexture}
     if InternalFeatures.TextureFloat and (FdJoints.Count <= MaxJointsInTexture) then
       Result := mcGpuTexture
