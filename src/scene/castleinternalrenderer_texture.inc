@@ -1117,18 +1117,30 @@ begin
     - no need for Mesa + fixed function hack
     - no need for texture swizzle, just map RGBA to RGBA. }
 
+  { Using glTexSubImage2D is theoretically faster, as it doesn't have to
+    change texture size on GPU?
+    In practice, animate_bones_by_code_standalone with "Add Crowd"
+    shows no difference between glTexImage2D and glTexSubImage2D. }
+  {$define UpdateTextureContentsRgbaFloat_USE_TEXSUBIMAGE2D}
+
+  {$ifdef UpdateTextureContentsRgbaFloat_USE_TEXSUBIMAGE2D}
   if (FAllocatedWidth <> Width) or (FAllocatedHeight <> Height) then
+  {$endif}
+
   begin
     glTexImage2D(GL_TEXTURE_2D, Level, ImageInternalFormat,
       Width, Height, 0, ImageFormat, GL_FLOAT, Data);
     FAllocatedWidth := Width;
     FAllocatedHeight := Height;
-  end else
+  end
+
+  {$ifdef UpdateTextureContentsRgbaFloat_USE_TEXSUBIMAGE2D}
+  else
   begin
-    // using glTexSubImage2D is faster
     glTexSubImage2D(GL_TEXTURE_2D, Level, 0, 0, Width, Height,
       ImageFormat, GL_FLOAT, Data);
-  end;
+  end
+  {$endif};
 end;
 
 { TMovieTextureResource -------------------------------------------------------- }
