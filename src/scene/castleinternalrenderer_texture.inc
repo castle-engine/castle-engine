@@ -239,6 +239,7 @@
   TImageTextureResource = class(T2DTextureResource)
   strict private
     FGLName: TGLTexture;
+    FAllocatedWidth, FAllocatedHeight: Cardinal;
   protected
     class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
     procedure PrepareCore(
@@ -259,9 +260,8 @@
     function ShaderTextureType(out TextureType: TTextureType): Boolean; override;
     function GLName: TGLTextureId; override;
 
-    { Update GPU contents of the image based on TextureNode contents.
-      Tries to update the contents fast. }
-    procedure UpdateContents(const RenderOptions: TCastleRenderOptions);
+    procedure UpdateTextureContentsRgbaFloat(
+      const Width, Height: Cardinal; const Data: Pointer); override;
   end;
 
   { Renderer resource for TMovieTextureNode. }
@@ -1059,6 +1059,8 @@ begin
     TextureNode.TextureComposite,
     GUITexture,
     FlipVertically);
+  FAllocatedWidth := TextureNode.TextureImage.Width;
+  FAllocatedHeight := TextureNode.TextureImage.Height;
 end;
 
 procedure TImageTextureResource.UnprepareCore;
@@ -1099,28 +1101,34 @@ begin
   Result := FGLName;
 end;
 
-procedure TImageTextureResource.UpdateContents(const RenderOptions: TCastleRenderOptions);
-var
-  Filter: TTextureFilter;
-  Anisotropy: TGLfloat;
-  BoundaryModeS: TGLenum;
-  BoundaryModeT: TGLenum;
-  GUITexture: boolean;
-  TextureWrap: TTextureWrap2D;
+procedure TImageTextureResource.UpdateTextureContentsRgbaFloat(
+  const Width, Height: Cardinal; const Data: Pointer);
+const
+  // values below like UncompressedGLFormatAndInternalFormat for TRGBAlphaFloatImage
+  ImageFormat = GL_RGBA;
+  ImageInternalFormat = GL_RGBA32F;
+  Level = 0; // always update mipmap level 0;
 begin
-  if FGLName = GLObjectNone then
-    Exit;
+  if not Bind(0) then Exit;
 
-  HandleTextureProperties(TextureNode.TextureProperties, RenderOptions,
-    TextureRepeatToGL(TextureNode.RepeatS), TextureRepeatToGL(TextureNode.RepeatT),
-    Filter, BoundaryModeS, BoundaryModeT, Anisotropy, GUITexture);
-  TextureWrap.Data[0] := BoundaryModeS;
-  TextureWrap.Data[1] := BoundaryModeT;
+  { We assume we don't need to do some stuff from CastleTexImage2D:
+    - no need for BeforeUnpackImage, as RGBA float textures are always
+      already aligned to 4 bytes
+    - no need for Mesa + fixed function hack
+    - no need for texture swizzle, just map RGBA to RGBA. }
 
-  // TODO: for test, load using LoadGLGeneratedTexture which is not fastest
-  // TODO: use https://registry.khronos.org/OpenGL-Refpages/gl4/html/glTexSubImage2D.xhtml
-  LoadGLGeneratedTexture(FGLName, TextureNode.TextureImage,
-    Filter, TextureWrap, nil, GUITexture);
+  if (FAllocatedWidth <> Width) or (FAllocatedHeight <> Height) then
+  begin
+    glTexImage2D(GL_TEXTURE_2D, Level, ImageInternalFormat,
+      Width, Height, 0, ImageFormat, GL_FLOAT, Data);
+    FAllocatedWidth := Width;
+    FAllocatedHeight := Height;
+  end else
+  begin
+    // using glTexSubImage2D is faster
+    glTexSubImage2D(GL_TEXTURE_2D, Level, 0, 0, Width, Height,
+      ImageFormat, GL_FLOAT, Data);
+  end;
 end;
 
 { TMovieTextureResource -------------------------------------------------------- }

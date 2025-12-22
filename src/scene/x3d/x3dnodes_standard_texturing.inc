@@ -25,7 +25,24 @@
   {$I auto_generated_node_helpers/x3dnodes_x3dsingletexturecoordinatenode.inc}
   end;
 
+  { Connects specific X3D nodes to their rendering resources, like to
+    a texture allocated on GPU.
+    @exclude }
   TInternalRendererResource = class
+  public
+    { Update the data of this renderer resource, specialized for
+      if it's a float RGBA texture without mipmaps.
+      Makes an exception if it's a resource of any other type
+      (not texture, or not float RGBA texture).
+      Also makes an exception if texture has mipmaps, this method only updates
+      level 0.
+
+      Checks that this texture size is correct (if not, fixes the size).
+
+      Sets the texture contents to the indicated ones.
+      Given Data pointer must point to Width * Height * SizeOf(TVector4) bytes. }
+    procedure UpdateTextureContentsRgbaFloat(
+      const Width, Height: Cardinal; const Data: Pointer); virtual;
   end;
 
   { Base for all nodes which specify a texture, possibly multi-texture. }
@@ -528,6 +545,16 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
+
+{ TInternalRendererResource -------------------------------------------------- }
+
+procedure TInternalRendererResource.UpdateTextureContentsRgbaFloat(
+  const Width, Height: Cardinal; const Data: Pointer);
+begin
+  raise EInternalError.CreateFmt('UpdateTextureContentsRgbaFloat not implemented for this renderer resource: %s', [
+    ClassName
+  ]);
+end;
 
 { TAbstractTextureNode ------------------------------------------------------- }
 

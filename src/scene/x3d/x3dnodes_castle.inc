@@ -1118,7 +1118,6 @@ var
   procedure UpdateJointTexture;
   var
     Width, Height: Cardinal;
-    //I, J: Cardinal;
     Img: TRGBAlphaFloatImage;
   begin
     // make sure InternalJointTexture.FdImage.Value has proper size
@@ -1134,7 +1133,6 @@ var
     Assert(Img.Width = Width);
     Assert(Img.Height = Height);
 
-(* TODO:
     if InternalJointTexture.InternalRendererResource <> nil then
     begin
       { If we already have data for renderer, then update it fast,
@@ -1145,24 +1143,9 @@ var
           InternalJointTexture.TextureImage,
           InternalJointTexture.IsTextureLoaded,
         it doesn't matter if we update the GPU data. }
-
-      // UpdateTextureContentsRgbaFloat docs:
-      { Update the data of this renderer resource, specialized for
-        if it's a float RGBA texture without mipmaps.
-        Makes an exception if it's a resource of any other type
-        (not texture, or not float RGBA texture).
-        Also makes an exception if texture has mipmaps, this method only updates
-        level 0.
-
-        Checks that this texture size is correct (if not, fixes the size).
-
-        Sets the texture contents to the indicated ones.
-        Given Data pointer must point to Width * Height * SizeOf(TVector4) bytes.
-      }
       InternalJointTexture.InternalRendererResource.UpdateTextureContentsRgbaFloat(
-        Width, Height, InternalJointMatrix.L^);
+        Width, Height, InternalJointMatrix.L);
     end else
-*)
     begin
       { Fill the contents of the texture.
         Naive approach:

@@ -1375,9 +1375,6 @@ procedure TRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
         Exit;
       end;
 
-      // TODO: For now update before each render, instead of at each change
-      (Res as TImageTextureResource).UpdateContents(RenderOptions);
-
       Shader.SkinJointTextureUnit := ABoundTextureUnits;
       Res.Bind(ABoundTextureUnits);
       Inc(ABoundTextureUnits);
