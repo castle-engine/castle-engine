@@ -1221,16 +1221,23 @@ function TSkinNode.InternalMeshCalculation: TInternalMeshCalculation;
 begin
   if InternalFeatures.Shaders and (not SomeShapeCastsShadowVolumes) then
   begin
-
     { Which one to prefer when both are possible, mcGpuTexture or mcGpuUniforms?
 
       - When PREFER_mcGpuTexture defined:
-
         Prefer mcGpuTexture over mcGpuUniforms, even for low FdJoints.Count
         values (when both could be possible).
 
-        Reason: this allows to use
-        the more common case (mcGpuTexture) always when possible.
+        Reason:
+
+        - This allows to test the mcGpuTexture more often,
+          there is no "magic" number of joints when we switch between
+          mcGpuTexture and mcGpuUniforms.
+
+        - mcGpuTexture is also marginally faster,
+            Tested: with 500+ models in "Add Crowd" with -dRELEASE:
+            - mcGpuUniforms : 37 FPS
+            - mcGpuTexture : 41 FPS
+            This was done on NVIDIA GeForce RTX 3050 Ti Laptop GPU/PCIe/SSE2.
 
         So mcGpuUniforms becomes a fallback only if renderer doesn't have
         InternalFeatures.TextureFloat, in practice.
@@ -1238,11 +1245,9 @@ begin
         InternalMaxJointsInUniforms.
 
       - When PREFER_mcGpuTexture not defined:
-
         Prefer mcGpuUniforms over mcGpuTexture for low FdJoints.Count.
 
-        TODO: Reason: mcGpuUniforms is marginally faster.
-        Tests in progress still.
+        Reason: No good reason for this now :)
 
       Note that in either case, we need mcGpuUniforms anyway, if renderer doesn't have
       InternalFeatures.TextureFloat. }
