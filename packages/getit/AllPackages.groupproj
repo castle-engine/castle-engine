@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{8B1BE90E-0EC3-4768-A333-86A950B22F47}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="castle_engine.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="castle_engine_design.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="castle_engine">
+        <MSBuild Projects="castle_engine.dproj"/>
+    </Target>
+    <Target Name="castle_engine:Clean">
+        <MSBuild Projects="castle_engine.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="castle_engine:Make">
+        <MSBuild Projects="castle_engine.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="castle_engine_design">
+        <MSBuild Projects="castle_engine_design.dproj"/>
+    </Target>
+    <Target Name="castle_engine_design:Clean">
+        <MSBuild Projects="castle_engine_design.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="castle_engine_design:Make">
+        <MSBuild Projects="castle_engine_design.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="castle_engine;castle_engine_design"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="castle_engine:Clean;castle_engine_design:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="castle_engine:Make;castle_engine_design:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>
