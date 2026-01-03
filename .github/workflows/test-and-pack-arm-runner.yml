@@ -101,11 +101,11 @@ jobs:
             #   /castle-engine/lazarus/lcl/forms.pp(2440,1) Error: (9031) Can't open resource file "/castle-engine/lazarus/lcl/cursors.res"
             mkdir -p /cge-work/
 
-            # Install Lazarus from https://github.com/castle-engine/cge-lazarus/
+            # Install Lazarus from https://github.com/castle-engine/castle-lazarus/
             # (because Lazarus in repos is too old).
             cd /cge-work/
             # Using --progress=... below because default wget progress (default or --progress=dot) causes hard to read output in GHA logs.
-            wget --progress=bar:force:noscroll https://github.com/castle-engine/cge-lazarus/releases/download/snapshot/lazarus-${FPC_OS}-${FPC_CPU}.zip --output-document lazarus.zip
+            wget --progress=bar:force:noscroll https://github.com/castle-engine/castle-lazarus/releases/download/snapshot/lazarus-${FPC_OS}-${FPC_CPU}.zip --output-document lazarus.zip
             unzip lazarus.zip
             mv lazarus/lazbuild lazarus/lazbuild-real
             cp "${ARM_RUNNER_WORKSPACE}/.github/workflows/lazbuild-template" lazarus/lazbuild

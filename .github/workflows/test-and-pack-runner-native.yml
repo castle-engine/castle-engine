@@ -314,7 +314,7 @@ jobs:
       if: ${{ matrix.runner == 'windows-latest' }}
       uses: robinraju/release-downloader@v1.12
       with:
-        repository: "castle-engine/cge-fpc"
+        repository: "castle-engine/castle-fpc"
         latest: true
         fileName: "fpc-win64-x86_64.zip"
 
