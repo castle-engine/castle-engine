@@ -21,6 +21,10 @@ unit CastleOpenDocument;
 
 {$include castleconf.inc}
 
+{$define read_unit_compiler_directives}
+{$I castleopendocument_open.inc}
+{$undef read_unit_compiler_directives}
+
 interface
 
 resourcestring
