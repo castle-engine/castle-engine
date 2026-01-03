@@ -47,13 +47,8 @@ jobs:
           #macos-15-intel,
 
           # TODO: Using GH-hosted mac with FPC/Aarch64 is also not OK.
-          #
-          # FPC 3.2.2 fails to link on macOS/Aarch64 for now.
-          # 1. Undefined symbols for architecture arm64: "_LSOpenCFURLRef",
-          #   but even after removing it's usage from OpenDocument:
-          # 2. ./ppaslink.sh: line 9:  5516 Segmentation fault: 11 ...
-          #
-          # In addition see above about problems with macos-15-intel.
+          # Same reasons as above about macos-15-intel.
+          #macos-latest,
 
           # TODO: Using ubuntu-22.04 instead of ubuntu-latest as a workaround
           # for zip crashes,
