@@ -104,7 +104,7 @@ jobs:
             # Install Lazarus from https://github.com/castle-engine/cge-lazarus/
             # (because Lazarus in repos is too old).
             cd /cge-work/
-            # Using --no-verbose because wget progress (default or --progress=dot) causes hard to read output in GHA logs.
+            # Using --progress=... below because default wget progress (default or --progress=dot) causes hard to read output in GHA logs.
             wget --progress=bar:force:noscroll https://github.com/castle-engine/cge-lazarus/releases/download/snapshot/lazarus-${FPC_OS}-${FPC_CPU}.zip --output-document lazarus.zip
             unzip lazarus.zip
             mv lazarus/lazbuild lazarus/lazbuild-real
