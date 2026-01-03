@@ -34,10 +34,11 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        arch: [armv7l, aarch64]
+        arch: [raspberry-pi-32, raspberry-pi-64]
         include:
+
         # Raspberry Pi 32-bit (Arm), latest
-        - arch: armv7l
+        - arch: raspberry-pi-32
           cpu: cortex-a7
           # In the past we tried to use bullseye (older version, used on Raspberry Pi 4 by default).
           # But this no longer works, as
@@ -47,11 +48,19 @@ jobs:
           #base_image: dietpi:rpi_armv7_bullseye
           base_image: raspios_lite:latest
           cpu_info: cpuinfo/raspberrypi_3b
-        # Raspberry Pi 64-bit (Aarch64), latest (bookworm)
-        - arch: aarch64
+          # os / cpu names following FPC conventions
+          build_os: linux
+          build_cpu: arm
+
+        # Raspberry Pi 64-bit (Aarch64), latest
+        - arch: raspberry-pi-64
           cpu: cortex-a53
           base_image: raspios_lite_arm64:latest
           cpu_info: cpuinfo/raspberrypi_zero2_w_arm64_w
+          # os / cpu names following FPC conventions
+          build_os: linux
+          build_cpu: aarch64
+
     steps:
       - uses: actions/checkout@v6
       - uses: pguyot/arm-runner-action@v2
@@ -73,23 +82,21 @@ jobs:
             cat /proc/cpuinfo
             dpkg -l libc-bin
 
-            # Install FPC and other Linux dependencies
+            # Install Linux dependencies
             sudo apt-get update
-            sudo apt-get --no-install-recommends -y install libgl-dev fpc git git-lfs make wget unzip sed zip
+            sudo apt-get --no-install-recommends -y install libgl-dev git git-lfs make wget unzip sed zip
 
             # Set environment
             ARM_RUNNER_WORKSPACE=`pwd`
             export CASTLE_ENGINE_PATH=$ARM_RUNNER_WORKSPACE
             LAZARUS_DIR="/cge-work/lazarus/"
-            export "PATH=${PATH}:/cge-work/installed/bin/:/cge-work/pasdoc/bin/:${LAZARUS_DIR}"
-            FPC_OS=`fpc -iTO`
-            FPC_CPU=`fpc -iTP`
+            export "PATH=${PATH}:/cge-work/installed/bin/:/cge-work/pasdoc/bin/:${LAZARUS_DIR}:/cge-work/fpc/bin"
 
             # Old: Disable FPC version check (32-bit rpi is using bullseye with FPC 3.2.0 now)
             # Later: We use Bookworm now with FPC 3.2.2.
             # if [ "${FPC_CPU}" = 'arm' ]; then export "CASTLE_PACK_DISABLE_FPC_VERSION_CHECK=true"; fi
 
-            # Put various things like other projects (Lazarus and PasDoc)
+            # Put various things like other projects (Lazarus and PasDoc and FPC)
             # and installed CGE binaries in directory /cge-work/,
             # outside of $CASTLE_ENGINE_PATH.
             #
@@ -101,12 +108,26 @@ jobs:
             #   /castle-engine/lazarus/lcl/forms.pp(2440,1) Error: (9031) Can't open resource file "/castle-engine/lazarus/lcl/cursors.res"
             mkdir -p /cge-work/
 
+            # Install FPC from https://github.com/castle-engine/castle-fpc/
+            cd /cge-work/
+            wget --progress=bar:force:noscroll \
+              https://github.com/castle-engine/castle-fpc/releases/download/snapshot/fpc-${{ matrix.build_os }}-${{ matrix.build_cpu }}.zip
+            unzip -q fpc-${{ matrix.build_os }}-${{ matrix.build_cpu }}.zip
+            echo "-Fu"`pwd`'/fpc/units/$FPCTARGET/*' > fpc/fpc.cfg
+
+            # check FPC_CPU and FPC_OS
+            FPC_OS=`fpc -iTO`
+            FPC_CPU=`fpc -iTP`
+            if [ "${FPC_CPU}" != "${{ matrix.build_cpu }}" ]; then echo "FPC_CPU=${FPC_CPU} does not match matrix.build_cpu=${{ matrix.build_cpu }}"; exit 1; fi
+            if [ "${FPC_OS}" != "${{ matrix.build_os }}" ]; then echo "FPC_OS=${FPC_OS} does not match matrix.build_os=${{ matrix.build_os }}"; exit 1; fi
+
             # Install Lazarus from https://github.com/castle-engine/castle-lazarus/
             # (because Lazarus in repos is too old).
             cd /cge-work/
             # Using --progress=... below because default wget progress (default or --progress=dot) causes hard to read output in GHA logs.
-            wget --progress=bar:force:noscroll https://github.com/castle-engine/castle-lazarus/releases/download/snapshot/lazarus-${FPC_OS}-${FPC_CPU}.zip --output-document lazarus.zip
-            unzip lazarus.zip
+            wget --progress=bar:force:noscroll \
+              https://github.com/castle-engine/castle-lazarus/releases/download/snapshot/lazarus-${FPC_OS}-${FPC_CPU}.zip --output-document lazarus.zip
+            unzip -q lazarus.zip
             mv lazarus/lazbuild lazarus/lazbuild-real
             cp "${ARM_RUNNER_WORKSPACE}/.github/workflows/lazbuild-template" lazarus/lazbuild
             sed -i "s|LAZARUS-DIRECTORY-PLACEHOLDER|${LAZARUS_DIR}|g" lazarus/lazbuild
