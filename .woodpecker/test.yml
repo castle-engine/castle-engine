@@ -14,6 +14,6 @@ steps:
     # Use CGE Docker image https://castle-engine.io/docker
     image: kambi/castle-engine-cloud-builds-tools:cge-none
     commands:
+      - export CASTLE_ENGINE_PATH=`pwd`
       - make clean tools
       - make tests
-
