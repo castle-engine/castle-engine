@@ -114,6 +114,7 @@ jobs:
               https://github.com/castle-engine/castle-fpc/releases/download/snapshot/fpc-${{ matrix.build_os }}-${{ matrix.build_cpu }}.zip
             unzip -q fpc-${{ matrix.build_os }}-${{ matrix.build_cpu }}.zip
             echo "-Fu"`pwd`'/fpc/units/$FPCTARGET/*' > fpc/fpc.cfg
+            export PPC_CONFIG_PATH="`pwd`/fpc/"
 
             # check FPC_CPU and FPC_OS
             FPC_OS=`fpc -iTO`
