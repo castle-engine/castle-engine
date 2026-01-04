@@ -92,10 +92,6 @@ jobs:
             LAZARUS_DIR="/cge-work/lazarus/"
             export "PATH=${PATH}:/cge-work/installed/bin/:/cge-work/pasdoc/bin/:${LAZARUS_DIR}:/cge-work/fpc/bin"
 
-            # Old: Disable FPC version check (32-bit rpi is using bullseye with FPC 3.2.0 now)
-            # Later: We use Bookworm now with FPC 3.2.2.
-            # if [ "${FPC_CPU}" = 'arm' ]; then export "CASTLE_PACK_DISABLE_FPC_VERSION_CHECK=true"; fi
-
             # Put various things like other projects (Lazarus and PasDoc and FPC)
             # and installed CGE binaries in directory /cge-work/,
             # outside of $CASTLE_ENGINE_PATH.
