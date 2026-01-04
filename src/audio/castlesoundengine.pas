@@ -40,9 +40,9 @@ unit CastleSoundEngine;
 interface
 
 uses SysUtils, Classes, Math, Generics.Collections, DOM,
-  CastleVectors, CastleTimeUtils, CastleClassUtils, CastleStringUtils,
-  CastleSoundBase, CastleInternalSoundFile, CastleInternalAbstractSoundBackend,
-  CastleXMLConfig;
+  CastleUtils, CastleVectors, CastleTimeUtils, CastleClassUtils,
+  CastleStringUtils, CastleSoundBase, CastleInternalSoundFile,
+  CastleInternalAbstractSoundBackend, CastleXMLConfig;
 
 {$define read_interface}
 type
@@ -62,7 +62,7 @@ type
 implementation
 
 uses XMLRead, StrUtils, Generics.Defaults,
-  CastleUtils, CastleLog, CastleInternalVorbisFile, CastleInternalDataURI,
+  CastleLog, CastleInternalVorbisFile, CastleInternalDataURI,
   CastleParameters, CastleXmlUtils, CastleFilesUtils, CastleConfig,
   CastleUriUtils, CastleDownload, CastleMessaging, CastleApplicationProperties
   {$ifdef CASTLE_SOUND_BACKEND_DEFAULT_OPENAL}, CastleOpenALSoundBackend{$endif}

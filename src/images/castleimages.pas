@@ -2588,7 +2588,7 @@ end;
 
 type
   { List of TLoadImageEvent methods. }
-  TLoadImageEventList = class({$ifdef FPC}specialize{$endif} TList<TLoadImageEvent>)
+  TLoadImageEventList = class({$ifdef FPC}specialize{$endif} TMethodList<TLoadImageEvent>)
     procedure Execute(var Url: String);
   end;
 

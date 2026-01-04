@@ -1,6 +1,6 @@
 {%MainUnit castleutils.pas}
 {
-  Copyright 2002-2021 Michalis Kamburelis.
+  Copyright 2002-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 

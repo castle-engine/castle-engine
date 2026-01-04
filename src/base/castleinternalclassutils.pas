@@ -18,14 +18,15 @@ unit CastleInternalClassUtils;
 
 interface
 
-uses SysUtils, Classes, Generics.Collections;
+uses SysUtils, Classes, Generics.Collections,
+  CastleUtils;
 
 type
   TComponentEvent = procedure(const Component: TComponent) of object;
 
   TCastleComponentNotification = class(TComponent)
   private
-    FEventList: {$ifdef FPC}specialize{$endif} TList<TComponentEvent>;
+    FEventList: {$ifdef FPC}specialize{$endif} TMethodList<TComponentEvent>;
     FFilterList: {$ifdef FPC}specialize{$endif} TList<TComponentClass>;
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
@@ -93,7 +94,7 @@ begin
 
   if FEventList = nil then
   begin
-    FEventList := {$ifdef FPC}specialize{$endif} TList<TComponentEvent>.Create;
+    FEventList := {$ifdef FPC}specialize{$endif} TMethodList<TComponentEvent>.Create;
     FFilterList := {$ifdef FPC}specialize{$endif} TList<TComponentClass>.Create;
   end;
 

@@ -29,7 +29,7 @@ uses
   {$endif}
   {$ifdef CASTLE_IOS} CTypes, {$endif}
   Generics.Collections, Classes,
-  CastleStringUtils, CastleTimeUtils;
+  CastleUtils, CastleStringUtils, CastleTimeUtils;
 
 type
   { Called by TMessaging when a new message from service is received.
@@ -44,7 +44,7 @@ type
     const ReceivedStream: TMemoryStream): Boolean of object;
 
   { Used by TMessaging to manage a list of listeners. }
-  TMessageReceivedEventList = class({$ifdef FPC}specialize{$endif} TList<TMessageReceivedEvent>)
+  TMessageReceivedEventList = class({$ifdef FPC}specialize{$endif} TMethodList<TMessageReceivedEvent>)
   public
     procedure ExecuteAll(const Received: TCastleStringList; const ReceivedStream: TMemoryStream);
   end;
@@ -149,7 +149,7 @@ function Messaging: TMessaging;
 implementation
 
 uses SysUtils,
-  CastleUtils, CastleLog, CastleApplicationProperties;
+  CastleLog, CastleApplicationProperties;
 
 { TMessageReceivedEventList -------------------------------------------------- }
 

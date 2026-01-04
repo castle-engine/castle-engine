@@ -22,7 +22,7 @@ unit CastleApplicationProperties;
 interface
 
 uses SysUtils, Generics.Collections, Contnrs, Classes,
-  CastleClassUtils;
+  CastleUtils, CastleClassUtils;
 
 type
   TGLContextEvent = procedure;
@@ -38,12 +38,12 @@ type
   TWarningEvent = procedure (const Category, Message: String) of object;
   TLogEvent = procedure (const Message: String) of object;
 
-  TWarningEventList = class({$ifdef FPC}specialize{$endif} TList<TWarningEvent>)
+  TWarningEventList = class({$ifdef FPC}specialize{$endif} TMethodList<TWarningEvent>)
   public
     procedure ExecuteAll(const Category, Message: String);
   end;
 
-  TLogEventList = class({$ifdef FPC}specialize{$endif} TList<TLogEvent>)
+  TLogEventList = class({$ifdef FPC}specialize{$endif} TMethodList<TLogEvent>)
   public
     procedure ExecuteAll(const Message: String);
   end;
@@ -396,8 +396,6 @@ function ApplicationProperties(
   const CreateIfNotExisting: boolean = true): TCastleApplicationProperties;
 
 implementation
-
-uses CastleUtils;
 
 { TGLContextEventList -------------------------------------------------------- }
 
