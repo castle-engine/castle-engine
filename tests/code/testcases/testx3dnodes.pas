@@ -147,6 +147,7 @@ type
     procedure TestGltfSkinnedAnimationBBox;
     procedure TestRouteNodesPositions;
     procedure TestNoFailMultiTexture;
+    procedure TestNodeDestructionNotificationList;
   end;
 
 implementation
@@ -3384,6 +3385,80 @@ begin
   Root := LoadNode('castle-data:/multi_texture_pbr.x3dv');
   try
   finally FreeAndNil(Root) end;
+end;
+
+type
+  TSomeClass = class
+    procedure Foo(const Node: TX3DNode);
+  end;
+
+procedure TSomeClass.Foo(const Node: TX3DNode);
+begin
+end;
+
+procedure TTestX3DNodes.TestNodeDestructionNotificationList;
+
+  procedure AssertMethodsEqual(const M1, M2: TNodeDestructionNotification);
+  begin
+    AssertTrue(TMethod(M1).Code = TMethod(M2).Code);
+    AssertTrue(TMethod(M1).Data = TMethod(M2).Data);
+  end;
+
+var
+  List: TNodeDestructionNotificationList;
+  C1, C2, C3: TSomeClass;
+  M: TNodeDestructionNotification;
+begin
+  C1 := TSomeClass.Create;
+  C2 := TSomeClass.Create;
+  C3 := TSomeClass.Create;
+
+  List := TNodeDestructionNotificationList.Create;
+  try
+    List.Add({$ifdef FPC}@{$endif}C1.Foo);
+    List.Add({$ifdef FPC}@{$endif}C2.Foo);
+    List.Add({$ifdef FPC}@{$endif}C2.Foo);
+
+    AssertEquals(3, List.Count);
+    M := {$ifdef FPC}@{$endif}C1.Foo;
+    AssertMethodsEqual(List[0], M);
+    M := {$ifdef FPC}@{$endif}C2.Foo;
+    AssertMethodsEqual(List[1], M);
+    AssertMethodsEqual(List[2], M);
+
+    List.Delete(2);
+
+    AssertEquals(2, List.Count);
+    M := {$ifdef FPC}@{$endif}C1.Foo;
+    AssertMethodsEqual(List[0], M);
+    M := {$ifdef FPC}@{$endif}C2.Foo;
+    AssertMethodsEqual(List[1], M);
+
+    AssertEquals(0, List.IndexOf({$ifdef FPC}@{$endif}C1.Foo));
+    AssertEquals(1, List.IndexOf({$ifdef FPC}@{$endif}C2.Foo));
+
+    // same results with M
+    M := {$ifdef FPC}@{$endif}C1.Foo;
+    AssertEquals(0, List.IndexOf(M));
+    M := {$ifdef FPC}@{$endif}C2.Foo;
+    AssertEquals(1, List.IndexOf(M));
+
+    AssertEquals(-1, List.IndexOf({$ifdef FPC}@{$endif}C3.Foo));
+
+    List.Remove({$ifdef FPC}@{$endif}C1.Foo);
+    AssertEquals(1, List.Count);
+    M := {$ifdef FPC}@{$endif}C2.Foo;
+    AssertMethodsEqual(List[0], M);
+
+    List.Remove({$ifdef FPC}@{$endif}C3.Foo); // does nothing, no such item
+    AssertEquals(1, List.Count);
+    M := {$ifdef FPC}@{$endif}C2.Foo;
+    AssertMethodsEqual(List[0], M);
+  finally FreeAndNil(List) end;
+
+  C1.Free;
+  C2.Free;
+  C3.Free;
 end;
 
 initialization

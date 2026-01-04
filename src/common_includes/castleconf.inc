@@ -238,6 +238,12 @@
   {$undef GENERICS_CONSTREF}
 {$endif}
 
+{ FPC 3.2.3 on 32-bit ARM (Raspberry Pi) has wrong List.IndexOf by default
+  (due to constref / const changes in the Generics.Collections ?), workaround. }
+{$if defined(FPC) and defined(VER3_2) and defined(LINUX) and defined(CPUarm)}
+  {$define CASTLE_LIST_METHODS_WORKAROUND}
+{$endif}
+
 { Define CASTLE_IOS when appropriate ----------------------------------------- }
 
 { Build tool defines CASTLE_IOS automatically.

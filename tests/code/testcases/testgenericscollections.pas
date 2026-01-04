@@ -17,7 +17,9 @@
 { Test Generics.Collections unit. These tests are independent from CGE. }
 unit TestGenericsCollections;
 
-{ Needed to define GENERICS_CONSTREF on some platforms/compilers. }
+{ Needed to define
+  - GENERICS_CONSTREF on some platforms/compilers.
+  - CASTLE_LIST_METHODS_WORKAROUND on some platforms/compilers. }
 {$I ../../../src/common_includes/castleconf.inc}
 
 interface
@@ -510,25 +512,29 @@ end;
   {$define LIST_INDEXOF_WORKAROUND}
 {$endif}
 
-{ FPC 3.2.3 on 32-bit ARM (Raspberry Pi) has wrong List.IndexOf by default
-  (due to constref / const changes in the Generics.Collections ?), workaround }
-{$if defined(FPC) and defined(VER3_2) and defined(LINUX) and defined(CPUarm)}
-  {$define LIST_INDEXOF_WORKAROUND}
-  {$define LIST_REMOVE_WORKAROUND}
-{$endif}
-
 type
   TMyMethod = procedure (A: Integer) of object;
+
+  {$if defined(LIST_INDEXOF_WORKAROUND) or defined(CASTLE_LIST_METHODS_WORKAROUND)}
+  { Note that this will make warnings that our IndexOf hides ancestor,
+    and it seems we cannot avoid them. }
+  {$warnings off}
+  {$endif}
+
   TMyMethodList = class({$ifdef FPC}specialize{$endif} TList<TMyMethod>)
-    {$ifdef LIST_INDEXOF_WORKAROUND}
+    {$if defined(LIST_INDEXOF_WORKAROUND) or defined(CASTLE_LIST_METHODS_WORKAROUND)}
     function IndexOf(const M: TMyMethod): Integer;
     {$endif}
-    {$ifdef LIST_REMOVE_WORKAROUND}
+    {$ifdef CASTLE_LIST_METHODS_WORKAROUND}
     procedure Remove(const M: TMyMethod);
     {$endif}
   end;
 
-{$ifdef LIST_INDEXOF_WORKAROUND}
+  {$if defined(LIST_INDEXOF_WORKAROUND) or defined(CASTLE_LIST_METHODS_WORKAROUND)}
+  {$warnings on}
+  {$endif}
+
+{$if defined(LIST_INDEXOF_WORKAROUND) or defined(CASTLE_LIST_METHODS_WORKAROUND)}
 function TMyMethodList.IndexOf(const M: TMyMethod): Integer;
 var
   M2: TMyMethod;
@@ -544,7 +550,7 @@ begin
 end;
 {$endif}
 
-{$ifdef LIST_REMOVE_WORKAROUND}
+{$ifdef CASTLE_LIST_METHODS_WORKAROUND}
 procedure TMyMethodList.Remove(const M: TMyMethod);
 var
   I: Integer;

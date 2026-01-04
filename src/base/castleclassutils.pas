@@ -951,10 +951,7 @@ type
     procedure AddIfNotExists(Value: TObject);
   end;
 
-  { FPC 3.2.3 on 32-bit ARM (Raspberry Pi) has wrong List.IndexOf by default
-    (due to constref / const changes in the Generics.Collections ?), workaround. }
-  {$if defined(FPC) and defined(VER3_2) and defined(LINUX) and defined(CPUarm)}
-    {$define CASTLE_LIST_METHODS_WORKAROUND}
+  {$ifdef CASTLE_LIST_METHODS_WORKAROUND}
     { Note that this will make warnings that our IndexOf hides ancestor,
       and it seems we cannot avoid them.
       We cannot override or redeclare, as FPC thinks they use constref in TList,
