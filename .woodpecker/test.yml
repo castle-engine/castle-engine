@@ -1,0 +1,19 @@
+# -------------------------------------------------------------------
+# Woodpecker CI configuration to run engine automatic tests.
+#
+# Using Codeberg CI. See
+# - https://docs.codeberg.org/ci/
+# - https://woodpecker-ci.org/docs/usage/intro
+# -------------------------------------------------------------------
+
+when:
+  - event: [push, pull_request]
+
+steps:
+  - name: Build Tools, Run Tests
+    # Use CGE Docker image https://castle-engine.io/docker
+    image: kambi/castle-engine-cloud-builds-tools:cge-none
+    commands:
+      - make clean tools
+      - make tests
+
