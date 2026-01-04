@@ -514,6 +514,7 @@ end;
   (due to constref / const changes in the Generics.Collections ?), workaround }
 {$if defined(FPC) and defined(VER3_2) and defined(LINUX) and defined(CPUarm)}
   {$define LIST_INDEXOF_WORKAROUND}
+  {$define LIST_REMOVE_WORKAROUND}
 {$endif}
 
 type
@@ -521,6 +522,9 @@ type
   TMyMethodList = class({$ifdef FPC}specialize{$endif} TList<TMyMethod>)
     {$ifdef LIST_INDEXOF_WORKAROUND}
     function IndexOf(const M: TMyMethod): Integer;
+    {$endif}
+    {$ifdef LIST_REMOVE_WORKAROUND}
+    procedure Remove(const M: TMyMethod);
     {$endif}
   end;
 
@@ -537,6 +541,17 @@ begin
       Exit;
   end;
   Result := -1;
+end;
+{$endif}
+
+{$ifdef LIST_REMOVE_WORKAROUND}
+procedure TMyMethodList.Remove(const M: TMyMethod);
+var
+  I: Integer;
+begin
+  I := IndexOf(M);
+  if I <> -1 then
+    Delete(I);
 end;
 {$endif}
 
