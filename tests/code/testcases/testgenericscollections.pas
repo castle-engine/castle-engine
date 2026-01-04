@@ -510,6 +510,12 @@ end;
   {$define LIST_INDEXOF_WORKAROUND}
 {$endif}
 
+{ FPC 3.2.3 on 32-bit ARM (Raspberry Pi) has wrong List.IndexOf by default
+  (due to constref / const changes in the Generics.Collections ?), workaround }
+{$if defined(FPC) and defined(VER3_2) and defined(LINUX) and defined(CPUarm)}
+  {$define LIST_INDEXOF_WORKAROUND}
+{$endif}
+
 type
   TMyMethod = procedure (A: Integer) of object;
   TMyMethodList = class({$ifdef FPC}specialize{$endif} TList<TMyMethod>)
@@ -574,6 +580,12 @@ begin
 
     AssertEquals(0, List.IndexOf({$ifdef FPC}@{$endif}C1.Foo));
     AssertEquals(1, List.IndexOf({$ifdef FPC}@{$endif}C2.Foo));
+
+    // same results with M
+    M := {$ifdef FPC}@{$endif}C1.Foo;
+    AssertEquals(0, List.IndexOf(M));
+    M := {$ifdef FPC}@{$endif}C2.Foo;
+    AssertEquals(1, List.IndexOf(M));
 
     AssertEquals(-1, List.IndexOf({$ifdef FPC}@{$endif}C3.Foo));
 
