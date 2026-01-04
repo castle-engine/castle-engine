@@ -410,8 +410,6 @@ type
 
   TResizeAllowed = (raNotAllowed, raOnlyAtOpen, raAllowed);
 
-  EGLContextNotPossible = class(Exception);
-
   TCaptionPart = (cpPublic, cpFps);
 
   { Container suitable to be used in TCastleWindow.
