@@ -951,6 +951,18 @@ type
     procedure AddIfNotExists(Value: TObject);
   end;
 
+  { FPC 3.2.3 on 32-bit ARM (Raspberry Pi) has wrong List.IndexOf by default
+    (due to constref / const changes in the Generics.Collections ?), workaround. }
+  {$if defined(FPC) and defined(VER3_2) and defined(LINUX) and defined(CPUarm)}
+    {$define CASTLE_LIST_METHODS_WORKAROUND}
+    { Note that this will make warnings that our IndexOf hides ancestor,
+      and it seems we cannot avoid them.
+      We cannot override or redeclare, as FPC thinks they use constref in TList,
+      and then we go into GENERICS_CONSTREF, but it seems FPC 3.2.3
+      should use const. }
+    {$warnings off}
+  {$endif}
+
   TNotifyEventList = class({$ifdef FPC}specialize{$endif} TList<TNotifyEvent>)
   public
     { Call all (assigned) Items, from first to last. }
@@ -961,6 +973,11 @@ type
 
     { Call all (assigned) Items, from last to first. }
     procedure ExecuteBackward(Sender: TObject);
+
+    {$ifdef CASTLE_LIST_METHODS_WORKAROUND}
+    function IndexOf(const Item: TNotifyEvent): SizeInt;
+    procedure Remove(const Item: TNotifyEvent);
+    {$endif}
   end;
 
   TSimpleNotifyEventList = class({$ifdef FPC}specialize{$endif} TList<TSimpleNotifyEvent>)
@@ -977,7 +994,16 @@ type
       So it's safer to do Unassign(Event) and call Pack once we don't iterate
       over the list anymore. }
     procedure Unassign(const Event: TSimpleNotifyEvent);
+
+    {$ifdef CASTLE_LIST_METHODS_WORKAROUND}
+    function IndexOf(const Item: TSimpleNotifyEvent): SizeInt;
+    procedure Remove(const Item: TSimpleNotifyEvent);
+    {$endif}
   end;
+
+  {$ifdef CASTLE_LIST_METHODS_WORKAROUND}
+  {$warnings on}
+  {$endif}
 
   TProcedureList = class({$ifdef FPC}specialize{$endif} TList<TProcedure>)
   public
@@ -2462,6 +2488,27 @@ begin
       Items[I](Sender);
 end;
 
+{$ifdef CASTLE_LIST_METHODS_WORKAROUND}
+function TNotifyEventList.IndexOf(const Item: TNotifyEvent): SizeInt;
+var
+  I: SizeInt;
+begin
+  for I := 0 to Count - 1 do
+    if SameMethods(TMethod(Item), TMethod(Items[I])) then
+      Exit(I);
+  Result := -1;
+end;
+
+procedure TNotifyEventList.Remove(const Item: TNotifyEvent);
+var
+  I: SizeInt;
+begin
+  I := IndexOf(Item);
+  if I <> -1 then
+    Delete(I);
+end;
+{$endif}
+
 { TSimpleNotifyEventList  ------------------------------------------------------ }
 
 procedure TSimpleNotifyEventList.ExecuteAll;
@@ -2497,6 +2544,27 @@ begin
     if SameMethods(TMethod(Event), TMethod(Items[I])) then
       Items[I] := nil;
 end;
+
+{$ifdef CASTLE_LIST_METHODS_WORKAROUND}
+function TSimpleNotifyEventList.IndexOf(const Item: TSimpleNotifyEvent): SizeInt;
+var
+  I: SizeInt;
+begin
+  for I := 0 to Count - 1 do
+    if SameMethods(TMethod(Item), TMethod(Items[I])) then
+      Exit(I);
+  Result := -1;
+end;
+
+procedure TSimpleNotifyEventList.Remove(const Item: TSimpleNotifyEvent);
+var
+  I: SizeInt;
+begin
+  I := IndexOf(Item);
+  if I <> -1 then
+    Delete(I);
+end;
+{$endif}
 
 { TProcedureList ------------------------------------------------------ }
 
