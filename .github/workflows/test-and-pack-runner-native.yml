@@ -32,10 +32,10 @@ jobs:
           # TODO: Using GH-hosted mac + Lazarus (not only bare FPC)
           # seems impossible now, even for Intel-based mac.
           #
-          # - gcarreno/setup-lazarus@v3.3.1 fails on macos-15-intel with
+          # - gcarreno/setup-lazarus@v3.4.0 fails on macos-15-intel with
           #   "This package is incompatible with this version of macOS. Contact the developer for support."
           #
-          # - gcarreno/setup-lazarus@v3.3.1 worked on macos-13,
+          # - gcarreno/setup-lazarus@v3.4.0 worked on macos-13,
           #   but macos-13 is removed now from GitHub.
           #
           # - brew "lazarus" package depends on fpc-laz and is deprecated
@@ -91,7 +91,7 @@ jobs:
     - name: Install FPC+Lazarus
       # On GH hosted runners, install FPC+Lazarus
       if: ${{ matrix.is_gh_ubuntu || matrix.runner == 'windows-latest'}}
-      uses: gcarreno/setup-lazarus@v3.3.1
+      uses: gcarreno/setup-lazarus@v3.4.0
       with:
         lazarus-version: stable
     - name: Install FPC+Lazarus (brew)
