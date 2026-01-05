@@ -104,32 +104,19 @@ jobs:
             #   /castle-engine/lazarus/lcl/forms.pp(2440,1) Error: (9031) Can't open resource file "/castle-engine/lazarus/lcl/cursors.res"
             mkdir -p /cge-work/
 
-            # Install FPC from https://github.com/castle-engine/castle-fpc/
+            # Install FPC and Lazarus using https://github.com/castle-engine/castle-build-ci/
             cd /cge-work/
-            wget --progress=bar:force:noscroll \
-              https://github.com/castle-engine/castle-fpc/releases/download/snapshot/fpc-${{ matrix.build_os }}-${{ matrix.build_cpu }}.zip
-            unzip -q fpc-${{ matrix.build_os }}-${{ matrix.build_cpu }}.zip
-            echo "-Fu"`pwd`'/fpc/units/$FPCTARGET/*' > fpc/fpc.cfg
-            export PPC_CONFIG_PATH="`pwd`/fpc/"
+            git clone https://github.com/castle-engine/castle-build-ci.git \
+              --depth=1 --single-branch --branch=master
+            castle-build-ci/install_dependencies
+            castle-build-ci/setup_castle_engine --install-castle-engine=false --install-lazarus=true
+            setup_castle_engine_env.sh
 
             # check FPC_CPU and FPC_OS
             FPC_OS=`fpc -iTO`
             FPC_CPU=`fpc -iTP`
             if [ "${FPC_CPU}" != "${{ matrix.build_cpu }}" ]; then echo "FPC_CPU=${FPC_CPU} does not match matrix.build_cpu=${{ matrix.build_cpu }}"; exit 1; fi
             if [ "${FPC_OS}" != "${{ matrix.build_os }}" ]; then echo "FPC_OS=${FPC_OS} does not match matrix.build_os=${{ matrix.build_os }}"; exit 1; fi
-
-            # Install Lazarus from https://github.com/castle-engine/castle-lazarus/
-            # (because Lazarus in repos is too old).
-            cd /cge-work/
-            # Using --progress=... below because default wget progress (default or --progress=dot) causes hard to read output in GHA logs.
-            wget --progress=bar:force:noscroll \
-              https://github.com/castle-engine/castle-lazarus/releases/download/snapshot/lazarus-${FPC_OS}-${FPC_CPU}.zip --output-document lazarus.zip
-            unzip -q lazarus.zip
-            mv lazarus/lazbuild lazarus/lazbuild-real
-            cp "${ARM_RUNNER_WORKSPACE}/.github/workflows/lazbuild-template" lazarus/lazbuild
-            sed -i "s|LAZARUS-DIRECTORY-PLACEHOLDER|${LAZARUS_DIR}|g" lazarus/lazbuild
-            cat lazarus/lazbuild
-            chmod +x lazarus/lazbuild
 
             # Check versions (and availability) of our requirements early
             cd / # current dir should not matter below
