@@ -161,6 +161,13 @@ DATADIR=$(DATAROOTDIR)
 .PHONY: install
 install:
 	echo 'Installing tools to $(BINDIR)'
+
+	# TODO: debugging
+	echo $(INSTALL)
+	which install
+	which $(INSTALL)
+	install --version
+
 	$(INSTALL) -d $(BINDIR)
 	$(INSTALL) tools/texture-font-to-pascal/texture-font-to-pascal$(EXE_EXTENSION) $(BINDIR)
 	$(INSTALL) tools/image-to-pascal/image-to-pascal$(EXE_EXTENSION) $(BINDIR)
