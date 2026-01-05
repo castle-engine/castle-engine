@@ -122,13 +122,6 @@ check_lazarus_version ()
 
   # To avoid https://gitlab.com/freepascal.org/lazarus/lazarus/-/merge_requests/291
   # we need Lazarus >= 3.5 on macOS.
-  #
-  # Note that using https://github.com/gcarreno/setup-lazarus with "lazarus-version: stable"
-  # results now in Lazarus version 3.7. This seems to be what the download
-  # https://sourceforge.net/projects/lazarus/files/Lazarus%20macOS%20x86-64/Lazarus%203.6/Lazarus-3.6-macosx-x86_64.pkg/download
-  # reports.
-  # It will not matter soon, though, as we move to use
-  # https://github.com/castle-engine/castle-lazarus/ .
   if [ "`uname -s`" '=' 'Darwin' ]; then
     if [ "${LAZARUS_VERSION}" '!=' '3.5' -a \
          "${LAZARUS_VERSION}" '!=' '3.6' -a \
