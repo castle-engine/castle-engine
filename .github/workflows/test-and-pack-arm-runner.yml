@@ -155,7 +155,7 @@ jobs:
 
             # Pack Release
             cd "${CASTLE_ENGINE_PATH}"
-            ./tools/internal/pack_release/pack_release.sh ${FPC_OS} ${FPC_CPU}
+            CGE_PACK_BUNDLE=yes ./tools/internal/pack_release/pack_release.sh ${FPC_OS} ${FPC_CPU}
 
       - name: Archive Artifacts
         uses: actions/upload-artifact@v6

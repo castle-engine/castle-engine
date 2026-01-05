@@ -140,8 +140,8 @@ jobs:
       matrix:
         pack-job-name: [
           win64-x86_64,
-          win32-i386,
           linux-x86_64,
+          win32-i386-bundle,
           win64-x86_64-bundle,
           linux-x86_64-bundle
         ]
@@ -150,14 +150,15 @@ jobs:
             os: win64
             cpu: x86_64
             bundle: false
-          - pack-job-name: win32-i386
-            os: win32
-            cpu: i386
-            bundle: false
           - pack-job-name: linux-x86_64
             os: linux
             cpu: x86_64
             bundle: false
+
+          - pack-job-name: win32-i386-bundle
+            os: win32
+            cpu: i386
+            bundle: true
           - pack-job-name: win64-x86_64-bundle
             os: win64
             cpu: x86_64
