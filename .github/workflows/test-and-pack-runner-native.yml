@@ -27,28 +27,8 @@ jobs:
     strategy:
       matrix:
         runner: [
-          macos_x64,
-
-          # TODO: Using GH-hosted mac + Lazarus (not only bare FPC)
-          # seems impossible now, even for Intel-based mac.
-          #
-          # - gcarreno/setup-lazarus@v3.3.1 fails on macos-15-intel with
-          #   "This package is incompatible with this version of macOS. Contact the developer for support."
-          #
-          # - gcarreno/setup-lazarus@v3.3.1 worked on macos-13,
-          #   but macos-13 is removed now from GitHub.
-          #
-          # - brew "lazarus" package depends on fpc-laz and is deprecated
-          #   and fails to install with
-          #   "This package is incompatible with this version of macOS. Contact the developer for support."
-          #
-          # Note that GH-hosted mac + FPC is still OK, as "brew install fpc" is OK.
-          # But this workflow needs lazbuild.
-          #macos-15-intel,
-
-          # TODO: Using GH-hosted mac with FPC/Aarch64 is also not OK.
-          # Same reasons as above about macos-15-intel.
-          #macos-latest,
+          macos-15-intel,
+          macos-latest,
 
           # TODO: Using ubuntu-22.04 instead of ubuntu-latest as a workaround
           # for zip crashes,
@@ -59,26 +39,13 @@ jobs:
           windows-latest
         ]
         include:
-          # To not overload the slower RPi, use it only with master
-          # Later: removed using self-hosted runners for RPi, to cut costs.
-          # Use test-and-pack-arm-runner.yml for RPi instead.
-          #
-          # - if: ${{ github.ref == 'refs/heads/master' }}
-          #   runner: raspberry_pi_64
-          # - if: ${{ github.ref == 'refs/heads/master' }}
-          #   runner: raspberry_pi_32
-
           # Add is_macos variable to easily check for any macOS.
           # Default is false, and then we override it to true for macos runners.
           - is_macos: false
-          - runner: macos_x64
+          - runner: macos-15-intel
             is_macos: true
-          # TODO: See above for reasons why this is disabled.
-          # - runner: macos-15-intel
-          #   is_macos: true
-          # TODO: See above for reasons why this is disabled.
-          # - runner: macos-latest
-          #   is_macos: true
+          - runner: macos-latest
+            is_macos: true
 
           # Add is_gh_ubuntu variable to easily check for any GHA-hosted Ubuntu.
           - is_gh_ubuntu: false
@@ -89,25 +56,17 @@ jobs:
     - uses: actions/checkout@v6
 
     - name: Install FPC+Lazarus
-      # On GH hosted runners, install FPC+Lazarus
-      if: ${{ matrix.is_gh_ubuntu || matrix.runner == 'windows-latest'}}
-      uses: gcarreno/setup-lazarus@v3.3.1
-      with:
-        lazarus-version: stable
-    - name: Install FPC+Lazarus (brew)
-      # On GH hosted runners, install FPC+Lazarus
-      if: ${{ matrix.runner == 'macos-latest' || matrix.runner == 'macos-15-intel'}}
-      run: brew install fpc lazarus
-    - name: Install Linux dependencies
-      if: ${{ matrix.is_gh_ubuntu }}
-      # Run "apt-get update" before installing, following https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners/customizing-github-hosted-runners
       run: |
-        sudo apt-get update
-        sudo apt-get --no-install-recommends -y install libgl-dev
+        cd /tmp/
+        git clone https://github.com/castle-engine/castle-build-ci.git --depth=1 --single-branch --branch=master
+        castle-build-ci/install_dependencies
+        # Use setup_castle_engine to install FPC and Lazarus, not CGE.
+        castle-build-ci/setup_castle_engine --install-castle-engine=false --install-lazarus=true
+
     - name: Install macOS dependencies (on GH hosted macs)
-      # We do this only on GH hosted macs, not on our macos_x64, because on our mac: 1. this is already installed, 2. ci user doesn't have permissions to install more.
       if: ${{ matrix.runner == 'macos-latest' || matrix.runner == 'macos-15-intel'}}
       run: brew install gnu-sed coreutils findutils
+
     - name: Install Windows dependencies
       if: ${{ matrix.runner == 'windows-latest' }}
       # We need Inno Setup for creating Windows installer.
@@ -270,14 +229,6 @@ jobs:
     - name: Archive Artifacts (zip)
       # We don't archive build on:
       #
-      # - macos-xxx (GH hosted),
-      #   because build on macos_x64 (self-hosted) is already good for us.
-      #   Testing, both these runners produce the functionally equivalent zip
-      #   (there are small differences in binaries, though both use the same FPC version
-      #   but e.g. FPC puts absolute paths in some binaries, so they differ).
-      #   We choose to use macos_x64 as the primary runner for the release,
-      #   since this is our own machine (self hosted), we have more control over it.
-      #
       # - windows-latest, because the test-and-pack-docker.yml is also doing
       #   equivalent build (castle-engine-7.0-alpha.snapshot-win64-x86_64.zip).
       #   Moreover that Docker job is also doing version bundled
@@ -303,7 +254,7 @@ jobs:
       #   PasDoc version in Docker is more consistent,
       #   and the build does not rely on cge_clean_all.
       #
-      if: ${{ matrix.runner != 'macos-15-intel' && matrix.runner != 'windows-latest' && !matrix.is_gh_ubuntu }}
+      if: ${{ matrix.runner != 'windows-latest' && !matrix.is_gh_ubuntu }}
       uses: actions/upload-artifact@v6
       with:
         name: ${{ matrix.runner }}-release
