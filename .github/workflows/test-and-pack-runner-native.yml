@@ -83,52 +83,53 @@ jobs:
       # zip is used by pack_release.
       run: choco install innosetup wget zip
 
-    - name: Windows force Git Bash
+    - name: Adjust Windows bash behavior
       if: ${{ matrix.runner == 'windows-latest' }}
-      run: echo "WINDOWS_FORCE_GIT_BASH=true" >> $GITHUB_ENV
+      run: |
+        # force Git Bash
+        echo "WINDOWS_FORCE_GIT_BASH=true" >> $GITHUB_ENV
 
-    # MSys2 does something quite unexpected by default: it autoconverts
-    # any parameter that looks like Unix path to Windows path.
-    # See https://www.msys2.org/docs/filesystem-paths/ .
-    #
-    # This does result in weird problems when calling iscc.
-    # It seems (reported in bash through "set -x") it's calling something
-    # sensible, like this
-    #
-    #   iscc
-    #     'D:\a\castle-engine\castle-engine/tools/internal/pack_release/cge-windows-setup.iss'
-    #     /OD:/a/castle-engine/castle-engine
-    #     /Fcastle-engine-setup-7.0-alpha.snapshot
-    #     /DMyAppSrcDir=C:/Users/RUNNER~1/AppData/Local/Temp/castle-engine-release-1378/castle_game_engine
-    #     /DMyAppVersion=7.0-alpha.snapshot
-    #
-    # (see iscc command-line docs). But in reality, it is passing (detected by
-    # our https://github.com/michaliskambi/report-params/ ) these nonsense
-    # parameters:
-    #
-    #   iscc
-    #     D:\a\castle-engine\castle-engine/tools/internal/pack_release/cge-windows-setup.iss
-    #     C:\Program Files\Git\OD;A:\castle-engine\castle-engine
-    #     C:/Program Files/Git/Fcastle-engine-setup-7.0-alpha.snapshot
-    #     C:\Program Files\Git\DMyAppSrcDir=C;C:\Program Files\Git\Users\RUNNER~1\AppData\Local\Temp\castle-engine-release-1378\castle_game_engine
-    #     C:/Program Files/Git/DMyAppVersion=7.0-alpha.snapshot
-    #
-    # As you see, it added "C:/Program Files/Git/" or "C:\Program Files\Git\" prefix
-    # in front of every parameter that started with /.
-    # This of course breaks iscc later.
-    # We don't want this. Our scripts are prepared to call `cygpath` to deal
-    # with path conversion problems explicitly. It is much much more reliable,
-    # and it is explicit -- easy to debug.
-    - name: Disable broken MSys2 paths conversion
-      if: ${{ matrix.runner == 'windows-latest' }}
-      run: echo "MSYS2_ENV_CONV_EXCL='*'" >> $GITHUB_ENV
-    # Git For Windows has a different name for this:
-    # https://stackoverflow.com/questions/7250130/how-to-stop-mingw-and-msys-from-mangling-path-names-given-at-the-command-line
-    # https://github.com/git-for-windows/git/issues/577
-    # https://github.com/git-for-windows/msys2-runtime/pull/11
-    - name: Disable broken Git For Windows MSys paths conversion
-      if: ${{ matrix.runner == 'windows-latest' }}
-      run: echo "MSYS_NO_PATHCONV=1" >> $GITHUB_ENV
+        # Disable broken MSys2 paths conversion:
+        # MSys2 does something quite unexpected by default: it autoconverts
+        # any parameter that looks like Unix path to Windows path.
+        # See https://www.msys2.org/docs/filesystem-paths/ .
+        #
+        # This does result in weird problems when calling iscc.
+        # It seems (reported in bash through "set -x") it's calling something
+        # sensible, like this
+        #
+        #   iscc
+        #     'D:\a\castle-engine\castle-engine/tools/internal/pack_release/cge-windows-setup.iss'
+        #     /OD:/a/castle-engine/castle-engine
+        #     /Fcastle-engine-setup-7.0-alpha.snapshot
+        #     /DMyAppSrcDir=C:/Users/RUNNER~1/AppData/Local/Temp/castle-engine-release-1378/castle_game_engine
+        #     /DMyAppVersion=7.0-alpha.snapshot
+        #
+        # (see iscc command-line docs). But in reality, it is passing (detected by
+        # our https://github.com/michaliskambi/report-params/ ) these nonsense
+        # parameters:
+        #
+        #   iscc
+        #     D:\a\castle-engine\castle-engine/tools/internal/pack_release/cge-windows-setup.iss
+        #     C:\Program Files\Git\OD;A:\castle-engine\castle-engine
+        #     C:/Program Files/Git/Fcastle-engine-setup-7.0-alpha.snapshot
+        #     C:\Program Files\Git\DMyAppSrcDir=C;C:\Program Files\Git\Users\RUNNER~1\AppData\Local\Temp\castle-engine-release-1378\castle_game_engine
+        #     C:/Program Files/Git/DMyAppVersion=7.0-alpha.snapshot
+        #
+        # As you see, it added "C:/Program Files/Git/" or "C:\Program Files\Git\" prefix
+        # in front of every parameter that started with /.
+        # This of course breaks iscc later.
+        # We don't want this. Our scripts are prepared to call `cygpath` to deal
+        # with path conversion problems explicitly. It is much much more reliable,
+        # and it is explicit -- easy to debug.
+        echo "MSYS2_ENV_CONV_EXCL='*'" >> $GITHUB_ENV
+
+        # Disable broken Git For Windows MSys paths conversion
+        # Git For Windows has a different name for above:
+        # https://stackoverflow.com/questions/7250130/how-to-stop-mingw-and-msys-from-mangling-path-names-given-at-the-command-line
+        # https://github.com/git-for-windows/git/issues/577
+        # https://github.com/git-for-windows/msys2-runtime/pull/11
+        echo "MSYS_NO_PATHCONV=1" >> $GITHUB_ENV
 
     - name: Set environment CASTLE_ENGINE_PATH
       run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
@@ -146,26 +147,25 @@ jobs:
 
     # We can pass to $GITHUB_PATH a native path, even on Windows
     # (where $PATH, under MSys, is separated by : and requires Unix paths).
-    - name: Extend environment PATH
-      run: echo "${CASTLE_ENGINE_PATH}/installed/bin/" >> $GITHUB_PATH
-
-    - name: Set environment FPC_OS
-      run: echo "FPC_OS="`fpc -iTO` >> $GITHUB_ENV
-    - name: Set environment FPC_CPU
-      run: echo "FPC_CPU="`fpc -iTP` >> $GITHUB_ENV
+    - name: Extend $PATH
+      run: |
+        echo "${CASTLE_ENGINE_PATH}/installed/bin/" >> $GITHUB_PATH
+        echo "${GITHUB_WORKSPACE}/pasdoc/bin/" >> $GITHUB_PATH
 
     # check versions (and availability) of our requirements early
-
-    - name: (Info) FPC version
-      run: fpc -iV
+    - name: (Info) FPC version, OS, CPU
+      run: |
+        fpc -iV
+        fpc -iTO
+        fpc -iTP
     - name: (Info) Lazarus version
       run: lazbuild --version
     - name: (Info) Make version
       run: make --version
     - name: (Info) Sed version
       run: ${{ matrix.sed_command }} --version
-    # Make sure we got GNU Make, not Embarcadero make.
-    # This is important, as Delphi installer inserts Embarcadero make into PATH,
+    # Make sure we got GNU "make", not Embarcadero "make".
+    # This is important, as Delphi installer inserts Embarcadero "make" into PATH,
     # earlier than Cygwin's. It has to be corrected after installation.
     - name: (Info) Check GNU Make
       run: if make -version 2>&1 | grep -i "GNU Make" -; then echo "OK, make from GNU"; else echo "ERROR, make not from GNU!"; exit 1; fi
@@ -174,6 +174,9 @@ jobs:
       run: |
         rm -Rf installed/
         mkdir -p installed/
+        # TODO: debug
+        pwd
+        ls -Flah installed/
         make clean tools install PREFIX=${CASTLE_ENGINE_PATH}/installed/
 
     - name: Build Examples
@@ -206,11 +209,18 @@ jobs:
         mv pasdoc-master pasdoc
         cd pasdoc
         make
+        bin/pasdoc --version # check it's OK
 
     - name: Pack Release
       run: |
         rm -f castle-engine*.zip # remove previous artifacts
+        # Determine OS/CPU for pack_release, which is just our current OS/CPU,
+        # as we don't cross-compile here.
+        FPC_OS="`fpc -iTO`
+        FPC_CPU="`fpc -iTP`
+        echo "Packing for OS / CPU: ${FPC_OS} / ${FPC_CPU}"
         CGE_PACK_BUNDLE=yes ./tools/internal/pack_release/pack_release.sh ${FPC_OS} ${FPC_CPU}
+
     - name: Archive Artifacts (zip)
       # We don't archive build on:
       #
