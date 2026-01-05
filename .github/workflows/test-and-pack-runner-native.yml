@@ -51,6 +51,13 @@ jobs:
           - is_gh_ubuntu: false
           - runner: ubuntu-22.04
             is_gh_ubuntu: true
+
+          # on macOS, pack_release.sh calls gsed, which behaves more like Linux sed.
+          - sed_command: sed
+          - runner: macos-15-intel
+            sed_command: gsed
+          - runner: macos-latest
+            sed_command: gsed
     runs-on: ${{ matrix.runner }}
     steps:
     - uses: actions/checkout@v6
@@ -137,22 +144,10 @@ jobs:
       if: ${{ matrix.runner == 'windows-latest' }}
       run: echo "CASTLE_ENGINE_PATH=`cygpath --mixed \"${CASTLE_ENGINE_PATH}\"`" >> $GITHUB_ENV
 
-    # Even on Windows, in GH hosted runner,
-    # PATH (at least within bash -- this is MSys bash) is separated by :.
-    # So the same path separator works for all platforms.
-    # However, for Windows, we have to convert native Windows path to MSys,
-    # otherwise path like "D:\a\castle-engine\castle-engine/installed/bin/"
-    # would mean that "D" relative path is present in PATH, which would make
-    # /bin/find later fail ("""The relative path 'D' is included in the PATH environment variable, which is insecure in combination with the -execdir action of find.  Please remove that entry from $PATH""")
-    # even though the path seems to work fine for other tools.
-    # It looks like MSys "bash" has code to understand drive letter : in a PATH,
-    # but "find" doesn't.
-    - name: Extend environment PATH (non-Windows)
-      if: ${{ matrix.runner != 'windows-latest' }}
-      run: echo "PATH=${PATH}:${CASTLE_ENGINE_PATH}/installed/bin/:${GITHUB_WORKSPACE}/pasdoc/bin/" >> $GITHUB_ENV
-    - name: Extend environment PATH (Windows)
-      if: ${{ matrix.runner == 'windows-latest' }}
-      run: echo "PATH=${PATH}:`cygpath --unix ${CASTLE_ENGINE_PATH}/installed/bin/`:`cygpath --unix ${GITHUB_WORKSPACE}/pasdoc/bin/`" >> $GITHUB_ENV
+    # We can pass to $GITHUB_PATH a native path, even on Windows
+    # (where $PATH, under MSys, is separated by : and requires Unix paths).
+    - name: Extend environment PATH
+      run: echo "${CASTLE_ENGINE_PATH}/installed/bin/" >> $GITHUB_PATH
 
     - name: Set environment FPC_OS
       run: echo "FPC_OS="`fpc -iTO` >> $GITHUB_ENV
@@ -167,12 +162,8 @@ jobs:
       run: lazbuild --version
     - name: (Info) Make version
       run: make --version
-    - name: (Info) Sed version (macOS)
-      if: ${{ matrix.is_macos }}
-      run: gsed --version
-    - name: (Info) Sed version (non-macOS)
-      if: ${{ !matrix.is_macos }}
-      run: sed --version
+    - name: (Info) Sed version
+      run: ${{ matrix.sed_command }} --version
     # Make sure we got GNU Make, not Embarcadero make.
     # This is important, as Delphi installer inserts Embarcadero make into PATH,
     # earlier than Cygwin's. It has to be corrected after installation.
