@@ -26,13 +26,13 @@ jobs:
     runs-on: ${{ matrix.operating-system }}
     steps:
       - uses: actions/checkout@v6
-      - name: Install FPC
+      - name: Install FPC+Lazarus
         run: |
           cd /tmp/
           git clone https://github.com/castle-engine/castle-build-ci.git --depth=1 --single-branch --branch=master
           castle-build-ci/install_dependencies
-          # Use setup_castle_engine to install FPC, not CGE.
-          castle-build-ci/setup_castle_engine --install-castle-engine=false --install-fpc=true
+          # Use setup_castle_engine to install FPC+Lazarus, not CGE.
+          castle-build-ci/setup_castle_engine --install-castle-engine=false --install-fpc=true --install-lazarus=true
 
       - name: Install Ubuntu dependencies
         if: ${{ matrix.operating-system == 'ubuntu-latest' }}
