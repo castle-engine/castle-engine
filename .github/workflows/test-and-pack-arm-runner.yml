@@ -110,7 +110,7 @@ jobs:
               --depth=1 --single-branch --branch=master
             castle-build-ci/install_dependencies
             castle-build-ci/setup_castle_engine --install-castle-engine=false --install-lazarus=true
-            setup_castle_engine_env.sh
+            source setup_castle_engine_env.sh
 
             # check FPC_CPU and FPC_OS
             FPC_OS=`fpc -iTO`
