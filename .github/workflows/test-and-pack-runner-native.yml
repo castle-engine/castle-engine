@@ -83,6 +83,11 @@ jobs:
       # zip is used by pack_release.
       run: choco install innosetup wget zip
 
+    - name: Install Linux dependencies
+      if: ${{ matrix.is_gh_ubuntu }}
+      # install is used by "make install" in CGE
+      run: sudo apt-get update && sudo apt-get --no-install-recommends -y install
+
     - name: Adjust Windows bash behavior
       if: ${{ matrix.runner == 'windows-latest' }}
       run: |
