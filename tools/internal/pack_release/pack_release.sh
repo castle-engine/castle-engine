@@ -612,7 +612,8 @@ pack_platform_dir ()
       cd "${TEMP_PATH_CGE}"tools/contrib/
       # gh release download --repo castle-engine/castle-fpc --pattern "fpc-${OS}-${CPU}.zip"
       # wget doesn't require GH_TOKEN
-      wget https://github.com/castle-engine/castle-fpc/releases/download/snapshot/fpc-"${OS}"-"${CPU}".zip
+      wget --progress=bar:force:noscroll \
+        https://github.com/castle-engine/castle-fpc/releases/download/snapshot/fpc-"${OS}"-"${CPU}".zip
       unzip "fpc-${OS}-${CPU}.zip"
       rm -f "fpc-${OS}-${CPU}.zip" # remove as soon as no longer needed, to save disk space, important for GHA on GH-hosted runners
       ARCHIVE_NAME_BUNDLE='-bundle'
