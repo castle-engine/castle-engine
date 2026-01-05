@@ -174,9 +174,12 @@ jobs:
       run: |
         rm -Rf installed/
         mkdir -p installed/
+
         # TODO: debug
         pwd
         ls -Flah installed/
+        which install
+
         make clean tools install PREFIX=${CASTLE_ENGINE_PATH}/installed/
 
     - name: Build Examples
