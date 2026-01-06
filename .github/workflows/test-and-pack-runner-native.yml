@@ -202,7 +202,9 @@ jobs:
 
     - name: Build and Install PasDoc
       run: |
-        wget https://github.com/pasdoc/pasdoc/archive/refs/heads/master.zip --output-document pasdoc-master.zip
+        wget --progress=bar:force:noscroll \
+          https://github.com/pasdoc/pasdoc/archive/refs/heads/master.zip \
+          --output-document pasdoc-master.zip
         unzip pasdoc-master.zip
         mv pasdoc-master pasdoc
         cd pasdoc
