@@ -173,16 +173,14 @@ jobs:
     - name: Fix /usr/bin/install permissions (Linux)
       if: ${{ matrix.is_gh_ubuntu }}
       run: |
-        echo $(INSTALL)
         which install
-        which $(INSTALL)
         if [ `uname -s` = 'Linux' ]; then install --version; else echo 'Not Linux'; fi
         if [ `uname -s` = 'Linux' ]; then ls -Flah /usr/bin/install; else echo 'Not Linux'; fi
         file /usr/bin/install
         sudo chmod +x /usr/bin/install
-        $(INSTALL) -d /tmp/blablabla
-        $(INSTALL) -d foobar
-        $(INSTALL) -d installed/bin/
+        install -d /tmp/blablabla
+        install -d foobar
+        install -d installed/bin/
 
     - name: Build Tools
       run: |
