@@ -174,13 +174,16 @@ jobs:
       if: ${{ matrix.is_gh_ubuntu }}
       run: |
         which install
-        if [ `uname -s` = 'Linux' ]; then install --version; else echo 'Not Linux'; fi
-        if [ `uname -s` = 'Linux' ]; then ls -Flah /usr/bin/install; else echo 'Not Linux'; fi
+        install --version
+        ls -Flah /usr/bin/install
         file /usr/bin/install
-        sudo chmod +x /usr/bin/install
+        sudo chmod a+x /usr/bin/install
+        ls -Flah /usr/bin/install
         install -d /tmp/blablabla
         install -d foobar
         install -d installed/bin/
+        install -d ${CASTLE_ENGINE_PATH}/installed/bin
+        install -d ${CASTLE_ENGINE_PATH}/installed//bin
 
     - name: Build Tools
       run: |
