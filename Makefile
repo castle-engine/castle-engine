@@ -166,7 +166,7 @@ install:
 	echo $(INSTALL)
 	which install
 	which $(INSTALL)
-	install --version
+	if [ `uname -s` = 'Linux' ]; then install --version; else echo 'Not Linux'; fi
 	$(INSTALL) -d /tmp/blablabla
 	$(INSTALL) -d foobar
 	$(INSTALL) -d installed/bin/
