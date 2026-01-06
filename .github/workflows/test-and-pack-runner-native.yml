@@ -70,12 +70,12 @@ jobs:
         # Use setup_castle_engine to install FPC and Lazarus, not CGE.
         castle-build-ci/setup_castle_engine --install-castle-engine=false --install-lazarus=true
 
-    - name: Install macOS dependencies (on GH hosted macs)
-      if: ${{ matrix.runner == 'macos-latest' || matrix.runner == 'macos-15-intel'}}
+    - name: Install macOS dependencies
+      if: ${{ runner.os == 'macOS' }}
       run: brew install gnu-sed coreutils findutils
 
     - name: Install Windows dependencies
-      if: ${{ matrix.runner == 'windows-latest' }}
+      if: ${{ runner.os == 'Windows' }}
       # We need Inno Setup for creating Windows installer.
       #   Note: Inno Setup seems already available on windows-latest.
       #   For future-proof, just keep it declared here.
@@ -84,7 +84,7 @@ jobs:
       run: choco install innosetup wget zip
 
     - name: Adjust Windows bash behavior
-      if: ${{ matrix.runner == 'windows-latest' }}
+      if: ${{ runner.os == 'Windows' }}
       run: |
         # force Git Bash
         echo "WINDOWS_FORCE_GIT_BASH=true" >> $GITHUB_ENV
@@ -142,7 +142,7 @@ jobs:
     # during Makefile assignments and the build tool data gets copied to weird
     # subdirectory under build-tool/data/).
     - name: Make CASTLE_ENGINE_PATH use / (Windows)
-      if: ${{ matrix.runner == 'windows-latest' }}
+      if: ${{ runner.os == 'Windows' }}
       run: echo "CASTLE_ENGINE_PATH=`cygpath --mixed \"${CASTLE_ENGINE_PATH}\"`" >> $GITHUB_ENV
 
     # We can pass to $GITHUB_PATH a native path, even on Windows
@@ -178,7 +178,8 @@ jobs:
 
     - name: Build Examples
       # Too slow on RPi
-      if : ${{ matrix.runner != 'raspberry_pi_64' && matrix.runner != 'raspberry_pi_32' }}
+      # No longer relevant, Raspberry Pi builds are not done here.
+      # if: ${{ matrix.runner != 'raspberry_pi_64' && matrix.runner != 'raspberry_pi_32' }}
       run: make clean examples CASTLE_CONSERVE_DISK_SPACE=true
 
     - name: Build And Run Auto-Tests
@@ -254,10 +255,10 @@ jobs:
         if-no-files-found: error
 
     - name: Pack Release (Windows Installer, Bundled FPC)
-      if: ${{ matrix.runner == 'windows-latest' }}
+      if: ${{ runner.os == 'Windows' }}
       run: CGE_PACK_BUNDLE=yes ./tools/internal/pack_release/pack_release.sh windows_installer
     - name: Archive Artifacts (exe)
-      if: ${{ matrix.runner == 'windows-latest' }}
+      if: ${{ runner.os == 'Windows' }}
       uses: actions/upload-artifact@v6
       with:
         name: ${{ matrix.runner }}-installer-release
