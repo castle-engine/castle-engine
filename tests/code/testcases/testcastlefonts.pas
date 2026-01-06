@@ -269,14 +269,33 @@ begin
   end;
 end;
 
+{ If CASTLE_IGNORE_FREETYPE_MISSING is defined, we will abort the test
+  (no error) when FreeType is missing.
+  Otherwise, when FreeType is missing, we will fail (raising an exception).
+  This forces you to install FreeType and test with it, on given platform.
+  Reasons:
+
+  - WASI: no FreeType available
+
+  - macOS: No FreeType on GH-hosted macOS/Aarch64 runner macos-latest.
+    (Unsure about macos-15-intel. On our self-hosted macos_x64 it was OK.)
+    TODO: Figure out how to install it and link to it.
+    "brew install freetype" is not enough. }
+{$if defined(WASI) or defined(DARWIN)}
+  {$define CASTLE_IGNORE_FREETYPE_MISSING}
+{$endif}
+
 procedure TTestCastleFonts.TestSizeChangeNotificationFontFamily;
 var
   F: TCastleFont;
   FF: TCastleFontFamily;
 begin
-  {$ifdef WASI} // no FreeType on Wasm
-  AbortTest;
-  Exit;
+  {$ifdef CASTLE_IGNORE_FREETYPE_MISSING}
+  if not FreeTypeLibraryInitialized then
+  begin
+    AbortTest;
+    Exit;
+  end;
   {$else}
   FailIfFreeTypeMissing;
   {$endif}
@@ -304,9 +323,12 @@ var
   F: TCastleFont;
   CF: TCastleFontFamily;
 begin
-  {$ifdef WASI} // no FreeType on Wasm
-  AbortTest;
-  Exit;
+  {$ifdef CASTLE_IGNORE_FREETYPE_MISSING}
+  if not FreeTypeLibraryInitialized then
+  begin
+    AbortTest;
+    Exit;
+  end;
   {$else}
   FailIfFreeTypeMissing;
   {$endif}
