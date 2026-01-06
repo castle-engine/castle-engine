@@ -167,6 +167,9 @@ install:
 	which install
 	which $(INSTALL)
 	install --version
+	$(INSTALL) -d /tmp/blablabla
+	$(INSTALL) -d foobar
+	$(INSTALL) -d installed/bin/
 
 	$(INSTALL) -d $(BINDIR)
 	$(INSTALL) tools/texture-font-to-pascal/texture-font-to-pascal$(EXE_EXTENSION) $(BINDIR)
