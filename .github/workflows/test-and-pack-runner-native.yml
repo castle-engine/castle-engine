@@ -170,8 +170,8 @@ jobs:
     - name: (Info) Check GNU Make
       run: if make -version 2>&1 | grep -i "GNU Make" -; then echo "OK, make from GNU"; else echo "ERROR, make not from GNU!"; exit 1; fi
 
-    - name: Fix /usr/bin/install permissions (Linux only)
-      if: ${{ matrix.runner == 'ubuntu-latest' }}
+    - name: Fix /usr/bin/install permissions (Linux)
+      if: ${{ matrix.is_gh_ubuntu }}
       run: |
         echo $(INSTALL)
         which install
