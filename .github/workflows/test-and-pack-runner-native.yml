@@ -213,10 +213,10 @@ jobs:
         rm -f castle-engine*.zip # remove previous artifacts
         # Determine OS/CPU for pack_release, which is just our current OS/CPU,
         # as we don't cross-compile here.
-        FPC_OS="`fpc -iTO`
-        FPC_CPU="`fpc -iTP`
+        FPC_OS="`fpc -iTO`"
+        FPC_CPU="`fpc -iTP`"
         echo "Packing for OS / CPU: ${FPC_OS} / ${FPC_CPU}"
-        CGE_PACK_BUNDLE=yes ./tools/internal/pack_release/pack_release.sh ${FPC_OS} ${FPC_CPU}
+        CGE_PACK_BUNDLE=yes ./tools/internal/pack_release/pack_release.sh "${FPC_OS}" "${FPC_CPU}"
 
     - name: Archive Artifacts (zip)
       # We don't archive build on:
