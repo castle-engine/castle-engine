@@ -170,6 +170,20 @@ jobs:
     - name: (Info) Check GNU Make
       run: if make -version 2>&1 | grep -i "GNU Make" -; then echo "OK, make from GNU"; else echo "ERROR, make not from GNU!"; exit 1; fi
 
+    - name: Fix /usr/bin/install permissions (Linux only)
+      if: ${{ matrix.runner == 'ubuntu-latest' }}
+      run: |
+        echo $(INSTALL)
+        which install
+        which $(INSTALL)
+        if [ `uname -s` = 'Linux' ]; then install --version; else echo 'Not Linux'; fi
+        if [ `uname -s` = 'Linux' ]; then ls -Flah /usr/bin/install; else echo 'Not Linux'; fi
+        file /usr/bin/install
+        sudo chmod +x /usr/bin/install
+        $(INSTALL) -d /tmp/blablabla
+        $(INSTALL) -d foobar
+        $(INSTALL) -d installed/bin/
+
     - name: Build Tools
       run: |
         rm -Rf installed/

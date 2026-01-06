@@ -161,19 +161,6 @@ DATADIR=$(DATAROOTDIR)
 .PHONY: install
 install:
 	echo 'Installing tools to $(BINDIR)'
-
-	# TODO: debugging
-	echo $(INSTALL)
-	which install
-	which $(INSTALL)
-	if [ `uname -s` = 'Linux' ]; then install --version; else echo 'Not Linux'; fi
-	if [ `uname -s` = 'Linux' ]; then ls -Flah /usr/bin/install; else echo 'Not Linux'; fi
-	file /usr/bin/install
-	chmod +x /usr/bin/install
-	$(INSTALL) -d /tmp/blablabla
-	$(INSTALL) -d foobar
-	$(INSTALL) -d installed/bin/
-
 	$(INSTALL) -d $(BINDIR)
 	$(INSTALL) tools/texture-font-to-pascal/texture-font-to-pascal$(EXE_EXTENSION) $(BINDIR)
 	$(INSTALL) tools/image-to-pascal/image-to-pascal$(EXE_EXTENSION) $(BINDIR)
