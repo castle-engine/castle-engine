@@ -239,9 +239,27 @@
 {$endif}
 
 { FPC 3.2.3 on 32-bit ARM (Raspberry Pi) has wrong List.IndexOf by default
-  (due to constref / const changes in the Generics.Collections ?), workaround. }
+  (due to constref / const changes in the Generics.Collections ?), workaround.
+
+  TODO: submit to FPC. }
 {$if defined(FPC) and defined(VER3_2) and defined(LINUX) and defined(CPUarm)}
   {$define CASTLE_LIST_METHODS_WORKAROUND}
+{$endif}
+
+{ For unknown reason, FPC 3.2.3 (fixes_3_2 branch) fails
+
+    Result := inherited Items[AKey];
+
+  or even
+
+    if not TryGetValue(AKey, Result) then
+      raise EListError.CreateFmt('Dictionary key "%s" does not exist', [AKey]);
+
+  Testcase: TTestX3DNodes.TestRootNodeMeta .
+  TODO: submit to FPC.
+}
+{$if defined(DARWIN) and defined(CPUX86_64) and defined(VER3_2_3)}
+  {$define CASTLE_WORKAROUND_DICTIONARY_FIND}
 {$endif}
 
 { Define CASTLE_IOS when appropriate ----------------------------------------- }
