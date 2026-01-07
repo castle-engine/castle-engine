@@ -72,6 +72,9 @@ interface
 {$IFDEF FPC}
   {$MODE DELPHI} // Delphi-compatible mode in FreePascal
   {$INLINE ON}
+  { Castle Game Engine (CGE) additions to avoid ignorable warnings when building. }
+  {$warn 4105 off} // Warning: Implicit string type conversion with potential data loss from "UnicodeString" to "AnsiString"
+  {$warn 4104 off} // Warning: Implicit string type conversion from "AnsiString" to "UnicodeString"
 {$ENDIF}
 // ======== Define options for TRegExpr engine
 {$DEFINE UnicodeRE} // Use WideChar for characters and UnicodeString/WideString for strings
@@ -7865,6 +7868,7 @@ begin
   op := OP_EXACTLY;
   s := regCodeWork;
   BranchEnd := nil;
+  SetLength(BranchEndStack, 0); // CGE: avoids FPC warnings that it's uninitialized
   while op <> OP_EEND do
   begin // While that wasn't END last time...
     op := s^;
