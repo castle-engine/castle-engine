@@ -180,6 +180,11 @@ jobs:
       # Too slow on RPi
       # No longer relevant, Raspberry Pi builds are not done here.
       # if: ${{ matrix.runner != 'raspberry_pi_64' && matrix.runner != 'raspberry_pi_32' }}
+      # TODO: Don't build on macos-15-intel, takes too long and we lose connection to runner?
+      # TODO: Don't build on macos-latest, takes too long and floods log with
+      # "ld: warning: object file (/Users/runner/work/castle-game/castle-game/castle-engine/tools/build-tool/castle-engine-output/build-tool-compilation/castle_engine.o) was built for newer 'macOS' version (11.0) than being linked (10.15)" .
+      # Reconsider once we have eliminated the above warnings.
+      if: ${{ matrix.runner != 'macos-latest' && matrix.runner != 'macos-15-intel' }}
       run: make clean examples CASTLE_CONSERVE_DISK_SPACE=true
 
     - name: Build And Run Auto-Tests
