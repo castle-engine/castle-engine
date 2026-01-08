@@ -60,7 +60,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license for details.
 "/>
     <Version Major="6" Minor="93" Release="1"/>
-    <Files Count="1202">
+    <Files Count="1203">
       <Item1>
         <Filename Value="../../src/audio/castleinternalabstractsoundbackend.pas"/>
         <UnitName Value="CastleInternalAbstractSoundBackend"/>
@@ -4899,6 +4899,10 @@ See https://castle-engine.io/license for details.
         <Filename Value="../../src/base/castleutils_method_list.inc"/>
         <Type Value="Include"/>
       </Item1202>
+      <Item1203>
+        <Filename Value="../../src/base/castleutils_naive_dictionary.inc"/>
+        <Type Value="Include"/>
+      </Item1203>
     </Files>
     <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="1">

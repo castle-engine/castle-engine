@@ -22,24 +22,21 @@ jobs:
     name: Quick Test of Tools
     strategy:
       matrix:
-        # Not using macos-latest as it randomly fails because of timeouts
-        # (e.g. https://github.com/castle-engine/castle-engine/actions/runs/2771175624 )
-        # Looks like GH hosted macOS runner is just too busy.
-        operating-system: [ubuntu-latest, windows-latest]
-        lazarus-versions: [stable]
+        operating-system: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.operating-system }}
     steps:
       - uses: actions/checkout@v6
       - name: Install FPC+Lazarus
-        uses: gcarreno/setup-lazarus@v3.3.1
-        with:
-          lazarus-version: ${{ matrix.lazarus-versions }}
-          # Cache makes Windows jobs fail (they timeout),
-          # documented as TODO on https://github.com/marketplace/actions/setup-lazarus-environment .
-          with-cache: false
-      - name: Install Ubuntu dependencies
+        run: |
+          cd /tmp/
+          git clone https://github.com/castle-engine/castle-build-ci.git --depth=1 --single-branch --branch=master
+          castle-build-ci/install_dependencies
+          # Use setup_castle_engine to install FPC+Lazarus, not CGE.
+          castle-build-ci/setup_castle_engine --install-castle-engine=false --install-fpc=true --install-lazarus=true
+
+      - name: Install Linux dependencies
         if: ${{ matrix.operating-system == 'ubuntu-latest' }}
-        run: sudo apt-get --no-install-recommends -y install libgl-dev
+        run: sudo apt-get update && sudo apt-get --no-install-recommends -y install libgl-dev
       - name: Install macOS dependencies
         if: ${{ matrix.operating-system == 'macos-latest' }}
         run: brew install gnu-sed coreutils

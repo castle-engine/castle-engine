@@ -17,6 +17,9 @@
 { Test CastleComponentSerialize unit. }
 unit TestCastleComponentSerialize;
 
+{ Needed for CASTLE_DEFORMAT_BUGGY }
+{$I ../../../src/common_includes/castleconf.inc}
+
 interface
 
 uses
@@ -665,11 +668,16 @@ begin
     for I := 0 to ValidOutputNumbersCount - 1 do
       NumbersReadBackPtrs[I] := @(NumbersReadBack[I]);
 
+    {$ifdef CASTLE_DEFORMAT_BUGGY}
+    AbortTest;
+    Exit;
+    {$else}
     ValidOutput := FileToString('castle-data:/designs/test_custom_serialization_valid_output.castle-component');
     DeFormat(ComponentToString(T1), ValidOutput, NumbersReadBackPtrs, false);
 
     for I := 0 to ValidOutputNumbersCount - 1 do
       AssertEquals(ValidOutputNumbers[I], NumbersReadBack[I]);
+    {$endif}
   finally FreeAndNil(COwner) end;
 end;
 

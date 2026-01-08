@@ -113,6 +113,7 @@ var
   i: Integer;
   Line: string;
   VertsCount, PolysCount, VertsInPolysCount: Integer;
+  FirstLineTokens: TCastleStringList;
 begin
  inherited Create;
  Verts := TVector3List.Create;
@@ -133,7 +134,18 @@ begin
   begin
     { Use current value of Line, for older format the first line contains
       these counts. }
-    DeFormat(Line, '%d %d %d', [@VertsCount, @PolysCount, @VertsInPolysCount]);
+    FirstLineTokens := CreateTokens(Line);
+    try
+      if FirstLineTokens.Count <> 3 then
+      begin
+        raise Exception.Create('First GEO line should contain 3 numbers');
+        Exit;
+      end;
+
+      VertsCount := StrToInt(FirstLineTokens[0]);
+      PolysCount := StrToInt(FirstLineTokens[1]);
+      VertsInPolysCount := StrToInt(FirstLineTokens[2]);
+    finally FreeAndNil(FirstLineTokens) end;
 
     { Ile mamy Faces trojkatnych ? Mamy liczbe
       wielokatow = PolysCount. Mamy sumaryczna liczbe wierzcholkow

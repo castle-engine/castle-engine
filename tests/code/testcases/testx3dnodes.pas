@@ -1375,9 +1375,9 @@ begin
 
     { make sure loaded from string Ok }
     AssertTrue(Node.HasForceVersion);
-    AssertTrue(Node.ForceVersion.Major = 3);
-    AssertTrue(Node.ForceVersion.Minor = 1);
-    AssertTrue(Node.Profile = 'Immersive');
+    AssertEquals(3, Node.ForceVersion.Major);
+    AssertEquals(1, Node.ForceVersion.Minor);
+    AssertEquals('Immersive', Node.Profile);
     AssertTrue(Node.Components.Count = 2);
     AssertTrue(Node.Components['NURBS'] = 2);
     AssertTrue(Node.Components['Shaders'] = 1);
@@ -1393,19 +1393,20 @@ begin
 
     { make sure saved and loaded back Ok }
     AssertTrue(Node.HasForceVersion);
-    AssertTrue(Node.ForceVersion.Major = 3);
-    AssertTrue(Node.ForceVersion.Minor = 1);
-    AssertTrue(Node.Profile = 'Immersive');
+    AssertEquals(3, Node.ForceVersion.Major);
+    AssertEquals(1, Node.ForceVersion.Minor);
+    AssertEquals('Immersive', Node.Profile);
     AssertTrue(Node.Components.Count = 2);
     AssertTrue(Node.Components['NURBS'] = 2);
     AssertTrue(Node.Components['Shaders'] = 1);
-    AssertTrue(Node.Meta.Count = 2);
+    AssertEquals(2, Node.Meta.Count);
     AssertTrue(Node.Meta['test''''key'] = 'test"value');
     AssertTrue(Node.Meta['generator'] = 'testgenerator and & weird '' chars " test');
 
     { tweak some Meta }
     Node.Meta['test''''key'] := 'newvalue';
     Node.Meta['testkey2'] := 'newvalue2';
+    AssertEquals(3, Node.Meta.Count);
 
     { replace Node with DeepCopy of itself (should preserve everything) }
     NewNode := Node.DeepCopy as TX3DRootNode;
@@ -1416,6 +1417,7 @@ begin
     { tweak some Meta more }
     Node.Meta['testkey2'] := 'evennewervalue2';
     Node.Meta['testkey3'] := 'newvalue3';
+    AssertEquals(4, Node.Meta.Count);
 
     { save and load again. During Save3D tweak meta generator and source }
     TempStream.Position := 0;
@@ -1426,19 +1428,19 @@ begin
 
     { make sure saved and loaded back Ok }
     AssertTrue(Node.HasForceVersion);
-    AssertTrue(Node.ForceVersion.Major = 3);
-    AssertTrue(Node.ForceVersion.Minor = 1);
-    AssertTrue(Node.Profile = 'Immersive');
-    AssertTrue(Node.Components.Count = 2);
-    AssertTrue(Node.Components['NURBS'] = 2);
-    AssertTrue(Node.Components['Shaders'] = 1);
-    AssertTrue(Node.Meta.Count = 6);
-    AssertTrue(Node.Meta['test''''key'] = 'newvalue');
-    AssertTrue(Node.Meta['testkey2'] = 'evennewervalue2');
-    AssertTrue(Node.Meta['testkey3'] = 'newvalue3');
-    AssertTrue(Node.Meta['generator'] = 'newgenerator');
-    AssertTrue(Node.Meta['generator-previous'] = 'testgenerator and & weird '' chars " test');
-    AssertTrue(Node.Meta['source'] = 'newsource');
+    AssertEquals(3, Node.ForceVersion.Major);
+    AssertEquals(1, Node.ForceVersion.Minor);
+    AssertEquals('Immersive', Node.Profile);
+    AssertEquals(2, Node.Components.Count);
+    AssertEquals(2, Node.Components['NURBS']);
+    AssertEquals(1, Node.Components['Shaders']);
+    AssertEquals(6, Node.Meta.Count);
+    AssertEquals('newvalue', Node.Meta['test''''key']);
+    AssertEquals('evennewervalue2', Node.Meta['testkey2']);
+    AssertEquals('newvalue3', Node.Meta['testkey3']);
+    AssertEquals('newgenerator', Node.Meta['generator']);
+    AssertEquals('testgenerator and & weird '' chars " test', Node.Meta['generator-previous']);
+    AssertEquals('newsource', Node.Meta['source']);
 
     { save and load again, this time going through XML }
     TempStream.Position := 0;

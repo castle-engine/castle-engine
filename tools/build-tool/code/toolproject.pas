@@ -533,6 +533,16 @@ procedure TCastleProject.DoCompile(const OverrideCompiler: TCompiler; const Targ
     finally FreeAndNil(List) end;
   end;
 
+  function GetLazarusProject: String;
+  begin
+    { If manifest has lazarus_project or standalone_source: }
+    Result := Manifest.LazarusProject;
+    { Otherwise, calculate it using ExplicitStandaloneFile logic,
+      which will add "_standalone.lpi" to the NamePascal. }
+    if Result = '' then
+      Result := ExplicitStandaloneFile('.lpi');
+  end;
+
 var
   SourceExe, DestExe, MainSource: string;
   CompilerOptions: TCompilerOptions;
@@ -558,7 +568,7 @@ begin
     { TODO: "lazbuild" should be another Compiler option, called "lazbuild (calls FPC using options from LPI file)" }
     if Manifest.BuildUsingLazbuild then
     begin
-      CompileLazbuild(Path, Manifest.LazarusProject, CompilerOptions);
+      CompileLazbuild(Path, GetLazarusProject, CompilerOptions);
       Exit;
     end;
 

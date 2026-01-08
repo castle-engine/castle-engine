@@ -122,13 +122,6 @@ check_lazarus_version ()
 
   # To avoid https://gitlab.com/freepascal.org/lazarus/lazarus/-/merge_requests/291
   # we need Lazarus >= 3.5 on macOS.
-  #
-  # Note that using https://github.com/gcarreno/setup-lazarus with "lazarus-version: stable"
-  # results now in Lazarus version 3.7. This seems to be what the download
-  # https://sourceforge.net/projects/lazarus/files/Lazarus%20macOS%20x86-64/Lazarus%203.6/Lazarus-3.6-macosx-x86_64.pkg/download
-  # reports.
-  # It will not matter soon, though, as we move to use
-  # https://github.com/castle-engine/castle-lazarus/ .
   if [ "`uname -s`" '=' 'Darwin' ]; then
     if [ "${LAZARUS_VERSION}" '!=' '3.5' -a \
          "${LAZARUS_VERSION}" '!=' '3.6' -a \
@@ -253,6 +246,13 @@ lazbuild_twice ()
   fi
 }
 
+# unzip $@
+do_unzip ()
+{
+  # Using -q avoids long output in CI logs.
+  unzip -q "$@"
+}
+
 # Download URL $1 into filename $2.
 download ()
 {
@@ -261,7 +261,9 @@ download ()
   if which cygpath.exe > /dev/null; then
     curl "$1" > "$2"
   else
-    wget "$1" --output-document "$2"
+    # Using --progress=bar:force:noscroll looks nicer in CI logs.
+    wget  --progress=bar:force:noscroll \
+      "$1" --output-document "$2"
   fi
 }
 
@@ -286,13 +288,13 @@ add_external_tool ()
   mkdir -p "${TEMP_PATH_TOOL}"
   cd "${TEMP_PATH_TOOL}"
   download "https://codeload.github.com/castle-engine/${GITHUB_NAME}/zip/${TOOL_BRANCH_NAME}" "${GITHUB_NAME}".zip
-  unzip "${GITHUB_NAME}".zip
+  do_unzip "${GITHUB_NAME}".zip
   cd "${GITHUB_NAME}-${TOOL_BRANCH_NAME}"
 
   # special exceptional addition for pascal-language-server, that has jsonstream as a submodule
   if [ "${GITHUB_NAME}" = 'pascal-language-server' ]; then
     download https://codeload.github.com/Isopod/jsonstream/zip/master jsonstream.zip
-    unzip jsonstream.zip
+    do_unzip jsonstream.zip
     rm -Rf server/deps/jsonstream # zip contains empty dir with it
     mv jsonstream-master server/deps/jsonstream
     lazbuild_twice $CASTLE_LAZBUILD_OPTIONS server/deps/jsonstream/pascal/package/jsonstreampkg.lpk
@@ -611,10 +613,11 @@ pack_platform_dir ()
     'yes')
       cd "${TEMP_PATH_CGE}"tools/contrib/
       # gh release download --repo castle-engine/castle-fpc --pattern "fpc-${OS}-${CPU}.zip"
-      # wget doesn't require GH_TOKEN
-      wget https://github.com/castle-engine/castle-fpc/releases/download/snapshot/fpc-"${OS}"-"${CPU}".zip
-      unzip "fpc-${OS}-${CPU}.zip"
-      rm -f "fpc-${OS}-${CPU}.zip" # remove as soon as no longer needed, to save disk space, important for GHA on GH-hosted runners
+      # Better than "gh", use wget / curl (in "download" bash function) as it doesn't require GH_TOKEN.
+      download https://github.com/castle-engine/castle-fpc/releases/download/snapshot/fpc-"${OS}"-"${CPU}".zip \
+        fpc-dist.zip
+      do_unzip fpc-dist.zip
+      rm -f fpc-dist.zip # remove as soon as no longer needed, to save disk space, important for GHA on GH-hosted runners
       ARCHIVE_NAME_BUNDLE='-bundle'
       mv "${TEMP_PATH_CGE}"bin/fpc-cge"${EXE_EXTENSION}" "${TEMP_PATH_CGE}"tools/contrib/fpc/bin
       ;;

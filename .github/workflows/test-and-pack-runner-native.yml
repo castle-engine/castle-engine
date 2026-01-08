@@ -27,28 +27,8 @@ jobs:
     strategy:
       matrix:
         runner: [
-          macos_x64,
-
-          # TODO: Using GH-hosted mac + Lazarus (not only bare FPC)
-          # seems impossible now, even for Intel-based mac.
-          #
-          # - gcarreno/setup-lazarus@v3.3.1 fails on macos-15-intel with
-          #   "This package is incompatible with this version of macOS. Contact the developer for support."
-          #
-          # - gcarreno/setup-lazarus@v3.3.1 worked on macos-13,
-          #   but macos-13 is removed now from GitHub.
-          #
-          # - brew "lazarus" package depends on fpc-laz and is deprecated
-          #   and fails to install with
-          #   "This package is incompatible with this version of macOS. Contact the developer for support."
-          #
-          # Note that GH-hosted mac + FPC is still OK, as "brew install fpc" is OK.
-          # But this workflow needs lazbuild.
-          #macos-15-intel,
-
-          # TODO: Using GH-hosted mac with FPC/Aarch64 is also not OK.
-          # Same reasons as above about macos-15-intel.
-          #macos-latest,
+          macos-15-intel,
+          macos-latest,
 
           # TODO: Using ubuntu-22.04 instead of ubuntu-latest as a workaround
           # for zip crashes,
@@ -59,57 +39,43 @@ jobs:
           windows-latest
         ]
         include:
-          # To not overload the slower RPi, use it only with master
-          # Later: removed using self-hosted runners for RPi, to cut costs.
-          # Use test-and-pack-arm-runner.yml for RPi instead.
-          #
-          # - if: ${{ github.ref == 'refs/heads/master' }}
-          #   runner: raspberry_pi_64
-          # - if: ${{ github.ref == 'refs/heads/master' }}
-          #   runner: raspberry_pi_32
-
           # Add is_macos variable to easily check for any macOS.
           # Default is false, and then we override it to true for macos runners.
           - is_macos: false
-          - runner: macos_x64
+          - runner: macos-15-intel
             is_macos: true
-          # TODO: See above for reasons why this is disabled.
-          # - runner: macos-15-intel
-          #   is_macos: true
-          # TODO: See above for reasons why this is disabled.
-          # - runner: macos-latest
-          #   is_macos: true
+          - runner: macos-latest
+            is_macos: true
 
           # Add is_gh_ubuntu variable to easily check for any GHA-hosted Ubuntu.
           - is_gh_ubuntu: false
           - runner: ubuntu-22.04
             is_gh_ubuntu: true
+
+          # on macOS, pack_release.sh calls gsed, which behaves more like Linux sed.
+          - sed_command: sed
+          - runner: macos-15-intel
+            sed_command: gsed
+          - runner: macos-latest
+            sed_command: gsed
     runs-on: ${{ matrix.runner }}
     steps:
     - uses: actions/checkout@v6
 
     - name: Install FPC+Lazarus
-      # On GH hosted runners, install FPC+Lazarus
-      if: ${{ matrix.is_gh_ubuntu || matrix.runner == 'windows-latest'}}
-      uses: gcarreno/setup-lazarus@v3.3.1
-      with:
-        lazarus-version: stable
-    - name: Install FPC+Lazarus (brew)
-      # On GH hosted runners, install FPC+Lazarus
-      if: ${{ matrix.runner == 'macos-latest' || matrix.runner == 'macos-15-intel'}}
-      run: brew install fpc lazarus
-    - name: Install Linux dependencies
-      if: ${{ matrix.is_gh_ubuntu }}
-      # Run "apt-get update" before installing, following https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners/customizing-github-hosted-runners
       run: |
-        sudo apt-get update
-        sudo apt-get --no-install-recommends -y install libgl-dev
-    - name: Install macOS dependencies (on GH hosted macs)
-      # We do this only on GH hosted macs, not on our macos_x64, because on our mac: 1. this is already installed, 2. ci user doesn't have permissions to install more.
-      if: ${{ matrix.runner == 'macos-latest' || matrix.runner == 'macos-15-intel'}}
+        cd /tmp/
+        git clone https://github.com/castle-engine/castle-build-ci.git --depth=1 --single-branch --branch=master
+        castle-build-ci/install_dependencies
+        # Use setup_castle_engine to install FPC and Lazarus, not CGE.
+        castle-build-ci/setup_castle_engine --install-castle-engine=false --install-lazarus=true
+
+    - name: Install macOS dependencies
+      if: ${{ runner.os == 'macOS' }}
       run: brew install gnu-sed coreutils findutils
+
     - name: Install Windows dependencies
-      if: ${{ matrix.runner == 'windows-latest' }}
+      if: ${{ runner.os == 'Windows' }}
       # We need Inno Setup for creating Windows installer.
       #   Note: Inno Setup seems already available on windows-latest.
       #   For future-proof, just keep it declared here.
@@ -117,52 +83,53 @@ jobs:
       # zip is used by pack_release.
       run: choco install innosetup wget zip
 
-    - name: Windows force Git Bash
-      if: ${{ matrix.runner == 'windows-latest' }}
-      run: echo "WINDOWS_FORCE_GIT_BASH=true" >> $GITHUB_ENV
+    - name: Adjust Windows bash behavior
+      if: ${{ runner.os == 'Windows' }}
+      run: |
+        # force Git Bash
+        echo "WINDOWS_FORCE_GIT_BASH=true" >> $GITHUB_ENV
 
-    # MSys2 does something quite unexpected by default: it autoconverts
-    # any parameter that looks like Unix path to Windows path.
-    # See https://www.msys2.org/docs/filesystem-paths/ .
-    #
-    # This does result in weird problems when calling iscc.
-    # It seems (reported in bash through "set -x") it's calling something
-    # sensible, like this
-    #
-    #   iscc
-    #     'D:\a\castle-engine\castle-engine/tools/internal/pack_release/cge-windows-setup.iss'
-    #     /OD:/a/castle-engine/castle-engine
-    #     /Fcastle-engine-setup-7.0-alpha.snapshot
-    #     /DMyAppSrcDir=C:/Users/RUNNER~1/AppData/Local/Temp/castle-engine-release-1378/castle_game_engine
-    #     /DMyAppVersion=7.0-alpha.snapshot
-    #
-    # (see iscc command-line docs). But in reality, it is passing (detected by
-    # our https://github.com/michaliskambi/report-params/ ) these nonsense
-    # parameters:
-    #
-    #   iscc
-    #     D:\a\castle-engine\castle-engine/tools/internal/pack_release/cge-windows-setup.iss
-    #     C:\Program Files\Git\OD;A:\castle-engine\castle-engine
-    #     C:/Program Files/Git/Fcastle-engine-setup-7.0-alpha.snapshot
-    #     C:\Program Files\Git\DMyAppSrcDir=C;C:\Program Files\Git\Users\RUNNER~1\AppData\Local\Temp\castle-engine-release-1378\castle_game_engine
-    #     C:/Program Files/Git/DMyAppVersion=7.0-alpha.snapshot
-    #
-    # As you see, it added "C:/Program Files/Git/" or "C:\Program Files\Git\" prefix
-    # in front of every parameter that started with /.
-    # This of course breaks iscc later.
-    # We don't want this. Our scripts are prepared to call `cygpath` to deal
-    # with path conversion problems explicitly. It is much much more reliable,
-    # and it is explicit -- easy to debug.
-    - name: Disable broken MSys2 paths conversion
-      if: ${{ matrix.runner == 'windows-latest' }}
-      run: echo "MSYS2_ENV_CONV_EXCL='*'" >> $GITHUB_ENV
-    # Git For Windows has a different name for this:
-    # https://stackoverflow.com/questions/7250130/how-to-stop-mingw-and-msys-from-mangling-path-names-given-at-the-command-line
-    # https://github.com/git-for-windows/git/issues/577
-    # https://github.com/git-for-windows/msys2-runtime/pull/11
-    - name: Disable broken Git For Windows MSys paths conversion
-      if: ${{ matrix.runner == 'windows-latest' }}
-      run: echo "MSYS_NO_PATHCONV=1" >> $GITHUB_ENV
+        # Disable broken MSys2 paths conversion:
+        # MSys2 does something quite unexpected by default: it autoconverts
+        # any parameter that looks like Unix path to Windows path.
+        # See https://www.msys2.org/docs/filesystem-paths/ .
+        #
+        # This does result in weird problems when calling iscc.
+        # It seems (reported in bash through "set -x") it's calling something
+        # sensible, like this
+        #
+        #   iscc
+        #     'D:\a\castle-engine\castle-engine/tools/internal/pack_release/cge-windows-setup.iss'
+        #     /OD:/a/castle-engine/castle-engine
+        #     /Fcastle-engine-setup-7.0-alpha.snapshot
+        #     /DMyAppSrcDir=C:/Users/RUNNER~1/AppData/Local/Temp/castle-engine-release-1378/castle_game_engine
+        #     /DMyAppVersion=7.0-alpha.snapshot
+        #
+        # (see iscc command-line docs). But in reality, it is passing (detected by
+        # our https://github.com/michaliskambi/report-params/ ) these nonsense
+        # parameters:
+        #
+        #   iscc
+        #     D:\a\castle-engine\castle-engine/tools/internal/pack_release/cge-windows-setup.iss
+        #     C:\Program Files\Git\OD;A:\castle-engine\castle-engine
+        #     C:/Program Files/Git/Fcastle-engine-setup-7.0-alpha.snapshot
+        #     C:\Program Files\Git\DMyAppSrcDir=C;C:\Program Files\Git\Users\RUNNER~1\AppData\Local\Temp\castle-engine-release-1378\castle_game_engine
+        #     C:/Program Files/Git/DMyAppVersion=7.0-alpha.snapshot
+        #
+        # As you see, it added "C:/Program Files/Git/" or "C:\Program Files\Git\" prefix
+        # in front of every parameter that started with /.
+        # This of course breaks iscc later.
+        # We don't want this. Our scripts are prepared to call `cygpath` to deal
+        # with path conversion problems explicitly. It is much much more reliable,
+        # and it is explicit -- easy to debug.
+        echo "MSYS2_ENV_CONV_EXCL='*'" >> $GITHUB_ENV
+
+        # Disable broken Git For Windows MSys paths conversion
+        # Git For Windows has a different name for above:
+        # https://stackoverflow.com/questions/7250130/how-to-stop-mingw-and-msys-from-mangling-path-names-given-at-the-command-line
+        # https://github.com/git-for-windows/git/issues/577
+        # https://github.com/git-for-windows/msys2-runtime/pull/11
+        echo "MSYS_NO_PATHCONV=1" >> $GITHUB_ENV
 
     - name: Set environment CASTLE_ENGINE_PATH
       run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
@@ -175,50 +142,30 @@ jobs:
     # during Makefile assignments and the build tool data gets copied to weird
     # subdirectory under build-tool/data/).
     - name: Make CASTLE_ENGINE_PATH use / (Windows)
-      if: ${{ matrix.runner == 'windows-latest' }}
+      if: ${{ runner.os == 'Windows' }}
       run: echo "CASTLE_ENGINE_PATH=`cygpath --mixed \"${CASTLE_ENGINE_PATH}\"`" >> $GITHUB_ENV
 
-    # Even on Windows, in GH hosted runner,
-    # PATH (at least within bash -- this is MSys bash) is separated by :.
-    # So the same path separator works for all platforms.
-    # However, for Windows, we have to convert native Windows path to MSys,
-    # otherwise path like "D:\a\castle-engine\castle-engine/installed/bin/"
-    # would mean that "D" relative path is present in PATH, which would make
-    # /bin/find later fail ("""The relative path 'D' is included in the PATH environment variable, which is insecure in combination with the -execdir action of find.  Please remove that entry from $PATH""")
-    # even though the path seems to work fine for other tools.
-    # It looks like MSys "bash" has code to understand drive letter : in a PATH,
-    # but "find" doesn't.
-    - name: Extend environment PATH (non-Windows)
-      if: ${{ matrix.runner != 'windows-latest' }}
-      run: echo "PATH=${PATH}:${CASTLE_ENGINE_PATH}/installed/bin/:${GITHUB_WORKSPACE}/pasdoc/bin/" >> $GITHUB_ENV
-    - name: Extend environment PATH (Windows)
-      if: ${{ matrix.runner == 'windows-latest' }}
-      run: echo "PATH=${PATH}:`cygpath --unix ${CASTLE_ENGINE_PATH}/installed/bin/`:`cygpath --unix ${GITHUB_WORKSPACE}/pasdoc/bin/`" >> $GITHUB_ENV
-
-    - name: Set environment FPC_OS
-      run: echo "FPC_OS="`fpc -iTO` >> $GITHUB_ENV
-    - name: Set environment FPC_CPU
-      run: echo "FPC_CPU="`fpc -iTP` >> $GITHUB_ENV
-    - name: Disable FPC version check (RPi 64)
-      if: ${{ matrix.runner == 'raspberry_pi_64' }}
-      run: echo "CASTLE_PACK_DISABLE_FPC_VERSION_CHECK=true" >> $GITHUB_ENV
+    # We can pass to $GITHUB_PATH a native path, even on Windows
+    # (where $PATH, under MSys, is separated by : and requires Unix paths).
+    - name: Extend $PATH
+      run: |
+        echo "${CASTLE_ENGINE_PATH}/installed/bin/" >> $GITHUB_PATH
+        echo "${GITHUB_WORKSPACE}/pasdoc/bin/" >> $GITHUB_PATH
 
     # check versions (and availability) of our requirements early
-
-    - name: (Info) FPC version
-      run: fpc -iV
+    - name: (Info) FPC version, OS, CPU
+      run: |
+        fpc -iV
+        fpc -iTO
+        fpc -iTP
     - name: (Info) Lazarus version
       run: lazbuild --version
     - name: (Info) Make version
       run: make --version
-    - name: (Info) Sed version (macOS)
-      if: ${{ matrix.is_macos }}
-      run: gsed --version
-    - name: (Info) Sed version (non-macOS)
-      if: ${{ !matrix.is_macos }}
-      run: sed --version
-    # Make sure we got GNU Make, not Embarcadero make.
-    # This is important, as Delphi installer inserts Embarcadero make into PATH,
+    - name: (Info) Sed version
+      run: ${{ matrix.sed_command }} --version
+    # Make sure we got GNU "make", not Embarcadero "make".
+    # This is important, as Delphi installer inserts Embarcadero "make" into PATH,
     # earlier than Cygwin's. It has to be corrected after installation.
     - name: (Info) Check GNU Make
       run: if make -version 2>&1 | grep -i "GNU Make" -; then echo "OK, make from GNU"; else echo "ERROR, make not from GNU!"; exit 1; fi
@@ -231,18 +178,21 @@ jobs:
 
     - name: Build Examples
       # Too slow on RPi
-      if : ${{ matrix.runner != 'raspberry_pi_64' && matrix.runner != 'raspberry_pi_32' }}
+      # No longer relevant, Raspberry Pi builds are not done here.
+      # if: ${{ matrix.runner != 'raspberry_pi_64' && matrix.runner != 'raspberry_pi_32' }}
+      # TODO: Don't build on macos-15-intel, takes too long and we lose connection to runner?
+      # TODO: Don't build on macos-latest, takes too long and floods log with
+      # "ld: warning: object file (/Users/runner/work/castle-game/castle-game/castle-engine/tools/build-tool/castle-engine-output/build-tool-compilation/castle_engine.o) was built for newer 'macOS' version (11.0) than being linked (10.15)" .
+      # Reconsider once we have eliminated the above warnings.
+      if: ${{ matrix.runner != 'macos-latest' && matrix.runner != 'macos-15-intel' }}
       run: make clean examples CASTLE_CONSERVE_DISK_SPACE=true
 
     - name: Build And Run Auto-Tests
       run: make tests
 
-    # Fails at least on ubuntu-latest (when it was synonym with 22.04). TODO: Unsure how to set $FPCDIR, for now skip this test.
+    # TODO: Set $FPCDIR, and make this work.
+    # With castle-fpc, we have full control over our FPC install, we should make it work.
     # - name: Build Using FpMake
-    #   # Too slow on RPi
-    #   # On macOS: we don't have fpmake "opengl" package ok after installing on macOS using fpcupdeluxe?
-    #   # So this never executes now...
-    #   if : ${{ matrix.runner != 'raspberry_pi_64' && matrix.runner != 'raspberry_pi_32' && matrix.runner != 'macos_x64'}}
     #   run: make clean test-fpmake
 
     - name: Build Lazarus Packages
@@ -257,26 +207,27 @@ jobs:
 
     - name: Build and Install PasDoc
       run: |
-        wget https://github.com/pasdoc/pasdoc/archive/refs/heads/master.zip --output-document pasdoc-master.zip
-        unzip pasdoc-master.zip
+        wget --progress=bar:force:noscroll \
+          https://github.com/pasdoc/pasdoc/archive/refs/heads/master.zip \
+          --output-document pasdoc-master.zip
+        unzip -q pasdoc-master.zip
         mv pasdoc-master pasdoc
         cd pasdoc
         make
+        bin/pasdoc --version # check it's OK
 
     - name: Pack Release
       run: |
         rm -f castle-engine*.zip # remove previous artifacts
-        ./tools/internal/pack_release/pack_release.sh ${FPC_OS} ${FPC_CPU}
+        # Determine OS/CPU for pack_release, which is just our current OS/CPU,
+        # as we don't cross-compile here.
+        FPC_OS="`fpc -iTO`"
+        FPC_CPU="`fpc -iTP`"
+        echo "Packing for OS / CPU: ${FPC_OS} / ${FPC_CPU}"
+        CGE_PACK_BUNDLE=yes ./tools/internal/pack_release/pack_release.sh "${FPC_OS}" "${FPC_CPU}"
+
     - name: Archive Artifacts (zip)
       # We don't archive build on:
-      #
-      # - macos-xxx (GH hosted),
-      #   because build on macos_x64 (self-hosted) is already good for us.
-      #   Testing, both these runners produce the functionally equivalent zip
-      #   (there are small differences in binaries, though both use the same FPC version
-      #   but e.g. FPC puts absolute paths in some binaries, so they differ).
-      #   We choose to use macos_x64 as the primary runner for the release,
-      #   since this is our own machine (self hosted), we have more control over it.
       #
       # - windows-latest, because the test-and-pack-docker.yml is also doing
       #   equivalent build (castle-engine-7.0-alpha.snapshot-win64-x86_64.zip).
@@ -303,26 +254,18 @@ jobs:
       #   PasDoc version in Docker is more consistent,
       #   and the build does not rely on cge_clean_all.
       #
-      if: ${{ matrix.runner != 'macos-15-intel' && matrix.runner != 'windows-latest' && !matrix.is_gh_ubuntu }}
+      if: ${{ matrix.runner != 'windows-latest' && !matrix.is_gh_ubuntu }}
       uses: actions/upload-artifact@v6
       with:
         name: ${{ matrix.runner }}-release
         path: "castle-engine*.zip"
         if-no-files-found: error
 
-    - name: Download bundled FPC
-      if: ${{ matrix.runner == 'windows-latest' }}
-      uses: robinraju/release-downloader@v1.12
-      with:
-        repository: "castle-engine/castle-fpc"
-        latest: true
-        fileName: "fpc-win64-x86_64.zip"
-
     - name: Pack Release (Windows Installer, Bundled FPC)
-      if: ${{ matrix.runner == 'windows-latest' }}
+      if: ${{ runner.os == 'Windows' }}
       run: CGE_PACK_BUNDLE=yes ./tools/internal/pack_release/pack_release.sh windows_installer
     - name: Archive Artifacts (exe)
-      if: ${{ matrix.runner == 'windows-latest' }}
+      if: ${{ runner.os == 'Windows' }}
       uses: actions/upload-artifact@v6
       with:
         name: ${{ matrix.runner }}-installer-release
