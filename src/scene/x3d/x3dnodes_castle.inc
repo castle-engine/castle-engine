@@ -582,32 +582,34 @@ var
 begin
   inherited;
 
-  if InternalFeatures.Shaders and InternalFeatures.TextureFloat then
-  begin
-    { Make sure InternalJointTexture is created.
-      It will be used only when mcGpuTexture, but it is easiest to always have
-      it created, so that our renderer prepares resources for it on GPU.
+  { Make sure InternalJointTexture is created.
+    It will be used only when mcGpuTexture, but it is easiest to always have
+    it created, so that our renderer prepares resources for it on GPU.
 
-      To optimize, we don't create when Shaders or TextureFloat is not available,
-      as then mcGpuTexture is not possible. }
+    Note: We do *not* check here
+    "if InternalFeatures.Shaders and InternalFeatures.TextureFloat then"
+    before creation. Even though these are required for mcGpuTexture to work,
+    but possibly InternalFeatures are not set yet, if the TSkinNode was created
+    before rendering context was initialized.
+    Testcase: castle-editor open gameviewplay design of explore_impressive_castle.
+  }
 
-    InternalJointTexture := TPixelTextureNode.Create;
-    InternalJointTexture.WaitForRelease; // never free it using ref-counting
+  InternalJointTexture := TPixelTextureNode.Create;
+  InternalJointTexture.WaitForRelease; // never free it using ref-counting
 
-    { Filtering to nearest, to get precise values in shaders.
-      Boundary mode (repeat or not) should not really matter --
-      our shaders should never query outside of the 0..1 range of texture. }
-    TextureProperties := TTexturePropertiesNode.Create;
-    TextureProperties.MagnificationFilter := magNearest;
-    TextureProperties.MinificationFilter := minNearest;
-    TextureProperties.BoundaryModeS := bmClampToEdge;
-    TextureProperties.BoundaryModeT := bmClampToEdge;
-    TextureProperties.GuiTexture := true; // don't force power of 2 on GPU
-    InternalJointTexture.TextureProperties := TextureProperties;
+  { Filtering to nearest, to get precise values in shaders.
+    Boundary mode (repeat or not) should not really matter --
+    our shaders should never query outside of the 0..1 range of texture. }
+  TextureProperties := TTexturePropertiesNode.Create;
+  TextureProperties.MagnificationFilter := magNearest;
+  TextureProperties.MinificationFilter := minNearest;
+  TextureProperties.BoundaryModeS := bmClampToEdge;
+  TextureProperties.BoundaryModeT := bmClampToEdge;
+  TextureProperties.GuiTexture := true; // don't force power of 2 on GPU
+  InternalJointTexture.TextureProperties := TextureProperties;
 
-    // set any non-empty contents, to make our renderer prepare resources for it
-    InternalJointTexture.FdImage.Value := TRGBAlphaFloatImage.Create(1, 1);
-  end;
+  // set any non-empty contents, to make our renderer prepare resources for it
+  InternalJointTexture.FdImage.Value := TRGBAlphaFloatImage.Create(1, 1);
 end;
 
 destructor TSkinNode.Destroy;
