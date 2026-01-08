@@ -191,7 +191,7 @@ jobs:
       run: make tests
 
     # TODO: Set $FPCDIR, and make this work.
-    # With castle-fpc, we have full control over out FPC install, we should make it work.
+    # With castle-fpc, we have full control over our FPC install, we should make it work.
     # - name: Build Using FpMake
     #   run: make clean test-fpmake
 
@@ -210,7 +210,7 @@ jobs:
         wget --progress=bar:force:noscroll \
           https://github.com/pasdoc/pasdoc/archive/refs/heads/master.zip \
           --output-document pasdoc-master.zip
-        unzip pasdoc-master.zip
+        unzip -q pasdoc-master.zip
         mv pasdoc-master pasdoc
         cd pasdoc
         make
