@@ -17,6 +17,9 @@
 { Test CastleDownload unit. }
 unit TestCastleDownload;
 
+{ Needed for CASTLE_DEFORMAT_BUGGY }
+{$I ../../../src/common_includes/castleconf.inc}
+
 interface
 
 uses
@@ -184,6 +187,10 @@ begin
     AssertVectorEquals(Vector3(7, 8, 9), V);
   finally FreeAndNil(T) end;
 
+  {$ifdef CASTLE_DEFORMAT_BUGGY}
+  AbortTest;
+  Exit;
+  {$else}
   { alternative version using Readln + DeFormat }
   T := TCastleTextReader.Create('castle-data:/test_text_reader.txt');
   try
@@ -202,6 +209,7 @@ begin
     AssertSameValue(8, Y);
     AssertSameValue(9, Z);
   finally FreeAndNil(T) end;
+  {$endif}
 end;
 
 procedure TTestDownload.TestRegisteredProtocolNotCaseSensitive;

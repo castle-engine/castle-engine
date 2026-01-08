@@ -525,6 +525,8 @@ function SAppendPart(const s, PartSeparator, NextPart: string): string;
 type
   EDeformatError = class(Exception);
 
+{$ifndef CASTLE_DEFORMAT_BUGGY}
+
 { Parse a string according to the given format, returning the
   values corresponding to placeholders %x in format string.
 
@@ -622,6 +624,8 @@ function TryDeFormat(Data: string; const Format: string;
   const args: array of pointer;
   const IgnoreCase: boolean = true;
   const RelaxedWhitespaceChecking: boolean = true): integer; overload;
+
+{$endif CASTLE_DEFORMAT_BUGGY}
 
 { Replace all strings in Patterns with corresponding strings in Values.
   This is similar to standard StringReplace, but this does many
@@ -1791,6 +1795,8 @@ begin
     Result := S + PartSeparator + NextPart;
 end;
 
+{$ifndef CASTLE_DEFORMAT_BUGGY}
+
 procedure DeFormat(Data: string; const Format: string;
   const args: array of pointer;
   const IgnoreCase: boolean;
@@ -1992,6 +1998,8 @@ begin
   raise EDeformatError.CreateFmt(
     'data ''%s'' too long - unexpected end of format ''%s''', [Data, Format]);
 end;
+
+{$endif CASTLE_DEFORMAT_BUGGY}
 
 function SReplacePatterns(const S: string;
   const Patterns, Values: array of string; const IgnoreCase: boolean): string;

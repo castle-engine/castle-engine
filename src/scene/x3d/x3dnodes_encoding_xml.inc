@@ -590,6 +590,7 @@ function LoadX3DXmlInternal(const X3DElement: TDOMElement; const BaseUrl: String
 var
   SceneElement: TDOMElement;
   VersionStr: String;
+  VersionTokens: TCastleStringList;
   Version: TX3DVersion;
   { TODO: each USE must occur after it's DEF,
     does X3D XML encoding guarantee this? }
@@ -600,7 +601,15 @@ begin
   { parse "version" attribute }
   if X3DElement.AttributeString('version', VersionStr) then
   begin
-    DeFormat(VersionStr, '%d.%d', [@Version.Major, @Version.Minor]);
+    VersionTokens := CreateTokens(VersionStr, ['.']);
+    try
+      if VersionTokens.Count < 2 then
+        raise Exception.CreateFmt('Invalid X3D version number, expected at least 2 components: "%s"', [
+          VersionStr
+        ]);
+      Version.Major := StrToInt(VersionTokens[0]);
+      Version.Minor := StrToInt(VersionTokens[1]);
+    finally FreeAndNil(VersionTokens) end;
     if Version.Major < 3 then
     begin
       WritelnWarning('X3D', Format('X3D version number too low (%d.%d)', [Version.Major, Version.Minor]));

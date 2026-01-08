@@ -262,6 +262,19 @@
   {$define CASTLE_WORKAROUND_DICTIONARY_FIND}
 {$endif}
 
+{ TODO: macOS/Aarch64 (at least with FPC 3.2.3) fails on DeFormat usage,
+  at least:
+  - TTestCastleVectors.TestVectorStr:
+    Vectors (TVector3) are not equal: expected: -Inf -Inf -Inf, actual: 126.162086486816 408.326904296875
+  - TTestCastleStringUtils.TestDeFormat
+    (unspecified assertion failure)
+  For now, do not use DeFormat there, we can avoid it.
+  TODO: workaround properly in CGE.
+  TODO: submit to FPC devs. }
+{$if defined(DARWIN) and defined(CPUAARCH64)}
+  {$define CASTLE_DEFORMAT_BUGGY}
+{$endif}
+
 { Define CASTLE_IOS when appropriate ----------------------------------------- }
 
 { Build tool defines CASTLE_IOS automatically.
