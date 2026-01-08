@@ -30,7 +30,7 @@ type
   published
     procedure TestLocalCharsCastleData;
     procedure TestLocalCharsCastleConfig;
-    procedure TesTCastleTextReader;
+    procedure TestCastleTextReader;
     procedure TestRegisteredProtocolNotCaseSensitive;
   end;
 
@@ -129,7 +129,7 @@ begin
   StringToFile('castle-config:/2_config with Russian chars образец русского текста.txt', 'Testing save.');
 end;
 
-procedure TTestDownload.TesTCastleTextReader;
+procedure TTestDownload.TestCastleTextReader;
 
 { Testcase based on example from
   https://forum.castle-engine.io/t/setup-files-and-working-with-them/630/4
