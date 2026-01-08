@@ -140,6 +140,12 @@ var
   X, Y, Z: Single;
   V: TVector3;
 begin
+  // Workaround another issue with macOS/Aarch64 with FPC 3.2.3
+  {$if defined(DARWIN) and defined(CPUAARCH64)}
+  AbortTest;
+  Exit;
+  {$endif}
+
   { using ReadSingle }
   T := TCastleTextReader.Create('castle-data:/test_text_reader.txt');
   try
