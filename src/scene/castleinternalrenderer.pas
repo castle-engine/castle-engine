@@ -199,7 +199,7 @@ uses Math,
   CastleStringUtils, CastleGLVersion, CastleLog, CastleInternalGLCubeMaps,
   X3DCameraUtils, CastleProjection, CastleRectangles, CastleTriangles,
   CastleCameras, CastleSceneInternalShape, CastleApplicationProperties,
-  CastleRenderContext, CastleInternalGLUtils, CastleTimeUtils;
+  CastleRenderContext, CastleInternalGLUtils, CastleTimeUtils, CastleUriUtils;
 
 {$define read_implementation}
 

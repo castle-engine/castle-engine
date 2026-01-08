@@ -61,9 +61,9 @@
       @raises(ETextureLoadError If texture cannot be loaded for whatever
       reason.) }
     function TextureImage_IncReference(
-      const TextureImage: TEncodedImage;
+      TextureImage: TEncodedImage;
       const TextureFullUrl: String;
-      const Filter: TTextureFilter;
+      Filter: TTextureFilter;
       const TextureAnisotropy: TGLfloat;
       const TextureWrap: TTextureWrap2D;
       const CompositeForMipmaps: TCompositeImage;
@@ -263,17 +263,28 @@ begin
 end;
 
 function TRendererCache.TextureImage_IncReference(
-  const TextureImage: TEncodedImage;
+  TextureImage: TEncodedImage;
   const TextureFullUrl: String;
-  const Filter: TTextureFilter;
+  Filter: TTextureFilter;
   const TextureAnisotropy: TGLfloat;
   const TextureWrap: TTextureWrap2D;
   const CompositeForMipmaps: TCompositeImage;
   const GUITexture: boolean;
   const FlipVertically: Boolean): TGLTexture;
+
+  function IsFloatImage(const Image: TEncodedImage): Boolean;
+  begin
+    Result :=
+      (Image is TGrayscaleFloatImage) or
+      (Image is TGrayscaleAlphaFloatImage) or
+      (Image is TRGBFloatImage) or
+      (Image is TRGBAlphaFloatImage);
+  end;
+
 var
   I: Integer;
   TextureCached: TTextureImageCache;
+  FreeTextureImage: Boolean;
 begin
   for I := 0 to TextureImageCaches.Count - 1 do
   begin
@@ -315,6 +326,46 @@ begin
     end;
   end;
 
+  FreeTextureImage := false;
+
+  if IsFloatImage(TextureImage) then
+  begin
+    { If trying to load float texture, but it's not supported,
+      replace it with dummy 1x1 non-float texture.
+
+      This is important to work reliably, as our TSkinNode always creates
+      JointTextureNode with a float texture, even when GLFeatures.TextureFloat
+      may be @false (because at the TSkinNode.Create moment, we may not know
+      GLFeatures yet, if renderer not initialized). In turn, our shape preparation
+      may try to prepare such texture. It will not actually be used (because
+      TSkinNode.InternalMeshCalculation will not be mcGpuTexture), but it still
+      cannot crash the preparation process.
+    }
+    if not GLFeatures.TextureFloat then
+    begin
+      WritelnWarning('Trying to prepare a float texture "%s" (%d x %d), but it is not supported by current renderer. Replacing with dummy 1x1 non-float texture.', [
+        UriDisplay(TextureFullUrl),
+        TextureImage.Width,
+        TextureImage.Height
+      ]);
+      TextureImage := TRGBImage.Create(1, 1);
+      FreeTextureImage := true;
+    end else
+    { If trying to load float texture with non-nearest filtering, but it's not supported,
+      use nearest filtering. }
+    if (not GLFeatures.TextureFloatLinear) and
+       ( (Filter.Magnification <> magNearest) or
+         (Filter.Minification <> minNearest) ) then
+    begin
+      WritelnWarning('Trying to prepare a float texture "%s" (%d x %d) with non-nearest filtering, but it is not supported by current renderer. Replacing with nearest filtering.', [
+        UriDisplay(TextureFullUrl),
+        TextureImage.Width,
+        TextureImage.Height
+      ]);
+      Filter := TextureFilter(minNearest, magNearest);
+    end;
+  end;
+
   { Initialize Result first, before calling TextureImageCaches.Add.
     That's because in case LoadGLTexture raises exception,
     we don't want to add texture to cache (because caller would have
@@ -336,6 +387,9 @@ begin
 
   if LogRendererCache then
     WritelnLog('++', 'TextureImage %s: %d', [TextureFullUrl, 1]);
+
+  if FreeTextureImage then
+    FreeAndNil(TextureImage);
 end;
 
 procedure TRendererCache.TextureImage_DecReference(
