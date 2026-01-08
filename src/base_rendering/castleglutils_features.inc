@@ -212,6 +212,7 @@ type
     FVertexArrayObject: Boolean;
     FBlendConstant: Boolean;
     FTextureFloat: Boolean;
+    FTextureFloatLinear: Boolean;
     FTextureDepth, FTextureDepthCompare: Boolean;
     FShaders: Boolean;
     FEnableFixedFunction: Boolean;
@@ -421,8 +422,27 @@ type
     { glBlendColor and GL_CONSTANT_ALPHA support. }
     property BlendConstant: Boolean read FBlendConstant;
 
-    { Support for float texture formats for glTexImage2d. }
+    { Support for float texture formats. }
     property TextureFloat: Boolean read FTextureFloat;
+
+    { Support for linear filtering of float texture formats.
+      Can only be @true when @link(TextureFloat) is @true.
+
+      OpenGL ES and WebGL require separate extension to enable linear filtering,
+      and the distinction is important for us as sometimes float textures
+      with nearest filtering are enough: e.g. to pass TSkinNode joints
+      information, we use nearest filtering.
+
+      See:
+
+      @unorderedList(
+        @item https://registry.khronos.org/OpenGL/extensions/OES/OES_texture_float.txt
+        @item https://registry.khronos.org/OpenGL/extensions/OES/OES_texture_float_linear.txt
+
+        @item https://developer.mozilla.org/en-US/docs/Web/API/OES_texture_float
+        @item https://developer.mozilla.org/en-US/docs/Web/API/OES_texture_float_linear
+      ) }
+    property TextureFloatLinear: Boolean read FTextureFloatLinear;
 
     { Support for depth texture formats for glTexImage2d. }
     property TextureDepth: Boolean read FTextureDepth;
@@ -1221,9 +1241,16 @@ begin
 
   FTextureFloat :=
     {$if defined(CASTLE_WEBGL)} HasExtension('GL_OES_texture_float')
-    {$elseif defined(OpenGLES)} false
+    {$elseif defined(OpenGLES)} HasExtension('GL_OES_texture_float')
     {$else} HasExtension('GL_ATI_texture_float') or HasExtension('GL_ARB_texture_float')
     {$endif};
+
+  FTextureFloatLinear := FTextureFloat and (
+    {$if defined(CASTLE_WEBGL)} HasExtension('GL_OES_texture_float_linear')
+    {$elseif defined(OpenGLES)} HasExtension('GL_OES_texture_float_linear')
+    {$else} true
+    {$endif}
+  );
 
   FTextureDepth :=
     {$if defined(CASTLE_WEBGL)}
