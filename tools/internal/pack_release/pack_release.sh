@@ -256,14 +256,18 @@ do_unzip ()
 # Download URL $1 into filename $2.
 download ()
 {
-  # Both wget and curl should work OK.
-  # But on my Cygwin (possibly some problem specific on Michalis Windows machine), wget fails with "GnuTLS: The request is invalid."
-  if which cygpath.exe > /dev/null; then
-    curl "$1" > "$2"
-  else
+  # prefer wget, downloading using curl releases from GH like
+  #   curl https://github.com/castle-engine/castle-fpc/releases/download/snapshot/fpc-win64-x86_64.zip
+  #   curl https://github.com/castle-engine/castle-engine/releases/download/v7.0-alpha.3/castle-engine-7.0-alpha.3-darwin-x86_64.zip
+  # seems to fail (with no relevant message, also in -v, curl just stops
+  # downloaded nothing).
+
+  if which wget > /dev/null 2>&1; then
     # Using --progress=bar:force:noscroll looks nicer in CI logs.
     wget  --progress=bar:force:noscroll \
       "$1" --output-document "$2"
+  else
+    curl "$1" > "$2"
   fi
 }
 
