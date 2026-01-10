@@ -122,7 +122,8 @@ implementation
 uses SysUtils, Process,
   CastleUtils, CastleLog, CastleFilesUtils, CastleFindFiles,
   CastleInternalTools,
-  ToolCommonUtils, ToolUtils, ToolFpcVersion, ToolCompilerInfo, ToolProcessRun;
+  ToolCommonUtils, ToolUtils, ToolFpcVersion, ToolCompilerInfo, ToolProcessRun
+  {$ifdef DARWIN} , ToolMacOS {$endif};
 
 { TCompilerOptions ----------------------------------------------------------- }
 
@@ -505,6 +506,10 @@ var
   end;
 
   procedure AddMacOSOptions;
+  var
+    SdkPath: String;
+    XcodePath: String;
+    SdkVersionMajor, SdkVersionMinor: Cardinal;
   begin
     if (Options.OS = darwin) and ((Options.CPU = X86_64) or (Options.CPU = Aarch64)) then
     begin
@@ -514,6 +519,26 @@ var
       // TODO: Lazarus proposes such debugger options; should we pass them too? Why aren't they FPC defaults?
       // FpcOptions.Add('-gw2');
       // FpcOptions.Add('-godwarfsets');
+
+      { We need to pass additional options on macOS to link.
+        See https://github.com/castle-engine/castle-fpc ,
+        and utils_calculate_fpc_opts in
+        https://github.com/castle-engine/castle-fpc/blob/master/build_utilities }
+      {$ifdef DARWIN}
+      SdkPath := MacOsSdkPath;
+      XcodePath := MacOsXcodePath;
+      if (SdkPath <> '') and (XcodePath <> '') then
+      begin
+        FpcOptions.Add('-XR' + SdkPath);
+        FpcOptions.Add('-Fl' + SdkPath + '/usr/lib');
+        FpcOptions.Add('-FD' + XcodePath + '/Toolchains/XcodeDefault.xctoolchain/usr/bin');
+      end;
+      if MacOsSdkVersion(SdkVersionMajor, SdkVersionMinor) and
+         (SdkVersionMajor >= 11) then
+      begin
+        FpcOptions.Add('-WM10.15');
+      end;
+      {$endif DARWIN}
     end;
   end;
 

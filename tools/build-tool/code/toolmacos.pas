@@ -51,6 +51,22 @@ procedure CreateMacAppBundle(const Project: TCastleProject; const BundleParenPat
   be like 'foo.zip'). }
 procedure ZipMacAppBundle(const Project: TCastleProject; const BundleParenPath, PackageFileName: String);
 
+{$ifdef DARWIN}
+
+{ Query for macOS SDK path (xcrun --show-sdk-path).
+  Empty if failed. }
+function MacOsSdkPath: String;
+
+{ Query for Xcode path (xcode-select --print-path).
+  Empty if failed. }
+function MacOsXcodePath: String;
+
+{ Query for macOS SDK version (xcrun --show-sdk-version).
+  Returns @false is failed. }
+function MacOsSdkVersion(out Major, Minor: Cardinal): Boolean;
+
+{$endif}
+
 implementation
 
 uses {$ifdef UNIX} BaseUnix, {$endif} SysUtils,
@@ -331,5 +347,123 @@ begin
 
   Writeln(Format('Packed to "%s"', [PackageFileName]));
 end;
+
+{$ifdef DARWIN}
+
+function MacOsSdkPath: String;
+var
+  ToolExe: String;
+  ExitStatus: Integer;
+begin
+  ToolExe := FindExe('xcrun');
+  if ToolExe = '' then
+  begin
+    WritelnWarning('Cannot run "xcrun" to query macOS SDK path. Is Xcode with command-line utilities installed?');
+    Exit('');
+  end;
+
+  MyRunCommandIndir(GetCurrentDir, ToolExe, ['--show-sdk-path'], Result, ExitStatus);
+  if ExitStatus <> 0 then
+  begin
+    WritelnWarning('Running "xcrun --show-sdk-path" failed, exit status %d.', [
+      ExitStatus
+    ]);
+    Exit('');
+  end;
+
+  Result := Trim(Result);
+end;
+
+function MacOsXcodePath: String;
+var
+  ToolExe: String;
+  ExitStatus: Integer;
+begin
+  ToolExe := FindExe('xcode-select');
+  if ToolExe = '' then
+  begin
+    WritelnWarning('Cannot run "xcode-select" to query Xcode path. Is Xcode with command-line utilities installed?');
+    Exit('');
+  end;
+
+  MyRunCommandIndir(GetCurrentDir, ToolExe, ['--print-path'], Result, ExitStatus);
+  if ExitStatus <> 0 then
+  begin
+    WritelnWarning('Running "xcode-select --print-path" failed, exit status %d.', [
+      ExitStatus
+    ]);
+    Exit('');
+  end;
+
+  Result := Trim(Result);
+end;
+
+function MacOsSdkVersion(out Major, Minor: Cardinal): Boolean;
+
+  procedure ParseVersion(const S: String; out Major, Minor, Release: Cardinal);
+  var
+    Token: String;
+    SeekPos: Integer;
+  begin
+    SeekPos := 1;
+
+    Token := NextToken(S, SeekPos, ['.']);
+    if Token = '' then
+      raise Exception.CreateFmt('Failed to query version from "xcrun --show-sdk-version" output: no major number in "%s"', [S]);
+    Major := StrToInt(Token);
+
+    Token := NextToken(S, SeekPos, ['.']);
+    if Token = '' then
+      raise Exception.CreateFmt('Failed to query version from "xcrun --show-sdk-version" output: no minor number in "%s"', [S]);
+    Minor := StrToInt(Token);
+
+    Token := NextToken(S, SeekPos, ['.']);
+    if Token = '' then
+    begin
+      // Do not warn about this, right now macOS SDK version numbers don't have release number.
+      Release := 0;
+    end else
+      Release := StrToInt(Token);
+  end;
+
+var
+  ToolExe: String;
+  ExitStatus: Integer;
+  VersionStr: String;
+  // for now, we ignore the release number from ParseVersion,
+  // macOS SDK version numbers don't have release number.
+  IgnoredRelease: Cardinal;
+begin
+  ToolExe := FindExe('xcrun');
+  if ToolExe = '' then
+  begin
+    WritelnWarning('Cannot run "xcrun" to query macOS SDK version. Is Xcode with command-line utilities installed?');
+    Exit(false);
+  end;
+  MyRunCommandIndir(GetCurrentDir, ToolExe, ['--show-sdk-version'], VersionStr, ExitStatus);
+
+  if ExitStatus <> 0 then
+  begin
+    WritelnWarning('Running "xcrun --show-sdk-version" failed, exit status %d.', [
+      ExitStatus
+    ]);
+    Exit(false);
+  end;
+
+  try
+    ParseVersion(Trim(VersionStr), Major, Minor, IgnoredRelease);
+    Result := true;
+  except
+    on E: Exception do
+    begin
+      WritelnWarning('Failed to query macOS SDK version from "xcrun --show-sdk-version" output: %s', [
+        ExceptMessage(E)
+      ]);
+      Result := false;
+    end;
+  end;
+end;
+
+{$endif DARWIN}
 
 end.
