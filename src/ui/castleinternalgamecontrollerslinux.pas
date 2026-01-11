@@ -87,12 +87,7 @@ type
     { Axes mapping from JSIOCGAXMAP call. }
     AxesMap : array[0..ABS_MAX - 1] of Byte;
 
-    { Axes count available in this controller.
-      Warning: This doesn't imply the number of axes that are available in
-      InternalAxis, it talks about internal axes (backend-specific) that
-      are mapped to real axes in TInternalGameControllerAxis.
-      So *do not* use this to iterate over InternalAxis.
-      @exclude }
+    { Axes count available in this controller. }
     AxesCount: Integer;
 
     { Buttons count reported to be supported. }

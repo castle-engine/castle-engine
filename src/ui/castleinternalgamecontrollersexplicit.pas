@@ -42,8 +42,7 @@ uses CastleUtils, CastleLog;
 
 type
   TExplicitControllerBackend = class(TInternalControllerBackend)
-    { Last set axis values.
-      Explicit backend ignores the InternalAxis[...] values. }
+    { Last set axis values. }
     FAxisLeft, FAxisRight: TVector2;
     FAxisLeftTrigger, FAxisRightTrigger: Single;
     function AxisLeft: TVector2; override;
