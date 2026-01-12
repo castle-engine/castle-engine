@@ -439,7 +439,7 @@ type
         @item https://registry.khronos.org/OpenGL/extensions/OES/OES_texture_float.txt
         @item https://registry.khronos.org/OpenGL/extensions/OES/OES_texture_float_linear.txt
 
-        @item https://developer.mozilla.org/en-US/docs/Web/API/OES_texture_float
+        @item (only for WebGL1!) https://developer.mozilla.org/en-US/docs/Web/API/OES_texture_float
         @item https://developer.mozilla.org/en-US/docs/Web/API/OES_texture_float_linear
       ) }
     property TextureFloatLinear: Boolean read FTextureFloatLinear;
@@ -1240,7 +1240,14 @@ begin
     {$endif};
 
   FTextureFloat :=
-    {$if defined(CASTLE_WEBGL)} HasExtension('GL_OES_texture_float')
+    { On WebGL 2, no need for any extension, according to tests and to
+      https://developer.mozilla.org/en-US/docs/Web/API/OES_texture_float :
+      """Note: This extension is only available to WebGL1 contexts.
+      In WebGL2, the functionality of this extension is available on the WebGL2
+      context by default.
+      """
+    }
+    {$if defined(CASTLE_WEBGL)} VersionWebGL_2 or HasExtension('GL_OES_texture_float')
     {$elseif defined(OpenGLES)} HasExtension('GL_OES_texture_float')
     {$else} HasExtension('GL_ATI_texture_float') or HasExtension('GL_ARB_texture_float')
     {$endif};

@@ -133,6 +133,35 @@ const
   GL_BLUE = $1905;
 {$endif}
 
+  function IsFloatImage(const Image: TEncodedImage): Boolean;
+  begin
+    Result :=
+      (Image is TGrayscaleFloatImage) or
+      (Image is TGrayscaleAlphaFloatImage) or
+      (Image is TRGBFloatImage) or
+      (Image is TRGBAlphaFloatImage);
+  end;
+
+  function ModernFormatEnums: Boolean;
+  begin
+    Result := GLFeatures.TextureModernFormatsAndSwizzle
+
+      { WebGL 2 doesn't have texture swizzle, but ImageInternalFormat
+        should be GL_*32F for float textures.
+
+        Testcase: animate_bones_by_code, using float textures for joints,
+        Firefox and Vivaldi make warnings in console if we use GL_RGBA
+        instead of GL_RGBA32F for ImageInternalFormat for TRGBAlphaFloatImage.
+
+        Seems all textures should use modern enums with WebGL 2:
+        https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/texImage2D
+
+        Note: It would seem the same should apply to non-float textures...
+        but then our font rendering is broken.
+        Looks like we need old enums for non-float textures? }
+      {$ifdef CASTLE_WEBGL} or (IsFloatImage(Img) and GLFeatures.VersionWebGL_2) {$endif};
+  end;
+
 begin
   { ImageSwizzle passing depends on it. }
   Assert(SizeOf(Integer) = SizeOf(TGLint));
@@ -140,7 +169,7 @@ begin
   if Img is TRGBImage then
   begin
     ImageSwizzle := Vector4Integer(GL_RED, GL_GREEN, GL_BLUE, GL_ONE);
-    if GLFeatures.TextureModernFormatsAndSwizzle then
+    if ModernFormatEnums then
     begin
       ImageFormat := GL_RGB;
       ImageInternalFormat := GL_RGB8;
@@ -156,7 +185,7 @@ begin
   if Img is TRGBAlphaImage then
   begin
     ImageSwizzle := Vector4Integer(GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA);
-    if GLFeatures.TextureModernFormatsAndSwizzle then
+    if ModernFormatEnums then
     begin
       ImageFormat := GL_RGBA;
       ImageInternalFormat := GL_RGBA8;
@@ -176,7 +205,7 @@ begin
       ImageSwizzle := Vector4Integer(GL_ONE, GL_ONE, GL_ONE, GL_RED)
     else
       ImageSwizzle := Vector4Integer(GL_RED, GL_RED, GL_RED, GL_ONE);
-    if GLFeatures.TextureModernFormatsAndSwizzle then
+    if ModernFormatEnums then
     begin
       ImageFormat := GL_RED;
       ImageInternalFormat := GL_R8;
@@ -195,7 +224,7 @@ begin
       - 1st channel (red) -> RBG
       - 2nd channel (green) -> alpha }
     ImageSwizzle := Vector4Integer(GL_RED, GL_RED, GL_RED, GL_GREEN);
-    if GLFeatures.TextureModernFormatsAndSwizzle then
+    if ModernFormatEnums then
     begin
       ImageFormat := GL_RG;
       ImageInternalFormat := GL_RG8;
@@ -211,7 +240,7 @@ begin
   if Img is TGrayscaleFloatImage then
   begin
     ImageSwizzle := Vector4Integer(GL_RED, GL_RED, GL_RED, GL_ONE);
-    if GLFeatures.TextureModernFormatsAndSwizzle then
+    if ModernFormatEnums then
     begin
       ImageFormat := GL_RED;
       ImageInternalFormat := GL_R32F;
@@ -230,7 +259,7 @@ begin
       - 1st channel (red) -> RBG
       - 2nd channel (green) -> alpha }
     ImageSwizzle := Vector4Integer(GL_RED, GL_RED, GL_RED, GL_GREEN);
-    if GLFeatures.TextureModernFormatsAndSwizzle then
+    if ModernFormatEnums then
     begin
       ImageFormat := GL_RG;
       ImageInternalFormat := GL_RG32F;
@@ -246,7 +275,7 @@ begin
   if Img is TRGBFloatImage then
   begin
     ImageSwizzle := Vector4Integer(GL_RED, GL_GREEN, GL_BLUE, GL_ONE);
-    if GLFeatures.TextureModernFormatsAndSwizzle then
+    if ModernFormatEnums then
     begin
       ImageFormat := GL_RGB;
       ImageInternalFormat := GL_RGB32F;
@@ -262,7 +291,7 @@ begin
   if Img is TRGBAlphaFloatImage then
   begin
     ImageSwizzle := Vector4Integer(GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA);
-    if GLFeatures.TextureModernFormatsAndSwizzle then
+    if ModernFormatEnums then
     begin
       ImageFormat := GL_RGBA;
       ImageInternalFormat := GL_RGBA32F;
