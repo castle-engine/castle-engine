@@ -506,10 +506,12 @@ var
   end;
 
   procedure AddMacOSOptions;
+  {$ifdef DARWIN}
   var
     SdkPath: String;
     XcodePath: String;
     SdkVersionMajor, SdkVersionMinor: Cardinal;
+  {$endif}
   begin
     if (Options.OS = darwin) and ((Options.CPU = X86_64) or (Options.CPU = Aarch64)) then
     begin
