@@ -246,7 +246,7 @@
   {$define CASTLE_LIST_METHODS_WORKAROUND}
 {$endif}
 
-{ For unknown reason, FPC 3.2.3 (fixes_3_2 branch) fails
+{ FPC 3.2.3 (fixes_3_2 branch) fails
 
     Result := inherited Items[AKey];
 
@@ -256,13 +256,15 @@
       raise EListError.CreateFmt('Dictionary key "%s" does not exist', [AKey]);
 
   Testcase: TTestX3DNodes.TestRootNodeMeta .
-  TODO: submit to FPC.
+  Fixed already in FPC 3.3.1 .
+  TODO: submit to FPC to merge into fixes_3_2 branch.
 }
 {$if defined(DARWIN) and defined(CPUX86_64) and defined(VER3_2_3)}
   {$define CASTLE_WORKAROUND_DICTIONARY_FIND}
 {$endif}
 
-{ TODO: macOS/Aarch64 (at least with FPC 3.2.3) fails on DeFormat usage,
+{ TODO: macOS/Aarch64 (at least with FPC 3.2.3, unknown with 3.3.1)
+  fails on DeFormat usage,
   at least:
   - TTestCastleVectors.TestVectorStr:
     Vectors (TVector3) are not equal: expected: -Inf -Inf -Inf, actual: 126.162086486816 408.326904296875
