@@ -1108,8 +1108,18 @@ const
   ImageFormat = GL_RGBA;
   ImageInternalFormat = GL_RGBA32F;
   Level = 0; // always update mipmap level 0;
+var
+  GLData: {$ifdef CASTLE_WEBGL} IJSFloat32Array {$else} Pointer {$endif};
 begin
   if not Bind(0) then Exit;
+
+  {$ifdef CASTLE_WEBGL}
+  { On web, the texture data must be copied to JS float32 array. }
+  GLData := TJSFloat32Array.Create(Width * Height * 4);
+  GLData.CopyFromMemory(Data, Width * Height * 4 * SizeOf(Single));
+  {$else}
+  GLData := Data;
+  {$endif}
 
   { We assume we don't need to do some stuff from CastleTexImage2D:
     - no need for BeforeUnpackImage, as RGBA float textures are always
@@ -1129,7 +1139,7 @@ begin
 
   begin
     glTexImage2D(GL_TEXTURE_2D, Level, ImageInternalFormat,
-      Width, Height, 0, ImageFormat, GL_FLOAT, Data);
+      Width, Height, 0, ImageFormat, GL_FLOAT, GLData);
     FAllocatedWidth := Width;
     FAllocatedHeight := Height;
   end
@@ -1138,7 +1148,7 @@ begin
   else
   begin
     glTexSubImage2D(GL_TEXTURE_2D, Level, 0, 0, Width, Height,
-      ImageFormat, GL_FLOAT, Data);
+      ImageFormat, GL_FLOAT, GLData);
   end
   {$endif};
 end;

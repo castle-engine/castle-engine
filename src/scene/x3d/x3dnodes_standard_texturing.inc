@@ -40,7 +40,9 @@
       Checks that this texture size is correct (if not, fixes the size).
 
       Sets the texture contents to the indicated ones.
-      Given Data pointer must point to Width * Height * SizeOf(TVector4) bytes. }
+      Given Data pointer must point to
+      @code(Width * Height * 4) Single values, so
+      @code(Width * Height * SizeOf(TVector4)) bytes. }
     procedure UpdateTextureContentsRgbaFloat(
       const Width, Height: Cardinal; const Data: Pointer); virtual;
   end;
