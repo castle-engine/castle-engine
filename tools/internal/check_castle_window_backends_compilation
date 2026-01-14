@@ -56,6 +56,7 @@ do_test_one_backend ()
 do_test_all_backends ()
 {
   do_test_one_backend linux x86_64 CASTLE_WINDOW_GTK_2
+  do_test_one_backend linux x86_64 CASTLE_WINDOW_GTK_3
   do_test_one_backend linux x86_64 CASTLE_WINDOW_XLIB
   do_test_one_backend linux x86_64 CASTLE_WINDOW_TEMPLATE
   # Note that CASTLE_WINDOW_LIBRARY backend will not really work
@@ -64,18 +65,20 @@ do_test_all_backends ()
   do_test_one_backend linux x86_64 CASTLE_WINDOW_FORM
 
   do_test_one_backend win32 i386 CASTLE_WINDOW_WINAPI
-  # For now we don't support CASTLE_WINDOW_GTK_2 on non-Unix,
+  # For now we don't support CASTLE_WINDOW_GTK_2 / 3 on non-Unix,
   # see "TODO: WindowXID is only with X" in implementation.
   # This could be fixed if ever needed -- but in practice there's no point using
   # GTK backend e.g. on Windows, since we have WinAPI backend.
   # do_test_one_backend win32 i386 CASTLE_WINDOW_GTK_2
+  # do_test_one_backend win32 i386 CASTLE_WINDOW_GTK_3
   do_test_one_backend win32 i386 CASTLE_WINDOW_TEMPLATE
   do_test_one_backend win32 i386 CASTLE_WINDOW_LIBRARY
   do_test_one_backend win32 i386 CASTLE_WINDOW_FORM
 
   do_test_one_backend win64 x86_64 CASTLE_WINDOW_WINAPI
-  # See above for CASTLE_WINDOW_GTK_2 on non-Unix notes.
+  # See above for CASTLE_WINDOW_GTK_2 / 3 on non-Unix notes.
   # do_test_one_backend win64 x86_64 CASTLE_WINDOW_GTK_2
+  # do_test_one_backend win64 x86_64 CASTLE_WINDOW_GTK_3
   do_test_one_backend win64 x86_64 CASTLE_WINDOW_TEMPLATE
   do_test_one_backend win64 x86_64 CASTLE_WINDOW_LIBRARY
   do_test_one_backend win64 x86_64 CASTLE_WINDOW_FORM
