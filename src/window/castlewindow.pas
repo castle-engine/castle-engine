@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2024 Michalis Kamburelis.
+  Copyright 2001-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -173,15 +173,15 @@ unit CastleWindow;
   If you don't define any such symbol,
   below we automatically choose the best backend for given OS. }
 {$if not (
-  defined(CASTLE_WINDOW_WINAPI) and
-  defined(CASTLE_WINDOW_XLIB) and
-  defined(CASTLE_WINDOW_GTK_2) and
-  defined(CASTLE_WINDOW_GTK_3) and
-  defined(CASTLE_WINDOW_COCOA) and
-  defined(CASTLE_WINDOW_FORM) and
-  defined(CASTLE_WINDOW_ANDROID) and
-  defined(CASTLE_WINDOW_LIBRARY) and
-  defined(CASTLE_WINDOW_TEMPLATE) and
+  defined(CASTLE_WINDOW_WINAPI) or
+  defined(CASTLE_WINDOW_XLIB) or
+  defined(CASTLE_WINDOW_GTK_2) or
+  defined(CASTLE_WINDOW_GTK_3) or
+  defined(CASTLE_WINDOW_COCOA) or
+  defined(CASTLE_WINDOW_FORM) or
+  defined(CASTLE_WINDOW_ANDROID) or
+  defined(CASTLE_WINDOW_LIBRARY) or
+  defined(CASTLE_WINDOW_TEMPLATE) or
   defined(CASTLE_WINDOW_WEBASSEMBLY)
 )}
 
@@ -244,6 +244,10 @@ unit CastleWindow;
 
 {$if defined(CASTLE_WINDOW_GTK_2) or defined(CASTLE_WINDOW_GTK_3)}
   {$define CASTLE_WINDOW_GTK_ANY}
+{$endif}
+
+{$if defined(CASTLE_WINDOW_GTK_2) and defined(CASTLE_WINDOW_GTK_3)}
+  {$error Cannot define both CASTLE_WINDOW_GTK_2 and CASTLE_WINDOW_GTK_3. Define only one of them to use the respective GTK version.}
 {$endif}
 
 { Sometimes GTK backend needs to call some X-specific things:

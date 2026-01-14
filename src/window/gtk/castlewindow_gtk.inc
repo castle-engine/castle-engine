@@ -1,6 +1,6 @@
 {%MainUnit ../castlewindow.pas}
 {
-  Copyright 2004-2022 Michalis Kamburelis.
+  Copyright 2004-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -37,14 +37,13 @@
   {$ifdef CASTLE_WINDOW_GTK_2}
     Glib2, Gdk2, Gtk2,
   {$else}
+    CastleInternalGObject2,
     CastleInternalGlib2, CastleInternalGdk3, CastleInternalGtk3,
   {$endif}
   CastleDynLib,
   {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
     {$ifdef CASTLE_WINDOW_GTK_2}
       Gdk2X,
-    {$else}
-      CastleInternalGdk3X,
     {$endif}
     X, Xlib, XUtil,
   {$endif}
@@ -74,7 +73,7 @@ private
     ADialog will be made modal (and "transient" for us in the GtkWindow variant).
 
     Then we will wait (while in TModeGLFrozenImage) for dialog to finish.
-    PGtkDialog version just returns gint response, like gtk_dialog_run
+    PGtkDialog version just returns TGtkResponseType response, like gtk_dialog_run
     --- possible values like gtk_dialog_run, depending on dialog buttons.
     PGtkWindow version returns @true if closed by Ok button,
     otherwise (when closed by Cancel button, or "delete" event) returns @false.
@@ -92,8 +91,8 @@ private
 
     @groupBegin }
   function GtkDialogRun(ADialog: PGtkWindow;
-    ok_button, cancel_button: PGtkWidget): boolean;
-  function GtkDialogRun(ADialog: PGtkDialog): gint;
+    ok_button, cancel_button: PGtkWidget): Boolean;
+  function GtkDialogRun(ADialog: PGtkDialog): TGtkResponseType;
   { @groupEnd }
   procedure GetInitialCursorPos;
   {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
@@ -181,23 +180,13 @@ public
 
 { various helpers ------------------------------------------------------------ }
 
+{$ifdef CASTLE_WINDOW_GTK_2}
+  {$I gtk_2.inc}
+{$endif}
+{$ifdef CASTLE_WINDOW_GTK_3}
+  {$I gtk_3.inc}
+{$endif}
 {$I castlewindow_gtk_menu.inc}
-
-{ This is mispelled in FPC gtk bindings, see
-  [http://www.freepascal.org/bugs/showrec.php3?ID=5112] }
-function gdk_display_open(display_name:Pgchar):PGdkDisplay;
-  cdecl; external gdklib;
-
-{ Some functions missing from FPC gtk bindings }
-function gdk_cursor_new_for_display(Display: PGdkDisplay;
-  cursor_type: TGdkCursorType): PGdkCursor;
-  cdecl; external gdklib name 'gdk_cursor_new_for_display';
-function gdk_display_get_default: PGdkDisplay;
-  cdecl; external gdklib name 'gdk_display_get_default';
-function gdk_screen_get_primary_monitor(Screen: PGdkScreen): GInt;
-  cdecl; external gdklib name 'gdk_screen_get_primary_monitor';
-function gdk_screen_get_resolution(screen: PGdkScreen): gdouble;
-  cdecl; external gdklib;
 
 { Converts GDK keysym (from gdkkeysyms.pp, or gdk/gdkkeysym.h) to
   keyXxx constant (from Keys unit). Returns keyNone if no conversion is possible
@@ -229,7 +218,10 @@ begin
 
     GDK_KEY_0..GDK_KEY_9: Result := TKey(Ord(key0) + GdkKeysym - GDK_KEY_0);
 
+    {$ifdef CASTLE_WINDOW_GTK_2}
     GDK_KEY_Capital_A..GDK_KEY_Capital_Z: Result := TKey(Ord(keyA) + GdkKeysym - GDK_KEY_Capital_A);
+    {$endif CASTLE_WINDOW_GTK_2}
+
     GDK_KEY_A        ..GDK_KEY_Z        : Result := TKey(Ord(keyA) + GdkKeysym - GDK_KEY_A);
 
     GDK_KEY_F1..GDK_KEY_F12: Result := TKey(Ord(keyF1) + GdkKeysym - GDK_KEY_F1);
@@ -463,7 +455,7 @@ SIGNAL_WINDOW_BEGIN
     else
     begin
       Key := GdkKeysymToKey(Event^.KeyVal);
-      KeyString := Event^._string;
+      KeyString := Event^. {$ifdef CASTLE_WINDOW_GTK_2} _string {$else} string_ {$endif};
 
       if (Key <> keyNone) or (KeyString <> '') then
       begin
@@ -532,7 +524,8 @@ function signal_button_press_event(AGLAreaGtk: PGtkGLArea; Event: PGdkEventButto
   data: gpointer): gboolean; cdecl;
 var mb: TCastleMouseButton;
 SIGNAL_GLAREA_BEGIN
-  Result := (Event^._type = GDK_BUTTON_PRESS) and
+  Result := (Event^.
+    {$ifdef CASTLE_WINDOW_GTK_2} _type {$else} type_ {$endif} = GDK_BUTTON_PRESS) and
     ButtonNumberToMouseButton(Event^.button, mb);
   if Result then
     DoMouseDown(LeftTopToCastle(Event^.x, Event^.y), mb, 0);
@@ -542,7 +535,8 @@ function signal_button_release_event(AGLAreaGtk: PGtkGLArea; Event: PGdkEventBut
   data: gpointer): gboolean; cdecl;
 var mb: TCastleMouseButton;
 SIGNAL_GLAREA_BEGIN
-  Result := (Event^._type = GDK_BUTTON_RELEASE) and
+  Result := (Event^.
+    {$ifdef CASTLE_WINDOW_GTK_2} _type {$else} type_ {$endif} = GDK_BUTTON_RELEASE) and
     ButtonNumberToMouseButton(Event^.button, mb);
   if Result then
     DoMouseUp(LeftTopToCastle(Event^.x, Event^.y), mb, 0);
@@ -664,6 +658,7 @@ end;
 
 procedure TCastleWindow.UpdateCursor;
 
+  {$ifdef CASTLE_WINDOW_GTK_2}
   function CreateNoneCursor: PGdkCursor;
   const
     Bits: array[0..0] of Guchar = (0);
@@ -677,6 +672,7 @@ procedure TCastleWindow.UpdateCursor;
       Result := gdk_cursor_new_from_pixmap(Pixmap, Pixmap, @Color, @Color, 0, 0);
     finally gdk_pixmap_unref(Pixmap); end;
   end;
+  {$endif CASTLE_WINDOW_GTK_2}
 
 const
   { GDK cursors.
@@ -712,7 +708,13 @@ begin
         { don't do anything, Application.Cursors[mcDefault] should be nil,
           gdk_window_set_cursor will understand nil as "use parent"
           and that's exactly what we want for mcDefault. };
-      mcNone, mcForceNone: Application.Cursors[InternalCursor] := CreateNoneCursor;
+      mcNone, mcForceNone:
+        Application.Cursors[InternalCursor] :=
+          {$ifdef CASTLE_WINDOW_GTK_2}
+          CreateNoneCursor
+          {$else}
+          gdk_cursor_new_for_display(Application.XDisplayGdk, GDK_BLANK_CURSOR)
+          {$endif};
       else
         Application.Cursors[InternalCursor] := gdk_cursor_new_for_display(
           Application.XDisplayGdk, GdkCursorTypeFromCastle[InternalCursor]);
@@ -914,12 +916,21 @@ begin
   { What events to catch ? It must cover all signal_yyy_event functions that we
     will connect. This must be called before X Window is created. }
   gtk_widget_set_events(GTK_WIDGET(GLAreaGtk),
-      GDK_EXPOSURE_MASK {for expose_event} or
-      GDK_BUTTON_PRESS_MASK {for button_press_event} or
-      GDK_BUTTON_RELEASE_MASK {for button_release_event} or
-      GDK_POINTER_MOTION_MASK {for motion_notify_event}
-      { we don't have to tell here that we want configure_event,
-        it is always called });
+    {$ifdef CASTLE_WINDOW_GTK_2}
+    GDK_EXPOSURE_MASK {for expose_event} or
+    GDK_BUTTON_PRESS_MASK {for button_press_event} or
+    GDK_BUTTON_RELEASE_MASK {for button_release_event} or
+    GDK_POINTER_MOTION_MASK {for motion_notify_event}
+    { we don't have to tell here that we want configure_event,
+      it is always called }
+    {$else}
+    [
+      GDK_EXPOSURE_MASK,
+      GDK_BUTTON_PRESS_MASK,
+      GDK_BUTTON_RELEASE_MASK,
+      GDK_POINTER_MOTION_MASK
+    ]
+    {$endif});
 
   gtk_signal_connect(GTK_OBJECT(GLAreaGtk), 'configure_event',
     GTK_SIGNAL_FUNC(@signal_glarea_configure_event), nil);
@@ -936,10 +947,17 @@ begin
 
   { connect signal handlers to WindowGtk }
   gtk_widget_set_events(GTK_WIDGET(WindowGtk),
-      GDK_KEY_PRESS_MASK {for key_press} or
-      GDK_KEY_RELEASE_MASK {for key_release}
-      { we don't have to tell here that we want configure_event,
-        it is always called });
+    {$ifdef CASTLE_WINDOW_GTK_2}
+    GDK_KEY_PRESS_MASK {for key_press} or
+    GDK_KEY_RELEASE_MASK {for key_release}
+    { we don't have to tell here that we want configure_event,
+      it is always called }
+    {$else}
+    [
+      GDK_KEY_PRESS_MASK,
+      GDK_KEY_RELEASE_MASK
+    ]
+    {$endif});
 
   gtk_signal_connect(GTK_OBJECT(WindowGtk), 'configure_event',
     GTK_SIGNAL_FUNC(@signal_window_configure_event), nil);
@@ -1133,8 +1151,8 @@ type
     PDialogData will be passed as a 2nd argument to signals
     (and 3rd argument to events) associated with dialog boxes. }
   TDialogData = record
-    Answered: boolean; { = false }
-    Answer: gint;
+    Answered: Boolean; { = false }
+    Answer: TGtkResponseType;
   end;
   PDialogData = ^TDialogData;
 
@@ -1171,11 +1189,11 @@ procedure signal_dialog_response(ADialog: PGtkDialog; ResponseId: GInt;
   Data: PDialogData); cdecl;
 begin
   Data^.Answered := true;
-  Data^.Answer := ResponseId;
+  Data^.Answer := TGtkResponseType(ResponseId);
 end;
 
 function TCastleWindow.GtkDialogRun(ADialog: PGtkWindow;
-  ok_button, cancel_button: PGtkWidget): boolean;
+  ok_button, cancel_button: PGtkWidget): Boolean;
 var
   Data: TDialogData;
   Mode: TGLModeFrozenScreen;
@@ -1202,7 +1220,7 @@ begin
   Result := Data.Answer = GTK_RESPONSE_ACCEPT;
 end;
 
-function TCastleWindow.GtkDialogRun(ADialog: PGtkDialog): gint;
+function TCastleWindow.GtkDialogRun(ADialog: PGtkDialog): TGtkResponseType;
 var
   Data: TDialogData;
   Mode: TGLModeFrozenScreen;
@@ -1281,11 +1299,11 @@ var
       gtk_file_filter_set_name(GtkFilter, PChar(Filter.Name));
       for J := 0 to Filter.Patterns.Count - 1 do
         gtk_file_filter_add_pattern(GtkFilter, PChar(Filter.Patterns[J]));
-      gtk_file_chooser_add_filter(Dialog, GtkFilter);
+      gtk_file_chooser_add_filter(PGtkFileChooser(Dialog), GtkFilter);
 
       if I = FileFilters.DefaultFilter then
       begin
-        gtk_file_chooser_set_filter(Dialog, GtkFilter);
+        gtk_file_chooser_set_filter(PGtkFileChooser(Dialog), GtkFilter);
         HasDefaultFilter := true;
       end;
     end;
@@ -1308,6 +1326,9 @@ begin
     OkButtonText := PChar(GTK_STOCK_SAVE);
   end;
 
+  // TODO: use GtkFileChooserNative to look more native on some systems?
+  // Docs suggest it: https://docs.gtk.org/gtk3/class.FileChooserDialog.html
+
   Dialog := PGtkFileChooserDialog(gtk_file_chooser_dialog_new(
     PChar(Title), WindowGtk, Action,
     PChar(GTK_STOCK_CANCEL), [ GTK_RESPONSE_CANCEL,
@@ -1325,7 +1346,7 @@ begin
       For example fink (stable) has only GTK 2.6 for now,
       so we use them only if they can be loaded from GTK lib. }
     if Assigned(@gtk_file_chooser_set_do_overwrite_confirmation) then
-      gtk_file_chooser_set_do_overwrite_confirmation(Dialog, gtrue);
+      gtk_file_chooser_set_do_overwrite_confirmation(PGtkFileChooser(Dialog), gtrue);
   end;
 
   { We don't want to simply call gtk_file_chooser_set_filename,
@@ -1340,7 +1361,7 @@ begin
   begin
     { We explicitly allow FileName = '' in the interface of BackendFileDialog,
       it's equal to FileName = GetCurrentDir (with PathDelim at the end) }
-    gtk_file_chooser_set_current_folder(Dialog, PChar(GetCurrentDir));
+    gtk_file_chooser_set_current_folder(PGtkFileChooser(Dialog), PChar(GetCurrentDir));
   end else
   begin
     { GTK likes to get full pathnames, otherwise things like
@@ -1357,7 +1378,8 @@ begin
     if FileExists(ExpandedFileName) then
     begin
       if DirectoryExists(ExpandedFileName) then
-        gtk_file_chooser_set_current_folder(Dialog, PChar(ExpandedFileName)) else
+        gtk_file_chooser_set_current_folder(PGtkFileChooser(Dialog),
+          PChar(ExpandedFileName)) else
       begin
         if HasDefaultFilter and not GtkVersionAtLeast(2, 24, 4) then
         begin
@@ -1377,16 +1399,18 @@ begin
             This problem is present in GTK 2.18 (Debian lenny),
             not present in GTK 2.24.4 (Debian wheezy on 2011-07, also Ubuntu 11.4). }
           ExpandedFileName := ExtractFilePath(ExpandedFileName);
-          gtk_file_chooser_set_current_folder(Dialog, PChar(ExpandedFileName));
+          gtk_file_chooser_set_current_folder(PGtkFileChooser(Dialog),
+            PChar(ExpandedFileName));
         end else
-          gtk_file_chooser_set_filename(Dialog, PChar(ExpandedFileName));
+          gtk_file_chooser_set_filename(PGtkFileChooser(Dialog),
+            PChar(ExpandedFileName));
       end;
     end else
     begin
       Dir := ExtractFileDir(ExpandedFileName);
       if Dir = '' then
         Dir := GetCurrentDir;
-      gtk_file_chooser_set_current_folder(Dialog, PChar(Dir));
+      gtk_file_chooser_set_current_folder(PGtkFileChooser(Dialog), PChar(Dir));
 
       { GTK 2 makes warnings
 
@@ -1401,7 +1425,7 @@ begin
         So we don't do it, simply ignoring ExtractFileName(FileName). }
       if not OpenDialog then
       begin
-        gtk_file_chooser_set_current_name(Dialog,
+        gtk_file_chooser_set_current_name(PGtkFileChooser(Dialog),
           PChar(ExtractFileName(ExpandedFileName)));
       end;
     end;
@@ -1413,7 +1437,7 @@ begin
 
   if Result then
   begin
-    CFileName := gtk_file_chooser_get_filename(Dialog);
+    CFileName := gtk_file_chooser_get_filename(PGtkFileChooser(Dialog));
     { This copies string contents, so we can later free CFileName pointer. }
     FileName := CFileName;
     g_free(CFileName);
@@ -1434,7 +1458,13 @@ begin
     gtk_color_selection_set_color(PGtkColorSelection(Dialog^.colorsel), @GtkColor);
 
     Result := GtkDialogRun(PGtkWindow(Dialog),
-      Dialog^.ok_button, Dialog^.cancel_button);
+      {$ifdef CASTLE_WINDOW_GTK_2} Dialog^.ok_button
+      {$else} g_object_get_property(Dialog, 'ok-button')
+      {$endif},
+      {$ifdef CASTLE_WINDOW_GTK_2} Dialog^.cancel_button
+      {$else} g_object_get_property(Dialog, 'cancel-button')
+      {$endif}
+    );
 
     if Result then
     begin
@@ -1619,7 +1649,7 @@ begin
 
   Result := not Terminated;
 
-  while Result and (gtk_events_pending() <> 0) do
+  while Result and gtk_events_pending_bool do
   begin
     { Since we know that gtk_events_pending() <> 0, the 1st parameter WaitForMessage
       below for ProcessMessage doesn't matter: we know we will never wait for
@@ -1678,7 +1708,7 @@ begin
     to prevent doing Update / Render when we're clogged with events
     (typically happens when walking with mouse look, then we're clogged
     with mouse move events). }
-  if gtk_events_pending() = 0 then
+  if not gtk_events_pending_bool then
   begin
     ProcessUpdates;
     if Terminated then Exit(false);
@@ -1693,7 +1723,7 @@ begin
   { we could probably not call gtk_main_iteration_do when WasAnyMessage = false,
     and simplify this code a little. But let's keep it this way, to be similar
     to castlewindow_winsystem.inc, that should do the same approach. }
-  WasAnyMessage := (gtk_events_pending() <> 0) or WaitForMessage;
+  WasAnyMessage := gtk_events_pending_bool or WaitForMessage;
 
   gtk_main_iteration_do(WaitForMessage);
   Result := not Terminated;
