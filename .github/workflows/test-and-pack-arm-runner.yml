@@ -84,7 +84,7 @@ jobs:
 
             # Install Linux dependencies
             sudo apt-get update
-            sudo apt-get --no-install-recommends -y install libgl-dev git git-lfs make wget unzip sed zip libgtk2.0-dev
+            sudo apt-get --no-install-recommends -y install libgl-dev git git-lfs make wget unzip sed zip
 
             # Set environment
             ARM_RUNNER_WORKSPACE=`pwd`
@@ -147,8 +147,10 @@ jobs:
 
             # Build and Install PasDoc
             cd /cge-work/
-            wget https://github.com/pasdoc/pasdoc/archive/refs/heads/master.zip --output-document pasdoc-master.zip
-            unzip pasdoc-master.zip
+            wget  --progress=bar:force:noscroll \
+              https://github.com/pasdoc/pasdoc/archive/refs/heads/master.zip \
+              --output-document pasdoc-master.zip
+            unzip -q pasdoc-master.zip
             mv pasdoc-master pasdoc
             make -C /cge-work/pasdoc/
             pasdoc --version # check it's OK
