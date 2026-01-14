@@ -14,7 +14,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ CastleWindow backend based on GTK 2.
+{ CastleWindow backend based on GTK 2 or 3 (depending on whether
+  CASTLE_WINDOW_GTK_2 or CASTLE_WINDOW_GTK_3 is defined).
 
   TODO:
   - In OpenBackend implement MaxWidth/Height
@@ -33,8 +34,20 @@
 {$endif}
 
 {$ifdef read_interface_uses}
-Glib2, Gdk2, Gtk2, CastleDynLib,
-{$ifdef CASTLE_WINDOW_GTK_WITH_XLIB} Gdk2X, X, Xlib, XUtil, {$endif}
+  {$ifdef CASTLE_WINDOW_GTK_2}
+    Glib2, Gdk2, Gtk2,
+  {$else}
+    CastleInternalGlib2, CastleInternalGdk3, CastleInternalGtk3,
+  {$endif}
+  CastleDynLib,
+  {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
+    {$ifdef CASTLE_WINDOW_GTK_2}
+      Gdk2X,
+    {$else}
+      CastleInternalGdk3X,
+    {$endif}
+    X, Xlib, XUtil,
+  {$endif}
 {$endif}
 
 {$ifdef read_implementation_uses}
@@ -43,8 +56,8 @@ CastleInternalWindowModes, CastleFindFiles, CastleInternalFileMonitor,
 
 {$ifdef read_interface_types}
   { @exclude }
-  { For now I use GtkDrawingArea when CASTLE_WINDOW_GTK_2.
-    But, really, GLAreaGtk could be any gtk widget with CASTLE_WINDOW_GTK_2. }
+  { Actual type of PGtkGLArea is now GtkDrawingArea .
+    But actually it could be any gtk widget, in GTK >= 2. }
   PGtkGLArea = PGtkWidget;
 {$endif read_interface_types}
 
@@ -1032,7 +1045,7 @@ begin
     So we cannot use previous workaround, instead we wait for a good time
     to get WindowXID, when widget is realized.
     TODO: Should we just do it with glX version too? }
-  { TODO: WindowXID is only with X, so for now CASTLE_WINDOW_GTK_2
+  { TODO: WindowXID is only with X, so for now CASTLE_WINDOW_GTK_ANY
     cannot work with non-Unix (like Windows). }
   ContextCreate(WindowXID);
   {$endif}

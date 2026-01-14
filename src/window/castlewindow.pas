@@ -172,64 +172,62 @@ unit CastleWindow;
 
   If you don't define any such symbol,
   below we automatically choose the best backend for given OS. }
-{$ifndef CASTLE_WINDOW_WINAPI}
- {$ifndef CASTLE_WINDOW_XLIB}
-  {$ifndef CASTLE_WINDOW_GTK_2}
-   {$ifndef CASTLE_WINDOW_TEMPLATE}
-    {$ifndef CASTLE_WINDOW_FORM}
-     {$ifndef CASTLE_WINDOW_ANDROID}
-      {$ifndef CASTLE_WINDOW_LIBRARY}
+{$if not (
+  defined(CASTLE_WINDOW_WINAPI) and
+  defined(CASTLE_WINDOW_XLIB) and
+  defined(CASTLE_WINDOW_GTK_2) and
+  defined(CASTLE_WINDOW_GTK_3) and
+  defined(CASTLE_WINDOW_COCOA) and
+  defined(CASTLE_WINDOW_FORM) and
+  defined(CASTLE_WINDOW_ANDROID) and
+  defined(CASTLE_WINDOW_LIBRARY) and
+  defined(CASTLE_WINDOW_TEMPLATE) and
+  defined(CASTLE_WINDOW_WEBASSEMBLY)
+)}
 
-       // PasDoc cannot handle "$if defined(xxx)" for now, workaround below
-       {$ifdef PASDOC}
-         {$define CASTLE_WINDOW_GTK_2}
-       {$else}
+  // Older PasDoc versions cannot handle "$if defined(xxx)", workarounding below
+  {$ifdef PASDOC}
+    {$define CASTLE_WINDOW_GTK_3}
+  {$else}
 
-         {$if defined(MSWINDOWS)}
-           // various possible backends on Windows:
-           {$define CASTLE_WINDOW_WINAPI} // best (looks native and most functional) on Windows
-           { $define CASTLE_WINDOW_GTK_2}
-           { $define CASTLE_WINDOW_FORM}
-           { $define CASTLE_WINDOW_LIBRARY}
-           { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
-         {$elseif defined(UNIX)}
-           {$if not defined(FPC)}
-             // Delphi on non-Windows supports now only this backend
-             {$define CASTLE_WINDOW_FORM}
-           {$elseif defined(ANDROID)}
-             {$define CASTLE_WINDOW_ANDROID}
-           {$elseif defined(CASTLE_IOS) or defined(CASTLE_NINTENDO_SWITCH)}
-             {$define CASTLE_WINDOW_LIBRARY}
-           {$elseif defined(DARWIN)}
-             // various possible backends on macOS (desktop):
-             {$define CASTLE_WINDOW_COCOA} // best (looks native) on macOS
-             { $define CASTLE_WINDOW_XLIB} // requires Xlib to compile and to work
-             { $define CASTLE_WINDOW_FORM} // looks native, requires LCL (from Lazarus) or FMX (from Delphi) to compile
-             { $define CASTLE_WINDOW_GTK_2}
-             { $define CASTLE_WINDOW_LIBRARY}
-             { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
-           {$else}
-             // various possible backends on traditional Unix (Linux, FreeBSD) desktop:
-             {$define CASTLE_WINDOW_GTK_2} // best (looks native and most functional), supports both OpenGL and OpenGLES
-             { $define CASTLE_WINDOW_XLIB} // supports both OpenGL and OpenGLES
-             { $define CASTLE_WINDOW_FORM}
-             { $define CASTLE_WINDOW_LIBRARY}
-             { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
-           {$endif}
-         // end of UNIX possibilities
-         {$elseif defined(WASI)}
-           {$define CASTLE_WINDOW_WEBASSEMBLY}
-         {$endif}
-
-       {$endif} // end of "not PasDoc"
-
+    {$if defined(MSWINDOWS)}
+      // various possible backends on Windows:
+      {$define CASTLE_WINDOW_WINAPI} // best (looks native and most functional) on Windows
+      { $define CASTLE_WINDOW_FORM}
+      { $define CASTLE_WINDOW_LIBRARY}
+      { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
+    {$elseif defined(UNIX)}
+      {$if not defined(FPC)}
+        // Delphi on non-Windows supports now only this backend
+        {$define CASTLE_WINDOW_FORM}
+      {$elseif defined(ANDROID)}
+        {$define CASTLE_WINDOW_ANDROID}
+      {$elseif defined(CASTLE_IOS) or defined(CASTLE_NINTENDO_SWITCH)}
+        {$define CASTLE_WINDOW_LIBRARY}
+      {$elseif defined(DARWIN)}
+        // various possible backends on macOS (desktop):
+        {$define CASTLE_WINDOW_COCOA} // best (looks native) on macOS
+        { $define CASTLE_WINDOW_XLIB} // requires Xlib to compile and to work
+        { $define CASTLE_WINDOW_FORM} // looks native, requires LCL (from Lazarus) or FMX (from Delphi) to compile
+        { $define CASTLE_WINDOW_LIBRARY}
+        { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
+      {$else}
+        // various possible backends on traditional Unix (Linux, FreeBSD) desktop:
+        {$define CASTLE_WINDOW_GTK_2} // best (looks native and most functional), supports both OpenGL and OpenGLES
+        { $define CASTLE_WINDOW_GTK_3} // TODO: soon new best
+        { $define CASTLE_WINDOW_XLIB} // supports both OpenGL and OpenGLES
+        { $define CASTLE_WINDOW_FORM}
+        { $define CASTLE_WINDOW_LIBRARY}
+        { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
       {$endif}
-     {$endif}
+    // end of UNIX possibilities
+    {$elseif defined(WASI)}
+      {$define CASTLE_WINDOW_WEBASSEMBLY}
     {$endif}
-   {$endif}
-  {$endif}
- {$endif}
-{$endif}
+
+  {$endif} // end of "not PasDoc"
+
+{$endif} // end of "if not defined(CASTLE_WINDOW_xxx)..."
 
 { Configure some debugging options of CastleWindow ------------------------------- }
 
@@ -244,7 +242,9 @@ unit CastleWindow;
 
 { Configure internal things -------------------------------------------------- }
 
-{$ifdef CASTLE_WINDOW_GTK_2} {$define CASTLE_WINDOW_GTK_ANY} {$endif}
+{$if defined(CASTLE_WINDOW_GTK_2) or defined(CASTLE_WINDOW_GTK_3)}
+  {$define CASTLE_WINDOW_GTK_ANY}
+{$endif}
 
 { Sometimes GTK backend needs to call some X-specific things:
   1. Implementing TCastleWindow.SystemSetMousePosition.
@@ -254,10 +254,8 @@ unit CastleWindow;
      So we had to bypass GTK and use Xlib's XWarpPointer.
   2. Screen resizing. We have to use for this XF86VidMode extension,
      just like for CASTLE_WINDOW_XLIB backend. }
-{$ifdef CASTLE_WINDOW_GTK_2}
-  {$ifdef UNIX}
-    {$define CASTLE_WINDOW_GTK_WITH_XLIB}
-  {$endif}
+{$if defined(CASTLE_WINDOW_GTK_ANY) and defined(UNIX)}
+  {$define CASTLE_WINDOW_GTK_WITH_XLIB}
 {$endif}
 
 { Define EGL to use EGL, cross-platform library to initialize OpenGL or OpenGLES
@@ -283,9 +281,9 @@ unit CastleWindow;
 {$ifdef OpenGLES}
   {$define USE_EGL}
 {$endif}
-// By default CASTLE_WINDOW_GTK_2 uses glX to initialize OpenGL context,
+// By default CASTLE_WINDOW_GTK_ANY uses glX to initialize OpenGL context,
 // but it's not available on Windows.
-{$if defined(MSWINDOWS) and defined(CASTLE_WINDOW_GTK_2)}
+{$if defined(MSWINDOWS) and defined(CASTLE_WINDOW_GTK_ANY)}
   {$define USE_EGL}
 {$endif}
 
@@ -4524,7 +4522,7 @@ begin
              'so --display option is ignored.') else
            Application.XDisplayName := Argument;
          {$else}
-           {$ifdef CASTLE_WINDOW_GTK_2}
+           {$ifdef CASTLE_WINDOW_GTK_ANY}
            Application.XDisplayName := Argument;
            {$else}
            WarningWrite(ApplicationName + ': warning: --display option is ignored ' +

@@ -94,21 +94,26 @@ end;
 { Block signal_menu_item_activate on this menu item.
   Useful inside signal_menu_item_activate, see there for comments.
 
-  Note: MenuItemBlock/Unblock were changed in CASTLE_WINDOW_GTK_2
+  Note: MenuItemBlock/Unblock changed for GTK >= 2
   to use g_signal_handlers_block/unblock_by_func instead of
-  gtk_signal_handler_block/unblock_by_func. Although it should be
-  perfectly correct to use gtk_signal_handler_xxx functions still in GTK_2,
+  gtk_signal_handler_block/unblock_by_func in GTK 1. Although it should be
+  perfectly correct to use gtk_signal_handler_xxx functions still in GTK 2,
   this caused some warnings printed by gtk:
-    after doing gtk_signal_handler_block_by_func,
-    next unblocking of this signal and any subsequent blocking and unblocking
+
+  - after doing gtk_signal_handler_block_by_func,
+
+  - next unblocking of this signal and any subsequent blocking and unblocking
     were writing
+
       (castle-model-viewer:4151): Gtk-WARNING **: unable to find signal handler for
       object(GtkCheckMenuItem:0x8358538) with func(0x80ec484) and data(0x6)
+
     (but indeed 0x8358538 and 0x80ec484 and 0x6 were exactly parameters
     of blocked signal ! In other words, it seems that blocking signal by
     gtk_signal_handler_block_by_func is doing something wrong that
     causes all subsequent block/unblock of this signal to display
     this strange warning.
+
   Switching to g_signal_handlers_block/unblock_xxx solves the problem,
   no warnings are displayed and everything works OK. }
 procedure MenuItemBlock(MenuItemGtk: PGtkMenuItem; MenuItem: TMenuItem);
