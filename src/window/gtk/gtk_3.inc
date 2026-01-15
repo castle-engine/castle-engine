@@ -25,6 +25,10 @@ type
 {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
 function gdk_x11_window_get_xid(Window: PGdkWindow): TWindow;
   cdecl; external LazGdk3_library;
+function gdk_x11_display_get_xdisplay(Display: PGdkDisplay): Xlib.PDisplay;
+  cdecl; external LazGdk3_library;
+function gdk_x11_screen_get_screen_number(Screen: PGdkScreen): Integer;
+  cdecl; external LazGdk3_library;
 {$endif}
 
 { Implement a few methods that match GTK 2 names and signature
