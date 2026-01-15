@@ -787,14 +787,16 @@ begin
 end;
 
 procedure TCastleWindow.GetInitialCursorPos;
+{$ifdef CASTLE_WINDOW_GTK_2}
 var
   X, Y: GInt;
 begin
-  // TODO-gtk3
-  {$ifdef CASTLE_WINDOW_GTK_2}
   gdk_window_get_pointer(gtk_widget_get_window(GTK_WIDGET(GLAreaGtk)), @X, @Y, nil);
   Container.InitializeMousePosition(LeftTopToCastle(X, Y));
-  {$endif CASTLE_WINDOW_GTK_2}
+{$else}
+begin
+  // TODO-gtk3:
+{$endif CASTLE_WINDOW_GTK_2}
 end;
 
 procedure TCastleWindow.OpenBackend;
@@ -1116,8 +1118,11 @@ begin
     GdkWindow, i.e. I can use GTK_WIDGET(WindowGtk).Window).
     It also means that I can do MakeCurrent (and call OpenGL commands)
     from now. In particular, we have valid gl context when we leave OpenBackend. }
+  // TODO-gtk3
+  {$ifdef CASTLE_WINDOW_GTK_2}
   if (GTK_REALIZED and GTK_WIDGET_FLAGS( GTK_WIDGET(WindowGtk) )) = 0 then
     raise EInternalError.Create('CastleWindow.OpenBackend: GdkWindow not realized yet');
+  {$endif}
 
   GetInitialCursorPos;
   UpdateCursor;
@@ -1491,6 +1496,8 @@ begin
 end;
 
 function TCastleWindow.ColorDialog(var Color: TCastleColor): Boolean;
+// TODO-gtk3
+{$ifdef CASTLE_WINDOW_GTK_2}
 var
   Dialog: PGtkColorSelectionDialog;
   GtkColor: array [0..3] of GDouble;
@@ -1523,6 +1530,10 @@ begin
         Color.Data[i] := GtkColor[i];
     end;
   finally gtk_widget_destroy(GTK_WIDGET(Dialog)); end;
+{$else}
+begin
+  Result := false;
+{$endif}
 end;
 
 { We would like to map to TGtkMessageType,
@@ -1543,8 +1554,11 @@ var
   SNew: String;
 begin
   SNew := SUnformattable(S); // gtk_message_dialog_new formats argument using printf, prevent it
-  Dialog := PGtkMessageDialog(gtk_message_dialog_new(WindowGtk, 0,
-    TGtkMessageType(MessageTypeToGtk[MessageType]), GTK_BUTTONS_OK, PChar(SNew)));
+  Dialog := PGtkMessageDialog(gtk_message_dialog_new(WindowGtk,
+    {$ifdef CASTLE_WINDOW_GTK_3} [] {$else} 0 {$endif},
+    TGtkMessageType(MessageTypeToGtk[MessageType]), GTK_BUTTONS_OK, PChar(SNew)
+    {$ifdef CASTLE_WINDOW_GTK_3} , [] {$endif}
+  ));
   try
     GtkDialogRun(GTK_DIALOG(Dialog));
   finally gtk_widget_destroy(GTK_WIDGET(Dialog)); end;
@@ -1556,8 +1570,11 @@ var
   SNew: String;
 begin
   SNew := SUnformattable(S); // gtk_message_dialog_new formats argument using printf, prevent it
-  Dialog := PGtkMessageDialog(gtk_message_dialog_new(WindowGtk, 0,
-    TGtkMessageType(MessageTypeToGtk[MessageType]), GTK_BUTTONS_YES_NO, PChar(SNew)));
+  Dialog := PGtkMessageDialog(gtk_message_dialog_new(WindowGtk,
+    {$ifdef CASTLE_WINDOW_GTK_3} [] {$else} 0 {$endif},
+    TGtkMessageType(MessageTypeToGtk[MessageType]), GTK_BUTTONS_YES_NO, PChar(SNew)
+    {$ifdef CASTLE_WINDOW_GTK_3} , [] {$endif}
+  ));
   try
     Result := GtkDialogRun(GTK_DIALOG(Dialog)) = GTK_RESPONSE_YES;
   finally gtk_widget_destroy(GTK_WIDGET(Dialog)); end;
@@ -1607,7 +1624,10 @@ function TGTKClipboard.GetAsText: String;
 var
   C: PGtkClipboard;
 begin
-  C := gtk_clipboard_get(GDK_SELECTION_CLIPBOARD);
+  C :=
+    {$ifdef CASTLE_WINDOW_GTK_3} gtk_clipboard_get_default(Application.XDisplayGdk)
+    {$else} gtk_clipboard_get(GDK_SELECTION_CLIPBOARD)
+    {$endif};
   Result := gtk_clipboard_wait_for_text(C);
 end;
 
@@ -1615,7 +1635,10 @@ procedure TGTKClipboard.SetAsText(const Value: String);
 var
   C: PGtkClipboard;
 begin
-  C := gtk_clipboard_get(GDK_SELECTION_CLIPBOARD);
+  C :=
+    {$ifdef CASTLE_WINDOW_GTK_3} gtk_clipboard_get_default(Application.XDisplayGdk)
+    {$else} gtk_clipboard_get(GDK_SELECTION_CLIPBOARD)
+    {$endif};
   gtk_clipboard_set_text(C, PChar(Value), Length(Value));
 end;
 
@@ -1807,7 +1830,9 @@ begin
   for C := Low(C) to High(C) do
     if Cursors[C] <> nil then
     begin
-      gdk_cursor_unref(Cursors[C]);
+      {$ifdef CASTLE_WINDOW_GTK_2} gdk_cursor_unref(Cursors[C]);
+      {$else} g_object_unref(Cursors[C]);
+      {$endif}
       Cursors[C] := nil;
     end;
 end;
