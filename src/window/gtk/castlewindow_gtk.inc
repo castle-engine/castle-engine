@@ -752,18 +752,20 @@ end;
 {$endif}
 
 procedure TCastleWindow.SystemSetMousePosition(const Value: TVector2);
+{$if defined(CASTLE_WINDOW_GTK_WITH_XLIB) and defined(CASTLE_WINDOW_GTK_2)}
+  {$define CASTLE_SetMousePosition_USE_XWarpPointer}
+{$endif}
 var
   P: TVector2Integer;
-{$ifndef CASTLE_WINDOW_GTK_WITH_XLIB}
+{$ifndef CASTLE_SetMousePosition_USE_XWarpPointer}
   RootX, RootY: GInt;
 {$endif}
 begin
   P := CastleToLeftTopInt(Value);
 
-  {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
-  { With older GDK/GTK, you had to use XWarpPointer to position mouse.
-    We still use it, for now, for GTK under Xlib --- this way we work
-    even with ancient GTK versions. }
+  {$ifdef CASTLE_SetMousePosition_USE_XWarpPointer}
+  { To work with older GTK (GTK 1, and some initial GTK 2.x versions),
+    we use XWarpPointer to reposition mouse. }
   XWarpPointer(
     gdk_x11_drawable_get_xdisplay(gtk_widget_get_window(GTK_WIDGET(GLAreaGtk))),
     X.None,
@@ -788,8 +790,11 @@ procedure TCastleWindow.GetInitialCursorPos;
 var
   X, Y: GInt;
 begin
+  // TODO-gtk3
+  {$ifdef CASTLE_WINDOW_GTK_2}
   gdk_window_get_pointer(gtk_widget_get_window(GTK_WIDGET(GLAreaGtk)), @X, @Y, nil);
   Container.InitializeMousePosition(LeftTopToCastle(X, Y));
+  {$endif CASTLE_WINDOW_GTK_2}
 end;
 
 procedure TCastleWindow.OpenBackend;
@@ -830,7 +835,11 @@ const
     WindowHeight := Height;
     if (MainMenu <> nil) and MainMenuVisible then
     begin
+      {$ifdef CASTLE_WINDOW_GTK_2}
       gtk_widget_size_request(GTK_WIDGET(MainMenu.Handle), @WindowReq);
+      {$else}
+      gtk_widget_get_preferred_size(GTK_WIDGET(MainMenu.Handle), nil, @WindowReq);
+      {$endif}
       WindowHeight += WindowReq.Height + VBoxSpacing;
     end;
     gtk_window_set_default_size(WindowGtk, WindowWidth, WindowHeight);
@@ -1001,18 +1010,24 @@ begin
   Application.OpenWindowsAdd(Self);
 
   { setup window position from Left, Top }
+  // TODO-gtk3
+  {$ifdef CASTLE_WINDOW_GTK_2}
   gtk_widget_set_uposition(GTK_WIDGET(WindowGtk), Left, Top);
+  {$endif}
 
   if (MainMenu <> nil) and MainMenuVisible then
   begin
     window_accel_group := gtk_accel_group_new;
     gtk_window_add_accel_group(GTK_WINDOW(WindowGtk), window_accel_group);
 
+    // TODO-gtk3
+    {$ifdef CASTLE_WINDOW_GTK_2}
     window_vbox := PGtkVBox(gtk_vbox_new(gfalse, VBoxSpacing));
     gtk_widget_show(GTK_WIDGET(window_vbox));
     MenuInitialize;
     gtk_box_pack_end_defaults(PGtkBox(window_vbox), GTK_WIDGET(GLAreaGtk));
     gtk_container_add(GTK_CONTAINER(WindowGtk), GTK_WIDGET(window_vbox));
+    {$endif}
   end else
     gtk_container_add(GTK_CONTAINER(WindowGtk), GTK_WIDGET(GLAreaGtk));
 
@@ -1038,16 +1053,22 @@ begin
                    gtk_widget_set_usize(GLAreaGtk, ...) and
                    set_default_glarea_size
     }
+    // TODO-gtk3
+    {$ifdef CASTLE_WINDOW_GTK_2}
     gtk_widget_set_usize(GTK_WIDGET(WindowGtk), MinWidth, MinHeight);
+    {$endif}
     gtk_window_set_default_size(WindowGtk, Application.ScreenWidth, Application.ScreenHeight);
 
     gtk_window_fullscreen(WindowGtk);
   end else
   begin
+    // TODO-gtk3
+    {$ifdef CASTLE_WINDOW_GTK_2}
     if ResizeAllowed <> raAllowed then
       gtk_widget_set_usize(GTK_WIDGET(GLAreaGtk), Width, Height)
     else
       gtk_widget_set_usize(GTK_WIDGET(GLAreaGtk), MinWidth, MinHeight);
+    {$endif}
     set_default_glarea_size(Width, Height);
     gtk_window_set_resizable(WindowGtk, ResizeAllowed = raAllowed);
   end;
