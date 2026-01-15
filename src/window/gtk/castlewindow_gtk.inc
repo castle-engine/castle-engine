@@ -407,7 +407,7 @@ SIGNAL_WINDOW_BEGIN
     (with WindowManager decorations, that's how
     gdk_window_get_root_origin works).
     Reasons -- the same as in castlewindow_xlib.inc. }
-  gdk_window_get_root_origin(GTK_WIDGET(WindowGtk)^.window, @LeftGtk, @TopGtk);
+  gdk_window_get_root_origin(gtk_widget_get_window(GTK_WIDGET(WindowGtk)), @LeftGtk, @TopGtk);
   FLeft := LeftGtk;
   FTop := TopGtk;
   { for the sake of gtk, I can't tell that I "handled" this in any way }
@@ -721,26 +721,33 @@ begin
     end;
   end;
 
-  gdk_window_set_cursor(GTK_WIDGET(GLAreaGtk)^.Window, Application.Cursors[InternalCursor]);
+  gdk_window_set_cursor(gtk_widget_get_window(GTK_WIDGET(GLAreaGtk)), Application.Cursors[InternalCursor]);
 end;
 
 {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
-// Since GDK >= 2.2
-function gdk_x11_screen_lookup_visual(Screen: PGdkScreen; XVisualid: TVisualID): PGdkVisual;
-  cdecl; external gdklib;
+
+  // Since GDK >= 2.2
+  // Still in GDK 3 ( https://docs.gtk.org/gdk3-x11/method.X11Screen.lookup_visual.html )
+  function gdk_x11_screen_lookup_visual(Screen: PGdkScreen;
+    XVisualid: TVisualID): PGdkVisual; cdecl; external gdklib;
+
 {$else}
-// Since GDK >= 2.8
-procedure gdk_display_warp_pointer(Display: PGdkDisplay;
-  Screen: PGdkScreen; X, Y: GInt); cdecl; external gdklib;
-// Since GTK >= 2.18
-procedure gdk_window_get_root_coords(Window: PGdkWindow;
-  X, Y: GInt; RootX, RootY: PGInt); cdecl; external gtklib;
+  // Since GDK >= 2.8
+  procedure gdk_display_warp_pointer(Display: PGdkDisplay;
+    Screen: PGdkScreen; X, Y: GInt); cdecl; external gdklib;
+
+  // Since GTK >= 2.18
+  procedure gdk_window_get_root_coords(Window: PGdkWindow;
+    X, Y: GInt; RootX, RootY: PGInt); cdecl; external gtklib;
 {$endif}
 
 {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
 function TCastleWindow.WindowXID: TWindow;
 begin
-  Result := gdk_x11_drawable_get_xid(GTK_WIDGET(GLAreaGtk)^.Window);
+  Result :=
+    {$ifdef CASTLE_WINDOW_GTK_2} gdk_x11_drawable_get_xid
+    {$else} gdk_x11_window_get_xid {$endif}
+    (gtk_widget_get_window(GTK_WIDGET(GLAreaGtk)));
 end;
 {$endif}
 
@@ -758,12 +765,12 @@ begin
     We still use it, for now, for GTK under Xlib --- this way we work
     even with ancient GTK versions. }
   XWarpPointer(
-    gdk_x11_drawable_get_xdisplay(GTK_WIDGET(GLAreaGtk)^.Window),
+    gdk_x11_drawable_get_xdisplay(gtk_widget_get_window(GTK_WIDGET(GLAreaGtk))),
     X.None,
     WindowXID,
     0, 0, 0, 0, P.X, P.Y);
   {$else}
-    gdk_window_get_root_coords(GTK_WIDGET(GLAreaGtk)^.Window,
+    gdk_window_get_root_coords(gtk_widget_get_window(GTK_WIDGET(GLAreaGtk)),
       P.X, P.Y, @RootX, @RootY);
     gdk_display_warp_pointer(Application.XDisplayGdk,
       Application.XScreenGdk, RootX, RootY);
@@ -781,7 +788,7 @@ procedure TCastleWindow.GetInitialCursorPos;
 var
   X, Y: GInt;
 begin
-  gdk_window_get_pointer(GTK_WIDGET(GLAreaGtk)^.Window, @X, @Y, nil);
+  gdk_window_get_pointer(gtk_widget_get_window(GTK_WIDGET(GLAreaGtk)), @X, @Y, nil);
   Container.InitializeMousePosition(LeftTopToCastle(X, Y));
 end;
 
