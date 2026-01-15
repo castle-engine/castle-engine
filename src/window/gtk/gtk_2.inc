@@ -30,3 +30,9 @@ function gtk_events_pending_bool: Boolean;
 begin
   Result := gtk_events_pending() <> 0;
 end;
+
+{ Get GDK PGdkWindow from GTK PGtkWidget. }
+function gtk_widget_get_window(const Widget: PGtkWidget): PGdkWindow;
+begin
+  Result := Widget^.Window;
+end;

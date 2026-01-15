@@ -8,6 +8,8 @@ const
   gfalse = gboolean(0);
   gtrue = gboolean(1);
 
+  gdklib = LazGdk3_library;
+
 type
   { These are functions that check type in GTK 2.
     In GTK 3, we just cast.
@@ -19,6 +21,11 @@ type
   GTK_SIGNAL_FUNC = TGCallback;
   G_OBJECT = PGObject;
   GTK_DIALOG = PGtkDialog;
+
+{$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
+function gdk_x11_window_get_xid(Window: PGdkWindow): TWindow;
+  cdecl; external LazGdk3_library;
+{$endif}
 
 { Implement a few methods that match GTK 2 names and signature
   using straightforward counterparts from GTK 3. }
