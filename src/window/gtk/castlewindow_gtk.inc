@@ -869,8 +869,10 @@ const
 {$ifndef USE_EGL}
 var
   GdkVisual: PGdkVisual;
+  {$ifdef CASTLE_WINDOW_GTK_2}
   GdkColormap: PGdkColormap;
-{$endif}
+  {$endif CASTLE_WINDOW_GTK_2}
+{$endif not USE_EGL}
 begin
   Application.InitializeXDisplay;
 
@@ -887,21 +889,35 @@ begin
   gtk_container_set_border_width(GTK_CONTAINER(WindowGtk), BorderWidth);
 
   {$ifndef USE_EGL}
-  { Create XVisual }
-  ContextCreateEarly;
+    { Create XVisual }
+    ContextCreateEarly;
 
-  { Create GdkColormap using XVisual }
-  GdkVisual := gdk_x11_screen_lookup_visual(Application.XScreenGdk, XVisual^.VisualId);
-  GdkColormap := gdk_colormap_new(GdkVisual, gfalse);
-  gtk_widget_push_colormap(GdkColormap);
+    { Create GdkVisual and GdkColormap using XVisual }
+    GdkVisual := gdk_x11_screen_lookup_visual(Application.XScreenGdk, XVisual^.VisualId);
+    {$ifdef CASTLE_WINDOW_GTK_2}
+    GdkColormap := gdk_colormap_new(GdkVisual, gfalse);
+    gtk_widget_push_colormap(GdkColormap);
+    {$endif}
   {$endif}
 
-  { Create now GLAreaGtk, which will use GdkColormap }
+  { Create now GLAreaGtk (for GTK 2: it will use pushed GdkColormap) }
   GLAreaGtk := gtk_drawing_area_new;
-  gtk_widget_set_double_buffered(GLAreaGtk, gfalse); // following Lazarus GTK OpenGL, not sure if needed
 
-  // Cleanup after gtk_widget_push_colormap called above
-  gtk_widget_pop_colormap();
+  {$ifdef CASTLE_WINDOW_GTK_2}
+  // TODO-gtk3, this is actually available in GTK 3 but deprecated : https://docs.gtk.org/gtk3/method.Widget.set_double_buffered.html
+  // Check it , docs suggest it may be sensible to use for us, as we use own drawing.
+  gtk_widget_set_double_buffered(GLAreaGtk, gfalse); // following Lazarus GTK OpenGL, not sure if needed
+  {$endif}
+
+  {$ifndef USE_EGL}
+    {$ifdef CASTLE_WINDOW_GTK_2}
+    // Cleanup after gtk_widget_push_colormap called above
+    gtk_widget_pop_colormap();
+    {$else}
+    // In GTK 3, no need (and no way) to deal with colormaps, just use GdkVisual
+    gtk_widget_set_visual(GTK_WIDGET(WindowGtk), GdkVisual);
+    {$endif}
+  {$endif}
 
   {$ifndef USE_EGL}
   { Note that we don't have, and also don't need, WindowXID now.
