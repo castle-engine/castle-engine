@@ -354,7 +354,17 @@ begin
   end;
 end}
 
-function signal_expose_event(AGLAreaGtk: PGtkGLArea; Event: PGdkEventExpose;
+{ Handle
+  - "expose_event" in GTK 2
+  - or "draw" in GTK 3: https://docs.gtk.org/gtk3/signal.Widget.draw.html
+}
+function signal_expose_event(AGLAreaGtk: PGtkGLArea;
+  {$ifdef CASTLE_WINDOW_GTK_2} Event: PGdkEventExpose;
+  {$else}
+    { Type of this is Pcairo_t, but we don't need to access it for now.
+      If necessary, use the CastleInternalCairo... unit and define here real type }
+    ClipRegion: Pointer;
+  {$endif}
   data: gpointer): gboolean; cdecl;
 SIGNAL_GLAREA_BEGIN
   { About Event^.Count:
@@ -968,7 +978,10 @@ begin
 
   gtk_signal_connect(GTK_OBJECT(GLAreaGtk), 'configure_event',
     GTK_SIGNAL_FUNC(@signal_glarea_configure_event), nil);
-  gtk_signal_connect(GTK_OBJECT(GLAreaGtk), 'expose_event',
+  gtk_signal_connect(GTK_OBJECT(GLAreaGtk),
+    {$ifdef CASTLE_WINDOW_GTK_2} 'expose_event'
+    {$else} 'draw'
+    {$endif},
     GTK_SIGNAL_FUNC(@signal_expose_event), nil);
   gtk_signal_connect(GTK_OBJECT(GLAreaGtk), 'button_press_event',
     GTK_SIGNAL_FUNC(@signal_button_press_event), nil);
