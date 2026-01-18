@@ -298,8 +298,14 @@ procedure TCastleWindow.BackendMenuInitialize;
             PChar(EntryItem.Caption)));
           gtk_check_menu_item_set_active(PGtkCheckMenuItem(Result),
             EntryChecked.Checked);
-          // TODO-gtk3
+
           {$ifdef CASTLE_WINDOW_GTK_2}
+          { This was helpful:
+            """Controls whether the check box is shown at all times.
+            Normally the check box is shown only when it is active
+            or while the menu item is selected.
+            """
+            It seems it was just removed in GTK 3. }
           gtk_check_menu_item_set_show_toggle(PGtkCheckMenuItem(Result), gtrue);
           {$endif CASTLE_WINDOW_GTK_2}
 
