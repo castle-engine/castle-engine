@@ -36,3 +36,9 @@ function gtk_widget_get_window(const Widget: PGtkWidget): PGdkWindow;
 begin
   Result := Widget^.Window;
 end;
+
+{ Check is GTK widget realized. }
+function gtk_widget_get_realized(const Widget: PGtkWidget): Boolean;
+begin
+  Result := GTK_REALIZED and GTK_WIDGET_FLAGS(Widget) <> 0;
+end;
