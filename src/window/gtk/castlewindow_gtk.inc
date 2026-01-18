@@ -754,10 +754,20 @@ end;
 {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
 function TCastleWindow.WindowXID: TWindow;
 begin
+  {$ifdef DEBUG}
+  if gtk_widget_get_window(GTK_WIDGET(GLAreaGtk)) = nil then
+    WritelnWarning('Using TCastleWindow.WindowXID on a gtk widget that is not realized yet, gtk_widget_get_window(GLAreaGtk) is nil');
+  {$endif}
+
   Result :=
     {$ifdef CASTLE_WINDOW_GTK_2} gdk_x11_drawable_get_xid
     {$else} gdk_x11_window_get_xid {$endif}
     (gtk_widget_get_window(GTK_WIDGET(GLAreaGtk)));
+
+  {$ifdef DEBUG}
+  if Result = None then
+    WritelnWarning('Using TCastleWindow.WindowXID on a gtk widget that is not realized yet, gdk_x11_window_get_xid is None');
+  {$endif}
 end;
 {$endif}
 
@@ -1030,12 +1040,13 @@ begin
   gtk_widget_set_uposition(GTK_WIDGET(WindowGtk), Left, Top);
   {$endif}
 
+  // TODO-gtk3
+  (*
   if (MainMenu <> nil) and MainMenuVisible then
   begin
     window_accel_group := gtk_accel_group_new;
     gtk_window_add_accel_group(GTK_WINDOW(WindowGtk), window_accel_group);
 
-    // TODO-gtk3
     {$ifdef CASTLE_WINDOW_GTK_2}
     window_vbox := PGtkVBox(gtk_vbox_new(gfalse, VBoxSpacing));
     gtk_widget_show(GTK_WIDGET(window_vbox));
@@ -1044,6 +1055,7 @@ begin
     gtk_container_add(GTK_CONTAINER(WindowGtk), GTK_WIDGET(window_vbox));
     {$endif}
   end else
+  *)
     gtk_container_add(GTK_CONTAINER(WindowGtk), GTK_WIDGET(GLAreaGtk));
 
   { setup window/glarea size and resize policy from
@@ -1117,6 +1129,19 @@ begin
     gtk_widget_realize(GTK_WIDGET(GLAreaGtk));
   end;
 
+  { From this point we require that WindowGtk and GLAreaGtk are both "realized"
+    in GTK terms (have associated GdkWindow, and in turn X11 resources).
+    This means:
+    - gtk_widget_get_window(GTK_WIDGET(WindowGtk)) is non-nil,
+    - gtk_widget_get_window(GTK_WIDGET(GLAreaGtk)) is non-nil,
+    - WindowXID (relies on GLAreaGtk being realized) is non-None,
+    - we can do MakeCurrent (and call OpenGL commands) once we get OpenGL
+      context for this WindowXID. }
+  if not gtk_widget_get_realized(GTK_WIDGET(WindowGtk)) then
+    raise EInternalError.Create('CastleWindow.OpenBackend: WindowGtk is not realized yet (GdkWindow of it not created, X11 resources of it not initialized)');
+  if not gtk_widget_get_realized(GTK_WIDGET(GLAreaGtk)) then
+    raise EInternalError.Create('CastleWindow.OpenBackend: GLAreaGtk is not realized yet (GdkWindow of it not created, X11 resources of it not initialized)');
+
   {$ifdef USE_EGL}
   { In case of EGL we really need WindowXID.
     So we cannot use previous workaround, instead we wait for a good time
@@ -1127,15 +1152,6 @@ begin
   ContextCreate(WindowXID);
   {$endif}
 
-  { From this point I require that WindowGtk is realized (has associated
-    GdkWindow, i.e. I can use GTK_WIDGET(WindowGtk).Window).
-    It also means that I can do MakeCurrent (and call OpenGL commands)
-    from now. In particular, we have valid gl context when we leave OpenBackend. }
-  // TODO-gtk3
-  {$ifdef CASTLE_WINDOW_GTK_2}
-  if (GTK_REALIZED and GTK_WIDGET_FLAGS( GTK_WIDGET(WindowGtk) )) = 0 then
-    raise EInternalError.Create('CastleWindow.OpenBackend: GdkWindow not realized yet');
-  {$endif}
 
   GetInitialCursorPos;
   UpdateCursor;
