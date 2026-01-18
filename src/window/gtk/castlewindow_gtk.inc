@@ -1528,18 +1528,47 @@ begin
 end;
 
 function TCastleWindow.ColorDialog(var Color: TCastleColor): Boolean;
-// TODO-gtk3
-{$ifdef CASTLE_WINDOW_GTK_2}
+
+  function FromGdkColor(const GdkColor: TGdkRGBA): TCastleColor;
+  begin
+    Result := Vector4(
+      GdkColor.Red,
+      GdkColor.Green,
+      GdkColor.Blue,
+
+      { Note: Do not modify given here alpha, leave it unchanged. Reason:
+        While https://developer-old.gnome.org/gtk2/2.24/GtkColorSelection.html#gtk-color-selection-set-color
+        says it wants a pointer to 4 components, including alpha,
+        but actually alpha treatment is useless:
+        - user cannot edit alpha
+        - on return, it seems always 65535.0 (why this, max of Word? it's in Double...)
+      }
+      //GdkColor.Alpha
+      Color.W
+    );
+  end;
+
+  function ToGdkColor(const Color: TCastleColor): TGdkRGBA;
+  begin
+    Result.Red := Color.X;
+    Result.Green := Color.Y;
+    Result.Blue := Color.Z;
+    Result.Alpha := Color.W;
+  end;
+
 var
   Dialog: PGtkColorSelectionDialog;
-  GtkColor: array [0..3] of GDouble;
-  i: Integer;
+  ColorSelection: PGtkColorSelection;
+  GdkColor: TGdkRGBA;
 begin
   Dialog := PGtkColorSelectionDialog(gtk_color_selection_dialog_new('Choose color'));
   try
-    for i := 0 to 3 do GtkColor[i] := Color[i];
-    gtk_color_selection_set_color(PGtkColorSelection(Dialog^.colorsel), @GtkColor);
+    GdkColor := ToGdkColor(Color);
+    ColorSelection := PGtkColorSelection(gtk_color_selection_dialog_get_color_selection(Dialog));
+    gtk_color_selection_set_current_rgba(ColorSelection, @GdkColor);
 
+    // TODO-gtk3
+    {$ifdef CASTLE_WINDOW_GTK_2}
     Result := GtkDialogRun(PGtkWindow(Dialog),
       {$ifdef CASTLE_WINDOW_GTK_2} Dialog^.ok_button
       {$else} g_object_get_property(Dialog, 'ok-button')
@@ -1548,24 +1577,16 @@ begin
       {$else} g_object_get_property(Dialog, 'cancel-button')
       {$endif}
     );
+    {$else}
+    Result := GtkDialogRun(GTK_DIALOG(Dialog)) = GTK_RESPONSE_OK;
+    {$endif}
 
     if Result then
     begin
-      gtk_color_selection_get_color(PGtkColorSelection(Dialog^.colorsel), @GtkColor);
-      { Note: Do not touch Color.Data[3], leave it unchanged. Reason:
-        While https://developer-old.gnome.org/gtk2/2.24/GtkColorSelection.html#gtk-color-selection-set-color
-        says it wants a pointer to 4 components, including alpha, but actually alpha treatment is useless:
-        - user cannot edit alpha
-        - on return, it seems always 65535.0 (why this, max of Word? it's in Double...)
-      }
-      for i := 0 to 2 do
-        Color.Data[i] := GtkColor[i];
+      gtk_color_selection_get_current_rgba(ColorSelection, @GdkColor);
+      Color := FromGdkColor(GdkColor);
     end;
   finally gtk_widget_destroy(GTK_WIDGET(Dialog)); end;
-{$else}
-begin
-  Result := false;
-{$endif}
 end;
 
 { We would like to map to TGtkMessageType,

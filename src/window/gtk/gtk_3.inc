@@ -1,6 +1,7 @@
 {%MainUnit ../castlewindow.pas}
 
-{ Definitions specific to GTK 3 (and not used with GTK 2). }
+{ Definitions specific to GTK 3 (and not used with GTK 2).
+  These make GTK 3 usage more similar to GTK 2. }
 
 const
   { Define gfalse, gtrue just like GTK 2 does.

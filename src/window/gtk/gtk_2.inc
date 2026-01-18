@@ -1,6 +1,16 @@
 {%MainUnit ../castlewindow.pas}
 
-{ Definitions specific to GTK 2 (and not used with GTK 3). }
+{ Definitions specific to GTK 2 (and not used with GTK 3).
+  These make GTK 2 usage more similar to GTK 3. }
+
+type
+  TGdkRGBA = record
+    Red: GDouble;
+    Green: GDouble;
+    Blue: GDouble;
+    Alpha: GDouble;
+  end;
+  PGdkRGBA = ^TGdkRGBA;
 
 // Various functions missing from FPC GTK 2 / GDK 2 units that we need
 procedure gtk_check_menu_item_set_draw_as_radio(
@@ -23,7 +33,7 @@ function gdk_display_get_default: PGdkDisplay;
   cdecl; external gdklib name 'gdk_display_get_default';
 function gdk_screen_get_primary_monitor(Screen: PGdkScreen): GInt;
   cdecl; external gdklib name 'gdk_screen_get_primary_monitor';
-function gdk_screen_get_resolution(screen: PGdkScreen): gdouble;
+function gdk_screen_get_resolution(screen: PGdkScreen): GDouble;
   cdecl; external gdklib;
 
 function gtk_events_pending_bool: Boolean;
@@ -41,4 +51,27 @@ end;
 function gtk_widget_get_realized(const Widget: PGtkWidget): Boolean;
 begin
   Result := GTK_REALIZED and GTK_WIDGET_FLAGS(Widget) <> 0;
+end;
+
+{ Get PGtkColorSelection inside PGtkColorSelectionDialog.
+  Result is always PGtkColorSelection, not just PGtkWidget,
+  but we define it as returning PGtkWidget to match GTK 3 function.
+  https://docs.gtk.org/gtk3/method.ColorSelectionDialog.get_color_selection.html }
+function gtk_color_selection_dialog_get_color_selection(
+  const ColorSelectionDialog: PGtkColorSelectionDialog): PGtkWidget;
+begin
+  Result := ColorSelectionDialog^.colorsel;
+end;
+
+procedure gtk_color_selection_set_current_rgba(const ColorSelection: PGtkColorSelection;
+  const Color: PGdkRGBA);
+begin
+  // We can typecast PGdkRGBA to PGDouble, because it's a record of 4 GDouble-s.
+  gtk_color_selection_set_color(ColorSelection, PGDouble(Color));
+end;
+
+procedure gtk_color_selection_get_current_rgba(const ColorSelection: PGtkColorSelection;
+  const Color: PGdkRGBA);
+begin
+  gtk_color_selection_get_color(ColorSelection, PGDouble(Color));
 end;
