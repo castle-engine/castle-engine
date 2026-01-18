@@ -49,7 +49,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license for details.
 "/>
     <Version Major="6" Minor="93" Release="1"/>
-    <Files Count="36">
+    <Files Count="38">
       <Item1>
         <Filename Value="../../src/window/castleinternalwindowmodes.pas"/>
         <UnitName Value="CastleInternalWindowModes"/>
@@ -198,6 +198,14 @@ See https://castle-engine.io/license for details.
         <Filename Value="../../src/window/windows/castlewindow_winapi_forced_processing.inc"/>
         <Type Value="Include"/>
       </Item36>
+      <Item37>
+        <Filename Value="../../src/window/gtk/gtk_2.inc"/>
+        <Type Value="Include"/>
+      </Item37>
+      <Item38>
+        <Filename Value="../../src/window/gtk/gtk_3.inc"/>
+        <Type Value="Include"/>
+      </Item38>
     </Files>
     <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="2">

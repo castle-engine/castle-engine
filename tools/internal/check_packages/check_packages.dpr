@@ -619,7 +619,10 @@ begin
     Package.CheckFiles([
       'src/window/'
     ],
-    [ ],
+    [
+      // Only used when with CASTLE_WINDOW_GTK_2 or CASTLE_WINDOW_GTK_3.
+      'src/window/gtk/gtk3/gtk3bindings/'
+    ],
     [ ]);
   finally FreeAndNil(Package) end;
 
@@ -628,7 +631,10 @@ begin
     Package.CheckFiles([
       'src/window/'
     ],
-    [ ],
+    [
+      // Only used when with CASTLE_WINDOW_GTK_2 or CASTLE_WINDOW_GTK_3.
+      'src/window/gtk/gtk3/gtk3bindings/'
+    ],
     [ ]);
   finally FreeAndNil(Package) end;
 
@@ -755,7 +761,10 @@ begin
       'src/window/deprecated_units/',
 
       // Only for CASTLE_WINDOW_XLIB, available only with FPC, and that's OK -- it's not a default for Linux
-      'src/window/unix/castleinternalxlib.pas'
+      'src/window/unix/castleinternalxlib.pas',
+
+      // Only used when with CASTLE_WINDOW_GTK_2 or CASTLE_WINDOW_GTK_3.
+      'src/window/gtk/gtk3/gtk3bindings/'
     ],
     [ ]);
   finally FreeAndNil(Package) end;
@@ -802,7 +811,10 @@ begin
       'src/base_rendering/web/',
 
       // Ignore units that are only to be compiled when pulled by CastleHttps with FPC 3.2.x
-      'src/files/castleinternalforfpc32x*.pas'
+      'src/files/castleinternalforfpc32x*.pas',
+
+      // Only used when with CASTLE_WINDOW_GTK_2 or CASTLE_WINDOW_GTK_3.
+      'src/window/gtk/gtk3/gtk3bindings/'
     ],
     [
       'src/vampyre_imaginglib/'
