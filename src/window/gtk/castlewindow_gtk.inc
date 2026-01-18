@@ -70,31 +70,22 @@ private
   window_accel_group: PGtkAccelGroup;
 
   { Run ADialog as a modal window.
-    ADialog will be made modal (and "transient" for us in the GtkWindow variant).
 
-    Then we will wait (while in TModeGLFrozenImage) for dialog to finish.
-    PGtkDialog version just returns TGtkResponseType response, like gtk_dialog_run
-    --- possible values like gtk_dialog_run, depending on dialog buttons.
-    PGtkWindow version returns @true if closed by Ok button,
-    otherwise (when closed by Cancel button, or "delete" event) returns @false.
+    We will wait (while in TGLModeFrozenScreen) for the dialog to finish.
 
-    Overloaded version with PGtkDialog is a close analogy of
-    gtk_dialog_run. In fact, it was written looking at implementation
-    of gtk_dialog_run (http://git.gnome.org/browse/gtk+/tree/gtk/gtkdialog.c?h=gtk-2-18),
-    although it's also very similar (even shares some internal helper data)
-    with the GtkWindow variant.
+    We return TGtkResponseType response, just like gtk_dialog_run.
+    Possible values depend on particular dialog buttons.
 
-    Never use GTK's gtk_dialog_run! (Reason: We have to run event loop by our
+    Note: Never use GTK's gtk_dialog_run directly!
+    Reason: We have to run event loop by our
     Application.ProcessMessage, not by GTK's g_main_loop_run,
     to properly run Application.ProcessUpdates, to properly redraw /
-    call Update etc.)
+    call Update etc.
+    Always use this method instead of gtk_dialog_run. }
+  function GtkDialogRun(const ADialog: PGtkDialog): TGtkResponseType;
 
-    @groupBegin }
-  function GtkDialogRun(ADialog: PGtkWindow;
-    ok_button, cancel_button: PGtkWidget): Boolean;
-  function GtkDialogRun(ADialog: PGtkDialog): TGtkResponseType;
-  { @groupEnd }
   procedure GetInitialCursorPos;
+
   {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
   { GLAreaGtk X11 identifier.
     TODO: Name is confusing, this is about GLAreaGtk, not from WindowGtk.
@@ -1228,27 +1219,13 @@ end;
 { TCastleWindow.*Dialog --------------------------------------------------- }
 
 type
-  { Data type for GtkDialogRun (both variants).
-    PDialogData will be passed as a 2nd argument to signals
-    (and 3rd argument to events) associated with dialog boxes. }
+  { Data type for GtkDialogRun .
+    PDialogData will be passed signal handlers associated with dialog boxes. }
   TDialogData = record
-    Answered: Boolean; { = false }
+    Answered: Boolean; //< = false initially
     Answer: TGtkResponseType;
   end;
   PDialogData = ^TDialogData;
-
-procedure signal_dialog_ok_clicked(AWidget: PGtkWidget; Data: PDialogData); cdecl;
-begin
-  Data^.Answered := true;
-  Data^.Answer := GTK_RESPONSE_ACCEPT;
-end;
-
-procedure signal_dialog_cancel_clicked(AWidget: PGtkWidget;
-  Data: PDialogData); cdecl;
-begin
-  Data^.Answered := true;
-  Data^.Answer := GTK_RESPONSE_REJECT;
-end;
 
 function signal_dialog_delete_event(AWidget: PGtkWidget; Event: PGdkEventAny;
   Data: PDialogData): gboolean; cdecl;
@@ -1273,35 +1250,7 @@ begin
   Data^.Answer := TGtkResponseType(ResponseId);
 end;
 
-function TCastleWindow.GtkDialogRun(ADialog: PGtkWindow;
-  ok_button, cancel_button: PGtkWidget): Boolean;
-var
-  Data: TDialogData;
-  Mode: TGLModeFrozenScreen;
-begin
-  gtk_signal_connect(GTK_OBJECT(ok_button),
-    'clicked',      GTK_SIGNAL_FUNC(@signal_dialog_ok_clicked),     @Data);
-  gtk_signal_connect(GTK_OBJECT(cancel_button),
-    'clicked',      GTK_SIGNAL_FUNC(@signal_dialog_cancel_clicked), @Data);
-  gtk_signal_connect(GTK_OBJECT(ADialog),
-    'delete_event', GTK_SIGNAL_FUNC(@signal_dialog_delete_event),   @Data);
-
-  gtk_window_set_modal(ADialog, gtrue);
-  gtk_window_set_transient_for(ADialog, WindowGtk);
-
-  { prepare Data }
-  Data.Answered := false;
-
-  Mode := TGLModeFrozenScreen.Create(Self);
-  try
-    gtk_widget_show(GTK_WIDGET(ADialog));
-    while not Data.Answered do Application.ProcessMessage(true, true);
-  finally Mode.Free end;
-
-  Result := Data.Answer = GTK_RESPONSE_ACCEPT;
-end;
-
-function TCastleWindow.GtkDialogRun(ADialog: PGtkDialog): TGtkResponseType;
+function TCastleWindow.GtkDialogRun(const ADialog: PGtkDialog): TGtkResponseType;
 var
   Data: TDialogData;
   Mode: TGLModeFrozenScreen;
@@ -1320,6 +1269,7 @@ begin
     nothing can destroy the dialog AFAIK. }
 
   gtk_window_set_modal(GTK_WINDOW(ADialog), gtrue);
+  gtk_window_set_transient_for(GTK_WINDOW(ADialog), WindowGtk);
 
   Data.Answered := false;
 
@@ -1567,19 +1517,7 @@ begin
     ColorSelection := PGtkColorSelection(gtk_color_selection_dialog_get_color_selection(Dialog));
     gtk_color_selection_set_current_rgba(ColorSelection, @GdkColor);
 
-    // TODO-gtk3
-    {$ifdef CASTLE_WINDOW_GTK_2}
-    Result := GtkDialogRun(PGtkWindow(Dialog),
-      {$ifdef CASTLE_WINDOW_GTK_2} Dialog^.ok_button
-      {$else} g_object_get_property(Dialog, 'ok-button')
-      {$endif},
-      {$ifdef CASTLE_WINDOW_GTK_2} Dialog^.cancel_button
-      {$else} g_object_get_property(Dialog, 'cancel-button')
-      {$endif}
-    );
-    {$else}
     Result := GtkDialogRun(GTK_DIALOG(Dialog)) = GTK_RESPONSE_OK;
-    {$endif}
 
     if Result then
     begin
