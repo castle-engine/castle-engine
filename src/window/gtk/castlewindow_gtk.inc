@@ -1040,22 +1040,17 @@ begin
   gtk_widget_set_uposition(GTK_WIDGET(WindowGtk), Left, Top);
   {$endif}
 
-  // TODO-gtk3
-  (*
   if (MainMenu <> nil) and MainMenuVisible then
   begin
     window_accel_group := gtk_accel_group_new;
     gtk_window_add_accel_group(GTK_WINDOW(WindowGtk), window_accel_group);
 
-    {$ifdef CASTLE_WINDOW_GTK_2}
     window_vbox := PGtkVBox(gtk_vbox_new(gfalse, VBoxSpacing));
     gtk_widget_show(GTK_WIDGET(window_vbox));
     MenuInitialize;
     gtk_box_pack_end_defaults(PGtkBox(window_vbox), GTK_WIDGET(GLAreaGtk));
     gtk_container_add(GTK_CONTAINER(WindowGtk), GTK_WIDGET(window_vbox));
-    {$endif}
   end else
-  *)
     gtk_container_add(GTK_CONTAINER(WindowGtk), GTK_WIDGET(GLAreaGtk));
 
   { setup window/glarea size and resize policy from
