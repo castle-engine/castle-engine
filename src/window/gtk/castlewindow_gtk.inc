@@ -807,16 +807,24 @@ begin
 end;
 
 procedure TCastleWindow.GetInitialCursorPos;
-{$ifdef CASTLE_WINDOW_GTK_2}
 var
-  X, Y: GInt;
+  X, Y: {$ifdef CASTLE_WINDOW_GTK_2} GInt {$else} GDouble {$endif};
 begin
-  gdk_window_get_pointer(gtk_widget_get_window(GTK_WIDGET(GLAreaGtk)), @X, @Y, nil);
+  {$ifdef CASTLE_WINDOW_GTK_2}
+  gdk_window_get_pointer(
+    gtk_widget_get_window(GTK_WIDGET(GLAreaGtk)),
+    @X, @Y, nil);
+  {$else}
+  { With GTK 3, gdk_window_get_pointer is deprecated.
+    Use instead gdk_window_get_device_position_double to get position
+    in double precision. }
+  gdk_window_get_device_position_double(
+    gtk_widget_get_window(GTK_WIDGET(GLAreaGtk)),
+    GdkPointerDevice(Application.XDisplayGdk),
+    @X, @Y, nil);
+  {$endif}
+
   Container.InitializeMousePosition(LeftTopToCastle(X, Y));
-{$else}
-begin
-  // TODO-gtk3:
-{$endif CASTLE_WINDOW_GTK_2}
 end;
 
 procedure TCastleWindow.OpenBackend;

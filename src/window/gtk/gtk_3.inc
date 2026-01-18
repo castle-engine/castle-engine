@@ -60,14 +60,21 @@ begin
   Result := gtk_events_pending();
 end;
 
+{ Get pointer (mouse) as GdkDevice from GdkDisplay. }
+function GdkPointerDevice(const Display: PGdkDisplay): PGdkDevice;
+var
+  DeviceManager: PGdkDeviceManager;
+begin
+  DeviceManager := gdk_display_get_device_manager(Display);
+  Result := gdk_device_manager_get_client_pointer(DeviceManager);
+end;
+
 procedure gdk_display_warp_pointer(const Display: PGdkDisplay;
   const Screen: PGdkScreen; const X, Y: GInt);
 var
-  DeviceManager: PGdkDeviceManager;
   Device: PGdkDevice;
 begin
-  DeviceManager := gdk_display_get_device_manager(Display);
-  Device := gdk_device_manager_get_client_pointer(DeviceManager);
+  Device := GdkPointerDevice(Display);
   gdk_device_warp(Device, Screen, X, Y);
 end;
 
