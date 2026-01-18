@@ -110,22 +110,16 @@ end;
   no warnings are displayed and everything works OK. }
 procedure MenuItemBlock(MenuItemGtk: PGtkMenuItem; MenuItem: TMenuItem);
 begin
-  // TODO-gtk3
-  {$ifdef CASTLE_WINDOW_GTK_2}
   g_signal_handlers_block_by_func( GTK_OBJECT(MenuItemGtk),
      @signal_menu_item_activate, Pointer(PtrUInt(MenuItem.SmallId)));
-  {$endif CASTLE_WINDOW_GTK_2}
 end;
 
 { Unblock signal_menu_item_activate from this menu item.
   Useful inside signal_menu_item_activate, see there for comments. }
 procedure MenuItemUnblock(MenuItemGtk: PGtkMenuItem; MenuItem: TMenuItem);
 begin
-  // TODO-gtk3
-  {$ifdef CASTLE_WINDOW_GTK_2}
   g_signal_handlers_unblock_by_func( GTK_OBJECT(MenuItemGtk),
     @signal_menu_item_activate, Pointer(PtrUInt(MenuItem.SmallId)));
-  {$endif CASTLE_WINDOW_GTK_2}
 end;
 
 { Initialize MainMenu.Handle (to GtkMenuBar) and insert it to window_vbox.

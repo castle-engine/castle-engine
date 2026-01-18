@@ -45,6 +45,18 @@ begin
   g_signal_handler_disconnect(Obj, HandlerId);
 end;
 
+procedure g_signal_handlers_block_by_func(const Obj: PGObject; const Func: Pointer; const Data: Pointer);
+begin
+  if g_signal_handlers_block_matched(Obj, [G_SIGNAL_MATCH_FUNC, G_SIGNAL_MATCH_DATA], 0, 0, nil, Func, Data) = 0 then
+    WritelnWarning('g_signal_handlers_block_matched did not match any handlers');
+end;
+
+procedure g_signal_handlers_unblock_by_func(const Obj: PGObject; const Func: Pointer; const Data: Pointer);
+begin
+  if g_signal_handlers_unblock_matched(Obj, [G_SIGNAL_MATCH_FUNC, G_SIGNAL_MATCH_DATA], 0, 0, nil, Func, Data) = 0 then
+    WritelnWarning('g_signal_handlers_unblock_matched did not match any handlers');
+end;
+
 procedure gtk_object_set_user_data(const Obj: PGObject; const Data: Pointer);
 begin
   g_object_set_data(Obj, 'castle_user_data', Data);
