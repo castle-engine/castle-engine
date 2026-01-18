@@ -70,3 +70,13 @@ begin
   Device := gdk_device_manager_get_client_pointer(DeviceManager);
   gdk_device_warp(Device, Screen, X, Y);
 end;
+
+function gtk_vbox_new(homogeneous: gboolean; spacing: gint): PGtkBox;
+begin
+  Result := PGtkBox(gtk_box_new(GTK_ORIENTATION_VERTICAL, spacing));
+end;
+
+procedure gtk_box_pack_end_defaults(const Box: PGtkBox; const Child: PGtkWidget);
+begin
+  gtk_box_pack_end(Box, Child, gtrue, gtrue, 0);
+end;
