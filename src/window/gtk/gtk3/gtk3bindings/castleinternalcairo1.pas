@@ -10,6 +10,7 @@ unit CastleInternalCairo1;
 {$LINKLIB libcairo-gobject.so.2}
 {$endif}
 {$WARN 3031 off : Values in enumeration types have to be ascending}
+{$I ../castle_gtk3bindings_conf.inc}
 interface
 uses
   CTypes;
