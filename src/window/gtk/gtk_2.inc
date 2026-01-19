@@ -36,6 +36,22 @@ function gdk_screen_get_primary_monitor(Screen: PGdkScreen): GInt;
 function gdk_screen_get_resolution(screen: PGdkScreen): GDouble;
   cdecl; external gdklib;
 
+{$ifndef CASTLE_SetMousePosition_USE_XWarpPointer}
+// Since GDK >= 2.8
+procedure gdk_display_warp_pointer(Display: PGdkDisplay;
+  Screen: PGdkScreen; X, Y: GInt); cdecl; external gdklib;
+// Since GTK >= 2.18
+procedure gdk_window_get_root_coords(Window: PGdkWindow;
+  X, Y: GInt; RootX, RootY: PGInt); cdecl; external gtklib;
+{$endif}
+
+{$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
+// Available since GDK >= 2.2 .
+// Missing in FPC Gdk2x unit, so we define it here.
+function gdk_x11_screen_lookup_visual(Screen: PGdkScreen;
+  XVisualid: TVisualID): PGdkVisual; cdecl; external gdklib;
+{$endif}
+
 function gtk_events_pending_bool: Boolean;
 begin
   Result := gtk_events_pending() <> 0;

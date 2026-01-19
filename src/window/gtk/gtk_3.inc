@@ -9,8 +9,6 @@ const
   gfalse = gboolean(0);
   gtrue = gboolean(1);
 
-  gdklib = LazGdk3_library;
-
 type
   { These are functions that check type in GTK 2.
     In GTK 3, we just cast.
@@ -24,11 +22,16 @@ type
   GTK_DIALOG = PGtkDialog;
 
 {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
+{ Define gdk_x11_xxx routines we need, as units in
+  src/window/gtk/gtk3/gtk3bindings/ don't define them. }
 function gdk_x11_window_get_xid(Window: PGdkWindow): TWindow;
   cdecl; external LazGdk3_library;
 function gdk_x11_display_get_xdisplay(Display: PGdkDisplay): Xlib.PDisplay;
   cdecl; external LazGdk3_library;
 function gdk_x11_screen_get_screen_number(Screen: PGdkScreen): Integer;
+  cdecl; external LazGdk3_library;
+function gdk_x11_screen_lookup_visual(Screen: PGdkScreen;
+  XVisualid: TVisualID): PGdkVisual;
   cdecl; external LazGdk3_library;
 {$endif}
 
