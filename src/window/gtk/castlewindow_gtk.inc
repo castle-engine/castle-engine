@@ -1847,7 +1847,11 @@ end;
 
 function TCastleApplication.BackendName: String;
 begin
-  Result := 'GTK+';
+  Result := 'GTK'
+    {$ifdef CASTLE_WINDOW_GTK_2} + ' 2' {$else} + ' 3' {$endif}
+    {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB} + ' (on Xlib)' {$endif}
+    {$ifdef USE_EGL} + ' (EGL)' {$else} + ' (glX)' {$endif}
+  ;
 end;
 
 function TCastleApplication.MultipleWindowsPossible: Boolean;
