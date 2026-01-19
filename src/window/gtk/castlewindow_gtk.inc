@@ -171,6 +171,9 @@ public
 
 { various helpers ------------------------------------------------------------ }
 
+{$if defined(CASTLE_WINDOW_GTK_WITH_XLIB) and defined(CASTLE_WINDOW_GTK_2)}
+  {$define CASTLE_SetMousePosition_USE_XWarpPointer}
+{$endif}
 {$ifdef CASTLE_WINDOW_GTK_2}
   {$I gtk_2.inc}
 {$endif}
@@ -726,23 +729,6 @@ begin
 end;
 
 {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
-
-  // Since GDK >= 2.2
-  // Still in GDK 3 ( https://docs.gtk.org/gdk3-x11/method.X11Screen.lookup_visual.html )
-  function gdk_x11_screen_lookup_visual(Screen: PGdkScreen;
-    XVisualid: TVisualID): PGdkVisual; cdecl; external gdklib;
-
-{$else}
-  // Since GDK >= 2.8
-  procedure gdk_display_warp_pointer(Display: PGdkDisplay;
-    Screen: PGdkScreen; X, Y: GInt); cdecl; external gdklib;
-
-  // Since GTK >= 2.18
-  procedure gdk_window_get_root_coords(Window: PGdkWindow;
-    X, Y: GInt; RootX, RootY: PGInt); cdecl; external gtklib;
-{$endif}
-
-{$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
 function TCastleWindow.WindowXID: TWindow;
 begin
   {$ifdef DEBUG}
@@ -763,9 +749,6 @@ end;
 {$endif}
 
 procedure TCastleWindow.SystemSetMousePosition(const Value: TVector2);
-{$if defined(CASTLE_WINDOW_GTK_WITH_XLIB) and defined(CASTLE_WINDOW_GTK_2)}
-  {$define CASTLE_SetMousePosition_USE_XWarpPointer}
-{$endif}
 var
   P: TVector2Integer;
 {$ifndef CASTLE_SetMousePosition_USE_XWarpPointer}
