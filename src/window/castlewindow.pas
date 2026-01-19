@@ -213,8 +213,8 @@ unit CastleWindow;
         { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
       {$else}
         // various possible backends on traditional Unix (Linux, FreeBSD) desktop:
-        {$define CASTLE_WINDOW_GTK_2} // best (looks native and most functional), supports both OpenGL and OpenGLES
-        { $define CASTLE_WINDOW_GTK_3} // TODO: soon new best
+        {$define CASTLE_WINDOW_GTK_3} // best (looks native and most functional), supports both OpenGL and OpenGLES
+        { $define CASTLE_WINDOW_GTK_2} // older GTK 2 version, works but not recommended (distros may stop shipping GTK 2)
         { $define CASTLE_WINDOW_XLIB} // supports both OpenGL and OpenGLES
         { $define CASTLE_WINDOW_FORM}
         { $define CASTLE_WINDOW_LIBRARY}
