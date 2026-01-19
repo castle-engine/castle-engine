@@ -11,6 +11,7 @@ unit CastleInternalHarfbuzz0;
 {$LINKLIB libharfbuzz-gobject.so.0}
 {$endif}
 {$WARN 3031 off : Values in enumeration types have to be ascending}
+{$I ../castle_gtk3bindings_conf.inc}
 interface
 uses
   CTypes, CastleInternalGObject2, CastleInternalFreetype2_2, CastleInternalGlib2;

@@ -10,6 +10,7 @@ unit CastleInternalGio2;
 {$LINKLIB libgio-2.0.so.0}
 {$endif}
 {$WARN 3031 off : Values in enumeration types have to be ascending}
+{$I ../castle_gtk3bindings_conf.inc}
 interface
 uses
   CTypes, CastleInternalGObject2, CastleInternalGlib2;

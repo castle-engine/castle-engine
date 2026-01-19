@@ -9,6 +9,7 @@ unit CastleInternalXlib2;
 {$ifdef Unix}
 {$endif}
 {$WARN 3031 off : Values in enumeration types have to be ascending}
+{$I ../castle_gtk3bindings_conf.inc}
 interface
 uses
   CTypes;

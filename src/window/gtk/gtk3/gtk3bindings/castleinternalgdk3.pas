@@ -10,6 +10,7 @@ unit CastleInternalGdk3;
 {$LINKLIB libgdk-3.so.0}
 {$endif}
 {$WARN 3031 off : Values in enumeration types have to be ascending}
+{$I ../castle_gtk3bindings_conf.inc}
 interface
 uses
   CTypes, CastleInternalGdkPixbuf2, CastleInternalGio2, CastleInternalPango1, CastleInternalCairo1, CastleInternalGlib2, CastleInternalGObject2;
