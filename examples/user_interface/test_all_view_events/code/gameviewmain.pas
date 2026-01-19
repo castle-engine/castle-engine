@@ -215,6 +215,11 @@ begin
   // Just a test that checking for keys, and using MessageOk, works from Update
   if Container.Pressed[keyF12] then
     Application.MainWindow.MessageOk('F12 key pressed. This is just a test that MessageOk works.', mtInfo);
+  if Container.Pressed[keyF9] then
+    if Application.MainWindow.MessageYesNo('F9 key pressed. This is just a test that MessageYesNo works. Do you like it?', mtInfo) then
+      Application.MainWindow.MessageOk('You answered yes.', mtInfo)
+    else
+      Application.MainWindow.MessageOk('You answered no.', mtInfo);
 end;
 
 procedure TViewMain.DoTimer(Sender: TObject);
