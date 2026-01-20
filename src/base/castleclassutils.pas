@@ -2667,7 +2667,9 @@ end;
 destructor TFreeNotificationObserver.Destroy;
 begin
   if FDuringOnFreeNotification then
-    WritelnWarning('TFreeNotificationObserver is being freed while processing OnFreeNotification. This will lead to undefined behavior later, as our instance will be invalid when OnFreeNotification ends. To fix this, either change TFreeNotificationObserver.EnableFreeingFromNotification to true, or make sure to not free this instance from inside OnFreeNotification.');
+    WritelnWarning('TFreeNotificationObserver is being freed while processing OnFreeNotification. ' +
+      'This will lead to undefined behavior later, as our instance will be invalid when OnFreeNotification ends. ' +
+      'To fix this, either change TFreeNotificationObserver.EnableFreeingFromNotification to true, or make sure to not free this instance from inside OnFreeNotification.');
 
   { detach free notification, if any remains }
   Observed := nil;
