@@ -2776,6 +2776,12 @@ begin
 
   // create ChildObserver
   ChildObserver := TFreeNotificationObserver.Create(nil);
+  { Our ChildFreeNotification implementation will free this
+    TCastleSceneCore.TExposedTransform instance,
+    and the TFreeNotificationObserver instance in ChildObserver.
+    We need to make ChildObserver prepared for this.
+    Testcase: https://forum.castle-engine.io/t/question-about-destroying-player-components-vs-removing-from-viewport/2073/6 }
+  ChildObserver.EnableFreeingFromNotification := true;
   ChildObserver.OnFreeNotification := {$ifdef FPC}@{$endif}ChildFreeNotification;
   ChildObserver.Observed := Child;
 end;
