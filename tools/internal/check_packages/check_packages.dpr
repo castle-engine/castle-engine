@@ -621,7 +621,7 @@ begin
     ],
     [
       // Only used when with CASTLE_WINDOW_GTK_2 or CASTLE_WINDOW_GTK_3.
-      'src/window/gtk/gtk3/gtk3bindings/'
+      'src/window/gtk/gtk3/'
     ],
     [ ]);
   finally FreeAndNil(Package) end;
@@ -633,7 +633,7 @@ begin
     ],
     [
       // Only used when with CASTLE_WINDOW_GTK_2 or CASTLE_WINDOW_GTK_3.
-      'src/window/gtk/gtk3/gtk3bindings/'
+      'src/window/gtk/gtk3/'
     ],
     [ ]);
   finally FreeAndNil(Package) end;
@@ -764,7 +764,7 @@ begin
       'src/window/unix/castleinternalxlib.pas',
 
       // Only used when with CASTLE_WINDOW_GTK_2 or CASTLE_WINDOW_GTK_3.
-      'src/window/gtk/gtk3/gtk3bindings/'
+      'src/window/gtk/gtk3/'
     ],
     [ ]);
   finally FreeAndNil(Package) end;
@@ -814,7 +814,7 @@ begin
       'src/files/castleinternalforfpc32x*.pas',
 
       // Only used when with CASTLE_WINDOW_GTK_2 or CASTLE_WINDOW_GTK_3.
-      'src/window/gtk/gtk3/gtk3bindings/'
+      'src/window/gtk/gtk3/'
     ],
     [
       'src/vampyre_imaginglib/'
