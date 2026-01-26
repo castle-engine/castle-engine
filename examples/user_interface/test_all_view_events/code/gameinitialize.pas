@@ -1,5 +1,5 @@
 {
-  Copyright 2004-2023 Michalis Kamburelis.
+  Copyright 2004-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -43,6 +43,12 @@ begin
   // The content here may be automatically updated by CGE editor.
   ViewMain := TViewMain.Create(Application);
   {$endregion 'Castle View Creation'}
+
+  { Just to test MinWidth / MinHeight. }
+  // Window.MinWidth := 400;
+  // Window.MinHeight := 400;
+  { Just to test ResizeAllowed. }
+  // Window.ResizeAllowed := raNotAllowed;
 
   Window.Container.View := ViewMain;
 end;

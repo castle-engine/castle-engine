@@ -1051,28 +1051,25 @@ begin
     { When in FullScreen we set whole window size, not just GLArea size, to screen size.
       This is the ultimate sense of FullScreen,
       so there is no discussion, no matter what value has ResizeAllowed.
-      So I'm doing gtk_widget_set_usize(WindowGtk, ...) and
+      So I'm doing gtk_widget_set_size_request(WindowGtk, ...) and
                    gtk_window_set_default_size
       instead of
-                   gtk_widget_set_usize(GLAreaGtk, ...) and
+                   gtk_widget_set_size_request(GLAreaGtk, ...) and
                    set_default_glarea_size
     }
-    // TODO-gtk3
-    {$ifdef CASTLE_WINDOW_GTK_2}
-    gtk_widget_set_usize(GTK_WIDGET(WindowGtk), MinWidth, MinHeight);
-    {$endif}
+    gtk_widget_set_size_request(GTK_WIDGET(WindowGtk), MinWidth, MinHeight);
     gtk_window_set_default_size(WindowGtk, Application.ScreenWidth, Application.ScreenHeight);
 
     gtk_window_fullscreen(WindowGtk);
   end else
   begin
-    // TODO-gtk3
-    {$ifdef CASTLE_WINDOW_GTK_2}
     if ResizeAllowed <> raAllowed then
-      gtk_widget_set_usize(GTK_WIDGET(GLAreaGtk), Width, Height)
+      gtk_widget_set_size_request(GTK_WIDGET(GLAreaGtk), Width, Height)
     else
-      gtk_widget_set_usize(GTK_WIDGET(GLAreaGtk), MinWidth, MinHeight);
-    {$endif}
+      { TODO: This doesn't seem to actually have any effect,
+        i.e. it doesn't limit window sizing, with GTK 2 (whether we use
+        gtk_widget_set_size_request or gtk_window_set_usize) or GTK 3. }
+      gtk_widget_set_size_request(GTK_WIDGET(GLAreaGtk), MinWidth, MinHeight);
     set_default_glarea_size(Width, Height);
     gtk_window_set_resizable(WindowGtk, ResizeAllowed = raAllowed);
   end;
