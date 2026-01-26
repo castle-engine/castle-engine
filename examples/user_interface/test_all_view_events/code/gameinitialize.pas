@@ -44,12 +44,6 @@ begin
   ViewMain := TViewMain.Create(Application);
   {$endregion 'Castle View Creation'}
 
-  { Just to test MinWidth / MinHeight. }
-  // Window.MinWidth := 400;
-  // Window.MinHeight := 400;
-  { Just to test ResizeAllowed. }
-  // Window.ResizeAllowed := raNotAllowed;
-
   Window.Container.View := ViewMain;
 end;
 
@@ -67,6 +61,17 @@ initialization
 
   Window := TCastleWindow.Create(Application);
   Application.MainWindow := Window;
+
+  { Test Window. Min/Max Width/ Height
+    (must be set before Window is opened, so ApplicationInitialize would be too late). }
+  // Window.MinWidth := 400;
+  // Window.MinHeight := 400;
+  // Window.MaxWidth := 800;
+  // Window.MaxHeight := 800;
+
+  { Test ResizeAllowed
+    (must be set before Window is opened, so ApplicationInitialize would be too late). }
+  // Window.ResizeAllowed := raNotAllowed;
 
   { Optionally, adjust window fullscreen state and size at this point.
     See https://castle-engine.io/window_size . }

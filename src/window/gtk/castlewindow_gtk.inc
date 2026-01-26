@@ -879,6 +879,14 @@ const
     //   [NewDpi, NewDpi / DefaultDpi, DefaultDpi]);
   end;
 
+{ Use gtk_window_set_geometry_hints.
+  See below for comments how our current usage of it is imperfect,
+  so disabled by default. }
+{.$define CASTLE_USE_gtk_window_set_geometry_hints}
+{$ifdef CASTLE_USE_gtk_window_set_geometry_hints}
+var
+  GdkGeometry: TGdkGeometry;
+{$endif}
 {$ifndef USE_EGL}
 var
   GdkVisual: PGdkVisual;
@@ -1056,6 +1064,8 @@ begin
       instead of
                    gtk_widget_set_size_request(GLAreaGtk, ...) and
                    set_default_glarea_size
+      Later note: this likely doesn't matter at all, since we use
+      gtk_window_fullscreen.
     }
     gtk_widget_set_size_request(GTK_WIDGET(WindowGtk), MinWidth, MinHeight);
     gtk_window_set_default_size(WindowGtk, Application.ScreenWidth, Application.ScreenHeight);
@@ -1066,12 +1076,44 @@ begin
     if ResizeAllowed <> raAllowed then
       gtk_widget_set_size_request(GTK_WIDGET(GLAreaGtk), Width, Height)
     else
-      { TODO: This doesn't seem to actually have any effect,
-        i.e. it doesn't limit window sizing, with GTK 2 (whether we use
-        gtk_widget_set_size_request or gtk_window_set_usize) or GTK 3. }
       gtk_widget_set_size_request(GTK_WIDGET(GLAreaGtk), MinWidth, MinHeight);
     set_default_glarea_size(Width, Height);
     gtk_window_set_resizable(WindowGtk, ResizeAllowed = raAllowed);
+
+    {$ifdef CASTLE_USE_gtk_window_set_geometry_hints}
+    (*TODO:
+      This works, but to make it really correct, we have to:
+
+      - adjust given sizes to account for window border,
+        WM window title (if this is relevant for this function?),
+        and menu bar size.
+      - make sure how it behaves with GTK 2. how is GLAreaGtk used then?
+
+      For now, it doesn't seem priority, since most use-cases don't need
+      to limit window size by MaxWidth / MaxHeight. And MinWidth / MinHeight
+      are already enforced by gtk_widget_set_size_request.
+    *)
+
+    GdkGeometry.min_width := MinWidth;
+    GdkGeometry.min_height := MinHeight;
+    GdkGeometry.max_width := MaxWidth;
+    GdkGeometry.max_height := MaxHeight;
+    gtk_window_set_geometry_hints(WindowGtk,
+      { ignored in GTK >= 3.20, we pass it only because GTK 2 docs don't
+        say nil is allowed. See
+        https://www.manpagez.com/html/gtk2/gtk2-2.24.24/GtkWindow.php#gtk-window-set-geometry-hints
+        https://docs.gtk.org/gtk3/method.Window.set_geometry_hints.html
+      } GLAreaGtk,
+      @GdkGeometry,
+      {$ifdef CASTLE_WINDOW_GTK_2}
+        GDK_HINT_MIN_SIZE or GDK_HINT_MAX_SIZE
+      {$else}
+        [ GDK_HINT_MIN_SIZE, GDK_HINT_MAX_SIZE ]
+      {$endif});
+    WritelnLog('Window size limited using gtk_window_set_geometry_hints to %d x %d - %d x %d, current: %d x %d', [
+      MinWidth, MinHeight, MaxWidth, MaxHeight, Width, Height
+    ]);
+    {$endif CASTLE_USE_gtk_window_set_geometry_hints}
   end;
 
   { Honour display (XScreenGdk is default screen on chosen display)
