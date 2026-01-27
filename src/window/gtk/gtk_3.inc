@@ -21,6 +21,21 @@ type
   G_OBJECT = PGObject;
   GTK_DIALOG = PGtkDialog;
 
+{ Deprecated in GTK 3, but still available and useful to us:
+  https://docs.gtk.org/gtk3/method.Widget.set_double_buffered.html
+
+  The https://stackoverflow.com/questions/31557168/gtkwidget-alternative-for-deprecated-double-buffered-property
+  advises that the other solution is using
+  https://docs.gtk.org/gtk3/class.GLArea.html , but we don't want to:
+  1. It would mean that GTK 2 backend (which for now
+     we want to maintain) would differ more from the GTK 3 backend.
+  2. We prefer to choose on our side EGL vs glX, and communicate with them
+     on our side, this gives us more flexibility and we need code for EGL / glX
+     anyway to work on other platforms. So it's actually simpler for us to
+     use EGL / glX directly. }
+procedure gtk_widget_set_double_buffered(Widget: PGtkWidget; DoubleBuffered: gboolean);
+  cdecl; external LazGtk3_library name 'gtk_widget_set_double_buffered';
+
 {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
 { Define gdk_x11_xxx routines we need, as units in
   src/window/gtk/gtk3/gtk3bindings/ don't define them. }

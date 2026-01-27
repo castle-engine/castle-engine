@@ -924,11 +924,12 @@ begin
   { Create now GLAreaGtk (for GTK 2: it will use pushed GdkColormap) }
   GLAreaGtk := gtk_drawing_area_new;
 
-  {$ifdef CASTLE_WINDOW_GTK_2}
-  // TODO-gtk3, this is actually available in GTK 3 but deprecated : https://docs.gtk.org/gtk3/method.Widget.set_double_buffered.html
-  // Check it , docs suggest it may be sensible to use for us, as we use own drawing.
-  gtk_widget_set_double_buffered(GLAreaGtk, gfalse); // following Lazarus GTK OpenGL, not sure if needed
-  {$endif}
+  { No need for GTK double buffering.
+    Lazarus GTK OpenGL control also does this,
+    and docs https://docs.gtk.org/gtk3/method.Widget.set_double_buffered.html
+    also suggest we should do it.
+    Note that this is deprecated in GTK 3, but still available. }
+  gtk_widget_set_double_buffered(GLAreaGtk, gfalse);
 
   {$ifndef USE_EGL}
     {$ifdef CASTLE_WINDOW_GTK_2}
