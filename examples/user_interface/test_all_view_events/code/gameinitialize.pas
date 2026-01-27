@@ -62,16 +62,23 @@ initialization
   Window := TCastleWindow.Create(Application);
   Application.MainWindow := Window;
 
-  { Test Window. Min/Max Width/ Height
+  { Test Window.Min/Max Width/ Height
     (must be set before Window is opened, so ApplicationInitialize would be too late). }
   // Window.MinWidth := 400;
   // Window.MinHeight := 400;
   // Window.MaxWidth := 800;
   // Window.MaxHeight := 800;
 
-  { Test ResizeAllowed
+  { Test Window.ResizeAllowed
     (must be set before Window is opened, so ApplicationInitialize would be too late). }
   // Window.ResizeAllowed := raNotAllowed;
+
+  { Test Window.Left/Top/Width/Height
+    (must be set before Window is opened, so ApplicationInitialize would be too late). }
+  // Window.Left := 200;
+  // Window.Top := 400;
+  // Window.Width := 800;
+  // Window.Height := 400;
 
   { Optionally, adjust window fullscreen state and size at this point.
     See https://castle-engine.io/window_size . }

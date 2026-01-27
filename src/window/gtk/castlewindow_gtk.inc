@@ -1026,9 +1026,10 @@ begin
   Application.OpenWindowsAdd(Self);
 
   { setup window position from Left, Top }
-  // TODO-gtk3
   {$ifdef CASTLE_WINDOW_GTK_2}
   gtk_widget_set_uposition(GTK_WIDGET(WindowGtk), Left, Top);
+  {$else}
+  gtk_window_move(WindowGtk, Left, Top);
   {$endif}
 
   if (MainMenu <> nil) and MainMenuVisible then
