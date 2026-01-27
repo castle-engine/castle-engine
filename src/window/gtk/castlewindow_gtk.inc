@@ -936,7 +936,8 @@ begin
     // Cleanup after gtk_widget_push_colormap called above
     gtk_widget_pop_colormap();
     {$else}
-    // In GTK 3, no need (and no way) to deal with colormaps, just use GdkVisual
+    // In GTK 3, no need (and no way) to deal with colormaps, just use GdkVisual .
+    // This follows https://docs.gtk.org/gtk3/migrating-2to3.html .
     gtk_widget_set_visual(GTK_WIDGET(WindowGtk), GdkVisual);
     {$endif}
   {$endif}
