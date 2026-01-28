@@ -556,18 +556,82 @@ SIGNAL_GLAREA_END;
 
 function signal_scroll_event(AGLAreaGtk: PGtkGLArea; Event: PGdkEventScroll;
   data: gpointer): gboolean; cdecl;
-SIGNAL_GLAREA_BEGIN
-  case Event^.Direction of
-    GDK_SCROLL_UP:   DoMouseWheel( 1, true);
-    GDK_SCROLL_DOWN: DoMouseWheel(-1, true);
-    GDK_SCROLL_LEFT: DoMouseWheel( 1, false);
-    GDK_SCROLL_RIGHT:DoMouseWheel(-1, false);
-    {$ifndef COMPILER_CASE_ANALYSIS}
-    else WritelnWarning('GTK', 'Invalid GdkEventScroll.direction');
-    {$endif}
+
+{ We have code below to handle both smooth and discrete scrolling.
+  However, it is not used by default (CASTLE_GTK_ONLY_DISCRETE_SCROLL
+  is not defined) because:
+
+  - Sometimes gdk_event_get_scroll_direction(PGdkEvent(Event), @Direction)
+    causes access violation inside GTK, for unknown reason.
+  - While docs on https://docs.gtk.org/gdk3/method.Event.get_scroll_direction.html
+    recommend this method to handle both discrete and smooth scrolling,
+    I'm unsure does it make sense: in my tests, we really receive *both*
+    discrete and smooth events in such case.
+    So we are left to arbitrarily choose a delta (we use 1.0,
+    GTK example chooses 12.0) that may imply that one or the other
+    event is meaningless (as it will cause much smaller deltas).
+  - And we cannot just switch to using only smooth scrolling, since
+    some devices may not support it, and there seems to be no way to ask
+    about it. So we cannot just ignore discrete smooth events, it seems. }
+{$define CASTLE_GTK_ONLY_DISCRETE_SCROLL}
+
+var
+  Window: TCastleWindow;
+
+  procedure HandleDiscreteScroll(const Direction: TGdkScrollDirection);
+  var
+    DirectionStr: String;
+  begin
+    DirectionStr := GetEnumName(TypeInfo(TGdkScrollDirection), Ord(Direction));
+    //WritelnLog('GTK', 'Discrete scroll: %s', [DirectionStr]);
+    case Direction of
+      GDK_SCROLL_UP:   Window.DoMouseWheel( 1, true);
+      GDK_SCROLL_DOWN: Window.DoMouseWheel(-1, true);
+      GDK_SCROLL_LEFT: Window.DoMouseWheel( 1, false);
+      GDK_SCROLL_RIGHT:Window.DoMouseWheel(-1, false);
+      else WritelnWarning('GTK', 'Invalid GdkEventScroll.direction: %s', [
+        DirectionStr
+      ]);
+    end;
   end;
-  Result := gtrue;
-SIGNAL_GLAREA_END;
+
+{$ifndef CASTLE_WINDOW_GTK_2}
+var
+  DeltaX, DeltaY: Double;
+  Direction: TGdkScrollDirection;
+{$endif}
+begin
+  // Not using SIGNAL_GLAREA_BEGIN / END, because we want Window as a variable
+  SIGNAL_GENERAL_BEGIN
+
+    Window := Application.FindGLAreaGtk(AGLAreaGtk);
+    if Window = nil then
+    begin
+      WritelnWarning('GTK', 'Scroll event received for unknown window, ignoring');
+      Exit;
+    end;
+
+    {$if defined(CASTLE_WINDOW_GTK_2) or defined(CASTLE_GTK_ONLY_DISCRETE_SCROLL)}
+    HandleDiscreteScroll(Event^.Direction);
+    {$else}
+    // Handle both discrete and smooth scrolling, following
+    // https://docs.gtk.org/gdk3/method.Event.get_scroll_direction.html
+    if gdk_event_get_scroll_direction(PGdkEvent(Event), @Direction) then
+      HandleDiscreteScroll(Direction)
+    else
+    if gdk_event_get_scroll_deltas(PGdkEvent(Event), @DeltaX, @DeltaY) then
+    begin
+      //WritelnLog('GTK', 'Smooth scroll with deltas %f, %f', [DeltaX, DeltaY]);
+      Window.DoMouseWheel(DeltaX, false);
+      Window.DoMouseWheel(-DeltaY, true); // inverted Y direction compared to GTK
+    end else
+      WritelnWarning('GTK', 'Invalid GdkEventScroll, cannot get scroll smooth or discrete scroll values');
+    {$endif}
+
+    Result := gtrue;
+
+  SIGNAL_GENERAL_END;
+end;
 
 procedure signal_menu_item_activate(AMenuItemGtk: PGtkMenuItem;
   data: gpointer); cdecl;
@@ -974,7 +1038,8 @@ begin
       GDK_EXPOSURE_MASK,
       GDK_BUTTON_PRESS_MASK,
       GDK_BUTTON_RELEASE_MASK,
-      GDK_POINTER_MOTION_MASK
+      GDK_POINTER_MOTION_MASK,
+      GDK_SCROLL_MASK
     ]
     {$endif});
 

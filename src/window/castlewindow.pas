@@ -331,7 +331,7 @@ uses {$define read_interface_uses}
   {$I castlewindow_backend.inc}
   {$undef read_interface_uses}
   { FPC units }
-  SysUtils, Classes, Generics.Collections, CustApp, CTypes,
+  SysUtils, Classes, Generics.Collections, CustApp, CTypes, TypInfo,
   { Castle Game Engine units }
   {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleVectors, CastleRectangles, CastleColors, CastleRenderOptions,
