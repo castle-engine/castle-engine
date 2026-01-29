@@ -1,6 +1,6 @@
 {%MainUnit castleifc.pas}
 {
-  Copyright 2024-2025 Michalis Kamburelis.
+  Copyright 2024-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -31,6 +31,7 @@
     var
       FBaseUrl: String;
       FRootNode: TX3DRootNode;
+      FOwnsRootNode: Boolean;
 
       { Map X3D shape nodes to IFC products.
 
@@ -114,15 +115,25 @@
       The BaseUrl will be used to resolve relative URLs,
       e.g. texture URLs mentioned in IFC information.
 
-      After calling this (and before destroying this class or calling
-      @link(Load) again) remember to free the resulting @link(RootNode),
-      it is not freed automatically by this class (because in all practical
-      use-cases, you want to keep the X3D node around,
-      e.g. to be owned by TCastleScene or freed manually later). }
+      If OwnsRootNode = @false (which is the default state),
+      then after calling this (and before destroying this class or calling
+      @link(Load) again) remember to free the resulting @link(RootNode).
+      It is not freed automatically by this class (OwnsRootNode = @false by
+      default) because in most practical use-cases,
+      you want to keep the X3D node around,
+      e.g. to be owned by TCastleScene or freed manually later. }
     procedure Load(const Ifc: TIfcFile; const ABaseUrl: String);
 
     { Latest X3D root node, built from the latest IFC instance. }
     property RootNode: TX3DRootNode read FRootNode;
+
+    { Should this class (TCastleIfcMapping) free the @link(RootNode)
+      when loading new one or when destroying this class.
+
+      By default this @false, so you're responsible for freeing the @link(RootNode)
+      yourself after calling @link(Load).
+      See @link(Load) for more explanation. }
+    property OwnsRootNode: Boolean read FOwnsRootNode write FOwnsRootNode default false;
 
     { Update the nodes in @link(RootNode) based on the new IFC contents.
       Call this only after calling @link(Load) once.
@@ -265,6 +276,8 @@ begin
       Shape.RemoveDestructionNotification({$ifdef FPC}@{$endif} ShapeDestroyed);
     FreeAndNil(ShapeToProduct);
   end;
+  if FOwnsRootNode then
+    FreeAndNil(FRootNode);
   inherited;
 end;
 
@@ -440,7 +453,9 @@ end;
 
 procedure TCastleIfcMapping.Load(const Ifc: TIfcFile; const ABaseUrl: String);
 begin
-  { Node that we don't free previous FRootNode, we don't own it. }
+  if FOwnsRootNode then
+    FreeAndNil(FRootNode);
+
   FBaseUrl := ABaseUrl;
   FRootNode := CreateRootNode(Ifc);
 end;
