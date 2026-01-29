@@ -579,23 +579,22 @@ var
   Window: TCastleWindow;
 
   procedure HandleDiscreteScroll(const Direction: TGdkScrollDirection);
-  var
-    DirectionStr: String;
   begin
-    DirectionStr := GetEnumName(TypeInfo(TGdkScrollDirection), Ord(Direction));
-    //WritelnLog('GTK', 'Discrete scroll: %s', [DirectionStr]);
+    // Fails with FPC 3.2.2 in -dRELEASE mode, "no type info available"
+    // DirectionStr := GetEnumName(TypeInfo(TGdkScrollDirection), Ord(Direction));
+    // WritelnLog('GTK', 'Discrete scroll: %s', [DirectionStr]);
     case Direction of
       GDK_SCROLL_UP:   Window.DoMouseWheel( 1, true);
       GDK_SCROLL_DOWN: Window.DoMouseWheel(-1, true);
       GDK_SCROLL_LEFT: Window.DoMouseWheel( 1, false);
       GDK_SCROLL_RIGHT:Window.DoMouseWheel(-1, false);
-      else WritelnWarning('GTK', 'Invalid GdkEventScroll.direction: %s', [
-        DirectionStr
+      else WritelnWarning('GTK', 'Invalid GdkEventScroll.direction: %d', [
+        Ord(Direction)
       ]);
     end;
   end;
 
-{$ifndef CASTLE_WINDOW_GTK_2}
+{$if not(defined(CASTLE_WINDOW_GTK_2) or defined(CASTLE_GTK_ONLY_DISCRETE_SCROLL))}
 var
   DeltaX, DeltaY: Double;
   Direction: TGdkScrollDirection;
