@@ -481,23 +481,6 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\level/textures/decorative_spec.png" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>decorative_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>decorative_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>decorative_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
 <DeployFile LocalName="data\level/textures/gate-2.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/level/textures/</RemoteDir>
@@ -529,57 +512,6 @@
  <Platform Name="Win64">
   <RemoteDir>./data/level/textures/</RemoteDir>
   <RemoteName>gate-2_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\level/textures/ground-1-darkness.png" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-1-darkness.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-1-darkness.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-1-darkness.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\level/textures/ground-1-darkness_norm.png" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-1-darkness_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-1-darkness_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-1-darkness_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\level/textures/ground-1-darkness_spec.png" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-1-darkness_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-1-darkness_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-1-darkness_spec.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -617,176 +549,6 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\level/textures/ground-1_spec.png" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-1_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-1_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-1_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\level/textures/ground-2.png" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\level/textures/ground-2_norm.png" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-2_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-2_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-2_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\level/textures/ground-2_spec.png" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-2_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-2_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-2_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\level/textures/ground-3.png" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-3.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-3.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-3.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\level/textures/ground-3_norm.png" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-3_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-3_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-3_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\level/textures/ground-3_spec.png" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-3_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-3_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-3_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\level/textures/ground-4.png" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-4.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-4.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-4.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\level/textures/ground-4_norm.png" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-4_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-4_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-4_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\level/textures/ground-4_spec.png" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-4_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-4_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-4_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
 <DeployFile LocalName="data\level/textures/mug2.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/level/textures/</RemoteDir>
@@ -804,23 +566,6 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\level/textures/mug2_ao.png" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>mug2_ao.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>mug2_ao.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>mug2_ao.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
 <DeployFile LocalName="data\level/textures/mug2_norm.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/level/textures/</RemoteDir>
@@ -835,40 +580,6 @@
  <Platform Name="Win64">
   <RemoteDir>./data/level/textures/</RemoteDir>
   <RemoteName>mug2_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\level/textures/mug2_spec.png" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>mug2_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>mug2_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>mug2_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\level/textures/platform.png" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>platform.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>platform.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>platform.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -923,23 +634,6 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\level/textures/switch_spec.png" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>switch_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>switch_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>switch_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
 <DeployFile LocalName="data\level/textures/tile-ground2-norm.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/level/textures/</RemoteDir>
@@ -954,23 +648,6 @@
  <Platform Name="Win64">
   <RemoteDir>./data/level/textures/</RemoteDir>
   <RemoteName>tile-ground2-norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\level/textures/tile-ground2-spec.png" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>tile-ground2-spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>tile-ground2-spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>tile-ground2-spec.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -1022,23 +699,6 @@
  <Platform Name="Win64">
   <RemoteDir>./data/level/textures/</RemoteDir>
   <RemoteName>tile_tantiles_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\level/textures/tile_tantiles_spec.png" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>tile_tantiles_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>tile_tantiles_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>tile_tantiles_spec.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -1107,91 +767,6 @@
  <Platform Name="Win64">
   <RemoteDir>./data/level/textures/</RemoteDir>
   <RemoteName>wall-tex-1_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\level/textures/wall-tex-2.png" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>wall-tex-2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>wall-tex-2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>wall-tex-2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\level/textures/wall-tex-2_norm.png" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>wall-tex-2_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>wall-tex-2_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>wall-tex-2_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\level/textures/wall-tex-3.png" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>wall-tex-3.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>wall-tex-3.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>wall-tex-3.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\level/textures/wall-tex-3_norm.png" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>wall-tex-3_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>wall-tex-3_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>wall-tex-3_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\level/textures/wall-to-depth.png" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>wall-to-depth.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>wall-to-depth.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>wall-to-depth.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -1467,23 +1042,6 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\level/textures/decorative_spec.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>decorative_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>decorative_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>decorative_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
 <DeployFile LocalName="data\level/textures/gate-2.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/level/textures/</RemoteDir>
@@ -1515,57 +1073,6 @@
  <Platform Name="Win64">
   <RemoteDir>./data/level/textures/</RemoteDir>
   <RemoteName>gate-2_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\level/textures/ground-1-darkness.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-1-darkness.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-1-darkness.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-1-darkness.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\level/textures/ground-1-darkness_norm.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-1-darkness_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-1-darkness_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-1-darkness_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\level/textures/ground-1-darkness_spec.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-1-darkness_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-1-darkness_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-1-darkness_spec.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -1603,176 +1110,6 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\level/textures/ground-1_spec.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-1_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-1_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-1_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\level/textures/ground-2.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\level/textures/ground-2_norm.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-2_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-2_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-2_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\level/textures/ground-2_spec.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-2_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-2_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-2_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\level/textures/ground-3.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-3.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-3.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-3.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\level/textures/ground-3_norm.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-3_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-3_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-3_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\level/textures/ground-3_spec.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-3_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-3_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-3_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\level/textures/ground-4.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-4.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-4.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-4.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\level/textures/ground-4_norm.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-4_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-4_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-4_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\level/textures/ground-4_spec.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-4_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-4_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>ground-4_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
 <DeployFile LocalName="data\level/textures/mug2.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/level/textures/</RemoteDir>
@@ -1790,23 +1127,6 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\level/textures/mug2_ao.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>mug2_ao.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>mug2_ao.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>mug2_ao.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
 <DeployFile LocalName="data\level/textures/mug2_norm.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/level/textures/</RemoteDir>
@@ -1821,40 +1141,6 @@
  <Platform Name="Win64">
   <RemoteDir>./data/level/textures/</RemoteDir>
   <RemoteName>mug2_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\level/textures/mug2_spec.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>mug2_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>mug2_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>mug2_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\level/textures/platform.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>platform.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>platform.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>platform.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -1909,23 +1195,6 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\level/textures/switch_spec.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>switch_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>switch_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>switch_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
 <DeployFile LocalName="data\level/textures/tile-ground2-norm.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/level/textures/</RemoteDir>
@@ -1940,23 +1209,6 @@
  <Platform Name="Win64">
   <RemoteDir>./data/level/textures/</RemoteDir>
   <RemoteName>tile-ground2-norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\level/textures/tile-ground2-spec.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>tile-ground2-spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>tile-ground2-spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>tile-ground2-spec.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -2008,23 +1260,6 @@
  <Platform Name="Win64">
   <RemoteDir>./data/level/textures/</RemoteDir>
   <RemoteName>tile_tantiles_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\level/textures/tile_tantiles_spec.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>tile_tantiles_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>tile_tantiles_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>tile_tantiles_spec.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -2093,91 +1328,6 @@
  <Platform Name="Win64">
   <RemoteDir>./data/level/textures/</RemoteDir>
   <RemoteName>wall-tex-1_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\level/textures/wall-tex-2.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>wall-tex-2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>wall-tex-2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>wall-tex-2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\level/textures/wall-tex-2_norm.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>wall-tex-2_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>wall-tex-2_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>wall-tex-2_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\level/textures/wall-tex-3.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>wall-tex-3.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>wall-tex-3.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>wall-tex-3.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\level/textures/wall-tex-3_norm.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>wall-tex-3_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>wall-tex-3_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>wall-tex-3_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\level/textures/wall-to-depth.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>wall-to-depth.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>wall-to-depth.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/textures/</RemoteDir>
-  <RemoteName>wall-to-depth.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>

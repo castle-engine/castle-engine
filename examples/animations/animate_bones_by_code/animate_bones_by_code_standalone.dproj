@@ -311,6 +311,23 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
+<DeployFile LocalName="data\character_for_crowd.castle-transform" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>character_for_crowd.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>character_for_crowd.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>character_for_crowd.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
 <DeployFile LocalName="data\gameviewmain.castle-user-interface" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/</RemoteDir>
@@ -362,6 +379,57 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
+<DeployFile LocalName="data\skinned_animation/AUTHORS.md" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/skinned_animation/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/skinned_animation/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/skinned_animation/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\skinned_animation/Smooth_Female_Dress.bin" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/skinned_animation/</RemoteDir>
+  <RemoteName>Smooth_Female_Dress.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/skinned_animation/</RemoteDir>
+  <RemoteName>Smooth_Female_Dress.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/skinned_animation/</RemoteDir>
+  <RemoteName>Smooth_Female_Dress.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\skinned_animation/Smooth_Female_Dress.gltf" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/skinned_animation/</RemoteDir>
+  <RemoteName>Smooth_Female_Dress.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/skinned_animation/</RemoteDir>
+  <RemoteName>Smooth_Female_Dress.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/skinned_animation/</RemoteDir>
+  <RemoteName>Smooth_Female_Dress.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
 <DeployFile LocalName="data\CastleSettings.xml" Configuration="Release" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/</RemoteDir>
@@ -393,6 +461,23 @@
  <Platform Name="Win64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\character_for_crowd.castle-transform" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>character_for_crowd.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>character_for_crowd.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>character_for_crowd.castle-transform</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -444,6 +529,57 @@
  <Platform Name="Win64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>simple_humanoid.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\skinned_animation/AUTHORS.md" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/skinned_animation/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/skinned_animation/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/skinned_animation/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\skinned_animation/Smooth_Female_Dress.bin" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/skinned_animation/</RemoteDir>
+  <RemoteName>Smooth_Female_Dress.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/skinned_animation/</RemoteDir>
+  <RemoteName>Smooth_Female_Dress.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/skinned_animation/</RemoteDir>
+  <RemoteName>Smooth_Female_Dress.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\skinned_animation/Smooth_Female_Dress.gltf" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/skinned_animation/</RemoteDir>
+  <RemoteName>Smooth_Female_Dress.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/skinned_animation/</RemoteDir>
+  <RemoteName>Smooth_Female_Dress.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/skinned_animation/</RemoteDir>
+  <RemoteName>Smooth_Female_Dress.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>

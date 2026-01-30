@@ -63,7 +63,7 @@
         <PackageName Value="castle_engine_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="4">
+    <Units Count="6">
       <Unit0>
         <Filename Value="random_image_from_unsplash_standalone.dpr"/>
         <IsPartOfProject Value="True"/>
@@ -79,10 +79,19 @@
         <UnitName Value="gameinitialize"/>
       </Unit2>
       <Unit3>
+        <Filename Value="code/gameunsplash.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="gameunsplash"/>
+      </Unit3>
+      <Unit4>
         <Filename Value="code/gameviewmain.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="gameviewmain"/>
-      </Unit3>
+      </Unit4>
+      <Unit5>
+        <Filename Value="code/unsplash_secrets.inc"/>
+        <IsPartOfProject Value="True"/>
+      </Unit5>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -112,8 +121,6 @@
     </CodeGeneration>
     <Linking>
       <Debugging>
-        <DebugInfoType Value="dsDwarf3"/>
-        <UseExternalDbgSyms Value="True"/>
       </Debugging>
     </Linking>
     <Other>

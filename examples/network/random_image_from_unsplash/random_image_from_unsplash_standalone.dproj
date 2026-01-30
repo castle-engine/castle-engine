@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{916CA2D6-5949-494C-BDD1-CCF23CF2DF60}</ProjectGuid>
+        <ProjectGuid>{72257C32-90D0-9263-7609-50E3C2559C2F}</ProjectGuid>
         <MainSource>random_image_from_unsplash_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

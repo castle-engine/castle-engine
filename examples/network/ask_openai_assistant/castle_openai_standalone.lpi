@@ -63,7 +63,7 @@
         <PackageName Value="castle_engine_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="5">
+    <Units Count="4">
       <Unit0>
         <Filename Value="castle_openai_standalone.dpr"/>
         <IsPartOfProject Value="True"/>
@@ -83,10 +83,6 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="gameviewmain"/>
       </Unit3>
-      <Unit4>
-        <Filename Value="code/openai_config.inc"/>
-        <IsPartOfProject Value="True"/>
-      </Unit4>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -116,8 +112,6 @@
     </CodeGeneration>
     <Linking>
       <Debugging>
-        <DebugInfoType Value="dsDwarf3"/>
-        <UseExternalDbgSyms Value="True"/>
       </Debugging>
     </Linking>
     <Other>
