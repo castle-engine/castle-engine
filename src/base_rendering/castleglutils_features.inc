@@ -1249,7 +1249,14 @@ begin
     }
     {$if defined(CASTLE_WEBGL)} VersionWebGL_2 or HasExtension('GL_OES_texture_float')
     {$elseif defined(OpenGLES)} HasExtension('GL_OES_texture_float')
-    {$else} HasExtension('GL_ATI_texture_float') or HasExtension('GL_ARB_texture_float')
+    {$else}
+      (HasExtension('GL_ATI_texture_float') or HasExtension('GL_ARB_texture_float'))
+      { OpenGL 3.0 has float textures guaranteed to be available in "core".
+        See https://registry.khronos.org/OpenGL/specs/gl/glspec30.pdf
+        listing "New Features" in 3.0.
+        Testcase: OpenGL on macOS Tahoe, has OpenGL 4.1 that doesn't
+        advertise GL_ARB_texture_float but supports them. }
+      or Version_3_0
     {$endif};
 
   FTextureFloatLinear := FTextureFloat and (
