@@ -1,6 +1,6 @@
 {%MainUnit castlewindow.pas}
 {
-  Copyright 2022-2024 Michalis Kamburelis, Jan Adamec, and GLPT, LCL contributors.
+  Copyright 2022-2026 Michalis Kamburelis, Jan Adamec, and GLPT, LCL contributors.
 
   The Cocoa integration code is based on
 
@@ -376,6 +376,22 @@ type
 
 type
   TCocoaAppDelegate = objcclass (NSObject, NSApplicationDelegateProtocol)
+    { application_openFiles may be executed from
+      the TCastleApplication.CreateBackend.
+
+      Testcase: when double-clicking 3D model from editor "Files", macOS opens
+      castle-model-viewer and app.finishLaunching (from
+      TCastleApplication.CreateBackend) causes application_openFiles.
+
+      At that point, the FApplication instance is not yet assigned,
+      so do not use Application function, as it would mistakenly try creating
+      a singleton again, causing infinite creation loop and stack overflow.
+
+      To avoid this, use ParentApplication instead of Application in
+      TCocoaAppDelegate.application_openFiles.
+      Also, store things for later -- since user may not yet have assigned
+      e.g. Window.OnDropFiles. }
+    ParentApplication: TCastleApplication;
     procedure application_openFiles(sender: NSApplication; filenames: NSArray); message 'application:openFiles:';
   end;
 
@@ -532,18 +548,31 @@ end;
 
 procedure TCocoaAppDelegate.application_openFiles(sender: NSApplication; filenames: NSArray);
 var
-  lFiles: array of string;
+  Files: array of String;
   lNSStr: NSString;
   I: Integer;
 begin
-  SetLength(lFiles, filenames.count);
+  if filenames.count = 0 then
+  begin
+    WritelnWarning('TCocoaAppDelegate.application_openFiles', 'Received 0 files, ignoring');
+    Exit;
+  end;
+
+  // calculate Files
+  SetLength(Files, filenames.count);
   for I := 0 to filenames.count-1 do
   begin
     lNSStr := NSString(filenames.objectAtIndex(I));
-    lFiles[I] := lNSStr.UTF8String;
+    Files[I] := lNSStr.UTF8String;
+    { On macOS, when opening files by double-clicking from editor,
+      this already contains a URL (because our
+      OpenWithCastleTool('castle-model-viewer'... passes an URL?).
+      DoDropFiles and OnDropFiles expect filenames now. }
+    if UriProtocol(Files[I]) = 'file' then
+      Files[I] := UriToFilenameSafe(Files[I]);
   end;
-  if Application.MainWindow <> nil then
-    Application.MainWindow.DoDropFiles(lFiles);
+
+  ParentApplication.DoDropFiles(Files);
 end;
 
 {=============================================}
@@ -1245,6 +1274,7 @@ begin
   app := TCocoaApp(TCocoaApp.sharedApplication);
 
   delegate := TCocoaAppDelegate.alloc.init;
+  delegate.ParentApplication := Self;
   app.setDelegate(delegate);
 
   RegisterClipboard(TCocoaClipboard.Create);

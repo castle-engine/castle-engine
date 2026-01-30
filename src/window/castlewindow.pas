@@ -2016,6 +2016,11 @@ type
     LastLimitFPSTime: TTimerResult;
     FMainWindow: TCastleWindow;
     //FUserAgent: String;
+    { Send this to DoDropFiles when next window is open.
+      Should always be nil or non-nil with non-zero count.
+      Backends should only call Application.DoDropFiles,
+      do not read or write this field directly. }
+    FPendingDropFiles: TCastleStringList;
 
     FOpenWindows: TWindowList;
     function GetOpenWindows(Index: integer): TCastleWindow;
@@ -2101,6 +2106,11 @@ type
     procedure SetLimitFPS(const Value: Single);
     {$endif}
     function GetMainContainer: TCastleContainer;
+
+    { Send given filenames to main currently open window,
+      or (if no such window) store the filenames to send to the first opened
+      window. }
+    procedure DoDropFiles(const Files: array of String);
   protected
     { Override TCustomApplication to pass TCustomApplication.Log
       to CastleLog logger. }
@@ -2812,6 +2822,13 @@ const
     MakeCurrent;
 
     UpdateFullScreenBackend;
+
+    if Application.FPendingDropFiles <> nil then
+    begin
+      Assert(Application.FPendingDropFiles.Count <> 0);
+      DoDropFiles(Application.FPendingDropFiles.ToArray);
+      FreeAndNil(Application.FPendingDropFiles);
+    end;
   end;
 
 begin
@@ -4002,6 +4019,7 @@ begin
   VideoReset;
   DestroyBackend;
   FreeAndNil(FOpenWindows);
+  FreeAndNil(FPendingDropFiles);
   inherited;
 end;
 
@@ -4625,6 +4643,40 @@ begin
   *)
 
   Result := {$ifdef OpenGLES} true {$else} false {$endif};
+end;
+
+procedure TCastleApplication.DoDropFiles(const Files: array of String);
+begin
+  if (MainWindow <> nil) and
+     { Checking MainWindow.Closed is not strictly necessary
+       here. We could call MainWindow.DoDropFiles even if
+       the window is closed, and e.g. castle-model-viewer would be able to
+       handle it. (As long as we also secure our MakeCurrent to not do
+       anything when window is closed.)
+
+       Still, this could be surprisingly early: On Cocoa,
+       application_openFiles (which calls this) is called
+       from TCastleApplication constructor sometimes (when double-clicking
+       on model from editor), which happens on-demand when accessing Application
+       singleton. Developer may not be aware that Window.OnDropFiles must be
+       assigned earlier, before any usage of Application.
+
+       It's more predictable, and also consistent (with normal OnDropFiles
+       situation, and other OnXxx events that occur only when the window
+       is open) to wait until the window is open. }
+     (not MainWindow.Closed) then
+  begin
+    MainWindow.DoDropFiles(Files);
+  end else
+  begin
+    if FPendingDropFiles <> nil then
+    begin
+      WritelnWarning('TCastleApplication.DoDropFiles', 'Received Application.DoDropFiles when previous drop files operation is stil pending to be reported to TCastleWindow.OnDropFiles. Previous drop filenames will be ignored.');
+      FreeAndNil(FPendingDropFiles);
+    end;
+    FPendingDropFiles := TCastleStringList.Create;
+    FPendingDropFiles.Assign(Files);
+  end;
 end;
 
 {$ifdef FPC}
