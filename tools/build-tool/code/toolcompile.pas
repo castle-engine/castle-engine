@@ -119,7 +119,7 @@ const
 
 implementation
 
-uses SysUtils, Process,
+uses SysUtils, Process, StrUtils,
   CastleUtils, CastleLog, CastleFilesUtils, CastleFindFiles,
   CastleInternalTools,
   ToolCommonUtils, ToolUtils, ToolFpcVersion, ToolCompilerInfo, ToolProcessRun
@@ -342,7 +342,11 @@ begin
     IsSuffix('warning: section "__datacoal_nt" is deprecated', LineLower, false) or
     IsSuffix('note: change section name to "__data"', LineLower, false) or
     (Line = '.section __DATA, __datacoal_nt, coalesced') or
-    (Line = '         ^      ~~~~~~~~~~~~~~')
+    (Line = '         ^      ~~~~~~~~~~~~~~') or
+    // occurs on mac, see https://castle-engine.io/macos
+    IsWild(Line, 'ld: warning: object file (*.o) was built for newer ''macOS'' version (*) than being linked (*)', false) or
+    (Line = 'ld: warning: ignoring duplicate libraries: ''-lc''') or
+    IsWild(Line, 'ld: warning: no platform load command found in ''*.or'', assuming: macOS', false)
   );
   // Uncomment this just to debug that our line splitting in TCaptureOutputFilter works
   // Line := '<begin>' + Line + '<end>';
