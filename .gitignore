@@ -39,6 +39,8 @@ backup
 *.exe
 *.wasm
 *.dll
+*.app
+*.dSYM
 libsteam_api.so
 libsteam_api.dylib
 *.pro.user

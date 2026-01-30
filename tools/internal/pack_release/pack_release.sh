@@ -345,7 +345,8 @@ cge_clean_all ()
         ')' -exec rm -f '{}' ';' ')' -or \
     '(' -type d '(' \
           -iname 'backup' -or \
-          -iname '*.app' \
+          -iname '*.app' -or \
+          -iname '*.dSYM' \
         ')' -exec rm -Rf '{}' ';' -prune ')'
 
   # Delete pasdoc generated documentation in doc/pasdoc/ and doc/reference/
