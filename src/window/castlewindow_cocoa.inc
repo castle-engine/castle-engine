@@ -38,14 +38,6 @@
 
   TODO:
 
-  - TCastleWindow.FullScreen: should be on top of dock / menu.
-
-      Started but doesn't really work.
-      Define CASTLE_COCOA_FULL_SCREEN to test it.
-
-      Right now makes a black screen, after weird reshape() execution
-      with "windowRef.Container = nil when TOpenGLView.reshape".
-
   - Test on real hardware (testing it through remote connection like Team Viewer
     or VNC is bad, as they try to control the mouse):
 
@@ -72,6 +64,14 @@
 
       Test e.g. by examples/user_interface/test_all_view_events/ ,
       press keys 1 2 3 4 5 to move mouse to corners and center.
+
+  - TCastleWindow.FullScreen: should be on top of dock / menu.
+
+      Started but doesn't really work.
+      Define CASTLE_COCOA_FULL_SCREEN to test it.
+
+      Right now makes a black screen, after weird reshape() execution
+      with "windowRef.Container = nil when TOpenGLView.reshape".
 
   - Use filters in FileDialog to highlight correct files.
 
