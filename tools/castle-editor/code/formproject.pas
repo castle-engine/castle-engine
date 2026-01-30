@@ -2742,13 +2742,31 @@ begin
   end;
 end;
 
-procedure TProjectForm.WarningNotification(const Category,
-  Message: string);
+procedure TProjectForm.WarningNotification(const Category, Message: string);
+var
+  FixedMessage: String;
 begin
+  FixedMessage := Message;
+
+  { Cocoa LCL list cannot display multi-line items correctly
+    (the item height is always as if we had single line).
+
+    Testcase: PNG 2-line warning:
+      'Initializing dynamic LibPng library failed.' + NL +
+      '  Loading PNG will use a slower approach.'
+    which is normal on macOS.
+
+    So remove newlines from the message. }
+
+  {$ifdef LCLCocoa}
+  FixedMessage := SReplaceChars(FixedMessage, #10, ' '); // replace Unix newlines with spaces
+  FixedMessage := SDeleteChars(FixedMessage, [#13]); // remove leftovers from Windows newlines
+  {$endif LCLCocoa}
+
   if Category <> '' then
-    ListWarnings.Items.Add(Category + ': ' + Message)
+    ListWarnings.Items.Add(Category + ': ' + FixedMessage)
   else
-    ListWarnings.Items.Add(Message);
+    ListWarnings.Items.Add(FixedMessage);
   TabWarnings.Caption := 'Warnings (' + IntToStr(ListWarnings.Count) + ')';
   TabWarnings.TabVisible := true;
 end;
