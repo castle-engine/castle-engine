@@ -450,7 +450,7 @@ pack_platform_dir ()
   export CASTLE_BUILD_TOOL_OPTIONS="--os=${OS} --cpu=${CPU}"
   local  CASTLE_LAZBUILD_OPTIONS="--os=${OS} --cpu=${CPU}"
   # Note: always use it like ${MAKE_OPTIONS}, without double quotes,
-  # to *allow* treating spaces inside as argument sepaators.
+  # to *allow* treating spaces inside as argument separators.
   # Otherwise we'd get errors that castle-engine doesn't support --quiet.
   local  MAKE_OPTIONS="BUILD_TOOL=castle-engine" # use build tool on $PATH
 
@@ -642,11 +642,16 @@ pack_platform_dir ()
       do_unzip fpc-dist.zip
       rm -f fpc-dist.zip # remove as soon as no longer needed, to save disk space, important for GHA on GH-hosted runners
       ARCHIVE_NAME_BUNDLE='-bundle'
-      mv "${TEMP_PATH_CGE}"bin/fpc-cge"${EXE_EXTENSION}" "${TEMP_PATH_CGE}"tools/contrib/fpc/bin
+      # Sign and notarize for macOS.
+      # Note: do this *before* moving here fpc-cge, as fpc-cge is already
+      # signed, along with all binaries in bin (previously bin-to-keep).
+      # And trying to sign again results in codesign error
+      # "....fpc-cge: is already signed"
       if [ -n "${APPLE_CODESIGN_SCRIPTS:-}" ]; then
         "${APPLE_CODESIGN_SCRIPTS}/sign_executable" \
           "${TEMP_PATH_CGE}"tools/contrib/fpc/bin
       fi
+      mv "${TEMP_PATH_CGE}"bin/fpc-cge"${EXE_EXTENSION}" "${TEMP_PATH_CGE}"tools/contrib/fpc/bin
       ;;
     'no'|'')
       # remove useless fpc-cge in this case
