@@ -1162,28 +1162,33 @@ end;
 
 procedure TCastleWindow.SystemSetMousePosition(const Value: TVector2);
 var
-  PointWindowCoords, PointScreenCoords: NSPoint;
+  //PointWindowCoords, PointScreenCoords: NSPoint;
+  RectWindowCoords, RectScreenCoords: NSRect;
   CgPointScreenCoords: CGPoint;
 begin
   if not Closed then
   begin
-    PointWindowCoords := NSMakePoint(Value.X, Value.Y);
-    PointScreenCoords := ref.convertBaseToScreen(PointWindowCoords);
+    // Apple deprecated convertBaseToScreen in favor of convertRectToScreen
+    // PointWindowCoords := NSMakePoint(Value.X, Value.Y);
+    // PointScreenCoords := ref.convertBaseToScreen(PointWindowCoords);
+
+    RectWindowCoords := NSMakeRect(Value.X, Value.Y, 0, 0);
+    RectScreenCoords := ref.convertRectToScreen(RectWindowCoords);
 
     { Beware, it seems MacOsAll and CGGeometry both define CGPoint }
     CgPointScreenCoords := CGGeometry.CGPoint(
-      //CGPointMake(PointScreenCoords.X, Application.ScreenHeight - PointScreenCoords.Y)
-      NSPointToCGPoint(PointScreenCoords)
+      //NSPointToCGPoint(PointScreenCoords)
+      CGPointMake(RectScreenCoords.origin.x,
+        // We need to flip Y coordinate to CoreGraphics conventions.
+        Application.ScreenHeight - RectScreenCoords.origin.y)
     );
 
     { Seems that CGXxx function is the only way to do this:
       https://developer.apple.com/documentation/coregraphics/1456387-cgwarpmousecursorposition?language=objc }
     CGWarpMouseCursorPosition(CgPointScreenCoords);
 
-    // WritelnLog('Cocoa', 'SetMousePosition to %s (-> in Cocoa, after convertBaseToScreen: %f %f)', [
-    //   Value.ToString,
-    //   PointScreenCoords.X,
-    //   PointScreenCoords.Y
+    // WritelnLog('Cocoa', 'SetMousePosition to %s', [
+    //   Value.ToString
     // ]);
   end;
 end;
