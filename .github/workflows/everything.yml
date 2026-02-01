@@ -35,12 +35,11 @@ jobs:
   test_and_pack_runner_native:
     uses: ./.github/workflows/test-and-pack-runner-native.yml
     # Pass all secrets, including APPLE_xxx, to the test-and-pack-runner-native.yml .
-    secrets: [
-      APPLE_BUILD_CERTIFICATE_BASE64,
-      APPLE_P12_PASSWORD,
-      APPLE_KEYCHAIN_PASSWORD,
-      APPLE_APP_PASSWORD
-    ]
+    secrets:
+      APPLE_BUILD_CERTIFICATE_BASE64: ${{ secrets.APPLE_BUILD_CERTIFICATE_BASE64 }}
+      APPLE_P12_PASSWORD: ${{ secrets.APPLE_P12_PASSWORD }}
+      APPLE_KEYCHAIN_PASSWORD: ${{ secrets.APPLE_KEYCHAIN_PASSWORD }}
+      APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
   test_and_pack_arm_runner:
     uses: ./.github/workflows/test-and-pack-arm-runner.yml
   test_shell:

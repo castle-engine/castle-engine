@@ -14,21 +14,21 @@
 name: Test and Pack (Runner Native)
 
 # Called by everything.yml
-on: [workflow_call]
-#on: [push, pull_request]
-
-# We need to declare secrets that must be passed here.
-# See https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows
-secrets:
-  APPLE_BUILD_CERTIFICATE_BASE64:
-    required: true
-  APPLE_P12_PASSWORD:
-    required: true
-  APPLE_KEYCHAIN_PASSWORD:
-    required: true
-  APPLE_APP_PASSWORD:
-    required: true
-
+on:
+  workflow_call:
+    # We need to declare secrets that must be passed here.
+    # See https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows
+    secrets:
+      APPLE_BUILD_CERTIFICATE_BASE64:
+        required: true
+      APPLE_P12_PASSWORD:
+        required: true
+      APPLE_KEYCHAIN_PASSWORD:
+        required: true
+      APPLE_APP_PASSWORD:
+        required: true
+  # push:
+  # pull_request:
 
 defaults:
   run:
