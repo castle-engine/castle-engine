@@ -205,8 +205,11 @@ begin
     { In case "bundled FPC" is on $PATH, call it using 'fpc-cfg', not just 'fpc'
       (the latter case would mean it cannot find standard units).
       And it's actually normal that "bundled FPC" is on $PATH, when calling
-      build tool from VS Code extension, which prepends the FPC location on PATH
-      of the parent process. }
+      build tool from
+      - VS Code extension, which prepends the FPC location on PATH
+        of the called process.
+      - CGE editor, that also prepends the FPC location on PATH,
+        see PathExtendForFpcLazarus. }
     'fpc-cge',
 
     // regular FPC executable
