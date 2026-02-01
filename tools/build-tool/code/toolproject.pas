@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2025 Michalis Kamburelis.
+  Copyright 2014-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -171,7 +171,10 @@ type
     procedure DoEditor;
     procedure DoEditorRebuildIfNeeded;
     procedure DoEditorRun(const WaitForProcessId: TProcessId);
-    procedure DoOutput(const OutputKey: String);
+    procedure DoOutput(const OutputKey: String;
+      const Target: TTarget; const OS: TOS; const CPU: TCPU;
+      const PackageFormat: TPackageFormatNoDefault;
+      const PackageNameIncludeVersion: Boolean);
     procedure DoUnusedData(const RemoveMask: String);
 
     { Information about the project, derived from CastleEngineManifest.xml. }
@@ -1725,15 +1728,29 @@ begin
   RunCommandNoWait(Path, EditorExe, [ManifestFile], [], NewEnvironment);
 end;
 
-procedure TCastleProject.DoOutput(const OutputKey: String);
+procedure TCastleProject.DoOutput(const OutputKey: String;
+  const Target: TTarget; const OS: TOS; const CPU: TCPU;
+  const PackageFormat: TPackageFormatNoDefault;
+  const PackageNameIncludeVersion: Boolean);
+var
+  PackageFormatFinal: TPackageFormatNoDefault;
 begin
   case OutputKey of
+    // keep this alphabetical (because there's no other obvious ordering)
+    'author': Writeln(Author);
+    'caption': Writeln(Caption);
     'executable-name': Writeln(ExecutableName);
     'name': Writeln(Name);
+    'package-name':
+      begin
+        PackageFormatFinal := PackageFormatFinalize(Target, OS, CPU, PackageFormat);
+        Writeln(PackageName(Target, OS, CPU, PackageFormatFinal, PackageNameIncludeVersion));
+      end;
     'pascal-name': Writeln(NamePascal);
+    'qualified-name': Writeln(QualifiedName);
     'search-paths': Writeln(Manifest.SearchPaths.Text);
-    'version': Writeln(Manifest.Version.DisplayValue);
     'version-code': Writeln(Manifest.Version.Code);
+    'version': Writeln(Manifest.Version.DisplayValue);
     else raise Exception.CreateFmt('Unsupported output key: "%s"', [OutputKey]);
   end;
 end;
