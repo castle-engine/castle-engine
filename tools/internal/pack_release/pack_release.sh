@@ -539,6 +539,11 @@ pack_platform_dir ()
      tools/to-data-uri/to-data-uri"${EXE_EXTENSION}" \
      tools/internal/fpc-cge/fpc-cge"${EXE_EXTENSION}" \
      "${TEMP_PATH_CGE}"bin-to-keep
+  # codesign tools (castle-engine etc.) on macOS
+  if [ -n "${APPLE_CODESIGN_SCRIPTS:-}" ]; then
+    "${APPLE_CODESIGN_SCRIPTS}/sign_executable" \
+      "${TEMP_PATH_CGE}"bin-to-keep
+  fi
 
   # Compile castle-editor with lazbuild (or CGE build tool, to get macOS app bundle),
   # place it in bin-to-keep subdirectory
