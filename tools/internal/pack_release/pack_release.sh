@@ -14,6 +14,10 @@ set -euxo pipefail
 #     ./pack_release.sh darwin x86_64
 #     ./pack_release.sh freebsd x86_64
 #
+#  Hint: To get the current OS/CPU, you can ask FPC,
+#  like $(fpc -iTO) and $(fpc -iTP). That's the advantage of following
+#  in CGE naming the same convention as FPC.
+#
 # - 1 argument 'windows_installer' to build a Windows installer.
 #   This requires InnoSetup installed.
 #
@@ -47,9 +51,9 @@ set -euxo pipefail
 # ----------------------------------------------------------------------------
 # Define global variables
 
-OUTPUT_DIRECTORY=`pwd`
+OUTPUT_DIRECTORY=$(pwd)
 if which cygpath.exe > /dev/null; then
-  OUTPUT_DIRECTORY="`cygpath --mixed \"${OUTPUT_DIRECTORY}\"`"
+  OUTPUT_DIRECTORY="$(cygpath --mixed "${OUTPUT_DIRECTORY}")"
 fi
 
 VERBOSE=true
@@ -83,7 +87,7 @@ trap cleanup_temp EXIT
 # see https://castle-engine.io/supported_compilers.php .
 check_fpc_version ()
 {
-  local FPC_VERSION=`fpc -iV | tr -d '\r'`
+  local FPC_VERSION=$(fpc -iV | tr -d '\r')
   echo "FPC version: ${FPC_VERSION}"
 
   local REQUIRED_FPC_VERSION='3.2.2'
@@ -110,7 +114,7 @@ check_lazarus_version ()
   #   using config file /Users/jenkins/installed/fpclazarus/fpc322-lazfixes30/lazarus/lazarus.cfg
   #   3.5
 
-  local LAZARUS_VERSION=`lazbuild --version | grep --invert-match 'using config file' | tr -d '\r'`
+  local LAZARUS_VERSION=$(lazbuild --version | grep --invert-match 'using config file' | tr -d '\r')
   echo "Lazarus version: ${LAZARUS_VERSION}"
 
   if [[ "${LAZARUS_VERSION}" '!=' '3.2' && \
@@ -125,7 +129,7 @@ check_lazarus_version ()
 
   # To avoid https://gitlab.com/freepascal.org/lazarus/lazarus/-/merge_requests/291
   # we need Lazarus >= 3.5 on macOS.
-  if [ "`uname -s`" '=' 'Darwin' ]; then
+  if [ "$(uname -s)" '=' 'Darwin' ]; then
     if [[ "${LAZARUS_VERSION}" '!=' '3.5' && \
           "${LAZARUS_VERSION}" '!=' '3.6' && \
           "${LAZARUS_VERSION}" '!=' '3.7' && \
@@ -174,20 +178,20 @@ detect_platform ()
     FIND='/bin/find'
   fi
 
-  if [ "`uname -s`" '=' 'FreeBSD' ]; then
+  if [ "$(uname -s)" '=' 'FreeBSD' ]; then
     MAKE='gmake'
     SED='gsed'
   fi
 
-  if [ "`uname -s`" '=' 'Darwin' ]; then
+  if [ "$(uname -s)" '=' 'Darwin' ]; then
     SED='gsed'
     FIND='gfind'
   fi
 
   # for debugging, output versions of tools
-  echo "Using make: ${MAKE}" `${MAKE} --version | head -n 1`
-  echo "Using find: ${FIND}" `${FIND} --version | head -n 1`
-  echo "Using sed: ${SED}" `${SED} --version | head -n 1`
+  echo "Using make: ${MAKE}" $(${MAKE} --version | head -n 1)
+  echo "Using find: ${FIND}" $(${FIND} --version | head -n 1)
+  echo "Using sed: ${SED}" $(${SED} --version | head -n 1)
 }
 
 # Compile build tool (castle-engine executable), put it on $PATH .
@@ -215,9 +219,9 @@ prepare_build_tool ()
     echo 'pack_release: After installing CGE build tool, we still cannot find it on $PATH'
     exit 1
   fi
-  FOUND_CGE_BUILD_TOOL="`which castle-engine${HOST_EXE_EXTENSION}`"
+  FOUND_CGE_BUILD_TOOL="$(which castle-engine${HOST_EXE_EXTENSION})"
   # remove double slashes, may happen in which output because the $PATH component we added ends with slash
-  FOUND_CGE_BUILD_TOOL="`echo -n \"${FOUND_CGE_BUILD_TOOL}\" | $SED -e 's|//|/|' -`"
+  FOUND_CGE_BUILD_TOOL="$(echo -n "${FOUND_CGE_BUILD_TOOL}" | $SED -e 's|//|/|' -)"
   EXPECTED_CGE_BUILD_TOOL="${BIN_TEMP_PATH}castle-engine${HOST_EXE_EXTENSION}"
   if [ "${FOUND_CGE_BUILD_TOOL}" '!=' "${EXPECTED_CGE_BUILD_TOOL}" ]; then
     echo "pack_release: Unexpected CGE build tool on \$PATH: found ${FOUND_CGE_BUILD_TOOL}, expected ${EXPECTED_CGE_BUILD_TOOL}"
@@ -228,7 +232,7 @@ prepare_build_tool ()
 # Calculate $CGE_VERSION
 calculate_cge_version ()
 {
-  CGE_VERSION="`castle-engine --version | awk '{print $2}' | tr -d '\r'`"
+  CGE_VERSION="$(castle-engine --version | awk '{print $2}' | tr -d '\r')"
   echo "Detected CGE version ${CGE_VERSION}"
 }
 
@@ -430,7 +434,7 @@ pack_platform_dir ()
   shift 2
 
   # comparisons in this script assume lowercase OS name, like darwin or win32
-  OS=`echo -n $OS | tr '[:upper:]' '[:lower:]'`
+  OS=$(echo -n $OS | tr '[:upper:]' '[:lower:]')
 
   # restore CGE path, otherwise it points to a temporary (and no longer existing)
   # dir after one execution of do_pack_platform
@@ -467,7 +471,7 @@ pack_platform_dir ()
     # must be native (i.e. cannot be Unix path on Cygwin) as this path
     # (or paths derived from it) is used by CGE native tools
     # e.g. for compiling fpc-cge.
-    TEMP_PATH="`cygpath --mixed \"${TEMP_PATH}\"`"
+    TEMP_PATH="$(cygpath --mixed "${TEMP_PATH}")"
   fi
   mkdir -p "$TEMP_PATH"
   local TEMP_PATH_CGE="${TEMP_PATH}castle_game_engine/"
@@ -489,7 +493,7 @@ pack_platform_dir ()
   #   must end with / . It will be used for new CASTLE_ENGINE_PATH
   #   which we gaurantee ends with / .
   # - TEMP_PATH_CGE last subdir must be castle_game_engine .
-  if [ "`basename \"${TEMP_PATH_CGE}\"`" '!=' 'castle_game_engine' ]; then
+  if [ "$(basename "${TEMP_PATH_CGE}")" '!=' 'castle_game_engine' ]; then
     echo "Error: TEMP_PATH_CGE last subdir must be castle_game_engine. But TEMP_PATH_CGE is ${TEMP_PATH_CGE}"
     exit 1
   fi
@@ -687,9 +691,9 @@ pack_platform_zip ()
   zip -r "${ARCHIVE_NAME}" castle_game_engine/
 
   # move ARCHIVE_NAME to OUTPUT_DIRECTORY
-  local CURRENT_DIRECTORY=`pwd`
+  local CURRENT_DIRECTORY=$(pwd)
   if which cygpath.exe > /dev/null; then
-    CURRENT_DIRECTORY="`cygpath --mixed \"${CURRENT_DIRECTORY}\"`"
+    CURRENT_DIRECTORY="$(cygpath --mixed "${CURRENT_DIRECTORY}")"
   fi
   # Do not try to move if archive is already in OUTPUT_DIRECTORY.
   # This can happen when CASTLE_PACK_GHA_DISK_SPACE_SAVE=true,
