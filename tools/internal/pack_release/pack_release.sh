@@ -21,6 +21,9 @@ set -euxo pipefail
 # - The generated archive will be named -bundle
 # - We will expect fpc-OS-CPU.zip, and we will unpack it and distribute along with CGE
 #
+# Define APPLE_CODESIGN_SCRIPTS="/path/to/castle-build-ci/apple"
+# to codesign and notarize macOS apps.
+#
 # Uses bash strict mode, see http://redsymbol.net/articles/unofficial-bash-strict-mode/
 # (but without IFS modification, deliberately, we want to split on space).
 #
@@ -307,6 +310,11 @@ add_external_tool ()
   if [ '(' "$OS" '=' 'darwin' ')' -a '(' "${GITHUB_NAME}" != 'pascal-language-server' ')' ]; then
     # on macOS, build app bundle, and move it to output path
     castle-engine $CASTLE_BUILD_TOOL_OPTIONS package --package-format=mac-app-bundle
+    if [ -n "${APPLE_CODESIGN_SCRIPTS:-}" ]; then
+      "${APPLE_CODESIGN_SCRIPTS}/sign_notarize_bundle" \
+        "${EXE_NAME}".app \
+        "${EXE_NAME}"
+    fi
     mv "${EXE_NAME}".app "${OUTPUT_BIN}"
   else
     castle-engine $CASTLE_BUILD_TOOL_OPTIONS compile
@@ -540,6 +548,11 @@ pack_platform_dir ()
     cd ../../
     cp -R tools/castle-editor/castle-editor.app \
        "${TEMP_PATH_CGE}"bin-to-keep
+    if [ -n "${APPLE_CODESIGN_SCRIPTS:-}" ]; then
+      "${APPLE_CODESIGN_SCRIPTS}/sign_notarize_bundle" \
+        "${TEMP_PATH_CGE}"bin-to-keep/castle-editor.app \
+        castle-editor
+    fi
   else
     lazbuild_twice $CASTLE_LAZBUILD_OPTIONS tools/castle-editor/castle_editor.lpi
     cp tools/castle-editor/castle-editor"${EXE_EXTENSION}" \
@@ -625,6 +638,10 @@ pack_platform_dir ()
       rm -f fpc-dist.zip # remove as soon as no longer needed, to save disk space, important for GHA on GH-hosted runners
       ARCHIVE_NAME_BUNDLE='-bundle'
       mv "${TEMP_PATH_CGE}"bin/fpc-cge"${EXE_EXTENSION}" "${TEMP_PATH_CGE}"tools/contrib/fpc/bin
+      if [ -n "${APPLE_CODESIGN_SCRIPTS:-}" ]; then
+        "${APPLE_CODESIGN_SCRIPTS}/sign_executable" \
+          "${TEMP_PATH_CGE}"tools/contrib/fpc/bin
+      fi
       ;;
     'no'|'')
       # remove useless fpc-cge in this case
