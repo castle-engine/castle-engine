@@ -53,18 +53,6 @@
       press keys like `n` `d` to switch cursor visibiity.
       Or test any 3D example with TCastleWalkNavigation.MouseLook = true.
 
-  - Test on real hardware (testing it through remote connection like Team Viewer
-    or VNC is bad, as they try to control the mouse; it *seems* it works
-    OK, if you enable "show remote cursor" in Team Viewer, the remote
-    cursor is temporarily moved where it should):
-
-      Repositioning mouse (e.g. for mouse look), this is controlled by
-      setting TCastleWindow.MousePosition.
-      Using TCastleWalkNavigation.MouseLook = true also controls it.
-
-      Test e.g. by examples/user_interface/test_all_view_events/ ,
-      press keys 1 2 3 4 5 to move mouse to corners and center.
-
   - TCastleWindow.FullScreen: should be on top of dock / menu.
 
       Started but doesn't really work.
