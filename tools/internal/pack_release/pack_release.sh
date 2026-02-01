@@ -91,10 +91,10 @@ check_fpc_version ()
   # https://github.com/castle-engine/castle-fpc/blob/4ceb9a6472760d0e9d063fd98b6677f26eee8598/build_fpc#L81
   local REQUIRED_FPC_VERSION_2='3.2.3'
 
-  if [ "${CASTLE_PACK_DISABLE_FPC_VERSION_CHECK:-}" '!=' 'true' ]; then
-    if [ "${FPC_VERSION}" '!=' "${REQUIRED_FPC_VERSION}" -a \
-         "${FPC_VERSION}" '!=' "${REQUIRED_FPC_VERSION_2}" \
-       ]; then
+  if [[ "${CASTLE_PACK_DISABLE_FPC_VERSION_CHECK:-}" '!=' 'true' ]]; then
+    if [[ "${FPC_VERSION}" '!=' "${REQUIRED_FPC_VERSION}" && \
+          "${FPC_VERSION}" '!=' "${REQUIRED_FPC_VERSION_2}" \
+       ]]; then
       echo "pack_release: Expected FPC version ${REQUIRED_FPC_VERSION} or ${REQUIRED_FPC_VERSION_2}, but got ${FPC_VERSION}"
       exit 1
     fi
@@ -113,12 +113,12 @@ check_lazarus_version ()
   local LAZARUS_VERSION=`lazbuild --version | grep --invert-match 'using config file' | tr -d '\r'`
   echo "Lazarus version: ${LAZARUS_VERSION}"
 
-  if [ "${LAZARUS_VERSION}" '!=' '3.2' -a \
-       "${LAZARUS_VERSION}" '!=' '3.4' -a \
-       "${LAZARUS_VERSION}" '!=' '3.5' -a \
-       "${LAZARUS_VERSION}" '!=' '3.6' -a \
-       "${LAZARUS_VERSION}" '!=' '3.7' -a \
-       "${LAZARUS_VERSION}" '!=' '4.4' ]; then
+  if [[ "${LAZARUS_VERSION}" '!=' '3.2' && \
+        "${LAZARUS_VERSION}" '!=' '3.4' && \
+        "${LAZARUS_VERSION}" '!=' '3.5' && \
+        "${LAZARUS_VERSION}" '!=' '3.6' && \
+        "${LAZARUS_VERSION}" '!=' '3.7' && \
+        "${LAZARUS_VERSION}" '!=' '4.4' ]]; then
     echo "pack_release: Incorrect Lazarus version to pack release, we have ${LAZARUS_VERSION}"
     exit 1
   fi
@@ -126,10 +126,10 @@ check_lazarus_version ()
   # To avoid https://gitlab.com/freepascal.org/lazarus/lazarus/-/merge_requests/291
   # we need Lazarus >= 3.5 on macOS.
   if [ "`uname -s`" '=' 'Darwin' ]; then
-    if [ "${LAZARUS_VERSION}" '!=' '3.5' -a \
-         "${LAZARUS_VERSION}" '!=' '3.6' -a \
-         "${LAZARUS_VERSION}" '!=' '3.7' -a \
-         "${LAZARUS_VERSION}" '!=' '4.4' ]; then
+    if [[ "${LAZARUS_VERSION}" '!=' '3.5' && \
+          "${LAZARUS_VERSION}" '!=' '3.6' && \
+          "${LAZARUS_VERSION}" '!=' '3.7' && \
+          "${LAZARUS_VERSION}" '!=' '4.4' ]]; then
       echo "pack_release: macOS: Incorrect Lazarus version to pack release, we have ${LAZARUS_VERSION}"
       exit 1
     fi
@@ -307,7 +307,7 @@ add_external_tool ()
     lazbuild_twice $CASTLE_LAZBUILD_OPTIONS server/deps/jsonstream/pascal/package/jsonstreampkg.lpk
   fi
 
-  if [ '(' "$OS" '=' 'darwin' ')' -a '(' "${GITHUB_NAME}" != 'pascal-language-server' ')' ]; then
+  if [[ "$OS" '=' 'darwin' && "${GITHUB_NAME}" != 'pascal-language-server' ]]; then
     # on macOS, build app bundle, and move it to output path
     castle-engine $CASTLE_BUILD_TOOL_OPTIONS package --package-format=mac-app-bundle
     if [ -n "${APPLE_CODESIGN_SCRIPTS:-}" ]; then
@@ -589,7 +589,7 @@ pack_platform_dir ()
   # https://github.com/gcarreno/setup-lazarus?tab=readme-ov-file
   # https://forum.lazarus.freepascal.org/index.php/topic,65619.msg500216.html#msg500216
   #
-  # if [ "$OS" '=' 'linux' -a "${CPU}" '!=' 'arm' -a "${CPU}" '!=' 'aarch64' ]; then
+  # if [[ "$OS" '=' 'linux' && "${CPU}" '!=' 'arm' && "${CPU}" '!=' 'aarch64' ]]; then
   #   lazbuild_twice $CASTLE_LAZBUILD_OPTIONS tools/castle-editor/castle_editor.lpi --widgetset=qt5
   #   cp tools/castle-editor/castle-editor"${EXE_EXTENSION}" \
   #      "${TEMP_PATH_CGE}"bin-to-keep/castle-editor-qt5
@@ -699,10 +699,9 @@ pack_platform_zip ()
     mv -f "${ARCHIVE_NAME}" "${OUTPUT_DIRECTORY}"
   fi
 
-  # seems to sometimes fail with "rm: fts_read failed: No such file or directory" on GH hosted windows runner
-  set +e
-  rm -Rf "${TEMP_PATH}"
-  set -e
+  # rm seems to sometimes fail with "rm: fts_read failed: No such file
+  # or directory" on GH hosted windows runner, so ignore errors.
+  rm -Rf "${TEMP_PATH}" || true
 }
 
 # Prepare Windows installer with precompiled CGE.
