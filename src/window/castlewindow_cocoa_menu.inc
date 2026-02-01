@@ -60,6 +60,33 @@ procedure TCastleWindow.BackendMenuInitialize;
         begin
           CocoaKeyEquivalent := KeyString;
           CocoaKeyModifier := 0;
+
+          if CocoaKeyEquivalent = '' then
+            case Key of
+              keyPageUp:     CocoaKeyEquivalent := UnicodeToUTF8(NSPageUpFunctionKey);
+              keyPageDown:   CocoaKeyEquivalent := UnicodeToUTF8(NSPageDownFunctionKey);
+              keyHome:       CocoaKeyEquivalent := UnicodeToUTF8(NSHomeFunctionKey);
+              keyEnd:        CocoaKeyEquivalent := UnicodeToUTF8(NSEndFunctionKey);
+              keyArrowUp:    CocoaKeyEquivalent := UnicodeToUTF8(NSUpArrowFunctionKey);
+              keyArrowDown:  CocoaKeyEquivalent := UnicodeToUTF8(NSDownArrowFunctionKey);
+              keyArrowLeft:  CocoaKeyEquivalent := UnicodeToUTF8(NSLeftArrowFunctionKey);
+              keyArrowRight: CocoaKeyEquivalent := UnicodeToUTF8(NSRightArrowFunctionKey);
+              keyDelete:     CocoaKeyEquivalent := UnicodeToUTF8(NSDeleteFunctionKey);
+              keyInsert:     CocoaKeyEquivalent := UnicodeToUTF8(NSInsertFunctionKey);
+              keyF1:         CocoaKeyEquivalent := UnicodeToUTF8(NSF1FunctionKey);
+              keyF2:         CocoaKeyEquivalent := UnicodeToUTF8(NSF2FunctionKey);
+              keyF3:         CocoaKeyEquivalent := UnicodeToUTF8(NSF3FunctionKey);
+              keyF4:         CocoaKeyEquivalent := UnicodeToUTF8(NSF4FunctionKey);
+              keyF5:         CocoaKeyEquivalent := UnicodeToUTF8(NSF5FunctionKey);
+              keyF6:         CocoaKeyEquivalent := UnicodeToUTF8(NSF6FunctionKey);
+              keyF7:         CocoaKeyEquivalent := UnicodeToUTF8(NSF7FunctionKey);
+              keyF8:         CocoaKeyEquivalent := UnicodeToUTF8(NSF8FunctionKey);
+              keyF9:         CocoaKeyEquivalent := UnicodeToUTF8(NSF9FunctionKey);
+              keyF10:        CocoaKeyEquivalent := UnicodeToUTF8(NSF10FunctionKey);
+              keyF11:        CocoaKeyEquivalent := UnicodeToUTF8(NSF11FunctionKey);
+              keyF12:        CocoaKeyEquivalent := UnicodeToUTF8(NSF12FunctionKey);
+              else ;
+            end;
         end;
     end;
 
@@ -69,8 +96,6 @@ procedure TCastleWindow.BackendMenuInitialize;
       CocoaKeyModifier := CocoaKeyModifier or NSCommandKeyMask {NSControlKeyMask};
     if mkAlt in Modifiers then
       CocoaKeyModifier := CocoaKeyModifier or NSAlternateKeyMask;
-
-    // TODO: handle Key
   end;
 
   procedure AddMenuItem(const ParentMenu: NSMenu; const Entry: TMenuEntry);
