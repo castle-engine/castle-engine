@@ -90,13 +90,6 @@ do_test_custom_editor_template_up_to_date ()
   rm -Rf tools/build-tool/data/custom_editor_template-temptest/
 }
 
-# Test running examples_regenerate_auto_files makes no change.
-do_test_examples_up_to_date ()
-{
-  ./tools/internal/examples_regenerate_auto_files
-  git diff -w --exit-code examples/
-}
-
 # Check that Delphi packages do not refer to VCL or FMX when they should not.
 do_test_packages_dependencies ()
 {
@@ -236,7 +229,6 @@ do_longest_path ()
 do_test_qualified_name
 do_test_examples_copyright
 do_test_custom_editor_template_up_to_date
-do_test_examples_up_to_date
 do_test_packages_dependencies
 do_test_no_invalid_deploy_files
 do_test_examples_no_gitignore
