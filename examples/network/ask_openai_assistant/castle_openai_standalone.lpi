@@ -63,7 +63,7 @@
         <PackageName Value="castle_engine_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="4">
+    <Units Count="5">
       <Unit0>
         <Filename Value="castle_openai_standalone.dpr"/>
         <IsPartOfProject Value="True"/>
@@ -83,6 +83,10 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="gameviewmain"/>
       </Unit3>
+      <Unit4>
+        <Filename Value="code/openai_config.inc"/>
+        <IsPartOfProject Value="True"/>
+      </Unit4>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

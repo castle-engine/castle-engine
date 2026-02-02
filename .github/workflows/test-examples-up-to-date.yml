@@ -38,6 +38,12 @@ jobs:
           mkdir -p bin/
           mv -f tools/build-tool/castle-engine bin/
 
+      # need to run "make prepare-examples" which creates some include files
+      # like "examples/network/random_image_from_unsplash/code/unsplash_secrets.inc" .
+      # Their existence changes what examples_regenerate_auto_files generates.
+      - name: Prepare Examples
+        run: make prepare-examples
+
       - name: Run examples_regenerate_auto_files
         run: ./tools/internal/examples_regenerate_auto_files
 
