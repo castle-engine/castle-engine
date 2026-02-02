@@ -50,9 +50,9 @@ PASDOC_FORMAT="$1"
 shift 1
 
 # calculate OUTPUT_PATH (os-native path)
-OUTPUT_PATH=`pwd`/
+OUTPUT_PATH=$(pwd)/
 if [ -n "$CYGWIN_OR_SIMILAR" ]; then
-  OUTPUT_PATH="`cygpath --windows \"$OUTPUT_PATH\"`"
+  OUTPUT_PATH="$(cygpath --windows "$OUTPUT_PATH")"
 fi
 
 FIND='find'
@@ -81,7 +81,7 @@ cd "$CASTLE_ENGINE_UNITS_PATH"
 # calculate TMP_PAS_LIST (os-native path)
 TMP_PAS_LIST=/tmp/mk_docs_list
 if [ -n "$CYGWIN_OR_SIMILAR" ]; then
-  TMP_PAS_LIST="`cygpath --windows \"$TMP_PAS_LIST\"`"
+  TMP_PAS_LIST="$(cygpath --windows "$TMP_PAS_LIST")"
 fi
 
 # make sure we have clean way to create "$TMP_PAS_LIST"
@@ -187,6 +187,8 @@ fi
 # - lack of @groupbegin/groupend implementation for now,
 # - reporting as missing links the exceptions from standard units.
 
+# Word splitting on PASDOC_INCLUDE_DIRS is intentional
+# shellcheck disable=SC2086
 pasdoc \
   --format "$PASDOC_FORMAT" \
   $PASDOC_INCLUDE_DIRS \
