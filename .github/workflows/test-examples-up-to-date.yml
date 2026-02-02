@@ -19,17 +19,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - name: Set environment
-        run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-        # make sure we have castle-engine on $PATH
-      - name: Set environment PATH to include CGE installed/bin/
-        run: echo "PATH=${PATH}:${CASTLE_ENGINE_PATH}/installed/bin/" >> $GITHUB_ENV
-      - name: Build Tools
+
+      - name: Install FPC
         run: |
-          rm -Rf installed/
-          mkdir -p installed/
-          make clean tools install PREFIX=${CASTLE_ENGINE_PATH}/installed/
+          cd /tmp/
+          git clone https://github.com/castle-engine/castle-build-ci.git --depth=1 --single-branch --branch=master
+          castle-build-ci/install_dependencies
+          castle-build-ci/setup_castle_engine --install-castle-engine=false
+
+      # Build castle-engine and put it on $PATH
+      - name: Set environment CASTLE_ENGINE_PATH
+        run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Extend PATH to include CGE bin/
+        run: echo "${CASTLE_ENGINE_PATH}/bin/" >> $GITHUB_PATH
+      - name: Make Build Tool
+        run: |
+          ./tools/build-tool/castle-engine_compile.sh
+          mkdir -p bin/
+          mv -f tools/build-tool/castle-engine bin/
+
       - name: Run examples_regenerate_auto_files
         run: ./tools/internal/examples_regenerate_auto_files
+
       - name: Check no changes
         run: git diff -w --exit-code examples/
