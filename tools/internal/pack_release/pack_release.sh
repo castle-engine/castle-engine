@@ -87,7 +87,8 @@ trap cleanup_temp EXIT
 # see https://castle-engine.io/supported_compilers.php .
 check_fpc_version ()
 {
-  local FPC_VERSION=$(fpc -iV | tr -d '\r')
+  local FPC_VERSION
+  FPC_VERSION=$(fpc -iV | tr -d '\r')
   echo "FPC version: ${FPC_VERSION}"
 
   local REQUIRED_FPC_VERSION='3.2.2'
@@ -114,7 +115,8 @@ check_lazarus_version ()
   #   using config file /Users/jenkins/installed/fpclazarus/fpc322-lazfixes30/lazarus/lazarus.cfg
   #   3.5
 
-  local LAZARUS_VERSION=$(lazbuild --version | grep --invert-match 'using config file' | tr -d '\r')
+  local LAZARUS_VERSION
+  LAZARUS_VERSION=$(lazbuild --version | grep --invert-match 'using config file' | tr -d '\r')
   echo "Lazarus version: ${LAZARUS_VERSION}"
 
   if [[ "${LAZARUS_VERSION}" != '3.2' && \
@@ -189,9 +191,9 @@ detect_platform ()
   fi
 
   # for debugging, output versions of tools
-  echo "Using make: ${MAKE}" $(${MAKE} --version | head -n 1)
-  echo "Using find: ${FIND}" $(${FIND} --version | head -n 1)
-  echo "Using sed: ${SED}" $(${SED} --version | head -n 1)
+  echo "Using make: ${MAKE} $(${MAKE} --version | head -n 1)"
+  echo "Using find: ${FIND} $(${FIND} --version | head -n 1)"
+  echo "Using sed: ${SED} $(${SED} --version | head -n 1)"
 }
 
 # Compile build tool (castle-engine executable), put it on $PATH .
@@ -216,7 +218,7 @@ prepare_build_tool ()
 
   # sanity checks
   if ! which castle-engine > /dev/null; then
-    echo 'pack_release: After installing CGE build tool, we still cannot find it on $PATH'
+    echo "pack_release: After installing CGE build tool, we still cannot find it on $PATH"
     exit 1
   fi
   FOUND_CGE_BUILD_TOOL="$(which castle-engine${HOST_EXE_EXTENSION})"
@@ -308,12 +310,12 @@ add_external_tool ()
     do_unzip jsonstream.zip
     rm -Rf server/deps/jsonstream # zip contains empty dir with it
     mv jsonstream-master server/deps/jsonstream
-    lazbuild_twice $CASTLE_LAZBUILD_OPTIONS server/deps/jsonstream/pascal/package/jsonstreampkg.lpk
+    lazbuild_twice "${CASTLE_LAZBUILD_OPTIONS[@]}" server/deps/jsonstream/pascal/package/jsonstreampkg.lpk
   fi
 
   if [[ "${OS}" = 'darwin' && "${GITHUB_NAME}" != 'pascal-language-server' ]]; then
     # on macOS, build app bundle, and move it to output path
-    castle-engine $CASTLE_BUILD_TOOL_OPTIONS package --package-format=mac-app-bundle
+    castle-engine "${CASTLE_BUILD_TOOL_OPTIONS[@]}" package --package-format=mac-app-bundle
     if [[ -n "${APPLE_CODESIGN_SCRIPTS:-}" ]]; then
       "${APPLE_CODESIGN_SCRIPTS}/sign_notarize_bundle" \
         "${EXE_NAME}".app \
@@ -321,11 +323,11 @@ add_external_tool ()
     fi
     mv "${EXE_NAME}".app "${OUTPUT_BIN}"
   else
-    castle-engine $CASTLE_BUILD_TOOL_OPTIONS compile
+    castle-engine "${CASTLE_BUILD_TOOL_OPTIONS[@]}" compile
     mv "${EXE_NAME}" "${OUTPUT_BIN}"
 
     if [[ "${GITHUB_NAME}" = 'castle-model-viewer' ]]; then
-      castle-engine $CASTLE_BUILD_TOOL_OPTIONS compile --manifest-name=CastleEngineManifest.converter.xml
+      castle-engine "${CASTLE_BUILD_TOOL_OPTIONS[@]}" compile --manifest-name=CastleEngineManifest.converter.xml
       mv castle-model-converter"${EXE_EXTENSION}" "${OUTPUT_BIN}"
     fi
   fi
@@ -451,18 +453,18 @@ pack_platform_dir ()
 
   # Pass options to compile indicating target OS/CPU for everything
   export CASTLE_FPC_OPTIONS="-T${OS} -P${CPU}"
-  export CASTLE_BUILD_TOOL_OPTIONS="--os=${OS} --cpu=${CPU}"
-  local  CASTLE_LAZBUILD_OPTIONS="--os=${OS} --cpu=${CPU}"
-  # Note: always use it like ${MAKE_OPTIONS}, without double quotes,
-  # to *allow* treating spaces inside as argument separators.
-  # Otherwise we'd get errors that castle-engine doesn't support --quiet.
-  local  MAKE_OPTIONS="BUILD_TOOL=castle-engine" # use build tool on $PATH
+  # bash array of arguments to "castle-engine"
+  export CASTLE_BUILD_TOOL_OPTIONS=(--os="${OS}" --cpu="${CPU}")
+  # bash array of arguments to "lazbuild"
+  local CASTLE_LAZBUILD_OPTIONS=(--os="${OS}" --cpu="${CPU}")
+  # bash array of arguments to "make"
+  local MAKE_OPTIONS=(BUILD_TOOL=castle-engine) # use build tool on $PATH
 
   if [[ "${VERBOSE}" != 'true' ]]; then
     CASTLE_FPC_OPTIONS="${CASTLE_FPC_OPTIONS} -vi-"
-    CASTLE_BUILD_TOOL_OPTIONS="${CASTLE_BUILD_TOOL_OPTIONS} --compiler-option=-vi-"
-    CASTLE_LAZBUILD_OPTIONS="${CASTLE_LAZBUILD_OPTIONS} -q"
-    MAKE_OPTIONS="${MAKE_OPTIONS} --quiet"
+    CASTLE_BUILD_TOOL_OPTIONS=("${CASTLE_BUILD_TOOL_OPTIONS[@]}" --compiler-option=-vi-)
+    CASTLE_LAZBUILD_OPTIONS=("${CASTLE_LAZBUILD_OPTIONS[@]}" -q)
+    MAKE_OPTIONS=("${MAKE_OPTIONS[@]}" --quiet)
   fi
 
   # Create temporary CGE copy, for packing
@@ -518,21 +520,21 @@ pack_platform_dir ()
   # update environment to use CGE in temporary location
   export CASTLE_ENGINE_PATH="${TEMP_PATH_CGE}"
 
-  lazbuild_twice $CASTLE_LAZBUILD_OPTIONS packages/lazarus/castle_engine_base.lpk
-  lazbuild_twice $CASTLE_LAZBUILD_OPTIONS packages/lazarus/castle_engine_window.lpk
-  lazbuild_twice $CASTLE_LAZBUILD_OPTIONS packages/lazarus/castle_engine_lcl.lpk
-  lazbuild_twice $CASTLE_LAZBUILD_OPTIONS packages/lazarus/castle_engine_editor_components.lpk
+  lazbuild_twice "${CASTLE_LAZBUILD_OPTIONS[@]}" packages/lazarus/castle_engine_base.lpk
+  lazbuild_twice "${CASTLE_LAZBUILD_OPTIONS[@]}" packages/lazarus/castle_engine_window.lpk
+  lazbuild_twice "${CASTLE_LAZBUILD_OPTIONS[@]}" packages/lazarus/castle_engine_lcl.lpk
+  lazbuild_twice "${CASTLE_LAZBUILD_OPTIONS[@]}" packages/lazarus/castle_engine_editor_components.lpk
 
   # Make sure no leftovers from previous compilations remain,
   # to not pack them in release.
-  "${MAKE}" clean ${MAKE_OPTIONS}
+  "${MAKE}" clean "${MAKE_OPTIONS[@]}"
   cge_clean_all
 
   # Compile tools (except editor) with just FPC
-  "${MAKE}" tools ${MAKE_OPTIONS} BUILD_TOOL="castle-engine ${CASTLE_BUILD_TOOL_OPTIONS}"
+  "${MAKE}" tools "${MAKE_OPTIONS[@]}" BUILD_TOOL="castle-engine ${CASTLE_BUILD_TOOL_OPTIONS[*]}"
 
   # Compile fpc-cge internal tool
-  castle-engine $CASTLE_BUILD_TOOL_OPTIONS --project "${TEMP_PATH_CGE}"tools/internal/fpc-cge/ compile
+  castle-engine "${CASTLE_BUILD_TOOL_OPTIONS[@]}" --project "${TEMP_PATH_CGE}"tools/internal/fpc-cge/ compile
 
   # Place tools (except editor) binaries in bin-to-keep subdirectory
   mkdir -p "${TEMP_PATH_CGE}"bin-to-keep
@@ -553,7 +555,7 @@ pack_platform_dir ()
   # place it in bin-to-keep subdirectory
   if [[ "${OS}" = 'darwin' ]]; then
     cd tools/castle-editor/
-    ../build-tool/castle-engine"${EXE_EXTENSION}" $CASTLE_BUILD_TOOL_OPTIONS package --package-format=mac-app-bundle
+    ../build-tool/castle-engine"${EXE_EXTENSION}" "${CASTLE_BUILD_TOOL_OPTIONS[@]}" package --package-format=mac-app-bundle
     cd ../../
     cp -R tools/castle-editor/castle-editor.app \
        "${TEMP_PATH_CGE}"bin-to-keep
@@ -563,7 +565,7 @@ pack_platform_dir ()
         castle-editor
     fi
   else
-    lazbuild_twice $CASTLE_LAZBUILD_OPTIONS tools/castle-editor/castle_editor.lpi
+    lazbuild_twice "${CASTLE_LAZBUILD_OPTIONS[@]}" tools/castle-editor/castle_editor.lpi
     cp tools/castle-editor/castle-editor"${EXE_EXTENSION}" \
        "${TEMP_PATH_CGE}"bin-to-keep
   fi
@@ -594,7 +596,7 @@ pack_platform_dir ()
   # https://forum.lazarus.freepascal.org/index.php/topic,65619.msg500216.html#msg500216
   #
   # if [[ "${OS}" = 'linux' && "${CPU}" != 'arm' && "${CPU}" != 'aarch64' ]]; then
-  #   lazbuild_twice $CASTLE_LAZBUILD_OPTIONS tools/castle-editor/castle_editor.lpi --widgetset=qt5
+  #   lazbuild_twice "${CASTLE_LAZBUILD_OPTIONS[@]}" tools/castle-editor/castle_editor.lpi --widgetset=qt5
   #   cp tools/castle-editor/castle-editor"${EXE_EXTENSION}" \
   #      "${TEMP_PATH_CGE}"bin-to-keep/castle-editor-qt5
   # fi
@@ -609,7 +611,7 @@ pack_platform_dir ()
   esac
 
   # Make sure no leftovers from tools compilation remain
-  "${MAKE}" clean ${MAKE_OPTIONS}
+  "${MAKE}" clean "${MAKE_OPTIONS[@]}"
   cge_clean_all
 
   # After make clean, make sure bin/ exists and is filled with what we need
@@ -623,7 +625,7 @@ pack_platform_dir ()
   fi
 
   # Add PasDoc docs
-  "${MAKE}" -C doc/pasdoc/ clean html ${MAKE_OPTIONS}
+  "${MAKE}" -C doc/pasdoc/ clean html "${MAKE_OPTIONS[@]}"
   # Remove pasdoc leftovers,
   # including pasdoc dir and zip/tar.gz left after tasks like '(Windows) Get PasDoc' and '(macOS) Get PasDoc'.
   # Otherwise they'd get packaged.
@@ -691,7 +693,8 @@ pack_platform_zip ()
   zip -r "${ARCHIVE_NAME}" castle_game_engine/
 
   # move ARCHIVE_NAME to OUTPUT_DIRECTORY
-  local CURRENT_DIRECTORY=$(pwd)
+  local CURRENT_DIRECTORY
+  CURRENT_DIRECTORY=$(pwd)
   if which cygpath.exe > /dev/null; then
     CURRENT_DIRECTORY="$(cygpath --mixed "${CURRENT_DIRECTORY}")"
   fi

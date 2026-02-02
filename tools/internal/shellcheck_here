@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# -----------------------------------------------------------------------------
+# Validate correctness of scripts here:
+# run shellcheck on all shell script files here.
+# Run from CGE top-level dir.
+# -----------------------------------------------------------------------------
+
+find . \
+  '(' -type d -name '.git' -prune ')' -or \
+  '(' -type f -perm /111 -print0 ')' | while read -rd $'\0' FILE; do
+  if file "$FILE" | grep -q "shell script"; then
+    shellcheck "$FILE"
+  fi
+done

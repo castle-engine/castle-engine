@@ -1,5 +1,5 @@
-#!/bin/bash
-set -eu
+#!/usr/bin/env bash
+set -euo pipefail
 
 # ----------------------------------------------------------------------------
 # For most projects, run "castle-engine generate-program" to regenerate
@@ -33,4 +33,11 @@ fi
   '(' -iname CastleEngineManifest.xml ')' -and \
   '(' -not -iwholename '*/simplest_manifest_test/*' ')' -and \
   '(' -not -iwholename '*/delphi/*' ')' -and \
-  '(' -execdir bash -c 'if ls *.lfm > /dev/null 2>&1; then echo `pwd`": LCL project"; else castle-engine generate-program --guid-from-name; fi' ';' ')'
+  -print0 | while read -rd $'\0' FILE; do
+  cd "$(dirname "${FILE}")"
+  if ls -- *.lfm > /dev/null 2>&1; then
+    echo "$(pwd): LCL project"
+  else
+    castle-engine generate-program --guid-from-name
+  fi
+done
