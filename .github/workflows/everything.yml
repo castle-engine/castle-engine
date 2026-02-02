@@ -48,6 +48,8 @@ jobs:
     uses: ./.github/workflows/check-dependencies.yml
   api_reference:
     uses: ./.github/workflows/api-reference.yml
+  test_examples_up_to_date:
+    uses: ./.github/workflows/test-examples-up-to-date.yml
 
   release:
     name: Release
@@ -59,7 +61,8 @@ jobs:
       test_and_pack_arm_runner,
       test_shell,
       check_dependencies,
-      api_reference
+      api_reference,
+      test_examples_up_to_date
     ]
     if: ${{ github.ref == 'refs/heads/master' }}
     runs-on: ubuntu-latest

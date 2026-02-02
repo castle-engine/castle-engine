@@ -1,9 +1,9 @@
 # ----------------------------------------------------------------------------
-# GitHub Action workflow to check dependencies using
-# tools/internal/check_units_dependencies
+# GitHub Action workflow to make sure all examples are in correct state
+# and examples_regenerate_auto_files does nothing.
 # ----------------------------------------------------------------------------
 
-name: Check Dependencies
+name: Test Examples Are Up To Date
 
 # Called by everything.yml
 on: [workflow_call]
@@ -14,34 +14,22 @@ defaults:
     shell: bash
 
 jobs:
-  check_dependencies:
-    name: Check Dependencies
+  test_examples_up_to_date:
+    name: Check examples_regenerate_auto_files
     runs-on: ubuntu-latest
-    container: kambi/castle-engine-cloud-builds-tools:cge-none
     steps:
       - uses: actions/checkout@v6
       - name: Set environment
         run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+        # make sure we have castle-engine on $PATH
       - name: Set environment PATH to include CGE installed/bin/
         run: echo "PATH=${PATH}:${CASTLE_ENGINE_PATH}/installed/bin/" >> $GITHUB_ENV
-
       - name: Build Tools
         run: |
           rm -Rf installed/
           mkdir -p installed/
           make clean tools install PREFIX=${CASTLE_ENGINE_PATH}/installed/
-
-      - name: Check Dependencies
-        run: |
-          cd tools/internal/check_units_dependencies/
-          make
-          ls -R
-
-      - name: Archive Artifacts
-        uses: actions/upload-artifact@v6
-        with:
-          name: check_dependencies_log
-          path: |
-            test-cge-units-dependencies_all_units.txt
-            cge_check_units_dependencies.log
-          if-no-files-found: error
+      - name: Run examples_regenerate_auto_files
+        run: ./tools/internal/examples_regenerate_auto_files
+      - name: Check no changes
+        run: git diff -w --exit-code examples/
