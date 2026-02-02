@@ -131,7 +131,7 @@ check_lazarus_version ()
 
   # To avoid https://gitlab.com/freepascal.org/lazarus/lazarus/-/merge_requests/291
   # we need Lazarus >= 3.5 on macOS.
-  if [ "$(uname -s)" '=' 'Darwin' ]; then
+  if [[ "$(uname -s)" = 'Darwin' ]]; then
     if [[ "${LAZARUS_VERSION}" != '3.5' && \
           "${LAZARUS_VERSION}" != '3.6' && \
           "${LAZARUS_VERSION}" != '3.7' && \

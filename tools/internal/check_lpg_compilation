@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
 IFS=$'\n\t'
 
@@ -13,7 +13,7 @@ IFS=$'\n\t'
 # Current directory doesn't matter.
 # --------------------------------------------------------------------
 
-cd $CASTLE_ENGINE_PATH
+cd "${CASTLE_ENGINE_PATH}"
 
 grep '<Target FileName="' 'most_important_lazarus_packages_and_tools.lpg' | \
   sed 's|.*<Target FileName="\([^"]*\)".*|\1|' | \

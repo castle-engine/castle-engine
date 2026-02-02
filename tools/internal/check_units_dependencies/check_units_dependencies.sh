@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
 
 # ----------------------------------------------------------------------------
@@ -18,7 +18,7 @@ set -euo pipefail
 # which keeps castle-engine in installed/ (which is not cleaned).
 # ----------------------------------------------------------------------------
 
-CHECK_DIR=`pwd`
+CHECK_DIR=$(pwd)
 # Rename check_one_unit_dependencies binary to avoid "make clean" removing it.
 mv -f check_one_unit_dependencies check_one_unit_dependencies_keep
 
@@ -72,7 +72,8 @@ find . \
 
 SUCCESS='true'
 
-for F in `cat "${TMP_PAS_LIST}"`; do
+# shellcheck disable=SC2002
+cat "${TMP_PAS_LIST}" | while read -r F; do
   echo "Checking dependencies of $F"
   castle-engine simple-compile "$F" >> "${TMP_LOG}"
   # Like `stringoper ChangeFileExt %F .ppu`
@@ -81,23 +82,20 @@ for F in `cat "${TMP_PAS_LIST}"`; do
   # Strip directory name,
   # and add castle-engine-output/compilation/<arch-cpu>/,
   # because that's where "castle-engine simple-compile" places ppu now.
-  PPU="`basename \"${PPU}\"`"
-  PPU='castle-engine-output/compilation/'`fpc -iTP`-`fpc -iTO`"/${PPU}"
+  PPU=$(basename "${PPU}")
+  PPU="castle-engine-output/compilation/$(fpc -iTP)-$(fpc -iTO)/${PPU}"
 
-  DEPENDENCIES_TO_CHECK=`ppudump "$PPU" | grep 'Uses unit' | awk '{ print $3 }' | sort -u`
+  DEPENDENCIES_TO_CHECK=$(ppudump "$PPU" | grep 'Uses unit' | awk '{ print $3 }' | sort -u)
   # echo 'Got dependencies:'
   # echo "$DEPENDENCIES_TO_CHECK"
 
-  set +e
-  "${CHECK_DIR}"/check_one_unit_dependencies_keep "${TMP_PAS_LIST}" "$F" "$DEPENDENCIES_TO_CHECK"
-  if [ "$?" != 0 ]; then
+  if ! "${CHECK_DIR}"/check_one_unit_dependencies_keep "${TMP_PAS_LIST}" "$F" "$DEPENDENCIES_TO_CHECK"; then
     echo 'check_units_dependencies.sh: Failure detected, we will continue but exit with non-zero status at the end'
     SUCCESS='false'
   fi
-  set +e
 done
 
-if [ "${SUCCESS}" = 'false' ]; then
+if [[ "${SUCCESS}" = 'false' ]]; then
   echo 'Finished, some errors detected, exiting with non-zero status. Consult the above log for details what failed.'
   exit 1
 else
