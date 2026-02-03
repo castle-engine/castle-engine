@@ -91,3 +91,19 @@ procedure gtk_color_selection_get_current_rgba(const ColorSelection: PGtkColorSe
 begin
   gtk_color_selection_get_color(ColorSelection, PGDouble(Color));
 end;
+
+function gdk_event_get_scroll_direction(const Event: PGdkEvent; const Direction: PGdkScrollDirection): gboolean;
+begin
+  { Note: Declaring "Event: PGdkEventScroll" would be obviously more natural,
+    as this is the type we actually need, and is actually passed.
+    But we declare "Event: PGdkEvent" for compatibility with how GTK 3
+    bindings declare this, so that GTK 2 and 3 calls look the same. }
+  Direction^ := PGdkEventScroll(Event)^.Direction;
+  if (Direction^ = GDK_SCROLL_UP) or
+     (Direction^ = GDK_SCROLL_DOWN) or
+     (Direction^ = GDK_SCROLL_LEFT) or
+     (Direction^ = GDK_SCROLL_RIGHT) then
+    Result := gtrue
+  else
+    Result := gfalse;
+end;
