@@ -811,10 +811,12 @@ begin
       'src/base_rendering/web/',
 
       // Ignore units that are only to be compiled when pulled by CastleHttps with FPC 3.2.x
-      'src/files/castleinternalforfpc32x*.pas',
+      'src/files/castleinternalforfpc32x*.pas'
 
-      // Only used when with CASTLE_WINDOW_GTK_2 or CASTLE_WINDOW_GTK_3.
-      'src/window/gtk/gtk3/'
+      { Contrary to .lpk / .dpk checks, in fpmake.pp we *do* require
+        specifying gtk3 units. They are under "if" to be relevant only
+        on platforms that support GTK and X, so not a problem. }
+      // 'src/window/gtk/gtk3/'
     ],
     [
       'src/vampyre_imaginglib/'
