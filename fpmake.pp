@@ -452,6 +452,21 @@ begin
     begin
       P.SourcePath.Add('src/window/unix');
       P.Targets.AddUnit('castleinternalxlib.pas');
+
+      P.SourcePath.Add('src/window/gtk/gtk3/gtk3bindings/');
+      P.Targets.AddUnit('castleinternalatk1.pas');
+      P.Targets.AddUnit('castleinternalcairo1.pas');
+      P.Targets.AddUnit('castleinternalfreetype2_2.pas');
+      P.Targets.AddUnit('castleinternalgdk3.pas');
+      P.Targets.AddUnit('castleinternalgdkpixbuf2.pas');
+      P.Targets.AddUnit('castleinternalgio2.pas');
+      P.Targets.AddUnit('castleinternalglib2.pas');
+      P.Targets.AddUnit('castleinternalgmodule2.pas');
+      P.Targets.AddUnit('castleinternalgobject2.pas');
+      P.Targets.AddUnit('castleinternalgtk3.pas');
+      P.Targets.AddUnit('castleinternalharfbuzz0.pas');
+      P.Targets.AddUnit('castleinternalpango1.pas');
+      P.Targets.AddUnit('castleinternalxlib2.pas');
     end;
 
     P.SourcePath.Add('src/window/deprecated_units');
