@@ -33,8 +33,8 @@ Type
     function InitContext(NeedCertificate: Boolean): Boolean; virtual;
     function DoneContext: Boolean; virtual;
     function InitSslKeys: boolean;virtual;
-    Function GetLastSSLErrorString : String; // CGE modification to adjust to FPC32: override;
-    Function GetLastSSLErrorCode : Integer; // CGE modification to adjust to FPC32: override;
+    Function GetLastSSLErrorString : String; {$ifdef VER3_2_3} override; {$endif} // CGE modification to adjust to FPC32: "override" is conditional
+    Function GetLastSSLErrorCode : Integer; {$ifdef VER3_2_3} override; {$endif} // CGE modification to adjust to FPC32: "override" is conditional
   Public
     Constructor create; override;
     destructor destroy; override;

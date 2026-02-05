@@ -498,6 +498,23 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
+<DeployFile LocalName="data\images/test_texture.castle-image" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/images/</RemoteDir>
+  <RemoteName>test_texture.castle-image</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/images/</RemoteDir>
+  <RemoteName>test_texture.castle-image</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/images/</RemoteDir>
+  <RemoteName>test_texture.castle-image</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
 <DeployFile LocalName="data\images/test_texture.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/images/</RemoteDir>
@@ -801,6 +818,23 @@
  <Platform Name="Win64">
   <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>sky_red_right.rgbe</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\images/test_texture.castle-image" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/images/</RemoteDir>
+  <RemoteName>test_texture.castle-image</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/images/</RemoteDir>
+  <RemoteName>test_texture.castle-image</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/images/</RemoteDir>
+  <RemoteName>test_texture.castle-image</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>

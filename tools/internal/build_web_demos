@@ -21,16 +21,6 @@ set -eu
 
 CGE_WWW_DEMOS="${CASTLE_ENGINE_PATH}/../cge-www/htdocs/web-demos"
 
-# define $FIND, we want GNU find
-FIND='find'
-if which cygpath.exe > /dev/null; then
-  # On Cygwin/MSYS2, make sure to use Cygwin/MSYS2's find, not the one from Windows
-  FIND='/bin/find'
-fi
-if [ "`uname -s`" '=' 'Darwin' ]; then
-  FIND='gfind'
-fi
-
 # Rebuild and copy project for web.
 #
 # $1 is project's absolute directory.
@@ -75,7 +65,19 @@ do_project ()
 }
 
 # Find and build *all* projects in CGE, with only some exceptions.
+#
 # Unused for now: This is cool, but for now it's OK to list ~20 projects.
+
+# # define $FIND, we want GNU find
+# FIND='find'
+# if which cygpath.exe > /dev/null; then
+#   # On Cygwin/MSYS2, make sure to use Cygwin/MSYS2's find, not the one from Windows
+#   FIND='/bin/find'
+# fi
+# if [ "$(uname -s)" '=' 'Darwin' ]; then
+#   FIND='gfind'
+# fi
+
 # do_all_projects ()
 # {
 #   cd "${CASTLE_ENGINE_PATH}"

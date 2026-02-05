@@ -31,6 +31,13 @@ begin
   begin
     WarningNoLibPngDone := true;
 
+    { Make below using WritelnLog, not WritelnWarning, now.
+
+      Reason: LibPng missing is normal on macOS, do not make a warning
+      that would be visible in CGE editor log, and model viewer "warnings",
+      too prominently.
+      Other platforms follow, to be consistent and easier for testing. }
+
     {$if defined(CASTLE_PNG_DYNAMIC) or defined(CASTLE_PNG_STATIC)}
     { Do not make any warning when InternalDisableDynamicLibraries,
       build tool deliberately uses this (see tools/build-tool/code/tooldisabledynamiclibraries.pas)
@@ -38,7 +45,7 @@ begin
     if not InternalDisableDynamicLibraries then
     begin
       if not CastleZLibInitialized then
-        WritelnWarning('Initializing dynamic Zlib library failed.' + NL +
+        WritelnLog('Initializing dynamic Zlib library failed.' + NL +
           '  Note that it may also cause failures to initialize libraries that require Zlib, like LibPng.'
           {$ifdef MSWINDOWS} +
           NL +
@@ -48,7 +55,7 @@ begin
         );
 
       if not CastlePngInitialized then
-        WritelnWarning('Initializing dynamic LibPng library failed.' + NL +
+        WritelnLog('Initializing dynamic LibPng library failed.' + NL +
           '  Loading PNG will use a slower approach.'
           {$ifdef MSWINDOWS} +
           NL +
@@ -59,7 +66,7 @@ begin
     end;
     {$elseif not defined(WASI)}
     // Don't display this warning on WASI, where it's normal and actually the only way it can work.
-    WritelnWarning('Initializing LibPng failed, because LibPng support not compiled-in.' + NL +
+    WritelnLog('Initializing LibPng failed, because LibPng support not compiled-in.' + NL +
       '  Loading PNG will use a slower approach, relying on Vampyre Imaging / FpImage.');
     {$endif}
   end;

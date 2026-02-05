@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# -----------------------------------------------------------------------------
+# Validate correctness of scripts here:
+# run shellcheck on all shell script files here.
+# Run from CGE top-level dir.
+# -----------------------------------------------------------------------------
+
+# Skip reasons:
+# - gradlew - it's a Gradle-generated file.
+# - src/vampyre_imaginglib - we don't use scripts there, and keep it as close
+#   to upstream as possible.
+
+find . \
+  '(' -type d -name '.git' -prune ')' -or \
+  '(' -type d -path './src/vampyre_imaginglib' -prune ')' -or \
+  '(' -type f -name 'gradlew' -prune ')' -or \
+  '(' -type f -perm /111 -print0 ')' | while read -rd $'\0' FILE; do
+  if file "$FILE" | grep -q "shell script"; then
+    echo "Checking shell script $FILE"
+    shellcheck "$FILE"
+  fi
+done

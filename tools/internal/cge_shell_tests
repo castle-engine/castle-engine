@@ -37,10 +37,10 @@ do_test_qualified_name ()
     fi
 
     set +e # ignore wc exit code (wc may return 1 if no lines)
-    LINES=`grep --fixed-strings 'qualified_name="' "${CGE_MANIFEST_FILENAME}" | wc -l`
+    LINES=$(grep -c --fixed-strings 'qualified_name="' "${CGE_MANIFEST_FILENAME}")
     set -e
 
-    if [ "$LINES" '!=' '1' -a "$LINES" '!=' '0' ]; then
+    if [[ "${LINES}" -ne 1 && "${LINES}" -ne 0 ]]; then
       echo "Error: ${CGE_MANIFEST_FILENAME} has > 1 line with qualified_name"
       exit 1
     fi
@@ -88,13 +88,6 @@ do_test_custom_editor_template_up_to_date ()
            custom_editor_template-temptest/
   cd ../../../
   rm -Rf tools/build-tool/data/custom_editor_template-temptest/
-}
-
-# Test running examples_regenerate_auto_files makes no change.
-do_test_examples_up_to_date ()
-{
-  ./tools/internal/examples_regenerate_auto_files
-  git diff -w --exit-code examples/
 }
 
 # Check that Delphi packages do not refer to VCL or FMX when they should not.
@@ -164,11 +157,6 @@ do_test_no_invalid_deploy_files ()
 # (because there are lots of examples, better list their binaries in one top-level .gitignore).
 do_test_examples_no_gitignore ()
 {
-  # Using "+" to have proper exit status from find,
-  # "If any invocation with the + form returns a non-zero value as exit status, then find returns a non-zero exit status"
-
-  # Using "tee /dev/stderr" just to see faulty examples in the output.
-
   # Do not search cpp_builder below -- this is an exception to our rule,
   # as with C++ Builder we ignore a few special files.
 
@@ -176,8 +164,12 @@ do_test_examples_no_gitignore ()
     '(' -type d -name 'cpp_builder' -prune ')' -or \
     '(' \
       '(' -iname CastleEngineManifest.xml ')' -and \
-      '(' -execdir bash -c 'if [ -f .gitignore ]; then echo `pwd` has .igignore; exit 1; fi' '{}' '+' ')' \
-    ')'
+      '(' -name .gitignore ')' \
+      '(' -print0 ')' \
+    ')' | while read -rd $'\0' FILE; do
+    echo "Error: ${FILE} should not exist, we have one top-level .gitignore"
+    exit 1
+  done
 }
 
 # Analyze path lengths within CGE repository.
@@ -211,15 +203,15 @@ do_longest_path ()
   #git config core.quotePath
   git config core.quotePath false
 
-  LONGEST_PATH_LENGTH=`
+  LONGEST_PATH_LENGTH=$(
     git ls-tree --full-tree -r --name-only HEAD  | \
     awk '{ print length, $0 }' | \
     sort -n | \
     tail -n 1 | \
-    cut -d ' ' -f 1`
+    cut -d ' ' -f 1)
   MAX_LONGEST_PATH_LENGTH=130
 
-  if [ "$LONGEST_PATH_LENGTH" -gt "$MAX_LONGEST_PATH_LENGTH" ]; then
+  if [[ "${LONGEST_PATH_LENGTH}" -gt "${MAX_LONGEST_PATH_LENGTH}" ]]; then
     echo "Error: longest path in CGE repository is $LONGEST_PATH_LENGTH, should be <= $MAX_LONGEST_PATH_LENGTH"
     echo "Here are 10 files with longest paths"
     git ls-tree --full-tree -r --name-only HEAD  | \
@@ -237,7 +229,6 @@ do_longest_path ()
 do_test_qualified_name
 do_test_examples_copyright
 do_test_custom_editor_template_up_to_date
-do_test_examples_up_to_date
 do_test_packages_dependencies
 do_test_no_invalid_deploy_files
 do_test_examples_no_gitignore

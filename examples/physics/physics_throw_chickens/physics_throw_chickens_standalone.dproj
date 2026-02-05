@@ -362,40 +362,6 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/T_Brick_BaseColor.png" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/</RemoteDir>
-  <RemoteName>T_Brick_BaseColor.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/</RemoteDir>
-  <RemoteName>T_Brick_BaseColor.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/</RemoteDir>
-  <RemoteName>T_Brick_BaseColor.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/T_Brick_Normal.png" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/</RemoteDir>
-  <RemoteName>T_Brick_Normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/</RemoteDir>
-  <RemoteName>T_Brick_Normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/</RemoteDir>
-  <RemoteName>T_Brick_Normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
 <DeployFile LocalName="data\quaternius/T_UnevenBrick_BaseColor.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/quaternius/</RemoteDir>
@@ -614,40 +580,6 @@
  <Platform Name="Win64">
   <RemoteDir>./data/quaternius/</RemoteDir>
   <RemoteName>Bull.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/T_Brick_BaseColor.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/</RemoteDir>
-  <RemoteName>T_Brick_BaseColor.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/</RemoteDir>
-  <RemoteName>T_Brick_BaseColor.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/</RemoteDir>
-  <RemoteName>T_Brick_BaseColor.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/T_Brick_Normal.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/</RemoteDir>
-  <RemoteName>T_Brick_Normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/</RemoteDir>
-  <RemoteName>T_Brick_Normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/</RemoteDir>
-  <RemoteName>T_Brick_Normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>

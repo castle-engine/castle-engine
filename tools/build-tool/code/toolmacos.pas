@@ -295,9 +295,19 @@ begin
 
   { Necessary to test applications with Steam integration on macOS.
     TODO: This should not be hardcoded in the build tool, we need a way to
-    specify this in the project file. }
-  if FileExists(Project.Path + 'steam_appid.txt') then
-    CopyOrSymlinkFileAlongsideExe('steam_appid.txt', OutputBundleExePath);
+    specify this in the project file.
+    TODO: Temporarily commented out, we cannot place the txt file alongside
+    the exe, as then signing app bundle with
+
+      codesign -s "$APPLE_IDENTITY" --timestamp -o runtime "${BUNDLE}"
+
+    fails with
+
+      .../castle-editor.app: code object is not signed at all
+      In subcomponent: .../castle-editor.app/Contents/MacOS/steam_appid.txt
+  }
+  // if FileExists(Project.Path + 'steam_appid.txt') then
+  //   CopyOrSymlinkFileAlongsideExe('steam_appid.txt', OutputBundleExePath);
 
   IconIcns := Project.Icons.FindExtension(['.icns']);
   if IconIcns <> '' then

@@ -3004,6 +3004,17 @@
       const Indexes: array of Integer;
       const Solid: Boolean = true);
 
+    { Add lines representation to the given product.
+      Each pair of points in Coordinates defines a line.
+
+      @param(Context Geometric representation context instance,
+        usually @link(TIfcProject.ModelContext) (for 3D models) or
+        @link(TIfcProject.PlanContext) (for 2D floor plans).
+      ) }
+    procedure AddLinesRepresentation(
+      const Context: TIfcGeometricRepresentationContext;
+      const Coordinates: array of TVector3);
+
     { Add box representation to the given product.
 
       Right now, the Box is transformed into a proper mesh representation,
@@ -6105,6 +6116,34 @@ begin
   NewRepresentation.RepresentationType := 'Tessellation';
   NewRepresentation.ContextOfItems := Context;
   NewRepresentation.Items.Add(PolygonalFaceSet);
+
+  if Representation = nil then
+    Representation := TIfcProductDefinitionShape.Create(Owner);
+  Representation.Representations.Add(NewRepresentation);
+
+  Context.RepresentationsInContext.Add(NewRepresentation);
+
+  // link back from NewRepresentation -> (product) Representation
+  NewRepresentation.OfProductRepresentation.Add(Representation);
+end;
+
+procedure TIfcProduct.AddLinesRepresentation(
+  const Context: TIfcGeometricRepresentationContext;
+  const Coordinates: array of TVector3);
+var
+  PolyLine: TIfcPolyline;
+  NewRepresentation: TIfcRepresentation;
+  I: Integer;
+begin
+  PolyLine := TIfcPolyline.Create(Owner);
+  for I := 0 to High(Coordinates) do
+    PolyLine.Points.Add(TIfcCartesianPoint.CreateVector(Owner, Coordinates[I]));
+
+  NewRepresentation := TIfcShapeRepresentation.Create(Owner);
+  NewRepresentation.RepresentationIdentifier := 'Body';
+  NewRepresentation.RepresentationType := 'Curve3D';
+  NewRepresentation.ContextOfItems := Context;
+  NewRepresentation.Items.Add(PolyLine);
 
   if Representation = nil then
     Representation := TIfcProductDefinitionShape.Create(Owner);

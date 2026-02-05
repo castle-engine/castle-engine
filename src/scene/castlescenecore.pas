@@ -419,6 +419,9 @@ type
         FChild: TCastleTransform;
         FParentScene: TCastleSceneCore;
         procedure ChildFreeNotification(const Sender: TFreeNotificationObserver);
+      private
+        { Generation for which this TExposedTransform was confirmed to be valid. }
+        Generation: Cardinal;
       public
         constructor Create(const AParentScene: TCastleSceneCore;
           const ANode: TTransformNode; const AChild: TCastleTransform);
@@ -429,7 +432,15 @@ type
         procedure Synchronize;
         class function X3dNameToPascal(const Prefix, S: String): String; static;
       end;
-      TExposedTransformList = {$ifdef FPC}specialize{$endif} TObjectList<TExposedTransform>;
+
+      TExposedTransformList = class({$ifdef FPC}specialize{$endif} TObjectList<TExposedTransform>)
+        { Each time we process ExposeTransformsChange, we increase this. }
+        Generation: Cardinal;
+
+        { Find TExposedTransform that has Child (TCastleTransform) with given
+          ChildName. @nil if not found. }
+        function FindChildName(const ChildName: String): TExposedTransform;
+      end;
 
   protected
     type
@@ -2776,6 +2787,12 @@ begin
 
   // create ChildObserver
   ChildObserver := TFreeNotificationObserver.Create(nil);
+  { Our ChildFreeNotification implementation will free this
+    TCastleSceneCore.TExposedTransform instance,
+    and the TFreeNotificationObserver instance in ChildObserver.
+    We need to make ChildObserver prepared for this.
+    Testcase: https://forum.castle-engine.io/t/question-about-destroying-player-components-vs-removing-from-viewport/2073/6 }
+  ChildObserver.EnableFreeingFromNotification := true;
   ChildObserver.OnFreeNotification := {$ifdef FPC}@{$endif}ChildFreeNotification;
   ChildObserver.Observed := Child;
 end;
@@ -2852,6 +2869,16 @@ begin
   Result := Prefix + SReplaceChars(S, AllChars - AllowedChars, '_');
   if not SCharIs(Result, 1, AllowedCharsFirst) then
     Result := '_' + Result;
+end;
+
+{ TCastleSceneCore.TExposedTransformList ------------------------------------- }
+
+function TCastleSceneCore.TExposedTransformList.FindChildName(const ChildName: String): TExposedTransform;
+begin
+  for Result in Self do
+    if Result.Child.Name = ChildName then
+      Exit;
+  Result := nil;
 end;
 
 { TPlayAnimationParameters --------------------------------------------------- }
@@ -8117,6 +8144,29 @@ begin
 end;
 
 procedure TCastleSceneCore.ExposeTransformsChange(Sender: TObject);
+
+{ This updates the FExposedTransforms contents,
+  which are TExposedTransform instances that refer to the connected
+  TTransformNode and TCastleTransform.
+
+  Note that we put care to optimize when the existing FExposedTransforms
+  is already mostly correct. This matters, as ExposeTransformsChange may
+  be called often if someone does e.g. MyScene.ExposeTransforms.Add(...)
+  in a loop. Each such call will result in 1 ExposeTransformsChange,
+  and it should really only process new name on the list.
+
+  Note that we considered, but resigned, from remaking FExposedTransforms
+  into dictionary String (Child.Name) -> TExposedTransform.
+  This seemed beneficial (FExposedTransforms.FindChildName
+  could be then replaced with instant FExposedTransforms.TryGetValue),
+  but
+  - it has other issues (trimming "excess" needs to be done more carefully,
+    and updating during TCastleSceneCore.SetExposeTransformsPrefix
+    should update keys too).
+  - it doesn't have practical speed benefits (tested on
+    testcase from https://forum.castle-engine.io/t/question-about-destroying-player-components-vs-removing-from-viewport/2073/5 )
+}
+
 var
   TransformName, TransformNamePascal: String;
   TransformNode: TTransformNode;
@@ -8124,14 +8174,39 @@ var
   E: TExposedTransform;
   I: Integer;
 begin
-  FExposedTransforms.Clear;
+  {$I norqcheckbegin.inc}
+  // let Generation value wrap around if needed
+  Inc(FExposedTransforms.Generation);
+  {$I norqcheckend.inc}
+
   if RootNode = nil then // needed for subsequent RootNode.TryFindNodeByName
+  begin
+    FExposedTransforms.Clear;
     Exit;
+  end;
 
   for TransformName in FExposeTransforms do
   begin
     if TransformName = '' then // ignore empty lines on FExposeTransforms list
       Continue;
+
+    TransformNamePascal := TExposedTransform.X3dNameToPascal(ExposeTransformsPrefix, TransformName);
+
+    E := FExposedTransforms.FindChildName(TransformNamePascal);
+    if E <> nil then
+    begin
+      { This TExposedTransform is already created and up to date.
+        This may happen if it was created in previous TCastleSceneCore.ExposeTransformsChange,
+        or if we have a duplicate on string list FExposeTransforms
+        (we ignore duplicate in this case).
+
+        Note: We do not perform RootNode.FindNode(...) in this case,
+        just assuming that we would the same node as E.Node.
+        When node would be freed (BeforeNodesFree) the FExposedTransforms
+        is already cleared. }
+      E.Generation := FExposedTransforms.Generation;
+      Continue;
+    end;
 
     // calculate TransformNode
     TransformNode := RootNode.FindNode(TTransformNode, TransformName, [fnNilOnMissing]) as TTransformNode;
@@ -8140,12 +8215,6 @@ begin
       WritelnWarning('No TTransformNode (bone) named "%s" found in model', [TransformName]);
       Continue;
     end;
-
-    for E in FExposedTransforms do
-      if E.Node = TransformNode then
-        Continue; // ignore duplicates on FExposeTransforms list
-
-    TransformNamePascal := TExposedTransform.X3dNameToPascal(ExposeTransformsPrefix, TransformName);
 
     // calculate TransformChild
     TransformChild := nil;
@@ -8175,12 +8244,19 @@ begin
       if not (csTransient in ComponentStyle) then
         InternalCastleDesignInvalidate := true;
     end;
+    Assert(TransformChild <> nil);
 
     // create TExposedTransform
     E := TExposedTransform.Create(Self, TransformNode, TransformChild);
+    E.Generation := FExposedTransforms.Generation;
     E.Synchronize;
     FExposedTransforms.Add(E);
   end;
+
+  // remove TExposedTransform that are not up to date
+  for I := FExposedTransforms.Count - 1 downto 0 do
+    if FExposedTransforms[I].Generation <> FExposedTransforms.Generation then
+      FExposedTransforms.Delete(I);
 end;
 
 procedure TCastleSceneCore.SetExposeTransformsPrefix(const Value: String);

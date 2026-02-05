@@ -14,12 +14,19 @@ set -euxo pipefail
 #     ./pack_release.sh darwin x86_64
 #     ./pack_release.sh freebsd x86_64
 #
+#  Hint: To get the current OS/CPU, you can ask FPC,
+#  like $(fpc -iTO) and $(fpc -iTP). That's the advantage of following
+#  in CGE naming the same convention as FPC.
+#
 # - 1 argument 'windows_installer' to build a Windows installer.
 #   This requires InnoSetup installed.
 #
 # Define CGE_PACK_BUNDLE=yes for a special behavior:
 # - The generated archive will be named -bundle
 # - We will expect fpc-OS-CPU.zip, and we will unpack it and distribute along with CGE
+#
+# Define APPLE_CODESIGN_SCRIPTS="/path/to/castle-build-ci/apple"
+# to codesign and notarize macOS apps.
 #
 # Uses bash strict mode, see http://redsymbol.net/articles/unofficial-bash-strict-mode/
 # (but without IFS modification, deliberately, we want to split on space).
@@ -44,9 +51,9 @@ set -euxo pipefail
 # ----------------------------------------------------------------------------
 # Define global variables
 
-OUTPUT_DIRECTORY=`pwd`
+OUTPUT_DIRECTORY=$(pwd)
 if which cygpath.exe > /dev/null; then
-  OUTPUT_DIRECTORY="`cygpath --mixed \"${OUTPUT_DIRECTORY}\"`"
+  OUTPUT_DIRECTORY="$(cygpath --mixed "${OUTPUT_DIRECTORY}")"
 fi
 
 VERBOSE=true
@@ -80,7 +87,8 @@ trap cleanup_temp EXIT
 # see https://castle-engine.io/supported_compilers.php .
 check_fpc_version ()
 {
-  local FPC_VERSION=`fpc -iV | tr -d '\r'`
+  local FPC_VERSION
+  FPC_VERSION=$(fpc -iV | tr -d '\r')
   echo "FPC version: ${FPC_VERSION}"
 
   local REQUIRED_FPC_VERSION='3.2.2'
@@ -88,10 +96,10 @@ check_fpc_version ()
   # https://github.com/castle-engine/castle-fpc/blob/4ceb9a6472760d0e9d063fd98b6677f26eee8598/build_fpc#L81
   local REQUIRED_FPC_VERSION_2='3.2.3'
 
-  if [ "${CASTLE_PACK_DISABLE_FPC_VERSION_CHECK:-}" '!=' 'true' ]; then
-    if [ "${FPC_VERSION}" '!=' "${REQUIRED_FPC_VERSION}" -a \
-         "${FPC_VERSION}" '!=' "${REQUIRED_FPC_VERSION_2}" \
-       ]; then
+  if [[ "${CASTLE_PACK_DISABLE_FPC_VERSION_CHECK:-}" != 'true' ]]; then
+    if [[ "${FPC_VERSION}" != "${REQUIRED_FPC_VERSION}" && \
+          "${FPC_VERSION}" != "${REQUIRED_FPC_VERSION_2}" \
+       ]]; then
       echo "pack_release: Expected FPC version ${REQUIRED_FPC_VERSION} or ${REQUIRED_FPC_VERSION_2}, but got ${FPC_VERSION}"
       exit 1
     fi
@@ -107,26 +115,27 @@ check_lazarus_version ()
   #   using config file /Users/jenkins/installed/fpclazarus/fpc322-lazfixes30/lazarus/lazarus.cfg
   #   3.5
 
-  local LAZARUS_VERSION=`lazbuild --version | grep --invert-match 'using config file' | tr -d '\r'`
+  local LAZARUS_VERSION
+  LAZARUS_VERSION=$(lazbuild --version | grep --invert-match 'using config file' | tr -d '\r')
   echo "Lazarus version: ${LAZARUS_VERSION}"
 
-  if [ "${LAZARUS_VERSION}" '!=' '3.2' -a \
-       "${LAZARUS_VERSION}" '!=' '3.4' -a \
-       "${LAZARUS_VERSION}" '!=' '3.5' -a \
-       "${LAZARUS_VERSION}" '!=' '3.6' -a \
-       "${LAZARUS_VERSION}" '!=' '3.7' -a \
-       "${LAZARUS_VERSION}" '!=' '4.4' ]; then
+  if [[ "${LAZARUS_VERSION}" != '3.2' && \
+        "${LAZARUS_VERSION}" != '3.4' && \
+        "${LAZARUS_VERSION}" != '3.5' && \
+        "${LAZARUS_VERSION}" != '3.6' && \
+        "${LAZARUS_VERSION}" != '3.7' && \
+        "${LAZARUS_VERSION}" != '4.4' ]]; then
     echo "pack_release: Incorrect Lazarus version to pack release, we have ${LAZARUS_VERSION}"
     exit 1
   fi
 
   # To avoid https://gitlab.com/freepascal.org/lazarus/lazarus/-/merge_requests/291
   # we need Lazarus >= 3.5 on macOS.
-  if [ "`uname -s`" '=' 'Darwin' ]; then
-    if [ "${LAZARUS_VERSION}" '!=' '3.5' -a \
-         "${LAZARUS_VERSION}" '!=' '3.6' -a \
-         "${LAZARUS_VERSION}" '!=' '3.7' -a \
-         "${LAZARUS_VERSION}" '!=' '4.4' ]; then
+  if [[ "$(uname -s)" = 'Darwin' ]]; then
+    if [[ "${LAZARUS_VERSION}" != '3.5' && \
+          "${LAZARUS_VERSION}" != '3.6' && \
+          "${LAZARUS_VERSION}" != '3.7' && \
+          "${LAZARUS_VERSION}" != '4.4' ]]; then
       echo "pack_release: macOS: Incorrect Lazarus version to pack release, we have ${LAZARUS_VERSION}"
       exit 1
     fi
@@ -159,7 +168,7 @@ detect_platform ()
     # we don't want to use FPC make (FPC on Windows is distributed with
     # GNU make 3.8, from MinGW).
 
-    if [ -f /bin/make ]; then
+    if [[ -f /bin/make ]]; then
       MAKE='/bin/make'
     else
       if which mingw32-make > /dev/null; then
@@ -171,20 +180,20 @@ detect_platform ()
     FIND='/bin/find'
   fi
 
-  if [ "`uname -s`" '=' 'FreeBSD' ]; then
+  if [[ "$(uname -s)" = 'FreeBSD' ]]; then
     MAKE='gmake'
     SED='gsed'
   fi
 
-  if [ "`uname -s`" '=' 'Darwin' ]; then
+  if [[ "$(uname -s)" = 'Darwin' ]]; then
     SED='gsed'
     FIND='gfind'
   fi
 
   # for debugging, output versions of tools
-  echo "Using make: ${MAKE}" `${MAKE} --version | head -n 1`
-  echo "Using find: ${FIND}" `${FIND} --version | head -n 1`
-  echo "Using sed: ${SED}" `${SED} --version | head -n 1`
+  echo "Using make: ${MAKE} $(${MAKE} --version | head -n 1)"
+  echo "Using find: ${FIND} $(${FIND} --version | head -n 1)"
+  echo "Using sed: ${SED} $(${SED} --version | head -n 1)"
 }
 
 # Compile build tool (castle-engine executable), put it on $PATH .
@@ -192,7 +201,7 @@ detect_platform ()
 # if we run on Linux, even if we're cross-compiling for Windows.
 prepare_build_tool ()
 {
-  if [ "${VERBOSE}" '!=' 'true' ]; then
+  if [[ "${VERBOSE}" != 'true' ]]; then
     CASTLE_FPC_OPTIONS="-vi-"
   fi
 
@@ -209,14 +218,14 @@ prepare_build_tool ()
 
   # sanity checks
   if ! which castle-engine > /dev/null; then
-    echo 'pack_release: After installing CGE build tool, we still cannot find it on $PATH'
+    echo "pack_release: After installing CGE build tool, we still cannot find it on $PATH"
     exit 1
   fi
-  FOUND_CGE_BUILD_TOOL="`which castle-engine${HOST_EXE_EXTENSION}`"
+  FOUND_CGE_BUILD_TOOL="$(which castle-engine${HOST_EXE_EXTENSION})"
   # remove double slashes, may happen in which output because the $PATH component we added ends with slash
-  FOUND_CGE_BUILD_TOOL="`echo -n \"${FOUND_CGE_BUILD_TOOL}\" | $SED -e 's|//|/|' -`"
+  FOUND_CGE_BUILD_TOOL="$(echo -n "${FOUND_CGE_BUILD_TOOL}" | ${SED} -e 's|//|/|' -)"
   EXPECTED_CGE_BUILD_TOOL="${BIN_TEMP_PATH}castle-engine${HOST_EXE_EXTENSION}"
-  if [ "${FOUND_CGE_BUILD_TOOL}" '!=' "${EXPECTED_CGE_BUILD_TOOL}" ]; then
+  if [[ "${FOUND_CGE_BUILD_TOOL}" != "${EXPECTED_CGE_BUILD_TOOL}" ]]; then
     echo "pack_release: Unexpected CGE build tool on \$PATH: found ${FOUND_CGE_BUILD_TOOL}, expected ${EXPECTED_CGE_BUILD_TOOL}"
     exit 1
   fi
@@ -225,7 +234,7 @@ prepare_build_tool ()
 # Calculate $CGE_VERSION
 calculate_cge_version ()
 {
-  CGE_VERSION="`castle-engine --version | awk '{print $2}' | tr -d '\r'`"
+  CGE_VERSION="$(castle-engine --version | awk '{print $2}' | tr -d '\r')"
   echo "Detected CGE version ${CGE_VERSION}"
 }
 
@@ -296,24 +305,29 @@ add_external_tool ()
   cd "${GITHUB_NAME}-${TOOL_BRANCH_NAME}"
 
   # special exceptional addition for pascal-language-server, that has jsonstream as a submodule
-  if [ "${GITHUB_NAME}" = 'pascal-language-server' ]; then
+  if [[ "${GITHUB_NAME}" = 'pascal-language-server' ]]; then
     download https://codeload.github.com/Isopod/jsonstream/zip/master jsonstream.zip
     do_unzip jsonstream.zip
     rm -Rf server/deps/jsonstream # zip contains empty dir with it
     mv jsonstream-master server/deps/jsonstream
-    lazbuild_twice $CASTLE_LAZBUILD_OPTIONS server/deps/jsonstream/pascal/package/jsonstreampkg.lpk
+    lazbuild_twice "${CASTLE_LAZBUILD_OPTIONS[@]}" server/deps/jsonstream/pascal/package/jsonstreampkg.lpk
   fi
 
-  if [ '(' "$OS" '=' 'darwin' ')' -a '(' "${GITHUB_NAME}" != 'pascal-language-server' ')' ]; then
+  if [[ "${OS}" = 'darwin' && "${GITHUB_NAME}" != 'pascal-language-server' ]]; then
     # on macOS, build app bundle, and move it to output path
-    castle-engine $CASTLE_BUILD_TOOL_OPTIONS package --package-format=mac-app-bundle
+    castle-engine "${CASTLE_BUILD_TOOL_OPTIONS[@]}" package --package-format=mac-app-bundle
+    if [[ -n "${APPLE_CODESIGN_SCRIPTS:-}" ]]; then
+      "${APPLE_CODESIGN_SCRIPTS}/sign_notarize_bundle" \
+        "${EXE_NAME}".app \
+        "${EXE_NAME}"
+    fi
     mv "${EXE_NAME}".app "${OUTPUT_BIN}"
   else
-    castle-engine $CASTLE_BUILD_TOOL_OPTIONS compile
+    castle-engine "${CASTLE_BUILD_TOOL_OPTIONS[@]}" compile
     mv "${EXE_NAME}" "${OUTPUT_BIN}"
 
-    if [ "${GITHUB_NAME}" = 'castle-model-viewer' ]; then
-      castle-engine $CASTLE_BUILD_TOOL_OPTIONS compile --manifest-name=CastleEngineManifest.converter.xml
+    if [[ "${GITHUB_NAME}" = 'castle-model-viewer' ]]; then
+      castle-engine "${CASTLE_BUILD_TOOL_OPTIONS[@]}" compile --manifest-name=CastleEngineManifest.converter.xml
       mv castle-model-converter"${EXE_EXTENSION}" "${OUTPUT_BIN}"
     fi
   fi
@@ -345,7 +359,8 @@ cge_clean_all ()
         ')' -exec rm -f '{}' ';' ')' -or \
     '(' -type d '(' \
           -iname 'backup' -or \
-          -iname '*.app' \
+          -iname '*.app' -or \
+          -iname '*.dSYM' \
         ')' -exec rm -Rf '{}' ';' -prune ')'
 
   # Delete pasdoc generated documentation in doc/pasdoc/ and doc/reference/
@@ -421,35 +436,35 @@ pack_platform_dir ()
   shift 2
 
   # comparisons in this script assume lowercase OS name, like darwin or win32
-  OS=`echo -n $OS | tr '[:upper:]' '[:lower:]'`
+  OS=$(echo -n "${OS}" | tr '[:upper:]' '[:lower:]')
 
   # restore CGE path, otherwise it points to a temporary (and no longer existing)
   # dir after one execution of do_pack_platform
   export CASTLE_ENGINE_PATH="${ORIGINAL_CASTLE_ENGINE_PATH}"
-  if [ ! -d "${CASTLE_ENGINE_PATH}" ]; then
+  if [[ ! -d "${CASTLE_ENGINE_PATH}" ]]; then
     echo "Error: CASTLE_ENGINE_PATH does not point to a valid directory: ${CASTLE_ENGINE_PATH}."
     exit 1
   fi
 
-  case "$OS" in
+  case "${OS}" in
     win32|win64) local EXE_EXTENSION='.exe' ;;
     *)           local EXE_EXTENSION=''     ;;
   esac
 
   # Pass options to compile indicating target OS/CPU for everything
   export CASTLE_FPC_OPTIONS="-T${OS} -P${CPU}"
-  export CASTLE_BUILD_TOOL_OPTIONS="--os=${OS} --cpu=${CPU}"
-  local  CASTLE_LAZBUILD_OPTIONS="--os=${OS} --cpu=${CPU}"
-  # Note: always use it like ${MAKE_OPTIONS}, without double quotes,
-  # to *allow* treating spaces inside as argument sepaators.
-  # Otherwise we'd get errors that castle-engine doesn't support --quiet.
-  local  MAKE_OPTIONS="BUILD_TOOL=castle-engine" # use build tool on $PATH
+  # bash array of arguments to "castle-engine"
+  export CASTLE_BUILD_TOOL_OPTIONS=(--os="${OS}" --cpu="${CPU}")
+  # bash array of arguments to "lazbuild"
+  local CASTLE_LAZBUILD_OPTIONS=(--os="${OS}" --cpu="${CPU}")
+  # bash array of arguments to "make"
+  local MAKE_OPTIONS=(BUILD_TOOL=castle-engine) # use build tool on $PATH
 
-  if [ "${VERBOSE}" '!=' 'true' ]; then
+  if [[ "${VERBOSE}" != 'true' ]]; then
     CASTLE_FPC_OPTIONS="${CASTLE_FPC_OPTIONS} -vi-"
-    CASTLE_BUILD_TOOL_OPTIONS="${CASTLE_BUILD_TOOL_OPTIONS} --compiler-option=-vi-"
-    CASTLE_LAZBUILD_OPTIONS="${CASTLE_LAZBUILD_OPTIONS} -q"
-    MAKE_OPTIONS="${MAKE_OPTIONS} --quiet"
+    CASTLE_BUILD_TOOL_OPTIONS=("${CASTLE_BUILD_TOOL_OPTIONS[@]}" --compiler-option=-vi-)
+    CASTLE_LAZBUILD_OPTIONS=("${CASTLE_LAZBUILD_OPTIONS[@]}" -q)
+    MAKE_OPTIONS=("${MAKE_OPTIONS[@]}" --quiet)
   fi
 
   # Create temporary CGE copy, for packing
@@ -458,12 +473,12 @@ pack_platform_dir ()
     # must be native (i.e. cannot be Unix path on Cygwin) as this path
     # (or paths derived from it) is used by CGE native tools
     # e.g. for compiling fpc-cge.
-    TEMP_PATH="`cygpath --mixed \"${TEMP_PATH}\"`"
+    TEMP_PATH="$(cygpath --mixed "${TEMP_PATH}")"
   fi
   mkdir -p "$TEMP_PATH"
   local TEMP_PATH_CGE="${TEMP_PATH}castle_game_engine/"
 
-  if [ "${CASTLE_PACK_GHA_DISK_SPACE_SAVE:-}" = 'true' ]; then
+  if [[ "${CASTLE_PACK_GHA_DISK_SPACE_SAVE:-}" = 'true' ]]; then
     # Instead of copying, which uses 2x disk space, just reuse existing dir.
     # This dir will be cleaned and transformed into release contents.
     # So the CASTLE_PACK_GHA_DISK_SPACE_SAVE is only good to make 1 release
@@ -480,11 +495,11 @@ pack_platform_dir ()
   #   must end with / . It will be used for new CASTLE_ENGINE_PATH
   #   which we gaurantee ends with / .
   # - TEMP_PATH_CGE last subdir must be castle_game_engine .
-  if [ "`basename \"${TEMP_PATH_CGE}\"`" '!=' 'castle_game_engine' ]; then
+  if [[ "$(basename "${TEMP_PATH_CGE}")" != 'castle_game_engine' ]]; then
     echo "Error: TEMP_PATH_CGE last subdir must be castle_game_engine. But TEMP_PATH_CGE is ${TEMP_PATH_CGE}"
     exit 1
   fi
-  if [ "${TEMP_PATH_CGE: -1}" '!=' '/' ]; then
+  if [[ "${TEMP_PATH_CGE: -1}" != '/' ]]; then
     echo "Error: TEMP_PATH_CGE must end with /. But TEMP_PATH_CGE is ${TEMP_PATH_CGE}"
     exit 1
   fi
@@ -498,28 +513,28 @@ pack_platform_dir ()
   # Extend castleversion.inc with GIT hash
   # (useful to have exact version in case of snapshots).
   # $GIT_COMMIT is defined by Jenkins, see https://wiki.jenkins.io/display/JENKINS/Building+a+software+project#Buildingasoftwareproject-belowJenkinsSetEnvironmentVariables
-  if [ -n "${GIT_COMMIT:-}" ]; then
+  if [[ -n "${GIT_COMMIT:-}" ]]; then
     echo "+ ' (commit ${GIT_COMMIT})'" >> src/base/castleversion.inc
   fi
 
   # update environment to use CGE in temporary location
   export CASTLE_ENGINE_PATH="${TEMP_PATH_CGE}"
 
-  lazbuild_twice $CASTLE_LAZBUILD_OPTIONS packages/lazarus/castle_engine_base.lpk
-  lazbuild_twice $CASTLE_LAZBUILD_OPTIONS packages/lazarus/castle_engine_window.lpk
-  lazbuild_twice $CASTLE_LAZBUILD_OPTIONS packages/lazarus/castle_engine_lcl.lpk
-  lazbuild_twice $CASTLE_LAZBUILD_OPTIONS packages/lazarus/castle_engine_editor_components.lpk
+  lazbuild_twice "${CASTLE_LAZBUILD_OPTIONS[@]}" packages/lazarus/castle_engine_base.lpk
+  lazbuild_twice "${CASTLE_LAZBUILD_OPTIONS[@]}" packages/lazarus/castle_engine_window.lpk
+  lazbuild_twice "${CASTLE_LAZBUILD_OPTIONS[@]}" packages/lazarus/castle_engine_lcl.lpk
+  lazbuild_twice "${CASTLE_LAZBUILD_OPTIONS[@]}" packages/lazarus/castle_engine_editor_components.lpk
 
   # Make sure no leftovers from previous compilations remain,
   # to not pack them in release.
-  "${MAKE}" clean ${MAKE_OPTIONS}
+  "${MAKE}" clean "${MAKE_OPTIONS[@]}"
   cge_clean_all
 
   # Compile tools (except editor) with just FPC
-  "${MAKE}" tools ${MAKE_OPTIONS} BUILD_TOOL="castle-engine ${CASTLE_BUILD_TOOL_OPTIONS}"
+  "${MAKE}" tools "${MAKE_OPTIONS[@]}" BUILD_TOOL="castle-engine ${CASTLE_BUILD_TOOL_OPTIONS[*]}"
 
   # Compile fpc-cge internal tool
-  castle-engine $CASTLE_BUILD_TOOL_OPTIONS --project "${TEMP_PATH_CGE}"tools/internal/fpc-cge/ compile
+  castle-engine "${CASTLE_BUILD_TOOL_OPTIONS[@]}" --project "${TEMP_PATH_CGE}"tools/internal/fpc-cge/ compile
 
   # Place tools (except editor) binaries in bin-to-keep subdirectory
   mkdir -p "${TEMP_PATH_CGE}"bin-to-keep
@@ -530,17 +545,27 @@ pack_platform_dir ()
      tools/to-data-uri/to-data-uri"${EXE_EXTENSION}" \
      tools/internal/fpc-cge/fpc-cge"${EXE_EXTENSION}" \
      "${TEMP_PATH_CGE}"bin-to-keep
+  # codesign tools (castle-engine etc.) on macOS
+  if [[ -n "${APPLE_CODESIGN_SCRIPTS:-}" ]]; then
+    "${APPLE_CODESIGN_SCRIPTS}/sign_executable" \
+      "${TEMP_PATH_CGE}"bin-to-keep
+  fi
 
   # Compile castle-editor with lazbuild (or CGE build tool, to get macOS app bundle),
   # place it in bin-to-keep subdirectory
-  if [ "$OS" '=' 'darwin' ]; then
+  if [[ "${OS}" = 'darwin' ]]; then
     cd tools/castle-editor/
-    ../build-tool/castle-engine"${EXE_EXTENSION}" $CASTLE_BUILD_TOOL_OPTIONS package --package-format=mac-app-bundle
+    ../build-tool/castle-engine"${EXE_EXTENSION}" "${CASTLE_BUILD_TOOL_OPTIONS[@]}" package --package-format=mac-app-bundle
     cd ../../
     cp -R tools/castle-editor/castle-editor.app \
        "${TEMP_PATH_CGE}"bin-to-keep
+    if [[ -n "${APPLE_CODESIGN_SCRIPTS:-}" ]]; then
+      "${APPLE_CODESIGN_SCRIPTS}/sign_notarize_bundle" \
+        "${TEMP_PATH_CGE}"bin-to-keep/castle-editor.app \
+        castle-editor
+    fi
   else
-    lazbuild_twice $CASTLE_LAZBUILD_OPTIONS tools/castle-editor/castle_editor.lpi
+    lazbuild_twice "${CASTLE_LAZBUILD_OPTIONS[@]}" tools/castle-editor/castle_editor.lpi
     cp tools/castle-editor/castle-editor"${EXE_EXTENSION}" \
        "${TEMP_PATH_CGE}"bin-to-keep
   fi
@@ -570,14 +595,14 @@ pack_platform_dir ()
   # https://github.com/gcarreno/setup-lazarus?tab=readme-ov-file
   # https://forum.lazarus.freepascal.org/index.php/topic,65619.msg500216.html#msg500216
   #
-  # if [ "$OS" '=' 'linux' -a "${CPU}" '!=' 'arm' -a "${CPU}" '!=' 'aarch64' ]; then
-  #   lazbuild_twice $CASTLE_LAZBUILD_OPTIONS tools/castle-editor/castle_editor.lpi --widgetset=qt5
+  # if [[ "${OS}" = 'linux' && "${CPU}" != 'arm' && "${CPU}" != 'aarch64' ]]; then
+  #   lazbuild_twice "${CASTLE_LAZBUILD_OPTIONS[@]}" tools/castle-editor/castle_editor.lpi --widgetset=qt5
   #   cp tools/castle-editor/castle-editor"${EXE_EXTENSION}" \
   #      "${TEMP_PATH_CGE}"bin-to-keep/castle-editor-qt5
   # fi
 
   # Add DLLs on Windows
-  case "$OS" in
+  case "${OS}" in
     win32|win64)
       cp "${CASTLE_ENGINE_PATH}"/tools/build-tool/data/external_libraries/"${CPU}"-"${OS}"/*.dll \
          "${CASTLE_ENGINE_PATH}"/tools/build-tool/data/external_libraries/"${CPU}"-"${OS}"/openssl/*.dll \
@@ -586,21 +611,21 @@ pack_platform_dir ()
   esac
 
   # Make sure no leftovers from tools compilation remain
-  "${MAKE}" clean ${MAKE_OPTIONS}
+  "${MAKE}" clean "${MAKE_OPTIONS[@]}"
   cge_clean_all
 
   # After make clean, make sure bin/ exists and is filled with what we need
   mv "${TEMP_PATH_CGE}"bin-to-keep "${TEMP_PATH_CGE}"bin
 
-  if [ "$OS" '=' 'darwin' ]; then
-    if [ ! -d "${TEMP_PATH_CGE}"bin/castle-editor.app ]; then
+  if [[ "${OS}" = 'darwin' ]]; then
+    if [[ ! -d "${TEMP_PATH_CGE}"bin/castle-editor.app ]]; then
       echo "Error: castle-editor.app not found in bin/ at packaging macOS release"
       exit 1
     fi
   fi
 
   # Add PasDoc docs
-  "${MAKE}" -C doc/pasdoc/ clean html ${MAKE_OPTIONS}
+  "${MAKE}" -C doc/pasdoc/ clean html "${MAKE_OPTIONS[@]}"
   # Remove pasdoc leftovers,
   # including pasdoc dir and zip/tar.gz left after tasks like '(Windows) Get PasDoc' and '(macOS) Get PasDoc'.
   # Otherwise they'd get packaged.
@@ -623,6 +648,15 @@ pack_platform_dir ()
       do_unzip fpc-dist.zip
       rm -f fpc-dist.zip # remove as soon as no longer needed, to save disk space, important for GHA on GH-hosted runners
       ARCHIVE_NAME_BUNDLE='-bundle'
+      # Sign and notarize for macOS.
+      # Note: do this *before* moving here fpc-cge, as fpc-cge is already
+      # signed, along with all binaries in bin (previously bin-to-keep).
+      # And trying to sign again results in codesign error
+      # "....fpc-cge: is already signed"
+      if [[ -n "${APPLE_CODESIGN_SCRIPTS:-}" ]]; then
+        "${APPLE_CODESIGN_SCRIPTS}/sign_executable" \
+          "${TEMP_PATH_CGE}"tools/contrib/fpc/bin
+      fi
       mv "${TEMP_PATH_CGE}"bin/fpc-cge"${EXE_EXTENSION}" "${TEMP_PATH_CGE}"tools/contrib/fpc/bin
       ;;
     'no'|'')
@@ -659,22 +693,22 @@ pack_platform_zip ()
   zip -r "${ARCHIVE_NAME}" castle_game_engine/
 
   # move ARCHIVE_NAME to OUTPUT_DIRECTORY
-  local CURRENT_DIRECTORY=`pwd`
+  local CURRENT_DIRECTORY
+  CURRENT_DIRECTORY=$(pwd)
   if which cygpath.exe > /dev/null; then
-    CURRENT_DIRECTORY="`cygpath --mixed \"${CURRENT_DIRECTORY}\"`"
+    CURRENT_DIRECTORY="$(cygpath --mixed "${CURRENT_DIRECTORY}")"
   fi
   # Do not try to move if archive is already in OUTPUT_DIRECTORY.
   # This can happen when CASTLE_PACK_GHA_DISK_SPACE_SAVE=true,
   # then zip is not created in /tmp/... but in parent of castle_game_engine,
   # which may be exactly OUTPUT_DIRECTORY.
-  if [ "${CURRENT_DIRECTORY}" '!=' "${OUTPUT_DIRECTORY}" ]; then
+  if [[ "${CURRENT_DIRECTORY}" != "${OUTPUT_DIRECTORY}" ]]; then
     mv -f "${ARCHIVE_NAME}" "${OUTPUT_DIRECTORY}"
   fi
 
-  # seems to sometimes fail with "rm: fts_read failed: No such file or directory" on GH hosted windows runner
-  set +e
-  rm -Rf "${TEMP_PATH}"
-  set -e
+  # rm seems to sometimes fail with "rm: fts_read failed: No such file
+  # or directory" on GH hosted windows runner, so ignore errors.
+  rm -Rf "${TEMP_PATH}" || true
 }
 
 # Prepare Windows installer with precompiled CGE.
@@ -722,8 +756,8 @@ check_fpc_version
 check_lazarus_version
 prepare_build_tool
 calculate_cge_version
-if [ -n "${1:-}" ]; then
-  if [ "$1" '=' 'windows_installer' ]; then
+if [[ -n "${1:-}" ]]; then
+  if [[ "${1}" = 'windows_installer' ]]; then
     pack_windows_installer
   else
     pack_platform_zip "${1}" "${2}"

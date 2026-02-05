@@ -1,5 +1,5 @@
-#!/bin/bash
-set -eu
+#!/usr/bin/env bash
+set -euo pipefail
 
 # -----------------------------------------------------------------
 # Test compilation of various CGE CastleWindow backends.
@@ -24,13 +24,13 @@ do_run ()
 # Parameters: OS CPU
 do_test_one_backend_lcl ()
 {
-  LAZBUILD_OPTIONS="--os=$1 --cpu=$2"
-  lazbuild $LAZBUILD_OPTIONS packages/lazarus/alternative_castle_engine_window_based_on_lcl.lpk
+  local LAZBUILD_OPTIONS=(--os="$1" --cpu="$2")
+  do_run lazbuild "${LAZBUILD_OPTIONS[@]}" packages/lazarus/alternative_castle_engine_window_based_on_lcl.lpk
 
   # Depend on alternative_castle_engine_window_based_on_lcl from TEST_LPI
   sed -e 's|<PackageName Value="castle_engine_window"/>|<PackageName Value="alternative_castle_engine_window_based_on_lcl"/>|' \
     --in-place "${TEST_LPI}"
-  do_run lazbuild $LAZBUILD_OPTIONS "${TEST_LPI}"
+  do_run lazbuild "${LAZBUILD_OPTIONS[@]}" "${TEST_LPI}"
 
   # Restore original view_3d_model_advanced.lpi
   sed -e 's|<PackageName Value="alternative_castle_engine_window_based_on_lcl"/>|<PackageName Value="castle_engine_window"/>|' \
@@ -42,13 +42,13 @@ do_test_one_backend_lcl ()
 do_test_one_backend ()
 {
   if [ "$3" = 'CASTLE_WINDOW_FORM' ]; then
-    do_test_one_backend_lcl $1 $2
+    do_test_one_backend_lcl "$1" "$2"
   else
     # Cleans the project, to remove compilation outputs with defined CASTLE_WINDOW_*
     do_run "${BUILD_TOOL}" --project="${TEST_PROJECT}" clean
-    do_run "${BUILD_TOOL}" --project="${TEST_PROJECT}" compile --os=$1 --cpu=$2 --mode=debug --compiler-option=-d$3
+    do_run "${BUILD_TOOL}" --project="${TEST_PROJECT}" compile --os="$1" --cpu="$2" --mode=debug --compiler-option=-d"$3"
     do_run "${BUILD_TOOL}" --project="${TEST_PROJECT}" clean
-    do_run "${BUILD_TOOL}" --project="${TEST_PROJECT}" compile --os=$1 --cpu=$2 --mode=release --compiler-option=-d$3
+    do_run "${BUILD_TOOL}" --project="${TEST_PROJECT}" compile --os="$1" --cpu="$2" --mode=release --compiler-option=-d"$3"
   fi
 }
 

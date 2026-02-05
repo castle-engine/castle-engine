@@ -1107,8 +1107,13 @@ type
   TFreeNotificationObserver = class(TComponent)
   strict private
     FObserved: TComponent;
+    { Are we inside OnFreeNotification event handler.
+      Updated only when FEnableFreeingFromNotification = @false. }
+    FDuringOnFreeNotification: Boolean;
     FOnFreeNotification: TFreeNotificationEvent;
+    FEnableFreeingFromNotification: Boolean;
     procedure SetObserved(const Value: TComponent);
+    procedure SetEnableFreeingFromNotification(const Value: Boolean);
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
@@ -1126,6 +1131,26 @@ type
       our "free notification" from a component that will be freed) and makes it safer
       (we will not expose dangling pointer). }
     property Observed: TComponent read FObserved write SetObserved;
+
+    { If @true, you can free the instane of this TFreeNotificationObserver
+      from inside its own OnFreeNotification event handler.
+      This is sometimes useful, but in this case the OnFreeNotification handler
+      must @italic(guarantee) that it will always either free this TFreeNotificationObserver
+      instance, or change its @link(Observed) to @nil.
+
+      By default, this is @false, and the event handler of this TFreeNotificationObserver
+      cannot free this TFreeNotificationObserver instance.
+      This is standard for all event handlers.
+      Trying to free this instance from inside OnFreeNotification when
+      EnableFreeingFromNotification is @false
+      will make a clear warning + followed by undefined behavior (usually,
+      but this is never guaranteed, EAccessViolation).
+
+      Changing this property is allowed only when we're not inside
+      OnFreeNotification. }
+    property EnableFreeingFromNotification: Boolean
+      read FEnableFreeingFromNotification
+      write SetEnableFreeingFromNotification default false;
   end;
 
 implementation
@@ -2641,6 +2666,11 @@ end;
 
 destructor TFreeNotificationObserver.Destroy;
 begin
+  if FDuringOnFreeNotification then
+    WritelnWarning('TFreeNotificationObserver is being freed while processing OnFreeNotification. ' +
+      'This will lead to undefined behavior later, as our instance will be invalid when OnFreeNotification ends. ' +
+      'To fix this, either change TFreeNotificationObserver.EnableFreeingFromNotification to true, or make sure to not free this instance from inside OnFreeNotification.');
+
   { detach free notification, if any remains }
   Observed := nil;
   inherited;
@@ -2669,13 +2699,31 @@ begin
      (AComponent = FObserved) and
      Assigned(OnFreeNotification) then
   begin
-    OnFreeNotification(Self);
+    if FDuringOnFreeNotification then
+      raise EInternalError.Create('We got TFreeNotificationObserver.Notification during OnFreeNotification on the same instance. This is invalid, as it could cause infinite recursion in event processing.');
 
-    { Possibly OnFreeNotification already changed Observed, and we no longer observe it.
-      But if it didn't... then let's fix it.
-      We know FObserved will be freed, so we can stop watching. }
-    if AComponent = FObserved then
-      Observed := nil;
+    if FEnableFreeingFromNotification then
+    begin
+      OnFreeNotification(Self);
+      { And we really cannot do anything more here when FEnableFreeingFromNotification.
+        We cannot update FDuringOnFreeNotification, we cannot look
+        (even read) our FObserved, as Self may be already freed so accessing
+        any field in a potential EAccessViolation. }
+    end else
+    begin
+      FDuringOnFreeNotification := true;
+      try
+        OnFreeNotification(Self);
+      finally
+        FDuringOnFreeNotification := false;
+      end;
+
+      { Possibly OnFreeNotification already changed Observed, and we no longer observe it.
+        But if it didn't... then let's fix it.
+        We know FObserved will be freed, so we can stop watching. }
+      if AComponent = FObserved then
+        Observed := nil;
+    end;
   end;
 end;
 
@@ -2688,6 +2736,16 @@ begin
     FObserved := Value;
     if FObserved <> nil then
       FObserved.FreeNotification(Self);
+  end;
+end;
+
+procedure TFreeNotificationObserver.SetEnableFreeingFromNotification(const Value: Boolean);
+begin
+  if FEnableFreeingFromNotification <> Value then
+  begin
+    if FDuringOnFreeNotification then
+      raise EInternalError.Create('Cannot change TFreeNotificationObserver.EnableFreeingFromNotification from inside OnFreeNotification event handler.');
+    FEnableFreeingFromNotification := Value;
   end;
 end;
 

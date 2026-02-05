@@ -14,8 +14,21 @@
 name: Test and Pack (Runner Native)
 
 # Called by everything.yml
-on: [workflow_call]
-#on: [push, pull_request]
+on:
+  workflow_call:
+    # We need to declare secrets that must be passed here.
+    # See https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows
+    secrets:
+      APPLE_BUILD_CERTIFICATE_BASE64:
+        required: true
+      APPLE_P12_PASSWORD:
+        required: true
+      APPLE_KEYCHAIN_PASSWORD:
+        required: true
+      APPLE_APP_PASSWORD:
+        required: true
+  # push:
+  # pull_request:
 
 defaults:
   run:
@@ -177,14 +190,13 @@ jobs:
         make clean tools install PREFIX=${CASTLE_ENGINE_PATH}/installed/
 
     - name: Build Examples
-      # Too slow on RPi
-      # No longer relevant, Raspberry Pi builds are not done here.
-      # if: ${{ matrix.runner != 'raspberry_pi_64' && matrix.runner != 'raspberry_pi_32' }}
       # TODO: Don't build on macos-15-intel, takes too long and we lose connection to runner?
       # TODO: Don't build on macos-latest, takes too long and floods log with
       # "ld: warning: object file (/Users/runner/work/castle-game/castle-game/castle-engine/tools/build-tool/castle-engine-output/build-tool-compilation/castle_engine.o) was built for newer 'macOS' version (11.0) than being linked (10.15)" .
       # Reconsider once we have eliminated the above warnings.
-      if: ${{ matrix.runner != 'macos-latest' && matrix.runner != 'macos-15-intel' }}
+      #if: ${{ matrix.runner != 'macos-latest' && matrix.runner != 'macos-15-intel' }}
+      # TODO: Skip examples, for quick test of recent macOS work
+      if: false
       run: make clean examples CASTLE_CONSERVE_DISK_SPACE=true
 
     - name: Build And Run Auto-Tests
@@ -217,6 +229,16 @@ jobs:
         bin/pasdoc --version # check it's OK
 
     - name: Pack Release
+      env:
+        # for codesigning
+        APPLE_IDENTITY: ${{ vars.APPLE_IDENTITY }}
+        APPLE_BUILD_CERTIFICATE_BASE64: ${{ secrets.APPLE_BUILD_CERTIFICATE_BASE64 }}
+        APPLE_P12_PASSWORD: ${{ secrets.APPLE_P12_PASSWORD }}
+        APPLE_KEYCHAIN_PASSWORD: ${{ secrets.APPLE_KEYCHAIN_PASSWORD }}
+        # for notarization
+        APPLE_ID: ${{ vars.APPLE_ID }}
+        APPLE_TEAM_ID: ${{ vars.APPLE_TEAM_ID }}
+        APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
       run: |
         rm -f castle-engine*.zip # remove previous artifacts
         # Determine OS/CPU for pack_release, which is just our current OS/CPU,
@@ -224,7 +246,12 @@ jobs:
         FPC_OS="`fpc -iTO`"
         FPC_CPU="`fpc -iTP`"
         echo "Packing for OS / CPU: ${FPC_OS} / ${FPC_CPU}"
-        CGE_PACK_BUNDLE=yes ./tools/internal/pack_release/pack_release.sh "${FPC_OS}" "${FPC_CPU}"
+        export CGE_PACK_BUNDLE=yes
+        if [ "${FPC_OS}" = 'darwin' ]; then
+          export APPLE_CODESIGN_SCRIPTS="/tmp/castle-build-ci/apple"
+          "${APPLE_CODESIGN_SCRIPTS}/setup_signing"
+        fi
+        ./tools/internal/pack_release/pack_release.sh "${FPC_OS}" "${FPC_CPU}"
 
     - name: Archive Artifacts (zip)
       # We don't archive build on:

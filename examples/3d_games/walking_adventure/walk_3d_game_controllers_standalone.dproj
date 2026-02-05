@@ -498,6 +498,23 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
+<DeployFile LocalName="data\material_properties.xml" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>material_properties.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>material_properties.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>material_properties.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
 <DeployFile LocalName="data\quaternius/AUTHORS.md" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/quaternius/</RemoteDir>
@@ -1821,6 +1838,23 @@
  <Platform Name="Win64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>gameviewtalk.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\material_properties.xml" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>material_properties.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>material_properties.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>material_properties.xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>

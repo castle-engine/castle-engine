@@ -1,6 +1,6 @@
 {%MainUnit castlewindow.pas}
 {
-  Copyright 2022-2024 Michalis Kamburelis, Jan Adamec, and GLPT, LCL contributors.
+  Copyright 2022-2026 Michalis Kamburelis, Jan Adamec, and GLPT, LCL contributors.
 
   The Cocoa integration code is based on
 
@@ -33,14 +33,46 @@
   ----------------------------------------------------------------------------
 }
 
-{ TODO p1:
-  - fullscreen: should be on top of dock / menu (started but doesn't work, search for COCOA_FULL_SCREEN)
-  - hide / show mouse cursor (for mouse look) (started but doesn't work, NSCursor.hide/unhide)
-  - reposition mouse (for mouse look ) (started but doesn't work, see SetMousePosition)
+{ TCastleWindow backend using Cocoa. macOS-only.
+  See https://castle-engine.io/castlewindow_backends .
 
-  TODO p2:
-  - use filters in FileDialog to highlight correct files
-  - avoid deprecated warnings at assembling
+  TODO:
+
+  - Test on real hardware (testing it through remote connection like Team Viewer
+    or VNC is bad, as they try to control the mouse):
+
+      Hide / show mouse cursor (for mouse look), this is controlled by
+      TCastleUserInterface.Cursor, TCastleWindow.OverrideCursor.
+
+      Doesn't seem to work (as if NSCursor.hide didn't do anything)...
+      but only tested over Team Viewer and VNC,
+      and they may mess this test, as they want to control mouse.
+      Search for NSCursor.hide to find implementation of it.
+
+      Test e.g. by examples/user_interface/test_all_view_events/ ,
+      press keys like `n` `d` to switch cursor visibiity.
+      Or test any 3D example with TCastleWalkNavigation.MouseLook = true.
+
+  - TCastleWindow.FullScreen: should be on top of dock / menu.
+
+      Started but doesn't really work.
+      Define CASTLE_COCOA_FULL_SCREEN to test it.
+
+      Right now makes a black screen, after weird reshape() execution
+      with "windowRef.Container = nil when TOpenGLView.reshape".
+
+  - Use filters in FileDialog to highlight correct files.
+
+  - Entering modal message leaves the key pressed down,
+    testcase: test_all_state_events, press Q.
+
+  - Call FileMonitor.CheckChanges when user switches to application.
+
+  - FPC issue likely:
+
+    Avoid deprecated warnings at assembling:
+
+    """
     Assembling castlewindow
     /Users/administrator/sources/castle-engine/castle-engine/examples/user_interface/test_all_state_events/castle-engine-output/compilation/x86_64-darwin/castlewindow.s:263336:10: warning: section "__datacoal_nt" is deprecated
     .section __DATA, __datacoal_nt, coalesced
@@ -54,22 +86,22 @@
     /Users/administrator/sources/castle-engine/castle-engine/examples/user_interface/test_all_state_events/castle-engine-output/compilation/x86_64-darwin/castlewindow.s:263484:10: note: change section name to "__data"
     .section __DATA, __datacoal_nt, coalesced
              ^      ~~~~~~~~~~~~~~
-    Unknown how to deal with it.
+    """
+
+    No solution for now.
     https://wiki.lazarus.freepascal.org/Mac_Installation_FAQ#Lazarus_reports_success.2C_but_there_are_errors.21
     mentions it, without any answer except "ignore them"..
-  - entering modal message leaves the key pressed down, testcase: test_all_state_events, press Q
-  - hiding cursor doesn't work for unknown reason
-  - Call FileMonitor.CheckChanges when user switches to application.
 }
+{.$define CASTLE_COCOA_FULL_SCREEN}
 
 {$ifdef read_interface_uses}
 CocoaAll,
-{$endif}
+{$endif read_interface_uses}
 
 {$ifdef read_implementation_uses}
-// for CGWarp... in SetMousePosition, unused for now
-// CGRemoteOperation, CGGeometry,
-{$endif}
+// for CGWarp... in SetMousePosition
+CGRemoteOperation, CGGeometry,
+{$endif read_implementation_uses}
 
 {$ifdef read_window_interface}
 private
@@ -255,11 +287,10 @@ var
     { 127 }   keyNone // TODO, GLPT_SCANCODE_POWER
 );
 
-{=============================================}
-{@! ___BORDERLESS WINDOW___ }
-{=============================================}
+{ TBorderlessWindow ----------------------------------------------------------- }
 
 type
+  { Extend NSWindow to behave like a borderless window. }
   TBorderlessWindow = objcclass (NSWindow)
   public
     function initWithContentRect_styleMask_backing_defer (contentRect: NSRect; aStyle: NSUInteger; bufferingType: NSBackingStoreType; flag: ObjCBool): id; override;
@@ -324,11 +355,10 @@ begin
   end;
 end;
 
-{=============================================}
-{@! ___COCOA WINDOW___ }
-{=============================================}
+{ TCocoaWindow --------------------------------------------------------------- }
 
 type
+  { Extend TBorderlessWindow to be connected with TCastleWindow. }
   TCocoaWindow = objcclass (TBorderlessWindow)
   private
     ref: TCastleWindow;
@@ -365,18 +395,12 @@ begin
   // ref.FKeyWindow := false;
 end;
 
-{=============================================}
-{@! ___COCOA APP___ }
-{=============================================}
+{ TCocoaApp ------------------------------------------------------------------ }
 
 type
+  { Extend NSApplication to poll for application and window events. }
   TCocoaApp = objcclass (NSApplication)
     procedure poll; message 'poll';
-  end;
-
-type
-  TCocoaAppDelegate = objcclass (NSObject, NSApplicationDelegateProtocol)
-    procedure application_openFiles(sender: NSApplication; filenames: NSArray); message 'application:openFiles:';
   end;
 
 procedure TCocoaApp.poll;
@@ -530,53 +554,90 @@ begin
   pool.release;
 end;
 
+{ TCocoaAppDelegate ----------------------------------------------------------- }
+
+type
+  { Object to handle openFiles event, happens when user drag-and-drops
+    file over the application or opens associated file. }
+  TCocoaAppDelegate = objcclass (NSObject, NSApplicationDelegateProtocol)
+    { application_openFiles may be executed from
+      the TCastleApplication.CreateBackend.
+
+      Testcase: when double-clicking 3D model from editor "Files", macOS opens
+      castle-model-viewer and app.finishLaunching (from
+      TCastleApplication.CreateBackend) causes application_openFiles.
+
+      At that point, the FApplication instance is not yet assigned,
+      so do not use Application function, as it would mistakenly try creating
+      a singleton again, causing infinite creation loop and stack overflow.
+
+      To avoid this, use ParentApplication instead of Application in
+      TCocoaAppDelegate.application_openFiles.
+      Also, store things for later -- since user may not yet have assigned
+      e.g. Window.OnDropFiles. }
+    ParentApplication: TCastleApplication;
+    procedure application_openFiles(sender: NSApplication; filenames: NSArray); message 'application:openFiles:';
+  end;
+
 procedure TCocoaAppDelegate.application_openFiles(sender: NSApplication; filenames: NSArray);
 var
-  lFiles: array of string;
+  Files: array of String;
   lNSStr: NSString;
   I: Integer;
 begin
-  SetLength(lFiles, filenames.count);
+  if filenames.count = 0 then
+  begin
+    WritelnWarning('TCocoaAppDelegate.application_openFiles', 'Received 0 files, ignoring');
+    Exit;
+  end;
+
+  // calculate Files
+  SetLength(Files, filenames.count);
   for I := 0 to filenames.count-1 do
   begin
     lNSStr := NSString(filenames.objectAtIndex(I));
-    lFiles[I] := lNSStr.UTF8String;
+    Files[I] := lNSStr.UTF8String;
+    { On macOS, when opening files by double-clicking from editor,
+      this already contains a URL (because our
+      OpenWithCastleTool('castle-model-viewer'... passes an URL?).
+      DoDropFiles and OnDropFiles expect filenames now. }
+    if UriProtocol(Files[I]) = 'file' then
+      Files[I] := UriToFilenameSafe(Files[I]);
   end;
-  if Application.MainWindow <> nil then
-    Application.MainWindow.DoDropFiles(lFiles);
+
+  ParentApplication.DoDropFiles(Files);
 end;
 
-{=============================================}
-{@! ___OPENGL VIEW___ }
-{=============================================}
+{ TOpenGLView --------------------------------------------------------------- }
 
 type
+  { Extend NSView to have NSOpenGLContext. }
   TOpenGLView = objcclass (NSView)
-    public
-      function initWithFrame(frameRect: NSRect): id; override;
-      procedure dealloc; override;
-      function isOpaque: ObjCBool; override;
-      procedure viewDidMoveToWindow; override;
-      procedure mouseEntered(theEvent: NSEvent); override;
-      procedure mouseExited(theEvent: NSEvent); override;
-      procedure doCommandBySelector(aSelector: SEL); override;
-      procedure updateTrackingAreas; override;
-      procedure keyDown(theEvent: NSEvent); override;
-      procedure drawRect(dirtyRect: NSRect); override;
-      procedure setFrameSize(newSize: NSSize); override;
+  public
+    function initWithFrame(frameRect: NSRect): id; override;
+    procedure dealloc; override;
+    function isOpaque: ObjCBool; override;
+    procedure viewDidMoveToWindow; override;
+    procedure mouseEntered(theEvent: NSEvent); override;
+    procedure mouseExited(theEvent: NSEvent); override;
+    procedure doCommandBySelector(aSelector: SEL); override;
+    procedure updateTrackingAreas; override;
+    procedure keyDown(theEvent: NSEvent); override;
+    procedure drawRect(dirtyRect: NSRect); override;
+    procedure setFrameSize(newSize: NSSize); override;
 
-      { Realizes TCastleWindow.OnDropFiles, allows to handle dropping files. }
-      function performDragOperation(sender: NSDraggingInfoProtocol): ObjCBOOL; override;
-      function prepareForDragOperation(sender: NSDraggingInfoProtocol): ObjCBool; override;
-      function draggingEntered(sender: NSDraggingInfoProtocol): NSDragOperation; override;
-    private
-      openGLContext: NSOpenGLContext;
-      trackingArea: NSTrackingArea;
+    { Realizes TCastleWindow.OnDropFiles, allows to handle dropping files. }
+    function performDragOperation(sender: NSDraggingInfoProtocol): ObjCBOOL; override;
+    function prepareForDragOperation(sender: NSDraggingInfoProtocol): ObjCBool; override;
+    function draggingEntered(sender: NSDraggingInfoProtocol): NSDragOperation; override;
+  private
+    openGLContext: NSOpenGLContext;
+    trackingArea: NSTrackingArea;
 
-      function defaultPixelFormat: NSOpenGLPixelFormat; message 'defaultPixelFormat';
-      function windowRef: TCastleWindow; message 'windowRef';
-      procedure frameChanged (sender: NSNotification); message 'frameChanged:';
-      procedure reshape(newSize: NSSize); message 'reshape:';
+    function defaultPixelFormat: NSOpenGLPixelFormat; message 'defaultPixelFormat';
+    function windowRef: TCastleWindow; message 'windowRef';
+    procedure frameChanged (sender: NSNotification); message 'frameChanged:';
+    procedure reshape(newSize: NSSize); message 'reshape:';
   end;
 
 // note: setValues_forParameter in RTL headers is parsed wrong
@@ -698,7 +759,11 @@ begin
     if TCocoaWindow(window).ScaleFactor <> ScaleFactor then
     begin
       TCocoaWindow(window).ScaleFactor := ScaleFactor;
-      windowRef.Container.Dpi := ScaleFactor * DefaultDpi
+      if windowRef.Container = nil then
+        // TODO: Happens when testing CASTLE_COCOA_FULL_SCREEN, reason unknown.
+        WritelnWarning('windowRef.Container = nil when TOpenGLView.reshape')
+      else
+        windowRef.Container.Dpi := ScaleFactor * DefaultDpi
     end;
 
     windowRef.DoResize(trunc(BackingSize.width), trunc(BackingSize.height), false);
@@ -837,18 +902,6 @@ begin
   Result := True;
 end;
 
-{=============================================}
-{@! ___GLPT___ }
-{=============================================}
-
-{ unused
-procedure Cocoa_GetFrameBufferSize(win: TCastleWindow; out width, height: integer);
-begin
-  width := trunc(win^.ref.contentView.bounds.size.width);
-  height:= trunc(win^.ref.contentView.bounds.size.height);
-end;
-}
-
 { TCastleWindow ------------------------------------------------------------------ }
 
 procedure TCastleWindow.CreateBackend;
@@ -888,15 +941,8 @@ begin
     UpdateCursor;
 end;
 
-{ TODO:
-  This causes error from all examples:
-  EOpenGLError: End of TCastleWindow.DoRender
-  OpenGL error (1286): The command is trying to render to or read from the framebuffer while the currently bound framebuffer is not framebuffer complete (i.e. the return value from glCheckFramebufferStatus is not GL_FRAMEBUFFER_COMPLETE).
-}
-{.$define COCOA_FULL_SCREEN}
-
 procedure TCastleWindow.FullScreenBegin;
-{$ifdef COCOA_FULL_SCREEN}
+{$ifdef CASTLE_COCOA_FULL_SCREEN}
 var
   FullScreenOptions: NSDictionary;
 begin
@@ -925,14 +971,14 @@ begin
     WritelnWarning('Cannot enter full-screen mode');
 {$else}
 begin
-{$endif COCOA_FULL_SCREEN}
+{$endif CASTLE_COCOA_FULL_SCREEN}
 end;
 
 procedure TCastleWindow.FullScreenEnd;
 begin
-{$ifdef COCOA_FULL_SCREEN}
+{$ifdef CASTLE_COCOA_FULL_SCREEN}
   ref.contentView.ExitFullScreenModeWithOptions(nil);
-{$endif COCOA_FULL_SCREEN}
+{$endif CASTLE_COCOA_FULL_SCREEN}
 end;
 
 procedure TCastleWindow.OpenBackend;
@@ -1051,7 +1097,6 @@ begin
     if Application.CursorHidden <> WantsCursorHidden then
     begin
       Application.CursorHidden := WantsCursorHidden;
-      // TODO: hiding cursor doesn't work for unknown reason
       if Application.CursorHidden then
         NSCursor.hide()
       else
@@ -1100,38 +1145,41 @@ end;
 
 function TCastleWindow.RedirectKeyDownToMenuClick: boolean;
 begin
-  Result := { TODO } true;
+  Result := false;
 end;
 
 procedure TCastleWindow.SystemSetMousePosition(const Value: TVector2);
-begin
-end;
-
-(* TODO: Unfortunately none of the options below make any effect.
-
 var
-  PointWindowCoords, PointScreenCoords: NSPoint;
+  //PointWindowCoords, PointScreenCoords: NSPoint;
+  RectWindowCoords, RectScreenCoords: NSRect;
   CgPointScreenCoords: CGPoint;
 begin
   if not Closed then
   begin
-    PointWindowCoords := NSMakePoint(Value.X, Value.Y);
-    PointScreenCoords := ref.convertBaseToScreen(PointWindowCoords);
+    // Apple deprecated convertBaseToScreen in favor of convertRectToScreen
+    // PointWindowCoords := NSMakePoint(Value.X, Value.Y);
+    // PointScreenCoords := ref.convertBaseToScreen(PointWindowCoords);
+
+    RectWindowCoords := NSMakeRect(Value.X, Value.Y, 0, 0);
+    RectScreenCoords := ref.convertRectToScreen(RectWindowCoords);
 
     { Beware, it seems MacOsAll and CGGeometry both define CGPoint }
     CgPointScreenCoords := CGGeometry.CGPoint(
-      //CGPointMake(PointScreenCoords.X, Application.ScreenHeight - PointScreenCoords.Y)
-      NSPointToCGPoint(PointScreenCoords)
+      //NSPointToCGPoint(PointScreenCoords)
+      CGPointMake(RectScreenCoords.origin.x,
+        // We need to flip Y coordinate to CoreGraphics conventions.
+        Application.ScreenHeight - RectScreenCoords.origin.y)
     );
 
     { Seems that CGXxx function is the only way to do this:
       https://developer.apple.com/documentation/coregraphics/1456387-cgwarpmousecursorposition?language=objc }
     CGWarpMouseCursorPosition(CgPointScreenCoords);
 
-    Writeln('warping to ', CgPointScreenCoords.X:1:2, ' ', CgPointScreenCoords.Y:1:2);
+    // WritelnLog('Cocoa', 'SetMousePosition to %s', [
+    //   Value.ToString
+    // ]);
   end;
 end;
-*)
 
 procedure TCastleWindow.UpdateFullScreenBackend;
 begin
@@ -1154,9 +1202,8 @@ end;
 
 { TCocoaClipboard ----------------------------------------------------------- }
 
-{ Clipboard operations using Cocoa }
-
 type
+  { Clipboard operations using Cocoa. }
   TCocoaClipboard = class(TCastleClipboard)
   protected
     function GetAsText: String; override;
@@ -1245,6 +1292,7 @@ begin
   app := TCocoaApp(TCocoaApp.sharedApplication);
 
   delegate := TCocoaAppDelegate.alloc.init;
+  delegate.ParentApplication := Self;
   app.setDelegate(delegate);
 
   RegisterClipboard(TCocoaClipboard.Create);

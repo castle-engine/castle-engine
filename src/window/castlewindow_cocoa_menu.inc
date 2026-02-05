@@ -39,11 +39,12 @@ procedure TCastleWindow.BackendMenuInitialize;
 
   { Cocoa menu item keyEquivalent which represents menu item key shortcut. }
   procedure CocoaMenuKey(const KeyString: String; const Key: TKey; const Modifiers: TModifierKeys;
-    out CocoaKeyEquivalent: String;
+    out CocoaKeyEquivalent: NSString;
     out CocoaKeyModifier: NSUInteger);
   var
     // KeyString expressed as a single 8-bit character, or 0 if not possible
     KeyString1: AnsiChar;
+    CocoaKeyEquivalentWC: WideChar;
   begin
     if Length(KeyString) = 1 then
       KeyString1 := KeyString[1]
@@ -53,13 +54,50 @@ procedure TCastleWindow.BackendMenuInitialize;
     case KeyString1 of
       CtrlA .. CtrlZ:
         begin
-          CocoaKeyEquivalent := Chr(Ord(KeyString1) - Ord(CtrlA) + Ord('a'));
+          CocoaKeyEquivalent := NSSTR(Chr(Ord(KeyString1) - Ord(CtrlA) + Ord('a')));
           CocoaKeyModifier := NSCommandKeyMask {NSControlKeyMask};
         end;
       else
         begin
-          CocoaKeyEquivalent := KeyString;
+          CocoaKeyEquivalent := NSSTR(KeyString);
           CocoaKeyModifier := 0;
+
+          if KeyString = '' then
+          begin
+            CocoaKeyEquivalentWC := #0;
+            // Similar to VirtualKeyCodeToMacString logic
+            case Key of
+              keyPageUp:     CocoaKeyEquivalentWC := WideChar(NSPageUpFunctionKey);
+              keyPageDown:   CocoaKeyEquivalentWC := WideChar(NSPageDownFunctionKey);
+              keyHome:       CocoaKeyEquivalentWC := WideChar(NSHomeFunctionKey);
+              keyEnd:        CocoaKeyEquivalentWC := WideChar(NSEndFunctionKey);
+              keyArrowUp:    CocoaKeyEquivalentWC := WideChar(NSUpArrowFunctionKey);
+              keyArrowDown:  CocoaKeyEquivalentWC := WideChar(NSDownArrowFunctionKey);
+              keyArrowLeft:  CocoaKeyEquivalentWC := WideChar(NSLeftArrowFunctionKey);
+              keyArrowRight: CocoaKeyEquivalentWC := WideChar(NSRightArrowFunctionKey);
+              keyDelete:     CocoaKeyEquivalentWC := WideChar(NSDeleteFunctionKey);
+              keyInsert:     CocoaKeyEquivalentWC := WideChar(NSInsertFunctionKey);
+              keyF1:         CocoaKeyEquivalentWC := WideChar(NSF1FunctionKey);
+              keyF2:         CocoaKeyEquivalentWC := WideChar(NSF2FunctionKey);
+              keyF3:         CocoaKeyEquivalentWC := WideChar(NSF3FunctionKey);
+              keyF4:         CocoaKeyEquivalentWC := WideChar(NSF4FunctionKey);
+              keyF5:         CocoaKeyEquivalentWC := WideChar(NSF5FunctionKey);
+              keyF6:         CocoaKeyEquivalentWC := WideChar(NSF6FunctionKey);
+              keyF7:         CocoaKeyEquivalentWC := WideChar(NSF7FunctionKey);
+              keyF8:         CocoaKeyEquivalentWC := WideChar(NSF8FunctionKey);
+              keyF9:         CocoaKeyEquivalentWC := WideChar(NSF9FunctionKey);
+              keyF10:        CocoaKeyEquivalentWC := WideChar(NSF10FunctionKey);
+              keyF11:        CocoaKeyEquivalentWC := WideChar(NSF11FunctionKey);
+              keyF12:        CocoaKeyEquivalentWC := WideChar(NSF12FunctionKey);
+              else ;
+            end;
+
+            if CocoaKeyEquivalentWC <> #0 then
+              CocoaKeyEquivalent := NSString.stringWithCharacters_length(
+                @CocoaKeyEquivalentWC, 1)
+            else
+              CocoaKeyEquivalent := NSString.string_;
+          end;
         end;
     end;
 
@@ -69,8 +107,6 @@ procedure TCastleWindow.BackendMenuInitialize;
       CocoaKeyModifier := CocoaKeyModifier or NSCommandKeyMask {NSControlKeyMask};
     if mkAlt in Modifiers then
       CocoaKeyModifier := CocoaKeyModifier or NSAlternateKeyMask;
-
-    // TODO: handle Key
   end;
 
   procedure AddMenuItem(const ParentMenu: NSMenu; const Entry: TMenuEntry);
@@ -80,7 +116,7 @@ procedure TCastleWindow.BackendMenuInitialize;
     EntryMenu: TMenu;
     CocoaSubMenu: NSMenu;
     CocoaMenuItem: NSMenuItem; // sometimes, but not always, TCocoaMenuItem
-    CocoaKeyEquivalent: String;
+    CocoaKeyEquivalent: NSString;
     CocoaKeyModifier: NSUInteger;
   begin
     if Entry is TMenuItem then
@@ -91,7 +127,7 @@ procedure TCastleWindow.BackendMenuInitialize;
       CocoaMenuItem := TCocoaMenuItem.alloc.initWithTitle_action_keyEquivalent(
         NSString.stringWithUTF8String(PChar(SRemoveMnemonics(EntryItem.Caption))),
         ObjCSelector('castleClick:'),
-        NSSTR(CocoaKeyEquivalent)
+        CocoaKeyEquivalent
       );
       TCocoaMenuItem(CocoaMenuItem).MenuItem := EntryItem;
       TCocoaMenuItem(CocoaMenuItem).ParentWindow := Self;

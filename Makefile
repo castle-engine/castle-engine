@@ -346,7 +346,7 @@ examples-laz: prepare-examples
 	lazbuild $(CASTLE_LAZBUILD_OPTIONS) packages/lazarus/castle_engine_lcl.lpk
 	lazbuild $(CASTLE_LAZBUILD_OPTIONS) packages/lazarus/castle_engine_editor_components.lpk
 	set -e && for PROJECT_LPI in $(EXAMPLES_BASE_NAMES) $(EXAMPLES_LAZARUS_BASE_NAMES); do \
-	  ./tools/internal/lazbuild_retry $${PROJECT_LPI}.lpi; \
+	  ./tools/internal/lazbuild_retry $(CASTLE_LAZBUILD_OPTIONS) $${PROJECT_LPI}.lpi; \
 	done
 	"$(FIND)" . \
 	  '(' -path ./tools/internal/generate_webgl_flat_api -prune ')' -o \

@@ -940,6 +940,8 @@ function StrToFloatDef(const s: string; DefValue: Extended): Extended;
   can't depend on how compiler stores sets.) }
 function SetToStr(const SetVariable; NumStart, NumEnd: byte): string;
 
+{ Show every character in set, using SReadableForm.
+  Useful for debugging TSetOfChars values. }
 function CharSetToStr(const SetVariable: TSetOfChars): string;
 
 { PCharOrNil simply returns a Pointer(S), you can think of it as a NO-OP.

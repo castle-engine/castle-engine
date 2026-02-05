@@ -481,6 +481,11 @@ begin
       Vector3(- WindowSize.X / 2, -WallSize.Y / 2, - WindowSize.Y / 2),
       Vector3(  WindowSize.X / 2,  WallSize.Y / 2,   WindowSize.Y / 2)
     ));
+  // test line
+  // Window.AddLinesRepresentation(IfcFile.Project.ModelContext, [
+  //   Vector3(- WindowSize.X / 2, -WallSize.Y / 2, - WindowSize.Y / 2),
+  //   Vector3(  WindowSize.X / 2,  WallSize.Y / 2,   WindowSize.Y / 2)
+  // ]);
 
   { How to position window?
 

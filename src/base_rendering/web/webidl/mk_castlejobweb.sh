@@ -18,7 +18,7 @@ set -eu
 
 rm -f castleinternaljobweb.webidl
 for F in parts/*.webidl; do
-  echo '/*' $F '----------------------------------------------------- */' >> castleinternaljobweb.webidl
+  echo '/*' "$F" '----------------------------------------------------- */' >> castleinternaljobweb.webidl
   cat "$F" >> castleinternaljobweb.webidl
 done
 

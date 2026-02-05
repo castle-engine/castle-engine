@@ -1,2 +1,3 @@
 castle-editor
-lib/
+/lib/
+/castle-editor.app/
