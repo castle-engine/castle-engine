@@ -13,8 +13,9 @@
   ----------------------------------------------------------------------------
 }
 
-{ Load models in the glTF 2.0 format, converting them to an X3D nodes graph.
-  This routine is internally used by the @link(LoadNode) to load an Gltf file. }
+{ Load and save models in the glTF 2.0 format, converting to/from X3D nodes graph.
+  Routines in this unit are internally used by the @link(LoadNode) to load
+  a glTF file, and by @link(SaveNode) to save a glTF file. }
 unit X3DLoadInternalGltf;
 
 {$I castleconf.inc}
@@ -2593,12 +2594,855 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
+{ Save glTF ---------------------------------------------------------------------- }
+
+function Vector3ToGltf(const V: TVector3): TPasGLTF.TVector3;
+begin
+  Assert(SizeOf(V) = SizeOf(Result));
+  Move(V, Result, SizeOf(Result));
+end;
+
+function Vector4ToGltf(const V: TVector4): TPasGLTF.TVector4;
+begin
+  Assert(SizeOf(V) = SizeOf(Result));
+  Move(V, Result, SizeOf(Result));
+end;
+
+{ Convert X3D rotation (axis-angle) to glTF rotation (quaternion). }
+function RotationToGltf(const AxisAngle: TVector4): TPasGLTF.TVector4;
+var
+  Q: TQuaternion;
+begin
+  Q := QuatFromAxisAngle(AxisAngle);
+  Result := Vector4ToGltf(Q.Data.Vector4);
+end;
+
+type
+  { Builds glTF binary buffer, buffer views, and accessors. }
+  TGltfBufferBuilder = class
+  strict private
+    FDocument: TPasGLTF.TDocument;
+    FBuffer: TPasGLTF.TBuffer;
+    { Add to FBuffer.Data enough padding with 0 bytes to align its size to 4 bytes. }
+    procedure EnsureAlign4;
+  public
+    constructor Create(ADocument: TPasGLTF.TDocument);
+    { Add accessor for Vector3 data (positions, normals).
+      Returns accessor index. }
+    function AddAccessorVector3(const Vectors: TVector3List;
+      const Target: TPasGLTF.TBufferView.TTargetType): Integer;
+    { Add accessor for Vector2 data (texture coordinates).
+      Returns accessor index. }
+    function AddAccessorVector2(const Vectors: TVector2List): Integer;
+    { Add accessor for Vector4 data (colors, tangents).
+      Returns accessor index. }
+    function AddAccessorVector4(const Vectors: TVector4List;
+      const Target: TPasGLTF.TBufferView.TTargetType): Integer;
+    { Add accessor for index data.
+      Returns accessor index. }
+    function AddAccessorIndices(const Indices: TInt32List): Integer;
+    { Finalize the buffer (update byte length). }
+    procedure Finalize;
+  end;
+
+constructor TGltfBufferBuilder.Create(ADocument: TPasGLTF.TDocument);
+begin
+  inherited Create;
+  FDocument := ADocument;
+  FBuffer := TPasGLTF.TBuffer.Create(FDocument);
+  FDocument.Buffers.Add(FBuffer);
+  // FBuffer.Data is already a TMemoryStream created by TBuffer.Create
+end;
+
+procedure TGltfBufferBuilder.EnsureAlign4;
+var
+  Padding: Integer;
+  PaddingByte: Byte;
+begin
+  Padding := FBuffer.Data.Size mod 4;
+  if Padding <> 0 then
+    Padding := 4 - Padding;
+
+  PaddingByte := 0;
+  while Padding > 0 do
+  begin
+    FBuffer.Data.WriteBuffer(PaddingByte, 1);
+    Dec(Padding);
+  end;
+end;
+
+function TGltfBufferBuilder.AddAccessorVector3(const Vectors: TVector3List;
+  const Target: TPasGLTF.TBufferView.TTargetType): Integer;
+var
+  BufferView: TPasGLTF.TBufferView;
+  Accessor: TPasGLTF.TAccessor;
+  I: Integer;
+  StartOffset: Int64;
+  MinV, MaxV: TVector3;
+begin
+  if Vectors.Count = 0 then
+    Exit(-1);
+
+  EnsureAlign4;
+  StartOffset := FBuffer.Data.Size;
+
+  // Write data
+  FBuffer.Data.WriteBuffer(Vectors.L[0], SizeOf(TVector3) * Vectors.Count);
+
+  // Calculate min/max
+  MinV := Vectors[0];
+  MaxV := Vectors[0];
+  for I := 1 to Vectors.Count - 1 do
+  begin
+    if Vectors.L[I].X < MinV.X then MinV.X := Vectors.L[I].X;
+    if Vectors.L[I].Y < MinV.Y then MinV.Y := Vectors.L[I].Y;
+    if Vectors.L[I].Z < MinV.Z then MinV.Z := Vectors.L[I].Z;
+    if Vectors.L[I].X > MaxV.X then MaxV.X := Vectors.L[I].X;
+    if Vectors.L[I].Y > MaxV.Y then MaxV.Y := Vectors.L[I].Y;
+    if Vectors.L[I].Z > MaxV.Z then MaxV.Z := Vectors.L[I].Z;
+  end;
+
+  // Create BufferView
+  BufferView := TPasGLTF.TBufferView.Create(FDocument);
+  BufferView.Buffer := 0;
+  BufferView.ByteOffset := StartOffset;
+  BufferView.ByteLength := Vectors.Count * SizeOf(TVector3);
+  BufferView.Target := Target;
+  FDocument.BufferViews.Add(BufferView);
+
+  // Create Accessor
+  Accessor := TPasGLTF.TAccessor.Create(FDocument);
+  Accessor.BufferView := FDocument.BufferViews.Count - 1;
+  Accessor.ByteOffset := 0;
+  Accessor.ComponentType := TPasGLTF.TAccessor.TComponentType.Float;
+  Accessor.Type_ := TPasGLTF.TAccessor.TType.Vec3;
+  Accessor.Count := Vectors.Count;
+  Accessor.MinArray.Add([MinV.X, MinV.Y, MinV.Z]);
+  Accessor.MaxArray.Add([MaxV.X, MaxV.Y, MaxV.Z]);
+  FDocument.Accessors.Add(Accessor);
+
+  Result := FDocument.Accessors.Count - 1;
+end;
+
+function TGltfBufferBuilder.AddAccessorVector2(const Vectors: TVector2List): Integer;
+var
+  BufferView: TPasGLTF.TBufferView;
+  Accessor: TPasGLTF.TAccessor;
+  I: Integer;
+  StartOffset: Int64;
+  MinV, MaxV: TVector2;
+begin
+  if Vectors.Count = 0 then
+    Exit(-1);
+
+  EnsureAlign4;
+  StartOffset := FBuffer.Data.Size;
+
+  // Write data
+  FBuffer.Data.WriteBuffer(Vectors.L[0], SizeOf(TVector2) * Vectors.Count);
+
+  // Calculate min/max
+  MinV := Vectors[0];
+  MaxV := Vectors[0];
+  for I := 1 to Vectors.Count - 1 do
+  begin
+    if Vectors.L[I].X < MinV.X then MinV.X := Vectors.L[I].X;
+    if Vectors.L[I].Y < MinV.Y then MinV.Y := Vectors.L[I].Y;
+    if Vectors.L[I].X > MaxV.X then MaxV.X := Vectors.L[I].X;
+    if Vectors.L[I].Y > MaxV.Y then MaxV.Y := Vectors.L[I].Y;
+  end;
+
+  // Create BufferView
+  BufferView := TPasGLTF.TBufferView.Create(FDocument);
+  BufferView.Buffer := 0;
+  BufferView.ByteOffset := StartOffset;
+  BufferView.ByteLength := Vectors.Count * SizeOf(TVector2);
+  BufferView.Target := TPasGLTF.TBufferView.TTargetType.ArrayBuffer;
+  FDocument.BufferViews.Add(BufferView);
+
+  // Create Accessor
+  Accessor := TPasGLTF.TAccessor.Create(FDocument);
+  Accessor.BufferView := FDocument.BufferViews.Count - 1;
+  Accessor.ByteOffset := 0;
+  Accessor.ComponentType := TPasGLTF.TAccessor.TComponentType.Float;
+  Accessor.Type_ := TPasGLTF.TAccessor.TType.Vec2;
+  Accessor.Count := Vectors.Count;
+  Accessor.MinArray.Add([MinV.X, MinV.Y]);
+  Accessor.MaxArray.Add([MaxV.X, MaxV.Y]);
+  FDocument.Accessors.Add(Accessor);
+
+  Result := FDocument.Accessors.Count - 1;
+end;
+
+function TGltfBufferBuilder.AddAccessorVector4(const Vectors: TVector4List;
+  const Target: TPasGLTF.TBufferView.TTargetType): Integer;
+var
+  BufferView: TPasGLTF.TBufferView;
+  Accessor: TPasGLTF.TAccessor;
+  I: Integer;
+  StartOffset: Int64;
+  MinV, MaxV: TVector4;
+begin
+  if Vectors.Count = 0 then
+    Exit(-1);
+
+  EnsureAlign4;
+  StartOffset := FBuffer.Data.Size;
+
+  // Write data
+  FBuffer.Data.WriteBuffer(Vectors.L[0], SizeOf(TVector4) * Vectors.Count);
+
+  // Calculate min/max
+  MinV := Vectors[0];
+  MaxV := Vectors[0];
+  for I := 1 to Vectors.Count - 1 do
+  begin
+    if Vectors.L[I].X < MinV.X then MinV.X := Vectors.L[I].X;
+    if Vectors.L[I].Y < MinV.Y then MinV.Y := Vectors.L[I].Y;
+    if Vectors.L[I].Z < MinV.Z then MinV.Z := Vectors.L[I].Z;
+    if Vectors.L[I].W < MinV.W then MinV.W := Vectors.L[I].W;
+    if Vectors.L[I].X > MaxV.X then MaxV.X := Vectors.L[I].X;
+    if Vectors.L[I].Y > MaxV.Y then MaxV.Y := Vectors.L[I].Y;
+    if Vectors.L[I].Z > MaxV.Z then MaxV.Z := Vectors.L[I].Z;
+    if Vectors.L[I].W > MaxV.W then MaxV.W := Vectors.L[I].W;
+  end;
+
+  // Create BufferView
+  BufferView := TPasGLTF.TBufferView.Create(FDocument);
+  BufferView.Buffer := 0;
+  BufferView.ByteOffset := StartOffset;
+  BufferView.ByteLength := Vectors.Count * SizeOf(TVector4);
+  BufferView.Target := Target;
+  FDocument.BufferViews.Add(BufferView);
+
+  // Create Accessor
+  Accessor := TPasGLTF.TAccessor.Create(FDocument);
+  Accessor.BufferView := FDocument.BufferViews.Count - 1;
+  Accessor.ByteOffset := 0;
+  Accessor.ComponentType := TPasGLTF.TAccessor.TComponentType.Float;
+  Accessor.Type_ := TPasGLTF.TAccessor.TType.Vec4;
+  Accessor.Count := Vectors.Count;
+  Accessor.MinArray.Add([MinV.X, MinV.Y, MinV.Z, MinV.W]);
+  Accessor.MaxArray.Add([MaxV.X, MaxV.Y, MaxV.Z, MaxV.W]);
+  FDocument.Accessors.Add(Accessor);
+
+  Result := FDocument.Accessors.Count - 1;
+end;
+
+function TGltfBufferBuilder.AddAccessorIndices(const Indices: TInt32List): Integer;
+var
+  BufferView: TPasGLTF.TBufferView;
+  Accessor: TPasGLTF.TAccessor;
+  I: Integer;
+  StartOffset: Int64;
+  MinIdx, MaxIdx: Int32;
+  UseShort: Boolean;
+  ShortVal: UInt16;
+begin
+  if Indices.Count = 0 then
+    Exit(-1);
+
+  EnsureAlign4;
+  StartOffset := FBuffer.Data.Size;
+
+  // Calculate min/max and determine if we can use UnsignedShort
+  MinIdx := Indices[0];
+  MaxIdx := Indices[0];
+  for I := 1 to Indices.Count - 1 do
+  begin
+    if Indices.L[I] < MinIdx then MinIdx := Indices.L[I];
+    if Indices.L[I] > MaxIdx then MaxIdx := Indices.L[I];
+  end;
+  UseShort := (MaxIdx < 65536);
+
+  // Write data
+  if UseShort then
+  begin
+    for I := 0 to Indices.Count - 1 do
+    begin
+      ShortVal := Indices.L[I];
+      FBuffer.Data.WriteBuffer(ShortVal, SizeOf(ShortVal));
+    end;
+  end else
+  begin
+    FBuffer.Data.WriteBuffer(Indices.L[0], SizeOf(UInt32) * Indices.Count);
+  end;
+
+  // Create BufferView
+  BufferView := TPasGLTF.TBufferView.Create(FDocument);
+  BufferView.Buffer := 0;
+  BufferView.ByteOffset := StartOffset;
+  if UseShort then
+    BufferView.ByteLength := Indices.Count * SizeOf(UInt16)
+  else
+    BufferView.ByteLength := Indices.Count * SizeOf(UInt32);
+  BufferView.Target := TPasGLTF.TBufferView.TTargetType.ElementArrayBuffer;
+  FDocument.BufferViews.Add(BufferView);
+
+  // Create Accessor
+  Accessor := TPasGLTF.TAccessor.Create(FDocument);
+  Accessor.BufferView := FDocument.BufferViews.Count - 1;
+  Accessor.ByteOffset := 0;
+  if UseShort then
+    Accessor.ComponentType := TPasGLTF.TAccessor.TComponentType.UnsignedShort
+  else
+    Accessor.ComponentType := TPasGLTF.TAccessor.TComponentType.UnsignedInt;
+  Accessor.Type_ := TPasGLTF.TAccessor.TType.Scalar;
+  Accessor.Count := Indices.Count;
+  Accessor.MinArray.Add(MinIdx);
+  Accessor.MaxArray.Add(MaxIdx);
+  FDocument.Accessors.Add(Accessor);
+
+  Result := FDocument.Accessors.Count - 1;
+end;
+
+procedure TGltfBufferBuilder.Finalize;
+begin
+  FBuffer.ByteLength := FBuffer.Data.Size;
+end;
+
+type
+  { Cache for materials during save. Maps X3D material node to glTF material index. }
+  TMaterialCache = {$ifdef FPC}specialize{$endif} TDictionary<TX3DNode, Integer>;
+
+  { Context for saving glTF. }
+  TGltfSaveContext = class
+    Document: TPasGLTF.TDocument;
+    BufferBuilder: TGltfBufferBuilder;
+    MaterialCache: TMaterialCache;
+    function GetOrCreateMaterial(const Appearance: TAppearanceNode): Integer;
+    function ProcessGeometry(const Geometry: TAbstractGeometryNode;
+      const State: TX3DGraphTraverseState;
+      const MaterialIndex: Integer): Boolean;
+    procedure ProcessShape(const Shape: TShapeNode);
+    { Process X3D Node into glTF.
+      In a correct X3D graph, argument should always be TAbstractChildNode. }
+    function ProcessChildNode(const Node: TX3DNode): Integer;
+  end;
+
+{ From X3D TAppearanceNode determine glTF TPasGLTF.TMaterial.TAlphaMode. }
+function AlphaModeToGltf(const Appearance: TAppearanceNode;
+  const Material: TAbstractMaterialNode): TPasGLTF.TMaterial.TAlphaMode;
+begin
+  case Appearance.AlphaMode of
+    amMask  : Result := TPasGLTF.TMaterial.TAlphaMode.Mask;
+    amBlend : Result := TPasGLTF.TMaterial.TAlphaMode.Blend;
+    amOpaque: Result := TPasGLTF.TMaterial.TAlphaMode.Opaque;
+    amAuto  :
+      begin
+        // TODO: TShape.AlphaChannel has better auto-detection in CGE
+        if Material.MaterialInfo.Transparency > 0 then
+          Result := TPasGLTF.TMaterial.TAlphaMode.Blend
+        else
+          Result := TPasGLTF.TMaterial.TAlphaMode.Opaque;
+      end;
+    else raise EInternalError.Create('Unexpected TAlphaMode value');
+  end;
+end;
+
+{ Convert TPhysicalMaterialNode to glTF PBR material. Returns material index. }
+function WritePhysicalMaterial(const Appearance: TAppearanceNode;
+  const Material: TPhysicalMaterialNode;
+  const Document: TPasGLTF.TDocument): Integer;
+var
+  GltfMaterial: TPasGLTF.TMaterial;
+begin
+  GltfMaterial := TPasGLTF.TMaterial.Create(Document);
+  GltfMaterial.Name := Material.X3DName;
+
+  // PBR metallic-roughness
+  GltfMaterial.PBRMetallicRoughness.BaseColorFactor := Vector4ToGltf(
+    Vector4(Material.BaseColor, 1 - Material.Transparency));
+  GltfMaterial.PBRMetallicRoughness.MetallicFactor := Material.Metallic;
+  GltfMaterial.PBRMetallicRoughness.RoughnessFactor := Material.Roughness;
+
+  // Emissive
+  GltfMaterial.EmissiveFactor := Vector3ToGltf(Material.EmissiveColor);
+
+  GltfMaterial.AlphaMode := AlphaModeToGltf(Appearance, Material);
+
+  Document.Materials.Add(GltfMaterial);
+  Result := Document.Materials.Count - 1;
+end;
+
+{ Convert TUnlitMaterialNode to glTF unlit material. Returns material index. }
+function WriteUnlitMaterial(const Appearance: TAppearanceNode;
+  const Material: TUnlitMaterialNode;
+  const Document: TPasGLTF.TDocument): Integer;
+var
+  GltfMaterial: TPasGLTF.TMaterial;
+begin
+  GltfMaterial := TPasGLTF.TMaterial.Create(Document);
+  GltfMaterial.Name := Material.X3DName;
+
+  // For unlit, baseColor carries the emissive color.
+  // We must also set MetallicFactor to 0 (per KHR_materials_unlit spec recommendation,
+  // and also to ensure PasGLTF serializes PBRMetallicRoughness block at all,
+  // since its Empty check only looks at MetallicFactor/RoughnessFactor/textures).
+  GltfMaterial.PBRMetallicRoughness.BaseColorFactor := Vector4ToGltf(
+    Vector4(Material.EmissiveColor, 1 - Material.Transparency));
+  GltfMaterial.PBRMetallicRoughness.MetallicFactor := 0;
+  GltfMaterial.PBRMetallicRoughness.RoughnessFactor := 0.9;
+
+  // Mark as unlit via extension
+  GltfMaterial.Extensions.Add('KHR_materials_unlit', TPasJSONItemObject.Create);
+  if Document.ExtensionsUsed.IndexOf('KHR_materials_unlit') = -1 then
+    Document.ExtensionsUsed.Add('KHR_materials_unlit');
+
+  GltfMaterial.AlphaMode := AlphaModeToGltf(Appearance, Material);
+
+  Document.Materials.Add(GltfMaterial);
+  Result := Document.Materials.Count - 1;
+end;
+
+{ Convert TMaterialNode (Phong) to glTF PBR material with approximation. Returns material index. }
+function WritePhongMaterial(const Appearance: TAppearanceNode;
+  const Material: TMaterialNode;
+  const Document: TPasGLTF.TDocument): Integer;
+var
+  GltfMaterial: TPasGLTF.TMaterial;
+  Roughness: Single;
+begin
+  //WritelnWarning('glTF', 'Phong material "%s" converted to PBR with approximation', [Material.X3DName]);
+
+  GltfMaterial := TPasGLTF.TMaterial.Create(Document);
+  GltfMaterial.Name := Material.X3DName;
+
+  // Approximate PBR from Phong
+  GltfMaterial.PBRMetallicRoughness.BaseColorFactor := Vector4ToGltf(
+    Vector4(Material.DiffuseColor, 1 - Material.Transparency));
+
+  // Convert shininess to roughness (rough approximation)
+  // Shininess in X3D is 0..1, higher = shinier
+  // Roughness in glTF is 0..1, higher = rougher
+  // Using Sqrt as it's non-linear?
+  // https://cientistavuador.github.io/articles/1_en-us.html
+  // and it seems to look good.
+  if Material.Shininess > 0 then
+    Roughness := 1 - Sqrt(Material.Shininess) // rough approximation
+  else
+    Roughness := 1;
+  GltfMaterial.PBRMetallicRoughness.RoughnessFactor := Roughness;
+  GltfMaterial.PBRMetallicRoughness.MetallicFactor := 0; // Phong is typically non-metallic
+
+  // Emissive
+  GltfMaterial.EmissiveFactor := Vector3ToGltf(Material.EmissiveColor);
+
+  GltfMaterial.AlphaMode := AlphaModeToGltf(Appearance, Material);
+
+  Document.Materials.Add(GltfMaterial);
+  Result := Document.Materials.Count - 1;
+end;
+
+function TGltfSaveContext.GetOrCreateMaterial(const Appearance: TAppearanceNode): Integer;
+var
+  Material: TAbstractMaterialNode;
+begin
+  if Appearance = nil then
+    Exit(-1);
+
+  // Check cache
+  if MaterialCache.TryGetValue(Appearance, Result) then
+    Exit;
+
+  Material := Appearance.Material;
+  if Material = nil then
+    Exit(-1);
+
+  if Material is TPhysicalMaterialNode then
+    Result := WritePhysicalMaterial(
+      Appearance, TPhysicalMaterialNode(Material), Document)
+  else if Material is TUnlitMaterialNode then
+    Result := WriteUnlitMaterial(
+      Appearance, TUnlitMaterialNode(Material), Document)
+  else if Material is TMaterialNode then
+    Result := WritePhongMaterial(
+      Appearance, TMaterialNode(Material), Document)
+  else
+  begin
+    WritelnWarning('glTF', 'Unsupported material X3D type: %s', [Material.NiceName]);
+    Exit(-1);
+  end;
+
+  MaterialCache.Add(Appearance, Result);
+end;
+
+function TGltfSaveContext.ProcessGeometry(const Geometry: TAbstractGeometryNode;
+  const State: TX3DGraphTraverseState;
+  const MaterialIndex: Integer): Boolean;
+var
+  Mesh: TPasGLTF.TMesh;
+  Primitive: TPasGLTF.TMesh.TPrimitive;
+  Positions: TVector3List;
+  Normals: TVector3List;
+  TexCoords: TVector2List;
+  Indices: TInt32List;
+  CoordNode: TCoordinateNode;
+  NormalNode: TNormalNode;
+  TexCoordNode: TTextureCoordinateNode;
+  I, J, FaceStart, FaceVertexCount: Integer;
+  TriSet: TIndexedTriangleSetNode;
+  TriSetNonIndexed: TTriangleSetNode;
+  IndexedFaceSet: TIndexedFaceSetNode;
+  CoordIndices: TInt32List;
+  PosAccessor, NormAccessor, TexAccessor, IdxAccessor: Integer;
+begin
+  Result := False;
+  Positions := nil;
+  Normals := nil;
+  TexCoords := nil;
+  Indices := nil;
+
+  try
+    // Handle TIndexedFaceSetNode (common proxy for Box, Sphere, etc.)
+    if Geometry is TIndexedFaceSetNode then
+    begin
+      IndexedFaceSet := TIndexedFaceSetNode(Geometry);
+      if IndexedFaceSet.Coord = nil then Exit;
+      CoordNode := IndexedFaceSet.Coord as TCoordinateNode;
+      if CoordNode = nil then Exit;
+
+      Positions := TVector3List.Create;
+      Positions.Assign(CoordNode.FdPoint.Items);
+
+      // Get normals if available
+      if (IndexedFaceSet.Normal <> nil) and (IndexedFaceSet.Normal is TNormalNode) then
+      begin
+        NormalNode := TNormalNode(IndexedFaceSet.Normal);
+        Normals := TVector3List.Create;
+        Normals.Assign(NormalNode.FdVector.Items);
+      end;
+
+      // Get texture coordinates if available
+      if (IndexedFaceSet.TexCoord <> nil) and (IndexedFaceSet.TexCoord is TTextureCoordinateNode) then
+      begin
+        TexCoordNode := TTextureCoordinateNode(IndexedFaceSet.TexCoord);
+        TexCoords := TVector2List.Create;
+        TexCoords.Assign(TexCoordNode.FdPoint.Items);
+      end;
+
+      // Convert indexed face set to triangles
+      // IndexedFaceSet uses -1 as face separator
+      Indices := TInt32List.Create;
+      CoordIndices := IndexedFaceSet.FdCoordIndex.Items;
+      FaceStart := 0;
+      I := 0;
+      while I <= CoordIndices.Count do
+      begin
+        // Check for end of face (-1) or end of list
+        if (I = CoordIndices.Count) or (CoordIndices[I] < 0) then
+        begin
+          FaceVertexCount := I - FaceStart;
+          // Triangulate the face using fan triangulation
+          if FaceVertexCount >= 3 then
+          begin
+            for J := 0 to FaceVertexCount - 3 do
+            begin
+              Indices.Add(CoordIndices[FaceStart]);
+              Indices.Add(CoordIndices[FaceStart + J + 1]);
+              Indices.Add(CoordIndices[FaceStart + J + 2]);
+            end;
+          end;
+          FaceStart := I + 1;
+        end;
+        Inc(I);
+      end;
+
+      Result := True;
+    end
+    // Handle TIndexedTriangleSetNode
+    else if Geometry is TIndexedTriangleSetNode then
+    begin
+      TriSet := TIndexedTriangleSetNode(Geometry);
+      CoordNode := TriSet.Coord as TCoordinateNode;
+      if CoordNode = nil then Exit;
+
+      Positions := TVector3List.Create;
+      Positions.Assign(CoordNode.FdPoint.Items);
+
+      // Get indices
+      Indices := TInt32List.Create;
+      Indices.Assign(TriSet.FdIndex.Items);
+
+      // Get normals if available
+      if (TriSet.Normal <> nil) and (TriSet.Normal is TNormalNode) then
+      begin
+        NormalNode := TNormalNode(TriSet.Normal);
+        Normals := TVector3List.Create;
+        Normals.Assign(NormalNode.FdVector.Items);
+      end;
+
+      // Get texture coordinates if available
+      if (TriSet.TexCoord <> nil) and (TriSet.TexCoord is TTextureCoordinateNode) then
+      begin
+        TexCoordNode := TTextureCoordinateNode(TriSet.TexCoord);
+        TexCoords := TVector2List.Create;
+        TexCoords.Assign(TexCoordNode.FdPoint.Items);
+      end;
+
+      Result := True;
+    end
+    // Handle TTriangleSetNode (non-indexed)
+    else if Geometry is TTriangleSetNode then
+    begin
+      TriSetNonIndexed := TTriangleSetNode(Geometry);
+      CoordNode := TriSetNonIndexed.Coord as TCoordinateNode;
+      if CoordNode = nil then Exit;
+
+      Positions := TVector3List.Create;
+      Positions.Assign(CoordNode.FdPoint.Items);
+
+      // Get normals if available
+      if (TriSetNonIndexed.Normal <> nil) and (TriSetNonIndexed.Normal is TNormalNode) then
+      begin
+        NormalNode := TNormalNode(TriSetNonIndexed.Normal);
+        Normals := TVector3List.Create;
+        Normals.Assign(NormalNode.FdVector.Items);
+      end;
+
+      // Get texture coordinates if available
+      if (TriSetNonIndexed.TexCoord <> nil) and (TriSetNonIndexed.TexCoord is TTextureCoordinateNode) then
+      begin
+        TexCoordNode := TTextureCoordinateNode(TriSetNonIndexed.TexCoord);
+        TexCoords := TVector2List.Create;
+        TexCoords.Assign(TexCoordNode.FdPoint.Items);
+      end;
+
+      Result := True;
+    end;
+
+    if not Result then Exit;
+
+    // Create mesh and primitive
+    Mesh := TPasGLTF.TMesh.Create(Document);
+    Mesh.Name := Geometry.X3DName;
+
+    Primitive := TPasGLTF.TMesh.TPrimitive.Create(Document);
+    Primitive.Mode := TPasGLTF.TMesh.TPrimitive.TMode.Triangles;
+    Primitive.Material := MaterialIndex;
+
+    // Add position accessor
+    PosAccessor := BufferBuilder.AddAccessorVector3(Positions,
+      TPasGLTF.TBufferView.TTargetType.ArrayBuffer);
+    if PosAccessor >= 0 then
+      Primitive.Attributes.Add('POSITION', PosAccessor);
+
+    // Add normal accessor
+    if Normals <> nil then
+    begin
+      NormAccessor := BufferBuilder.AddAccessorVector3(Normals,
+        TPasGLTF.TBufferView.TTargetType.ArrayBuffer);
+      if NormAccessor >= 0 then
+        Primitive.Attributes.Add('NORMAL', NormAccessor);
+    end;
+
+    // Add texcoord accessor
+    if TexCoords <> nil then
+    begin
+      TexAccessor := BufferBuilder.AddAccessorVector2(TexCoords);
+      if TexAccessor >= 0 then
+        Primitive.Attributes.Add('TEXCOORD_0', TexAccessor);
+    end;
+
+    // Add indices accessor
+    if Indices <> nil then
+    begin
+      IdxAccessor := BufferBuilder.AddAccessorIndices(Indices);
+      if IdxAccessor >= 0 then
+        Primitive.Indices := IdxAccessor;
+    end;
+
+    Mesh.Primitives.Add(Primitive);
+    Document.Meshes.Add(Mesh);
+  finally
+    FreeAndNil(Positions);
+    FreeAndNil(Normals);
+    FreeAndNil(TexCoords);
+    FreeAndNil(Indices);
+  end;
+end;
+
+procedure TGltfSaveContext.ProcessShape(const Shape: TShapeNode);
+var
+  Geometry: TAbstractGeometryNode;
+  ProxyState: TX3DGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode;
+  MaterialIndex: Integer;
+begin
+  if Shape.Geometry = nil then Exit;
+
+  Geometry := Shape.Geometry;
+  MaterialIndex := GetOrCreateMaterial(Shape.Appearance);
+
+  // Try to handle geometry directly
+  ProxyState := TX3DGraphTraverseState.Create;
+  try
+    ProxyState.ShapeNode := Shape;
+
+    if not ProcessGeometry(Geometry, ProxyState, MaterialIndex) then
+    begin
+      // Try using Proxy
+      ProxyGeometry := Geometry.Proxy(ProxyState);
+      if ProxyGeometry <> nil then
+      begin
+        try
+          if not ProcessGeometry(ProxyGeometry, ProxyState, MaterialIndex) then
+            WritelnWarning('glTF', 'Unsupported geometry: %s, proxy to %s', [
+              Geometry.ClassName,
+              ProxyGeometry.ClassName
+            ]);
+        finally
+          FreeAndNil(ProxyGeometry);
+        end;
+      end else
+        WritelnWarning('glTF', 'Unsupported geometry: %s, no proxy', [
+          Geometry.ClassName
+        ]);
+    end;
+  finally
+    FreeAndNil(ProxyState);
+  end;
+end;
+
+function TGltfSaveContext.ProcessChildNode(const Node: TX3DNode): Integer;
+var
+  GltfNode: TPasGLTF.TNode;
+  Transform: TTransformNode;
+  Group: TAbstractGroupingNode;
+  Shape: TShapeNode;
+  ChildNode: TX3DNode;
+  ChildIndex: Integer;
+  I: Integer;
+begin
+  Result := -1;
+
+  if Node is TShapeNode then
+  begin
+    Shape := TShapeNode(Node);
+    ProcessShape(Shape);
+
+    // Create a node for this shape
+    GltfNode := TPasGLTF.TNode.Create(Document);
+    GltfNode.Name := Shape.X3DName;
+    if Document.Meshes.Count > 0 then
+      GltfNode.Mesh := Document.Meshes.Count - 1;
+    Document.Nodes.Add(GltfNode);
+    Result := Document.Nodes.Count - 1;
+  end else
+  if Node is TTransformNode then
+  begin
+    Transform := TTransformNode(Node);
+
+    GltfNode := TPasGLTF.TNode.Create(Document);
+    GltfNode.Name := Transform.X3DName;
+    GltfNode.Translation := Vector3ToGltf(Transform.Translation);
+    GltfNode.Rotation := RotationToGltf(Transform.Rotation);
+    GltfNode.Scale := Vector3ToGltf(Transform.Scale);
+    Document.Nodes.Add(GltfNode);
+    Result := Document.Nodes.Count - 1;
+
+    // Process children
+    for I := 0 to Transform.FdChildren.Count - 1 do
+    begin
+      ChildNode := Transform.FdChildren[I];
+      ChildIndex := ProcessChildNode(ChildNode);
+      if ChildIndex >= 0 then
+        GltfNode.Children.Add(ChildIndex);
+    end;
+  end
+  else
+  if Node is TAbstractGroupingNode then
+  begin
+    Group := TAbstractGroupingNode(Node);
+
+    GltfNode := TPasGLTF.TNode.Create(Document);
+    GltfNode.Name := Group.X3DName;
+    Document.Nodes.Add(GltfNode);
+    Result := Document.Nodes.Count - 1;
+
+    // Process children
+    for I := 0 to Group.FdChildren.Count - 1 do
+    begin
+      ChildNode := Group.FdChildren[I];
+      ChildIndex := ProcessChildNode(ChildNode);
+      if ChildIndex >= 0 then
+        GltfNode.Children.Add(ChildIndex);
+    end;
+  end;
+end;
+
+procedure SaveGLTF(const Node: TX3DRootNode; const Stream: TStream;
+  const Generator: String; const Source: String);
+var
+  Document: TPasGLTF.TDocument;
+  Context: TGltfSaveContext;
+  Scene: TPasGLTF.TScene;
+  ChildNode: TX3DNode;
+  ChildIndex: Integer;
+  I: Integer;
+  IsBinary: Boolean;
+begin
+  Document := TPasGLTF.TDocument.Create;
+  try
+    // Set asset metadata
+    Document.Asset.Version := '2.0';
+    if Generator <> '' then
+      Document.Asset.Generator := Generator
+    else
+      Document.Asset.Generator := 'Castle Game Engine';
+
+    Context := TGltfSaveContext.Create;
+    try
+      Context.Document := Document;
+      Context.BufferBuilder := TGltfBufferBuilder.Create(Document);
+      Context.MaterialCache := TMaterialCache.Create;
+
+      // Create default scene
+      Scene := TPasGLTF.TScene.Create(Document);
+      Scene.Name := 'Scene';
+      Document.Scenes.Add(Scene);
+      Document.Scene := 0;
+
+      // Process all root children
+      for I := 0 to Node.FdChildren.Count - 1 do
+      begin
+        ChildNode := Node.FdChildren[I];
+        ChildIndex := Context.ProcessChildNode(ChildNode);
+        if ChildIndex >= 0 then
+          Scene.Nodes.Add(ChildIndex);
+      end;
+
+      // Finalize buffer
+      Context.BufferBuilder.Finalize;
+
+      // For JSON output, embed buffer data as base64
+      // For binary output (GLB), the data stays in the buffer
+      if Document.Buffers.Count > 0 then
+        Document.Buffers[0].SetEmbeddedResourceData;
+    finally
+      FreeAndNil(Context.MaterialCache);
+      // Note: BufferBuilder is not freed here, it's owned by Document implicitly
+      // through the TBuffer it created
+      FreeAndNil(Context);
+    end;
+
+    // Determine binary vs JSON
+    // For now, default to JSON (formatted)
+    // TODO: detect from MIME type or file extension
+    IsBinary := False;
+    Document.SaveToStream(Stream, IsBinary, True);
+  finally
+    FreeAndNil(Document);
+  end;
+end;
+
 var
   ModelFormat: TModelFormat;
 initialization
   ModelFormat := TModelFormat.Create;
   ModelFormat.OnLoad := {$ifdef FPC}@{$endif} LoadGLTF;
   ModelFormat.OnLoadForceMemoryStream := true;
+  ModelFormat.OnSave := {$ifdef FPC}@{$endif} SaveGLTF;
   ModelFormat.MimeTypes.Add('model/gltf+json');
   ModelFormat.MimeTypes.Add('model/gltf-binary');
   ModelFormat.FileFilterName := 'glTF (*.glb, *.gltf)';
