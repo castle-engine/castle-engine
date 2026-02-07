@@ -40,7 +40,8 @@ uses
 
   Underneath, this loads Tiled map using TCastleTiledMapData,
   then uses internal conversion class to generate X3D node from it. }
-function LoadTiledMap2d(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
+function LoadTiledMap2d(const Stream: TStream; const BaseUrl: String;
+  const LoadOptions: TCastleSceneLoadOptions): TX3DRootNode;
 
 type
   { Convert Tiled map into X3D node. }
@@ -877,7 +878,8 @@ begin
   Result := ConvY(Vector2(X, Y));
 end;
 
-function LoadTiledMap2d(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
+function LoadTiledMap2d(const Stream: TStream; const BaseUrl: String;
+  const LoadOptions: TCastleSceneLoadOptions): TX3DRootNode;
 var
   TiledMapFromStream: TCastleTiledMapData;
   TiledMapConverter: TCastleTiledMapConverter;

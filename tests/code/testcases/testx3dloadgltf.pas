@@ -96,7 +96,7 @@ begin
     // Save to glTF
     Stream := TMemoryStream.Create;
     try
-      SaveNode(Original, Stream, 'model/gltf+json', 'Test', '');
+      SaveNode(Original, Stream, 'model/gltf+json');
       Stream.Position := 0;
 
       // Load back
@@ -167,7 +167,7 @@ begin
     // Save to glTF
     Stream := TMemoryStream.Create;
     try
-      SaveNode(Original, Stream, 'model/gltf+json', 'Test', '');
+      SaveNode(Original, Stream, 'model/gltf+json');
       Stream.Position := 0;
 
       // Load back
@@ -228,7 +228,7 @@ begin
     // Save to glTF
     Stream := TMemoryStream.Create;
     try
-      SaveNode(Original, Stream, 'model/gltf+json', 'Test', '');
+      SaveNode(Original, Stream, 'model/gltf+json');
       Stream.Position := 0;
 
       // Load back
@@ -306,7 +306,7 @@ begin
     // Save to glTF
     Stream := TMemoryStream.Create;
     try
-      SaveNode(Original, Stream, 'model/gltf+json', 'Test', '');
+      SaveNode(Original, Stream, 'model/gltf+json');
       Stream.Position := 0;
 
       // Load back
@@ -361,7 +361,7 @@ begin
     // Save to memory stream
     Stream := TMemoryStream.Create;
     try
-      SaveNode(Original, Stream, 'model/gltf+json', 'Test', '');
+      SaveNode(Original, Stream, 'model/gltf+json');
       Stream.Position := 0;
 
       // Load back

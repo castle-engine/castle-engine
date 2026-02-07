@@ -3419,9 +3419,17 @@ begin
 end;
 
 procedure TCastleSceneCore.Save(const AUrl: String);
+var
+  Options: TCastleSceneSaveOptions;
 begin
   if RootNode <> nil then
-    SaveNode(RootNode, AUrl, ApplicationName);
+  begin
+    Options := TCastleSceneSaveOptions.Create(nil);
+    try
+      Options.Generator := ApplicationName;
+      SaveNode(RootNode, AUrl, Options);
+    finally FreeAndNil(Options) end;
+  end;
   FUrlMonitoring.ChangeUrl(FUrl, AUrl);
 end;
 

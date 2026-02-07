@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2025 Michalis Kamburelis.
+  Copyright 2018-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -697,7 +697,8 @@ end;
 { LoadGltf ------------------------------------------------------------------- }
 
 { Main routine that converts glTF -> X3D nodes, doing most of the work. }
-function LoadGltf(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
+function LoadGltf(const Stream: TStream; const BaseUrl: String;
+  const LoadOptions: TCastleSceneLoadOptions): TX3DRootNode;
 var
   Document: TPasGLTF.TDocument;
   // Current scene from Document.Scenes
@@ -1318,6 +1319,14 @@ var
     Result.NormalTextureMapping := NormalTextureMapping;
   end;
 
+  function GltfPhongMaterials: Boolean;
+  begin
+    {$warnings off} // using deprecated GltfForcePhongMaterials to keep it working
+    Result := GltfForcePhongMaterials or
+      ((LoadOptions <> nil) and LoadOptions.GltfPhongMaterials);
+    {$warnings on}
+  end;
+
   function ReadAppearance(const Material: TPasGLTF.TMaterial): TGltfAppearanceNode;
   var
     AlphaMode: TAlphaMode;
@@ -1330,7 +1339,7 @@ var
       if Material.Extensions.Properties['KHR_materials_unlit'] <> nil then
         Result.Material := ReadUnlitMaterial(Material, TexTransforms)
       else
-      if GltfForcePhongMaterials then
+      if GltfPhongMaterials then
         Result.Material := ReadPhongMaterial(Material, TexTransforms)
       else
         Result.Material := ReadPhysicalMaterial(Material, TexTransforms);
@@ -3380,8 +3389,15 @@ begin
   end;
 end;
 
+{ Save glTF, either JSON or binary (GLB). }
 procedure SaveGLTF(const Node: TX3DRootNode; const Stream: TStream;
-  const Generator: String; const Source: String);
+  const SaveOptions: TCastleSceneSaveOptions; const IsBinary: Boolean);
+
+  function JsonFormatted: Boolean;
+  begin
+    Result := (SaveOptions <> nil) and SaveOptions.GltfJsonFormatted;
+  end;
+
 var
   Document: TPasGLTF.TDocument;
   Context: TGltfSaveContext;
@@ -3389,14 +3405,13 @@ var
   ChildNode: TX3DNode;
   ChildIndex: Integer;
   I: Integer;
-  IsBinary: Boolean;
 begin
   Document := TPasGLTF.TDocument.Create;
   try
     // Set asset metadata
     Document.Asset.Version := '2.0';
-    if Generator <> '' then
-      Document.Asset.Generator := Generator
+    if (SaveOptions <> nil) and (SaveOptions.Generator <> '') then
+      Document.Asset.Generator := SaveOptions.Generator
     else
       Document.Asset.Generator := 'Castle Game Engine';
 
@@ -3426,22 +3441,34 @@ begin
 
       // For JSON output, embed buffer data as base64
       // For binary output (GLB), the data stays in the buffer
-      if Document.Buffers.Count > 0 then
+      if not IsBinary then
+      begin
+        // we always have 1 buffer for now, created by 1 TGltfBufferBuilder
+        Assert(Document.Buffers.Count = 1);
         Document.Buffers[0].SetEmbeddedResourceData;
+      end;
     finally
       FreeAndNil(Context.MaterialCache);
       FreeAndNil(Context.BufferBuilder);
       FreeAndNil(Context);
     end;
 
-    // Determine binary vs JSON
-    // For now, default to JSON (formatted)
-    // TODO: detect from MIME type or file extension
-    IsBinary := False;
-    Document.SaveToStream(Stream, IsBinary, True);
+    Document.SaveToStream(Stream, IsBinary, JsonFormatted);
   finally
     FreeAndNil(Document);
   end;
+end;
+
+procedure SaveGLTF_Binary(const Node: TX3DRootNode; const Stream: TStream;
+  const SaveOptions: TCastleSceneSaveOptions);
+begin
+  SaveGLTF(Node, Stream, SaveOptions, true);
+end;
+
+procedure SaveGLTF_Json(const Node: TX3DRootNode; const Stream: TStream;
+  const SaveOptions: TCastleSceneSaveOptions);
+begin
+  SaveGLTF(Node, Stream, SaveOptions, false);
 end;
 
 var
@@ -3450,11 +3477,18 @@ initialization
   ModelFormat := TModelFormat.Create;
   ModelFormat.OnLoad := {$ifdef FPC}@{$endif} LoadGLTF;
   ModelFormat.OnLoadForceMemoryStream := true;
-  ModelFormat.OnSave := {$ifdef FPC}@{$endif} SaveGLTF;
-  ModelFormat.MimeTypes.Add('model/gltf+json');
+  ModelFormat.OnSave := {$ifdef FPC}@{$endif} SaveGLTF_Binary;
   ModelFormat.MimeTypes.Add('model/gltf-binary');
-  ModelFormat.FileFilterName := 'glTF (*.glb, *.gltf)';
+  ModelFormat.FileFilterName := 'glTF Binary (*.glb)';
   ModelFormat.Extensions.Add('.glb');
+  RegisterModelFormat(ModelFormat);
+
+  ModelFormat := TModelFormat.Create;
+  ModelFormat.OnLoad := {$ifdef FPC}@{$endif} LoadGLTF;
+  ModelFormat.OnLoadForceMemoryStream := true;
+  ModelFormat.OnSave := {$ifdef FPC}@{$endif} SaveGLTF_Json;
+  ModelFormat.MimeTypes.Add('model/gltf+json');
+  ModelFormat.FileFilterName := 'glTF JSON (*.gltf)';
   ModelFormat.Extensions.Add('.gltf');
   RegisterModelFormat(ModelFormat);
 end.

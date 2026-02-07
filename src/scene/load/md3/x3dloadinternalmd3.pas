@@ -46,7 +46,8 @@ const
 {$I x3dloadinternalmd3_animation.inc}
 {$I x3dloadinternalmd3_converter.inc}
 
-function LoadMD3(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
+function LoadMD3(const Stream: TStream; const BaseUrl: String;
+  const LoadOptions: TCastleSceneLoadOptions): TX3DRootNode;
 var
   Md3: TMD3Converter;
 begin

@@ -805,7 +805,7 @@ procedure TBatchShapes.Commit;
     end;
 
     if RootNode.FdChildren.Count <> 0 then
-      SaveNode(RootNode, 'cge_batching_output.x3d', ApplicationName);
+      SaveNode(RootNode, 'cge_batching_output.x3d');
 
     for CollectedShape in FBatched do
     begin

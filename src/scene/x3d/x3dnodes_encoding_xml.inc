@@ -1,6 +1,6 @@
 {%MainUnit x3dnodes.pas}
 {
-  Copyright 2008-2024 Michalis Kamburelis.
+  Copyright 2008-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -24,26 +24,22 @@ const
   '*X3D XML (*.x3d, *.x3dz, *.x3d.gz)|*.x3d;*.x3dz;*.x3d.gz'
   deprecated 'use LoadNode and LoadScene_FileFilters';
 
-{ Read X3D encoded in XML, and convert it to VRML/X3D nodes graph.
+{ Read X3D (XML encoding) into X3D nodes graph.
+  @param LoadOptions Optional (may be @nil) loading options. Must be TCastleSceneLoadOptions.
+  @deprecated Use @link(LoadNode) instead. }
+function LoadX3DXml(const Url: String; const Gzipped: boolean;
+  const LoadOptions: TObject = nil): TX3DRootNode; overload; deprecated 'use LoadNode';
 
-  Overloaded version that takes Stream as a parameter expects that
-  reading the stream returns the uncompressed content (no longer gzip
-  compressed). This version also takes Url as a parameter,
-  but it is not used to load contents (these are inside Stream),
-  it it only used to resolve relative URLs inside content and for error messages.
-
-  @exclude
-
-  @groupBegin }
-function LoadX3DXml(const Url: String; const Gzipped: boolean): TX3DRootNode; overload; deprecated 'use LoadNode';
-
-{ @exclude }
-function LoadX3DXmlInternal(const Stream: TStream; const BaseUrl: String): TX3DRootNode; overload;
-
-{ @exclude }
-function LoadX3DXmlInternal(const X3DElement: TDOMElement; const BaseUrl: String): TX3DRootNode; overload;
-
-{ @groupEnd }
+{ Read X3D (XML encoding) into X3D nodes graph.
+  This reads from TDOMElement, so X3D XML can be placed inside
+  a larger XML document.
+  This is internal, not recommended, practically was used only
+  by castle-anim-frames.
+  @param LoadOptions Optional (may be @nil) loading options. Must be TCastleSceneLoadOptions.
+  @exclude }
+function LoadX3DXmlInternalFromElement(
+  const X3DElement: TDOMElement; const BaseUrl: String;
+  const LoadOptions: TObject = nil): TX3DRootNode;
 
 {$endif read_interface}
 
@@ -555,23 +551,15 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function LoadX3DXml(const Url: String; const Gzipped: boolean): TX3DRootNode;
-var
-  Stream: TStream;
-  StreamOptions: TStreamOptions;
-begin
-  StreamOptions := [];
-  if Gzipped then
-    Include(StreamOptions, soGzip);
-  Stream := Download(Url, StreamOptions);
-  try
-    Result := LoadX3DXmlInternal(Stream, AbsoluteURI(Url));
-  finally
-    FreeAndNil(Stream);
-  end;
-end;
+{ Read X3D (XML encoding) into X3D nodes graph, from TStream.
 
-function LoadX3DXmlInternal(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
+  Expects that reading the stream returns the uncompressed content
+  (no longer gzip compressed).
+
+  The BaseUrl is not used to load contents (these are assumed to be inside Stream),
+  it is only used to resolve relative URLs inside content and for error messages. }
+function LoadX3DXmlInternal(const Stream: TStream; const BaseUrl: String;
+  const LoadOptions: TCastleSceneLoadOptions): TX3DRootNode; overload;
 var
   Doc: TXMLDocument;
 begin
@@ -582,11 +570,31 @@ begin
     { ReadXMLFile always sets TXMLDocument param (possibly to nil),
       even in case of exception. So place it inside try..finally. }
     ReadXMLFile(Doc, Stream, AbsoluteURI(BaseUrl));
-    Result := LoadX3DXmlInternal(Doc.DocumentElement, BaseUrl);
+    Result := LoadX3DXmlInternalFromElement(Doc.DocumentElement, BaseUrl, LoadOptions);
   finally FreeAndNil(Doc); end;
 end;
 
-function LoadX3DXmlInternal(const X3DElement: TDOMElement; const BaseUrl: String): TX3DRootNode; overload;
+function LoadX3DXml(const Url: String; const Gzipped: boolean;
+  const LoadOptions: TObject): TX3DRootNode;
+var
+  Stream: TStream;
+  StreamOptions: TStreamOptions;
+begin
+  StreamOptions := [];
+  if Gzipped then
+    Include(StreamOptions, soGzip);
+  Stream := Download(Url, StreamOptions);
+  try
+    Result := LoadX3DXmlInternal(Stream, AbsoluteURI(Url),
+      TCastleSceneLoadOptions(LoadOptions));
+  finally
+    FreeAndNil(Stream);
+  end;
+end;
+
+function LoadX3DXmlInternalFromElement(const X3DElement: TDOMElement;
+  const BaseUrl: String;
+  const LoadOptions: TObject): TX3DRootNode;
 var
   SceneElement: TDOMElement;
   VersionStr: String;

@@ -194,7 +194,8 @@ end;
 
 { LoadGEO -------------------------------------------------------------------- }
 
-function LoadGEO(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
+function LoadGEO(const Stream: TStream; const BaseUrl: String;
+  const LoadOptions: TCastleSceneLoadOptions): TX3DRootNode;
 var
   geo: TObject3DGEO;
   verts: TCoordinateNode;

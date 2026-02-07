@@ -2080,7 +2080,8 @@ begin
 end;
 
 { Main routine that converts IFC -> X3D nodes, doing most of the work. }
-function LoadIfc(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
+function LoadIfc(const Stream: TStream; const BaseUrl: String;
+  const LoadOptions: TCastleSceneLoadOptions): TX3DRootNode;
 
   { Debug save back IFC and X3D.
     Save URL is similar to BaseUrl but with -debug-roundtrip.ifcjson,
