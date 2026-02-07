@@ -2651,7 +2651,11 @@ begin
   FDocument := ADocument;
   FBuffer := TPasGLTF.TBuffer.Create(FDocument);
   FDocument.Buffers.Add(FBuffer);
+
   // FBuffer.Data is already a TMemoryStream created by TBuffer.Create
+  Assert(FBuffer.Data <> nil);
+
+  // Note: we don't free FBuffer in our destructor, as it is owned by FDocument.
 end;
 
 procedure TGltfBufferBuilder.EnsureAlign4;
@@ -3421,8 +3425,7 @@ begin
         Document.Buffers[0].SetEmbeddedResourceData;
     finally
       FreeAndNil(Context.MaterialCache);
-      // Note: BufferBuilder is not freed here, it's owned by Document implicitly
-      // through the TBuffer it created
+      FreeAndNil(Context.BufferBuilder);
       FreeAndNil(Context);
     end;
 
