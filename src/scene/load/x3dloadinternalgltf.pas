@@ -2980,11 +2980,16 @@ begin
   GltfMaterial.Name := Material.X3DName;
 
   // For unlit, baseColor carries the emissive color.
-  // We must also set MetallicFactor to 0 (per KHR_materials_unlit spec recommendation,
-  // and also to ensure PasGLTF serializes PBRMetallicRoughness block at all,
-  // since its Empty check only looks at MetallicFactor/RoughnessFactor/textures).
   GltfMaterial.PBRMetallicRoughness.BaseColorFactor := Vector4ToGltf(
     Vector4(Material.EmissiveColor, 1 - Material.Transparency));
+
+  { Set other parameters as a fallback,
+    in case client doesn't support KHR_materials_unlit.
+    See https://github.com/KhronosGroup/glTF/tree/main/extensions/2.0/Khronos/KHR_materials_unlit :
+    recommends "roughnessFactor is greater than 0.5".
+    Also, this makes TPasGLTF.TMaterial.TPBRMetallicRoughness.GetEmpty
+    calculate false (it compares only roughness, metallic factors),
+    so we force serializing the PBRMetallicRoughness block. }
   GltfMaterial.PBRMetallicRoughness.MetallicFactor := 0;
   GltfMaterial.PBRMetallicRoughness.RoughnessFactor := 0.9;
 
