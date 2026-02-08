@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2024 Michalis Kamburelis.
+  Copyright 2018-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -2642,8 +2642,6 @@ begin
   begin
     Design := TDesignFrame.Create(Self);
     DesignObserver.Observed := Design;
-    Design.Parent := PanelAboveTabs;
-    Design.Align := alClient;
     Design.OnUpdateFormCaption := @UpdateFormCaption;
     Design.UndoSystem.OnUpdateUndo := @UpdateUndo;
     Design.OnSelectionChanged := @UpdateRenameItem;
@@ -2654,6 +2652,13 @@ begin
     Design.OnRunningToggle  := @RunningToggle;
     Design.OnApiReferenceOfCurrent := @MenuItemReferenceOfCurrentClick;
     Design.MaximizePreview := ActionMaximizePreview.Checked;
+
+    { on GTK3, changing Align on a control with Parent may result in calling
+      Paint on it, which calls our TDesignFrame.TDesignerLayer.Render.
+      So we have assigned everything necessary for correct render
+      (like OnShowStatistics) earlier. }
+    Design.Parent := PanelAboveTabs;
+    Design.Align := alClient;
 
     // Update Design.ActionPlayStop, after OnIsRunning and OnRunningToggle are set
     Design.ActionPlayStopUpdate(Design.ActionPlayStop);
