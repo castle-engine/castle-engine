@@ -17,6 +17,11 @@ defaults:
   run:
     shell: bash
 
+# GitHub CodeQL recommends to explicitly set permissions for GITHUB_TOKEN.
+# See https://docs.github.com/en/actions/tutorials/authenticate-with-github_token .
+permissions:
+  contents: read
+
 jobs:
   test-quick:
     name: Quick Test of Tools

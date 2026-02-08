@@ -25,6 +25,11 @@ defaults:
   run:
     shell: bash
 
+# GitHub CodeQL recommends to explicitly set permissions for GITHUB_TOKEN.
+# See https://docs.github.com/en/actions/tutorials/authenticate-with-github_token .
+permissions:
+  contents: read
+
 jobs:
   quick_test:
     uses: ./.github/workflows/quick-test.yml
@@ -105,6 +110,8 @@ jobs:
     - name: Release Artifacts
       if: ${{ github.ref == 'refs/heads/master' }}
       run: gh release --repo ${{ github.repository }} upload ${{ env.release_tag }} --clobber castle-engine*.zip castle-engine-setup-*.exe
+      permissions:
+        contents: write
       env:
         GH_TOKEN: ${{ github.token }}
 
@@ -131,6 +138,8 @@ jobs:
     name: Update Release Tag (make release tag point to the build commit on master branch)
     runs-on: ubuntu-latest
     needs: [release]
+    permissions:
+      contents: write
     steps:
     - uses: actions/checkout@v6
     - name: Update Release Tag
