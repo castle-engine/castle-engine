@@ -802,6 +802,7 @@ begin
   Result :=
     Format('%d extensions: ', [WebGLExtensions.Count]) +
     GlueStrings(WebGLExtensions, ' ');
+end;
 {$else}
 var
   NumExtensions: TGLint;
@@ -825,14 +826,62 @@ begin
       SupportedExtensions := PAnsiChar(glGetString(GL_EXTENSIONS));
     Result := SupportedExtensions;
   end;
-{$endif}
 end;
+{$endif}
 
 constructor TGLFeatures.Create;
-{$ifndef OpenGLES}
-var
-  ErrorCode: TGLenum;
-{$endif}
+
+  {$ifndef OpenGLES}
+  { Call glGetFramebufferAttachmentParameteriv that should return a single TGLint.
+    But in case of GL_INVALID_ENUM (observed in 2 cases),
+    make a warning and return a defalut value.
+
+    2 cases when it's known to fail:
+
+    1. Older ATI Radeon GPUs (reproduced on Michalis hostname: hpek):
+
+        Version string: 3.3.11672 Compatibility Profile Context
+        Vendor string: ATI Technologies Inc.
+        Renderer: ATI Mobility Radeon HD 4300 Series
+
+      with 32-bit Windows 7. Using
+
+        glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER,
+          GL_FRONT_LEFT, GL_FRAMEBUFFER_ATTACHMENT_RED_SIZE, @FRedBits);
+
+      fails there with GL_INVALID_ENUM.
+
+    2. NVidia on Linux (reproduced on Michalis hostname: guardia):
+
+      NVIDIA GeForce RTX 3050 Ti Laptop GPU/PCIe/SSE2
+
+      But only in castle-editor build with GTK 3 backend.
+      The LCL TOpenGLControl on GTK 3 creates some non-typical GL context,
+      with OpenGL 3.2 (while in general we have OpenGL 4.6 with TCastleWindow).
+  }
+  function SafeGetFramebufferAttachmentParameter(const Target: TGLenum;
+    const Attachment: TGLenum; const Pname: TGLenum; const PnameName: String;
+    const Default: TGLint): TGLint;
+  var
+    ErrorCode: TGLenum;
+  begin
+    glGetFramebufferAttachmentParameteriv(Target, Attachment, Pname, @Result);
+    ErrorCode := glGetError();
+    if ErrorCode = GL_INVALID_ENUM then
+    begin
+      WritelnWarning('glGetFramebufferAttachmentParameteriv', 'Returned GL_INVALID_ENUM, for Target=%d, Attachment=%d, Pname=%s. Assuming reasonable context properties: %d', [
+        Target,
+        Attachment,
+        PnameName,
+        Default
+      ]);
+      Result := Default;
+    end else
+    if ErrorCode <> GL_NO_ERROR then
+      raise EOpenGLError.Create(ErrorCode, 'after glGetFramebufferAttachmentParameteriv');
+  end;
+  {$endif}
+
 begin
   inherited;
 
@@ -1075,45 +1124,18 @@ begin
     { Read buffer sizes with new OpenGL core
       https://registry.khronos.org/OpenGL-Refpages/gl4/html/glGetFramebufferAttachmentParameter.xhtml
       https://stackoverflow.com/questions/27371067/how-to-query-the-depth-of-the-opengl-stencil-buffer }
-    glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER,
-      GL_FRONT_LEFT, GL_FRAMEBUFFER_ATTACHMENT_RED_SIZE, @FRedBits);
-    glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER,
-      GL_FRONT_LEFT, GL_FRAMEBUFFER_ATTACHMENT_GREEN_SIZE, @FGreenBits);
-    glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER,
-      GL_FRONT_LEFT, GL_FRAMEBUFFER_ATTACHMENT_BLUE_SIZE, @FBlueBits);
-    glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER,
-      GL_FRONT_LEFT, GL_FRAMEBUFFER_ATTACHMENT_ALPHA_SIZE, @FAlphaBits);
-    glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER,
-      GL_STENCIL, GL_FRAMEBUFFER_ATTACHMENT_STENCIL_SIZE, @FStencilBits);
-    glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER,
-      GL_DEPTH, GL_FRAMEBUFFER_ATTACHMENT_DEPTH_SIZE, @FDepthBits);
-
-    ErrorCode := glGetError();
-    if ErrorCode = GL_INVALID_ENUM then
-    begin
-      WritelnWarning('Detected buggy glGetFramebufferAttachmentParameteriv, possible on older ATI Radeon GPUs; assuming reasonable context properties');
-
-      { Workaround buggy ATI (Michalis codename: hpek):
-
-          Version string: 3.3.11672 Compatibility Profile Context
-          Vendor string: ATI Technologies Inc.
-          Renderer: ATI Mobility Radeon HD 4300 Series
-
-        with 32-bit Windows 7. Using
-
-          glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER,
-            GL_FRONT_LEFT, GL_FRAMEBUFFER_ATTACHMENT_RED_SIZE, @FRedBits);
-
-        fails there with GL_INVALID_ENUM. }
-      FRedBits := 8;
-      FGreenBits := 8;
-      FBlueBits := 8;
-      FAlphaBits := 8;
-      FStencilBits := 8;
-      FDepthBits := 24;
-    end else
-    if ErrorCode <> GL_NO_ERROR then
-      raise EOpenGLError.Create(ErrorCode, 'after glGetFramebufferAttachmentParameteriv');
+    FRedBits := SafeGetFramebufferAttachmentParameter(GL_DRAW_FRAMEBUFFER,
+      GL_FRONT_LEFT, GL_FRAMEBUFFER_ATTACHMENT_RED_SIZE, 'RED_SIZE', 8);
+    FGreenBits := SafeGetFramebufferAttachmentParameter(GL_DRAW_FRAMEBUFFER,
+      GL_FRONT_LEFT, GL_FRAMEBUFFER_ATTACHMENT_GREEN_SIZE, 'GREEN_SIZE', 8);
+    FBlueBits := SafeGetFramebufferAttachmentParameter(GL_DRAW_FRAMEBUFFER,
+      GL_FRONT_LEFT, GL_FRAMEBUFFER_ATTACHMENT_BLUE_SIZE, 'BLUE_SIZE', 8);
+    FAlphaBits := SafeGetFramebufferAttachmentParameter(GL_DRAW_FRAMEBUFFER,
+      GL_FRONT_LEFT, GL_FRAMEBUFFER_ATTACHMENT_ALPHA_SIZE, 'ALPHA_SIZE', 8);
+    FStencilBits := SafeGetFramebufferAttachmentParameter(GL_DRAW_FRAMEBUFFER,
+      GL_STENCIL, GL_FRAMEBUFFER_ATTACHMENT_STENCIL_SIZE, 'STENCIL_SIZE', 8);
+    FDepthBits := SafeGetFramebufferAttachmentParameter(GL_DRAW_FRAMEBUFFER,
+      GL_DEPTH, GL_FRAMEBUFFER_ATTACHMENT_DEPTH_SIZE, 'DEPTH_SIZE', 24);
 
     FDoubleBuffer := true; // TODO: any way to query it?
   end else
