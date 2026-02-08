@@ -179,9 +179,18 @@ More information about units layout in https://castle-engine.io/units_map .
 ### Key Files
 
 - `CastleEngineManifest.xml` - Project configuration file for build tool. Every tool, example, test has its own `CastleEngineManifest.xml` in its directory.
-- `castle-fpc.cfg` - FPC compiler configuration, used only by `tools/build-tool/castle-engine_compile.sh` and `tools/build-tool/castle-engine_compile.ps1` to compile the build tool itself. This file is rarely used. In most situations, when building other projects, the build tool provides necessary command-line options to compilers, they are hardcoded in `tools/build-tool/code/toolcompile.pas`. See the `castle-fpc.cfg` comments for more explanation when it's used / when it's not used.
 - `packages/lazarus/` - Lazarus package files
 - `packages/delphi/` - Delphi package files
+
+## Units paths and options passed to the compilers
+
+`castle-fpc.cfg` is FPC compiler configuration, used only by `tools/build-tool/castle-engine_compile.sh` and `tools/build-tool/castle-engine_compile.ps1` to compile the build tool itself. This file is rarely used. See the `castle-fpc.cfg` comments for more explanation when it's used / when it's not used.
+
+In most situations, when building projects like examples and most engine tools, the build tool (`castle-engine` binary) provides necessary command-line options and paths to compilers.
+
+- The options are hardcoded in `tools/build-tool/code/toolcompile.pas`
+
+- The paths are hardcoded as `EnginePaths` constant in `src/files/tools/castleinternaltools.pas`
 
 ## Coding Conventions
 
