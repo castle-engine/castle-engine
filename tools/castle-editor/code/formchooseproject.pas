@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2024 Michalis Kamburelis.
+  Copyright 2018-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -75,7 +75,8 @@ implementation
 
 {$R *.lfm}
 
-uses CastleConfig, CastleLCLUtils, CastleUriUtils, CastleUtils, CastleOpenDocument,
+uses Math,
+  CastleConfig, CastleLCLUtils, CastleUriUtils, CastleUtils, CastleOpenDocument,
   CastleFilesUtils, CastleParameters, CastleLog, CastleStringUtils, CastleGLUtils,
   CastleApplicationProperties, CastleInternalTools,
   ProjectUtils, EditorUtils, FormNewProject, FormPreferences, DesignSteam,
@@ -257,6 +258,28 @@ procedure TChooseProjectForm.FormCreate(Sender: TObject);
     SoundEngineSetVolume;
   end;
 
+  {$ifdef LCLGTK3}
+  { With LCL GTK3, InnerBorder seems to be additionally scaled, to limit it. }
+  procedure FixGtk3Layout;
+  const
+    MaxInnerBorder = 8;
+  begin
+    ButtonOpen.BorderSpacing.InnerBorder :=
+      Min(MaxInnerBorder, ButtonOpen.BorderSpacing.InnerBorder);
+    ButtonOpenRecent.BorderSpacing.InnerBorder :=
+      Min(MaxInnerBorder, ButtonOpenRecent.BorderSpacing.InnerBorder);
+    ButtonOpenExample.BorderSpacing.InnerBorder :=
+      Min(MaxInnerBorder, ButtonOpenExample.BorderSpacing.InnerBorder);
+    ButtonNew.BorderSpacing.InnerBorder :=
+      Min(MaxInnerBorder, ButtonNew.BorderSpacing.InnerBorder);
+    ButtonPreferences.BorderSpacing.InnerBorder :=
+      Min(MaxInnerBorder, ButtonPreferences.BorderSpacing.InnerBorder);
+    ButtonSupportUs.BorderSpacing.InnerBorder :=
+      Min(MaxInnerBorder, ButtonSupportUs.BorderSpacing.InnerBorder);
+  end;
+
+  {$endif}
+
 begin
   UserConfig.Load;
   RecentProjects := TCastleRecentFiles.Create(Self);
@@ -266,6 +289,10 @@ begin
 
   UseEditorApplicationData;
   InternalCastleDesignData := ResolveCastleDataUrl('castle-data:/');
+
+  {$ifdef LCLGTK3}
+  FixGtk3Layout;
+  {$endif}
 end;
 
 procedure TChooseProjectForm.FormDestroy(Sender: TObject);
