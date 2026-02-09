@@ -1471,39 +1471,74 @@ type
     procedure SetMainMenu(Value: TMenu);
   public
     { Menu bar of this window.
-      When not assigned, we have no menu bar.
+      When not assigned (@nil), this window has no menu bar.
 
-      Note that MainMenu.Caption will be ignored.
+      If you want to use menu bar, assign this property before calling
+      @link(Open). Like this:
 
-      You can change this freely while Closed.
+      @longCode(#
+      function CreateMainMenu: TMenu;
+      var
+        M: TMenu;
+      begin
+        Result := TMenu.Create('Main menu');
 
-      You can change this almost freely while not Closed: you can use
-      various properties of TMenuEntry descendants (adding, deleting items
-      from TMenu, changing Caption, Key, KeyString, Checked properties --
-      anything) and you can change value of MainMenu BUT you must not
-      change MainMenu <> nil state when the window is not Closed.
-      I.e. if you called Open with MainMenu = nil, then MainMenu must stay
-      nil unit Close. If you called Open with MainMenu <> nil, then you
-      can assign other MainMenu values while not Closed, but only values
-      <>nil. I.e. you can't set MainMenu to nil if you called Open
-      with MainMenu <> nil.
-      See @code(examples/window/window_menu/)
-      for demo of changing value of MainMenu while window is not Closed.
+        M := TMenu.Create('_File');
+          M.Append(TMenuItem.Create('_Open ...', 10, CtrlO));
+          M.Append(TMenuItem.Create('_Save ...', 20, CtrlO));
+          M.Append(TMenuSeparator.Create);
+          M.Append(TMenuItem.Create('_Quit',  20, CtrlW));
+          Result.Append(M);
 
-      Note that MainMenu.Enabled is honoured (as well as Enabled
-      for all menu items inside, of course).
-      You can use this to disallow user from clicking on the whole
-      menu. When MainMenu.Enabled = @false then
-      menu click is not called
-      (no MenuItem.DoClick, no OnMenuClick, no OnMenuItemClick)
-      when user presses some menu item.
-      When user presses some keyboard shortcut for some menu item,
-      also no menu click is not called
-      (no MenuItem.DoClick, no OnMenuClick, no OnMenuItemClick)
-      and we make normal EventPress.
+        M := TMenu.Create('_Help');
+          M.Append(TMenuItem.Create('_About', 100));
+          Result.Append(M);
+      end;
 
-      Disabling MainMenu is useful e.g. during modal dialog box, like @link(MessageOk).
-      This way you can force use to interact with the modal box. }
+      // and then before Window.Open:
+      Window.MainMenu := CreateMainMenu;
+      #)
+
+      To handle menu item clicks, assign @link(OnMenuItemClick) event.
+
+      Note that @code(Caption) of the top-level TMenu
+      (@code('Main menu') in the example above) is ignored.
+
+      Use various @link(TMenuEntry) descendants to create menu items,
+      like:
+
+      @unorderedList(
+        @item(TMenuItem for a normal menu item)
+        @item(TMenuItemChecked for a menu item that has a checkbox)
+        @item(TMenuItemRadio with TMenuItemRadioGroup for a group of radio menu items)
+        @item(TMenu for a submenu)
+      )
+
+      The menu items can be modified to a large extent while the window
+      is open. You can add / delete them, change their properties
+      (like @link(TMenuEntryWithCaption.Caption),
+      @link(TMenuEntryWithCaption.Enabled),
+      @link(TMenuEntryChecked.Checked)), and the displayed menu will be
+      automatically updated.
+
+      Note: you @italic(cannot) change whether the menu bar
+      exists while the window is open. If you left @name as @nil,
+      it must remain @nil while the window is open.
+      If you set it to some non-nil value, it must remain non-nil
+      while the window is open.
+
+      Note: @link(TMenuEntryWithCaption.Enabled) is honored
+      on all menu items, including on the top-level menu item.
+      Setting @code(Window.MainMenu.Enabled := false)
+      is a quick way to disable all menu items.
+
+      Examples are:
+
+      @unorderedList(
+        @item @url(https://github.com/castle-engine/castle-engine/tree/master/examples/window/window_menu/ examples/window/window_menu/)
+        @item @url(https://github.com/castle-engine/castle-engine/tree/master/examples/images_videos/simple_video_editor/ examples/images_videos/simple_video_editor/)
+      )
+    }
     property MainMenu: TMenu read FMainMenu write SetMainMenu;
 
     { Is MainMenu visible. @false means that we do not show main menu bar,
