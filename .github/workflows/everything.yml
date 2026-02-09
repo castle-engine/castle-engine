@@ -71,6 +71,8 @@ jobs:
     ]
     if: ${{ github.ref == 'refs/heads/master' }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
 
     # We can get artifacts from other workflows here, because we called them.
@@ -110,8 +112,6 @@ jobs:
     - name: Release Artifacts
       if: ${{ github.ref == 'refs/heads/master' }}
       run: gh release --repo ${{ github.repository }} upload ${{ env.release_tag }} --clobber castle-engine*.zip castle-engine-setup-*.exe
-      permissions:
-        contents: write
       env:
         GH_TOKEN: ${{ github.token }}
 
