@@ -9,6 +9,9 @@ const
   gfalse = gboolean(0);
   gtrue = gboolean(1);
 
+  GDK_KEY_Capital_A = GDK_KEY_A_;
+  GDK_KEY_Capital_Z = GDK_KEY_Z_;
+
 type
   { These are functions that check type in GTK 2.
     In GTK 3, we just cast.

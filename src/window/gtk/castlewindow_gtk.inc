@@ -212,9 +212,7 @@ begin
 
     GDK_KEY_0..GDK_KEY_9: Result := TKey(Ord(key0) + GdkKeysym - GDK_KEY_0);
 
-    {$ifdef CASTLE_WINDOW_GTK_2}
     GDK_KEY_Capital_A..GDK_KEY_Capital_Z: Result := TKey(Ord(keyA) + GdkKeysym - GDK_KEY_Capital_A);
-    {$endif CASTLE_WINDOW_GTK_2}
 
     GDK_KEY_A        ..GDK_KEY_Z        : Result := TKey(Ord(keyA) + GdkKeysym - GDK_KEY_A);
 
