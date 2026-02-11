@@ -2509,7 +2509,7 @@ end;
 
 procedure TProjectForm.MenuItemManualClick(Sender: TObject);
 begin
-  OpenUrl('https://castle-engine.io/manual_intro.php');
+  OpenUrl('https://castle-engine.io/manual');
 end;
 
 procedure TProjectForm.MenuItemModeDebugClick(Sender: TObject);
