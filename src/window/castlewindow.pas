@@ -1765,8 +1765,8 @@ type
     { Parsing parameters ------------------------------------------------------- }
 
     { Parse some command-line options and remove them from @link(Parameters)
-      list. See https://castle-engine.io/opengl_options.php for
-      documentaion what these options actually do from user's point of view.
+      list. See https://castle-engine.io/cli_options_window for
+      documentation what these options actually do from user's point of view.
 
       @definitionList(
         @itemLabel @--fullscreen
@@ -1782,11 +1782,6 @@ type
         @itemLabel @--fullscreen-custom WIDTHxHEIGHT
         @item(Change desktop resolution by VideoChange and sets FullScreen to @true.
           Changing desktop resolution is not implemented on all platforms.)
-
-        @itemLabel @--pretend-touch-device
-        @item(Set @link(TCastleApplicationProperties.TouchDevice
-          ApplicationProperties.TouchDevice) to true.
-          See @url(https://castle-engine.io/touch_input touch input documentation).)
       )
 
       @raises(EInvalidParams When some of our options have invalid arguments.) }
@@ -2450,13 +2445,21 @@ end.
         )
 
         @itemLabel @--no-limit-fps
-        @item(Allows to disable
+        @item(Disables
           @link(TCastleApplicationProperties.LimitFps ApplicationProperties.LimitFps),
-          to allows to observe maximum FPS, see
-          http://castle-engine.io/manual_optimization.php )
+          to observe maximum possible FPS. See
+          http://castle-engine.io/optimization for more information
+          when this could be useful.)
 
         @itemLabel @--capabilities automatic|force-fixed-function|force-modern
-        @item(Force OpenGL context to have specific capabilities, to test rendering on modern or ancient GPUs.)
+        @item(Force rendering context to have specific capabilities,
+          to test rendering on modern or ancient GPUs.
+          See @link(TGLFeatures.RequestCapabilities) for more information.)
+
+        @itemLabel @--pretend-touch-device
+        @item(Set @link(TCastleApplicationProperties.TouchDevice
+          ApplicationProperties.TouchDevice) to true.
+          See @url(https://castle-engine.io/touch_input touch input documentation).)
       )
 
       Moreover this also handles parameters from @link(TCastleWindow.ParseParameters),
@@ -3674,19 +3677,17 @@ begin
     1: Window.FullScreen := false;
     2: ApplyGeometryParam(Argument);
     3: ApplyFullScreenCustomParam(Argument);
-    4: ApplicationProperties.TouchDevice := true;
     else raise EInternalError.CreateFmt('WindowOptionProc: unhandled OptionNum %d', [OptionNum]);
   end;
 end;
 
 procedure TCastleWindow.ParseParameters;
 const
-  Options: array [0..4] of TOption = (
+  Options: array [0..3] of TOption = (
     (Short: #0; Long: 'fullscreen'; Argument: oaNone),
     (Short: #0; Long: 'window'; Argument: oaNone),
     (short: #0; Long: 'geometry'; Argument: oaRequired),
-    (Short: #0; Long: 'fullscreen-custom'; Argument: oaRequired),
-    (Short: #0; Long: 'pretend-touch-device'; Argument: oaNone)
+    (Short: #0; Long: 'fullscreen-custom'; Argument: oaRequired)
   );
 begin
   Parameters.Parse(Options, {$ifdef FPC}@{$endif} WindowOptionProc, Self, true);
@@ -3698,8 +3699,7 @@ begin
     OptionDescription('--fullscreen', 'Set window to full-screen (cover whole screen).') + NL +
     OptionDescription('--window', 'Set window to not be full-screen.') + NL +
     OptionDescription('--geometry WIDTHxHEIGHT<sign>XOFF<sign>YOFF', 'Set window to not be full-screen, and set initial size and/or position.') + NL +
-    OptionDescription('--fullscreen-custom WIDTHxHEIGHT', 'Change desktop resolution and set window to full-screen.') + NL +
-    OptionDescription('--pretend-touch-device', 'Pretend this is a device with a touch screen, for debugging purposes.');
+    OptionDescription('--fullscreen-custom WIDTHxHEIGHT', 'Deprecated. Change desktop resolution and set window to full-screen.');
 end;
 
 { TCastleWindow miscellaneous -------------------------------------------- }
@@ -4540,7 +4540,8 @@ begin
     OptionDescription('--log-file FILE-NAME', 'Write log to given file.') + NL +
     OptionDescription('--display X-DISPLAY-NAME', '(Unix) Display window on given X display.') + NL +
     OptionDescription('--no-limit-fps', 'Disable FPS limit. (We cap FPS by default, to save CPU and laptop battery.) Use this along with disabled V-Sync to see the maximum possible FPS.') + NL +
-    OptionDescription('--capabilities automatic|force-fixed-function|force-modern', 'Force OpenGL context to have specific capabilities, to test rendering on modern or ancient GPUs.');
+    OptionDescription('--capabilities automatic|force-fixed-function|force-modern', 'Force OpenGL context to have specific capabilities, to test rendering on modern or ancient GPUs.') + NL +
+    OptionDescription('--pretend-touch-device', 'Pretend this is a device with a touch screen, for debugging purposes.');
 end;
 
 // TODO: why this doesn't work as static TCastleApplication.OptionProc ?
@@ -4589,20 +4590,22 @@ begin
        end;
     4: ApplicationProperties.LimitFps := 0;
     5: TGLFeatures.RequestCapabilities := StrToCapabilities(Argument);
+    6: ApplicationProperties.TouchDevice := true;
     else raise EInternalError.Create('ApplicationOptionProc: unhandled OptionNum');
   end;
 end;
 
 procedure TCastleApplication.ParseStandardParameters;
 const
-  Options: array [0..5] of TOption =
+  Options: array [0..6] of TOption =
   (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
     (Short: 'v'; Long: 'version'; Argument: oaNone),
     (Short: #0 ; Long: 'log-file'; Argument: oaRequired),
     (Short: #0 ; Long: 'display'; Argument: oaRequired),
     (Short: #0 ; Long: 'no-limit-fps'; Argument: oaNone),
-    (Short: #0 ; Long: 'capabilities'; Argument: oaRequired)
+    (Short: #0 ; Long: 'capabilities'; Argument: oaRequired),
+    (Short: #0 ; Long: 'pretend-touch-device'; Argument: oaNone)
   );
 
   {$ifdef DARWIN}
