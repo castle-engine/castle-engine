@@ -12,6 +12,8 @@
 <link rel="stylesheet" type="text/css" href="castle-engine-website-base/node_modules/slick-carousel/slick/slick.css">
 <link rel="stylesheet" type="text/css" href="castle-engine-website-base/node_modules/slick-carousel/slick/slick-theme.css">
 
+<!-- Preload main slideshow image for better LCP on main page -->
+
   <link rel="alternate" type="application/rss+xml"
     title="Castle Game Engine - News Feed"
     href="https://castle-engine.io/news_feed.php">
@@ -22,8 +24,8 @@
   -->
   <!--link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter&display=swap"-->
 
-  <link type="text/css" rel="stylesheet" media="all" href="castle-engine-website-base/castle-engine.css?version=51">
-  <link type="text/css" rel="stylesheet" media="all" href="castle-engine-website-base/castle-asciidoctor.css?version=51">
+  <link type="text/css" rel="stylesheet" media="all" href="castle-engine-website-base/castle-engine.css?version=56">
+  <link type="text/css" rel="stylesheet" media="all" href="castle-engine-website-base/castle-asciidoctor.css?version=56">
   <style>
 /**
  * GeSHi Dynamically Generated Stylesheet
@@ -181,9 +183,22 @@
         <script type="application/ld+json">
   {
     "@context": "https://schema.org",
-    "@type": "Organization",
+    "@type": "SoftwareApplication",
+    "name": "Castle Game Engine",
+    "applicationCategory": "GameEngine",
+    "operatingSystem": "Windows, Linux, macOS, Android, iOS, Nintendo Switch, Web",
+    "author": {
+      "@type": "Organization",
+      "name": "Castle Game Engine Developers",
+      "url": "https://castle-engine.io/",
+      "logo": "https://castle-engine.io/images/castle_game_engine_icon.png"
+    },
+    "description": "Free open-source 3D and 2D game engine. Cross-platform, for desktops, mobile, console, web. Comfortable visual editor. Powerful modern Object Pascal API.",
     "url": "https://castle-engine.io/",
-    "logo": "https://castle-engine.io/images/castle_game_engine_icon.png"
+    "image": "https://castle-engine.io/images/combined_cge_logo_game.png",
+    "sameAs": [
+      "https://github.com/castle-engine/castle-engine"
+    ]
   }
   </script>
   

@@ -209,6 +209,9 @@ pasdoc \
   --html-body-begin ../doc/pasdoc/html-parts/body-begin.html \
   --html-body-end ../doc/pasdoc/html-parts/body-end.html \
   --css ../doc/pasdoc/html-parts/cge-pasdoc.css \
+  --show-source-position \
+  --source-url-pattern 'https://github.com/castle-engine/castle-engine/blob/master/{FILE}#L{LINE}' \
+  --source-root "$CASTLE_ENGINE_PATH" \
   $FORMAT_OPTIONS
 
   # TODO: Commented out grep filtering -- fails with "Disk Full" on GH Actions,
