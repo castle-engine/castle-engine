@@ -283,3 +283,8 @@
     text-align: left;
     padding: 0 !important;
 }
+
+.pasdoc-container .source_position {
+  font-size: 80%;
+  color: gray;
+}
