@@ -33,7 +33,7 @@ uses SysUtils, Classes,
 
 type
   { Optional model load options. Models are typically loaded using @link(LoadNode)
-    or by setting @link(TCastleScene.Url).
+    or by setting @link(TCastleSceneCore.Url).
 
     An instance of this class can be provided to @link(LoadNode)
     or set as @link(TCastleScene.LoadOptions).
