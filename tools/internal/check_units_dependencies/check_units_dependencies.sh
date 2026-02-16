@@ -74,6 +74,11 @@ SUCCESS='true'
 
 # shellcheck disable=SC2002
 cat "${TMP_PAS_LIST}" | while read -r F; do
+  if [[ "${F}" = "./physics/kraft/kraft.pas" ]]; then
+    echo "Skipping ${F} as it causes EOutOfMemory during this test within GitHub Actions since 2026-02-15 (looks like additional memory limits have been put on GitHub Actions runners)."
+    continue
+  fi
+
   echo "Checking dependencies of $F"
   castle-engine simple-compile "$F" >> "${TMP_LOG}"
   # Like `stringoper ChangeFileExt %F .ppu`
