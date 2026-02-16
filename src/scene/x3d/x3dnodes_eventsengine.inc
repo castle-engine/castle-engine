@@ -37,6 +37,10 @@
     { Called before changing one node into another,
       when old node may have beeen associated with a shape using TShapeTree.AssociateNode. }
     procedure InternalMoveShapeAssociations(const OldNode, NewNode: TX3DNode; const ContainingShapes: TObject); virtual; abstract;
+
+    { Render options used to render this scene.
+      May be @nil for TCastleSceneCore. }
+    function EffectiveRenderOptions: TCastleRenderOptions; virtual; abstract;
   public
     function GetBackgroundStack: TX3DBindableStackBasic; virtual; abstract;
     function GetFogStack: TX3DBindableStackBasic; virtual; abstract;

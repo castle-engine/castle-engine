@@ -1220,8 +1220,18 @@ function TSkinNode.InternalMeshCalculation: TInternalMeshCalculation;
     Result := InternalFeatures.MaxTextureSize;
   end;
 
+  function RenderOptionsSkinnedAnimationShaders: Boolean;
+  begin
+    Result :=
+      (Scene = nil) or
+      (Scene.EffectiveRenderOptions = nil) or
+      Scene.EffectiveRenderOptions.SkinnedAnimationShaders;
+  end;
+
 begin
-  if InternalFeatures.Shaders and (not SomeShapeCastsShadowVolumes) then
+  if InternalFeatures.Shaders and
+     RenderOptionsSkinnedAnimationShaders and
+     (not SomeShapeCastsShadowVolumes) then
   begin
     { Which one to prefer when both are possible, mcGpuTexture or mcGpuUniforms?
 

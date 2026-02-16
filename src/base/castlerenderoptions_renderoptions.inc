@@ -55,6 +55,7 @@ type
       FRobustNegativeScale: Boolean;
       FWholeSceneManifold: Boolean;
       FColorChannels: TColorChannels;
+      FSkinnedAnimationShaders: Boolean;
 
     { Hash to quickly compare 2 TCastleRenderOptions instances,
       important for efficient batching. }
@@ -91,6 +92,7 @@ type
     procedure SetLineWidth(const Value: Single);
     procedure SetBumpMappingParallaxHeight(const Value: Single);
     procedure SetLighting(const Value: Boolean);
+    procedure SetSkinnedAnimationShaders(const Value: Boolean);
 
     procedure UpdateHash;
 
@@ -569,6 +571,17 @@ type
     property WholeSceneManifold: Boolean
       read FWholeSceneManifold write SetWholeSceneManifold default false;
 
+    { Enable using GPU shaders to animate skinned models.
+      This is advised, as it increases performance of skinned.
+      There are however certain cases when disabling this may be necessary:
+      https://castle-engine.io/gltf#_alternative_solution_force_recalculating_precise_octree_every_frame
+
+      Note that in certain cases, skinned animation on GPU is disabled
+      even when this property is @true. This includes: when we use
+      shadow volumes or when GPU is not capable enough. }
+    property SkinnedAnimationShaders: Boolean
+      read FSkinnedAnimationShaders write SetSkinnedAnimationShaders default true;
+
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastlerenderoptions_persistent_vectors.inc}
   {$undef read_interface_class}
@@ -610,6 +623,7 @@ begin
   FWireframeEffect := weNormal;
   FWireframeColor := DefaultWireframeColor;
   FColorChannels := AllColorChannels;
+  FSkinnedAnimationShaders := true;
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastlerenderoptions_persistent_vectors.inc}
@@ -659,6 +673,7 @@ begin
     RobustNegativeScale := TCastleRenderOptions(Source).RobustNegativeScale;
     WholeSceneManifold := TCastleRenderOptions(Source).WholeSceneManifold;
     InternalColorChannels := TCastleRenderOptions(Source).InternalColorChannels;
+    SkinnedAnimationShaders := TCastleRenderOptions(Source).SkinnedAnimationShaders;
   end else
     inherited;
 end;
@@ -745,7 +760,8 @@ begin
     113 * SingleOrd(FSilhouetteBias) +
     127 * Ord(FRobustNegativeScale) +
     131 * Ord(FWholeSceneManifold) +
-    137 * ColorChannelsOrd(FColorChannels);
+    137 * ColorChannelsOrd(FColorChannels) +
+    139 * Ord(FSkinnedAnimationShaders);
 end;
 {$I norqcheckend.inc}
 
@@ -1080,6 +1096,15 @@ begin
   if FLighting <> Value then
   begin
     FLighting := Value;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetSkinnedAnimationShaders(const Value: Boolean);
+begin
+  if FSkinnedAnimationShaders <> Value then
+  begin
+    FSkinnedAnimationShaders := Value;
     UpdateHash;
   end;
 end;

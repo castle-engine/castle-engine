@@ -24,7 +24,7 @@ interface
 uses SysUtils, Classes, Generics.Collections, Contnrs, Kraft,
   CastleVectors, CastleBoxes, CastleTriangles, X3DFields, X3DNodes,
   CastleClassUtils, CastleUtils, CastleShapes,
-  CastleInternalOctree, CastleInternalShapeOctree,
+  CastleInternalOctree, CastleInternalShapeOctree, CastleRenderOptions,
   CastleKeysMouse, X3DTime, CastleCameras, CastleInternalBaseTriangleOctree,
   CastleTimeUtils, CastleTransform, CastleInternalShadowMaps, CastleProjection,
   CastleComponentSerialize, CastleInternalFileMonitor;
@@ -843,6 +843,10 @@ type
     IsVisibleNow: boolean;
 
     GeneratedTextures: TGeneratedTextureList;
+
+    { Render options used to render this scene, @nil for TCastleSceneCore itself.
+      Use descendant TCastleScene to get non-@nil value. }
+    function EffectiveRenderOptions: TCastleRenderOptions; override;
 
     function InternalBuildNodeInside: TObject; override;
 
@@ -8299,6 +8303,11 @@ begin
     Here we define it, to make TCastleSceneCore non-abstract to allow
     some code to instantiate TCastleSceneCore. }
   Result := false;
+end;
+
+function TCastleSceneCore.EffectiveRenderOptions: TCastleRenderOptions;
+begin
+  Result := nil;
 end;
 
 function TCastleSceneCore.InternalBuildNodeInside: TObject;

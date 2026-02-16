@@ -335,6 +335,8 @@ type
     *)
     InternalOverrideRenderOptions: TCastleRenderOptions;
 
+    function EffectiveRenderOptions: TCastleRenderOptions; override;
+
     function CreateShape(const AGeometry: TAbstractGeometryNode;
       const AState: TX3DGraphTraverseState;
       const ParentInfo: PTraversingInfo): TShape; override;
@@ -885,6 +887,14 @@ begin
     Result := GlobalFog.Functionality(TFogFunctionality) as TFogFunctionality;
 end;
 
+function TCastleScene.EffectiveRenderOptions: TCastleRenderOptions;
+begin
+  if InternalOverrideRenderOptions <> nil then
+    Result := InternalOverrideRenderOptions
+  else
+    Result := RenderOptions;
+end;
+
 procedure TCastleScene.CollectShape_NoTests(const Shape: TGLShape);
 
   function SceneTransformDynamic: Boolean;
@@ -904,14 +914,6 @@ procedure TCastleScene.CollectShape_NoTests(const Shape: TGLShape);
       else raise EInternalError.Create('TransformOptimization?');
       {$endif}
     end;
-  end;
-
-  function EffectiveRenderOptions: TCastleRenderOptions;
-  begin
-    if InternalOverrideRenderOptions <> nil then
-      Result := InternalOverrideRenderOptions
-    else
-      Result := RenderOptions;
   end;
 
 begin
