@@ -37,10 +37,6 @@ html:
 #	./mk_docs.sh html base/castleutils.pas
 	rm -Rf ../reference/
 	mv html ../reference/
-	cp -R logo/castle_game_engine_icon.png \
-	      html-parts/images/ \
-	      html-parts/castle-engine-website-base/ \
-	      ../reference/
 
 # Just some shortcuts to "Helpful targets" below
 latex: latex/docs.tex

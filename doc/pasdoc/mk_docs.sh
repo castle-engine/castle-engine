@@ -173,6 +173,10 @@ PASDOC_INCLUDE_DIRS="\
 
 if [ "${PASDOC_FORMAT}" = 'html' ]; then
   FORMAT_OPTIONS='--use-tipue-search'
+	cp -R ../doc/pasdoc/logo/castle_game_engine_icon.png \
+	      ../doc/pasdoc/html-parts/images/ \
+	      ../doc/pasdoc/html-parts/castle-engine-website-base/ \
+	      "$OUTPUT_PATH"
 else
   FORMAT_OPTIONS=''
 fi
@@ -208,7 +212,7 @@ pasdoc \
   --html-head ../doc/pasdoc/html-parts/head.html \
   --html-body-begin ../doc/pasdoc/html-parts/body-begin.html \
   --html-body-end ../doc/pasdoc/html-parts/body-end.html \
-  --css ../doc/pasdoc/html-parts/cge-pasdoc.css \
+  --css-based-on-bootstrap ../doc/pasdoc/html-parts/cge-pasdoc.css \
   --show-source-position \
   --source-url-pattern 'https://github.com/castle-engine/castle-engine/blob/master/{FILE}#L{LINE}' \
   --source-root "$CASTLE_ENGINE_UNITS_PATH" \
