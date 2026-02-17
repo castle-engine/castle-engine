@@ -1534,17 +1534,18 @@ type
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
 
     { Change current scene time, setting @link(Time).
-      It is crucial that you call this continuously to have some VRML/X3D
-      time-dependent features working, like TimeSensor and MovieTexture.
-      See @link(Time) for details what is affected by this.
-
-      This is automatically taken care of if you added this scene
-      to TCastleWindow.Controls or TCastleControl.Controls.
-      Then our @link(Update) takes care of doing the job,
-      according to TimePlaying and TimePlayingSpeed.
-
       This causes time to be passed to appropriate time-dependent nodes,
       events will be called etc.
+
+      You must call this continuously to have time-dependent features working,
+      like TTimeSensorNode nodes inside the scene (driving all animations)
+      and TMovieTextureNode. See @link(Time) for details what is affected by this.
+
+      This is automatically called if you added this scene
+      to @link(TCastleViewport.Items).
+      Then our @link(TCastleViewport) takes care of calling our @link(Update)
+      which in turn will call this method
+      (and account for @link(TimePlaying) and @link(TimePlayingSpeed)).
 
       SetTime and IncreaseTime do exactly the same, the difference is
       only that for IncreaseTime you specify increase in the time
@@ -1557,7 +1558,7 @@ type
       For resetting the time (when you don't necessarily want to grow @link(Time))
       see ResetTime.
 
-      If a change of Time will produce some visible change in the VRML/X3D model
+      If a change of Time will produce some visible change in the model
       (for example, MovieTexture will change, or TimeSensor change will be
       routed by interpolator to coordinates of some visible node) it
       will be reported by usual method, that is VisibleChangeHere.
@@ -1570,9 +1571,9 @@ type
     procedure IncreaseTimeTick;
       deprecated 'it should not be necessary to call this, ever; using TX3DEvent.Send(...) or TX3DEvent.Send(..., NextEventTime) will automatically behave Ok.';
 
-    { The time within this scene, in seconds.
+    { Current time within this scene, in seconds.
       Increasing this "drives" the animations (by increasing
-      time of time-dependent nodes like X3D TimeSensor, which in turn
+      time of time-dependent nodes like TTimeSensorNode, which in turn
       drive the rest of the animation).
 
       You can use @link(SetTime) or @link(IncreaseTime) to move time
@@ -1589,8 +1590,8 @@ type
       Default time value is 0.0 (zero). However it will be reset
       at load to a current time (seconds since Unix epoch ---
       that's what X3D standard says to use, although you can change
-      it by KambiNavigationInfo.timeOriginAtLoad,
-      see https://castle-engine.io/x3d_implementation_navigation_extensions.php#section_ext_time_origin_at_load ).
+      it by TNavigationInfoNode.timeOriginAtLoad,
+      see https://castle-engine.io/x3d_time_origin_considered_uncomfortable ).
       You can perform this "time reset" yourself by @link(ResetTimeAtLoad)
       or @link(ResetTime). }
     function Time: TFloatTime; override;
@@ -1600,9 +1601,11 @@ type
       used by TX3DEvent.Send when you don't specify explicit time. }
     function NextEventTime: TX3DTime; override;
 
-    { Set @link(Time) to arbitrary value.
+    { Set @link(Time) to an arbitrary value.
 
-      You should only use this when you loaded new VRML/X3D model.
+      You should only use this when you loaded new model.
+      It is automatically called by @link(Load) so in practice
+      you don't need to call this yourself.
 
       Unlike SetTime and IncreaseTime, this doesn't require that
       @link(Time) grows. It still does some time-dependent events work,
@@ -1616,20 +1619,28 @@ type
 
     { Set @link(Time) to suitable initial value after loading a world.
 
-      This honours VRML/X3D specification about VRML/X3D time origin,
-      and our extension
-      [https://castle-engine.io/x3d_extensions.php#section_ext_time_origin_at_load]. }
+      This honours X3D specification about the time origin,
+      and our extensions too.
+      See https://castle-engine.io/x3d_time_origin_considered_uncomfortable }
     procedure ResetTimeAtLoad;
 
     { Initial world time, set by the last ResetTimeAtLoad call. }
     property TimeAtLoad: TFloatTime read FTimeAtLoad;
 
-    { Stack of background nodes. The node at the top is the current background.
-      All nodes on this stack must descend from TAbstractBackgroundNode class. }
+    { Stack of background nodes. The node at the top is the current background,
+      which is displayed if this is the @link(TCastleViewport.MainScene).
+      All nodes on this stack must descend from TAbstractBackgroundNode class.
+
+      Note that we recommend to rather use @link(TCastleViewport.Background)
+      to modify the skybox. }
     property BackgroundStack: TBackgroundStack read FBackgroundStack;
 
-    { Stack of fog nodes. The node at the top is the current fog.
-      All nodes on this stack must descend from TFogNode class. }
+    { Stack of fog nodes. The node at the top is the current fog,
+      which is displayed if this is the @link(TCastleViewport.MainScene).
+      All nodes on this stack must descend from TFogNode class.
+
+      Note that we recommend to rather use @link(TCastleViewport.Fog)
+      to modify the fog. }
     property FogStack: TFogStack read FFogStack;
 
     { Stack of NavigatinInfo nodes. The node at the top is the current NavigatinInfo.

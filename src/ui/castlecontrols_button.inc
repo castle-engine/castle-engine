@@ -20,12 +20,9 @@
   TCastleButtonImageLayout = (ilTop, ilBottom, ilLeft, ilRight);
 
   { Clickable button.
-
-    This is TCastleUserInterface descendant, so to use it just add it to
-    the TCastleWindow.Controls or TCastleControl.Controls list.
-    You will also usually want to adjust position (TCastleButton.Left,
-    TCastleButton.Bottom), TCastleButton.Caption,
-    and assign TCastleButton.OnClick (or ovevrride TCastleButton.DoClick). }
+    To use it, add it to a parent @link(TCastleUserInterface)
+    (like to @link(TCastleView)), configure position, @link(TCastleButton.Caption),
+    and assign TCastleButton.OnClick to handle clicks. }
   TCastleButton = class(TCastleUserInterfaceFont)
   strict private
     FCalculatedSize: Boolean;
