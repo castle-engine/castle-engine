@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-_Developers_: if you plan to use AI (like Claude Code) with _Castle Game Engine_ codebase, or use it with your own applications using _Castle Game Engine_, we recommend our guidelines on https://castle-engine.io/ai . In short: use AI as a tool to be smarter / faster, not to replace your own critical thinking.
+_Developers_: if you plan to use AI (like Claude Code) with _Castle Game Engine_ codebase, or use it with your own applications using _Castle Game Engine_, we recommend our guidelines on https://castle-engine.io/ai . In short: _Use AI as a tool to be smarter / faster, not to replace your own critical thinking. Do not commit code you did not fully review and understand._
 
 ## Project Overview
 
