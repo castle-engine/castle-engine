@@ -538,6 +538,17 @@ const
   EGL_KHR_image_pixmap = 1;
   { Interfaces defined by EGL_KHR_image above  }
 
+{ EGL 1.5 / EGL_KHR_platform_wayland }
+const
+  EGL_PLATFORM_WAYLAND_KHR = $31D8;
+  EGL_PLATFORM_X11_KHR     = $31D5;
+var
+  eglGetPlatformDisplay: function(
+    platform: EGLenum;
+    native_display: Pointer;
+    attrib_list: PEGLint
+  ): EGLDisplay; {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+
 { Try to load dynamic library with EGL functions. }
 procedure LoadEgl;
 
@@ -674,6 +685,8 @@ begin
 
   if EGLLib <> nil then
   begin
+    EGLLib.SymbolError := seReturnNil; // accept that eglGetPlatformDisplay may not be available
+
     Pointer({$ifndef FPC}@{$endif} eglGetProcAddress) := EGLLib.Symbol('eglGetProcAddress');
 
     Pointer({$ifndef FPC}@{$endif} eglGetError) := glGetProcAddress(EGLLib,'eglGetError');
@@ -709,6 +722,7 @@ begin
     Pointer({$ifndef FPC}@{$endif} eglWaitNative) := glGetProcAddress(EGLLib,'eglWaitNative');
     Pointer({$ifndef FPC}@{$endif} eglSwapBuffers) := glGetProcAddress(EGLLib,'eglSwapBuffers');
     Pointer({$ifndef FPC}@{$endif} eglCopyBuffers) := glGetProcAddress(EGLLib,'eglCopyBuffers');
+    Pointer({$ifndef FPC}@{$endif} eglGetPlatformDisplay) := glGetProcAddress(EGLLib,'eglGetPlatformDisplay');
   end;
 end;
 

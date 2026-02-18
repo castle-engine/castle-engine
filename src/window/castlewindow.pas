@@ -291,6 +291,31 @@ unit CastleWindow;
   {$define USE_EGL}
 {$endif}
 
+{ Experimental: enable Wayland support for GTK backend.
+  We use EGL to initialize OpenGL(ES) context and rely on GTK Wayland backend.
+  This will *only* work on Wayland now.
+
+  Define also CASTLE_WINDOW_GTK_WAYLAND in CastleInternalContextEgl
+  to make it work.
+
+  TODO:
+
+  - Castle Model Viewer runs in Wayland... but window flickers,
+    and menu bar and window title are not visible. Weird.
+    Alt+f still invokes the menu.
+    Also clicking doesn't register correctly -- looks like mouse position
+    is off by the size of the menu bar?
+
+  - Runtime switching between X11 and Wayland should be implemented.
+    We can already detect when running on Wayland with GTK,
+    but right now it only makes an error if it mismatches the definition
+    of CASTLE_WINDOW_GTK_WAYLAND / CASTLE_WINDOW_GTK_WITH_XLIB. }
+{.$define CASTLE_WINDOW_GTK_WAYLAND}
+{$ifdef CASTLE_WINDOW_GTK_WAYLAND}
+  {$define USE_EGL}
+  {$undef CASTLE_WINDOW_GTK_WITH_XLIB}
+{$endif}
+
 { Does backend implement TryVideoChange and VideoReset methods?
   (if this will not be defined, we will use TryVideoChange that always
   returns false and VideoReset that is NOOP). }

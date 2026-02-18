@@ -1,5 +1,5 @@
 {
-  Copyright 2013-2024 Michalis Kamburelis.
+  Copyright 2013-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -17,6 +17,9 @@
 unit CastleInternalContextEgl;
 
 {$i castleconf.inc}
+
+{ Must be defined if CastleWindow also defines it. }
+{.$define CASTLE_WINDOW_GTK_WAYLAND}
 
 interface
 
@@ -61,6 +64,11 @@ type
   public
     // Set this before using Initialize and other methods
     WndPtr: EGLNativeWindowType;
+
+    {$ifdef CASTLE_WINDOW_GTK_WAYLAND}
+    // Set this before using Initialize and other methods
+    WaylandDisplay: Pointer;
+    {$endif CASTLE_WINDOW_GTK_WAYLAND}
 
     { Query context size, returns 0 0 if cannot query for some reason. }
     procedure QuerySize(out AWidth, AHeight: EGLint);
@@ -188,7 +196,20 @@ begin
     if not EglAvailable then
       raise EGLContextNotPossible.Create('Could not load EGL library, required to initialize context');
 
+    {$ifdef CASTLE_WINDOW_GTK_WAYLAND}
+    { We need to initialize EGL with Wayland display, otherwise just
+      using "eglGetDisplay(EGL_DEFAULT_DISPLAY)" may result in EGL_BAD_ALLOC
+      ("EGL failed to allocate resources for the requested operation")
+      as "eglGetDisplay(EGL_DEFAULT_DISPLAY)" possibly returns an X display
+      (which will not work with Wayland window). }
+    if not Assigned(eglGetPlatformDisplay) then
+      raise EGLContextNotPossible.Create('EGL: eglGetPlatformDisplay not available, required for Wayland');
+    if not Assigned(WaylandDisplay) then
+      raise EGLContextNotPossible.Create('EGL: WaylandDisplay not set, required for Wayland');
+    Display := eglGetPlatformDisplay(EGL_PLATFORM_WAYLAND_KHR, WaylandDisplay, nil);
+    {$else}
     Display := eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    {$endif}
     if Display = EGL_NO_DISPLAY then
       { This does not set eglGetError, so we don't use EGLError in message below. }
       raise EGLContextNotPossible.Create('EGL: Cannot get display');

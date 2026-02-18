@@ -24,7 +24,8 @@ CastleInternalEgl, CastleInternalContextEgl,
 {$ifdef read_window_interface}
 private
   Context: TGLContextEgl;
-  procedure ContextCreate(WndPtr: EGLNativeWindowType);
+  procedure ContextCreate(WndPtr: EGLNativeWindowType
+    {$ifdef CASTLE_WINDOW_GTK_WAYLAND} ; WaylandDisplay: Pointer {$endif});
   procedure ContextDestroy;
 public
   { Query the EGL context what is current size. }
@@ -33,10 +34,14 @@ public
 
 {$ifdef read_implementation}
 
-procedure TCastleWindow.ContextCreate(WndPtr: EGLNativeWindowType);
+procedure TCastleWindow.ContextCreate(WndPtr: EGLNativeWindowType
+  {$ifdef CASTLE_WINDOW_GTK_WAYLAND} ; WaylandDisplay: Pointer {$endif});
 begin
   Context := TGLContextEgl.Create;
   Context.WndPtr := WndPtr;
+  {$ifdef CASTLE_WINDOW_GTK_WAYLAND}
+  Context.WaylandDisplay := WaylandDisplay;
+  {$endif CASTLE_WINDOW_GTK_WAYLAND}
   Context.Initialize(FRequirements);
 end;
 
