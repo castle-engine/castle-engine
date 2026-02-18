@@ -2111,9 +2111,11 @@ begin
       It should work anyway. }
 
     {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
-    { Our current implementation assumes that when using GTK on Unix,
-      -> we're using X11 API, not Wayland API.
-      Even when we use EGL, we still rely on gdk_x11_window_get_xid .
+    { About gdk_set_allowed_backends:
+
+      Our implementation of CASTLE_WINDOW_GTK_WITH_XLIB assumes that
+      we're using X11 API, not Wayland API.
+      Even when we use EGL + X11, we still rely on gdk_x11_window_get_xid .
       And when we use glX, we have to use X11 API.
 
       By default on new Linux distros, with Wayland, GTK will use Wayland
@@ -2133,10 +2135,29 @@ begin
       - https://wayland.freedesktop.org/faq.html#heading_toc_j_11
       - https://bugs.webkit.org/show_bug.cgi?id=115721
         https://trac.webkit.org/changeset/150440/webkit
+
+      So we need to force using GTK X11 backend.
+
+      As for g_unsetenv:
+      Unset GDK_BACKEND env variable that may have been inherited from
+      parent process (e.g. VS Code sets GDK_BACKEND=wayland in its terminal).
+      GDK_BACKEND env var takes precedence over gdk_set_allowed_backends,
+      so it would prevent our backend request from working.
+      When VS Code sets GDK_BACKEND=wayland, and our
+      gdk_set_allowed_backends('x11') is executed -> GTK doesn't know what to do
+      (no backend satisfies both constraints), and falls back to trying X11
+      display :0 as a last resort, which fails with "cannot open display: :0".
+
+      Testcase: in a Wayland session, use VS Code, and execute CGE application
+      from there (either from implicit VS Code terminal done by "run",
+      or in explicit VS Code terminal). Without g_unsetenv below,
+      it fails with "cannot open display: :0".
     }
+    g_unsetenv('GDK_BACKEND');
     gdk_set_allowed_backends('x11');
     {$endif}
     {$ifdef CASTLE_WINDOW_GTK_WAYLAND}
+    g_unsetenv('GDK_BACKEND');
     gdk_set_allowed_backends('wayland');
     {$endif}
 
