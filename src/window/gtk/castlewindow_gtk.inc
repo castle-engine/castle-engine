@@ -37,10 +37,13 @@
   {$ifdef CASTLE_WINDOW_GTK_2}
     Glib2, Gdk2, Gtk2,
   {$else}
+    // GTK 3
     CastleInternalGObject2,
     CastleInternalGlib2, CastleInternalGdk3, CastleInternalGtk3,
+    {$ifdef CASTLE_WINDOW_GTK_WAYLAND}
+    CastleInternalGdkWayland,
+    {$endif CASTLE_WINDOW_GTK_WAYLAND}
   {$endif}
-  CastleDynLib,
   {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
     {$ifdef CASTLE_WINDOW_GTK_2}
       Gdk2X,
@@ -70,8 +73,8 @@ private
   window_accel_group: PGtkAccelGroup;
 
   {$ifdef CASTLE_WINDOW_GTK_WAYLAND}
-  WaylandEglWindow: Pointer;
-  {$endif}
+  WaylandEglWindow: Pwl_egl_window;
+  {$endif CASTLE_WINDOW_GTK_WAYLAND}
 
   { Run ADialog as a modal window.
 
@@ -143,6 +146,9 @@ private
 
   XDisplayGdk: PGdkDisplay;
   XScreenGdk: PGdkScreen;
+
+  { Class name of PGdkDisplay, e.g. to detect are using Wayland or X backend. }
+  GdkDisplayName: String;
 
   { Initialize X display, calling gtk_init, gtk_gl_init, calculating
     XDisplayGdk and XScreenGdk.
@@ -434,10 +440,12 @@ function signal_glarea_configure_event(AGLAreaGtk: PGtkGLArea;
   DoResize when only Left/Top changed. }
 SIGNAL_GLAREA_BEGIN
   {$ifdef CASTLE_WINDOW_GTK_WAYLAND}
-  // check, as configure event may happen before we have WaylandEglWindow
+  { Check WaylandEglWindow <> nil, as configure event may happen before
+    we have WaylandEglWindow. }
   if WaylandEglWindow <> nil then
     wl_egl_window_resize(WaylandEglWindow, Event^.Width, Event^.Height, 0, 0);
-  {$endif}
+  {$endif CASTLE_WINDOW_GTK_WAYLAND}
+
   DoResize(Event^.Width, Event^.Height, false);
   { for the sake of gtk, I can't tell that I "handled" this in any way }
   Result := gfalse;
@@ -2011,6 +2019,7 @@ begin
     {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB} + ' (on Xlib)' {$endif}
     {$ifdef CASTLE_WINDOW_GTK_WAYLAND} + ' (on Wayland)' {$endif}
     {$ifdef USE_EGL} + ' (EGL)' {$else} + ' (glX)' {$endif}
+    + Iff(GdkDisplayName <> '', ' (GDK backend: ' + GdkDisplayName + ')', '')
   ;
 end;
 
@@ -2040,12 +2049,9 @@ procedure TCastleApplication.InitializeXDisplay;
     in this case. Otherwise glX initialization will fail with SIGSEGV
     when trying to do glXQueryExtension with something we got from
     gdk_x11_display_get_xdisplay. }
-  procedure CheckNotWayland(const DisplayGdk: PGdkDisplay);
-  var
-    DisplayClassName: String;
+  procedure CheckNotWayland;
   begin
-    DisplayClassName := g_type_name_from_instance(PGTypeInstance(DisplayGdk));
-    if DisplayClassName = 'GdkWaylandDisplay' then
+    if GdkDisplayName = 'GdkWaylandDisplay' then
       raise Exception.Create('GTK Wayland backend is not supported by this application (yet). ' + NL +
         'We requested X11 backend already by calling gdk_set_allowed_backends, but got Wayland backend instead -> weird, report a bug. ' + NL +
         'Force X11 backend by setting environment variable `export GDK_BACKEND=x11` before running the application.');
@@ -2053,17 +2059,18 @@ procedure TCastleApplication.InitializeXDisplay;
   {$endif CASTLE_WINDOW_GTK_WITH_XLIB}
 
   {$ifdef CASTLE_WINDOW_GTK_WAYLAND}
-  procedure CheckWayland(const DisplayGdk: PGdkDisplay);
-  var
-    DisplayClassName: String;
+  { Check is GdkDisplayName a Wayland backend.
+    Also load Wayland EGL routines. }
+  procedure CheckWayland;
   begin
-    DisplayClassName := g_type_name_from_instance(PGTypeInstance(DisplayGdk));
-    if DisplayClassName <> 'GdkWaylandDisplay' then
+    if GdkDisplayName <> 'GdkWaylandDisplay' then
       raise Exception.CreateFmt('We expect Wayland backend, but got %s instead.', [
-        DisplayClassName
+        GdkDisplayName
       ]);
+    if not WaylandEglAvailable then
+      raise Exception.Create('Wayland EGL library not available, required for this application.');
   end;
-  {$endif}
+  {$endif CASTLE_WINDOW_GTK_WAYLAND}
 
   {$ifdef DARWIN}
   { Replacement for gtk_init on Darwin, to try harder to attach to a running
@@ -2144,12 +2151,16 @@ begin
     else
       XDisplayGdk := gdk_display_get_default();
 
+    {$ifdef CASTLE_WINDOW_GTK_3}
+    GdkDisplayName := g_type_name_from_instance(PGTypeInstance(XDisplayGdk));
+    {$endif}
+
     {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
-    CheckNotWayland(XDisplayGdk);
+    CheckNotWayland;
     {$endif CASTLE_WINDOW_GTK_WITH_XLIB}
     {$ifdef CASTLE_WINDOW_GTK_WAYLAND}
-    CheckWayland(XDisplayGdk);
-    {$endif}
+    CheckWayland;
+    {$endif CASTLE_WINDOW_GTK_WAYLAND}
 
     XScreenGdk := gdk_display_get_default_screen(XDisplayGdk);
 

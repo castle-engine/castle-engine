@@ -40,6 +40,7 @@ begin
   Context := TGLContextEgl.Create;
   Context.WndPtr := WndPtr;
   {$ifdef CASTLE_WINDOW_GTK_WAYLAND}
+  Context.UseWayland := true;
   Context.WaylandDisplay := WaylandDisplay;
   {$endif CASTLE_WINDOW_GTK_WAYLAND}
   Context.Initialize(FRequirements);

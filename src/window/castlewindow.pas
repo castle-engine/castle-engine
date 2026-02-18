@@ -293,10 +293,7 @@ unit CastleWindow;
 
 { Experimental: enable Wayland support for GTK backend.
   We use EGL to initialize OpenGL(ES) context and rely on GTK Wayland backend.
-  This will *only* work on Wayland now.
-
-  Define also CASTLE_WINDOW_GTK_WAYLAND in CastleInternalContextEgl
-  to make it work.
+  This will *only* work on Wayland, i.e. there's no run-time fallback to X11.
 
   TODO:
 

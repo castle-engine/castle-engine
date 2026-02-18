@@ -53,29 +53,6 @@ function gdk_x11_screen_lookup_visual(Screen: PGdkScreen;
   cdecl; external LazGdk3_library;
 {$endif}
 
-{$ifdef CASTLE_WINDOW_GTK_WAYLAND}
-type
-  { Recors defined just to make pointers below incompatible with each other,
-    to avoid mistakes. }
-  Twl_surface = record end;
-  Twl_display = record end;
-  Twl_egl_window = record end;
-
-  { Pointer types for Wayland types. }
-  Pwl_surface = ^Twl_surface;
-  Pwl_display = ^Twl_display;
-  Pwl_egl_window = ^Twl_egl_window;
-
-{ from GDK Wayland backend (libgdk-3.so) }
-function gdk_wayland_window_get_wl_surface(window: PGdkWindow): Pwl_surface; cdecl; external LazGdk3_library;
-function gdk_wayland_display_get_wl_display(display: PGdkDisplay): Pwl_display; cdecl; external LazGdk3_library;
-
-{ from libwayland-egl.so }
-function wl_egl_window_create(surface: Pwl_surface; width, height: CInt): Pwl_egl_window; cdecl; external 'wayland-egl';
-procedure wl_egl_window_destroy(egl_window: Pwl_egl_window); cdecl; external 'wayland-egl';
-procedure wl_egl_window_resize(egl_window: Pwl_egl_window; width, height: CInt; dx, dy: CInt); cdecl; external 'wayland-egl';
-{$endif}
-
 { Implement a few methods that match GTK 2 names and signature
   using straightforward counterparts from GTK 3. }
 
