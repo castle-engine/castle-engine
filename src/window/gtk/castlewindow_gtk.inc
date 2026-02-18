@@ -1276,6 +1276,22 @@ begin
       ContextCreate(WindowXID);
 
     {$elseif defined(CASTLE_WINDOW_GTK_WAYLAND)}
+      { Ensure GLAreaGtk has a native GdkWindow (= its own wl_subsurface
+        in Wayland). Without this, gdk_wayland_window_get_wl_surface returns
+        the top-level window's wl_surface, causing the EGL surface to cover
+        the entire window (obscuring menu bar), flicker (competing with
+        GTK's own Cairo rendering), and have wrong mouse coordinates. }
+      //gdk_window_ensure_native(gtk_widget_get_window(GTK_WIDGET(GLAreaGtk)));
+
+      { TODO: The gdk_window_ensure_native helps
+        (with flickering and mouse coordinates),
+        but makes a new problem: GLAreaGtk becomes detached from the actual
+        window.
+
+        Workarounds like synchronizing it with WindowGtk's size,
+        or even placing in own gdk_window_new with GDK_WINDOW_SUBSURFACE,
+        don't help. }
+
       WaylandSurface := gdk_wayland_window_get_wl_surface(
         gtk_widget_get_window(GTK_WIDGET(GLAreaGtk)));
       WaylandEglWindow := wl_egl_window_create(WaylandSurface, Width, Height);
