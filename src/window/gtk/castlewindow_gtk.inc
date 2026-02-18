@@ -2077,6 +2077,8 @@ begin
         (this is what happens when use GTK X backend on Wayland -- basically,
         it will work)
       - https://wayland.freedesktop.org/faq.html#heading_toc_j_11
+      - https://bugs.webkit.org/show_bug.cgi?id=115721
+        https://trac.webkit.org/changeset/150440/webkit
     }
     gdk_set_allowed_backends('x11');
     {$endif}
