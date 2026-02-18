@@ -2001,6 +2001,23 @@ end;
 
 procedure TCastleApplication.InitializeXDisplay;
 
+  {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
+  { Check that we're not using Wayland backend, to fail gracefully
+    in this case. Otherwise glX initialization will fail with SIGSEGV
+    when trying to do glXQueryExtension with something we got from
+    gdk_x11_display_get_xdisplay. }
+  procedure CheckNotWayland(const DisplayGdk: PGdkDisplay);
+  var
+    DisplayClassName: String;
+  begin
+    DisplayClassName := g_type_name_from_instance(PGTypeInstance(DisplayGdk));
+    if DisplayClassName = 'GdkWaylandDisplay' then
+      raise Exception.Create('GTK Wayland backend is not supported by this application (yet). ' + NL +
+        'We requested X11 backend already by calling gdk_set_allowed_backends, but got Wayland backend instead -> weird, report a bug. ' + NL +
+        'Force X11 backend by setting environment variable `export GDK_BACKEND=x11` before running the application.');
+  end;
+  {$endif CASTLE_WINDOW_GTK_WITH_XLIB}
+
   {$ifdef DARWIN}
   { Replacement for gtk_init on Darwin, to try harder to attach to a running
     X server on macOS. }
@@ -2030,7 +2047,7 @@ procedure TCastleApplication.InitializeXDisplay;
       end;
     end;
   end;
-  {$endif}
+  {$endif DARWIN}
 
 begin
   if not InitializeXDisplayDone then
@@ -2038,6 +2055,31 @@ begin
     { TODO: Old comment suggested that GTK initializes X display at gtk_init,
       parsing --display on it's own. Confirm?
       It should work anyway. }
+
+    {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
+    { Our current implementation assumes that when using GTK on Unix,
+      -> we're using X11 API, not Wayland API.
+      Even when we use EGL, we still rely on gdk_x11_window_get_xid .
+      And when we use glX, we have to use X11 API.
+
+      By default on new Linux distros, with Wayland, GTK will use Wayland
+      backend. (though users can change it with `export GDK_BACKEND=x11`,
+      https://docs.gtk.org/gtk3/wayland.html ).
+      In such case, our context creation will fail.
+
+      Note that gdk_x11_* functions seem to work even when GTK is using
+      Wayland backend... but our window is not X11 window.
+      Our display, that we get from gdk_x11_display_get_xdisplay, causes
+      SEGFAULTs when used with glX tests like glXQueryExtension with it.
+
+      See also
+      - https://en.wikipedia.org/wiki/X.Org_Server#XWayland
+        (this is what happens when use GTK X backend on Wayland -- basically,
+        it will work)
+      - https://wayland.freedesktop.org/faq.html#heading_toc_j_11
+    }
+    gdk_set_allowed_backends('x11');
+    {$endif}
 
     {$ifdef DARWIN}
     DarwinGtkInit;
@@ -2049,6 +2091,10 @@ begin
       XDisplayGdk := gdk_display_open(PChar(XDisplayName))
     else
       XDisplayGdk := gdk_display_get_default();
+
+    {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
+    CheckNotWayland(XDisplayGdk);
+    {$endif CASTLE_WINDOW_GTK_WITH_XLIB}
 
     XScreenGdk := gdk_display_get_default_screen(XDisplayGdk);
 
