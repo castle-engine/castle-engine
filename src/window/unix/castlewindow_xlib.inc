@@ -31,7 +31,7 @@ Xlib, CastleInternalXlib, XUtil, X, KeySym, CursorFont,
 
 {$ifdef read_window_interface}
 private
-  windowXID: TWindow;
+  WindowXID: TWindow;
   parentwinXID: TWindow; { refreshed on ReparentNotify, needed for X_Configureevent }
   {$ifndef USE_EGL}
   Colormap: TColormap;
@@ -39,6 +39,10 @@ private
 
   function HandleXEvent(const Event: TXEvent): boolean;
   procedure UpdateCursor;
+
+  { Define for castlewindow_glx.inc usage.
+    In this backend, this just returns WindowXID. }
+  function RenderingAreaXID: TWindow;
 {$endif read_window_interface}
 
 {$ifdef read_application_interface}
@@ -630,6 +634,11 @@ end;
 
 procedure TCastleWindow.BackendInsideUpdate;
 begin
+end;
+
+function TCastleWindow.RenderingAreaXID: TWindow;
+begin
+  Result := WindowXID;
 end;
 
 { TCastleApplication ------------------------------------------------------- }

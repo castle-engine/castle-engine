@@ -94,10 +94,7 @@ private
   procedure GetInitialCursorPos;
 
   {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
-  { GLAreaGtk X11 identifier.
-    TODO: Name is confusing, this is about GLAreaGtk, not from WindowGtk.
-    It is used by castlewindow_glx.inc functions. }
-  function WindowXID: TWindow;
+  function RenderingAreaXID: TWindow;
   {$endif}
 private
   FBorderWidth: Cardinal;
@@ -829,11 +826,11 @@ begin
 end;
 
 {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
-function TCastleWindow.WindowXID: TWindow;
+function TCastleWindow.RenderingAreaXID: TWindow;
 begin
   {$ifdef DEBUG}
   if gtk_widget_get_window(GTK_WIDGET(GLAreaGtk)) = nil then
-    WritelnWarning('Using TCastleWindow.WindowXID on a gtk widget that is not realized yet, gtk_widget_get_window(GLAreaGtk) is nil');
+    WritelnWarning('Using TCastleWindow.RenderingAreaXID on a gtk widget that is not realized yet, gtk_widget_get_window(GLAreaGtk) is nil');
   {$endif}
 
   Result :=
@@ -843,7 +840,7 @@ begin
 
   {$ifdef DEBUG}
   if Result = None then
-    WritelnWarning('Using TCastleWindow.WindowXID on a gtk widget that is not realized yet, gdk_x11_window_get_xid is None');
+    WritelnWarning('Using TCastleWindow.RenderingAreaXID on a gtk widget that is not realized yet, gdk_x11_window_get_xid is None');
   {$endif}
 end;
 {$endif}
@@ -863,7 +860,7 @@ begin
   XWarpPointer(
     gdk_x11_drawable_get_xdisplay(gtk_widget_get_window(GTK_WIDGET(GLAreaGtk))),
     X.None,
-    WindowXID,
+    RenderingAreaXID,
     0, 0, 0, 0, P.X, P.Y);
   {$else}
     gdk_window_get_root_coords(gtk_widget_get_window(GTK_WIDGET(GLAreaGtk)),
@@ -1048,13 +1045,13 @@ begin
   {$endif}
 
   {$ifndef USE_EGL}
-  { Note that we don't have, and also don't need, WindowXID now.
+  { Note that we don't have, and also don't need, RenderingAreaXID now.
 
-    That's because widget is not realized, and calling WindowXID
+    That's because widget is not realized, and calling RenderingAreaXID
     would just cause warning
     "... Gdk-WARNING **: ....: /build/gtk+2.0-ABXlu1/gtk+2.0-2.24.32/gdk/x11/gdkdrawable-x11.c:952 drawable is not a pixmap or window"
 
-    Luckily, TGLContextGlx doesn't require WindowXID.
+    Luckily, TGLContextGlx doesn't require RenderingAreaXID.
     And not defined USE_EGL -> implies we use TGLContextGlx now,
     as GTK backend supports only glX or EGL.
   }
@@ -1259,9 +1256,9 @@ begin
     This means:
     - gtk_widget_get_window(GTK_WIDGET(WindowGtk)) is non-nil,
     - gtk_widget_get_window(GTK_WIDGET(GLAreaGtk)) is non-nil,
-    - WindowXID (relies on GLAreaGtk being realized) is non-None,
+    - RenderingAreaXID (relies on GLAreaGtk being realized) is non-None,
     - we can do MakeCurrent (and call OpenGL commands) once we get OpenGL
-      context for this WindowXID. }
+      context for this RenderingAreaXID. }
   if not gtk_widget_get_realized(GTK_WIDGET(WindowGtk)) then
     raise EInternalError.Create('CastleWindow.OpenBackend: WindowGtk is not realized yet (GdkWindow of it not created, X11 resources of it not initialized)');
   if not gtk_widget_get_realized(GTK_WIDGET(GLAreaGtk)) then
@@ -1269,11 +1266,11 @@ begin
 
   {$ifdef USE_EGL}
     {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
-      { In case of EGL + X we need WindowXID.
+      { In case of EGL + X we need RenderingAreaXID.
         So we cannot use previous workaround, instead we wait for a good time
-        to get WindowXID, when widget is realized.
+        to get RenderingAreaXID, when widget is realized.
         TODO: Should we just do it with glX version too? }
-      ContextCreate(WindowXID);
+      ContextCreate(RenderingAreaXID);
 
     {$elseif defined(CASTLE_WINDOW_GTK_WAYLAND)}
       { Ensure GLAreaGtk has a native GdkWindow (= its own wl_subsurface
@@ -2126,7 +2123,7 @@ begin
       parsing --display on it's own. Confirm?
       It should work anyway. }
 
-    {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
+    {$if defined(CASTLE_WINDOW_GTK_WITH_XLIB) and defined(CASTLE_WINDOW_GTK_3)}
     { About gdk_set_allowed_backends:
 
       Our implementation of CASTLE_WINDOW_GTK_WITH_XLIB assumes that

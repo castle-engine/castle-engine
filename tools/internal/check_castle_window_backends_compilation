@@ -66,8 +66,9 @@ do_test_all_backends ()
 
   do_test_one_backend win32 i386 CASTLE_WINDOW_WINAPI
   # For now we don't support CASTLE_WINDOW_GTK_2 / 3 on non-Unix,
-  # see "TODO: WindowXID is only with X" in implementation.
-  # This could be fixed if ever needed -- but in practice there's no point using
+  # as for both glX and EGL we need to access native resources underneath,
+  # and we implement this only for X and Wayland now (not e.g. WinAPI).
+  # This could be fixed if needed -- but in practice there's no point using
   # GTK backend e.g. on Windows, since we have WinAPI backend.
   # do_test_one_backend win32 i386 CASTLE_WINDOW_GTK_2
   # do_test_one_backend win32 i386 CASTLE_WINDOW_GTK_3
