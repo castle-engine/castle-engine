@@ -38,17 +38,29 @@ do_test_one_backend_lcl ()
 }
 
 # Test a single backend.
-# Parameters: OS CPU backend-name
+#
+# Parameters: OS CPU <backend-name> [extra-build-tool-options...] .
+# - <backend-name> must be a compilation symbol like CASTLE_WINDOW_xxx .
+# - [extra-build-tool-options...] are just additional command-line options
+#   to pass to build tool.
 do_test_one_backend ()
 {
-  if [ "$3" = 'CASTLE_WINDOW_FORM' ]; then
-    do_test_one_backend_lcl "$1" "$2"
+  local OS
+  OS="$1"
+  local CPU
+  CPU="$2"
+  local CASTLE_WINDOW_BACKEND
+  CASTLE_WINDOW_BACKEND="$3"
+  shift 3
+
+  if [ "${CASTLE_WINDOW_BACKEND}" = 'CASTLE_WINDOW_FORM' ]; then
+    do_test_one_backend_lcl "${OS}" "${CPU}"
   else
     # Cleans the project, to remove compilation outputs with defined CASTLE_WINDOW_*
     do_run "${BUILD_TOOL}" --project="${TEST_PROJECT}" clean
-    do_run "${BUILD_TOOL}" --project="${TEST_PROJECT}" compile --os="$1" --cpu="$2" --mode=debug --compiler-option=-d"$3"
+    do_run "${BUILD_TOOL}" --project="${TEST_PROJECT}" compile --os="${OS}" --cpu="${CPU}" --mode=debug --compiler-option=-d"${CASTLE_WINDOW_BACKEND}" "$@"
     do_run "${BUILD_TOOL}" --project="${TEST_PROJECT}" clean
-    do_run "${BUILD_TOOL}" --project="${TEST_PROJECT}" compile --os="$1" --cpu="$2" --mode=release --compiler-option=-d"$3"
+    do_run "${BUILD_TOOL}" --project="${TEST_PROJECT}" compile --os="${OS}" --cpu="${CPU}" --mode=release --compiler-option=-d"${CASTLE_WINDOW_BACKEND}" "$@"
   fi
 }
 
@@ -56,8 +68,11 @@ do_test_one_backend ()
 do_test_all_backends ()
 {
   do_test_one_backend linux x86_64 CASTLE_WINDOW_GTK_2
+  do_test_one_backend linux x86_64 CASTLE_WINDOW_GTK_2 --compiler-option=-dUSE_EGL
   do_test_one_backend linux x86_64 CASTLE_WINDOW_GTK_3
+  do_test_one_backend linux x86_64 CASTLE_WINDOW_GTK_3 --compiler-option=-dUSE_EGL
   do_test_one_backend linux x86_64 CASTLE_WINDOW_XLIB
+  do_test_one_backend linux x86_64 CASTLE_WINDOW_XLIB --compiler-option=-dUSE_EGL
   do_test_one_backend linux x86_64 CASTLE_WINDOW_TEMPLATE
   # Note that CASTLE_WINDOW_LIBRARY backend will not really work
   # with a standalone application, but it should compile OK.
