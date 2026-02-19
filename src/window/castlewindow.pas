@@ -2455,8 +2455,8 @@ end.
         @itemLabel @--log-file FILE-NAME
         @item(Force log to given file, sets @link(LogFileName).)
 
-        @itemLabel @--display X-DISPLAY-NAME
-        @item(Sets Application.XDisplayName under Unix.)
+        @itemLabel @--display DISPLAY-NAME
+        @item(Sets @link(TCastleApplication.DisplayName Application.DisplayName), useful to set X display on Unix.)
 
         @itemLabel -psvn_x_xxx
         @item(
@@ -4573,46 +4573,43 @@ var
   HelpString: String;
 begin
   case OptionNum of
-    0: begin
-         HelpString :=
-           ApplicationName + NL+
-           NL+
-           'Available command-line options:' + NL +
-           Application.ParseStandardParametersHelp + NL +
-           SoundEngine.ParseParametersHelp + NL+
-           // do this regardless of MainWindow <> nil, as MainWindow may be assigned later
-           TCastleWindow.ParseParametersHelp + NL +
-           NL +
-           'TCastleWindow backend: ' + Application.BackendName + '.' + NL +
-           NL +
-           ApplicationProperties.Description;
-         InfoWrite(HelpString);
-         Halt;
-       end;
-    1: begin
-         // include ApplicationName in --version output, this is good for help2man
-         Writeln(ApplicationName + ' ' + ApplicationProperties.Version);
-         Halt;
-       end;
-    2: LogFileName := Argument;
-    3: begin
-         {$ifdef CASTLE_WINDOW_XLIB}
-         if Application.FOpenWindows.Count <> 0 then
-           WarningWrite(ApplicationName + ': some windows are already open ' +
-             'so --display option is ignored.') else
-           Application.XDisplayName := Argument;
-         {$else}
-           {$ifdef CASTLE_WINDOW_GTK_ANY}
-           Application.XDisplayName := Argument;
-           {$else}
-           WarningWrite(ApplicationName + ': warning: --display option is ignored ' +
-             'when we don''t use directly Xlib');
-           {$endif}
-         {$endif}
-       end;
-    4: ApplicationProperties.LimitFps := 0;
-    5: TGLFeatures.RequestCapabilities := StrToCapabilities(Argument);
-    6: ApplicationProperties.TouchDevice := true;
+    0:begin
+        HelpString :=
+          ApplicationName + NL+
+          NL+
+          'Available command-line options:' + NL +
+          Application.ParseStandardParametersHelp + NL +
+          SoundEngine.ParseParametersHelp + NL+
+          // do this regardless of MainWindow <> nil, as MainWindow may be assigned later
+          TCastleWindow.ParseParametersHelp + NL +
+          NL +
+          'TCastleWindow backend: ' + Application.BackendName + '.' + NL +
+          NL +
+          ApplicationProperties.Description;
+        InfoWrite(HelpString);
+        Halt;
+      end;
+    1:begin
+        // include ApplicationName in --version output, this is good for help2man
+        Writeln(ApplicationName + ' ' + ApplicationProperties.Version);
+        Halt;
+      end;
+    2:LogFileName := Argument;
+    3:begin
+        if Application.FOpenWindows.Count <> 0 then
+          WarningWrite('Some windows are already open so --display option is ignored.')
+        else
+        begin
+          {$if defined(CASTLE_WINDOW_XLIB) or defined(CASTLE_WINDOW_GTK_ANY)}
+          Application.DisplayName := Argument;
+          {$else}
+          WarningWrite('Warning: --display option is ignored when we don''t use Xlib or GTK.');
+          {$endif}
+        end;
+      end;
+    4:ApplicationProperties.LimitFps := 0;
+    5:TGLFeatures.RequestCapabilities := StrToCapabilities(Argument);
+    6:ApplicationProperties.TouchDevice := true;
     else raise EInternalError.Create('ApplicationOptionProc: unhandled OptionNum');
   end;
 end;

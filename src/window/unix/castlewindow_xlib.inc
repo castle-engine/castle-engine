@@ -1,6 +1,6 @@
 {%MainUnit ../castlewindow.pas}
 {
-  Copyright 2001-2022 Michalis Kamburelis.
+  Copyright 2001-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -47,7 +47,7 @@ private
 
 {$ifdef read_application_interface}
 private
-  FXDisplayName: String;
+  FDisplayName: String;
   FXScreen: Integer;
   InitializeXDisplayDone: boolean;
   XCursors: array [TMouseCursor] of TCursor;
@@ -68,7 +68,7 @@ private
   function FindWindowXID(seekWindowXID: TWindow): TCastleWindow;
 
   { Initialize and check X display.
-    Call this once you're sure that XDisplayName is set to
+    Call this once you're sure that DisplayName is set to
     a value desired by user (so, after processing --display command-line
     option), and only when you're sure you need to connect to the X server
     (to open a window, or query Application.ScreenWidth / ScreenHeight).
@@ -87,7 +87,7 @@ public
 
   { X display name used to communicate with X server (to open windows,
     query screen size and so on). }
-  property XDisplayName: String read FXDisplayName write FXDisplayName;
+  property DisplayName: String read FDisplayName write FDisplayName;
   property XDisplay: PDisplay read FXDisplay;
   property XScreen: Integer read FXScreen;
 {$endif read_application_interface}
@@ -667,27 +667,27 @@ end;
 procedure TCastleApplication.InitializeXDisplay;
 {$ifdef DARWIN}
 const
-  AltXDisplayName = ':0';
+  AltDisplayName = ':0';
 {$endif}
 begin
   if not InitializeXDisplayDone then
   begin
-    { process FXDisplayName by Xlib.XDisplayName, to make it look nicer }
-    FXDisplayName := Xlib.XDisplayName(PCharOrNil(FXDisplayName));
-    FXDisplay := XOpenDisplay(PCharOrNil(FXDisplayName));
+    { process FDisplayName by Xlib.XDisplayName, to make it look nicer }
+    FDisplayName := Xlib.XDisplayName(PCharOrNil(FDisplayName));
+    FXDisplay := XOpenDisplay(PCharOrNil(FDisplayName));
 
     if XDisplay = nil then
     begin
       {$ifdef DARWIN}
       Writeln(ErrOutput, Format('Opening the default X display "%s" failed, retrying with "%s" to try to attach to running X server on macOS.',
-        [XDisplayName, AltXDisplayName]));
+        [DisplayName, AltDisplayName]));
 
-      FXDisplayName := Xlib.XDisplayName(PCharOrNil(AltXDisplayName));
-      FXDisplay := XOpenDisplay(PCharOrNil(FXDisplayName));
+      FDisplayName := Xlib.XDisplayName(PCharOrNil(AltDisplayName));
+      FXDisplay := XOpenDisplay(PCharOrNil(FDisplayName));
 
       if XDisplay = nil then
       {$endif}
-        raise Exception.CreateFmt('XOpenDisplay could not open display "%s"', [XDisplayName]);
+        raise Exception.CreateFmt('XOpenDisplay could not open display "%s"', [DisplayName]);
     end;
 
     // TODO: Is it OK for a plugin to just get XDefaultScreen below?

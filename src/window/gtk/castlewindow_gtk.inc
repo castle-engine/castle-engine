@@ -137,20 +137,18 @@ private
   { Used by SetCursor, each item may be nil if not initialized. }
   Cursors: array [TMouseCursor] of PGdkCursor;
 
-  FXDisplayName: String;
+  InitializeDisplayDone: boolean;
 
-  InitializeXDisplayDone: boolean;
-
-  XDisplayGdk: PGdkDisplay;
-  XScreenGdk: PGdkScreen;
+  DisplayGdk: PGdkDisplay;
+  ScreenGdk: PGdkScreen;
 
   { Class name of PGdkDisplay, e.g. to detect are using Wayland or X backend. }
   GdkDisplayName: String;
 
-  { Initialize X display, calling gtk_init, gtk_gl_init, calculating
-    XDisplayGdk and XScreenGdk.
+  { Initialize GDK display, calling gtk_init, gtk_gl_init, calculating
+    DisplayGdk and ScreenGdk.
 
-    Call this only once you're sure that XDisplayName is set to
+    Call this only once you're sure that DisplayName is set to
     a value desired by used (so, after parsing command-line parameters).
 
     Also, call this only when necessary, when you need to open a window
@@ -158,7 +156,7 @@ private
     This way, our GUI tools can perform a subset of their functionality
     (e.g. respond to --help or --version) even in a headless mode
     (without X server running). }
-  procedure InitializeXDisplay;
+  procedure InitializeDisplay;
 
   {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
   { Used by castlewindow_glx.inc functions, used by XF86VMODE functions. }
@@ -166,12 +164,10 @@ private
   function XScreen: Integer;
   {$endif}
 public
-  { Set XDisplay name, this will be used for all TCastleWindow
-    that will be subsequently initialized by TCastleWindow.Open.
-
-    Note that this is exposed by GTK even for non-XWindows platforms,
-    but I don't know what it does there. }
-  property XDisplayName: String read FXDisplayName write FXDisplayName;
+  { Set display name for GDK, used to determine X display name.
+    If empty, GDK will use default display.
+    Do not change this after opening any windows. }
+  DisplayName: String;
 {$endif read_application_interface}
 
 {$ifdef read_implementation}
@@ -814,11 +810,11 @@ begin
           {$ifdef CASTLE_WINDOW_GTK_2}
           CreateNoneCursor
           {$else}
-          gdk_cursor_new_for_display(Application.XDisplayGdk, GDK_BLANK_CURSOR)
+          gdk_cursor_new_for_display(Application.DisplayGdk, GDK_BLANK_CURSOR)
           {$endif};
       else
         Application.Cursors[InternalCursor] := gdk_cursor_new_for_display(
-          Application.XDisplayGdk, GdkCursorTypeFromCastle[InternalCursor]);
+          Application.DisplayGdk, GdkCursorTypeFromCastle[InternalCursor]);
     end;
   end;
 
@@ -865,8 +861,8 @@ begin
   {$else}
     gdk_window_get_root_coords(gtk_widget_get_window(GTK_WIDGET(GLAreaGtk)),
       P.X, P.Y, @RootX, @RootY);
-    gdk_display_warp_pointer(Application.XDisplayGdk,
-      Application.XScreenGdk, RootX, RootY);
+    gdk_display_warp_pointer(Application.DisplayGdk,
+      Application.ScreenGdk, RootX, RootY);
   {$endif}
 end;
 
@@ -891,7 +887,7 @@ begin
     in double precision. }
   gdk_window_get_device_position_double(
     gtk_widget_get_window(GTK_WIDGET(GLAreaGtk)),
-    GdkPointerDevice(Application.XDisplayGdk),
+    GdkPointerDevice(Application.DisplayGdk),
     @X, @Y, nil);
   {$endif}
 
@@ -958,7 +954,7 @@ const
     ScreenWidthMM: Single;
     NewDpi: Single;
   begin
-    NewDpi := gdk_screen_get_resolution(Application.XScreenGdk);
+    NewDpi := gdk_screen_get_resolution(Application.ScreenGdk);
     if NewDpi <= 0 then
     begin
       ScreenWidthMM := gdk_screen_width_mm();
@@ -997,7 +993,7 @@ var
   WaylandDisplay: Pwl_display;
 {$endif}
 begin
-  Application.InitializeXDisplay;
+  Application.InitializeDisplay;
 
   WindowGtk := PGtkWindow(gtk_window_new(GTK_WINDOW_TOPLEVEL));
 
@@ -1016,7 +1012,7 @@ begin
     ContextCreateEarly;
 
     { Create GdkVisual and GdkColormap using XVisual }
-    GdkVisual := gdk_x11_screen_lookup_visual(Application.XScreenGdk, XVisual^.VisualId);
+    GdkVisual := gdk_x11_screen_lookup_visual(Application.ScreenGdk, XVisual^.VisualId);
     {$ifdef CASTLE_WINDOW_GTK_2}
     GdkColormap := gdk_colormap_new(GdkVisual, gfalse);
     gtk_widget_push_colormap(GdkColormap);
@@ -1222,9 +1218,9 @@ begin
     {$endif CASTLE_USE_gtk_window_set_geometry_hints}
   end;
 
-  { Honour display (XScreenGdk is default screen on chosen display)
+  { Honour display (ScreenGdk is default screen on chosen display)
     chosen by user. }
-  gtk_window_set_screen(WindowGtk, Application.XScreenGdk);
+  gtk_window_set_screen(WindowGtk, Application.ScreenGdk);
 
   if Visible then
   begin
@@ -1292,7 +1288,7 @@ begin
       WaylandSurface := gdk_wayland_window_get_wl_surface(
         gtk_widget_get_window(GTK_WIDGET(GLAreaGtk)));
       WaylandEglWindow := wl_egl_window_create(WaylandSurface, Width, Height);
-      WaylandDisplay := gdk_wayland_display_get_wl_display(Application.XDisplayGdk);
+      WaylandDisplay := gdk_wayland_display_get_wl_display(Application.DisplayGdk);
       Assert(SizeOf(EGLNativeWindowType) = SizeOf(Pwl_egl_window));
       ContextCreate(EGLNativeWindowType(WaylandEglWindow), WaylandDisplay);
 
@@ -1375,7 +1371,7 @@ end;
 procedure TCastleWindow.CreateBackend;
 begin
   { We don't do here anything, and thus it doesn't require calling
-    Application.InitializeXDisplay. This way, merely calling
+    Application.InitializeDisplay. This way, merely calling
     TCastleWindow.Create doesn't require X server runnning. }
 end;
 
@@ -1779,7 +1775,7 @@ var
   C: PGtkClipboard;
 begin
   C :=
-    {$ifdef CASTLE_WINDOW_GTK_3} gtk_clipboard_get_default(Application.XDisplayGdk)
+    {$ifdef CASTLE_WINDOW_GTK_3} gtk_clipboard_get_default(Application.DisplayGdk)
     {$else} gtk_clipboard_get(GDK_SELECTION_CLIPBOARD)
     {$endif};
   Result := gtk_clipboard_wait_for_text(C);
@@ -1790,7 +1786,7 @@ var
   C: PGtkClipboard;
 begin
   C :=
-    {$ifdef CASTLE_WINDOW_GTK_3} gtk_clipboard_get_default(Application.XDisplayGdk)
+    {$ifdef CASTLE_WINDOW_GTK_3} gtk_clipboard_get_default(Application.DisplayGdk)
     {$else} gtk_clipboard_get(GDK_SELECTION_CLIPBOARD)
     {$endif};
   gtk_clipboard_set_text(C, PChar(Value), Length(Value));
@@ -1999,13 +1995,13 @@ var
   Monitor: GInt;
   Rect: TGdkRectangle;
 begin
-  InitializeXDisplay;
-  //Result := gdk_screen_get_width(XScreenGdk);
+  InitializeDisplay;
+  //Result := gdk_screen_get_width(ScreenGdk);
   // Below is better for dual monitors.
   // TODO: add to docs that Left/Top are relative to global coords, not this monitor
   // TODO: this is actually still bad, different window may be on different monitors with different resolutions
-  Monitor := gdk_screen_get_primary_monitor(XScreenGdk);
-  gdk_screen_get_monitor_geometry(XScreenGdk, Monitor, @Rect);
+  Monitor := gdk_screen_get_primary_monitor(ScreenGdk);
+  gdk_screen_get_monitor_geometry(ScreenGdk, Monitor, @Rect);
   Result := Rect.Width;
 end;
 
@@ -2014,13 +2010,13 @@ var
   Monitor: GInt;
   Rect: TGdkRectangle;
 begin
-  InitializeXDisplay;
-  //Result := gdk_screen_get_height(XScreenGdk);
+  InitializeDisplay;
+  //Result := gdk_screen_get_height(ScreenGdk);
   // Below is better for dual monitors.
   // TODO: add to docs that Left/Top are relative to global coords, not this monitor
   // TODO: this is actually still bad, different window may be on different monitors with different resolutions
-  Monitor := gdk_screen_get_primary_monitor(XScreenGdk);
-  gdk_screen_get_monitor_geometry(XScreenGdk, Monitor, @Rect);
+  Monitor := gdk_screen_get_primary_monitor(ScreenGdk);
+  gdk_screen_get_monitor_geometry(ScreenGdk, Monitor, @Rect);
   Result := Rect.Height;
 end;
 {$endif CASTLE_WINDOW_USE_XF86VMODE}
@@ -2044,18 +2040,18 @@ end;
 {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
 function TCastleApplication.XDisplay: Xlib.PDisplay;
 begin
-  InitializeXDisplay;
-  Result := gdk_x11_display_get_xdisplay(XDisplayGdk);
+  InitializeDisplay;
+  Result := gdk_x11_display_get_xdisplay(DisplayGdk);
 end;
 
 function TCastleApplication.XScreen: Integer;
 begin
-  InitializeXDisplay;
-  Result := gdk_x11_screen_get_screen_number(XScreenGdk);
+  InitializeDisplay;
+  Result := gdk_x11_screen_get_screen_number(ScreenGdk);
 end;
 {$endif}
 
-procedure TCastleApplication.InitializeXDisplay;
+procedure TCastleApplication.InitializeDisplay;
 
   {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
   { Check that we're not using Wayland backend, to fail gracefully
@@ -2098,26 +2094,26 @@ procedure TCastleApplication.InitializeXDisplay;
     X server on macOS. }
   procedure DarwinGtkInit;
   const
-    AltXDisplayName = ':0';
+    AltDisplayName = ':0';
   var
     AltDisplay: PGdkDisplay;
   begin
     if not gtk_init_check(@argc, @argv) then
     begin
-      AltDisplay := gdk_display_open(PChar(AltXDisplayName));
+      AltDisplay := gdk_display_open(PChar(AltDisplayName));
 
       if AltDisplay <> nil then
       begin
         Writeln(ErrOutput, 'Opening the default X display failed, retrying with "',
-           AltXDisplayName, '" to try to attach to running X server on macOS.');
+           AltDisplayName, '" to try to attach to running X server on macOS.');
         gdk_display_manager_set_default_display(gdk_display_manager_get(), AltDisplay);
         gtk_init(@argc, @argv);
 
-        { if success, update XDisplayName to the one actually used }
-        XDisplayName := AltXDisplayName;
+        { if success, update DisplayName to the one actually used }
+        DisplayName := AltDisplayName;
       end else
       begin
-        Writeln(ErrOutput, 'Opening X display failed (tried both the default, and "', AltXDisplayName, '"). Start X server first.');
+        Writeln(ErrOutput, 'Opening X display failed (tried both the default, and "', AltDisplayName, '"). Start X server first.');
         Halt(1);
       end;
     end;
@@ -2125,7 +2121,7 @@ procedure TCastleApplication.InitializeXDisplay;
   {$endif DARWIN}
 
 begin
-  if not InitializeXDisplayDone then
+  if not InitializeDisplayDone then
   begin
     { TODO: Old comment suggested that GTK initializes X display at gtk_init,
       parsing --display on it's own. Confirm?
@@ -2188,13 +2184,13 @@ begin
     gtk_init(@argc, @argv);
     {$endif}
 
-    if XDisplayName <> '' then
-      XDisplayGdk := gdk_display_open(PChar(XDisplayName))
+    if DisplayName <> '' then
+      DisplayGdk := gdk_display_open(PChar(DisplayName))
     else
-      XDisplayGdk := gdk_display_get_default();
+      DisplayGdk := gdk_display_get_default();
 
     {$ifdef CASTLE_WINDOW_GTK_3}
-    GdkDisplayName := g_type_name_from_instance(PGTypeInstance(XDisplayGdk));
+    GdkDisplayName := g_type_name_from_instance(PGTypeInstance(DisplayGdk));
     {$endif}
 
     {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
@@ -2204,9 +2200,9 @@ begin
     CheckWayland;
     {$endif CASTLE_WINDOW_GTK_WAYLAND}
 
-    XScreenGdk := gdk_display_get_default_screen(XDisplayGdk);
+    ScreenGdk := gdk_display_get_default_screen(DisplayGdk);
 
-    InitializeXDisplayDone := true;
+    InitializeDisplayDone := true;
   end;
 end;
 
