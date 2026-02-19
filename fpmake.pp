@@ -453,6 +453,9 @@ begin
       P.SourcePath.Add('src/window/unix');
       P.Targets.AddUnit('castleinternalxlib.pas');
 
+      P.SourcePath.Add('src/window/gtk/');
+      P.Targets.AddUnit('castleinternalgdkwayland.pas');
+
       P.SourcePath.Add('src/window/gtk/gtk3/gtk3bindings/');
       P.Targets.AddUnit('castleinternalatk1.pas');
       P.Targets.AddUnit('castleinternalcairo1.pas');

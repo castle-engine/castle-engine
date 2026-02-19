@@ -620,8 +620,9 @@ begin
       'src/window/'
     ],
     [
-      // Only used when with CASTLE_WINDOW_GTK_2 or CASTLE_WINDOW_GTK_3.
-      'src/window/gtk/gtk3/'
+      // Only used when with CASTLE_WINDOW_GTK_3.
+      'src/window/gtk/gtk3/',
+      'src/window/gtk/castleinternalgdkwayland.pas'
     ],
     [ ]);
   finally FreeAndNil(Package) end;
@@ -632,8 +633,9 @@ begin
       'src/window/'
     ],
     [
-      // Only used when with CASTLE_WINDOW_GTK_2 or CASTLE_WINDOW_GTK_3.
-      'src/window/gtk/gtk3/'
+      // Only used when with CASTLE_WINDOW_GTK_3.
+      'src/window/gtk/gtk3/',
+      'src/window/gtk/castleinternalgdkwayland.pas'
     ],
     [ ]);
   finally FreeAndNil(Package) end;
@@ -763,8 +765,9 @@ begin
       // Only for CASTLE_WINDOW_XLIB, available only with FPC, and that's OK -- it's not a default for Linux
       'src/window/unix/castleinternalxlib.pas',
 
-      // Only used when with CASTLE_WINDOW_GTK_2 or CASTLE_WINDOW_GTK_3.
-      'src/window/gtk/gtk3/'
+      // Only used when with CASTLE_WINDOW_GTK_3.
+      'src/window/gtk/gtk3/',
+      'src/window/gtk/castleinternalgdkwayland.pas'
     ],
     [ ]);
   finally FreeAndNil(Package) end;
