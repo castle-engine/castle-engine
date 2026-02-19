@@ -1261,7 +1261,7 @@ begin
     raise EInternalError.Create('CastleWindow.OpenBackend: GLAreaGtk is not realized yet (GdkWindow of it not created, X11 resources of it not initialized)');
 
   {$ifdef USE_EGL}
-    {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
+    {$if defined(CASTLE_WINDOW_GTK_WITH_XLIB)}
       { In case of EGL + X we need RenderingAreaXID.
         So we cannot use previous workaround, instead we wait for a good time
         to get RenderingAreaXID, when widget is realized.
