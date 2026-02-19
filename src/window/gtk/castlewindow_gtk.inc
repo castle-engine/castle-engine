@@ -2064,6 +2064,14 @@ procedure TCastleApplication.InitializeXDisplay;
     gdk_x11_display_get_xdisplay. }
   procedure CheckNotWayland;
   begin
+    { Alternative check could use gdk_wayland_display_get_type and
+      GDK_IS_WAYLAND_DISPLAY like
+      https://gitlab.gnome.org/GNOME/gtk/-/blob/main/gdk/wayland/gdkwaylanddisplay.h .
+      But this would mean that we rely on gdk_wayland_ ... entry points existing,
+      even when we want to work without Wayland.
+      Seems safer to check for GdkDisplayName string,
+      although we risk that this string will change in future GTK versions. }
+
     if GdkDisplayName = 'GdkWaylandDisplay' then
       raise Exception.Create('GTK Wayland backend is not supported by this application (yet). ' + NL +
         'We requested X11 backend already by calling gdk_set_allowed_backends, but got Wayland backend instead -> weird, report a bug. ' + NL +
