@@ -1,3 +1,55 @@
+/* parts/AnalyserNode.webidl ----------------------------------------------------- */
+/* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * The origin of this IDL file is
+ * https://webaudio.github.io/web-audio-api/
+ *
+ * Copyright © 2012 W3C® (MIT, ERCIM, Keio), All Rights Reserved. W3C
+ * liability, trademark and document use rules apply.
+ */
+
+dictionary AnalyserOptions : AudioNodeOptions {
+             unsigned long fftSize = 2048;
+             double        maxDecibels = -30;
+             double        minDecibels = -100;
+             double        smoothingTimeConstant = 0.8;
+};
+
+[Pref="dom.webaudio.enabled",
+ Exposed=Window]
+interface AnalyserNode : AudioNode {
+    [Throws]
+    constructor(BaseAudioContext context,
+                optional AnalyserOptions options = {});
+
+    // Real-time frequency-domain data
+    undefined getFloatFrequencyData(Float32Array array);
+    undefined getByteFrequencyData(Uint8Array array);
+
+    // Real-time waveform data
+    undefined getFloatTimeDomainData(Float32Array array);
+    undefined getByteTimeDomainData(Uint8Array array);
+
+    [SetterThrows, Pure]
+    attribute unsigned long fftSize;
+    [Pure]
+    readonly attribute unsigned long frequencyBinCount;
+
+    [SetterThrows, Pure]
+    attribute double minDecibels;
+    [SetterThrows, Pure]
+    attribute double maxDecibels;
+
+    [SetterThrows, Pure]
+    attribute double smoothingTimeConstant;
+
+};
+
+// Mozilla extension
+AnalyserNode includes AudioNodePassThrough;
 /* parts/AnimationFrameProvider.webidl ----------------------------------------------------- */
 /* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* This Source Code Form is subject to the terms of the Mozilla Public
@@ -14,6 +66,646 @@ interface mixin AnimationFrameProvider {
   [Throws] long requestAnimationFrame(FrameRequestCallback callback);
   [Throws] undefined cancelAnimationFrame(long handle);
 };
+/* parts/AudioBufferSourceNode.webidl ----------------------------------------------------- */
+/* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * The origin of this IDL file is
+ * https://webaudio.github.io/web-audio-api/
+ *
+ * Copyright © 2012 W3C® (MIT, ERCIM, Keio), All Rights Reserved. W3C
+ * liability, trademark and document use rules apply.
+ */
+
+dictionary AudioBufferSourceOptions {
+             AudioBuffer? buffer;
+             float        detune = 0;
+             boolean      loop = false;
+             double       loopEnd = 0;
+             double       loopStart = 0;
+             float        playbackRate = 1;
+};
+
+[Pref="dom.webaudio.enabled",
+ Exposed=Window]
+interface AudioBufferSourceNode : AudioScheduledSourceNode {
+    constructor(BaseAudioContext context,
+                optional AudioBufferSourceOptions options = {});
+
+    [SetterThrows]
+    attribute AudioBuffer? buffer;
+
+    readonly attribute AudioParam playbackRate;
+    readonly attribute AudioParam detune;
+
+    attribute boolean loop;
+    attribute double loopStart;
+    attribute double loopEnd;
+
+    [Throws]
+    undefined start(optional double when = 0, optional double grainOffset = 0,
+                    optional double grainDuration);
+};
+
+// Mozilla extensions
+AudioBufferSourceNode includes AudioNodePassThrough;
+/* parts/AudioBuffer.webidl ----------------------------------------------------- */
+/* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * The origin of this IDL file is
+ * https://webaudio.github.io/web-audio-api/
+ *
+ * Copyright © 2012 W3C® (MIT, ERCIM, Keio), All Rights Reserved. W3C
+ * liability, trademark and document use rules apply.
+ */
+
+dictionary AudioBufferOptions {
+             unsigned long numberOfChannels = 1;
+    required unsigned long length;
+    required float         sampleRate;
+};
+
+[Pref="dom.webaudio.enabled",
+ Exposed=Window]
+interface AudioBuffer {
+    [Throws]
+    constructor(AudioBufferOptions options);
+
+    readonly attribute float sampleRate;
+    readonly attribute unsigned long length;
+
+    // in seconds
+    readonly attribute double duration;
+
+    readonly attribute unsigned long numberOfChannels;
+
+    [Throws]
+    Float32Array getChannelData(unsigned long channel);
+
+    [Throws]
+    undefined copyFromChannel(Float32Array destination, unsigned long channelNumber, optional unsigned long startInChannel = 0);
+    [Throws]
+    undefined copyToChannel(Float32Array source, unsigned long channelNumber, optional unsigned long startInChannel = 0);
+};
+/* parts/AudioContext.webidl ----------------------------------------------------- */
+/* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+
+/* Castle Game Engine notes:
+   This WEBIDL was cut down to our needs.
+   This is not the original (complete) WEBIDL file,
+   if you want a complete file get it from
+   https://hg.mozilla.org/mozilla-central/raw-file/tip/dom/webidl/
+
+   -------------------------------------------------------------------------------
+*/
+
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * The origin of this IDL file is
+ * https://webaudio.github.io/web-audio-api/
+ *
+ * Copyright © 2012 W3C® (MIT, ERCIM, Keio), All Rights Reserved. W3C
+ * liability, trademark and document use rules apply.
+ */
+
+dictionary AudioContextOptions {
+             float        sampleRate;
+};
+
+dictionary AudioTimestamp {
+  double contextTime;
+  DOMHighResTimeStamp performanceTime;
+};
+
+[Pref="dom.webaudio.enabled",
+ Exposed=Window]
+interface AudioContext : BaseAudioContext {
+    [Throws]
+    constructor(optional AudioContextOptions contextOptions = {});
+
+    readonly        attribute double               baseLatency;
+    readonly        attribute double               outputLatency;
+    AudioTimestamp                  getOutputTimestamp();
+
+    [NewObject]
+    Promise<undefined> suspend();
+    [NewObject]
+    Promise<undefined> close();
+
+    //[NewObject, Throws]
+    //MediaElementAudioSourceNode createMediaElementSource(HTMLMediaElement mediaElement);
+
+    //[NewObject, Throws]
+    //MediaStreamAudioSourceNode createMediaStreamSource(MediaStream mediaStream);
+
+    //[NewObject, Throws]
+    //MediaStreamTrackAudioSourceNode createMediaStreamTrackSource(MediaStreamTrack mediaStreamTrack);
+
+    //[NewObject, Throws]
+    //MediaStreamAudioDestinationNode createMediaStreamDestination();
+};
+/* parts/AudioDestinationNode.webidl ----------------------------------------------------- */
+/* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * The origin of this IDL file is
+ * https://webaudio.github.io/web-audio-api/
+ *
+ * Copyright © 2012 W3C® (MIT, ERCIM, Keio), All Rights Reserved. W3C
+ * liability, trademark and document use rules apply.
+ */
+
+[Pref="dom.webaudio.enabled",
+ Exposed=Window]
+interface AudioDestinationNode : AudioNode {
+
+    readonly attribute unsigned long maxChannelCount;
+
+};
+/* parts/AudioListener.webidl ----------------------------------------------------- */
+/* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * The origin of this IDL file is
+ * https://webaudio.github.io/web-audio-api/
+ *
+ * Copyright © 2012 W3C® (MIT, ERCIM, Keio), All Rights Reserved. W3C
+ * liability, trademark and document use rules apply.
+ */
+
+[Pref="dom.webaudio.enabled",
+ Exposed=Window]
+interface AudioListener {
+    // Uses a 3D cartesian coordinate system
+    undefined setPosition(double x, double y, double z);
+    undefined setOrientation(double x, double y, double z, double xUp, double yUp, double zUp);
+};
+/* parts/AudioNode.webidl ----------------------------------------------------- */
+/* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * The origin of this IDL file is
+ * https://webaudio.github.io/web-audio-api/
+ *
+ * Copyright © 2012 W3C® (MIT, ERCIM, Keio), All Rights Reserved. W3C
+ * liability, trademark and document use rules apply.
+ */
+
+enum ChannelCountMode {
+    "max",
+    "clamped-max",
+    "explicit"
+};
+
+enum ChannelInterpretation {
+    "speakers",
+    "discrete"
+};
+
+dictionary AudioNodeOptions {
+             unsigned long         channelCount;
+             ChannelCountMode      channelCountMode;
+             ChannelInterpretation channelInterpretation;
+};
+
+[Pref="dom.webaudio.enabled",
+ Exposed=Window]
+interface AudioNode : EventTarget {
+
+    [Throws]
+    AudioNode connect(AudioNode destination, optional unsigned long output = 0, optional unsigned long input = 0);
+    [Throws]
+    undefined connect(AudioParam destination, optional unsigned long output = 0);
+    [Throws]
+    undefined disconnect();
+    [Throws]
+    undefined disconnect(unsigned long output);
+    [Throws]
+    undefined disconnect(AudioNode destination);
+    [Throws]
+    undefined disconnect(AudioNode destination, unsigned long output);
+    [Throws]
+    undefined disconnect(AudioNode destination, unsigned long output, unsigned long input);
+    [Throws]
+    undefined disconnect(AudioParam destination);
+    [Throws]
+    undefined disconnect(AudioParam destination, unsigned long output);
+
+    readonly attribute BaseAudioContext context;
+    readonly attribute unsigned long numberOfInputs;
+    readonly attribute unsigned long numberOfOutputs;
+
+    // Channel up-mixing and down-mixing rules for all inputs.
+    [SetterThrows]
+    attribute unsigned long channelCount;
+    [SetterThrows, BinaryName="channelCountModeValue"]
+    attribute ChannelCountMode channelCountMode;
+    [SetterThrows, BinaryName="channelInterpretationValue"]
+    attribute ChannelInterpretation channelInterpretation;
+
+};
+
+// Mozilla extension
+partial interface AudioNode {
+  [ChromeOnly]
+  readonly attribute unsigned long id;
+};
+interface mixin AudioNodePassThrough {
+  [ChromeOnly]
+  attribute boolean passThrough;
+};
+/* parts/AudioParam.webidl ----------------------------------------------------- */
+/* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * The origin of this IDL file is
+ * https://webaudio.github.io/web-audio-api/#enumdef-automationrate
+ * https://webaudio.github.io/web-audio-api/#audioparam
+ *
+ * Copyright © 2012 W3C® (MIT, ERCIM, Keio), All Rights Reserved. W3C
+ * liability, trademark and document use rules apply.
+ */
+
+enum AutomationRate {
+    "a-rate",
+    "k-rate"
+};
+
+[Pref="dom.webaudio.enabled",
+ Exposed=Window]
+interface AudioParam {
+    [SetterThrows]
+                    attribute float value;
+    readonly        attribute float defaultValue;
+    readonly        attribute float minValue;
+    readonly        attribute float maxValue;
+
+    // Parameter automation.
+    [Throws]
+    AudioParam setValueAtTime(float value, double startTime);
+    [Throws]
+    AudioParam linearRampToValueAtTime(float value, double endTime);
+    [Throws]
+    AudioParam exponentialRampToValueAtTime(float value, double endTime);
+
+    // Exponentially approach the target value with a rate having the given time constant.
+    [Throws]
+    AudioParam setTargetAtTime(float target, double startTime, double timeConstant);
+
+    // Sets an array of arbitrary parameter values starting at time for the given duration.
+    // The number of values will be scaled to fit into the desired duration.
+    [Throws]
+    AudioParam setValueCurveAtTime(sequence<float> values, double startTime, double duration);
+
+    // Cancels all scheduled parameter changes with times greater than or equal to startTime.
+    [Throws]
+    AudioParam cancelScheduledValues(double startTime);
+
+};
+
+// Mozilla extension
+partial interface AudioParam {
+  // The ID of the AudioNode this AudioParam belongs to.
+  [ChromeOnly]
+  readonly attribute unsigned long parentNodeId;
+  // The name of the AudioParam
+  [ChromeOnly]
+  readonly attribute DOMString name;
+};
+
+partial interface AudioParam {
+  // This attribute is used for mochitest only.
+  [ChromeOnly]
+  readonly attribute boolean isTrackSuspended;
+};
+/* parts/AudioScheduledSourceNode.webidl ----------------------------------------------------- */
+/* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * The origin of this IDL file is
+ * https://webaudio.github.io/web-audio-api/#idl-def-AudioScheduledSourceNode
+ *
+ * Copyright © 2012 W3C® (MIT, ERCIM, Keio), All Rights Reserved. W3C
+ * liability, trademark and document use rules apply.
+ */
+
+[Exposed=Window]
+interface AudioScheduledSourceNode : AudioNode {
+                    attribute EventHandler onended;
+    [Throws]
+    undefined start (optional double when = 0);
+
+    [Throws]
+    undefined stop (optional double when = 0);
+};
+/* parts/AudioWorklet.webidl ----------------------------------------------------- */
+/* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+
+/* Castle Game Engine notes:
+   This WEBIDL was cut down to our needs.
+   This is not the original (complete) WEBIDL file,
+   if you want a complete file get it from
+   https://hg.mozilla.org/mozilla-central/raw-file/tip/dom/webidl/
+
+   -------------------------------------------------------------------------------
+*/
+
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * The origin of this IDL file is
+ * https://webaudio.github.io/web-audio-api/
+ *
+ * Copyright © 2018 W3C® (MIT, ERCIM, Keio), All Rights Reserved. W3C
+ * liability, trademark and document use rules apply.
+ */
+
+[Exposed=Window, SecureContext]
+//interface AudioWorklet : Worklet {
+interface AudioWorklet {
+  //readonly attribute MessagePort port;
+};
+/* parts/BaseAudioContext.webidl ----------------------------------------------------- */
+/* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * The origin of this IDL file is
+ * https://webaudio.github.io/web-audio-api/#idl-def-BaseAudioContext
+ *
+ * Copyright © 2012 W3C® (MIT, ERCIM, Keio), All Rights Reserved. W3C
+ * liability, trademark and document use rules apply.
+ */
+
+callback DecodeSuccessCallback = undefined (AudioBuffer decodedData);
+callback DecodeErrorCallback = undefined (DOMException error);
+
+enum AudioContextState {
+    "suspended",
+    "running",
+    "closed"
+};
+
+[Exposed=Window]
+interface BaseAudioContext : EventTarget {
+    readonly        attribute AudioDestinationNode destination;
+    readonly        attribute float                sampleRate;
+    readonly        attribute double               currentTime;
+    readonly        attribute AudioListener        listener;
+    readonly        attribute AudioContextState    state;
+    [Throws, SameObject, SecureContext]
+    readonly        attribute AudioWorklet         audioWorklet;
+
+    [NewObject]
+    Promise<undefined> resume();
+
+                    attribute EventHandler         onstatechange;
+
+    [NewObject, Throws]
+    AudioBuffer            createBuffer (unsigned long numberOfChannels,
+                                         unsigned long length,
+                                         float sampleRate);
+
+    [NewObject]
+    Promise<AudioBuffer> decodeAudioData(ArrayBuffer audioData,
+                                         optional DecodeSuccessCallback successCallback,
+                                         optional DecodeErrorCallback errorCallback);
+
+    // AudioNode creation
+    [NewObject]
+    AudioBufferSourceNode createBufferSource();
+
+    [NewObject]
+    ConstantSourceNode createConstantSource();
+
+    [NewObject, Throws]
+    ScriptProcessorNode createScriptProcessor(optional unsigned long bufferSize = 0,
+                                              optional unsigned long numberOfInputChannels = 2,
+                                              optional unsigned long numberOfOutputChannels = 2);
+
+    [NewObject, Throws]
+    AnalyserNode createAnalyser();
+
+    [NewObject, Throws]
+    GainNode createGain();
+
+    [NewObject, Throws]
+    DelayNode createDelay(optional double maxDelayTime = 1); // TODO: no = 1
+
+    [NewObject, Throws]
+    BiquadFilterNode createBiquadFilter();
+
+    [NewObject, Throws]
+    IIRFilterNode createIIRFilter(sequence<double> feedforward, sequence<double> feedback);
+
+    [NewObject, Throws]
+    WaveShaperNode createWaveShaper();
+
+    [NewObject, Throws]
+    PannerNode createPanner();
+
+    [NewObject, Throws]
+    StereoPannerNode createStereoPanner();
+
+    [NewObject, Throws]
+    ConvolverNode createConvolver();
+
+    [NewObject, Throws]
+    ChannelSplitterNode createChannelSplitter(optional unsigned long numberOfOutputs = 6);
+
+    [NewObject, Throws]
+    ChannelMergerNode createChannelMerger(optional unsigned long numberOfInputs = 6);
+
+    [NewObject, Throws]
+    DynamicsCompressorNode createDynamicsCompressor();
+
+    [NewObject, Throws]
+    OscillatorNode createOscillator();
+
+    [NewObject, Throws]
+    PeriodicWave createPeriodicWave(sequence<float> real,
+                                    sequence<float> imag,
+                                    optional PeriodicWaveConstraints constraints = {});
+};
+/* parts/BiquadFilterNode.webidl ----------------------------------------------------- */
+/* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * The origin of this IDL file is
+ * https://webaudio.github.io/web-audio-api/
+ *
+ * Copyright © 2012 W3C® (MIT, ERCIM, Keio), All Rights Reserved. W3C
+ * liability, trademark and document use rules apply.
+ */
+
+enum BiquadFilterType {
+  "lowpass",
+  "highpass",
+  "bandpass",
+  "lowshelf",
+  "highshelf",
+  "peaking",
+  "notch",
+  "allpass"
+};
+
+dictionary BiquadFilterOptions : AudioNodeOptions {
+             BiquadFilterType type = "lowpass";
+             float            Q = 1;
+             float            detune = 0;
+             float            frequency = 350;
+             float            gain = 0;
+};
+
+[Pref="dom.webaudio.enabled",
+ Exposed=Window]
+interface BiquadFilterNode : AudioNode {
+    [Throws]
+    constructor(BaseAudioContext context,
+                optional BiquadFilterOptions options = {});
+
+    attribute BiquadFilterType type;
+    readonly attribute AudioParam frequency; // in Hertz
+    readonly attribute AudioParam detune; // in Cents
+    readonly attribute AudioParam Q; // Quality factor
+    readonly attribute AudioParam gain; // in Decibels
+
+    [Throws]
+    undefined getFrequencyResponse(Float32Array frequencyHz,
+                                   Float32Array magResponse,
+                                   Float32Array phaseResponse);
+
+};
+
+// Mozilla extension
+BiquadFilterNode includes  AudioNodePassThrough;
+/* parts/ChannelMergerNode.webidl ----------------------------------------------------- */
+/* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * The origin of this IDL file is
+ * https://webaudio.github.io/web-audio-api/
+ *
+ * Copyright © 2012 W3C® (MIT, ERCIM, Keio), All Rights Reserved. W3C
+ * liability, trademark and document use rules apply.
+ */
+
+dictionary ChannelMergerOptions : AudioNodeOptions {
+             unsigned long numberOfInputs = 6;
+};
+
+[Pref="dom.webaudio.enabled",
+ Exposed=Window]
+interface ChannelMergerNode : AudioNode {
+  [Throws]
+  constructor(BaseAudioContext context,
+              optional ChannelMergerOptions options = {});
+};
+/* parts/ChannelSplitterNode.webidl ----------------------------------------------------- */
+/* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * The origin of this IDL file is
+ * https://webaudio.github.io/web-audio-api/
+ *
+ * Copyright © 2012 W3C® (MIT, ERCIM, Keio), All Rights Reserved. W3C
+ * liability, trademark and document use rules apply.
+ */
+
+dictionary ChannelSplitterOptions : AudioNodeOptions {
+             unsigned long numberOfOutputs = 6;
+};
+
+[Pref="dom.webaudio.enabled",
+ Exposed=Window]
+interface ChannelSplitterNode : AudioNode {
+  [Throws]
+  constructor(BaseAudioContext context,
+              optional ChannelSplitterOptions options = {});
+};
+/* parts/ConstantSourceNode.webidl ----------------------------------------------------- */
+/* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * The origin of this IDL file is
+ * https://webaudio.github.io/web-audio-api/
+ *
+ * Copyright © 2012 W3C® (MIT, ERCIM, Keio), All Rights Reserved. W3C
+ * liability, trademark and document use rules apply.
+ */
+
+dictionary ConstantSourceOptions {
+    float offset = 1;
+};
+
+[Pref="dom.webaudio.enabled",
+ Exposed=Window]
+interface ConstantSourceNode :  AudioScheduledSourceNode {
+    constructor(BaseAudioContext context,
+                optional ConstantSourceOptions options = {});
+
+    readonly        attribute AudioParam   offset;
+};
+/* parts/ConvolverNode.webidl ----------------------------------------------------- */
+/* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * The origin of this IDL file is
+ * https://webaudio.github.io/web-audio-api/
+ *
+ * Copyright © 2012 W3C® (MIT, ERCIM, Keio), All Rights Reserved. W3C
+ * liability, trademark and document use rules apply.
+ */
+
+dictionary ConvolverOptions : AudioNodeOptions {
+             AudioBuffer? buffer;
+             boolean      disableNormalization = false;
+};
+
+[Pref="dom.webaudio.enabled",
+ Exposed=Window]
+interface ConvolverNode : AudioNode {
+      [Throws]
+      constructor(BaseAudioContext context, optional
+                  ConvolverOptions options = {});
+
+      [SetterThrows]
+      attribute AudioBuffer? buffer;
+      attribute boolean normalize;
+
+};
+
+// Mozilla extension
+ConvolverNode includes AudioNodePassThrough;
 /* parts/CSSStyleDeclaration.webidl ----------------------------------------------------- */
 /* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 
@@ -60,6 +752,36 @@ interface CSSStyleDeclaration {
 
   //readonly attribute CSSRule? parentRule;
 };
+/* parts/DelayNode.webidl ----------------------------------------------------- */
+/* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * The origin of this IDL file is
+ * https://webaudio.github.io/web-audio-api/
+ *
+ * Copyright © 2012 W3C® (MIT, ERCIM, Keio), All Rights Reserved. W3C
+ * liability, trademark and document use rules apply.
+ */
+
+dictionary DelayOptions : AudioNodeOptions {
+             double maxDelayTime = 1;
+             double delayTime = 0;
+};
+
+[Pref="dom.webaudio.enabled",
+ Exposed=Window]
+interface DelayNode : AudioNode {
+    [Throws]
+    constructor(BaseAudioContext context, optional DelayOptions options = {});
+
+    readonly attribute AudioParam delayTime;
+
+};
+
+// Mozilla extension
+DelayNode includes AudioNodePassThrough;
 /* parts/Document.webidl ----------------------------------------------------- */
 /* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 
@@ -195,6 +917,46 @@ dictionary DOMRectInit {
     unrestricted double width = 0;
     unrestricted double height = 0;
 };
+/* parts/DynamicsCompressorNode.webidl ----------------------------------------------------- */
+/* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * The origin of this IDL file is
+ * https://webaudio.github.io/web-audio-api/
+ *
+ * Copyright © 2012 W3C® (MIT, ERCIM, Keio), All Rights Reserved. W3C
+ * liability, trademark and document use rules apply.
+ */
+
+dictionary DynamicsCompressorOptions : AudioNodeOptions {
+             float attack = 0.003;
+             float knee = 30;
+             float ratio = 12;
+             float release = 0.25;
+             float threshold = -24;
+};
+
+[Pref="dom.webaudio.enabled",
+ Exposed=Window]
+interface DynamicsCompressorNode : AudioNode {
+    [Throws]
+    constructor(BaseAudioContext context,
+                optional DynamicsCompressorOptions options = {});
+
+    readonly attribute AudioParam threshold; // in Decibels
+    readonly attribute AudioParam knee; // in Decibels
+    readonly attribute AudioParam ratio; // unit-less
+    readonly attribute float reduction; // in Decibels
+    readonly attribute AudioParam attack; // in Seconds
+    [BinaryName="getRelease"]
+    readonly attribute AudioParam release; // in Seconds
+
+};
+
+// Mozilla extension
+DynamicsCompressorNode includes AudioNodePassThrough;
 /* parts/Element.webidl ----------------------------------------------------- */
 /* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 
@@ -698,6 +1460,35 @@ dictionary EventInit {
   boolean cancelable = false;
   boolean composed = false;
 };
+/* parts/GainNode.webidl ----------------------------------------------------- */
+/* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * The origin of this IDL file is
+ * https://webaudio.github.io/web-audio-api/
+ *
+ * Copyright © 2012 W3C® (MIT, ERCIM, Keio), All Rights Reserved. W3C
+ * liability, trademark and document use rules apply.
+ */
+
+dictionary GainOptions : AudioNodeOptions {
+             float gain = 1.0;
+};
+
+[Pref="dom.webaudio.enabled",
+ Exposed=Window]
+interface GainNode : AudioNode {
+    [Throws]
+    constructor(BaseAudioContext context, optional GainOptions options = {});
+
+    readonly attribute AudioParam gain;
+
+};
+
+// Mozilla extension
+GainNode includes AudioNodePassThrough;
 /* parts/HTMLCanvasElement.webidl ----------------------------------------------------- */
 /* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 
@@ -1120,6 +1911,34 @@ interface HTMLVideoElement : HTMLMediaElement {
   [CEReactions, SetterThrows]
            attribute DOMString poster;
 };
+/* parts/IIRFilterNode.webidl ----------------------------------------------------- */
+/* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * The origin of this IDL file is https://www.w3.org/TR/webaudio
+ *
+ * Copyright © 2016 W3C® (MIT, ERCIM, Keio), All Rights Reserved. W3C
+ * liability, trademark and document use rules apply.
+ */
+
+dictionary IIRFilterOptions : AudioNodeOptions {
+    required sequence<double> feedforward;
+    required sequence<double> feedback;
+};
+
+[Pref="dom.webaudio.enabled",
+ Exposed=Window]
+interface IIRFilterNode : AudioNode {
+    [Throws]
+    constructor(BaseAudioContext context, IIRFilterOptions options);
+
+    undefined getFrequencyResponse(Float32Array frequencyHz, Float32Array magResponse, Float32Array phaseResponse);
+};
+
+// Mozilla extension
+IIRFilterNode includes AudioNodePassThrough;
 /* parts/ImageBitmap.webidl ----------------------------------------------------- */
 /* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 
@@ -1611,6 +2430,137 @@ interface OffscreenCanvas : EventTarget {
   attribute EventHandler oncontextlost;
   attribute EventHandler oncontextrestored;
 };
+/* parts/OscillatorNode.webidl ----------------------------------------------------- */
+/* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * The origin of this IDL file is
+ * https://webaudio.github.io/web-audio-api/
+ *
+ * Copyright © 2012 W3C® (MIT, ERCIM, Keio), All Rights Reserved. W3C
+ * liability, trademark and document use rules apply.
+ */
+
+enum OscillatorType {
+  "sine",
+  "square",
+  "sawtooth",
+  "triangle",
+  "custom"
+};
+
+dictionary OscillatorOptions : AudioNodeOptions {
+             OscillatorType type = "sine";
+             float          frequency = 440;
+             float          detune = 0;
+             PeriodicWave   periodicWave;
+};
+
+[Pref="dom.webaudio.enabled",
+ Exposed=Window]
+interface OscillatorNode : AudioScheduledSourceNode {
+    [Throws]
+    constructor(BaseAudioContext context,
+                optional OscillatorOptions options = {});
+
+    [SetterThrows]
+    attribute OscillatorType type;
+
+    readonly attribute AudioParam frequency; // in Hertz
+    readonly attribute AudioParam detune; // in Cents
+
+    undefined setPeriodicWave(PeriodicWave periodicWave);
+};
+
+// Mozilla extensions
+OscillatorNode includes AudioNodePassThrough;
+/* parts/PannerNode.webidl ----------------------------------------------------- */
+/* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * The origin of this IDL file is
+ * https://webaudio.github.io/web-audio-api/
+ *
+ * Copyright © 2012 W3C® (MIT, ERCIM, Keio), All Rights Reserved. W3C
+ * liability, trademark and document use rules apply.
+ */
+
+enum PanningModelType {
+  "equalpower",
+  "HRTF"
+};
+
+enum DistanceModelType {
+  "linear",
+  "inverse",
+  "exponential"
+};
+
+dictionary PannerOptions : AudioNodeOptions {
+             PanningModelType  panningModel = "equalpower";
+             DistanceModelType distanceModel = "inverse";
+             float             positionX = 0;
+             float             positionY = 0;
+             float             positionZ = 0;
+             float             orientationX = 1;
+             float             orientationY = 0;
+             float             orientationZ = 0;
+             double            refDistance = 1;
+             double            maxDistance = 10000;
+             double            rolloffFactor = 1;
+             double            coneInnerAngle = 360;
+             double            coneOuterAngle = 360;
+             double            coneOuterGain = 0;
+};
+
+[Pref="dom.webaudio.enabled",
+ Exposed=Window]
+interface PannerNode : AudioNode {
+    [Throws]
+    constructor(BaseAudioContext context, optional PannerOptions options = {});
+
+    // Default for stereo is equalpower
+    attribute PanningModelType panningModel;
+
+    // Uses a 3D cartesian coordinate system
+    [Throws]
+    undefined setPosition(double x, double y, double z);
+    [Throws]
+    undefined setOrientation(double x, double y, double z);
+
+    // Cartesian coordinate for position
+    readonly attribute AudioParam positionX;
+    readonly attribute AudioParam positionY;
+    readonly attribute AudioParam positionZ;
+
+    // Cartesian coordinate for orientation
+    readonly attribute AudioParam orientationX;
+    readonly attribute AudioParam orientationY;
+    readonly attribute AudioParam orientationZ;
+
+    // Distance model and attributes
+    attribute DistanceModelType distanceModel;
+    [SetterThrows]
+    attribute double refDistance;
+    [SetterThrows]
+    attribute double maxDistance;
+    [SetterThrows]
+    attribute double rolloffFactor;
+
+    // Directional sound cone
+    attribute double coneInnerAngle;
+    attribute double coneOuterAngle;
+    [SetterThrows]
+    attribute double coneOuterGain;
+
+};
+
+// Mozilla extension
+PannerNode includes AudioNodePassThrough;
 /* parts/Performance.webidl ----------------------------------------------------- */
 /* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 
@@ -1642,6 +2592,35 @@ interface OffscreenCanvas : EventTarget {
 typedef unsigned long long DOMTimeStamp;
 typedef unsigned long long EpochTimeStamp;
 typedef double DOMHighResTimeStamp;
+/* parts/PeriodicWave.webidl ----------------------------------------------------- */
+/* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * The origin of this IDL file is
+ * https://webaudio.github.io/web-audio-api/
+ *
+ * Copyright © 2012 W3C® (MIT, ERCIM, Keio), All Rights Reserved. W3C
+ * liability, trademark and document use rules apply.
+ */
+
+dictionary PeriodicWaveConstraints {
+  boolean disableNormalization = false;
+};
+
+dictionary PeriodicWaveOptions : PeriodicWaveConstraints {
+             sequence<float> real;
+             sequence<float> imag;
+};
+
+[Pref="dom.webaudio.enabled",
+ Exposed=Window]
+interface PeriodicWave {
+  [Throws]
+  constructor(BaseAudioContext context,
+              optional PeriodicWaveOptions options = {});
+};
 /* parts/PointerEvent.webidl ----------------------------------------------------- */
 /* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* This Source Code Form is subject to the terms of the Mozilla Public
@@ -1694,6 +2673,60 @@ dictionary PointerEventInit : MouseEventInit
   sequence<PointerEvent> coalescedEvents = [];
   sequence<PointerEvent> predictedEvents = [];
 };
+/* parts/ScriptProcessorNode.webidl ----------------------------------------------------- */
+/* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * The origin of this IDL file is
+ * https://webaudio.github.io/web-audio-api/
+ *
+ * Copyright © 2012 W3C® (MIT, ERCIM, Keio), All Rights Reserved. W3C
+ * liability, trademark and document use rules apply.
+ */
+
+[Pref="dom.webaudio.enabled",
+ Exposed=Window]
+interface ScriptProcessorNode : AudioNode {
+
+    attribute EventHandler onaudioprocess;
+
+    readonly attribute long bufferSize;
+
+};
+
+// Mozilla extension
+ScriptProcessorNode includes AudioNodePassThrough;
+/* parts/StereoPannerNode.webidl ----------------------------------------------------- */
+/* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * The origin of this IDL file is
+ * https://webaudio.github.io/web-audio-api/
+ *
+ * Copyright © 2012 W3C® (MIT, ERCIM, Keio), All Rights Reserved. W3C
+ * liability, trademark and document use rules apply.
+ */
+
+dictionary StereoPannerOptions : AudioNodeOptions {
+             float pan = 0;
+};
+
+[Pref="dom.webaudio.enabled",
+ Exposed=Window]
+interface StereoPannerNode : AudioNode {
+  [Throws]
+  constructor(BaseAudioContext context,
+              optional StereoPannerOptions options = {});
+
+  readonly attribute AudioParam pan;
+};
+
+// Mozilla extension
+StereoPannerNode includes AudioNodePassThrough;
 /* parts/UIEvent.webidl ----------------------------------------------------- */
 /* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* This Source Code Form is subject to the terms of the Mozilla Public
@@ -1925,6 +2958,45 @@ enum VideoPixelFormat {
   // 4:4:4 BGRX (opaque)
   "BGRX",
 };
+/* parts/WaveShaperNode.webidl ----------------------------------------------------- */
+/* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * The origin of this IDL file is
+ * https://webaudio.github.io/web-audio-api/
+ *
+ * Copyright © 2012 W3C® (MIT, ERCIM, Keio), All Rights Reserved. W3C
+ * liability, trademark and document use rules apply.
+ */
+
+enum OverSampleType {
+  "none",
+  "2x",
+  "4x"
+};
+
+dictionary WaveShaperOptions : AudioNodeOptions {
+             sequence<float> curve;
+             OverSampleType  oversample = "none";
+};
+
+[Pref="dom.webaudio.enabled",
+ Exposed=Window]
+interface WaveShaperNode : AudioNode {
+  [Throws]
+  constructor(BaseAudioContext context,
+              optional WaveShaperOptions options = {});
+
+      [Cached, Pure, Throws]
+      attribute Float32Array? curve;
+      attribute OverSampleType oversample;
+
+};
+
+// Mozilla extension
+WaveShaperNode includes AudioNodePassThrough;
 /* parts/WebGL2RenderingContext.webidl ----------------------------------------------------- */
 /* -*- Mode: IDL; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 

@@ -1,0 +1,58 @@
+/* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+
+/* Castle Game Engine notes:
+   This WEBIDL was cut down to our needs.
+   This is not the original (complete) WEBIDL file,
+   if you want a complete file get it from
+   https://hg.mozilla.org/mozilla-central/raw-file/tip/dom/webidl/
+
+   -------------------------------------------------------------------------------
+*/
+
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * The origin of this IDL file is
+ * https://webaudio.github.io/web-audio-api/
+ *
+ * Copyright © 2012 W3C® (MIT, ERCIM, Keio), All Rights Reserved. W3C
+ * liability, trademark and document use rules apply.
+ */
+
+dictionary AudioContextOptions {
+             float        sampleRate;
+};
+
+dictionary AudioTimestamp {
+  double contextTime;
+  DOMHighResTimeStamp performanceTime;
+};
+
+[Pref="dom.webaudio.enabled",
+ Exposed=Window]
+interface AudioContext : BaseAudioContext {
+    [Throws]
+    constructor(optional AudioContextOptions contextOptions = {});
+
+    readonly        attribute double               baseLatency;
+    readonly        attribute double               outputLatency;
+    AudioTimestamp                  getOutputTimestamp();
+
+    [NewObject]
+    Promise<undefined> suspend();
+    [NewObject]
+    Promise<undefined> close();
+
+    //[NewObject, Throws]
+    //MediaElementAudioSourceNode createMediaElementSource(HTMLMediaElement mediaElement);
+
+    //[NewObject, Throws]
+    //MediaStreamAudioSourceNode createMediaStreamSource(MediaStream mediaStream);
+
+    //[NewObject, Throws]
+    //MediaStreamTrackAudioSourceNode createMediaStreamTrackSource(MediaStreamTrack mediaStreamTrack);
+
+    //[NewObject, Throws]
+    //MediaStreamAudioDestinationNode createMediaStreamDestination();
+};
