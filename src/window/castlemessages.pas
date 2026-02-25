@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2023 Michalis Kamburelis.
+  Copyright 2001-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,8 +13,17 @@
   ----------------------------------------------------------------------------
 }
 
-(* Dialog windows (asking user for confirmation, question,
+(*Dialog windows (asking user for confirmation, question,
   simple text input and such) displayed within an OpenGL context (TCastleWindow).
+
+  These routines are comfortable to use, as they return only when
+  the user actually confirmed / made a decision.
+  So you can write code like this:
+
+  @longCode(#
+  if MessageYesNo(Window, 'Are you sure you want to delete this file?') then
+    DeleteFile(...);
+  #)
 
   Features:
 
@@ -79,8 +88,15 @@
       @link(TCastleApplicationProperties.OnUpdate ApplicationProperties.OnUpdate) callbacks,
       at least not without checking whether we're not inside a dialog box.)
   )
-*)
 
+  @italic(Warning): Most routines from this unit cannot work on iOS and web
+  platforms, as they don't support
+  @link(TCastleApplication.ProcessMessage Application.ProcessMessage).
+  There is a workaround for @link(MessageOK) (see @link(MessageOKPushesView)
+  variable), but it doesn't work for other routines like @link(MessageYesNo),
+  so ultimately we advise to just not use this unit at all on iOS and web,
+  and instead use TCastleView-based dialogs from @link(CastleDialogViews) unit.
+*)
 unit CastleMessages;
 
 {$I castleconf.inc}

@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2023 Michalis Kamburelis.
+  Copyright 2001-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,37 +13,20 @@
   ----------------------------------------------------------------------------
 }
 
-(*Dialog windows (to display some information, or ask user for confirmation,
-  or ask user to input a simple value) as a user-interface view (@link(TCastleView)).
-  This unit defines the user-interface view classes
-  (@link(TCastleView) descendants) to display given dialog.
+(*Dialog boxes (to display some information, or ask user for confirmation,
+  or ask user to input a simple value) expressed as user-interface views
+  (@link(TCastleView)).
+  This unit defines the classes (@link(TCastleView) descendants)
+  to display given dialogs.
 
-  If you use @link(TCastleWindow) with most platforms (but not iOS),
-  then it's usually more comfortable to use the unit @link(CastleMessages)
-  instead of this unit.
-  Using the @link(CastleMessages), you get comfortable functions
-  like @link(MessageOK) and @link(MessageYesNo) that
-  wait until user presses a button (like "OK", "Yes", "No") to close the dialog.
-  This is comfortable to use, as you can write code like this:
+  These views work on all platforms, including iOS and web
+  (where the modal routines from @link(CastleMessages) unit don't work,
+  as the browser and iOS must control the main loop).
 
-  @longCode(#
-  if MessageYesNo(Window, 'Are you sure you want to delete this file?') then
-    DeleteFile(...);
-  #)
-
-  Underneath, the @link(MessageYesNo) will use a @link(TViewDialogYesNo),
-  making sure that your normal window callbacks are redirected as appropriate.
-  But you don't need to be concerned with this.
-
-  However, if you need to work on iOS, then you cannot use most of routines
-  from the @link(CastleMessages) unit. You can use @link(MessageOK) if you turn on
-  the @link(MessageOKPushesView) flag, but nothing else. E.g. @link(MessageYesNo)
-  cannot work on iOS now. Making modal boxes like that is not supported on iOS.
-
-  In this case you should use this unit and instantiate the
-  user-interface classes yourself, and you need to
-  @italic(organize your whole game using TCastleView classes).
-  See https://castle-engine.io/views about how to use @link(TCastleView). Like this:
+  Instantiate these views and
+  @italic(organize your whole application using TCastleView classes).
+  See https://castle-engine.io/views about how to use @link(TCastleView).
+  Like this:
 
   @longCode(#
   type
@@ -80,7 +63,6 @@
   end;
   #)
 *)
-
 unit CastleDialogViews;
 
 {$I castleconf.inc}
