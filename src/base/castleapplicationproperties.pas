@@ -166,9 +166,11 @@ type
 
     { Is it common, on current platform, to show the "Quit" button in your application.
       E.g. it is normal to show "Quit" on PC (Windows, Linux etc.).
-      But on mobile devices and consoles (like Nintendo Switch) you should not
-      show "Quit", it is expected that user knows how to use OS-specific
-      mechanism to just switch to a different application.
+      But on mobile devices, consoles (like Nintendo Switch) and web
+      you should not show "Quit", as it is expected that user knows how to
+      use OS-specific mechanism to just switch to a different application.
+      In case of web, user is expected to just close the browser tab / window
+      whenever they want to quit the game.
 
       Just like the @link(TouchDevice), you can change this at runtime
       for debug purposes (to e.g. easily test mobile UI on PC). }
