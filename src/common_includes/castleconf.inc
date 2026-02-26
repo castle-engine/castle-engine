@@ -220,23 +220,13 @@
 { If GENERICS_CONSTREF is defined, then various routines used with Generics.Collections
   (like callbacks we pass to TComparer, or OnNotify callback or Notify virtual method)
   should have "constref" parameter, not "const".
-  This was the case of FPC<= 3.2.0, FPC changed it in
-  https://gitlab.com/freepascal.org/fpc/source/-/commit/693491048bf2c6f9122a0d8b044ad0e55382354d }
+  This was the case in FPC <= 3.2.0.
+  FPC changed constref->const in
+  https://gitlab.com/freepascal.org/fpc/source/-/commit/693491048bf2c6f9122a0d8b044ad0e55382354d
+  and the change is present in FPC fixes branch 3.2.3 and later 3.2.4(rc1). }
 {$ifdef VER3_0} {$define GENERICS_CONSTREF} {$endif}
-{$ifdef VER3_2} {$define GENERICS_CONSTREF} {$endif}
-{$if defined(VER3_2_3) or
-     defined(VER3_2_4) or
-     defined(VER3_2_5) or
-     defined(VER3_2_6)}
-  { FPC 3.2.3 (fixes_3_2 branch, as of 2023-12-23) no longer uses "constref".
-    Confirmed on Linux/Arm32, Linux/Arm64(Aarch64), Linux/x86_64,
-    see also sources:
-    https://gitlab.com/freepascal.org/fpc/source/-/blob/fixes_3_2/packages/rtl-generics/src/generics.collections.pas?ref_type=heads.
-
-    2025-06-24, testing FPC 3.2.4 release candidate, it also doesn't use
-    "constref" in Generics.Collections. }
-  {$undef GENERICS_CONSTREF}
-{$endif}
+{$ifdef VER3_2_0} {$define GENERICS_CONSTREF} {$endif}
+{$ifdef VER3_2_2} {$define GENERICS_CONSTREF} {$endif}
 
 { FPC 3.2.3 on 32-bit ARM (Raspberry Pi) has wrong List.IndexOf by default
   (due to constref / const changes in the Generics.Collections ?), workaround.
