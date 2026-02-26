@@ -1,6 +1,6 @@
 {%MainUnit castleifc.pas}
 {
-  Copyright 2024-2025 Michalis Kamburelis.
+  Copyright 2024-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -6249,6 +6249,19 @@ begin
 end;
 
 procedure TIfcProduct.SetTransformRelativeTo(const OtherProduct: TIfcProduct);
+
+  { Create TIfcLocalPlacement with assigned TIfcLocalPlacement.RelativePlacement.
+
+    Set RelativePlacement to empty TIfcAxis2Placement3D, because
+    it is required by IFC spec
+    (not OPTIONAL in https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcLocalPlacement.htm )
+    and Blender BonsaiBIM indeed crashes when it is missing. }
+  function CreateLocalPlacement: TIfcLocalPlacement;
+  begin
+    Result := TIfcLocalPlacement.Create(Owner);
+    Result.RelativePlacement := TIfcAxis2Placement3D.Create(Owner);
+  end;
+
 begin
   if (OtherProduct = nil) or (OtherProduct = Self) then
   begin
@@ -6261,10 +6274,10 @@ begin
   begin
     // make sure OtherProduct.ObjectPlacement <> nil
     if OtherProduct.ObjectPlacement = nil then
-      OtherProduct.ObjectPlacement := TIfcLocalPlacement.Create(Owner);
+      OtherProduct.ObjectPlacement := CreateLocalPlacement;
     // make sure ObjectPlacement <> nil
     if ObjectPlacement = nil then
-      ObjectPlacement := TIfcLocalPlacement.Create(Owner);
+      ObjectPlacement := CreateLocalPlacement;
     ObjectPlacement.PlacementRelTo := OtherProduct.ObjectPlacement;
 
     { Inverse of PlacementRelTo, according to spec of IfcObjectPlacement.
