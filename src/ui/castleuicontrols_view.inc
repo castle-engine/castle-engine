@@ -486,18 +486,32 @@
       loaded components. Like this:
 
       @longCode(#
-      MyButton := DesignedComponent('MyButton') as TCastleButton;
+      for I := 1 to 10 do
+        MyButton[I] := DesignedComponent('MyButton' + IntToStr(I)) as TCastleButton;
       #)
 
-      This method is seldom useful now.
-      The published fields of the view are automatically initialized when
-      loading / unloading design using @link(DesignUrl).
-      There's no need to use DesignedComponent for them.
+      Note: This method should not be necessary for a typical situation,
+      when you have a simple field like @code(MyButton: TCastleButton)
+      declared in your view class (@link(TCastleView) descendant),
+      and you want to initialize it.
+      In this case, just make sure the field is in the @code(published) section
+      of the class, and the field will be automatically initialized when
+      starting the view.
+      It will also be automatically set to @nil when view stops.
+      loading the design using @link(DesignUrl).
+      There's no need to use DesignedComponent for such cases.
+
+      This method is only useful for complicated cases, when e.g. you determine
+      the component name at runtime.
+
+      @param ComponentName Component name to search in th loaded components.
+      @param(RaiseExceptionOnError When @true (default), we raise exception
+        when the component is not found, and we never return @nil.
+        If you pass @false, then we will return @nil when component is not found.)
 
       @seealso DesignUrl }
-    function DesignedComponent(const ComponentName: String): TComponent;
-      //deprecated 'published view fields are automatically initialized now, no need to use this method';
-      // do not deprecate -- there are valid use-cases for it, sometimes it's easier to enumerate strings by code
+    function DesignedComponent(const ComponentName: String;
+      const RaiseExceptionOnError: boolean = true): TComponent;
 
     { TODO: This doesn't work with FPC 3.2.0, see implementation comments.
       It is also not that useful -- unlike Unity "GameObject.GetComponent<T>(): T",
@@ -963,11 +977,16 @@ begin
 end;
 *)
 
-function TCastleView.DesignedComponent(const ComponentName: String): TComponent;
+function TCastleView.DesignedComponent(const ComponentName: String;
+  const RaiseExceptionOnError: Boolean): TComponent;
 begin
   if FDesignLoaded = nil then
     ErrorDesignLoaded;
-  Result := FDesignLoadedOwner.FindRequiredComponent(ComponentName);
+
+  if RaiseExceptionOnError then
+    Result := FDesignLoadedOwner.FindRequiredComponent(ComponentName)
+  else
+    Result := FDesignLoadedOwner.FindComponent(ComponentName);
 end;
 
 function TCastleView.ContainerWidth: Cardinal;
