@@ -1,6 +1,6 @@
 {%MainUnit x3dnodes.pas}
 {
-  Copyright 2002-2025 Michalis Kamburelis.
+  Copyright 2002-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -1118,6 +1118,8 @@ procedure TX3DRootNode.ExportNode(const Node: TX3DNode; const ExportedAlias: str
 var
   ExportItem: TX3DExport;
 begin
+  Assert(Node <> nil);
+
   if Node.X3DName = '' then
     raise Exception.Create('You cannot export nodes with empty names');
 
@@ -1136,6 +1138,7 @@ end;
 
 procedure TX3DRootNode.ExportNode(const Node: TX3DNode);
 begin
+  Assert(Node <> nil);
   ExportNode(Node, Node.X3DName);
 end;
 

@@ -556,6 +556,10 @@
       See the https://castle-engine.io/shaders#node_release for an example of this. }
     procedure WaitForRelease;
 
+    { Is node unused, looking at all mechanisms (VRML 1.0 parents, X3D parents,
+      KeepExistingBegin/End, WaitsForRelease). }
+    function Unused: Boolean;
+
     { Name of this node. When saving/loading, this comes from VRML/X3D
       "DEF" construct. Empty value means that the name is not defined.
       Do not change this during loading / saving of the X3D graph,
@@ -1419,16 +1423,21 @@ begin
     FDestructionNotifications.Remove(Event);
 end;
 
+function TX3DNode.Unused: Boolean;
+begin
+  Result :=
+    (VRML1ParentsCount = 0) and
+    (FParentFields.Count = 0) and
+    (FKeepExisting = 0) and
+    (not FWaitsForRelease);
+end;
+
 procedure TX3DNode.FreeIfUnused;
 begin
-  if (Self <> nil) and
-     (VRML1ParentsCount = 0) and
-     (FParentFields.Count = 0) and
-     (FKeepExisting = 0) and
-     (not FWaitsForRelease) then
+  if (Self <> nil) and Unused then
   begin
     { For FPC <= 2.2.2:
-      This is written as "Self.Destroy" to actually do the desctruction,
+      This is written as "Self.Destroy" to actually do the destruction,
       freeing memory etc. If I would just call it "Destroy", it would
       perform what destructor does but leaving object instance unfreed.
 
@@ -2318,7 +2327,7 @@ var
                     Only *first* (not *last*) child should determine Position,
                     to later output the MFNode *earlier* than other stuff
                     (like ROUTEs that may depend on ot).
-                    
+
                   3. Note that duplicate names create edge-cases that are
                     impossible to convert between encodings.
                     With non-unique names, something defined in XML X3D
