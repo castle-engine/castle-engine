@@ -4903,7 +4903,7 @@ See https://castle-engine.io/license for details.
         <Filename Value="../../src/base/castleutils_naive_dictionary.inc"/>
         <Type Value="Include"/>
       </Item1203>
-      </Item1204>
+      <Item1204>
         <Filename Value="../../src/scene/x3d/x3dnodes_processurls.inc"/>
         <Type Value="Include"/>
       </Item1204>
