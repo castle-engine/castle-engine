@@ -394,7 +394,7 @@ procedure TInlineNode.LoadInlined(CanReload: boolean;
     for I := 0 to Source.Count - 1 do
     begin
       NodeName := Source[I].ExportedAlias;
-      if NodeName = '' then
+      if (NodeName = '') and (Source[I].ExportedNode <> nil) then
         NodeName := Source[I].ExportedNode.X3DName;
       Target.Bind(Source[I].ExportedNode, true, NodeName);
     end;
