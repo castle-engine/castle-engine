@@ -145,7 +145,6 @@ var
   Material: TPhysicalMaterialNode;
   LoadedMaterial: TPhysicalMaterialNode;
   LoadedShape: TShapeNode;
-  I: Integer;
 begin
   Original := TX3DRootNode.Create;
   try
