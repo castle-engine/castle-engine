@@ -684,8 +684,7 @@ begin
          TVector2.PerfectlyEquals(SingleTextureTransform.FdScale.Value, TextureTransform.FdScale.Value) and
          (SingleTextureTransform.FdRotation.Value = TextureTransform.FdRotation.Value) then
       begin
-        { Ignore the difference, contents of TTextureTransformNode are equal.
-          Free the duplicate node to avoid memory leak. }
+        { Ignore the difference, contents of TTextureTransformNode are equal. }
         FreeIfUnusedAndNil(TextureTransform);
         Exit;
       end;
