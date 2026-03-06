@@ -1,6 +1,6 @@
 {%MainUnit x3dnodes.pas}
 {
-  Copyright 2002-2024 Michalis Kamburelis.
+  Copyright 2002-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -153,11 +153,8 @@
     the transformation changes are automatically managed. }
   TTransformFunctionality = class(TNodeFunctionality)
   public
-    { Change State.Transformation for children nodes.
-      Almost all descendants should override only the overload changing
-      TTransformation. }
-    procedure ApplyTransform(const State: TX3DGraphTraverseState); overload; virtual;
-    procedure ApplyTransform(var Transformation: TTransformation); overload; virtual;
+    { Change Transformation for children nodes. }
+    procedure ApplyTransform(var Transformation: TTransformation); virtual;
   end;
 
   { A top-level VRML/X3D node. This is what you get by loading 3D model from file.
@@ -220,7 +217,6 @@
 
     constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     destructor Destroy; override;
-    function TransformationChange: TNodeTransformationChange; override;
 
     { Should SaveToStream take care to nicely save us, treating as
       a root node of whole VRML file or prototype.
@@ -364,7 +360,6 @@
     constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
-    function TransformationChange: TNodeTransformationChange; override;
 
   {$I auto_generated_node_helpers/x3dnodes_switch.inc}
   end;
@@ -392,7 +387,6 @@
     constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
-    function TransformationChange: TNodeTransformationChange; override;
 
   {$I auto_generated_node_helpers/x3dnodes_transform.inc}
   end;
@@ -408,7 +402,8 @@ function TAbstractInternalGroupingNode.TGeneralGroupingEnumerator.EnumerateChild
   Node, Child: TX3DNode): Pointer;
 begin
   Result := nil;
-  Child.GroupBeforeTraverse(State, WasPointingDeviceSensor);
+  if Child is TAbstractChildNode then
+    TAbstractChildNode(Child).GroupBeforeTraverse(State, WasPointingDeviceSensor);
 end;
 
 procedure GroupBeforeTraverse_AddPointingDeviceSensor(const Child: TX3DNode;
@@ -469,7 +464,7 @@ begin
       implementation... So ApplyTransform must happen in the middle of
       TAbstractInternalGroupingNode.BeforeTraverse call. }
 
-    TransformFunctionality.ApplyTransform(StateStack.Top);
+    TransformFunctionality.ApplyTransform(StateStack.Top.Transformation);
   end;
 
   { We also use it to collect State.PointingDeviceSensors,
@@ -687,11 +682,6 @@ begin
 end;
 
 { TTransformFunctionality ---------------------------------------------------- }
-
-procedure TTransformFunctionality.ApplyTransform(const State: TX3DGraphTraverseState);
-begin
-  ApplyTransform(State.Transformation);
-end;
 
 procedure TTransformFunctionality.ApplyTransform(var Transformation: TTransformation);
 begin
@@ -1128,6 +1118,8 @@ procedure TX3DRootNode.ExportNode(const Node: TX3DNode; const ExportedAlias: str
 var
   ExportItem: TX3DExport;
 begin
+  Assert(Node <> nil);
+
   if Node.X3DName = '' then
     raise Exception.Create('You cannot export nodes with empty names');
 
@@ -1146,12 +1138,8 @@ end;
 
 procedure TX3DRootNode.ExportNode(const Node: TX3DNode);
 begin
+  Assert(Node <> nil);
   ExportNode(Node, Node.X3DName);
-end;
-
-function TX3DRootNode.TransformationChange: TNodeTransformationChange;
-begin
-  Result := ntcTransform;
 end;
 
 procedure TX3DRootNode.InternalFixNodeNames;
@@ -1194,11 +1182,6 @@ begin
     Result := Func(Self, FdChildren[FdWhichChoice.Value]);
     if Result <> nil then Exit;
   end;
-end;
-
-function TSwitchNode.TransformationChange: TNodeTransformationChange;
-begin
-  Result := ntcSwitch;
 end;
 
 { TTransformNode.TTransformNodeTransformFunctionality --------------------------------------- }
@@ -1249,11 +1232,6 @@ function TTransformNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction):
 begin
   Result := FdChildren.Enumerate(Func);
   if Result <> nil then Exit;
-end;
-
-function TTransformNode.TransformationChange: TNodeTransformationChange;
-begin
-  Result := ntcTransform;
 end;
 
 procedure RegisterGroupingNodes;

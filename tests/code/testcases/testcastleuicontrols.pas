@@ -1,7 +1,7 @@
 // -*- compile-command: "./test_single_testcase.sh TTestCastleUIControls" -*-
 
 {
-  Copyright 2018-2023 Michalis Kamburelis.
+  Copyright 2018-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -36,6 +36,7 @@ type
     procedure TestContainerSettingsOpenWindow;
     procedure TestControlsParentDoesNotOwn;
     procedure TestMoveToFront;
+    procedure TestViewsLifecycle;
   end;
 
 implementation
@@ -421,6 +422,119 @@ begin
     FreeAndNil(U1);
     FreeAndNil(U2);
     FreeAndNil(UTest);
+    FreeAndNil(Container);
+  end;
+end;
+
+type
+  TLoggingView = class(TCastleView)
+  public
+    EventLog: TStringList;
+    procedure Start; override;
+    procedure Stop; override;
+    procedure Pause; override;
+    procedure Resume; override;
+  end;
+
+procedure TLoggingView.Start;
+begin
+  inherited;
+  EventLog.Add(ClassName + '.Start');
+end;
+
+procedure TLoggingView.Stop;
+begin
+  inherited;
+  EventLog.Add(ClassName + '.Stop');
+end;
+
+procedure TLoggingView.Pause;
+begin
+  inherited;
+  EventLog.Add(ClassName + '.Pause');
+end;
+
+procedure TLoggingView.Resume;
+begin
+  inherited;
+  EventLog.Add(ClassName + '.Resume');
+end;
+
+type
+  TView1 = class(TLoggingView)
+  end;
+
+  TView2 = class(TLoggingView)
+  end;
+
+  TView3 = class(TLoggingView)
+  end;
+
+procedure TTestCastleUIControls.TestViewsLifecycle;
+var
+  Container: TTestContainer;
+  V1, V2, V3: TLoggingView;
+  EventLog: TStringList;
+begin
+  V1 := nil;
+  V2 := nil;
+  V3 := nil;
+  Container := nil;
+  EventLog := nil;
+  try
+    Container := TTestContainer.Create(nil);
+
+    // we will collect all view lifecycle events in EventLog
+    EventLog := TStringList.Create;
+    EventLog.Delimiter := ',';
+
+    V1 := TView1.Create(nil);
+    V1.EventLog := EventLog;
+    V2 := TView2.Create(nil);
+    V2.EventLog := EventLog;
+    V3 := TView3.Create(nil);
+    V3.EventLog := EventLog;
+
+    AssertEquals('', EventLog.DelimitedText);
+
+    Container.View := V1;
+    AssertEquals('TView1.Start,TView1.Resume', EventLog.DelimitedText);
+    Container.View := V2;
+    AssertEquals('TView1.Start,TView1.Resume,TView1.Pause,TView1.Stop,TView2.Start,TView2.Resume', EventLog.DelimitedText);
+    Container.PushView(V3);
+    AssertEquals('TView1.Start,TView1.Resume,TView1.Pause,TView1.Stop,TView2.Start,TView2.Resume,TView2.Pause,TView3.Start,TView3.Resume', EventLog.DelimitedText);
+    Container.PopView(V3);
+    AssertEquals('TView1.Start,TView1.Resume,TView1.Pause,TView1.Stop,TView2.Start,TView2.Resume,TView2.Pause,TView3.Start,TView3.Resume,TView3.Pause,TView3.Stop,TView2.Resume', EventLog.DelimitedText);
+    Container.View := nil;
+    AssertEquals('TView1.Start,TView1.Resume,TView1.Pause,TView1.Stop,TView2.Start,TView2.Resume,TView2.Pause,TView3.Start,TView3.Resume,TView3.Pause,TView3.Stop,TView2.Resume,TView2.Pause,TView2.Stop', EventLog.DelimitedText);
+    EventLog.Clear;
+
+    Container.View := V1;
+    AssertEquals('TView1.Start,TView1.Resume', EventLog.DelimitedText);
+    Container.PushView(V2);
+    AssertEquals('TView1.Start,TView1.Resume,TView1.Pause,TView2.Start,TView2.Resume', EventLog.DelimitedText);
+    Container.View := V3;
+    { Note that this should stop V1, without doing Resume+Pause on it.
+      See https://forum.castle-engine.io/t/bug-i-dont-expect-resume-of-views-in-stack-when-i-assign-container-view/2061/4 }
+    AssertEquals('TView1.Start,TView1.Resume,TView1.Pause,TView2.Start,TView2.Resume,TView2.Pause,TView2.Stop,TView1.Stop,TView3.Start,TView3.Resume', EventLog.DelimitedText);
+    Container.View := nil;
+    AssertEquals('TView1.Start,TView1.Resume,TView1.Pause,TView2.Start,TView2.Resume,TView2.Pause,TView2.Stop,TView1.Stop,TView3.Start,TView3.Resume,TView3.Pause,TView3.Stop', EventLog.DelimitedText);
+    EventLog.Clear;
+
+    Container.View := V1;
+    AssertEquals('TView1.Start,TView1.Resume', EventLog.DelimitedText);
+    Container.PushView(V2);
+    AssertEquals('TView1.Start,TView1.Resume,TView1.Pause,TView2.Start,TView2.Resume', EventLog.DelimitedText);
+    Container.View := nil;
+    { Note that this should stop V1, without doing Resume+Pause on it.
+      See https://forum.castle-engine.io/t/bug-i-dont-expect-resume-of-views-in-stack-when-i-assign-container-view/2061/4 }
+    AssertEquals('TView1.Start,TView1.Resume,TView1.Pause,TView2.Start,TView2.Resume,TView2.Pause,TView2.Stop,TView1.Stop', EventLog.DelimitedText);
+    EventLog.Clear;
+  finally
+    FreeAndNil(V1);
+    FreeAndNil(V2);
+    FreeAndNil(V3);
+    FreeAndNil(EventLog);
     FreeAndNil(Container);
   end;
 end;

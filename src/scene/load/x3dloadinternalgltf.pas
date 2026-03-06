@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2024 Michalis Kamburelis.
+  Copyright 2018-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,8 +13,9 @@
   ----------------------------------------------------------------------------
 }
 
-{ Load models in the glTF 2.0 format, converting them to an X3D nodes graph.
-  This routine is internally used by the @link(LoadNode) to load an Gltf file. }
+{ Load and save models in the glTF 2.0 format, converting to/from X3D nodes graph.
+  Routines in this unit are internally used by the @link(LoadNode) to load
+  a glTF file, and by @link(SaveNode) to save a glTF file. }
 unit X3DLoadInternalGltf;
 
 {$I castleconf.inc}
@@ -164,14 +165,28 @@ type
 type
   { Information about skin, to be used later. }
   TSkinToInitialize = class
-    Skin: TPasGLTF.TSkin;
-    { Direct children of this grouping node that are TShapeNode should have skinning applied. }
-    Shapes: TAbstractGroupingNode;
-    { Immediate parent of the Shapes node (it always has only one parent). }
-    ShapesParent: TAbstractGroupingNode;
+    { Each item here is a TAbstractGroupingNode.
+      Direct children of each of TAbstractGroupingNode (grouping node) here
+      (that are TShapeNode and have SkinWeights0 and SkinJoints0 fields)
+      should have skinning applied. }
+    ParentsOfShapes: TX3DNodeList;
+    constructor Create;
+    destructor Destroy; override;
   end;
 
-  TSkinToInitializeList = {$ifdef FPC}specialize{$endif} TObjectList<TSkinToInitialize>;
+  TSkinToInitializeList = {$ifdef FPC}specialize{$endif} TObjectDictionary<TPasGLTF.TSkin, TSkinToInitialize>;
+
+constructor TSkinToInitialize.Create;
+begin
+  inherited;
+  ParentsOfShapes := TX3DNodeList.Create(false);
+end;
+
+destructor TSkinToInitialize.Destroy;
+begin
+  FreeAndNil(ParentsOfShapes);
+  inherited;
+end;
 
 { TAnimation ----------------------------------------------------------------- }
 
@@ -213,174 +228,7 @@ begin
   inherited;
 end;
 
-{ TAnimationSampler --------------------------------------------------------------- }
-
-type
-  TAnimationSampler = class
-  strict private
-    { Internal in SetTime. }
-    CurrentTranslation: TVector3List;
-    CurrentRotation: TVector4List;
-    CurrentScale: TVector3List;
-  public
-    { Set this before @link(SetTime).
-      List of TTransformNode nodes, ordered just list glTF nodes.
-      Only initialized (non-nil and enough Count) for nodes that we created in ReadNode. }
-    TransformNodes: TX3DNodeList;
-    { Set this before @link(SetTime).
-      Current animation applied by @link(SetTime). }
-    Animation: TAnimation;
-    { Owned by this object, calculated by @link(SetTime).
-      Has the same size as TransformNodes, contains accumulated transformation matrix
-      for each node.
-      Contains undefined value for nodes that are @nil. }
-    Transformations: TTransformationList;
-    TransformNodesRoots: TPasGLTF.TScene.TNodes;
-    TransformNodesGltf: TPasGLTF.TNodes;
-    constructor Create;
-    destructor Destroy; override;
-    procedure SetTime(const Time: TFloatTime);
-  end;
-
-constructor TAnimationSampler.Create;
-begin
-  inherited;
-  Transformations := TTransformationList.Create;
-  CurrentTranslation := TVector3List.Create;
-  CurrentRotation := TVector4List.Create;
-  CurrentScale := TVector3List.Create;
-end;
-
-destructor TAnimationSampler.Destroy;
-begin
-  FreeAndNil(Transformations);
-  FreeAndNil(CurrentTranslation);
-  FreeAndNil(CurrentRotation);
-  FreeAndNil(CurrentScale);
-  inherited;
-end;
-
-procedure TAnimationSampler.SetTime(const Time: TFloatTime);
-
-{ The implementation of this somewhat duplicates the logic
-  of the animation and transformation at runtime,
-  done by TTransformNode in CastleShapes, CastleSceneCore units.
-  At one point I considered just using TTimeSensor.FakeTime
-  or even TCastleSceneCore.ForceAnimationPose to set scene
-  to given state in each SetTime, and then read resulting transformations
-  from Scene.Shapes.
-
-  However, this causes new complications:
-  It would modify the nodes hierarchy, which means we should save/restore it.
-
-  And it's not really much simpler, since the transformation hierarchy is quite simple.
-}
-
-  { Set all CurrentXxx values to reflect initial transformations of TransformNodes }
-  procedure ResetCurrentTransformation;
-  var
-    I: Integer;
-    Transform: TTransformNode;
-  begin
-    // initialize CurrentXxx lists
-    for I := 0 to TransformNodes.Count - 1 do
-      if TransformNodes[I] <> nil then
-      begin
-        Transform := TransformNodes[I] as TTransformNode;
-        CurrentTranslation[I] := Transform.FdTranslation.Value;
-        CurrentRotation   [I] := Transform.FdRotation   .Value;
-        CurrentScale      [I] := Transform.FdScale      .Value;
-      end;
-  end;
-
-  { Update all CurrentXxx values affected by this animation. }
-  procedure UpdateCurrentTransformation;
-  var
-    Interpolator: TInterpolator;
-    TargetIndex: Integer;
-  begin
-    for Interpolator in Animation.Interpolators do
-    begin
-      TargetIndex := TransformNodes.IndexOf(Interpolator.Target);
-      if TargetIndex = -1 then
-        raise EInternalError.Create('Interpolator.Target not on Nodes list');
-
-      { Below we process Time,
-        similar to TAbstractSingleInterpolatorNode.EventSet_FractionReceive. }
-
-      case Interpolator.Path of
-        gsTranslation:
-          CurrentTranslation[TargetIndex] :=
-            (Interpolator.Node as TPositionInterpolatorNode).Interpolate(Time);
-        gsRotation:
-          CurrentRotation[TargetIndex] :=
-            (Interpolator.Node as TOrientationInterpolatorNode).Interpolate(Time);
-        gsScale:
-          CurrentScale[TargetIndex] :=
-            (Interpolator.Node as TPositionInterpolatorNode).Interpolate(Time);
-        {$ifndef COMPILER_CASE_ANALYSIS}
-        else raise EInternalError.Create('Unexpected glTF Interpolator.Path value');
-        {$endif}
-      end;
-    end;
-  end;
-
-  { Calculate contents of Transformations, based on CurrentXxx and parent-child relationships. }
-  procedure UpdateMatrix;
-
-    procedure UpdateChildMatrix(const NodeIndex: Integer;
-      const ParentT: TTransformation);
-    var
-      T: PTransformation;
-      ChildNodeIndex: Integer;
-    begin
-      if not Between(NodeIndex, 0, Transformations.Count - 1) then
-        Exit; // warning about it was already done by ReadNodes
-
-      T := PTransformation(Transformations.Ptr(NodeIndex));
-      T^ := ParentT;
-      T^.Multiply(
-        CurrentRotation[NodeIndex],
-        CurrentScale[NodeIndex],
-        CurrentTranslation[NodeIndex]);
-
-      for ChildNodeIndex in TransformNodesGltf[NodeIndex].Children do
-        UpdateChildMatrix(ChildNodeIndex, T^);
-    end;
-
-  var
-    T: PTransformation;
-    RootNodeIndex, ChildNodeIndex: Integer;
-  begin
-    for RootNodeIndex in TransformNodesRoots do
-    begin
-      if not Between(RootNodeIndex, 0, Transformations.Count - 1) then
-        Continue; // warning about it was already done by ReadScene
-
-      T := PTransformation(Transformations.Ptr(RootNodeIndex));
-      T^.Init;
-      T^.Multiply(
-        CurrentRotation[RootNodeIndex],
-        CurrentScale[RootNodeIndex],
-        CurrentTranslation[RootNodeIndex]);
-
-      for ChildNodeIndex in TransformNodesGltf[RootNodeIndex].Children do
-        UpdateChildMatrix(ChildNodeIndex, T^);
-    end;
-  end;
-
-begin
-  { Since in practice TransformNodes.Count is constant during glTF file reading,
-    this sets the size only at first SetTime call (for this glTF model). }
-  Transformations.Count := TransformNodes.Count;
-  CurrentTranslation.Count := TransformNodes.Count;
-  CurrentRotation.Count := TransformNodes.Count;
-  CurrentScale.Count := TransformNodes.Count;
-
-  ResetCurrentTransformation;
-  UpdateCurrentTransformation;
-  UpdateMatrix;
-end;
+{$I x3dloadinternalgltf_skin_bounding_box.inc}
 
 { TTexture ------------------------------------------------------------------- }
 
@@ -488,7 +336,7 @@ const
         for Bee from https://github.com/castle-engine/castle-model-viewer/issues/27 .
 
         For now just avoid having RoughnessFactor ridiculously low. }
-      RoughnessFactor := Max(RoughnessFactor, 0.05);
+      RoughnessFactor := Max(RoughnessFactor, 0.5);
     end;
 
     (*
@@ -849,14 +697,20 @@ end;
 { LoadGltf ------------------------------------------------------------------- }
 
 { Main routine that converts glTF -> X3D nodes, doing most of the work. }
-function LoadGltf(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
+function LoadGltf(const Stream: TStream; const BaseUrl: String;
+  const LoadOptions: TCastleSceneLoadOptions): TX3DRootNode;
 var
   Document: TPasGLTF.TDocument;
+  // Current scene from Document.Scenes
+  SceneGltf: TPasGLTF.TScene;
   // List of TGltfAppearanceNode nodes, ordered just list glTF materials
   Appearances: TX3DNodeList;
   { List of TTransformNode nodes, ordered just list glTF nodes.
     Only initialized (non-nil and enough Count) for nodes that we created in ReadNode. }
   Nodes: TX3DNodeList;
+  { Parent of all loaded Nodes, represents loaded glTF "scene".
+    (don't confuse with unrelated CGE term TCastleScene.) }
+  CurrentScene: TGroupNode;
   { List of X3D nodes to be EXPORTed from the glTF scene,
     so that outer X3D can IMPORT them and use.
     Nodes with X3DName = '' on this list are ignored.
@@ -865,8 +719,6 @@ var
   DefaultAppearance: TGltfAppearanceNode;
   SkinsToInitialize: TSkinToInitializeList;
   Animations: TAnimationList;
-  AnimationSampler: TAnimationSampler;
-  JointMatrix: TMatrix4List; //< local for SampleSkinAnimation, but created once to avoid wasting time on allocation
   Lights: TPunctualLights;
 
   procedure ReadHeader;
@@ -989,10 +841,24 @@ var
         end;
       end else
       begin
+        { Read unknown data types as JSON string.
         WritelnWarning('Cannot read glTF extra "%s", unexpected type inside array %s', [
           Key,
           JsonArray[0].ClassName
         ]);
+        }
+
+        Node.MetadataStringArray[Key, JsonArray.Count - 1] := ''; // set array size
+        for J := 0 to JsonArray.Count - 1 do
+        begin
+          Node.MetadataStringArray[Key, J] := TPasJSON.Stringify(JsonArray[J]);
+          { WritelnWarning('Saving glTF extra "%s" index %d as JSON string, unhandled type %s, saved as "%s"', [
+            Key,
+            J,
+            JsonArray[J].ClassName,
+            Node.MetadataStringArray[Key, J]
+          ]); }
+        end;
       end;
     end;
   end;
@@ -1036,11 +902,29 @@ var
         MetadataSet.FdValue.Add(DoubleNode);
       end else
       begin
+        { Anything else, like TPasJSONItemNull or TPasJSONItemObject,
+          convert to JSON string, and save like that to X3D metadata. }
+        StrNode := TMetadataStringNode.Create;
+        StrNode.NameField := JsonObject.Keys[I];
+        StrNode.SetValue([TPasJSON.Stringify(JsonObject.Values[I])]);
+        MetadataSet.FdValue.Add(StrNode);
+
+        {
+        WritelnWarning('Saving glTF object "%s" inside extra metadata, field "%s", unhandled type %s as JSON string, saved as "%s"', [
+          Key,
+          JsonObject.Keys[I],
+          JsonObject.Values[I].ClassName,
+          TPasJSON.Stringify(JsonObject.Values[I])
+        ]);
+        }
+
+        {
         WritelnWarning('Cannot read glTF object "%s" inside extra metadata, field "%s", unhandled type %s', [
           Key,
           JsonObject.Keys[I],
           JsonObject.Values[I].ClassName
         ]);
+        }
       end;
     end;
   end;
@@ -1435,6 +1319,14 @@ var
     Result.NormalTextureMapping := NormalTextureMapping;
   end;
 
+  function GltfPhongMaterials: Boolean;
+  begin
+    {$warnings off} // using deprecated GltfForcePhongMaterials to keep it working
+    Result := GltfForcePhongMaterials or
+      ((LoadOptions <> nil) and LoadOptions.GltfPhongMaterials);
+    {$warnings on}
+  end;
+
   function ReadAppearance(const Material: TPasGLTF.TMaterial): TGltfAppearanceNode;
   var
     AlphaMode: TAlphaMode;
@@ -1447,7 +1339,7 @@ var
       if Material.Extensions.Properties['KHR_materials_unlit'] <> nil then
         Result.Material := ReadUnlitMaterial(Material, TexTransforms)
       else
-      if GltfForcePhongMaterials then
+      if GltfPhongMaterials then
         Result.Material := ReadPhongMaterial(Material, TexTransforms)
       else
         Result.Material := ReadPhysicalMaterial(Material, TexTransforms);
@@ -1593,6 +1485,33 @@ var
     end;
   end;
 
+  { Read min / maximum 3D bounds from 3D glTF accessor. }
+  function AccessorVector3MinMax(const AccessorIndex: Integer; out BoundingBox: TBox3D): Boolean;
+  var
+    Accessor: TPasGLTF.TAccessor;
+  begin
+    Result := false; // assume failure
+    Accessor := GetAccessor(AccessorIndex);
+    if Accessor <> nil then
+    begin
+      if (Accessor.MinArray.Count = 3) and
+         (Accessor.MaxArray.Count = 3) then
+      begin
+        BoundingBox.Data[0] := Vector3(Accessor.MinArray[0], Accessor.MinArray[1], Accessor.MinArray[2]);
+        BoundingBox.Data[1] := Vector3(Accessor.MaxArray[0], Accessor.MaxArray[1], Accessor.MaxArray[2]);
+        //WritelnLog('AccessorVector3MinMax: %s', [BoundingBox.ToString]);
+        Result := true;
+      end else
+      begin
+        // perform correctness checks on Min/MaxArray
+        if (Accessor.MinArray.Count <> 0) and (Accessor.MinArray.Count <> 3) then
+          WritelnWarning('glTF', 'Accessor.MinArray has unexpected length %d, expected 0 or 3', [Accessor.MinArray.Count]);
+        if (Accessor.MaxArray.Count <> 0) and (Accessor.MaxArray.Count <> 3) then
+          WritelnWarning('glTF', 'Accessor.MaxArray has unexpected length %d, expected 0 or 3', [Accessor.MaxArray.Count]);
+      end;
+    end;
+  end;
+
   procedure AccessorToVector4(const AccessorIndex: Integer; const Field: TVector4List;
     const ForVertex: Boolean); overload;
   var
@@ -1617,7 +1536,13 @@ var
     AccessorToVector4(AccessorIndex, Field.Items, ForVertex);
   end;
 
-  procedure AccessorToVector4Integer(const AccessorIndex: Integer; const Field: TVector4IntegerList; const ForVertex: Boolean);
+  { Read 4D integer vector sequence (e.g. 4 joints indexes per vertex)
+    from glTF into TInt32List.
+
+    Note: It would be cleaner to read AccessorToVector4Integer to TVector4IntegerList,
+    but X3D doesn't have MFVec4Int or such.
+    So we read to TInt32List. }
+  procedure AccessorToVector4Integer(const AccessorIndex: Integer; const Field: TInt32List; const ForVertex: Boolean);
   var
     Accessor: TPasGLTF.TAccessor;
     A: TPasGLTF.TInt32Vector4DynamicArray;
@@ -1628,7 +1553,7 @@ var
     begin
       A := Accessor.DecodeAsInt32Vector4Array(ForVertex);
       Len := Length(A);
-      Field.Count := Len;
+      Field.Count := Len * 4;
       if Len <> 0 then
         Move(A[0], Field.L[0], SizeOf(TVector4Integer) * Len);
     end;
@@ -1741,6 +1666,9 @@ var
     IndexField: TMFLong;
     Appearance: TGltfAppearanceNode;
     MetadataCollision: String;
+    Weights: TVector4List;
+    Joints: TInt32List;
+    ShapeBBox: TBox3D;
   begin
     // create X3D geometry and shape nodes
     if Primitive.Indices <> -1 then
@@ -1819,7 +1747,10 @@ var
           Coord := TCoordinateNode.Create;
           AccessorToVector3(Primitive.Attributes[AttributeName], Coord.FdPoint, true);
           Geometry.CoordField.Value := Coord;
-          Shape.BBox := TBox3D.FromPoints(Coord.FdPoint.Items);
+          // to speedup reading, use bbox from the accessor, if available
+          if not AccessorVector3MinMax(Primitive.Attributes[AttributeName], ShapeBBox) then
+            ShapeBBox := TBox3D.FromPoints(Coord.FdPoint.Items);
+          Shape.BBox := ShapeBBox;
           { Do special fix for line strip and line loop: glTF specifies just one strip/loop,
             put it in VertexCount. }
           if (Geometry is TLineSetNode) and
@@ -1869,13 +1800,21 @@ var
         end else
         if (AttributeName = 'JOINTS_0') then
         begin
-          Geometry.InternalSkinJoints := TVector4IntegerList.Create;
-          AccessorToVector4Integer(Primitive.Attributes[AttributeName], Geometry.InternalSkinJoints, false);
+          if Geometry.SkinWeightsJoints(Weights, Joints) then
+            AccessorToVector4Integer(Primitive.Attributes[AttributeName], Joints, false)
+          else
+            WritelnWarning('glTF provided joints information, but skinned animation not possible on node %s', [
+              Geometry.NiceName
+            ]);
         end else
         if (AttributeName = 'WEIGHTS_0') then
         begin
-          Geometry.InternalSkinWeights := TVector4List.Create;
-          AccessorToVector4(Primitive.Attributes[AttributeName], Geometry.InternalSkinWeights, false);
+          if Geometry.SkinWeightsJoints(Weights, Joints) then
+            AccessorToVector4(Primitive.Attributes[AttributeName], Weights, false)
+          else
+            WritelnWarning('glTF provided weights information, but skinned animation not possible on node %s', [
+              Geometry.NiceName
+            ]);
         end else
           WritelnLog('glTF', 'Ignoring vertex attribute ' + AttributeName + ', not implemented (for this primitive mode)');
       end;
@@ -2029,27 +1968,22 @@ var
     procedure ApplySkin(const Skin: TPasGLTF.TSkin);
     var
       SkinToInitialize: TSkinToInitialize;
-      Shapes: TAbstractGroupingNode;
-      I: Integer;
-      ShapeNode: TShapeNode;
+      ParentOfShapes: TAbstractGroupingNode;
     begin
-      SkinToInitialize := TSkinToInitialize.Create;
-      SkinsToInitialize.Add(SkinToInitialize);
-      // Shapes is the group created inside ReadMesh
-      Shapes := Transform.FdChildren.InternalItems.Last as TAbstractGroupingNode;
-      SkinToInitialize.Shapes := Shapes;
-      SkinToInitialize.ShapesParent := Transform;
-      SkinToInitialize.Skin := Skin;
+      { Look for existing Skin in SkinsToInitialize first,
+        in case the same Skin is used by multiple nodes.
+        Testcases:
+        - Bunny.gltf in data/ of tests/, both Bunny and Carrot meshes refer to same skin.
+        - Naxiah from Seeds. }
+      if not SkinsToInitialize.TryGetValue(Skin, SkinToInitialize) then
+      begin
+        SkinToInitialize := TSkinToInitialize.Create;
+        SkinsToInitialize.Add(Skin, SkinToInitialize);
+      end;
 
-      { Make shapes collide as simple boxes.
-        We don't want to recalculate octree of their triangles each frame,
-        and their boxes are easy, since we fill shape's bbox. }
-      for I := 0 to Shapes.FdChildren.Count - 1 do
-        if Shapes.FdChildren[I] is TShapeNode then
-        begin
-          ShapeNode := TShapeNode(Shapes.FdChildren[I]);
-          ShapeNode.Collision := scBox;
-        end;
+      // ParentOfShapes is the group created inside ReadMesh
+      ParentOfShapes := Transform.FdChildren.InternalItems.Last as TAbstractGroupingNode;
+      SkinToInitialize.ParentsOfShapes.Add(ParentOfShapes);
     end;
 
   var
@@ -2119,15 +2053,13 @@ var
 
   procedure ReadScene(const SceneIndex: Integer; const ParentGroup: TAbstractGroupingNode);
   var
-    Scene: TPasGLTF.TScene;
     NodeIndex: Integer;
   begin
     if Between(SceneIndex, 0, Document.Scenes.Count - 1) then
     begin
-      Scene := Document.Scenes[SceneIndex];
-      for NodeIndex in Scene.Nodes do
+      SceneGltf := Document.Scenes[SceneIndex];
+      for NodeIndex in SceneGltf.Nodes do
         ReadNode(NodeIndex, ParentGroup);
-      AnimationSampler.TransformNodesRoots := Scene.Nodes;
     end else
       WritelnWarning('glTF', 'Scene index invalid: %d', [SceneIndex]);
   end;
@@ -2348,397 +2280,127 @@ var
     end;
   end;
 
-  { Gather all key times (in 0..1 range) from Interpolators, place them in AllKeys.
-    If you have animation that uses multiple interpolators,
-    then this routine calculates *all* key points within this animation. }
-  procedure GatherAnimationKeysToSample(const AllKeys: TSingleList;
-    const Interpolators: TInterpolatorList);
+  { Place the Skin node in the X3D nodes Transform hierarchy
+    where the Skin.Skeleton is right now.
+    You have to call this exactly once, because after this --
+    Skin.Skeleton will not be in any X3D nodes Transform hierarchy,
+    it will be only inside Skin node.
+
+    The Skin node (actually similar to HAnimHumanoid) is expected
+    to be in the place of X3D hierarchy where the skeleton is. }
+  procedure AddSkinToHierarchy(const Skin: TSkinNode);
   var
+    ParentFieldsCopy: TX3DFieldList;
+    ParentField: TX3DField;
+    ParentNode: TX3DNode;
+    ParentNodeGroup: TAbstractGroupingNode;
+    IndexToReplace: Integer;
     I: Integer;
-    Interpolator: TAbstractInterpolatorNode;
   begin
-    AllKeys.Clear;
-    for I := 0 to Interpolators.Count - 1 do
-    begin
-      Interpolator := Interpolators[I].Node;
-      AllKeys.AddRange(Interpolator.FdKey.Items);
-    end;
-    AllKeys.SortAndRemoveDuplicates;
+    Assert(Skin.Skeleton <> nil);
+    ParentFieldsCopy := TX3DFieldList.Create(false);
+    try
+      // copy ParentFields -> ParentFieldsCopy
+      // ParentFieldsCopy.AddRange(Skin.Skeleton.ParentFields); // not possible
+      ParentFieldsCopy.Count := Skin.Skeleton.ParentFieldsCount;
+      for I := 0 to ParentFieldsCopy.Count - 1 do
+        ParentFieldsCopy[I] := Skin.Skeleton.ParentFields[I];
+
+      for I := 0 to ParentFieldsCopy.Count - 1 do
+      begin
+        ParentField := ParentFieldsCopy[I];
+        ParentNode := ParentField.ParentNode as TX3DNode;
+        if ParentNode = nil then
+        begin
+          WritelnWarning('AddSkinToHierarchy found unexpected state, Skin.Skeleton has no parent. Submit a bug with glTF testcase.');
+          Continue;
+        end;
+
+        if ParentNode is TAbstractGroupingNode then
+        begin
+          ParentNodeGroup := TAbstractGroupingNode(ParentNode);
+          IndexToReplace := ParentNodeGroup.FdChildren.IndexOf(Skin.Skeleton);
+          if IndexToReplace = -1 then
+          begin
+            WritelnWarning('AddSkinToHierarchy found unexpected state, Skin.Skeleton is not a child of its parent (%s). Submit a bug with glTF testcase.', [
+              ParentNode.NiceName
+            ]);
+            Continue;
+          end;
+
+          { Note that this decreases the refcount of Skin.Skeleton,
+            but it's not a problem (it will not be freed) because it's referenced
+            by Skin. }
+          ParentNodeGroup.FdChildren[IndexToReplace] := Skin;
+        end else
+        if not (ParentNode is TSkinNode) then
+        begin
+          WritelnWarning('AddSkinToHierarchy found unexpected state, Skin.Skeleton has a parent that is not TAbstractGroupingNode. Submit a bug with glTF testcase.');
+          Continue;
+        end;
+      end;
+    finally FreeAndNil(ParentFieldsCopy) end;
   end;
 
-  { Multiply tangent vector by a matrix.
-    Multiplies T.XYZ by Matrix.
-    Preserves T.W, assuming it means just handedness, like for glTF
-    and X3D Tangent node. }
-  function SkinMultiplyTangent(const Matrix: TMatrix4; const T: TVector4): TVector4;
-  begin
-    Result.XYZ := Matrix.MultDirection(T.XYZ);
-    Result.W := T.W;
-  end;
+  (*
+  { This is a hacky way to determine bounding box after skin animation
+    is applied. We just enlarge the box in all dimensions by a proportional
+    size that "seems to be good enough for testcases".
+    We need this, as otherwise too-small bounding box could result in
+    frustum culling hiding the object. See https://castle-engine.io/skin
 
-  { Sample animation Anim at time TimeFraction (in 0..1 range)
-    to determine how does a skin look like at this moment of time.
-    OriginalCoords contains original (not animated) coords.
-    To the AnimatedCoords, we will add OriginalCoords.Count vertexes.
-
-    We also add to AnimatedNormals if they are <> nil.
-    Both OriginalNormals and AnimatedNormals must be nil or both must be <> nil.
-
-    Similarly, we also add AnimatedTangents if they are <> nil.
-    And both OriginalTangents and AnimatedTangents must be nil or both must be <> nil.
-     }
-  procedure SampleSkinAnimation(const Anim: TAnimation; const KeyIndex: Integer;
-    const TimeFraction: Single;
-    const OriginalCoords, AnimatedCoords: TVector3List;
-    const OriginalNormals, AnimatedNormals: TVector3List;
-    const OriginalTangents, AnimatedTangents: TVector4List;
-    const Joints: TX3DNodeList; const JointsGltf: TPasGLTF.TSkin.TJoints;
-    const InverseBindMatrices: TMatrix4List;
-    const SkeletonRootIndex: Integer;
-    const MeshJoints: TVector4IntegerList;
-    const MeshWeights: TVector4List);
+    Should be unnecessary now that we have CalculateSkinnedShapesBoundingBoxes. }
+  function EnlargeBoxForAnimation(const Box: TBox3D): TBox3D;
   var
-    I: Integer;
-    SkinMatrix, SkeletonRootInverse: TMatrix4;
-    VertexJoints: TVector4Integer;
-    VertexWeights: TVector4;
+    BoxIncrease: TVector3;
   begin
-    Assert((AnimatedNormals = nil) = (OriginalNormals = nil));
-    Assert((OriginalNormals = nil) or (OriginalNormals.Count = OriginalCoords.Count));
-    Assert((AnimatedTangents = nil) = (OriginalTangents = nil));
-    Assert((OriginalTangents = nil) or (OriginalTangents.Count = OriginalCoords.Count));
-
-    AnimationSampler.Animation := Anim;
-    AnimationSampler.SetTime(TimeFraction);
-
-    if SkeletonRootIndex <> -1 then
-      SkeletonRootInverse := AnimationSampler.Transformations.L[SkeletonRootIndex].InverseTransform
-    else
-      SkeletonRootInverse := TMatrix4.Identity;
-
-    { For each Joint, we calculate JointMatrix following
-      https://www.slideshare.net/Khronos_Group/gltf-20-reference-guide }
-    for I := 0 to Joints.Count - 1 do
-      JointMatrix[I] := SkeletonRootInverse *
-        AnimationSampler.Transformations.L[JointsGltf[I]].Transform *
-        InverseBindMatrices[I];
-
-    { For each vertex, calculate SkinMatrix as linear combination of JointMatrix[...]
-      for all joints indicated by MeshJoints values for this vertex.
-      TODO: Support JOINTS_1, WEIGHTS_1 etc. }
-    for I := 0 to OriginalCoords.Count - 1 do
+    Result := Box;
+    if not Result.IsEmpty then
     begin
-      VertexWeights := MeshWeights[I];
-      VertexJoints := MeshJoints[I];
-      if VertexWeights.IsPerfectlyZero then
-      begin
-        { Happens with glTF files generated by Blender.
-          This is not correct (glTF spec says that weights should sum to 1.0).
-          Solution that works: Transform it with weight 1 by the joint number 0
-          (relying that Blender put root joint at this position). See
-          https://github.com/KhronosGroup/glTF/issues/1213
-          https://github.com/KhronosGroup/glTF-Blender-IO/issues/308
-          https://github.com/KhronosGroup/glTF-Blender-IO/issues/308#issuecomment-531355129
-            """it's not exactly a satisfying fix, but in practice using 1, 0, 0, 0 when the weights would otherwise be zero has avoided these issues in threejs."""
-          https://github.com/KhronosGroup/glTF/pull/1352
-          https://github.com/Franck-Dernoncourt/NeuroNER/issues/91 }
-        SkinMatrix := JointMatrix.L[0];
-      end else
-      begin
-        SkinMatrix :=
-          JointMatrix.L[VertexJoints.X] * VertexWeights.X +
-          JointMatrix.L[VertexJoints.Y] * VertexWeights.Y +
-          JointMatrix.L[VertexJoints.Z] * VertexWeights.Z +
-          JointMatrix.L[VertexJoints.W] * VertexWeights.W;
-      end;
-      { Note: On Delphi, we *have to* use L[...] below and depend on $pointermath on,
-        instead of using List^[...].
-        That's because on Delphi, List^[...] may have too small (declared) upper size
-        due to Delphi not supporting SizeOf(T) in generics.
-        See https://github.com/castle-engine/castle-engine/issues/474 . }
-      AnimatedCoords.L[KeyIndex * OriginalCoords.Count + I] := SkinMatrix.MultPoint(OriginalCoords.L[I]);
-      if AnimatedNormals <> nil then
-        AnimatedNormals.L[KeyIndex * OriginalNormals.Count + I] := SkinMatrix.MultDirection(OriginalNormals.L[I]);
-      if AnimatedTangents <> nil then
-        AnimatedTangents.L[KeyIndex * OriginalTangents.Count + I] := SkinMultiplyTangent(SkinMatrix, OriginalTangents.L[I]);
+      BoxIncrease.X := Result.MaxSize / 2;
+      BoxIncrease.Y := BoxIncrease.X;
+      BoxIncrease.Z := BoxIncrease.X;
+      Result.Data[0] := Result.Data[0] - BoxIncrease;
+      Result.Data[1] := Result.Data[1] + BoxIncrease;
     end;
   end;
+  *)
 
-  { When animation TimeSensor starts, set Shape.BBox using X3D routes. }
-  procedure SetBBoxWhenAnimationStarts(const TimeSensor: TTimeSensorNode;
-    const Shape: TShapeNode; const BBox: TBox3D;
-    const ParentGroup: TAbstractGroupingNode);
+  { Add skin information (TSkinNode) based on TSkinToInitialize. }
+  procedure ReadSkin(const Skin: TPasGLTF.TSkin;
+    const SkinToInitialize: TSkinToInitialize);
   var
-    ValueTrigger: TValueTriggerNode;
-    Center, Size: TVector3;
-    F: TX3DField;
-  begin
-    BBox.ToCenterSize(Center, Size);
-
-    ValueTrigger := TValueTriggerNode.Create;
-    ValueTrigger.X3DName := 'ValueTrigger_setBBox_' +
-      TimeSensor.X3DName + '_' + Shape.X3DName;
-    ParentGroup.AddChildren(ValueTrigger);
-    ParentGroup.AddRoute(TimeSensor.EventIsActive, ValueTrigger.EventTrigger);
-
-    F := TSFVec3f.Create(nil, true, 'bboxCenter', Center);
-    ValueTrigger.AddCustomField(F);
-    ParentGroup.AddRoute(F, Shape.FdBboxCenter);
-
-    F := TSFVec3f.Create(nil, true, 'bboxSize', Size);
-    ValueTrigger.AddCustomField(F);
-    ParentGroup.AddRoute(F, Shape.FdBboxSize);
-  end;
-
-  function ShapeLit(const ShapeNode: TShapeNode): Boolean;
-  begin
-    Result := (ShapeNode.Appearance <> nil) and
-      (
-        (ShapeNode.Appearance.Material is TMaterialNode) or
-        (ShapeNode.Appearance.Material is TPhysicalMaterialNode)
-      );
-  end;
-
-  { Calculate skin interpolator nodes to deform this one shape.
-
-    Note that ParentGroup can be really any grouping node,
-    we add there only interpolators and routes, it doesn't matter where this node is. }
-  procedure CalculateSkinInterpolators(const Shape: TShapeNode;
-    const Joints: TX3DNodeList; const JointsGltf: TPasGLTF.TSkin.TJoints;
-    const InverseBindMatrices: TMatrix4List;
-    const SkeletonRoot: TAbstractGroupingNode; const SkeletonRootIndex: Integer;
-    const ParentGroup: TAbstractGroupingNode);
-  var
-    CoordField: TSFNode;
-    Coord: TCoordinateNode;
-    Normal: TNormalNode;
-    Tangent: TTangentNode;
-    Anim: TAnimation;
-    CoordInterpolator: TCoordinateInterpolatorNode;
-    NormalInterpolator: TCoordinateInterpolatorNode;
-    TangentInterpolator: TCoordinateInterpolator4DNode;
-    I: Integer;
-    OriginalNormals, AnimatedNormals: TVector3List;
-    OriginalTangents, AnimatedTangents: TVector4List;
-    MemoryTaken: Int64;
-    InterpolatorNameSuffix: String;
-  begin
-    CoordField := Shape.Geometry.CoordField;
-    if CoordField = nil then
-    begin
-      WritelnWarning('Cannot animate using skin geometry %s, it does not have coordinates', [
-        Shape.Geometry.NiceName
-      ]);
-      Exit;
-    end;
-
-    if not (CoordField.Value is TCoordinateNode) then
-    begin
-      WritelnWarning('Cannot animate using skin geometry %s, the coordinates are not expressed as Coordinate node', [
-        Shape.Geometry.NiceName
-      ]);
-      Exit;
-    end;
-    Coord := CoordField.Value as TCoordinateNode;
-
-    // calculate Normal
-    Normal := nil;
-    if (Shape.Geometry.NormalField <> nil) and
-       (Shape.Geometry.NormalField.Value is TNormalNode) then
-    begin
-      Normal := TNormalNode(Shape.Geometry.NormalField.Value);
-      // SampleSkinAnimation assumes that normals and coords counts are equal
-      if Normal.FdVector.Count <> Coord.FdPoint.Count then
-      begin
-        WritelnWarning('When animating using skin geometry %s, coords and normals counts different', [
-          Shape.Geometry.NiceName
-        ]);
-        Normal := nil;
-      end;
-    end else
-    begin
-      if ShapeLit(Shape) then
-        WritelnWarning('TODO: Normal vectors are not provided for a skinned geometry (using lit material), and in effect the resulting animation will be slow as we''ll recalculate normals more often than necessary. ' + 'For now it is adviced to generate glTF with normals included for skinned meshes.');
-    end;
-
-    // calculate Tangent
-    Tangent := nil;
-    if (Shape.Geometry.TangentField <> nil) and
-       (Shape.Geometry.TangentField.Value is TTangentNode) then
-    begin
-      Tangent := TTangentNode(Shape.Geometry.TangentField.Value);
-      // SampleSkinAnimation assumes that tangents and coords counts are equal
-      if Tangent.FdVector.Count <> Coord.FdPoint.Count then
-      begin
-        WritelnWarning('When animating using skin geometry %s, coords and tangents counts different', [
-          Shape.Geometry.NiceName
-        ]);
-        Tangent := nil;
-      end;
-    end else
-    begin
-      if ShapeLit(Shape) and
-         ((Shape.Appearance.Material as TAbstractOneSidedMaterialNode).NormalTexture <> nil) then
-        WritelnWarning('TODO: Tangent vectors are not provided for a skinned geometry (using lit material with normalmap), and in effect the resulting animation will be slow as we''ll recalculate tangents more often than necessary. ' + 'For now it is adviced to generate glTF with tangents included for skinned meshes.');
-    end;
-
-    if (Shape.Geometry.InternalSkinJoints = nil) or
-       (Shape.Geometry.InternalSkinWeights = nil) then
-    begin
-      WritelnWarning('Cannot animate using skin geometry %s, no JOINTS_0 and WEIGHTS_0 information in the mesh', [
-        Shape.Geometry.NiceName
-      ]);
-      Exit;
-    end;
-
-    for Anim in Animations do
-    begin
-      InterpolatorNameSuffix :=
-        'SkinInterpolator_'
-        + Anim.TimeSensor.X3DName + '_'
-        + Shape.X3DName;
-
-      CoordInterpolator := TCoordinateInterpolatorNode.Create;
-      CoordInterpolator.X3DName := 'Coord' + InterpolatorNameSuffix;
-      GatherAnimationKeysToSample(CoordInterpolator.FdKey.Items, Anim.Interpolators);
-      { Assign count, avoids later reallocating memory when adding vectors (slow),
-        and avoids Capacity >> Count (wasted memory).
-        This is important on large models.
-        Testcase: mouse_multiple,
-        - memory use: 180 MB vs 140 MB on each animation of dancing
-        - loading time: 14 vs 10 sec total. }
-      CoordInterpolator.FdKeyValue.Count := CoordInterpolator.FdKey.Count * Coord.FdPoint.Count;
-
-      ParentGroup.AddChildren(CoordInterpolator);
-      ParentGroup.AddRoute(Anim.TimeSensor.EventFraction_changed, CoordInterpolator.EventSet_fraction);
-      ParentGroup.AddRoute(CoordInterpolator.EventValue_changed, Coord.FdPoint);
-
-      if Normal <> nil then
-      begin
-        NormalInterpolator := TCoordinateInterpolatorNode.Create;
-        NormalInterpolator.X3DName := 'Normal' + InterpolatorNameSuffix;
-        //GatherAnimationKeysToSample(NormalInterpolator.FdKey.Items, Anim.Interpolators);
-        // faster:
-        NormalInterpolator.FdKey.Assign(CoordInterpolator.FdKey);
-        NormalInterpolator.FdKeyValue.Count := NormalInterpolator.FdKey.Count * Normal.FdVector.Count;
-
-        ParentGroup.AddChildren(NormalInterpolator);
-        ParentGroup.AddRoute(Anim.TimeSensor.EventFraction_changed, NormalInterpolator.EventSet_fraction);
-        ParentGroup.AddRoute(NormalInterpolator.EventValue_changed, Normal.FdVector);
-
-        OriginalNormals := Normal.FdVector.Items;
-        AnimatedNormals := NormalInterpolator.FdKeyValue.Items;
-      end else
-      begin
-        NormalInterpolator := nil;
-        OriginalNormals := nil;
-        AnimatedNormals := nil;
-      end;
-
-      if Tangent <> nil then
-      begin
-        TangentInterpolator := TCoordinateInterpolator4DNode.Create;
-        TangentInterpolator.X3DName := 'Tangent' + InterpolatorNameSuffix;
-        //GatherAnimationKeysToSample(TangentInterpolator.FdKey.Items, Anim.Interpolators);
-        // faster:
-        TangentInterpolator.FdKey.Assign(CoordInterpolator.FdKey);
-        TangentInterpolator.FdKeyValue.Count := TangentInterpolator.FdKey.Count * Tangent.FdVector.Count;
-
-        ParentGroup.AddChildren(TangentInterpolator);
-        ParentGroup.AddRoute(Anim.TimeSensor.EventFraction_changed, TangentInterpolator.EventSet_fraction);
-        ParentGroup.AddRoute(TangentInterpolator.EventValue_changed, Tangent.FdVector);
-
-        OriginalTangents := Tangent.FdVector.Items;
-        AnimatedTangents := TangentInterpolator.FdKeyValue.Items;
-      end else
-      begin
-        TangentInterpolator := nil;
-        OriginalTangents := nil;
-        AnimatedTangents := nil;
-      end;
-
-      for I := 0 to CoordInterpolator.FdKey.Items.Count - 1 do
-      begin
-        SampleSkinAnimation(Anim, I, CoordInterpolator.FdKey.Items[I],
-          Coord.FdPoint.Items, CoordInterpolator.FdKeyValue.Items,
-          OriginalNormals, AnimatedNormals,
-          OriginalTangents, AnimatedTangents,
-          Joints, JointsGltf, InverseBindMatrices,
-          SkeletonRootIndex,
-          Shape.Geometry.InternalSkinJoints,
-          Shape.Geometry.InternalSkinWeights);
-      end;
-
-      MemoryTaken := CoordInterpolator.FdKeyValue.Items.Capacity * SizeOf(TVector3);
-      if NormalInterpolator <> nil then
-        MemoryTaken := MemoryTaken + NormalInterpolator.FdKeyValue.Items.Capacity * SizeOf(TVector3);
-      if TangentInterpolator <> nil then
-        MemoryTaken := MemoryTaken + TangentInterpolator.FdKeyValue.Items.Capacity * SizeOf(TVector3);
-      if MemoryTaken > 10 * 1024 * 1024 then // report only when memory usage > 10 MB
-        WritelnLog('glTF', 'Memory occupied by precalculating "%s" animation: %s', [
-          Anim.TimeSensor.X3DName,
-          SizeToStr(MemoryTaken)
-        ]);
-
-      { We want to use Shape.BBox for optimization (to avoid recalculating bbox).
-        Simple version:
-
-          Shape.BBox := Shape.BBox + TBox3D.FromPoints(CoordInterpolator.FdKeyValue.Items);
-
-        But it's more efficient to set bbox for specific animation
-        once the animation starts.
-        It also looks a bit more intuitive when you view bbox
-        (otherwise you would see a large bbox accounting for *all* animations,
-        but with mesh transformed with current animation, testcase: Bee, Monster).
-
-        This matters, because bbox is also used for collisions.
-        E.g. knight in fps_game when Walking should not have huge bbox
-        because of Dying animation. }
-      SetBBoxWhenAnimationStarts(Anim.TimeSensor, Shape,
-        TBox3D.FromPoints(CoordInterpolator.FdKeyValue.Items),
-        ParentGroup);
-    end;
-  end;
-
-  { Apply Skin to deform shapes list. }
-  procedure ReadSkin(const SkinToInitialize: TSkinToInitialize;
-    const ParentGroup: TAbstractGroupingNode);
-  var
+    SkinNode: TSkinNode;
     SkeletonRootIndex: Integer;
-    SkeletonRoot: TAbstractGroupingNode;
-    Joints: TX3DNodeList;
-    InverseBindMatrices: TMatrix4List;
     I: Integer;
-    Skin: TPasGLTF.TSkin;
-    Shapes: TAbstractGroupingNode;
+    ParentOfShapesUncasted: TX3DNode;
+    ParentOfShapes: TAbstractGroupingNode;
     ShapeNode: TShapeNode;
   begin
-    Skin := SkinToInitialize.Skin;
-    Shapes := SkinToInitialize.Shapes;
-
-    SkeletonRootIndex := Skin.Skeleton;
-    if SkeletonRootIndex = -1 then
-      SkeletonRoot := Result // root node created by LoadGltf
-    else
-    begin
-      if not Between(SkeletonRootIndex, 0, Nodes.Count - 1) then
-      begin
-        WritelnWarning('Skin "%s" specifies invalid skeleton root node index %d', [
-          Skin.Name,
-          SkeletonRootIndex
-        ]);
-        Exit;
-      end;
-      SkeletonRoot := Nodes[SkeletonRootIndex] as TAbstractGroupingNode;
-    end;
-
-    // first nil local variables, to reliably do try..finally that includes them all
-    Joints := nil;
-    InverseBindMatrices := nil;
-
+    SkinNode := TSkinNode.Create(Skin.Name, BaseUrl);
     try
-      Joints := TX3DNodeList.Create(false);
-      Joints.Count := Skin.Joints.Count;
+
+      // calculate SkinNode.Skeleton (root joint)
+      SkeletonRootIndex := Skin.Skeleton;
+      if SkeletonRootIndex = -1 then
+        SkinNode.Skeleton := CurrentScene
+      else
+      begin
+        if not Between(SkeletonRootIndex, 0, Nodes.Count - 1) then
+        begin
+          WritelnWarning('Skin "%s" specifies invalid skeleton root node index %d', [
+            Skin.Name,
+            SkeletonRootIndex
+          ]);
+          Exit;
+        end;
+        SkinNode.Skeleton := Nodes[SkeletonRootIndex] as TAbstractGroupingNode;
+      end;
+
+      AddSkinToHierarchy(SkinNode);
+
+      // calculate SkinNode.Joints
+      SkinNode.FdJoints.Count := Skin.Joints.Count;
       for I := 0 to Skin.Joints.Count - 1 do
       begin
         if not Between(Skin.Joints[I], 0, Nodes.Count - 1) then
@@ -2747,72 +2409,94 @@ var
             Skin.Name,
             Skin.Joints[I]
           ]);
+          { Exit from ReadSkin, as we cannot continue.
+            Joints indexes will make no sense if we omit some joint on the list. }
           Exit;
         end;
-        Joints[I] := Nodes[Skin.Joints[I]];
+        SkinNode.FdJoints[I] := Nodes[Skin.Joints[I]];
       end;
 
-      InverseBindMatrices := TMatrix4List.Create;
-      AccessorToMatrix4(Skin.InverseBindMatrices, InverseBindMatrices, false);
+      // calculate SkinNode.JInverseBindMatrices
+      AccessorToMatrix4(Skin.InverseBindMatrices, SkinNode.FdInverseBindMatrices.Items, false);
 
-      if Joints.Count <> InverseBindMatrices.Count then
+      if SkinNode.FdJoints.Count <>
+        SkinNode.FdInverseBindMatrices.Count then
       begin
         WritelnWarning('Joints and InverseBindMatrices counts differ for skin "%s": %d and %d', [
           Skin.Name,
-          Joints.Count,
-          InverseBindMatrices.Count
+          SkinNode.FdJoints.Count,
+          SkinNode.FdInverseBindMatrices.Count
         ]);
         Exit;
       end;
 
-      JointMatrix.Count := Joints.Count;
-
-      { To satisfy glTF requirements
-        """
-        Client implementations should apply only the transform of the skeleton root
-        node to the skinned mesh while ignoring the transform of the skinned mesh node.
-        """
-        Just reparent the meshes under skeleton root.
-
-        Testcase: demo-models/blender/skinned_animation/skinned_anim.glb . }
-      if SkinToInitialize.ShapesParent <> SkeletonRoot then
+      // move shapes underneath SkinToInitialize.ParentsOfShapes to SkinNode.Shapes
+      for ParentOfShapesUncasted in SkinToInitialize.ParentsOfShapes do
       begin
-        SkeletonRoot.AddChildren(Shapes);
-        SkinToInitialize.ShapesParent.RemoveChildren(Shapes);
-        SkinToInitialize.ShapesParent := SkeletonRoot;
+        ParentOfShapes := ParentOfShapesUncasted as TAbstractGroupingNode;
+        I := 0;
+        while I < ParentOfShapes.FdChildren.Count do
+        begin
+          if ParentOfShapes.FdChildren[I] is TShapeNode then
+          begin
+            ShapeNode := TShapeNode(ParentOfShapes.FdChildren[I]);
+
+            { Make shapes collide as simple boxes.
+              We don't want to recalculate octree of their triangles each frame,
+              and their boxes are easy, since we fill shape's bbox. }
+            ShapeNode.Collision := scBox;
+
+            //ShapeNode.BBox := EnlargeBoxForAnimation(ShapeNode.BBox);
+
+            { To satisfy glTF requirements
+              """
+              Client implementations should apply only the transform of the skeleton root
+              node to the skinned mesh while ignoring the transform of the skinned mesh node.
+              """
+              (later rephrased in glTF as
+              """
+              Only the joint transforms are applied to the skinned mesh;
+              the transform of the skinned mesh node MUST be ignored.
+              """
+
+              Solution: Just reparent the meshes under TSkinNode.
+
+              Testcase:
+              https://github.com/castle-engine/demo-models/blob/master/animation/blender_skinned_animation/skinned_anim.glb . }
+            SkinNode.FdShapes.Add(ShapeNode);
+            ParentOfShapes.FdChildren.Delete(I);
+          end else
+            Inc(I);
+        end;
       end;
 
-      for I := 0 to Shapes.FdChildren.Count - 1 do
-        if Shapes.FdChildren[I] is TShapeNode then
-        begin
-          ShapeNode := TShapeNode(Shapes.FdChildren[I]);
-          CalculateSkinInterpolators(ShapeNode,
-            Joints, Skin.Joints, InverseBindMatrices,
-            SkeletonRoot, SkeletonRootIndex, ParentGroup);
-        end;
+      CalculateSkinnedShapesBoundingBoxes(SkinNode, Animations, Nodes,
+        Skin.Joints, Document.Nodes, SceneGltf.Nodes, SkeletonRootIndex,
+        { Place the trigger nodes in the root of X3D file.
+          This allows to save the ROUTEs properly,
+          as they must be saved after the corresponding nodes.
+          Testcase: save from glTF to X3D quaternius/Bunny.gltf,
+          auto-tested by TTestX3DNodes.TestGltfConversion. }
+        Result);
     finally
-      FreeAndNil(Joints);
-      FreeAndNil(InverseBindMatrices);
+      // If we Exit above prematurely, because some check fails,
+      // SkinNode may remain initialized but unused.
+      FreeIfUnusedAndNil(SkinNode);
     end;
   end;
 
-  { Read glTF skins, which result in CoordinateInterpolator nodes
-    attached to shapes.
+  { Finalize reading glTF skins.
     Must be called after Nodes and SkinsToInitialize are ready, so after ReadNodes. }
-  procedure ReadSkins(const ParentGroup: TAbstractGroupingNode);
+  procedure ReadSkins;
   var
-    SkinToInitialize: TSkinToInitialize;
+    SkinToInitializePair: {$ifdef FPC} TSkinToInitializeList.TDictionaryPair {$else} TPair<TPasGLTF.TSkin, TSkinToInitialize> {$endif};
   begin
-    // one-time initialization of structures to process skin
-    AnimationSampler.TransformNodes := Nodes;
-    AnimationSampler.TransformNodesGltf := Document.Nodes;
-
-    for SkinToInitialize in SkinsToInitialize do
-      ReadSkin(SkinToInitialize, ParentGroup);
+    for SkinToInitializePair in SkinsToInitialize do
+      ReadSkin(SkinToInitializePair.Key, SkinToInitializePair.Value);
   end;
 
   { EXPORT nodes, so that using glTF animations in X3D is possible, like on
-    demo-models/blender/skinned_animation/skinned_anim_run_animations_from_x3d.x3dv }
+    https://github.com/castle-engine/demo-models/blob/master/animation/blender_skinned_animation/skinned_anim_run_animations_from_x3d.x3dv }
   procedure DoExportNodes;
   var
     N: TX3DNode;
@@ -2822,12 +2506,26 @@ var
       if N.X3DName <> '' then
         Result.ExportNode(N);
 
+    { We check Unused below, as some nodes on Appearances and Nodes lists
+      may be unused and will soon be freed by:
+
+        X3DNodeList_FreeUnusedAndNil(Appearances);
+        X3DNodeList_FreeUnusedAndNil(Nodes);
+
+      This would result in having TX3DExport items for them with ExportedNode = nil
+      (they will ne set to nil thanks to TX3DExport.SetExportedNode
+      doing AddDestructionNotification).
+      This is harmless now (all code should be prepared by TX3DExport.ExportNode
+      to handle nil), but also pointless - better to not add a node at all,
+      if we know it's not useful.
+    }
+
     for N in Appearances do
-      if N.X3DName <> '' then
+      if (N.X3DName <> '') and (not N.Unused) then
         Result.ExportNode(N);
 
     for N in Nodes do
-      if (N <> nil) and (N.X3DName <> '') then
+      if (N <> nil) and (N.X3DName <> '') and (not N.Unused) then
         Result.ExportNode(N);
 
     for Anim in Animations do
@@ -2852,15 +2550,11 @@ begin
     ExportNodes := nil;
     SkinsToInitialize := nil;
     Animations := nil;
-    AnimationSampler := nil;
-    JointMatrix := nil;
     Lights := nil;
     try
       Document := TMyGltfDocument.Create(Stream, BaseUrl);
-      SkinsToInitialize := TSkinToInitializeList.Create(true);
+      SkinsToInitialize := TSkinToInitializeList.Create([doOwnsValues]); // owns TSkinToInitialize instances
       Animations := TAnimationList.Create(true);
-      AnimationSampler := TAnimationSampler.Create;
-      JointMatrix := TMatrix4List.Create;
       Lights := TPunctualLights.Create;
       ExportNodes := TX3DNodeList.Create(false);
 
@@ -2880,13 +2574,16 @@ begin
         Appearances.Add(ReadAppearance(Material));
 
       // read main scene
+      SceneGltf := nil;
+      CurrentScene := TGroupNode.Create;
+      Result.AddChildren(CurrentScene);
       Nodes := TX3DNodeList.Create(false);
       if Document.Scene <> -1 then
-        ReadScene(Document.Scene, Result)
+        ReadScene(Document.Scene, CurrentScene)
       else
       begin
         WritelnWarning('glTF does not specify a default scene to render. We will import the 1st scene, if available.');
-        ReadScene(0, Result);
+        ReadScene(0, CurrentScene);
       end;
 
       // once appearances Used, UsedAsLit are set, fix them
@@ -2895,13 +2592,11 @@ begin
       // read animations
       for Animation in Document.Animations do
         ReadAnimation(Animation, Result);
-      ReadSkins(Result);
+      ReadSkins;
       DoExportNodes;
     finally
-      FreeAndNil(JointMatrix);
       FreeAndNil(Animations);
       FreeAndNil(SkinsToInitialize);
-      FreeAndNil(AnimationSampler);
       FreeIfUnusedAndNil(DefaultAppearance);
       X3DNodeList_FreeUnusedAndNil(Appearances);
       { Note that some Nodes[...] items may be nil.
@@ -2922,16 +2617,892 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
+{ Save glTF ---------------------------------------------------------------------- }
+
+function Vector3ToGltf(const V: TVector3): TPasGLTF.TVector3;
+begin
+  Assert(SizeOf(V) = SizeOf(Result));
+  Move(V, Result, SizeOf(Result));
+end;
+
+function Vector4ToGltf(const V: TVector4): TPasGLTF.TVector4;
+begin
+  Assert(SizeOf(V) = SizeOf(Result));
+  Move(V, Result, SizeOf(Result));
+end;
+
+{ Convert X3D rotation (axis-angle) to glTF rotation (quaternion). }
+function RotationToGltf(const AxisAngle: TVector4): TPasGLTF.TVector4;
+var
+  Q: TQuaternion;
+begin
+  Q := QuatFromAxisAngle(AxisAngle);
+  Result := Vector4ToGltf(Q.Data.Vector4);
+end;
+
+type
+  { Builds glTF binary buffer, buffer views, and accessors. }
+  TGltfBufferBuilder = class
+  strict private
+    FDocument: TPasGLTF.TDocument;
+    FBuffer: TPasGLTF.TBuffer;
+    { Add to FBuffer.Data enough padding with 0 bytes to align its size to 4 bytes. }
+    procedure EnsureAlign4;
+  public
+    constructor Create(ADocument: TPasGLTF.TDocument);
+    { Add accessor for Vector3 data (positions, normals).
+      Returns accessor index. }
+    function AddAccessorVector3(const Vectors: TVector3List;
+      const Target: TPasGLTF.TBufferView.TTargetType): Integer;
+    { Add accessor for Vector2 data (texture coordinates).
+      Returns accessor index. }
+    function AddAccessorVector2(const Vectors: TVector2List): Integer;
+    { Add accessor for Vector4 data (colors, tangents).
+      Returns accessor index. }
+    function AddAccessorVector4(const Vectors: TVector4List;
+      const Target: TPasGLTF.TBufferView.TTargetType): Integer;
+    { Add accessor for index data.
+      Returns accessor index. }
+    function AddAccessorIndices(const Indices: TInt32List): Integer;
+    { Finalize the buffer (update byte length). }
+    procedure Finalize;
+  end;
+
+constructor TGltfBufferBuilder.Create(ADocument: TPasGLTF.TDocument);
+begin
+  inherited Create;
+  FDocument := ADocument;
+  FBuffer := TPasGLTF.TBuffer.Create(FDocument);
+  FDocument.Buffers.Add(FBuffer);
+
+  // FBuffer.Data is already a TMemoryStream created by TBuffer.Create
+  Assert(FBuffer.Data <> nil);
+
+  // Note: we don't free FBuffer in our destructor, as it is owned by FDocument.
+end;
+
+procedure TGltfBufferBuilder.EnsureAlign4;
+var
+  Padding: Integer;
+  PaddingByte: Byte;
+begin
+  Padding := FBuffer.Data.Size mod 4;
+  if Padding <> 0 then
+    Padding := 4 - Padding;
+
+  PaddingByte := 0;
+  while Padding > 0 do
+  begin
+    FBuffer.Data.WriteBuffer(PaddingByte, 1);
+    Dec(Padding);
+  end;
+end;
+
+function TGltfBufferBuilder.AddAccessorVector3(const Vectors: TVector3List;
+  const Target: TPasGLTF.TBufferView.TTargetType): Integer;
+var
+  BufferView: TPasGLTF.TBufferView;
+  Accessor: TPasGLTF.TAccessor;
+  I: Integer;
+  StartOffset: Int64;
+  MinV, MaxV: TVector3;
+begin
+  if Vectors.Count = 0 then
+    Exit(-1);
+
+  EnsureAlign4;
+  StartOffset := FBuffer.Data.Size;
+
+  // Write data
+  FBuffer.Data.WriteBuffer(Vectors.L[0], SizeOf(TVector3) * Vectors.Count);
+
+  // Calculate min/max
+  MinV := Vectors[0];
+  MaxV := Vectors[0];
+  for I := 1 to Vectors.Count - 1 do
+  begin
+    if Vectors.L[I].X < MinV.X then MinV.X := Vectors.L[I].X;
+    if Vectors.L[I].Y < MinV.Y then MinV.Y := Vectors.L[I].Y;
+    if Vectors.L[I].Z < MinV.Z then MinV.Z := Vectors.L[I].Z;
+    if Vectors.L[I].X > MaxV.X then MaxV.X := Vectors.L[I].X;
+    if Vectors.L[I].Y > MaxV.Y then MaxV.Y := Vectors.L[I].Y;
+    if Vectors.L[I].Z > MaxV.Z then MaxV.Z := Vectors.L[I].Z;
+  end;
+
+  // Create BufferView
+  BufferView := TPasGLTF.TBufferView.Create(FDocument);
+  BufferView.Buffer := 0;
+  BufferView.ByteOffset := StartOffset;
+  BufferView.ByteLength := Vectors.Count * SizeOf(TVector3);
+  BufferView.Target := Target;
+  FDocument.BufferViews.Add(BufferView);
+
+  // Create Accessor
+  Accessor := TPasGLTF.TAccessor.Create(FDocument);
+  Accessor.BufferView := FDocument.BufferViews.Count - 1;
+  Accessor.ByteOffset := 0;
+  Accessor.ComponentType := TPasGLTF.TAccessor.TComponentType.Float;
+  Accessor.Type_ := TPasGLTF.TAccessor.TType.Vec3;
+  Accessor.Count := Vectors.Count;
+  Accessor.MinArray.Add([MinV.X, MinV.Y, MinV.Z]);
+  Accessor.MaxArray.Add([MaxV.X, MaxV.Y, MaxV.Z]);
+  FDocument.Accessors.Add(Accessor);
+
+  Result := FDocument.Accessors.Count - 1;
+end;
+
+function TGltfBufferBuilder.AddAccessorVector2(const Vectors: TVector2List): Integer;
+var
+  BufferView: TPasGLTF.TBufferView;
+  Accessor: TPasGLTF.TAccessor;
+  I: Integer;
+  StartOffset: Int64;
+  MinV, MaxV: TVector2;
+begin
+  if Vectors.Count = 0 then
+    Exit(-1);
+
+  EnsureAlign4;
+  StartOffset := FBuffer.Data.Size;
+
+  // Write data
+  FBuffer.Data.WriteBuffer(Vectors.L[0], SizeOf(TVector2) * Vectors.Count);
+
+  // Calculate min/max
+  MinV := Vectors[0];
+  MaxV := Vectors[0];
+  for I := 1 to Vectors.Count - 1 do
+  begin
+    if Vectors.L[I].X < MinV.X then MinV.X := Vectors.L[I].X;
+    if Vectors.L[I].Y < MinV.Y then MinV.Y := Vectors.L[I].Y;
+    if Vectors.L[I].X > MaxV.X then MaxV.X := Vectors.L[I].X;
+    if Vectors.L[I].Y > MaxV.Y then MaxV.Y := Vectors.L[I].Y;
+  end;
+
+  // Create BufferView
+  BufferView := TPasGLTF.TBufferView.Create(FDocument);
+  BufferView.Buffer := 0;
+  BufferView.ByteOffset := StartOffset;
+  BufferView.ByteLength := Vectors.Count * SizeOf(TVector2);
+  BufferView.Target := TPasGLTF.TBufferView.TTargetType.ArrayBuffer;
+  FDocument.BufferViews.Add(BufferView);
+
+  // Create Accessor
+  Accessor := TPasGLTF.TAccessor.Create(FDocument);
+  Accessor.BufferView := FDocument.BufferViews.Count - 1;
+  Accessor.ByteOffset := 0;
+  Accessor.ComponentType := TPasGLTF.TAccessor.TComponentType.Float;
+  Accessor.Type_ := TPasGLTF.TAccessor.TType.Vec2;
+  Accessor.Count := Vectors.Count;
+  Accessor.MinArray.Add([MinV.X, MinV.Y]);
+  Accessor.MaxArray.Add([MaxV.X, MaxV.Y]);
+  FDocument.Accessors.Add(Accessor);
+
+  Result := FDocument.Accessors.Count - 1;
+end;
+
+function TGltfBufferBuilder.AddAccessorVector4(const Vectors: TVector4List;
+  const Target: TPasGLTF.TBufferView.TTargetType): Integer;
+var
+  BufferView: TPasGLTF.TBufferView;
+  Accessor: TPasGLTF.TAccessor;
+  I: Integer;
+  StartOffset: Int64;
+  MinV, MaxV: TVector4;
+begin
+  if Vectors.Count = 0 then
+    Exit(-1);
+
+  EnsureAlign4;
+  StartOffset := FBuffer.Data.Size;
+
+  // Write data
+  FBuffer.Data.WriteBuffer(Vectors.L[0], SizeOf(TVector4) * Vectors.Count);
+
+  // Calculate min/max
+  MinV := Vectors[0];
+  MaxV := Vectors[0];
+  for I := 1 to Vectors.Count - 1 do
+  begin
+    if Vectors.L[I].X < MinV.X then MinV.X := Vectors.L[I].X;
+    if Vectors.L[I].Y < MinV.Y then MinV.Y := Vectors.L[I].Y;
+    if Vectors.L[I].Z < MinV.Z then MinV.Z := Vectors.L[I].Z;
+    if Vectors.L[I].W < MinV.W then MinV.W := Vectors.L[I].W;
+    if Vectors.L[I].X > MaxV.X then MaxV.X := Vectors.L[I].X;
+    if Vectors.L[I].Y > MaxV.Y then MaxV.Y := Vectors.L[I].Y;
+    if Vectors.L[I].Z > MaxV.Z then MaxV.Z := Vectors.L[I].Z;
+    if Vectors.L[I].W > MaxV.W then MaxV.W := Vectors.L[I].W;
+  end;
+
+  // Create BufferView
+  BufferView := TPasGLTF.TBufferView.Create(FDocument);
+  BufferView.Buffer := 0;
+  BufferView.ByteOffset := StartOffset;
+  BufferView.ByteLength := Vectors.Count * SizeOf(TVector4);
+  BufferView.Target := Target;
+  FDocument.BufferViews.Add(BufferView);
+
+  // Create Accessor
+  Accessor := TPasGLTF.TAccessor.Create(FDocument);
+  Accessor.BufferView := FDocument.BufferViews.Count - 1;
+  Accessor.ByteOffset := 0;
+  Accessor.ComponentType := TPasGLTF.TAccessor.TComponentType.Float;
+  Accessor.Type_ := TPasGLTF.TAccessor.TType.Vec4;
+  Accessor.Count := Vectors.Count;
+  Accessor.MinArray.Add([MinV.X, MinV.Y, MinV.Z, MinV.W]);
+  Accessor.MaxArray.Add([MaxV.X, MaxV.Y, MaxV.Z, MaxV.W]);
+  FDocument.Accessors.Add(Accessor);
+
+  Result := FDocument.Accessors.Count - 1;
+end;
+
+function TGltfBufferBuilder.AddAccessorIndices(const Indices: TInt32List): Integer;
+var
+  BufferView: TPasGLTF.TBufferView;
+  Accessor: TPasGLTF.TAccessor;
+  I: Integer;
+  StartOffset: Int64;
+  MinIdx, MaxIdx: Int32;
+  UseShort: Boolean;
+  ShortVal: UInt16;
+begin
+  if Indices.Count = 0 then
+    Exit(-1);
+
+  EnsureAlign4;
+  StartOffset := FBuffer.Data.Size;
+
+  // Calculate min/max and determine if we can use UnsignedShort
+  MinIdx := Indices[0];
+  MaxIdx := Indices[0];
+  for I := 1 to Indices.Count - 1 do
+  begin
+    if Indices.L[I] < MinIdx then MinIdx := Indices.L[I];
+    if Indices.L[I] > MaxIdx then MaxIdx := Indices.L[I];
+  end;
+  UseShort := (MaxIdx < 65536);
+
+  // Write data
+  if UseShort then
+  begin
+    for I := 0 to Indices.Count - 1 do
+    begin
+      ShortVal := Indices.L[I];
+      FBuffer.Data.WriteBuffer(ShortVal, SizeOf(ShortVal));
+    end;
+  end else
+  begin
+    FBuffer.Data.WriteBuffer(Indices.L[0], SizeOf(UInt32) * Indices.Count);
+  end;
+
+  // Create BufferView
+  BufferView := TPasGLTF.TBufferView.Create(FDocument);
+  BufferView.Buffer := 0;
+  BufferView.ByteOffset := StartOffset;
+  if UseShort then
+    BufferView.ByteLength := Indices.Count * SizeOf(UInt16)
+  else
+    BufferView.ByteLength := Indices.Count * SizeOf(UInt32);
+  BufferView.Target := TPasGLTF.TBufferView.TTargetType.ElementArrayBuffer;
+  FDocument.BufferViews.Add(BufferView);
+
+  // Create Accessor
+  Accessor := TPasGLTF.TAccessor.Create(FDocument);
+  Accessor.BufferView := FDocument.BufferViews.Count - 1;
+  Accessor.ByteOffset := 0;
+  if UseShort then
+    Accessor.ComponentType := TPasGLTF.TAccessor.TComponentType.UnsignedShort
+  else
+    Accessor.ComponentType := TPasGLTF.TAccessor.TComponentType.UnsignedInt;
+  Accessor.Type_ := TPasGLTF.TAccessor.TType.Scalar;
+  Accessor.Count := Indices.Count;
+  Accessor.MinArray.Add(MinIdx);
+  Accessor.MaxArray.Add(MaxIdx);
+  FDocument.Accessors.Add(Accessor);
+
+  Result := FDocument.Accessors.Count - 1;
+end;
+
+procedure TGltfBufferBuilder.Finalize;
+begin
+  FBuffer.ByteLength := FBuffer.Data.Size;
+end;
+
+type
+  { Cache for materials during save. Maps X3D material node to glTF material index. }
+  TMaterialCache = {$ifdef FPC}specialize{$endif} TDictionary<TX3DNode, Integer>;
+
+  { Context for saving glTF. }
+  TGltfSaveContext = class
+    Document: TPasGLTF.TDocument;
+    BufferBuilder: TGltfBufferBuilder;
+    MaterialCache: TMaterialCache;
+    function GetOrCreateMaterial(const Appearance: TAppearanceNode): Integer;
+    function ProcessGeometry(const Geometry: TAbstractGeometryNode;
+      const State: TX3DGraphTraverseState;
+      const MaterialIndex: Integer): Boolean;
+    procedure ProcessShape(const Shape: TShapeNode);
+    { Process X3D Node into glTF.
+      In a correct X3D graph, argument should always be TAbstractChildNode. }
+    function ProcessChildNode(const Node: TX3DNode): Integer;
+  end;
+
+{ From X3D TAppearanceNode determine glTF TPasGLTF.TMaterial.TAlphaMode. }
+function AlphaModeToGltf(const Appearance: TAppearanceNode;
+  const Material: TAbstractMaterialNode): TPasGLTF.TMaterial.TAlphaMode;
+begin
+  case Appearance.AlphaMode of
+    amMask  : Result := TPasGLTF.TMaterial.TAlphaMode.Mask;
+    amBlend : Result := TPasGLTF.TMaterial.TAlphaMode.Blend;
+    amOpaque: Result := TPasGLTF.TMaterial.TAlphaMode.Opaque;
+    amAuto  :
+      begin
+        // TODO: TShape.AlphaChannel has better auto-detection in CGE
+        if Material.MaterialInfo.Transparency > 0 then
+          Result := TPasGLTF.TMaterial.TAlphaMode.Blend
+        else
+          Result := TPasGLTF.TMaterial.TAlphaMode.Opaque;
+      end;
+    else raise EInternalError.Create('Unexpected TAlphaMode value');
+  end;
+end;
+
+{ Convert TPhysicalMaterialNode to glTF PBR material. Returns material index. }
+function WritePhysicalMaterial(const Appearance: TAppearanceNode;
+  const Material: TPhysicalMaterialNode;
+  const Document: TPasGLTF.TDocument): Integer;
+var
+  GltfMaterial: TPasGLTF.TMaterial;
+begin
+  GltfMaterial := TPasGLTF.TMaterial.Create(Document);
+  GltfMaterial.Name := Material.X3DName;
+
+  // PBR metallic-roughness
+  GltfMaterial.PBRMetallicRoughness.BaseColorFactor := Vector4ToGltf(
+    Vector4(Material.BaseColor, 1 - Material.Transparency));
+  GltfMaterial.PBRMetallicRoughness.MetallicFactor := Material.Metallic;
+  GltfMaterial.PBRMetallicRoughness.RoughnessFactor := Material.Roughness;
+
+  // Emissive
+  GltfMaterial.EmissiveFactor := Vector3ToGltf(Material.EmissiveColor);
+
+  GltfMaterial.AlphaMode := AlphaModeToGltf(Appearance, Material);
+
+  Document.Materials.Add(GltfMaterial);
+  Result := Document.Materials.Count - 1;
+end;
+
+{ Convert TUnlitMaterialNode to glTF unlit material. Returns material index. }
+function WriteUnlitMaterial(const Appearance: TAppearanceNode;
+  const Material: TUnlitMaterialNode;
+  const Document: TPasGLTF.TDocument): Integer;
+var
+  GltfMaterial: TPasGLTF.TMaterial;
+begin
+  GltfMaterial := TPasGLTF.TMaterial.Create(Document);
+  GltfMaterial.Name := Material.X3DName;
+
+  // For unlit, baseColor carries the emissive color.
+  GltfMaterial.PBRMetallicRoughness.BaseColorFactor := Vector4ToGltf(
+    Vector4(Material.EmissiveColor, 1 - Material.Transparency));
+
+  { Set other parameters as a fallback,
+    in case client doesn't support KHR_materials_unlit.
+    See https://github.com/KhronosGroup/glTF/tree/main/extensions/2.0/Khronos/KHR_materials_unlit :
+    recommends "roughnessFactor is greater than 0.5".
+    Also, this makes TPasGLTF.TMaterial.TPBRMetallicRoughness.GetEmpty
+    calculate false (it compares only roughness, metallic factors),
+    so we force serializing the PBRMetallicRoughness block. }
+  GltfMaterial.PBRMetallicRoughness.MetallicFactor := 0;
+  GltfMaterial.PBRMetallicRoughness.RoughnessFactor := 0.9;
+
+  // Mark as unlit via extension
+  GltfMaterial.Extensions.Add('KHR_materials_unlit', TPasJSONItemObject.Create);
+  if Document.ExtensionsUsed.IndexOf('KHR_materials_unlit') = -1 then
+    Document.ExtensionsUsed.Add('KHR_materials_unlit');
+
+  GltfMaterial.AlphaMode := AlphaModeToGltf(Appearance, Material);
+
+  Document.Materials.Add(GltfMaterial);
+  Result := Document.Materials.Count - 1;
+end;
+
+{ Convert TMaterialNode (Phong) to glTF PBR material with approximation. Returns material index. }
+function WritePhongMaterial(const Appearance: TAppearanceNode;
+  const Material: TMaterialNode;
+  const Document: TPasGLTF.TDocument): Integer;
+var
+  GltfMaterial: TPasGLTF.TMaterial;
+  Roughness: Single;
+begin
+  //WritelnWarning('glTF', 'Phong material "%s" converted to PBR with approximation', [Material.X3DName]);
+
+  GltfMaterial := TPasGLTF.TMaterial.Create(Document);
+  GltfMaterial.Name := Material.X3DName;
+
+  // Approximate PBR from Phong
+  GltfMaterial.PBRMetallicRoughness.BaseColorFactor := Vector4ToGltf(
+    Vector4(Material.DiffuseColor, 1 - Material.Transparency));
+
+  // Convert shininess to roughness (rough approximation)
+  // Shininess in X3D is 0..1, higher = shinier
+  // Roughness in glTF is 0..1, higher = rougher
+  // Using Sqrt as it's non-linear?
+  // https://cientistavuador.github.io/articles/1_en-us.html
+  // and it seems to look good.
+  if Material.Shininess > 0 then
+    Roughness := 1 - Sqrt(Material.Shininess) // rough approximation
+  else
+    Roughness := 1;
+  GltfMaterial.PBRMetallicRoughness.RoughnessFactor := Roughness;
+  GltfMaterial.PBRMetallicRoughness.MetallicFactor := 0; // Phong is typically non-metallic
+
+  // Emissive
+  GltfMaterial.EmissiveFactor := Vector3ToGltf(Material.EmissiveColor);
+
+  GltfMaterial.AlphaMode := AlphaModeToGltf(Appearance, Material);
+
+  Document.Materials.Add(GltfMaterial);
+  Result := Document.Materials.Count - 1;
+end;
+
+function TGltfSaveContext.GetOrCreateMaterial(const Appearance: TAppearanceNode): Integer;
+var
+  Material: TAbstractMaterialNode;
+begin
+  if Appearance = nil then
+    Exit(-1);
+
+  // Check cache
+  if MaterialCache.TryGetValue(Appearance, Result) then
+    Exit;
+
+  Material := Appearance.Material;
+  if Material = nil then
+    Exit(-1);
+
+  if Material is TPhysicalMaterialNode then
+    Result := WritePhysicalMaterial(
+      Appearance, TPhysicalMaterialNode(Material), Document)
+  else if Material is TUnlitMaterialNode then
+    Result := WriteUnlitMaterial(
+      Appearance, TUnlitMaterialNode(Material), Document)
+  else if Material is TMaterialNode then
+    Result := WritePhongMaterial(
+      Appearance, TMaterialNode(Material), Document)
+  else
+  begin
+    WritelnWarning('glTF', 'Unsupported material X3D type: %s', [Material.NiceName]);
+    Exit(-1);
+  end;
+
+  MaterialCache.Add(Appearance, Result);
+end;
+
+function TGltfSaveContext.ProcessGeometry(const Geometry: TAbstractGeometryNode;
+  const State: TX3DGraphTraverseState;
+  const MaterialIndex: Integer): Boolean;
+var
+  Mesh: TPasGLTF.TMesh;
+  Primitive: TPasGLTF.TMesh.TPrimitive;
+  Positions: TVector3List;
+  Normals: TVector3List;
+  TexCoords: TVector2List;
+  Indices: TInt32List;
+  CoordNode: TCoordinateNode;
+  NormalNode: TNormalNode;
+  TexCoordNode: TTextureCoordinateNode;
+  I, J, FaceStart, FaceVertexCount: Integer;
+  TriSet: TIndexedTriangleSetNode;
+  TriSetNonIndexed: TTriangleSetNode;
+  IndexedFaceSet: TIndexedFaceSetNode;
+  CoordIndices: TInt32List;
+  PosAccessor, NormAccessor, TexAccessor, IdxAccessor: Integer;
+begin
+  Result := False;
+  Positions := nil;
+  Normals := nil;
+  TexCoords := nil;
+  Indices := nil;
+
+  try
+    // Handle TIndexedFaceSetNode (common proxy for Box, Sphere, etc.)
+    if Geometry is TIndexedFaceSetNode then
+    begin
+      IndexedFaceSet := TIndexedFaceSetNode(Geometry);
+      if IndexedFaceSet.Coord = nil then Exit;
+      CoordNode := IndexedFaceSet.Coord as TCoordinateNode;
+      if CoordNode = nil then Exit;
+
+      Positions := TVector3List.Create;
+      Positions.Assign(CoordNode.FdPoint.Items);
+
+      // Get normals if available
+      if (IndexedFaceSet.Normal <> nil) and (IndexedFaceSet.Normal is TNormalNode) then
+      begin
+        NormalNode := TNormalNode(IndexedFaceSet.Normal);
+        Normals := TVector3List.Create;
+        Normals.Assign(NormalNode.FdVector.Items);
+      end;
+
+      // Get texture coordinates if available
+      if (IndexedFaceSet.TexCoord <> nil) and (IndexedFaceSet.TexCoord is TTextureCoordinateNode) then
+      begin
+        TexCoordNode := TTextureCoordinateNode(IndexedFaceSet.TexCoord);
+        TexCoords := TVector2List.Create;
+        TexCoords.Assign(TexCoordNode.FdPoint.Items);
+      end;
+
+      // Convert indexed face set to triangles
+      // IndexedFaceSet uses -1 as face separator
+      Indices := TInt32List.Create;
+      CoordIndices := IndexedFaceSet.FdCoordIndex.Items;
+      FaceStart := 0;
+      I := 0;
+      while I <= CoordIndices.Count do
+      begin
+        // Check for end of face (-1) or end of list
+        if (I = CoordIndices.Count) or (CoordIndices[I] < 0) then
+        begin
+          FaceVertexCount := I - FaceStart;
+          // Triangulate the face using fan triangulation
+          if FaceVertexCount >= 3 then
+          begin
+            for J := 0 to FaceVertexCount - 3 do
+            begin
+              Indices.Add(CoordIndices[FaceStart]);
+              Indices.Add(CoordIndices[FaceStart + J + 1]);
+              Indices.Add(CoordIndices[FaceStart + J + 2]);
+            end;
+          end;
+          FaceStart := I + 1;
+        end;
+        Inc(I);
+      end;
+
+      Result := True;
+    end
+    // Handle TIndexedTriangleSetNode
+    else if Geometry is TIndexedTriangleSetNode then
+    begin
+      TriSet := TIndexedTriangleSetNode(Geometry);
+      CoordNode := TriSet.Coord as TCoordinateNode;
+      if CoordNode = nil then Exit;
+
+      Positions := TVector3List.Create;
+      Positions.Assign(CoordNode.FdPoint.Items);
+
+      // Get indices
+      Indices := TInt32List.Create;
+      Indices.Assign(TriSet.FdIndex.Items);
+
+      // Get normals if available
+      if (TriSet.Normal <> nil) and (TriSet.Normal is TNormalNode) then
+      begin
+        NormalNode := TNormalNode(TriSet.Normal);
+        Normals := TVector3List.Create;
+        Normals.Assign(NormalNode.FdVector.Items);
+      end;
+
+      // Get texture coordinates if available
+      if (TriSet.TexCoord <> nil) and (TriSet.TexCoord is TTextureCoordinateNode) then
+      begin
+        TexCoordNode := TTextureCoordinateNode(TriSet.TexCoord);
+        TexCoords := TVector2List.Create;
+        TexCoords.Assign(TexCoordNode.FdPoint.Items);
+      end;
+
+      Result := True;
+    end
+    // Handle TTriangleSetNode (non-indexed)
+    else if Geometry is TTriangleSetNode then
+    begin
+      TriSetNonIndexed := TTriangleSetNode(Geometry);
+      CoordNode := TriSetNonIndexed.Coord as TCoordinateNode;
+      if CoordNode = nil then Exit;
+
+      Positions := TVector3List.Create;
+      Positions.Assign(CoordNode.FdPoint.Items);
+
+      // Get normals if available
+      if (TriSetNonIndexed.Normal <> nil) and (TriSetNonIndexed.Normal is TNormalNode) then
+      begin
+        NormalNode := TNormalNode(TriSetNonIndexed.Normal);
+        Normals := TVector3List.Create;
+        Normals.Assign(NormalNode.FdVector.Items);
+      end;
+
+      // Get texture coordinates if available
+      if (TriSetNonIndexed.TexCoord <> nil) and (TriSetNonIndexed.TexCoord is TTextureCoordinateNode) then
+      begin
+        TexCoordNode := TTextureCoordinateNode(TriSetNonIndexed.TexCoord);
+        TexCoords := TVector2List.Create;
+        TexCoords.Assign(TexCoordNode.FdPoint.Items);
+      end;
+
+      Result := True;
+    end;
+
+    if not Result then Exit;
+
+    // Create mesh and primitive
+    Mesh := TPasGLTF.TMesh.Create(Document);
+    Mesh.Name := Geometry.X3DName;
+
+    Primitive := TPasGLTF.TMesh.TPrimitive.Create(Document);
+    Primitive.Mode := TPasGLTF.TMesh.TPrimitive.TMode.Triangles;
+    Primitive.Material := MaterialIndex;
+
+    // Add position accessor
+    PosAccessor := BufferBuilder.AddAccessorVector3(Positions,
+      TPasGLTF.TBufferView.TTargetType.ArrayBuffer);
+    if PosAccessor >= 0 then
+      Primitive.Attributes.Add('POSITION', PosAccessor);
+
+    // Add normal accessor
+    if Normals <> nil then
+    begin
+      NormAccessor := BufferBuilder.AddAccessorVector3(Normals,
+        TPasGLTF.TBufferView.TTargetType.ArrayBuffer);
+      if NormAccessor >= 0 then
+        Primitive.Attributes.Add('NORMAL', NormAccessor);
+    end;
+
+    // Add texcoord accessor
+    if TexCoords <> nil then
+    begin
+      TexAccessor := BufferBuilder.AddAccessorVector2(TexCoords);
+      if TexAccessor >= 0 then
+        Primitive.Attributes.Add('TEXCOORD_0', TexAccessor);
+    end;
+
+    // Add indices accessor
+    if Indices <> nil then
+    begin
+      IdxAccessor := BufferBuilder.AddAccessorIndices(Indices);
+      if IdxAccessor >= 0 then
+        Primitive.Indices := IdxAccessor;
+    end;
+
+    Mesh.Primitives.Add(Primitive);
+    Document.Meshes.Add(Mesh);
+  finally
+    FreeAndNil(Positions);
+    FreeAndNil(Normals);
+    FreeAndNil(TexCoords);
+    FreeAndNil(Indices);
+  end;
+end;
+
+procedure TGltfSaveContext.ProcessShape(const Shape: TShapeNode);
+var
+  Geometry: TAbstractGeometryNode;
+  ProxyState: TX3DGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode;
+  MaterialIndex: Integer;
+begin
+  if Shape.Geometry = nil then Exit;
+
+  Geometry := Shape.Geometry;
+  MaterialIndex := GetOrCreateMaterial(Shape.Appearance);
+
+  // Try to handle geometry directly
+  ProxyState := TX3DGraphTraverseState.Create;
+  try
+    ProxyState.ShapeNode := Shape;
+
+    if not ProcessGeometry(Geometry, ProxyState, MaterialIndex) then
+    begin
+      // Try using Proxy
+      ProxyGeometry := Geometry.Proxy(ProxyState);
+      if ProxyGeometry <> nil then
+      begin
+        try
+          if not ProcessGeometry(ProxyGeometry, ProxyState, MaterialIndex) then
+            WritelnWarning('glTF', 'Unsupported geometry: %s, proxy to %s', [
+              Geometry.ClassName,
+              ProxyGeometry.ClassName
+            ]);
+        finally
+          FreeAndNil(ProxyGeometry);
+        end;
+      end else
+        WritelnWarning('glTF', 'Unsupported geometry: %s, no proxy', [
+          Geometry.ClassName
+        ]);
+    end;
+  finally
+    FreeAndNil(ProxyState);
+  end;
+end;
+
+function TGltfSaveContext.ProcessChildNode(const Node: TX3DNode): Integer;
+var
+  GltfNode: TPasGLTF.TNode;
+  Transform: TTransformNode;
+  Group: TAbstractGroupingNode;
+  Shape: TShapeNode;
+  ChildNode: TX3DNode;
+  ChildIndex: Integer;
+  I: Integer;
+begin
+  Result := -1;
+
+  if Node is TShapeNode then
+  begin
+    Shape := TShapeNode(Node);
+    ProcessShape(Shape);
+
+    // Create a node for this shape
+    GltfNode := TPasGLTF.TNode.Create(Document);
+    GltfNode.Name := Shape.X3DName;
+    if Document.Meshes.Count > 0 then
+      GltfNode.Mesh := Document.Meshes.Count - 1;
+    Document.Nodes.Add(GltfNode);
+    Result := Document.Nodes.Count - 1;
+  end else
+  if Node is TTransformNode then
+  begin
+    Transform := TTransformNode(Node);
+
+    GltfNode := TPasGLTF.TNode.Create(Document);
+    GltfNode.Name := Transform.X3DName;
+    GltfNode.Translation := Vector3ToGltf(Transform.Translation);
+    GltfNode.Rotation := RotationToGltf(Transform.Rotation);
+    GltfNode.Scale := Vector3ToGltf(Transform.Scale);
+    Document.Nodes.Add(GltfNode);
+    Result := Document.Nodes.Count - 1;
+
+    // Process children
+    for I := 0 to Transform.FdChildren.Count - 1 do
+    begin
+      ChildNode := Transform.FdChildren[I];
+      ChildIndex := ProcessChildNode(ChildNode);
+      if ChildIndex >= 0 then
+        GltfNode.Children.Add(ChildIndex);
+    end;
+  end
+  else
+  if Node is TAbstractGroupingNode then
+  begin
+    Group := TAbstractGroupingNode(Node);
+
+    GltfNode := TPasGLTF.TNode.Create(Document);
+    GltfNode.Name := Group.X3DName;
+    Document.Nodes.Add(GltfNode);
+    Result := Document.Nodes.Count - 1;
+
+    // Process children
+    for I := 0 to Group.FdChildren.Count - 1 do
+    begin
+      ChildNode := Group.FdChildren[I];
+      ChildIndex := ProcessChildNode(ChildNode);
+      if ChildIndex >= 0 then
+        GltfNode.Children.Add(ChildIndex);
+    end;
+  end;
+end;
+
+{ Save glTF, either JSON or binary (GLB). }
+procedure SaveGLTF(const Node: TX3DRootNode; const Stream: TStream;
+  const SaveOptions: TCastleSceneSaveOptions; const IsBinary: Boolean);
+
+  function JsonFormatted: Boolean;
+  begin
+    Result := (SaveOptions <> nil) and SaveOptions.GltfJsonFormatted;
+  end;
+
+var
+  Document: TPasGLTF.TDocument;
+  Context: TGltfSaveContext;
+  Scene: TPasGLTF.TScene;
+  ChildNode: TX3DNode;
+  ChildIndex: Integer;
+  I: Integer;
+begin
+  Document := TPasGLTF.TDocument.Create;
+  try
+    // Set asset metadata
+    Document.Asset.Version := '2.0';
+    if (SaveOptions <> nil) and (SaveOptions.Generator <> '') then
+      Document.Asset.Generator := SaveOptions.Generator
+    else
+      Document.Asset.Generator := 'Castle Game Engine';
+
+    Context := TGltfSaveContext.Create;
+    try
+      Context.Document := Document;
+      Context.BufferBuilder := TGltfBufferBuilder.Create(Document);
+      Context.MaterialCache := TMaterialCache.Create;
+
+      // Create default scene
+      Scene := TPasGLTF.TScene.Create(Document);
+      Scene.Name := 'Scene';
+      Document.Scenes.Add(Scene);
+      Document.Scene := 0;
+
+      // Process all root children
+      for I := 0 to Node.FdChildren.Count - 1 do
+      begin
+        ChildNode := Node.FdChildren[I];
+        ChildIndex := Context.ProcessChildNode(ChildNode);
+        if ChildIndex >= 0 then
+          Scene.Nodes.Add(ChildIndex);
+      end;
+
+      // Finalize buffer
+      Context.BufferBuilder.Finalize;
+
+      // For JSON output, embed buffer data as base64
+      // For binary output (GLB), the data stays in the buffer
+      if not IsBinary then
+      begin
+        // we always have 1 buffer for now, created by 1 TGltfBufferBuilder
+        Assert(Document.Buffers.Count = 1);
+        Document.Buffers[0].SetEmbeddedResourceData;
+      end;
+    finally
+      FreeAndNil(Context.MaterialCache);
+      FreeAndNil(Context.BufferBuilder);
+      FreeAndNil(Context);
+    end;
+
+    Document.SaveToStream(Stream, IsBinary, JsonFormatted);
+  finally
+    FreeAndNil(Document);
+  end;
+end;
+
+procedure SaveGLTF_Binary(const Node: TX3DRootNode; const Stream: TStream;
+  const SaveOptions: TCastleSceneSaveOptions);
+begin
+  SaveGLTF(Node, Stream, SaveOptions, true);
+end;
+
+procedure SaveGLTF_Json(const Node: TX3DRootNode; const Stream: TStream;
+  const SaveOptions: TCastleSceneSaveOptions);
+begin
+  SaveGLTF(Node, Stream, SaveOptions, false);
+end;
+
 var
   ModelFormat: TModelFormat;
 initialization
   ModelFormat := TModelFormat.Create;
   ModelFormat.OnLoad := {$ifdef FPC}@{$endif} LoadGLTF;
   ModelFormat.OnLoadForceMemoryStream := true;
-  ModelFormat.MimeTypes.Add('model/gltf+json');
+  ModelFormat.OnSave := {$ifdef FPC}@{$endif} SaveGLTF_Binary;
   ModelFormat.MimeTypes.Add('model/gltf-binary');
-  ModelFormat.FileFilterName := 'glTF (*.glb, *.gltf)';
+  ModelFormat.FileFilterName := 'glTF Binary (*.glb)';
   ModelFormat.Extensions.Add('.glb');
+  RegisterModelFormat(ModelFormat);
+
+  ModelFormat := TModelFormat.Create;
+  ModelFormat.OnLoad := {$ifdef FPC}@{$endif} LoadGLTF;
+  ModelFormat.OnLoadForceMemoryStream := true;
+  ModelFormat.OnSave := {$ifdef FPC}@{$endif} SaveGLTF_Json;
+  ModelFormat.MimeTypes.Add('model/gltf+json');
+  ModelFormat.FileFilterName := 'glTF JSON (*.gltf)';
   ModelFormat.Extensions.Add('.gltf');
   RegisterModelFormat(ModelFormat);
 end.

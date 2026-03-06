@@ -330,8 +330,12 @@ type
         end;
       end;
       #)
+
+      @exclude
     *)
     InternalOverrideRenderOptions: TCastleRenderOptions;
+
+    function EffectiveRenderOptions: TCastleRenderOptions; override;
 
     function CreateShape(const AGeometry: TAbstractGeometryNode;
       const AState: TX3DGraphTraverseState;
@@ -431,6 +435,13 @@ type
     InternalVisibilityTest: TTestShapeVisibility;
 
     procedure FreeResources(Resources: TSceneFreeResources); override;
+
+    { Are we really using shadow volumes right now (that is, have light
+      source casting shadows with shadow volumes), see
+      TRenderParams.UsingShadowVolumes?
+      And scene casts shadows?
+      @exclude }
+    function InternalCastingShadowVolumesNow: Boolean; override;
 
     { TBackgroundRenderer instance to render the background defined in this scene.
       Current background is the top node on the BackgroundStack of this scene,
@@ -876,6 +887,14 @@ begin
     Result := GlobalFog.Functionality(TFogFunctionality) as TFogFunctionality;
 end;
 
+function TCastleScene.EffectiveRenderOptions: TCastleRenderOptions;
+begin
+  if InternalOverrideRenderOptions <> nil then
+    Result := InternalOverrideRenderOptions
+  else
+    Result := RenderOptions;
+end;
+
 procedure TCastleScene.CollectShape_NoTests(const Shape: TGLShape);
 
   function SceneTransformDynamic: Boolean;
@@ -895,14 +914,6 @@ procedure TCastleScene.CollectShape_NoTests(const Shape: TGLShape);
       else raise EInternalError.Create('TransformOptimization?');
       {$endif}
     end;
-  end;
-
-  function EffectiveRenderOptions: TCastleRenderOptions;
-  begin
-    if InternalOverrideRenderOptions <> nil then
-      Result := InternalOverrideRenderOptions
-    else
-      Result := RenderOptions;
   end;
 
 begin
@@ -1267,6 +1278,11 @@ begin
       Shadow volumes assume that object is closed (2-manifold),
       otherwise weird artifacts are visible. }
     (RenderOptions.WireframeEffect <> weWireframeOnly);
+end;
+
+function TCastleScene.InternalCastingShadowVolumesNow: Boolean;
+begin
+  Result := RenderUsingShadowVolumes and EffectiveCastShadowVolumes;
 end;
 
 function TCastleScene.EffectiveWholeSceneManifold: Boolean;
@@ -2106,7 +2122,19 @@ begin
   Result := FGlobalLights;
 end;
 
+procedure InitializeSkinInShaders;
+begin
+  TSkinNode.InternalFeatures.Shaders := GLFeatures.Shaders;
+  TSkinNode.InternalFeatures.MaxVertexUniformComponents := GLFeatures.MaxVertexUniformComponents;
+  TSkinNode.InternalFeatures.MaxSkinJointsInUniforms := GLFeatures.MaxSkinJointsInUniforms;
+  TSkinNode.InternalFeatures.MaxTextureSize := GLFeatures.MaxTextureSize;
+  TSkinNode.InternalFeatures.TextureFloat := GLFeatures.TextureFloat;
+end;
+
 initialization
+  ApplicationProperties.OnGLContextEarlyOpen.Add(
+    {$ifdef FPC}@{$endif} InitializeSkinInShaders);
+
   RegisterSerializableComponent(TCastleScene, 'Scene');
   RegisterSerializableComponent(TCastleBox, 'Box');
   RegisterSerializableComponent(TCastleSphere, 'Sphere');

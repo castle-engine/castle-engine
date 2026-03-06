@@ -18,9 +18,10 @@
 
 {$ifdef read_interface}
 //type
-  TBeforeGLVertexProc = procedure (Node: TAbstractGeometryNode;
-    const Vert: TVector3) of object;
-
+  { Callback type for @link(TLightsRenderer.LightRenderEvent).
+    Modify whether the light is "on" right before it's rendered.
+    By default, LightOn is the value of Light.LightNode.FdOn field.
+    This is useful to filter lights. }
   TLightRenderEvent = CastleRendererInternalLights.TLightRenderEvent;
 
   TRenderer = class;

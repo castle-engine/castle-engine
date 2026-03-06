@@ -1,6 +1,6 @@
 {%MainUnit ../castlewindow.pas}
 {
-  Copyright 2004-2022 Michalis Kamburelis.
+  Copyright 2004-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -21,14 +21,6 @@ end;
 
 procedure signal_menu_item_activate(AMenuItemGtk: PGtkMenuItem;
   data: gpointer); cdecl; forward;
-
-procedure gtk_check_menu_item_set_draw_as_radio(
-  check_menu_item:PGtkCheckMenuItem; draw_as_radio:gboolean);
-  cdecl; external gtklib;
-
-function gtk_check_menu_item_get_draw_as_radio(
-  check_menu_item:PGtkCheckMenuItem):gboolean;
-  cdecl; external gtklib;
 
 function signal_menu_bar_activation(AGtkMenuBar: PGtkMenuBar;
   Event: PGdkEventButton; UserData: gpointer): gboolean; cdecl;
@@ -76,7 +68,7 @@ end;
   as TWindowState.SetStandardState only changes Enabled to false and later back
   to true, so actually recreating menu is not needed. }
 
-function signal_menu_item_select(AItem: PGtkItem;
+function signal_menu_item_select(AItem: Pointer;
   UserData: gpointer): gboolean; cdecl;
 var
   Window: TCastleWindow absolute UserData;
@@ -94,35 +86,40 @@ end;
 { Block signal_menu_item_activate on this menu item.
   Useful inside signal_menu_item_activate, see there for comments.
 
-  Note: MenuItemBlock/Unblock were changed in CASTLE_WINDOW_GTK_2
+  Note: MenuItemBlock/Unblock changed for GTK >= 2
   to use g_signal_handlers_block/unblock_by_func instead of
-  gtk_signal_handler_block/unblock_by_func. Although it should be
-  perfectly correct to use gtk_signal_handler_xxx functions still in GTK_2,
+  gtk_signal_handler_block/unblock_by_func in GTK 1. Although it should be
+  perfectly correct to use gtk_signal_handler_xxx functions still in GTK 2,
   this caused some warnings printed by gtk:
-    after doing gtk_signal_handler_block_by_func,
-    next unblocking of this signal and any subsequent blocking and unblocking
+
+  - after doing gtk_signal_handler_block_by_func,
+
+  - next unblocking of this signal and any subsequent blocking and unblocking
     were writing
+
       (castle-model-viewer:4151): Gtk-WARNING **: unable to find signal handler for
       object(GtkCheckMenuItem:0x8358538) with func(0x80ec484) and data(0x6)
+
     (but indeed 0x8358538 and 0x80ec484 and 0x6 were exactly parameters
     of blocked signal ! In other words, it seems that blocking signal by
     gtk_signal_handler_block_by_func is doing something wrong that
     causes all subsequent block/unblock of this signal to display
     this strange warning.
+
   Switching to g_signal_handlers_block/unblock_xxx solves the problem,
   no warnings are displayed and everything works OK. }
 procedure MenuItemBlock(MenuItemGtk: PGtkMenuItem; MenuItem: TMenuItem);
 begin
- g_signal_handlers_block_by_func( GTK_OBJECT(MenuItemGtk),
-   @signal_menu_item_activate, Pointer(PtrUInt(MenuItem.SmallId)));
+  g_signal_handlers_block_by_func( GTK_OBJECT(MenuItemGtk),
+     @signal_menu_item_activate, Pointer(PtrUInt(MenuItem.SmallId)));
 end;
 
 { Unblock signal_menu_item_activate from this menu item.
   Useful inside signal_menu_item_activate, see there for comments. }
 procedure MenuItemUnblock(MenuItemGtk: PGtkMenuItem; MenuItem: TMenuItem);
 begin
- g_signal_handlers_unblock_by_func( GTK_OBJECT(MenuItemGtk),
-   @signal_menu_item_activate, Pointer(PtrUInt(MenuItem.SmallId)));
+  g_signal_handlers_unblock_by_func( GTK_OBJECT(MenuItemGtk),
+    @signal_menu_item_activate, Pointer(PtrUInt(MenuItem.SmallId)));
 end;
 
 { Initialize MainMenu.Handle (to GtkMenuBar) and insert it to window_vbox.
@@ -155,7 +152,7 @@ procedure TCastleWindow.BackendMenuInitialize;
     { Calculate GDK keyval gdk_keyval and modifier_type.
       (Look for possible gdk_keyval values in gdk/gdkkeysyms.h header
       (e.g. /usr/include/gtk-1.2/gdk/gdkkeysyms.h on my system)). }
-    modifier_type := 0;
+    modifier_type := {$ifdef CASTLE_WINDOW_GTK_3} [] {$else} 0 {$endif};
     case CharKey of
       CtrlA .. CtrlZ:
         { I could handle here specially three keys:
@@ -169,7 +166,9 @@ procedure TCastleWindow.BackendMenuInitialize;
         }
         begin
           gdk_keyval := GDK_KEY_A + Ord(CharKey) - Ord(CtrlA);
-          modifier_type := GDK_CONTROL_MASK;
+          modifier_type :=
+            {$ifdef CASTLE_WINDOW_GTK_3} [ {$endif} GDK_CONTROL_MASK
+            {$ifdef CASTLE_WINDOW_GTK_3} ] {$endif};
         end;
 
       CharEscape: gdk_keyval := GDK_KEY_Escape;
@@ -178,7 +177,9 @@ procedure TCastleWindow.BackendMenuInitialize;
       'A' .. 'Z':
         begin
           gdk_keyval := GDK_KEY_A + Ord(CharKey) - Ord('A');
-          modifier_type := GDK_SHIFT_MASK;
+          modifier_type :=
+            {$ifdef CASTLE_WINDOW_GTK_3} [ {$endif} GDK_SHIFT_MASK
+            {$ifdef CASTLE_WINDOW_GTK_3} ] {$endif};
         end;
       '?': gdk_keyval := GDK_KEY_question;
       else
@@ -236,14 +237,25 @@ procedure TCastleWindow.BackendMenuInitialize;
     end;
 
     if mkShift in Modifiers then
-      modifier_type := modifier_type or GDK_SHIFT_MASK;
+      modifier_type := modifier_type
+        {$ifdef CASTLE_WINDOW_GTK_2} or GDK_SHIFT_MASK
+        {$else} + [GDK_SHIFT_MASK]
+        {$endif};
     if mkCtrl in Modifiers then
-      modifier_type := modifier_type or GDK_CONTROL_MASK;
+      modifier_type := modifier_type
+        {$ifdef CASTLE_WINDOW_GTK_2} or GDK_CONTROL_MASK
+        {$else} + [GDK_CONTROL_MASK]
+        {$endif};
     if mkAlt in Modifiers then
-      modifier_type := modifier_type or GDK_MOD1_MASK;
+      modifier_type := modifier_type
+        {$ifdef CASTLE_WINDOW_GTK_2} or GDK_MOD1_MASK
+        {$else} + [GDK_MOD1_MASK]
+        {$endif};
 
     gtk_widget_add_accelerator(PGtkWidget(Item), 'activate', window_accel_group,
-      gdk_keyval, modifier_type, GTK_ACCEL_VISIBLE);
+      gdk_keyval, modifier_type,
+      {$ifdef CASTLE_WINDOW_GTK_3} [ {$endif} GTK_ACCEL_VISIBLE
+      {$ifdef CASTLE_WINDOW_GTK_3} ] {$endif});
   end;
 
   { Assuming MainMenu <> nil, builds appropriate GtkMenuBar.
@@ -280,7 +292,16 @@ procedure TCastleWindow.BackendMenuInitialize;
             PChar(EntryItem.Caption)));
           gtk_check_menu_item_set_active(PGtkCheckMenuItem(Result),
             EntryChecked.Checked);
+
+          {$ifdef CASTLE_WINDOW_GTK_2}
+          { This was helpful:
+            """Controls whether the check box is shown at all times.
+            Normally the check box is shown only when it is active
+            or while the menu item is selected.
+            """
+            It seems it was just removed in GTK 3. }
           gtk_check_menu_item_set_show_toggle(PGtkCheckMenuItem(Result), gtrue);
+          {$endif CASTLE_WINDOW_GTK_2}
 
           { To implement TMenuItemRadio I use normal GTK check menu items
             and just make them look like radio items.
@@ -323,10 +344,16 @@ procedure TCastleWindow.BackendMenuInitialize;
         SubMenu := NewGtkMenu();
 
         for i := 0 to EntryMenu.Count - 1 do
-         gtk_menu_append(GTK_WIDGET(SubMenu),
-           GTK_WIDGET( MenuEntryToGtkMenuItem(EntryMenu.Entries[i]) ));
+          {$ifdef CASTLE_WINDOW_GTK_2}
+          gtk_menu_append(GTK_WIDGET(SubMenu),
+            GTK_WIDGET( MenuEntryToGtkMenuItem(EntryMenu.Entries[i]) ))
+          {$else}
+          gtk_menu_shell_append(PGtkMenuShell(SubMenu),
+            MenuEntryToGtkMenuItem(EntryMenu.Entries[i]))
+          {$endif};
 
-        gtk_menu_item_set_submenu(Result, GTK_WIDGET(SubMenu));
+        gtk_menu_item_set_submenu(Result,
+          {$ifdef CASTLE_WINDOW_GTK_2} GTK_WIDGET {$endif} (SubMenu));
       end else
         raise EInternalError.Create('Not implemented TMenuEntry subclass');
 
@@ -352,8 +379,14 @@ procedure TCastleWindow.BackendMenuInitialize;
     for I := 0 to MainMenu.Count - 1 do
       { Don't put TMenuSeparator in menu bar because that would look ugly. }
       if not (MainMenu.Entries[I] is TMenuSeparator) then
+        {$ifdef CASTLE_WINDOW_GTK_2}
         gtk_menu_bar_append(GTK_WIDGET(MainMenu.Handle),
-          GTK_WIDGET( MenuEntryToGtkMenuItem(MainMenu.Entries[I]) ));
+          GTK_WIDGET( MenuEntryToGtkMenuItem(MainMenu.Entries[I]) ))
+        {$else}
+        gtk_menu_shell_append(PGtkMenuShell(MainMenu.Handle),
+          MenuEntryToGtkMenuItem(MainMenu.Entries[I]))
+        {$endif}
+        ;
 
     { How to catch the moment when the menu bar is opened/selected/clicked
       etc. by the user ? It should be caught when user enters menu by clicking
@@ -387,6 +420,7 @@ begin
   MainMenu.ClearHandles;
 end;
 
+{$ifdef CASTLE_WINDOW_GTK_2}
 { GTK >= 2.16 already includes "gtk_menu_item_set_label":
   http://library.gnome.org/devel/gtk/2.21/GtkMenuItem.html#gtk-menu-item-set-label
   But we cannot use GTK 2.16 (e.g. Debian stable still only has
@@ -403,6 +437,7 @@ begin
   if (LabelGtk <> nil) and GTK_IS_LABEL(LabelGtk) then
     gtk_label_set_text_with_mnemonic(PGtkLabel(LabelGtk), Caption);
 end;
+{$endif CASTLE_WINDOW_GTK_2}
 
 { Extract PGtkWidget corresponding to given Entry.
   Returns @false (and does log warning, and sets EntryGtk to nil) if failed. }

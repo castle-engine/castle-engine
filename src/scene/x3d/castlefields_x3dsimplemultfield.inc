@@ -75,7 +75,8 @@
 
     { RawItemToString(i) must change FItems[i] into a string that can be used to
       store this is text stream. In descendants, you have to override this. }
-    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; virtual; abstract;
+    function RawItemToString(const ItemNum: integer;
+      const Encoding: TX3DEncoding; const Version: TX3DVersion): String; virtual; abstract;
 
     { This says when we should do newline when writing this field into a stream.
       It's has purely aesthetical meaning, nothing more.
@@ -240,7 +241,7 @@ begin
         I handle the FItems.Count = 0 and 1 cases separately. }
       case Count of
         0: Writer.Write('[]');
-        1: Writer.Write(RawItemToString(0, Writer.Encoding));
+        1: Writer.Write(RawItemToString(0, Writer.Encoding, Writer.Version));
         else
           begin
             Writer.Writeln('[');
@@ -255,7 +256,7 @@ begin
             for i := 0 to Count-1 do
             begin
               if WriteIndentNextTime then Writer.WriteIndent('');
-              Writer.Write(RawItemToString(i, Writer.Encoding) +',');
+              Writer.Write(RawItemToString(i, Writer.Encoding, Writer.Version) +',');
               { After the last item we always write newline,
                 no matter what's SaveToStreamDoNewLineAfterRawItem }
               if (i = Count - 1) or
@@ -271,7 +272,7 @@ begin
     xeXML:
       for I := 0 to Count - 1 do
       begin
-        Writer.Write(RawItemToString(I, Writer.Encoding));
+        Writer.Write(RawItemToString(I, Writer.Encoding, Writer.Version));
         if I <> Count - 1 then
           Writer.Write(' ');
       end;

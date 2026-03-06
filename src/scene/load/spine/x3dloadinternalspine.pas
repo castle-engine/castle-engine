@@ -89,7 +89,8 @@ type
 
 { Main loading function ------------------------------------------------------ }
 
-function LoadSpine(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
+function LoadSpine(const Stream: TStream; const BaseUrl: String;
+  const LoadOptions: TCastleSceneLoadOptions): TX3DRootNode;
 
   function CreateTextureLoader(const CustomAtlasName: String): TTextureLoader;
 

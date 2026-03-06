@@ -60,6 +60,8 @@
 
       Manually providing the bounding box makes sense if you can do it more efficiently than the engine. E.g. if the shape vertexes are animated, then the engine would have to recalcualate the perfect bounding box every frame. It is more efficient to calculate a bounding box of all possible animation frames, and store it here.
 
+      For a skinned animation done using GPU, manually-providing bounding box of the shape is mandatory, as the engine cannot calculate correct bounding box automatically. See https://castle-engine.io/skin for details.
+
       The glTF skinned animation automatically fills this field for the affected shapes.
 
       @italic(Note: This property is not useful if you want to know the bounding box of a shape, calculated by the engine). This property only allows to override the automatic engine calculation.

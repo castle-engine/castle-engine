@@ -964,7 +964,8 @@ end;
 
 { Load3DS -------------------------------------------------------------------- }
 
-function Load3DS(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
+function Load3DS(const Stream: TStream; const BaseUrl: String;
+  const LoadOptions: TCastleSceneLoadOptions): TX3DRootNode;
 var
   O3ds: TScene3DS;
 

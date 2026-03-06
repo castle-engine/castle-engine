@@ -731,7 +731,8 @@ end;
 
 { LoadWavefrontOBJ ----------------------------------------------------------- }
 
-function LoadWavefrontOBJ(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
+function LoadWavefrontOBJ(const Stream: TStream; const BaseUrl: String;
+  const LoadOptions: TCastleSceneLoadOptions): TX3DRootNode;
 const
   { When constructing large index arrays, we use larger Capacity
     to make them faster.

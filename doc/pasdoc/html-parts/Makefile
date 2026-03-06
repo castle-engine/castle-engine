@@ -6,7 +6,7 @@
 # - cge-www repository (https://github.com/castle-engine/cge-www)
 #   cloned and placed as a sibling to castle-engine, in ../../../../cge-www/
 
-ALL_TARGETS := body-end.html body-begin.html head.html images castle-engine-website-base
+ALL_TARGETS := body-end.html body-begin.html head.html images castle-engine-website-base cge-pasdoc.css
 
 .PHONY: default
 default: $(ALL_TARGETS)
@@ -43,3 +43,6 @@ castle-engine-website-base:
 	       $(CGE_WWW_PATH)htdocs/castle-engine-website-base/castle-engine.js \
 	       $(CGE_WWW_PATH)htdocs/castle-engine-website-base/node_modules \
 	       castle-engine-website-base/
+
+cge-pasdoc.css: cge-pasdoc.scss
+	sass --no-source-map cge-pasdoc.scss:cge-pasdoc.css

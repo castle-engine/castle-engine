@@ -149,6 +149,11 @@
     class procedure RenderControlPrepare(const ViewportRect: TRectangle);
     { Called when the control C is destroyed or just removed from Controls list. }
     procedure DetachNotification(const C: TCastleUserInterface);
+    { Like PopView, but when PauseAndResume = false,
+      1. we don't Resume the new top-most view
+      2. we don't Pause the old view that is being popped, if it's not resumed
+        (which can due to AD 1). }
+    procedure InternalPopView(const PauseAndResume: Boolean);
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
@@ -2891,7 +2896,8 @@ begin
     The loop is written to work even when some view Stop method
     changes views. }
   while ViewStackCount <> 0 do
-    PopView;
+    InternalPopView(false);
+
   { deallocate empty FViewStack }
   if Value = nil then
     FreeAndNil(FViewStack);
@@ -2911,14 +2917,14 @@ begin
       { pause previous top-most view }
       if (FViewStack <> nil) and
          (FViewStack.Count <> 0) then
-        FViewStack.Last.Pause;
+        FViewStack.Last.InternalPause;
 
       { create FViewStack on demand now }
       if FViewStack = nil then
         FViewStack := TCastleViewList.Create(false);
       FViewStack.Add(NewView);
       NewView.InternalStart(Self);
-      NewView.Resume;
+      NewView.InternalResume;
     finally
       Dec(FDisableStackChange)
     end;
@@ -2926,6 +2932,11 @@ begin
 end;
 
 procedure TCastleContainer.PopView;
+begin
+  InternalPopView(true);
+end;
+
+procedure TCastleContainer.InternalPopView(const PauseAndResume: Boolean);
 var
   SavedFrontView: TCastleView;
 begin
@@ -2935,7 +2946,8 @@ begin
   Inc(FDisableStackChange);
   try
     SavedFrontView := FrontView;
-    SavedFrontView.Pause;
+    if PauseAndResume or SavedFrontView.FResumed then
+      SavedFrontView.InternalPause;
     SavedFrontView.InternalStop;
     if SavedFrontView = FrontView then
       FViewStack.Delete(FViewStack.Count - 1)
@@ -2947,8 +2959,9 @@ begin
 
     { resume new top-most view }
     if (FViewStack <> nil) and
-       (FViewStack.Count <> 0) then
-      FViewStack.Last.Resume;
+       (FViewStack.Count <> 0) and
+       PauseAndResume then
+      FViewStack.Last.InternalResume;
   finally
     Dec(FDisableStackChange)
   end;

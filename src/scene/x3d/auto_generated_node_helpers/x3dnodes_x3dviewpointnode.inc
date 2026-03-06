@@ -96,12 +96,12 @@
 
       This value is used only if it is positive and this is the currently "bound" viewpoint node (see @link(TAbstractBindableNode.Bound)). Otherwise we fallback of @link(TNavigationInfoNode) information.
 
-      Note: In Castle Game Engine, by default near and far clipping planes are determined by the explicitly set @link(TCastleCamera.ProjectionNear) and @link(TCastleCamera.ProjectionFar) values. They do not depend on the X3D model contents. To make them follow the X3D contents, you need to
+      Note: In Castle Game Engine, by default near and far clipping planes are determined by the explicitly set @link(TCastleCamera.ProjectionNear) and @link(TCastleCamera.ProjectionFar) values. They do not depend on the X3D model contents automatically. To make them follow the X3D contents, you need to:
 
       @orderedlist(
         @item(set @link(TCastleCamera.ProjectionNear) and @link(TCastleCamera.ProjectionFar) to 0 (meaning "autocalculate"),)
-        @item(set deprecated @link(TCastlViewport.MainScene) to point to the scene that contains this Viewpoint node,)
-        @item(call @link(TCastleSceneCore.AssignDefaultCamera) or set deprecated @link(TCastlViewport.AutoCamera).)
+        @item(set deprecated @link(TCastleRootTransform.MainScene MyViewport.Items.MainScene) to point to the scene that contains this Viewpoint node,)
+        @item(and call @link(TCastleViewport.AssignDefaultCamera) or set deprecated @link(TCastleViewport.AutoCamera).)
       )
 
       The model viewers, like Castle Model Viewer, have the relevant code to make @link(TCastleCamera) follow the X3D settings automatically. }

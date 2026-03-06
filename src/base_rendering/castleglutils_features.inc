@@ -36,24 +36,53 @@ const
   ( 'None', 'Extension', 'Standard' );
 
 type
-  { OpenGL memory information. }
+  { OpenGL memory information.
+
+    Information comes from either
+    @unorderedList(
+      @item(@url(https://registry.khronos.org/OpenGL/extensions/NVX/NVX_gpu_memory_info.txt NVX_gpu_memory_info)
+        for NVidia GPUs)
+      @item(@url(https://registry.khronos.org/OpenGL/extensions/ATI/ATI_meminfo.txt ATI_meminfo)
+        for AMD GPUs)
+    )
+    See the respective extension documentation for more information.
+
+    As the two extensions (NVidia and AMD) expose somewhat different information,
+    we do not try to present "uniform" API that hides their differences
+    (because it seems we cannot).
+    Simply be prepared that some sets of fields below will be always zero. }
   TGLMemoryInfo = class
   strict private
     ExtensionNVidia, ExtensionATI: Boolean;
   public
-    { Total and current memory available, in Kb.
-      May be zero if unknown (only some NVidia GPUs support this). }
-    Total, Current: TGLint;
+    { Dedicated video memory, total size (in kb) of the GPU memory.
+
+      Zero if unknown. Available only on (some) NVidia GPUs.  }
+    DedicatedVideoMemory: TGLint;
+
+    { Total available memory, total size (in Kb) of the memory
+      available for allocations.
+
+      Zero if unknown. Available only on (some) NVidia GPUs.  }
+    TotalAvailableMemory: TGLint;
+
+    { Currently available dedicated video memory (in kb),
+      currently unused GPU memory.
+
+      Zero if unknown. Available only on (some) NVidia GPUs.  }
+    CurrentAvailableVideoMemory: TGLint;
 
     { Current memory free for a particular feature, in Kb.
-      May be zero if unknown (only some AMD GPUs support this). }
-    CurrentVbo, CurrentTexture, CurrentRenderbuffer: TGLint;
+
+      Zero if unknown. Available only on (some) AMD GPUs.  }
+    VboFreeMemory, TextureFreeMemory, RenderbufferFreeMemory: TGLint;
 
     constructor Create;
     procedure Refresh;
 
     { Detect GPUs with low texture memory.
-      Looks at @link(Current) or @link(CurrentTexture), whichever is available.
+      Looks at @link(CurrentAvailableVideoMemory) or @link(TextureFreeMemory),
+      whichever is available.
 
       This is useful to detect at runtime when to use e.g. compressed textures
       (S3TC and such) or downscaled textures (using @link(GLTextureScale) or
@@ -183,6 +212,7 @@ type
     FVertexArrayObject: Boolean;
     FBlendConstant: Boolean;
     FTextureFloat: Boolean;
+    FTextureFloatLinear: Boolean;
     FTextureDepth, FTextureDepthCompare: Boolean;
     FShaders: Boolean;
     FEnableFixedFunction: Boolean;
@@ -197,6 +227,8 @@ type
     FLineWidth: TVector2;
     FTextureMaxLevel: Boolean;
     FTransformFeedbackVaryings: Boolean;
+    FMaxFragmentUniformComponents: Cardinal;
+    FMaxVertexUniformComponents: Cardinal;
     class var
       FRequestCapabilities: TGLRequestCapabilities;
       FDebug: Boolean;
@@ -390,8 +422,27 @@ type
     { glBlendColor and GL_CONSTANT_ALPHA support. }
     property BlendConstant: Boolean read FBlendConstant;
 
-    { Support for float texture formats for glTexImage2d. }
+    { Support for float texture formats. }
     property TextureFloat: Boolean read FTextureFloat;
+
+    { Support for linear filtering of float texture formats.
+      Can only be @true when @link(TextureFloat) is @true.
+
+      OpenGL ES and WebGL require separate extension to enable linear filtering,
+      and the distinction is important for us as sometimes float textures
+      with nearest filtering are enough: e.g. to pass TSkinNode joints
+      information, we use nearest filtering.
+
+      See:
+
+      @unorderedList(
+        @item https://registry.khronos.org/OpenGL/extensions/OES/OES_texture_float.txt
+        @item https://registry.khronos.org/OpenGL/extensions/OES/OES_texture_float_linear.txt
+
+        @item (only for WebGL1!) https://developer.mozilla.org/en-US/docs/Web/API/OES_texture_float
+        @item https://developer.mozilla.org/en-US/docs/Web/API/OES_texture_float_linear
+      ) }
+    property TextureFloatLinear: Boolean read FTextureFloatLinear;
 
     { Support for depth texture formats for glTexImage2d. }
     property TextureDepth: Boolean read FTextureDepth;
@@ -508,7 +559,7 @@ type
       See https://www.khronos.org/opengl/wiki/Debug_Output . }
     class property Debug: Boolean read FDebug write SetDebug;
 
-    { Total and current memory available.
+    { Total and current memory available on GPU.
       Call Memory.Refresh whenever needed. }
     property Memory: TGLMemoryInfo read FMemory;
 
@@ -557,6 +608,21 @@ type
 
     { Supports glTransformFeedbackVaryings }
     property TransformFeedbackVaryings: Boolean read FTransformFeedbackVaryings;
+
+    { Limit on uniforms size in fragment stage.
+      See GL_MAX_FRAGMENT_UNIFORM_COMPONENTS
+      in https://wikis.khronos.org/opengl/Uniform_(GLSL).
+      0 if @link(Shaders) is @false. }
+    property MaxFragmentUniformComponents: Cardinal read FMaxFragmentUniformComponents;
+
+    { Limit on uniforms size in vertex stage.
+      See GL_MAX_FRAGMENT_UNIFORM_COMPONENTS
+      in https://wikis.khronos.org/opengl/Uniform_(GLSL).
+      0 if @link(Shaders) is @false. }
+    property MaxVertexUniformComponents: Cardinal read FMaxVertexUniformComponents;
+
+    { Maximum number of TSkinNode joints that can be passed in uniforms. }
+    function MaxSkinJointsInUniforms: Cardinal;
   end;
 
 { Initialize GLVersion and GLFeatures. }
@@ -736,6 +802,7 @@ begin
   Result :=
     Format('%d extensions: ', [WebGLExtensions.Count]) +
     GlueStrings(WebGLExtensions, ' ');
+end;
 {$else}
 var
   NumExtensions: TGLint;
@@ -759,14 +826,62 @@ begin
       SupportedExtensions := PAnsiChar(glGetString(GL_EXTENSIONS));
     Result := SupportedExtensions;
   end;
-{$endif}
 end;
+{$endif}
 
 constructor TGLFeatures.Create;
-{$ifndef OpenGLES}
-var
-  ErrorCode: TGLenum;
-{$endif}
+
+  {$ifndef OpenGLES}
+  { Call glGetFramebufferAttachmentParameteriv that should return a single TGLint.
+    But in case of GL_INVALID_ENUM (observed in 2 cases),
+    make a warning and return a defalut value.
+
+    2 cases when it's known to fail:
+
+    1. Older ATI Radeon GPUs (reproduced on Michalis hostname: hpek):
+
+        Version string: 3.3.11672 Compatibility Profile Context
+        Vendor string: ATI Technologies Inc.
+        Renderer: ATI Mobility Radeon HD 4300 Series
+
+      with 32-bit Windows 7. Using
+
+        glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER,
+          GL_FRONT_LEFT, GL_FRAMEBUFFER_ATTACHMENT_RED_SIZE, @FRedBits);
+
+      fails there with GL_INVALID_ENUM.
+
+    2. NVidia on Linux (reproduced on Michalis hostname: guardia):
+
+      NVIDIA GeForce RTX 3050 Ti Laptop GPU/PCIe/SSE2
+
+      But only in castle-editor build with GTK 3 backend.
+      The LCL TOpenGLControl on GTK 3 creates some non-typical GL context,
+      with OpenGL 3.2 (while in general we have OpenGL 4.6 with TCastleWindow).
+  }
+  function SafeGetFramebufferAttachmentParameter(const Target: TGLenum;
+    const Attachment: TGLenum; const Pname: TGLenum; const PnameName: String;
+    const Default: TGLint): TGLint;
+  var
+    ErrorCode: TGLenum;
+  begin
+    glGetFramebufferAttachmentParameteriv(Target, Attachment, Pname, @Result);
+    ErrorCode := glGetError();
+    if ErrorCode = GL_INVALID_ENUM then
+    begin
+      WritelnWarning('glGetFramebufferAttachmentParameteriv', 'Returned GL_INVALID_ENUM, for Target=%d, Attachment=%d, Pname=%s. Assuming reasonable context properties: %d', [
+        Target,
+        Attachment,
+        PnameName,
+        Default
+      ]);
+      Result := Default;
+    end else
+    if ErrorCode <> GL_NO_ERROR then
+      raise EOpenGLError.Create(ErrorCode, 'after glGetFramebufferAttachmentParameteriv');
+  end;
+  {$endif}
+
 begin
   inherited;
 
@@ -1009,45 +1124,18 @@ begin
     { Read buffer sizes with new OpenGL core
       https://registry.khronos.org/OpenGL-Refpages/gl4/html/glGetFramebufferAttachmentParameter.xhtml
       https://stackoverflow.com/questions/27371067/how-to-query-the-depth-of-the-opengl-stencil-buffer }
-    glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER,
-      GL_FRONT_LEFT, GL_FRAMEBUFFER_ATTACHMENT_RED_SIZE, @FRedBits);
-    glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER,
-      GL_FRONT_LEFT, GL_FRAMEBUFFER_ATTACHMENT_GREEN_SIZE, @FGreenBits);
-    glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER,
-      GL_FRONT_LEFT, GL_FRAMEBUFFER_ATTACHMENT_BLUE_SIZE, @FBlueBits);
-    glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER,
-      GL_FRONT_LEFT, GL_FRAMEBUFFER_ATTACHMENT_ALPHA_SIZE, @FAlphaBits);
-    glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER,
-      GL_STENCIL, GL_FRAMEBUFFER_ATTACHMENT_STENCIL_SIZE, @FStencilBits);
-    glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER,
-      GL_DEPTH, GL_FRAMEBUFFER_ATTACHMENT_DEPTH_SIZE, @FDepthBits);
-
-    ErrorCode := glGetError();
-    if ErrorCode = GL_INVALID_ENUM then
-    begin
-      WritelnWarning('Detected buggy glGetFramebufferAttachmentParameteriv, possible on older ATI Radeon GPUs; assuming reasonable context properties');
-
-      { Workaround buggy ATI (Michalis codename: hpek):
-
-          Version string: 3.3.11672 Compatibility Profile Context
-          Vendor string: ATI Technologies Inc.
-          Renderer: ATI Mobility Radeon HD 4300 Series
-
-        with 32-bit Windows 7. Using
-
-          glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER,
-            GL_FRONT_LEFT, GL_FRAMEBUFFER_ATTACHMENT_RED_SIZE, @FRedBits);
-
-        fails there with GL_INVALID_ENUM. }
-      FRedBits := 8;
-      FGreenBits := 8;
-      FBlueBits := 8;
-      FAlphaBits := 8;
-      FStencilBits := 8;
-      FDepthBits := 24;
-    end else
-    if ErrorCode <> GL_NO_ERROR then
-      raise EOpenGLError.Create(ErrorCode, 'after glGetFramebufferAttachmentParameteriv');
+    FRedBits := SafeGetFramebufferAttachmentParameter(GL_DRAW_FRAMEBUFFER,
+      GL_FRONT_LEFT, GL_FRAMEBUFFER_ATTACHMENT_RED_SIZE, 'RED_SIZE', 8);
+    FGreenBits := SafeGetFramebufferAttachmentParameter(GL_DRAW_FRAMEBUFFER,
+      GL_FRONT_LEFT, GL_FRAMEBUFFER_ATTACHMENT_GREEN_SIZE, 'GREEN_SIZE', 8);
+    FBlueBits := SafeGetFramebufferAttachmentParameter(GL_DRAW_FRAMEBUFFER,
+      GL_FRONT_LEFT, GL_FRAMEBUFFER_ATTACHMENT_BLUE_SIZE, 'BLUE_SIZE', 8);
+    FAlphaBits := SafeGetFramebufferAttachmentParameter(GL_DRAW_FRAMEBUFFER,
+      GL_FRONT_LEFT, GL_FRAMEBUFFER_ATTACHMENT_ALPHA_SIZE, 'ALPHA_SIZE', 8);
+    FStencilBits := SafeGetFramebufferAttachmentParameter(GL_DRAW_FRAMEBUFFER,
+      GL_STENCIL, GL_FRAMEBUFFER_ATTACHMENT_STENCIL_SIZE, 'STENCIL_SIZE', 8);
+    FDepthBits := SafeGetFramebufferAttachmentParameter(GL_DRAW_FRAMEBUFFER,
+      GL_DEPTH, GL_FRAMEBUFFER_ATTACHMENT_DEPTH_SIZE, 'DEPTH_SIZE', 24);
 
     FDoubleBuffer := true; // TODO: any way to query it?
   end else
@@ -1174,10 +1262,31 @@ begin
     {$endif};
 
   FTextureFloat :=
-    {$if defined(CASTLE_WEBGL)} HasExtension('GL_OES_texture_float')
-    {$elseif defined(OpenGLES)} false
-    {$else} HasExtension('GL_ATI_texture_float') or HasExtension('GL_ARB_texture_float')
+    { On WebGL 2, no need for any extension, according to tests and to
+      https://developer.mozilla.org/en-US/docs/Web/API/OES_texture_float :
+      """Note: This extension is only available to WebGL1 contexts.
+      In WebGL2, the functionality of this extension is available on the WebGL2
+      context by default.
+      """
+    }
+    {$if defined(CASTLE_WEBGL)} VersionWebGL_2 or HasExtension('GL_OES_texture_float')
+    {$elseif defined(OpenGLES)} HasExtension('GL_OES_texture_float')
+    {$else}
+      (HasExtension('GL_ATI_texture_float') or HasExtension('GL_ARB_texture_float'))
+      { OpenGL 3.0 has float textures guaranteed to be available in "core".
+        See https://registry.khronos.org/OpenGL/specs/gl/glspec30.pdf
+        listing "New Features" in 3.0.
+        Testcase: OpenGL on macOS Tahoe, has OpenGL 4.1 that doesn't
+        advertise GL_ARB_texture_float but supports them. }
+      or Version_3_0
     {$endif};
+
+  FTextureFloatLinear := FTextureFloat and (
+    {$if defined(CASTLE_WEBGL)} HasExtension('GL_OES_texture_float_linear')
+    {$elseif defined(OpenGLES)} HasExtension('GL_OES_texture_float_linear')
+    {$else} true
+    {$endif}
+  );
 
   FTextureDepth :=
     {$if defined(CASTLE_WEBGL)}
@@ -1313,6 +1422,16 @@ begin
     {$else} Version_3_0 and Shaders
     {$endif};
 
+  if Shaders then
+  begin
+    FMaxFragmentUniformComponents := glGetInteger(GL_MAX_FRAGMENT_UNIFORM_COMPONENTS);
+    FMaxVertexUniformComponents := glGetInteger(GL_MAX_VERTEX_UNIFORM_COMPONENTS);
+  end else
+  begin
+    FMaxFragmentUniformComponents := 0;
+    FMaxVertexUniformComponents := 0;
+  end;
+
   // set GLFeatures singleton, TGLMemoryInfo.Create and TGLMemoryInfo.Refresh depend on it
   GLFeatures := Self;
 
@@ -1389,6 +1508,25 @@ begin
   end;
 end;
 
+function TGLFeatures.MaxSkinJointsInUniforms: Cardinal;
+const
+  // very rough estimation of the rest of uniforms
+  OtherUniformsSize = 4 * 20;
+begin
+  if MaxVertexUniformComponents < OtherUniformsSize then
+    Result := 0
+  else
+  begin
+    Result := (MaxVertexUniformComponents - OtherUniformsSize)
+      { each joint is mat4 uniform }
+      div 16;
+    { Cap at 128, avoids conan Skin (testcase from Aaon) failing with
+      "Internal error: assembly compile error for vertex shader at offset 1832:"
+      at "NVIDIA GeForce RTX 3050 Ti Laptop GPU/PCIe/SSE2". }
+    MinVar(Result, 128);
+  end;
+end;
+
 { TGLMemoryInfo -------------------------------------------------------------- }
 
 constructor TGLMemoryInfo.Create;
@@ -1401,8 +1539,11 @@ end;
 
 procedure TGLMemoryInfo.Refresh;
 const
+  { From https://registry.khronos.org/OpenGL/extensions/NVX/NVX_gpu_memory_info.txt }
+  GL_GPU_MEMORY_INFO_DEDICATED_VIDMEM_NVX   = $9047;
   GL_GPU_MEM_INFO_TOTAL_AVAILABLE_MEM_NVX   = $9048;
   GL_GPU_MEM_INFO_CURRENT_AVAILABLE_MEM_NVX = $9049;
+  { From https://registry.khronos.org/OpenGL/extensions/ATI/ATI_meminfo.txt }
   GL_VBO_FREE_MEMORY_ATI          = $87FB;
   GL_TEXTURE_FREE_MEMORY_ATI      = $87FC;
   GL_RENDERBUFFER_FREE_MEMORY_ATI = $87FD;
@@ -1416,8 +1557,9 @@ begin
   // http://developer.download.nvidia.com/opengl/specs/GL_NVX_gpu_memory_info.txt
   if ExtensionNVidia then
   begin
-    Total := glGetInteger(GL_GPU_MEM_INFO_TOTAL_AVAILABLE_MEM_NVX);
-    Current := glGetInteger(GL_GPU_MEM_INFO_CURRENT_AVAILABLE_MEM_NVX);
+    DedicatedVideoMemory := glGetInteger(GL_GPU_MEMORY_INFO_DEDICATED_VIDMEM_NVX);
+    TotalAvailableMemory := glGetInteger(GL_GPU_MEM_INFO_TOTAL_AVAILABLE_MEM_NVX);
+    CurrentAvailableVideoMemory := glGetInteger(GL_GPU_MEM_INFO_CURRENT_AVAILABLE_MEM_NVX);
   end;
 
   {$ifndef CASTLE_WEBGL}
@@ -1427,16 +1569,16 @@ begin
     if GLFeatures.VertexBufferObject then
     begin
       glGetIntegerv(GL_VBO_FREE_MEMORY_ATI, @FreeMemory);
-      CurrentVbo := FreeMemory[0];
+      VboFreeMemory := FreeMemory[0];
     end;
 
     glGetIntegerv(GL_TEXTURE_FREE_MEMORY_ATI, @FreeMemory);
-    CurrentTexture := FreeMemory[0];
+    TextureFreeMemory := FreeMemory[0];
 
     if GLFeatures.Framebuffer then
     begin
       glGetIntegerv(GL_RENDERBUFFER_FREE_MEMORY_ATI, @FreeMemory);
-      CurrentRenderbuffer := FreeMemory[0];
+      RenderbufferFreeMemory := FreeMemory[0];
     end;
   end;
   {$endif}
@@ -1444,11 +1586,11 @@ end;
 
 function TGLMemoryInfo.LessTextureMemoryThan(const RequiredMemoryKb: Integer): Boolean;
 begin
-  if Current <> 0 then
-    Result := Current < RequiredMemoryKb
+  if CurrentAvailableVideoMemory <> 0 then
+    Result := CurrentAvailableVideoMemory < RequiredMemoryKb
   else
-  if CurrentTexture <> 0 then
-    Result := CurrentTexture < RequiredMemoryKb
+  if TextureFreeMemory <> 0 then
+    Result := TextureFreeMemory < RequiredMemoryKb
   else
     // unknown memory, assume old GPU with low memory
     Result := true;

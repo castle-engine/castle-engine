@@ -5798,6 +5798,17 @@ begin
     DragAndDropFromShellListView(TCastleShellListView(Source));
 end;
 
+{$ifdef LCLCocoa}
+type
+  { Expose protected property of TCustomTreeView. }
+  TTreeViewExposed = class(TCustomTreeView)
+  public
+    { Tree node that is being edited now, or @nil if none.
+      This makes public a property protected in TCustomTreeView. }
+    property EditingItem;
+  end;
+{$endif LCLCocoa}
+
 procedure TDesignFrame.ControlsTreeAdvancedCustomDrawItem(
   Sender: TCustomTreeView; Node: TTreeNode; State: TCustomDrawState;
   Stage: TCustomDrawStage; var PaintImages, DefaultDraw: Boolean);
@@ -5854,6 +5865,14 @@ var
   var
     TextRect: TRect;
   begin
+    {$ifdef LCLCocoa}
+    { On Cocoa, this is fired even when editing given Node, but we should not
+      draw the class name of the edited node (as it visually collides
+      with the edit box, being underneath the typed text). }
+    if Node = TTreeViewExposed(ControlsTree).EditingItem then
+      Exit;
+    {$endif LCLCocoa}
+
     TextRect := Node.DisplayRect(true);
     C.Brush.Style := bsClear;
     C.Font.Color := clLtGray;

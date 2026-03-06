@@ -203,14 +203,18 @@ begin
             '    Internal. 2nd part of "editor" command.' + NL +
             NL+
             'output' +NL+
-            '    Output some project information (from the manifest).' + NL +
+            '    Output some project information (determined by the manifest).' + NL +
             '    Next parameter determines the information:' + NL +
+            '      author' + NL +
+            '      caption' + NL +
             '      executable-name' + NL +
             '      name' + NL +
+            '      package-name' + NL +
             '      pascal-name' + NL +
+            '      qualified-name' + NL +
             '      search-paths' + NL +
-            '      version' + NL +
             '      version-code' + NL +
+            '      version' + NL +
             NL+
             'output-environment' +NL+
             '    Output some environment information (independent of any project).' + NL +
@@ -548,7 +552,7 @@ begin
       if Command = 'output' then
       begin
         Parameters.CheckHigh(2);
-        Project.DoOutput(Parameters[2]);
+        Project.DoOutput(Parameters[2], Target, OS, CPU, PackageFormat, PackageNameIncludeVersion);
       end else
       if Command = 'unused-data' then
         Project.DoUnusedData(RemoveMask)

@@ -74,6 +74,7 @@ void main(void)
     #endif
 
   /* PLUG: vertex_eye_space (castle_vertex_eye, castle_normal_eye) */
+  /* PLUG: vertex_eye_space_extended (castle_vertex_eye, castle_normal_eye, normal_object) */
 
   gl_Position = castle_ProjectionMatrix * castle_vertex_eye;
 }

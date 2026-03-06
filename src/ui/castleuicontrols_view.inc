@@ -90,6 +90,13 @@
       FFreeAtStop: TComponent;
       FWaitingForRender: TNotifyEventList;
       FCallBeforeUpdate: TNotifyEventList;
+      { Are we between Resume and Pause.
+        Note that we *do not* expose this property, because from outside
+        it should be enough to check if view equals Container.FrontView.
+        Only internally, these checks may be not equivalent,
+        due to InternalPopView usage with PauseAndResume = false,
+        which may make some view equal to Container.FrontView but not resumed. }
+      FResumed: Boolean;
 
       { Design* private fields }
       FDesignUrl: String;
@@ -102,6 +109,8 @@
 
     procedure InternalStart(const AContainer: TCastleContainer);
     procedure InternalStop;
+    procedure InternalResume;
+    procedure InternalPause;
     procedure StartContainerFreeNotification(const Sender: TFreeNotificationObserver);
     { Stop yourself and remove from FViewStack, if present there. }
     procedure StopIfStarted;
@@ -248,6 +257,10 @@
 
     { Executed when view becomes active, it's now part of the view stack.
 
+      Never call this method directly (it should be called by TCastleContainer
+      methods like @link(TCastleContainer.PushView) or @link(TCastleContainer.View)
+      setter). It is exposed only so that you can override it.
+
       Started view is part of the ViewStack, and will soon become
       running (top-most on the stack). When the view is set to be current,
       by @code(Container.View := MyView), this happens:
@@ -265,6 +278,10 @@
     procedure Start; virtual;
 
     { Executed when view is no longer active, no longer part of view stack.
+
+      Never call this method directly (it should be called by TCastleContainer
+      methods like @link(TCastleContainer.Pop) or @link(TCastleContainer.View)
+      setter). It is exposed only so that you can override it.
 
       When the view stops becoming active, this happens:
 
@@ -288,14 +305,22 @@
     { Executed when view is now the top-most view. See @link(Start) and @link(Stop)
       docs about view lifecycle methods.
       This is called after @link(Start), it is also called
-      when you pop another view, making this view the top-most. }
+      when you pop another view, making this view the top-most.
+
+      Never call this method directly (it should be called by TCastleContainer
+      methods like @link(TCastleContainer.PushView) or @link(TCastleContainer.View)
+      setter). It is exposed only so that you can override it. }
     procedure Resume; virtual;
 
     { Executed when view is no longer the top-most view. See @link(Start) and @link(Stop)
       docs about view lifecycle methods.
       This is called before @link(Stop), it is also called
       when another view is pushed over this view, so this stops
-      being the the top-most view. }
+      being the the top-most view.
+
+      Never call this method directly (it should be called by TCastleContainer
+      methods like @link(TCastleContainer.Pop) or @link(TCastleContainer.View)
+      setter). It is exposed only so that you can override it. }
     procedure Pause; virtual;
 
     procedure Finish; virtual; deprecated 'use Stop';
@@ -461,18 +486,32 @@
       loaded components. Like this:
 
       @longCode(#
-      MyButton := DesignedComponent('MyButton') as TCastleButton;
+      for I := 1 to 10 do
+        MyButton[I] := DesignedComponent('MyButton' + IntToStr(I)) as TCastleButton;
       #)
 
-      This method is seldom useful now.
-      The published fields of the view are automatically initialized when
-      loading / unloading design using @link(DesignUrl).
-      There's no need to use DesignedComponent for them.
+      Note: This method should not be necessary for a typical situation,
+      when you have a simple field like @code(MyButton: TCastleButton)
+      declared in your view class (@link(TCastleView) descendant),
+      and you want to initialize it.
+      In this case, just make sure the field is in the @code(published) section
+      of the class, and the field will be automatically initialized when
+      starting the view.
+      It will also be automatically set to @nil when view stops.
+      loading the design using @link(DesignUrl).
+      There's no need to use DesignedComponent for such cases.
+
+      This method is only useful for complicated cases, when e.g. you determine
+      the component name at runtime.
+
+      @param ComponentName Component name to search in th loaded components.
+      @param(RaiseExceptionOnError When @true (default), we raise exception
+        when the component is not found, and we never return @nil.
+        If you pass @false, then we will return @nil when component is not found.)
 
       @seealso DesignUrl }
-    function DesignedComponent(const ComponentName: String): TComponent;
-      //deprecated 'published view fields are automatically initialized now, no need to use this method';
-      // do not deprecate -- there are valid use-cases for it, sometimes it's easier to enumerate strings by code
+    function DesignedComponent(const ComponentName: String;
+      const RaiseExceptionOnError: boolean = true): TComponent;
 
     { TODO: This doesn't work with FPC 3.2.0, see implementation comments.
       It is also not that useful -- unlike Unity "GameObject.GetComponent<T>(): T",
@@ -704,16 +743,41 @@ begin
   inherited;
 end;
 
-procedure TCastleView.Resume;
+procedure TCastleView.InternalResume;
 begin
   if Log then
     WritelnLog('TCastleView', 'Resuming: ' + Name + ': ' + ClassName);
+  if FResumed then
+    WritelnWarning('TCastleView', 'Resuming view that is already resumed, submit a bug');
+  FResumed := true;
+  Resume;
+end;
+
+procedure TCastleView.InternalPause;
+begin
+  if Log then
+    WritelnLog('TCastleView', 'Paused: ' + Name + ': ' + ClassName);
+  if not FResumed then
+    WritelnWarning('TCastleView', 'Pausing view that is already paused, submit a bug');
+  Pause;
+  { Change FResumed *after* Pause call, so FResumed=true during both Resume
+    and Pause.
+    This is consistent with Active that is true during both Start and Stop. }
+  FResumed := false;
+end;
+
+procedure TCastleView.Resume;
+begin
+  { Do not place here any logic, to make sure TCastleView works reliably even when
+    descendant doesn't have "inherited" call.
+    Same as in Start. }
 end;
 
 procedure TCastleView.Pause;
 begin
-  if Log then
-    WritelnLog('TCastleView', 'Paused: ' + Name + ': ' + ClassName);
+  { Do not place here any logic, to make sure TCastleView works reliably even when
+    descendant doesn't have "inherited" call.
+    Same as in Start. }
 end;
 
 procedure TCastleView.Start;
@@ -913,11 +977,16 @@ begin
 end;
 *)
 
-function TCastleView.DesignedComponent(const ComponentName: String): TComponent;
+function TCastleView.DesignedComponent(const ComponentName: String;
+  const RaiseExceptionOnError: Boolean): TComponent;
 begin
   if FDesignLoaded = nil then
     ErrorDesignLoaded;
-  Result := FDesignLoadedOwner.FindRequiredComponent(ComponentName);
+
+  if RaiseExceptionOnError then
+    Result := FDesignLoadedOwner.FindRequiredComponent(ComponentName)
+  else
+    Result := FDesignLoadedOwner.FindComponent(ComponentName);
 end;
 
 function TCastleView.ContainerWidth: Cardinal;

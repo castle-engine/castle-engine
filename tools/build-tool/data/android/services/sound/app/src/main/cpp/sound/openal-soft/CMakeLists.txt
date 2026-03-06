@@ -1376,6 +1376,12 @@ else()
 
     add_library(${IMPL_TARGET} SHARED ${OPENAL_OBJS} ${ALC_OBJS} ${CORE_OBJS} ${RC_CONFIG}
         ${TARGET_PUBLIC_HEADERS})
+
+    # Enable 16 KB ELF alignment, following
+    # https://developer.android.com/guide/practices/page-sizes#cmake
+    # Must be after add_library(OpenAL ...) which happens above.
+    target_link_options(OpenAL PRIVATE "-Wl,-z,max-page-size=16384")
+
     if(WIN32)
         set_target_properties(${IMPL_TARGET} PROPERTIES PREFIX "")
     endif()

@@ -46,7 +46,20 @@
     { Exported node.
       Note that we store node reference, not just ExportedNodeName,
       this way renaming the ExportedNode (e.g. by RenameUniquely during saving)
-      is properly reflected in the saved EXPORT statement. }
+      is properly reflected in the saved EXPORT statement.
+
+      All code handling this should be prepared that this may be @nil.
+
+      That's because even though we always add non-nil node
+      (by @link(TX3DNode.ExportNode)), if that node will be later freed ->
+      then this will be set to nil
+      (thanks to using @link(TX3DNode.AddDestructionNotification) mechanism here).
+
+      Testcase: https://github.com/castle-engine/castle-engine/issues/708 ,
+      which links to glTF model with unused material (TAppearanceNode),
+      that is exported but later freed by X3DNodeList_FreeUnusedAndNil.
+      We could avoid adding it in that case (checking Unused),
+      but all code has to be prepared anyway for TX3DExport.ExportedNode = nil. }
     property ExportedNode: TX3DNode read FExportedNode write SetExportedNode;
 
     procedure Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames);

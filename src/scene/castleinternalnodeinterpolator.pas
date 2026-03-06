@@ -911,7 +911,7 @@ const
           begin
             MimeType := FrameElement.AttributeStringDef('mime_type', '');
             if (MimeType = '') or (MimeType = 'model/x3d+xml') then
-              NewNode := LoadX3DXmlInternal(FrameElement.ChildElement('X3D'), AbsoluteBaseUrl)
+              NewNode := LoadX3DXmlInternalFromElement(FrameElement.ChildElement('X3D'), AbsoluteBaseUrl)
             else
             if (MimeType = GltfJsonMimeType) then
               NewNode := LoadGLTFFromString(FrameElement.TextData, AbsoluteBaseUrl)
@@ -1198,7 +1198,8 @@ begin
   finally FreeAndNil(BakedAnimations) end;
 end;
 
-function LoadAnimFrames(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
+function LoadAnimFrames(const Stream: TStream; const BaseUrl: String;
+  const LoadOptions: TCastleSceneLoadOptions): TX3DRootNode;
 var
   Animations: TNodeInterpolator.TAnimationList;
 begin

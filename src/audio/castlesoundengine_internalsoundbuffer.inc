@@ -1,6 +1,6 @@
 {%MainUnit castlesoundengine.pas}
 {
-  Copyright 2010-2021 Michalis Kamburelis.
+  Copyright 2010-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -35,17 +35,25 @@
     @exclude
   }
   TInternalSoundBuffer = class
-  private
+  strict private
     FUrl: String;
     FSoundLoading: TSoundLoading;
-    References: Cardinal;
+  private
     Backend: TSoundBufferBackend;
     BackendIsOpen: Boolean;
+    References: Cardinal;
     procedure ContextOpen(const ExceptionOnError: boolean);
     procedure ContextClose;
   public
+    { Create, setting fields like @link(Url).
+
+      This creates TSoundBufferBackend (backend-specific sound buffer)
+      instance, but does not load the sound file, as it doesn't call
+      Backend.ContextOpen. The sound file is loaded later,
+      when our ContextOpen is called. }
     constructor Create(const SoundEngineBackend: TSoundEngineBackend;
-      const SoundLoading: TSoundLoading);
+      const SoundLoading: TSoundLoading; const AUrl: String);
+
     destructor Destroy; override;
 
     { Duration of the sound, in seconds. -1 if not loaded yet. }
@@ -78,10 +86,11 @@
 { TInternalSoundBuffer --------------------------------------------------------------- }
 
 constructor TInternalSoundBuffer.Create(const SoundEngineBackend: TSoundEngineBackend;
-  const SoundLoading: TSoundLoading);
+  const SoundLoading: TSoundLoading; const AUrl: String);
 begin
   inherited Create;
   FSoundLoading := SoundLoading;
+  FUrl := AUrl;
   Backend := SoundEngineBackend.CreateBuffer(SoundLoading);
 end;
 
@@ -113,7 +122,6 @@ procedure TInternalSoundBuffer.ContextOpen(const ExceptionOnError: boolean);
 
   procedure OpenCore;
   begin
-    FUrl := Url;
     Backend.ContextOpen(Url);
     BackendIsOpen := true;
   end;

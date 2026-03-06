@@ -20,7 +20,7 @@
   TX3DEvent = class(TX3DFieldOrEvent)
   strict private
     type
-      TX3DEventReceiveList = class({$ifdef FPC}specialize{$endif} TList<TX3DEventReceive>)
+      TX3DEventReceiveList = class({$ifdef FPC}specialize{$endif} TMethodList<TX3DEventReceive>)
       public
         { Call all functions. }
         procedure ExecuteAll(const Event: TX3DEvent; const Value: TX3DField;

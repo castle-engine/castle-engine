@@ -17,7 +17,9 @@
 { Test Generics.Collections unit. These tests are independent from CGE. }
 unit TestGenericsCollections;
 
-{ Needed to define GENERICS_CONSTREF on some platforms/compilers. }
+{ Needed to define
+  - GENERICS_CONSTREF on some platforms/compilers.
+  - CASTLE_LIST_METHODS_WORKAROUND on some platforms/compilers. }
 {$I ../../../src/common_includes/castleconf.inc}
 
 interface
@@ -512,13 +514,27 @@ end;
 
 type
   TMyMethod = procedure (A: Integer) of object;
+
+  {$if defined(LIST_INDEXOF_WORKAROUND) or defined(CASTLE_LIST_METHODS_WORKAROUND)}
+  { Note that this will make warnings that our IndexOf hides ancestor,
+    and it seems we cannot avoid them. }
+  {$warnings off}
+  {$endif}
+
   TMyMethodList = class({$ifdef FPC}specialize{$endif} TList<TMyMethod>)
-    {$ifdef LIST_INDEXOF_WORKAROUND}
+    {$if defined(LIST_INDEXOF_WORKAROUND) or defined(CASTLE_LIST_METHODS_WORKAROUND)}
     function IndexOf(const M: TMyMethod): Integer;
+    {$endif}
+    {$ifdef CASTLE_LIST_METHODS_WORKAROUND}
+    procedure Remove(const M: TMyMethod);
     {$endif}
   end;
 
-{$ifdef LIST_INDEXOF_WORKAROUND}
+  {$if defined(LIST_INDEXOF_WORKAROUND) or defined(CASTLE_LIST_METHODS_WORKAROUND)}
+  {$warnings on}
+  {$endif}
+
+{$if defined(LIST_INDEXOF_WORKAROUND) or defined(CASTLE_LIST_METHODS_WORKAROUND)}
 function TMyMethodList.IndexOf(const M: TMyMethod): Integer;
 var
   M2: TMyMethod;
@@ -531,6 +547,17 @@ begin
       Exit;
   end;
   Result := -1;
+end;
+{$endif}
+
+{$ifdef CASTLE_LIST_METHODS_WORKAROUND}
+procedure TMyMethodList.Remove(const M: TMyMethod);
+var
+  I: Integer;
+begin
+  I := IndexOf(M);
+  if I <> -1 then
+    Delete(I);
 end;
 {$endif}
 
@@ -574,6 +601,12 @@ begin
 
     AssertEquals(0, List.IndexOf({$ifdef FPC}@{$endif}C1.Foo));
     AssertEquals(1, List.IndexOf({$ifdef FPC}@{$endif}C2.Foo));
+
+    // same results with M
+    M := {$ifdef FPC}@{$endif}C1.Foo;
+    AssertEquals(0, List.IndexOf(M));
+    M := {$ifdef FPC}@{$endif}C2.Foo;
+    AssertEquals(1, List.IndexOf(M));
 
     AssertEquals(-1, List.IndexOf({$ifdef FPC}@{$endif}C3.Foo));
 

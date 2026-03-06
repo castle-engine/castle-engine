@@ -73,7 +73,8 @@ begin
     '(see log for the details about context)';
 
   { Load ScenePhong.Url with temporary GltfForcePhongMaterials set to true.
-    We want to test Phong shading works in ForceFixedFunction too. }
+    We want to test Phong shading works in ForceFixedFunction too.
+    TODO: Migrate to TCastleSceneLoadOptions.GltfPhongMaterials }
   GltfForcePhongMaterials := true;
   ScenePhong.Url := 'castle-data:/sample_3d.gltf';
   GltfForcePhongMaterials := false;

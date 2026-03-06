@@ -30,7 +30,7 @@ var
   ParamUnitName, ParamFunctionName: string;
   OnlySampleText: boolean = false;
   DebugFontImage: boolean = false;
-  Characters: TUnicodeCharList;
+  Characters: TUnicodeCharSet;
 
 const
   Options: array [0..12] of TOption =
@@ -118,7 +118,7 @@ begin
   ApplicationProperties.Version := '1.0';
   ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
 
-  Characters := TUnicodeCharList.Create;
+  Characters := TUnicodeCharSet.Create;
   try
     Parameters.Parse(Options, @OptionProc, nil);
     Parameters.CheckHigh(1);

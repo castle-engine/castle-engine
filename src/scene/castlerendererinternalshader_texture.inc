@@ -205,7 +205,7 @@ type
         csMaterial       : Result := 'vec4(0.8, 0.8, 0.8, 1.0)'; // just Material.diffuseColor default
         csConstant       : Result := MultiTextureColorStr;
         {$ifndef COMPILER_CASE_ANALYSIS}
-        else raise EInternalError.Create('SourceStr:TColorSource?');
+        else raise EInternalError.CreateFmt('SourceStr:TColorSource %d?', [Ord(Source)]);
         {$endif}
       end;
     end;

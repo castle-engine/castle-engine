@@ -48,7 +48,7 @@ Every game has different system requirements, which are determined by the graphi
 
     If this sounds complicated, then simply limit your lighting usage, or even use vertex colors.
 
-2. Consider switching from physical-based lighting model to Phong lighting model. How to do this depends on your models, but usually (if you use [glTF format](https://castle-engine.io/gltf), which we recommend) all you need to do is set the global boolean `GltfForcePhongMaterials` from `CastleLoadGltf` unit to `true`.
+2. Consider switching from physical-based lighting model to Phong lighting model. How to do this depends on your models, but usually (if you use [glTF format](https://castle-engine.io/gltf), which we recommend) you can load models with `TCastleSceneLoadOptions.GltfPhongMaterials` set to `true`.
 
     Do this early -- e.g. in the `AppplicationInitialize` in the unit `GameInitialize`.
 

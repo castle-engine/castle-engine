@@ -697,8 +697,7 @@ begin
       Exit;
     end;
 
-  Result := TInternalSoundBuffer.Create(Backend, SoundLoading);
-  Result.FUrl := FullUrl;
+  Result := TInternalSoundBuffer.Create(Backend, SoundLoading, FullUrl);
   Result.References := 1;
   LoadedBuffers.Add(Result);
 

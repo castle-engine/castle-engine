@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE X3D PUBLIC "ISO//Web3D//DTD X3D 3.0//EN" "https://www.web3d.org/specifications/x3d-3.0.dtd">
+<X3D version="3.0" profile="Immersive" xmlns:xsd="http://www.w3.org/2001/XMLSchema-instance" xsd:noNamespaceSchemaLocation="https://www.web3d.org/specifications/x3d-3.0.xsd">
+	<head>
+	</head>
+	<Scene>
+    <!-- This specifies translation -->
+    <MatrixTransform DEF="MyMatrixSample" matrix="
+      1.000000 0.000000 0.000000 0
+      0.000000 1.000000 0.000000 0
+      0.000000 0.000000 1.000000 0
+      -1.24 -2.61 -0.52 1" />
+
+    <!-- Test all matrix elements -->
+    <MatrixTransform DEF="MyMatrixSampleFull" matrix="
+      1 5 9 13
+      2 6 10 14
+      3 7 11 15
+      4 8 12 16" />
+
+    <Skin DEF="SkinWithMatrix" inverseBindMatrices="
+      1 5 9 13
+      2 6 10 14
+      3 7 11 15
+      4 8 12 16
+
+      11 55 99 133
+      22 66 100 144
+      33 77 111 155
+      44 88 122 166" />
+	</Scene>
+</X3D>

@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestX3DNodes" -*-
 {
-  Copyright 2004-2024 Michalis Kamburelis.
+  Copyright 2004-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -128,6 +128,27 @@ type
     procedure TestNodeRelease;
     procedure TestNodeReleaseWhenStillUsed;
     procedure TestProtoReuseFirstNode;
+    procedure TestImageFromDataUri;
+    procedure TestRemoveRoute;
+
+    { VRML 1.0 save/load matrix.
+      See tests/data/matrix_vrml_x3d_format/README.md . }
+    procedure TestSaveLoadMatrix_Vrml1;
+
+    { VRML 2.0 save/load matrix.
+      See tests/data/matrix_vrml_x3d_format/README.md . }
+    procedure TestSaveLoadMatrix_Vrml2;
+
+    { X3D save/load matrix.
+      See tests/data/matrix_vrml_x3d_format/README.md . }
+    procedure TestSaveLoadMatrix_X3DClassic;
+    procedure TestSaveLoadMatrix_X3DXml;
+
+    procedure TestNodeListAutoRemove;
+    procedure TestGltfSkinnedAnimationBBox;
+    procedure TestRouteNodesPositions;
+    procedure TestNoFailMultiTexture;
+    procedure TestNodeDestructionNotificationList;
   end;
 
 implementation
@@ -340,7 +361,7 @@ procedure TTestX3DNodes.TestParseSaveToFile;
 
       Node := LoadX3DClassic(FileName, false);
       NewFile := InclPathDelim(GetTempDirectory) + 'test_castle_game_engine.x3dv';
-      SaveNode(Node, NewFile, ApplicationName, '');
+      SaveNode(Node, NewFile);
 
       Second := TX3DTokenInfoList.Create;
       Second.ReadFromFile(NewFile);
@@ -1240,12 +1261,6 @@ begin
         AssertTrue(N.Functionality(TTransformFunctionality) <> nil);
         AssertTrue(N.TransformFunctionality <> nil);
       end;
-
-      { if, and only if, a node implements TTransformFunctionality, it must have
-        TransformationChange = ntcTransform }
-      AssertTrue(
-        (N.Functionality(TTransformFunctionality) <> nil) =
-        (N.TransformationChange = ntcTransform));
     except
       Writeln('TestTransformFunctionality failed for ', N.ClassName);
       raise;
@@ -1340,6 +1355,7 @@ procedure TTestX3DNodes.TestRootNodeMeta;
 var
   Node, NewNode: TX3DRootNode;
   TempStream: TMemoryStream;
+  TempSaveOptions: TCastleSceneSaveOptions;
 begin
   {$ifdef WASI} // TODO: web: why fails here?
   AbortTest;
@@ -1361,9 +1377,9 @@ begin
 
     { make sure loaded from string Ok }
     AssertTrue(Node.HasForceVersion);
-    AssertTrue(Node.ForceVersion.Major = 3);
-    AssertTrue(Node.ForceVersion.Minor = 1);
-    AssertTrue(Node.Profile = 'Immersive');
+    AssertEquals(3, Node.ForceVersion.Major);
+    AssertEquals(1, Node.ForceVersion.Minor);
+    AssertEquals('Immersive', Node.Profile);
     AssertTrue(Node.Components.Count = 2);
     AssertTrue(Node.Components['NURBS'] = 2);
     AssertTrue(Node.Components['Shaders'] = 1);
@@ -1372,26 +1388,27 @@ begin
     AssertTrue(Node.Meta['generator'] = 'testgenerator and & weird '' chars " test');
 
     { save and load again }
-    SaveNode(Node, TempStream, 'model/x3d+vrml', '', '');
+    SaveNode(Node, TempStream, 'model/x3d+vrml');
     FreeAndNil(Node);
     TempStream.Position := 0;
     Node := LoadX3DClassicStream(TempStream);
 
     { make sure saved and loaded back Ok }
     AssertTrue(Node.HasForceVersion);
-    AssertTrue(Node.ForceVersion.Major = 3);
-    AssertTrue(Node.ForceVersion.Minor = 1);
-    AssertTrue(Node.Profile = 'Immersive');
+    AssertEquals(3, Node.ForceVersion.Major);
+    AssertEquals(1, Node.ForceVersion.Minor);
+    AssertEquals('Immersive', Node.Profile);
     AssertTrue(Node.Components.Count = 2);
     AssertTrue(Node.Components['NURBS'] = 2);
     AssertTrue(Node.Components['Shaders'] = 1);
-    AssertTrue(Node.Meta.Count = 2);
+    AssertEquals(2, Node.Meta.Count);
     AssertTrue(Node.Meta['test''''key'] = 'test"value');
     AssertTrue(Node.Meta['generator'] = 'testgenerator and & weird '' chars " test');
 
     { tweak some Meta }
     Node.Meta['test''''key'] := 'newvalue';
     Node.Meta['testkey2'] := 'newvalue2';
+    AssertEquals(3, Node.Meta.Count);
 
     { replace Node with DeepCopy of itself (should preserve everything) }
     NewNode := Node.DeepCopy as TX3DRootNode;
@@ -1402,33 +1419,41 @@ begin
     { tweak some Meta more }
     Node.Meta['testkey2'] := 'evennewervalue2';
     Node.Meta['testkey3'] := 'newvalue3';
+    AssertEquals(4, Node.Meta.Count);
 
     { save and load again. During Save3D tweak meta generator and source }
     TempStream.Position := 0;
-    SaveNode(Node, TempStream, 'model/x3d+vrml', 'newgenerator', 'newsource');
+    begin
+      TempSaveOptions := TCastleSceneSaveOptions.Create(nil);
+      try
+        TempSaveOptions.Generator := 'newgenerator';
+        TempSaveOptions.Source := 'newsource';
+        SaveNode(Node, TempStream, 'model/x3d+vrml', TempSaveOptions);
+      finally FreeAndNil(TempSaveOptions) end;
+    end;
     FreeAndNil(Node);
     TempStream.Position := 0;
     Node := LoadX3DClassicStream(TempStream);
 
     { make sure saved and loaded back Ok }
     AssertTrue(Node.HasForceVersion);
-    AssertTrue(Node.ForceVersion.Major = 3);
-    AssertTrue(Node.ForceVersion.Minor = 1);
-    AssertTrue(Node.Profile = 'Immersive');
-    AssertTrue(Node.Components.Count = 2);
-    AssertTrue(Node.Components['NURBS'] = 2);
-    AssertTrue(Node.Components['Shaders'] = 1);
-    AssertTrue(Node.Meta.Count = 6);
-    AssertTrue(Node.Meta['test''''key'] = 'newvalue');
-    AssertTrue(Node.Meta['testkey2'] = 'evennewervalue2');
-    AssertTrue(Node.Meta['testkey3'] = 'newvalue3');
-    AssertTrue(Node.Meta['generator'] = 'newgenerator');
-    AssertTrue(Node.Meta['generator-previous'] = 'testgenerator and & weird '' chars " test');
-    AssertTrue(Node.Meta['source'] = 'newsource');
+    AssertEquals(3, Node.ForceVersion.Major);
+    AssertEquals(1, Node.ForceVersion.Minor);
+    AssertEquals('Immersive', Node.Profile);
+    AssertEquals(2, Node.Components.Count);
+    AssertEquals(2, Node.Components['NURBS']);
+    AssertEquals(1, Node.Components['Shaders']);
+    AssertEquals(6, Node.Meta.Count);
+    AssertEquals('newvalue', Node.Meta['test''''key']);
+    AssertEquals('evennewervalue2', Node.Meta['testkey2']);
+    AssertEquals('newvalue3', Node.Meta['testkey3']);
+    AssertEquals('newgenerator', Node.Meta['generator']);
+    AssertEquals('testgenerator and & weird '' chars " test', Node.Meta['generator-previous']);
+    AssertEquals('newsource', Node.Meta['source']);
 
     { save and load again, this time going through XML }
     TempStream.Position := 0;
-    SaveNode(Node, TempStream, 'model/x3d+xml', '', '');
+    SaveNode(Node, TempStream, 'model/x3d+xml');
     FreeAndNil(Node);
     TempStream.Position := 0;
     Node := LoadX3DXmlStream(TempStream);
@@ -1481,7 +1506,7 @@ begin
     { save to XML }
     TempStream.Position := 0;
     TempStream.Size := 0;
-    SaveNode(Node, TempStream, 'model/x3d+xml', '', '');
+    SaveNode(Node, TempStream, 'model/x3d+xml');
     FreeAndNil(Node);
 
     { check that loading it back results in 3.1 }
@@ -1494,7 +1519,7 @@ begin
     { save to clasic }
     TempStream.Position := 0;
     TempStream.Size := 0;
-    SaveNode(Node, TempStream, 'model/x3d+vrml', '', '');
+    SaveNode(Node, TempStream, 'model/x3d+vrml');
     FreeAndNil(Node);
 
     { check that loading it back results in 3.1 }
@@ -1514,7 +1539,7 @@ begin
     { save to XML }
     TempStream.Position := 0;
     TempStream.Size := 0;
-    SaveNode(Node, TempStream, 'model/x3d+xml', '', '');
+    SaveNode(Node, TempStream, 'model/x3d+xml');
     FreeAndNil(Node);
 
     { check that loading it back results in X3D (4.0 now)
@@ -1535,7 +1560,7 @@ begin
     { save to classic }
     TempStream.Position := 0;
     TempStream.Size := 0;
-    SaveNode(Node, TempStream, 'model/vrml', '', '');
+    SaveNode(Node, TempStream, 'model/vrml');
     FreeAndNil(Node);
 
     { check that loading it back results in 2.0
@@ -1557,7 +1582,7 @@ begin
     { save to classic }
     TempStream.Position := 0;
     TempStream.Size := 0;
-    SaveNode(Node, TempStream, 'model/x3d+vrml', '', '');
+    SaveNode(Node, TempStream, 'model/x3d+vrml');
     FreeAndNil(Node);
 
     { check that loading it back results in X3D (4.0 now)
@@ -1642,7 +1667,7 @@ begin
 
     TempStream.Position := 0;
     TempStream.Size := 0;
-    SaveNode(Node, TempStream, 'model/x3d+vrml', '', '');
+    SaveNode(Node, TempStream, 'model/x3d+vrml');
     FreeAndNil(Node);
 
     //Writeln(StreamToString(TempStream)); // useful to debug
@@ -1653,7 +1678,7 @@ begin
 
     TempStream.Position := 0;
     TempStream.Size := 0;
-    SaveNode(Node, TempStream, 'model/x3d+xml', '', '');
+    SaveNode(Node, TempStream, 'model/x3d+xml');
     FreeAndNil(Node);
 
     //Writeln(StreamToString(TempStream)); // useful to debug
@@ -2471,14 +2496,21 @@ procedure TTestX3DNodes.TestConversionDot;
     Node: TX3DRootNode;
     OutputStr, ExpectedOutputStr: String;
     OutputStream: TStringStream;
+    TempSaveOptions: TCastleSceneSaveOptions;
   begin
     { Convert Node to MIME-type OutputMime, save result in OutputStr }
     Node := LoadNode(InputUrl);
     try
       OutputStream := TStringStream.Create('');
       try
-        SaveNode(Node, OutputStream,
-          OutputMime, 'castle_tester', ExtractURIName(InputUrl));
+        begin
+          TempSaveOptions := TCastleSceneSaveOptions.Create(nil);
+          try
+            TempSaveOptions.Generator := 'castle_tester';
+            TempSaveOptions.Source := ExtractURIName(InputUrl);
+            SaveNode(Node, OutputStream, OutputMime, TempSaveOptions);
+          finally FreeAndNil(TempSaveOptions) end;
+        end;
         OutputStr := OutputStream.DataString;
         // Make sure it has Unix line-endings
         StringReplaceAllVar(OutputStr, #13, '', false);
@@ -2585,7 +2617,7 @@ procedure TTestX3DNodes.TestConversionPrecision;
     try
       OutputStream := TStringStream.Create('');
       try
-        SaveNode(Node, OutputStream, OutputMime, '', '');
+        SaveNode(Node, OutputStream, OutputMime);
         // useful to generate correct output (of course you have to manually check is it correct)
         //StringToFile(OutputModelDefaultPrecision, OutputStream.DataString);
         {
@@ -2606,7 +2638,7 @@ procedure TTestX3DNodes.TestConversionPrecision;
 
         OutputStream := TStringStream.Create('');
         try
-          SaveNode(Node, OutputStream, OutputMime, '', '');
+          SaveNode(Node, OutputStream, OutputMime);
           // useful to generate correct output (of course you have to manually check is it correct)
           //StringToFile(OutputModelPrecision3, OutputStream.DataString);
           AssertEqualsIgnoreNewlines(
@@ -2688,7 +2720,7 @@ var
 begin
   ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}OnWarningRaiseException);
   try
-    Node := LoadNode('castle-data:/quaternius/Bunny.gltf');
+    Node := LoadNode('castle-data:/gltf/quaternius/Bunny.gltf');
     try
       OutputStream := TMemoryStream.Create;
       try
@@ -3041,6 +3073,465 @@ begin
   TestOneFile('castle-data:/proto_reuse_first_node/full_connectors.x3d');
   TestOneFile('castle-data:/proto_reuse_first_node/proto_leak.wrl');
   TestOneFile('castle-data:/proto_reuse_first_node/proto_leak_2.wrl');
+end;
+
+procedure TTestX3DNodes.TestImageFromDataUri;
+const
+  ValidDataUriPrefix = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAYAAABccqhmAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB9gHFA8nFnqvaDMAACAASURBVHjaxL1psGXXdR72rbX2O' +
+    'ffeN/SEbqAxECAJEuAQDqA5ySRFUpQ4mBSnkhmXZTNySpZdJascR1XKDydVclKuMK6KKy6XHcepqCqlimzJjixbJEWadjRQNAdD1EQRBEEQYzfQGBrd/V6/9+49e6+VH2vtfc5r9H1gHDp5VY1udL9377nn7L32Wt/6vm/Rz/3sf2kEgOBfZgoCYP4/MDPUvzAzCBMIABPAzEgMCAjM' +
+    '9acUDIKZv14xg6oha4GaQURQikHNYOr/bvG+pv5+9XoYQGJ/bWECE6MAMFUABoP/DEAgIqj6tZaiyGYoChRTFDXkYlBTaHwO/3gGA';
+var
+  Root: TX3DRootNode;
+  ImageTexture: TImageTextureNode;
+begin
+  Root := LoadNode('castle-data:/texture_from_data_uri.x3dv');
+  try
+    ImageTexture := Root.FindNode('MyTexture') as TImageTextureNode;
+    AssertTrue(ImageTexture <> nil);
+    AssertFalse(ImageTexture.IsTextureLoaded); // not loaded without need
+    AssertEquals('', ImageTexture.TextureUsedFullUrl);
+    ImageTexture.IsTextureLoaded := true;
+    AssertTrue(ImageTexture.IsTextureLoaded);
+
+    { TextureUsedFullUrl should contain full data URI, otherwise
+      caching in TImageTextureResource.PrepareCore (that passes TextureUsedFullUrl
+      to RendererCache.TextureImage_IncReference) will break.
+      Testcase: conan_skin_test01.x3d from Aaron, H-Anim animation. }
+    AssertTrue(IsPrefix(ValidDataUriPrefix, ImageTexture.TextureUsedFullUrl, false));
+    AssertEquals(256, ImageTexture.TextureImage.Width);
+    AssertEquals(256, ImageTexture.TextureImage.Height);
+  finally FreeAndNil(Root) end;
+end;
+
+procedure TTestX3DNodes.TestRemoveRoute;
+var
+  PositionInterpolator: TPositionInterpolatorNode;
+  TransformNode: TTransformNode;
+  Route: TX3DRoute;
+begin
+  PositionInterpolator := TPositionInterpolatorNode.Create;
+  TransformNode := TTransformNode.Create;
+
+  Route := TX3DRoute.Create;
+  Route.SetSourceDirectly(PositionInterpolator.EventValue_Changed);
+  Route.SetDestinationDirectly(TransformNode.FdTranslation.EventIn);
+
+  PositionInterpolator.AddRoute(Route);
+  AssertEquals(1, PositionInterpolator.RoutesCount);
+
+  PositionInterpolator.RemoveRoute(Route);
+  AssertEquals(0, PositionInterpolator.RoutesCount);
+
+  FreeAndNil(PositionInterpolator);
+  FreeAndNil(TransformNode);
+  //FreeAndNil(Route); // already freed by RemoveRoute
+end;
+
+procedure TTestX3DNodes.TestSaveLoadMatrix_Vrml1;
+var
+  RootNode, NewRootNode: TX3DRootNode;
+  MatrixTransform: TMatrixTransformNode_1;
+  Matrix, GoodMatrix: TMatrix4;
+  Stream: TMemoryStream;
+begin
+  Stream := TMemoryStream.Create;
+  try
+    RootNode := LoadNode('castle-data:/matrix_vrml_x3d_format/matrix_vrml1.wrl');
+    try
+      MatrixTransform := RootNode.FindNode('MyMatrixSample') as TMatrixTransformNode_1;
+      Matrix := MatrixTransform.FdMatrix.Value;
+      GoodMatrix.Columns[0] := Vector4(1, 0, 0, 0);
+      GoodMatrix.Columns[1] := Vector4(0, 1, 0, 0);
+      GoodMatrix.Columns[2] := Vector4(0, 0, 1, 0);
+      GoodMatrix.Columns[3] := Vector4(-1.24, -2.61, -0.52, 1);
+      AssertMatrixEquals(Matrix, GoodMatrix, 0.01);
+
+      // BTW test Columns vs Rows
+      AssertVectorEquals(GoodMatrix.Rows[0], Vector4(1, 0, 0, -1.24), 0.01);
+      AssertVectorEquals(GoodMatrix.Rows[1], Vector4(0, 1, 0, -2.61), 0.01);
+      AssertVectorEquals(GoodMatrix.Rows[2], Vector4(0, 0, 1, -0.52), 0.01);
+      AssertVectorEquals(GoodMatrix.Rows[3], Vector4(0, 0, 0, 1), 0.01);
+
+      MatrixTransform := RootNode.FindNode('MyMatrixSampleFull') as TMatrixTransformNode_1;
+      Matrix := MatrixTransform.FdMatrix.Value;
+      GoodMatrix.Columns[0] := Vector4(1, 2, 3, 4);
+      GoodMatrix.Columns[1] := Vector4(5, 6, 7, 8);
+      GoodMatrix.Columns[2] := Vector4(9, 10, 11, 12);
+      GoodMatrix.Columns[3] := Vector4(13, 14, 15, 16);
+      AssertMatrixEquals(Matrix, GoodMatrix, 0.01);
+
+      // save and load again
+      SaveNode(RootNode, Stream, 'model/vrml');
+    finally FreeAndNil(RootNode) end;
+
+    Stream.Position := 0;
+    NewRootNode := LoadNode(Stream, '', 'model/vrml');
+    try
+      MatrixTransform := NewRootNode.FindNode('MyMatrixSample') as TMatrixTransformNode_1;
+      Matrix := MatrixTransform.FdMatrix.Value;
+      GoodMatrix.Columns[0] := Vector4(1, 0, 0, 0);
+      GoodMatrix.Columns[1] := Vector4(0, 1, 0, 0);
+      GoodMatrix.Columns[2] := Vector4(0, 0, 1, 0);
+      GoodMatrix.Columns[3] := Vector4(-1.24, -2.61, -0.52, 1);
+      AssertMatrixEquals(Matrix, GoodMatrix, 0.01);
+
+      MatrixTransform := NewRootNode.FindNode('MyMatrixSampleFull') as TMatrixTransformNode_1;
+      Matrix := MatrixTransform.FdMatrix.Value;
+      GoodMatrix.Columns[0] := Vector4(1, 2, 3, 4);
+      GoodMatrix.Columns[1] := Vector4(5, 6, 7, 8);
+      GoodMatrix.Columns[2] := Vector4(9, 10, 11, 12);
+      GoodMatrix.Columns[3] := Vector4(13, 14, 15, 16);
+      AssertMatrixEquals(Matrix, GoodMatrix, 0.01);
+    finally FreeAndNil(NewRootNode) end;
+  finally
+    FreeAndNil(Stream);
+  end;
+end;
+
+procedure TTestX3DNodes.TestSaveLoadMatrix_Vrml2;
+var
+  RootNode, NewRootNode: TX3DRootNode;
+  MatrixTransform: TMatrixTransformNode;
+  Matrix, GoodMatrix: TMatrix4;
+  Stream: TMemoryStream;
+begin
+  Stream := TMemoryStream.Create;
+  try
+    RootNode := LoadNode('castle-data:/matrix_vrml_x3d_format/matrix_vrml2.wrl');
+    try
+      MatrixTransform := RootNode.FindNode('MyMatrixSample') as TMatrixTransformNode;
+      Matrix := MatrixTransform.FdMatrix.Value;
+      GoodMatrix.Columns[0] := Vector4(1, 0, 0, 0);
+      GoodMatrix.Columns[1] := Vector4(0, 1, 0, 0);
+      GoodMatrix.Columns[2] := Vector4(0, 0, 1, 0);
+      GoodMatrix.Columns[3] := Vector4(-1.24, -2.61, -0.52, 1);
+      AssertMatrixEquals(Matrix, GoodMatrix, 0.01);
+
+      MatrixTransform := RootNode.FindNode('MyMatrixSampleFull') as TMatrixTransformNode;
+      Matrix := MatrixTransform.FdMatrix.Value;
+      GoodMatrix.Columns[0] := Vector4(1, 2, 3, 4);
+      GoodMatrix.Columns[1] := Vector4(5, 6, 7, 8);
+      GoodMatrix.Columns[2] := Vector4(9, 10, 11, 12);
+      GoodMatrix.Columns[3] := Vector4(13, 14, 15, 16);
+      AssertMatrixEquals(Matrix, GoodMatrix, 0.01);
+
+      SaveNode(RootNode, Stream, 'model/vrml');
+    finally FreeAndNil(RootNode) end;
+
+    Stream.Position := 0;
+    NewRootNode := LoadNode(Stream, '', 'model/vrml');
+    try
+      MatrixTransform := NewRootNode.FindNode('MyMatrixSample') as TMatrixTransformNode;
+      Matrix := MatrixTransform.FdMatrix.Value;
+      GoodMatrix.Columns[0] := Vector4(1, 0, 0, 0);
+      GoodMatrix.Columns[1] := Vector4(0, 1, 0, 0);
+      GoodMatrix.Columns[2] := Vector4(0, 0, 1, 0);
+      GoodMatrix.Columns[3] := Vector4(-1.24, -2.61, -0.52, 1);
+      AssertMatrixEquals(Matrix, GoodMatrix, 0.01);
+
+      MatrixTransform := NewRootNode.FindNode('MyMatrixSampleFull') as TMatrixTransformNode;
+      Matrix := MatrixTransform.FdMatrix.Value;
+      GoodMatrix.Columns[0] := Vector4(1, 2, 3, 4);
+      GoodMatrix.Columns[1] := Vector4(5, 6, 7, 8);
+      GoodMatrix.Columns[2] := Vector4(9, 10, 11, 12);
+      GoodMatrix.Columns[3] := Vector4(13, 14, 15, 16);
+      AssertMatrixEquals(Matrix, GoodMatrix, 0.01);
+    finally FreeAndNil(NewRootNode) end;
+  finally
+    FreeAndNil(Stream);
+  end;
+end;
+
+procedure TTestX3DNodes.TestSaveLoadMatrix_X3DClassic;
+var
+  RootNode, NewRootNode: TX3DRootNode;
+  MatrixTransform: TMatrixTransformNode;
+  Matrix, GoodMatrix: TMatrix4;
+  Stream: TMemoryStream;
+begin
+  Stream := TMemoryStream.Create;
+  try
+    RootNode := LoadNode('castle-data:/matrix_vrml_x3d_format/matrix_x3d_classic.x3dv');
+    try
+      MatrixTransform := RootNode.FindNode('MyMatrixSample') as TMatrixTransformNode;
+      Matrix := MatrixTransform.FdMatrix.Value;
+
+      // The X3D syntax matches per-row, not per-column
+      GoodMatrix.Rows[0] := Vector4(1, 0, 0, -1.24);
+      GoodMatrix.Rows[1] := Vector4(0, 1, 0, -2.61);
+      GoodMatrix.Rows[2] := Vector4(0, 0, 1, -0.52);
+      GoodMatrix.Rows[3] := Vector4(0, 0, 0, 1);
+      AssertMatrixEquals(Matrix, GoodMatrix, 0.01);
+
+      MatrixTransform := RootNode.FindNode('MyMatrixSampleFull') as TMatrixTransformNode;
+      Matrix := MatrixTransform.FdMatrix.Value;
+      GoodMatrix.Rows[0] := Vector4(1, 2, 3, 4);
+      GoodMatrix.Rows[1] := Vector4(5, 6, 7, 8);
+      GoodMatrix.Rows[2] := Vector4(9, 10, 11, 12);
+      GoodMatrix.Rows[3] := Vector4(13, 14, 15, 16);
+      AssertMatrixEquals(Matrix, GoodMatrix, 0.01);
+      SaveNode(RootNode, Stream, 'model/x3d+vrml');
+    finally FreeAndNil(RootNode) end;
+
+    Stream.Position := 0;
+    NewRootNode := LoadNode(Stream, '', 'model/x3d+vrml');
+    try
+      MatrixTransform := NewRootNode.FindNode('MyMatrixSample') as TMatrixTransformNode;
+      Matrix := MatrixTransform.FdMatrix.Value;
+      GoodMatrix.Rows[0] := Vector4(1, 0, 0, -1.24);
+      GoodMatrix.Rows[1] := Vector4(0, 1, 0, -2.61);
+      GoodMatrix.Rows[2] := Vector4(0, 0, 1, -0.52);
+      GoodMatrix.Rows[3] := Vector4(0, 0, 0, 1);
+      AssertMatrixEquals(Matrix, GoodMatrix, 0.01);
+
+      MatrixTransform := NewRootNode.FindNode('MyMatrixSampleFull') as TMatrixTransformNode;
+      Matrix := MatrixTransform.FdMatrix.Value;
+      GoodMatrix.Rows[0] := Vector4(1, 2, 3, 4);
+      GoodMatrix.Rows[1] := Vector4(5, 6, 7, 8);
+      GoodMatrix.Rows[2] := Vector4(9, 10, 11, 12);
+      GoodMatrix.Rows[3] := Vector4(13, 14, 15, 16);
+      AssertMatrixEquals(Matrix, GoodMatrix, 0.01);
+    finally FreeAndNil(NewRootNode) end;
+  finally
+    FreeAndNil(Stream);
+  end;
+end;
+
+procedure TTestX3DNodes.TestSaveLoadMatrix_X3DXml;
+var
+  RootNode, NewRootNode: TX3DRootNode;
+  MatrixTransform: TMatrixTransformNode;
+  Matrix, GoodMatrix: TMatrix4;
+  Stream: TMemoryStream;
+begin
+  Stream := TMemoryStream.Create;
+  try
+    RootNode := LoadNode('castle-data:/matrix_vrml_x3d_format/matrix_x3d_xml.x3d');
+    try
+      MatrixTransform := RootNode.FindNode('MyMatrixSample') as TMatrixTransformNode;
+      Matrix := MatrixTransform.FdMatrix.Value;
+
+      // The X3D syntax matches per-row, not per-column
+      GoodMatrix.Rows[0] := Vector4(1, 0, 0, -1.24);
+      GoodMatrix.Rows[1] := Vector4(0, 1, 0, -2.61);
+      GoodMatrix.Rows[2] := Vector4(0, 0, 1, -0.52);
+      GoodMatrix.Rows[3] := Vector4(0, 0, 0, 1);
+      AssertMatrixEquals(Matrix, GoodMatrix, 0.01);
+
+      MatrixTransform := RootNode.FindNode('MyMatrixSampleFull') as TMatrixTransformNode;
+      Matrix := MatrixTransform.FdMatrix.Value;
+      GoodMatrix.Rows[0] := Vector4(1, 2, 3, 4);
+      GoodMatrix.Rows[1] := Vector4(5, 6, 7, 8);
+      GoodMatrix.Rows[2] := Vector4(9, 10, 11, 12);
+      GoodMatrix.Rows[3] := Vector4(13, 14, 15, 16);
+      AssertMatrixEquals(Matrix, GoodMatrix, 0.01);
+      SaveNode(RootNode, Stream, 'model/x3d+xml');
+    finally FreeAndNil(RootNode) end;
+
+    Stream.Position := 0;
+    NewRootNode := LoadNode(Stream, '', 'model/x3d+xml');
+    try
+      MatrixTransform := NewRootNode.FindNode('MyMatrixSample') as TMatrixTransformNode;
+      Matrix := MatrixTransform.FdMatrix.Value;
+      GoodMatrix.Rows[0] := Vector4(1, 0, 0, -1.24);
+      GoodMatrix.Rows[1] := Vector4(0, 1, 0, -2.61);
+      GoodMatrix.Rows[2] := Vector4(0, 0, 1, -0.52);
+      GoodMatrix.Rows[3] := Vector4(0, 0, 0, 1);
+      AssertMatrixEquals(Matrix, GoodMatrix, 0.01);
+
+      MatrixTransform := NewRootNode.FindNode('MyMatrixSampleFull') as TMatrixTransformNode;
+      Matrix := MatrixTransform.FdMatrix.Value;
+      GoodMatrix.Rows[0] := Vector4(1, 2, 3, 4);
+      GoodMatrix.Rows[1] := Vector4(5, 6, 7, 8);
+      GoodMatrix.Rows[2] := Vector4(9, 10, 11, 12);
+      GoodMatrix.Rows[3] := Vector4(13, 14, 15, 16);
+      AssertMatrixEquals(Matrix, GoodMatrix, 0.01);
+    finally FreeAndNil(NewRootNode) end;
+  finally
+    FreeAndNil(Stream);
+  end;
+end;
+
+procedure TTestX3DNodes.TestNodeListAutoRemove;
+var
+  L: TX3DNodeList;
+  N1, N2: TX3DNode;
+begin
+  L := TX3DNodeList.Create(false);
+  try
+    L.AutoRemove := true;
+
+    N1 := TBoxNode.Create;
+    L.Add(N1);
+    AssertTrue(L.Count = 1);
+    AssertTrue(L[0] = N1);
+
+    N2 := TBoxNode.Create;
+    L.Add(N2);
+    AssertTrue(L.Count = 2);
+    AssertTrue(L[0] = N1);
+    AssertTrue(L[1] = N2);
+
+    N1.Free;
+    AssertTrue(L.Count = 1);
+    AssertTrue(L[0] = N2);
+  finally FreeAndNil(L) end;
+
+  FreeAndNil(N2);
+
+  L := TX3DNodeList.Create(false);
+  try
+    L.AutoRemove := true;
+
+    N1 := TBoxNode.Create;
+    L.Add(N1);
+    AssertTrue(L.Count = 1);
+    AssertTrue(L[0] = N1);
+
+    N2 := TBoxNode.Create;
+    L.Add(N2);
+    AssertTrue(L.Count = 2);
+    AssertTrue(L[0] = N1);
+    AssertTrue(L[1] = N2);
+
+    // let's add N1 multiple times, all should still be OK
+    L.Add(N1);
+    L.Add(N1);
+
+    N1.Free;
+    AssertTrue(L.Count = 1);
+    AssertTrue(L[0] = N2);
+  finally FreeAndNil(L) end;
+
+  FreeAndNil(N2);
+end;
+
+procedure TTestX3DNodes.TestGltfSkinnedAnimationBBox;
+var
+  StagRoot: TX3DRootNode;
+  MainShape, AntlersShape: TShapeNode;
+  Skin: TSkinNode;
+begin
+  StagRoot := LoadNode('castle-data:/gltf/quaternius/Stag.gltf');
+  try
+    MainShape := StagRoot.FindNode(TShapeNode, 'Cube_Primitive0') as TShapeNode;
+    AssertTrue(MainShape <> nil);
+    AssertTrue(MainShape.Collision = scBox);
+
+    // antlers are not skinned
+    AntlersShape := StagRoot.FindNode(TShapeNode, 'Cube.001_Primitive0') as TShapeNode;
+    AssertTrue(AntlersShape <> nil);
+    AssertTrue(AntlersShape.Collision = scDefault);
+
+    Skin := StagRoot.FindNode(TSkinNode, 'AnimalArmature') as TSkinNode;
+    AssertEquals(5, Skin.FdShapes.Count);
+    AssertTrue(Skin.Skeleton <> nil);
+  finally FreeAndNil(StagRoot) end;
+end;
+
+procedure TTestX3DNodes.TestRouteNodesPositions;
+var
+  Root: TX3DRootNode;
+  TempStream: TMemoryStream;
+begin
+  Root := LoadNode('castle-data:/x3d_xml_routes_nodes_mixed.x3d');
+  try
+    ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}OnWarningRaiseException);
+    try
+      TempStream := TMemoryStream.Create;
+      SaveNode(Root, TempStream, 'model/x3d+vrml');
+      FreeAndNil(TempStream);
+
+      TempStream := TMemoryStream.Create;
+      SaveNode(Root, TempStream, 'model/x3d+xml');
+      FreeAndNil(TempStream);
+    finally
+      ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningRaiseException);
+    end;
+  finally FreeAndNil(Root) end;
+end;
+
+procedure TTestX3DNodes.TestNoFailMultiTexture;
+var
+  Root: TX3DRootNode;
+begin
+  Root := LoadNode('castle-data:/multi_texture_pbr.x3dv');
+  try
+  finally FreeAndNil(Root) end;
+end;
+
+type
+  TSomeClass = class
+    procedure Foo(const Node: TX3DNode);
+  end;
+
+procedure TSomeClass.Foo(const Node: TX3DNode);
+begin
+end;
+
+procedure TTestX3DNodes.TestNodeDestructionNotificationList;
+
+  procedure AssertMethodsEqual(const M1, M2: TNodeDestructionNotification);
+  begin
+    AssertTrue(TMethod(M1).Code = TMethod(M2).Code);
+    AssertTrue(TMethod(M1).Data = TMethod(M2).Data);
+  end;
+
+var
+  List: TNodeDestructionNotificationList;
+  C1, C2, C3: TSomeClass;
+  M: TNodeDestructionNotification;
+begin
+  C1 := TSomeClass.Create;
+  C2 := TSomeClass.Create;
+  C3 := TSomeClass.Create;
+
+  List := TNodeDestructionNotificationList.Create;
+  try
+    List.Add({$ifdef FPC}@{$endif}C1.Foo);
+    List.Add({$ifdef FPC}@{$endif}C2.Foo);
+    List.Add({$ifdef FPC}@{$endif}C2.Foo);
+
+    AssertEquals(3, List.Count);
+    M := {$ifdef FPC}@{$endif}C1.Foo;
+    AssertMethodsEqual(List[0], M);
+    M := {$ifdef FPC}@{$endif}C2.Foo;
+    AssertMethodsEqual(List[1], M);
+    AssertMethodsEqual(List[2], M);
+
+    List.Delete(2);
+
+    AssertEquals(2, List.Count);
+    M := {$ifdef FPC}@{$endif}C1.Foo;
+    AssertMethodsEqual(List[0], M);
+    M := {$ifdef FPC}@{$endif}C2.Foo;
+    AssertMethodsEqual(List[1], M);
+
+    AssertEquals(0, List.IndexOf({$ifdef FPC}@{$endif}C1.Foo));
+    AssertEquals(1, List.IndexOf({$ifdef FPC}@{$endif}C2.Foo));
+
+    // same results with M
+    M := {$ifdef FPC}@{$endif}C1.Foo;
+    AssertEquals(0, List.IndexOf(M));
+    M := {$ifdef FPC}@{$endif}C2.Foo;
+    AssertEquals(1, List.IndexOf(M));
+
+    AssertEquals(-1, List.IndexOf({$ifdef FPC}@{$endif}C3.Foo));
+
+    List.Remove({$ifdef FPC}@{$endif}C1.Foo);
+    AssertEquals(1, List.Count);
+    M := {$ifdef FPC}@{$endif}C2.Foo;
+    AssertMethodsEqual(List[0], M);
+
+    List.Remove({$ifdef FPC}@{$endif}C3.Foo); // does nothing, no such item
+    AssertEquals(1, List.Count);
+    M := {$ifdef FPC}@{$endif}C2.Foo;
+    AssertMethodsEqual(List[0], M);
+  finally FreeAndNil(List) end;
+
+  C1.Free;
+  C2.Free;
+  C3.Free;
 end;
 
 initialization

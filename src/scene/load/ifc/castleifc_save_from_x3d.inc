@@ -145,7 +145,7 @@ end;
 
 { Registered save routine, converting X3D to IFC and saving it to a stream. }
 procedure SaveIfc(const Node: TX3DRootNode; const Stream: TStream;
-  const Generator: String; const Source: String);
+  const SaveOptions: TCastleSceneSaveOptions);
 var
   IfcFile: TIfcFile;
   JsonObj: TJsonObject;

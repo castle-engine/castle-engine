@@ -15,7 +15,7 @@ The most common way to use this reference is to @italic(search) for an identifie
 
 See our website for more documentation:
 @unorderedList(
-  @item @url(https://castle-engine.io/manual_intro.php Manual)
+  @item @url(https://castle-engine.io/manual Manual)
   @item @url(https://castle-engine.io/creating_data_intro.php Guide to creating game data)
 )
 

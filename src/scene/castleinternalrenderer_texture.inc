@@ -239,6 +239,7 @@
   TImageTextureResource = class(T2DTextureResource)
   strict private
     FGLName: TGLTexture;
+    FAllocatedWidth, FAllocatedHeight: Cardinal;
   protected
     class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
     procedure PrepareCore(
@@ -258,6 +259,9 @@
       Shader: TShader; const Env: TTextureEnv): boolean; override;
     function ShaderTextureType(out TextureType: TTextureType): Boolean; override;
     function GLName: TGLTextureId; override;
+
+    procedure UpdateTextureContentsRgbaFloat(
+      const Width, Height: Cardinal; const Data: Pointer); override;
   end;
 
   { Renderer resource for TMovieTextureNode. }
@@ -1055,6 +1059,8 @@ begin
     TextureNode.TextureComposite,
     GUITexture,
     FlipVertically);
+  FAllocatedWidth := TextureNode.TextureImage.Width;
+  FAllocatedHeight := TextureNode.TextureImage.Height;
 end;
 
 procedure TImageTextureResource.UnprepareCore;
@@ -1093,6 +1099,58 @@ end;
 function TImageTextureResource.GLName: TGLTextureId;
 begin
   Result := FGLName;
+end;
+
+procedure TImageTextureResource.UpdateTextureContentsRgbaFloat(
+  const Width, Height: Cardinal; const Data: Pointer);
+const
+  // values below like UncompressedGLFormatAndInternalFormat for TRGBAlphaFloatImage
+  ImageFormat = GL_RGBA;
+  ImageInternalFormat = GL_RGBA32F;
+  Level = 0; // always update mipmap level 0;
+var
+  GLData: {$ifdef CASTLE_WEBGL} IJSFloat32Array {$else} Pointer {$endif};
+begin
+  if not Bind(0) then Exit;
+
+  {$ifdef CASTLE_WEBGL}
+  { On web, the texture data must be copied to JS float32 array. }
+  GLData := TJSFloat32Array.Create(Width * Height * 4);
+  GLData.CopyFromMemory(Data, Width * Height * 4 * SizeOf(Single));
+  {$else}
+  GLData := Data;
+  {$endif}
+
+  { We assume we don't need to do some stuff from CastleTexImage2D:
+    - no need for BeforeUnpackImage, as RGBA float textures are always
+      already aligned to 4 bytes
+    - no need for Mesa + fixed function hack
+    - no need for texture swizzle, just map RGBA to RGBA. }
+
+  { Using glTexSubImage2D is theoretically faster, as it doesn't have to
+    change texture size on GPU?
+    In practice, animate_bones_by_code_standalone with "Add Crowd"
+    shows no difference between glTexImage2D and glTexSubImage2D. }
+  {$define UpdateTextureContentsRgbaFloat_USE_TEXSUBIMAGE2D}
+
+  {$ifdef UpdateTextureContentsRgbaFloat_USE_TEXSUBIMAGE2D}
+  if (FAllocatedWidth <> Width) or (FAllocatedHeight <> Height) then
+  {$endif}
+
+  begin
+    glTexImage2D(GL_TEXTURE_2D, Level, ImageInternalFormat,
+      Width, Height, 0, ImageFormat, GL_FLOAT, GLData);
+    FAllocatedWidth := Width;
+    FAllocatedHeight := Height;
+  end
+
+  {$ifdef UpdateTextureContentsRgbaFloat_USE_TEXSUBIMAGE2D}
+  else
+  begin
+    glTexSubImage2D(GL_TEXTURE_2D, Level, 0, 0, Width, Height,
+      ImageFormat, GL_FLOAT, GLData);
+  end
+  {$endif};
 end;
 
 { TMovieTextureResource -------------------------------------------------------- }

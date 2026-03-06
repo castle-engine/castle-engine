@@ -50,9 +50,9 @@ PASDOC_FORMAT="$1"
 shift 1
 
 # calculate OUTPUT_PATH (os-native path)
-OUTPUT_PATH=`pwd`/
+OUTPUT_PATH=$(pwd)/
 if [ -n "$CYGWIN_OR_SIMILAR" ]; then
-  OUTPUT_PATH="`cygpath --windows \"$OUTPUT_PATH\"`"
+  OUTPUT_PATH="$(cygpath --windows "$OUTPUT_PATH")"
 fi
 
 FIND='find'
@@ -81,7 +81,7 @@ cd "$CASTLE_ENGINE_UNITS_PATH"
 # calculate TMP_PAS_LIST (os-native path)
 TMP_PAS_LIST=/tmp/mk_docs_list
 if [ -n "$CYGWIN_OR_SIMILAR" ]; then
-  TMP_PAS_LIST="`cygpath --windows \"$TMP_PAS_LIST\"`"
+  TMP_PAS_LIST="$(cygpath --windows "$TMP_PAS_LIST")"
 fi
 
 # make sure we have clean way to create "$TMP_PAS_LIST"
@@ -173,6 +173,10 @@ PASDOC_INCLUDE_DIRS="\
 
 if [ "${PASDOC_FORMAT}" = 'html' ]; then
   FORMAT_OPTIONS='--use-tipue-search'
+	cp -R ../doc/pasdoc/logo/castle_game_engine_icon.png \
+	      ../doc/pasdoc/html-parts/images/ \
+	      ../doc/pasdoc/html-parts/castle-engine-website-base/ \
+	      "$OUTPUT_PATH"
 else
   FORMAT_OPTIONS=''
 fi
@@ -187,6 +191,8 @@ fi
 # - lack of @groupbegin/groupend implementation for now,
 # - reporting as missing links the exceptions from standard units.
 
+# Word splitting on PASDOC_INCLUDE_DIRS is intentional
+# shellcheck disable=SC2086
 pasdoc \
   --format "$PASDOC_FORMAT" \
   $PASDOC_INCLUDE_DIRS \
@@ -206,7 +212,10 @@ pasdoc \
   --html-head ../doc/pasdoc/html-parts/head.html \
   --html-body-begin ../doc/pasdoc/html-parts/body-begin.html \
   --html-body-end ../doc/pasdoc/html-parts/body-end.html \
-  --css ../doc/pasdoc/html-parts/cge-pasdoc.css \
+  --css-based-on-bootstrap ../doc/pasdoc/html-parts/cge-pasdoc.css \
+  --show-source-position \
+  --source-url-pattern 'https://github.com/castle-engine/castle-engine/blob/master/src/{FILE}#L{LINE}' \
+  --source-root "$(pwd)" \
   $FORMAT_OPTIONS
 
   # TODO: Commented out grep filtering -- fails with "Disk Full" on GH Actions,

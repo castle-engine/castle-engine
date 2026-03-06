@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE X3D PUBLIC "ISO//Web3D//DTD X3D 4.0//EN" "https://www.web3d.org/specifications/x3d-4.0.dtd">
+<X3D profile='Full' version='4.0' xmlns:xsd='http://www.w3.org/2001/XMLSchema-instance' xsd:noNamespaceSchemaLocation='https://www.web3d.org/specifications/x3d-4.0.xsd'>
+
+<!-- 
+Testcase based on private-assets/skin/conan_skin_works.x3d . 
+To save it properly, we need to output ROUTE *after* the given node is output.
+The input mixes nodes/ROUTEs in XML enoding, but this is not possible in classic
+encoding.
+-->
+
+<head>
+</head>
+<Scene>  
+  <Transform DEF='TestTransform1' />
+	<Transform DEF='TestTransform2' />
+	<Transform DEF='TestTransform3' />
+	<Transform DEF='TestTransform4' />
+	
+	<Group>
+		<TimeSensor DEF='DanceTimer' cycleInterval='1.2' loop='true' containerField='children'/>
+		<PositionInterpolator DEF='expression452' containerField='children'
+			key='0 1'
+			keyValue='0 0 0, 0 0 0'/>
+		<ROUTE fromNode='DanceTimer' fromField='fraction_changed' toNode='expression452' toField='set_fraction'/>
+		<ROUTE fromNode='expression452' fromField='value_changed' toNode='TestTransform1' toField='set_translation'/>
+
+		<PositionInterpolator DEF='expression451' containerField='children'
+			key='0 1'
+			keyValue='0 0 0, 0 0 0'/>
+		<ROUTE fromNode='DanceTimer' fromField='fraction_changed' toNode='expression451' toField='set_fraction'/>
+		<ROUTE fromNode='expression451' fromField='value_changed' toNode='TestTransform2' toField='set_translation'/>
+
+		<PositionInterpolator DEF='expression453' containerField='children'
+			key='0 1'
+			keyValue='0 0 0, 0 0 0'/>
+		<ROUTE fromNode='DanceTimer' fromField='fraction_changed' toNode='expression453' toField='set_fraction'/>
+		<ROUTE fromNode='expression453' fromField='value_changed' toNode='TestTransform3' toField='set_translation'/>
+	</Group>
+</Scene>
+</X3D>

@@ -109,6 +109,22 @@
     { How to interpret the vertexes: as a set of strips (connected line segments), loops (connected line segments with additional segment to form a loop), or just pairs of vertexes (each pair defines a line segment). See possible @link(TLineMode) values for details. }
     property Mode: TLineMode read GetMode write SetMode;
 
+    strict private FFdSkinWeights0: TMFVec4f;
+    { Internal wrapper for property @code(SkinWeights0). This wrapper API may change, we advise to access simpler @code(SkinWeights0) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdSkinWeights0: TMFVec4f read FFdSkinWeights0;
+    { Weights for the skinned animation. See @link(TAbstractComposedGeometryNode.SetSkinWeights0) for details. }
+    procedure SetSkinWeights0(const Value: array of TVector4); overload;
+    { Weights for the skinned animation. See @link(TAbstractComposedGeometryNode.SetSkinWeights0) for details. }
+    procedure SetSkinWeights0(const Value: TVector4List); overload;
+
+    strict private FFdSkinJoints0: TMFInt32;
+    { Internal wrapper for property @code(SkinJoints0). This wrapper API may change, we advise to access simpler @code(SkinJoints0) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdSkinJoints0: TMFInt32 read FFdSkinJoints0;
+    { Joints for the skinned animation. See @link(TAbstractComposedGeometryNode.SetSkinJoints0) for details. }
+    procedure SetSkinJoints0(const Value: array of Int32); overload;
+    { Joints for the skinned animation. See @link(TAbstractComposedGeometryNode.SetSkinJoints0) for details. }
+    procedure SetSkinJoints0(const Value: TInt32List); overload;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -210,6 +226,26 @@ begin
   FdMode.SendEnumValue(Ord(Value));
 end;
 
+procedure TIndexedLineSetNode.SetSkinWeights0(const Value: array of TVector4);
+begin
+  FdSkinWeights0.Send(Value);
+end;
+
+procedure TIndexedLineSetNode.SetSkinWeights0(const Value: TVector4List);
+begin
+  FdSkinWeights0.Send(Value);
+end;
+
+procedure TIndexedLineSetNode.SetSkinJoints0(const Value: array of Int32);
+begin
+  FdSkinJoints0.Send(Value);
+end;
+
+procedure TIndexedLineSetNode.SetSkinJoints0(const Value: TInt32List);
+begin
+  FdSkinJoints0.Send(Value);
+end;
+
 class function TIndexedLineSetNode.ClassX3DType: String;
 begin
   Result := 'IndexedLineSet';
@@ -262,6 +298,14 @@ begin
   FFdMode := TSFStringEnum.Create(Self, False, 'mode', @LineModeNames, Ord(High(LineModeNames)) + 1, Ord(lmStrip));
    FdMode.ChangeAlways := chGeometry;
   AddField(FFdMode);
+
+  FFdSkinWeights0 := TMFVec4f.Create(Self, True, 'skinWeights0', []);
+   FdSkinWeights0.ChangeAlways := chGeometry;
+  AddField(FFdSkinWeights0);
+
+  FFdSkinJoints0 := TMFInt32.Create(Self, True, 'skinJoints0', []);
+   FdSkinJoints0.ChangeAlways := chGeometry;
+  AddField(FFdSkinJoints0);
 end;
 
 {$endif read_implementation}

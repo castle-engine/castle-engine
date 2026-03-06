@@ -318,7 +318,8 @@ type
     function Load: TX3DRootNode;
   end;
 
-function LoadCocos2d(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
+function LoadCocos2d(const Stream: TStream; const BaseUrl: String;
+  const LoadOptions: TCastleSceneLoadOptions): TX3DRootNode;
 var
   Cocos2dLoader: TCocos2dLoader;
 begin

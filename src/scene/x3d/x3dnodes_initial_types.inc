@@ -38,6 +38,7 @@
   TX3DEventsEngine = class;
   TClipPlaneNode = class;
   THAnimHumanoidNode = class;
+  TSkinNode = class;
   TLocalFogNode = class;
   TEffectNode = class;
   TX3DRootNode = class;
@@ -83,6 +84,7 @@
   TLinePropertiesNode = class;
   TCommonSurfaceShaderNode = class;
   TAcousticPropertiesNode = class;
+  TPointPropertiesNode = class;
 
   TX3DNodeClass = class of TX3DNode;
 
@@ -113,20 +115,6 @@
 
   TX3DAccessType = (atInputOnly, atOutputOnly, atInitializeOnly, atInputOutput);
   TX3DAccessTypes = set of TX3DAccessType;
-
-  TNodeTransformationChange = (
-    ntcNone,
-    ntcSwitch, //< TSwitchNode
-    ntcLOD, //< TLODNode
-    ntcTransform, //< anything with TTransformFunctionality
-    ntcGeometry, //< TAbstractGeometryNode
-    ntcBackground, //< TAbstractBackgroundNode
-    ntcFog, //< TFogNode
-    ntcViewpoint, //< TAbstractViewpointNode
-    ntcLight, //< TAbstractLightNode
-    ntcProximitySensor, //< TProximitySensorNode
-    ntcVisibilitySensor //< TVisibilitySensorNode
-  );
 
   TX3DVersion = CastleInternalX3DLexer.TX3DVersion;
   TX3DEncoding = CastleInternalX3DLexer.TX3DEncoding;

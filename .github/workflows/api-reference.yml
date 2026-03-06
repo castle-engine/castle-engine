@@ -17,13 +17,18 @@ defaults:
   run:
     shell: bash
 
+# GitHub CodeQL recommends to explicitly set permissions for GITHUB_TOKEN.
+# See https://docs.github.com/en/actions/tutorials/authenticate-with-github_token .
+permissions:
+  contents: read
+
 jobs:
   build_api_reference:
     name: API Reference
     runs-on: ubuntu-latest
     container: kambi/castle-engine-cloud-builds-tools:cge-none
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     - name: Make API Reference
       run: make clean html -C doc/pasdoc/
     - name: Pack API Reference
@@ -32,7 +37,7 @@ jobs:
         zip -r castle-engine-only-api-reference.zip reference
         mv castle-engine-only-api-reference.zip ../
     - name: Archive Artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: api-reference
         path: castle-engine-only-api-reference.zip

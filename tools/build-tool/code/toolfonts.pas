@@ -86,7 +86,7 @@ end;
 procedure TGenerateEmbeddedFontsHelper.ProcessFile(const FileInfo: TFileInfo;
   var StopSearch: Boolean);
 
-  function CreateFontCharacters: TUnicodeCharList;
+  function CreateFontCharacters: TUnicodeCharSet;
   var
     CgePath, CharsFile: String;
   begin
@@ -98,7 +98,7 @@ procedure TGenerateEmbeddedFontsHelper.ProcessFile(const FileInfo: TFileInfo;
     if not FileExists(CharsFile) then
       raise Exception.CreateFmt('Cannot find file with common Unicode characters: %s', [CharsFile]);
 
-    Result := TUnicodeCharList.Create;
+    Result := TUnicodeCharSet.Create;
     Result.Add(SimpleAsciiCharacters);
     Result.Add(FileToString(CharsFile));
   end;
@@ -115,7 +115,7 @@ var
   FontUnit: TFontUnit;
   Font: TTextureFontData;
   FontUnitName, FontFunctionName, FontRelativeUrl, FontUnitFileName: String;
-  Characters: TUnicodeCharList;
+  Characters: TUnicodeCharSet;
 begin
   if FontFilters.Matches(FileInfo.Url) then
   begin
@@ -134,6 +134,7 @@ begin
         FontRelativeUrl := ExtractRelativePath(InclPathDelim(DataPath), FileInfo.AbsoluteName);
         // simple way to turn relative path into a relative URL
         FontRelativeUrl := SReplaceChars(FontRelativeUrl, PathDelim, '/');
+        FontRelativeUrl := UrlEncode(FontRelativeUrl); // convert spaces to %20 etc.
         FontRelativeUrl := 'castle-data:/' + FontRelativeUrl;
 
         // generate font file

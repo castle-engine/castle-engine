@@ -1,5 +1,5 @@
 {
-  Copyright 2013-2024 Michalis Kamburelis.
+  Copyright 2013-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -48,19 +48,31 @@ type
       just in any FinalizeCore.
       eglTerminate(Display) it would release Display of all contexts.
       We need to call eglTerminate(Display) only when finalizing the last context. }
-    procedure ClassInitialize;
+    class procedure ClassInitialize;
 
     { Finalize Display.
       Does nothing if already finalized. }
-    procedure ClassFinalize;
+    class procedure ClassFinalize;
   protected
     procedure InitializeCore(const Requirements: TGLContextRequirements); override;
     procedure FinalizeCore; override;
     procedure MakeCurrentCore; override;
     procedure SwapBuffersCore; override;
   public
-    // Set this before using Initialize and other methods
+    { Set all fields and class fields below *before* using Initialize
+      and other methods. }
     WndPtr: EGLNativeWindowType;
+
+    class var
+      UseWayland: Boolean;
+
+      { If UseWayland, then WaylandDisplay must be set to non-nil.
+        For now, always UseWayland <=> WaylandDisplay <> nil.
+
+        Reason: eglGetDisplay(EGL_DEFAULT_DISPLAY) *may* return X display
+        (it's undefined) when running under Wayland, which will not work with
+        Wayland window. }
+      WaylandDisplay: Pointer;
 
     { Query context size, returns 0 0 if cannot query for some reason. }
     procedure QuerySize(out AWidth, AHeight: EGLint);
@@ -181,14 +193,28 @@ end;
 
 {$endif}
 
-procedure TGLContextEgl.ClassInitialize;
+class procedure TGLContextEgl.ClassInitialize;
 begin
   if Display = EGL_NO_DISPLAY { nil } then
   begin
     if not EglAvailable then
       raise EGLContextNotPossible.Create('Could not load EGL library, required to initialize context');
 
-    Display := eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    if UseWayland then
+    begin
+      { We need to initialize EGL with Wayland display, otherwise just
+        using "eglGetDisplay(EGL_DEFAULT_DISPLAY)" may result in EGL_BAD_ALLOC
+        ("EGL failed to allocate resources for the requested operation")
+        as "eglGetDisplay(EGL_DEFAULT_DISPLAY)" possibly returns an X display
+        (which will not work with Wayland window). }
+      if not Assigned(eglGetPlatformDisplay) then
+        raise EGLContextNotPossible.Create('EGL: eglGetPlatformDisplay not available, required for Wayland');
+      if not Assigned(WaylandDisplay) then
+        raise EGLContextNotPossible.Create('EGL: WaylandDisplay not set, required for Wayland');
+      Display := eglGetPlatformDisplay(EGL_PLATFORM_WAYLAND_KHR, WaylandDisplay, nil);
+    end else
+      Display := eglGetDisplay(EGL_DEFAULT_DISPLAY);
+
     if Display = EGL_NO_DISPLAY then
       { This does not set eglGetError, so we don't use EGLError in message below. }
       raise EGLContextNotPossible.Create('EGL: Cannot get display');
@@ -199,7 +225,7 @@ begin
   end;
 end;
 
-procedure TGLContextEgl.ClassFinalize;
+class procedure TGLContextEgl.ClassFinalize;
 begin
   if Display <> EGL_NO_DISPLAY { nil } then
   begin

@@ -228,10 +228,10 @@ type
     // keyPadZR, // new TGameConroller.AxisRightTrigger (this is digital on Nintendo Switch pads, but analog on Xbox controllers)
     // keyPadPlus, // new gbMenu
     // keyPadMinus, // new gbView
-    // keyPadLeft,
-    // keyPadUp,
-    // keyPadRight,
-    // keyPadDown,
+    // keyPadLeft, // new gbDPadLeft
+    // keyPadUp, // new gbDPadUp
+    // keyPadRight, // new gbDPadRight
+    // keyPadDown, // new gbDPadDown
     home key on Nintendo Switch -> gbGuide, in cases we can handle it in API
     *)
     keyReserved_164,

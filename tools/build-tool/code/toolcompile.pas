@@ -119,10 +119,11 @@ const
 
 implementation
 
-uses SysUtils, Process,
+uses SysUtils, Process, StrUtils,
   CastleUtils, CastleLog, CastleFilesUtils, CastleFindFiles,
   CastleInternalTools,
-  ToolCommonUtils, ToolUtils, ToolFpcVersion, ToolCompilerInfo, ToolProcessRun;
+  ToolCommonUtils, ToolUtils, ToolFpcVersion, ToolCompilerInfo, ToolProcessRun
+  {$ifdef DARWIN} , ToolMacOS {$endif};
 
 { TCompilerOptions ----------------------------------------------------------- }
 
@@ -341,7 +342,11 @@ begin
     IsSuffix('warning: section "__datacoal_nt" is deprecated', LineLower, false) or
     IsSuffix('note: change section name to "__data"', LineLower, false) or
     (Line = '.section __DATA, __datacoal_nt, coalesced') or
-    (Line = '         ^      ~~~~~~~~~~~~~~')
+    (Line = '         ^      ~~~~~~~~~~~~~~') or
+    // occurs on mac, see https://castle-engine.io/macos
+    IsWild(Line, 'ld: warning: object file (*.o) was built for newer ''macOS'' version (*) than being linked (*)', false) or
+    (Line = 'ld: warning: ignoring duplicate libraries: ''-lc''') or
+    IsWild(Line, 'ld: warning: no platform load command found in ''*.or'', assuming: macOS', false)
   );
   // Uncomment this just to debug that our line splitting in TCaptureOutputFilter works
   // Line := '<begin>' + Line + '<end>';
@@ -505,6 +510,12 @@ var
   end;
 
   procedure AddMacOSOptions;
+  {$ifdef DARWIN}
+  var
+    SdkPath: String;
+    XcodePath: String;
+    SdkVersionMajor, SdkVersionMinor: Cardinal;
+  {$endif}
   begin
     if (Options.OS = darwin) and ((Options.CPU = X86_64) or (Options.CPU = Aarch64)) then
     begin
@@ -514,6 +525,26 @@ var
       // TODO: Lazarus proposes such debugger options; should we pass them too? Why aren't they FPC defaults?
       // FpcOptions.Add('-gw2');
       // FpcOptions.Add('-godwarfsets');
+
+      { We need to pass additional options on macOS to link.
+        See https://github.com/castle-engine/castle-fpc ,
+        and utils_calculate_fpc_opts in
+        https://github.com/castle-engine/castle-fpc/blob/master/build_utilities }
+      {$ifdef DARWIN}
+      SdkPath := MacOsSdkPath;
+      XcodePath := MacOsXcodePath;
+      if (SdkPath <> '') and (XcodePath <> '') then
+      begin
+        FpcOptions.Add('-XR' + SdkPath);
+        FpcOptions.Add('-Fl' + SdkPath + '/usr/lib');
+        FpcOptions.Add('-FD' + XcodePath + '/Toolchains/XcodeDefault.xctoolchain/usr/bin');
+      end;
+      if MacOsSdkVersion(SdkVersionMajor, SdkVersionMinor) and
+         (SdkVersionMajor >= 11) then
+      begin
+        FpcOptions.Add('-WM10.15');
+      end;
+      {$endif DARWIN}
     end;
   end;
 
@@ -795,6 +826,18 @@ begin
 
         fpcupdeluxe default cross-compiler to Android also uses this. }
       //FpcOptions.Add('-CaEABIHF');
+    end;
+
+    { Align memory to 16 KB, to satisfy Goole Play requirements, following
+      https://developer.android.com/guide/practices/page-sizes
+      see also useful:
+      - https://forum.lazarus.freepascal.org/index.php?topic=71336.15
+      - https://medium.com/@contact2kalshetty/android-15-16kb-page-size-a-complete-handbook-for-android-developers-detect-fix-ship-6c4df068aef6
+    }
+    if Options.OS = Android then
+    begin
+      FpcOptions.Add('-k-z common-page-size=16384');
+      FpcOptions.Add('-k-z max-page-size=16384');
     end;
 
     if Options.DetectMemoryLeaks then // see https://castle-engine.io/memory_leaks
@@ -1149,7 +1192,9 @@ begin
     LazbuildOptions.Clear;
     LazbuildOptions.Add('--os=' + OSToString(Options.OS));
     LazbuildOptions.Add('--cpu=' + CPUToString(Options.CPU));
-    { // Do not pass --build-mode, as project may not have it defined.
+    {
+    // Do not pass --build-mode, as project may not have it defined.
+    // TODO: We can detect first build modes available, using lazbuild --get-build-modes.
     if Options.Mode = cmDebug then
       LazbuildOptions.Add('--build-mode=Debug')
     else

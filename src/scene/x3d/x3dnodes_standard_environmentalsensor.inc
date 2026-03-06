@@ -24,7 +24,6 @@
     a region of 3D space. }
   TProximitySensorNode = class(TAbstractEnvironmentalSensorNode)
   public
-    function TransformationChange: TNodeTransformationChange; override;
   {$I auto_generated_node_helpers/x3dnodes_proximitysensor.inc}
   end;
 
@@ -40,7 +39,6 @@
   strict private
     FIsActive: boolean;
   public
-    function TransformationChange: TNodeTransformationChange; override;
     function Box: TBox3D;
 
     property IsActive: boolean read FIsActive;
@@ -52,16 +50,6 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-
-function TProximitySensorNode.TransformationChange: TNodeTransformationChange;
-begin
-  Result := ntcProximitySensor;
-end;
-
-function TVisibilitySensorNode.TransformationChange: TNodeTransformationChange;
-begin
-  Result := ntcVisibilitySensor;
-end;
 
 function TVisibilitySensorNode.Box: TBox3D;
 begin

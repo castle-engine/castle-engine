@@ -525,6 +525,8 @@ function SAppendPart(const s, PartSeparator, NextPart: string): string;
 type
   EDeformatError = class(Exception);
 
+{$ifndef CASTLE_DEFORMAT_BUGGY}
+
 { Parse a string according to the given format, returning the
   values corresponding to placeholders %x in format string.
 
@@ -622,6 +624,8 @@ function TryDeFormat(Data: string; const Format: string;
   const args: array of pointer;
   const IgnoreCase: boolean = true;
   const RelaxedWhitespaceChecking: boolean = true): integer; overload;
+
+{$endif CASTLE_DEFORMAT_BUGGY}
 
 { Replace all strings in Patterns with corresponding strings in Values.
   This is similar to standard StringReplace, but this does many
@@ -936,6 +940,8 @@ function StrToFloatDef(const s: string; DefValue: Extended): Extended;
   can't depend on how compiler stores sets.) }
 function SetToStr(const SetVariable; NumStart, NumEnd: byte): string;
 
+{ Show every character in set, using SReadableForm.
+  Useful for debugging TSetOfChars values. }
 function CharSetToStr(const SetVariable: TSetOfChars): string;
 
 { PCharOrNil simply returns a Pointer(S), you can think of it as a NO-OP.
@@ -1791,6 +1797,8 @@ begin
     Result := S + PartSeparator + NextPart;
 end;
 
+{$ifndef CASTLE_DEFORMAT_BUGGY}
+
 procedure DeFormat(Data: string; const Format: string;
   const args: array of pointer;
   const IgnoreCase: boolean;
@@ -1992,6 +2000,8 @@ begin
   raise EDeformatError.CreateFmt(
     'data ''%s'' too long - unexpected end of format ''%s''', [Data, Format]);
 end;
+
+{$endif CASTLE_DEFORMAT_BUGGY}
 
 function SReplacePatterns(const S: string;
   const Patterns, Values: array of string; const IgnoreCase: boolean): string;

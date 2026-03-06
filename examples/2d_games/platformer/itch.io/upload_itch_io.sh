@@ -15,7 +15,7 @@ if [ ! -f ./CastleEngineManifest.xml ]; then
 fi
 
 castle-engine compile
-VERSION=`castle-engine output version`
+VERSION=$(castle-engine output version)
 
 # Package for platform expressed as OS/CPU combination (using default --target=custom)
 # for CGE build tool

@@ -1,6 +1,0 @@
-#!/bin/bash
-set -eu
-
-# Call the real lazbuild, with proper --lazarusdir
-LAZARUS-DIRECTORY-PLACEHOLDER/lazbuild-real \
-  --lazarusdir=LAZARUS-DIRECTORY-PLACEHOLDER "$@"

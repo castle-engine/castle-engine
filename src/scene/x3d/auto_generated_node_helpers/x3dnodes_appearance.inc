@@ -32,6 +32,8 @@
     procedure SetLineProperties(const Value: TLinePropertiesNode);
     function GetMaterial: TAbstractMaterialNode;
     procedure SetMaterial(const Value: TAbstractMaterialNode);
+    function GetPointProperties: TPointPropertiesNode;
+    procedure SetPointProperties(const Value: TPointPropertiesNode);
     function GetTexture: TAbstractTextureNode;
     procedure SetTexture(const Value: TAbstractTextureNode);
     function GetTextureTransform: TAbstractTextureTransformNode;
@@ -84,6 +86,12 @@
     public property FdMaterial: TSFNode read FFdMaterial;
     { Material determines how the shape looks, and how it interacts with lighting. }
     property Material: TAbstractMaterialNode read GetMaterial write SetMaterial;
+
+    strict private FFdPointProperties: TSFNode;
+    { Internal wrapper for property @code(PointProperties). This wrapper API may change, we advise to access simpler @code(PointProperties) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdPointProperties: TSFNode read FFdPointProperties;
+    { Properties how to display point geometry (point size and such). }
+    property PointProperties: TPointPropertiesNode read GetPointProperties write SetPointProperties;
 
     strict private FFdShaders: TMFNode;
     { Internal wrapper for property @code(Shaders). This wrapper API may change, we advise to access simpler @code(Shaders) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -224,6 +232,19 @@ end;
 procedure TAppearanceNode.SetMaterial(const Value: TAbstractMaterialNode);
 begin
   FdMaterial.Send(Value);
+end;
+
+function TAppearanceNode.GetPointProperties: TPointPropertiesNode;
+begin
+  if FdPointProperties.Value is TPointPropertiesNode then
+    Result := TPointPropertiesNode(FdPointProperties.Value)
+  else
+    Result := nil;
+end;
+
+procedure TAppearanceNode.SetPointProperties(const Value: TPointPropertiesNode);
+begin
+  FdPointProperties.Send(Value);
 end;
 
 procedure TAppearanceNode.SetShaders(const Value: array of TAbstractShaderNode);
@@ -428,6 +449,10 @@ begin
    FdMaterial.ChangeAlways := chEverything;
    FdMaterial.OnBeforeValueChange := {$ifdef FPC}@{$endif}MoveShapeAssociations;
   AddField(FFdMaterial);
+
+  FFdPointProperties := TSFNode.Create(Self, True, 'pointProperties', [TPointPropertiesNode]);
+   FdPointProperties.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdPointProperties);
 
   FFdShaders := TMFNode.Create(Self, True, 'shaders', [TAbstractShaderNode]);
    FdShaders.ChangeAlways := chEverything;

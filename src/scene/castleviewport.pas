@@ -190,6 +190,7 @@ type
     procedure SetInternalDesignNavigationType(const Value: TInternalDesignNavigationType);
     procedure SetInternalGridAxis(const Value: Boolean);
     function GetMouseRayHit: TRayCollision;
+    function GetBackgroundRenderer: TBackgroundRenderer;
 
     { Callbacks when MainCamera is notified that MainScene changes camera/navigation }
     procedure MainSceneAndCamera_BoundViewpointChanged(Sender: TObject);
@@ -2289,6 +2290,15 @@ var
     Items.InternalProjectionFar := FProjection.ProjectionFar;
   end;
 
+  procedure BackgroundUpdate;
+  var
+    BgRenderer: TBackgroundRenderer;
+  begin
+    BgRenderer := GetBackgroundRenderer;
+    if BgRenderer <> nil then
+      BgRenderer.Update(SecondsPassedScaled);
+  end;
+
 begin
   inherited;
 
@@ -2312,6 +2322,7 @@ begin
   ItemsUpdate;
   UpdateVisibleChange;
   WatchMainSceneChange;
+  BackgroundUpdate;
 end;
 
 function TCastleViewport.AllowSuspendForInput: boolean;
@@ -2782,6 +2793,22 @@ begin
     RenderNoShadowVolumes;
 end;
 
+function TCastleViewport.GetBackgroundRenderer: TBackgroundRenderer;
+begin
+  if Transparent then
+    Result := nil
+  else
+  if Background <> nil then
+    Result := Background.InternalBackgroundRenderer
+  else
+  {$warnings off} // using deprecated MainScene to keep it working
+  if Items.MainScene <> nil then
+    Result := Items.MainScene.InternalBackgroundRenderer
+  else
+  {$warnings on}
+    Result := nil;
+end;
+
 procedure TCastleViewport.RenderFromViewEverything(const RenderingCamera: TRenderingCamera);
 
   { Call RenderContext.Clear with proper options. }
@@ -2837,19 +2864,11 @@ procedure TCastleViewport.RenderFromViewEverything(const RenderingCamera: TRende
   var
     BackgroundRenderer: TBackgroundRenderer;
   begin
-    if Transparent then
-      Exit;
+    BackgroundRenderer := GetBackgroundRenderer;
 
-    if Background <> nil then
-      BackgroundRenderer := Background.InternalBackgroundRenderer
-    else
-    {$warnings off} // using deprecated MainScene to keep it working
-    if Items.MainScene <> nil then
-      BackgroundRenderer := Items.MainScene.InternalBackgroundRenderer
-    else
-    {$warnings on}
-      BackgroundRenderer := nil;
-
+    { BackgroundRenderer is nil in various cases:
+      if Transparent,
+      or Background not set and MainScene not set or doesn't define background. }
     if BackgroundRenderer <> nil then
     begin
       if GLFeatures.EnableFixedFunction then
@@ -3667,6 +3686,8 @@ begin
 end;
 
 procedure TCastleViewport.BeforeRender;
+var
+  TimeStart: TCastleProfilerTime;
 begin
   inherited;
 
@@ -3675,7 +3696,12 @@ begin
     the TCastleScene are already prepared). }
   if not PrepareResourcesDone then
   begin
-    PrepareResources;
+    { This is often eating non-trivial time, e.g. loading textures.
+      So display it by default. }
+    TimeStart := Profiler.Start(Format('TCastleViewport(%s).PrepareResources', [Name]));
+    try
+      PrepareResources;
+    finally Profiler.Stop(TimeStart, true, true) end;
     PrepareResourcesDone := true;
   end;
 end;

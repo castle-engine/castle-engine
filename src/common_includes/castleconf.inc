@@ -220,22 +220,51 @@
 { If GENERICS_CONSTREF is defined, then various routines used with Generics.Collections
   (like callbacks we pass to TComparer, or OnNotify callback or Notify virtual method)
   should have "constref" parameter, not "const".
-  This was the case of FPC<= 3.2.0, FPC changed it in
-  https://gitlab.com/freepascal.org/fpc/source/-/commit/693491048bf2c6f9122a0d8b044ad0e55382354d }
+  This was the case in FPC <= 3.2.0.
+  FPC changed constref->const in
+  https://gitlab.com/freepascal.org/fpc/source/-/commit/693491048bf2c6f9122a0d8b044ad0e55382354d
+  and the change is present in FPC fixes branch 3.2.3 and later 3.2.4(rc1). }
 {$ifdef VER3_0} {$define GENERICS_CONSTREF} {$endif}
-{$ifdef VER3_2} {$define GENERICS_CONSTREF} {$endif}
-{$if defined(VER3_2_3) or
-     defined(VER3_2_4) or
-     defined(VER3_2_5) or
-     defined(VER3_2_6)}
-  { FPC 3.2.3 (fixes_3_2 branch, as of 2023-12-23) no longer uses "constref".
-    Confirmed on Linux/Arm32, Linux/Arm64(Aarch64), Linux/x86_64,
-    see also sources:
-    https://gitlab.com/freepascal.org/fpc/source/-/blob/fixes_3_2/packages/rtl-generics/src/generics.collections.pas?ref_type=heads.
+{$ifdef VER3_2_0} {$define GENERICS_CONSTREF} {$endif}
+{$ifdef VER3_2_2} {$define GENERICS_CONSTREF} {$endif}
 
-    2025-06-24, testing FPC 3.2.4 release candidate, it also doesn't use
-    "constref" in Generics.Collections. }
-  {$undef GENERICS_CONSTREF}
+{ FPC 3.2.3 on 32-bit ARM (Raspberry Pi) has wrong List.IndexOf by default
+  (due to constref / const changes in the Generics.Collections ?), workaround.
+
+  TODO: submit to FPC. }
+{$if defined(FPC) and defined(VER3_2) and defined(LINUX) and defined(CPUarm)}
+  {$define CASTLE_LIST_METHODS_WORKAROUND}
+{$endif}
+
+{ FPC 3.2.3 (fixes_3_2 branch) fails
+
+    Result := inherited Items[AKey];
+
+  or even
+
+    if not TryGetValue(AKey, Result) then
+      raise EListError.CreateFmt('Dictionary key "%s" does not exist', [AKey]);
+
+  Testcase: TTestX3DNodes.TestRootNodeMeta .
+  Fixed already in FPC 3.3.1 .
+  TODO: submit to FPC to merge into fixes_3_2 branch.
+}
+{$if defined(DARWIN) and defined(CPUX86_64) and defined(VER3_2_3)}
+  {$define CASTLE_WORKAROUND_DICTIONARY_FIND}
+{$endif}
+
+{ TODO: macOS/Aarch64 (at least with FPC 3.2.3, unknown with 3.3.1)
+  fails on DeFormat usage,
+  at least:
+  - TTestCastleVectors.TestVectorStr:
+    Vectors (TVector3) are not equal: expected: -Inf -Inf -Inf, actual: 126.162086486816 408.326904296875
+  - TTestCastleStringUtils.TestDeFormat
+    (unspecified assertion failure)
+  For now, do not use DeFormat there, we can avoid it.
+  TODO: workaround properly in CGE.
+  TODO: submit to FPC devs. }
+{$if defined(DARWIN) and defined(CPUAARCH64)}
+  {$define CASTLE_DEFORMAT_BUGGY}
 {$endif}
 
 { Define CASTLE_IOS when appropriate ----------------------------------------- }
@@ -265,18 +294,39 @@
 
 { Define COMPILER_CASE_ANALYSIS when appropriate --------------------------- }
 
-{ Compiler automatically detects and warns when "case" doesn't cover
+{ Some compilers automatically detect and warns when "case" doesn't cover
   all possibilities. This means we do not have to, and actually
   we should not have to (as it would cause "Warning: Unreachable code" warning),
   add a clause like "else raise EInternalError.Create('xxx');"
   to "case" statements that should always have a matching possibility.
 
-  This is true for FPC >= 3.2 now. }
+  See https://castle-engine.io/coding_conventions#case_analysis .
+
+  This is true for FPC > 3.2 now.
+
+  Note: We disable the related warnings (see lower in this file),
+  because in some cases there's just no good solution.
+  And it makes it hard to write code that also works
+  for compilers without case analysis, like FPC 3.2.x and Delphi.
+
+  However, we still define COMPILER_CASE_ANALYSIS, because when it is undefined
+  -- another FPC problem strikes, $warning off + $warning on
+  seems to reset the state of warnings, so the warning "Unreachable code"
+  is reported for all "else ..." for case that exhausts all options.
+
+  Looks like the only way to have sane behavior with FPC 3.3.1
+  (no flood of warnings, and code that works with various compilers)
+  is to behave as if COMPILER_CASE_ANALYSIS, but also have
+  "$warn 6060 off" // case statement does not handle all possible cases
+  lower.
+}
 
 {$ifdef FPC}
   {$ifndef VER3_0}
     {$ifndef VER3_1}
-      {$define COMPILER_CASE_ANALYSIS}
+      {$ifndef VER3_2}
+        {$define COMPILER_CASE_ANALYSIS}
+      {$endif}
     {$endif}
   {$endif}
 {$endif}

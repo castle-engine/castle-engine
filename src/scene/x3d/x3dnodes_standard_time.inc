@@ -128,6 +128,16 @@
       in this cycle,
       not counting any time while in pause state.
 
+      What happens when we play the animation backwards?
+      ( Which can be achieved by @link(TTimeSensorNode.FractionIncreasing) = @false,
+      which in turn can be achieved by @link(TPlayAnimationParameters.Forward) = @false
+      passed to @link(TCastleSceneCore.PlayAnimation). )
+      In such case, this value (ElapsedTimeInCycle) is still increasing
+      as time passes.
+      Under the hood, when playing animation backward, we just send at the end
+      to @link(TTimeSensorNode.EventFraction_changed) the value "1.0 - fraction"
+      where "fraction" is the point in the animation as if it played forward.
+
       This is like @link(ElapsedTime), but counting only the current cycle.
 
       @unorderedList(
@@ -229,7 +239,7 @@
 
       Note: We ignore TimeSensor.loop (FdLoop) field,
       instead we follow our own ALoop parameter.
-      We also ignore TimeSensor.fractionIncreasing field,
+      We also ignore @link(TTimeSensorNode.FractionIncreasing) field,
       instead we follow our own AFractionIncreasing parameter.
       We also ignore TimeSensor.enabled field,
       assuming that you always want to behave like it's enabled

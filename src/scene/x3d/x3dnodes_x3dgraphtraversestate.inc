@@ -58,10 +58,12 @@
     function InvertedTransform: TMatrix4; deprecated 'use Transformation.InverseTransform';
 
   public
-    { Current texture transformation. Usable only for VRML 1.0, in VRML 2.0
-      texture transformations don't accumulate like modelview transformations. }
-    TextureTransform: TMatrix4;
+    { VRML 1.0 accumulated texture transformation.
+      Usable only for VRML 1.0, as in X3D / VRML 2.0
+      texture transformations don't accumulate. }
+    Vrml1TextureTransform: TMatrix4;
 
+    { Parent shape node in the current state. }
     ShapeNode: TAbstractShapeNode;
 
     { TAppearanceNode associated with the shape (only if ShapeNode<>nil)
@@ -202,10 +204,10 @@
       grouping node, they all work.) }
     PointingDeviceSensors: TPointingDeviceSensorList;
 
-    { For Humanoid skeleton, these contain cummulated joint transformation. }
-    HumanoidTransformation: TTransformation;
     { Humanoid node containing us, or @nil if none. }
     Humanoid: THAnimHumanoidNode;
+    { Skin node containing us, or @nil if none. }
+    Skin: TSkinNode;
 
     { ClipPlanes affecting nodes within this state.
 
@@ -239,6 +241,12 @@
       Material or CommonSurfaceShader node exists.
       Do not free it yourself, it will be automatically freed. }
     function MaterialInfo: TMaterialInfo;
+
+    { Is current shape animated using skinned animation by being inside
+      @link(TSkinNode.FdShapes).
+      Shapes that are rigid children of joints, in @link(TSkinNode.FdSkeleton),
+      are not considered skinned animated by this method. }
+    function SkinnedAnimatedShape: Boolean;
   end;
 
   { Stack of TX3DGraphTraverseState.
@@ -326,18 +334,8 @@ end;
 constructor TX3DGraphTraverseState.Create;
 begin
   CommonCreate;
-
   Transformation.Init;
-
-  { THAnimHumanoidNode.BeforeTraverse will initialize it anyway.
-    But set it also here, just in case we have Joint without surrounding
-    Humanoid node. (Otherwise Matrix.MultPoint may raise errors in
-    THAnimJointNode.ApplyTransform, when multiplying points with 0 matrix,
-    testcase is
-    castle-model-viewer ~/3dmodels/vrmlx3d/hanim/tecfa.unige.ch/vrml/objects/avatars/blaxxun/kambi_hanim_10_test.wrl.) }
-  HumanoidTransformation.Init;
-
-  TextureTransform := TMatrix4.Identity;
+  Vrml1TextureTransform := TMatrix4.Identity;
   FVRML1State.Assign(VRML1DefaultState);
 end;
 
@@ -354,9 +352,7 @@ end;
 procedure TX3DGraphTraverseState.Clear;
 begin
   Transformation.Init;
-  HumanoidTransformation.Init;
-
-  TextureTransform := TMatrix4.Identity;
+  Vrml1TextureTransform := TMatrix4.Identity;
   FVRML1State.Assign(VRML1DefaultState);
   ShapeNode := nil;
   Appearance := nil;
@@ -390,7 +386,7 @@ procedure TX3DGraphTraverseState.Assign(Source: TX3DGraphTraverseState);
 begin
   AssignTransform(Source);
 
-  TextureTransform := Source.TextureTransform;
+  Vrml1TextureTransform := Source.Vrml1TextureTransform;
   FVRML1State.Assign(Source.FVRML1State);
   ShapeNode := Source.ShapeNode;
   Appearance := Source.Appearance;
@@ -399,6 +395,7 @@ begin
   InsideIgnoreCollision := Source.InsideIgnoreCollision;
   InsideInvisible := Source.InsideInvisible;
   Humanoid := Source.Humanoid;
+  Skin := Source.Skin;
   LocalFog := Source.LocalFog;
 
   PointingDeviceSensors.Assign(Source.PointingDeviceSensors);
@@ -416,7 +413,6 @@ procedure TX3DGraphTraverseState.AssignTransform(
   Source: TX3DGraphTraverseState);
 begin
   Transformation := Source.Transformation;
-  HumanoidTransformation := Source.HumanoidTransformation;
 
   if PointingDeviceSensors.Count <> 0 then
     PointingDeviceSensors.Transformation := Source.PointingDeviceSensors.Transformation;
@@ -461,7 +457,7 @@ begin
     (IgnoreTransform or TMatrix4.PerfectlyEquals(
       Transformation.Transform,
       SecondValue.Transformation.Transform)) and
-    TMatrix4.PerfectlyEquals(TextureTransform, SecondValue.TextureTransform) and
+    TMatrix4.PerfectlyEquals(Vrml1TextureTransform, SecondValue.Vrml1TextureTransform) and
     (ShapeNode = SecondValue.ShapeNode) and
     (LocalFog = SecondValue.LocalFog);
 
@@ -536,6 +532,14 @@ begin
       So return nil, not VRML1 info. }
   end else
     Result := VRML1State.Material.MaterialInfo;
+end;
+
+function TX3DGraphTraverseState.SkinnedAnimatedShape: Boolean;
+begin
+  Result :=
+    (Skin <> nil) and
+    (ShapeNode <> nil) and
+    Skin.FdShapes.Contains(ShapeNode);
 end;
 
 { TX3DGraphTraverseStateStack --------------------------------------------- }

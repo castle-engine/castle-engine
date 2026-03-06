@@ -13,8 +13,11 @@ set -eu
 # docs: https://platform.openai.com/docs/assistants/overview?context=without-streaming
 # -----------------------------------------------------------------------
 
-# Fill this with your rel API key and assistant id.
+# Fill this with your real API key and assistant id.
+# These variables are used in commented-out curl commands below.
+# shellcheck disable=SC2034
 OPENAI_API_KEY='...'
+# shellcheck disable=SC2034
 OPENAI_ASSISTANT_ID='...'
 
 # curl https://api.openai.com/v1/threads \
@@ -24,6 +27,7 @@ OPENAI_ASSISTANT_ID='...'
 #   -d ''
 
 # Get id from JSON response above
+# shellcheck disable=SC2034
 THREAD_ID='thread_...'
 
 # curl https://api.openai.com/v1/threads/${THREAD_ID}/messages \
@@ -35,6 +39,7 @@ THREAD_ID='thread_...'
 #       "content": "What is 2 + 2, add a cat joke."
 #     }'
 
+# shellcheck disable=SC2034
 MESSAGE_ID='msg_...'
 
 # curl https://api.openai.com/v1/threads/${THREAD_ID}/runs \
@@ -45,6 +50,7 @@ MESSAGE_ID='msg_...'
 #     "assistant_id": "'${OPENAI_ASSISTANT_ID}'"
 #   }'
 
+# shellcheck disable=SC2034
 RUN_ID='run_...'
 
 # curl https://api.openai.com/v1/threads/${THREAD_ID}/runs/${RUN_ID} \

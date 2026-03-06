@@ -804,9 +804,15 @@ type
       const TriangleIndex1, TriangleIndex2, TriangleIndex3: Integer);
   end;
 
+  TAbstractSkinWeightsJointsGenerator = class(TAbstractBumpMappingGenerator)
+  protected
+    procedure PrepareAttributes(var AllowIndexed: boolean); override;
+    procedure GenerateCoordinateBegin; override;
+  end;
+
   { Most complete implementation of arrays generator,
     should be used to derive non-abstract renderers for nodes. }
-  TAbstractCompleteGenerator = TAbstractBumpMappingGenerator;
+  TAbstractCompleteGenerator = TAbstractSkinWeightsJointsGenerator;
 
 { TArraysGenerator ------------------------------------------------------ }
 
@@ -2463,6 +2469,56 @@ begin
              (Abs(TVector3.DotProduct(Bitangent, Normal)) < 0.95) ) then
       WritelnWarning('Tangents are likely incorrect');
     }
+  end;
+end;
+
+{ TAbstractSkinWeightsJointsGenerator --------------------------------------- }
+
+procedure TAbstractSkinWeightsJointsGenerator.PrepareAttributes(var AllowIndexed: boolean);
+var
+  Weights0: TVector4List;
+  Joints0: TInt32List;
+begin
+  inherited;
+  if State.SkinnedAnimatedShape and
+     (Geometry.SkinWeightsJoints(Weights0, Joints0)) then
+  begin
+    Arrays.AddSkinWeights0;
+    Arrays.AddSkinJoints0;
+  end;
+end;
+
+procedure TAbstractSkinWeightsJointsGenerator.GenerateCoordinateBegin;
+var
+  Weights0: TVector4List;
+  Joints0Int: TInt32List;
+  Joints0Float: TVector4List;
+  I: Integer;
+begin
+  inherited;
+  if State.SkinnedAnimatedShape and
+     (Geometry.SkinWeightsJoints(Weights0, Joints0Int)) then
+  begin
+    AssignAttribute('skinWeights0', Arrays.SkinWeights0,
+      Weights0.L, Weights0.ItemSize, Weights0.Count);
+
+    { Create Joints0Float (array of TVector4, best OpenGL type to pass it)
+      from Joints0Int (array of Int32, next X3D type to express it).
+      The best type would be really TVector4List, but neither OpenGL nor X3D
+      have it (at least for all OpenGL versions -- newer desktop versions have
+      int vectors in GLSL). }
+    Joints0Float := TVector4List.Create;
+    try
+      Joints0Float.Count := Joints0Int.Count div 4;
+      for I := 0 to Joints0Float.Count - 1 do
+        Joints0Float[I] := Vector4(
+          Joints0Int.L[I * 4],
+          Joints0Int.L[I * 4 + 1],
+          Joints0Int.L[I * 4 + 2],
+          Joints0Int.L[I * 4 + 3]);
+      AssignAttribute('skinJoints0', Arrays.SkinJoints0,
+        Joints0Float.L, Joints0Float.ItemSize, Joints0Float.Count);
+    finally FreeAndNil(Joints0Float); end;
   end;
 end;
 

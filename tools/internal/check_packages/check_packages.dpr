@@ -619,7 +619,11 @@ begin
     Package.CheckFiles([
       'src/window/'
     ],
-    [ ],
+    [
+      // Only used when with CASTLE_WINDOW_GTK_3.
+      'src/window/gtk/gtk3/',
+      'src/window/gtk/castleinternalgdkwayland.pas'
+    ],
     [ ]);
   finally FreeAndNil(Package) end;
 
@@ -628,7 +632,11 @@ begin
     Package.CheckFiles([
       'src/window/'
     ],
-    [ ],
+    [
+      // Only used when with CASTLE_WINDOW_GTK_3.
+      'src/window/gtk/gtk3/',
+      'src/window/gtk/castleinternalgdkwayland.pas'
+    ],
     [ ]);
   finally FreeAndNil(Package) end;
 
@@ -755,7 +763,11 @@ begin
       'src/window/deprecated_units/',
 
       // Only for CASTLE_WINDOW_XLIB, available only with FPC, and that's OK -- it's not a default for Linux
-      'src/window/unix/castleinternalxlib.pas'
+      'src/window/unix/castleinternalxlib.pas',
+
+      // Only used when with CASTLE_WINDOW_GTK_3.
+      'src/window/gtk/gtk3/',
+      'src/window/gtk/castleinternalgdkwayland.pas'
     ],
     [ ]);
   finally FreeAndNil(Package) end;
@@ -803,6 +815,11 @@ begin
 
       // Ignore units that are only to be compiled when pulled by CastleHttps with FPC 3.2.x
       'src/files/castleinternalforfpc32x*.pas'
+
+      { Contrary to .lpk / .dpk checks, in fpmake.pp we *do* require
+        specifying gtk3 units. They are under "if" to be relevant only
+        on platforms that support GTK and X, so not a problem. }
+      // 'src/window/gtk/gtk3/'
     ],
     [
       'src/vampyre_imaginglib/'

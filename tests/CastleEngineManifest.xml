@@ -12,10 +12,6 @@ See https://castle-engine.io/project_manifest for documentation of this file.
   caption="Castle Tester"
 >
   <compiler_options detect_memory_leaks="true">
-    <defines>
-      <!-- nothing necessary now -->
-      <!--define>....</define-->
-    </defines>
     <search_paths>
       <path value="code/" />
       <path value="code/testcases/" />

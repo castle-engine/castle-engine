@@ -11,7 +11,7 @@ cd "$CASTLE_ENGINE_PATH"
 ./tools/build-tool/castle-engine_compile.sh
 mv -f ./tools/build-tool/castle-engine ./castle-engine-preserve
 
-make clean BUILD_TOOL="`pwd`"/castle-engine-preserve > /dev/null
+make clean BUILD_TOOL="$(pwd)"/castle-engine-preserve > /dev/null
 
 rm -f ./castle-engine-preserve
 

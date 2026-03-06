@@ -1,5 +1,5 @@
 {
-  Copyright 2013-2024 Michalis Kamburelis.
+  Copyright 2013-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -60,9 +60,15 @@ type
     // Initialized by InitializeEarly, freed by FinalizeLate
     XVisual: PXVisualInfo;
 
-    // Set before SwapBuffer, MakeCurrent
-    // TODO: simplify, require it before Initialize
-    WindowXID: TWindow;
+    { X identifier of the rendering area.
+      Rendering area may be a whole window (happens now with CASTLE_WINDOW_XLIB),
+      or a part of it (happens now with CASTLE_WINDOW_GTK).
+      This is passed to glX functions like glXMakeCurrent, glXSwapBuffers.
+
+      Set before SwapBuffer, MakeCurrent.
+
+      TODO: simplify, require it before Initialize. }
+    RenderingAreaXID: TWindow;
 
     { Call before creating an X window (since window creation needs XVisual)
       to create XVisual. }
@@ -309,12 +315,12 @@ end;
 
 procedure TGLContextGlx.MakeCurrentCore;
 begin
-  Check( glXMakeCurrent(XDisplay, WindowXID, Context), 'glXMakeCurrent');
+  Check( glXMakeCurrent(XDisplay, RenderingAreaXID, Context), 'glXMakeCurrent');
 end;
 
 procedure TGLContextGlx.SwapBuffersCore;
 begin
-  glXSwapBuffers(XDisplay, WindowXID);
+  glXSwapBuffers(XDisplay, RenderingAreaXID);
 end;
 
 end.

@@ -55,6 +55,7 @@ type
       FRobustNegativeScale: Boolean;
       FWholeSceneManifold: Boolean;
       FColorChannels: TColorChannels;
+      FSkinnedAnimationShaders: Boolean;
 
     { Hash to quickly compare 2 TCastleRenderOptions instances,
       important for efficient batching. }
@@ -91,6 +92,7 @@ type
     procedure SetLineWidth(const Value: Single);
     procedure SetBumpMappingParallaxHeight(const Value: Single);
     procedure SetLighting(const Value: Boolean);
+    procedure SetSkinnedAnimationShaders(const Value: Boolean);
 
     procedure UpdateHash;
 
@@ -429,12 +431,81 @@ type
     property WireframeEffect: TWireframeEffect
       read FWireframeEffect write SetWireframeEffect default weNormal;
 
+    { Depth scale in @link(SolidWireframeScale) and depth bias
+      in @link(SolidWireframeBias)
+      are used to render the mesh when @link(WireframeEffect) = weSolidWireframe.
+
+      Larger values will "push forward" the rendered mesh a bit, meaning that
+      the wireframe will be more clearly visible in front of it.
+
+      To explain it best, understand how rendering with @link(WireframeEffect)
+      = weSolidWireframe is done:
+
+      @orderedList(
+        @item(First we render the object polygons but with polygon offset applied.
+
+          The "polygon offset" parameters
+          @link(SolidWireframeScale) and @link(SolidWireframeBias) control how much this
+          polygon offset pushes the mesh "back" (behind the wireframe rendered
+          in the 2nd pass).
+          Their exact intepretation is GPU-specific and is exactly like OpenGL
+          @url(https://registry.khronos.org/OpenGL-Refpages/gl4/html/glPolygonOffset.xhtml
+          glPolygonOffset).
+        )
+
+        @item(Then we render the @italic(wireframe) version of the object,
+          without any polygon offset applied.)
+      )
+    }
     property SolidWireframeScale: Single
       read FSolidWireframeScale write SetSolidWireframeScale stored IsStoredSolidWireframeScale;
+
+    { See @link(SolidWireframeScale) for explanation. }
     property SolidWireframeBias: Single
       read FSolidWireframeBias write SetSolidWireframeBias stored IsStoredSolidWireframeBias;
+
+    { Depth scale in @link(SilhouetteScale) and depth bias in @link(SilhouetteBias)
+      are used to render the silhouette when @link(WireframeEffect) = weSilhouette.
+      Larger values will "push back" the rendered lines a bit, meaning that
+      the effect will more clearly outline the object, and not look like a wireframe
+      over the object.
+
+      To explain it best, understand how rendering with @link(WireframeEffect)
+      = weSilhouette is done:
+
+      @orderedList(
+        @item(First we render the object as usual.
+          No polygon offset, and the mesh is renderer in normal way -- polygons
+          are polygons.)
+
+        @item(Then we render the @italic(wireframe) version of the object,
+          with the polygon offset applied.
+
+          The "polygon offset" parameters
+          @link(SilhouetteScale) and @link(SilhouetteBias) control how much this
+          polygon offset pushes the lines "back" (behind the object rendered
+          in the 1st pass).
+          Their exact intepretation is GPU-specific and is exactly like OpenGL
+          @url(https://registry.khronos.org/OpenGL-Refpages/gl4/html/glPolygonOffset.xhtml
+          glPolygonOffset).
+        )
+      )
+
+      When both @link(SilhouetteScale) and @link(SilhouetteBias) are zero,
+      the wireframe is rendered with the same depth as a regular object,
+      and it's undefined which one will be visible . Most likely it will
+      look similar to @link(WireframeEffect) = weSolidWireframe actually.
+
+      When both @link(SilhouetteScale) and @link(SilhouetteBias) are > zero,
+      then only the lines that are "silhouettes" will be visible -- other
+      lines will be hidden by the object rendered in the 1st pass.
+      You can make the effect more or less "subtle" by changing these
+      parameters.
+    }
     property SilhouetteScale: Single
       read FSilhouetteScale write SetSilhouetteScale stored IsStoredSilhouetteScale;
+
+    { See @link(SilhouetteScale) for explanation. }
     property SilhouetteBias: Single
       read FSilhouetteBias write SetSilhouetteBias stored IsStoredSilhouetteBias;
 
@@ -500,6 +571,17 @@ type
     property WholeSceneManifold: Boolean
       read FWholeSceneManifold write SetWholeSceneManifold default false;
 
+    { Enable using GPU shaders to animate skinned models.
+      This is advised, as it increases performance of skinned.
+      There are however certain cases when disabling this may be necessary:
+      https://castle-engine.io/gltf#_alternative_solution_force_recalculating_precise_octree_every_frame
+
+      Note that in certain cases, skinned animation on GPU is disabled
+      even when this property is @true. This includes: when we use
+      shadow volumes or when GPU is not capable enough. }
+    property SkinnedAnimationShaders: Boolean
+      read FSkinnedAnimationShaders write SetSkinnedAnimationShaders default true;
+
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastlerenderoptions_persistent_vectors.inc}
   {$undef read_interface_class}
@@ -541,6 +623,7 @@ begin
   FWireframeEffect := weNormal;
   FWireframeColor := DefaultWireframeColor;
   FColorChannels := AllColorChannels;
+  FSkinnedAnimationShaders := true;
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastlerenderoptions_persistent_vectors.inc}
@@ -590,6 +673,7 @@ begin
     RobustNegativeScale := TCastleRenderOptions(Source).RobustNegativeScale;
     WholeSceneManifold := TCastleRenderOptions(Source).WholeSceneManifold;
     InternalColorChannels := TCastleRenderOptions(Source).InternalColorChannels;
+    SkinnedAnimationShaders := TCastleRenderOptions(Source).SkinnedAnimationShaders;
   end else
     inherited;
 end;
@@ -676,7 +760,8 @@ begin
     113 * SingleOrd(FSilhouetteBias) +
     127 * Ord(FRobustNegativeScale) +
     131 * Ord(FWholeSceneManifold) +
-    137 * ColorChannelsOrd(FColorChannels);
+    137 * ColorChannelsOrd(FColorChannels) +
+    139 * Ord(FSkinnedAnimationShaders);
 end;
 {$I norqcheckend.inc}
 
@@ -1011,6 +1096,15 @@ begin
   if FLighting <> Value then
   begin
     FLighting := Value;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetSkinnedAnimationShaders(const Value: Boolean);
+begin
+  if FSkinnedAnimationShaders <> Value then
+  begin
+    FSkinnedAnimationShaders := Value;
     UpdateHash;
   end;
 end;

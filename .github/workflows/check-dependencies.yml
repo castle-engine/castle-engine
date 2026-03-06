@@ -13,17 +13,22 @@ defaults:
   run:
     shell: bash
 
+# GitHub CodeQL recommends to explicitly set permissions for GITHUB_TOKEN.
+# See https://docs.github.com/en/actions/tutorials/authenticate-with-github_token .
+permissions:
+  contents: read
+
 jobs:
   check_dependencies:
     name: Check Dependencies
     runs-on: ubuntu-latest
     container: kambi/castle-engine-cloud-builds-tools:cge-none
     steps:
-      - uses: actions/checkout@v5
-      - name: Set environment
+      - uses: actions/checkout@v6
+      - name: Set environment CASTLE_ENGINE_PATH
         run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-      - name: Set environment PATH to include cge installed/bin/
-        run: echo "PATH=${PATH}:${CASTLE_ENGINE_PATH}/installed/bin/" >> $GITHUB_ENV
+      - name: Extend PATH to include CGE installed/bin/
+        run: echo "${CASTLE_ENGINE_PATH}/installed/bin/" >> $GITHUB_PATH
 
       - name: Build Tools
         run: |
@@ -38,7 +43,7 @@ jobs:
           ls -R
 
       - name: Archive Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: check_dependencies_log
           path: |

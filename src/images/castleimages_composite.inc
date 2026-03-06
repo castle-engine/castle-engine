@@ -73,3 +73,8 @@ procedure SaveDDS(const Img: TEncodedImage; const Stream: TStream);
 begin
   SaveComposite(Img, Stream, 'image/x-dds');
 end;
+
+procedure SaveKTX(const Img: TEncodedImage; const Stream: TStream);
+begin
+  SaveComposite(Img, Stream, 'image/ktx');
+end;

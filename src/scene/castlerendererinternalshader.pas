@@ -20,7 +20,7 @@ unit CastleRendererInternalShader;
 
 interface
 
-uses Generics.Collections,
+uses Generics.Collections, Math,
   CastleVectors, CastleGLShaders, CastleColors,
   X3DTime, X3DFields, X3DNodes, CastleUtils, CastleBoxes,
   CastleRendererInternalTextureEnv, CastleStringUtils, CastleRenderOptions,
@@ -75,7 +75,9 @@ type
     AttributeCastle_Normal,
     AttributeCastle_Tangent,
     AttributeCastle_ColorPerVertex,
-    AttributeCastle_FogCoord: TGLSLAttribute;
+    AttributeCastle_FogCoord,
+    AttributeCastle_SkinWeights0,
+    AttributeCastle_SkinJoints0: TGLSLAttribute;
 
     procedure Link; override;
   end;
@@ -88,6 +90,7 @@ type
   {$I castlerendererinternalshader_surfacetexture.inc}
   {$I castlerendererinternalshader_bumpmapping.inc}
   {$I castlerendererinternalshader_shaderlibraries.inc}
+  {$I castlerendererinternalshader_skin.inc}
 
   { GLSL program integrated with VRML/X3D and TShader.
     Allows to bind uniform values from VRML/X3D fields,
@@ -292,6 +295,7 @@ type
     WarnMissingPlugs: boolean;
     FShapeRequiresShaders: boolean;
     FBumpMappingShader: TBumpMappingShader;
+    FSkinShader: TSkinShader;
     FSurfaceTextureShaders: TSurfaceTextureShaderList;
     FFogEnabled: boolean;
     FFogType: TFogType;
@@ -425,6 +429,11 @@ type
 
     { In case MultiTexture is used to render this, this is MultiTexture.color+alpha value. }
     MultiTextureColor: TCastleColor;
+
+    { Which texture unit has been initialized to contain skin joints.
+      -1 (default) if none.
+      Always set before EnableSkinnedAnimation. }
+    SkinJointTextureUnit: Integer;
 
     constructor Create;
     destructor Destroy; override;
@@ -594,6 +603,15 @@ type
 
     { Is alpha testing enabled by EnableAlphaTest. }
     property AlphaTest: Boolean read FAlphaTest;
+
+    { Enable doing skinned animation on GPU.
+      Give the jointMatrix uniform value. }
+    procedure EnableSkinnedAnimation(const JointMatrix: TMatrix4List);
+
+    { Does shader need castle_SkinWeights0 and castle_SkinJoints0 attribute
+      values. This is just equivalent to whether @link(EnableSkinnedAnimation)
+      was called. }
+    function NeedsSkinWeightsJoints: Boolean;
   end;
 
 { Derive UniformMissing behavior for fields within given node.
@@ -626,6 +644,7 @@ uses SysUtils, StrUtils,
 {$I castlerendererinternalshader_surfacetexture.inc}
 {$I castlerendererinternalshader_bumpmapping.inc}
 {$I castlerendererinternalshader_shaderlibraries.inc}
+{$I castlerendererinternalshader_skin.inc}
 
 {$ifndef OpenGLES}
 var
@@ -846,6 +865,8 @@ begin
   AttributeCastle_Tangent        := AttributeOptional('castle_Tangent');
   AttributeCastle_ColorPerVertex := AttributeOptional('castle_ColorPerVertex');
   AttributeCastle_FogCoord       := AttributeOptional('castle_FogCoord');
+  AttributeCastle_SkinWeights0   := AttributeOptional('castle_SkinWeights0');
+  AttributeCastle_SkinJoints0    := AttributeOptional('castle_SkinJoints0');
 end;
 
 { TX3DShaderProgram ------------------------------------------------------- }
@@ -1263,6 +1284,7 @@ begin
   SelectedNode := nil;
   FShapeRequiresShaders := false;
   FBumpMappingShader.Clear;
+  FSkinShader.Clear;
   FSurfaceTextureShaders.Clear;
   FFogEnabled := false;
   { No need to reset, will be set when FFogEnabled := true
@@ -1289,6 +1311,7 @@ begin
   MainTextureMapping := -1;
   ColorSpaceLinear := false;
   MultiTextureColor := White;
+  SkinJointTextureUnit := -1;
   FAlphaTest := false;
   UsesShadowMaps := false;
 end;
@@ -2069,6 +2092,7 @@ var
         LightShaders[I].SetUniformsOnce(AProgram);
 
     ShadowMapShaders.SetUniformsOnce(AProgram);
+    FSkinShader.SetUniformsOnce(AProgram);
 
     AProgram.Disable;
   end;
@@ -2105,6 +2129,7 @@ begin
   PrepareCommonCode; // must be before FBumpMappingShader.GenerateCode to define PLUG texture_coord_shift
   FBumpMappingShader.GenerateCode(Self);
   FSurfaceTextureShaders.GenerateCode(Self);
+  FSkinShader.GenerateCode(Self);
   EnableShaderFog;
   if AppearanceEffects <> nil then
     EffectsGenerateCode(AppearanceEffects);
@@ -2820,6 +2845,7 @@ begin
     MirrorPlaneUniforms.SetDynamicUniforms(AProgram);
 
   ShadowMapShaders.SetDynamicUniforms(AProgram, RenderingCamera);
+  FSkinShader.SetDynamicUniforms(AProgram);
 end;
 
 procedure TShader.AddScreenEffectCode(const Depth: boolean);
@@ -2884,6 +2910,18 @@ begin
   ShadowMapShaders.Add(ShadowMapShader);
 
   ShadowMapShader.PrepareHash(FCodeHash);
+end;
+
+procedure TShader.EnableSkinnedAnimation(const JointMatrix: TMatrix4List);
+begin
+  FSkinShader.JointTextureUnit := SkinJointTextureUnit;
+  FSkinShader.EnableAndPrepareHash(FCodeHash);
+  FSkinShader.JointMatrix := JointMatrix;
+end;
+
+function TShader.NeedsSkinWeightsJoints: Boolean;
+begin
+  Result := FSkinShader.Enabled;
 end;
 
 end.

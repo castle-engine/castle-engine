@@ -1,4 +1,7 @@
 #!/bin/bash
+# shellcheck disable=SC2016
+# The ${CASTLE_ENGINE_PATH} etc. below are literal strings written to template files,
+# not shell variables to expand. SC2016 warns about single quotes not expanding variables.
 set -eu
 
 # Update files in custom_editor_template/ based on current editor source code.

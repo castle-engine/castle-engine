@@ -29,7 +29,7 @@ type
   published
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
-    ButtonStartDownloads, ButtonAbortDownloads: TCastleButton;
+    ButtonStartDownloads, ButtonAbortDownloads, ButtonTestSynchronous: TCastleButton;
     LabelStatus: TCastleLabel;
   strict private
     const
@@ -40,6 +40,7 @@ type
       Download: array [1..DownloadsCount] of TCastleDownload;
     procedure ClickStartDownloads(Sender: TObject);
     procedure ClickAbortDownloads(Sender: TObject);
+    procedure ClickTestSynchronous(Sender: TObject);
     procedure DownloadFinish(const Sender: TCastleDownload; var FreeSender: Boolean);
     procedure UpdateDownloadState;
   public
@@ -80,6 +81,7 @@ begin
 
   ButtonStartDownloads.OnClick := {$ifdef FPC}@{$endif} ClickStartDownloads;
   ButtonAbortDownloads.OnClick := {$ifdef FPC}@{$endif} ClickAbortDownloads;
+  ButtonTestSynchronous.OnClick := {$ifdef FPC}@{$endif} ClickTestSynchronous;
 
   UpdateDownloadState;
 end;
@@ -131,6 +133,24 @@ begin
 
     Download[I].Start;
   end;
+end;
+
+procedure TViewMain.ClickTestSynchronous(Sender: TObject);
+var
+  S: TStream;
+begin
+  { Just to test that it works, perform a synchronous download.
+    This will block the UI while it downloads, so it's very *not recommended*.
+    Prefer to use TCastleDownload instead for asynchronous downloading,
+    as the rest of this example shows.
+
+    The only advantage of a synchronous Download() is that it is often easier
+    to work with: your code just waits for the download to finish. }
+  EnableBlockingDownloads := true;
+  S := CastleDownload.Download('https://castle-engine.io/modern_pascal_introduction.html', []);
+  try
+    WritelnLog('Downloaded size %s', [SizeToStr(S.Size)]);
+  finally FreeAndNil(S) end;
 end;
 
 procedure TViewMain.DownloadFinish(const Sender: TCastleDownload; var FreeSender: Boolean);

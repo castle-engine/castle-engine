@@ -19,6 +19,11 @@ defaults:
   run:
     shell: bash
 
+# GitHub CodeQL recommends to explicitly set permissions for GITHUB_TOKEN.
+# See https://docs.github.com/en/actions/tutorials/authenticate-with-github_token .
+permissions:
+  contents: read
+
 jobs:
   delphi_test:
     name: Delphi Test (Job)
@@ -35,7 +40,7 @@ jobs:
     runs-on: ${{ matrix.host-label }}
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       # We want to provide multi-line scripts to "run" steps below,
       # which isn't easy with GH Actions + Windows it seems.

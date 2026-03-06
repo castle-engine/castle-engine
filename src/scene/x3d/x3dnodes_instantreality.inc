@@ -43,7 +43,6 @@
   public
     constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     class function ForVRMLVersion(const Version: TX3DVersion): boolean; override;
-    function TransformationChange: TNodeTransformationChange; override;
   {$I auto_generated_node_helpers/x3dnodes_matrixtransform.inc}
   end;
   TMatrixTransformNode_2 = TMatrixTransformNode;
@@ -272,11 +271,6 @@ begin
     Result := Func(Self, FdChildren[I]);
     if Result <> nil then Exit;
   end;
-end;
-
-function TMatrixTransformNode.TransformationChange: TNodeTransformationChange;
-begin
-  Result := ntcTransform;
 end;
 
 constructor TTeapotNode.Create(const AX3DName: string = ''; const ABaseUrl: String = '');

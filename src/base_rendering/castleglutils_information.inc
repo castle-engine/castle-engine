@@ -147,11 +147,16 @@ const
     Result := '[' + Result + ']';
   end;
 
-  function IntToStrUnknown(const I: Integer): string;
+  function MemoryInfo(const Name: String; const ValueInKb: Integer): String;
   begin
-    Result := IntToStr(I);
-    if I = 0 then
-      Result := Result + ' (unknown)';
+    if ValueInKb = 0 then
+      Result := ''
+    else
+      Result := Format('  %s: %d mb (%d kb)' + NL, [
+        Name,
+        ValueInKb div 1024,
+        ValueInKb
+      ]);
   end;
 
 begin
@@ -216,6 +221,7 @@ begin
     '  Textures non-power-of-2: ' + BoolToStr(GLFeatures.TextureNonPowerOfTwo, true) + NL +
     '  Blend constant parameter: ' + BoolToStr(GLFeatures.BlendConstant, true) + NL +
     '  Float textures: ' + BoolToStr(GLFeatures.TextureFloat, true) + NL +
+    '  Linear filtering of float textures: ' + BoolToStr(GLFeatures.TextureFloatLinear, true) + NL +
     '  Depth textures: ' + BoolToStr(GLFeatures.TextureDepth, true) + NL +
     '  Shadow samplers (necessary for shadow maps): ' + BoolToStr(GLFeatures.TextureDepthCompare, true) + NL +
     '  Packed depth + stencil: ' + BoolToStr(GLFeatures.PackedDepthStencil, true) + NL +
@@ -223,6 +229,7 @@ begin
     '  Shadow Volumes Possible (stencil buffer, two-sided stencil operations): ' + BoolToStr(GLFeatures.ShadowVolumesPossible, true) + NL +
     '  Occlusion Query: ' + BoolToStr(GLFeatures.OcclusionQuery, true) + NL +
     '  Texture Max Level: ' + BoolToStr(GLFeatures.TextureMaxLevel, true) + NL +
+    '  Transform Feedback Varyings: ' + BoolToStr(GLFeatures.TransformFeedbackVaryings, true) + NL +
     NL +
     '  Necessary to use deprecated fixed-function pipeline: ' + BoolToStr(GLFeatures.EnableFixedFunction, true) + NL +
     NL +
@@ -281,16 +288,26 @@ begin
     '  Occlusion query counter bits: ' +  GetOcclusionQueryCounterBits + NL +
     '  Max renderbuffer size: ' + IntToStr(GLFeatures.MaxRenderbufferSize) + NL +
     '  Max line width: ' + GLFeatures.LineWidth.ToString + NL +
+    '  Max fragment uniform components: ' + IntToStr(GLFeatures.MaxFragmentUniformComponents) + NL +
+    '  Max vertex uniform components: ' + IntToStr(GLFeatures.MaxVertexUniformComponents) + NL +
+    '  Max skin joints in uniforms: ' + IntToStr(GLFeatures.MaxSkinJointsInUniforms) + NL +
     NL +
 
     Section + NL +
-    'Memory (in Kb):' + NL +
+    'Memory:' + NL +
       NL +
-    '  Total: ' + IntToStrUnknown(GLFeatures.Memory.Total) + NL +
-    '  Current: ' + IntToStrUnknown(GLFeatures.Memory.Current) + NL +
-    '  Current for VBO: ' + IntToStrUnknown(GLFeatures.Memory.CurrentVbo) + NL +
-    '  Current for Textures: ' + IntToStrUnknown(GLFeatures.Memory.CurrentTexture) + NL +
-    '  Current for Renderbuffers: ' + IntToStrUnknown(GLFeatures.Memory.CurrentRenderbuffer);
+    { Using wording from
+      https://registry.khronos.org/OpenGL/extensions/NVX/NVX_gpu_memory_info.txt
+      to be precise.
+      See also how glxinfo displays it,
+      https://stackoverflow.com/questions/75756085/linuxmesaopengl-measuring-amount-of-allocated-video-memory-of-an-application . }
+    MemoryInfo('Dedicated video memory', GLFeatures.Memory.DedicatedVideoMemory) +
+    MemoryInfo('Total available memory', GLFeatures.Memory.TotalAvailableMemory) +
+    MemoryInfo('Currently available dedicated video memory', GLFeatures.Memory.CurrentAvailableVideoMemory) +
+    MemoryInfo('VBO free memory', GLFeatures.Memory.VboFreeMemory) +
+    MemoryInfo('Texture free memory', GLFeatures.Memory.TextureFreeMemory) +
+    MemoryInfo('Renderbuffer free memory', GLFeatures.Memory.RenderbufferFreeMemory) +
+    '';
 
   CheckGLErrors('End of GLInformationString');
 end;

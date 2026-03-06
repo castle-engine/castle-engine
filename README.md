@@ -59,7 +59,7 @@ Usage in short:
 Documentation
 -------
 
-- [Manual](https://castle-engine.io/manual_intro.php) is the most recommended way to learn the engine.
+- [Manual](https://castle-engine.io/manual) is the most recommended way to learn the engine.
 
 - [API reference](https://castle-engine.io/apidoc/html/index.html).
 

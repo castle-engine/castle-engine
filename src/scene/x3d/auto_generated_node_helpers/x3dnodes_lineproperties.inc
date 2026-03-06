@@ -90,6 +90,7 @@ begin
 
   FFdLinetype := TSFInt32.Create(Self, True, 'linetype', 1);
    FdLinetype.ChangeAlways := chVisibleNonGeometry;
+   FdLinetype.MustBeNonnegative := true;
   AddField(FFdLinetype);
 
   FFdLinewidthScaleFactor := TSFFloat.Create(Self, True, 'linewidthScaleFactor', 0);

@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2024 Michalis Kamburelis.
+  Copyright 2014-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -559,14 +559,36 @@ var
   end;
 
 var
-  PackageName: string;
+  PackageName: String;
   PackageMode: TCompilationMode;
+  AndroidProjectPathNoDelim, RandomAndroidProjectPath: String;
 begin
   { calculate clean AndroidProjectPath }
-  AndroidProjectPath := TempOutputPath(Project.Path) +
-    'android' + PathDelim + 'project' + PathDelim;
+  AndroidProjectPathNoDelim := TempOutputPath(Project.Path) +
+    'android' + PathDelim + 'project';
+  AndroidProjectPath := AndroidProjectPathNoDelim + PathDelim;
   if DirectoryExists(AndroidProjectPath) then
+  try
     RemoveNonEmptyDir(AndroidProjectPath);
+  except
+    on E: ERemoveFailed do
+    begin
+      RandomAndroidProjectPath := AndroidProjectPathNoDelim + '-old-' + IntToStr(Random(1000000));
+      WritelnWarning('Removing "%s" failed with error: %s. As a workaround we will try to rename the directory to new random name "%s".', [
+        AndroidProjectPath,
+        E.Message,
+        RandomAndroidProjectPath
+      ]);
+      if not RenameFile(
+        AndroidProjectPathNoDelim,
+        RandomAndroidProjectPath) then
+      begin
+        raise ERemoveFailed.CreateFmt('Cannot remove or rename the directory "%s". Some application has "locked" it -- try to kill processes, like Android tools and Gradle daemon, that possibly keep this directory open. Then remove this directory manually and retry.', [
+          AndroidProjectPathNoDelim
+        ]);
+      end;
+    end;
+  end;
 
   PackageMode := SuggestedPackageMode;
 
@@ -627,7 +649,7 @@ begin
     to avoid failures because apk signed with different keys (debug vs release). }
 
   Writeln('Reinstalling application identified as "' + Project.QualifiedName + '".');
-  Writeln('If this fails, an often cause is that a previous development version of the application, signed with a different key, remains on the device. In this case uninstall it first by "castle-engine uninstall" or "adb uninstall ' + Project.QualifiedName + '". Note that it will clear your UserConfig data, unless you pass -k to "adb".');
+  Writeln('If this fails, an often cause is that a previous development version of the application, signed with a different key, remains on the device. In this case uninstall it first by "castle-engine uninstall --target=android" or "adb uninstall ' + Project.QualifiedName + '". Note that it will clear your UserConfig data, unless you pass -k to "adb".');
   Flush(Output); // don't mix output with adb output
   RunCommandSimple(AdbExe, ['install', '-r', PackageName]);
   Writeln('Install successful.');

@@ -1094,7 +1094,8 @@ end;
 procedure TTexture2TransformNode_1.MiddleTraverse(StateStack: TX3DGraphTraverseStateStack);
 begin
   inherited;
-  StateStack.Top.TextureTransform := StateStack.Top.TextureTransform *
+  StateStack.Top.Vrml1TextureTransform :=
+    StateStack.Top.Vrml1TextureTransform *
     TextureMatrixTransformation;
 end;
 

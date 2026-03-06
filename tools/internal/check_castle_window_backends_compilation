@@ -1,5 +1,5 @@
-#!/bin/bash
-set -eu
+#!/usr/bin/env bash
+set -euo pipefail
 
 # -----------------------------------------------------------------
 # Test compilation of various CGE CastleWindow backends.
@@ -24,13 +24,13 @@ do_run ()
 # Parameters: OS CPU
 do_test_one_backend_lcl ()
 {
-  LAZBUILD_OPTIONS="--os=$1 --cpu=$2"
-  lazbuild $LAZBUILD_OPTIONS packages/lazarus/alternative_castle_engine_window_based_on_lcl.lpk
+  local LAZBUILD_OPTIONS=(--os="$1" --cpu="$2")
+  do_run lazbuild "${LAZBUILD_OPTIONS[@]}" packages/lazarus/alternative_castle_engine_window_based_on_lcl.lpk
 
   # Depend on alternative_castle_engine_window_based_on_lcl from TEST_LPI
   sed -e 's|<PackageName Value="castle_engine_window"/>|<PackageName Value="alternative_castle_engine_window_based_on_lcl"/>|' \
     --in-place "${TEST_LPI}"
-  do_run lazbuild $LAZBUILD_OPTIONS "${TEST_LPI}"
+  do_run lazbuild "${LAZBUILD_OPTIONS[@]}" "${TEST_LPI}"
 
   # Restore original view_3d_model_advanced.lpi
   sed -e 's|<PackageName Value="alternative_castle_engine_window_based_on_lcl"/>|<PackageName Value="castle_engine_window"/>|' \
@@ -38,17 +38,29 @@ do_test_one_backend_lcl ()
 }
 
 # Test a single backend.
-# Parameters: OS CPU backend-name
+#
+# Parameters: OS CPU <backend-name> [extra-build-tool-options...] .
+# - <backend-name> must be a compilation symbol like CASTLE_WINDOW_xxx .
+# - [extra-build-tool-options...] are just additional command-line options
+#   to pass to build tool.
 do_test_one_backend ()
 {
-  if [ "$3" = 'CASTLE_WINDOW_FORM' ]; then
-    do_test_one_backend_lcl $1 $2
+  local OS
+  OS="$1"
+  local CPU
+  CPU="$2"
+  local CASTLE_WINDOW_BACKEND
+  CASTLE_WINDOW_BACKEND="$3"
+  shift 3
+
+  if [ "${CASTLE_WINDOW_BACKEND}" = 'CASTLE_WINDOW_FORM' ]; then
+    do_test_one_backend_lcl "${OS}" "${CPU}"
   else
     # Cleans the project, to remove compilation outputs with defined CASTLE_WINDOW_*
     do_run "${BUILD_TOOL}" --project="${TEST_PROJECT}" clean
-    do_run "${BUILD_TOOL}" --project="${TEST_PROJECT}" compile --os=$1 --cpu=$2 --mode=debug --compiler-option=-d$3
+    do_run "${BUILD_TOOL}" --project="${TEST_PROJECT}" compile --os="${OS}" --cpu="${CPU}" --mode=debug --compiler-option=-d"${CASTLE_WINDOW_BACKEND}" "$@"
     do_run "${BUILD_TOOL}" --project="${TEST_PROJECT}" clean
-    do_run "${BUILD_TOOL}" --project="${TEST_PROJECT}" compile --os=$1 --cpu=$2 --mode=release --compiler-option=-d$3
+    do_run "${BUILD_TOOL}" --project="${TEST_PROJECT}" compile --os="${OS}" --cpu="${CPU}" --mode=release --compiler-option=-d"${CASTLE_WINDOW_BACKEND}" "$@"
   fi
 }
 
@@ -56,7 +68,11 @@ do_test_one_backend ()
 do_test_all_backends ()
 {
   do_test_one_backend linux x86_64 CASTLE_WINDOW_GTK_2
+  do_test_one_backend linux x86_64 CASTLE_WINDOW_GTK_2 --compiler-option=-dUSE_EGL
+  do_test_one_backend linux x86_64 CASTLE_WINDOW_GTK_3
+  do_test_one_backend linux x86_64 CASTLE_WINDOW_GTK_3 --compiler-option=-dUSE_EGL
   do_test_one_backend linux x86_64 CASTLE_WINDOW_XLIB
+  do_test_one_backend linux x86_64 CASTLE_WINDOW_XLIB --compiler-option=-dUSE_EGL
   do_test_one_backend linux x86_64 CASTLE_WINDOW_TEMPLATE
   # Note that CASTLE_WINDOW_LIBRARY backend will not really work
   # with a standalone application, but it should compile OK.
@@ -64,18 +80,21 @@ do_test_all_backends ()
   do_test_one_backend linux x86_64 CASTLE_WINDOW_FORM
 
   do_test_one_backend win32 i386 CASTLE_WINDOW_WINAPI
-  # For now we don't support CASTLE_WINDOW_GTK_2 on non-Unix,
-  # see "TODO: WindowXID is only with X" in implementation.
-  # This could be fixed if ever needed -- but in practice there's no point using
+  # For now we don't support CASTLE_WINDOW_GTK_2 / 3 on non-Unix,
+  # as for both glX and EGL we need to access native resources underneath,
+  # and we implement this only for X and Wayland now (not e.g. WinAPI).
+  # This could be fixed if needed -- but in practice there's no point using
   # GTK backend e.g. on Windows, since we have WinAPI backend.
   # do_test_one_backend win32 i386 CASTLE_WINDOW_GTK_2
+  # do_test_one_backend win32 i386 CASTLE_WINDOW_GTK_3
   do_test_one_backend win32 i386 CASTLE_WINDOW_TEMPLATE
   do_test_one_backend win32 i386 CASTLE_WINDOW_LIBRARY
   do_test_one_backend win32 i386 CASTLE_WINDOW_FORM
 
   do_test_one_backend win64 x86_64 CASTLE_WINDOW_WINAPI
-  # See above for CASTLE_WINDOW_GTK_2 on non-Unix notes.
+  # See above for CASTLE_WINDOW_GTK_2 / 3 on non-Unix notes.
   # do_test_one_backend win64 x86_64 CASTLE_WINDOW_GTK_2
+  # do_test_one_backend win64 x86_64 CASTLE_WINDOW_GTK_3
   do_test_one_backend win64 x86_64 CASTLE_WINDOW_TEMPLATE
   do_test_one_backend win64 x86_64 CASTLE_WINDOW_LIBRARY
   do_test_one_backend win64 x86_64 CASTLE_WINDOW_FORM

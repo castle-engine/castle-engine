@@ -388,15 +388,17 @@ procedure TInlineNode.LoadInlined(CanReload: boolean;
   procedure InitializeExported(const Target: TX3DNodeNames; const Source: TX3DExportList);
   var
     NodeName: String;
-    I: Integer;
+    E: TX3DExport;
   begin
     Target.Clear;
-    for I := 0 to Source.Count - 1 do
+    for E in Source do
     begin
-      NodeName := Source[I].ExportedAlias;
+      if E.ExportedNode = nil then
+        Continue;
+      NodeName := E.ExportedAlias;
       if NodeName = '' then
-        NodeName := Source[I].ExportedNode.X3DName;
-      Target.Bind(Source[I].ExportedNode, true, NodeName);
+        NodeName := E.ExportedNode.X3DName;
+      Target.Bind(E.ExportedNode, true, NodeName);
     end;
   end;
 

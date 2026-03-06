@@ -41,6 +41,7 @@ type
   public
     procedure Start; override;
     destructor Destroy; override;
+    procedure UpdateOnlySynchronous; override;
   end;
 
 procedure THttpAndroidReader.Start;
@@ -212,6 +213,12 @@ begin
     Messaging.Send(['download-interrupt', IntToStr(DownloadId)]);
   Messaging.OnReceive.Remove({$ifdef FPC}@{$endif} HandleDownloadMessages);
   inherited;
+end;
+
+procedure THttpAndroidReader.UpdateOnlySynchronous;
+begin
+  inherited;
+  ApplicationProperties._Update;
 end;
 
 {$endif read_implementation}

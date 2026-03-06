@@ -11,18 +11,21 @@
 '#ifndef GL_ES' + LineEnding +
 '  #if defined(CASTLE_HAS_NORMALS)' + LineEnding +
 '    uniform mat3 castle_NormalMatrix;' + LineEnding +
-'    attribute vec3 castle_Normal;' + LineEnding +
 '  #endif' + LineEnding +
 '#endif' + LineEnding +
 '' + LineEnding +
-'void PLUG_vertex_eye_space(const in vec4 vertex_eye, const in vec3 normal_eye)' + LineEnding +
+'void PLUG_vertex_eye_space_extended(' + LineEnding +
+'  const in vec4 vertex_eye, const in vec3 normal_eye, const in vec3 normal_object)' + LineEnding +
 '{' + LineEnding +
 '  #if defined(CASTLE_HAS_NORMALS)' + LineEnding +
-'  vec3 bitangent = cross(castle_Normal, castle_Tangent.xyz) * castle_Tangent.w;' + LineEnding +
+'  vec4 tangent_object = castle_Tangent;' + LineEnding +
+'  /* Potentially modify tangent_object by skinned animation */' + LineEnding +
+'  /* PLUG: tangent_object_space (tangent_object) */' + LineEnding +
+'  vec3 bitangent = cross(normal_object, tangent_object.xyz) * tangent_object.w;' + LineEnding +
 '  mat3 castle_tangent_to_object_space = mat3(' + LineEnding +
-'    castle_Tangent.xyz,' + LineEnding +
+'    tangent_object.xyz,' + LineEnding +
 '    bitangent,' + LineEnding +
-'    castle_Normal' + LineEnding +
+'    normal_object' + LineEnding +
 '  );' + LineEnding +
 '  castle_tangent_to_eye_space = castle_NormalMatrix * castle_tangent_to_object_space;' + LineEnding +
 '  #else' + LineEnding +

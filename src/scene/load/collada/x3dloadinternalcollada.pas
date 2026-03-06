@@ -111,7 +111,8 @@ var
 
 { LoadCollada ---------------------------------------------------------------- }
 
-function LoadCollada(const Stream: TStream; const ProposedBaseUrl: String): TX3DRootNode;
+function LoadCollada(const Stream: TStream; const ProposedBaseUrl: String;
+  const LoadOptions: TCastleSceneLoadOptions): TX3DRootNode;
 var
   ResultModel: TGroupNode absolute Result;
   Version14: boolean; //< Collada version >= 1.4.x

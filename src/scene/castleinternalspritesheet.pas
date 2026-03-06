@@ -381,7 +381,8 @@ type
   ECantRegenerateAtlas = class(Exception);
   EReadOnlyMode = class(Exception);
 
-function LoadCastleSpriteSheet(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
+function LoadCastleSpriteSheet(const Stream: TStream; const BaseUrl: String;
+  const LoadOptions: TCastleSceneLoadOptions): TX3DRootNode;
 
 implementation
 
@@ -513,7 +514,8 @@ type
     function ExportToX3D: TX3DRootNode;
   end;
 
-function LoadCastleSpriteSheet(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
+function LoadCastleSpriteSheet(const Stream: TStream; const BaseUrl: String;
+  const LoadOptions: TCastleSceneLoadOptions): TX3DRootNode;
 var
   SpriteSheet: TCastleSpriteSheet;
 begin

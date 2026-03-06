@@ -24,8 +24,13 @@ uses
   CastleControl, CastleControls, CastleViewport, CastleScene,
   CastleUIControls, CastleSoundEngine;
 
+{ Using GTK 3 widgetset before Lazarus "main" as of 2026-02-09 is not supported. }
 {$if defined(LCLGTK3)}
-  {$error Using LCL GTK3 widgetset to build CGE editor is unsupported. The LCL GTK3 widgetset is too unstable (lots of issues on FormChooseProject and FormProject), TOpenGLControl crashes, and TOpenGLControl doesn't support OpenGL context sharing.}
+  {$if LCL_FULLVERSION < 4990000}
+    {$error Using LCL GTK3 widgetset to build CGE editor is unsupported for older Lazarus (LCL) versions.}
+  {$else}
+    {$warning Using LCL GTK3 widgetset to build CGE editor is not recommended, we have known issues: dialog Execute wrong, crashes at exit.}
+  {$endif}
 {$endif}
 
 { CGE editor critically needs this MR for Qt5:

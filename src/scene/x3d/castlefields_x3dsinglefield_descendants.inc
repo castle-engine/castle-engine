@@ -1,6 +1,6 @@
 {%MainUnit x3dfields.pas}
 {
-  Copyright 2002-2024 Michalis Kamburelis.
+  Copyright 2002-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -360,7 +360,23 @@
     procedure Send(const AValue: Int32); override;
   end;
 
+  { Should we define and use generic TSFGenericMatrix.
+
+    FPC can build the version with and without CASTLE_USE_TSFGenericMatrix.
+
+    Delphi can only build the version without CASTLE_USE_TSFGenericMatrix.
+
+    For now, we maintain both versions, and toggling CASTLE_USE_TSFGenericMatrix
+    is useful to test with FPC both versions.
+    Maybe in the future we'll drop CASTLE_USE_TSFGenericMatrix,
+    since it's easier to maintain 1 version than 2 (alas, it means maintaining
+    the worse version, with code duplication; we would prefer to use one day
+    CASTLE_USE_TSFGenericMatrix with Delphi...) }
   {$ifdef FPC}
+    {$define CASTLE_USE_TSFGenericMatrix}
+  {$endif}
+
+  {$ifdef CASTLE_USE_TSFGenericMatrix}
   { Generic class for an X3D field containing a single matrix value. }
   {$ifdef FPC}generic{$endif}
   TSFGenericMatrix<
@@ -396,14 +412,14 @@
 
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: boolean): TX3DEvent; override;
   end;
-  {$endif}
+  {$endif CASTLE_USE_TSFGenericMatrix}
 
   { X3D field containing a 3x3 matrix with Single precision. }
-  TSFMatrix3f = class({$ifdef FPC}{$ifdef FPC}specialize{$endif} TSFGenericMatrix<
+  TSFMatrix3f = class({$ifdef CASTLE_USE_TSFGenericMatrix}{$ifdef FPC}specialize{$endif} TSFGenericMatrix<
     TMatrix3,
     TVector3,
     TSFMatrix3fEvent>{$else}TX3DSingleField{$endif})
-  {$ifndef FPC}
+  {$ifndef CASTLE_USE_TSFGenericMatrix}
   strict private
     FValue: TMatrix3;
     DefaultValue: TMatrix3;
@@ -413,7 +429,7 @@
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   {$endif}
   public
-    {$ifndef FPC}
+    {$ifndef CASTLE_USE_TSFGenericMatrix}
     constructor Create(const AParentNode: TX3DFileItem;
       const AExposed: boolean; const AName: String; const AValue: TMatrix3);
 
@@ -439,11 +455,11 @@
   end;
 
   { X3D field containing a 3x3 matrix with Double precision. }
-  TSFMatrix3d = class({$ifdef FPC}{$ifdef FPC}specialize{$endif} TSFGenericMatrix<
+  TSFMatrix3d = class({$ifdef CASTLE_USE_TSFGenericMatrix}{$ifdef FPC}specialize{$endif} TSFGenericMatrix<
     TMatrix3Double,
     TVector3Double,
     TSFMatrix3dEvent>{$else}TX3DSingleField{$endif})
-  {$ifndef FPC}
+  {$ifndef CASTLE_USE_TSFGenericMatrix}
   strict private
     FValue: TMatrix3Double;
     DefaultValue: TMatrix3Double;
@@ -453,7 +469,7 @@
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   {$endif}
   public
-    {$ifndef FPC}
+    {$ifndef CASTLE_USE_TSFGenericMatrix}
     constructor Create(const AParentNode: TX3DFileItem;
       const AExposed: boolean; const AName: String; const AValue: TMatrix3Double);
 
@@ -479,11 +495,11 @@
   end;
 
   { X3D field containing a 4x4 matrix with Single precision. }
-  TSFMatrix4f = class({$ifdef FPC}{$ifdef FPC}specialize{$endif} TSFGenericMatrix<
+  TSFMatrix4f = class({$ifdef CASTLE_USE_TSFGenericMatrix}{$ifdef FPC}specialize{$endif} TSFGenericMatrix<
     TMatrix4,
     TVector4,
     TSFMatrix4fEvent>{$else}TX3DSingleField{$endif})
-  {$ifndef FPC}
+  {$ifndef CASTLE_USE_TSFGenericMatrix}
   strict private
     FValue: TMatrix4;
     DefaultValue: TMatrix4;
@@ -493,7 +509,7 @@
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   {$endif}
   public
-    {$ifndef FPC}
+    {$ifndef CASTLE_USE_TSFGenericMatrix}
     constructor Create(const AParentNode: TX3DFileItem;
       const AExposed: boolean; const AName: String; const AValue: TMatrix4);
 
@@ -519,11 +535,11 @@
   end;
 
   { X3D field containing a 4x4 matrix with Double precision. }
-  TSFMatrix4d = class({$ifdef FPC}{$ifdef FPC}specialize{$endif} TSFGenericMatrix<
+  TSFMatrix4d = class({$ifdef CASTLE_USE_TSFGenericMatrix}{$ifdef FPC}specialize{$endif} TSFGenericMatrix<
     TMatrix4Double,
     TVector4Double,
     TSFMatrix4dEvent>{$else}TX3DSingleField{$endif})
-  {$ifndef FPC}
+  {$ifndef CASTLE_USE_TSFGenericMatrix}
   strict private
     FValue: TMatrix4Double;
     DefaultValue: TMatrix4Double;
@@ -533,7 +549,7 @@
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   {$endif}
   public
-    {$ifndef FPC}
+    {$ifndef CASTLE_USE_TSFGenericMatrix}
     constructor Create(const AParentNode: TX3DFileItem;
       const AExposed: boolean; const AName: String; const AValue: TMatrix4Double);
 
@@ -1724,7 +1740,8 @@ begin
 end;
 
 { TSFGenericMatrix ---------------------------------------------------------------------------- }
-{$ifdef FPC}
+
+{$ifdef CASTLE_USE_TSFGenericMatrix}
 constructor TSFGenericMatrix{$ifndef FPC}<
   TItem,
   TItemColumn,
@@ -1753,18 +1770,13 @@ begin
       FValue.Data[Column, Row] := Lexer.TokenFloat;
       Lexer.NextToken;
     end;
-
-    // Calling here global ParseVector or ParseFloat causes
-    // Error: Global Generic template references static symtable
-    // with FPC 3.0.2. TODO: test other FPC versions, potentially submit FPC bug.
-    // ParseVector(, Lexer);
   end;
 end;
 
 procedure TSFGenericMatrix.SaveToStreamValue(Writer: TX3DWriter);
 var
   V: TItemColumn;
-  Column: integer;
+  Column: Integer;
 begin
   V := FValue.Columns[0];
   Writer.Writeln(V.ToRawString(FloatOutputFormat));
@@ -1860,7 +1872,7 @@ begin
     Send(FieldValue);
   finally FreeAndNil(FieldValue) end;
 end;
-{$endif}
+{$endif CASTLE_USE_TSFGenericMatrix}
 
 { TSFMatrix3f ------------------------------------------------------------------ }
 
@@ -1869,7 +1881,7 @@ begin
   Result := 'SFMatrix3f';
 end;
 
-{$ifndef FPC}
+{$ifndef CASTLE_USE_TSFGenericMatrix}
 constructor TSFMatrix3f.Create(const AParentNode: TX3DFileItem;
     const AExposed: boolean; const AName: String; const AValue: TMatrix3);
 begin
@@ -1890,11 +1902,6 @@ begin
       FValue.Data[Column, Row] := Lexer.TokenFloat;
       Lexer.NextToken;
     end;
-
-    // Calling here global ParseVector or ParseFloat causes
-    // Error: Global Generic template references static symtable
-    // with FPC 3.0.2. TODO: test other FPC versions, potentially submit FPC bug.
-    // ParseVector(, Lexer);
   end;
 end;
 
@@ -1997,8 +2004,7 @@ begin
     Send(FieldValue);
   finally FreeAndNil(FieldValue) end;
 end;
-{$endif}
-
+{$endif not CASTLE_USE_TSFGenericMatrix}
 
 { TSFMatrix3d ------------------------------------------------------------------ }
 
@@ -2007,7 +2013,7 @@ begin
   Result := 'SFMatrix3d';
 end;
 
-{$ifndef FPC}
+{$ifndef CASTLE_USE_TSFGenericMatrix}
 constructor TSFMatrix3d.Create(const AParentNode: TX3DFileItem;
     const AExposed: boolean; const AName: String; const AValue: TMatrix3Double);
 begin
@@ -2028,18 +2034,13 @@ begin
       FValue.Data[Column, Row] := Lexer.TokenFloat;
       Lexer.NextToken;
     end;
-
-    // Calling here global ParseVector or ParseFloat causes
-    // Error: Global Generic template references static symtable
-    // with FPC 3.0.2. TODO: test other FPC versions, potentially submit FPC bug.
-    // ParseVector(, Lexer);
   end;
 end;
 
 procedure TSFMatrix3d.SaveToStreamValue(Writer: TX3DWriter);
 var
   V: TVector3Double;
-  Column: integer;
+  Column: Integer;
 begin
   V := FValue.Columns[0];
   Writer.Writeln(V.ToRawString(FloatOutputFormat));
@@ -2135,7 +2136,7 @@ begin
     Send(FieldValue);
   finally FreeAndNil(FieldValue) end;
 end;
-{$endif}
+{$endif not CASTLE_USE_TSFGenericMatrix}
 
 { TSFMatrix4f ------------------------------------------------------------------ }
 
@@ -2144,7 +2145,7 @@ begin
   Result := 'SFMatrix4f';
 end;
 
-{$ifndef FPC}
+{$ifndef CASTLE_USE_TSFGenericMatrix}
 constructor TSFMatrix4f.Create(const AParentNode: TX3DFileItem;
     const AExposed: boolean; const AName: String; const AValue: TMatrix4);
 begin
@@ -2165,18 +2166,13 @@ begin
       FValue.Data[Column, Row] := Lexer.TokenFloat;
       Lexer.NextToken;
     end;
-
-    // Calling here global ParseVector or ParseFloat causes
-    // Error: Global Generic template references static symtable
-    // with FPC 3.0.2. TODO: test other FPC versions, potentially submit FPC bug.
-    // ParseVector(, Lexer);
   end;
 end;
 
 procedure TSFMatrix4f.SaveToStreamValue(Writer: TX3DWriter);
 var
   V: TVector4;
-  Column: integer;
+  Column: Integer;
 begin
   V := FValue.Columns[0];
   Writer.Writeln(V.ToRawString(FloatOutputFormat));
@@ -2272,8 +2268,7 @@ begin
     Send(FieldValue);
   finally FreeAndNil(FieldValue) end;
 end;
-{$endif}
-
+{$endif not CASTLE_USE_TSFGenericMatrix}
 
 { TSFMatrix4d ------------------------------------------------------------------ }
 
@@ -2282,7 +2277,7 @@ begin
   Result := 'SFMatrix4d';
 end;
 
-{$ifndef FPC}
+{$ifndef CASTLE_USE_TSFGenericMatrix}
 constructor TSFMatrix4d.Create(const AParentNode: TX3DFileItem;
     const AExposed: boolean; const AName: String; const AValue: TMatrix4Double);
 begin
@@ -2303,18 +2298,13 @@ begin
       FValue.Data[Column, Row] := Lexer.TokenFloat;
       Lexer.NextToken;
     end;
-
-    // Calling here global ParseVector or ParseFloat causes
-    // Error: Global Generic template references static symtable
-    // with FPC 3.0.2. TODO: test other FPC versions, potentially submit FPC bug.
-    // ParseVector(, Lexer);
   end;
 end;
 
 procedure TSFMatrix4d.SaveToStreamValue(Writer: TX3DWriter);
 var
   V: TVector4Double;
-  Column: integer;
+  Column: Integer;
 begin
   V := FValue.Columns[0];
   Writer.Writeln(V.ToRawString(FloatOutputFormat));
@@ -2410,8 +2400,7 @@ begin
     Send(FieldValue);
   finally FreeAndNil(FieldValue) end;
 end;
-{$endif}
-
+{$endif not CASTLE_USE_TSFGenericMatrix}
 
 { TSFMatrix ------------------------------------------------------------------ }
 

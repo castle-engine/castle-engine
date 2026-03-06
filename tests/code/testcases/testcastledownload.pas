@@ -17,6 +17,9 @@
 { Test CastleDownload unit. }
 unit TestCastleDownload;
 
+{ Needed for CASTLE_DEFORMAT_BUGGY }
+{$I ../../../src/common_includes/castleconf.inc}
+
 interface
 
 uses
@@ -27,7 +30,7 @@ type
   published
     procedure TestLocalCharsCastleData;
     procedure TestLocalCharsCastleConfig;
-    procedure TesTCastleTextReader;
+    procedure TestCastleTextReader;
     procedure TestRegisteredProtocolNotCaseSensitive;
   end;
 
@@ -126,7 +129,7 @@ begin
   StringToFile('castle-config:/2_config with Russian chars образец русского текста.txt', 'Testing save.');
 end;
 
-procedure TTestDownload.TesTCastleTextReader;
+procedure TTestDownload.TestCastleTextReader;
 
 { Testcase based on example from
   https://forum.castle-engine.io/t/setup-files-and-working-with-them/630/4
@@ -137,6 +140,12 @@ var
   X, Y, Z: Single;
   V: TVector3;
 begin
+  // Workaround another issue with macOS/Aarch64 with FPC 3.2.3
+  {$if defined(DARWIN) and defined(CPUAARCH64)}
+  AbortTest;
+  Exit;
+  {$endif}
+
   { using ReadSingle }
   T := TCastleTextReader.Create('castle-data:/test_text_reader.txt');
   try
@@ -184,6 +193,10 @@ begin
     AssertVectorEquals(Vector3(7, 8, 9), V);
   finally FreeAndNil(T) end;
 
+  {$ifdef CASTLE_DEFORMAT_BUGGY}
+  AbortTest;
+  Exit;
+  {$else}
   { alternative version using Readln + DeFormat }
   T := TCastleTextReader.Create('castle-data:/test_text_reader.txt');
   try
@@ -202,6 +215,7 @@ begin
     AssertSameValue(8, Y);
     AssertSameValue(9, Z);
   finally FreeAndNil(T) end;
+  {$endif}
 end;
 
 procedure TTestDownload.TestRegisteredProtocolNotCaseSensitive;

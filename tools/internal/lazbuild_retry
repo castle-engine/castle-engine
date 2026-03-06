@@ -1,8 +1,9 @@
-#!/bin/bash
-set -eu
+#!/usr/bin/env bash
+set -euo pipefail
 
 # Execute in top-level CGE dir.
-# Tries to compile $1 with lazbuild.
+# Tries to compile lazbuild $@
+# (i.e. all script arguments are just passed to lazbuild).
 #
 # In case it fails (as lazbuild fails with access violation sometimes:
 #  An unhandled exception occurred at $0000000000575F5F:
@@ -13,15 +14,8 @@ set -eu
 # )
 # ... the script will clean CGE dir and just retry.
 
-LPI_FILENAME="$1"
-
-# For easy testing of "examples-laz"
-# echo lazbuild "${LPI_FILENAME}"
-# exit 0
-
-if ! lazbuild "${LPI_FILENAME}"; then
+if ! lazbuild "$@"; then
   echo '1st execution of lazbuild failed, trying again'
   make clean
-  # Note: Hopefully it doesn't need to recompile all CGE LPK packages here.
-  lazbuild ${CASTLE_LAZBUILD_OPTIONS:-} "${LPI_FILENAME}"
+  lazbuild "$@"
 fi

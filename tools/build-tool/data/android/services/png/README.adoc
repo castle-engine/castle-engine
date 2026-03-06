@@ -34,7 +34,7 @@ Or you can request the equivalent on all platforms using `dependencies`:
 
 The exact source code of this library is on
 
-  https://github.com/castle-engine/libpng-android
+  https://github.com/castle-engine/android-libpng
 
 Forked from https://github.com/julienr/libpng-android .
 
@@ -43,7 +43,7 @@ Which is based on the official libpng code: http://www.libpng.org/pub/png/libpng
 Update the library files (SO) just like this:
 
 ----
-git clone https://github.com/castle-engine/libpng-android
-cd libpng-android/
+git clone https://github.com/castle-engine/android-libpng
+cd android-libpng/
 make build
 ----

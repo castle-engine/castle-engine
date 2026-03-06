@@ -65,10 +65,16 @@
       out SRanges, SRangeName: string;
       out RangeMinimumCount: Cardinal): boolean; virtual;
   public
-    { Used only for reading glTF now, in the future will be used for skin animation on GPU. @exclude }
-    InternalSkinJoints: TVector4IntegerList;
-    { Used only for reading glTF now, in the future will be used for skin animation on GPU. @exclude }
-    InternalSkinWeights: TVector4List;
+    { When this geometry node is used by TSkinNode.InternalUpdateSkin,
+      thenwe store here the original (before aniamtion)
+      coordinates, normals and tangents.
+      This is used to recalculate skin when joints are animated.
+      @exclude
+      @groupBegin }
+    InternalOriginalCoords: TVector3List;
+    InternalOriginalNormals: TVector3List;
+    InternalOriginalTangents: TVector4List;
+    { @groupEnd }
 
     constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     destructor Destroy; override;
@@ -228,6 +234,38 @@
       However, it doesn't work for old VRML 1.0 (since they have coordinate
       information, but no "coord" field). }
     function CoordField: TSFNode; virtual;
+
+    { Weights and joints for the skinned animation.
+
+      If skinned animation is possible on this node, returns @true
+      and sets Weights and Joints to the appropriate lists:
+
+      @unorderedList(
+        @item(Weights: 4D vector for each vertex, with 4 weight for the
+          4 most important joints that affect this vertex.)
+        @item(Joints: 4 indexes for each vertex, determine the 4 most important
+          joints that affect this vertex.)
+      )
+
+      Read or modify them freely. Keep the counts correct:
+
+      @unorderedList(
+        @item(Either both lists are empty.)
+        @item(Or include information about all the coordinates in
+          @link(CoordField). This means that
+
+          - Weights.Count equals the coordinate count,
+
+          - and Joints.Count is always divisible by 4,
+
+          - and Joints.Count / 4 equals the coordinate count.)
+      )
+
+      If skinned animation is not possible on this node, returns @false,
+      and Weights and Joints are set to @nil.
+    }
+    function SkinWeightsJoints(
+      out Weights: TVector4List; out Joints: TInt32List): Boolean; virtual;
 
     { Node's "normal" field where you can place TNormalNode, or @nil if not available. }
     function NormalField: TSFNode; virtual;
@@ -394,8 +432,6 @@
       to return @true. }
     function AutoGenerate3DTexCoords: boolean; virtual;
 
-    function TransformationChange: TNodeTransformationChange; override;
-
     { Calculate texture S, T coordinates for BOUNDS2D texture mapping.
       This mapping is like the default IndexedFaceSet texture mapping,
       following X3D spec. We also use it for other geometry nodes,
@@ -504,6 +540,7 @@
     function InternalCoord(State: TX3DGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
     function CoordField: TSFNode; override;
+    function SkinWeightsJoints(out Weights: TVector4List; out Joints: TInt32List): Boolean; override;
     function TexCoordField: TSFNode; override;
     function ColorField: TSFNode; override;
     function SolidField: TSFBool; override;
@@ -605,6 +642,7 @@
       out ACoord: TMFVec3f): boolean; override;
     function CoordIndexField: TMFLong; override;
     function CoordField: TSFNode; override;
+    function SkinWeightsJoints(out Weights: TVector4List; out Joints: TInt32List): Boolean; override;
     function ColorField: TSFNode; override;
     function InternalFogCoord: TMFFloat; override;
     function AttribField: TMFNode; override;
@@ -681,6 +719,7 @@
     function InternalCoord(State: TX3DGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
     function CoordField: TSFNode; override;
+    function SkinWeightsJoints(out Weights: TVector4List; out Joints: TInt32List): Boolean; override;
     function ColorField: TSFNode; override;
     function InternalFogCoord: TMFFloat; override;
     function AttribField: TMFNode; override;
@@ -725,6 +764,7 @@
     function InternalCoord(State: TX3DGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
     function CoordField: TSFNode; override;
+    function SkinWeightsJoints(out Weights: TVector4List; out Joints: TInt32List): Boolean; override;
     function ColorField: TSFNode; override;
     function InternalFogCoord: TMFFloat; override;
     function AttribField: TMFNode; override;
@@ -811,8 +851,9 @@ end;
 
 destructor TAbstractGeometryNode.Destroy;
 begin
-  FreeAndNil(InternalSkinJoints);
-  FreeAndNil(InternalSkinWeights);
+  FreeAndNil(InternalOriginalCoords);
+  FreeAndNil(InternalOriginalNormals);
+  FreeAndNil(InternalOriginalTangents);
   inherited;
 end;
 
@@ -851,6 +892,14 @@ end;
 function TAbstractGeometryNode.CoordField: TSFNode;
 begin
   Result := nil;
+end;
+
+function TAbstractGeometryNode.SkinWeightsJoints(
+  out Weights: TVector4List; out Joints: TInt32List): Boolean;
+begin
+  Result := false;
+  Weights := nil;
+  Joints := nil;
 end;
 
 function TAbstractGeometryNode.CoordIndexField: TMFLong;
@@ -1034,11 +1083,6 @@ begin
   Result := false;
 end;
 
-function TAbstractGeometryNode.TransformationChange: TNodeTransformationChange;
-begin
-  Result := ntcGeometry;
-end;
-
 procedure TAbstractGeometryNode.GetTextureBounds2DST(const LocalBoxSizes: TVector3;
   out S, T: T3DAxis);
 var
@@ -1203,6 +1247,14 @@ begin
   Result := FdCoord;
 end;
 
+function TAbstractComposedGeometryNode.SkinWeightsJoints(
+  out Weights: TVector4List; out Joints: TInt32List): Boolean;
+begin
+  Weights := FdSkinWeights0.Items;
+  Joints := FdSkinJoints0.Items;
+  Result := true;
+end;
+
 function TAbstractComposedGeometryNode.InternalCoord(State: TX3DGraphTraverseState;
   out ACoord: TMFVec3f): boolean;
 begin
@@ -1318,6 +1370,14 @@ end;
 function TIndexedLineSetNode.CoordField: TSFNode;
 begin
   Result := FdCoord;
+end;
+
+function TIndexedLineSetNode.SkinWeightsJoints(
+  out Weights: TVector4List; out Joints: TInt32List): Boolean;
+begin
+  Weights := FdSkinWeights0.Items;
+  Joints := FdSkinJoints0.Items;
+  Result := true;
 end;
 
 function TIndexedLineSetNode.InternalCoord(State: TX3DGraphTraverseState;
@@ -1467,6 +1527,14 @@ begin
   Result := FdCoord;
 end;
 
+function TLineSetNode.SkinWeightsJoints(
+  out Weights: TVector4List; out Joints: TInt32List): Boolean;
+begin
+  Weights := FdSkinWeights0.Items;
+  Joints := FdSkinJoints0.Items;
+  Result := true;
+end;
+
 function TLineSetNode.InternalCoord(State: TX3DGraphTraverseState;
   out ACoord: TMFVec3f): boolean;
 begin
@@ -1571,6 +1639,14 @@ end;
 function TPointSetNode.CoordField: TSFNode;
 begin
   Result := FdCoord;
+end;
+
+function TPointSetNode.SkinWeightsJoints(
+  out Weights: TVector4List; out Joints: TInt32List): Boolean;
+begin
+  Weights := FdSkinWeights0.Items;
+  Joints := FdSkinJoints0.Items;
+  Result := true;
 end;
 
 function TPointSetNode.InternalCoord(State: TX3DGraphTraverseState;

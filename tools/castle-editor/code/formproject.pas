@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2024 Michalis Kamburelis.
+  Copyright 2018-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -2509,7 +2509,7 @@ end;
 
 procedure TProjectForm.MenuItemManualClick(Sender: TObject);
 begin
-  OpenUrl('https://castle-engine.io/manual_intro.php');
+  OpenUrl('https://castle-engine.io/manual');
 end;
 
 procedure TProjectForm.MenuItemModeDebugClick(Sender: TObject);
@@ -2642,8 +2642,6 @@ begin
   begin
     Design := TDesignFrame.Create(Self);
     DesignObserver.Observed := Design;
-    Design.Parent := PanelAboveTabs;
-    Design.Align := alClient;
     Design.OnUpdateFormCaption := @UpdateFormCaption;
     Design.UndoSystem.OnUpdateUndo := @UpdateUndo;
     Design.OnSelectionChanged := @UpdateRenameItem;
@@ -2654,6 +2652,13 @@ begin
     Design.OnRunningToggle  := @RunningToggle;
     Design.OnApiReferenceOfCurrent := @MenuItemReferenceOfCurrentClick;
     Design.MaximizePreview := ActionMaximizePreview.Checked;
+
+    { on GTK3, changing Align on a control with Parent may result in calling
+      Paint on it, which calls our TDesignFrame.TDesignerLayer.Render.
+      So we have assigned everything necessary for correct render
+      (like OnShowStatistics) earlier. }
+    Design.Parent := PanelAboveTabs;
+    Design.Align := alClient;
 
     // Update Design.ActionPlayStop, after OnIsRunning and OnRunningToggle are set
     Design.ActionPlayStopUpdate(Design.ActionPlayStop);
@@ -2742,13 +2747,31 @@ begin
   end;
 end;
 
-procedure TProjectForm.WarningNotification(const Category,
-  Message: string);
+procedure TProjectForm.WarningNotification(const Category, Message: string);
+var
+  FixedMessage: String;
 begin
+  FixedMessage := Message;
+
+  { Cocoa LCL list cannot display multi-line items correctly
+    (the item height is always as if we had single line).
+
+    Testcase: PNG 2-line warning:
+      'Initializing dynamic LibPng library failed.' + NL +
+      '  Loading PNG will use a slower approach.'
+    which is normal on macOS.
+
+    So remove newlines from the message. }
+
+  {$ifdef LCLCocoa}
+  FixedMessage := SReplaceChars(FixedMessage, #10, ' '); // replace Unix newlines with spaces
+  FixedMessage := SDeleteChars(FixedMessage, [#13]); // remove leftovers from Windows newlines
+  {$endif LCLCocoa}
+
   if Category <> '' then
-    ListWarnings.Items.Add(Category + ': ' + Message)
+    ListWarnings.Items.Add(Category + ': ' + FixedMessage)
   else
-    ListWarnings.Items.Add(Message);
+    ListWarnings.Items.Add(FixedMessage);
   TabWarnings.Caption := 'Warnings (' + IntToStr(ListWarnings.Count) + ')';
   TabWarnings.TabVisible := true;
 end;

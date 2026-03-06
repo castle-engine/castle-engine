@@ -1,7 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <build_gradle_merge>
   <dependencies>
-    <!-- Following https://developer.android.com/games/sdk/oboe/update-build-settings  -->
-    <dependency>implementation 'com.google.oboe:oboe:1.7.0'</dependency>
+    <!--
+    Following https://developer.android.com/games/sdk/oboe/update-build-settings  .
+
+    Note that we need at least version 1.9.3
+    which provides support for 16k page sizes, required by Google Play.
+    See https://github.com/google/oboe/releases/ , changelog for 1.9.3 says
+    """
+    Updated to 16kb page sizes. This is needed for Android 15 as some devices only support 16kb page sizes.
+    """
+    -->
+    <dependency>implementation 'com.google.oboe:oboe:1.10.0'</dependency>
   </dependencies>
 </build_gradle_merge>
