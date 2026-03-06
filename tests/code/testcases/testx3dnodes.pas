@@ -148,6 +148,7 @@ type
     procedure TestRouteNodesPositions;
     procedure TestNoFailMultiTexture;
     procedure TestNodeDestructionNotificationList;
+    procedure TestGltfUnusedMaterials;
   end;
 
 implementation
@@ -3476,6 +3477,30 @@ begin
   C1.Free;
   C2.Free;
   C3.Free;
+end;
+
+procedure TTestX3DNodes.TestGltfUnusedMaterials;
+var
+  Root: TX3DRootNode;
+  TempStream: TMemoryStream;
+begin
+  Root := LoadNode('castle-data:/gltf/khronos/SheenChair.glb');
+  try
+    // save to temporary stream, just to check that saving works without errors
+    TempStream := TMemoryStream.Create;
+    try
+      SaveNode(Root, TempStream, 'model/x3d+xml');
+    finally FreeAndNil(TempStream) end;
+  finally FreeAndNil(Root) end;
+
+  Root := LoadNode('castle-data:/gltf/khronos/chair_inline.x3d');
+  try
+    // save to temporary stream, just to check that saving works without errors
+    TempStream := TMemoryStream.Create;
+    try
+      SaveNode(Root, TempStream, 'model/x3d+xml');
+    finally FreeAndNil(TempStream) end;
+  finally FreeAndNil(Root) end;
 end;
 
 initialization
