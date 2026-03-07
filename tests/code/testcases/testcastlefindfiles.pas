@@ -30,6 +30,7 @@ type
     { Test that searching inside castle-config:/ returns URLs that
       start with castle-config:/ . }
     procedure TestFindFilesCastleConfig;
+    procedure TestSearchSpacesPercentEncoding;
   end;
 
 implementation
@@ -110,6 +111,55 @@ begin
     Writeln(Format('Made tests in %s which does not map to normal filesystem, assuming temp storage on web, not cleaning up', [
       TestDirUrl
     ]));
+end;
+
+procedure TTestCastleFindFiles.TestSearchSpacesPercentEncoding;
+var
+  List: TFileInfoList;
+begin
+  List := FindFilesList('castle-data:/',
+    { Mask for FindFilesList is @italic(not) percent-encoded, it is used as-is. }
+    'file name with spaces.txt', false, []);
+  try
+    AssertEquals(1, List.Count);
+    AssertTrue(0 <> Pos('%20', List[0].Url));
+    AssertEquals(
+      { It's undefined whether we get castle-data:/ or resolved file:/...,
+        so do ResolveCastleDataUrl to make test always correct. }
+      ResolveCastleDataUrl('castle-data:/file%20name%20with%20spaces.txt'),
+      ResolveCastleDataUrl(List[0].Url));
+  finally
+    FreeAndNil(List);
+  end;
+
+  List := FindFilesList('castle-data:/',
+    { This will look for files with % in names, not for files with spaces,
+      so it should not find anything. }
+    'file%20name%20with%20spaces.txt', false, []);
+  try
+    AssertEquals(0, List.Count);
+  finally
+    FreeAndNil(List);
+  end;
+
+  List := FindFilesList('castle-data:/file%20name%20with%20spaces.txt', false, []);
+  try
+    AssertEquals(1, List.Count);
+    AssertEquals(
+      ResolveCastleDataUrl('castle-data:/file%20name%20with%20spaces.txt'),
+      ResolveCastleDataUrl(List[0].Url));
+  finally
+    FreeAndNil(List);
+  end;
+
+  { This is undefined -- it's an invalid URL with literal spaces.
+    Always encode spaces as %20 in URLs. }
+  // List := FindFilesList('castle-data:/file name with spaces.txt', false, []);
+  // try
+  //   AssertEquals(0, List.Count);
+  // finally
+  //   FreeAndNil(List);
+  // end;
 end;
 
 initialization
