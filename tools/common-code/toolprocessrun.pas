@@ -626,7 +626,7 @@ begin
       {$ifdef DEBUG_UNIX_RUN_NO_WAIT_BY_SHELL} InclPathDelim(CreateTemporaryDir) + 'run-process-no-wait-' + IntToStr(Random(100000)) + '.log'
       {$else} '/dev/null'
       {$endif};
-    ShCommand += '< /dev/null > ' + ShCommandOutput + ' 2>&1';
+    ShCommand += ' < /dev/null > ' + ShCommandOutput + ' 2>&1';
     P.Parameters.Add(ShCommand);
 
     {$else}
