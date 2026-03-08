@@ -1,5 +1,5 @@
 {
-  Copyright 2000-2025 Michalis Kamburelis.
+  Copyright 2000-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -864,12 +864,18 @@ var
 { @section(Containers) }
 
 type
+  (*PasDoc note: we need {$ifndef PASDOC}Contnrs.{$endif}
+    to parse it with PasDoc 0.16.0.
+    Testcase submitted to PasDoc:
+    tests/testcases/ok_ancestor_qualified.pas *)
+
   { Extended TObjectStack for Castle Game Engine. }
   TCastleObjectStack = class({$ifndef PASDOC}Contnrs.{$endif}TObjectStack)
   private
     function GetCapacity: TListSize;
     procedure SetCapacity(const Value: TListSize);
   public
+    { How many items can this hold without reallocating memory. }
     property Capacity: TListSize read GetCapacity write SetCapacity;
   end;
 
@@ -879,6 +885,7 @@ type
     function GetCapacity: TListSize;
     procedure SetCapacity(const Value: TListSize);
   public
+    { How many items can this hold without reallocating memory. }
     property Capacity: TListSize read GetCapacity write SetCapacity;
   end;
 

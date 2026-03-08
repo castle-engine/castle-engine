@@ -67,7 +67,7 @@
     property EmissiveColor: TVector3 read GetEmissiveColor write SetEmissiveColor;
 
     { Texture that determines the primary RGB color and transparency (opacity).
-      See TX3DGraphTraverseState.MainTexture, which is really a shortcut
+      See @link(TX3DGraphTraverseState.MainTexture), which is really a shortcut
       to call this.
 
       @groupBegin }

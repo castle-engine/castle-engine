@@ -37,16 +37,14 @@
 
 { Compiler version check ----------------------------------------------------- }
 
-{$ifndef PASDOC} // Avoid Pasdoc warnings, as Pasdoc cannot calculate $if below
-  {$ifdef FPC}
-    {$if defined(VER2) or defined(VER3_0)}
-      {$fatal You need FPC version >= 3.2.0 to compile Castle Game Engine. See https://castle-engine.io/supported_compilers.php}
-    {$endif}
-  {$else}
-    // See http://delphi.wikia.com/wiki/CompilerVersion_Constant
-    {$if CompilerVersion < 32}
-      {$message fatal 'Use Delphi >= 10.2.1 to compile Castle Game Engine. See https://castle-engine.io/delphi'}
-    {$endif}
+{$ifdef FPC}
+  {$if defined(VER2) or defined(VER3_0)}
+    {$fatal You need FPC version >= 3.2.0 to compile Castle Game Engine. See https://castle-engine.io/supported_compilers.php}
+  {$endif}
+{$else}
+  // See http://delphi.wikia.com/wiki/CompilerVersion_Constant
+  {$if CompilerVersion < 32}
+    {$message fatal 'Use Delphi >= 10.2.1 to compile Castle Game Engine. See https://castle-engine.io/delphi'}
   {$endif}
 {$endif}
 
@@ -169,10 +167,8 @@
   Delphi, even when Extended = Double, still treats Extended
   like a different type, for choosing overloads.
   It even requires Extended overloads e.g. for MinVar(Extended, ...). }
-{$ifndef PASDOC}
-  {$if not (defined(FPC) and defined(EXTENDED_EQUALS_DOUBLE))}
-    {$define EXTENDED_OVERLOADS}
-  {$endif}
+{$if not (defined(FPC) and defined(EXTENDED_EQUALS_DOUBLE))}
+  {$define EXTENDED_OVERLOADS}
 {$endif}
 
 { We used to disable inline functions/methods when compiling from
@@ -280,15 +276,13 @@
 {$ifdef VER3_0} {$undef HAS_SEPARATE_IOS} {$endif}
 {$ifdef VER3_2_0} {$undef HAS_SEPARATE_IOS} {$endif}
 
-{$ifndef PASDOC} // Avoid Pasdoc warnings, as Pasdoc cannot calculate $if below
-  {$ifdef HAS_SEPARATE_IOS}
-    {$if defined(iPHONESIM) or defined(iOS)}
-      {$define CASTLE_IOS}
-    {$endif}
-  {$else}
-    {$if defined(iPHONESIM) or (defined(DARWIN) and (defined(CPUARM) or defined(CPUAARCH64)))}
-      {$define CASTLE_IOS}
-    {$endif}
+{$ifdef HAS_SEPARATE_IOS}
+  {$if defined(iPHONESIM) or defined(iOS)}
+    {$define CASTLE_IOS}
+  {$endif}
+{$else}
+  {$if defined(iPHONESIM) or (defined(DARWIN) and (defined(CPUARM) or defined(CPUAARCH64)))}
+    {$define CASTLE_IOS}
   {$endif}
 {$endif}
 
@@ -508,22 +502,19 @@
     automatically uses this flag when necessary.
 }
 
-{$ifndef PASDOC} // Avoid Pasdoc warnings, as Pasdoc cannot calculate $if below
+{ On most platforms, try dynamic libpng (will fallback on FpImage at runtime).
+  Except on platforms where we know it would not work. }
+{$if not (defined(CASTLE_IOS) or defined(CASTLE_NINTENDO_SWITCH))}
+  {$define CASTLE_PNG_DYNAMIC}
+{$endif}
 
-  { On most platforms, try dynamic libpng (will fallback on FpImage at runtime).
-    Except on platforms where we know it would not work. }
-  {$if not (defined(CASTLE_IOS) or defined(CASTLE_NINTENDO_SWITCH))}
-    {$define CASTLE_PNG_DYNAMIC}
-  {$endif}
+{$if defined(CASTLE_PNG_DYNAMIC) and defined(CASTLE_PNG_STATIC)}
+  {$error Cannot define both CASTLE_PNG_DYNAMIC and CASTLE_PNG_STATIC. Define at most one of them.}
+{$endif}
 
-  {$if defined(CASTLE_PNG_DYNAMIC) and defined(CASTLE_PNG_STATIC)}
-    {$error Cannot define both CASTLE_PNG_DYNAMIC and CASTLE_PNG_STATIC. Define at most one of them.}
-  {$endif}
-
-  {$if defined(CASTLE_DISABLE_LIBPNG)}
-    {$undef CASTLE_PNG_DYNAMIC}
-    {$undef CASTLE_PNG_STATIC}
-  {$endif}
+{$if defined(CASTLE_DISABLE_LIBPNG)}
+  {$undef CASTLE_PNG_DYNAMIC}
+  {$undef CASTLE_PNG_STATIC}
 {$endif}
 
 { LIBPNG_CDECL is relevant only if we use libpng (dynamic or static).

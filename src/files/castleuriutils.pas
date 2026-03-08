@@ -293,7 +293,7 @@ function DeleteUriExt(const Url: String): String;
 
   Note that the resulting string is still percent-encoded, it is not decoded.
   For example, for "http://example.org/foo%20bar.txt" it returns "foo%20bar.txt",
-  not "foo bar.txt". Use @link(UriDecode) to decode it if you want. }
+  not "foo bar.txt". Use @link(UrlDecode) to decode it if you want. }
 function ExtractUriName(const Url: String): String;
 
 { Extract path (everything before last part), including final slash, from URL.

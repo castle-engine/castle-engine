@@ -98,6 +98,7 @@ type
   private
     {$ifndef PASDOC}
     // TODO: for PasDoc: Something here confuses PasDoc, although it generally can handle nested classes.
+    // Testcase in PasDoc: tests/testcases/ok_nested_2.pas
 
     type
       // TTimes = class; // such forward declaration confuses C++ Builder
