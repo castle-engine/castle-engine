@@ -669,10 +669,10 @@ type
 
       When TextureTransform = nil means that these tex coords should not be transformed.
       (This is still valuable information that you should pass for each texture.) }
-    procedure TransformCoords(const TexCoord: String; const TextureTransform: TTextureTransformNode);
+    procedure TransformCoords(const TexCoord: String; TextureTransform: TTextureTransformNode);
   end;
 
-procedure TTextureTransforms.TransformCoords(const TexCoord: String; const TextureTransform: TTextureTransformNode);
+procedure TTextureTransforms.TransformCoords(const TexCoord: String; TextureTransform: TTextureTransformNode);
 begin
   if HasAny then
   begin
@@ -683,8 +683,11 @@ begin
          TVector2.PerfectlyEquals(SingleTextureTransform.FdTranslation.Value, TextureTransform.FdTranslation.Value) and
          TVector2.PerfectlyEquals(SingleTextureTransform.FdScale.Value, TextureTransform.FdScale.Value) and
          (SingleTextureTransform.FdRotation.Value = TextureTransform.FdRotation.Value) then
+      begin
         { Ignore the difference, contents of TTextureTransformNode are equal. }
+        FreeIfUnusedAndNil(TextureTransform);
         Exit;
+      end;
       WritelnWarning('TODO: Textures within material have different texture transformation, not supported now');
       FreeIfUnusedAndNil(SingleTextureTransform);
     end;

@@ -47,6 +47,7 @@ type
     procedure TestMemoryFileSystemFindFilesSubdirs;
     procedure TestFilenameToUriSafeEmpty;
     procedure TestGetCurrentDir;
+    procedure TestExtractUriNamePercentEncoding;
   end;
 
 implementation
@@ -650,6 +651,28 @@ begin
   {$ifndef WASI}
   AssertTrue(GetCurrentDir <> '');
   {$endif}
+end;
+
+procedure TTestUriUtils.TestExtractUriNamePercentEncoding;
+begin
+  // Test cases for URI decomposition with percent-encoding
+
+  AssertEquals('foo%20bar.txt', ExtractUriName('http://example.org/foo%20bar.txt'));
+  AssertEquals('', ExtractUriName('http://example.org/foo%20bar/'));
+  AssertEquals('foo%20bar', ExtractUriName('http://example.org/foo%20bar'));
+
+  AssertEquals('http://example.org/foo%20bar/', ExtractUriPath('http://example.org/foo%20bar/'));
+  AssertEquals('http://example.org/foo%20bar/', ExtractUriPath('http://example.org/foo%20bar/file.txt'));
+
+  AssertEquals('foo%20bar.txt', ExtractUriName('castle-data:/foo%20bar.txt'));
+  AssertEquals('', ExtractUriName('castle-data:/foo%20bar/'));
+  AssertEquals('foo%20bar', ExtractUriName('castle-data:/foo%20bar'));
+
+  AssertEquals('castle-data:/foo%20bar/', ExtractUriPath('castle-data:/foo%20bar/'));
+  AssertEquals('castle-data:/foo%20bar/', ExtractUriPath('castle-data:/foo%20bar/file.txt'));
+
+  AssertEquals('foo bar.txt', UrlDecode('foo%20bar.txt'));
+  AssertEquals('foo bar', UrlDecode('foo%20bar'));
 end;
 
 initialization
