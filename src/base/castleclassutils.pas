@@ -864,13 +864,8 @@ var
 { @section(Containers) }
 
 type
-  (*PasDoc note: we need {$ifndef PASDOC}Contnrs.{$endif}
-    to parse it with PasDoc 0.16.0.
-    Testcase submitted to PasDoc:
-    tests/testcases/ok_ancestor_qualified.pas *)
-
   { Extended TObjectStack for Castle Game Engine. }
-  TCastleObjectStack = class({$ifndef PASDOC}Contnrs.{$endif}TObjectStack)
+  TCastleObjectStack = class(Contnrs.TObjectStack)
   private
     function GetCapacity: TListSize;
     procedure SetCapacity(const Value: TListSize);
@@ -880,7 +875,7 @@ type
   end;
 
   { Extended TObjectQueue for Castle Game Engine. }
-  TCastleObjectQueue = class({$ifndef PASDOC}Contnrs.{$endif}TObjectQueue)
+  TCastleObjectQueue = class(Contnrs.TObjectQueue)
   private
     function GetCapacity: TListSize;
     procedure SetCapacity(const Value: TListSize);
@@ -890,7 +885,7 @@ type
   end;
 
   { Extended TObjectList for Castle Game Engine. }
-  TCastleObjectList = class({$ifndef PASDOC}Contnrs.{$endif}TObjectList)
+  TCastleObjectList = class(Contnrs.TObjectList)
   public
     { Create and fill with the contents of given array.
 
