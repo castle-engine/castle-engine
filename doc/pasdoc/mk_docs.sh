@@ -28,6 +28,12 @@ set -eu
 #   # browse output, potentially add stuff to auto_link_exclude.txt and commit it.
 # -----------------------------------------------------------------------------
 
+# PasDoc version 0.16.0 is too old
+if pasdoc --version | grep --quiet '0.16.0'; then
+  echo "PasDoc version 0.16.0 is too old to parse Castle Game Engine sources."
+  echo "  Reported version:" "$(pasdoc --version)"
+  exit 1
+fi
 
 # Use pipefail to fail if the "pasdoc"
 # command in "pasdoc ... | grep ..." pipe fails.
