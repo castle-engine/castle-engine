@@ -33,7 +33,6 @@
     see https://castle-engine.io/sound . }
   TRepoSoundEngine = class(TSoundEngine)
   private
-    {$ifndef PASDOC} // TODO: PasDoc cannot parse the private section of this correctly yet - testcase in PasDoc tests/testcases/ok_nested_1.pas
     type
       TSoundInfoBuffer = class;
       TSoundInfoList = class;
@@ -139,7 +138,6 @@
       FSoundGroups: TSoundGroupList;
       FRepositoryUrl: String;
       FLoopingChannels: TLoopingChannelList;
-    {$endif PASDOC}
 
     procedure SetRepositoryUrl(const Value: String);
     { Reinitialize looping channels sounds.
