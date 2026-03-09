@@ -1,29 +1,38 @@
 #!/bin/bash
 set -eu
 
+# -----------------------------------------------------------------------------
+# This script generates docs for all units in castle_game_engine/src.
+#
+# $1 is format (allowed values as for pasdoc's --format option).
+# Output will be placed in subdirectory $1 of current dir
+# so $1 means also subdirectory name.
+#
+# Additional arguments (optional) limit the units for which documentation will be generated:
+# - If you do not provide additional arguments,
+#   then documentation for almost every unit in castle_game_engine/src
+#   will be generated.
+#   This is what should go to https://castle-engine.io/apidoc/html/ .
+# - Otherwise, we only generate documentation for units specified.
+#   This is useful for quickly checking generated documentation.
+#   All filenames should be relative to $CASTLE_ENGINE_UNITS_PATH
+#   directory.
+#
+# Environment:
+# - CASTLE_FIND_AUTO_LINKS=true
+#   If set, then in the output we show possible candidates for auto_link_exclude.txt.
+#   Typical usage:
+#
+#   export CASTLE_FIND_AUTO_LINKS=true
+#   make clean html | less
+#   # browse output, potentially add stuff to auto_link_exclude.txt and commit it.
+# -----------------------------------------------------------------------------
+
+
 # Use pipefail to fail if the "pasdoc"
 # command in "pasdoc ... | grep ..." pipe fails.
 # See http://unix.stackexchange.com/questions/14270/get-exit-status-of-process-thats-piped-to-another
 set -o pipefail
-
-# Generates docs for all units in castle_game_engine/src.
-# $1 is format (allowed values as for pasdoc's --format option),
-# docs will be placed in subdirectory $1 of current dir
-# so $1 means also subdirectory name.
-#
-# If you will not supply argument $2,
-# then documentation for almost every unit in castle_game_engine/src
-# (without automatically generated fonts units
-# and without units that pasdoc can't correctly parse)
-# will be generated.
-#
-# Else documentation for units $2...${$#} (all these arguments
-# should be filenames of units relative to $CASTLE_ENGINE_UNITS_PATH
-# directory) will be generated.
-# E.g.: ./mk_docs.sh html audio/alutils.pas
-# This is useful for quickly checking generated documentation
-# for some particular unit, because generating documentation
-# for all units takes a while.
 
 # "os-native path" in this file means "under Windows it must
 # *not* be Cygwin/MinGW/MSys/Git-for-Windows POSIX path,
@@ -243,6 +252,7 @@ if [[ "${CASTLE_FIND_AUTO_LINKS:-}" = 'true' ]]; then
   # Show possible candidates for auto_link_exclude.txt.
   pasdoc "${PASDOC_OPTIONS[@]}" | \
     grep --ignore-case --fixed-strings  --regexp='Automatically linked identifier' | \
+    sed 's/.*Automatically linked identifier "\([a-zA-Z0-9_.]*\)" (in description of .*/\1/' | \
     sort | \
     uniq
 
