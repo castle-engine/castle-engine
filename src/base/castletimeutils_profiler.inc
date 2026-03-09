@@ -88,7 +88,7 @@ type
 
     Contrary to profilers like Valgrind or Gprof
     (see
-    https://castle-engine.io/manual_optimization.php#section_profiling ,
+    https://castle-engine.io/optimization#_profile_measure_speed_and_memory_usage ,
     https://castle-engine.io/profiling_using_valgrind ),
     this profiler does not automatically gather everything.
     On the other hand, this profiler works on all platforms supported by CGE,
@@ -96,10 +96,6 @@ type
   }
   TCastleProfiler = class
   private
-    {$ifndef PASDOC}
-    // TODO: for PasDoc: Something here confuses PasDoc, although it generally can handle nested classes.
-    // Testcase in PasDoc: tests/testcases/ok_nested_2.pas
-
     type
       // TTimes = class; // such forward declaration confuses C++ Builder
 
@@ -128,8 +124,6 @@ type
 
       { The currently started (but not stopped) TTime structures. }
       CurrentStack: TTimeList;
-
-    {$endif}
   public
     const
       DefaultFloatPrecision = 2;
