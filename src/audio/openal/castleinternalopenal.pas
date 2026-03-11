@@ -61,10 +61,8 @@ uses SysUtils, Math, CastleVectors, CTypes;
   {$linklib pthread}
 {$endif}
 
-{$ifndef PASDOC}
 {$I castleinternalopenal_al.inc}
 {$I castleinternalopenal_alc.inc}
-{$endif}
 
 { ----------------------------------------------------------------------------
   Types to make this unit cooperate nicely with CastleVectors.

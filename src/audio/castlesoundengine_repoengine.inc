@@ -1,6 +1,6 @@
 {%MainUnit castlesoundengine.pas}
 {
-  Copyright 2010-2024 Michalis Kamburelis.
+  Copyright 2010-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -30,10 +30,9 @@
     This class extends TSoundEngine. So using the sounds defined in the XML file
     is completely optional. You can also create instances of TCastleSound
     and use them through any other means -- by code, by setting them up in editor,
-    see https://castle-engine.io/manual_sound.php . }
+    see https://castle-engine.io/sound . }
   TRepoSoundEngine = class(TSoundEngine)
   private
-    {$ifndef PASDOC} // PasDoc cannot parse the private section of this correctly yet
     type
       TSoundInfoBuffer = class;
       TSoundInfoList = class;
@@ -139,7 +138,6 @@
       FSoundGroups: TSoundGroupList;
       FRepositoryUrl: String;
       FLoopingChannels: TLoopingChannelList;
-    {$endif PASDOC}
 
     procedure SetRepositoryUrl(const Value: String);
     { Reinitialize looping channels sounds.

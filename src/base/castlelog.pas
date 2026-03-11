@@ -19,13 +19,11 @@ unit CastleLog;
 
 {$include castleconf.inc}
 
-{$ifndef PASDOC}
-  {$if (not defined(FPC)) and defined(MSWINDOWS) and defined(DEBUG)}
-    { Log using WinAPI OutputDebugString.
-      This is comfortably visible in Delphi IDE Event Log.
-      See https://stackoverflow.com/questions/11218434/how-to-view-output-of-outputdebugstring }
-    {$define CASTLE_LOG_TO_WINDOWS_EVENT_LOG}
-  {$endif}
+{$if (not defined(FPC)) and defined(MSWINDOWS) and defined(DEBUG)}
+  { Log using WinAPI OutputDebugString.
+    This is comfortably visible in Delphi IDE Event Log.
+    See https://stackoverflow.com/questions/11218434/how-to-view-output-of-outputdebugstring }
+  {$define CASTLE_LOG_TO_WINDOWS_EVENT_LOG}
 {$endif}
 
 interface

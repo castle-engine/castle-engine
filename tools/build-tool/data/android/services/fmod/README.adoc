@@ -42,6 +42,6 @@ fmodstudioapi(VersionNumber)android/
 
 Use `CastleFMODSoundBackend` unit and call `UseFMODSoundBackend`.
 
-That's it, now all our sound API (see https://castle-engine.io/manual_sound.php[manual about sound]) uses FMOD under the hood.
+That's it, now all our sound API (see https://castle-engine.io/sound[manual about sound]) uses FMOD under the hood.
 
 See https://castle-engine.io/fmod[FMOD docs] for more details.

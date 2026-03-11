@@ -421,6 +421,10 @@ type
   TUIContainer = CastleUIControls.TCastleContainer deprecated 'use TCastleContainer';
   TCastleContainer = CastleUIControls.TCastleContainer;
 
+  { Raised by methods like @link(TCastleWindow.Open) if requested context
+    parameters are not possible. }
+  EGLContextNotPossible = CastleInternalContextBase.EGLContextNotPossible;
+
   {$I castlewindowmenu.inc}
 
   { Type of message box, for TCastleWindow.MessageOK and TCastleWindow.MessageYesNo. }
@@ -1540,7 +1544,7 @@ type
       is open. You can add / delete them, change their properties
       (like @link(TMenuEntryWithCaption.Caption),
       @link(TMenuEntryWithCaption.Enabled),
-      @link(TMenuEntryChecked.Checked)), and the displayed menu will be
+      @link(TMenuItemChecked.Checked)), and the displayed menu will be
       automatically updated.
 
       Note: you @italic(cannot) change whether the menu bar

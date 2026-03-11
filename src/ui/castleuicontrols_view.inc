@@ -280,7 +280,7 @@
     { Executed when view is no longer active, no longer part of view stack.
 
       Never call this method directly (it should be called by TCastleContainer
-      methods like @link(TCastleContainer.Pop) or @link(TCastleContainer.View)
+      methods like @link(TCastleContainer.PopView) or @link(TCastleContainer.View)
       setter). It is exposed only so that you can override it.
 
       When the view stops becoming active, this happens:
@@ -319,7 +319,7 @@
       being the the top-most view.
 
       Never call this method directly (it should be called by TCastleContainer
-      methods like @link(TCastleContainer.Pop) or @link(TCastleContainer.View)
+      methods like @link(TCastleContainer.PopView) or @link(TCastleContainer.View)
       setter). It is exposed only so that you can override it. }
     procedure Pause; virtual;
 

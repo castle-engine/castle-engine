@@ -29,10 +29,8 @@ interface
 
 uses CastleVectors, CastleInternalOpenAL, Math;
 
-{$ifndef PASDOC}
 {$I castleinternalefx_api.inc}
 {$I castleinternalefx_api_creative.inc}
-{$endif PASDOC}
 
 { Checks is EFX extension, along with all it's entry points, present
   for given OpenAL device. If true, it will also initialize the entry

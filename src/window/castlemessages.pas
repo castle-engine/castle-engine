@@ -390,7 +390,7 @@ var
         running on top of your other views.
         Your views must be prepared for it (e.g. pause the game when
         the dialog is shown, and unpause it when the dialog is closed,
-        by overriding @link(TCastleView.Pause) and @link(TCastleView.Resume).
+        by overriding @link(TCastleView.Pause) and @link(TCastleView.Resume).)
       )
     )
 

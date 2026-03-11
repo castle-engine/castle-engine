@@ -1207,7 +1207,7 @@ type
       from MainScene to shine on all objects. }
     property UseGlobalFog: boolean
       read FUseGlobalFog write FUseGlobalFog default DefaultUseGlobalFog;
-      {$ifdef FPC} deprecated 'configure fog by assigning to TCastleViewport.Fog component; leave deprecated TCastleViewport.MainScene nil'; {$endif}
+      {$ifdef FPC} deprecated 'configure fog by assigning to TCastleViewport.Fog component; leave deprecated MyViewport.Items.MainScene = nil'; {$endif}
 
     { Help user to activate pointing device sensors and pick items.
       Every time you press Input_Interact (by default
@@ -1893,11 +1893,11 @@ begin
       Name
     ]);
   if UseGlobalFog <> DefaultUseGlobalFog then
-    WritelnWarning('UseGlobalFog is deprecated (on TCastleViewport named "%s"). Instead: Assign TCastleViewport.Fog to use fog, and leave deprecated TCastleViewport.MainScene = nil', [
+    WritelnWarning('UseGlobalFog is deprecated (on TCastleViewport named "%s"). Instead: Assign TCastleViewport.Fog to use fog, and leave deprecated MyViewport.Items.MainScene = nil', [
       Name
     ]);
   if UseGlobalLights <> DefaultUseGlobalLights then
-    WritelnWarning('UseGlobalLights is deprecated (on TCastleViewport named "%s"). Instead: If you need to tweak lighting, then use regular TCastleScene and set CastGlobalLights as needed; leave deprecated TCastleViewport.MainScene = nil', [
+    WritelnWarning('UseGlobalLights is deprecated (on TCastleViewport named "%s"). Instead: If you need to tweak lighting, then use regular TCastleScene and set CastGlobalLights as needed; leave deprecated MyViewport.Items.MainScene = nil', [
       Name
     ]);
   {$warnings on}
