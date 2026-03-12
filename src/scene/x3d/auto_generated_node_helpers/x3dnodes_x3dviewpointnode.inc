@@ -40,6 +40,8 @@
     procedure SetNearDistance(const Value: Single);
     function GetFarDistance: Single;
     procedure SetFarDistance(const Value: Single);
+    function GetNavigationInfo: TNavigationInfoNode;
+    procedure SetNavigationInfo(const Value: TNavigationInfoNode);
     function GetCameraMatrixSendAlsoOnOffscreenRendering: Boolean;
     procedure SetCameraMatrixSendAlsoOnOffscreenRendering(const Value: Boolean);
     function GetGravityUp: TVector3;
@@ -114,6 +116,14 @@
 
       See @link(NearDistance) for more information when it is used. }
     property FarDistance: Single read GetFarDistance write SetFarDistance;
+
+    strict private FFdNavigationInfo: TSFNode;
+    { Internal wrapper for property @code(NavigationInfo). This wrapper API may change, we advise to access simpler @code(NavigationInfo) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdNavigationInfo: TSFNode read FFdNavigationInfo;
+    { @italic(Not implemented in Castle Game Engine yet.) @exclude
+
+      Dedicated navigation information for this viewpoint. The specified NavigationInfo node will be bound / unbound when the parent viewpoint will be bound / unbound. }
+    property NavigationInfo: TNavigationInfoNode read GetNavigationInfo write SetNavigationInfo;
 
     strict private FEventCameraMatrix: TSFMatrix4fEvent;
     {  }
@@ -243,6 +253,19 @@ begin
   FdFarDistance.Send(Value);
 end;
 
+function TAbstractViewpointNode.GetNavigationInfo: TNavigationInfoNode;
+begin
+  if FdNavigationInfo.Value is TNavigationInfoNode then
+    Result := TNavigationInfoNode(FdNavigationInfo.Value)
+  else
+    Result := nil;
+end;
+
+procedure TAbstractViewpointNode.SetNavigationInfo(const Value: TNavigationInfoNode);
+begin
+  FdNavigationInfo.Send(Value);
+end;
+
 function TAbstractViewpointNode.GetCameraMatrixSendAlsoOnOffscreenRendering: Boolean;
 begin
   Result := FdCameraMatrixSendAlsoOnOffscreenRendering.Value;
@@ -313,6 +336,10 @@ begin
   FFdFarDistance := TSFFloat.Create(Self, True, 'farDistance', -1);
    FdFarDistance.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdFarDistance);
+
+  FFdNavigationInfo := TSFNode.Create(Self, True, 'navigationInfo', [TNavigationInfoNode]);
+   FdNavigationInfo.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdNavigationInfo);
 
   FEventCameraMatrix := TSFMatrix4fEvent.Create(Self, 'cameraMatrix', false);
   AddEvent(FEventCameraMatrix);
