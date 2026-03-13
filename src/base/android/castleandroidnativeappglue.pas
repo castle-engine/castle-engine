@@ -549,6 +549,12 @@ begin
   try
     AndroidLog(alInfo, 'NativeAppGlue: TAndroidAppThread.Execute');
 
+    { Set MainThreadID, to enable calling CheckSynchronize in this thread.
+      Otherwise CheckSynchronize, called from TCastleApplicationProperties._Update
+      and necessary to make TThread.Synchronize work,
+      will raise an exception EThread. }
+    MainThreadID := GetCurrentThreadID;
+
     android_app^.config := AConfiguration_new();
     AConfiguration_fromAssetManager(android_app^.config, android_app^.activity^.assetManager);
 
