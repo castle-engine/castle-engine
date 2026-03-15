@@ -293,5 +293,20 @@ else
 
 fi
 
+# cleanup docs in HTML
+if [ "${PASDOC_FORMAT}" = 'html' ]; then
+  for FFF in "${OUTPUT_PATH}"*.html; do
+    # Remove bootstrap css, js included by PasDoc.
+    # In CGE theme, we already include Bootstrap CSS and JS
+    # (in similar versions, so it should make no difference).
+    # Duplicating them makes dropdown-menu using Bootstrap JS (like "Documentation")
+    # not working.
+    sed -i \
+      -e 's|<link rel="StyleSheet" type="text/css" href="bootstrap.min.css">|<!-- link rel="StyleSheet" type="text/css" href="bootstrap.min.css" --> <!-- CGE already includes Bootstrap CSS -->|' \
+      -e 's|<script src="bootstrap.bundle.min.js"></script>|<!-- script src="bootstrap.bundle.min.js"></script --> <!-- CGE already includes Bootstrap JS -->|' \
+      "$FFF"
+  done
+fi
+
 # cleanup
 rm -f "${TMP_PAS_LIST}"
