@@ -182,7 +182,7 @@ PASDOC_OPTIONS=(
   --auto-link
   --auto-link-exclude=../doc/pasdoc/auto_link_exclude.txt
   --external-class-hierarchy=../doc/pasdoc/external_class_hierarchy.txt
-  --visible-members='public,published,automated,protected'
+  --visible-members='public,published,automated,protected?'
   --html-head=../doc/pasdoc/html-parts/head.html
   --html-body-begin=../doc/pasdoc/html-parts/body-begin.html
   --html-body-end=../doc/pasdoc/html-parts/body-end.html

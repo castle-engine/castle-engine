@@ -39,6 +39,14 @@ X3DViewpointNode : X3DBindableNode {
       See @link(NearDistance) for more information when it is used.
     """
 
+  SFNode     [in,out] navigationInfo    NULL
+    range: [NavigationInfo]
+    doc: """
+      @italic(Not implemented in Castle Game Engine yet.) @exclude
+
+      Dedicated navigation information for this viewpoint. The specified NavigationInfo node will be bound / unbound when the parent viewpoint will be bound / unbound.
+    """
+
   # CASTLE GAME ENGINE EXTENSIONS:
   SFMatrix4f [out]         cameraMatrix
   SFMatrix4f [out]         cameraInverseMatrix

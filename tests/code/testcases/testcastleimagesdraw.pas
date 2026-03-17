@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestImagesDraw" -*-
 {
-  Copyright 2015-2022 Michalis Kamburelis.
+  Copyright 2015-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -40,6 +40,8 @@ type
     procedure TestDrawToRgbAlpha;
     procedure TestDrawToGrayscale;
     procedure TestDrawToGrayscaleAlpha;
+    procedure TestFloodFillNonSquare;
+    procedure TestFloodFillCorner;
   end;
 
 implementation
@@ -394,6 +396,50 @@ begin
   AssertVectorEquals(Vector2Byte(AddBytesPremultiplied(201, 200), 128), GrayAlpha.PixelPtr(0, 1)^);
   AssertVectorEquals(Vector2Byte(202, 128), GrayAlpha.PixelPtr(1, 0)^);
   AssertVectorEquals(Vector2Byte(AddBytesPremultiplied(203, 202), 128), GrayAlpha.PixelPtr(1, 1)^);
+end;
+
+procedure TTestImagesDraw.TestFloodFillNonSquare;
+var
+  Img: TRGBAlphaImage;
+begin
+  { Test FloodFill on a non-square image (Width <> Height). }
+  Img := TRGBAlphaImage.Create(8, 4);
+  try
+    { Fill entire image with white }
+    Img.Clear(Vector4Byte(255, 255, 255, 255));
+
+    { FloodFill from center with red — should fill entire image
+      since all pixels are the same color. }
+    Img.FloodFill(4, 2, Vector4(1, 0, 0, 1), 0.1);
+
+    { Verify corners were filled }
+    AssertVectorEquals(Vector4Byte(255, 0, 0, 255), Img.PixelPtr(0, 0)^);
+    AssertVectorEquals(Vector4Byte(255, 0, 0, 255), Img.PixelPtr(7, 0)^);
+    AssertVectorEquals(Vector4Byte(255, 0, 0, 255), Img.PixelPtr(0, 3)^);
+    AssertVectorEquals(Vector4Byte(255, 0, 0, 255), Img.PixelPtr(7, 3)^);
+  finally
+    FreeAndNil(Img);
+  end;
+end;
+
+procedure TTestImagesDraw.TestFloodFillCorner;
+var
+  Img: TRGBAlphaImage;
+begin
+  { Test FloodFill starting at corner (0, 0). }
+  Img := TRGBAlphaImage.Create(4, 4);
+  try
+    { Fill entire image with blue }
+    Img.Clear(Vector4Byte(0, 0, 255, 255));
+
+    { FloodFill from corner with green }
+    Img.FloodFill(0, 0, Vector4(0, 1, 0, 1), 0.1);
+
+    { Verify opposite corner was filled }
+    AssertVectorEquals(Vector4Byte(0, 255, 0, 255), Img.PixelPtr(3, 3)^);
+  finally
+    FreeAndNil(Img);
+  end;
 end;
 
 initialization

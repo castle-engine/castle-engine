@@ -90,7 +90,7 @@ jobs:
 
     - name: Install macOS dependencies
       if: ${{ runner.os == 'macOS' }}
-      run: brew install gnu-sed coreutils findutils
+      run: brew install gnu-sed coreutils findutils 7zip
 
     - name: Install Windows dependencies
       if: ${{ runner.os == 'Windows' }}
@@ -227,7 +227,13 @@ jobs:
         wget --progress=bar:force:noscroll \
           https://github.com/pasdoc/pasdoc/archive/refs/heads/master.zip \
           --output-document pasdoc-master.zip
-        unzip -q pasdoc-master.zip
+
+        # Prefer to use 7zz, installed from https://formulae.brew.sh/formula/sevenzip#default ,
+        # because unzip fails to unpack zip with umlaults on macOS,
+        # which PasDoc uses for our tests:
+        # https://github.com/pasdoc/pasdoc/tree/master/tests/testcases_output/html/ok_unicode_identifiers_utf8
+        if command -v 7zz >/dev/null 2>&1; then 7zz x pasdoc-master.zip; else unzip -q pasdoc-master.zip; fi
+
         mv pasdoc-master pasdoc
         cd pasdoc
         make

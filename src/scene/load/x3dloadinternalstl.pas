@@ -1,5 +1,5 @@
 {
-  Copyright 2017-2024 Michalis Kamburelis.
+  Copyright 2017-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -144,6 +144,15 @@ var
 begin
   Stream.Position := BinaryHeader;
   Stream.ReadLE(TriangleCount);
+
+  { TriangleCount * 3 must fit into Integer (Coordinate.Count).
+    This fixes a potential security issue, otherwise in -dRELEASE
+    the "TriangleCount * 3" could overflow without a clear error,
+    resulting in too small memory being allocated. }
+  if TriangleCount > High(Integer) div 3 then
+    raise EReadError.CreateFmt(
+      'STL binary file declares too many triangles: %d (max supported is %d)',
+      [TriangleCount, High(Integer) div 3]);
 
   Coordinate.Count := TriangleCount * 3;
   Normal.Count := TriangleCount * 3;
