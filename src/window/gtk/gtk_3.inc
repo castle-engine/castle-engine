@@ -12,6 +12,11 @@ const
   GDK_KEY_Capital_A = GDK_KEY_A_;
   GDK_KEY_Capital_Z = GDK_KEY_Z_;
 
+  {$ifdef CASTLE_GTK3_UNITS_GTK4PAS}
+  LazGtk3_library = Gtk3_library;
+  LazGdk3_library = Gdk3_library;
+  {$endif}
+
 type
   { These are functions that check type in GTK 2.
     In GTK 3, we just cast.
