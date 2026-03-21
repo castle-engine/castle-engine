@@ -458,7 +458,7 @@
   font-size: 80%;
   color: gray;
 }
-.pasdoc-container .visibility-toggles {
+.pasdoc-container .show-members-toggles {
   margin: 0.75em 0;
   padding: 0.4em 0.75em;
   background: var(--pasdoc-code-bg);
@@ -466,11 +466,11 @@
   border-radius: 0.25rem;
   font-size: 0.875rem;
 }
-.pasdoc-container .visibility-toggles .visibility-toggles-label {
+.pasdoc-container .show-members-toggles .show-members-toggles-label {
   color: var(--pasdoc-muted);
   margin-right: 0.75em;
 }
-.pasdoc-container .visibility-toggles label {
+.pasdoc-container .show-members-toggles label {
   margin-right: 1em;
   user-select: none;
   cursor: pointer;

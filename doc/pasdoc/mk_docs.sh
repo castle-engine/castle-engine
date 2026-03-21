@@ -190,6 +190,7 @@ PASDOC_OPTIONS=(
   --show-source-position
   --source-url-pattern='https://github.com/castle-engine/castle-engine/blob/master/src/{FILE}#L{LINE}'
   --source-root="$(pwd)"
+  --inherited-members=default-hide
 )
 
 # add include directories to pasdoc options
