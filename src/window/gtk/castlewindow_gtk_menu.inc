@@ -39,11 +39,11 @@ begin
   Result := gfalse;
 end;
 
-{ This is the only event I found that can be used in GTK 2 to
+{ This is the only event I found that can be used in GTK to
   "sniff" when menu is open. See ReleaseAllKeysAndMouse
   for comments why it's important to sniff it.
 
-  Note that in GTK 2 even when menu is open, key up will correctly
+  Note that in GTK even when menu is open, key up will correctly
   be called when you release keys over item in main menu bar
   (i.e. if your MainMenu contains directly TMenuItem).
   In this case key up is just passed to our WindowGtk.
@@ -89,7 +89,7 @@ end;
   Note: MenuItemBlock/Unblock changed for GTK >= 2
   to use g_signal_handlers_block/unblock_by_func instead of
   gtk_signal_handler_block/unblock_by_func in GTK 1. Although it should be
-  perfectly correct to use gtk_signal_handler_xxx functions still in GTK 2,
+  perfectly correct to use gtk_signal_handler_xxx functions still in GTK,
   this caused some warnings printed by gtk:
 
   - after doing gtk_signal_handler_block_by_func,
@@ -390,7 +390,7 @@ procedure TCastleWindow.BackendMenuInitialize;
 
     { How to catch the moment when the menu bar is opened/selected/clicked
       etc. by the user ? It should be caught when user enters menu by clicking
-      on menu bar or pressing some menu key (like F10 in GTK 2).
+      on menu bar or pressing some menu key (like F10 in GTK).
 
       There is no way do this nicely in GTK 1 ?
       So I'm using threre very non-elegant soltuion to catch button-press-event.
@@ -423,8 +423,8 @@ end;
 {$ifdef CASTLE_WINDOW_GTK_2}
 { GTK >= 2.16 already includes "gtk_menu_item_set_label":
   http://library.gnome.org/devel/gtk/2.21/GtkMenuItem.html#gtk-menu-item-set-label
-  But we cannot use GTK 2.16 (e.g. Debian stable still only has
-  GTK 2.12 on 2010-05).
+  For historic reasons, we decided to keep working with GTK 2.12,
+  which is the version available in Debian stable 2010-05.
 
   So we implement it ourselves, following ideas from
   http://mail.gnome.org/archives/gtk-app-devel-list/2003-October/msg00171.html

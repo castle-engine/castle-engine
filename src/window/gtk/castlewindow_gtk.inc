@@ -495,7 +495,7 @@ SIGNAL_WINDOW_BEGIN
             keyEscape   : KeyString := CharEscape;
             keyEnter    : KeyString := CharEnter;
             {$endif}
-            { It seems that GTK 2 doesn't translate backspace and tab to
+            { It seems that GTK >= 2 doesn't translate backspace and tab to
               appropriate chars. So I'm fixing it here. }
             keyTab      : KeyString := CharTab;
             keyBackSpace: KeyString := CharBackSpace;
@@ -1014,7 +1014,7 @@ begin
 
   if (GtkIconName <> '') and
      { gtk_window_set_icon_name exists since GTK 2.6.
-       (Although I officially require GTK 2.6, this function is really
+       (Although we officially require GTK 2.6, this function is really
        not critical, so we check it dynamically.) }
      Assigned(@gtk_window_set_icon_name) then
     gtk_window_set_icon_name(WindowGtk, PCharOrNil(GtkIconName));
