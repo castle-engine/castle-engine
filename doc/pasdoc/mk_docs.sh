@@ -75,6 +75,11 @@ if [ -n "$CYGWIN_OR_SIMILAR" ]; then
   FIND='/bin/find' # On Cygwin, make sure to use Cygwin's find, not the one from Windows
 fi
 
+SED='sed'
+if command -v gsed > /dev/null 2>&1; then
+  SED='gsed' # On macOS, prefer GNU sed if available (e.g. via Homebrew)
+fi
+
 # calculate PASDOC_CACHE (os-native path)
 # I use --cache-dir with pasdoc, as this greatly speeds up generation
 # of these docs.
@@ -259,7 +264,7 @@ if [[ "${CASTLE_FIND_AUTO_LINKS:-}" = 'true' ]]; then
   # Show possible candidates for auto_link_exclude.txt.
   pasdoc "${PASDOC_OPTIONS[@]}" | \
     grep --ignore-case --fixed-strings  --regexp='Automatically linked identifier' | \
-    sed 's/.*Automatically linked identifier "\([a-zA-Z0-9_.]*\)" (in description of .*/\1/' | \
+    "${SED}" -e 's/.*Automatically linked identifier "\([a-zA-Z0-9_.]*\)" (in description of .*/\1/' | \
     sort | \
     uniq
 
@@ -302,7 +307,7 @@ if [ "${PASDOC_FORMAT}" = 'html' ]; then
     # (in similar versions, so it should make no difference).
     # Duplicating them makes dropdown-menu using Bootstrap JS (like "Documentation")
     # not working.
-    sed -i \
+    "${SED}" -i \
       -e 's|<link rel="StyleSheet" type="text/css" href="bootstrap.min.css">|<!-- link rel="StyleSheet" type="text/css" href="bootstrap.min.css" --> <!-- CGE already includes Bootstrap CSS -->|' \
       -e 's|<script src="bootstrap.bundle.min.js"></script>|<!-- script src="bootstrap.bundle.min.js"></script --> <!-- CGE already includes Bootstrap JS -->|' \
       "$FFF"
