@@ -362,7 +362,7 @@
   color: var(--pasdoc-muted);
   display: none;
 }
-.pasdoc-container p.inheritdescription {
+.pasdoc-container p.inheritdescription, .pasdoc-container p.description-inherited {
   color: var(--pasdoc-muted);
   font-style: italic;
 }
