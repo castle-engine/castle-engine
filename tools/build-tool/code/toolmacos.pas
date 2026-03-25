@@ -293,7 +293,7 @@ begin
       CopyOrSymlinkFileAlongsideExe(DynLibInfo.Name, OutputBundleExePath);
   finally FreeAndNil(DynLibs) end;
 
-  { Necessary to test applications with Steam integration on macOS.
+  (*Necessary to test applications with Steam integration on macOS.
     TODO: This should not be hardcoded in the build tool, we need a way to
     specify this in the project file.
     TODO: Temporarily commented out, we cannot place the txt file alongside
@@ -305,7 +305,7 @@ begin
 
       .../castle-editor.app: code object is not signed at all
       In subcomponent: .../castle-editor.app/Contents/MacOS/steam_appid.txt
-  }
+  *)
   // if FileExists(Project.Path + 'steam_appid.txt') then
   //   CopyOrSymlinkFileAlongsideExe('steam_appid.txt', OutputBundleExePath);
 
