@@ -17,6 +17,17 @@ const
   LazGdk3_library = Gdk3_library;
   {$endif}
 
+{$ifdef CASTLE_GTK3_UNITS_GTK4PAS}
+{ Otherwise linking will fail with
+
+  /usr/bin/x86_64-linux-gnu-ld.bfd: /usr/lib/x86_64-linux-gnu/fpc/3.2.2/units/x86_64-linux/gtk3/glib2.o: in function `GLIB2$_$TGTHREAD_$__$$_INIT$POINTER':
+  glib2.pas:(.text.n_glib2$_$tgthread_$__$$_init$pointer+0x19): undefined reference to `g_thread_init'
+  /usr/bin/x86_64-linux-gnu-ld.bfd: /usr/lib/x86_64-linux-gnu/fpc/3.2.2/units/x86_64-linux/gtk3/glib2.o: in function `GLIB2$_$TGTHREAD_$__$$_INIT_WITH_ERRORCHECK_MUTEXES$POINTER':
+  glib2.pas:(.text.n_glib2$_$tgthread_$__$$_init_with_errorcheck_mutexes$pointer+0x19): undefined reference to `g_thread_init_with_errorcheck_mutexes'
+}
+{$linklib gthread-2.0}
+{$endif}
+
 type
   { These are functions that check type in GTK 2.
     In GTK 3, we just cast.
