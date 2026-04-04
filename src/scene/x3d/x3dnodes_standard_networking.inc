@@ -821,9 +821,12 @@ end;
 
 function TInlineGeometryNode.Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode;
 begin
-  { We make DeepCopy, as CastleShapes is prepared that it owns the proxy
-    results, including their lifetime, also for associating shapes with it. }
-  Result := FInlineGeometry.DeepCopy as TAbstractGeometryNode;
+  if FInlineGeometry = nil then
+    Result := nil
+  else
+    { We make DeepCopy, as CastleShapes is prepared that it owns the proxy
+      results, including their lifetime, also for associating shapes with it. }
+    Result := FInlineGeometry.DeepCopy as TAbstractGeometryNode;
 end;
 
 function TInlineGeometryNode.LocalBoundingBox(State: TX3DGraphTraverseState;

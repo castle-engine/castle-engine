@@ -1091,7 +1091,9 @@ begin
   begin
     N := InstantiableNodes[I].Create;
     try
-      if N is TAbstractGeometryNode then
+      if (N is TAbstractGeometryNode) and
+         // exclude TInlineGeometryNode from this check, it has a few fields that don't have chGeometry and it's OK.
+         (not (N is TInlineGeometryNode)) then
       begin
         for J := 0 to N.FieldsCount - 1 do
           if N.Fields[J].X3DName <> 'metadata' then
