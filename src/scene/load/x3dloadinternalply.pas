@@ -226,6 +226,9 @@ type
 
     { Read integer, from ASCII or binary format depending on PlyFormat. }
     function ReadInteger(const PropertyType: TPlyPropertyType): Integer;
+
+    { Read float (Single in Pascal), from ASCII or binary format depending on PlyFormat. }
+    function ReadFloat(const T: TPlyPropertyType): Single;
   public
     // Set before calling @link(ReadHeader).
     Stream: TStream;
@@ -508,6 +511,74 @@ begin
     SkipBinary(PropertyType);
 end;
 
+function TPlyReader.ReadFloat(const T: TPlyPropertyType): Single;
+
+  { Read Single value of type T in binary format. }
+  function ReadBinaryAsFloat(const T: TPlyPropertyType): Single;
+  var
+    VInt8: Int8;
+    VUInt8: UInt8;
+    VInt16: Int16;
+    VUInt16: UInt16;
+    VInt32: Int32;
+    VUInt32: UInt32;
+    VFloat32: Single;
+    VFloat64: Double;
+  begin
+    case T of
+      ptInt8:
+        begin
+          Stream.ReadBuffer(VInt8, SizeOf(VInt8));
+          Result := VInt8;
+        end;
+      ptUInt8:
+        begin
+          Stream.ReadBuffer(VUInt8, SizeOf(VUInt8));
+          Result := VUInt8;
+        end;
+      ptInt16:
+        begin
+          Stream.ReadEndianess(VInt16, PlyFormat = pfBinaryLittleEndian);
+          Result := VInt16;
+        end;
+      ptUInt16:
+        begin
+          Stream.ReadEndianess(VUInt16, PlyFormat = pfBinaryLittleEndian);
+          Result := VUInt16;
+        end;
+      ptInt32:
+        begin
+          Stream.ReadEndianess(VInt32, PlyFormat = pfBinaryLittleEndian);
+          Result := VInt32;
+        end;
+      ptUInt32:
+        begin
+          Stream.ReadEndianess(VUInt32, PlyFormat = pfBinaryLittleEndian);
+          Result := VUInt32;
+        end;
+      ptFloat32:
+        begin
+          Stream.ReadEndianess(VFloat32, PlyFormat = pfBinaryLittleEndian);
+          Result := VFloat32;
+        end;
+      ptFloat64:
+        begin
+          Stream.ReadEndianess(VFloat64, PlyFormat = pfBinaryLittleEndian);
+          Result := VFloat64;
+        end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
+      else raise EInternalError.Create('Unknown TPlyPropertyType value');
+      {$endif}
+    end;
+  end;
+
+begin
+  if PlyFormat = pfAscii then
+    Result := TextReader.ReadSingle
+  else
+    Result := ReadBinaryAsFloat(T);
+end;
+
 procedure TPlyReader.SkipElement(const Element: TPlyElement);
 var
   I, K, ListCount: Integer;
@@ -531,9 +602,59 @@ procedure TPlyReader.ReadVertices(const Element: TPlyElement;
   const Normals: TVector3List;
   const ColorsRgba: TVector4List;
   const ColorsRgb: TVector3List);
+var
+  I, K, ListCount: Integer;
+  Prop: TPlyProperty;
+  V: TVector3;
+  N: TVector3;
+  C: TVector4;
 begin
-  // TODO
-  SkipElement(Element);
+  for I := 0 to Element.Count - 1 do
+  begin
+    V := TVector3.Zero;
+    N := TVector3.Zero;
+    C := Vector4(1, 1, 1, 1);
+
+    for Prop in Element.Properties do
+    begin
+      if Prop.IsList then
+      begin
+        { List properties in vertex element are unusual; skip them. }
+        WritelnWarning('PLY reader: skipping list property in vertex element, which is unusual');
+        ListCount := ReadInteger(Prop.CountType);
+        for K := 0 to ListCount - 1 do
+          SkipValue(Prop.PropertyType);
+      end else
+      begin
+        case Prop.KnownName of
+          pnX: V.X := ReadFloat(Prop.PropertyType);
+          pnY: V.Y := ReadFloat(Prop.PropertyType);
+          pnZ: V.Z := ReadFloat(Prop.PropertyType);
+          pnNormalX: N.X := ReadFloat(Prop.PropertyType);
+          pnNormalY: N.Y := ReadFloat(Prop.PropertyType);
+          pnNormalZ: N.Z := ReadFloat(Prop.PropertyType);
+          pnRed: C.X := ReadFloat(Prop.PropertyType) / 255.0;
+          pnGreen: C.Y := ReadFloat(Prop.PropertyType) / 255.0;
+          pnBlue: C.Z := ReadFloat(Prop.PropertyType) / 255.0;
+          pnAlpha: C.W := ReadFloat(Prop.PropertyType) / 255.0;
+          pnUnknown: SkipValue(Prop.PropertyType);
+          pnVertexIndices:
+            begin
+              WritelnWarning('PLY reader: vertex element should not have vertex_indices property, ignoring it');
+              SkipValue(Prop.PropertyType);
+            end;
+        end;
+      end;
+    end;
+
+    Coordinates.Add(V);
+    if Normals <> nil then
+      Normals.Add(N);
+    if ColorsRgba <> nil then
+      ColorsRgba.Add(C);
+    if ColorsRgb <> nil then
+      ColorsRgb.Add(C.XYZ);
+  end;
 end;
 
 procedure TPlyReader.ReadFaces(const Element: TPlyElement; const CoordIndex: TInt32List);
