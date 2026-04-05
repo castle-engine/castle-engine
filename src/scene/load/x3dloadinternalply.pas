@@ -221,11 +221,11 @@ type
     { Skip Element that we don't want to read. }
     procedure SkipElement(const Element: TPlyElement);
 
-    { Skip value, with size determined by T, in binary format. }
-    procedure SkipBinary(const T: TPlyPropertyType);
+    { Skip value, from ASCII or binary format depending on PlyFormat. }
+    procedure SkipValue(const PropertyType: TPlyPropertyType);
 
-    { Read an integer value of type T in binary format. }
-    function ReadBinaryAsInt(const T: TPlyPropertyType): Integer;
+    { Read integer, from ASCII or binary format depending on PlyFormat. }
+    function ReadInteger(const PropertyType: TPlyPropertyType): Integer;
   public
     // Set before calling @link(ReadHeader).
     Stream: TStream;
@@ -421,105 +421,108 @@ begin
     raise EReadError.Create('PLY header missing "vertex" element');
 end;
 
-function TPlyReader.ReadBinaryAsInt(const T: TPlyPropertyType): Integer;
-var
-  VInt8: Int8;
-  VUInt8: UInt8;
-  VInt16: Int16;
-  VUInt16: UInt16;
-  VInt32: Int32;
-  VUInt32: UInt32;
-  VFloat32: Single;
-  VFloat64: Double;
-begin
-  case T of
-    ptInt8:
-      begin
-        Stream.ReadBuffer(VInt8, SizeOf(VInt8));
-        Result := VInt8;
-      end;
-    ptUInt8:
-      begin
-        Stream.ReadBuffer(VUInt8, SizeOf(VUInt8));
-        Result := VUInt8;
-      end;
-    ptInt16:
-      begin
-        Stream.ReadEndianess(VInt16, PlyFormat = pfBinaryLittleEndian);
-        Result := VInt16;
-      end;
-    ptUInt16:
-      begin
-        Stream.ReadEndianess(VUInt16, PlyFormat = pfBinaryLittleEndian);
-        Result := VUInt16;
-      end;
-    ptInt32:
-      begin
-        Stream.ReadEndianess(VInt32, PlyFormat = pfBinaryLittleEndian);
-        Result := VInt32;
-      end;
-    ptUInt32:
-      begin
-        Stream.ReadEndianess(VUInt32, PlyFormat = pfBinaryLittleEndian);
-        Result := VUInt32;
-      end;
-    ptFloat32:
-      begin
-        Stream.ReadEndianess(VFloat32, PlyFormat = pfBinaryLittleEndian);
-        Result := Round(VFloat32);
-      end;
-    ptFloat64:
-      begin
-        Stream.ReadEndianess(VFloat64, PlyFormat = pfBinaryLittleEndian);
-        Result := Round(VFloat64);
-      end;
-    {$ifndef COMPILER_CASE_ANALYSIS}
-    else raise EInternalError.Create('Unknown TPlyPropertyType value');
-    {$endif}
+function TPlyReader.ReadInteger(const PropertyType: TPlyPropertyType): Integer;
+
+  { Read an integer value of type T in binary format. }
+  function ReadBinaryAsInt(const T: TPlyPropertyType): Integer;
+  var
+    VInt8: Int8;
+    VUInt8: UInt8;
+    VInt16: Int16;
+    VUInt16: UInt16;
+    VInt32: Int32;
+    VUInt32: UInt32;
+    VFloat32: Single;
+    VFloat64: Double;
+  begin
+    case T of
+      ptInt8:
+        begin
+          Stream.ReadBuffer(VInt8, SizeOf(VInt8));
+          Result := VInt8;
+        end;
+      ptUInt8:
+        begin
+          Stream.ReadBuffer(VUInt8, SizeOf(VUInt8));
+          Result := VUInt8;
+        end;
+      ptInt16:
+        begin
+          Stream.ReadEndianess(VInt16, PlyFormat = pfBinaryLittleEndian);
+          Result := VInt16;
+        end;
+      ptUInt16:
+        begin
+          Stream.ReadEndianess(VUInt16, PlyFormat = pfBinaryLittleEndian);
+          Result := VUInt16;
+        end;
+      ptInt32:
+        begin
+          Stream.ReadEndianess(VInt32, PlyFormat = pfBinaryLittleEndian);
+          Result := VInt32;
+        end;
+      ptUInt32:
+        begin
+          Stream.ReadEndianess(VUInt32, PlyFormat = pfBinaryLittleEndian);
+          Result := VUInt32;
+        end;
+      ptFloat32:
+        begin
+          Stream.ReadEndianess(VFloat32, PlyFormat = pfBinaryLittleEndian);
+          Result := Round(VFloat32);
+        end;
+      ptFloat64:
+        begin
+          Stream.ReadEndianess(VFloat64, PlyFormat = pfBinaryLittleEndian);
+          Result := Round(VFloat64);
+        end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
+      else raise EInternalError.Create('Unknown TPlyPropertyType value');
+      {$endif}
+    end;
   end;
+
+begin
+  if PlyFormat = pfAscii then
+    Result := TextReader.ReadInteger
+  else
+    Result := ReadBinaryAsInt(PropertyType);
 end;
 
-procedure TPlyReader.SkipBinary(const T: TPlyPropertyType);
-var
-  Dummy: array [0..7] of Byte;
+procedure TPlyReader.SkipValue(const PropertyType: TPlyPropertyType);
+
+  procedure SkipBinary(const T: TPlyPropertyType);
+  var
+    Dummy: array [0..7] of Byte;
+  begin
+    Assert(PropertyTypeSize[T] <= SizeOf(Dummy));
+    // We skip by reading to Dummy, which is supported by any TStream type.
+    // We don't use Stream.Seek, as some TStream types may not implement seeking.
+    Stream.ReadBuffer(Dummy, PropertyTypeSize[T]);
+  end;
+
 begin
-  Assert(PropertyTypeSize[T] <= SizeOf(Dummy));
-  // We skip by reading to Dummy, which is supported by any TStream type.
-  // We don't use Stream.Seek, as some TStream types may not implement seeking.
-  Stream.ReadBuffer(Dummy, PropertyTypeSize[T]);
+  if PlyFormat = pfAscii then
+    TextReader.Read
+  else
+    SkipBinary(PropertyType);
 end;
 
 procedure TPlyReader.SkipElement(const Element: TPlyElement);
-
-  function ReadInteger(const PropertyType: TPlyPropertyType): Integer;
-  begin
-    if PlyFormat = pfAscii then
-      Result := TextReader.ReadInteger
-    else
-      Result := ReadBinaryAsInt(PropertyType);
-  end;
-
-  procedure SkipValue(const PropertyType: TPlyPropertyType);
-  begin
-    if PlyFormat = pfAscii then
-      TextReader.Read
-    else
-      SkipBinary(PropertyType);
-  end;
-
 var
-  I, PropIndex, K, ListCount: Integer;
+  I, K, ListCount: Integer;
+  Prop: TPlyProperty;
 begin
   for I := 0 to Element.Count - 1 do
-    for PropIndex := 0 to Element.Properties.Count - 1 do
+    for Prop in Element.Properties do
     begin
-      if Element.Properties[PropIndex].IsList then
+      if Prop.IsList then
       begin
-        ListCount := ReadInteger(Element.Properties[PropIndex].CountType);
+        ListCount := ReadInteger(Prop.CountType);
         for K := 0 to ListCount - 1 do
-          SkipValue(Element.Properties[PropIndex].PropertyType);
+          SkipValue(Prop.PropertyType);
       end else
-        SkipValue(Element.Properties[PropIndex].PropertyType);
+        SkipValue(Prop.PropertyType);
     end;
 end;
 
@@ -534,9 +537,33 @@ begin
 end;
 
 procedure TPlyReader.ReadFaces(const Element: TPlyElement; const CoordIndex: TInt32List);
+var
+  I, K, ListCount: Integer;
+  Prop: TPlyProperty;
 begin
-  // TODO
-  SkipElement(Element);
+  for I := 0 to Element.Count - 1 do
+    for Prop in Element.Properties do
+    begin
+      if Prop.IsList then
+      begin
+        ListCount := ReadInteger(Prop.CountType);
+        if Prop.KnownName = pnVertexIndices then
+        begin
+          for K := 0 to ListCount - 1 do
+            CoordIndex.Add(ReadInteger(Prop.PropertyType));
+          CoordIndex.Add(-1);
+        end else
+        begin
+          WritelnWarning('PLY', 'Face element has list property "%s" that is not vertex_indices, ignoring it', [Prop.Name]);
+          for K := 0 to ListCount - 1 do
+            SkipValue(Prop.PropertyType);
+        end;
+      end else
+      begin
+        WritelnWarning('PLY', 'Face element has scalar property "%s", ignoring it', [Prop.Name]);
+        SkipValue(Prop.PropertyType);
+      end;
+    end;
 end;
 
 procedure TPlyReader.ReadData(
