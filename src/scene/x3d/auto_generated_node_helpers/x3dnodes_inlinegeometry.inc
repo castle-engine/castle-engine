@@ -58,7 +58,7 @@
     strict private FFdLoad: TSFBool;
     { Internal wrapper for property @code(Load). This wrapper API may change, we advise to access simpler @code(Load) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdLoad: TSFBool read FFdLoad;
-    { Partially implemented: only the starting value, when reading file, matters. When @false, the content is not loaded. }
+    { Is the model (and the geometry) actually loaded. Toggle it to change loaded status. }
     property Load: Boolean read GetLoad write SetLoad;
 
     strict private FFdUrl: TMFString;
