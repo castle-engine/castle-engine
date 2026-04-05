@@ -30,7 +30,7 @@ interface
 
 implementation
 
-uses SysUtils, Classes,
+uses SysUtils, Classes, Generics.Collections,
   X3DNodes, X3DLoad, CastleClassUtils, CastleVectors, CastleUtils, CastleDownload,
   CastleLog, CastleStreamUtils, CastleStringUtils, CastleSceneCore;
 
@@ -160,7 +160,7 @@ type
     destructor Destroy; override;
   end;
 
-  TPlyElementList = {$ifdef FPC}specialize{$endif} TStructList<TPlyElement>;
+  TPlyElementList = {$ifdef FPC}specialize{$endif} TObjectList<TPlyElement>;
 
 constructor TPlyElement.Create;
 begin
@@ -229,6 +229,7 @@ type
 
     { Read float (Single in Pascal), from ASCII or binary format depending on PlyFormat. }
     function ReadFloat(const T: TPlyPropertyType): Single;
+    function ReadFloatColorComponent(const T: TPlyPropertyType): Single;
   public
     // Set before calling @link(ReadHeader).
     Stream: TStream;
@@ -246,8 +247,8 @@ type
 
     { For each TPlyPropertyKnownNames, index to the property in the vertex
       or face element, or -1 if not found.
-      For pmUnknown, this is always -1.
-      For pmVertexIndices, this refers to index in FaceElement.Properties.
+      For pnUnknown, this is always -1.
+      For pnVertexIndices, this refers to index in FaceElement.Properties.
       For others, this refers to index in VertexElement.Properties. }
     PropertyIndexes: array [TPlyPropertyKnownNames] of Integer;
 
@@ -341,7 +342,8 @@ begin
     SeekPos := 1;
     FirstToken := NextToken(Line, SeekPos);
 
-    if FirstToken = 'comment' then
+    if (FirstToken = 'comment') or
+       (FirstToken = 'obj_info') then
       Continue; { ignore comments }
 
     if FirstToken = 'format' then
@@ -579,6 +581,13 @@ begin
     Result := ReadBinaryAsFloat(T);
 end;
 
+function TPlyReader.ReadFloatColorComponent(const T: TPlyPropertyType): Single;
+begin
+  Result := ReadFloat(T);
+  if T in [ptInt8, ptUInt8, ptInt16, ptUInt16, ptInt32, ptUInt32] then
+    Result := Result / 255.0;
+end;
+
 procedure TPlyReader.SkipElement(const Element: TPlyElement);
 var
   I, K, ListCount: Integer;
@@ -620,7 +629,7 @@ begin
       if Prop.IsList then
       begin
         { List properties in vertex element are unusual; skip them. }
-        WritelnWarning('PLY reader: skipping list property in vertex element, which is unusual');
+        WritelnWarning('PLY', 'Skipping list property in vertex element, which is unusual');
         ListCount := ReadInteger(Prop.CountType);
         for K := 0 to ListCount - 1 do
           SkipValue(Prop.PropertyType);
@@ -633,14 +642,14 @@ begin
           pnNormalX: N.X := ReadFloat(Prop.PropertyType);
           pnNormalY: N.Y := ReadFloat(Prop.PropertyType);
           pnNormalZ: N.Z := ReadFloat(Prop.PropertyType);
-          pnRed: C.X := ReadFloat(Prop.PropertyType) / 255.0;
-          pnGreen: C.Y := ReadFloat(Prop.PropertyType) / 255.0;
-          pnBlue: C.Z := ReadFloat(Prop.PropertyType) / 255.0;
-          pnAlpha: C.W := ReadFloat(Prop.PropertyType) / 255.0;
+          pnRed: C.X := ReadFloatColorComponent(Prop.PropertyType);
+          pnGreen: C.Y := ReadFloatColorComponent(Prop.PropertyType);
+          pnBlue: C.Z := ReadFloatColorComponent(Prop.PropertyType);
+          pnAlpha: C.W := ReadFloatColorComponent(Prop.PropertyType);
           pnUnknown: SkipValue(Prop.PropertyType);
           pnVertexIndices:
             begin
-              WritelnWarning('PLY reader: vertex element should not have vertex_indices property, ignoring it');
+              WritelnWarning('PLY', 'Vertex element should not have vertex_indices property, ignoring it');
               SkipValue(Prop.PropertyType);
             end;
         end;
