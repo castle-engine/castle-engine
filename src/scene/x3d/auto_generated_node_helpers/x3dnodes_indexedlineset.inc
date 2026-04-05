@@ -32,6 +32,8 @@
     function GetFogCoord: TFogCoordinateNode;
     procedure SetFogCoord(const Value: TFogCoordinateNode);
 {$endif not CASTLE_SLIM_NODES}
+    function GetNormal: TAbstractNormalNode;
+    procedure SetNormal(const Value: TAbstractNormalNode);
     function GetColorPerVertex: Boolean;
     procedure SetColorPerVertex(const Value: Boolean);
     function GetMode: TLineMode;
@@ -80,6 +82,12 @@
     {  }
     property FogCoord: TFogCoordinateNode read GetFogCoord write SetFogCoord;
 {$endif not CASTLE_SLIM_NODES}
+
+    strict private FFdNormal: TSFNode;
+    { Internal wrapper for property @code(Normal). This wrapper API may change, we advise to access simpler @code(Normal) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdNormal: TSFNode read FFdNormal;
+    { Normal vectors on a line set allow lines to react to lighting. }
+    property Normal: TAbstractNormalNode read GetNormal write SetNormal;
 
     strict private FFdColorIndex: TMFInt32;
     { Internal wrapper for property @code(ColorIndex). This wrapper API may change, we advise to access simpler @code(ColorIndex) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -186,6 +194,19 @@ begin
 end;
 
 {$endif not CASTLE_SLIM_NODES}
+function TIndexedLineSetNode.GetNormal: TAbstractNormalNode;
+begin
+  if FdNormal.Value is TAbstractNormalNode then
+    Result := TAbstractNormalNode(FdNormal.Value)
+  else
+    Result := nil;
+end;
+
+procedure TIndexedLineSetNode.SetNormal(const Value: TAbstractNormalNode);
+begin
+  FdNormal.Send(Value);
+end;
+
 procedure TIndexedLineSetNode.SetColorIndex(const Value: array of Int32);
 begin
   FdColorIndex.Send(Value);
@@ -282,6 +303,10 @@ begin
    FdFogCoord.ChangeAlways := chGeometry;
   AddField(FFdFogCoord);
 {$endif not CASTLE_SLIM_NODES}
+
+  FFdNormal := TSFNode.Create(Self, True, 'normal', [TAbstractNormalNode]);
+   FdNormal.ChangeAlways := chGeometry;
+  AddField(FFdNormal);
 
   FFdColorIndex := TMFInt32.Create(Self, False, 'colorIndex', []);
    FdColorIndex.ChangeAlways := chGeometry;
