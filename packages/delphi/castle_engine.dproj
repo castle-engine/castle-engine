@@ -260,6 +260,7 @@
         <DCCReference Include="..\..\src\scene\load\ifc\castleifc.pas"/>
         <DCCReference Include="..\..\src\scene\load\x3dloadinternalobj.pas"/>
         <DCCReference Include="..\..\src\scene\load\x3dloadinternalstl.pas"/>
+        <DCCReference Include="..\..\src\scene\load\x3dloadinternalply.pas"/>
         <DCCReference Include="..\..\src\scene\load\x3dloadinternaltiledmap.pas"/>
         <DCCReference Include="..\..\src\scene\load\x3dloadinternalutils.pas"/>
         <DCCReference Include="..\..\src\scene\load\collada\x3dloadinternalcollada.pas"/>

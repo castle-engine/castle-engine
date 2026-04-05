@@ -1,5 +1,5 @@
 {
-  Copyright 2015-2018 Sven Barth.
+  Copyright 2015-2026 Sven Barth, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -59,6 +59,19 @@ type
     procedure ReadBE(out Value: Double); overload;
     { @groupEnd }
 
+    { Reads with Endianess specified as Boolean
+      and converts it to native Byte order.
+      @groupBegin }
+    procedure ReadEndianess(out Value: Word; const LittleEndian: Boolean); overload;
+    procedure ReadEndianess(out Value: UInt32; const LittleEndian: Boolean); overload;
+    procedure ReadEndianess(out Value: QWord; const LittleEndian: Boolean); overload;
+    procedure ReadEndianess(out Value: SmallInt; const LittleEndian: Boolean); overload;
+    procedure ReadEndianess(out Value: Int32; const LittleEndian: Boolean); overload;
+    procedure ReadEndianess(out Value: Int64; const LittleEndian: Boolean); overload;
+    procedure ReadEndianess(out Value: Single; const LittleEndian: Boolean); overload;
+    procedure ReadEndianess(out Value: Double; const LittleEndian: Boolean); overload;
+    { @groupEnd }
+
     { Writes a value in native Byte order as little endian value to the stream.
 
       @groupBegin }
@@ -89,6 +102,8 @@ type
 implementation
 
 { TStreamHelper -------------------------------------------------------------- }
+
+{ ReadLE --------------------------------------------------------------------- }
 
 procedure TStreamHelper.ReadLE(out Value: Word);
 begin
@@ -156,6 +171,8 @@ begin
   Value := LEtoN(Value);
 end;
 
+{ ReadBE --------------------------------------------------------------------- }
+
 procedure TStreamHelper.ReadBE(out Value: Word);
 begin
   ReadBuffer(Value, SizeOf(Value));
@@ -203,6 +220,75 @@ begin
   ReadBuffer(Value, SizeOf(Value));
   Value := BEtoN(Value);
 end;
+
+{ ReadEndianwess --------------------------------------------------------------
+  ReadEndianwess is just a wrapper around ReadLE and ReadBE. }
+
+procedure TStreamHelper.ReadEndianess(out Value: Word; const LittleEndian: Boolean);
+begin
+  if LittleEndian then
+    ReadLE(Value)
+  else
+    ReadBE(Value);
+end;
+
+procedure TStreamHelper.ReadEndianess(out Value: UInt32; const LittleEndian: Boolean);
+begin
+  if LittleEndian then
+    ReadLE(Value)
+  else
+    ReadBE(Value);
+end;
+
+procedure TStreamHelper.ReadEndianess(out Value: QWord; const LittleEndian: Boolean);
+begin
+  if LittleEndian then
+    ReadLE(Value)
+  else
+    ReadBE(Value);
+end;
+
+procedure TStreamHelper.ReadEndianess(out Value: SmallInt; const LittleEndian: Boolean);
+begin
+  if LittleEndian then
+    ReadLE(Value)
+  else
+    ReadBE(Value);
+end;
+
+procedure TStreamHelper.ReadEndianess(out Value: Int32; const LittleEndian: Boolean);
+begin
+  if LittleEndian then
+    ReadLE(Value)
+  else
+    ReadBE(Value);
+end;
+
+procedure TStreamHelper.ReadEndianess(out Value: Int64; const LittleEndian: Boolean);
+begin
+  if LittleEndian then
+    ReadLE(Value)
+  else
+    ReadBE(Value);
+end;
+
+procedure TStreamHelper.ReadEndianess(out Value: Single; const LittleEndian: Boolean);
+begin
+  if LittleEndian then
+    ReadLE(Value)
+  else
+    ReadBE(Value);
+end;
+
+procedure TStreamHelper.ReadEndianess(out Value: Double; const LittleEndian: Boolean);
+begin
+  if LittleEndian then
+    ReadLE(Value)
+  else
+    ReadBE(Value);
+end;
+
+{ WriteLE -------------------------------------------------------------------- }
 
 procedure TStreamHelper.WriteLE(const Value: Word);
 var
@@ -267,6 +353,8 @@ begin
   tmp := NToLE(Value);
   WriteBuffer(tmp, SizeOf(tmp));
 end;
+
+{ WriteBE -------------------------------------------------------------------- }
 
 procedure TStreamHelper.WriteBE(const Value: Word);
 var
