@@ -625,7 +625,6 @@ begin
           PackageModeToName[PackageMode] + PathDelim +
           'app-' + PackageModeToName[PackageMode] + '.aab',
           Project.OutputPath + PackageName);
-        DoMakeExecutable(Project.OutputPath + PackageName);
       end;
     else
       raise Exception.Create('Unexpected PackageFormat in PackageAndroid: ' + PackageFormatToString(PackageFormat));

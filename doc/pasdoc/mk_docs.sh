@@ -75,6 +75,11 @@ if [ -n "$CYGWIN_OR_SIMILAR" ]; then
   FIND='/bin/find' # On Cygwin, make sure to use Cygwin's find, not the one from Windows
 fi
 
+SED='sed'
+if command -v gsed > /dev/null 2>&1; then
+  SED='gsed' # On macOS, prefer GNU sed if available (e.g. via Homebrew)
+fi
+
 # calculate PASDOC_CACHE (os-native path)
 # I use --cache-dir with pasdoc, as this greatly speeds up generation
 # of these docs.
@@ -190,6 +195,7 @@ PASDOC_OPTIONS=(
   --show-source-position
   --source-url-pattern='https://github.com/castle-engine/castle-engine/blob/master/src/{FILE}#L{LINE}'
   --source-root="$(pwd)"
+  --inherited-members=default-hide
 )
 
 # add include directories to pasdoc options
@@ -258,7 +264,7 @@ if [[ "${CASTLE_FIND_AUTO_LINKS:-}" = 'true' ]]; then
   # Show possible candidates for auto_link_exclude.txt.
   pasdoc "${PASDOC_OPTIONS[@]}" | \
     grep --ignore-case --fixed-strings  --regexp='Automatically linked identifier' | \
-    sed 's/.*Automatically linked identifier "\([a-zA-Z0-9_.]*\)" (in description of .*/\1/' | \
+    "${SED}" -e 's/.*Automatically linked identifier "\([a-zA-Z0-9_.]*\)" (in description of .*/\1/' | \
     sort | \
     uniq
 
@@ -291,6 +297,21 @@ else
     --regexp='Could not resolve link "EFOpenError"' \
     --regexp='Could not resolve link "EStreamError"'
 
+fi
+
+# cleanup docs in HTML
+if [ "${PASDOC_FORMAT}" = 'html' ]; then
+  for FFF in "${OUTPUT_PATH}"*.html; do
+    # Remove bootstrap css, js included by PasDoc.
+    # In CGE theme, we already include Bootstrap CSS and JS
+    # (in similar versions, so it should make no difference).
+    # Duplicating them makes dropdown-menu using Bootstrap JS (like "Documentation")
+    # not working.
+    "${SED}" -i \
+      -e 's|<link rel="StyleSheet" type="text/css" href="bootstrap.min.css">|<!-- link rel="StyleSheet" type="text/css" href="bootstrap.min.css" --> <!-- CGE already includes Bootstrap CSS -->|' \
+      -e 's|<script src="bootstrap.bundle.min.js"></script>|<!-- script src="bootstrap.bundle.min.js"></script --> <!-- CGE already includes Bootstrap JS -->|' \
+      "$FFF"
+  done
 fi
 
 # cleanup

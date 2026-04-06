@@ -158,6 +158,10 @@ IndexedLineSet : X3DGeometryNode {
     range: FogCoordinate
     not-slim
     change: chGeometry
+  SFNode [in,out] normal NULL
+    range: X3DNormalNode
+    change: chGeometry
+    doc: Normal vectors on a line set allow lines to react to lighting.
   MFInt32 []       colorIndex     []
     range: [0,Inf) or -1
     change: chGeometry
@@ -221,6 +225,10 @@ LineSet : X3DGeometryNode {
     range: FogCoordinate
     not-slim
     change: chGeometry
+  SFNode [in,out] normal NULL
+    range: X3DNormalNode
+    change: chGeometry
+    doc: Normal vectors on a line set allow lines to react to lighting.
   MFInt32 [in,out] vertexCount    []
     range: [2,Inf)
     change: chGeometry
@@ -293,6 +301,10 @@ PointSet : X3DGeometryNode {
     range: FogCoordinate
     not-slim
     change: chGeometry
+  SFNode [in,out] normal NULL
+    range: X3DNormalNode
+    change: chGeometry
+    doc: Normal vectors on a point set allow points to react to lighting, which makes sense if point set approximates some real solid object.
 
   MFVec4f    [in,out]      skinWeights0     []
     change: chGeometry

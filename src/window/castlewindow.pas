@@ -106,7 +106,7 @@
       #)
     )
 
-    @item(Multiple backends are available (WinAPI, GTK 2, Cocoa, LCL, FMX, Xlib...),
+    @item(Multiple backends are available (WinAPI, GTK, Cocoa, LCL, FMX, Xlib...),
       see @url(https://castle-engine.io/castlewindow_backends CastleWindow Backends).
       There's also a special backend CASTLE_WINDOW_LIBRARY that allows to use
       existing OpenGL(ES) context created by some other code
@@ -1352,7 +1352,7 @@ type
     property AlphaBits: Cardinal
       read FAlphaBits write FAlphaBits default 0;
 
-    { Name of the icon for this window used by GTK 2 backend.
+    { Name of the icon for this window used by GTK backend.
 
       This is simply passed to @code(gtk_window_set_icon_name),
       see [http://library.gnome.org/devel/gtk/stable/GtkWindow.html#gtk-window-set-icon-name].
@@ -1361,7 +1361,7 @@ type
       [http://library.gnome.org/devel/integration-guide/stable/icons.html.en]
       for short information how and where to install your icons.
 
-      It's ignored on non-GTK 2 backends. }
+      It's ignored on non-GTK backends. }
     property GtkIconName: String read FGtkIconName write FGtkIconName;
 
     (*Should this window be actually displayed on the desktop.

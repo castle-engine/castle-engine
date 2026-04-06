@@ -536,6 +536,7 @@ begin
     P.Targets.AddUnit('x3dloadinternalimage.pas');
     P.Targets.AddUnit('x3dloadinternalobj.pas');
     P.Targets.AddUnit('x3dloadinternalstl.pas');
+    P.Targets.AddUnit('x3dloadinternalply.pas');
     P.Targets.AddUnit('x3dloadinternaltiledmap.pas');
     P.Targets.AddUnit('x3dloadinternalutils.pas');
 

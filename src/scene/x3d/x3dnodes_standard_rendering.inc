@@ -1,6 +1,6 @@
 {%MainUnit x3dnodes.pas}
 {
-  Copyright 2002-2023 Michalis Kamburelis.
+  Copyright 2002-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -646,6 +646,7 @@
     function ColorField: TSFNode; override;
     function InternalFogCoord: TMFFloat; override;
     function AttribField: TMFNode; override;
+    function NormalField: TSFNode; override;
 
   {$I auto_generated_node_helpers/x3dnodes_indexedlineset.inc}
   end;
@@ -726,6 +727,7 @@
     function TrianglesCount(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function Lit(State: TX3DGraphTraverseState): boolean; override;
+    function NormalField: TSFNode; override;
 
   {$I auto_generated_node_helpers/x3dnodes_lineset.inc}
   end;
@@ -768,6 +770,7 @@
     function ColorField: TSFNode; override;
     function InternalFogCoord: TMFFloat; override;
     function AttribField: TMFNode; override;
+    function NormalField: TSFNode; override;
 
   {$I auto_generated_node_helpers/x3dnodes_pointset.inc}
   end;
@@ -1430,10 +1433,15 @@ begin
   FdCoordIndex.Changed;
 end;
 
+function TIndexedLineSetNode.NormalField: TSFNode;
+begin
+  Result := FdNormal;
+end;
+
 function TIndexedLineSetNode.Lit(State: TX3DGraphTraverseState): boolean;
 begin
-  { VRML 2.0 specification says that IndexedLineSet should always be unlit }
-  Result := false;
+  // always unlit if no normals
+  Result := FdNormal.Value <> nil;
 end;
 
 { TIndexedTriangleFanSetNode ------------------------------------------------- }
@@ -1525,6 +1533,11 @@ end;
 function TLineSetNode.CoordField: TSFNode;
 begin
   Result := FdCoord;
+end;
+
+function TLineSetNode.NormalField: TSFNode;
+begin
+  Result := FdNormal;
 end;
 
 function TLineSetNode.SkinWeightsJoints(
@@ -1627,9 +1640,11 @@ end;
 
 function TLineSetNode.Lit(State: TX3DGraphTraverseState): boolean;
 begin
-  { X3D specification says that LineSet should always be unlit }
-  Result := false;
+  // always unlit if no normals
+  Result := FdNormal.Value <> nil;
 end;
+
+{ TPointSetNode -------------------------------------------------------------- }
 
 class function TPointSetNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
@@ -1699,9 +1714,15 @@ begin
   {$endif}
 end;
 
+function TPointSetNode.NormalField: TSFNode;
+begin
+  Result := FdNormal;
+end;
+
 function TPointSetNode.Lit(State: TX3DGraphTraverseState): boolean;
 begin
-  Result := false;
+  // always unlit if no normals
+  Result := FdNormal.Value <> nil;
 end;
 
 { TTriangleFanSetNode -------------------------------------------------------- }

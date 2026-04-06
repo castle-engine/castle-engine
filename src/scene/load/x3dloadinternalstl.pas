@@ -199,7 +199,7 @@ end;
 
   But this fails for some STL files, see
   https://github.com/castle-engine/castle-engine/issues/433 .
-  We now know follow Blender's approach,
+  We now follow Blender's approach,
   https://github.com/blender/blender-addons/blob/main/io_mesh_stl/stl_utils.py#L60 .
 
   This resets Stream.Position to 0 after read. }

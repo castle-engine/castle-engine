@@ -288,22 +288,23 @@
 
 { Define COMPILER_CASE_ANALYSIS when appropriate --------------------------- }
 
-{ Some compilers automatically detect and warns when "case" doesn't cover
-  all possibilities. This means we do not have to, and actually
+{ FPC > 3.2 detects and warns when "case" doesn't cover
+  all possibilities.
+
+  This means we do not have to, and actually
   we should not have to (as it would cause "Warning: Unreachable code" warning),
   add a clause like "else raise EInternalError.Create('xxx');"
   to "case" statements that should always have a matching possibility.
 
   See https://castle-engine.io/coding_conventions#case_analysis .
 
-  This is true for FPC > 3.2 now.
-
-  Note: We disable the related warnings (see lower in this file),
+  After some experimenting,
+  we just disable the related warnings (see lower $warn off.. in this file),
   because in some cases there's just no good solution.
   And it makes it hard to write code that also works
   for compilers without case analysis, like FPC 3.2.x and Delphi.
 
-  However, we still define COMPILER_CASE_ANALYSIS, because when it is undefined
+  We still define COMPILER_CASE_ANALYSIS, because when it is undefined
   -- another FPC problem strikes, $warning off + $warning on
   seems to reset the state of warnings, so the warning "Unreachable code"
   is reported for all "else ..." for case that exhausts all options.

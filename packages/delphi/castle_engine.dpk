@@ -99,6 +99,7 @@ contains
   castleifc in '..\..\src\scene\load\ifc\castleifc.pas',
   x3dloadinternalobj in '..\..\src\scene\load\x3dloadinternalobj.pas',
   x3dloadinternalstl in '..\..\src\scene\load\x3dloadinternalstl.pas',
+  x3dloadinternalply in '..\..\src\scene\load\x3dloadinternalply.pas',
   x3dloadinternaltiledmap in '..\..\src\scene\load\x3dloadinternaltiledmap.pas',
   x3dloadinternalutils in '..\..\src\scene\load\x3dloadinternalutils.pas',
   x3dloadinternalcollada in '..\..\src\scene\load\collada\x3dloadinternalcollada.pas',
