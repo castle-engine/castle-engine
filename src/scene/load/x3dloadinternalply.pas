@@ -103,8 +103,24 @@ type
     pnX, pnY, pnZ,
     // vertex normals
     pnNormalX, pnNormalY, pnNormalZ,
-    // vertex colors
+    // vertex colors (in 0..255 range)
     pnRed, pnGreen, pnBlue, pnAlpha,
+
+    { vertex colors relative to spherical harmonics.
+      Testcases:
+        https://vr.csgrid.org/gsplats/soaring_eagle.ply
+        https://ifiweb.informatik.tu-freiberg.de/public/silversplat/.%2Fmodels%2Fwerner_amethyst.ply
+      Hint how to interpret these:
+        https://github.com/graphdeco-inria/gaussian-splatting/issues/485#issuecomment-1824118303
+        """
+        R = 0.5 + C0 * f_dc_0
+        where C0 is the zeroth-order spherical harmonic coefficient
+        """
+      See also
+        https://www.useblurry.com/blog/anatomy-of-a-ply-file
+    }
+    pnRedSH, pnGreenSH, pnBlueSH,
+
     // face vertex indices
     pnVertexIndices
   );
@@ -131,6 +147,7 @@ const
     'x', 'y', 'z',
     'nx', 'ny', 'nz',
     'red', 'green', 'blue', 'alpha',
+    'f_dc_0', 'f_dc_1', 'f_dc_2',
     'vertex_indices'
   );
 
@@ -145,6 +162,8 @@ begin
       Exit;
   if LowerS = 'vertex_index' then // alternative name for vertex_indices, visible on https://paulbourke.net/dataformats/ply/
     Exit(pnVertexIndices);
+  // useful for debugging, but too spammy for regular users?
+  // WritelnWarning('PLY', 'Unknown PLY property name "%s", ignoring', [S]);
   Exit(pnUnknown);
 end;
 
@@ -611,6 +630,11 @@ procedure TPlyReader.ReadVertices(const Element: TPlyElement;
   const Normals: TVector3List;
   const ColorsRgba: TVector4List;
   const ColorsRgb: TVector3List);
+const
+  SphericalHarmonicsColorComponentScale =
+    //0.5 * Sqrt(1 / Pi);
+    // precalculated to:
+    0.28209479177387814346;
 var
   I, K, ListCount: Integer;
   Prop: TPlyProperty;
@@ -646,6 +670,9 @@ begin
           pnGreen: C.Y := ReadFloatColorComponent(Prop.PropertyType);
           pnBlue: C.Z := ReadFloatColorComponent(Prop.PropertyType);
           pnAlpha: C.W := ReadFloatColorComponent(Prop.PropertyType);
+          pnRedSH: C.X := 0.5 + 0.5 * SphericalHarmonicsColorComponentScale * ReadFloat(Prop.PropertyType);
+          pnGreenSH: C.Y := 0.5 + 0.5 * SphericalHarmonicsColorComponentScale * ReadFloat(Prop.PropertyType);
+          pnBlueSH: C.Z := 0.5 + 0.5 * SphericalHarmonicsColorComponentScale * ReadFloat(Prop.PropertyType);
           pnUnknown: SkipValue(Prop.PropertyType);
           pnVertexIndices:
             begin
@@ -776,9 +803,12 @@ begin
       ColorNode := nil;
       ColorsRgba := nil;
       ColorsRgb := nil;
-      if (Reader.PropertyIndexes[pnRed] <> -1) and
-         (Reader.PropertyIndexes[pnGreen] <> -1) and
-         (Reader.PropertyIndexes[pnBlue] <> -1) then
+      if ( (Reader.PropertyIndexes[pnRed] <> -1) or
+           (Reader.PropertyIndexes[pnRedSH] <> -1) ) and
+         ( (Reader.PropertyIndexes[pnGreen] <> -1) or
+           (Reader.PropertyIndexes[pnGreenSH] <> -1) ) and
+         ( (Reader.PropertyIndexes[pnBlue] <> -1) or
+           (Reader.PropertyIndexes[pnBlueSH] <> -1) ) then
       begin
         if Reader.PropertyIndexes[pnAlpha] <> -1 then
         begin
