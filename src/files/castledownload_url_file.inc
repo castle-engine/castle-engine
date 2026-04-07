@@ -165,9 +165,11 @@ begin
   if Ext = '.ply' then Result := 'application/x-ply' else
   { Various sites propose various MIME types for STL:
     https://gist.github.com/allysonsouza/1bf9d4a0295a14373979cd23d15df0a9
-    application/wavefront-stl
-    application/vnd.ms-pki.stl }
-  if Ext = '.stl' then Result := 'application/x-stl' else
+      application/wavefront-stl
+      application/vnd.ms-pki.stl
+    We used application/x-stl in the past.
+    Let's follow https://en.wikipedia.org/wiki/STL_(file_format) . }
+  if Ext = '.stl' then Result := 'model/stl' else
   if Ext = '.glb' then Result := 'model/gltf-binary' else
   if Ext = '.gltf' then Result := 'model/gltf+json' else
   // Images.

@@ -384,11 +384,12 @@ initialization
   ModelFormat.OnLoad := {$ifdef FPC}@{$endif} LoadSTL;
   ModelFormat.OnLoadForceMemoryStream := true;
   ModelFormat.OnSave := {$ifdef FPC}@{$endif} SaveSTL;
-  ModelFormat.MimeTypes.Add('application/x-stl');
+  ModelFormat.MimeTypes.Add('model/stl');
   // other STL mime types
   ModelFormat.MimeTypes.Add('application/wavefront-stl');
   ModelFormat.MimeTypes.Add('application/vnd.ms-pki.stl');
   ModelFormat.MimeTypes.Add('application/x-navistyle');
+  ModelFormat.MimeTypes.Add('application/x-stl'); // CGE used this in the past
   ModelFormat.FileFilterName := 'STereo Lithography (*.stl)';
   ModelFormat.Extensions.Add('.stl');
   RegisterModelFormat(ModelFormat);
