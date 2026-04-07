@@ -119,7 +119,7 @@ type
       See also
         https://www.useblurry.com/blog/anatomy-of-a-ply-file
     }
-    pnRedSH, pnGreenSH, pnBlueSH,
+    pnRedSH, pnGreenSH, pnBlueSH, pnAlphaSH,
 
     // face vertex indices
     pnVertexIndices
@@ -148,6 +148,7 @@ const
     'nx', 'ny', 'nz',
     'red', 'green', 'blue', 'alpha',
     'f_dc_0', 'f_dc_1', 'f_dc_2',
+    'opacity',
     'vertex_indices'
   );
 
@@ -673,6 +674,7 @@ begin
           pnRedSH: C.X := 0.5 + 0.5 * SphericalHarmonicsColorComponentScale * ReadFloat(Prop.PropertyType);
           pnGreenSH: C.Y := 0.5 + 0.5 * SphericalHarmonicsColorComponentScale * ReadFloat(Prop.PropertyType);
           pnBlueSH: C.Z := 0.5 + 0.5 * SphericalHarmonicsColorComponentScale * ReadFloat(Prop.PropertyType);
+          pnAlphaSH: C.W := 0.5 + 0.5 * SphericalHarmonicsColorComponentScale * ReadFloat(Prop.PropertyType);
           pnUnknown: SkipValue(Prop.PropertyType);
           pnVertexIndices:
             begin
@@ -810,7 +812,8 @@ begin
          ( (Reader.PropertyIndexes[pnBlue] <> -1) or
            (Reader.PropertyIndexes[pnBlueSH] <> -1) ) then
       begin
-        if Reader.PropertyIndexes[pnAlpha] <> -1 then
+        if (Reader.PropertyIndexes[pnAlpha] <> -1) or
+           (Reader.PropertyIndexes[pnAlphaSH] <> -1) then
         begin
           ColorNode := TColorRgbaNode.Create;
           ColorsRgba := TColorRgbaNode(ColorNode).FdColor.Items;
