@@ -1,6 +1,6 @@
 {%MainUnit castledownload.pas}
 {
-  Copyright 2013-2025 Michalis Kamburelis.
+  Copyright 2013-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -161,8 +161,10 @@ begin
   if Ext = '.castle-anim-frames' then Result := 'application/x-castle-anim-frames' else
   if Ext = '.json' then Result := 'application/json' else
   { Note that https://en.wikipedia.org/wiki/PLY_(file_format)
-    says PLY is text/plain, but we need specific MIME type to distinguish it. }
-  if Ext = '.ply' then Result := 'application/x-ply' else
+    says PLY is text/plain, but we need specific MIME type to distinguish it.
+    X_ITE uses model/ply, so let's follow it.
+    https://create3000.github.io/x_ite/#supported-file-formats }
+  if Ext = '.ply' then Result := 'model/ply' else
   { Various sites propose various MIME types for STL:
     https://gist.github.com/allysonsouza/1bf9d4a0295a14373979cd23d15df0a9
       application/wavefront-stl

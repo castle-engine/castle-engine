@@ -868,6 +868,7 @@ var
 initialization
   ModelFormat := TModelFormat.Create;
   ModelFormat.OnLoad := {$ifdef FPC}@{$endif} LoadPLY;
+  ModelFormat.MimeTypes.Add('model/ply');
   ModelFormat.MimeTypes.Add('application/x-ply');
   ModelFormat.FileFilterName := 'Polygon File Format (*.ply)';
   ModelFormat.Extensions.Add('.ply');
