@@ -838,6 +838,11 @@ begin
         FaceSet.Normal := NormalNode;
         FaceSet.ColorPerVertex := true;
         FaceSet.Color := ColorNode;
+        { Completely smooth; consistent with X_ITE rendering of
+          https://www.web3d.org/x3d/content/examples/X3dForAdvancedModeling/AdditiveManufacturing/TeapotInlineGeometryPlyIndex.html
+          See also x3d-public thread
+          "InlineGeometry node and PLY format support in Castle Game Engine" }
+        FaceSet.CreaseAngle := 4;
         Assert(Geometry = FaceSet); // by absolute declaration
       end else
       begin
@@ -868,6 +873,7 @@ var
 initialization
   ModelFormat := TModelFormat.Create;
   ModelFormat.OnLoad := {$ifdef FPC}@{$endif} LoadPLY;
+  ModelFormat.MimeTypes.Add('model/ply');
   ModelFormat.MimeTypes.Add('application/x-ply');
   ModelFormat.FileFilterName := 'Polygon File Format (*.ply)';
   ModelFormat.Extensions.Add('.ply');

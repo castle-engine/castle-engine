@@ -28,7 +28,7 @@ unit X3DLoad;
 
 interface
 
-uses SysUtils, Classes,
+uses SysUtils, Classes, Generics.Collections,
   CastleUtils, CastleVectors, X3DNodes, CastleStringUtils, CastleClassUtils;
 
 type
@@ -338,9 +338,19 @@ type
   #) *)
 procedure RegisterModelFormat(const ModelFormat: TModelFormat);
 
+{ Used by castle-model-viewer/utils/output_document_types/ . }
+{$ifdef CASTLE_INTERNAL_EXPOSE_MODEL_FORMATS}
+type
+  TModelFormatList = class({$ifdef FPC}specialize{$endif} TObjectList<TModelFormat>)
+    function FindMimeType(const MimeType: string): TModelFormat;
+  end;
+
+function InternalRegisteredModelFormats: TModelFormatList;
+{$endif CASTLE_INTERNAL_EXPOSE_MODEL_FORMATS}
+
 implementation
 
-uses Generics.Collections,
+uses
   CastleImages, CastleUriUtils, CastleInternalNodeInterpolator, CastleDownload
   {$IFNDEF CASTLE_GEO_SUPPORT_DISABLE}, X3DLoadInternalGEO {$ENDIF}
   {$IFNDEF CASTLE_3DS_SUPPORT_DISABLE}, X3DLoadInternal3DS {$ENDIF}
@@ -359,13 +369,22 @@ uses Generics.Collections,
 
 { declare FRegisteredModelFormats early ------------------------------------- }
 
+{$ifndef CASTLE_INTERNAL_EXPOSE_MODEL_FORMATS}
 type
   TModelFormatList = class({$ifdef FPC}specialize{$endif} TObjectList<TModelFormat>)
     function FindMimeType(const MimeType: string): TModelFormat;
   end;
+{$endif not CASTLE_INTERNAL_EXPOSE_MODEL_FORMATS}
 
 var
   FRegisteredModelFormats: TModelFormatList;
+
+{$ifdef CASTLE_INTERNAL_EXPOSE_MODEL_FORMATS}
+function InternalRegisteredModelFormats: TModelFormatList;
+begin
+  Result := FRegisteredModelFormats;
+end;
+{$endif CASTLE_INTERNAL_EXPOSE_MODEL_FORMATS}
 
 { loading -------------------------------------------------------------------- }
 
