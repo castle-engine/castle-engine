@@ -40,7 +40,7 @@ type
 
   TTestCastleUIControls = class(TCastleTestCase)
   strict private
-    procedure CoreTestStopViewFromEvent(const StateSwitchActivator: TViewSwitchActivator);
+    procedure CoreTestStopViewFromEvent(const ViewSwitchActivator: TViewSwitchActivator);
   published
     procedure TestRectEffective;
     procedure TestRecursiveSize;
@@ -631,7 +631,7 @@ type
     { When not vsNothing, then clicking button / or timer occurence/
       or press of Enter key -> will stop this view.
       Set before Start, it also determines what gets created in Start. }
-    StateSwitchActivator: TViewSwitchActivator;
+    ViewSwitchActivator: TViewSwitchActivator;
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
     procedure Stop; override;
@@ -649,13 +649,13 @@ procedure TTestStopFromEventView.Start;
 begin
   inherited;
 
-  if StateSwitchActivator = vsMyTimer then
+  if ViewSwitchActivator = vsMyTimer then
     MyTimer.OnTimer := {$ifdef FPC}@{$endif} MyTimerTimer;
 
-  if StateSwitchActivator = vsMyButton then
+  if ViewSwitchActivator = vsMyButton then
     MyButton.OnClick := {$ifdef FPC}@{$endif} MyClick;
 
-  if StateSwitchActivator = vsButtonCreatedExplicitly then
+  if ViewSwitchActivator = vsButtonCreatedExplicitly then
   begin
     ButtonCreatedExplicitly := TCastleButtonTestDestroy.Create(FreeAtStop);
     ButtonCreatedExplicitly.OnClick := {$ifdef FPC}@{$endif} MyClick;
@@ -663,14 +663,14 @@ begin
     InsertFront(ButtonCreatedExplicitly);
   end;
 
-  if StateSwitchActivator = vsTimerCreatedExplicitly then
+  if ViewSwitchActivator = vsTimerCreatedExplicitly then
   begin
     TimerCreatedExplicitly := TCastleTimerTestDestroy.Create(FreeAtStop);
     TimerCreatedExplicitly.OnTimer := {$ifdef FPC}@{$endif} MyTimerTimer;
     InsertFront(TimerCreatedExplicitly);
   end;
 
-  if StateSwitchActivator = vsButtonCreatedExplicitly2 then
+  if ViewSwitchActivator = vsButtonCreatedExplicitly2 then
   begin
     ButtonCreatedExplicitly2 := TCastleButtonTestDestroy.Create(nil);
     ButtonCreatedExplicitly2.OnClick := {$ifdef FPC}@{$endif} MyClick;
@@ -678,7 +678,7 @@ begin
     InsertFront(ButtonCreatedExplicitly2);
   end;
 
-  if StateSwitchActivator = vsTimerCreatedExplicitly2 then
+  if ViewSwitchActivator = vsTimerCreatedExplicitly2 then
   begin
     TimerCreatedExplicitly2 := TCastleTimerTestDestroy.Create(nil);
     TimerCreatedExplicitly2.OnTimer := {$ifdef FPC}@{$endif} MyTimerTimer;
@@ -708,7 +708,7 @@ begin
   Result := inherited;
   if Event.IsKey(keyEnter) then
   begin
-    if StateSwitchActivator = vsPress then
+    if ViewSwitchActivator = vsPress then
       Container.View := nil;
     Exit(true);
   end;
@@ -734,7 +734,7 @@ begin
 end;
 {$endif}
 
-procedure TTestCastleUIControls.CoreTestStopViewFromEvent(const StateSwitchActivator: TViewSwitchActivator);
+procedure TTestCastleUIControls.CoreTestStopViewFromEvent(const ViewSwitchActivator: TViewSwitchActivator);
 
 { Testcase for
   https://forum.castle-engine.io/t/android-crash-issue-resolved-but-investigation-of-timer-behavior-could-be-important/2139/4
@@ -812,20 +812,20 @@ begin
       with InternalViewChangeImmediate = true. }
     Container.InternalViewChangeImmediate := false;
     V := TTestStopFromEventView.Create(nil);
-    V.StateSwitchActivator := StateSwitchActivator;
+    V.ViewSwitchActivator := ViewSwitchActivator;
     Container.View := V;
 
     // set ActivatorButtonIfAny, ActivatorTimerIfAny
     ActivatorButtonIfAny := nil;
     ActivatorTimerIfAny := nil;
-    case StateSwitchActivator of
+    case ViewSwitchActivator of
       vsButtonCreatedExplicitly: ActivatorButtonIfAny := V.ButtonCreatedExplicitly as TCastleButtonTestDestroy;
       vsTimerCreatedExplicitly: ActivatorTimerIfAny := V.TimerCreatedExplicitly as TCastleTimerTestDestroy;
       vsButtonCreatedExplicitly2: ActivatorButtonIfAny := V.ButtonCreatedExplicitly2 as TCastleButtonTestDestroy;
       vsTimerCreatedExplicitly2: ActivatorTimerIfAny := V.TimerCreatedExplicitly2 as TCastleTimerTestDestroy;
     end;
 
-    case StateSwitchActivator of
+    case ViewSwitchActivator of
       vsNothing:
         begin
           // do all operations, expect no view change
@@ -848,7 +848,7 @@ begin
           // wait for timer, expect view change
           FakeTimer(true);
         end;
-      else raise EInternalError.Create('Unknown StateSwitchActivator value');
+      else raise EInternalError.Create('Unknown ViewSwitchActivator value');
     end;
 
   finally
@@ -859,7 +859,7 @@ end;
 
 procedure TTestCastleUIControls.TestStopViewFromEvent;
 const
-  StateSwitchActivatorNames: array[TViewSwitchActivator] of string = (
+  ViewSwitchActivatorNames: array[TViewSwitchActivator] of string = (
     'Nothing',
     'Press',
     'MyButton',
@@ -874,7 +874,7 @@ var
 begin
   for I := Low(TViewSwitchActivator) to High(TViewSwitchActivator) do
   begin
-    WritelnLog('TestStopViewFromEvent with activator ' + StateSwitchActivatorNames[I]);
+    WritelnLog('TestStopViewFromEvent with activator ' + ViewSwitchActivatorNames[I]);
     CoreTestStopViewFromEvent(I);
   end;
 end;
