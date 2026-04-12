@@ -112,7 +112,7 @@
     procedure InternalResume;
     procedure InternalPause;
     procedure StartContainerFreeNotification(const Sender: TFreeNotificationObserver);
-    { Stop yourself and remove from FViewStack, if present there. }
+    { Stop yourself and remove from FCurrentViewStack, if present there. }
     procedure StopIfStarted;
 
     { Design* private routines }
@@ -624,7 +624,7 @@ begin
     However, check first that we're still the current view,
     to safeguard from the fact that Start changed view
     (like the loading view, that changes to play view immediately in start). }
-  if AContainer.FViewStack.IndexOf(Self) <> -1 then
+  if AContainer.FCurrentViewStack.IndexOf(Self) <> -1 then
     AContainer.Controls.InsertFront(Self);
 
   Profiler.Stop(TimeStart, Log);
@@ -711,15 +711,15 @@ var
   SavedContainer: TCastleContainer;
 begin
   if (FStartContainer <> nil) and
-     (FStartContainer.FViewStack <> nil) and
-     (FStartContainer.FViewStack.IndexOf(Self) <> -1) then
+     (FStartContainer.FCurrentViewStack <> nil) and
+     (FStartContainer.FCurrentViewStack.IndexOf(Self) <> -1) then
   begin
     SavedContainer := FStartContainer;
 
-    if SavedContainer.FViewStack.Last = Self then
+    if SavedContainer.FCurrentViewStack.Last = Self then
       Pause;
     InternalStop; // this clears FStartContainer
-    SavedContainer.FViewStack.Remove(Self);
+    SavedContainer.FCurrentViewStack.Remove(Self);
   end;
 end;
 

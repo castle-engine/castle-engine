@@ -114,10 +114,11 @@
 
     function GetView: TCastleView;
     procedure SetView(const Value: TCastleView);
-    function GetViewStack(const Index: Integer): TCastleView;
+    function GetCurrentViewStack(const Index: Integer): TCastleView;
+    function GetPendingViewStack(const Index: Integer): TCastleView;
     { Perform all pending operations in FPendingViewOperations, and:
       - clear FPendingViewOperations.
-      - Makes FPendingViewStack reflect FViewStack. }
+      - Makes FPendingViewStack reflect FCurrentViewStack. }
     procedure ProcessViewChanges;
 
     function UseForceCaptureInput: Boolean;
@@ -154,7 +155,7 @@
     function GetTouches(const Index: Integer): TTouch;
   private
     var
-      FViewStack, FPendingViewStack: TCastleViewList;
+      FCurrentViewStack, FPendingViewStack: TCastleViewList;
       FDisableStackChange: Cardinal;
       FControls: TInternalChildrenControls;
     class var
@@ -1038,20 +1039,20 @@
     }
     property View: TCastleView read GetView write SetView;
 
-    { The @italic(pending) view in the front (top-most view on the stack).
+    { The @italic(pending) front view (top-most view on the stack).
 
       This is the top-most view on the stack, after all pending changes
       (done by setting @link(View) or calling @link(PushView), @link(PopView))
-      are applied.
+      will be applied.
 
-      In case you used @link(PushView), this returns the top-most
+      If you just used @link(PushView), this returns the top-most
       (most recently pushed) view.
 
       If there is only one (or none) view, e.g. because you never used @link(PushView),
       then this property returns the same thing as @link(View). }
     function PendingFrontView: TCastleView;
 
-    { The @italic(current) view in the front (top-most view on the stack).
+    { The @italic(current) front view (top-most view on the stack).
       Contrary to @link(PendingFrontView), this is the actually current front view,
       not considering any pending changes.
 
@@ -1059,7 +1060,9 @@
       (by setting @link(View) or calling @link(PushView), @link(PopView))
       changes this value, but not immediately --- it happens with some delay
       (after some events are processed). }
-    function FrontView: TCastleView;
+    function CurrentFrontView: TCastleView;
+
+    function FrontView: TCastleView; deprecated 'use CurrentFrontView (eventually PendingFrontView)';
 
     { Pushing the view adds it at the top of the view stack,
       this makes new view to be displayed on top of previous ones.
@@ -1104,19 +1107,43 @@
     { Count of views in the view stack.
       View stack is managed using @link(View) / @link(PushView) / @link(PopView).
 
-      Just like @link(FrontView), this represents the @italic(current) state
+      Just like @link(CurrentFrontView), this represents the @italic(current) state
       of the view stack, ignoring the changes pending but not yet done
       (by setting @link(View) or calling @link(PushView), @link(PopView)). }
-    function ViewStackCount: Integer;
+    function CurrentViewStackCount: Integer;
 
     { Access any view within the view stack.
-      Use with indexes between 0 and ViewStackCount - 1.
+      Use with indexes between 0 and @link(CurrentViewStackCount) - 1.
       View stack is managed using @link(View) / @link(PushView) / @link(PopView).
 
-      Just like @link(FrontView), this represents the @italic(current) state
+      Just like @link(CurrentFrontView), this represents the @italic(current) state
       of the view stack, ignoring the changes pending but not yet done
-      (by setting @link(View) or calling @link(PushView), @link(PopView)). }
-    property ViewStack [const Index: Integer]: TCastleView read GetViewStack;
+      (by setting @link(View) or calling @link(PushView), @link(PopView)).
+
+      After some delay, this "catches up" and becomes equal to @link(PendingViewStack). }
+    property CurrentViewStack [const Index: Integer]: TCastleView read GetCurrentViewStack;
+
+    { Count of views in the view stack.
+      View stack is managed using @link(View) / @link(PushView) / @link(PopView).
+
+      This represents the @italic(pending) state of the view stack,
+      including all the changes caused by setting @link(View) or calling
+      @link(PushView), @link(PopView). }
+    function PendingViewStackCount: Integer;
+
+    { Access any view within the view stack.
+      Use with indexes between 0 and @link(PendingViewStackCount) - 1.
+      View stack is managed using @link(View) / @link(PushView) / @link(PopView).
+
+      This represents the @italic(pending) state of the view stack,
+      including all the changes caused by setting @link(View) or calling
+      @link(PushView), @link(PopView). }
+    property PendingViewStack [const Index: Integer]: TCastleView read GetPendingViewStack;
+
+    function ViewStackCount: Integer;
+      deprecated 'use CurrentViewStackCount (eventually PendingViewStackCount)';
+    property ViewStack [const Index: Integer]: TCastleView read GetCurrentViewStack;
+      {$ifdef FPC}deprecated 'use CurrentViewStack (eventually PendingViewStack)';{$endif}
 
     { Safe border sizes you should honor in your UI design (do not place there
       UI elements that have to be readable or clickable, like labels or buttons)
@@ -1199,7 +1226,7 @@ begin
     Some methods, like TCastleContainer.UpdateFocusAndMouseCursor,
     use this to calculate "focused" CGE control so we keep it within the window. }
   FMousePosition := Vector2(1, 1);
-  FViewStack := TCastleViewList.Create(false);
+  FCurrentViewStack := TCastleViewList.Create(false);
   FPendingViewStack := TCastleViewList.Create(false);
   FPendingViewOperations := TPendingViewOperationList.Create;
 
@@ -1222,11 +1249,11 @@ begin
   if Messaging <> nil then
     Messaging.OnReceive.Remove({$ifdef FPC}@{$endif} MessageReceived);
 
-  if FViewStack <> nil then
+  if FCurrentViewStack <> nil then
   begin
-    View := nil; // this should clear FViewStack
+    View := nil; // this should clear FCurrentViewStack
     ProcessViewChanges;
-    FreeAndNil(FViewStack);
+    FreeAndNil(FCurrentViewStack);
   end;
   FreeAndNil(FPendingViewStack);
   FreeAndNil(FPendingViewOperations);
@@ -3054,12 +3081,12 @@ procedure TCastleContainer.ProcessViewChanges;
   var
     SavedFrontView: TCastleView;
   begin
-    SavedFrontView := FrontView;
+    SavedFrontView := CurrentFrontView;
     if PauseAndResume or SavedFrontView.FResumed then
       SavedFrontView.InternalPause;
     SavedFrontView.InternalStop;
-    if SavedFrontView = FrontView then
-      FViewStack.Count := FViewStack.Count - 1
+    if SavedFrontView = CurrentFrontView then
+      FCurrentViewStack.Count := FCurrentViewStack.Count - 1
     else
       WritelnWarningOrError('TCastleView', 'Front view is no longer front after its Stop method. Do not change view stack from view Stop methods.');
 
@@ -3067,8 +3094,8 @@ procedure TCastleContainer.ProcessViewChanges;
       FreeAndNil(SavedFrontView);
 
     { resume new top-most view }
-    if (FViewStack.Count <> 0) and PauseAndResume then
-      FViewStack.Last.InternalResume;
+    if (FCurrentViewStack.Count <> 0) and PauseAndResume then
+      FCurrentViewStack.Last.InternalResume;
   end;
 
   procedure FinalPushView(const NewView: TCastleView);
@@ -3076,11 +3103,11 @@ procedure TCastleContainer.ProcessViewChanges;
     if NewView <> nil then
     begin
       { pause previous top-most view }
-      if FViewStack.Count <> 0 then
-        FViewStack.Last.InternalPause;
+      if FCurrentViewStack.Count <> 0 then
+        FCurrentViewStack.Last.InternalPause;
 
-      { create FViewStack on demand now }
-      FViewStack.Add(NewView);
+      { create FCurrentViewStack on demand now }
+      FCurrentViewStack.Add(NewView);
       NewView.InternalStart(Self);
       NewView.InternalResume;
     end;
@@ -3089,15 +3116,15 @@ procedure TCastleContainer.ProcessViewChanges;
   procedure FinalSetView(const Value: TCastleView);
   begin
     { exit early if there's nothing to do }
-    if (ViewStackCount = 0) and (Value = nil) then
+    if (CurrentViewStackCount = 0) and (Value = nil) then
       Exit;
-    if (ViewStackCount = 1) and (FViewStack[0] = Value) then
+    if (CurrentViewStackCount = 1) and (FCurrentViewStack[0] = Value) then
       Exit;
 
     { Remove and finish topmost view.
       The loop is written to work even when some view Stop method
       changes views. }
-    while ViewStackCount <> 0 do
+    while CurrentViewStackCount <> 0 do
       FinalPopView(false);
 
     FinalPushView(Value);
@@ -3108,10 +3135,10 @@ procedure TCastleContainer.ProcessViewChanges;
     I: Integer;
     StacksEqual: Boolean;
   begin
-    StacksEqual := FViewStack.Count = FPendingViewStack.Count;
+    StacksEqual := FCurrentViewStack.Count = FPendingViewStack.Count;
     if StacksEqual then
-      for I := 0 to FViewStack.Count - 1 do
-        if FViewStack[I] <> FPendingViewStack[I] then
+      for I := 0 to FCurrentViewStack.Count - 1 do
+        if FCurrentViewStack[I] <> FPendingViewStack[I] then
         begin
           StacksEqual := false;
           Break;
@@ -3121,13 +3148,13 @@ procedure TCastleContainer.ProcessViewChanges;
     begin
       WritelnWarningOrError('TCastleContainer', 'After processing pending view changes, the actual view stack is different than expected view stack. This indicates there were issues when applying view changes, e.g. exceptions raised from view lifecycle methods (Start, Resume, Pause, Stop) or the lifecycle methods tried to change the view stack.' + NL +
         'Actual view stack: ' + NL +
-        FViewStack.ToString + NL +
+        FCurrentViewStack.ToString + NL +
         'Expected view stack: ' + NL +
         FPendingViewStack.ToString);
 
       // force them to be equal, to avoid further issues with inconsistent state
       FPendingViewStack.Clear;
-      FPendingViewStack.AddRange(FViewStack);
+      FPendingViewStack.AddRange(FCurrentViewStack);
     end;
   end;
 
@@ -3154,7 +3181,7 @@ begin
 
     FPendingViewOperations.Clear;
 
-    { In theory, FViewStack should now be equal to FPendingViewStack,
+    { In theory, FCurrentViewStack should now be equal to FPendingViewStack,
       if we did all the operations. In practice, due to exceptions that
       could be raised from view changes, maybe they are not -- force them
       to be equal now. }
@@ -3171,13 +3198,18 @@ begin
     Result := FPendingViewStack[0];
 end;
 
-function TCastleContainer.FrontView: TCastleView;
+function TCastleContainer.CurrentFrontView: TCastleView;
 begin
-  if (FViewStack = nil) or
-     (FViewStack.Count = 0) then
+  if (FCurrentViewStack = nil) or
+     (FCurrentViewStack.Count = 0) then
     Result := nil
   else
-    Result := FViewStack.Last;
+    Result := FCurrentViewStack.Last;
+end;
+
+function TCastleContainer.FrontView: TCastleView;
+begin
+  Result := CurrentFrontView;
 end;
 
 function TCastleContainer.PendingFrontView: TCastleView;
@@ -3208,7 +3240,7 @@ begin
     FPendingViewStack.Add(Value);
 
   // implement InternalViewChangeImmediate, also apply if current stack empty
-  if InternalViewChangeImmediate or (FViewStack.Count = 0) then
+  if InternalViewChangeImmediate or (FCurrentViewStack.Count = 0) then
     ProcessViewChanges;
 end;
 
@@ -3268,7 +3300,7 @@ begin
   begin
     WritelnWarningOrError('TCastleView', 'Cannot pop UI view, front (top-most) view is expected to be %s, but is %s', [
       CheckFrontView.ClassName,
-      FViewStack.Last.ClassName
+      FCurrentViewStack.Last.ClassName
     ]);
     Exit;
   end;
@@ -3276,18 +3308,37 @@ begin
   PopView;
 end;
 
-function TCastleContainer.ViewStackCount: Integer;
+function TCastleContainer.CurrentViewStackCount: Integer;
 begin
-  if FViewStack = nil then
+  if FCurrentViewStack = nil then
     Result := 0
   else
-    Result := FViewStack.Count;
+    Result := FCurrentViewStack.Count;
 end;
 
-function TCastleContainer.GetViewStack(const Index: Integer): TCastleView;
+function TCastleContainer.PendingViewStackCount: Integer;
 begin
-  Assert(FViewStack <> nil);
-  Result := FViewStack[Index];
+  if FPendingViewStack = nil then
+    Result := 0
+  else
+    Result := FPendingViewStack.Count;
+end;
+
+function TCastleContainer.ViewStackCount: Integer;
+begin
+  Result := CurrentViewStackCount;
+end;
+
+function TCastleContainer.GetCurrentViewStack(const Index: Integer): TCastleView;
+begin
+  Assert(FCurrentViewStack <> nil);
+  Result := FCurrentViewStack[Index];
+end;
+
+function TCastleContainer.GetPendingViewStack(const Index: Integer): TCastleView;
+begin
+  Assert(FPendingViewStack <> nil);
+  Result := FPendingViewStack[Index];
 end;
 
 procedure TCastleContainer.InternalSetSafeBorderScaled(const Value: TVector4);

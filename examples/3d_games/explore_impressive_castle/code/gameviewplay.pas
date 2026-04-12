@@ -105,7 +105,7 @@ begin
   LabelFps.Caption := Container.Fps.ToString;
   UpdateMouseLook;
 
-  GameActive := Container.FrontView = Self;
+  GameActive := Container.CurrentFrontView = Self;
 
   SoundSourceFootsteps.Volume := IfThen(WalkNavigation.IsWalkingOnTheGround and GameActive, 1, 0);
 
@@ -139,7 +139,7 @@ end;
 
 procedure TViewPlay.UpdateMouseLook;
 begin
-  WalkNavigation.MouseLook := (Container.FrontView = Self) and
+  WalkNavigation.MouseLook := (Container.CurrentFrontView = Self) and
     ( PersistentMouseLook or
       (buttonRight in Container.MousePressed) );
 end;
@@ -158,7 +158,7 @@ begin
   Result := inherited;
   if Result then Exit; // allow the ancestor to handle keys
 
-  if Container.FrontView = Self then
+  if Container.CurrentFrontView = Self then
   begin
     if Event.IsKey(keyF4) then
     begin
