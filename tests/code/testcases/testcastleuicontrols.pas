@@ -18,6 +18,8 @@
 { Test of CastleUIControls unit. }
 unit TestCastleUIControls;
 
+{$I castle-tests-conf.inc}
+
 interface
 
 uses
@@ -753,6 +755,8 @@ var
 
   procedure FakeButtonPress(const ExpectChangeView: Boolean);
   begin
+    if ActivatorButtonIfAny <> nil then
+      AssertEquals(0, ActivatorButtonIfAny.ClicksCount);
     Container.EventPress(InputMouseButton(
       Vector2(
         Container.PixelsWidth / 2,
@@ -763,8 +767,9 @@ var
         Container.PixelsWidth / 2,
         Container.PixelsHeight / 2
       ), buttonLeft, 0, []));
-    if ActivatorButtonIfAny <> nil then
-      AssertEquals(1, ActivatorButtonIfAny.ClicksCount);
+    // ActivatorButtonIfAny is freed now, at the end of Container.EventRelease in ProcessViewChanges
+    // if ActivatorButtonIfAny <> nil then
+    //   AssertEquals(1, ActivatorButtonIfAny.ClicksCount);
 
     if ExpectChangeView then
       AssertTrue(Container.View = nil)
@@ -774,15 +779,19 @@ var
 
   procedure FakeTimer(const ExpectChangeView: Boolean);
   begin
-    Container.EventUpdate;
     if ActivatorTimerIfAny <> nil then
       AssertEquals(0, ActivatorTimerIfAny.TimersCount);
     AssertTrue(Container.View = V);
 
+    Container.EventUpdate;
+    { Sometimes (depends on computer speed) timer fired already from above
+      EventUpdate, even without the need for Sleep below. }
     Sleep(100);
     Container.EventUpdate;
-    if ActivatorTimerIfAny <> nil then
-      AssertEquals(1, ActivatorTimerIfAny.TimersCount);
+
+    // ActivatorTimerIfAny is freed now, at the end of Container.EventUpdate in ProcessViewChanges
+    // if ActivatorTimerIfAny <> nil then
+    //   AssertEquals(1, ActivatorTimerIfAny.TimersCount);
 
     if ExpectChangeView then
       AssertTrue(Container.View = nil)
