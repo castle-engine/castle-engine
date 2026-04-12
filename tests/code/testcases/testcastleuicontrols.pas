@@ -906,19 +906,25 @@ begin
     V2 := TCastleView.Create(nil);
     V3 := TCastleView.Create(nil);
 
-    AssertEquals(0, Container.ViewStackCount);
+    AssertEquals(0, Container.CurrentViewStackCount);
 
     // this happens immediately
     Container.View := V1;
-    AssertEquals(1, Container.ViewStackCount);
-    AssertTrue(Container.ViewStack[0] = V1);
+    AssertEquals(1, Container.CurrentViewStackCount);
+    AssertTrue(Container.CurrentViewStack[0] = V1);
+    AssertEquals(1, Container.PendingViewStackCount);
+    AssertTrue(Container.PendingViewStack[0] = V1);
 
     Container.PushView(V2);
 
     // the above PushView is only pending, not applied yet
-    AssertEquals(1, Container.ViewStackCount);
-    AssertTrue(Container.ViewStack[0] = V1);
+    AssertEquals(1, Container.CurrentViewStackCount);
+    AssertTrue(Container.CurrentViewStack[0] = V1);
     AssertTrue(Container.FrontView = V1);
+    AssertTrue(Container.CurrentFrontView = V1);
+    AssertEquals(2, Container.PendingViewStackCount);
+    AssertTrue(Container.PendingViewStack[0] = V1);
+    AssertTrue(Container.PendingViewStack[1] = V2);
     AssertTrue(Container.PendingFrontView = V2);
 
     Container.View := V3;
@@ -928,17 +934,25 @@ begin
     Container.PushView(V2);
 
     // above operations are still pending
-    AssertEquals(1, Container.ViewStackCount);
-    AssertTrue(Container.ViewStack[0] = V1);
+    AssertEquals(1, Container.CurrentViewStackCount);
+    AssertTrue(Container.CurrentViewStack[0] = V1);
     AssertTrue(Container.FrontView = V1);
     AssertTrue(Container.PendingFrontView = V2);
+    AssertEquals(3, Container.PendingViewStackCount);
+    AssertTrue(Container.PendingViewStack[0] = V3);
+    AssertTrue(Container.PendingViewStack[1] = V1);
+    AssertTrue(Container.PendingViewStack[2] = V2);
 
     // provoke applying of pending view changes
     Container.EventUpdate;
-    AssertEquals(3, Container.ViewStackCount);
-    AssertTrue(Container.ViewStack[0] = V3);
-    AssertTrue(Container.ViewStack[1] = V1);
-    AssertTrue(Container.ViewStack[2] = V2);
+    AssertEquals(3, Container.CurrentViewStackCount);
+    AssertTrue(Container.CurrentViewStack[0] = V3);
+    AssertTrue(Container.CurrentViewStack[1] = V1);
+    AssertTrue(Container.CurrentViewStack[2] = V2);
+    AssertEquals(3, Container.PendingViewStackCount);
+    AssertTrue(Container.PendingViewStack[0] = V3);
+    AssertTrue(Container.PendingViewStack[1] = V1);
+    AssertTrue(Container.PendingViewStack[2] = V2);
   finally
     FreeAndNil(V1);
     FreeAndNil(V2);
