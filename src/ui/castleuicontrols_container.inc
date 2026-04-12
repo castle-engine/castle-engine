@@ -56,12 +56,12 @@
   strict private
     type
       TFingerIndexCaptureMap = {$ifdef FPC}specialize{$endif} TDictionary<TFingerIndex, TCastleUserInterface>;
-      TScheduledViewOperation = (voSetView, voPushView, voPopView);
-      TScheduledViewOperationRec = record
-        Operation: TScheduledViewOperation;
+      TPendingViewOperation = (voSetView, voPushView, voPopView);
+      TPendingViewOperationRec = record
+        Operation: TPendingViewOperation;
         View: TCastleView; //< meaningful for voSetView and voPushView, ignored for voPopView
       end;
-      TScheduledViewOperationList = {$ifdef FPC}specialize{$endif} TStructList<TScheduledViewOperationRec>;
+      TPendingViewOperationList = {$ifdef FPC}specialize{$endif} TStructList<TPendingViewOperationRec>;
     var
       FFocus, FNewFocus: TCastleUserInterfaceList;
       { Capture controls, for each FingerIndex.
@@ -105,14 +105,14 @@
       FHasCollectedMotion: Boolean;
       FTouches: TTouchList;
       FMousePosition: TVector2;
-      FScheduledViewOperations: TScheduledViewOperationList;
+      FPendingViewOperations: TPendingViewOperationList;
 
     function GetView: TCastleView;
     procedure SetView(const Value: TCastleView);
     function GetViewStack(const Index: Integer): TCastleView;
-    { Perform all operations scheduled in FScheduledViewOperations, and:
-      - clear FScheduledViewOperations.
-      - Makes FViewStachScheduled reflect FViewStack. }
+    { Perform all pending operations in FPendingViewOperations, and:
+      - clear FPendingViewOperations.
+      - Makes FPendingViewStack reflect FViewStack. }
     procedure ProcessViewChanges;
 
     function UseForceCaptureInput: Boolean;
@@ -149,7 +149,7 @@
     function GetTouches(const Index: Integer): TTouch;
   private
     var
-      FViewStack, FViewStackScheduled: TCastleViewList;
+      FViewStack, FPendingViewStack: TCastleViewList;
       FDisableStackChange: Cardinal;
       FControls: TInternalChildrenControls;
     class var
@@ -232,7 +232,7 @@
       UserInterfaceBatching: Boolean;
 
       { Make SetView, PushView, PopView change views immediately,
-        without scheduling. This is useful for testing.
+        without putting them on a "pending operations list". This is useful for testing.
         Should not be used in real applications, as changing views
         risking freeing components during their own event processing,
         which can lead to crashes. }
@@ -1020,11 +1020,11 @@
 
       Regardless of when the actual views' start and stop will be done,
       the value of this property changes immediately.
-      But it may represent the @italic(scheduled) view.
+      But it may represent the @italic(pending) view.
 
       In case multiple views are active (only possible
       if you used the @link(PushView) method), this property returns the @italic(bottom) view
-      (use @link(FrontViewScheduled) to get @italic(top) view).
+      (use @link(PendingFrontView) to get @italic(top) view).
       Setting this property resets whole view stack.
 
       Note that you cannot change current view stack when another change is in progress.
@@ -1033,9 +1033,9 @@
     }
     property View: TCastleView read GetView write SetView;
 
-    { The @italic(scheduled) view in the front (top-most view on the stack).
+    { The @italic(pending) view in the front (top-most view on the stack).
 
-      This is the top-most view on the stack, after all scheduled changes
+      This is the top-most view on the stack, after all pending changes
       (done by setting @link(View) or calling @link(PushView), @link(PopView))
       are applied.
 
@@ -1044,11 +1044,11 @@
 
       If there is only one (or none) view, e.g. because you never used @link(PushView),
       then this property returns the same thing as @link(View). }
-    function FrontViewScheduled: TCastleView;
+    function PendingFrontView: TCastleView;
 
     { The @italic(current) view in the front (top-most view on the stack).
-      Contrary to @link(FrontViewScheduled), this is the actually current front view,
-      not considering any scheduled changes.
+      Contrary to @link(PendingFrontView), this is the actually current front view,
+      not considering any pending changes.
 
       Changing the view
       (by setting @link(View) or calling @link(PushView), @link(PopView))
@@ -1067,6 +1067,7 @@
       So you will not observe new view's @link(TCastleView.Start) called
       immediately from your call to this method.
       This method merely schedules pushing the view,
+      putting the operation in the queue of pending changes,
       consistently with setting @link(View) (see there for more details). }
     procedure PushView(const NewView: TCastleView);
 
@@ -1076,6 +1077,7 @@
       So you will not observe the old view's @link(TCastleView.Stop) called
       immediately from your call to this method.
       This method merely schedules popping the view,
+      putting the operation in the queue of pending changes,
       consistently with setting @link(View) (see there for more details). }
     procedure PopView; overload;
 
@@ -1090,6 +1092,7 @@
       So you will not observe the old view's @link(TCastleView.Stop) called
       immediately from your call to this method.
       This method merely schedules popping the view,
+      putting the operation in the queue of pending changes,
       consistently with setting @link(View) (see there for more details). }
     procedure PopView(const CheckFrontView: TCastleView); overload;
 
@@ -1097,7 +1100,7 @@
       View stack is managed using @link(View) / @link(PushView) / @link(PopView).
 
       Just like @link(FrontView), this represents the @italic(current) state
-      of the view stack, ignoring the changes scheduled but not yet done
+      of the view stack, ignoring the changes pending but not yet done
       (by setting @link(View) or calling @link(PushView), @link(PopView)). }
     function ViewStackCount: Integer;
 
@@ -1106,7 +1109,7 @@
       View stack is managed using @link(View) / @link(PushView) / @link(PopView).
 
       Just like @link(FrontView), this represents the @italic(current) state
-      of the view stack, ignoring the changes scheduled but not yet done
+      of the view stack, ignoring the changes pending but not yet done
       (by setting @link(View) or calling @link(PushView), @link(PopView)). }
     property ViewStack [const Index: Integer]: TCastleView read GetViewStack;
 
@@ -1176,8 +1179,8 @@ begin
     use this to calculate "focused" CGE control so we keep it within the window. }
   FMousePosition := Vector2(1, 1);
   FViewStack := TCastleViewList.Create(false);
-  FViewStackScheduled := TCastleViewList.Create(false);
-  FScheduledViewOperations := TScheduledViewOperationList.Create;
+  FPendingViewStack := TCastleViewList.Create(false);
+  FPendingViewOperations := TPendingViewOperationList.Create;
 
   { connect 3D device - 3Dconnexion device }
   Mouse3dPollTimer := 0;
@@ -1204,8 +1207,8 @@ begin
     ProcessViewChanges;
     FreeAndNil(FViewStack);
   end;
-  FreeAndNil(FViewStackScheduled);
-  FreeAndNil(FScheduledViewOperations);
+  FreeAndNil(FPendingViewStack);
+  FreeAndNil(FPendingViewOperations);
   if RenderContext = FContext then
     RenderContext := nil;
   FreeAndNil(FSafeBorder);
@@ -3079,15 +3082,15 @@ procedure TCastleContainer.ProcessViewChanges;
     FinalPushView(Value);
   end;
 
-  procedure WarnIfViewStackScheduledDifferent;
+  procedure WarnIfPendingViewStackDifferent;
   var
     I: Integer;
     StacksEqual: Boolean;
   begin
-    StacksEqual := FViewStack.Count = FViewStackScheduled.Count;
+    StacksEqual := FViewStack.Count = FPendingViewStack.Count;
     if StacksEqual then
       for I := 0 to FViewStack.Count - 1 do
-        if FViewStack[I] <> FViewStackScheduled[I] then
+        if FViewStack[I] <> FPendingViewStack[I] then
         begin
           StacksEqual := false;
           Break;
@@ -3095,22 +3098,22 @@ procedure TCastleContainer.ProcessViewChanges;
 
     if not StacksEqual then
     begin
-      WritelnWarning('TCastleContainer', 'After processing scheduled view changes, the actual view stack is different than expected view stack. This indicates there were issues when applying view changes, e.g. exceptions raised from view lifecycle methods (Start, Resume, Pause, Stop) or the lifecycle methods tried to change the view stack.' + NL +
+      WritelnWarning('TCastleContainer', 'After processing pending view changes, the actual view stack is different than expected view stack. This indicates there were issues when applying view changes, e.g. exceptions raised from view lifecycle methods (Start, Resume, Pause, Stop) or the lifecycle methods tried to change the view stack.' + NL +
         'Actual view stack: ' + NL +
         FViewStack.ToString + NL +
         'Expected view stack: ' + NL +
-        FViewStackScheduled.ToString);
+        FPendingViewStack.ToString);
 
       // force them to be equal, to avoid further issues with inconsistent state
-      FViewStackScheduled.Clear;
-      FViewStackScheduled.AddRange(FViewStack);
+      FPendingViewStack.Clear;
+      FPendingViewStack.AddRange(FViewStack);
     end;
   end;
 
 var
-  Rec: TScheduledViewOperationRec;
+  Rec: TPendingViewOperationRec;
 begin
-  if FScheduledViewOperations.Count = 0 then // early exit for most common case
+  if FPendingViewOperations.Count = 0 then // early exit for most common case
     Exit;
 
   if FDisableStackChange <> 0 then
@@ -3118,7 +3121,7 @@ begin
   Inc(FDisableStackChange);
 
   try
-    for Rec in FScheduledViewOperations do
+    for Rec in FPendingViewOperations do
       case Rec.Operation of
         voSetView: FinalSetView(Rec.View);
         voPushView: FinalPushView(Rec.View);
@@ -3128,23 +3131,23 @@ begin
   finally
     Dec(FDisableStackChange);
 
-    FScheduledViewOperations.Clear;
+    FPendingViewOperations.Clear;
 
-    { In theory, FViewStack should now be equal to FViewStackScheduled,
+    { In theory, FViewStack should now be equal to FPendingViewStack,
       if we did all the operations. In practice, due to exceptions that
       could be raised from view changes, maybe they are not -- force them
       to be equal now. }
-    WarnIfViewStackScheduledDifferent;
+    WarnIfPendingViewStackDifferent;
   end;
 end;
 
 function TCastleContainer.GetView: TCastleView;
 begin
-  if (FViewStackScheduled = nil) or
-     (FViewStackScheduled.Count = 0) then
+  if (FPendingViewStack = nil) or
+     (FPendingViewStack.Count = 0) then
     Result := nil
   else
-    Result := FViewStackScheduled[0];
+    Result := FPendingViewStack[0];
 end;
 
 function TCastleContainer.FrontView: TCastleView;
@@ -3156,32 +3159,32 @@ begin
     Result := FViewStack.Last;
 end;
 
-function TCastleContainer.FrontViewScheduled: TCastleView;
+function TCastleContainer.PendingFrontView: TCastleView;
 begin
-  if (FViewStackScheduled = nil) or
-     (FViewStackScheduled.Count = 0) then
+  if (FPendingViewStack = nil) or
+     (FPendingViewStack.Count = 0) then
     Result := nil
   else
-    Result := FViewStackScheduled.Last;
+    Result := FPendingViewStack.Last;
 end;
 
 procedure TCastleContainer.SetView(const Value: TCastleView);
 var
-  OperationRec: TScheduledViewOperationRec;
+  OperationRec: TPendingViewOperationRec;
 begin
   // check FDisableStackChange
   if FDisableStackChange <> 0 then
     ErrorStackChangeDisabled('Cannot do TCastleContainer.SetView during view lifecycle method (TCastleView.Start/Resume/Pause/Stop)');
 
-  // extend FScheduledViewOperations
+  // extend FPendingViewOperations
   OperationRec.Operation := voSetView;
   OperationRec.View := Value;
-  FScheduledViewOperations.Add(OperationRec);
+  FPendingViewOperations.Add(OperationRec);
 
-  // update FViewStackScheduled
-  FViewStackScheduled.Clear;
+  // update FPendingViewStack
+  FPendingViewStack.Clear;
   if Value <> nil then
-    FViewStackScheduled.Add(Value);
+    FPendingViewStack.Add(Value);
 
   // implement InternalViewChangeImmediate, also apply if current stack empty
   if InternalViewChangeImmediate or (FViewStack.Count = 0) then
@@ -3190,21 +3193,21 @@ end;
 
 procedure TCastleContainer.PushView(const NewView: TCastleView);
 var
-  OperationRec: TScheduledViewOperationRec;
+  OperationRec: TPendingViewOperationRec;
 begin
   // check FDisableStackChange
   if FDisableStackChange <> 0 then
     ErrorStackChangeDisabled('Cannot do TCastleContainer.PushView during view lifecycle method (TCastleView.Start/Resume/Pause/Stop)');
 
-  // extend FScheduledViewOperations
+  // extend FPendingViewOperations
   OperationRec.Operation := voPushView;
   OperationRec.View := NewView;
-  FScheduledViewOperations.Add(OperationRec);
+  FPendingViewOperations.Add(OperationRec);
 
-  // update FViewStackScheduled
+  // update FPendingViewStack
   if (NewView <> nil) and
-     (FViewStackScheduled.IndexOf(NewView) = -1) then
-    FViewStackScheduled.Add(NewView);
+     (FPendingViewStack.IndexOf(NewView) = -1) then
+    FPendingViewStack.Add(NewView);
 
   // implement InternalViewChangeImmediate
   if InternalViewChangeImmediate then
@@ -3213,20 +3216,20 @@ end;
 
 procedure TCastleContainer.PopView;
 var
-  OperationRec: TScheduledViewOperationRec;
+  OperationRec: TPendingViewOperationRec;
 begin
   // check FDisableStackChange
   if FDisableStackChange <> 0 then
     ErrorStackChangeDisabled('Cannot do TCastleContainer.PopView during view lifecycle method (TCastleView.Start/Resume/Pause/Stop)');
 
-  // extend FScheduledViewOperations
+  // extend FPendingViewOperations
   OperationRec.Operation := voPopView;
   OperationRec.View := nil; // should be ignored
-  FScheduledViewOperations.Add(OperationRec);
+  FPendingViewOperations.Add(OperationRec);
 
-  // update FViewStackScheduled
-  if FViewStackScheduled.Count <> 0 then
-    FViewStackScheduled.Count := FViewStackScheduled.Count - 1;
+  // update FPendingViewStack
+  if FPendingViewStack.Count <> 0 then
+    FPendingViewStack.Count := FPendingViewStack.Count - 1;
 
   // implement InternalViewChangeImmediate
   if InternalViewChangeImmediate then
@@ -3235,12 +3238,12 @@ end;
 
 procedure TCastleContainer.PopView(const CheckFrontView: TCastleView);
 begin
-  if FViewStackScheduled.Count = 0 then
+  if FPendingViewStack.Count = 0 then
   begin
     WritelnWarning('TCastleView', 'Cannot pop UI view, stack is empty');
     Exit;
   end;
-  if FViewStackScheduled.Last <> CheckFrontView then
+  if FPendingViewStack.Last <> CheckFrontView then
   begin
     WritelnWarning('TCastleView', 'Cannot pop UI view, front (top-most) view is expected to be %s, but is %s', [
       CheckFrontView.ClassName,

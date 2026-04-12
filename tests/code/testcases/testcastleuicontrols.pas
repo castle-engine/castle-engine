@@ -906,11 +906,11 @@ begin
 
     Container.PushView(V2);
 
-    // the above PushView is only scheduled
+    // the above PushView is only pending, not applied yet
     AssertEquals(1, Container.ViewStackCount);
     AssertTrue(Container.ViewStack[0] = V1);
     AssertTrue(Container.FrontView = V1);
-    AssertTrue(Container.FrontViewScheduled = V2);
+    AssertTrue(Container.PendingFrontView = V2);
 
     Container.View := V3;
     Container.PushView(V1);
@@ -918,13 +918,13 @@ begin
     Container.PopView(V2);
     Container.PushView(V2);
 
-    // above operations are still only scheduled
+    // above operations are still pending
     AssertEquals(1, Container.ViewStackCount);
     AssertTrue(Container.ViewStack[0] = V1);
     AssertTrue(Container.FrontView = V1);
-    AssertTrue(Container.FrontViewScheduled = V2);
+    AssertTrue(Container.PendingFrontView = V2);
 
-    // provoke applying of scheduled view changes
+    // provoke applying of pending view changes
     Container.EventUpdate;
     AssertEquals(3, Container.ViewStackCount);
     AssertTrue(Container.ViewStack[0] = V3);
