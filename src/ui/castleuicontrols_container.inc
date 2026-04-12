@@ -3103,13 +3103,13 @@ procedure TCastleContainer.ProcessViewChanges;
 
   procedure FinalPushView(const NewView: TCastleView);
   begin
-    if NewView <> nil then
+    if (NewView <> nil) and
+       (FCurrentViewStack.IndexOf(NewView) = -1) then
     begin
       { pause previous top-most view }
       if FCurrentViewStack.Count <> 0 then
         FCurrentViewStack.Last.InternalPause;
 
-      { create FCurrentViewStack on demand now }
       FCurrentViewStack.Add(NewView);
       NewView.InternalStart(Self);
       NewView.InternalResume;
