@@ -26,6 +26,11 @@
   1000 per second, processing them 60 times per second is probably enough. }
 {$define CASTLE_COLLECT_MOTION}
 
+{ Turn some view warnings into errors (raising exceptions).
+  This is good for auto-tests. We recommend to also do this for production code,
+  and with time we may even make this the default. }
+{.$define CASTLE_STRICT}
+
 {$ifdef read_interface}
 
 //type
@@ -1146,6 +1151,22 @@
 procedure ErrorStackChangeDisabled(const Message: String);
 begin
   raise EInternalError.Create(Message);
+end;
+
+{ Write a warning in normal situation (compiled without CASTLE_STRICT).
+  Make an error (exception) when CASTLE_STRICT is defined. }
+procedure WritelnWarningOrError(const Category, Message: String); overload;
+begin
+  {$ifdef CASTLE_STRICT}
+  raise EInternalError.CreateFmt('Warning (error in CASTLE_STRICT mode) %s: %s', [Category, Message]);
+  {$else}
+  WritelnWarning(Category, Message);
+  {$endif}
+end;
+
+procedure WritelnWarningOrError(const Category, MessageFormat: String; const Args: array of const); overload;
+begin
+  WritelnWarningOrError(Category, Format(MessageFormat, Args));
 end;
 
 { TCastleContainer --------------------------------------------------------------- }
@@ -3040,7 +3061,7 @@ procedure TCastleContainer.ProcessViewChanges;
     if SavedFrontView = FrontView then
       FViewStack.Count := FViewStack.Count - 1
     else
-      WritelnWarning('TCastleView', 'Front view is no longer front after its Stop method. Do not change view stack from view Stop methods.');
+      WritelnWarningOrError('TCastleView', 'Front view is no longer front after its Stop method. Do not change view stack from view Stop methods.');
 
     if SavedFrontView.FFreeWhenStopped then
       FreeAndNil(SavedFrontView);
@@ -3098,7 +3119,7 @@ procedure TCastleContainer.ProcessViewChanges;
 
     if not StacksEqual then
     begin
-      WritelnWarning('TCastleContainer', 'After processing pending view changes, the actual view stack is different than expected view stack. This indicates there were issues when applying view changes, e.g. exceptions raised from view lifecycle methods (Start, Resume, Pause, Stop) or the lifecycle methods tried to change the view stack.' + NL +
+      WritelnWarningOrError('TCastleContainer', 'After processing pending view changes, the actual view stack is different than expected view stack. This indicates there were issues when applying view changes, e.g. exceptions raised from view lifecycle methods (Start, Resume, Pause, Stop) or the lifecycle methods tried to change the view stack.' + NL +
         'Actual view stack: ' + NL +
         FViewStack.ToString + NL +
         'Expected view stack: ' + NL +
@@ -3240,12 +3261,12 @@ procedure TCastleContainer.PopView(const CheckFrontView: TCastleView);
 begin
   if FPendingViewStack.Count = 0 then
   begin
-    WritelnWarning('TCastleView', 'Cannot pop UI view, stack is empty');
+    WritelnWarningOrError('TCastleView', 'Cannot pop UI view, stack is empty');
     Exit;
   end;
   if FPendingViewStack.Last <> CheckFrontView then
   begin
-    WritelnWarning('TCastleView', 'Cannot pop UI view, front (top-most) view is expected to be %s, but is %s', [
+    WritelnWarningOrError('TCastleView', 'Cannot pop UI view, front (top-most) view is expected to be %s, but is %s', [
       CheckFrontView.ClassName,
       FViewStack.Last.ClassName
     ]);

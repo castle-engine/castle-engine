@@ -28,5 +28,8 @@ See https://castle-engine.io/project_manifest for documentation of this file.
       <option>-vm5074</option> <!-- Unit "$1" is deprecated -->
       <option>-vm5075</option> <!-- Unit "$1" is deprecated: "$2" -->
     </custom_options>
+    <defines>
+      <define>CASTLE_STRICT</define>
+    </defines>
   </compiler_options>
 </project>
