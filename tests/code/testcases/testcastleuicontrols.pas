@@ -67,9 +67,17 @@ type
     just for testing. }
   TTestContainer = class(TCastleContainer)
   public
+    constructor Create(AOwner: TComponent); override;
     function PixelsWidth: Integer; override;
     function PixelsHeight: Integer; override;
   end;
+
+constructor TTestContainer.Create(AOwner: TComponent);
+begin
+  inherited;
+  // easier for testing, views change without faking extra events
+  InternalViewChangeImmediate := true;
+end;
 
 function TTestContainer.PixelsWidth: Integer;
 begin
@@ -799,6 +807,10 @@ begin
   Container := nil;
   try
     Container := TTestContainer.Create(nil);
+    { This test is ready for InternalViewChangeImmediate = false
+      (which is also default in normal applications). In fact we will fail
+      with InternalViewChangeImmediate = true. }
+    Container.InternalViewChangeImmediate := false;
     V := TTestStopFromEventView.Create(nil);
     V.StateSwitchActivator := StateSwitchActivator;
     Container.View := V;

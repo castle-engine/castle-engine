@@ -231,6 +231,13 @@
         See example @code(examples/user_interface/ui_batching/). }
       UserInterfaceBatching: Boolean;
 
+      { Make SetView, PushView, PopView change views immediately,
+        without scheduling. This is useful for testing.
+        Should not be used in real applications, as changing views
+        risking freeing components during their own event processing,
+        which can lead to crashes. }
+      InternalViewChangeImmediate: Boolean;
+
     const
       DefaultBackgroundColor: TVector4 = (X: 0.1; Y: 0.1; Z: 0.1; W: 1);
 
@@ -997,7 +1004,7 @@
 
     { Current view. Simply assign to this property to change the current view.
 
-      Note that actually changing view using this property does not happen
+      Note that in most cases, changing view using this property does not happen
       immediately, it will be actually done after processing certain events
       finished. In other words, this will not immediately call e.g. @link(TCastleView.Stop)
       on the old view and @link(TCastleView.Start) on the new view.
@@ -1005,8 +1012,15 @@
       components) in the middle of processing events of these components,
       e.g. destroying a button while processing it's TCastleButton.OnClick event.
 
-      Still, the value of this property changes immediately.
-      But it represents the @italic(scheduled) view.
+      The exception, when the change happens immediately, is when you set
+      a view while the current view stack is empty.
+      In this case, the change happens immediately, because there are no views to stop
+      (so it's not risky) and it allows for some code to be easier
+      (like calling View.DesignedComponent(...) after assigning first view).
+
+      Regardless of when the actual views' start and stop will be done,
+      the value of this property changes immediately.
+      But it may represent the @italic(scheduled) view.
 
       In case multiple views are active (only possible
       if you used the @link(PushView) method), this property returns the @italic(bottom) view
@@ -3168,6 +3182,10 @@ begin
   FViewStackScheduled.Clear;
   if Value <> nil then
     FViewStackScheduled.Add(Value);
+
+  // implement InternalViewChangeImmediate, also apply if current stack empty
+  if InternalViewChangeImmediate or (FViewStack.Count = 0) then
+    ProcessViewChanges;
 end;
 
 procedure TCastleContainer.PushView(const NewView: TCastleView);
@@ -3187,6 +3205,10 @@ begin
   if (NewView <> nil) and
      (FViewStackScheduled.IndexOf(NewView) = -1) then
     FViewStackScheduled.Add(NewView);
+
+  // implement InternalViewChangeImmediate
+  if InternalViewChangeImmediate then
+    ProcessViewChanges;
 end;
 
 procedure TCastleContainer.PopView;
@@ -3205,6 +3227,10 @@ begin
   // update FViewStackScheduled
   if FViewStackScheduled.Count <> 0 then
     FViewStackScheduled.Count := FViewStackScheduled.Count - 1;
+
+  // implement InternalViewChangeImmediate
+  if InternalViewChangeImmediate then
+    ProcessViewChanges;
 end;
 
 procedure TCastleContainer.PopView(const CheckFrontView: TCastleView);
