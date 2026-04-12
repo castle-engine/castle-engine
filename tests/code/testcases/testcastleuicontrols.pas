@@ -53,6 +53,7 @@ type
     procedure TestMoveToFront;
     procedure TestViewsLifecycle;
     procedure TestStopViewFromEvent;
+    procedure TestViewChangePending;
   end;
 
 implementation
@@ -876,6 +877,64 @@ begin
   begin
     WritelnLog('TestStopViewFromEvent with activator ' + ViewSwitchActivatorNames[I]);
     CoreTestStopViewFromEvent(I);
+  end;
+end;
+
+procedure TTestCastleUIControls.TestViewChangePending;
+var
+  Container: TTestContainer;
+  V1, V2, V3: TCastleView;
+begin
+  V1 := nil;
+  V2 := nil;
+  V3 := nil;
+  Container := nil;
+  try
+    Container := TTestContainer.Create(nil);
+    { This test assumes InternalViewChangeImmediate = false. }
+    Container.InternalViewChangeImmediate := false;
+    V1 := TCastleView.Create(nil);
+    V2 := TCastleView.Create(nil);
+    V3 := TCastleView.Create(nil);
+
+    AssertEquals(0, Container.ViewStackCount);
+
+    // this happens immediately
+    Container.View := V1;
+    AssertEquals(1, Container.ViewStackCount);
+    AssertTrue(Container.ViewStack[0] = V1);
+
+    Container.PushView(V2);
+
+    // the above PushView is only scheduled
+    AssertEquals(1, Container.ViewStackCount);
+    AssertTrue(Container.ViewStack[0] = V1);
+    AssertTrue(Container.FrontView = V1);
+    AssertTrue(Container.FrontViewScheduled = V2);
+
+    Container.View := V3;
+    Container.PushView(V1);
+    Container.PushView(V2);
+    Container.PopView(V2);
+    Container.PushView(V2);
+
+    // above operations are still only scheduled
+    AssertEquals(1, Container.ViewStackCount);
+    AssertTrue(Container.ViewStack[0] = V1);
+    AssertTrue(Container.FrontView = V1);
+    AssertTrue(Container.FrontViewScheduled = V2);
+
+    // provoke applying of scheduled view changes
+    Container.EventUpdate;
+    AssertEquals(3, Container.ViewStackCount);
+    AssertTrue(Container.ViewStack[0] = V3);
+    AssertTrue(Container.ViewStack[1] = V1);
+    AssertTrue(Container.ViewStack[2] = V2);
+  finally
+    FreeAndNil(V1);
+    FreeAndNil(V2);
+    FreeAndNil(V3);
+    FreeAndNil(Container);
   end;
 end;
 
