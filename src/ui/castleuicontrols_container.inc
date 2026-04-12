@@ -1589,17 +1589,20 @@ function TCastleContainer.EventSensorTranslation(const X, Y, Z, Length: Double; 
     Result := false;
   end;
 
-var
-  I: Integer;
+  function CallEvents: Boolean;
+  var
+    I: Integer;
+  begin
+    { exit as soon as something returns "true", meaning the event is handled }
+    for I := Controls.Count - 1 downto 0 do
+      if RecursiveSensorTranslation(Controls[I]) then
+        Exit(true);
+    Result := false;
+  end;
+
 begin
   FlushCollectedMotion;
-
-  { exit as soon as something returns "true", meaning the event is handled }
-  for I := Controls.Count - 1 downto 0 do
-    if RecursiveSensorTranslation(Controls[I]) then
-      Exit(true);
-  Result := false;
-
+  Result := CallEvents;
   ProcessViewChanges;
 end;
 
