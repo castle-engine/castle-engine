@@ -531,7 +531,10 @@
     property FullSize default true;
   end;
 
-  TCastleViewList = class({$ifdef FPC}specialize{$endif} TObjectList<TCastleView>);
+  TCastleViewList = class({$ifdef FPC}specialize{$endif} TObjectList<TCastleView>)
+    { Debug multiline string: all view names. }
+    function ToString: String; override;
+  end;
 
 {$endif read_interface}
 
@@ -721,10 +724,6 @@ begin
       Pause;
     InternalStop; // this clears FStartContainer
     SavedContainer.FViewStack.Remove(Self);
-    { deallocate empty FViewStack. Doing this here allows to deallocate
-      FViewStack only once all views finished gracefully. }
-    if SavedContainer.FViewStack.Count = 0 then
-      FreeAndNil(SavedContainer.FViewStack);
   end;
 end;
 
@@ -1050,6 +1049,26 @@ begin
       FieldAddr^ := AComponent
     else
       FieldAddr^ := nil;
+  end;
+end;
+
+{ TCastleViewList ---------------------------------------------------------------- }
+
+function TCastleViewList.ToString: String;
+var
+  I: Integer;
+begin
+  Result := Format('View stack (%d views):', [Count]) + NL;
+  for I := 0 to Count - 1 do
+  begin
+    Assert(Items[I] <> nil); // no nils should be in the list
+
+    { We show Items[I] using PointerToStr as it may be a dangling pointer,
+      we do not check if views have not been freed in the meantime,
+      and in particular when this is called from TCastleContainer.Destroy
+      views may be freed. }
+
+    Result := Result + '  ' + {Items[I].ClassName} PointerToStr(Items[I]) + NL;
   end;
 end;
 
