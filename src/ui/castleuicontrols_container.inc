@@ -3103,17 +3103,23 @@ procedure TCastleContainer.ProcessViewChanges;
 
   procedure FinalPushView(const NewView: TCastleView);
   begin
-    if (NewView <> nil) and
-       (FCurrentViewStack.IndexOf(NewView) = -1) then
-    begin
-      { pause previous top-most view }
-      if FCurrentViewStack.Count <> 0 then
-        FCurrentViewStack.Last.InternalPause;
+    Assert(NewView <> nil);
 
-      FCurrentViewStack.Add(NewView);
-      NewView.InternalStart(Self);
-      NewView.InternalResume;
+    if FCurrentViewStack.IndexOf(NewView) <> -1 then
+    begin
+      WritelnWarningOrError('TCastleView', 'Pushing view %s that is already in the view stack. This was already checked in PushView, and it seemed OK, but in current view stack this is an error. This likely indicates current view stack has unexpected state, due to exceptions raised from view lifecycle methods (Start, Resume, Pause, Stop).', [
+        NewView.ClassName
+      ]);
+      Exit;
     end;
+
+    { pause previous top-most view }
+    if FCurrentViewStack.Count <> 0 then
+      FCurrentViewStack.Last.InternalPause;
+
+    FCurrentViewStack.Add(NewView);
+    NewView.InternalStart(Self);
+    NewView.InternalResume;
   end;
 
   procedure FinalSetView(const Value: TCastleView);
@@ -3130,7 +3136,8 @@ procedure TCastleContainer.ProcessViewChanges;
     while CurrentViewStackCount <> 0 do
       FinalPopView(false);
 
-    FinalPushView(Value);
+    if Value <> nil then
+      FinalPushView(Value);
   end;
 
   procedure WarnIfPendingViewStackDifferent;
@@ -3255,15 +3262,27 @@ begin
   if FDisableStackChange <> 0 then
     ErrorStackChangeDisabled('Cannot do TCastleContainer.PushView during view lifecycle method (TCastleView.Start/Resume/Pause/Stop)');
 
+  if NewView = nil then
+  begin
+    WritelnWarningOrError('TCastleView', 'Doing PushView(nil) is allowed for backward compatibility, but it does nothing. Avoid doing this.');
+    Exit;
+  end;
+
+  if FPendingViewStack.IndexOf(NewView) <> -1 then
+  begin
+    WritelnWarningOrError('TCastleView', 'Cannot push UI view %s, it is already in the stack', [
+      NewView.ClassName
+    ]);
+    Exit;
+  end;
+
   // extend FPendingViewOperations
   OperationRec.Operation := voPushView;
   OperationRec.View := NewView;
   FPendingViewOperations.Add(OperationRec);
 
   // update FPendingViewStack
-  if (NewView <> nil) and
-     (FPendingViewStack.IndexOf(NewView) = -1) then
-    FPendingViewStack.Add(NewView);
+  FPendingViewStack.Add(NewView);
 
   // implement InternalViewChangeImmediate
   if InternalViewChangeImmediate then
