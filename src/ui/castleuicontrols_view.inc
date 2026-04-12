@@ -128,9 +128,6 @@
       If Enable=false: set it to nil. }
     procedure SetNameReference(const AComponent: TComponent; const ReferenceName: String; const Enable: Boolean);
 
-    class function GetCurrent: TCastleView; static;
-    class procedure SetCurrent(const Value: TCastleView); static;
-    class function GetCurrentTop: TCastleView; static;
     class function GetStateStack(const Index: Integer): TCastleView; static;
 
     { Container in which view is started (if view is started)
@@ -519,8 +516,6 @@
       be just another way to express "as" cast. }
     // generic function DesignedComponent<T: TComponent>(const ComponentName: String): T; overload;
 
-    class property Current: TCastleView read GetCurrent write SetCurrent; {$ifdef FPC}deprecated 'use Container.View';{$endif}
-    class property CurrentTop: TCastleView read GetCurrentTop; {$ifdef FPC}deprecated 'use Container.FrontView';{$endif}
     class procedure Push(const NewState: TCastleView); deprecated 'use Container.PushView';
     class procedure Pop; overload; deprecated 'use Container.PopView';
     class procedure Pop(const CurrentTopMostState: TCastleView); overload; deprecated 'use Container.PopView';
@@ -1015,21 +1010,6 @@ begin
     Result := PredictedContainer.UIScale
   else
     Result := 1.0;
-end;
-
-class function TCastleView.GetCurrent: TCastleView;
-begin
-  Result := RequireMainContainer.View;
-end;
-
-class function TCastleView.GetCurrentTop: TCastleView;
-begin
-  Result := RequireMainContainer.FrontView;
-end;
-
-class procedure TCastleView.SetCurrent(const Value: TCastleView);
-begin
-  RequireMainContainer.View := Value;
 end;
 
 class procedure TCastleView.Push(const NewState: TCastleView);
