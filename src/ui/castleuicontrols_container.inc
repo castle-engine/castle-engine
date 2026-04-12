@@ -3303,7 +3303,7 @@ begin
   begin
     WritelnWarningOrError('TCastleView', 'Cannot pop UI view, front (top-most) view is expected to be %s, but is %s', [
       CheckFrontView.ClassName,
-      FCurrentViewStack.Last.ClassName
+      FPendingViewStack.Last.ClassName
     ]);
     Exit;
   end;
