@@ -1,6 +1,6 @@
 {%MainUnit castleuicontrols.pas}
 {
-  Copyright 2015-2023 Michalis Kamburelis.
+  Copyright 2015-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -127,8 +127,6 @@
       If Enable=true: set it to AComponent.
       If Enable=false: set it to nil. }
     procedure SetNameReference(const AComponent: TComponent; const ReferenceName: String; const Enable: Boolean);
-
-    class function GetStateStack(const Index: Integer): TCastleView; static;
 
     { Container in which view is started (if view is started)
       or on which we predict it will be started (if view is not started yet).
@@ -519,8 +517,6 @@
     class procedure Push(const NewState: TCastleView); deprecated 'use Container.PushView';
     class procedure Pop; overload; deprecated 'use Container.PopView';
     class procedure Pop(const CurrentTopMostState: TCastleView); overload; deprecated 'use Container.PopView';
-    class function StateStackCount: Integer; deprecated 'use Container.ViewStackCount';
-    class property StateStack [const Index: Integer]: TCastleView read GetStateStack; {$ifdef FPC}deprecated 'use Container.ViewStack';{$endif}
   published
     { TCastleView control makes most sense when it is FullSize,
       filling the whole window.
@@ -1024,16 +1020,6 @@ end;
 class procedure TCastleView.Pop(const CurrentTopMostState: TCastleView);
 begin
   RequireMainContainer.PopView(CurrentTopMostState);
-end;
-
-class function TCastleView.StateStackCount: Integer;
-begin
-  Result := RequireMainContainer.ViewStackCount;
-end;
-
-class function TCastleView.GetStateStack(const Index: Integer): TCastleView;
-begin
-  Result := RequireMainContainer.ViewStack[Index];
 end;
 
 procedure TCastleView.SetNameReference(const AComponent: TComponent; const ReferenceName: String; const Enable: Boolean);
