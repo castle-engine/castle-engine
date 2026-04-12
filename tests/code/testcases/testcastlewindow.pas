@@ -482,7 +482,6 @@ begin
     Window.Open;
     SomeState := TCastleView.Create(Window);
     Window.Container.View := SomeState;
-    AssertTrue(TCastleView.Current = SomeState); // deprecated
     AssertTrue(Window.Container.View = SomeState);
   finally
     { let freeing Window cause everything else:
@@ -559,7 +558,7 @@ begin
       SameValue(StateTesting.EffectiveRect.Width, 160) or
       SameValue(StateTesting.EffectiveRect.Height, 90));
 
-    TCastleView.Current := StateTesting;
+    Window.Container.View := StateTesting;
   finally
     DestroyWindowForTest(Window);
   end;
@@ -630,7 +629,7 @@ begin
       SameValue(StateTesting.EffectiveRect.Width, 200) or
       SameValue(StateTesting.EffectiveRect.Height, 400));
 
-    TCastleView.Current := StateTesting;
+    Window.Container.View := StateTesting;
   finally
     DestroyWindowForTest(Window);
   end;
