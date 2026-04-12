@@ -1,6 +1,6 @@
 {%MainUnit castleuicontrols.pas}
 {
-  Copyright 2010-2025 Michalis Kamburelis.
+  Copyright 2010-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -1416,12 +1416,17 @@ function TCastleContainer.EventSensorRotation(const X, Y, Z, Angle: Double; cons
   begin
     if PassEvents(C) then
     begin
-      for I := C.ControlsCount - 1 downto 0 do
-        if RecursiveSensorRotation(C.Controls[I]) then
-          Exit(true);
+      Inc(C.ProcessingEvents);
+      try
+        C.ProcessingEventsDescription := 'SensorRotation';
 
-      if C.SensorRotation(X, Y, Z, Angle, SecondsPassed) then
-        Exit(true);
+        for I := C.ControlsCount - 1 downto 0 do
+          if RecursiveSensorRotation(C.Controls[I]) then
+            Exit(true);
+
+        if C.SensorRotation(X, Y, Z, Angle, SecondsPassed) then
+          Exit(true);
+      finally Dec(C.ProcessingEvents) end;
     end;
 
     Result := false;
@@ -1447,12 +1452,17 @@ function TCastleContainer.EventSensorTranslation(const X, Y, Z, Length: Double; 
   begin
     if PassEvents(C) then
     begin
-      for I := C.ControlsCount - 1 downto 0 do
-        if RecursiveSensorTranslation(C.Controls[I]) then
-          Exit(true);
+      Inc(C.ProcessingEvents);
+      try
+        C.ProcessingEventsDescription := 'SensorTranslation';
 
-      if C.SensorTranslation(X, Y, Z, Length, SecondsPassed) then
-        Exit(true);
+        for I := C.ControlsCount - 1 downto 0 do
+          if RecursiveSensorTranslation(C.Controls[I]) then
+            Exit(true);
+
+        if C.SensorTranslation(X, Y, Z, Length, SecondsPassed) then
+          Exit(true);
+      finally Dec(C.ProcessingEvents) end;
     end;
 
     Result := false;
@@ -1567,35 +1577,40 @@ procedure TCastleContainer.EventUpdate;
   begin
     if PassEvents(C, false) then
     begin
-      { go downward, from front to back.
-        Important for controls watching/setting HandleInput,
-        e.g. for sliders/OnScreenMenu to block the navigation in TCastleViewport underneath
-        from processing arrow keys. }
-      I := C.ControlsCount - 1;
-      while I >= 0 do
-      begin
-        // coded this way in case some Update method changes the Controls list
-        if I < C.ControlsCount then
-          RecursiveUpdate(C.Controls[I], HandleInput);
-        Dec(I);
-      end;
+      Inc(C.ProcessingEvents);
+      try
+        C.ProcessingEventsDescription := 'Update';
 
-      if C <> ForceCaptureInput then
-      begin
-        { Although we call Update for all the existing controls, we look
-          at CapturesEventsAtPosition and track HandleInput values.
-          See TCastleUserInterface.Update for explanation. }
-        if C.CapturesEventsAtPosition(MousePosition) then
+        { go downward, from front to back.
+          Important for controls watching/setting HandleInput,
+          e.g. for sliders/OnScreenMenu to block the navigation in TCastleViewport underneath
+          from processing arrow keys. }
+        I := C.ControlsCount - 1;
+        while I >= 0 do
         begin
-          C.Update(Fps.SecondsPassed, HandleInput);
-        end else
-        begin
-          { controls where CapturesEventsAtPosition = false always get
-            HandleInput parameter set to false. }
-          Dummy := false;
-          C.Update(Fps.SecondsPassed, Dummy);
+          // coded this way in case some Update method changes the Controls list
+          if I < C.ControlsCount then
+            RecursiveUpdate(C.Controls[I], HandleInput);
+          Dec(I);
         end;
-      end;
+
+        if C <> ForceCaptureInput then
+        begin
+          { Although we call Update for all the existing controls, we look
+            at CapturesEventsAtPosition and track HandleInput values.
+            See TCastleUserInterface.Update for explanation. }
+          if C.CapturesEventsAtPosition(MousePosition) then
+          begin
+            C.Update(Fps.SecondsPassed, HandleInput);
+          end else
+          begin
+            { controls where CapturesEventsAtPosition = false always get
+              HandleInput parameter set to false. }
+            Dummy := false;
+            C.Update(Fps.SecondsPassed, Dummy);
+          end;
+        end;
+      finally Dec(C.ProcessingEvents) end;
     end;
   end;
 
@@ -1763,40 +1778,45 @@ function TCastleContainer.EventPress(const Event: TInputPressRelease): Boolean;
   begin
     if PassEvents(C, Event) then
     begin
-      { try C.PreviewPress }
-      if (C <> ForceCaptureInput) and C.PreviewPress(Event) then
-      begin
-        if (Event.EventType = itMouseButton) and
-           // See below for explanation of "C.Container = Self" comparison.
-           (C.Container = Self) then
-          FCaptureInput.AddOrSetValue(Event.FingerIndex, C);
-        Exit(true);
-      end;
+      Inc(C.ProcessingEvents);
+      try
+        C.ProcessingEventsDescription := 'Press';
 
-      { try to pass press to C children }
-      for I := C.ControlsCount - 1 downto 0 do
-        { checking "I < C.ControlsCount" below is a poor safeguard in case
-          some Press handler changes the Controls.Count.
-          At least we will not crash. }
-        if (I < C.ControlsCount) and RecursivePress(C.Controls[I]) then
+        { try C.PreviewPress }
+        if (C <> ForceCaptureInput) and C.PreviewPress(Event) then
+        begin
+          if (Event.EventType = itMouseButton) and
+            // See below for explanation of "C.Container = Self" comparison.
+            (C.Container = Self) then
+            FCaptureInput.AddOrSetValue(Event.FingerIndex, C);
           Exit(true);
+        end;
 
-      { try C.Press }
-      if (C <> ForceCaptureInput) and C.Press(Event) then
-      begin
-        { We have to check whether C.Container = Self. That is because
-          the implementation of control's Press method could remove itself
-          from our Controls list. Consider e.g. TCastleOnScreenMenu.Press
-          that may remove itself from the Window.Controls list when clicking
-          "close menu" item. We cannot, in such case, save a reference to
-          this control in FCaptureInput, because we should not speak with it
-          anymore (we don't know when it's destroyed, we cannot call it's
-          Release method because it has Container = nil, and so on). }
-        if (Event.EventType = itMouseButton) and
-           (C.Container = Self) then
-          FCaptureInput.AddOrSetValue(Event.FingerIndex, C);
-        Exit(true);
-      end;
+        { try to pass press to C children }
+        for I := C.ControlsCount - 1 downto 0 do
+          { checking "I < C.ControlsCount" below is a poor safeguard in case
+            some Press handler changes the Controls.Count.
+            At least we will not crash. }
+          if (I < C.ControlsCount) and RecursivePress(C.Controls[I]) then
+            Exit(true);
+
+        { try C.Press }
+        if (C <> ForceCaptureInput) and C.Press(Event) then
+        begin
+          { We have to check whether C.Container = Self. That is because
+            the implementation of control's Press method could remove itself
+            from our Controls list. Consider e.g. TCastleOnScreenMenu.Press
+            that may remove itself from the Window.Controls list when clicking
+            "close menu" item. We cannot, in such case, save a reference to
+            this control in FCaptureInput, because we should not speak with it
+            anymore (we don't know when it's destroyed, we cannot call it's
+            Release method because it has Container = nil, and so on). }
+          if (Event.EventType = itMouseButton) and
+            (C.Container = Self) then
+            FCaptureInput.AddOrSetValue(Event.FingerIndex, C);
+          Exit(true);
+        end;
+      finally Dec(C.ProcessingEvents) end;
     end;
 
     Result := false;
@@ -1863,18 +1883,23 @@ function TCastleContainer.EventRelease(const Event: TInputPressRelease): Boolean
   begin
     if PassEvents(C, Event) then
     begin
-      { try C.PreviewRelease }
-      if (C <> ForceCaptureInput) and C.PreviewRelease(Event) then
-        Exit(true);
+      Inc(C.ProcessingEvents);
+      try
+        C.ProcessingEventsDescription := 'Release';
 
-      { try to pass release to C children }
-      for I := C.ControlsCount - 1 downto 0 do
-        if RecursiveRelease(C.Controls[I]) then
+        { try C.PreviewRelease }
+        if (C <> ForceCaptureInput) and C.PreviewRelease(Event) then
           Exit(true);
 
-      { try C.Release }
-      if (C <> ForceCaptureInput) and C.Release(Event) then
-        Exit(true);
+        { try to pass release to C children }
+        for I := C.ControlsCount - 1 downto 0 do
+          if RecursiveRelease(C.Controls[I]) then
+            Exit(true);
+
+        { try C.Release }
+        if (C <> ForceCaptureInput) and C.Release(Event) then
+          Exit(true);
+      finally Dec(C.ProcessingEvents) end;
     end;
 
     Result := false;
@@ -1892,10 +1917,14 @@ begin
   { pass to ForceCaptureInput }
   if UseForceCaptureInput then
   begin
-    if ForceCaptureInput.PreviewRelease(Event) then
-      Exit(true);
-    if ForceCaptureInput.Release(Event) then
-      Exit(true);
+    Inc(ForceCaptureInput.ProcessingEvents);
+    try
+      ForceCaptureInput.ProcessingEventsDescription := 'Release(for ForceCaptureInput)';
+      if ForceCaptureInput.PreviewRelease(Event) then
+        Exit(true);
+      if ForceCaptureInput.Release(Event) then
+        Exit(true);
+    finally Dec(ForceCaptureInput.ProcessingEvents) end;
   end;
 
   { pass to control holding capture }
@@ -1919,8 +1948,12 @@ begin
 
   if (Capture <> nil) and (Capture <> ForceCaptureInput) then
   begin
-    Result := Capture.PreviewRelease(Event);
-    Result := Capture.Release(Event);
+    Inc(Capture.ProcessingEvents);
+    try
+      Capture.ProcessingEventsDescription := 'Release(for Capture)';
+      Result := Capture.PreviewRelease(Event);
+      Result := Capture.Release(Event);
+    finally Dec(Capture.ProcessingEvents) end;
     Exit; // if something is capturing the input, prevent other controls from getting the events
   end;
 
@@ -1944,14 +1977,19 @@ procedure TCastleContainer.EventOpen(const InitializedContextsCount: Cardinal);
   var
     I: Integer;
   begin
-    for I := C.ControlsCount - 1 downto 0 do
-      RecursiveGLContextOpen(C.Controls[I]);
+    Inc(C.ProcessingEvents);
+    try
+      C.ProcessingEventsDescription := 'GLContextOpen';
 
-    { Check here C.GLInitialized to not call C.GLContextOpen twice.
-      Control may have GL resources already initialized if it was added
-      e.g. from Application.OnInitialize before EventOpen. }
-    if not C.GLInitialized then
-      C.GLContextOpen;
+      for I := C.ControlsCount - 1 downto 0 do
+        RecursiveGLContextOpen(C.Controls[I]);
+
+      { Check here C.GLInitialized to not call C.GLContextOpen twice.
+        Control may have GL resources already initialized if it was added
+        e.g. from Application.OnInitialize before EventOpen. }
+      if not C.GLInitialized then
+        C.GLContextOpen;
+    finally Dec(C.ProcessingEvents) end;
   end;
 
 var
@@ -1980,11 +2018,16 @@ procedure TCastleContainer.EventClose(const InitializedContextsCount: Cardinal);
   var
     I: Integer;
   begin
-    for I := C.ControlsCount - 1 downto 0 do
-      RecursiveGLContextClose(C.Controls[I]);
+    Inc(C.ProcessingEvents);
+    try
+      C.ProcessingEventsDescription := 'GLContextClose';
 
-    if C.GLInitialized then
-      C.GLContextClose;
+      for I := C.ControlsCount - 1 downto 0 do
+        RecursiveGLContextClose(C.Controls[I]);
+
+      if C.GLInitialized then
+        C.GLContextClose;
+    finally Dec(C.ProcessingEvents) end;
   end;
 
 var
@@ -2024,12 +2067,17 @@ function TCastleContainer.AllowSuspendForInput: Boolean;
   begin
     if PassEvents(C, false) then
     begin
-      for I := C.ControlsCount - 1 downto 0 do
-        if not RecursiveAllowSuspendForInput(C.Controls[I]) then
-          Exit(false);
+      Inc(C.ProcessingEvents);
+      try
+        C.ProcessingEventsDescription := 'AllowSuspendForInput';
 
-      if not C.AllowSuspendForInput then
-        Exit(false);
+        for I := C.ControlsCount - 1 downto 0 do
+          if not RecursiveAllowSuspendForInput(C.Controls[I]) then
+            Exit(false);
+
+        if not C.AllowSuspendForInput then
+          Exit(false);
+      finally Dec(C.ProcessingEvents) end;
     end;
 
     Result := true;
@@ -2093,14 +2141,19 @@ procedure TCastleContainer.EventMotionNoCollect(const Event: TInputMotion);
     begin
       if PassEvents(C, Event) then
       begin
-        { try to pass release to C children }
-        for I := C.ControlsCount - 1 downto 0 do
-          if RecursiveMotion(C.Controls[I]) then
-            Exit(true);
+        Inc(C.ProcessingEvents);
+        try
+          C.ProcessingEventsDescription := 'Motion';
 
-        { try C.Motion itself }
-        if (C <> ForceCaptureInput) and C.Motion(Event) then
-          Exit(true);
+          { try to pass release to C children }
+          for I := C.ControlsCount - 1 downto 0 do
+            if RecursiveMotion(C.Controls[I]) then
+              Exit(true);
+
+          { try C.Motion itself }
+          if (C <> ForceCaptureInput) and C.Motion(Event) then
+            Exit(true);
+        finally Dec(C.ProcessingEvents) end;
       end;
 
       Result := false;
@@ -2191,15 +2244,20 @@ procedure TCastleContainer.EventBeforeRender;
   begin
     if PassEvents(C, false) then
     begin
-      for I := C.ControlsCount - 1 downto 0 do
-        RecursiveBeforeRender(C.Controls[I]);
+      Inc(C.ProcessingEvents);
+      try
+        C.ProcessingEventsDescription := 'BeforeRender';
 
-      if C.GLInitialized then
-      begin
-        C.CheckUIScaleChanged;
-        C.CheckResize;
-        C.BeforeRender;
-      end;
+        for I := C.ControlsCount - 1 downto 0 do
+          RecursiveBeforeRender(C.Controls[I]);
+
+        if C.GLInitialized then
+        begin
+          C.CheckUIScaleChanged;
+          C.CheckResize;
+          C.BeforeRender;
+        end;
+      finally Dec(C.ProcessingEvents) end;
     end;
   end;
 
