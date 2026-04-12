@@ -758,7 +758,7 @@
 
       @longCode(#
 
-      function TMyState.Press(const Event: TInputPressRelease): Boolean;
+      function TViewPlayGame.Press(const Event: TInputPressRelease): Boolean;
       begin
         Result := inherited;
         if Result then Exit;
@@ -771,7 +771,7 @@
         end;
       end;
 
-      function TMyState.Release(const Event: TInputPressRelease): Boolean;
+      function TViewPlayGame.Release(const Event: TInputPressRelease): Boolean;
       begin
         Result := inherited;
         if Result then Exit;
@@ -783,7 +783,7 @@
         end;
       end;
 
-      procedure TMyState.Update(const SecondsPassed: Single;
+      procedure TViewPlayGame.Update(const SecondsPassed: Single;
         var HandleInput: Boolean);
       begin
         inherited;
@@ -791,7 +791,7 @@
           Container.MouseLookUpdate;
       end;
 
-      function TNewFightUi.Motion(const Event: TInputMotion): Boolean;
+      function TViewPlayGame.Motion(const Event: TInputMotion): Boolean;
       var
         Delta: TVector2;
       begin
@@ -1439,7 +1439,7 @@ begin
 
   { Do not scan Controls for focus when csDestroying (in which case Controls
     list may be invalid). Testcase: exit with Alt + F4 from zombie_fighter
-    StateAskDialog. }
+    ViewAskDialog. }
   if not (csDestroying in ComponentState) then
   begin
     { calculate new FNewFocus value, update AnythingForcesNoneCursor }
