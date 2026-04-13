@@ -1019,7 +1019,7 @@
       @italic(bottom) view. Use @link(PendingFrontView) to get @italic(top) view.
 
       View changes are sometimes applied with delay (not immediately).
-      Details what does this means:
+      Details on what this means:
 
       @unorderedList(
         @item(All possible view changes (initiated by setting
@@ -1041,7 +1041,7 @@
 
         @item(Why? This "delay" is done to avoid stopping views (and thus
           destroying components) in the middle of processing events of
-          these components, e.g. destroying a button while processing it's
+          these components, e.g. destroying a button while processing its
           TCastleButton.OnClick event.)
 
         @item(There are situations when the view change is still done
