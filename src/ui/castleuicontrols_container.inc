@@ -3203,7 +3203,9 @@ procedure TCastleContainer.ProcessViewChanges;
 
     if FCurrentViewStack.IndexOf(NewView) <> -1 then
     begin
-      WritelnWarningOrError('TCastleView', 'Pushing view %s that is already in the view stack. This was already checked in PushView, and it seemed OK, but in current view stack this is an error. This likely indicates current view stack has unexpected state, due to exceptions raised from view lifecycle methods (Start, Resume, Pause, Stop).', [
+      WritelnWarningOrError('TCastleView', 'Pushing view %s that is already in the view stack. ' +
+        'This was already checked in PushView, and it seemed OK, but in current view stack this is an error. ' +
+        'This likely indicates current view stack has unexpected state, due to exceptions raised from view lifecycle methods (Start, Resume, Pause, Stop).', [
         NewView.ClassName
       ]);
       Exit;
@@ -3252,7 +3254,8 @@ procedure TCastleContainer.ProcessViewChanges;
 
     if not StacksEqual then
     begin
-      WritelnWarningOrError('TCastleContainer', 'After processing pending view changes, the actual view stack is different than expected view stack. This indicates there were issues when applying view changes, e.g. exceptions raised from view lifecycle methods (Start, Resume, Pause, Stop) or the lifecycle methods tried to change the view stack.' + NL +
+      WritelnWarningOrError('TCastleContainer', 'After processing pending view changes, the actual view stack is different than expected view stack. ' +
+        'This indicates there were issues when applying view changes, e.g. exceptions raised from view lifecycle methods (Start, Resume, Pause, Stop) or the lifecycle methods tried to change the view stack.' + NL +
         'Actual view stack: ' + NL +
         FCurrentViewStack.ToString + NL +
         'Expected view stack: ' + NL +
