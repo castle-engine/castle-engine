@@ -78,8 +78,6 @@ type
 constructor TTestContainer.Create(AOwner: TComponent);
 begin
   inherited;
-  // easier for testing, views change without faking extra events
-  InternalViewChangeImmediate := true;
 end;
 
 function TTestContainer.PixelsWidth: Integer;
@@ -817,10 +815,6 @@ begin
   Container := nil;
   try
     Container := TTestContainer.Create(nil);
-    { This test is ready for InternalViewChangeImmediate = false
-      (which is also default in normal applications). In fact we will fail
-      with InternalViewChangeImmediate = true. }
-    Container.InternalViewChangeImmediate := false;
     V := TTestStopFromEventView.Create(nil);
     V.ViewSwitchActivator := ViewSwitchActivator;
     Container.View := V;
@@ -900,16 +894,21 @@ begin
   Container := nil;
   try
     Container := TTestContainer.Create(nil);
-    { This test assumes InternalViewChangeImmediate = false. }
-    Container.InternalViewChangeImmediate := false;
+    { This test assumes changes are delayed }
+    Container.InternalForceViewChangeDelayed := true;
     V1 := TCastleView.Create(nil);
     V2 := TCastleView.Create(nil);
     V3 := TCastleView.Create(nil);
 
     AssertEquals(0, Container.CurrentViewStackCount);
 
-    // this happens immediately
     Container.View := V1;
+    AssertEquals(0, Container.CurrentViewStackCount);
+    AssertEquals(1, Container.PendingViewStackCount);
+    AssertTrue(Container.PendingViewStack[0] = V1);
+
+    // provoke applying of pending view changes
+    Container.EventUpdate;
     AssertEquals(1, Container.CurrentViewStackCount);
     AssertTrue(Container.CurrentViewStack[0] = V1);
     AssertEquals(1, Container.PendingViewStackCount);

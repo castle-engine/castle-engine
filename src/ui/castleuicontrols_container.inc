@@ -111,6 +111,9 @@
       FTouches: TTouchList;
       FMousePosition: TVector2;
       FPendingViewOperations: TPendingViewOperationList;
+      { Inside any virtual method or callback that may do arbitrary things,
+        including changing views. }
+      FProcessingEvents: Cardinal;
 
     function GetView: TCastleView;
     procedure SetView(const Value: TCastleView);
@@ -237,12 +240,10 @@
         See example @code(examples/user_interface/ui_batching/). }
       UserInterfaceBatching: Boolean;
 
-      { Make SetView, PushView, PopView change views immediately,
-        without putting them on a "pending operations list". This is useful for testing.
-        Should not be used in real applications, as changing views
-        risking freeing components during their own event processing,
-        which can lead to crashes. }
-      InternalViewChangeImmediate: Boolean;
+      { Make SetView, PushView, PopView change views delayed,
+        even if other conditions would allow immediate change.
+        This is useful for testing. }
+      InternalForceViewChangeDelayed: Boolean;
 
     const
       DefaultBackgroundColor: TVector4 = (X: 0.1; Y: 0.1; Z: 0.1; W: 1);
@@ -1010,28 +1011,63 @@
 
     { Current view. Simply assign to this property to change the current view.
 
-      Note that in most cases, changing view using this property does not happen
-      immediately, it will be actually done after processing certain events
-      finished. In other words, this will not immediately call e.g. @link(TCastleView.Stop)
-      on the old view and @link(TCastleView.Start) on the new view.
-      This "delay" is done to avoid stopping views (and thus destroying
-      components) in the middle of processing events of these components,
-      e.g. destroying a button while processing it's TCastleButton.OnClick event.
+      Setting this property -> sets the whole view stack to contain only
+      this single view.
 
-      The exception, when the change happens immediately, is when you set
-      a view while the current view stack is empty.
-      In this case, the change happens immediately, because there are no views to stop
-      (so it's not risky) and it allows for some code to be easier
-      (like calling View.DesignedComponent(...) after assigning first view).
+      When reading this property, and multiple views are active (which is possible
+      if you used the @link(PushView) method), this property returns the
+      @italic(bottom) view. Use @link(PendingFrontView) to get @italic(top) view.
 
-      Regardless of when the actual views' start and stop will be done,
-      the value of this property changes immediately.
-      But it may represent the @italic(pending) view.
+      View changes are sometimes applied with delay (not immediately).
+      Details what does this means:
 
-      In case multiple views are active (only possible
-      if you used the @link(PushView) method), this property returns the @italic(bottom) view
-      (use @link(PendingFrontView) to get @italic(top) view).
-      Setting this property resets whole view stack.
+      @unorderedList(
+        @item(All possible view changes (initiated by setting
+          this property or by calling @link(PushView), @link(PopView))
+          are possibly delayed using this mechanism.)
+
+        @item(Delaying view change is done only when we are inside
+          "event processing", looping over controls.)
+
+        @item(Delaying means that actual view change does not happen
+          immediately when this property is set (or when @link(PushView) or
+          @link(PopView) are called).
+
+          Instead it will be actually done after processing certain events
+          finished. In other words, this will not immediately call e.g.
+          @link(TCastleView.Stop)
+          on the old view and @link(TCastleView.Start) on the new view,
+          or other view lifecycle methods.)
+
+        @item(Why? This "delay" is done to avoid stopping views (and thus
+          destroying components) in the middle of processing events of
+          these components, e.g. destroying a button while processing it's
+          TCastleButton.OnClick event.)
+
+        @item(There are situations when the view change is still done
+          immediately.
+
+          One is when you set a view while the current view stack is empty.
+          In this case, the change always happens immediately, because there
+          it is safe -- there are no views to stop.
+
+          Another situation is when we are not inside "event processing".
+          This accounts for changing views from the "outside code",
+          like initialization or finalization code.
+
+          Since such cases are safe, we perform view changes immediately.
+          This allows to e.g. call "View.DesignedComponent(...)" right after
+          assigning first view or rely that all views are stopped after
+          you did "Container.View := nil".)
+
+        @item(Regardless if the operation was delayed or not,
+          the value of this property changes immediately.
+          But it may represent the @italic(pending) view.)
+
+        @item(Compare @link(PendingFrontView) and @link(CurrentFrontView),
+          @link(PendingViewStack) and @link(CurrentViewStack),
+          to see the possible difference between pending and current view stack.)
+      )
 
       Note that you cannot change current view stack when another change is in progress.
       That is, you cannot change view from within @link(TCastleView.Start),
@@ -1064,44 +1100,34 @@
 
     function FrontView: TCastleView; deprecated 'use CurrentFrontView (eventually PendingFrontView)';
 
-    { Pushing the view adds it at the top of the view stack,
-      this makes new view to be displayed on top of previous ones.
+    { Add view on top of the view stack, making it displayed in front of
+      previous views.
 
-      The view known as @link(View) is conceptually at the bottom of view stack, always.
-      When it is nil, then pushing new view sets the @link(View) view.
-      Otherwise @link(View) view is left as-it-is, new view is added on top.
-
-      This method performs the view change, but with a delay.
-      So you will not observe new view's @link(TCastleView.Start) called
+      This method may perform the view change with a delay.
+      Which means that the new view's @link(TCastleView.Start) may not be called
       immediately from your call to this method.
-      This method merely schedules pushing the view,
-      putting the operation in the queue of pending changes,
-      consistently with setting @link(View) (see there for more details). }
+      See @link(View) for details on how view changes may be delayed. }
     procedure PushView(const NewView: TCastleView);
 
     { Pop the current top-most view, reversing the @link(PushView) operation.
 
-      This method performs the view change, but with a delay.
-      So you will not observe the old view's @link(TCastleView.Stop) called
+      This method may perform the view change with a delay.
+      Which means that the old view's @link(TCastleView.Stop) may not be called
       immediately from your call to this method.
-      This method merely schedules popping the view,
-      putting the operation in the queue of pending changes,
-      consistently with setting @link(View) (see there for more details). }
+      See @link(View) for details on how view changes may be delayed. }
     procedure PopView; overload;
 
     { Pop the current top-most view, reversing the @link(PushView) operation,
       also checking whether the current top-most view is as expected.
 
-      Makes a warning, and does nothing, if the current top-most view
+      Makes a warning, and does nothing, if the front (top-most) view
       is different than indicated. This is usually a safer (more chance
       to easily catch bugs) version of PopView than the parameter-less version.
 
-      This method performs the view change, but with a delay.
-      So you will not observe the old view's @link(TCastleView.Stop) called
+      This method may perform the view change with a delay.
+      Which means that the old view's @link(TCastleView.Stop) may not be called
       immediately from your call to this method.
-      This method merely schedules popping the view,
-      putting the operation in the queue of pending changes,
-      consistently with setting @link(View) (see there for more details). }
+      See @link(View) for details on how view changes may be delayed. }
     procedure PopView(const CheckFrontView: TCastleView); overload;
 
     { Count of views in the view stack.
@@ -1561,7 +1587,12 @@ function TCastleContainer.EventSensorRotation(const X, Y, Z, Angle: Double; cons
 
 begin
   FlushCollectedMotion;
-  Result := CallEvents;
+
+  Inc(FProcessingEvents);
+  try
+    Result := CallEvents;
+  finally Dec(FProcessingEvents) end;
+
   ProcessViewChanges;
 end;
 
@@ -1602,7 +1633,12 @@ function TCastleContainer.EventSensorTranslation(const X, Y, Z, Length: Double; 
 
 begin
   FlushCollectedMotion;
-  Result := CallEvents;
+
+  Inc(FProcessingEvents);
+  try
+    Result := CallEvents;
+  finally Dec(FProcessingEvents) end;
+
   ProcessViewChanges;
 end;
 
@@ -1847,9 +1883,27 @@ procedure TCastleContainer.EventUpdate;
     end;
   end;
 
-var
-  I: Integer;
-  HandleInput: Boolean;
+  procedure CallEvents;
+  var
+    I: Integer;
+    HandleInput: Boolean;
+  begin
+    HandleInput := true;
+
+    { ForceCaptureInput has the 1st chance to process inputs }
+    if UseForceCaptureInput then
+      ForceCaptureInput.Update(Fps.SecondsPassed, HandleInput);
+
+    I := Controls.Count - 1;
+    while I >= 0 do
+    begin
+      // coded this way in case some Update method changes the Controls list
+      if I < Controls.Count then
+        RecursiveUpdate(Controls[I], HandleInput);
+      Dec(I);
+    end;
+  end;
+
 begin
   FlushCollectedMotion;
 
@@ -1866,20 +1920,10 @@ begin
   Update3dMouse;
   UpdateGameControllers;
 
-  HandleInput := true;
-
-  { ForceCaptureInput has the 1st chance to process inputs }
-  if UseForceCaptureInput then
-    ForceCaptureInput.Update(Fps.SecondsPassed, HandleInput);
-
-  I := Controls.Count - 1;
-  while I >= 0 do
-  begin
-    // coded this way in case some Update method changes the Controls list
-    if I < Controls.Count then
-      RecursiveUpdate(Controls[I], HandleInput);
-    Dec(I);
-  end;
+  Inc(FProcessingEvents);
+  try
+    CallEvents;
+  finally Dec(FProcessingEvents) end;
 
   ProcessViewChanges;
 end;
@@ -1984,7 +2028,12 @@ function TCastleContainer.EventPress(const Event: TInputPressRelease): Boolean;
 begin
   FlushCollectedMotion;
   UpdateCurrentMousePositionAndTouches;
-  Result := CallEvents;
+
+  Inc(FProcessingEvents);
+  try
+    Result := CallEvents;
+  finally Dec(FProcessingEvents) end;
+
   ProcessViewChanges;
 end;
 
@@ -2098,7 +2147,12 @@ function TCastleContainer.EventRelease(const Event: TInputPressRelease): Boolean
 begin
   FlushCollectedMotion;
   UpdateCurrentMousePositionAndTouches;
-  Result := CallEvents;
+
+  Inc(FProcessingEvents);
+  try
+    Result := CallEvents;
+  finally Dec(FProcessingEvents) end;
+
   ProcessViewChanges;
 end;
 
@@ -2131,8 +2185,17 @@ procedure TCastleContainer.EventOpen(const InitializedContextsCount: Cardinal);
     finally Dec(C.ProcessingEvents) end;
   end;
 
-var
-  I: Integer;
+  procedure CallEvents;
+  var
+    I: Integer;
+  begin
+    { Call GLContextOpen on controls before OnOpen,
+      this way OnOpen has controls with GLInitialized = true,
+      so using SaveScreen etc. makes more sense there. }
+    for I := Controls.Count - 1 downto 0 do
+      RecursiveGLContextOpen(Controls[I]);
+  end;
+
 begin
   { Initialize input state to default (in case container instance is
     opened/closed multiple times, doing this in constructor would not be enough) }
@@ -2141,14 +2204,15 @@ begin
   FMousePosition := Vector2(1, 1);
   FPressed.Clear;
 
+  { Done outside of CallEvents, to run with FProcessingEvents=0 and allow
+    immediate state changes. }
   if InitializedContextsCount = 1 then
     ApplicationProperties._GLContextOpen;
 
-  { Call GLContextOpen on controls before OnOpen,
-    this way OnOpen has controls with GLInitialized = true,
-    so using SaveScreen etc. makes more sense there. }
-  for I := Controls.Count - 1 downto 0 do
-    RecursiveGLContextOpen(Controls[I]);
+  Inc(FProcessingEvents);
+  try
+    CallEvents;
+  finally Dec(FProcessingEvents) end;
 
   ProcessViewChanges;
 end;
@@ -2171,22 +2235,36 @@ procedure TCastleContainer.EventClose(const InitializedContextsCount: Cardinal);
     finally Dec(C.ProcessingEvents) end;
   end;
 
-var
-  I: Integer;
-begin
-  FHasCollectedMotion := false; // ignore if some motion was unprocessed
-
   { Call SetFocused(false) for all focused controls,
     to e.g. enable DB-aware controls to react. }
-  for I := 0 to FFocus.Count - 1 do
-    FFocus[I].Focused := false;
+  procedure SetNotFocused;
+  var
+    I: Integer;
+  begin
+    for I := 0 to FFocus.Count - 1 do
+      FFocus[I].Focused := false;
+  end;
 
-  { call GLContextClose on controls before OnClose.
-    This may be called from Close, which may be called from TCastleWindow destructor,
-    so prepare for Controls being possibly nil now. }
-  if Controls <> nil then
-    for I := Controls.Count - 1 downto 0 do
-      RecursiveGLContextClose(Controls[I]);
+  procedure CallEvents;
+  var
+    I: Integer;
+  begin
+    { call GLContextClose on controls before OnClose.
+      This may be called from Close, which may be called from TCastleWindow destructor,
+      so prepare for Controls being possibly nil now. }
+    if Controls <> nil then
+      for I := Controls.Count - 1 downto 0 do
+        RecursiveGLContextClose(Controls[I]);
+  end;
+
+begin
+  FHasCollectedMotion := false; // ignore if some motion was unprocessed
+  SetNotFocused;
+
+  Inc(FProcessingEvents);
+  try
+    CallEvents;
+  finally Dec(FProcessingEvents) end;
 
   ProcessViewChanges;
 
@@ -2226,19 +2304,26 @@ function TCastleContainer.AllowSuspendForInput: Boolean;
     Result := true;
   end;
 
-var
-  I: Integer;
+  function CallEvents: Boolean;
+  var
+    I: Integer;
+  begin
+    for I := Controls.Count - 1 downto 0 do
+      if not RecursiveAllowSuspendForInput(Controls[I]) then
+        Exit(false);
+    Result := true;
+  end;
+
 begin
   { Do not suspend when you're over a control that may have a tooltip,
     as EventUpdate must track and eventually show tooltip. }
   if FTooltipParent <> nil then
     Exit(false);
 
-  for I := Controls.Count - 1 downto 0 do
-    if not RecursiveAllowSuspendForInput(Controls[I]) then
-      Exit(false);
-
-  Result := true;
+  Inc(FProcessingEvents);
+  try
+    Result := CallEvents;
+  finally Dec(FProcessingEvents) end;
 end;
 
 procedure TCastleContainer.FlushCollectedMotion;
@@ -2348,7 +2433,10 @@ procedure TCastleContainer.EventMotionNoCollect(const Event: TInputMotion);
   end;
 
 begin
-  CallEvents;
+  Inc(FProcessingEvents);
+  try
+    CallEvents;
+  finally Dec(FProcessingEvents) end;
 
   { Call this after CallEvents.
     This must be done *after* calling all TCastleUserInterface.Motion methods,
@@ -2406,13 +2494,21 @@ procedure TCastleContainer.EventBeforeRender;
     end;
   end;
 
-var
-  I: Integer;
+  procedure CallEvents;
+  var
+    I: Integer;
+  begin
+    for I := Controls.Count - 1 downto 0 do
+      RecursiveBeforeRender(Controls[I]);
+  end;
+
 begin
   FlushCollectedMotion;
 
-  for I := Controls.Count - 1 downto 0 do
-    RecursiveBeforeRender(Controls[I]);
+  Inc(FProcessingEvents);
+  try
+    CallEvents;
+  finally Dec(FProcessingEvents) end;
 
   ProcessViewChanges;
 end;
@@ -3249,8 +3345,9 @@ begin
   if Value <> nil then
     FPendingViewStack.Add(Value);
 
-  // implement InternalViewChangeImmediate, also apply if current stack empty
-  if InternalViewChangeImmediate or (FCurrentViewStack.Count = 0) then
+  // potentially change view immediately
+  if (not InternalForceViewChangeDelayed) and
+     ((FProcessingEvents = 0) or (FCurrentViewStack.Count = 0)) then
     ProcessViewChanges;
 end;
 
@@ -3284,8 +3381,9 @@ begin
   // update FPendingViewStack
   FPendingViewStack.Add(NewView);
 
-  // implement InternalViewChangeImmediate
-  if InternalViewChangeImmediate then
+  // potentially change view immediately
+  if (not InternalForceViewChangeDelayed) and
+     (FProcessingEvents = 0) then
     ProcessViewChanges;
 end;
 
@@ -3306,8 +3404,9 @@ begin
   if FPendingViewStack.Count <> 0 then
     FPendingViewStack.Count := FPendingViewStack.Count - 1;
 
-  // implement InternalViewChangeImmediate
-  if InternalViewChangeImmediate then
+  // potentially change view immediately
+  if (not InternalForceViewChangeDelayed) and
+     (FProcessingEvents = 0) then
     ProcessViewChanges;
 end;
 
