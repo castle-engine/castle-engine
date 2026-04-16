@@ -195,6 +195,24 @@ dictionary DOMRectInit {
     unrestricted double width = 0;
     unrestricted double height = 0;
 };
+/* parts/DOMStringList.webidl ----------------------------------------------------- */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * The origin of this IDL file is
+ * http://www.w3.org/TR/2012/WD-dom-20120105/
+ *
+ * Copyright © 2012 W3C® (MIT, ERCIM, Keio), All Rights Reserved. W3C
+ * liability, trademark and document use rules apply.
+ */
+
+[Exposed=(Window,Worker)]
+interface DOMStringList {
+  readonly attribute unsigned long length;
+  getter DOMString? item(unsigned long index);
+  boolean contains(DOMString string);
+};
 /* parts/Element.webidl ----------------------------------------------------- */
 /* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 
@@ -1270,6 +1288,54 @@ dictionary KeyboardEventInit : EventModifierInit
 // Mozilla extensions
 // Michalis-
 //KeyboardEvent includes KeyEventMixin;
+/* parts/Location.webidl ----------------------------------------------------- */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * The origin of this IDL file is
+ * https://html.spec.whatwg.org/multipage/history.html#the-location-interface
+ *
+ * © Copyright 2004-2011 Apple Computer, Inc., Mozilla Foundation, and
+ * Opera Software ASA. You are granted a license to use, reproduce
+ * and create derivative works of this document.
+ */
+
+[LegacyUnforgeable, Exposed=Window]
+interface Location {
+  [Throws, CrossOriginWritable, NeedsSubjectPrincipal]
+  stringifier attribute UTF8String href;
+  [Throws, NeedsSubjectPrincipal]
+  readonly attribute UTF8String origin;
+  [Throws, NeedsSubjectPrincipal]
+           attribute UTF8String protocol;
+  [Throws, NeedsSubjectPrincipal]
+           attribute UTF8String host;
+  [Throws, NeedsSubjectPrincipal]
+           attribute UTF8String hostname;
+  [Throws, NeedsSubjectPrincipal]
+           attribute UTF8String port;
+  [Throws, NeedsSubjectPrincipal]
+           attribute UTF8String pathname;
+  [Throws, NeedsSubjectPrincipal]
+           attribute UTF8String search;
+  [Throws, NeedsSubjectPrincipal]
+           attribute UTF8String hash;
+
+  [Throws, NeedsSubjectPrincipal]
+  undefined assign(UTF8String url);
+
+  [Throws, CrossOriginCallable, NeedsSubjectPrincipal]
+  undefined replace(UTF8String url);
+
+  // XXXbz there is no forceget argument in the spec!  See bug 1037721.
+  [Throws, NeedsSubjectPrincipal]
+  undefined reload(optional boolean forceget = false);
+
+  // https://html.spec.whatwg.org/#dom-location-ancestororigins
+  [Throws, UseCounter, LegacyUnforgeable, GetterNeedsSubjectPrincipal, Pref="dom.location.ancestorOrigins.enabled"]
+  readonly attribute DOMStringList ancestorOrigins;
+};
 /* parts/MouseEvent.webidl ----------------------------------------------------- */
 /* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* This Source Code Form is subject to the terms of the Mozilla Public
@@ -4001,6 +4067,9 @@ interface nsIDOMWindowUtils;
 interface nsIPrintSettings;
 
 interface Window : EventTarget {
+  [PutForwards=href, LegacyUnforgeable, CrossOriginReadable,
+   CrossOriginWritable] readonly attribute Location location;
+
   [Throws] WindowProxy? open(optional USVString url = "", optional DOMString target = "", optional [LegacyNullToEmptyString] DOMString features = "");
 };
 

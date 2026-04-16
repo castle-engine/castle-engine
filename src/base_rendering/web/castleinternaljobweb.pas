@@ -14,7 +14,7 @@ uses SysUtils, Job.JS;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {
-  Automatically generated file by TWebIDLToPasWasmJob on 2025-05-16 12:13:41
+  Automatically generated file by TWebIDLToPasWasmJob on 2026-04-16 23:55:57
   
   Used command-line options: 
   --input=castleinternaljobweb.webidl
@@ -90,6 +90,8 @@ Type
   TJSDOMRect = class;
   IJSDOMRectReadOnly = interface;
   TJSDOMRectReadOnly = class;
+  IJSDOMStringList = interface;
+  TJSDOMStringList = class;
   IJSnsIScreen = interface;
   TJSnsIScreen = class;
   IJSElement = interface;
@@ -136,6 +138,8 @@ Type
   TJSImageData = class;
   IJSKeyboardEvent = interface;
   TJSKeyboardEvent = class;
+  IJSLocation = interface;
+  TJSLocation = class;
   IJSMouseEvent = interface;
   TJSMouseEvent = class;
   IJSNode = interface;
@@ -1661,6 +1665,30 @@ Type
   end;
   
   { --------------------------------------------------------------------
+    TJSDOMStringList
+    --------------------------------------------------------------------}
+  
+  IJSDOMStringList = interface(IJSObject)
+    ['{D9C88094-BA78-3BF9-B061-C7B4C4FE0321}']
+    function _Getlength_: Cardinal; 
+    function item(aIndex: Cardinal): UnicodeString;
+    function contains(const aString_: UnicodeString): Boolean;
+    property length_: Cardinal read _Getlength_;
+  end;
+  
+  TJSDOMStringList = class(TJSObject,IJSDOMStringList)
+  Private
+  Protected
+    function _Getlength_: Cardinal; 
+  Public
+    function item(aIndex: Cardinal): UnicodeString; overload;
+    function contains(const aString_: UnicodeString): Boolean; overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSDOMStringList;
+    property length_: Cardinal read _Getlength_;
+  end;
+  
+  { --------------------------------------------------------------------
     TJSnsIScreen
     --------------------------------------------------------------------}
   
@@ -2722,6 +2750,84 @@ Type
     property width: Cardinal read _Getwidth;
     property height: Cardinal read _Getheight;
     property data: IJSUint8ClampedArray read _Getdata;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSLocation
+    --------------------------------------------------------------------}
+  
+  IJSLocation = interface(IJSObject)
+    ['{6069810D-82E3-3000-AB6D-877A46CA9A5B}']
+    function _Gethref: UTF8String; 
+    function _Getorigin: UTF8String; 
+    function _Getprotocol: UTF8String; 
+    function _Gethost: UTF8String; 
+    function _Gethostname: UTF8String; 
+    function _Getport: UTF8String; 
+    function _Getpathname: UTF8String; 
+    function _Getsearch: UTF8String; 
+    function _Gethash: UTF8String; 
+    function _GetancestorOrigins: IJSDOMStringList; 
+    procedure _Setprotocol(const aValue: UTF8String);
+    procedure _Sethost(const aValue: UTF8String);
+    procedure _Sethostname(const aValue: UTF8String);
+    procedure _Setport(const aValue: UTF8String);
+    procedure _Setpathname(const aValue: UTF8String);
+    procedure _Setsearch(const aValue: UTF8String);
+    procedure _Sethash(const aValue: UTF8String);
+    procedure assign(const aUrl: UTF8String);
+    procedure replace(const aUrl: UTF8String);
+    procedure reload(aForceget: Boolean);
+    procedure reload;
+    property href: UTF8String read _Gethref;
+    property origin: UTF8String read _Getorigin;
+    property protocol: UTF8String read _Getprotocol write _Setprotocol;
+    property host: UTF8String read _Gethost write _Sethost;
+    property hostname: UTF8String read _Gethostname write _Sethostname;
+    property port: UTF8String read _Getport write _Setport;
+    property pathname: UTF8String read _Getpathname write _Setpathname;
+    property search: UTF8String read _Getsearch write _Setsearch;
+    property hash: UTF8String read _Gethash write _Sethash;
+    property ancestorOrigins: IJSDOMStringList read _GetancestorOrigins;
+  end;
+  
+  TJSLocation = class(TJSObject,IJSLocation)
+  Private
+  Protected
+    function _Gethref: UTF8String; 
+    function _Getorigin: UTF8String; 
+    function _Getprotocol: UTF8String; 
+    function _Gethost: UTF8String; 
+    function _Gethostname: UTF8String; 
+    function _Getport: UTF8String; 
+    function _Getpathname: UTF8String; 
+    function _Getsearch: UTF8String; 
+    function _Gethash: UTF8String; 
+    function _GetancestorOrigins: IJSDOMStringList; 
+    procedure _Setprotocol(const aValue: UTF8String);
+    procedure _Sethost(const aValue: UTF8String);
+    procedure _Sethostname(const aValue: UTF8String);
+    procedure _Setport(const aValue: UTF8String);
+    procedure _Setpathname(const aValue: UTF8String);
+    procedure _Setsearch(const aValue: UTF8String);
+    procedure _Sethash(const aValue: UTF8String);
+  Public
+    procedure assign(const aUrl: UTF8String); overload;
+    procedure replace(const aUrl: UTF8String); overload;
+    procedure reload(aForceget: Boolean); overload;
+    procedure reload; overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSLocation;
+    property href: UTF8String read _Gethref;
+    property origin: UTF8String read _Getorigin;
+    property protocol: UTF8String read _Getprotocol write _Setprotocol;
+    property host: UTF8String read _Gethost write _Sethost;
+    property hostname: UTF8String read _Gethostname write _Sethostname;
+    property port: UTF8String read _Getport write _Setport;
+    property pathname: UTF8String read _Getpathname write _Setpathname;
+    property search: UTF8String read _Getsearch write _Setsearch;
+    property hash: UTF8String read _Gethash write _Sethash;
+    property ancestorOrigins: IJSDOMStringList read _GetancestorOrigins;
   end;
   
   { --------------------------------------------------------------------
@@ -7322,7 +7428,8 @@ Type
     --------------------------------------------------------------------}
   
   IJSWindow = interface(IJSEventTarget)
-    ['{81CA455C-B190-310E-AC3B-E34368D0C443}']
+    ['{428CBA68-EE10-39D5-942E-93160AE97CA8}']
+    function _Getlocation: IJSLocation; 
     function _GetdevicePixelRatio: Double; 
     function open(const aUrl: UnicodeString; const aTarget: UnicodeString; const aFeatures: UnicodeString): IJSWindowProxy;
     function open: IJSWindowProxy;
@@ -7330,12 +7437,14 @@ Type
     function open(const aUrl: UnicodeString; const aTarget: UnicodeString): IJSWindowProxy;
     function requestAnimationFrame(const aCallback: TFrameRequestCallback): LongInt;
     procedure cancelAnimationFrame(aHandle: LongInt);
+    property location: IJSLocation read _Getlocation;
     property devicePixelRatio: Double read _GetdevicePixelRatio;
   end;
   
   TJSWindow = class(TJSEventTarget,IJSWindow)
   Private
   Protected
+    function _Getlocation: IJSLocation; 
     function _GetdevicePixelRatio: Double; 
   Public
     function open(const aUrl: UnicodeString; const aTarget: UnicodeString; const aFeatures: UnicodeString): IJSWindowProxy; overload;
@@ -7346,6 +7455,7 @@ Type
     procedure cancelAnimationFrame(aHandle: LongInt); overload;
     class function JSClassName: UnicodeString; override;
     class function Cast(const Intf: IJSObject): IJSWindow;
+    property location: IJSLocation read _Getlocation;
     property devicePixelRatio: Double read _GetdevicePixelRatio;
   end;
   
@@ -8769,6 +8879,31 @@ end;
 class function TJSDOMRectInit.Cast(const Intf: IJSObject): IJSDOMRectInit;
 begin
   Result:=TJSDOMRectInit.JOBCast(Intf);
+end;
+
+function TJSDOMStringList._Getlength_: Cardinal;
+begin
+  Result:=ReadJSPropertyInt64('length');
+end;
+
+function TJSDOMStringList.item(aIndex: Cardinal): UnicodeString;
+begin
+  Result:=InvokeJSUnicodeStringResult('item',[aIndex]);
+end;
+
+function TJSDOMStringList.contains(const aString_: UnicodeString): Boolean;
+begin
+  Result:=InvokeJSBooleanResult('contains',[aString_]);
+end;
+
+class function TJSDOMStringList.JSClassName: UnicodeString;
+begin
+  Result:='DOMStringList';
+end;
+
+class function TJSDOMStringList.Cast(const Intf: IJSObject): IJSDOMStringList;
+begin
+  Result:=TJSDOMStringList.JOBCast(Intf);
 end;
 
 class function TJSnsIScreen.JSClassName: UnicodeString;
@@ -12325,6 +12460,121 @@ end;
 class function TJSKeyboardEventInit.Cast(const Intf: IJSObject): IJSKeyboardEventInit;
 begin
   Result:=TJSKeyboardEventInit.JOBCast(Intf);
+end;
+
+function TJSLocation._Gethref: UTF8String;
+begin
+  Result:=ReadJSPropertyUTF8String('href');
+end;
+
+function TJSLocation._Getorigin: UTF8String;
+begin
+  Result:=ReadJSPropertyUTF8String('origin');
+end;
+
+function TJSLocation._Getprotocol: UTF8String;
+begin
+  Result:=ReadJSPropertyUTF8String('protocol');
+end;
+
+function TJSLocation._Gethost: UTF8String;
+begin
+  Result:=ReadJSPropertyUTF8String('host');
+end;
+
+function TJSLocation._Gethostname: UTF8String;
+begin
+  Result:=ReadJSPropertyUTF8String('hostname');
+end;
+
+function TJSLocation._Getport: UTF8String;
+begin
+  Result:=ReadJSPropertyUTF8String('port');
+end;
+
+function TJSLocation._Getpathname: UTF8String;
+begin
+  Result:=ReadJSPropertyUTF8String('pathname');
+end;
+
+function TJSLocation._Getsearch: UTF8String;
+begin
+  Result:=ReadJSPropertyUTF8String('search');
+end;
+
+function TJSLocation._Gethash: UTF8String;
+begin
+  Result:=ReadJSPropertyUTF8String('hash');
+end;
+
+function TJSLocation._GetancestorOrigins: IJSDOMStringList;
+begin
+  Result:=ReadJSPropertyObject('ancestorOrigins',TJSDOMStringList) as IJSDOMStringList;
+end;
+
+procedure TJSLocation._Setprotocol(const aValue : UTF8String);
+begin
+  WriteJSPropertyUTF8String('protocol',aValue);
+end;
+
+procedure TJSLocation._Sethost(const aValue : UTF8String);
+begin
+  WriteJSPropertyUTF8String('host',aValue);
+end;
+
+procedure TJSLocation._Sethostname(const aValue : UTF8String);
+begin
+  WriteJSPropertyUTF8String('hostname',aValue);
+end;
+
+procedure TJSLocation._Setport(const aValue : UTF8String);
+begin
+  WriteJSPropertyUTF8String('port',aValue);
+end;
+
+procedure TJSLocation._Setpathname(const aValue : UTF8String);
+begin
+  WriteJSPropertyUTF8String('pathname',aValue);
+end;
+
+procedure TJSLocation._Setsearch(const aValue : UTF8String);
+begin
+  WriteJSPropertyUTF8String('search',aValue);
+end;
+
+procedure TJSLocation._Sethash(const aValue : UTF8String);
+begin
+  WriteJSPropertyUTF8String('hash',aValue);
+end;
+
+procedure TJSLocation.assign(const aUrl: UTF8String);
+begin
+  InvokeJSNoResult('assign',[aUrl]);
+end;
+
+procedure TJSLocation.replace(const aUrl: UTF8String);
+begin
+  InvokeJSNoResult('replace',[aUrl]);
+end;
+
+procedure TJSLocation.reload(aForceget: Boolean);
+begin
+  InvokeJSNoResult('reload',[aForceget]);
+end;
+
+procedure TJSLocation.reload;
+begin
+  InvokeJSNoResult('reload',[]);
+end;
+
+class function TJSLocation.JSClassName: UnicodeString;
+begin
+  Result:='Location';
+end;
+
+class function TJSLocation.Cast(const Intf: IJSObject): IJSLocation;
+begin
+  Result:=TJSLocation.JOBCast(Intf);
 end;
 
 function TJSMouseEvent._GetscreenX: Double;
@@ -19411,6 +19661,11 @@ end;
 class function TJSnsIPrintSettings.Cast(const Intf: IJSObject): IJSnsIPrintSettings;
 begin
   Result:=TJSnsIPrintSettings.JOBCast(Intf);
+end;
+
+function TJSWindow._Getlocation: IJSLocation;
+begin
+  Result:=ReadJSPropertyObject('location',TJSLocation) as IJSLocation;
 end;
 
 function TJSWindow._GetdevicePixelRatio: Double;
