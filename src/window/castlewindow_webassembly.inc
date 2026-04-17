@@ -1,6 +1,6 @@
 {%MainUnit castlewindow.pas}
 {
-  Copyright 2004-2024 Michalis Kamburelis.
+  Copyright 2004-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -40,6 +40,7 @@ strict private
 strict private
   CanvasAnimationHandler: Integer;
   WasFrameRendered: Boolean;
+  FPageUrlParametersInitialized: Boolean;
   { Callback for requestAnimationFrame
     ( https://developer.mozilla.org/en-US/docs/Web/API/Window/requestAnimationFrame ) }
   procedure AnimationFrame(Time: TDOMHighResTimeStamp);
@@ -737,6 +738,75 @@ end;
 function TCastleApplication.MultipleWindowsPossible: Boolean;
 begin
   Result := false;
+end;
+
+function TCastleApplication.PageUrl: String;
+begin
+  Result := JSWindow.Location.Href;
+end;
+
+function TCastleApplication.PageUrlQuery: String;
+begin
+  Result := JSWindow.Location.Search;
+end;
+
+function TCastleApplication.PageUrlParameters: TStringStringMap;
+
+  { Decode URL query parameters. In addition to UrlDecode,
+    this also handles + for space. }
+  function UrlDecodeForm(const S: String): String;
+  begin
+    { URL query parameters are encoded using application/x-www-form-urlencoded encoding,
+      see https://url.spec.whatwg.org/#application/x-www-form-urlencoded . }
+    Result := S;
+    Result := SReplaceChars(Result, '+', ' ');
+    Result := UrlDecode(Result);
+  end;
+
+var
+  Query, ParamName, ParamValue, NameValue: String;
+  NameValues: TCastleStringList;
+  SeekPos, EqPos: Integer;
+begin
+  if not FPageUrlParametersInitialized then
+  begin
+    Query := PageUrlQuery;
+    if SCharIs(Query, 1, '?') then
+    begin
+      Query := SEnding(Query, 2);
+      NameValues := SplitString(Query, '&');
+      try
+        for NameValue in NameValues do
+        begin
+          EqPos := Pos('=', NameValue);
+          if EqPos > 0 then
+          begin
+            ParamName := UrlDecodeForm(Copy(NameValue, 1, EqPos - 1));
+            ParamValue := UrlDecodeForm(SEnding(NameValue, EqPos + 1));
+          end else
+          begin
+            ParamName := UrlDecodeForm(NameValue);
+            ParamValue := '';
+          end;
+
+          { Ignore empty parameter names, like in ...?x=1&&y=2 (double &)
+            or in ?=1 (no key name). }
+          if ParamName = '' then
+            Continue;
+
+          if FPageUrlParameters.ContainsKey(ParamName) then
+            WritelnWarning('Web', 'Duplicate page URL parameter "%s", ignoring all but first occurrence', [
+              ParamName
+            ])
+          else
+            FPageUrlParameters.Add(ParamName, ParamValue);
+        end;
+      finally FreeAndNil(NameValues) end;
+    end;
+    FPageUrlParametersInitialized := true;
+  end;
+
+  Result := FPageUrlParameters;
 end;
 
 { TWindowContainer ----------------------------------------------------------- }

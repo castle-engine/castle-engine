@@ -558,7 +558,6 @@ type
     FContainer: TWindowContainer;
     {$warnings on}
     FCursor: TMouseCursor;
-    FNamedParameters: TCastleStringList;
     { When Open, this says if the window actually has double-buffer. }
     HasDoubleBuffer: Boolean;
     { Ready TGLContextRequirements instance.
@@ -1975,10 +1974,6 @@ type
     { Ask a yes/no question, using native (looks familiar on a given system) dialog box. }
     function MessageYesNo(const S: String;
       const MessageType: TWindowMessageType = mtQuestion): boolean;
-
-    { Named parameters used to initialize this window.
-      Right now not used (were used by NPAPI plugin, may be useful to new web target). }
-    property NamedParameters: TCastleStringList read FNamedParameters;
   private
     LastFpsOutputTime: TTimerResult;
     FFpsShowOnCaption: boolean;
@@ -2079,6 +2074,7 @@ type
       Backends should only call Application.DoDropFiles,
       do not read or write this field directly. }
     FPendingDropFiles: TCastleStringList;
+    FPageUrlParameters: TStringStringMap;
 
     FOpenWindows: TWindowList;
     function GetOpenWindows(Index: integer): TCastleWindow;
@@ -2502,6 +2498,72 @@ end.
     { Are we using OpenGLES for rendering. }
     function OpenGLES: Boolean;
 
+    { When running on the @url(https://castle-engine.io/web web),
+      the full URL of the web page we are hosted on.
+      Example: @code(https://example.com/?model=castle.gltf&quality=high).
+
+      On non-web platforms, returns empty string.
+
+      @seealso PageUrlQuery
+      @seealso PageUrlParameter }
+    function PageUrl: String;
+
+    { When running on the @url(https://castle-engine.io/web web),
+      the URL query string, i.e. everything from '?' onwards (inclusive).
+      Example: @code(?model=castle.gltf&quality=high)
+      when the page URL (see @link(PageUrl)) is
+      @code(https://example.com/?model=castle.gltf&quality=high).
+
+      On non-web platforms (or when no query string present), returns empty string.
+
+      It is usually easier to use @link(PageUrlParameters) to get specific
+      query parameters.
+
+      @seealso PageUrl
+      @seealso PageUrlParameter }
+    function PageUrlQuery: String;
+
+    { Get URL query parameter value by name.
+      Returns the URL-decoded value, or empty string if the parameter is absent
+      or if not running on the web platform.
+
+      Example: for URL '...?model=my%20castle.gltf',
+      PageUrlParameter('model') = 'my castle.gltf'. }
+    function PageUrlParameter(const ParameterName: String): String;
+
+    { Dictionary of URL query parameter names -> values.
+      This is more flexible way of accessing URL query parameters than @link(PageUrlParameter).
+
+      We return @link(TStringStringMap) instance,
+      an ancestor of standard @code(TDictionary), for maximum flexibility.
+      So you can ask about a particular key, or iterate over all keys and values.
+      For example:
+
+      @longCode(#
+      if Application.PageUrlParameters.TryGetValue('model', ModelUrl) then
+        LoadModel(ModelUrl)
+      else
+        WritelnLog('User did not request to load anything');
+      #)
+
+      Getting a value for key that doesn't exist behaves like TDictionary:
+      you will get an exception. Use @code(TryGetValue),
+      as shown above, to get a value for a key that may be absent.
+
+      @italic(Never modify the contents of this dictionary.)
+
+      Parameter names (keys) and values are URL-decoded.
+
+      Example: for @code(https://example.com/?model=my%20castle.gltf&quality=high)
+      the dictionary will contain two entries:
+
+      @unorderedList(
+        @item 'model' -> 'my castle.gltf',
+        @item 'quality' -> 'high'
+      )
+    }
+    function PageUrlParameters: TStringStringMap;
+
     {$ifdef FPC}
     property LimitFPS: Single read GetLimitFPS write SetLimitFPS;
       deprecated 'use ApplicationProperties.LimitFps';
@@ -2658,7 +2720,6 @@ begin
   FpsShowOnCaption := false;
   FFpsCaptionUpdateDelay := DefaultFpsCaptionUpdateDelay;
   FFocused := true;
-  FNamedParameters := TCastleStringList.Create;
   FRequirements := TGLContextRequirements.Create(nil);
 
   CreateBackend;
@@ -2683,7 +2744,6 @@ begin
     Messaging.OnReceive.Remove({$ifdef FPC}@{$endif} MessageReceived);
 
   FreeAndNil(FContainer);
-  FreeAndNil(FNamedParameters);
   FreeAndNil(FRequirements);
   inherited;
 end;
@@ -4057,6 +4117,7 @@ constructor TCastleApplication.Create(AOwner: TComponent);
 begin
   inherited;
   FOpenWindows := TWindowList.Create(false);
+  FPageUrlParameters := TStringStringMap.Create;
   CreateBackend;
   OnMainContainer := {$ifdef FPC}@{$endif}GetMainContainer;
 end;
@@ -4081,6 +4142,7 @@ begin
 
   VideoReset;
   DestroyBackend;
+  FreeAndNil(FPageUrlParameters);
   FreeAndNil(FOpenWindows);
   FreeAndNil(FPendingDropFiles);
   inherited;
@@ -4741,6 +4803,31 @@ begin
     FPendingDropFiles.Assign(Files);
   end;
 end;
+
+function TCastleApplication.PageUrlParameter(const ParameterName: String): String;
+begin
+  if PageUrlParameters.TryGetValue(ParameterName, Result) then
+    Exit
+  else
+    Result := '';
+end;
+
+{$ifndef CASTLE_WINDOW_WEBASSEMBLY}
+function TCastleApplication.PageUrl: String;
+begin
+  Result := '';
+end;
+
+function TCastleApplication.PageUrlQuery: String;
+begin
+  Result := '';
+end;
+
+function TCastleApplication.PageUrlParameters: TStringStringMap;
+begin
+  Result := FPageUrlParameters;
+end;
+{$endif}
 
 {$ifdef FPC}
 
