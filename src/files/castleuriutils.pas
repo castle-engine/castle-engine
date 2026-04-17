@@ -1,5 +1,5 @@
 {
-  Copyright 2007-2024 Michalis Kamburelis.
+  Copyright 2007-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -429,6 +429,15 @@ function UrlEncode(const S: String): String;
 { Decode string using @url(https://en.wikipedia.org/wiki/Percent-encoding percent encoding),
   for example @code(%20)is converted to space. }
 function UrlDecode(const S: String): String;
+
+{ Extract query parameters from URL ending like @code(?model=foo&texture=bar).
+  The query parameters are returned as a map from parameter name to
+  parameter value.
+  If the URL does not contain query parameters, the returned map is empty.
+
+  Query provided should be the URL ending (not the whole URL), for example
+  @code(?model=foo&texture=bar). Leading '?' is optional. }
+function UrlQueryParameters(Query: String): TStringStringMap;
 
 var
   { On systems where filesystems are usually case-sensitive
@@ -1851,6 +1860,59 @@ begin
     //WritelnLog('castle-config', Format('Resolved "%s" to "%s"', [Url, Result]));
   end else
     Result := Url;
+end;
+
+function UrlQueryParameters(Query: String): TStringStringMap;
+
+  { Decode URL query parameters. In addition to UrlDecode,
+    this also handles + for space. }
+  function UrlDecodeForm(const S: String): String;
+  begin
+    { URL query parameters are encoded using application/x-www-form-urlencoded encoding,
+      see https://url.spec.whatwg.org/#application/x-www-form-urlencoded . }
+    Result := S;
+    Result := SReplaceChars(Result, '+', ' ');
+    Result := UrlDecode(Result);
+  end;
+
+var
+  ParamName, ParamValue, NameValue: String;
+  NameValues: TCastleStringList;
+  EqPos: Integer;
+begin
+  Result := TStringStringMap.Create;
+
+  if SCharIs(Query, 1, '?') then
+    Query := SEnding(Query, 2);
+
+  NameValues := CastleStringUtils.SplitString(Query, '&');
+  try
+    for NameValue in NameValues do
+    begin
+      EqPos := Pos('=', NameValue);
+      if EqPos > 0 then
+      begin
+        ParamName := UrlDecodeForm(Copy(NameValue, 1, EqPos - 1));
+        ParamValue := UrlDecodeForm(SEnding(NameValue, EqPos + 1));
+      end else
+      begin
+        ParamName := UrlDecodeForm(NameValue);
+        ParamValue := '';
+      end;
+
+      { Ignore empty parameter names, like in ...?x=1&&y=2 (double &)
+        or in ?=1 (no key name). }
+      if ParamName = '' then
+        Continue;
+
+      if Result.ContainsKey(ParamName) then
+        WritelnWarning('Duplicate page URL parameter "%s", ignoring all but first occurrence', [
+          ParamName
+        ])
+      else
+        Result.Add(ParamName, ParamValue);
+    end;
+  finally FreeAndNil(NameValues) end;
 end;
 
 initialization

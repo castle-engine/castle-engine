@@ -48,13 +48,14 @@ type
     procedure TestFilenameToUriSafeEmpty;
     procedure TestGetCurrentDir;
     procedure TestExtractUriNamePercentEncoding;
+    procedure TestUrlQueryParameters;
   end;
 
 implementation
 
 uses Base64, UriParser,
   CastleUriUtils, CastleUtils, CastleClassUtils, CastleFilesUtils,
-  CastleFindFiles;
+  CastleFindFiles, CastleStringUtils;
 
 procedure TTestUriUtils.TestUriProtocol;
 var
@@ -673,6 +674,69 @@ begin
 
   AssertEquals('foo bar.txt', UrlDecode('foo%20bar.txt'));
   AssertEquals('foo bar', UrlDecode('foo%20bar'));
+end;
+
+procedure TTestUriUtils.TestUrlQueryParameters;
+var
+  Params: TStringStringMap;
+begin
+  Params := UrlQueryParameters('');
+  try
+    AssertEquals(0, Params.Count);
+  finally FreeAndNil(Params) end;
+
+  Params := UrlQueryParameters('?');
+  try
+    AssertEquals(0, Params.Count);
+  finally FreeAndNil(Params) end;
+
+  Params := UrlQueryParameters('?abc=def');
+  try
+    AssertEquals(1, Params.Count);
+    AssertEquals('def', Params['abc']);
+  finally FreeAndNil(Params) end;
+
+  Params := UrlQueryParameters('?abc=def&xyz=123');
+  try
+    AssertEquals(2, Params.Count);
+    AssertEquals('def', Params['abc']);
+    AssertEquals('123', Params['xyz']);
+  finally FreeAndNil(Params) end;
+
+  Params := UrlQueryParameters('?abc=def&abc=secondtry&xyz=123');
+  try
+    AssertEquals(2, Params.Count);
+    AssertEquals('def', Params['abc']);
+    AssertEquals('123', Params['xyz']);
+  finally FreeAndNil(Params) end;
+
+  Params := UrlQueryParameters('?abc=def&&still_ok_double_ampersand=123');
+  try
+    AssertEquals(2, Params.Count);
+    AssertEquals('def', Params['abc']);
+    AssertEquals('123', Params['still_ok_double_ampersand']);
+  finally FreeAndNil(Params) end;
+
+  Params := UrlQueryParameters('?abc=def&keyboard%20value=%20with%20spaces%20and%20%25percent%25signs');
+  try
+    AssertEquals(2, Params.Count);
+    AssertEquals('def', Params['abc']);
+    AssertEquals(' with spaces and %percent%signs', Params['keyboard value']);
+  finally FreeAndNil(Params) end;
+
+  Params := UrlQueryParameters('?abc=def&no_value&empty_value=');
+  try
+    AssertEquals(3, Params.Count);
+    AssertEquals('def', Params['abc']);
+    AssertEquals('', Params['no_value']);
+    AssertEquals('', Params['empty_value']);
+  finally FreeAndNil(Params) end;
+
+  Params := UrlQueryParameters('?model=spaces+by+plus+signs.gltf');
+  try
+    AssertEquals(1, Params.Count);
+    AssertEquals('spaces by plus signs.gltf', Params['model']);
+  finally FreeAndNil(Params) end;
 end;
 
 initialization
