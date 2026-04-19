@@ -1,6 +1,6 @@
 ﻿// -*- compile-command: "./test_single_testcase.sh TTestUriUtils" -*-
 {
-  Copyright 2013-2025 Michalis Kamburelis.
+  Copyright 2013-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -49,6 +49,7 @@ type
     procedure TestGetCurrentDir;
     procedure TestExtractUriNamePercentEncoding;
     procedure TestUrlQueryParameters;
+    procedure TestUrlEncodeForm;
   end;
 
 implementation
@@ -737,6 +738,14 @@ begin
     AssertEquals(1, Params.Count);
     AssertEquals('spaces by plus signs.gltf', Params['model']);
   finally FreeAndNil(Params) end;
+end;
+
+procedure TTestUriUtils.TestUrlEncodeForm;
+begin
+  AssertEquals('simplest', InternalUrlEncodeForm('simplest'));
+  AssertEquals('simple+test', InternalUrlEncodeForm('simple test'));
+  AssertEquals('with%25percent%25signs', InternalUrlEncodeForm('with%percent%signs'));
+  AssertEquals('spaces+and%2Bplus%2Bsigns', InternalUrlEncodeForm('spaces and+plus+signs'));
 end;
 
 initialization
