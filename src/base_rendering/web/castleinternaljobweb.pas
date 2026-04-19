@@ -14,7 +14,7 @@ uses SysUtils, Job.JS;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {
-  Automatically generated file by TWebIDLToPasWasmJob on 2026-04-19 03:24:45
+  Automatically generated file by TWebIDLToPasWasmJob on 2026-04-19 05:56:43
   
   Used command-line options: 
   --input=castleinternaljobweb.webidl
@@ -8708,10 +8708,10 @@ Type
     procedure _Settimeout(const aValue: Cardinal);
     procedure _SetwithCredentials(const aValue: Boolean);
     procedure _SetresponseType(const aValue: TXMLHttpRequestResponseType);
-    procedure open(const aMethod: UnicodeString; const aUrl: UTF8String);
-    procedure open(const aMethod: UnicodeString; const aUrl: UTF8String; aAsync: Boolean; const aUser: UTF8String; const aPassword: UTF8String);
-    procedure open(const aMethod: UnicodeString; const aUrl: UTF8String; aAsync: Boolean);
-    procedure open(const aMethod: UnicodeString; const aUrl: UTF8String; aAsync: Boolean; const aUser: UTF8String);
+    procedure open(const aMethod: UnicodeString; const aUrl: UnicodeString);
+    procedure open(const aMethod: UnicodeString; const aUrl: UnicodeString; aAsync: Boolean; const aUser: UnicodeString; const aPassword: UnicodeString);
+    procedure open(const aMethod: UnicodeString; const aUrl: UnicodeString; aAsync: Boolean);
+    procedure open(const aMethod: UnicodeString; const aUrl: UnicodeString; aAsync: Boolean; const aUser: UnicodeString);
     procedure setRequestHeader(const aHeader: UnicodeString; const aValue: UnicodeString);
     procedure send(aBody: IJSDocument);
     procedure send;
@@ -8768,10 +8768,10 @@ Type
     constructor Create(const aParams: IJSMozXMLHttpRequestParameters); overload;
     constructor Create; overload;
     constructor Create(const aIgnored: UnicodeString); overload;
-    procedure open(const aMethod: UnicodeString; const aUrl: UTF8String); overload;
-    procedure open(const aMethod: UnicodeString; const aUrl: UTF8String; aAsync: Boolean; const aUser: UTF8String; const aPassword: UTF8String); overload;
-    procedure open(const aMethod: UnicodeString; const aUrl: UTF8String; aAsync: Boolean); overload;
-    procedure open(const aMethod: UnicodeString; const aUrl: UTF8String; aAsync: Boolean; const aUser: UTF8String); overload;
+    procedure open(const aMethod: UnicodeString; const aUrl: UnicodeString); overload;
+    procedure open(const aMethod: UnicodeString; const aUrl: UnicodeString; aAsync: Boolean; const aUser: UnicodeString; const aPassword: UnicodeString); overload;
+    procedure open(const aMethod: UnicodeString; const aUrl: UnicodeString; aAsync: Boolean); overload;
+    procedure open(const aMethod: UnicodeString; const aUrl: UnicodeString; aAsync: Boolean; const aUser: UnicodeString); overload;
     procedure setRequestHeader(const aHeader: UnicodeString; const aValue: UnicodeString); overload;
     procedure send(aBody: IJSDocument); overload;
     procedure send; overload;
@@ -21776,22 +21776,22 @@ begin
   JOBCreate([aIgnored]);
 end;
 
-procedure TJSXMLHttpRequest.open(const aMethod: UnicodeString; const aUrl: UTF8String);
+procedure TJSXMLHttpRequest.open(const aMethod: UnicodeString; const aUrl: UnicodeString);
 begin
   InvokeJSNoResult('open',[aMethod,aUrl]);
 end;
 
-procedure TJSXMLHttpRequest.open(const aMethod: UnicodeString; const aUrl: UTF8String; aAsync: Boolean; const aUser: UTF8String; const aPassword: UTF8String);
+procedure TJSXMLHttpRequest.open(const aMethod: UnicodeString; const aUrl: UnicodeString; aAsync: Boolean; const aUser: UnicodeString; const aPassword: UnicodeString);
 begin
   InvokeJSNoResult('open',[aMethod,aUrl,aAsync,aUser,aPassword]);
 end;
 
-procedure TJSXMLHttpRequest.open(const aMethod: UnicodeString; const aUrl: UTF8String; aAsync: Boolean);
+procedure TJSXMLHttpRequest.open(const aMethod: UnicodeString; const aUrl: UnicodeString; aAsync: Boolean);
 begin
   InvokeJSNoResult('open',[aMethod,aUrl,aAsync]);
 end;
 
-procedure TJSXMLHttpRequest.open(const aMethod: UnicodeString; const aUrl: UTF8String; aAsync: Boolean; const aUser: UTF8String);
+procedure TJSXMLHttpRequest.open(const aMethod: UnicodeString; const aUrl: UnicodeString; aAsync: Boolean; const aUser: UnicodeString);
 begin
   InvokeJSNoResult('open',[aMethod,aUrl,aAsync,aUser]);
 end;

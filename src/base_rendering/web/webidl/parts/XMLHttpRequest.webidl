@@ -67,12 +67,36 @@ interface XMLHttpRequest : XMLHttpRequestEventTarget {
 
   readonly attribute unsigned short readyState;
 
+  /* CGE: Changing "UTF8String url" and other UTF8String params to USVString.
+    This is also what FPC example does in packages/webidl/tests/browser.webidl .
+    This way, it's actually exposed as UnicodeString.
+
+    Using it as `Url:UTF8String` parameter would mean that XMLHttpRequest.open
+    fails with this error (examples/../asynchronus_downlaoding):
+
+    Uncaught RangeError: start offset of Uint16Array should be a multiple of 2
+      ReadString http://localhost:3000/asynchronous_download.js?random_suffix_to_avoid_cache=CILSR553:6019
+      ReadValue http://localhost:3000/asynchronous_download.js?random_suffix_to_avoid_cache=CILSR553:6120
+      GetInvokeArguments http://localhost:3000/asynchronous_download.js?random_suffix_to_avoid_cache=CILSR553:6158
+      Invoke_JSResult http://localhost:3000/asynchronous_download.js?random_suffix_to_avoid_cache=CILSR553:5918
+      Invoke_NoResult http://localhost:3000/asynchronous_download.js?random_suffix_to_avoid_cache=CILSR553:6301
+      cb http://localhost:3000/asynchronous_download.js?random_suffix_to_avoid_cache=CILSR553:246
+      Result http://localhost:3000/asynchronous_download.js?random_suffix_to_avoid_cache=CILSR553:5068
+      MethodCallBack http://localhost:3000/asynchronous_download.js?random_suffix_to_avoid_cache=CILSR553:5976
+
+    Note that adding
+      UTF8String=UnicodeString
+    to
+      alias_webidl_types_in_other_units.txt
+    doesn't help here.
+  */
+
   // request
   [Throws]
-  undefined open(ByteString method, UTF8String url);
+  undefined open(ByteString method, USVString url);
   [Throws]
-  undefined open(ByteString method, UTF8String url, boolean async,
-            optional UTF8String? user=null, optional UTF8String? password=null);
+  undefined open(ByteString method, USVString url, boolean async,
+            optional USVString? user=null, optional USVString? password=null);
   [Throws]
   undefined setRequestHeader(ByteString header, ByteString value);
 
