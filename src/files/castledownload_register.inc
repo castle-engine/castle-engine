@@ -1,6 +1,6 @@
 {%MainUnit castledownload.pas}
 {
-  Copyright 2013-2025 Michalis Kamburelis.
+  Copyright 2013-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -412,6 +412,16 @@ begin
 
     P := FRegisteredProtocols.Add('https');
     P.AsynchronousReader := TDelphiHttpReader;
+    P.DetectMimeTypeFromExtension := true;
+
+    {$elseif defined(WASI)}
+    // http(s) using XMLHttpRequest from WebAssembly
+    P := FRegisteredProtocols.Add('http');
+    P.AsynchronousReader := THttpWebReader;
+    P.DetectMimeTypeFromExtension := true;
+
+    P := FRegisteredProtocols.Add('https');
+    P.AsynchronousReader := THttpWebReader;
     P.DetectMimeTypeFromExtension := true;
 
     {$else}

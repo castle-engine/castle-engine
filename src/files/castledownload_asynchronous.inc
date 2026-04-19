@@ -1,6 +1,6 @@
 {%MainUnit castledownload.pas}
 {
-  Copyright 2013-2022 Michalis Kamburelis.
+  Copyright 2013-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -105,7 +105,7 @@ type
     FOwnsContents: Boolean;
     FOptions: TStreamOptions;
     FTotalBytes, FDownloadedBytes: Int64;
-    FMimeType: String;
+    FMimeType, FMimeTypeFromExtension: String;
     Reader: TUrlAsynchronousReader; //< non-nil when asynchronous reading is in-progress
     UpdateInitialized: Boolean;
     FHttpPostData: TStringList;
@@ -113,6 +113,7 @@ type
     FHttpRequestBody: TMemoryStream;
     FHttpResponseCode: Integer;
     FHttpResponseHeaders: TStrings;
+    FWarningDoneOverrideOctetStream: Boolean;
     procedure SetUrl(const Value: String);
     procedure SetHttpMethod(const Value: THttpMethod);
     procedure SetOnFinish(const Value: TDownloadFinishedEvent);
@@ -511,6 +512,12 @@ begin
   RegisteredProtocol := RegisteredProtocols.Find(P);
   if RegisteredProtocol <> nil then
   begin
+    { calculate FMimeTypeFromExtension }
+    if RegisteredProtocol.DetectMimeTypeFromExtension then
+      FMimeTypeFromExtension := UriMimeType(FFinalUrl)
+    else
+      FMimeTypeFromExtension := '';
+
     if RegisteredProtocol.AsynchronousReader <> nil then
     begin
       Reader := RegisteredProtocol.AsynchronousReader.Create;
@@ -557,6 +564,31 @@ begin
 end;
 
 procedure TCastleDownload.Update(Sender: TObject);
+
+  { When HTTP server reports the MIME type as
+    @code(application/octet-stream), we ignore it and determine the MIME type
+    from the URL extension instead. This is useful because many HTTP servers
+    report @code(application/octet-stream) for files they don't recognize
+    (like 3D models), which is essentially useless. The MIME type guessed
+    from the URL extension is almost always more useful in this case. }
+  procedure OverrideMimeTypeOctetStream;
+  const
+    OctetStream = 'application/octet-stream';
+  begin
+    if (FMimeType = OctetStream) and
+       (FMimeTypeFromExtension <> '') then
+    begin
+      WritelnWarningOnce(FWarningDoneOverrideOctetStream,
+        'Server reports generic MIME type "%s" for URL "%s", using instead MIME type "%s" from the URL extension',
+        [
+          OctetStream,
+          UriDisplay(FFinalUrl),
+          FMimeTypeFromExtension
+        ]);
+      FMimeType := FMimeTypeFromExtension;
+    end;
+  end;
+
 begin
   if Status = dsDownloading then
   begin
@@ -569,6 +601,7 @@ begin
     FDownloadedBytes := Reader.DownloadedBytes;
     FTotalBytes := Reader.TotalBytes;
     FMimeType := Reader.MimeType;
+    OverrideMimeTypeOctetStream;
 
     if FStatus in [dsError, dsSuccess] then
     begin
