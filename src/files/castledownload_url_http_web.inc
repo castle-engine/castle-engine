@@ -154,26 +154,27 @@ begin
 
   MimeType := ContentTypeToMimeType(HttpResponseHeaders.Values['Content-Type']);
 
-  { Read response body to Contents stream }
-  if Xhr.ResponseType = 'arraybuffer' then
+  { Read response body to Contents stream.
+
+    Note that I could not figure out how to use Xhr.Response (Variant,
+    as it can have various types in JS, not only ArrayBuffer).
+    Doing on it operations like "TJSArrayBuffer.Cast(Xhr.Response)" failed with
+    "Uncaught RuntimeError: indirect call signature mismatch".
+    Testing didn't reveal any solution:
+    - VarTypeAsText(VarType(Xhr.Response)) says this is "unknown"
+    - VarIsNull(Xhr.Response) is false
+
+    It seems that ignoring Xhr.Response, and instead using
+    Xhr.ReadJSPropertyObject('response', TJSArrayBuffer) allows to get
+    it reliably as IJSArrayBuffer.
+  }
+  ResponseBuffer := Xhr.ReadJSPropertyObject('response', TJSArrayBuffer) as IJSArrayBuffer;
+  if ResponseBuffer <> nil then
   begin
-    ResponseBuffer := TJSArrayBuffer.Cast(Xhr.Response);
-    if ResponseBuffer <> nil then
-    begin
-      TMemoryStream(Contents).Size := ResponseBuffer.ByteLength;
-      if ResponseBuffer.ByteLength > 0 then
-        ResponseBuffer.CopyToMemory(TMemoryStream(Contents).Memory, TMemoryStream(Contents).Size);
-      Contents.Position := 0;
-      WritelnLog('Network', 'Response is arraybuffer, size %d bytes', [Contents.Size]);
-    end;
-  end else
-  begin
-    Status := dsError;
-    ErrorMessage := Format('Unexpected response type "%s"', [
-      Xhr.ResponseType
-    ]);
-    WritelnLog('Network', ErrorMessage);
-    Exit;
+    TMemoryStream(Contents).Size := ResponseBuffer.ByteLength;
+    if ResponseBuffer.ByteLength > 0 then
+      ResponseBuffer.CopyToMemory(TMemoryStream(Contents).Memory, ResponseBuffer.ByteLength);
+    Contents.Position := 0;
   end;
 
   DownloadedBytes := Contents.Size;
