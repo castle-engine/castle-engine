@@ -1,6 +1,6 @@
 {%MainUnit castlewindow.pas}
 {
-  Copyright 2004-2024 Michalis Kamburelis.
+  Copyright 2004-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -40,6 +40,7 @@ strict private
 strict private
   CanvasAnimationHandler: Integer;
   WasFrameRendered: Boolean;
+  FPageUrlParametersInitialized: Boolean;
   { Callback for requestAnimationFrame
     ( https://developer.mozilla.org/en-US/docs/Web/API/Window/requestAnimationFrame ) }
   procedure AnimationFrame(Time: TDOMHighResTimeStamp);
@@ -737,6 +738,29 @@ end;
 function TCastleApplication.MultipleWindowsPossible: Boolean;
 begin
   Result := false;
+end;
+
+function TCastleApplication.PageUrl: String;
+begin
+  Result := JSWindow.Location.Href;
+end;
+
+function TCastleApplication.PageUrlQuery: String;
+begin
+  Result := JSWindow.Location.Search;
+end;
+
+function TCastleApplication.PageUrlParameters: TStringStringMap;
+begin
+  if not FPageUrlParametersInitialized then
+  begin
+    // for now, TCastleApplication.Create creates a useless instance that we'll discard here
+    FreeAndNil(FPageUrlParameters);
+    FPageUrlParameters := UrlQueryParameters(PageUrlQuery);
+    FPageUrlParametersInitialized := true;
+  end;
+
+  Result := FPageUrlParameters;
 end;
 
 { TWindowContainer ----------------------------------------------------------- }

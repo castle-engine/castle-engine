@@ -45,21 +45,10 @@ type
   end;
 
 procedure THttpAndroidReader.Start;
-
-  function HttpMethodName: String;
-  begin
-    case HttpMethod of
-      hmGet: Result := 'GET';
-      hmPost: Result := 'POST';
-      hmPut: Result := 'PUT';
-      hmDelete: Result := 'DELETE';
-      hmOptions: Result := 'OPTIONS';
-      hmHead: Result := 'HEAD';
-      {$ifndef COMPILER_CASE_ANALYSIS}
-      else raise EInternalError.Create('HttpMethod=?');
-      {$endif}
-    end;
-  end;
+const
+  HttpMethodNames: array[THttpMethod] of String = (
+    'GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD'
+  );
 
   function HttpRequestBodyStr: String;
   begin

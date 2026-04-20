@@ -1,5 +1,5 @@
 {
-  Copyright 2007-2024 Michalis Kamburelis.
+  Copyright 2007-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -430,6 +430,20 @@ function UrlEncode(const S: String): String;
   for example @code(%20)is converted to space. }
 function UrlDecode(const S: String): String;
 
+{ Encode a single form value for application/x-www-form-urlencoded encoding.
+  This is similar to UrlEncode, but it also replaces space with plus,
+  and it allows fewer characters unescaped. }
+function InternalUrlEncodeForm(const S: String): String;
+
+{ Extract query parameters from URL ending like @code(?model=foo&texture=bar).
+  The query parameters are returned as a map from parameter name to
+  parameter value.
+  If the URL does not contain query parameters, the returned map is empty.
+
+  Query provided should be the URL ending (not the whole URL), for example
+  @code(?model=foo&texture=bar). Leading '?' is optional. }
+function UrlQueryParameters(Query: String): TStringStringMap;
+
 var
   { On systems where filesystems are usually case-sensitive
     (Unix; like Linux, FreeBSD, macOS),
@@ -549,11 +563,13 @@ begin
   {$endif}
 end;
 
-function InternalUriEscapeCore(const S: String; const Allowed: TSysCharSet): String;
+function InternalUriEscapeCore(const S: String; const Allowed: TSysCharSet;
+  const SpaceToPlus: Boolean = false): String;
 var
   i, L: Integer;
   {$ifdef FPC}
   P: PChar;
+  AnyEscaping: Boolean;
   {$else}
   J: Integer;
   Utf16Char: String; // String here becouse somtimes UTF-16 char can be two wide chars
@@ -561,23 +577,44 @@ var
   {$endif}
 begin
   L := Length(s);
+
   {$ifdef FPC}
+  AnyEscaping := false;
+
+  // First pass to calculate length of the result string (L).
+  // By the way, calculate AnyEscaping, to possibly to early exit in easy case.
   for i := 1 to Length(s) do
-    if not CharInSet(s[i], Allowed) then Inc(L,2);
-  if L = Length(s) then
+  begin
+    if not CharInSet(s[i], Allowed) then
+    begin
+      AnyEscaping := true;
+      if not (SpaceToPlus and (s[i] = ' ')) then
+        Inc(L, 2); // replaced to %xx, so it becomes longer by 2 chars
+    end;
+  end;
+
+  // utilize AnyEscaping to avoid unnecessary work when there is nothing to escape
+  if not AnyEscaping then
   begin
     Result := s;
     Exit;
   end;
 
+  // some escaping necessary, do it in one pass
   SetLength(Result, L);
   P := @Result[1];
   for i := 1 to Length(s) do
   begin
     if not CharInSet(s[i], Allowed) then
     begin
-      P^ := '%'; Inc(P);
-      StrFmt(P, '%.2x', [ord(s[i])]); Inc(P);
+      if SpaceToPlus and (s[i] = ' ') then
+      begin
+        P^ := '+';
+      end else
+      begin
+        P^ := '%'; Inc(P);
+        StrFmt(P, '%.2x', [ord(s[i])]); Inc(P);
+      end;
     end else
       P^ := s[i];
     Inc(P);
@@ -608,10 +645,16 @@ begin
       if not CharInSet(s[i], Allowed) then
       begin
         // Not surrogate but also not allowed
-        UTF8Char := UTF8String(S[I]);
-        for J := 1 to Length(UTF8Char) do
+        if SpaceToPlus and (s[i] = ' ') then
         begin
-          Result := Result + '%' + Format('%.2x', [ord(UTF8Char[J])]);
+          Result := Result + '+';
+        end else
+        begin
+          UTF8Char := UTF8String(S[I]);
+          for J := 1 to Length(UTF8Char) do
+          begin
+            Result := Result + '%' + Format('%.2x', [ord(UTF8Char[J])]);
+          end;
         end;
       end else
       begin
@@ -633,6 +676,13 @@ const
   ValidPathChars = Unreserved + SubDelims + ['@', ':', '/'];
 begin
   Result := InternalUriEscapeCore(S, ValidPathChars);
+end;
+
+function InternalUrlEncodeForm(const S: String): String;
+const
+  Valid = ['A'..'Z', 'a'..'z', '0'..'9', '-', '_', '.', '*'];
+begin
+  Result := InternalUriEscapeCore(S, Valid, true);
 end;
 
 { other routines ------------------------------------------------------------- }
@@ -1851,6 +1901,59 @@ begin
     //WritelnLog('castle-config', Format('Resolved "%s" to "%s"', [Url, Result]));
   end else
     Result := Url;
+end;
+
+function UrlQueryParameters(Query: String): TStringStringMap;
+
+  { Decode URL query parameters. In addition to UrlDecode,
+    this also handles + for space. }
+  function UrlDecodeForm(const S: String): String;
+  begin
+    { URL query parameters are encoded using application/x-www-form-urlencoded encoding,
+      see https://url.spec.whatwg.org/#application/x-www-form-urlencoded . }
+    Result := S;
+    Result := SReplaceChars(Result, '+', ' ');
+    Result := UrlDecode(Result);
+  end;
+
+var
+  ParamName, ParamValue, NameValue: String;
+  NameValues: TCastleStringList;
+  EqPos: Integer;
+begin
+  Result := TStringStringMap.Create;
+
+  if SCharIs(Query, 1, '?') then
+    Query := SEnding(Query, 2);
+
+  NameValues := CastleStringUtils.SplitString(Query, '&');
+  try
+    for NameValue in NameValues do
+    begin
+      EqPos := Pos('=', NameValue);
+      if EqPos > 0 then
+      begin
+        ParamName := UrlDecodeForm(Copy(NameValue, 1, EqPos - 1));
+        ParamValue := UrlDecodeForm(SEnding(NameValue, EqPos + 1));
+      end else
+      begin
+        ParamName := UrlDecodeForm(NameValue);
+        ParamValue := '';
+      end;
+
+      { Ignore empty parameter names, like in ...?x=1&&y=2 (double &)
+        or in ?=1 (no key name). }
+      if ParamName = '' then
+        Continue;
+
+      if Result.ContainsKey(ParamName) then
+        WritelnWarning('Duplicate page URL parameter "%s", ignoring all but first occurrence', [
+          ParamName
+        ])
+      else
+        Result.Add(ParamName, ParamValue);
+    end;
+  finally FreeAndNil(NameValues) end;
 end;
 
 initialization

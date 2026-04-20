@@ -99,6 +99,9 @@ InlineGeometry : X3DGeometryNode, X3DUrlObject {
   MFString [in,out] url                  []
     range: [URI]
     doc: URL of the content to be loaded. Multiple URLs can be provided, each one will be tried in turn.
+
+  SFBool [in,out] smooth TRUE
+    doc: If the mesh does not provide explicit normal vectors, this field specifies whether the normals should be generated as smooth (per-vertex) or flat (per-face).
 }
 
 InlineLoadControl : Inline {
