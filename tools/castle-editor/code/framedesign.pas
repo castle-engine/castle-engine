@@ -6718,7 +6718,7 @@ begin
           Export to Model URL Behavior ->
             None
             Change castle-data:/ To Relative // default
-            Ember Resources using data URI (make self-contained X3D file)
+            Embed Resources using data URI (make self-contained X3D file)
             Copy All Resources to exported-output Subdirectory
     }
     RootNode := CurrentViewport.InternalBuildNode(SaveUrl, UrlProcessing);
