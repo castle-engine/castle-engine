@@ -114,6 +114,7 @@ type
     procedure TestGenericFind;
     {$endif}
     procedure TestProtoExpansion;
+    procedure TestProtoDeepCopy;
     procedure TestSolidField;
     procedure TestConversionDot;
     procedure TestWarningUnquotedIdentifier;
@@ -2471,6 +2472,49 @@ begin
     CheckProtoInstance(0, 'palette1.png');
     CheckProtoInstance(1, 'palette2.png');
   finally FreeAndNil(RootNode) end;
+end;
+
+procedure TTestX3DNodes.TestProtoDeepCopy;
+
+  procedure TestRootNode(const RootNode: TX3DRootNode);
+  begin
+    AssertEquals(1, RootNode.PrototypesCount);
+    AssertEquals('PaletteModel', RootNode.Prototypes[0].Name);
+    AssertEquals(3, RootNode.Prototypes[0].InterfaceDeclarations.Count);
+
+    AssertTrue(RootNode.Prototypes[0].InterfaceDeclarations[0].FieldOrEvent <> nil);
+    AssertTrue(RootNode.Prototypes[0].InterfaceDeclarations[0].FieldOrEvent is TSFVec3f);
+    AssertEquals('translation', RootNode.Prototypes[0].InterfaceDeclarations[0].FieldOrEvent.Name);
+    AssertTrue(RootNode.Prototypes[0].InterfaceDeclarations[0].ParentNode = nil);
+    AssertTrue(RootNode.Prototypes[0].InterfaceDeclarations[0].FieldOrEvent.ParentNode = nil);
+
+    AssertTrue(RootNode.Prototypes[0].InterfaceDeclarations[1].FieldOrEvent <> nil);
+    AssertTrue(RootNode.Prototypes[0].InterfaceDeclarations[1].FieldOrEvent is TMFString);
+    AssertEquals('palette', RootNode.Prototypes[0].InterfaceDeclarations[1].FieldOrEvent.Name);
+    AssertTrue(RootNode.Prototypes[0].InterfaceDeclarations[1].ParentNode = nil);
+    AssertTrue(RootNode.Prototypes[0].InterfaceDeclarations[1].FieldOrEvent.ParentNode = nil);
+
+    AssertTrue(RootNode.Prototypes[0].InterfaceDeclarations[2].FieldOrEvent <> nil);
+    AssertTrue(RootNode.Prototypes[0].InterfaceDeclarations[2].FieldOrEvent is TMFString);
+    AssertEquals('texture', RootNode.Prototypes[0].InterfaceDeclarations[2].FieldOrEvent.Name);
+    AssertTrue(RootNode.Prototypes[0].InterfaceDeclarations[2].ParentNode = nil);
+    AssertTrue(RootNode.Prototypes[0].InterfaceDeclarations[2].FieldOrEvent.ParentNode = nil);
+  end;
+
+var
+  RootNodeOriginal, RootNodeCopy: TX3DRootNode;
+begin
+  RootNodeOriginal := LoadNode('castle-data:/proto_copy_test/model.x3dv');
+  try
+    TestRootNode(RootNodeOriginal);
+    RootNodeCopy := RootNodeOriginal.DeepCopy as TX3DRootNode;
+    TestRootNode(RootNodeCopy);
+  finally FreeAndNil(RootNodeOriginal) end;
+
+  try
+    // RootNodeCopy should still be valid, it is independent from RootNodeOriginal
+    TestRootNode(RootNodeCopy);
+  finally FreeAndNil(RootNodeCopy) end;
 end;
 
 procedure TTestX3DNodes.TestSolidField;
