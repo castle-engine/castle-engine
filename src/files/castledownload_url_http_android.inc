@@ -50,6 +50,11 @@ const
     'GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD'
   );
 
+  function HttpMethodName: String;
+  begin
+    Result := HttpMethodNames[HttpMethod];
+  end;
+
   function HttpRequestBodyStr: String;
   begin
     if HttpRequestBody <> nil then
