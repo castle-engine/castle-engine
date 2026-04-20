@@ -30,7 +30,15 @@
   public
     constructor Create;
     destructor Destroy; override;
+
     { Return a copy or OriginalNode.
+
+      Use this to make a deep copy of OriginalNode,
+      if you already have an instance of TX3DNodeDeepCopyState,
+      which usually means: you are implementing some @code(DeepCopy) method.
+      From the outside, you usually don't use TX3DNodeDeepCopyState directly,
+      and you can just use @link(TX3DNode.DeepCopy)
+      method, like @code(NewNode := OriginalNode.DeepCopy;).
 
       To keep sharing of nodes (DEF/USE mechanism) within the newly
       created copy, we need a list of already duplicated children.
@@ -3453,7 +3461,7 @@ begin
     if FPrototypes <> nil then
     begin
       for I := 0 to FPrototypes.Count - 1 do
-        Result.AddPrototype(FPrototypes[I].DeepCopy(Result, CopyState));
+        Result.AddPrototype(FPrototypes[I].DeepCopy(CopyState));
     end;
 
     Assert(FieldsCount = Result.FieldsCount);

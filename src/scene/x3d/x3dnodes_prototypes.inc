@@ -210,6 +210,13 @@
     {$ifdef FPC}
     property Name: String read FX3DName write FX3DName; deprecated 'use X3DName';
     {$endif}
+
+    { List of interface declarations that are like "public API"
+      of this prototype. They are used to initialize fields of prototype
+      instances.
+      The TX3DInterfaceDeclaration instances on this list
+      have @link(TX3DInterfaceDeclaration.ParentNode) = @nil,
+      because they are not directly contained in any node.}
     property InterfaceDeclarations: TX3DInterfaceDeclarationList
       read FInterfaceDeclarations;
 
@@ -225,8 +232,7 @@
       See TX3DNode.BaseUrl for more comments. }
     property BaseUrl: String read FBaseUrl write FBaseUrl;
 
-    function DeepCopy(const NewParentNode: TX3DNode;
-      const CopyState: TX3DNodeDeepCopyState): TX3DPrototypeBase; virtual; abstract;
+    function DeepCopy(const CopyState: TX3DNodeDeepCopyState): TX3DPrototypeBase; virtual; abstract;
   end;
 
   TX3DPrototypeBaseList = class({$ifdef FPC}specialize{$endif} TObjectList<TX3DPrototypeBase>);
@@ -241,8 +247,7 @@
     procedure Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames); override;
     procedure ParseXML(Element: TDOMElement; Reader: TX3DReaderNames); override;
     procedure SaveToStream(Writer: TX3DWriter); override;
-    function DeepCopy(const NewParentNode: TX3DNode;
-      const CopyState: TX3DNodeDeepCopyState): TX3DPrototypeBase; override;
+    function DeepCopy(const CopyState: TX3DNodeDeepCopyState): TX3DPrototypeBase; override;
 
     { Prototype contents: all nodes, prototypes, routes defined inside. }
     property Node: TX3DRootNode read FNode;
@@ -273,8 +278,7 @@
     procedure Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames); override;
     procedure ParseXML(Element: TDOMElement; Reader: TX3DReaderNames); override;
     procedure SaveToStream(Writer: TX3DWriter); override;
-    function DeepCopy(const NewParentNode: TX3DNode;
-      const CopyState: TX3DNodeDeepCopyState): TX3DPrototypeBase; override;
+    function DeepCopy(const CopyState: TX3DNodeDeepCopyState): TX3DPrototypeBase; override;
 
     property ReferencedPrototype: TX3DPrototype read FReferencedPrototype;
     property ReferencedClass: TX3DNodeClass read FReferencedClass;
@@ -1109,8 +1113,7 @@ begin
   end;
 end;
 
-function TX3DPrototype.DeepCopy(const NewParentNode: TX3DNode;
-  const CopyState: TX3DNodeDeepCopyState): TX3DPrototypeBase;
+function TX3DPrototype.DeepCopy(const CopyState: TX3DNodeDeepCopyState): TX3DPrototypeBase;
 var
   NewCopy: TX3DPrototype;
   I: Integer;
@@ -1125,12 +1128,12 @@ begin
   begin
     for I := 0 to InterfaceDeclarations.Count - 1 do
     begin
-      IDecl := InterfaceDeclarations[I].DeepCopy(NewParentNode, CopyState);
+      IDecl := InterfaceDeclarations[I].DeepCopy(nil, CopyState);
       Result.InterfaceDeclarations.Add(IDecl);
     end;
   end;
 
-  NewCopy.FNode := CopyState.DeepCopy(FNode) as TX3DRootNode; // or just FNode.DeepCopy?
+  NewCopy.FNode := CopyState.DeepCopy(FNode) as TX3DRootNode;
 end;
 
 { TX3DExternalPrototype ----------------------------------------------------- }
@@ -1220,8 +1223,7 @@ begin
   end;
 end;
 
-function TX3DExternalPrototype.DeepCopy(const NewParentNode: TX3DNode;
-  const CopyState: TX3DNodeDeepCopyState): TX3DPrototypeBase;
+function TX3DExternalPrototype.DeepCopy(const CopyState: TX3DNodeDeepCopyState): TX3DPrototypeBase;
 var
   NewCopy: TX3DExternalPrototype;
   I: Integer;
@@ -1236,11 +1238,12 @@ begin
   begin
     for I := 0 to InterfaceDeclarations.Count - 1 do
     begin
-      IDecl := InterfaceDeclarations[I].DeepCopy(NewParentNode, CopyState);
+      IDecl := InterfaceDeclarations[I].DeepCopy(nil, CopyState);
       Result.InterfaceDeclarations.Add(IDecl);
     end;
   end;
 
+  { Note: This calls TMFString.SetItems which copies the list contents. }
   NewCopy.FUrlList.Items := FUrlList.Items;
 end;
 
