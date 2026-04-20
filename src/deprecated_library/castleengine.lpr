@@ -386,12 +386,15 @@ begin
       2: UrlProcessing := suChangeAllPathsToRelative;
       3: UrlProcessing := suEmbedResources;
       4: UrlProcessing := suCopyResourcesToSubdirectory;
+      else raise EInternalError.CreateFmt('CGE_SaveSceneToFile: Invalid URL processing mode %d', [eUrlProcessing]);
     end;
     if UrlProcessing = suNone then
+    begin
       MainScene.Save(SaveFileName)
-    else begin
+    end else
+    begin
+      RootNodeCopy := MainScene.RootNode.DeepCopy as TX3DRootNode;
       try
-        RootNodeCopy := MainScene.RootNode.DeepCopy as TX3DRootNode;
         ProcessUrls(RootNodeCopy, SaveFileName, UrlProcessing);
         SaveNode(RootNodeCopy, SaveFileName, 'cge_library');
       finally
