@@ -224,6 +224,7 @@ procedure TProcessUrlsHelper.ProcessNode(Node: TX3DNode);
           Field.Items[I] := EmbedResource(Field.Items[I], Node.BaseUrl);
         suCopyResourcesToSubdirectory:
           Field.Items[I] := CopyResourceToSubdirectory(Field.Items[I], Node.BaseUrl);
+        else ;
       end;
     end;
   end;
