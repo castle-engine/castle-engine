@@ -1,5 +1,5 @@
 {
-  Copyright 2024-2024 Michalis Kamburelis.
+  Copyright 2024-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -50,8 +50,9 @@ var
 
 implementation
 
-uses SysUtils,
-  CastleGLUtils, CastleRectangles, CastleColors, CastleLog,
+uses SysUtils, Generics.Collections,
+  CastleGLUtils, CastleRectangles, CastleColors, CastleLog, CastleStringUtils,
+  CastleWindow,
   GameImages;
 
 { TViewMain ----------------------------------------------------------------- }
@@ -59,11 +60,52 @@ uses SysUtils,
 constructor TViewMain.Create(AOwner: TComponent);
 begin
   inherited;
-  // TODO: web: No file reading on web yet, https://castle-engine.io/web
+
+  { This example doesn't read files, because they were not implemented on web
+    when this example was created. Of course they are supported now,
+    making the approach in this example unnecessary complicated.
+    We keep this example for now just for historical purposes.
+    See https://castle-engine.io/web }
+
   // DesignUrl := 'castle-data:/gameviewmain.castle-user-interface';
 end;
 
 procedure TViewMain.Start;
+
+  { Log values Application.PageUrl and friends, to test it.
+    Open this application adding URLs like to test it all works:
+
+      ...?
+      ...?abc=def
+      ...?abc=def&abc=secondtry&xyz=123
+      ...?abc=def&&still_ok_double_ampersand=123
+      ...?abc=def&keyboard%20value=%20with%20spaces%20and%20%25percent%25signs
+      ...?abc=def&no_value&empty_value=
+      ...?model=spaces+by+plus+signs.gltf
+  }
+  procedure DebugPageUrl;
+  var
+    Pair: {$ifdef FPC} TStringStringMap.TDictionaryPair {$else} TPair<string, string> {$endif};
+  begin
+    WritelnLog('Application.PageUrl: ' + Application.PageUrl);
+    WritelnLog('Application.PageUrlQuery: ' + Application.PageUrlQuery);
+    WritelnLog('Application.PageUrlParameters count: %d', [Application.PageUrlParameters.Count]);
+    for Pair in Application.PageUrlParameters do
+    begin
+      WritelnLog('Application.PageUrlParameters[%s] -> %s', [
+        Pair.Key,
+        Pair.Value
+      ]);
+      WritelnLog('Application.PageUrlParameter(%s) -> %s', [
+        Pair.Key,
+        Application.PageUrlParameter(Pair.Key)
+      ]);
+    end;
+    WritelnLog('Application.PageUrlParameter(nonexistent) -> %s', [
+      Application.PageUrlParameter('nonexistent')
+    ]);
+  end;
+
 begin
   inherited;
 
@@ -83,6 +125,8 @@ begin
   Image1 := TDrawableImage.Create(Test_texture_grayscale, true, false);
   Image2 := TDrawableImage.Create(Test_texture, true, false);
   Image3 := TDrawableImage.Create(Texture_alpha, true, false);
+
+  DebugPageUrl;
 end;
 
 procedure TViewMain.Stop;

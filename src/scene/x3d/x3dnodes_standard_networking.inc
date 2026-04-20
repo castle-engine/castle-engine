@@ -820,13 +820,49 @@ begin
 end;
 
 function TInlineGeometryNode.Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode;
+
+  procedure AdjustProxyGeometry(const Node: TAbstractGeometryNode);
+  begin
+    if Node is TElevationGridNode then
+      TElevationGridNode(Node).CreaseAngle := IfThen(Smooth, 4, 0)
+    else
+    if Node is TIndexedFaceSetNode then
+      TIndexedFaceSetNode(Node).CreaseAngle := IfThen(Smooth, 4, 0)
+    else
+    if Node is TExtrusionNode then
+      TExtrusionNode(Node).CreaseAngle := IfThen(Smooth, 4, 0)
+    else
+    if Node is TGeoElevationGridNode then
+      TGeoElevationGridNode(Node).CreaseAngle := IfThen(Smooth, 4, 0)
+    else
+
+    { Test for TAbstractComposedGeometryNode as last,
+      because TIndexedFaceSetNode is also TAbstractComposedGeometryNode
+      but should not go here (use creaseAngle, if possible).
+
+      For the same reason, we don't change TElevationGridNode.NormalPerVertex
+      or TGeoElevationGrid.NormalPerVertex: We change their CreaseAngle,
+      and that's enough. }
+
+    if Node is TAbstractComposedGeometryNode then
+    begin
+      { Do this only when Normal = nil to only influence automatic normals,
+        do not influence user-provided normals interpretation. }
+      if TAbstractComposedGeometryNode(Node).Normal = nil then
+        TAbstractComposedGeometryNode(Node).NormalPerVertex := Smooth;
+    end;
+  end;
+
 begin
   if FInlineGeometry = nil then
     Result := nil
   else
+  begin
     { We make DeepCopy, as CastleShapes is prepared that it owns the proxy
       results, including their lifetime, also for associating shapes with it. }
     Result := FInlineGeometry.DeepCopy as TAbstractGeometryNode;
+    AdjustProxyGeometry(Result);
+  end;
 end;
 
 function TInlineGeometryNode.LocalBoundingBox(State: TX3DGraphTraverseState;

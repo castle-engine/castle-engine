@@ -1,7 +1,7 @@
 // -*- compile-command: "./test_single_testcase.sh TTestCastleUIControls" -*-
 
 {
-  Copyright 2018-2025 Michalis Kamburelis.
+  Copyright 2018-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -18,6 +18,8 @@
 { Test of CastleUIControls unit. }
 unit TestCastleUIControls;
 
+{$I castle-tests-conf.inc}
+
 interface
 
 uses
@@ -25,7 +27,22 @@ uses
   CastleTester, CastleUIControls;
 
 type
+  { Which event should cause stopping of the view.
+    This allows to reuse TTestStopFromEventView for a few variations of the test. }
+  TViewSwitchActivator = (
+    vsNothing,
+    vsPress,
+    vsMyButton,
+    vsMyTimer,
+    vsButtonCreatedExplicitly,
+    vsTimerCreatedExplicitly,
+    vsButtonCreatedExplicitly2,
+    vsTimerCreatedExplicitly2
+  );
+
   TTestCastleUIControls = class(TCastleTestCase)
+  strict private
+    procedure CoreTestStopViewFromEvent(const ViewSwitchActivator: TViewSwitchActivator);
   published
     procedure TestRectEffective;
     procedure TestRecursiveSize;
@@ -37,11 +54,14 @@ type
     procedure TestControlsParentDoesNotOwn;
     procedure TestMoveToFront;
     procedure TestViewsLifecycle;
+    procedure TestStopViewFromEvent;
+    procedure TestViewChangePending;
   end;
 
 implementation
 
-uses CastleRectangles, CastleVectors, CastleUtils, CastleWindow;
+uses CastleRectangles, CastleVectors, CastleUtils, CastleWindow, CastleControls,
+  CastleKeysMouse, CastleLog, CastleStringUtils;
 
 { TTestContainer ------------------------------------------------------------- }
 
@@ -50,9 +70,15 @@ type
     just for testing. }
   TTestContainer = class(TCastleContainer)
   public
+    constructor Create(AOwner: TComponent); override;
     function PixelsWidth: Integer; override;
     function PixelsHeight: Integer; override;
   end;
+
+constructor TTestContainer.Create(AOwner: TComponent);
+begin
+  inherited;
+end;
 
 function TTestContainer.PixelsWidth: Integer;
 begin
@@ -535,6 +561,401 @@ begin
     FreeAndNil(V2);
     FreeAndNil(V3);
     FreeAndNil(EventLog);
+    FreeAndNil(Container);
+  end;
+end;
+
+{ Helpers for TestStopViewFromEvent ------------------------------------------ }
+
+type
+  TCastleButtonTestDestroy = class(TCastleButton)
+  public
+    WithinOnClick: Cardinal;
+    ClicksCount: Cardinal;
+    procedure DoClick; override;
+    destructor Destroy; override;
+  end;
+
+procedure TCastleButtonTestDestroy.DoClick;
+begin
+  Inc(ClicksCount);
+  Inc(WithinOnClick);
+  try
+    inherited;
+  finally Dec(WithinOnClick) end;
+end;
+
+destructor TCastleButtonTestDestroy.Destroy;
+begin
+  if WithinOnClick <> 0 then
+    raise Exception.Create('Button is freed in the middle of its OnClick event, this can lead to undefined behavior');
+  inherited;
+end;
+
+type
+  TCastleTimerTestDestroy = class(TCastleTimer)
+  public
+    WithinOnTimer: Cardinal;
+    TimersCount: Cardinal;
+    procedure DoTimer; override;
+    destructor Destroy; override;
+  end;
+
+procedure TCastleTimerTestDestroy.DoTimer;
+begin
+  Inc(TimersCount);
+  Inc(WithinOnTimer);
+  try
+    inherited;
+  finally Dec(WithinOnTimer) end;
+end;
+
+destructor TCastleTimerTestDestroy.Destroy;
+begin
+  if WithinOnTimer <> 0 then
+    raise Exception.Create('Timer is freed in the middle of its OnTimer event, this can lead to undefined behavior');
+  inherited;
+end;
+
+type
+  { View helping to perform test TTestCastleUIControls.TestStopViewFromEvent. }
+  TTestStopFromEventView = class(TCastleView)
+  published
+    MyButton: TCastleButton;
+    MyTimer: TCastleTimer;
+  strict private
+    procedure MyTimerTimer(Sender: TObject);
+    procedure MyClick(Sender: TObject);
+  public
+    ButtonCreatedExplicitly, ButtonCreatedExplicitly2: TCastleButtonTestDestroy;
+    TimerCreatedExplicitly, TimerCreatedExplicitly2: TCastleTimerTestDestroy;
+    { When not vsNothing, then clicking button / or timer occurence/
+      or press of Enter key -> will stop this view.
+      Set before Start, it also determines what gets created in Start. }
+    ViewSwitchActivator: TViewSwitchActivator;
+    constructor Create(AOwner: TComponent); override;
+    procedure Start; override;
+    procedure Stop; override;
+    function Press(const Event: TInputPressRelease): Boolean; override;
+    //procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
+  end;
+
+constructor TTestStopFromEventView.Create(AOwner: TComponent);
+begin
+  inherited;
+  DesignUrl := 'castle-data:/designs/test_stop_view_from_event.castle-user-interface';
+end;
+
+procedure TTestStopFromEventView.Start;
+begin
+  inherited;
+
+  if ViewSwitchActivator = vsMyTimer then
+    MyTimer.OnTimer := {$ifdef FPC}@{$endif} MyTimerTimer;
+
+  if ViewSwitchActivator = vsMyButton then
+    MyButton.OnClick := {$ifdef FPC}@{$endif} MyClick;
+
+  if ViewSwitchActivator = vsButtonCreatedExplicitly then
+  begin
+    ButtonCreatedExplicitly := TCastleButtonTestDestroy.Create(FreeAtStop);
+    ButtonCreatedExplicitly.OnClick := {$ifdef FPC}@{$endif} MyClick;
+    ButtonCreatedExplicitly.FullSize := true;
+    InsertFront(ButtonCreatedExplicitly);
+  end;
+
+  if ViewSwitchActivator = vsTimerCreatedExplicitly then
+  begin
+    TimerCreatedExplicitly := TCastleTimerTestDestroy.Create(FreeAtStop);
+    TimerCreatedExplicitly.OnTimer := {$ifdef FPC}@{$endif} MyTimerTimer;
+    InsertFront(TimerCreatedExplicitly);
+  end;
+
+  if ViewSwitchActivator = vsButtonCreatedExplicitly2 then
+  begin
+    ButtonCreatedExplicitly2 := TCastleButtonTestDestroy.Create(nil);
+    ButtonCreatedExplicitly2.OnClick := {$ifdef FPC}@{$endif} MyClick;
+    ButtonCreatedExplicitly2.FullSize := true;
+    InsertFront(ButtonCreatedExplicitly2);
+  end;
+
+  if ViewSwitchActivator = vsTimerCreatedExplicitly2 then
+  begin
+    TimerCreatedExplicitly2 := TCastleTimerTestDestroy.Create(nil);
+    TimerCreatedExplicitly2.OnTimer := {$ifdef FPC}@{$endif} MyTimerTimer;
+    InsertFront(TimerCreatedExplicitly2);
+  end;
+end;
+
+procedure TTestStopFromEventView.Stop;
+begin
+  FreeAndNil(ButtonCreatedExplicitly2);
+  FreeAndNil(TimerCreatedExplicitly2);
+  inherited;
+end;
+
+procedure TTestStopFromEventView.MyClick(Sender: TObject);
+begin
+  Container.View := nil;
+end;
+
+procedure TTestStopFromEventView.MyTimerTimer(Sender: TObject);
+begin
+  Container.View := nil;
+end;
+
+function TTestStopFromEventView.Press(const Event: TInputPressRelease): Boolean;
+begin
+  Result := inherited;
+  if Event.IsKey(keyEnter) then
+  begin
+    if ViewSwitchActivator = vsPress then
+      Container.View := nil;
+    Exit(true);
+  end;
+end;
+
+{$ifdef WASI}
+{ WebAssembly will crash when we call standard Sleep.
+  So we implement our own sleep below in a stupid way: just "busy waiting"
+  until the time passes.
+
+  DO NOT USE THIS IN YOUR OWN APPLICATIONS.
+
+  See user_interface/zombie_fighter/code/gameviewloading.pas
+  for more comments on this Sleep.
+  This is used in this example just to fake that time passes. }
+procedure Sleep(const Milliseconds: Cardinal);
+var
+  TimerStart: TTimerResult;
+begin
+  TimerStart := Timer;
+  while TimerStart.ElapsedTime < Milliseconds / 1000 do
+    { nothing };
+end;
+{$endif}
+
+procedure TTestCastleUIControls.CoreTestStopViewFromEvent(const ViewSwitchActivator: TViewSwitchActivator);
+
+{ Testcase for
+  https://forum.castle-engine.io/t/android-crash-issue-resolved-but-investigation-of-timer-behavior-could-be-important/2139/4
+  bug and fix.
+  During handling of component's events (like button's OnClick or timer's OnTimer),
+  we cannot free this component (which was happening before, when immediate view
+  stop was done -> causing also freeing of all designed components,
+  all components owned by FreeAtStop, and calling Stop). }
+
+var
+  Container: TTestContainer;
+  V: TTestStopFromEventView;
+  ActivatorButtonIfAny: TCastleButtonTestDestroy;
+  ActivatorTimerIfAny: TCastleTimerTestDestroy;
+
+  procedure FakeButtonPress(const ExpectChangeView: Boolean);
+  begin
+    if ActivatorButtonIfAny <> nil then
+      AssertEquals(0, ActivatorButtonIfAny.ClicksCount);
+    Container.EventPress(InputMouseButton(
+      Vector2(
+        Container.PixelsWidth / 2,
+        Container.PixelsHeight / 2
+      ), buttonLeft, 0, []));
+    Container.EventRelease(InputMouseButton(
+      Vector2(
+        Container.PixelsWidth / 2,
+        Container.PixelsHeight / 2
+      ), buttonLeft, 0, []));
+    // ActivatorButtonIfAny is freed now, at the end of Container.EventRelease in ProcessViewChanges
+    // if ActivatorButtonIfAny <> nil then
+    //   AssertEquals(1, ActivatorButtonIfAny.ClicksCount);
+
+    if ExpectChangeView then
+      AssertTrue(Container.View = nil)
+    else
+      AssertTrue(Container.View = V);
+  end;
+
+  procedure FakeTimer(const ExpectChangeView: Boolean);
+  begin
+    if ActivatorTimerIfAny <> nil then
+      AssertEquals(0, ActivatorTimerIfAny.TimersCount);
+    AssertTrue(Container.View = V);
+
+    Container.EventUpdate;
+    { Sometimes (depends on computer speed) timer fired already from above
+      EventUpdate, even without the need for Sleep below. }
+    Sleep(100);
+    Container.EventUpdate;
+
+    // ActivatorTimerIfAny is freed now, at the end of Container.EventUpdate in ProcessViewChanges
+    // if ActivatorTimerIfAny <> nil then
+    //   AssertEquals(1, ActivatorTimerIfAny.TimersCount);
+
+    if ExpectChangeView then
+      AssertTrue(Container.View = nil)
+    else
+      AssertTrue(Container.View = V);
+  end;
+
+  procedure FakePressEnter(const ExpectChangeView: Boolean);
+  begin
+    Container.EventPress(InputKey(Vector2(
+        Container.PixelsWidth / 2,
+        Container.PixelsHeight / 2
+      ), keyEnter, CharEnter, []));
+
+    if ExpectChangeView then
+      AssertTrue(Container.View = nil)
+    else
+      AssertTrue(Container.View = V);
+  end;
+
+begin
+  V := nil;
+  Container := nil;
+  try
+    Container := TTestContainer.Create(nil);
+    V := TTestStopFromEventView.Create(nil);
+    V.ViewSwitchActivator := ViewSwitchActivator;
+    Container.View := V;
+
+    // set ActivatorButtonIfAny, ActivatorTimerIfAny
+    ActivatorButtonIfAny := nil;
+    ActivatorTimerIfAny := nil;
+    case ViewSwitchActivator of
+      vsButtonCreatedExplicitly: ActivatorButtonIfAny := V.ButtonCreatedExplicitly as TCastleButtonTestDestroy;
+      vsTimerCreatedExplicitly: ActivatorTimerIfAny := V.TimerCreatedExplicitly as TCastleTimerTestDestroy;
+      vsButtonCreatedExplicitly2: ActivatorButtonIfAny := V.ButtonCreatedExplicitly2 as TCastleButtonTestDestroy;
+      vsTimerCreatedExplicitly2: ActivatorTimerIfAny := V.TimerCreatedExplicitly2 as TCastleTimerTestDestroy;
+    end;
+
+    case ViewSwitchActivator of
+      vsNothing:
+        begin
+          // do all operations, expect no view change
+          FakeButtonPress(false);
+          FakeTimer(false);
+          FakePressEnter(false);
+        end;
+      vsPress:
+        begin
+          // press Enter, expect view change
+          FakePressEnter(true);
+        end;
+      vsMyButton, vsButtonCreatedExplicitly, vsButtonCreatedExplicitly2:
+        begin
+          // click button, expect view change
+          FakeButtonPress(true);
+        end;
+      vsMyTimer, vsTimerCreatedExplicitly, vsTimerCreatedExplicitly2:
+        begin
+          // wait for timer, expect view change
+          FakeTimer(true);
+        end;
+      else raise EInternalError.Create('Unknown ViewSwitchActivator value');
+    end;
+
+  finally
+    FreeAndNil(V);
+    FreeAndNil(Container);
+  end;
+end;
+
+procedure TTestCastleUIControls.TestStopViewFromEvent;
+const
+  ViewSwitchActivatorNames: array[TViewSwitchActivator] of string = (
+    'Nothing',
+    'Press',
+    'MyButton',
+    'MyTimer',
+    'ButtonCreatedExplicitly',
+    'TimerCreatedExplicitly',
+    'ButtonCreatedExplicitly2',
+    'TimerCreatedExplicitly2'
+  );
+var
+  I: TViewSwitchActivator;
+begin
+  for I := Low(TViewSwitchActivator) to High(TViewSwitchActivator) do
+  begin
+    WritelnLog('TestStopViewFromEvent with activator ' + ViewSwitchActivatorNames[I]);
+    CoreTestStopViewFromEvent(I);
+  end;
+end;
+
+procedure TTestCastleUIControls.TestViewChangePending;
+var
+  Container: TTestContainer;
+  V1, V2, V3: TCastleView;
+begin
+  V1 := nil;
+  V2 := nil;
+  V3 := nil;
+  Container := nil;
+  try
+    Container := TTestContainer.Create(nil);
+    { This test assumes changes are delayed }
+    Container.InternalForceViewChangeDelayed := true;
+    V1 := TCastleView.Create(nil);
+    V2 := TCastleView.Create(nil);
+    V3 := TCastleView.Create(nil);
+
+    AssertEquals(0, Container.CurrentViewStackCount);
+
+    Container.View := V1;
+    AssertEquals(0, Container.CurrentViewStackCount);
+    AssertEquals(1, Container.PendingViewStackCount);
+    AssertTrue(Container.PendingViewStack[0] = V1);
+
+    // provoke applying of pending view changes
+    Container.EventUpdate;
+    AssertEquals(1, Container.CurrentViewStackCount);
+    AssertTrue(Container.CurrentViewStack[0] = V1);
+    AssertEquals(1, Container.PendingViewStackCount);
+    AssertTrue(Container.PendingViewStack[0] = V1);
+
+    Container.PushView(V2);
+
+    // the above PushView is only pending, not applied yet
+    AssertEquals(1, Container.CurrentViewStackCount);
+    AssertTrue(Container.CurrentViewStack[0] = V1);
+    AssertTrue(Container.FrontView = V1);
+    AssertTrue(Container.CurrentFrontView = V1);
+    AssertEquals(2, Container.PendingViewStackCount);
+    AssertTrue(Container.PendingViewStack[0] = V1);
+    AssertTrue(Container.PendingViewStack[1] = V2);
+    AssertTrue(Container.PendingFrontView = V2);
+
+    Container.View := V3;
+    Container.PushView(V1);
+    Container.PushView(V2);
+    Container.PopView(V2);
+    Container.PushView(V2);
+
+    // above operations are still pending
+    AssertEquals(1, Container.CurrentViewStackCount);
+    AssertTrue(Container.CurrentViewStack[0] = V1);
+    AssertTrue(Container.FrontView = V1);
+    AssertTrue(Container.PendingFrontView = V2);
+    AssertEquals(3, Container.PendingViewStackCount);
+    AssertTrue(Container.PendingViewStack[0] = V3);
+    AssertTrue(Container.PendingViewStack[1] = V1);
+    AssertTrue(Container.PendingViewStack[2] = V2);
+
+    // provoke applying of pending view changes
+    Container.EventUpdate;
+    AssertEquals(3, Container.CurrentViewStackCount);
+    AssertTrue(Container.CurrentViewStack[0] = V3);
+    AssertTrue(Container.CurrentViewStack[1] = V1);
+    AssertTrue(Container.CurrentViewStack[2] = V2);
+    AssertEquals(3, Container.PendingViewStackCount);
+    AssertTrue(Container.PendingViewStack[0] = V3);
+    AssertTrue(Container.PendingViewStack[1] = V1);
+    AssertTrue(Container.PendingViewStack[2] = V2);
+  finally
+    FreeAndNil(V1);
+    FreeAndNil(V2);
+    FreeAndNil(V3);
     FreeAndNil(Container);
   end;
 end;

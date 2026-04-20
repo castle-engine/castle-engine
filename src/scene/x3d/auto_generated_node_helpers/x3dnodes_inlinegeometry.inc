@@ -32,6 +32,8 @@
     procedure SetDescription(const Value: String);
     function GetLoad: Boolean;
     procedure SetLoad(const Value: Boolean);
+    function GetSmooth: Boolean;
+    procedure SetSmooth(const Value: Boolean);
   public
     { Create node fields and events. }
     procedure CreateNode; override;
@@ -68,6 +70,12 @@
     procedure SetUrl(const Value: array of string); overload;
     { URL of the content to be loaded. Multiple URLs can be provided, each one will be tried in turn. }
     procedure SetUrl(const Value: TCastleStringList); overload;
+
+    strict private FFdSmooth: TSFBool;
+    { Internal wrapper for property @code(Smooth). This wrapper API may change, we advise to access simpler @code(Smooth) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdSmooth: TSFBool read FFdSmooth;
+    { If the mesh does not provide explicit normal vectors, this field specifies whether the normals should be generated as smooth (per-vertex) or flat (per-face). }
+    property Smooth: Boolean read GetSmooth write SetSmooth;
 
 {$endif read_interface}
 
@@ -125,6 +133,16 @@ begin
   FdUrl.Send(Value);
 end;
 
+function TInlineGeometryNode.GetSmooth: Boolean;
+begin
+  Result := FdSmooth.Value;
+end;
+
+procedure TInlineGeometryNode.SetSmooth(const Value: Boolean);
+begin
+  FdSmooth.Send(Value);
+end;
+
 class function TInlineGeometryNode.ClassX3DType: String;
 begin
   Result := 'InlineGeometry';
@@ -153,6 +171,10 @@ begin
   FFdUrl := TMFString.Create(Self, True, 'url', []);
    FdUrl.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdUrl);
+
+  FFdSmooth := TSFBool.Create(Self, True, 'smooth', true);
+   FdSmooth.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdSmooth);
 end;
 
 {$endif read_implementation}

@@ -1,6 +1,6 @@
 {%MainUnit castleuicontrols.pas}
 {
-  Copyright 2015-2023 Michalis Kamburelis.
+  Copyright 2015-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -112,7 +112,7 @@
     procedure InternalResume;
     procedure InternalPause;
     procedure StartContainerFreeNotification(const Sender: TFreeNotificationObserver);
-    { Stop yourself and remove from FViewStack, if present there. }
+    { Stop yourself and remove from FCurrentViewStack, if present there. }
     procedure StopIfStarted;
 
     { Design* private routines }
@@ -127,11 +127,6 @@
       If Enable=true: set it to AComponent.
       If Enable=false: set it to nil. }
     procedure SetNameReference(const AComponent: TComponent; const ReferenceName: String; const Enable: Boolean);
-
-    class function GetCurrent: TCastleView; static;
-    class procedure SetCurrent(const Value: TCastleView); static;
-    class function GetCurrentTop: TCastleView; static;
-    class function GetStateStack(const Index: Integer): TCastleView; static;
 
     { Container in which view is started (if view is started)
       or on which we predict it will be started (if view is not started yet).
@@ -519,13 +514,9 @@
       be just another way to express "as" cast. }
     // generic function DesignedComponent<T: TComponent>(const ComponentName: String): T; overload;
 
-    class property Current: TCastleView read GetCurrent write SetCurrent; {$ifdef FPC}deprecated 'use Container.View';{$endif}
-    class property CurrentTop: TCastleView read GetCurrentTop; {$ifdef FPC}deprecated 'use Container.FrontView';{$endif}
     class procedure Push(const NewState: TCastleView); deprecated 'use Container.PushView';
     class procedure Pop; overload; deprecated 'use Container.PopView';
     class procedure Pop(const CurrentTopMostState: TCastleView); overload; deprecated 'use Container.PopView';
-    class function StateStackCount: Integer; deprecated 'use Container.ViewStackCount';
-    class property StateStack [const Index: Integer]: TCastleView read GetStateStack; {$ifdef FPC}deprecated 'use Container.ViewStack';{$endif}
   published
     { TCastleView control makes most sense when it is FullSize,
       filling the whole window.
@@ -536,7 +527,10 @@
     property FullSize default true;
   end;
 
-  TCastleViewList = class({$ifdef FPC}specialize{$endif} TObjectList<TCastleView>);
+  TCastleViewList = class({$ifdef FPC}specialize{$endif} TObjectList<TCastleView>)
+    { Debug multiline string: all view names. }
+    function ToString: String; override;
+  end;
 
 {$endif read_interface}
 
@@ -630,7 +624,7 @@ begin
     However, check first that we're still the current view,
     to safeguard from the fact that Start changed view
     (like the loading view, that changes to play view immediately in start). }
-  if AContainer.FViewStack.IndexOf(Self) <> -1 then
+  if AContainer.FCurrentViewStack.IndexOf(Self) <> -1 then
     AContainer.Controls.InsertFront(Self);
 
   Profiler.Stop(TimeStart, Log);
@@ -717,19 +711,15 @@ var
   SavedContainer: TCastleContainer;
 begin
   if (FStartContainer <> nil) and
-     (FStartContainer.FViewStack <> nil) and
-     (FStartContainer.FViewStack.IndexOf(Self) <> -1) then
+     (FStartContainer.FCurrentViewStack <> nil) and
+     (FStartContainer.FCurrentViewStack.IndexOf(Self) <> -1) then
   begin
     SavedContainer := FStartContainer;
 
-    if SavedContainer.FViewStack.Last = Self then
+    if SavedContainer.FCurrentViewStack.Last = Self then
       Pause;
     InternalStop; // this clears FStartContainer
-    SavedContainer.FViewStack.Remove(Self);
-    { deallocate empty FViewStack. Doing this here allows to deallocate
-      FViewStack only once all views finished gracefully. }
-    if SavedContainer.FViewStack.Count = 0 then
-      FreeAndNil(SavedContainer.FViewStack);
+    SavedContainer.FCurrentViewStack.Remove(Self);
   end;
 end;
 
@@ -1017,21 +1007,6 @@ begin
     Result := 1.0;
 end;
 
-class function TCastleView.GetCurrent: TCastleView;
-begin
-  Result := RequireMainContainer.View;
-end;
-
-class function TCastleView.GetCurrentTop: TCastleView;
-begin
-  Result := RequireMainContainer.FrontView;
-end;
-
-class procedure TCastleView.SetCurrent(const Value: TCastleView);
-begin
-  RequireMainContainer.View := Value;
-end;
-
 class procedure TCastleView.Push(const NewState: TCastleView);
 begin
   RequireMainContainer.PushView(NewState);
@@ -1047,16 +1022,6 @@ begin
   RequireMainContainer.PopView(CurrentTopMostState);
 end;
 
-class function TCastleView.StateStackCount: Integer;
-begin
-  Result := RequireMainContainer.ViewStackCount;
-end;
-
-class function TCastleView.GetStateStack(const Index: Integer): TCastleView;
-begin
-  Result := RequireMainContainer.ViewStack[Index];
-end;
-
 procedure TCastleView.SetNameReference(const AComponent: TComponent; const ReferenceName: String; const Enable: Boolean);
 var
   FieldAddr: ^TComponent;
@@ -1070,6 +1035,26 @@ begin
       FieldAddr^ := AComponent
     else
       FieldAddr^ := nil;
+  end;
+end;
+
+{ TCastleViewList ---------------------------------------------------------------- }
+
+function TCastleViewList.ToString: String;
+var
+  I: Integer;
+begin
+  Result := Format('View stack (%d views):', [Count]) + NL;
+  for I := 0 to Count - 1 do
+  begin
+    Assert(Items[I] <> nil); // no nils should be in the list
+
+    { We show Items[I] using PointerToStr as it may be a dangling pointer,
+      we do not check if views have not been freed in the meantime,
+      and in particular when this is called from TCastleContainer.Destroy
+      views may be freed. }
+
+    Result := Result + '  ' + {Items[I].ClassName} PointerToStr(Items[I]) + NL;
   end;
 end;
 

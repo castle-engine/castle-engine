@@ -1,6 +1,6 @@
 {%MainUnit castleuicontrols.pas}
 {
-  Copyright 2010-2025 Michalis Kamburelis.
+  Copyright 2010-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,6 +25,11 @@
   e.g. when you do mouse look. But we really don't need to process them
   1000 per second, processing them 60 times per second is probably enough. }
 {$define CASTLE_COLLECT_MOTION}
+
+{ Turn some view warnings into errors (raising exceptions).
+  This is good for auto-tests. We recommend to also do this for production code,
+  and with time we may even make this the default. }
+{.$define CASTLE_STRICT}
 
 {$ifdef read_interface}
 
@@ -56,6 +61,12 @@
   strict private
     type
       TFingerIndexCaptureMap = {$ifdef FPC}specialize{$endif} TDictionary<TFingerIndex, TCastleUserInterface>;
+      TPendingViewOperation = (voSetView, voPushView, voPopView);
+      TPendingViewOperationRec = record
+        Operation: TPendingViewOperation;
+        View: TCastleView; //< meaningful for voSetView and voPushView, ignored for voPopView
+      end;
+      TPendingViewOperationList = {$ifdef FPC}specialize{$endif} TStructList<TPendingViewOperationRec>;
     var
       FFocus, FNewFocus: TCastleUserInterfaceList;
       { Capture controls, for each FingerIndex.
@@ -99,11 +110,19 @@
       FHasCollectedMotion: Boolean;
       FTouches: TTouchList;
       FMousePosition: TVector2;
+      FPendingViewOperations: TPendingViewOperationList;
+      { Inside any virtual method or callback that may do arbitrary things,
+        including changing views. }
+      FProcessingEvents: Cardinal;
 
     function GetView: TCastleView;
     procedure SetView(const Value: TCastleView);
-    function GetFrontView: TCastleView;
-    function GetViewStack(const Index: Integer): TCastleView;
+    function GetCurrentViewStack(const Index: Integer): TCastleView;
+    function GetPendingViewStack(const Index: Integer): TCastleView;
+    { Perform all pending operations in FPendingViewOperations, and:
+      - clear FPendingViewOperations.
+      - Makes FPendingViewStack reflect FCurrentViewStack. }
+    procedure ProcessViewChanges;
 
     function UseForceCaptureInput: Boolean;
     function TryGetFingerOfControl(const C: TCastleUserInterface; out Finger: TFingerIndex): Boolean;
@@ -139,7 +158,7 @@
     function GetTouches(const Index: Integer): TTouch;
   private
     var
-      FViewStack: TCastleViewList;
+      FCurrentViewStack, FPendingViewStack: TCastleViewList;
       FDisableStackChange: Cardinal;
       FControls: TInternalChildrenControls;
     class var
@@ -149,11 +168,6 @@
     class procedure RenderControlPrepare(const ViewportRect: TRectangle);
     { Called when the control C is destroyed or just removed from Controls list. }
     procedure DetachNotification(const C: TCastleUserInterface);
-    { Like PopView, but when PauseAndResume = false,
-      1. we don't Resume the new top-most view
-      2. we don't Pause the old view that is being popped, if it's not resumed
-        (which can due to AD 1). }
-    procedure InternalPopView(const PauseAndResume: Boolean);
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
@@ -225,6 +239,11 @@
         how much you gain by this.
         See example @code(examples/user_interface/ui_batching/). }
       UserInterfaceBatching: Boolean;
+
+      { Make SetView, PushView, PopView change views delayed,
+        even if other conditions would allow immediate change.
+        This is useful for testing. }
+      InternalForceViewChangeDelayed: Boolean;
 
     const
       DefaultBackgroundColor: TVector4 = (X: 0.1; Y: 0.1; Z: 0.1; W: 1);
@@ -746,7 +765,7 @@
 
       @longCode(#
 
-      function TMyState.Press(const Event: TInputPressRelease): Boolean;
+      function TViewPlayGame.Press(const Event: TInputPressRelease): Boolean;
       begin
         Result := inherited;
         if Result then Exit;
@@ -759,7 +778,7 @@
         end;
       end;
 
-      function TMyState.Release(const Event: TInputPressRelease): Boolean;
+      function TViewPlayGame.Release(const Event: TInputPressRelease): Boolean;
       begin
         Result := inherited;
         if Result then Exit;
@@ -771,7 +790,7 @@
         end;
       end;
 
-      procedure TMyState.Update(const SecondsPassed: Single;
+      procedure TViewPlayGame.Update(const SecondsPassed: Single;
         var HandleInput: Boolean);
       begin
         inherited;
@@ -779,7 +798,7 @@
           Container.MouseLookUpdate;
       end;
 
-      function TNewFightUi.Motion(const Event: TInputMotion): Boolean;
+      function TViewPlayGame.Motion(const Event: TInputMotion): Boolean;
       var
         Delta: TVector2;
       begin
@@ -992,64 +1011,165 @@
 
     { Current view. Simply assign to this property to change the current view.
 
-      In case multiple views are active (only possible
-      if you used the @link(PushView) method), this property returns the @italic(bottom) view
-      (use @link(FrontView) to get @italic(top) view).
-      Setting this property resets whole view stack.
+      Setting this property -> sets the whole view stack to contain only
+      this single view.
 
-      @bold(When is it allowed to change the view?)
+      When reading this property, and multiple views are active (which is possible
+      if you used the @link(PushView) method), this property returns the
+      @italic(bottom) view. Use @link(PendingFrontView) to get @italic(top) view.
 
-      While in theory you can change current view stack (assigning @link(View)
-      or using @link(PushView) / @link(PopView)) at any moment,
-      but remember that stopping the view frees also the view UI.
-      So you should not change the current view stack within events/overriden methods
-      of classes like TCastleUserInterface, TCastleTransform, TCastleBehavior
-      that could be destroyed by the view stop.
+      View changes are sometimes applied with delay (not immediately).
+      Details on what this means:
 
-      The simpler advise is: @italic(Assign to @link(View) or use @link(PushView) / @link(PopView)
-      only from the overridden TCastleView methods.
-      Like TMyView.Update or TMyView.Press).
+      @unorderedList(
+        @item(All possible view changes (initiated by setting
+          this property or by calling @link(PushView), @link(PopView))
+          are possibly delayed using this mechanism.)
+
+        @item(Delaying view change is done only when we are inside
+          "event processing", looping over controls.)
+
+        @item(Delaying means that actual view change does not happen
+          immediately when this property is set (or when @link(PushView) or
+          @link(PopView) are called).
+
+          Instead it will be actually done after processing certain events
+          finished. In other words, this will not immediately call e.g.
+          @link(TCastleView.Stop)
+          on the old view and @link(TCastleView.Start) on the new view,
+          or other view lifecycle methods.)
+
+        @item(Why? This "delay" is done to avoid stopping views (and thus
+          destroying components) in the middle of processing events of
+          these components, e.g. destroying a button while processing its
+          TCastleButton.OnClick event.)
+
+        @item(There are situations when the view change is still done
+          immediately.
+
+          One is when you set a view while the current view stack is empty.
+          In this case, the change always happens immediately, because there
+          it is safe -- there are no views to stop.
+
+          Another situation is when we are not inside "event processing".
+          This accounts for changing views from the "outside code",
+          like initialization or finalization code.
+
+          Since such cases are safe, we perform view changes immediately.
+          This allows to e.g. call "View.DesignedComponent(...)" right after
+          assigning first view or rely that all views are stopped after
+          you did "Container.View := nil".)
+
+        @item(Regardless if the operation was delayed or not,
+          the value of this property changes immediately.
+          But it may represent the @italic(pending) view.)
+
+        @item(Compare @link(PendingFrontView) and @link(CurrentFrontView),
+          @link(PendingViewStack) and @link(CurrentViewStack),
+          to see the possible difference between pending and current view stack.)
+      )
 
       Note that you cannot change current view stack when another change is in progress.
-      That is, you cannot change view from within TMyView.Start/Resume/Pause/Stop.
+      That is, you cannot change view from within @link(TCastleView.Start),
+      @link(TCastleView.Resume), @link(TCastleView.Pause), @link(TCastleView.Stop).
     }
     property View: TCastleView read GetView write SetView;
 
-    { The view in the front (top-most view on the stack).
+    { The @italic(pending) front view (top-most view on the stack).
 
-      In case you used @link(PushView), this returns the top-most (most recently pushed) view.
+      This is the top-most view on the stack, after all pending changes
+      (done by setting @link(View) or calling @link(PushView), @link(PopView))
+      will be applied.
+
+      If you just used @link(PushView), this returns the top-most
+      (most recently pushed) view.
 
       If there is only one (or none) view, e.g. because you never used @link(PushView),
       then this property returns the same thing as @link(View). }
-    property FrontView: TCastleView read GetFrontView;
+    function PendingFrontView: TCastleView;
 
-    { Pushing the view adds it at the top of the view stack,
-      this makes new view to be displayed on top of previous ones.
+    { The @italic(current) front view (top-most view on the stack).
+      Contrary to @link(PendingFrontView), this is the actually current front view,
+      not considering any pending changes.
 
-      The view known as @link(View) is conceptually at the bottom of view stack, always.
-      When it is nil, then pushing new view sets the @link(View) view.
-      Otherwise @link(View) view is left as-it-is, new view is added on top. }
+      Changing the view
+      (by setting @link(View) or calling @link(PushView), @link(PopView))
+      changes this value, but not immediately --- it happens with some delay
+      (after some events are processed). }
+    function CurrentFrontView: TCastleView;
+
+    function FrontView: TCastleView; deprecated 'use CurrentFrontView (eventually PendingFrontView)';
+
+    { Add view on top of the view stack, making it displayed in front of
+      previous views.
+
+      This method may perform the view change with a delay.
+      Which means that the new view's @link(TCastleView.Start) may not be called
+      immediately from your call to this method.
+      See @link(View) for details on how view changes may be delayed. }
     procedure PushView(const NewView: TCastleView);
 
-    { Pop the current top-most view, reversing the @link(PushView) operation. }
+    { Pop the current top-most view, reversing the @link(PushView) operation.
+
+      This method may perform the view change with a delay.
+      Which means that the old view's @link(TCastleView.Stop) may not be called
+      immediately from your call to this method.
+      See @link(View) for details on how view changes may be delayed. }
     procedure PopView; overload;
 
     { Pop the current top-most view, reversing the @link(PushView) operation,
       also checking whether the current top-most view is as expected.
 
-      Makes a warning, and does nothing, if the current top-most view
+      Makes a warning, and does nothing, if the front (top-most) view
       is different than indicated. This is usually a safer (more chance
-      to easily catch bugs) version of PopView than the parameter-less version. }
+      to easily catch bugs) version of PopView than the parameter-less version.
+
+      This method may perform the view change with a delay.
+      Which means that the old view's @link(TCastleView.Stop) may not be called
+      immediately from your call to this method.
+      See @link(View) for details on how view changes may be delayed. }
     procedure PopView(const CheckFrontView: TCastleView); overload;
 
     { Count of views in the view stack.
-      View stack is managed using @link(View) / @link(PushView) / @link(PopView). }
-    function ViewStackCount: Integer;
+      View stack is managed using @link(View) / @link(PushView) / @link(PopView).
+
+      Just like @link(CurrentFrontView), this represents the @italic(current) state
+      of the view stack, ignoring the changes pending but not yet done
+      (by setting @link(View) or calling @link(PushView), @link(PopView)). }
+    function CurrentViewStackCount: Integer;
 
     { Access any view within the view stack.
-      Use with indexes between 0 and ViewStackCount - 1.
-      View stack is managed using @link(View) / @link(PushView) / @link(PopView). }
-    property ViewStack [const Index: Integer]: TCastleView read GetViewStack;
+      Use with indexes between 0 and @link(CurrentViewStackCount) - 1.
+      View stack is managed using @link(View) / @link(PushView) / @link(PopView).
+
+      Just like @link(CurrentFrontView), this represents the @italic(current) state
+      of the view stack, ignoring the changes pending but not yet done
+      (by setting @link(View) or calling @link(PushView), @link(PopView)).
+
+      After some delay, this "catches up" and becomes equal to @link(PendingViewStack). }
+    property CurrentViewStack [const Index: Integer]: TCastleView read GetCurrentViewStack;
+
+    { Count of views in the view stack.
+      View stack is managed using @link(View) / @link(PushView) / @link(PopView).
+
+      This represents the @italic(pending) state of the view stack,
+      including all the changes caused by setting @link(View) or calling
+      @link(PushView), @link(PopView). }
+    function PendingViewStackCount: Integer;
+
+    { Access any view within the view stack.
+      Use with indexes between 0 and @link(PendingViewStackCount) - 1.
+      View stack is managed using @link(View) / @link(PushView) / @link(PopView).
+
+      This represents the @italic(pending) state of the view stack,
+      including all the changes caused by setting @link(View) or calling
+      @link(PushView), @link(PopView). }
+    property PendingViewStack [const Index: Integer]: TCastleView read GetPendingViewStack;
+
+    function ViewStackCount: Integer;
+      deprecated 'use CurrentViewStackCount (eventually PendingViewStackCount)';
+    property ViewStack [const Index: Integer]: TCastleView read GetCurrentViewStack;
+      {$ifdef FPC}deprecated 'use CurrentViewStack (eventually PendingViewStack)';{$endif}
 
     { Safe border sizes you should honor in your UI design (do not place there
       UI elements that have to be readable or clickable, like labels or buttons)
@@ -1086,6 +1206,22 @@ begin
   raise EInternalError.Create(Message);
 end;
 
+{ Write a warning in normal situation (compiled without CASTLE_STRICT).
+  Make an error (exception) when CASTLE_STRICT is defined. }
+procedure WritelnWarningOrError(const Category, Message: String); overload;
+begin
+  {$ifdef CASTLE_STRICT}
+  raise EInternalError.CreateFmt('Warning (error in CASTLE_STRICT mode) %s: %s', [Category, Message]);
+  {$else}
+  WritelnWarning(Category, Message);
+  {$endif}
+end;
+
+procedure WritelnWarningOrError(const Category, MessageFormat: String; const Args: array of const); overload;
+begin
+  WritelnWarningOrError(Category, Format(MessageFormat, Args));
+end;
+
 { TCastleContainer --------------------------------------------------------------- }
 
 constructor TCastleContainer.Create(AOwner: TComponent);
@@ -1116,6 +1252,9 @@ begin
     Some methods, like TCastleContainer.UpdateFocusAndMouseCursor,
     use this to calculate "focused" CGE control so we keep it within the window. }
   FMousePosition := Vector2(1, 1);
+  FCurrentViewStack := TCastleViewList.Create(false);
+  FPendingViewStack := TCastleViewList.Create(false);
+  FPendingViewOperations := TPendingViewOperationList.Create;
 
   { connect 3D device - 3Dconnexion device }
   Mouse3dPollTimer := 0;
@@ -1136,11 +1275,14 @@ begin
   if Messaging <> nil then
     Messaging.OnReceive.Remove({$ifdef FPC}@{$endif} MessageReceived);
 
-  if FViewStack <> nil then
+  if FCurrentViewStack <> nil then
   begin
-    View := nil; // should clean FViewStack
-    FreeAndNil(FViewStack);
+    View := nil; // this should clear FCurrentViewStack
+    ProcessViewChanges;
+    FreeAndNil(FCurrentViewStack);
   end;
+  FreeAndNil(FPendingViewStack);
+  FreeAndNil(FPendingViewOperations);
   if RenderContext = FContext then
     RenderContext := nil;
   FreeAndNil(FSafeBorder);
@@ -1371,7 +1513,7 @@ begin
 
   { Do not scan Controls for focus when csDestroying (in which case Controls
     list may be invalid). Testcase: exit with Alt + F4 from zombie_fighter
-    StateAskDialog. }
+    ViewAskDialog. }
   if not (csDestroying in ComponentState) then
   begin
     { calculate new FNewFocus value, update AnythingForcesNoneCursor }
@@ -1416,27 +1558,42 @@ function TCastleContainer.EventSensorRotation(const X, Y, Z, Angle: Double; cons
   begin
     if PassEvents(C) then
     begin
-      for I := C.ControlsCount - 1 downto 0 do
-        if RecursiveSensorRotation(C.Controls[I]) then
-          Exit(true);
+      Inc(C.ProcessingEvents);
+      try
+        C.ProcessingEventsDescription := 'SensorRotation';
 
-      if C.SensorRotation(X, Y, Z, Angle, SecondsPassed) then
-        Exit(true);
+        for I := C.ControlsCount - 1 downto 0 do
+          if RecursiveSensorRotation(C.Controls[I]) then
+            Exit(true);
+
+        if C.SensorRotation(X, Y, Z, Angle, SecondsPassed) then
+          Exit(true);
+      finally Dec(C.ProcessingEvents) end;
     end;
 
     Result := false;
   end;
 
-var
-  I: Integer;
+  function CallEvents: Boolean;
+  var
+    I: Integer;
+  begin
+    { exit as soon as something returns "true", meaning the event is handled }
+    for I := Controls.Count - 1 downto 0 do
+      if RecursiveSensorRotation(Controls[I]) then
+        Exit(true);
+    Result := false;
+  end;
+
 begin
   FlushCollectedMotion;
 
-  { exit as soon as something returns "true", meaning the event is handled }
-  for I := Controls.Count - 1 downto 0 do
-    if RecursiveSensorRotation(Controls[I]) then
-      Exit(true);
-  Result := false;
+  Inc(FProcessingEvents);
+  try
+    Result := CallEvents;
+  finally Dec(FProcessingEvents) end;
+
+  ProcessViewChanges;
 end;
 
 function TCastleContainer.EventSensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): Boolean;
@@ -1447,27 +1604,42 @@ function TCastleContainer.EventSensorTranslation(const X, Y, Z, Length: Double; 
   begin
     if PassEvents(C) then
     begin
-      for I := C.ControlsCount - 1 downto 0 do
-        if RecursiveSensorTranslation(C.Controls[I]) then
-          Exit(true);
+      Inc(C.ProcessingEvents);
+      try
+        C.ProcessingEventsDescription := 'SensorTranslation';
 
-      if C.SensorTranslation(X, Y, Z, Length, SecondsPassed) then
-        Exit(true);
+        for I := C.ControlsCount - 1 downto 0 do
+          if RecursiveSensorTranslation(C.Controls[I]) then
+            Exit(true);
+
+        if C.SensorTranslation(X, Y, Z, Length, SecondsPassed) then
+          Exit(true);
+      finally Dec(C.ProcessingEvents) end;
     end;
 
     Result := false;
   end;
 
-var
-  I: Integer;
+  function CallEvents: Boolean;
+  var
+    I: Integer;
+  begin
+    { exit as soon as something returns "true", meaning the event is handled }
+    for I := Controls.Count - 1 downto 0 do
+      if RecursiveSensorTranslation(Controls[I]) then
+        Exit(true);
+    Result := false;
+  end;
+
 begin
   FlushCollectedMotion;
 
-  { exit as soon as something returns "true", meaning the event is handled }
-  for I := Controls.Count - 1 downto 0 do
-    if RecursiveSensorTranslation(Controls[I]) then
-      Exit(true);
-  Result := false;
+  Inc(FProcessingEvents);
+  try
+    Result := CallEvents;
+  finally Dec(FProcessingEvents) end;
+
+  ProcessViewChanges;
 end;
 
 procedure TCastleContainer.ToggleInspector;
@@ -1567,35 +1739,40 @@ procedure TCastleContainer.EventUpdate;
   begin
     if PassEvents(C, false) then
     begin
-      { go downward, from front to back.
-        Important for controls watching/setting HandleInput,
-        e.g. for sliders/OnScreenMenu to block the navigation in TCastleViewport underneath
-        from processing arrow keys. }
-      I := C.ControlsCount - 1;
-      while I >= 0 do
-      begin
-        // coded this way in case some Update method changes the Controls list
-        if I < C.ControlsCount then
-          RecursiveUpdate(C.Controls[I], HandleInput);
-        Dec(I);
-      end;
+      Inc(C.ProcessingEvents);
+      try
+        C.ProcessingEventsDescription := 'Update';
 
-      if C <> ForceCaptureInput then
-      begin
-        { Although we call Update for all the existing controls, we look
-          at CapturesEventsAtPosition and track HandleInput values.
-          See TCastleUserInterface.Update for explanation. }
-        if C.CapturesEventsAtPosition(MousePosition) then
+        { go downward, from front to back.
+          Important for controls watching/setting HandleInput,
+          e.g. for sliders/OnScreenMenu to block the navigation in TCastleViewport underneath
+          from processing arrow keys. }
+        I := C.ControlsCount - 1;
+        while I >= 0 do
         begin
-          C.Update(Fps.SecondsPassed, HandleInput);
-        end else
-        begin
-          { controls where CapturesEventsAtPosition = false always get
-            HandleInput parameter set to false. }
-          Dummy := false;
-          C.Update(Fps.SecondsPassed, Dummy);
+          // coded this way in case some Update method changes the Controls list
+          if I < C.ControlsCount then
+            RecursiveUpdate(C.Controls[I], HandleInput);
+          Dec(I);
         end;
-      end;
+
+        if C <> ForceCaptureInput then
+        begin
+          { Although we call Update for all the existing controls, we look
+            at CapturesEventsAtPosition and track HandleInput values.
+            See TCastleUserInterface.Update for explanation. }
+          if C.CapturesEventsAtPosition(MousePosition) then
+          begin
+            C.Update(Fps.SecondsPassed, HandleInput);
+          end else
+          begin
+            { controls where CapturesEventsAtPosition = false always get
+              HandleInput parameter set to false. }
+            Dummy := false;
+            C.Update(Fps.SecondsPassed, Dummy);
+          end;
+        end;
+      finally Dec(C.ProcessingEvents) end;
     end;
   end;
 
@@ -1706,9 +1883,27 @@ procedure TCastleContainer.EventUpdate;
     end;
   end;
 
-var
-  I: Integer;
-  HandleInput: Boolean;
+  procedure CallEvents;
+  var
+    I: Integer;
+    HandleInput: Boolean;
+  begin
+    HandleInput := true;
+
+    { ForceCaptureInput has the 1st chance to process inputs }
+    if UseForceCaptureInput then
+      ForceCaptureInput.Update(Fps.SecondsPassed, HandleInput);
+
+    I := Controls.Count - 1;
+    while I >= 0 do
+    begin
+      // coded this way in case some Update method changes the Controls list
+      if I < Controls.Count then
+        RecursiveUpdate(Controls[I], HandleInput);
+      Dec(I);
+    end;
+  end;
+
 begin
   FlushCollectedMotion;
 
@@ -1725,20 +1920,12 @@ begin
   Update3dMouse;
   UpdateGameControllers;
 
-  HandleInput := true;
+  Inc(FProcessingEvents);
+  try
+    CallEvents;
+  finally Dec(FProcessingEvents) end;
 
-  { ForceCaptureInput has the 1st chance to process inputs }
-  if UseForceCaptureInput then
-    ForceCaptureInput.Update(Fps.SecondsPassed, HandleInput);
-
-  I := Controls.Count - 1;
-  while I >= 0 do
-  begin
-    // coded this way in case some Update method changes the Controls list
-    if I < Controls.Count then
-      RecursiveUpdate(Controls[I], HandleInput);
-    Dec(I);
-  end;
+  ProcessViewChanges;
 end;
 
 function TCastleContainer.EventPress(const Event: TInputPressRelease): Boolean;
@@ -1763,75 +1950,91 @@ function TCastleContainer.EventPress(const Event: TInputPressRelease): Boolean;
   begin
     if PassEvents(C, Event) then
     begin
-      { try C.PreviewPress }
-      if (C <> ForceCaptureInput) and C.PreviewPress(Event) then
-      begin
-        if (Event.EventType = itMouseButton) and
-           // See below for explanation of "C.Container = Self" comparison.
-           (C.Container = Self) then
-          FCaptureInput.AddOrSetValue(Event.FingerIndex, C);
-        Exit(true);
-      end;
+      Inc(C.ProcessingEvents);
+      try
+        C.ProcessingEventsDescription := 'Press';
 
-      { try to pass press to C children }
-      for I := C.ControlsCount - 1 downto 0 do
-        { checking "I < C.ControlsCount" below is a poor safeguard in case
-          some Press handler changes the Controls.Count.
-          At least we will not crash. }
-        if (I < C.ControlsCount) and RecursivePress(C.Controls[I]) then
+        { try C.PreviewPress }
+        if (C <> ForceCaptureInput) and C.PreviewPress(Event) then
+        begin
+          if (Event.EventType = itMouseButton) and
+            // See below for explanation of "C.Container = Self" comparison.
+            (C.Container = Self) then
+            FCaptureInput.AddOrSetValue(Event.FingerIndex, C);
           Exit(true);
+        end;
 
-      { try C.Press }
-      if (C <> ForceCaptureInput) and C.Press(Event) then
-      begin
-        { We have to check whether C.Container = Self. That is because
-          the implementation of control's Press method could remove itself
-          from our Controls list. Consider e.g. TCastleOnScreenMenu.Press
-          that may remove itself from the Window.Controls list when clicking
-          "close menu" item. We cannot, in such case, save a reference to
-          this control in FCaptureInput, because we should not speak with it
-          anymore (we don't know when it's destroyed, we cannot call it's
-          Release method because it has Container = nil, and so on). }
-        if (Event.EventType = itMouseButton) and
-           (C.Container = Self) then
-          FCaptureInput.AddOrSetValue(Event.FingerIndex, C);
-        Exit(true);
-      end;
+        { try to pass press to C children }
+        for I := C.ControlsCount - 1 downto 0 do
+          { checking "I < C.ControlsCount" below is a poor safeguard in case
+            some Press handler changes the Controls.Count.
+            At least we will not crash. }
+          if (I < C.ControlsCount) and RecursivePress(C.Controls[I]) then
+            Exit(true);
+
+        { try C.Press }
+        if (C <> ForceCaptureInput) and C.Press(Event) then
+        begin
+          { We have to check whether C.Container = Self. That is because
+            the implementation of control's Press method could remove itself
+            from our Controls list. Consider e.g. TCastleOnScreenMenu.Press
+            that may remove itself from the Window.Controls list when clicking
+            "close menu" item. We cannot, in such case, save a reference to
+            this control in FCaptureInput, because we should not speak with it
+            anymore (we don't know when it's destroyed, we cannot call it's
+            Release method because it has Container = nil, and so on). }
+          if (Event.EventType = itMouseButton) and
+            (C.Container = Self) then
+            FCaptureInput.AddOrSetValue(Event.FingerIndex, C);
+          Exit(true);
+        end;
+      finally Dec(C.ProcessingEvents) end;
     end;
 
     Result := false;
   end;
 
-var
-  I: Integer;
+  { Call virtual methods on UI controls, return is event handled. }
+  function CallEvents: Boolean;
+  var
+    I: Integer;
+  begin
+    Result := false;
+
+    if FInputInspector.IsEvent(Event) then
+    begin
+      ToggleInspector;
+      Exit(true);
+    end;
+
+    { pass to ForceCaptureInput }
+    if UseForceCaptureInput then
+    begin
+      if ForceCaptureInput.PreviewPress(Event) then
+        Exit(true);
+      if ForceCaptureInput.Press(Event) then
+        Exit(true);
+    end;
+
+    { pass to all Controls with TCastleUserInterface.Press event }
+    for I := Controls.Count - 1 downto 0 do
+      { checking "I < Controls.Count" below is a poor safeguard in case
+        some Press handler changes the Controls.Count.
+        At least we will not crash. }
+      if (I < Controls.Count) and RecursivePress(Controls[I]) then
+        Exit(true);
+  end;
+
 begin
   FlushCollectedMotion;
   UpdateCurrentMousePositionAndTouches;
 
-  Result := false;
+  Inc(FProcessingEvents);
+  try
+    Result := CallEvents;
+  finally Dec(FProcessingEvents) end;
 
-  if FInputInspector.IsEvent(Event) then
-  begin
-    ToggleInspector;
-    Exit(true);
-  end;
-
-  { pass to ForceCaptureInput }
-  if UseForceCaptureInput then
-  begin
-    if ForceCaptureInput.PreviewPress(Event) then
-      Exit(true);
-    if ForceCaptureInput.Press(Event) then
-      Exit(true);
-  end;
-
-  { pass to all Controls with TCastleUserInterface.Press event }
-  for I := Controls.Count - 1 downto 0 do
-    { checking "I < Controls.Count" below is a poor safeguard in case
-      some Press handler changes the Controls.Count.
-      At least we will not crash. }
-    if (I < Controls.Count) and RecursivePress(Controls[I]) then
-      Exit(true);
+  ProcessViewChanges;
 end;
 
 function TCastleContainer.EventRelease(const Event: TInputPressRelease): Boolean;
@@ -1863,71 +2066,94 @@ function TCastleContainer.EventRelease(const Event: TInputPressRelease): Boolean
   begin
     if PassEvents(C, Event) then
     begin
-      { try C.PreviewRelease }
-      if (C <> ForceCaptureInput) and C.PreviewRelease(Event) then
-        Exit(true);
+      Inc(C.ProcessingEvents);
+      try
+        C.ProcessingEventsDescription := 'Release';
 
-      { try to pass release to C children }
-      for I := C.ControlsCount - 1 downto 0 do
-        if RecursiveRelease(C.Controls[I]) then
+        { try C.PreviewRelease }
+        if (C <> ForceCaptureInput) and C.PreviewRelease(Event) then
           Exit(true);
 
-      { try C.Release }
-      if (C <> ForceCaptureInput) and C.Release(Event) then
-        Exit(true);
+        { try to pass release to C children }
+        for I := C.ControlsCount - 1 downto 0 do
+          if RecursiveRelease(C.Controls[I]) then
+            Exit(true);
+
+        { try C.Release }
+        if (C <> ForceCaptureInput) and C.Release(Event) then
+          Exit(true);
+      finally Dec(C.ProcessingEvents) end;
     end;
 
     Result := false;
   end;
 
-var
-  I: Integer;
-  Capture: TCastleUserInterface;
+  function CallEvents: Boolean;
+  var
+    I: Integer;
+    Capture: TCastleUserInterface;
+  begin
+    Result := false;
+
+    { pass to ForceCaptureInput }
+    if UseForceCaptureInput then
+    begin
+      Inc(ForceCaptureInput.ProcessingEvents);
+      try
+        ForceCaptureInput.ProcessingEventsDescription := 'Release(for ForceCaptureInput)';
+        if ForceCaptureInput.PreviewRelease(Event) then
+          Exit(true);
+        if ForceCaptureInput.Release(Event) then
+          Exit(true);
+      finally Dec(ForceCaptureInput.ProcessingEvents) end;
+    end;
+
+    { pass to control holding capture }
+
+    if not FCaptureInput.TryGetValue(Event.FingerIndex, Capture) then
+      Capture := nil;
+
+    if (Capture <> nil) and not Capture.Exists then
+    begin
+      { No longer capturing, since the Exists returns false now.
+        We do not send any events to non-existing controls. }
+      FCaptureInput.Remove(Event.FingerIndex);
+      Capture := nil;
+    end;
+
+    if (Capture <> nil) and (MousePressed = []) then
+    begin
+      { No longer capturing, but do not set Capture to nil (it should receive the Release event). }
+      FCaptureInput.Remove(Event.FingerIndex);
+    end;
+
+    if (Capture <> nil) and (Capture <> ForceCaptureInput) then
+    begin
+      Inc(Capture.ProcessingEvents);
+      try
+        Capture.ProcessingEventsDescription := 'Release(for Capture)';
+        Result := Capture.PreviewRelease(Event);
+        Result := Capture.Release(Event);
+      finally Dec(Capture.ProcessingEvents) end;
+      Exit; // if something is capturing the input, prevent other controls from getting the events
+    end;
+
+    { pass to all Controls with TCastleUserInterface.Release event }
+    for I := Controls.Count - 1 downto 0 do
+      if RecursiveRelease(Controls[I]) then
+        Exit(true);
+  end;
+
 begin
   FlushCollectedMotion;
   UpdateCurrentMousePositionAndTouches;
 
-  Result := false;
+  Inc(FProcessingEvents);
+  try
+    Result := CallEvents;
+  finally Dec(FProcessingEvents) end;
 
-  { pass to ForceCaptureInput }
-  if UseForceCaptureInput then
-  begin
-    if ForceCaptureInput.PreviewRelease(Event) then
-      Exit(true);
-    if ForceCaptureInput.Release(Event) then
-      Exit(true);
-  end;
-
-  { pass to control holding capture }
-
-  if not FCaptureInput.TryGetValue(Event.FingerIndex, Capture) then
-    Capture := nil;
-
-  if (Capture <> nil) and not Capture.Exists then
-  begin
-    { No longer capturing, since the Exists returns false now.
-      We do not send any events to non-existing controls. }
-    FCaptureInput.Remove(Event.FingerIndex);
-    Capture := nil;
-  end;
-
-  if (Capture <> nil) and (MousePressed = []) then
-  begin
-    { No longer capturing, but do not set Capture to nil (it should receive the Release event). }
-    FCaptureInput.Remove(Event.FingerIndex);
-  end;
-
-  if (Capture <> nil) and (Capture <> ForceCaptureInput) then
-  begin
-    Result := Capture.PreviewRelease(Event);
-    Result := Capture.Release(Event);
-    Exit; // if something is capturing the input, prevent other controls from getting the events
-  end;
-
-  { pass to all Controls with TCastleUserInterface.Release event }
-  for I := Controls.Count - 1 downto 0 do
-    if RecursiveRelease(Controls[I]) then
-      Exit(true);
+  ProcessViewChanges;
 end;
 
 procedure TCastleContainer.ReleaseCapture(const C: TCastleUserInterface);
@@ -1944,18 +2170,32 @@ procedure TCastleContainer.EventOpen(const InitializedContextsCount: Cardinal);
   var
     I: Integer;
   begin
-    for I := C.ControlsCount - 1 downto 0 do
-      RecursiveGLContextOpen(C.Controls[I]);
+    Inc(C.ProcessingEvents);
+    try
+      C.ProcessingEventsDescription := 'GLContextOpen';
 
-    { Check here C.GLInitialized to not call C.GLContextOpen twice.
-      Control may have GL resources already initialized if it was added
-      e.g. from Application.OnInitialize before EventOpen. }
-    if not C.GLInitialized then
-      C.GLContextOpen;
+      for I := C.ControlsCount - 1 downto 0 do
+        RecursiveGLContextOpen(C.Controls[I]);
+
+      { Check here C.GLInitialized to not call C.GLContextOpen twice.
+        Control may have GL resources already initialized if it was added
+        e.g. from Application.OnInitialize before EventOpen. }
+      if not C.GLInitialized then
+        C.GLContextOpen;
+    finally Dec(C.ProcessingEvents) end;
   end;
 
-var
-  I: Integer;
+  procedure CallEvents;
+  var
+    I: Integer;
+  begin
+    { Call GLContextOpen on controls before OnOpen,
+      this way OnOpen has controls with GLInitialized = true,
+      so using SaveScreen etc. makes more sense there. }
+    for I := Controls.Count - 1 downto 0 do
+      RecursiveGLContextOpen(Controls[I]);
+  end;
+
 begin
   { Initialize input state to default (in case container instance is
     opened/closed multiple times, doing this in constructor would not be enough) }
@@ -1964,14 +2204,17 @@ begin
   FMousePosition := Vector2(1, 1);
   FPressed.Clear;
 
+  { Done outside of CallEvents, to run with FProcessingEvents=0 and allow
+    immediate state changes. }
   if InitializedContextsCount = 1 then
     ApplicationProperties._GLContextOpen;
 
-  { Call GLContextOpen on controls before OnOpen,
-    this way OnOpen has controls with GLInitialized = true,
-    so using SaveScreen etc. makes more sense there. }
-  for I := Controls.Count - 1 downto 0 do
-    RecursiveGLContextOpen(Controls[I]);
+  Inc(FProcessingEvents);
+  try
+    CallEvents;
+  finally Dec(FProcessingEvents) end;
+
+  ProcessViewChanges;
 end;
 
 procedure TCastleContainer.EventClose(const InitializedContextsCount: Cardinal);
@@ -1980,29 +2223,50 @@ procedure TCastleContainer.EventClose(const InitializedContextsCount: Cardinal);
   var
     I: Integer;
   begin
-    for I := C.ControlsCount - 1 downto 0 do
-      RecursiveGLContextClose(C.Controls[I]);
+    Inc(C.ProcessingEvents);
+    try
+      C.ProcessingEventsDescription := 'GLContextClose';
 
-    if C.GLInitialized then
-      C.GLContextClose;
+      for I := C.ControlsCount - 1 downto 0 do
+        RecursiveGLContextClose(C.Controls[I]);
+
+      if C.GLInitialized then
+        C.GLContextClose;
+    finally Dec(C.ProcessingEvents) end;
   end;
-
-var
-  I: Integer;
-begin
-  FHasCollectedMotion := false; // ignore if some motion was unprocessed
 
   { Call SetFocused(false) for all focused controls,
     to e.g. enable DB-aware controls to react. }
-  for I := 0 to FFocus.Count - 1 do
-    FFocus[I].Focused := false;
+  procedure SetNotFocused;
+  var
+    I: Integer;
+  begin
+    for I := 0 to FFocus.Count - 1 do
+      FFocus[I].Focused := false;
+  end;
 
-  { call GLContextClose on controls before OnClose.
-    This may be called from Close, which may be called from TCastleWindow destructor,
-    so prepare for Controls being possibly nil now. }
-  if Controls <> nil then
-    for I := Controls.Count - 1 downto 0 do
-      RecursiveGLContextClose(Controls[I]);
+  procedure CallEvents;
+  var
+    I: Integer;
+  begin
+    { call GLContextClose on controls before OnClose.
+      This may be called from Close, which may be called from TCastleWindow destructor,
+      so prepare for Controls being possibly nil now. }
+    if Controls <> nil then
+      for I := Controls.Count - 1 downto 0 do
+        RecursiveGLContextClose(Controls[I]);
+  end;
+
+begin
+  FHasCollectedMotion := false; // ignore if some motion was unprocessed
+  SetNotFocused;
+
+  Inc(FProcessingEvents);
+  try
+    CallEvents;
+  finally Dec(FProcessingEvents) end;
+
+  ProcessViewChanges;
 
   if InitializedContextsCount = 1 then
   begin
@@ -2024,30 +2288,42 @@ function TCastleContainer.AllowSuspendForInput: Boolean;
   begin
     if PassEvents(C, false) then
     begin
-      for I := C.ControlsCount - 1 downto 0 do
-        if not RecursiveAllowSuspendForInput(C.Controls[I]) then
-          Exit(false);
+      Inc(C.ProcessingEvents);
+      try
+        C.ProcessingEventsDescription := 'AllowSuspendForInput';
 
-      if not C.AllowSuspendForInput then
-        Exit(false);
+        for I := C.ControlsCount - 1 downto 0 do
+          if not RecursiveAllowSuspendForInput(C.Controls[I]) then
+            Exit(false);
+
+        if not C.AllowSuspendForInput then
+          Exit(false);
+      finally Dec(C.ProcessingEvents) end;
     end;
 
     Result := true;
   end;
 
-var
-  I: Integer;
+  function CallEvents: Boolean;
+  var
+    I: Integer;
+  begin
+    for I := Controls.Count - 1 downto 0 do
+      if not RecursiveAllowSuspendForInput(Controls[I]) then
+        Exit(false);
+    Result := true;
+  end;
+
 begin
   { Do not suspend when you're over a control that may have a tooltip,
     as EventUpdate must track and eventually show tooltip. }
   if FTooltipParent <> nil then
     Exit(false);
 
-  for I := Controls.Count - 1 downto 0 do
-    if not RecursiveAllowSuspendForInput(Controls[I]) then
-      Exit(false);
-
-  Result := true;
+  Inc(FProcessingEvents);
+  try
+    Result := CallEvents;
+  finally Dec(FProcessingEvents) end;
 end;
 
 procedure TCastleContainer.FlushCollectedMotion;
@@ -2085,7 +2361,7 @@ procedure TCastleContainer.EventMotionNoCollect(const Event: TInputMotion);
 
   { Call all TCastleUserInterface.Motion.
     Takes care of accounting for ForceCaptureInput and FCaptureInput. }
-  procedure CallMotionEvents;
+  procedure CallEvents;
 
     function RecursiveMotion(const C: TCastleUserInterface): Boolean;
     var
@@ -2093,14 +2369,19 @@ procedure TCastleContainer.EventMotionNoCollect(const Event: TInputMotion);
     begin
       if PassEvents(C, Event) then
       begin
-        { try to pass release to C children }
-        for I := C.ControlsCount - 1 downto 0 do
-          if RecursiveMotion(C.Controls[I]) then
-            Exit(true);
+        Inc(C.ProcessingEvents);
+        try
+          C.ProcessingEventsDescription := 'Motion';
 
-        { try C.Motion itself }
-        if (C <> ForceCaptureInput) and C.Motion(Event) then
-          Exit(true);
+          { try to pass release to C children }
+          for I := C.ControlsCount - 1 downto 0 do
+            if RecursiveMotion(C.Controls[I]) then
+              Exit(true);
+
+          { try C.Motion itself }
+          if (C <> ForceCaptureInput) and C.Motion(Event) then
+            Exit(true);
+        finally Dec(C.ProcessingEvents) end;
       end;
 
       Result := false;
@@ -2152,9 +2433,12 @@ procedure TCastleContainer.EventMotionNoCollect(const Event: TInputMotion);
   end;
 
 begin
-  CallMotionEvents;
+  Inc(FProcessingEvents);
+  try
+    CallEvents;
+  finally Dec(FProcessingEvents) end;
 
-  { Call this after CallMotionEvents.
+  { Call this after CallEvents.
     This must be done *after* calling all TCastleUserInterface.Motion methods,
     we guarantee in the interface,
     and e.g. mdRotate implementation in TCastleWalkNavigation.Motion depends
@@ -2164,6 +2448,8 @@ begin
   { Call this after UpdateCurrentMousePositionAndTouches,
     because it uses MousePosition. }
   UpdateFocusAndMouseCursor;
+
+  ProcessViewChanges;
 end;
 
 procedure TCastleContainer.ControlsVisibleChange(const Sender: TCastleUserInterface;
@@ -2191,25 +2477,40 @@ procedure TCastleContainer.EventBeforeRender;
   begin
     if PassEvents(C, false) then
     begin
-      for I := C.ControlsCount - 1 downto 0 do
-        RecursiveBeforeRender(C.Controls[I]);
+      Inc(C.ProcessingEvents);
+      try
+        C.ProcessingEventsDescription := 'BeforeRender';
 
-      if C.GLInitialized then
-      begin
-        C.CheckUIScaleChanged;
-        C.CheckResize;
-        C.BeforeRender;
-      end;
+        for I := C.ControlsCount - 1 downto 0 do
+          RecursiveBeforeRender(C.Controls[I]);
+
+        if C.GLInitialized then
+        begin
+          C.CheckUIScaleChanged;
+          C.CheckResize;
+          C.BeforeRender;
+        end;
+      finally Dec(C.ProcessingEvents) end;
     end;
   end;
 
-var
-  I: Integer;
+  procedure CallEvents;
+  var
+    I: Integer;
+  begin
+    for I := Controls.Count - 1 downto 0 do
+      RecursiveBeforeRender(Controls[I]);
+  end;
+
 begin
   FlushCollectedMotion;
 
-  for I := Controls.Count - 1 downto 0 do
-    RecursiveBeforeRender(Controls[I]);
+  Inc(FProcessingEvents);
+  try
+    CallEvents;
+  finally Dec(FProcessingEvents) end;
+
+  ProcessViewChanges;
 end;
 
 class procedure TCastleContainer.RenderControlPrepare(const ViewportRect: TRectangle);
@@ -2266,6 +2567,10 @@ procedure TCastleContainer.EventRender;
 
 begin
   FlushCollectedMotion;
+
+  { do ProcessViewChanges *before* rendering, to make sure
+    we never show outdated view. }
+  ProcessViewChanges;
 
   if BackgroundEnable then
     RenderContext.Clear([cbColor], BackgroundColor);
@@ -2863,140 +3168,301 @@ begin
   FInputInspector.Key := Value;
 end;
 
-function TCastleContainer.GetView: TCastleView;
-begin
-  if (FViewStack = nil) or
-     (FViewStack.Count = 0) then
-    Result := nil
-  else
-    Result := FViewStack[0];
-end;
+procedure TCastleContainer.ProcessViewChanges;
 
-function TCastleContainer.GetFrontView: TCastleView;
-begin
-  if (FViewStack = nil) or
-     (FViewStack.Count = 0) then
-    Result := nil
-  else
-    Result := FViewStack[FViewStack.Count - 1];
-end;
+  { Equal to PopView when PauseAndResume = true.
 
-procedure TCastleContainer.SetView(const Value: TCastleView);
-begin
-  { exit early if there's nothing to do }
-  if (ViewStackCount = 0) and (Value = nil) then
-    Exit;
-  if (ViewStackCount = 1) and (FViewStack[0] = Value) then
-    Exit;
-
-  if FDisableStackChange <> 0 then
-    ErrorStackChangeDisabled('Cannot change TCastleView.View from inside of TCastleView.Start/Resume/Pause/Stop');
-
-  { Remove and finish topmost view.
-    The loop is written to work even when some view Stop method
-    changes views. }
-  while ViewStackCount <> 0 do
-    InternalPopView(false);
-
-  { deallocate empty FViewStack }
-  if Value = nil then
-    FreeAndNil(FViewStack);
-
-  PushView(Value);
-end;
-
-procedure TCastleContainer.PushView(const NewView: TCastleView);
-begin
-  if NewView <> nil then
+    When PauseAndResume = false:
+    1. we don't Resume the new top-most view
+    2. we don't Pause the old view that is being popped, if it's not resumed
+      (which can be due to AD 1). }
+  procedure FinalPopView(const PauseAndResume: Boolean);
+  var
+    SavedFrontView: TCastleView;
   begin
-    if FDisableStackChange <> 0 then
-      ErrorStackChangeDisabled('Cannot call TCastleContainer.Push from inside of TCastleView.Start/Resume/Pause/Stop');
-
-    Inc(FDisableStackChange);
-    try
-      { pause previous top-most view }
-      if (FViewStack <> nil) and
-         (FViewStack.Count <> 0) then
-        FViewStack.Last.InternalPause;
-
-      { create FViewStack on demand now }
-      if FViewStack = nil then
-        FViewStack := TCastleViewList.Create(false);
-      FViewStack.Add(NewView);
-      NewView.InternalStart(Self);
-      NewView.InternalResume;
-    finally
-      Dec(FDisableStackChange)
-    end;
-  end;
-end;
-
-procedure TCastleContainer.PopView;
-begin
-  InternalPopView(true);
-end;
-
-procedure TCastleContainer.InternalPopView(const PauseAndResume: Boolean);
-var
-  SavedFrontView: TCastleView;
-begin
-  if FDisableStackChange <> 0 then
-    ErrorStackChangeDisabled('Cannot call TCastleContainer.Pop from inside of TCastleView.Start/Resume/Pause/Stop');
-
-  Inc(FDisableStackChange);
-  try
-    SavedFrontView := FrontView;
+    SavedFrontView := CurrentFrontView;
     if PauseAndResume or SavedFrontView.FResumed then
       SavedFrontView.InternalPause;
     SavedFrontView.InternalStop;
-    if SavedFrontView = FrontView then
-      FViewStack.Delete(FViewStack.Count - 1)
+    if SavedFrontView = CurrentFrontView then
+      FCurrentViewStack.Count := FCurrentViewStack.Count - 1
     else
-      WritelnWarning('TCastleView', 'Topmost view is no longer topmost after its Stop method. Do not change view stack from view Stop methods.');
+      WritelnWarningOrError('TCastleView', 'Front view is no longer front after its Stop method. Do not change view stack from view Stop methods.');
 
     if SavedFrontView.FFreeWhenStopped then
       FreeAndNil(SavedFrontView);
 
     { resume new top-most view }
-    if (FViewStack <> nil) and
-       (FViewStack.Count <> 0) and
-       PauseAndResume then
-      FViewStack.Last.InternalResume;
-  finally
-    Dec(FDisableStackChange)
+    if (FCurrentViewStack.Count <> 0) and PauseAndResume then
+      FCurrentViewStack.Last.InternalResume;
   end;
+
+  procedure FinalPushView(const NewView: TCastleView);
+  begin
+    Assert(NewView <> nil);
+
+    if FCurrentViewStack.IndexOf(NewView) <> -1 then
+    begin
+      WritelnWarningOrError('TCastleView', 'Pushing view %s that is already in the view stack. ' +
+        'This was already checked in PushView, and it seemed OK, but in current view stack this is an error. ' +
+        'This likely indicates current view stack has unexpected state, due to exceptions raised from view lifecycle methods (Start, Resume, Pause, Stop).', [
+        NewView.ClassName
+      ]);
+      Exit;
+    end;
+
+    { pause previous top-most view }
+    if FCurrentViewStack.Count <> 0 then
+      FCurrentViewStack.Last.InternalPause;
+
+    FCurrentViewStack.Add(NewView);
+    NewView.InternalStart(Self);
+    NewView.InternalResume;
+  end;
+
+  procedure FinalSetView(const Value: TCastleView);
+  begin
+    { exit early if there's nothing to do }
+    if (CurrentViewStackCount = 0) and (Value = nil) then
+      Exit;
+    if (CurrentViewStackCount = 1) and (FCurrentViewStack[0] = Value) then
+      Exit;
+
+    { Remove and finish topmost view.
+      The loop is written to work even when some view Stop method
+      changes views. }
+    while CurrentViewStackCount <> 0 do
+      FinalPopView(false);
+
+    if Value <> nil then
+      FinalPushView(Value);
+  end;
+
+  procedure WarnIfPendingViewStackDifferent;
+  var
+    I: Integer;
+    StacksEqual: Boolean;
+  begin
+    StacksEqual := FCurrentViewStack.Count = FPendingViewStack.Count;
+    if StacksEqual then
+      for I := 0 to FCurrentViewStack.Count - 1 do
+        if FCurrentViewStack[I] <> FPendingViewStack[I] then
+        begin
+          StacksEqual := false;
+          Break;
+        end;
+
+    if not StacksEqual then
+    begin
+      WritelnWarningOrError('TCastleContainer', 'After processing pending view changes, the actual view stack is different than expected view stack. ' +
+        'This indicates there were issues when applying view changes, e.g. exceptions raised from view lifecycle methods (Start, Resume, Pause, Stop) or the lifecycle methods tried to change the view stack.' + NL +
+        'Actual view stack: ' + NL +
+        FCurrentViewStack.ToString + NL +
+        'Expected view stack: ' + NL +
+        FPendingViewStack.ToString);
+
+      // force them to be equal, to avoid further issues with inconsistent state
+      FPendingViewStack.Clear;
+      FPendingViewStack.AddRange(FCurrentViewStack);
+    end;
+  end;
+
+var
+  Rec: TPendingViewOperationRec;
+begin
+  if FPendingViewOperations.Count = 0 then // early exit for most common case
+    Exit;
+
+  if FDisableStackChange <> 0 then
+    ErrorStackChangeDisabled('TCastleContainer.ProcessViewChanges called recursively');
+  Inc(FDisableStackChange);
+
+  try
+    for Rec in FPendingViewOperations do
+      case Rec.Operation of
+        voSetView: FinalSetView(Rec.View);
+        voPushView: FinalPushView(Rec.View);
+        voPopView: FinalPopView(true);
+        else raise EInternalError.Create('TCastleContainer.ProcessViewChanges: unknown operation');
+      end;
+  finally
+    Dec(FDisableStackChange);
+
+    FPendingViewOperations.Clear;
+
+    { In theory, FCurrentViewStack should now be equal to FPendingViewStack,
+      if we did all the operations. In practice, due to exceptions that
+      could be raised from view changes, maybe they are not -- force them
+      to be equal now. }
+    WarnIfPendingViewStackDifferent;
+  end;
+end;
+
+function TCastleContainer.GetView: TCastleView;
+begin
+  if (FPendingViewStack = nil) or
+     (FPendingViewStack.Count = 0) then
+    Result := nil
+  else
+    Result := FPendingViewStack[0];
+end;
+
+function TCastleContainer.CurrentFrontView: TCastleView;
+begin
+  if (FCurrentViewStack = nil) or
+     (FCurrentViewStack.Count = 0) then
+    Result := nil
+  else
+    Result := FCurrentViewStack.Last;
+end;
+
+function TCastleContainer.FrontView: TCastleView;
+begin
+  Result := CurrentFrontView;
+end;
+
+function TCastleContainer.PendingFrontView: TCastleView;
+begin
+  if (FPendingViewStack = nil) or
+     (FPendingViewStack.Count = 0) then
+    Result := nil
+  else
+    Result := FPendingViewStack.Last;
+end;
+
+procedure TCastleContainer.SetView(const Value: TCastleView);
+var
+  OperationRec: TPendingViewOperationRec;
+begin
+  // check FDisableStackChange
+  if FDisableStackChange <> 0 then
+    ErrorStackChangeDisabled('Cannot do TCastleContainer.SetView during view lifecycle method (TCastleView.Start/Resume/Pause/Stop)');
+
+  // extend FPendingViewOperations
+  OperationRec.Operation := voSetView;
+  OperationRec.View := Value;
+  FPendingViewOperations.Add(OperationRec);
+
+  // update FPendingViewStack
+  FPendingViewStack.Clear;
+  if Value <> nil then
+    FPendingViewStack.Add(Value);
+
+  // potentially change view immediately
+  if (not InternalForceViewChangeDelayed) and
+     ((FProcessingEvents = 0) or (FCurrentViewStack.Count = 0)) then
+    ProcessViewChanges;
+end;
+
+procedure TCastleContainer.PushView(const NewView: TCastleView);
+var
+  OperationRec: TPendingViewOperationRec;
+begin
+  // check FDisableStackChange
+  if FDisableStackChange <> 0 then
+    ErrorStackChangeDisabled('Cannot do TCastleContainer.PushView during view lifecycle method (TCastleView.Start/Resume/Pause/Stop)');
+
+  if NewView = nil then
+  begin
+    WritelnWarningOrError('TCastleView', 'Doing PushView(nil) is allowed for backward compatibility, but it does nothing. Avoid doing this.');
+    Exit;
+  end;
+
+  if FPendingViewStack.IndexOf(NewView) <> -1 then
+  begin
+    WritelnWarningOrError('TCastleView', 'Cannot push UI view %s, it is already in the stack', [
+      NewView.ClassName
+    ]);
+    Exit;
+  end;
+
+  // extend FPendingViewOperations
+  OperationRec.Operation := voPushView;
+  OperationRec.View := NewView;
+  FPendingViewOperations.Add(OperationRec);
+
+  // update FPendingViewStack
+  FPendingViewStack.Add(NewView);
+
+  // potentially change view immediately
+  if (not InternalForceViewChangeDelayed) and
+     (FProcessingEvents = 0) then
+    ProcessViewChanges;
+end;
+
+procedure TCastleContainer.PopView;
+var
+  OperationRec: TPendingViewOperationRec;
+begin
+  // check FDisableStackChange
+  if FDisableStackChange <> 0 then
+    ErrorStackChangeDisabled('Cannot do TCastleContainer.PopView during view lifecycle method (TCastleView.Start/Resume/Pause/Stop)');
+
+  // extend FPendingViewOperations
+  OperationRec.Operation := voPopView;
+  OperationRec.View := nil; // should be ignored
+  FPendingViewOperations.Add(OperationRec);
+
+  // update FPendingViewStack
+  if FPendingViewStack.Count <> 0 then
+    FPendingViewStack.Count := FPendingViewStack.Count - 1;
+
+  // potentially change view immediately
+  if (not InternalForceViewChangeDelayed) and
+     (FProcessingEvents = 0) then
+    ProcessViewChanges;
 end;
 
 procedure TCastleContainer.PopView(const CheckFrontView: TCastleView);
 begin
-  if (FViewStack = nil) or (FViewStack.Count = 0) then
+  if FPendingViewStack.Count = 0 then
   begin
-    WritelnWarning('TCastleView', 'Cannot pop UI view, that stack is empty');
+    WritelnWarningOrError('TCastleView', 'Cannot pop UI view, stack is empty');
     Exit;
   end;
-  if FViewStack.Last <> CheckFrontView then
+  if FPendingViewStack.Last <> CheckFrontView then
   begin
-    WritelnWarning('TCastleView', 'Cannot pop UI view, front (top-most) view is expected to be ' + CheckFrontView.ClassName + ', but is ' + FViewStack.Last.ClassName);
+    WritelnWarningOrError('TCastleView', 'Cannot pop UI view, front (top-most) view is expected to be %s, but is %s', [
+      CheckFrontView.ClassName,
+      FPendingViewStack.Last.ClassName
+    ]);
     Exit;
   end;
 
   PopView;
 end;
 
-function TCastleContainer.ViewStackCount: Integer;
+function TCastleContainer.CurrentViewStackCount: Integer;
 begin
-  if FViewStack = nil then
+  if FCurrentViewStack = nil then
     Result := 0
   else
-    Result := FViewStack.Count;
+    Result := FCurrentViewStack.Count;
 end;
 
-function TCastleContainer.GetViewStack(const Index: Integer): TCastleView;
+function TCastleContainer.PendingViewStackCount: Integer;
 begin
-  if FViewStack = nil then
-    raise EInternalError.CreateFmt('TCastleView.GetViewStack: view stack is empty, cannot get view index %d',
-      [Index]);
-  Result := FViewStack[Index];
+  if FPendingViewStack = nil then
+    Result := 0
+  else
+    Result := FPendingViewStack.Count;
+end;
+
+function TCastleContainer.ViewStackCount: Integer;
+begin
+  Result := CurrentViewStackCount;
+end;
+
+function TCastleContainer.GetCurrentViewStack(const Index: Integer): TCastleView;
+begin
+  Assert(FCurrentViewStack <> nil);
+  Result := FCurrentViewStack[Index];
+end;
+
+function TCastleContainer.GetPendingViewStack(const Index: Integer): TCastleView;
+begin
+  Assert(FPendingViewStack <> nil);
+  Result := FPendingViewStack[Index];
 end;
 
 procedure TCastleContainer.InternalSetSafeBorderScaled(const Value: TVector4);
