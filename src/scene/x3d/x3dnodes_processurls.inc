@@ -1,5 +1,5 @@
 {
-  Copyright 2024-2024 Michalis Kamburelis.
+  Copyright 2024-2026 Jan Adamec, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -60,7 +60,7 @@ type
 
     { All castle-data and local file URLs are converted to relative paths URLs.
       This is for cases when project is saved to a new location, while resources
-      are kept on the same place". }
+      are kept on the same place. }
     suChangeAllPathsToRelative,
 
     { Make all resources embedded, by using data URI.
@@ -70,11 +70,11 @@ type
       https://castle-engine.io/castle-model-viewer-mobile . }
     suEmbedResources,
 
-    { Copy all resources to the "<name>-resources" subdirectory alongside
+    { Copy all resources to the "<name>_resources" subdirectory alongside
       the exported file, and change all URLs to be relative and point to that
       directory.
 
-      This allows to e.g. ZIP the resulting file + the "<name>-resources" subdirectory
+      This allows to e.g. ZIP the resulting file + the "<name>_resources" subdirectory
       and reliably know that it contains everything needed to display the model. }
     suCopyResourcesToSubdirectory
   );
@@ -154,11 +154,10 @@ var
 begin
   // use CastleInternalDataUri, see what tools/to-data-uri/to_data_uri.lpr does
   Result := Url;
+  ResourceUrl := CombineUri(CurrentBaseUrl, ResolveCastleDataUrl(Url));
+  F := Download(ResourceUrl, [soForceMemoryStream], MimeType);
   try
-    ResourceUrl := CombineUri(CurrentBaseUrl, ResolveCastleDataUrl(Url));
-    F := Download(ResourceUrl, [soForceMemoryStream], MimeType);
-    if (F <> nil) then
-      Result := StreamToDataUri(F, MimeType)
+    Result := StreamToDataUri(F, MimeType);
   finally
     FreeAndNil(F);
   end;
@@ -180,7 +179,7 @@ end;
 
 function TProcessUrlsHelper.CopyResourceToSubdirectory(const Url, CurrentBaseUrl: String): String;
 var
-  ResourceUrl, ResourceFileName, ResourceFileTitle, TargetFileName: String;
+  ResourceUrl, ResourceFileName, ResourceFileBaseName, TargetFileName: String;
   ParsedResourceUri: TURI;
 begin
   ResourceUrl := CombineUri(CurrentBaseUrl, Url);
@@ -192,11 +191,13 @@ begin
 
   if (TargetCopySubDirectory <> '') and (ResourceFileName <> '') then
   begin
-    ResourceFileTitle := ExtractFileName(ResourceFileName);
-    TargetFileName := IncludeTrailingPathDelimiter(TargetCopySubDirectory) + ResourceFileTitle;
-    if not FileExists(TargetFileName) then  // lets suppose same TargetFileName means same original source file
-       CheckCopyFile(ResourceFileName, TargetFileName);
-    Result := IncludeTrailingPathDelimiter(ExtractFileName(TargetCopySubDirectory)) + ResourceFileTitle;
+    ResourceFileBaseName := ExtractFileName(ResourceFileName);
+    TargetFileName := InclPathDelim(TargetCopySubDirectory) + ResourceFileBaseName;
+    if not FileExists(TargetFileName) then
+      CheckCopyFile(ResourceFileName, TargetFileName)
+    else
+      WritelnWarning('File already exists in target subdirectory, assuming that all files with the same basename have equal contents: ' + TargetFileName);
+    Result := InclPathDelim(ExtractFileName(TargetCopySubDirectory)) + ResourceFileBaseName;
 
     // keep the bookmark part of URL (may be important for Externprotos)
     ParsedResourceUri := ParseURI(ResourceUrl);
