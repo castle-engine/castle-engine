@@ -270,7 +270,7 @@ const
   ecgeurlProcessingCastleDataToRelative = 1;
   ecgeurlProcessingAllPathsToRelative   = 2;
   ecgeurlProcessingEmbedResources       = 3;
-  ecgeurlProcessingCopyToOuputDir       = 4;
+  ecgeurlProcessingCopyToOutputDir      = 4;
 
 type
   TLibraryCallbackProc = function (eCode, iParam1, iParam2: cInt32; szParam: pcchar):cInt32; cdecl;

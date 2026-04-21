@@ -316,7 +316,7 @@ enum ECgeUrlProcessing
   ecgeurlProcessingCastleDataToRelative = 1,
   ecgeurlProcessingAllPathsToRelative   = 2,
   ecgeurlProcessingEmbedResources       = 3,
-  ecgeurlProcessingCopyToOuputDir       = 4,
+  ecgeurlProcessingCopyToOutputDir      = 4,
 };
 
 typedef int (CDECL *TCgeLibraryCallback)(int /*ECgeLibCallbackCode*/eCode, int iParam1, int iParam2, const char *szParam);
