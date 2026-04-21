@@ -250,6 +250,7 @@ type
 {$I x3dnodes_encoding_xml.inc}
 {$I x3dnodes_save.inc}
 {$I x3dnodes_miscellaneous_globals.inc}
+{$I x3dnodes_processurls.inc}
 
 {$undef read_interface}
 
@@ -301,6 +302,7 @@ uses Math, StrUtils, URIParser, TypInfo,
 {$I x3dnodes_nodesmanager.inc}
 {$I x3dnodes_miscellaneous_globals.inc}
 {$I x3dnodes_utils_materials.inc}
+{$I x3dnodes_processurls.inc}
 
 // These must be included after x3dnodes_encoding_{classic,xml}.inc
 {$I x3dnodes_x3dnode.inc}

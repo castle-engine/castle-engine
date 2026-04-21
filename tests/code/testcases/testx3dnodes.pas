@@ -114,6 +114,7 @@ type
     procedure TestGenericFind;
     {$endif}
     procedure TestProtoExpansion;
+    procedure TestProtoDeepCopy;
     procedure TestSolidField;
     procedure TestConversionDot;
     procedure TestWarningUnquotedIdentifier;
@@ -122,6 +123,7 @@ type
     procedure TestOpenInvalidIndexes;
     procedure TestGltfConversion;
     procedure TestLoadWithoutWarning;
+    procedure TestUrlProcessing;
     procedure TestNodeClassesList;
     procedure TestCoordRanges;
     procedure TestNodeRelease;
@@ -2472,6 +2474,49 @@ begin
   finally FreeAndNil(RootNode) end;
 end;
 
+procedure TTestX3DNodes.TestProtoDeepCopy;
+
+  procedure TestRootNode(const RootNode: TX3DRootNode);
+  begin
+    AssertEquals(1, RootNode.PrototypesCount);
+    AssertEquals('PaletteModel', RootNode.Prototypes[0].Name);
+    AssertEquals(3, RootNode.Prototypes[0].InterfaceDeclarations.Count);
+
+    AssertTrue(RootNode.Prototypes[0].InterfaceDeclarations[0].FieldOrEvent <> nil);
+    AssertTrue(RootNode.Prototypes[0].InterfaceDeclarations[0].FieldOrEvent is TSFVec3f);
+    AssertEquals('translation', RootNode.Prototypes[0].InterfaceDeclarations[0].FieldOrEvent.Name);
+    AssertTrue(RootNode.Prototypes[0].InterfaceDeclarations[0].ParentNode = nil);
+    AssertTrue(RootNode.Prototypes[0].InterfaceDeclarations[0].FieldOrEvent.ParentNode = nil);
+
+    AssertTrue(RootNode.Prototypes[0].InterfaceDeclarations[1].FieldOrEvent <> nil);
+    AssertTrue(RootNode.Prototypes[0].InterfaceDeclarations[1].FieldOrEvent is TMFString);
+    AssertEquals('palette', RootNode.Prototypes[0].InterfaceDeclarations[1].FieldOrEvent.Name);
+    AssertTrue(RootNode.Prototypes[0].InterfaceDeclarations[1].ParentNode = nil);
+    AssertTrue(RootNode.Prototypes[0].InterfaceDeclarations[1].FieldOrEvent.ParentNode = nil);
+
+    AssertTrue(RootNode.Prototypes[0].InterfaceDeclarations[2].FieldOrEvent <> nil);
+    AssertTrue(RootNode.Prototypes[0].InterfaceDeclarations[2].FieldOrEvent is TMFString);
+    AssertEquals('texture', RootNode.Prototypes[0].InterfaceDeclarations[2].FieldOrEvent.Name);
+    AssertTrue(RootNode.Prototypes[0].InterfaceDeclarations[2].ParentNode = nil);
+    AssertTrue(RootNode.Prototypes[0].InterfaceDeclarations[2].FieldOrEvent.ParentNode = nil);
+  end;
+
+var
+  RootNodeOriginal, RootNodeCopy: TX3DRootNode;
+begin
+  RootNodeOriginal := LoadNode('castle-data:/proto_copy_test/model.x3dv');
+  try
+    TestRootNode(RootNodeOriginal);
+    RootNodeCopy := RootNodeOriginal.DeepCopy as TX3DRootNode;
+    TestRootNode(RootNodeCopy);
+  finally FreeAndNil(RootNodeOriginal) end;
+
+  try
+    // RootNodeCopy should still be valid, it is independent from RootNodeOriginal
+    TestRootNode(RootNodeCopy);
+  finally FreeAndNil(RootNodeCopy) end;
+end;
+
 procedure TTestX3DNodes.TestSolidField;
 var
   I, J: Integer;
@@ -2744,6 +2789,90 @@ begin
     FreeAndNil(Node);
   finally
     ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningRaiseException);
+  end;
+end;
+
+procedure TTestX3DNodes.TestUrlProcessing;
+var
+  TestUrls: TCastleStringList;
+  RootNode: TX3DRootNode;
+  Shape: TShapeNode;
+  AppearanceNode: TAppearanceNode;
+  TextureNode: TImageTextureNode;
+  TempDir: String;
+begin
+  try
+    TestUrls := TCastleStringList.Create;
+    TestUrls.Add('castle-data:/images/f023ours.jpg');
+
+    // prepare the scene
+    TextureNode := TImageTextureNode.Create;
+    TextureNode.SetUrl(TestUrls);
+
+    AppearanceNode := TAppearanceNode.Create;
+    AppearanceNode.Texture := TextureNode;
+
+    Shape := TShapeNode.Create;
+    Shape.Appearance := AppearanceNode;
+
+    RootNode := TX3DRootNode.Create;
+    RootNode.AddChildren(Shape);
+
+    // run test for suNone
+    TempDir := GetTempDirectory;
+    ProcessUrls(RootNode, TempDir + 'testproc.x3d', suNone);
+    AssertTrue(TextureNode.FdUrl.Count = 1);
+    AssertTrue(TestUrls[0] = TextureNode.FdUrl.Items[0]);  // no change is OK
+
+    // reset URL back to original value
+    TextureNode.SetUrl(TestUrls); 
+
+    // run test for suChangeCastleDataToRelative
+    ProcessUrls(RootNode, TempDir + 'testproc.x3d', suChangeCastleDataToRelative);
+    AssertTrue(TextureNode.FdUrl.Count = 1);
+    WritelnLog('Replaced %s with %s', [TestUrls[0], TextureNode.FdUrl.Items[0]]);
+    // test that TextureNode.FdUrl.Items[0] is now relative path, not absolute URL
+    AssertTrue(not IsPrefix('castle-data:', TextureNode.FdUrl.Items[0]));
+    AssertEquals('', UriProtocol(TextureNode.FdUrl.Items[0]));
+
+    // Deliberately not reset: let the next test read relative name, 
+    // as an extra test that relative path was correct.
+    // TextureNode.SetUrl(TestUrls);
+
+    // run test for suEmbedResources
+    ProcessUrls(RootNode, TempDir + 'testproc.x3d', suEmbedResources);
+    AssertTrue(TextureNode.FdUrl.Count = 1);
+    // test that relative path was read and embedded, so it is now a data: URI
+    AssertTrue(IsPrefix('data:', TextureNode.FdUrl.Items[0])); 
+    AssertEquals('data', UriProtocol(TextureNode.FdUrl.Items[0]));
+
+    // reset URL back to original value
+    TextureNode.SetUrl(TestUrls); 
+
+    // run test for suCopyResourcesToSubdirectory
+    ProcessUrls(RootNode, TempDir + 'testproc.x3d', suCopyResourcesToSubdirectory);
+    AssertTrue(TextureNode.FdUrl.Count = 1);
+    // note that it should be always /, never \, even on Windows, because URLs always use / as separator
+    AssertTrue(TextureNode.FdUrl.Items[0] = 'testproc_resources/f023ours.jpg');
+    AssertTrue(FileExists(TempDir + TextureNode.FdUrl.Items[0]));
+
+    // reset URL back to original value
+    TextureNode.SetUrl(TestUrls); 
+
+    // run test for suChangeAllPathsToRelative
+    ProcessUrls(RootNode, TempDir + 'testproc.x3d', suChangeAllPathsToRelative);
+    AssertTrue(TextureNode.FdUrl.Count = 1);
+    WritelnLog('Replaced %s with %s', [TestUrls[0], TextureNode.FdUrl.Items[0]]);
+    // test that TextureNode.FdUrl.Items[0] is now relative path, not absolute URL
+    AssertTrue(not IsPrefix('castle-data:', TextureNode.FdUrl.Items[0]));
+    AssertEquals('', UriProtocol(TextureNode.FdUrl.Items[0]));
+
+    // cleanup after tests
+    // DeleteFile(TempDir + 'testproc.x3d'); // this is never actually created, because ProcessUrls doesn't save the file
+    RemoveNonEmptyDir(TempDir + 'testproc_resources');
+  finally
+    FreeAndNil(RootNode);
+    FreeAndNil(TestUrls);
   end;
 end;
 
