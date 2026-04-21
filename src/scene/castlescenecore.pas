@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2025 Michalis Kamburelis.
+  Copyright 2003-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -8367,6 +8367,10 @@ var
   GroupNode: TGroupNode;
   Import: TX3DImport;
 begin
+  // otherwise, we would make invalid TInlineNode with empty URL
+  if Url = '' then
+    Exit(nil);
+
   // if AutoAnimation is defined, setup nodes to start given animation
   ExportAnimation := (AutoAnimation <> '') and RootExportsName(AutoAnimation);
 

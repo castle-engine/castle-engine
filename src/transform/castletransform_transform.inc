@@ -2151,8 +2151,9 @@
 
       It exports content for all nodes, even csTransient,
       and thus it is never @nil.
-      Caller should avoid check for @code(csTransient in Transform.ComponentState)
-      if you want to avoid this. }
+      Caller should make a check before calling this,
+      like @code(if not (csTransient in Transform.ComponentState) then...)
+      if it wants to avoid storing csTransient. }
     function InternalBuildNode: TObject;
   published
     { Is this object (and all children) visible and colliding.

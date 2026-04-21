@@ -216,6 +216,13 @@ procedure TProcessUrlsHelper.ProcessNode(Node: TX3DNode);
   begin
     for I := 0 to Field.Items.Count - 1 do
     begin
+      if Field.Items[I] = '' then
+      begin
+        WritelnWarning('Empty URL should not be processed, skipping it. Empty URL is also not valid, check InternalBuildNodeInside implementation that made field %s.', [
+          Field.NiceName
+        ]);
+        Continue;
+      end;
       case UrlProcessing of
         suChangeCastleDataToRelative:
           Field.Items[I] := UrlChangeCastleDataToRelative(Field.Items[I]);
