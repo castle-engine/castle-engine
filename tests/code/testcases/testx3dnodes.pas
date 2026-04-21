@@ -2479,7 +2479,7 @@ procedure TTestX3DNodes.TestProtoDeepCopy;
   procedure TestRootNode(const RootNode: TX3DRootNode);
   begin
     AssertEquals(1, RootNode.PrototypesCount);
-    AssertEquals('PaletteModel', RootNode.Prototypes[0].Name);
+    AssertEquals('PaletteModel', RootNode.Prototypes[0].X3DName);
     AssertEquals(3, RootNode.Prototypes[0].InterfaceDeclarations.Count);
 
     AssertTrue(RootNode.Prototypes[0].InterfaceDeclarations[0].FieldOrEvent <> nil);

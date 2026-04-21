@@ -207,9 +207,6 @@
     constructor Create;
     destructor Destroy; override;
     property X3DName: String read FX3DName write FX3DName;
-    {$ifdef FPC}
-    property Name: String read FX3DName write FX3DName; deprecated 'use X3DName';
-    {$endif}
 
     { List of interface declarations that are like "public API"
       of this prototype. They are used to initialize fields of prototype
