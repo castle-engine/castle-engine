@@ -1,5 +1,5 @@
 {
-  Copyright 2009-2025 Michalis Kamburelis.
+  Copyright 2009-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -4507,13 +4507,11 @@ begin
         InternalBuildNodeInside implementations. E.g. TCastleTerrain
         produces copies of some TImageTextureNode because it used some textures.
 
-      - The code to do it is centralized here,
-        no need to pass around some class like TInternalBuildNodeUtils.
-        So the code is simpler.
+      - The code to do it is centralized in ProcessUrls.
 
       - Less chance that some node will "slip out" from processing.
-        Once we handled some node type in our TInternalBuildNodeHelper.ProcessNode,
-        the implementations ofInternalBuildNodeInside don't need to worry
+        Once we handled some node type in our ProcessUrls,
+        the implementations of InternalBuildNodeInside methods don't need to worry
         about it.
     }
     ProcessUrls(Result, SaveBaseUrl, UrlProcessing)
