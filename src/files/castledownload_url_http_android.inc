@@ -50,6 +50,11 @@ const
     'GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD'
   );
 
+  function HttpMethodName: String;
+  begin
+    Result := HttpMethodNames[HttpMethod];
+  end;
+
   function HttpRequestBodyStr: String;
   begin
     if HttpRequestBody <> nil then
@@ -151,6 +156,9 @@ begin
     Status := dsError;
     ErrorMessage := Received[2];
     Result := true;
+    Contents.Position := 0; // rewind
+    DownloadedBytes := Contents.Size;
+    TotalBytes := Contents.Size;
   end;
 
   if (Received.Count >= 2) and
