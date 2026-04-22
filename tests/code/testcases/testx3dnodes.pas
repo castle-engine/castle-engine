@@ -2833,7 +2833,15 @@ begin
     WritelnLog('Replaced %s with %s', [TestUrls[0], TextureNode.FdUrl.Items[0]]);
     // test that TextureNode.FdUrl.Items[0] is now relative path, not absolute URL
     AssertTrue(not IsPrefix('castle-data:', TextureNode.FdUrl.Items[0]));
+    {$ifdef MSWINDOWS}
+    // on Windows, it may be 'file', if castle-data resolved to different drive than TempDir, then no relative path
+    AssertTrue(
+      (UriProtocol(TextureNode.FdUrl.Items[0]) = '') or 
+      (UriProtocol(TextureNode.FdUrl.Items[0]) = 'file')
+    ); 
+    {$else}
     AssertEquals('', UriProtocol(TextureNode.FdUrl.Items[0]));
+    {$endif}
 
     // Deliberately not reset: let the next test read relative name, 
     // as an extra test that relative path was correct.
@@ -2865,7 +2873,15 @@ begin
     WritelnLog('Replaced %s with %s', [TestUrls[0], TextureNode.FdUrl.Items[0]]);
     // test that TextureNode.FdUrl.Items[0] is now relative path, not absolute URL
     AssertTrue(not IsPrefix('castle-data:', TextureNode.FdUrl.Items[0]));
+    {$ifdef MSWINDOWS}
+    // on Windows, it may be 'file', if castle-data resolved to different drive than TempDir, then no relative path
+    AssertTrue(
+      (UriProtocol(TextureNode.FdUrl.Items[0]) = '') or 
+      (UriProtocol(TextureNode.FdUrl.Items[0]) = 'file')
+    ); 
+    {$else}
     AssertEquals('', UriProtocol(TextureNode.FdUrl.Items[0]));
+    {$endif}
 
     // cleanup after tests
     // DeleteFile(TempDir + 'testproc.x3d'); // this is never actually created, because ProcessUrls doesn't save the file

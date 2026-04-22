@@ -105,6 +105,17 @@ type
     procedure ProcessNode(Node: TX3DNode);
   end;
 
+function ExtractRelativePathCheck(const Base, Target: String): String;
+begin
+  Result := ExtractRelativePath(Base, Target);
+  if IsPathAbsolute(Result) then
+    WritelnWarning('ExtractRelativePath("%s","%s") produced absolute path: "%s". This may happen on Windows when source and target are on different drives. There is no way to make it relative, so using absolute path.', [
+      Base, 
+      Target, 
+      Result
+    ]);
+end;
+
 function TProcessUrlsHelper.UrlChangeCastleDataToRelative(const Url: String): String;
 var
   ResourceUrl, BaseFileName, ResourceFileName, ResultFileName: String;
@@ -117,7 +128,7 @@ begin
   BaseFileName := UriToFilenameSafe(TargetBaseUrl);
   if (BaseFileName <> '') and (ResourceFileName <> '') then
   begin
-    ResultFileName := ExtractRelativePath(BaseFileName, ResourceFileName);
+    ResultFileName := ExtractRelativePathCheck(BaseFileName, ResourceFileName);
     Result := RelativeFilenameToUriSafe(ResultFileName);
   end else
     // use original URL then, maybe with castle-data:/, maybe other protocol
@@ -134,7 +145,7 @@ begin
   BaseFileName := UriToFilenameSafe(TargetBaseUrl);
   if (BaseFileName <> '') and (ResourceFileName <> '') then
   begin
-    ResultFileName := ExtractRelativePath(BaseFileName, ResourceFileName);
+    ResultFileName := ExtractRelativePathCheck(BaseFileName, ResourceFileName);
     Result := RelativeFilenameToUriSafe(ResultFileName);
 
     // keep the bookmark part of URL (may be important for Externprotos)
