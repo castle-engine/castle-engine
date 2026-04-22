@@ -2821,7 +2821,7 @@ begin
     // run test for suNone
     TempDir := GetTempDirectory;
     ProcessUrls(RootNode, TempDir + 'testproc.x3d', suNone);
-    AssertTrue(TextureNode.FdUrl.Count = 1);
+    AssertEquals(1, TextureNode.FdUrl.Count);
     AssertTrue(TestUrls[0] = TextureNode.FdUrl.Items[0]);  // no change is OK
 
     // reset URL back to original value
@@ -2829,7 +2829,7 @@ begin
 
     // run test for suChangeCastleDataToRelative
     ProcessUrls(RootNode, TempDir + 'testproc.x3d', suChangeCastleDataToRelative);
-    AssertTrue(TextureNode.FdUrl.Count = 1);
+    AssertEquals(1, TextureNode.FdUrl.Count);
     WritelnLog('Replaced %s with %s', [TestUrls[0], TextureNode.FdUrl.Items[0]]);
     // test that TextureNode.FdUrl.Items[0] is now relative path, not absolute URL
     AssertTrue(not IsPrefix('castle-data:', TextureNode.FdUrl.Items[0]));
@@ -2841,7 +2841,7 @@ begin
 
     // run test for suEmbedResources
     ProcessUrls(RootNode, TempDir + 'testproc.x3d', suEmbedResources);
-    AssertTrue(TextureNode.FdUrl.Count = 1);
+    AssertEquals(1, TextureNode.FdUrl.Count);
     // test that relative path was read and embedded, so it is now a data: URI
     AssertTrue(IsPrefix('data:', TextureNode.FdUrl.Items[0])); 
     AssertEquals('data', UriProtocol(TextureNode.FdUrl.Items[0]));
@@ -2851,9 +2851,9 @@ begin
 
     // run test for suCopyResourcesToSubdirectory
     ProcessUrls(RootNode, TempDir + 'testproc.x3d', suCopyResourcesToSubdirectory);
-    AssertTrue(TextureNode.FdUrl.Count = 1);
+    AssertEquals(1, TextureNode.FdUrl.Count);
     // note that it should be always /, never \, even on Windows, because URLs always use / as separator
-    AssertTrue(TextureNode.FdUrl.Items[0] = 'testproc_resources/f023ours.jpg');
+    AssertEquals('testproc_resources/f023ours.jpg', TextureNode.FdUrl.Items[0]);
     AssertTrue(FileExists(TempDir + TextureNode.FdUrl.Items[0]));
 
     // reset URL back to original value
@@ -2861,7 +2861,7 @@ begin
 
     // run test for suChangeAllPathsToRelative
     ProcessUrls(RootNode, TempDir + 'testproc.x3d', suChangeAllPathsToRelative);
-    AssertTrue(TextureNode.FdUrl.Count = 1);
+    AssertEquals(1, TextureNode.FdUrl.Count);
     WritelnLog('Replaced %s with %s', [TestUrls[0], TextureNode.FdUrl.Items[0]]);
     // test that TextureNode.FdUrl.Items[0] is now relative path, not absolute URL
     AssertTrue(not IsPrefix('castle-data:', TextureNode.FdUrl.Items[0]));
