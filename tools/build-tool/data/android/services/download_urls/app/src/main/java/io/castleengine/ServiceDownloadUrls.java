@@ -179,7 +179,7 @@ public class ServiceDownloadUrls extends ServiceAbstract
                     if (responseCode < 400)
                         messageSendFromThread(new String[]{"download-success", downloadIdStr});
                     else
-                        messageSendFromThread(new String[]{"download-error", downloadIdStr, "Response Status code " + responseCode.toString()});
+                        messageSendFromThread(new String[]{"download-error", downloadIdStr, "Response Status code " + Integer.toString(responseCode)});
                 }
                 catch (Exception e) {
                     logError(CATEGORY, "downloadDataFromUrl exception: " + PrintStackTrace(e));
