@@ -2484,19 +2484,19 @@ procedure TTestX3DNodes.TestProtoDeepCopy;
 
     AssertTrue(RootNode.Prototypes[0].InterfaceDeclarations[0].FieldOrEvent <> nil);
     AssertTrue(RootNode.Prototypes[0].InterfaceDeclarations[0].FieldOrEvent is TSFVec3f);
-    AssertEquals('translation', RootNode.Prototypes[0].InterfaceDeclarations[0].FieldOrEvent.Name);
+    AssertEquals('translation', RootNode.Prototypes[0].InterfaceDeclarations[0].FieldOrEvent.X3DName);
     AssertTrue(RootNode.Prototypes[0].InterfaceDeclarations[0].ParentNode = nil);
     AssertTrue(RootNode.Prototypes[0].InterfaceDeclarations[0].FieldOrEvent.ParentNode = nil);
 
     AssertTrue(RootNode.Prototypes[0].InterfaceDeclarations[1].FieldOrEvent <> nil);
     AssertTrue(RootNode.Prototypes[0].InterfaceDeclarations[1].FieldOrEvent is TMFString);
-    AssertEquals('palette', RootNode.Prototypes[0].InterfaceDeclarations[1].FieldOrEvent.Name);
+    AssertEquals('palette', RootNode.Prototypes[0].InterfaceDeclarations[1].FieldOrEvent.X3DName);
     AssertTrue(RootNode.Prototypes[0].InterfaceDeclarations[1].ParentNode = nil);
     AssertTrue(RootNode.Prototypes[0].InterfaceDeclarations[1].FieldOrEvent.ParentNode = nil);
 
     AssertTrue(RootNode.Prototypes[0].InterfaceDeclarations[2].FieldOrEvent <> nil);
     AssertTrue(RootNode.Prototypes[0].InterfaceDeclarations[2].FieldOrEvent is TMFString);
-    AssertEquals('texture', RootNode.Prototypes[0].InterfaceDeclarations[2].FieldOrEvent.Name);
+    AssertEquals('texture', RootNode.Prototypes[0].InterfaceDeclarations[2].FieldOrEvent.X3DName);
     AssertTrue(RootNode.Prototypes[0].InterfaceDeclarations[2].ParentNode = nil);
     AssertTrue(RootNode.Prototypes[0].InterfaceDeclarations[2].FieldOrEvent.ParentNode = nil);
   end;
