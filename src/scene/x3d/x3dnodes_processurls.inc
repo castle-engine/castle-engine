@@ -197,7 +197,7 @@ begin
       CheckCopyFile(ResourceFileName, TargetFileName)
     else
       WritelnWarning('File already exists in target subdirectory, assuming that all files with the same basename have equal contents: ' + TargetFileName);
-    Result := InclPathDelim(ExtractFileName(TargetCopySubDirectory)) + ResourceFileBaseName;
+    Result := UriIncludeSlash(ExtractFileName(TargetCopySubDirectory)) + ResourceFileBaseName;
 
     // keep the bookmark part of URL (may be important for Externprotos)
     ParsedResourceUri := ParseURI(ResourceUrl);
