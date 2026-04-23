@@ -39,6 +39,7 @@ backup
 *.exe
 *.wasm
 *.dll
+*.pdb
 *.app
 *.dSYM
 libsteam_api.so
@@ -63,6 +64,7 @@ castle-engine-output
 #automatic-windows-resources.res
 #castle-auto-generated-resources.res
 CastleProjectLocalSettings.json
+!/tools/build-tool/data/external_libraries/*/*.dll
 
 # fpmake stuff
 castle-game-engine-*.fpm
