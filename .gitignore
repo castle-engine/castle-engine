@@ -65,6 +65,7 @@ castle-engine-output
 #castle-auto-generated-resources.res
 CastleProjectLocalSettings.json
 !/tools/build-tool/data/external_libraries/*/*.dll
+!/tools/build-tool/data/external_libraries/*/*/*.dll
 
 # fpmake stuff
 castle-game-engine-*.fpm
