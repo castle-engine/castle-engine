@@ -14,7 +14,7 @@ uses SysUtils, Job.JS;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {
-  Automatically generated file by TWebIDLToPasWasmJob on 2026-02-20 03:29:35
+  Automatically generated file by TWebIDLToPasWasmJob on 2026-04-28 00:24:23
   
   Used command-line options: 
   --input=castleinternaljobweb.webidl
@@ -123,6 +123,14 @@ Type
   TJSXULCommandDispatcher = class;
   IJSDocument = interface;
   TJSDocument = class;
+  IJSStackFrame = interface;
+  TJSStackFrame = class;
+  IJSExceptionMembers = interface;
+  TJSExceptionMembers = class;
+  IJSException = interface;
+  TJSException = class;
+  IJSDOMException = interface;
+  TJSDOMException = class;
   IJSDOMRect = interface;
   TJSDOMRect = class;
   IJSDOMRectReadOnly = interface;
@@ -454,7 +462,7 @@ Type
   TInt32List = Variant;
   TFrameRequestCallback = procedure (time: TDOMHighResTimeStamp) of object;
   TDecodeSuccessCallback = procedure (decodedData: IJSAudioBuffer) of object;
-  TDecodeErrorCallback = procedure (error: IJSError) of object;
+  TDecodeErrorCallback = procedure (error: IJSDOMException) of object;
   TEventHandlerNonNull = function (event: IJSEvent): Variant of object;
   TEventHandler = TEventHandlerNonNull;
   TOnBeforeUnloadEventHandlerNonNull = function (event: IJSEvent): UnicodeString of object;
@@ -2753,6 +2761,62 @@ Type
   Public
     class function JSClassName: UnicodeString; override;
     class function Cast(const Intf: IJSObject): IJSXULCommandDispatcher;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSStackFrame
+    --------------------------------------------------------------------}
+  
+  IJSStackFrame = interface(IJSObject)
+    ['{F0F4323A-0CF6-3E02-87C0-636E89A48332}']
+  end;
+  
+  TJSStackFrame = class(TJSObject,IJSStackFrame)
+  Private
+  Protected
+  Public
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSStackFrame;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSExceptionMembers
+    --------------------------------------------------------------------}
+  
+  IJSExceptionMembers = interface(IJSObject)
+    ['{B2623B51-6CD8-3AD0-AD66-7B8A6CFFE45F}']
+    function _Getresult: Cardinal; 
+    function _Getfilename: UnicodeString; 
+    function _GetlineNumber: Cardinal; 
+    function _GetcolumnNumber: Cardinal; 
+    function _Getdata: IJSnsISupports; 
+    function _Getstack: UnicodeString; 
+    property result: Cardinal read _Getresult;
+    property filename: UnicodeString read _Getfilename;
+    property lineNumber: Cardinal read _GetlineNumber;
+    property columnNumber: Cardinal read _GetcolumnNumber;
+    property data: IJSnsISupports read _Getdata;
+    property stack: UnicodeString read _Getstack;
+  end;
+  
+  TJSExceptionMembers = class(TJSObject,IJSExceptionMembers)
+  Private
+  Protected
+    function _Getresult: Cardinal; 
+    function _Getfilename: UnicodeString; 
+    function _GetlineNumber: Cardinal; 
+    function _GetcolumnNumber: Cardinal; 
+    function _Getdata: IJSnsISupports; 
+    function _Getstack: UnicodeString; 
+  Public
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSExceptionMembers;
+    property result: Cardinal read _Getresult;
+    property filename: UnicodeString read _Getfilename;
+    property lineNumber: Cardinal read _GetlineNumber;
+    property columnNumber: Cardinal read _GetcolumnNumber;
+    property data: IJSnsISupports read _Getdata;
+    property stack: UnicodeString read _Getstack;
   end;
   
   { --------------------------------------------------------------------
@@ -8256,6 +8320,88 @@ Type
   end;
   
   { --------------------------------------------------------------------
+    TJSException
+    --------------------------------------------------------------------}
+  
+  IJSException = interface(IJSExceptionMembers)
+    ['{BB797CE8-9A0C-3C58-81DB-BB8658F9BA52}']
+    function _Getname: UnicodeString; 
+    function _Getmessage: UnicodeString; 
+    property name: UnicodeString read _Getname;
+    property message: UnicodeString read _Getmessage;
+  end;
+  
+  TJSException = class(TJSExceptionMembers,IJSException)
+  Private
+  Protected
+    function _Getname: UnicodeString; 
+    function _Getmessage: UnicodeString; 
+  Public
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSException;
+    property name: UnicodeString read _Getname;
+    property message: UnicodeString read _Getmessage;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSDOMException
+    --------------------------------------------------------------------}
+  
+  IJSDOMException = interface(IJSExceptionMembers)
+    ['{2C6C3F00-89B2-35A4-9A7A-4447C02EEAAA}']
+    function _Getname: UnicodeString; 
+    function _Getmessage: UnicodeString; 
+    function _Getcode: Word; 
+    property name: UnicodeString read _Getname;
+    property message: UnicodeString read _Getmessage;
+    property code: Word read _Getcode;
+  end;
+  
+  TJSDOMException = class(TJSExceptionMembers,IJSDOMException)
+  Private
+  Protected
+    function _Getname: UnicodeString; 
+    function _Getmessage: UnicodeString; 
+    function _Getcode: Word; 
+  Public
+    Const
+      INDEX_SIZE_ERR = 1;
+      DOMSTRING_SIZE_ERR = 2;
+      HIERARCHY_REQUEST_ERR = 3;
+      WRONG_DOCUMENT_ERR = 4;
+      INVALID_CHARACTER_ERR = 5;
+      NO_DATA_ALLOWED_ERR = 6;
+      NO_MODIFICATION_ALLOWED_ERR = 7;
+      NOT_FOUND_ERR = 8;
+      NOT_SUPPORTED_ERR = 9;
+      INUSE_ATTRIBUTE_ERR = 10;
+      INVALID_STATE_ERR = 11;
+      SYNTAX_ERR = 12;
+      INVALID_MODIFICATION_ERR = 13;
+      NAMESPACE_ERR = 14;
+      INVALID_ACCESS_ERR = 15;
+      VALIDATION_ERR = 16;
+      TYPE_MISMATCH_ERR = 17;
+      SECURITY_ERR = 18;
+      NETWORK_ERR = 19;
+      ABORT_ERR = 20;
+      URL_MISMATCH_ERR = 21;
+      QUOTA_EXCEEDED_ERR = 22;
+      TIMEOUT_ERR = 23;
+      INVALID_NODE_TYPE_ERR = 24;
+      DATA_CLONE_ERR = 25;
+  Public
+    constructor Create(const aMessage: UnicodeString; const aName: UnicodeString); overload;
+    constructor Create; overload;
+    constructor Create(const aMessage: UnicodeString); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSDOMException;
+    property name: UnicodeString read _Getname;
+    property message: UnicodeString read _Getmessage;
+    property code: Word read _Getcode;
+  end;
+  
+  { --------------------------------------------------------------------
     TJSDOMRect
     --------------------------------------------------------------------}
   
@@ -10281,9 +10427,9 @@ end;
 
 function JOBCallDecodeErrorCallback(const aMethod: TMethod; var H: TJOBCallbackHelper): PByte;
 var
-  error: IJSError;
+  error: IJSDOMException;
 begin
-  error:=H.GetObject(IJSError) as IJSError;
+  error:=H.GetObject(TJSDOMException) as IJSDOMException;
   TDecodeErrorCallback(aMethod)(error);
   Result:=H.AllocUndefined;
 end;
@@ -12008,6 +12154,116 @@ end;
 class function TJSDocument.Cast(const Intf: IJSObject): IJSDocument;
 begin
   Result:=TJSDocument.JOBCast(Intf);
+end;
+
+class function TJSStackFrame.JSClassName: UnicodeString;
+begin
+  Result:='StackFrame';
+end;
+
+class function TJSStackFrame.Cast(const Intf: IJSObject): IJSStackFrame;
+begin
+  Result:=TJSStackFrame.JOBCast(Intf);
+end;
+
+function TJSExceptionMembers._Getresult: Cardinal;
+begin
+  Result:=ReadJSPropertyInt64('result');
+end;
+
+function TJSExceptionMembers._Getfilename: UnicodeString;
+begin
+  Result:=ReadJSPropertyUnicodeString('filename');
+end;
+
+function TJSExceptionMembers._GetlineNumber: Cardinal;
+begin
+  Result:=ReadJSPropertyInt64('lineNumber');
+end;
+
+function TJSExceptionMembers._GetcolumnNumber: Cardinal;
+begin
+  Result:=ReadJSPropertyInt64('columnNumber');
+end;
+
+function TJSExceptionMembers._Getdata: IJSnsISupports;
+begin
+  Result:=ReadJSPropertyObject('data',TJSnsISupports) as IJSnsISupports;
+end;
+
+function TJSExceptionMembers._Getstack: UnicodeString;
+begin
+  Result:=ReadJSPropertyUnicodeString('stack');
+end;
+
+class function TJSExceptionMembers.JSClassName: UnicodeString;
+begin
+  Result:='ExceptionMembers';
+end;
+
+class function TJSExceptionMembers.Cast(const Intf: IJSObject): IJSExceptionMembers;
+begin
+  Result:=TJSExceptionMembers.JOBCast(Intf);
+end;
+
+function TJSException._Getname: UnicodeString;
+begin
+  Result:=ReadJSPropertyUnicodeString('name');
+end;
+
+function TJSException._Getmessage: UnicodeString;
+begin
+  Result:=ReadJSPropertyUnicodeString('message');
+end;
+
+class function TJSException.JSClassName: UnicodeString;
+begin
+  Result:='Exception';
+end;
+
+class function TJSException.Cast(const Intf: IJSObject): IJSException;
+begin
+  Result:=TJSException.JOBCast(Intf);
+end;
+
+function TJSDOMException._Getname: UnicodeString;
+begin
+  Result:=ReadJSPropertyUnicodeString('name');
+end;
+
+function TJSDOMException._Getmessage: UnicodeString;
+begin
+  Result:=ReadJSPropertyUnicodeString('message');
+end;
+
+function TJSDOMException._Getcode: Word;
+begin
+  Result:=ReadJSPropertyLongInt('code');
+end;
+
+constructor TJSDOMException.Create(const aMessage: UnicodeString; const aName: UnicodeString);
+begin
+  JOBCreate([aMessage,aName]);
+end;
+
+constructor TJSDOMException.Create;
+begin
+  JOBCreate([]);
+end;
+
+constructor TJSDOMException.Create(const aMessage: UnicodeString);
+begin
+  JOBCreate([aMessage]);
+end;
+
+class function TJSDOMException.JSClassName: UnicodeString;
+begin
+  Result:='DOMException';
+end;
+
+class function TJSDOMException.Cast(const Intf: IJSObject): IJSDOMException;
+begin
+  Result:=TJSDOMException.JOBCast(Intf);
 end;
 
 function TJSDOMRect._Getx2: Double;
