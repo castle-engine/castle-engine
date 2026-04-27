@@ -935,6 +935,8 @@ begin
 
   {$ifdef MSWINDOWS}
   { libpng common names for Windows }
+  if PngLibrary = nil then
+    PngLibrary := TDynLib.Load('libpng16.dll', false);
   { libpng for win64 distributed by http://www.gtk.org/download/win64.php }
   if PngLibrary = nil then
     PngLibrary := TDynLib.Load('libpng14-14.dll', false);
