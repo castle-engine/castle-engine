@@ -68,6 +68,7 @@ find . \
   '(' -type d -iname deprecated_units -prune ')' -or \
   '(' -type d -iname vampyre_imaginglib -prune ')' -or \
   '(' -type d -iname web -prune ')' -or \
+  '(' -type f -iname castleinternalwebaudiobackend.pas -prune ')' -or \
   '(' -type f -iname '*.pas' -print ')' > "${TMP_PAS_LIST}"
 
 SUCCESS='true'
