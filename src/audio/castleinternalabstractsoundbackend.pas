@@ -200,7 +200,7 @@ type
     { Do something when user interaction happens.
       Used to resume playback when user interacts with the page on WebAudio
       backend, likely not useful with other backends. }
-    procedure UserInteraction; virtual; abstract;
+    procedure UserInteraction; virtual;
   end;
 
 implementation
@@ -329,6 +329,11 @@ begin
 end;
 
 procedure TSoundEngineBackend.Update;
+begin
+  // do nothing
+end;
+
+procedure TSoundEngineBackend.UserInteraction;
 begin
   // do nothing
 end;
