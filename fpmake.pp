@@ -7,10 +7,18 @@
 
 program fpmake;
 
-// FPC defines iOS as a separate OS since FPC 3.2.2.
+{ Define HAS_SEPARATE_IOS if iOS is a separate OS .
+  FPC versions before 3.2.2 set OS = Darwin for both macOS and iOS
+  (and CPU was the only way to distiguish between them;
+  this made sense, when macOS was only for x86_64, and iOS only for Arm/Aarch64).}
 {$define HAS_SEPARATE_IOS}
 {$ifdef VER3_0} {$undef HAS_SEPARATE_IOS} {$endif}
 {$ifdef VER3_2_0} {$undef HAS_SEPARATE_IOS} {$endif}
+
+{ Define HAS_WASI if OS = WasiP1 is supported. }
+{$define HAS_WASI}
+{$ifndef VER3_0} {$undef HAS_WASI} {$endif}
+{$ifndef VER3_2} {$undef HAS_WASI} {$endif}
 
 uses
   { It seems that FPC > 3.0.x requires thread support for FpMkUnit. }
@@ -19,8 +27,9 @@ uses
 
 var
   P: TPackage;
-  LikeIOS: boolean; //< compiling for iOS target (physical or simulator)
-  Xlib: boolean; //< OS has working Xlib packages
+  LikeIOS: Boolean; //< compiling for iOS target (physical or simulator)
+  Xlib: Boolean; //< OS has working Xlib packages
+  TargetWeb: Boolean;
 begin
   with Installer do
   begin
@@ -43,6 +52,8 @@ begin
       ((Defaults.OS = Darwin) and (Defaults.CPU in [Arm {$ifndef VER3_0} , AArch64 {$endif}]))
       {$endif};
     Xlib := Defaults.OS in (AllUnixOSes - [Android]);
+
+    TargetWeb := {$ifdef HAS_WASI} Defaults.OS = WasiP1 {$else} false {$endif};
 
     { Do "export CASTLE_PACKAGE_NO_DEPENDENCIES=true"
       if you have broken FPC installation without proper Package.fpc files.
@@ -227,6 +238,8 @@ begin
     P.Targets.AddUnit('castlesoundbase.pas');
     P.Targets.AddUnit('castleinternalabstractsoundbackend.pas');
     P.Targets.AddUnit('castleinternalsoxsoundbackend.pas');
+    if TargetWeb then
+      P.Targets.AddUnit('castleinternalwebaudiobackend.pas');
 
     P.SourcePath.Add('src/audio/fmod');
     P.Targets.AddUnit('castleinternalfmod.pas');
@@ -321,6 +334,12 @@ begin
       P.Targets.AddUnit('castleinternalcontextglx.pas');
     if Defaults.OS in AllWindowsOSes then
       P.Targets.AddUnit('castleinternalcontextwgl.pas');
+    if TargetWeb then
+    begin
+      P.SourcePath.Add('src/base_rendering/web/');
+      P.Targets.AddUnit('castleinternaljobweb.pas');
+      P.Targets.AddUnit('castleinternalwebgl.pas');
+    end;
 
     P.SourcePath.Add('src/base_rendering/dglopengl');
     P.Targets.AddUnit('castlegl.pas');

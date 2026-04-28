@@ -605,6 +605,7 @@ begin
       'src/base/android/',
       'src/files/indy/',
       'src/base_rendering/web/',
+      'src/audio/castleinternalwebaudiobackend.pas',
 
       // Ignore units that are only to be compiled when pulled by CastleHttps with FPC 3.2.x
       'src/files/castleinternalforfpc32x*.pas'
@@ -696,6 +697,7 @@ begin
       'src/base/android/',
       'src/files/indy/',
       'src/base_rendering/web/',
+      'src/audio/castleinternalwebaudiobackend.pas',
 
       // This will be in castle_engine_design package
       'src/files/tools/',
@@ -811,7 +813,6 @@ begin
     ],
     [
       'src/files/indy/',
-      'src/base_rendering/web/',
 
       // Ignore units that are only to be compiled when pulled by CastleHttps with FPC 3.2.x
       'src/files/castleinternalforfpc32x*.pas'
