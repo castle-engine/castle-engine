@@ -39,7 +39,7 @@ implementation
 uses SysUtils, Classes, Math, Job.Js,
   CastleVectors, CastleTimeUtils, CastleLog, CastleUtils,
   CastleStringUtils, CastleInternalSoundFile, CastleInternalJobWeb,
-  CastleUriUtils,
+  CastleUriUtils, CastleDownload,
   CastleInternalAbstractSoundBackend, CastleSoundBase, CastleSoundEngine;
 
 { Sound backend classes ------------------------------------------------------ }
@@ -48,15 +48,33 @@ type
   TWebAudioSoundEngineBackend = class;
 
   { CGE sound buffer maps to WebAudio AudioBuffer, which is created from a TSoundFile.
-    See https://developer.mozilla.org/en-US/docs/Web/API/BaseAudioContext/createBuffer . }
-  TWebAudioSoundBufferBackend = class(TSoundBufferBackendFromSoundFile)
-  private
+    See https://developer.mozilla.org/en-US/docs/Web/API/BaseAudioContext/createBuffer .
+    We descend from TSoundBufferBackend , not TSoundBufferBackendFromSoundFile,
+    because we use TSoundFile only for some formats (WAV)
+    and rely on browser's support for other formats (like OGG, MP3). }
+  TWebAudioSoundBufferBackend = class(TSoundBufferBackend)
+  strict private
+    FDuration: TFloatTime;
+    FDataFormat: TSoundDataFormat;
+    FFrequency: Cardinal;
     { JavaScript AudioBuffer object. }
     FAudioBuffer: IJSAudioBuffer;
-  protected
-    procedure ContextOpenFromSoundFile(const SoundFile: TSoundFile); override;
+    FPendingDecode: Boolean;
+    function DecodeAudioDataSuccess(const aValue: Variant): Variant;
+    function DecodeAudioDataError(const aValue: Variant): Variant;
   public
+    procedure ContextOpen(const AUrl: String); override;
     procedure ContextClose; override;
+
+    function Duration: TFloatTime; override;
+    function DataFormat: TSoundDataFormat; override;
+    function Frequency: Cardinal; override;
+
+    property AudioBuffer: IJSAudioBuffer read FAudioBuffer;
+
+    { Decoding of non-WAV data is asynchronous in WebAudio,
+      this property is @true while decoding is in-progress. }
+    property PendingDecode: Boolean read FPendingDecode;
   end;
 
   { CGE sound source maps to WebAudio
@@ -157,76 +175,172 @@ type
 
 { TWebAudioSoundBufferBackend ------------------------------------------------ }
 
-procedure TWebAudioSoundBufferBackend.ContextOpenFromSoundFile(const SoundFile: TSoundFile);
-const
-  NumChannelsForFormat: array [TSoundDataFormat] of Cardinal = (1, 1, 2, 2);
-  SampleSizeForFormat: array [TSoundDataFormat] of Cardinal = (1, 2, 2, 4);
-var
-  NumChannels, NumFrames, SampleSize: Cardinal;
-  Backend: TWebAudioSoundEngineBackend;
-  ChannelData: IJSFloat32Array;
-  ChannelDataSingle: TSingleList;
-  I: Integer;
-  Channel: Integer;
-  SampleInt8: Int8;
-  SampleInt16: Int16;
+procedure TWebAudioSoundBufferBackend.ContextOpen(const AUrl: String);
+
+  function Backend: TWebAudioSoundEngineBackend;
+  begin
+    Result := SoundEngine as TWebAudioSoundEngineBackend;
+  end;
+
+  procedure ContextOpenFromSoundFile(const SoundFile: TSoundFile);
+  const
+    NumChannelsForFormat: array [TSoundDataFormat] of Cardinal = (1, 1, 2, 2);
+    SampleSizeForFormat: array [TSoundDataFormat] of Cardinal = (1, 2, 2, 4);
+  var
+    NumChannels, NumFrames, SampleSize: Cardinal;
+    ChannelData: IJSFloat32Array;
+    ChannelDataSingle: TSingleList;
+    I: Integer;
+    Channel: Integer;
+    SampleInt8: Int8;
+    SampleInt16: Int16;
+  begin
+    NumChannels := NumChannelsForFormat[SoundFile.DataFormat];
+    SampleSize := SampleSizeForFormat[SoundFile.DataFormat];
+
+    NumFrames := SoundFile.DataSize div SampleSize;
+    if NumFrames = 0 then
+      raise Exception.CreateFmt('Sound file "%s" has no audio frames', [UriDisplay(Url)]);
+
+    { See https://developer.mozilla.org/en-US/docs/Web/API/BaseAudioContext/createBuffer }
+    FAudioBuffer := Backend.JSAudioContext.CreateBuffer(
+      NumChannels, NumFrames, SoundFile.Frequency);
+
+    { For each channel, to TSingleList and copy to JavaScript Float32Array }
+    ChannelDataSingle := TSingleList.Create;
+    try
+      ChannelDataSingle.Count := NumFrames;
+
+      for Channel := 0 to NumChannels - 1 do
+      begin
+        case SoundFile.DataFormat of
+          sfMono8, sfStereo8:
+            begin
+              // Int8 for each channel, convert to float in range [-1.0, 1.0]
+              for I := 0 to NumFrames - 1 do
+              begin
+                SampleInt8 := PInt8(SoundFile.Data)[I * SampleSize + Channel * SizeOf(Int8)];
+                ChannelDataSingle[I] := SampleInt8 / High(Int8);
+              end;
+            end;
+          sfMono16, sfStereo16:
+            begin
+              // Int16 for each channel, convert to float in range [-1.0, 1.0]
+              for I := 0 to NumFrames - 1 do
+              begin
+                SampleInt16 := PInt16(SoundFile.Data)[I * SampleSize + Channel * SizeOf(Int16)];
+                ChannelDataSingle[I] := SampleInt16 / High(Int16);
+              end;
+            end;
+          else raise Exception.CreateFmt('Unsupported sound data format %d', [Ord(SoundFile.DataFormat)]);
+        end;
+      end;
+
+      { Get the Float32Array for this channel }
+      ChannelData := FAudioBuffer.getChannelData(Channel);
+      ChannelData.CopyFromMemory(PByte(ChannelDataSingle.L), NumFrames * SizeOf(Single));
+    finally
+      FreeAndNil(ChannelDataSingle);
+    end;
+  end;
+
+  { Load Url using TSoundFile, pass it to ContextOpenFromSoundFile. }
+  procedure UseSoundFile;
+  var
+    F: TSoundFile;
+  begin
+    F := TSoundFile.Create(Url);
+    try
+      FDuration := F.Duration;
+      FDataFormat := F.DataFormat;
+      FFrequency := F.Frequency;
+      ContextOpenFromSoundFile(F);
+    finally FreeAndNil(F) end;
+  end;
+
+  { Load Url contents to JS ArrayBuffer. }
+  function UrlToArrayBuffer(const Url: String): IJSArrayBuffer;
+  var
+    MemStream: TMemoryStream;
+  begin
+    MemStream := Download(Url, [soForceMemoryStream]) as TMemoryStream;
+    try
+      Result := TJSArrayBuffer.Create(MemStream.Size);
+      Result.CopyFromMemory(MemStream.Memory, MemStream.Size);
+    finally FreeAndNil(MemStream) end;
+  end;
+
+  { Decode audio data using decodeAudioData, see
+    https://developer.mozilla.org/en-US/docs/Web/API/BaseAudioContext/decodeAudioData }
+  procedure UseDecodeAudioData;
+  var
+    ArrayBuffer: IJSArrayBuffer;
+  begin
+    ArrayBuffer := UrlToArrayBuffer(Url);
+    FPendingDecode := true;
+    Backend.JSAudioContext.DecodeAudioData(ArrayBuffer)._Then(
+      @DecodeAudioDataSuccess,
+      @DecodeAudioDataError
+    );
+  end;
+
 begin
   inherited;
 
-  Backend := SoundEngine as TWebAudioSoundEngineBackend;
-  NumChannels := NumChannelsForFormat[SoundFile.DataFormat];
-  SampleSize := SampleSizeForFormat[SoundFile.DataFormat];
-
-  NumFrames := SoundFile.DataSize div SampleSize;
-  if NumFrames = 0 then
-    raise Exception.CreateFmt('Sound file "%s" has no audio frames', [UriDisplay(Url)]);
-
-  { See https://developer.mozilla.org/en-US/docs/Web/API/BaseAudioContext/createBuffer }
-  FAudioBuffer := Backend.JSAudioContext.CreateBuffer(
-    NumChannels, NumFrames, SoundFile.Frequency);
-
-  { For each channel, to TSingleList and copy to JavaScript Float32Array }
-  ChannelDataSingle := TSingleList.Create;
-  try
-    ChannelDataSingle.Count := NumFrames;
-
-    for Channel := 0 to NumChannels - 1 do
-    begin
-      case SoundFile.DataFormat of
-        sfMono8, sfStereo8:
-          begin
-            // Int8 for each channel, convert to float in range [-1.0, 1.0]
-            for I := 0 to NumFrames - 1 do
-            begin
-              SampleInt8 := PInt8(SoundFile.Data)[I * SampleSize + Channel * SizeOf(Int8)];
-              ChannelDataSingle[I] := SampleInt8 / High(Int8);
-            end;
-          end;
-        sfMono16, sfStereo16:
-          begin
-            // Int16 for each channel, convert to float in range [-1.0, 1.0]
-            for I := 0 to NumFrames - 1 do
-            begin
-              SampleInt16 := PInt16(SoundFile.Data)[I * SampleSize + Channel * SizeOf(Int16)];
-              ChannelDataSingle[I] := SampleInt16 / High(Int16);
-            end;
-          end;
-        else raise Exception.CreateFmt('Unsupported sound data format %d', [Ord(SoundFile.DataFormat)]);
-      end;
-    end;
-
-    { Get the Float32Array for this channel }
-    ChannelData := FAudioBuffer.getChannelData(Channel);
-    ChannelData.CopyFromMemory(PByte(ChannelDataSingle.L), NumFrames * SizeOf(Single));
-  finally
-    FreeAndNil(ChannelDataSingle);
-  end;
+  if UriMimeType(Url) = 'audio/wav' then
+    UseSoundFile
+  else
+    UseDecodeAudioData;
 end;
 
 procedure TWebAudioSoundBufferBackend.ContextClose;
 begin
   FAudioBuffer := nil;
   inherited;
+end;
+
+function TWebAudioSoundBufferBackend.DecodeAudioDataSuccess(const aValue: Variant): Variant;
+begin
+  FPendingDecode := false;
+  WritelnLog('Successfully decoded audio data for "%s"', [UriDisplay(Url)]);
+
+  FAudioBuffer := TJSAudioBuffer.Cast(aValue);
+  FDuration := FAudioBuffer.Duration;
+  FFrequency := Round(FAudioBuffer.SampleRate);
+
+  { In this case, we don't have and also don't need the exact information
+    about the data format. We just set DataFormat based on the number of
+    channels.
+    TODO: TSoundBufferBackend should just have Channels:Cardinal, not DataFormat. }
+
+  if FAudioBuffer.numberOfChannels = 1 then
+    FDataFormat := sfMono16
+  else
+    FDataFormat := sfStereo16;
+
+  Result := aValue;
+end;
+
+function TWebAudioSoundBufferBackend.DecodeAudioDataError(const aValue: Variant): Variant;
+begin
+  FPendingDecode := false;
+  WritelnWarning('Failed to decode audio data for "%s"', [UriDisplay(Url)]);
+  Result := aValue;
+end;
+
+function TWebAudioSoundBufferBackend.Duration: TFloatTime;
+begin
+  Result := FDuration;
+end;
+
+function TWebAudioSoundBufferBackend.DataFormat: TSoundDataFormat;
+begin
+  Result := FDataFormat;
+end;
+
+function TWebAudioSoundBufferBackend.Frequency: Cardinal;
+begin
+  Result := FFrequency;
 end;
 
 { TWebAudioSoundSourceBackend ------------------------------------------------ }
@@ -341,14 +455,19 @@ var
 begin
   Stop;
 
-  if (FBuffer = nil) or (FBuffer.FAudioBuffer = nil) then
+  if (FBuffer = nil) or (FBuffer.AudioBuffer = nil) then
     Exit;
+  if FBuffer.PendingDecode then
+  begin
+    WritelnWarning('Cannot play sound "%s" because it is still decoding. Try to play again when decoding finishes.', [UriDisplay(FBuffer.Url)]);
+    Exit;
+  end;
 
   AudioCtx := GetAudioContext;
 
   { Create a new AudioBufferSourceNode (they are single-use in WebAudio) }
   SourceNode := AudioCtx.CreateBufferSource;
-  SourceNode.Buffer := FBuffer.FAudioBuffer;
+  SourceNode.Buffer := FBuffer.AudioBuffer;
   SourceNode.Loop := FLoop;
   SourceNode.PlaybackRate.Value := FPitch;
 
