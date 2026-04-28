@@ -1,6 +1,6 @@
 {%MainUnit x3dnodes.pas}
 {
-  Copyright 2002-2023 Michalis Kamburelis.
+  Copyright 2002-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -16,6 +16,9 @@
 
 {$ifdef read_interface}
 
+  { X3D import statement, allowing to access in one model namespace
+    the names from another model namespace, if the other model is included
+    using a @link(TInlineNode). }
   TX3DImport = class(TX3DFileItem)
   public
     InlineNodeName, ImportedNodeName, ImportedNodeAlias: string;
@@ -30,6 +33,8 @@
     function DeepCopy(const CopyState: TX3DNodeDeepCopyState): TX3DImport;
   end;
 
+  { X3D export statement, allowing to access something from this model
+    namespace in outer model namespace using @link(TX3DImport). }
   TX3DExport = class(TX3DFileItem)
   strict private
     FExportedNode: TX3DNode;
@@ -46,7 +51,20 @@
     { Exported node.
       Note that we store node reference, not just ExportedNodeName,
       this way renaming the ExportedNode (e.g. by RenameUniquely during saving)
-      is properly reflected in the saved EXPORT statement. }
+      is properly reflected in the saved EXPORT statement.
+
+      All code handling this should be prepared that this may be @nil.
+
+      Even though the current reading code always initializes this to non-nil...
+      but if that node will be later freed -> then this will be set to nil
+      (thanks to using @link(TX3DNode.AddDestructionNotification) mechanism here).
+
+      Testcase: https://github.com/castle-engine/castle-engine/issues/708 ,
+      which links to glTF model with unused material (TAppearanceNode),
+      that is exported but later freed by X3DNodeList_FreeUnusedAndNil.
+      We could avoid adding it in that case (checking Unused),
+      but all code has to be prepared anyway for
+      @link(TX3DExport.ExportedNode) = @nil. }
     property ExportedNode: TX3DNode read FExportedNode write SetExportedNode;
 
     procedure Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames);

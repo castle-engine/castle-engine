@@ -19,7 +19,7 @@
 //type // allow type declaration to continue
 
   { Sound engine, responsible for loading and playing sounds.
-    See @url(https://castle-engine.io/manual_sound.php
+    See @url(https://castle-engine.io/sound
     manual about sound in Castle Game Engine) for an overview of sound support.
 
     There should always be only one instance of this class,
@@ -703,8 +703,7 @@ begin
       Exit;
     end;
 
-  Result := TInternalSoundBuffer.Create(Backend, SoundLoading);
-  Result.FUrl := FullUrl;
+  Result := TInternalSoundBuffer.Create(Backend, SoundLoading, FullUrl);
   Result.References := 1;
   LoadedBuffers.Add(Result);
 

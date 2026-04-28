@@ -1,6 +1,6 @@
 ﻿// -*- compile-command: "./test_single_testcase.sh TTestUriUtils" -*-
 {
-  Copyright 2013-2025 Michalis Kamburelis.
+  Copyright 2013-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -47,13 +47,16 @@ type
     procedure TestMemoryFileSystemFindFilesSubdirs;
     procedure TestFilenameToUriSafeEmpty;
     procedure TestGetCurrentDir;
+    procedure TestExtractUriNamePercentEncoding;
+    procedure TestUrlQueryParameters;
+    procedure TestUrlEncodeForm;
   end;
 
 implementation
 
 uses Base64, UriParser,
   CastleUriUtils, CastleUtils, CastleClassUtils, CastleFilesUtils,
-  CastleFindFiles;
+  CastleFindFiles, CastleStringUtils;
 
 procedure TTestUriUtils.TestUriProtocol;
 var
@@ -650,6 +653,99 @@ begin
   {$ifndef WASI}
   AssertTrue(GetCurrentDir <> '');
   {$endif}
+end;
+
+procedure TTestUriUtils.TestExtractUriNamePercentEncoding;
+begin
+  // Test cases for URI decomposition with percent-encoding
+
+  AssertEquals('foo%20bar.txt', ExtractUriName('http://example.org/foo%20bar.txt'));
+  AssertEquals('', ExtractUriName('http://example.org/foo%20bar/'));
+  AssertEquals('foo%20bar', ExtractUriName('http://example.org/foo%20bar'));
+
+  AssertEquals('http://example.org/foo%20bar/', ExtractUriPath('http://example.org/foo%20bar/'));
+  AssertEquals('http://example.org/foo%20bar/', ExtractUriPath('http://example.org/foo%20bar/file.txt'));
+
+  AssertEquals('foo%20bar.txt', ExtractUriName('castle-data:/foo%20bar.txt'));
+  AssertEquals('', ExtractUriName('castle-data:/foo%20bar/'));
+  AssertEquals('foo%20bar', ExtractUriName('castle-data:/foo%20bar'));
+
+  AssertEquals('castle-data:/foo%20bar/', ExtractUriPath('castle-data:/foo%20bar/'));
+  AssertEquals('castle-data:/foo%20bar/', ExtractUriPath('castle-data:/foo%20bar/file.txt'));
+
+  AssertEquals('foo bar.txt', UrlDecode('foo%20bar.txt'));
+  AssertEquals('foo bar', UrlDecode('foo%20bar'));
+end;
+
+procedure TTestUriUtils.TestUrlQueryParameters;
+var
+  Params: TStringStringMap;
+begin
+  Params := UrlQueryParameters('');
+  try
+    AssertEquals(0, Params.Count);
+  finally FreeAndNil(Params) end;
+
+  Params := UrlQueryParameters('?');
+  try
+    AssertEquals(0, Params.Count);
+  finally FreeAndNil(Params) end;
+
+  Params := UrlQueryParameters('?abc=def');
+  try
+    AssertEquals(1, Params.Count);
+    AssertEquals('def', Params['abc']);
+  finally FreeAndNil(Params) end;
+
+  Params := UrlQueryParameters('?abc=def&xyz=123');
+  try
+    AssertEquals(2, Params.Count);
+    AssertEquals('def', Params['abc']);
+    AssertEquals('123', Params['xyz']);
+  finally FreeAndNil(Params) end;
+
+  Params := UrlQueryParameters('?abc=def&abc=secondtry&xyz=123');
+  try
+    AssertEquals(2, Params.Count);
+    AssertEquals('def', Params['abc']);
+    AssertEquals('123', Params['xyz']);
+  finally FreeAndNil(Params) end;
+
+  Params := UrlQueryParameters('?abc=def&&still_ok_double_ampersand=123');
+  try
+    AssertEquals(2, Params.Count);
+    AssertEquals('def', Params['abc']);
+    AssertEquals('123', Params['still_ok_double_ampersand']);
+  finally FreeAndNil(Params) end;
+
+  Params := UrlQueryParameters('?abc=def&keyboard%20value=%20with%20spaces%20and%20%25percent%25signs');
+  try
+    AssertEquals(2, Params.Count);
+    AssertEquals('def', Params['abc']);
+    AssertEquals(' with spaces and %percent%signs', Params['keyboard value']);
+  finally FreeAndNil(Params) end;
+
+  Params := UrlQueryParameters('?abc=def&no_value&empty_value=');
+  try
+    AssertEquals(3, Params.Count);
+    AssertEquals('def', Params['abc']);
+    AssertEquals('', Params['no_value']);
+    AssertEquals('', Params['empty_value']);
+  finally FreeAndNil(Params) end;
+
+  Params := UrlQueryParameters('?model=spaces+by+plus+signs.gltf');
+  try
+    AssertEquals(1, Params.Count);
+    AssertEquals('spaces by plus signs.gltf', Params['model']);
+  finally FreeAndNil(Params) end;
+end;
+
+procedure TTestUriUtils.TestUrlEncodeForm;
+begin
+  AssertEquals('simplest', InternalUrlEncodeForm('simplest'));
+  AssertEquals('simple+test', InternalUrlEncodeForm('simple test'));
+  AssertEquals('with%25percent%25signs', InternalUrlEncodeForm('with%percent%signs'));
+  AssertEquals('spaces+and%2Bplus%2Bsigns', InternalUrlEncodeForm('spaces and+plus+signs'));
 end;
 
 initialization

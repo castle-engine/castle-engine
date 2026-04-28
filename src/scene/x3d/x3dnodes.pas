@@ -204,8 +204,8 @@ type
   {$I x3dnodes_standard_core.inc}
   {$I x3dnodes_standard_time.inc}
   {$I x3dnodes_standard_grouping.inc}
-  {$I x3dnodes_standard_networking.inc}
   {$I x3dnodes_standard_rendering.inc}
+  {$I x3dnodes_standard_networking.inc} // networking must be after rendering, as it requires TAbstractGeometryNode to be resolved
   {$I x3dnodes_standard_shape.inc}
   {$I x3dnodes_standard_geometry3d.inc}
   {$I x3dnodes_standard_geometry2d.inc}
@@ -250,6 +250,7 @@ type
 {$I x3dnodes_encoding_xml.inc}
 {$I x3dnodes_save.inc}
 {$I x3dnodes_miscellaneous_globals.inc}
+{$I x3dnodes_processurls.inc}
 
 {$undef read_interface}
 
@@ -301,6 +302,7 @@ uses Math, StrUtils, URIParser, TypInfo,
 {$I x3dnodes_nodesmanager.inc}
 {$I x3dnodes_miscellaneous_globals.inc}
 {$I x3dnodes_utils_materials.inc}
+{$I x3dnodes_processurls.inc}
 
 // These must be included after x3dnodes_encoding_{classic,xml}.inc
 {$I x3dnodes_x3dnode.inc}
@@ -434,6 +436,7 @@ uses Math, StrUtils, URIParser, TypInfo,
 {$I auto_generated_node_helpers/x3dnodes_indexedtrianglestripset.inc}
 {$I auto_generated_node_helpers/x3dnodes_info_1.inc}
 {$I auto_generated_node_helpers/x3dnodes_inline.inc}
+{$I auto_generated_node_helpers/x3dnodes_inlinegeometry.inc}
 {$I auto_generated_node_helpers/x3dnodes_inlineloadcontrol.inc}
 {$I auto_generated_node_helpers/x3dnodes_integersequencer.inc}
 {$I auto_generated_node_helpers/x3dnodes_integertrigger.inc}

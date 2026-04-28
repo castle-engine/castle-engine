@@ -45,20 +45,14 @@ type
   end;
 
 procedure THttpAndroidReader.Start;
+const
+  HttpMethodNames: array[THttpMethod] of String = (
+    'GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD'
+  );
 
   function HttpMethodName: String;
   begin
-    case HttpMethod of
-      hmGet: Result := 'GET';
-      hmPost: Result := 'POST';
-      hmPut: Result := 'PUT';
-      hmDelete: Result := 'DELETE';
-      hmOptions: Result := 'OPTIONS';
-      hmHead: Result := 'HEAD';
-      {$ifndef COMPILER_CASE_ANALYSIS}
-      else raise EInternalError.Create('HttpMethod=?');
-      {$endif}
-    end;
+    Result := HttpMethodNames[HttpMethod];
   end;
 
   function HttpRequestBodyStr: String;
@@ -162,6 +156,9 @@ begin
     Status := dsError;
     ErrorMessage := Received[2];
     Result := true;
+    Contents.Position := 0; // rewind
+    DownloadedBytes := Contents.Size;
+    TotalBytes := Contents.Size;
   end;
 
   if (Received.Count >= 2) and

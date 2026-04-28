@@ -77,7 +77,8 @@
       during calculations. OpenGL also clamps only at the end.
 
       MainTextureColor is color of the "main" texture.
-      See @link(TAppearanceNode.MainTexture) for definition what is this texture. }
+      See @link(TX3DGraphTraverseState.MainTexture) for definition what
+      is this texture. }
     function Contribution(
       const Point: TVector3; const PointPlaneNormal: TVector3;
       State: TX3DGraphTraverseState;

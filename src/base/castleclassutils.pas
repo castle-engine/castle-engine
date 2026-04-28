@@ -1,5 +1,5 @@
 {
-  Copyright 2000-2025 Michalis Kamburelis.
+  Copyright 2000-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -865,25 +865,27 @@ var
 
 type
   { Extended TObjectStack for Castle Game Engine. }
-  TCastleObjectStack = class({$ifndef PASDOC}Contnrs.{$endif}TObjectStack)
+  TCastleObjectStack = class(Contnrs.TObjectStack)
   private
     function GetCapacity: TListSize;
     procedure SetCapacity(const Value: TListSize);
   public
+    { How many items can this hold without reallocating memory. }
     property Capacity: TListSize read GetCapacity write SetCapacity;
   end;
 
   { Extended TObjectQueue for Castle Game Engine. }
-  TCastleObjectQueue = class({$ifndef PASDOC}Contnrs.{$endif}TObjectQueue)
+  TCastleObjectQueue = class(Contnrs.TObjectQueue)
   private
     function GetCapacity: TListSize;
     procedure SetCapacity(const Value: TListSize);
   public
+    { How many items can this hold without reallocating memory. }
     property Capacity: TListSize read GetCapacity write SetCapacity;
   end;
 
   { Extended TObjectList for Castle Game Engine. }
-  TCastleObjectList = class({$ifndef PASDOC}Contnrs.{$endif}TObjectList)
+  TCastleObjectList = class(Contnrs.TObjectList)
   public
     { Create and fill with the contents of given array.
 

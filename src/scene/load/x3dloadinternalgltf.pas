@@ -669,10 +669,10 @@ type
 
       When TextureTransform = nil means that these tex coords should not be transformed.
       (This is still valuable information that you should pass for each texture.) }
-    procedure TransformCoords(const TexCoord: String; const TextureTransform: TTextureTransformNode);
+    procedure TransformCoords(const TexCoord: String; TextureTransform: TTextureTransformNode);
   end;
 
-procedure TTextureTransforms.TransformCoords(const TexCoord: String; const TextureTransform: TTextureTransformNode);
+procedure TTextureTransforms.TransformCoords(const TexCoord: String; TextureTransform: TTextureTransformNode);
 begin
   if HasAny then
   begin
@@ -683,8 +683,11 @@ begin
          TVector2.PerfectlyEquals(SingleTextureTransform.FdTranslation.Value, TextureTransform.FdTranslation.Value) and
          TVector2.PerfectlyEquals(SingleTextureTransform.FdScale.Value, TextureTransform.FdScale.Value) and
          (SingleTextureTransform.FdRotation.Value = TextureTransform.FdRotation.Value) then
+      begin
         { Ignore the difference, contents of TTextureTransformNode are equal. }
+        FreeIfUnusedAndNil(TextureTransform);
         Exit;
+      end;
       WritelnWarning('TODO: Textures within material have different texture transformation, not supported now');
       FreeIfUnusedAndNil(SingleTextureTransform);
     end;
@@ -2506,12 +2509,26 @@ var
       if N.X3DName <> '' then
         Result.ExportNode(N);
 
+    { We check Unused below, as some nodes on Appearances and Nodes lists
+      may be unused and will soon be freed by:
+
+        X3DNodeList_FreeUnusedAndNil(Appearances);
+        X3DNodeList_FreeUnusedAndNil(Nodes);
+
+      This would result in having TX3DExport items for them with ExportedNode = nil
+      (they will ne set to nil thanks to TX3DExport.SetExportedNode
+      doing AddDestructionNotification).
+      This is harmless now (all code should be prepared by TX3DExport.ExportNode
+      to handle nil), but also pointless - better to not add a node at all,
+      if we know it's not useful.
+    }
+
     for N in Appearances do
-      if N.X3DName <> '' then
+      if (N.X3DName <> '') and (not N.Unused) then
         Result.ExportNode(N);
 
     for N in Nodes do
-      if (N <> nil) and (N.X3DName <> '') then
+      if (N <> nil) and (N.X3DName <> '') and (not N.Unused) then
         Result.ExportNode(N);
 
     for Anim in Animations do

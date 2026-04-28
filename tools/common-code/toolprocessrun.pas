@@ -598,6 +598,12 @@ end;
 }
 {$define UNIX_RUN_NO_WAIT_BY_SHELL}
 
+{ Define to send output (when using UNIX_RUN_NO_WAIT_BY_SHELL)
+  to a temporary file (whose filename is printed in verbose logs).
+  This is useful for debugging, as you can check the output of the process.
+  Otherwise, we send output to /dev/null. }
+{.$define DEBUG_UNIX_RUN_NO_WAIT_BY_SHELL}
+
 procedure RunCommandNoWait(
   const CurrentDirectory: String;
   const ExeName: String; const Options: array of string;
@@ -626,7 +632,7 @@ begin
       {$ifdef DEBUG_UNIX_RUN_NO_WAIT_BY_SHELL} InclPathDelim(CreateTemporaryDir) + 'run-process-no-wait-' + IntToStr(Random(100000)) + '.log'
       {$else} '/dev/null'
       {$endif};
-    ShCommand += '< /dev/null > ' + ShCommandOutput + ' 2>&1';
+    ShCommand += ' < /dev/null > ' + ShCommandOutput + ' 2>&1';
     P.Parameters.Add(ShCommand);
 
     {$else}

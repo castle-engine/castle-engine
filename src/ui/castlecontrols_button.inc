@@ -285,6 +285,7 @@
     property MinWidth: Single read FMinWidth write SetMinWidth {$ifdef FPC}default 0{$endif};
     property MinHeight: Single read FMinHeight write SetMinHeight {$ifdef FPC}default 0{$endif};
 
+    { Event triggered when the button is clicked. }
     property OnClick: TNotifyEvent read FOnClick write FOnClick;
 
     { Caption to display on the button.

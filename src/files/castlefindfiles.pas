@@ -120,13 +120,23 @@ type
     May be absolute or relative. Like everywhere in our engine,
     it can also be a local filesystem path, although we advice using
     URLs for everything. May, but doesn't have to, end with slash or PathDelim.
-    Empty Path means "the current directory".)
+    Empty Path means "the current directory".
 
-  @param(Mask Mask of the files to search, may contain wildcards * and ?.)
+    This is an URL, so it expected to be percent-encoded,
+    and it may also have a protocol. Like "castle-data:/foo/bar/" or
+    "file:///home/user/dir/".)
+
+  @param(Mask Mask of the files to search, may contain wildcards * and ?.
+
+    This is not a URL, so it is not percent-encoded.)
 
   @param(PathAndMask Overloaded versions without separate Path and Mask parameters
     just assume that PathAndMask contain concatenated Path + Mask,
-    separated by any valid path delimiter.)
+    separated by any valid path delimiter.
+
+    This is an URL, so it expected to be percent-encoded,
+    and it may also have a protocol. Like "castle-data:/foo/bar/" or
+    "file:///home/user/dir/".)
 
   @param(FindDirectories Should directories also be found
     (reported by FileProc). Note that this is completely independent
@@ -171,9 +181,11 @@ function FindFiles(const PathAndMask: string; const FindDirectories: boolean;
 { @groupEnd }
 
 { Like @link(FindFiles), but return found files as a list.
-  Caller is resopnsible for freeing the returned list. }
+  Caller is responsible for freeing the returned list. }
 function FindFilesList(const Path, Mask: string; const FindDirectories: boolean;
-  const Options: TFindFilesOptions): TFileInfoList;
+  const Options: TFindFilesOptions): TFileInfoList; overload;
+function FindFilesList(const PathAndMask: string; const FindDirectories: boolean;
+  const Options: TFindFilesOptions): TFileInfoList; overload;
 
 { Search for a file, ignoring the case.
   Path must be absolute URL and contain the final slash.
@@ -790,7 +802,9 @@ function FindFiles(const PathAndMask: string; const FindDirectories: boolean;
   const FileProc: TFoundFileProc; const FileProcData: Pointer;
   const Options: TFindFilesOptions): Cardinal;
 begin
-  Result := FindFiles(ExtractURIPath(PathAndMask), ExtractURIName(PathAndMask),
+  Result := FindFiles(
+    ExtractUriPath(PathAndMask),
+    UrlDecode(ExtractUriName(PathAndMask)),
     FindDirectories, FileProc, FileProcData, Options);
 end;
 
@@ -826,7 +840,9 @@ end;
 function FindFiles(const PathAndMask: string; const FindDirectories: boolean;
   const FileMethod: TFoundFileMethod; const Options: TFindFilesOptions): Cardinal;
 begin
-  Result := FindFiles(ExtractURIPath(PathAndMask), ExtractURIName(PathAndMask),
+  Result := FindFiles(
+    ExtractUriPath(PathAndMask),
+    UrlDecode(ExtractUriName(PathAndMask)),
     FindDirectories, FileMethod, Options);
 end;
 
@@ -975,6 +991,22 @@ begin
     try
       Helper.List := Result;
       FindFiles(Path, Mask, FindDirectories,
+        {$ifdef FPC}@{$endif} Helper.Callback, Options);
+    finally FreeAndNil(Helper) end;
+  except FreeAndNil(Result); raise end;
+end;
+
+function FindFilesList(const PathAndMask: string; const FindDirectories: boolean;
+  const Options: TFindFilesOptions): TFileInfoList;
+var
+  Helper: TFindFilesListHelper;
+begin
+  Result := TFileInfoList.Create;
+  try
+    Helper := TFindFilesListHelper.Create;
+    try
+      Helper.List := Result;
+      FindFiles(PathAndMask, FindDirectories,
         {$ifdef FPC}@{$endif} Helper.Callback, Options);
     finally FreeAndNil(Helper) end;
   except FreeAndNil(Result); raise end;

@@ -976,16 +976,22 @@ type
       @groupBegin }
     procedure FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
       const aColor: TCastleColor); virtual;
+      deprecated 'do not use TCastleImage drawing; use other libraries (like FpImage or Vampyre Imaging or BGRABitmap) or our TDrawableImage (use RenderToImageBegin/End, and DrawCircle/DrawCircleOutline to draw ellipses using GPU)';
     procedure Ellipse(const x, y: single; const aRadiusX, aRadiusY: single;
       const aWidth: single; const aColor: TCastleColor); virtual;
+      deprecated 'do not use TCastleImage drawing; use other libraries (like FpImage or Vampyre Imaging or BGRABitmap) or our TDrawableImage (use RenderToImageBegin/End, and DrawCircle/DrawCircleOutline to draw ellipses using GPU)';
     procedure FillRectangle(const x1, y1, x2, y2: single;
       const aColor: TCastleColor); virtual;
+      deprecated 'do not use TCastleImage drawing; use other libraries (like FpImage or Vampyre Imaging or BGRABitmap) or our TDrawableImage (use RenderToImageBegin/End, and DrawRectangle/DrawRectangleOutline to draw rectangles using GPU)';
     procedure Rectangle(const x1, y1, x2, y2: single;
       const aWidth: single; const aColor: TCastleColor); virtual;
+      deprecated 'do not use TCastleImage drawing; use other libraries (like FpImage or Vampyre Imaging or BGRABitmap) or our TDrawableImage (use RenderToImageBegin/End, and DrawRectangle/DrawRectangleOutline to draw rectangles using GPU)';
     procedure Line(const x1, y1, x2, y2: single;
       const aWidth: single; const aColor: TCastleColor); virtual;
+      deprecated 'do not use TCastleImage drawing; use other libraries (like FpImage or Vampyre Imaging or BGRABitmap) or our TDrawableImage (use RenderToImageBegin/End, and DrawPrimitive2D to draw lines using GPU)';
     procedure FloodFill(const x, y: integer; const aColor: TCastleColor;
       const aThreshold: single = 0);
+      deprecated 'do not use TCastleImage drawing; use other libraries (like FpImage or Vampyre Imaging or BGRABitmap) for drawing on images';
     { @groupEnd }
   end;
 

@@ -362,7 +362,7 @@
   color: var(--pasdoc-muted);
   display: none;
 }
-.pasdoc-container p.inheritdescription {
+.pasdoc-container p.inheritdescription, .pasdoc-container p.description-inherited {
   color: var(--pasdoc-muted);
   font-style: italic;
 }
@@ -457,6 +457,23 @@
 .pasdoc-container .source_position {
   font-size: 80%;
   color: gray;
+}
+.pasdoc-container .show-members-toggles {
+  margin: 0.75em 0;
+  padding: 0.4em 0.75em;
+  background: var(--pasdoc-code-bg);
+  border: 1px solid var(--pasdoc-border-color);
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+}
+.pasdoc-container .show-members-toggles .show-members-toggles-label {
+  color: var(--pasdoc-muted);
+  margin-right: 0.75em;
+}
+.pasdoc-container .show-members-toggles label {
+  margin-right: 1em;
+  user-select: none;
+  cursor: pointer;
 }
 .pasdoc-container {
   /* === Search form === */

@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2025 Michalis Kamburelis.
+  Copyright 2003-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -1628,18 +1628,32 @@ type
     property TimeAtLoad: TFloatTime read FTimeAtLoad;
 
     { Stack of background nodes. The node at the top is the current background,
-      which is displayed if this is the @link(TCastleViewport.MainScene).
+      which is displayed if this is the @link(TCastleRootTransform.MainScene).
       All nodes on this stack must descend from TAbstractBackgroundNode class.
 
-      Note that we recommend to rather use @link(TCastleViewport.Background)
+      We don't recommend using this to influence the resulting background,
+      as designating the scene as "main" using
+      @link(TCastleRootTransform.MainScene) makes using various features
+      "entangled" through this scene (so it's not flexible),
+      and designing background using X3D nodes is not comfortable.
+
+      We recommend instead to leave @link(TCastleRootTransform.MainScene)
+      as @nil, and use @link(TCastleViewport.Background)
       to modify the skybox. }
     property BackgroundStack: TBackgroundStack read FBackgroundStack;
 
     { Stack of fog nodes. The node at the top is the current fog,
-      which is displayed if this is the @link(TCastleViewport.MainScene).
+      which is displayed if this is the @link(TCastleRootTransform.MainScene).
       All nodes on this stack must descend from TFogNode class.
 
-      Note that we recommend to rather use @link(TCastleViewport.Fog)
+      We don't recommend using this to influence the resulting fog,
+      as designating the scene as "main" using
+      @link(TCastleRootTransform.MainScene) makes using various features
+      "entangled" through this scene (so it's not flexible),
+      and designing background using X3D nodes is not comfortable.
+
+      We recommend instead to leave @link(TCastleRootTransform.MainScene)
+      as @nil, and use @link(TCastleViewport.Fog)
       to modify the fog. }
     property FogStack: TFogStack read FFogStack;
 
@@ -8353,6 +8367,10 @@ var
   GroupNode: TGroupNode;
   Import: TX3DImport;
 begin
+  // otherwise, we would make invalid TInlineNode with empty URL
+  if Url = '' then
+    Exit(nil);
+
   // if AutoAnimation is defined, setup nodes to start given animation
   ExportAnimation := (AutoAnimation <> '') and RootExportsName(AutoAnimation);
 

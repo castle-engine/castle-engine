@@ -25,13 +25,13 @@ type
   public
     { Open a stream. If AOwnsStream then in destructor we will free
       given AStream object. }
-    constructor Create(AStream: TStream; AOwnsStream: boolean); overload;
+    constructor Create(const AStream: TStream; const AOwnsStream: boolean); overload;
     destructor Destroy; override;
   end;
 
   { Read any stream like a text file. You can read an arbitrary TStream
     instance, or you can read an URL. Reading from URL supports
-    all URL protocols supportted by the Castle Game Engine engine
+    all URL protocols supported by the Castle Game Engine engine
     (see https://castle-engine.io/url ).
 
     Includes comfortable @link(Readln) routine to read line by line
@@ -54,6 +54,9 @@ type
   public
     { Download and open a file. }
     constructor Create(const Url: String); overload;
+
+    { Read from given Stream. }
+    constructor Create(const AStream: TStream; const AOwnsStream: boolean); overload;
 
     { Read next line from Stream. Returned string does not contain
       any end-of-line characters. }
@@ -124,10 +127,10 @@ type
 
 { TCastleTextReaderWriter ---------------------------------------------------------- }
 
-constructor TCastleTextReaderWriter.Create(AStream: TStream; AOwnsStream: boolean);
+constructor TCastleTextReaderWriter.Create(const AStream: TStream; const AOwnsStream: boolean);
 begin
   inherited Create;
-  FStream := Astream;
+  FStream := AStream;
   FOwnsStream := AOwnsStream;
 end;
 
@@ -141,7 +144,12 @@ end;
 
 constructor TCastleTextReader.Create(const Url: String);
 begin
-  inherited Create(Download(Url), true);
+  Create(Download(Url), true);
+end;
+
+constructor TCastleTextReader.Create(const AStream: TStream; const AOwnsStream: boolean);
+begin
+  inherited Create(AStream, AOwnsStream);
 end;
 
 function TCastleTextReader.IncreaseReadBuf: boolean;

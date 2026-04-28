@@ -1,5 +1,5 @@
 {
-  Copyright 2017-2024 Michalis Kamburelis.
+  Copyright 2017-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -145,6 +145,15 @@ begin
   Stream.Position := BinaryHeader;
   Stream.ReadLE(TriangleCount);
 
+  { TriangleCount * 3 must fit into Integer (Coordinate.Count).
+    This fixes a potential security issue, otherwise in -dRELEASE
+    the "TriangleCount * 3" could overflow without a clear error,
+    resulting in too small memory being allocated. }
+  if TriangleCount > High(Integer) div 3 then
+    raise EReadError.CreateFmt(
+      'STL binary file declares too many triangles: %d (max supported is %d)',
+      [TriangleCount, High(Integer) div 3]);
+
   Coordinate.Count := TriangleCount * 3;
   Normal.Count := TriangleCount * 3;
 
@@ -190,7 +199,7 @@ end;
 
   But this fails for some STL files, see
   https://github.com/castle-engine/castle-engine/issues/433 .
-  We now know follow Blender's approach,
+  We now follow Blender's approach,
   https://github.com/blender/blender-addons/blob/main/io_mesh_stl/stl_utils.py#L60 .
 
   This resets Stream.Position to 0 after read. }
@@ -375,11 +384,12 @@ initialization
   ModelFormat.OnLoad := {$ifdef FPC}@{$endif} LoadSTL;
   ModelFormat.OnLoadForceMemoryStream := true;
   ModelFormat.OnSave := {$ifdef FPC}@{$endif} SaveSTL;
-  ModelFormat.MimeTypes.Add('application/x-stl');
+  ModelFormat.MimeTypes.Add('model/stl');
   // other STL mime types
   ModelFormat.MimeTypes.Add('application/wavefront-stl');
   ModelFormat.MimeTypes.Add('application/vnd.ms-pki.stl');
   ModelFormat.MimeTypes.Add('application/x-navistyle');
+  ModelFormat.MimeTypes.Add('application/x-stl'); // CGE used this in the past
   ModelFormat.FileFilterName := 'STereo Lithography (*.stl)';
   ModelFormat.Extensions.Add('.stl');
   RegisterModelFormat(ModelFormat);

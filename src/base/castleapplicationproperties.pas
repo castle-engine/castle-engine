@@ -166,9 +166,11 @@ type
 
     { Is it common, on current platform, to show the "Quit" button in your application.
       E.g. it is normal to show "Quit" on PC (Windows, Linux etc.).
-      But on mobile devices and consoles (like Nintendo Switch) you should not
-      show "Quit", it is expected that user knows how to use OS-specific
-      mechanism to just switch to a different application.
+      But on mobile devices, consoles (like Nintendo Switch) and web
+      you should not show "Quit", as it is expected that user knows how to
+      use OS-specific mechanism to just switch to a different application.
+      In case of web, user is expected to just close the browser tab / window
+      whenever they want to quit the game.
 
       Just like the @link(TouchDevice), you can change this at runtime
       for debug purposes (to e.g. easily test mobile UI on PC). }
@@ -549,6 +551,36 @@ procedure TCastleApplicationProperties._Update;
 begin
   DoPendingFree;
   FOnUpdate.ExecuteAll(Self);
+
+  {$ifdef FPC}
+  { Execute callbacks registered by TThread.Synchronize.
+    Frameworks like LCL and our CastleWindow must call this,
+    otherwise TThread.Synchronize will not work.
+
+    Note that in Delphi the CheckSynchronize is also available
+    ( see https://docwiki.embarcadero.com/Libraries/Athens/en/System.Classes.CheckSynchronize )
+    but it happens to be not necessary to call it, at least now:
+
+    - on Windows, Delphi TThread.Synchronize seems to be implemented
+      using Windows messages and so it works already
+      (with our TCastleWindow using WinAPI, in backend CASTLE_WINDOW_WINAPI ).
+
+    - on non-Windows platforms, with Delphi, we always use CASTLE_WINDOW_FORM
+      backend. So FMX calls CheckSynchronize itself,
+      and so we don't have to call it here.
+
+    But for FPC, for backends not using CASTLE_WINDOW_FORM, we need to call this.
+
+    Note that, strictly speaking, we don't need to call CheckSynchronize here
+    when using CastleWindow with CASTLE_WINDOW_FORM backend, as then
+    LCL will already do this. But it doesn't hurt, and it means that all
+    CGE code doing periodically ApplicationProperties._Update (including
+    all CastleWindow backends, and applications not using CastleWindow or any
+    other GUI, like
+    examples/network/castle_download/castle_download.dpr )
+  }
+  CheckSynchronize;
+  {$endif}
 end;
 
 procedure TCastleApplicationProperties._UpdateEnd;

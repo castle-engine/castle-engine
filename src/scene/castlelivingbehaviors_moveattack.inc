@@ -234,7 +234,7 @@ type
       To play a sound when the actual hit happens (at AttackTime)
       see SoundAttackHit.
 
-      This is a sound name from sound repository (see https://castle-engine.io/manual_sound.php).
+      This is a sound name from sound repository (see https://castle-engine.io/sound).
       None by default. }
     property SoundAttackStart: TCastleSound read FSoundAttackStart write SetSoundAttackStart;
 

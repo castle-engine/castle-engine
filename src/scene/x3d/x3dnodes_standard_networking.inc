@@ -1,6 +1,6 @@
 {%MainUnit x3dnodes.pas}
 {
-  Copyright 2002-2024 Michalis Kamburelis.
+  Copyright 2002-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -100,7 +100,7 @@
       const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
   private
     { Is the inline currently loaded. This means "loaded",
-      not "successfully loaded": when InlinedLoaded := true,
+      not necessarily "successfully loaded": when InlinedLoaded := true,
       we condider "url" field as handled, and loaded *if possible*.
       If "url" didn't contain anything useful, InlinedLoaded is still set to @true,
       to avoid constantly trying to reload. }
@@ -165,6 +165,51 @@
     property Inlined: TX3DRootNode read FInlined;
 
   {$I auto_generated_node_helpers/x3dnodes_inline.inc}
+  end;
+
+  { Use the geometry (and nothing else) from another 3D model.
+    We load the model from @link(FdUrl) field,
+    and use the 1st geometry found in the loaded model
+    (or named geometry, if the URL has anchor like @code(model.gltf#Monkey)).
+
+    @url(https://github.com/castle-engine/demo-models/tree/master/x3d/inline_geometry
+    Demo X3D model showing this node.) }
+  TInlineGeometryNode = class(TAbstractGeometryNode)
+  strict private
+    { Is the inline currently loaded. This means "loaded",
+      not necessarily "successfully loaded": when InlinedLoaded := true,
+      we condider "url" field as handled, and loaded *if possible*.
+      If "url" didn't contain anything useful, InlinedLoaded is still set to @true,
+      to avoid constantly trying to reload. }
+    InlinedLoaded: boolean;
+    FInlineRoot: TX3DRootNode;
+    FInlineGeometry: TAbstractGeometryNode;
+    procedure EventLoadReceive(
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
+    procedure EventUrlReceive(
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
+    { Load inlined content @bold(now).
+      If inlined content is already loaded (InlineLoaded):
+      if CanReload = @true then it will be freed and loaded again,
+      else (if CanReload = @false) nothing will happen. }
+    procedure LoadInlined(const CanReload: boolean);
+    procedure UnLoadInlined;
+  protected
+    procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
+    procedure AfterTraverse(StateStack: TX3DGraphTraverseStateStack); override;
+    procedure ParseAfter(Reader: TX3DReaderNames); override;
+  public
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
+    function Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode; override;
+    function LocalBoundingBox(State: TX3DGraphTraverseState;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
+    function BoundingBox(State: TX3DGraphTraverseState;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
+    function TrianglesCount(State: TX3DGraphTraverseState;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
+    function VerticesCount(State: TX3DGraphTraverseState;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
+  {$I auto_generated_node_helpers/x3dnodes_inlinegeometry.inc}
   end;
 
   { Embed another X3D scene into the current scene,
@@ -388,15 +433,17 @@ procedure TInlineNode.LoadInlined(CanReload: boolean;
   procedure InitializeExported(const Target: TX3DNodeNames; const Source: TX3DExportList);
   var
     NodeName: String;
-    I: Integer;
+    E: TX3DExport;
   begin
     Target.Clear;
-    for I := 0 to Source.Count - 1 do
+    for E in Source do
     begin
-      NodeName := Source[I].ExportedAlias;
+      if E.ExportedNode = nil then
+        Continue;
+      NodeName := E.ExportedAlias;
       if NodeName = '' then
-        NodeName := Source[I].ExportedNode.X3DName;
-      Target.Bind(Source[I].ExportedNode, true, NodeName);
+        NodeName := E.ExportedNode.X3DName;
+      Target.Bind(E.ExportedNode, true, NodeName);
     end;
   end;
 
@@ -408,14 +455,17 @@ begin
 
   if InlinedLoaded then
   begin
-    if CanReload then UnLoadInlined else Exit;
+    if CanReload then
+      UnLoadInlined
+    else
+      Exit; // nothing to do, already loaded
   end;
 
   Assert(not InlinedLoaded);
   Assert(FInlined = nil);
   Assert(VRML1ChildrenCount = 0);
 
-  if (not FdLoad.Value) or
+  if (not Load) or
      { Do not do anything, in particular do not set InlinedLoaded:=true,
        when url field is empty. This is important in case "url" field value
        has an IS clause, and it will be really known only after expanding
@@ -497,7 +547,8 @@ begin
     and "Inlined" field to the same value. }
   ResultI.InlinedLoaded := InlinedLoaded;
   if ResultI.VRML1ChildrenCount <> 0 then
-    ResultI.FInlined := ResultI.VRML1Children[0] as TX3DRootNode else
+    ResultI.FInlined := ResultI.VRML1Children[0] as TX3DRootNode
+  else
     ResultI.FInlined := nil;
 end;
 
@@ -556,8 +607,9 @@ begin
 
   if Scene <> nil then Scene.BeforeNodesFree;
 
-  if FdLoad.Value then
-    LoadInlined(false) else
+  if Load then
+    LoadInlined(false)
+  else
     UnLoadInlined;
 
   if Scene <> nil then Scene.ChangedAll;
@@ -566,13 +618,295 @@ end;
 procedure TInlineNode.EventUrlReceive(
   const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
-  if FdLoad.Value then
+  if Load then
   begin
     if Scene <> nil then Scene.BeforeNodesFree;
     UnLoadInlined;
     LoadInlined(false);
     if Scene <> nil then Scene.ChangedAll;
   end;
+end;
+
+{ TInlineGeometryNode -------------------------------------------------------- }
+
+{ Use cache for models loaded by TInlineGeometryNode.
+  If the model file will be referenced
+  by multiple TInlineGeometryNode instances, it will be loaded only once.
+
+  - This is good, optimal, if you load many geometries from the same file.
+  - This will go bad if you actually modify the geometry -- it will be
+    modified everywhere.
+
+    Thought this problem is somewhat hidden now because Proxy returns a DeepCopy
+    of the geometry (so it will be unrelated to FInlinedRoot from that
+    moment). Still, Proxy called at different moments of time -> may return
+    different geometry, if it is modified by something.
+}
+{$define CASTLE_TInlineGeometryNode_Cache}
+
+constructor TInlineGeometryNode.Create(const AX3DName, ABaseUrl: String);
+begin
+  inherited;
+  AddFunctionality(TUrlFunctionality.Create(Self));
+  FdLoad.AddNotification({$ifdef FPC}@{$endif} EventLoadReceive);
+  FdUrl.AddNotification({$ifdef FPC}@{$endif} EventUrlReceive);
+end;
+
+procedure TInlineGeometryNode.ParseAfter(Reader: TX3DReaderNames);
+begin
+  inherited;
+  LoadInlined(false);
+end;
+
+procedure TInlineGeometryNode.UnLoadInlined;
+begin
+  {$ifdef CASTLE_TInlineGeometryNode_Cache}
+  if X3DCache <> nil then // when X3DCache = nil, we are past finalization
+    X3DCache.FreeNode(FInlineRoot)
+  else
+    FInlineRoot := nil;
+  {$else}
+  FreeAndNil(FInlineRoot);
+  {$endif}
+  Assert(FInlineRoot = nil);
+
+  FInlineGeometry := nil; // freed by freeing FInlineRoot
+  InlinedLoaded := false;
+end;
+
+procedure TInlineGeometryNode.LoadInlined(const CanReload: boolean);
+
+  function FindGeometry(const Node: TX3DNode; const FullUrl: String): TAbstractGeometryNode;
+  const
+    SearchOnlyActiveInInline = false;
+  var
+    Anchor: String;
+  begin
+    UriGetAnchor(FullUrl, Anchor);
+    if Anchor <> '' then
+      Result := FInlineRoot.FindNode(TAbstractGeometryNode, Anchor, [fnNilOnMissing]) as TAbstractGeometryNode
+    else
+      {$warnings off} // using deprecated
+      Result := FInlineRoot.TryFindNode(TAbstractGeometryNode, false) as TAbstractGeometryNode;
+      {$warnings on}
+  end;
+
+var
+  I: Integer;
+  FullUrl: String;
+begin
+  if InlinedLoaded then
+  begin
+    if CanReload then
+      UnLoadInlined
+    else
+      Exit; // nothing to do, already loaded
+  end;
+
+  Assert(not InlinedLoaded);
+  Assert(FInlineRoot = nil);
+  Assert(FInlineGeometry = nil);
+
+  if (not Load) or
+     { Do not do anything, in particular do not set InlinedLoaded:=true,
+       when url field is empty. See TInlineNode.LoadInlined for more details. }
+     (FdUrl.Items.Count = 0) then
+    Exit;
+
+  for I := 0 to FdUrl.Items.Count - 1 do
+    if FdUrl.Items[I] <> '' then
+    begin
+      FullUrl := PathFromBaseUrl(FdUrl.Items[I]);
+      try
+        {$ifdef CASTLE_TInlineGeometryNode_Cache}
+        FInlineRoot := X3DCache.LoadNode(FullUrl);
+        {$else}
+        FInlineRoot := LoadNode(FullUrl);
+        {$endif}
+        FInlineGeometry := FindGeometry(FInlineRoot, FullUrl);
+        Break;
+      except
+        on E: Exception do
+          WritelnWarning('X3D', Format(SLoadError,
+            [E.ClassName, 'inline file', UriDisplay(FullUrl), E.Message]));
+      end;
+    end;
+
+  { Whether or not we successfully got FInlined <> nil, we always set
+    InlinedLoaded to true here. This way we will not try to reload this inline
+    at next LoadInlined(false) (this would be bad, as we already did
+    WritelnWarning in case loading failed and such). }
+  InlinedLoaded := true;
+end;
+
+(*
+Nothing special necessary for TInlineGeometryNode.DeepCopyCore.
+Let the "deep copy" load referenced geometry, using X3DCache so it will
+be efficient.
+function TInlineGeometryNode.DeepCopyCore(CopyState: TX3DNodeDeepCopyState): TX3DNode;
+var
+  ResultI: TInlineGeometryNode;
+begin
+  Result := inherited DeepCopyCore(CopyState);
+  ResultI := Result as TInlineGeometryNode;
+  //
+  ResultI.FInlineRoot := nil; // not copied, will be loaded again when needed
+end;
+*)
+
+procedure TInlineGeometryNode.BeforeTraverse(StateStack: TX3DGraphTraverseStateStack);
+begin
+  inherited;
+
+  try
+    LoadInlined(false);
+  except
+    { LoadInlined may easily fail with exception, it's imprtant in such case
+      to still do AfterTraverse, to make "inherited AfterTraverse",
+      to finalize what "inherited BeginTraverse" did: usually StateStack.Pop. }
+    inherited AfterTraverse(StateStack);
+    raise;
+  end;
+
+  Inc(StateStack.Top.InsideInline);
+end;
+
+procedure TInlineGeometryNode.AfterTraverse(StateStack: TX3DGraphTraverseStateStack);
+begin
+  Dec(StateStack.Top.InsideInline);
+  inherited;
+end;
+
+procedure TInlineGeometryNode.EventLoadReceive(
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
+begin
+  { Changing the "load" and "url" fields causes LoadInlined or UnLoadInlined,
+    so the VRML graph changes, so they deserve ChangedAll.
+
+    Note that, in theory, actually LoadInlined and UnLoadInlined
+    should already call Scene.ChangedAll already.
+    But this opens a can of worms, because our BeforeTraverse also
+    calls LoadInlined. And you can't really reliably call ChangedAll
+    in the middle of traversing (since this means you may call ChangedAll
+    in the middle of ChangedAll, for which we're not ready).
+
+    Moreover, we need to use BeforeNodesFree. Otherwise our UnLoadInlined
+    will free items to which existing TCastleSceneCore / TShape may keep
+    references. Testcase: inline_load_control_test_1.x3dv,
+    with --debug-log-vrml-changes,
+    press ctrl then shift, without BeforeNodesFree will fail ->
+    because OriginalGeometry.ClassName is no longer available. }
+
+  if Scene <> nil then Scene.BeforeNodesFree;
+
+  if Load then
+    LoadInlined(false)
+  else
+    UnLoadInlined;
+
+  if Scene <> nil then Scene.ChangedAll;
+end;
+
+procedure TInlineGeometryNode.EventUrlReceive(
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
+begin
+  if Load then
+  begin
+    if Scene <> nil then Scene.BeforeNodesFree;
+    UnLoadInlined;
+    LoadInlined(false);
+    if Scene <> nil then Scene.ChangedAll;
+  end;
+end;
+
+function TInlineGeometryNode.Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode;
+
+  procedure AdjustProxyGeometry(const Node: TAbstractGeometryNode);
+  begin
+    if Node is TElevationGridNode then
+      TElevationGridNode(Node).CreaseAngle := IfThen(Smooth, 4, 0)
+    else
+    if Node is TIndexedFaceSetNode then
+      TIndexedFaceSetNode(Node).CreaseAngle := IfThen(Smooth, 4, 0)
+    else
+    if Node is TExtrusionNode then
+      TExtrusionNode(Node).CreaseAngle := IfThen(Smooth, 4, 0)
+    else
+    if Node is TGeoElevationGridNode then
+      TGeoElevationGridNode(Node).CreaseAngle := IfThen(Smooth, 4, 0)
+    else
+
+    { Test for TAbstractComposedGeometryNode as last,
+      because TIndexedFaceSetNode is also TAbstractComposedGeometryNode
+      but should not go here (use creaseAngle, if possible).
+
+      For the same reason, we don't change TElevationGridNode.NormalPerVertex
+      or TGeoElevationGrid.NormalPerVertex: We change their CreaseAngle,
+      and that's enough. }
+
+    if Node is TAbstractComposedGeometryNode then
+    begin
+      { Do this only when Normal = nil to only influence automatic normals,
+        do not influence user-provided normals interpretation. }
+      if TAbstractComposedGeometryNode(Node).Normal = nil then
+        TAbstractComposedGeometryNode(Node).NormalPerVertex := Smooth;
+    end;
+  end;
+
+begin
+  if FInlineGeometry = nil then
+    Result := nil
+  else
+  begin
+    { We make DeepCopy, as CastleShapes is prepared that it owns the proxy
+      results, including their lifetime, also for associating shapes with it. }
+    Result := FInlineGeometry.DeepCopy as TAbstractGeometryNode;
+    AdjustProxyGeometry(Result);
+  end;
+end;
+
+function TInlineGeometryNode.LocalBoundingBox(State: TX3DGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
+begin
+  { Unlike ancestor, we only look at ProxyGeometry,
+    don't fallback on BoundingBox which would make infinite recursion
+    in case we failed to load geometry. }
+  if ProxyGeometry <> nil then
+    Result := ProxyGeometry.LocalBoundingBox(ProxyState, nil, nil)
+  else
+    Result := TBox3D.Empty;
+end;
+
+function TInlineGeometryNode.BoundingBox(State: TX3DGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
+begin
+  { Unlike ancestor, we only look at ProxyGeometry,
+    don't fallback on BoundingBox which would make infinite recursion
+    in case we failed to load geometry. }
+  if ProxyGeometry <> nil then
+    Result := ProxyGeometry.BoundingBox(ProxyState, nil, nil)
+  else
+    Result := TBox3D.Empty;
+end;
+
+function TInlineGeometryNode.TrianglesCount(
+  State: TX3DGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
+begin
+  if ProxyGeometry <> nil then
+    Result := ProxyGeometry.TrianglesCount(ProxyState, nil, nil)
+  else
+    Result := 0;
+end;
+
+function TInlineGeometryNode.VerticesCount(
+  State: TX3DGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
+begin
+  if ProxyGeometry <> nil then
+    Result := ProxyGeometry.VerticesCount(ProxyState, nil, nil)
+  else
+    Result := 0;
 end;
 
 { TInlineLoadControlNode ----------------------------------------------------- }
@@ -611,6 +945,7 @@ begin
   NodesManager.RegisterNodeClasses([
     TAnchorNode,
     TInlineNode,
+    TInlineGeometryNode,
     TInlineLoadControlNode,
     TLoadSensorNode
   ]);

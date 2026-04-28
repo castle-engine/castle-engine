@@ -54,7 +54,16 @@ var
 
 implementation
 
+{ System.Hash has API to calculate SHA-256 and other checksums.
+  It's part of Delphi and (since FPC 3.3) also FPC.
+  We want to use this:
+  https://docwiki.embarcadero.com/Libraries/Sydney/en/System.Hash.THashSHA2 }
+{$if not(defined(VER3_0) or defined(VER3_2))}
+  {$define HAS_SYSTEM_HASH}
+{$endif}
+
 uses SysUtils, Math,
+  {$ifdef HAS_SYSTEM_HASH} System.Hash, {$endif}
   CastleHttps, // https support
   CastleComponentSerialize, CastleUtils, CastleStringUtils, CastleLog,
   CastleUriUtils;
@@ -96,9 +105,10 @@ end;
 procedure TViewMain.ClickStartDownloads(Sender: TObject);
 const
   Urls: array [1..DownloadsCount] of String = (
-    'https://castle-engine.io/latest.zip',
+    'https://github.com/castle-engine/castle-engine/releases/download/v7.0-alpha.3/castle-engine-only-api-reference.zip',
     'https://castle-engine.io/modern_pascal_introduction.html',
     'https://en.wikipedia.org/wiki/Main_Page'
+    // 'https://castle-engine.io/latest.zip', // large file, redirects, to GitHub downloads
     // 'file:///home/michalis/sources/castle-engine/castle-engine/examples/network/asynchronous_download/data/gears.blend',
     // 'castle-data:/gears.gltf',
     // 'https://deliberately-invalid-server.org/deliberately-invalid-url'
@@ -154,8 +164,34 @@ begin
 end;
 
 procedure TViewMain.DownloadFinish(const Sender: TCastleDownload; var FreeSender: Boolean);
+
+  { Calculate SHA-256 checksums of the downloaded data, using System.Hash if available. }
+  function GetHashSHA256(const Stream: TStream): String;
+  begin
+    Stream.Position := 0;
+    Result :=
+      {$ifdef HAS_SYSTEM_HASH}
+      THashSHA2.GetHashString(Stream, THashSHA2.TSHA2Version.SHA256)
+      {$else}
+      'N/A (System.Hash not available)'
+      {$endif};
+  end;
+
+  { Calculate MD5 checksums of the downloaded data, using System.Hash if available. }
+  function GetHashMD5(const Stream: TStream): String;
+  begin
+    Stream.Position := 0;
+    Result :=
+      {$ifdef HAS_SYSTEM_HASH}
+      THashMD5.GetHashString(Stream)
+      {$else}
+      'N/A (System.Hash not available)'
+      {$endif};
+  end;
+
 var
   HttpResponseHeaders: String;
+  SaveStream: TStream;
 begin
   { Gracefully handle the case when Sender.HttpResponseHeaders = nil,
     which will happen if you try to download non-HTTP/HTTPS URL,
@@ -177,15 +213,36 @@ begin
       UriDisplay(Sender.FinalUrl)
     ])
   else
+  begin
+    // TCastleDownload guarantees this when Status = dsSuccess
+    Assert(Sender.Contents <> nil);
+    Assert(Sender.Contents.Size = Sender.DownloadedBytes);
+    Assert(Sender.Contents.Position = 0);
+
     WritelnLog('Downloading "%s" successful.' + NL +
       'HTTP response code: %d' + NL +
       'HTTP response headers: %s' + NL +
-      'Final URL: %s', [
+      'Final URL: %s' + NL +
+      'Size: %s (bytes: %d)' + NL +
+      'SHA-256: %s' + NL +
+      'MD5: %s', [
       UriDisplay(Sender.Url),
       Sender.HttpResponseCode,
       HttpResponseHeaders,
-      UriDisplay(Sender.FinalUrl)
+      UriDisplay(Sender.FinalUrl),
+      SizeToStr(Sender.Contents.Size),
+      Sender.Contents.Size,
+      GetHashSHA256(Sender.Contents),
+      GetHashMD5(Sender.Contents)
     ]);
+
+    { Just to test that the downloaded data is correct, save it to a file. }
+    SaveStream := UrlSaveStream('castle-config:/last_downloaded_file_' +
+      UrlDecode(ExtractUriName(Sender.Url)));
+    try
+      SaveStream.CopyFrom(Sender.Contents, 0 { rewind and copy all });
+    finally FreeAndNil(SaveStream) end;
+  end;
 end;
 
 procedure TViewMain.ClickAbortDownloads(Sender: TObject);

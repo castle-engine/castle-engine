@@ -218,7 +218,7 @@ begin
   end;
 
   // update HintTalk existence
-  if Container.FrontView = Self then
+  if Container.CurrentFrontView = Self then
   begin
     TransformHit := GetTransformHit;
     HintTalk.Exists :=
@@ -342,7 +342,7 @@ begin
 
   { Don't handle inputs if we're not front-most view.
     This is just extra check, as TViewTalk already has InterceptInput = @true. }
-  if Container.FrontView <> Self then
+  if Container.CurrentFrontView <> Self then
     Exit;
 
   if Event.IsKey(keyF1) or Event.IsController(gbMenu) then

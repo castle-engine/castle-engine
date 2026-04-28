@@ -1,6 +1,6 @@
 {%MainUnit x3dnodes.pas}
 {
-  Copyright 2002-2025 Michalis Kamburelis.
+  Copyright 2002-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -243,7 +243,7 @@
       DefaultAnimationSamplingForBox = 30;
 
     type
-      { Renderer capabilities for @link(InternalFeatures). @exclude }
+      { Renderer capabilities for @code(InternalFeatures). @exclude }
       TInternalRendererFeatures = record
         Shaders: Boolean;
         MaxVertexUniformComponents: Cardinal;
@@ -252,7 +252,7 @@
         TextureFloat: Boolean;
       end;
 
-      { How do we calculate mesh from joints, for @link(InternalMeshCalculation). @exclude }
+      { How do we calculate mesh from joints, for @code(InternalMeshCalculation). @exclude }
       TInternalMeshCalculation = (
         { Calculate resulting mesh on CPU, using Pascal code. }
         mcCpu,
@@ -327,11 +327,12 @@
         @exclude }
       InternalJointMatrix: TMatrix4List;
 
-      { If @link(InternalMeshCalculation) is mcGpuTexture,
+      { If @code(InternalMeshCalculation) is mcGpuTexture,
         and once it is initialized (detect by FdJoints.Count = InternalJointMatrix.Count),
         use this texture to pass joint matrices to shaders.
 
-        It has defined contents (and may be @nil) otherwise. }
+        It has defined contents (and may be @nil) otherwise.
+        @exclude }
       InternalJointTexture: TPixelTextureNode;
 
     constructor Create(const AX3DName, ABaseUrl: String); override;

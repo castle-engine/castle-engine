@@ -1,6 +1,6 @@
 {%MainUnit castleifc.pas}
 {
-  Copyright 2024-2025 Michalis Kamburelis.
+  Copyright 2024-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -3004,8 +3004,20 @@
       const Indexes: array of Integer;
       const Solid: Boolean = true);
 
-    { Add lines representation to the given product.
-      Each pair of points in Coordinates defines a line.
+    { Add representation as a polyline to the given product.
+      The sequence of points in Coordinates defines a polyline,
+      so it starts from the first point and goes through each subsequent point in order.
+
+      @param(Context Geometric representation context instance,
+        usually @link(TIfcProject.ModelContext) (for 3D models) or
+        @link(TIfcProject.PlanContext) (for 2D floor plans).
+      ) }
+    procedure AddPolylineRepresentation(
+      const Context: TIfcGeometricRepresentationContext;
+      const Coordinates: array of TVector3);
+
+    { Add representation as a set of line segments to the given product.
+      Each pair of points in Coordinates defines a line segment.
 
       @param(Context Geometric representation context instance,
         usually @link(TIfcProject.ModelContext) (for 3D models) or
@@ -6127,7 +6139,7 @@ begin
   NewRepresentation.OfProductRepresentation.Add(Representation);
 end;
 
-procedure TIfcProduct.AddLinesRepresentation(
+procedure TIfcProduct.AddPolylineRepresentation(
   const Context: TIfcGeometricRepresentationContext;
   const Coordinates: array of TVector3);
 var
@@ -6144,6 +6156,64 @@ begin
   NewRepresentation.RepresentationType := 'Curve3D';
   NewRepresentation.ContextOfItems := Context;
   NewRepresentation.Items.Add(PolyLine);
+
+  if Representation = nil then
+    Representation := TIfcProductDefinitionShape.Create(Owner);
+  Representation.Representations.Add(NewRepresentation);
+
+  Context.RepresentationsInContext.Add(NewRepresentation);
+
+  // link back from NewRepresentation -> (product) Representation
+  NewRepresentation.OfProductRepresentation.Add(Representation);
+end;
+
+procedure TIfcProduct.AddLinesRepresentation(
+  const Context: TIfcGeometricRepresentationContext;
+  const Coordinates: array of TVector3);
+var
+  {$ifdef CASTLE_AddLinesRepresentation_UseGeometricSet}
+  GeometricCurveSet: TIfcGeometricCurveSet;
+  {$endif}
+  NewRepresentation: TIfcRepresentation;
+  PolyLine: TIfcPolyline;
+  I: Integer;
+begin
+  {$ifdef CASTLE_AddLinesRepresentation_UseGeometricSet}
+  GeometricCurveSet := TIfcGeometricCurveSet.Create(Owner);
+  I := 0;
+  while I + 1 < Length(Coordinates) do
+  begin
+    PolyLine := TIfcPolyline.Create(Owner);
+    PolyLine.Points.Add(TIfcCartesianPoint.CreateVector(Owner, Coordinates[I]));
+    PolyLine.Points.Add(TIfcCartesianPoint.CreateVector(Owner, Coordinates[I + 1]));
+    GeometricCurveSet.Elements.Add(PolyLine);
+    Inc(I, 2);
+  end;
+
+  NewRepresentation := TIfcShapeRepresentation.Create(Owner);
+  NewRepresentation.RepresentationIdentifier := 'Body';
+  { See https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcShapeRepresentation.htm
+    for possible RepresentationType values. }
+  NewRepresentation.RepresentationType := 'GeometricCurveSet';
+  NewRepresentation.ContextOfItems := Context;
+  NewRepresentation.Items.Add(GeometricCurveSet);
+
+  {$else}
+  NewRepresentation := TIfcShapeRepresentation.Create(Owner);
+  NewRepresentation.RepresentationIdentifier := 'Body';
+  NewRepresentation.RepresentationType := 'Curve3D';
+  NewRepresentation.ContextOfItems := Context;
+
+  I := 0;
+  while I + 1 < Length(Coordinates) do
+  begin
+    PolyLine := TIfcPolyline.Create(Owner);
+    PolyLine.Points.Add(TIfcCartesianPoint.CreateVector(Owner, Coordinates[I]));
+    PolyLine.Points.Add(TIfcCartesianPoint.CreateVector(Owner, Coordinates[I + 1]));
+    NewRepresentation.Items.Add(PolyLine);
+    Inc(I, 2);
+  end;
+  {$endif}
 
   if Representation = nil then
     Representation := TIfcProductDefinitionShape.Create(Owner);
@@ -6249,6 +6319,19 @@ begin
 end;
 
 procedure TIfcProduct.SetTransformRelativeTo(const OtherProduct: TIfcProduct);
+
+  { Create TIfcLocalPlacement with assigned TIfcLocalPlacement.RelativePlacement.
+
+    Set RelativePlacement to empty TIfcAxis2Placement3D, because
+    it is required by IFC spec
+    (not OPTIONAL in https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcLocalPlacement.htm )
+    and Blender BonsaiBIM indeed crashes when it is missing. }
+  function CreateLocalPlacement: TIfcLocalPlacement;
+  begin
+    Result := TIfcLocalPlacement.Create(Owner);
+    Result.RelativePlacement := TIfcAxis2Placement3D.Create(Owner);
+  end;
+
 begin
   if (OtherProduct = nil) or (OtherProduct = Self) then
   begin
@@ -6261,10 +6344,10 @@ begin
   begin
     // make sure OtherProduct.ObjectPlacement <> nil
     if OtherProduct.ObjectPlacement = nil then
-      OtherProduct.ObjectPlacement := TIfcLocalPlacement.Create(Owner);
+      OtherProduct.ObjectPlacement := CreateLocalPlacement;
     // make sure ObjectPlacement <> nil
     if ObjectPlacement = nil then
-      ObjectPlacement := TIfcLocalPlacement.Create(Owner);
+      ObjectPlacement := CreateLocalPlacement;
     ObjectPlacement.PlacementRelTo := OtherProduct.ObjectPlacement;
 
     { Inverse of PlacementRelTo, according to spec of IfcObjectPlacement.

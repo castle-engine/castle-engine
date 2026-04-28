@@ -30,7 +30,15 @@
   public
     constructor Create;
     destructor Destroy; override;
+
     { Return a copy or OriginalNode.
+
+      Use this to make a deep copy of OriginalNode,
+      if you already have an instance of TX3DNodeDeepCopyState,
+      which usually means: you are implementing some @code(DeepCopy) method.
+      From the outside, you usually don't use TX3DNodeDeepCopyState directly,
+      and you can just use @link(TX3DNode.DeepCopy)
+      method, like @code(NewNode := OriginalNode.DeepCopy;).
 
       To keep sharing of nodes (DEF/USE mechanism) within the newly
       created copy, we need a list of already duplicated children.
@@ -555,6 +563,10 @@
 
       See the https://castle-engine.io/shaders#node_release for an example of this. }
     procedure WaitForRelease;
+
+    { Is node unused, looking at all mechanisms (VRML 1.0 parents, X3D parents,
+      KeepExistingBegin/End, WaitsForRelease). }
+    function Unused: Boolean;
 
     { Name of this node. When saving/loading, this comes from VRML/X3D
       "DEF" construct. Empty value means that the name is not defined.
@@ -1419,16 +1431,21 @@ begin
     FDestructionNotifications.Remove(Event);
 end;
 
+function TX3DNode.Unused: Boolean;
+begin
+  Result :=
+    (VRML1ParentsCount = 0) and
+    (FParentFields.Count = 0) and
+    (FKeepExisting = 0) and
+    (not FWaitsForRelease);
+end;
+
 procedure TX3DNode.FreeIfUnused;
 begin
-  if (Self <> nil) and
-     (VRML1ParentsCount = 0) and
-     (FParentFields.Count = 0) and
-     (FKeepExisting = 0) and
-     (not FWaitsForRelease) then
+  if (Self <> nil) and Unused then
   begin
     { For FPC <= 2.2.2:
-      This is written as "Self.Destroy" to actually do the desctruction,
+      This is written as "Self.Destroy" to actually do the destruction,
       freeing memory etc. If I would just call it "Destroy", it would
       perform what destructor does but leaving object instance unfreed.
 
@@ -2318,7 +2335,7 @@ var
                     Only *first* (not *last*) child should determine Position,
                     to later output the MFNode *earlier* than other stuff
                     (like ROUTEs that may depend on ot).
-                    
+
                   3. Note that duplicate names create edge-cases that are
                     impossible to convert between encodings.
                     With non-unique names, something defined in XML X3D
@@ -3441,15 +3458,11 @@ begin
       end;
     end;
 
-    { TODO: No need to copy prototypes for now?
-
-      This DeepCopy is used for now by protos expanding.
-      It does not need prototype links (as protos are already expanded when copying,
-      and they don't need anything more).
-
-      for I := 0 to Prototypes.Count - 1 do
-        ...(Prototypes[I]);
-    }
+    if FPrototypes <> nil then
+    begin
+      for I := 0 to FPrototypes.Count - 1 do
+        Result.AddPrototype(FPrototypes[I].DeepCopy(CopyState));
+    end;
 
     Assert(FieldsCount = Result.FieldsCount);
     Assert(EventsCount = Result.EventsCount);

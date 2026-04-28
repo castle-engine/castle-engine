@@ -14,7 +14,7 @@ uses SysUtils, Job.JS;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {
-  Automatically generated file by TWebIDLToPasWasmJob on 2026-04-28 00:24:23
+  Automatically generated file by TWebIDLToPasWasmJob on 2026-04-28 03:01:16
   
   Used command-line options: 
   --input=castleinternaljobweb.webidl
@@ -59,6 +59,8 @@ uses SysUtils, Job.JS;
 }
 Type
   // Forward class definitions
+  IJSAbortSignal = interface;
+  TJSAbortSignal = class;
   IJSAnalyserNode = interface;
   TJSAnalyserNode = class;
   IJSAnimationFrameProvider = interface;
@@ -87,6 +89,8 @@ Type
   TJSBaseAudioContext = class;
   IJSBiquadFilterNode = interface;
   TJSBiquadFilterNode = class;
+  IJSBlob = interface;
+  TJSBlob = class;
   IJSChannelMergerNode = interface;
   TJSChannelMergerNode = class;
   IJSChannelSplitterNode = interface;
@@ -135,6 +139,8 @@ Type
   TJSDOMRect = class;
   IJSDOMRectReadOnly = interface;
   TJSDOMRectReadOnly = class;
+  IJSDOMStringList = interface;
+  TJSDOMStringList = class;
   IJSDynamicsCompressorNode = interface;
   TJSDynamicsCompressorNode = class;
   IJSnsIScreen = interface;
@@ -155,6 +161,10 @@ Type
   TJSEventTarget = class;
   IJSEvent = interface;
   TJSEvent = class;
+  IJSBody = interface;
+  TJSBody = class;
+  IJSFormData = interface;
+  TJSFormData = class;
   IJSGainNode = interface;
   TJSGainNode = class;
   IJSHTMLCanvasElement = interface;
@@ -187,6 +197,8 @@ Type
   TJSImageData = class;
   IJSKeyboardEvent = interface;
   TJSKeyboardEvent = class;
+  IJSLocation = interface;
+  TJSLocation = class;
   IJSMouseEvent = interface;
   TJSMouseEvent = class;
   IJSNode = interface;
@@ -203,6 +215,18 @@ Type
   TJSPeriodicWave = class;
   IJSPointerEvent = interface;
   TJSPointerEvent = class;
+  IJSProgressEvent = interface;
+  TJSProgressEvent = class;
+  IJSCountQueuingStrategy = interface;
+  TJSCountQueuingStrategy = class;
+  IJSByteLengthQueuingStrategy = interface;
+  TJSByteLengthQueuingStrategy = class;
+  IJSReadableStreamGenericReader = interface;
+  TJSReadableStreamGenericReader = class;
+  IJSReadableStreamDefaultReader = interface;
+  TJSReadableStreamDefaultReader = class;
+  IJSReadableStream = interface;
+  TJSReadableStream = class;
   IJSScriptProcessorNode = interface;
   TJSScriptProcessorNode = class;
   IJSStereoPannerNode = interface;
@@ -339,6 +363,16 @@ Type
   TJSnsIPrintSettings = class;
   IJSWindow = interface;
   TJSWindow = class;
+  IJSXMLHttpRequestEventTarget = interface;
+  TJSXMLHttpRequestEventTarget = class;
+  IJSXMLHttpRequestUpload = interface;
+  TJSXMLHttpRequestUpload = class;
+  IJSInputStream = interface;
+  TJSInputStream = class;
+  IJSMozChannel = interface;
+  TJSMozChannel = class;
+  IJSXMLHttpRequest = interface;
+  TJSXMLHttpRequest = class;
   IJSAnalyserOptions = interface;
   TJSAnalyserOptions = class;
   IJSAudioBufferSourceOptions = interface;
@@ -353,6 +387,8 @@ Type
   TJSAudioNodeOptions = class;
   IJSBiquadFilterOptions = interface;
   TJSBiquadFilterOptions = class;
+  IJSBlobPropertyBag = interface;
+  TJSBlobPropertyBag = class;
   IJSChannelMergerOptions = interface;
   TJSChannelMergerOptions = class;
   IJSChannelSplitterOptions = interface;
@@ -373,6 +409,10 @@ Type
   TJSAddEventListenerOptions = class;
   IJSEventInit = interface;
   TJSEventInit = class;
+  IJSFetchReadableStreamReadDataDone = interface;
+  TJSFetchReadableStreamReadDataDone = class;
+  IJSFetchReadableStreamReadDataArray = interface;
+  TJSFetchReadableStreamReadDataArray = class;
   IJSGainOptions = interface;
   TJSGainOptions = class;
   IJSIIRFilterOptions = interface;
@@ -393,6 +433,22 @@ Type
   TJSPeriodicWaveOptions = class;
   IJSPointerEventInit = interface;
   TJSPointerEventInit = class;
+  IJSProgressEventInit = interface;
+  TJSProgressEventInit = class;
+  IJSQueuingStrategy = interface;
+  TJSQueuingStrategy = class;
+  IJSQueuingStrategyInit = interface;
+  TJSQueuingStrategyInit = class;
+  IJSReadableStreamReadResult = interface;
+  TJSReadableStreamReadResult = class;
+  IJSReadableStreamGetReaderOptions = interface;
+  TJSReadableStreamGetReaderOptions = class;
+  IJSReadableStreamIteratorOptions = interface;
+  TJSReadableStreamIteratorOptions = class;
+  IJSReadableWritablePair = interface;
+  TJSReadableWritablePair = class;
+  IJSStreamPipeOptions = interface;
+  TJSStreamPipeOptions = class;
   IJSStereoPannerOptions = interface;
   TJSStereoPannerOptions = class;
   IJSUIEventInit = interface;
@@ -413,23 +469,36 @@ Type
   TJSWebGLContextEventInit = class;
   IJSWebGLContextAttributes = interface;
   TJSWebGLContextAttributes = class;
+  IJSMozXMLHttpRequestParameters = interface;
+  TJSMozXMLHttpRequestParameters = class;
   TChannelCountMode = UnicodeString;
   TChannelInterpretation = UnicodeString;
   TAutomationRate = UnicodeString;
   TAudioContextState = UnicodeString;
   TBiquadFilterType = UnicodeString;
+  TEndingType = UnicodeString;
   TVisibilityState = UnicodeString;
   TOffscreenRenderingContextId = UnicodeString;
   TOscillatorType = UnicodeString;
   TPanningModelType = UnicodeString;
   TDistanceModelType = UnicodeString;
+  TReadableStreamType = UnicodeString;
+  TReadableStreamReaderMode = UnicodeString;
   TAlphaOption = UnicodeString;
   TVideoPixelFormat = UnicodeString;
   TOverSampleType = UnicodeString;
   TWebGLPowerPreference = UnicodeString;
   TPredefinedColorSpace = UnicodeString;
+  TXMLHttpRequestResponseType = UnicodeString;
   // Union of Event, DOMString
   TOnErrorEventHandlerNonNull_event_Type = Variant;
+  // Union of BufferSource, Blob, UTF8String
+  TBlobPart = Variant;
+  // Union of Blob, BufferSource, FormData, URLSearchParams, USVString
+  TXMLHttpRequestBodyInit = Variant;
+  TBodyInit = TXMLHttpRequestBodyInit;
+  // Union of Blob, Directory, USVString
+  TFormDataEntryValue = Variant;
   // Union of HTMLCanvasElement, OffscreenCanvas
   TCanvasSource = Variant;
   // Union of OffscreenCanvasRenderingContext2D, ImageBitmapRenderingContext, WebGLRenderingContext, WebGL2RenderingContext, GPUCanvasContext
@@ -437,6 +506,8 @@ Type
   TDOMTimeStamp = QWord;
   TEpochTimeStamp = QWord;
   TDOMHighResTimeStamp = Double;
+  // Union of ReadableStreamDefaultReader, ReadableStreamBYOBReader
+  TReadableStreamReader = Variant;
   TGLint64 = Int64;
   TGLuint64 = QWord;
   // Union of Uint32Array, sequence
@@ -470,6 +541,7 @@ Type
   TOnErrorEventHandlerNonNull = function (const event: TOnErrorEventHandlerNonNull_event_Type; const source: UTF8String; lineno: Cardinal; column: Cardinal; const error: Variant): Variant of object;
   TOnErrorEventHandler = TOnErrorEventHandlerNonNull;
   TEventListener = function (event: IJSEvent): Boolean of object;
+  TQueuingStrategySize = function (const chunk: Variant): Double of object;
   
   { --------------------------------------------------------------------
     TJSAudioBufferSourceOptions
@@ -677,6 +749,40 @@ Type
   end;
   
   { --------------------------------------------------------------------
+    TJSBlobPropertyBag
+    --------------------------------------------------------------------}
+  
+  TJSBlobPropertyBagRec = record
+    type_: UnicodeString;
+    endings: TEndingType;
+  end;
+  
+  IJSBlobPropertyBag = interface(IJSObject)
+    ['{28B80F11-F50F-3B2A-B3B5-7F8A7D3F8963}']
+    function _Gettype_: UnicodeString; 
+    function _Getendings: TEndingType; 
+    procedure _Settype_(const aValue: UnicodeString);
+    procedure _Setendings(const aValue: TEndingType);
+    property type_: UnicodeString read _Gettype_ write _Settype_;
+    property endings: TEndingType read _Getendings write _Setendings;
+  end;
+  
+  TJSBlobPropertyBag = class(TJSObject,IJSBlobPropertyBag)
+  Private
+  Protected
+    function _Gettype_: UnicodeString; 
+    function _Getendings: TEndingType; 
+    procedure _Settype_(const aValue: UnicodeString);
+    procedure _Setendings(const aValue: TEndingType);
+  Public
+    constructor create(const aDict : TJSBlobPropertyBagRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSBlobPropertyBag;
+    property type_: UnicodeString read _Gettype_ write _Settype_;
+    property endings: TEndingType read _Getendings write _Setendings;
+  end;
+  
+  { --------------------------------------------------------------------
     TJSConstantSourceOptions
     --------------------------------------------------------------------}
   
@@ -827,6 +933,60 @@ Type
   end;
   
   { --------------------------------------------------------------------
+    TJSFetchReadableStreamReadDataDone
+    --------------------------------------------------------------------}
+  
+  TJSFetchReadableStreamReadDataDoneRec = record
+    done: Boolean;
+  end;
+  
+  IJSFetchReadableStreamReadDataDone = interface(IJSObject)
+    ['{3D14F29E-AFA4-3CC1-892A-072C99870986}']
+    function _Getdone: Boolean; 
+    procedure _Setdone(const aValue: Boolean);
+    property done: Boolean read _Getdone write _Setdone;
+  end;
+  
+  TJSFetchReadableStreamReadDataDone = class(TJSObject,IJSFetchReadableStreamReadDataDone)
+  Private
+  Protected
+    function _Getdone: Boolean; 
+    procedure _Setdone(const aValue: Boolean);
+  Public
+    constructor create(const aDict : TJSFetchReadableStreamReadDataDoneRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSFetchReadableStreamReadDataDone;
+    property done: Boolean read _Getdone write _Setdone;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSFetchReadableStreamReadDataArray
+    --------------------------------------------------------------------}
+  
+  TJSFetchReadableStreamReadDataArrayRec = record
+    value: IJSUint8Array;
+  end;
+  
+  IJSFetchReadableStreamReadDataArray = interface(IJSObject)
+    ['{09282198-0BD8-3772-8B9E-E07B9806FF4C}']
+    function _Getvalue: IJSUint8Array; 
+    procedure _Setvalue(const aValue: IJSUint8Array);
+    property value: IJSUint8Array read _Getvalue write _Setvalue;
+  end;
+  
+  TJSFetchReadableStreamReadDataArray = class(TJSObject,IJSFetchReadableStreamReadDataArray)
+  Private
+  Protected
+    function _Getvalue: IJSUint8Array; 
+    procedure _Setvalue(const aValue: IJSUint8Array);
+  Public
+    constructor create(const aDict : TJSFetchReadableStreamReadDataArrayRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSFetchReadableStreamReadDataArray;
+    property value: IJSUint8Array read _Getvalue write _Setvalue;
+  end;
+  
+  { --------------------------------------------------------------------
     TJSImageEncodeOptions
     --------------------------------------------------------------------}
   
@@ -885,6 +1045,230 @@ Type
     class function JSClassName: UnicodeString; override;
     class function Cast(const Intf: IJSObject): IJSPeriodicWaveConstraints;
     property disableNormalization: Boolean read _GetdisableNormalization write _SetdisableNormalization;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSQueuingStrategy
+    --------------------------------------------------------------------}
+  
+  TJSQueuingStrategyRec = record
+    highWaterMark: Double;
+    size: TQueuingStrategySize;
+  end;
+  
+  IJSQueuingStrategy = interface(IJSObject)
+    ['{F27E0EE8-08C0-3219-A638-B53809085915}']
+    function _GethighWaterMark: Double; 
+    function _Getsize: TQueuingStrategySize; 
+    procedure _SethighWaterMark(const aValue: Double);
+    procedure _Setsize(const aValue: TQueuingStrategySize);
+    property highWaterMark: Double read _GethighWaterMark write _SethighWaterMark;
+    property size: TQueuingStrategySize read _Getsize write _Setsize;
+  end;
+  
+  TJSQueuingStrategy = class(TJSObject,IJSQueuingStrategy)
+  Private
+  Protected
+    function _GethighWaterMark: Double; 
+    function _Getsize: TQueuingStrategySize; 
+    procedure _SethighWaterMark(const aValue: Double);
+    procedure _Setsize(const aValue: TQueuingStrategySize);
+  Public
+    constructor create(const aDict : TJSQueuingStrategyRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSQueuingStrategy;
+    property highWaterMark: Double read _GethighWaterMark write _SethighWaterMark;
+    property size: TQueuingStrategySize read _Getsize write _Setsize;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSQueuingStrategyInit
+    --------------------------------------------------------------------}
+  
+  TJSQueuingStrategyInitRec = record
+    highWaterMark: Double; // required
+  end;
+  
+  IJSQueuingStrategyInit = interface(IJSObject)
+    ['{1EFAB0C3-64CD-32CF-944E-642C493C9EAF}']
+    function _GethighWaterMark: Double; 
+    procedure _SethighWaterMark(const aValue: Double);
+    property highWaterMark: Double read _GethighWaterMark write _SethighWaterMark; // required
+  end;
+  
+  TJSQueuingStrategyInit = class(TJSObject,IJSQueuingStrategyInit)
+  Private
+  Protected
+    function _GethighWaterMark: Double; 
+    procedure _SethighWaterMark(const aValue: Double);
+  Public
+    constructor create(const aDict : TJSQueuingStrategyInitRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSQueuingStrategyInit;
+    property highWaterMark: Double read _GethighWaterMark write _SethighWaterMark; // required
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSReadableStreamReadResult
+    --------------------------------------------------------------------}
+  
+  TJSReadableStreamReadResultRec = record
+    value: Variant;
+    done: Boolean;
+  end;
+  
+  IJSReadableStreamReadResult = interface(IJSObject)
+    ['{3613841C-E350-3383-9C5B-A771F657BE5E}']
+    function _Getvalue: Variant; 
+    function _Getdone: Boolean; 
+    procedure _Setvalue(const aValue: Variant);
+    procedure _Setdone(const aValue: Boolean);
+    property value: Variant read _Getvalue write _Setvalue;
+    property done: Boolean read _Getdone write _Setdone;
+  end;
+  
+  TJSReadableStreamReadResult = class(TJSObject,IJSReadableStreamReadResult)
+  Private
+  Protected
+    function _Getvalue: Variant; 
+    function _Getdone: Boolean; 
+    procedure _Setvalue(const aValue: Variant);
+    procedure _Setdone(const aValue: Boolean);
+  Public
+    constructor create(const aDict : TJSReadableStreamReadResultRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSReadableStreamReadResult;
+    property value: Variant read _Getvalue write _Setvalue;
+    property done: Boolean read _Getdone write _Setdone;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSReadableStreamGetReaderOptions
+    --------------------------------------------------------------------}
+  
+  TJSReadableStreamGetReaderOptionsRec = record
+    mode: TReadableStreamReaderMode;
+  end;
+  
+  IJSReadableStreamGetReaderOptions = interface(IJSObject)
+    ['{517FACC9-62C9-37B1-B9AA-C1F3920A30CF}']
+    function _Getmode: TReadableStreamReaderMode; 
+    procedure _Setmode(const aValue: TReadableStreamReaderMode);
+    property mode: TReadableStreamReaderMode read _Getmode write _Setmode;
+  end;
+  
+  TJSReadableStreamGetReaderOptions = class(TJSObject,IJSReadableStreamGetReaderOptions)
+  Private
+  Protected
+    function _Getmode: TReadableStreamReaderMode; 
+    procedure _Setmode(const aValue: TReadableStreamReaderMode);
+  Public
+    constructor create(const aDict : TJSReadableStreamGetReaderOptionsRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSReadableStreamGetReaderOptions;
+    property mode: TReadableStreamReaderMode read _Getmode write _Setmode;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSReadableStreamIteratorOptions
+    --------------------------------------------------------------------}
+  
+  TJSReadableStreamIteratorOptionsRec = record
+    preventCancel: Boolean;
+  end;
+  
+  IJSReadableStreamIteratorOptions = interface(IJSObject)
+    ['{83F4E7BF-DB3D-387B-966B-E9C2B62580FE}']
+    function _GetpreventCancel: Boolean; 
+    procedure _SetpreventCancel(const aValue: Boolean);
+    property preventCancel: Boolean read _GetpreventCancel write _SetpreventCancel;
+  end;
+  
+  TJSReadableStreamIteratorOptions = class(TJSObject,IJSReadableStreamIteratorOptions)
+  Private
+  Protected
+    function _GetpreventCancel: Boolean; 
+    procedure _SetpreventCancel(const aValue: Boolean);
+  Public
+    constructor create(const aDict : TJSReadableStreamIteratorOptionsRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSReadableStreamIteratorOptions;
+    property preventCancel: Boolean read _GetpreventCancel write _SetpreventCancel;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSReadableWritablePair
+    --------------------------------------------------------------------}
+  
+  TJSReadableWritablePairRec = record
+    readable: TJSReadableStream; // required
+  end;
+  
+  IJSReadableWritablePair = interface(IJSObject)
+    ['{A35BD9B6-01B8-345C-A10B-7B39D9DE0AF8}']
+    function _Getreadable: IJSReadableStream; 
+    procedure _Setreadable(const aValue: IJSReadableStream);
+    property readable: IJSReadableStream read _Getreadable write _Setreadable; // required
+  end;
+  
+  TJSReadableWritablePair = class(TJSObject,IJSReadableWritablePair)
+  Private
+  Protected
+    function _Getreadable: IJSReadableStream; 
+    procedure _Setreadable(const aValue: IJSReadableStream);
+  Public
+    constructor create(const aDict : TJSReadableWritablePairRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSReadableWritablePair;
+    property readable: IJSReadableStream read _Getreadable write _Setreadable; // required
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSStreamPipeOptions
+    --------------------------------------------------------------------}
+  
+  TJSStreamPipeOptionsRec = record
+    preventClose: Boolean;
+    preventAbort: Boolean;
+    preventCancel: Boolean;
+    signal: TJSAbortSignal;
+  end;
+  
+  IJSStreamPipeOptions = interface(IJSObject)
+    ['{D257C9F0-A081-3BDE-B832-C99ABB398443}']
+    function _GetpreventClose: Boolean; 
+    function _GetpreventAbort: Boolean; 
+    function _GetpreventCancel: Boolean; 
+    function _Getsignal: IJSAbortSignal; 
+    procedure _SetpreventClose(const aValue: Boolean);
+    procedure _SetpreventAbort(const aValue: Boolean);
+    procedure _SetpreventCancel(const aValue: Boolean);
+    procedure _Setsignal(const aValue: IJSAbortSignal);
+    property preventClose: Boolean read _GetpreventClose write _SetpreventClose;
+    property preventAbort: Boolean read _GetpreventAbort write _SetpreventAbort;
+    property preventCancel: Boolean read _GetpreventCancel write _SetpreventCancel;
+    property signal: IJSAbortSignal read _Getsignal write _Setsignal;
+  end;
+  
+  TJSStreamPipeOptions = class(TJSObject,IJSStreamPipeOptions)
+  Private
+  Protected
+    function _GetpreventClose: Boolean; 
+    function _GetpreventAbort: Boolean; 
+    function _GetpreventCancel: Boolean; 
+    function _Getsignal: IJSAbortSignal; 
+    procedure _SetpreventClose(const aValue: Boolean);
+    procedure _SetpreventAbort(const aValue: Boolean);
+    procedure _SetpreventCancel(const aValue: Boolean);
+    procedure _Setsignal(const aValue: IJSAbortSignal);
+  Public
+    constructor create(const aDict : TJSStreamPipeOptionsRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSStreamPipeOptions;
+    property preventClose: Boolean read _GetpreventClose write _SetpreventClose;
+    property preventAbort: Boolean read _GetpreventAbort write _SetpreventAbort;
+    property preventCancel: Boolean read _GetpreventCancel write _SetpreventCancel;
+    property signal: IJSAbortSignal read _Getsignal write _Setsignal;
   end;
   
   { --------------------------------------------------------------------
@@ -1182,6 +1566,40 @@ Type
     property powerPreference: TWebGLPowerPreference read _GetpowerPreference write _SetpowerPreference;
     property forceSoftwareRendering: TGLboolean read _GetforceSoftwareRendering write _SetforceSoftwareRendering;
     property xrCompatible: Boolean read _GetxrCompatible write _SetxrCompatible;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSMozXMLHttpRequestParameters
+    --------------------------------------------------------------------}
+  
+  TJSMozXMLHttpRequestParametersRec = record
+    mozAnon: Boolean;
+    mozSystem: Boolean;
+  end;
+  
+  IJSMozXMLHttpRequestParameters = interface(IJSObject)
+    ['{DDE9C446-70AD-3FBA-8B70-1F3FCBD40A8E}']
+    function _GetmozAnon: Boolean; 
+    function _GetmozSystem: Boolean; 
+    procedure _SetmozAnon(const aValue: Boolean);
+    procedure _SetmozSystem(const aValue: Boolean);
+    property mozAnon: Boolean read _GetmozAnon write _SetmozAnon;
+    property mozSystem: Boolean read _GetmozSystem write _SetmozSystem;
+  end;
+  
+  TJSMozXMLHttpRequestParameters = class(TJSObject,IJSMozXMLHttpRequestParameters)
+  Private
+  Protected
+    function _GetmozAnon: Boolean; 
+    function _GetmozSystem: Boolean; 
+    procedure _SetmozAnon(const aValue: Boolean);
+    procedure _SetmozSystem(const aValue: Boolean);
+  Public
+    constructor create(const aDict : TJSMozXMLHttpRequestParametersRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSMozXMLHttpRequestParameters;
+    property mozAnon: Boolean read _GetmozAnon write _SetmozAnon;
+    property mozSystem: Boolean read _GetmozSystem write _SetmozSystem;
   end;
   
   { --------------------------------------------------------------------
@@ -1795,6 +2213,50 @@ Type
     class function Cast(const Intf: IJSObject): IJSPeriodicWaveOptions;
     property real: TSingleDynArray read _Getreal write _Setreal;
     property imag: TSingleDynArray read _Getimag write _Setimag;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSProgressEventInit
+    --------------------------------------------------------------------}
+  
+  TJSProgressEventInitRec = record
+    lengthComputable: Boolean;
+    loaded: Double;
+    total: Double;
+    bubbles: Boolean;
+    cancelable: Boolean;
+    composed: Boolean;
+  end;
+  
+  IJSProgressEventInit = interface(IJSEventInit)
+    ['{D5279911-958E-33D5-AACA-C7C4A66090F5}']
+    function _GetlengthComputable: Boolean; 
+    function _Getloaded: Double; 
+    function _Gettotal: Double; 
+    procedure _SetlengthComputable(const aValue: Boolean);
+    procedure _Setloaded(const aValue: Double);
+    procedure _Settotal(const aValue: Double);
+    property lengthComputable: Boolean read _GetlengthComputable write _SetlengthComputable;
+    property loaded: Double read _Getloaded write _Setloaded;
+    property total: Double read _Gettotal write _Settotal;
+  end;
+  
+  TJSProgressEventInit = class(TJSEventInit,IJSProgressEventInit)
+  Private
+  Protected
+    function _GetlengthComputable: Boolean; 
+    function _Getloaded: Double; 
+    function _Gettotal: Double; 
+    procedure _SetlengthComputable(const aValue: Boolean);
+    procedure _Setloaded(const aValue: Double);
+    procedure _Settotal(const aValue: Double);
+  Public
+    constructor create(const aDict : TJSProgressEventInitRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSProgressEventInit;
+    property lengthComputable: Boolean read _GetlengthComputable write _SetlengthComputable;
+    property loaded: Double read _Getloaded write _Setloaded;
+    property total: Double read _Gettotal write _Settotal;
   end;
   
   { --------------------------------------------------------------------
@@ -2550,6 +3012,50 @@ Type
   end;
   
   { --------------------------------------------------------------------
+    TJSBlob
+    --------------------------------------------------------------------}
+  
+  TBlobPartDynArray = IJSArray; // array of BlobPart
+  IJSBlob = interface(IJSObject)
+    ['{12AA4DB0-1685-3389-84DB-DCBEBECB2FA3}']
+    function _Getsize: QWord; 
+    function _Gettype_: UnicodeString; 
+    function slice(aStart: Int64; aEnd_: Int64; const aContentType: UnicodeString): IJSBlob;
+    function slice: IJSBlob;
+    function slice(aStart: Int64): IJSBlob;
+    function slice(aStart: Int64; aEnd_: Int64): IJSBlob;
+    function stream: IJSReadableStream;
+    function text: IJSPromise; // Promise<USVString>
+    function arrayBuffer: IJSPromise; // Promise<ArrayBuffer>
+    function bytes: IJSPromise; // Promise<Uint8Array>
+    property size: QWord read _Getsize;
+    property type_: UnicodeString read _Gettype_;
+  end;
+  
+  TJSBlob = class(TJSObject,IJSBlob)
+  Private
+  Protected
+    function _Getsize: QWord; 
+    function _Gettype_: UnicodeString; 
+  Public
+    constructor Create(const aBlobParts: TBlobPartDynArray; const aOptions: IJSBlobPropertyBag); overload;
+    constructor Create; overload;
+    constructor Create(const aBlobParts: TBlobPartDynArray); overload;
+    function slice(aStart: Int64; aEnd_: Int64; const aContentType: UnicodeString): IJSBlob; overload;
+    function slice: IJSBlob; overload;
+    function slice(aStart: Int64): IJSBlob; overload;
+    function slice(aStart: Int64; aEnd_: Int64): IJSBlob; overload;
+    function stream: IJSReadableStream; overload;
+    function text: IJSPromise; overload; // Promise<USVString>
+    function arrayBuffer: IJSPromise; overload; // Promise<ArrayBuffer>
+    function bytes: IJSPromise; overload; // Promise<Uint8Array>
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSBlob;
+    property size: QWord read _Getsize;
+    property type_: UnicodeString read _Gettype_;
+  end;
+  
+  { --------------------------------------------------------------------
     TJSCSSStyleDeclaration
     --------------------------------------------------------------------}
   
@@ -2874,6 +3380,30 @@ Type
     property right: Double read _Getright;
     property bottom: Double read _Getbottom;
     property left: Double read _Getleft;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSDOMStringList
+    --------------------------------------------------------------------}
+  
+  IJSDOMStringList = interface(IJSObject)
+    ['{D9C88094-BA78-3BF9-B061-C7B4C4FE0321}']
+    function _Getlength_: Cardinal; 
+    function item(aIndex: Cardinal): UnicodeString;
+    function contains(const aString_: UnicodeString): Boolean;
+    property length_: Cardinal read _Getlength_;
+  end;
+  
+  TJSDOMStringList = class(TJSObject,IJSDOMStringList)
+  Private
+  Protected
+    function _Getlength_: Cardinal; 
+  Public
+    function item(aIndex: Cardinal): UnicodeString; overload;
+    function contains(const aString_: UnicodeString): Boolean; overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSDOMStringList;
+    property length_: Cardinal read _Getlength_;
   end;
   
   { --------------------------------------------------------------------
@@ -3822,6 +4352,54 @@ Type
   end;
   
   { --------------------------------------------------------------------
+    TJSBody
+    --------------------------------------------------------------------}
+  
+  IJSBody = interface(IJSObject)
+    ['{B9574066-D73F-368F-A3BA-111FEE3FD280}']
+    function _GetbodyUsed: Boolean; 
+    function arrayBuffer: IJSPromise; // Promise<ArrayBuffer>
+    function blob: IJSPromise; // Promise<Blob>
+    function bytes: IJSPromise; // Promise<Uint8Array>
+    function formData: IJSPromise; // Promise<FormData>
+    function json: IJSPromise; // Promise<JSON>
+    function text: IJSPromise; // Promise<USVString>
+    property bodyUsed: Boolean read _GetbodyUsed;
+  end;
+  
+  TJSBody = class(TJSObject,IJSBody)
+  Private
+  Protected
+    function _GetbodyUsed: Boolean; 
+  Public
+    function arrayBuffer: IJSPromise; overload; // Promise<ArrayBuffer>
+    function blob: IJSPromise; overload; // Promise<Blob>
+    function bytes: IJSPromise; overload; // Promise<Uint8Array>
+    function formData: IJSPromise; overload; // Promise<FormData>
+    function json: IJSPromise; overload; // Promise<JSON>
+    function text: IJSPromise; overload; // Promise<USVString>
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSBody;
+    property bodyUsed: Boolean read _GetbodyUsed;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSFormData
+    --------------------------------------------------------------------}
+  
+  IJSFormData = interface(IJSObject)
+    ['{854B4B58-8EBD-341E-8D8E-B92A9018C85A}']
+  end;
+  
+  TJSFormData = class(TJSObject,IJSFormData)
+  Private
+  Protected
+  Public
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSFormData;
+  end;
+  
+  { --------------------------------------------------------------------
     TJSimgINotificationObserver
     --------------------------------------------------------------------}
   
@@ -3941,6 +4519,84 @@ Type
   end;
   
   { --------------------------------------------------------------------
+    TJSLocation
+    --------------------------------------------------------------------}
+  
+  IJSLocation = interface(IJSObject)
+    ['{6069810D-82E3-3000-AB6D-877A46CA9A5B}']
+    function _Gethref: UTF8String; 
+    function _Getorigin: UTF8String; 
+    function _Getprotocol: UTF8String; 
+    function _Gethost: UTF8String; 
+    function _Gethostname: UTF8String; 
+    function _Getport: UTF8String; 
+    function _Getpathname: UTF8String; 
+    function _Getsearch: UTF8String; 
+    function _Gethash: UTF8String; 
+    function _GetancestorOrigins: IJSDOMStringList; 
+    procedure _Setprotocol(const aValue: UTF8String);
+    procedure _Sethost(const aValue: UTF8String);
+    procedure _Sethostname(const aValue: UTF8String);
+    procedure _Setport(const aValue: UTF8String);
+    procedure _Setpathname(const aValue: UTF8String);
+    procedure _Setsearch(const aValue: UTF8String);
+    procedure _Sethash(const aValue: UTF8String);
+    procedure assign(const aUrl: UTF8String);
+    procedure replace(const aUrl: UTF8String);
+    procedure reload(aForceget: Boolean);
+    procedure reload;
+    property href: UTF8String read _Gethref;
+    property origin: UTF8String read _Getorigin;
+    property protocol: UTF8String read _Getprotocol write _Setprotocol;
+    property host: UTF8String read _Gethost write _Sethost;
+    property hostname: UTF8String read _Gethostname write _Sethostname;
+    property port: UTF8String read _Getport write _Setport;
+    property pathname: UTF8String read _Getpathname write _Setpathname;
+    property search: UTF8String read _Getsearch write _Setsearch;
+    property hash: UTF8String read _Gethash write _Sethash;
+    property ancestorOrigins: IJSDOMStringList read _GetancestorOrigins;
+  end;
+  
+  TJSLocation = class(TJSObject,IJSLocation)
+  Private
+  Protected
+    function _Gethref: UTF8String; 
+    function _Getorigin: UTF8String; 
+    function _Getprotocol: UTF8String; 
+    function _Gethost: UTF8String; 
+    function _Gethostname: UTF8String; 
+    function _Getport: UTF8String; 
+    function _Getpathname: UTF8String; 
+    function _Getsearch: UTF8String; 
+    function _Gethash: UTF8String; 
+    function _GetancestorOrigins: IJSDOMStringList; 
+    procedure _Setprotocol(const aValue: UTF8String);
+    procedure _Sethost(const aValue: UTF8String);
+    procedure _Sethostname(const aValue: UTF8String);
+    procedure _Setport(const aValue: UTF8String);
+    procedure _Setpathname(const aValue: UTF8String);
+    procedure _Setsearch(const aValue: UTF8String);
+    procedure _Sethash(const aValue: UTF8String);
+  Public
+    procedure assign(const aUrl: UTF8String); overload;
+    procedure replace(const aUrl: UTF8String); overload;
+    procedure reload(aForceget: Boolean); overload;
+    procedure reload; overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSLocation;
+    property href: UTF8String read _Gethref;
+    property origin: UTF8String read _Getorigin;
+    property protocol: UTF8String read _Getprotocol write _Setprotocol;
+    property host: UTF8String read _Gethost write _Sethost;
+    property hostname: UTF8String read _Gethostname write _Sethostname;
+    property port: UTF8String read _Getport write _Setport;
+    property pathname: UTF8String read _Getpathname write _Setpathname;
+    property search: UTF8String read _Getsearch write _Setsearch;
+    property hash: UTF8String read _Gethash write _Sethash;
+    property ancestorOrigins: IJSDOMStringList read _GetancestorOrigins;
+  end;
+  
+  { --------------------------------------------------------------------
     TJSNonElementParentNode
     --------------------------------------------------------------------}
   
@@ -3974,6 +4630,120 @@ Type
     constructor Create(aContext: IJSBaseAudioContext); overload;
     class function JSClassName: UnicodeString; override;
     class function Cast(const Intf: IJSObject): IJSPeriodicWave;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSCountQueuingStrategy
+    --------------------------------------------------------------------}
+  
+  IJSCountQueuingStrategy = interface(IJSObject)
+    ['{3E02214C-EAC5-352D-9426-C93752B4E17C}']
+    function _GethighWaterMark: Double; 
+    function _Getsize: IJSFunction; 
+    property highWaterMark: Double read _GethighWaterMark;
+    property size: IJSFunction read _Getsize;
+  end;
+  
+  TJSCountQueuingStrategy = class(TJSObject,IJSCountQueuingStrategy)
+  Private
+  Protected
+    function _GethighWaterMark: Double; 
+    function _Getsize: IJSFunction; 
+  Public
+    constructor Create(const aInit: IJSQueuingStrategyInit); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSCountQueuingStrategy;
+    property highWaterMark: Double read _GethighWaterMark;
+    property size: IJSFunction read _Getsize;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSByteLengthQueuingStrategy
+    --------------------------------------------------------------------}
+  
+  IJSByteLengthQueuingStrategy = interface(IJSObject)
+    ['{331716CB-5821-374B-A1F7-96290FE2982A}']
+    function _GethighWaterMark: Double; 
+    function _Getsize: IJSFunction; 
+    property highWaterMark: Double read _GethighWaterMark;
+    property size: IJSFunction read _Getsize;
+  end;
+  
+  TJSByteLengthQueuingStrategy = class(TJSObject,IJSByteLengthQueuingStrategy)
+  Private
+  Protected
+    function _GethighWaterMark: Double; 
+    function _Getsize: IJSFunction; 
+  Public
+    constructor Create(const aInit: IJSQueuingStrategyInit); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSByteLengthQueuingStrategy;
+    property highWaterMark: Double read _GethighWaterMark;
+    property size: IJSFunction read _Getsize;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSReadableStreamGenericReader
+    --------------------------------------------------------------------}
+  
+  IJSReadableStreamGenericReader = interface(IJSObject)
+    ['{B7D38171-47D5-3E8B-89C2-6B93171A1906}']
+    function _Getclosed: IJSPromise; 
+    function cancel(const aReason: Variant): IJSPromise; // Promise<undefined>
+    function cancel: IJSPromise; // Promise<undefined>
+    property closed: IJSPromise read _Getclosed;
+  end;
+  
+  TJSReadableStreamGenericReader = class(TJSObject,IJSReadableStreamGenericReader)
+  Private
+  Protected
+    function _Getclosed: IJSPromise; 
+  Public
+    function cancel(const aReason: Variant): IJSPromise; overload; // Promise<undefined>
+    function cancel: IJSPromise; overload; // Promise<undefined>
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSReadableStreamGenericReader;
+    property closed: IJSPromise read _Getclosed;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSReadableStream
+    --------------------------------------------------------------------}
+  
+  TJSReadableStreamDynArray = IJSArray; // array of ReadableStream
+  
+  IJSReadableStream = interface(IJSObject)
+    ['{0798054E-1144-374E-9F7B-45CFB026FD95}']
+    function _Getlocked: Boolean; 
+    function cancel(const aReason: Variant): IJSPromise; // Promise<undefined>
+    function cancel: IJSPromise; // Promise<undefined>
+    function getReader(const aOptions: IJSReadableStreamGetReaderOptions): TReadableStreamReader;
+    function getReader: TReadableStreamReader;
+    function pipeThrough(const aTransform: IJSReadableWritablePair; const aOptions: IJSStreamPipeOptions): IJSReadableStream;
+    function pipeThrough(const aTransform: IJSReadableWritablePair): IJSReadableStream;
+    function tee: TJSReadableStreamDynArray;
+    property locked: Boolean read _Getlocked;
+  end;
+  
+  TJSReadableStream = class(TJSObject,IJSReadableStream)
+  Private
+  Protected
+    function _Getlocked: Boolean; 
+  Public
+    constructor Create(aUnderlyingSource: IJSObject; const aStrategy: IJSQueuingStrategy); overload;
+    constructor Create; overload;
+    constructor Create(aUnderlyingSource: IJSObject); overload;
+    function from(const aAsyncIterable: Variant): IJSReadableStream; overload;
+    function cancel(const aReason: Variant): IJSPromise; overload; // Promise<undefined>
+    function cancel: IJSPromise; overload; // Promise<undefined>
+    function getReader(const aOptions: IJSReadableStreamGetReaderOptions): TReadableStreamReader; overload;
+    function getReader: TReadableStreamReader; overload;
+    function pipeThrough(const aTransform: IJSReadableWritablePair; const aOptions: IJSStreamPipeOptions): IJSReadableStream; overload;
+    function pipeThrough(const aTransform: IJSReadableWritablePair): IJSReadableStream; overload;
+    function tee: TJSReadableStreamDynArray; overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSReadableStream;
+    property locked: Boolean read _Getlocked;
   end;
   
   { --------------------------------------------------------------------
@@ -8146,6 +8916,75 @@ Type
   end;
   
   { --------------------------------------------------------------------
+    TJSInputStream
+    --------------------------------------------------------------------}
+  
+  IJSInputStream = interface(IJSObject)
+    ['{EEDF1D10-7DC3-3FB0-B83D-1A2372542131}']
+  end;
+  
+  TJSInputStream = class(TJSObject,IJSInputStream)
+  Private
+  Protected
+  Public
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSInputStream;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSMozChannel
+    --------------------------------------------------------------------}
+  
+  IJSMozChannel = interface(IJSObject)
+    ['{F0F3CF1A-08CD-3886-87C0-636E89A48332}']
+  end;
+  
+  TJSMozChannel = class(TJSObject,IJSMozChannel)
+  Private
+  Protected
+  Public
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSMozChannel;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSAbortSignal
+    --------------------------------------------------------------------}
+  
+  TJSAbortSignalDynArray = IJSArray; // array of AbortSignal
+  IJSAbortSignal = interface(IJSEventTarget)
+    ['{1EF8713E-033B-3A7C-A9E1-6F6406504E92}']
+    function _Getaborted: Boolean; 
+    function _Getreason: Variant; 
+    function _Getonabort: TEventHandler; 
+    procedure _Setonabort(const aValue: TEventHandler);
+    procedure throwIfAborted;
+    property aborted: Boolean read _Getaborted;
+    property reason: Variant read _Getreason;
+    property onabort: TEventHandler read _Getonabort write _Setonabort;
+  end;
+  
+  TJSAbortSignal = class(TJSEventTarget,IJSAbortSignal)
+  Private
+  Protected
+    function _Getaborted: Boolean; 
+    function _Getreason: Variant; 
+    function _Getonabort: TEventHandler; 
+    procedure _Setonabort(const aValue: TEventHandler);
+  Public
+    function abort(const aReason: Variant): IJSAbortSignal; overload;
+    function abort: IJSAbortSignal; overload;
+    function timeout(aMilliseconds: QWord): IJSAbortSignal; overload;
+    function any(const aSignals: TJSAbortSignalDynArray): IJSAbortSignal; overload;
+    procedure throwIfAborted; overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSAbortSignal;
+    property aborted: Boolean read _Getaborted;
+    property reason: Variant read _Getreason;
+    property onabort: TEventHandler read _Getonabort write _Setonabort;
+  end;
+  
+  { --------------------------------------------------------------------
     TJSAudioNode
     --------------------------------------------------------------------}
   
@@ -8618,6 +9457,57 @@ Type
   end;
   
   { --------------------------------------------------------------------
+    TJSProgressEvent
+    --------------------------------------------------------------------}
+  
+  IJSProgressEvent = interface(IJSEvent)
+    ['{71729264-7417-30AC-AD12-30702AE7468F}']
+    function _GetlengthComputable: Boolean; 
+    function _Getloaded: Double; 
+    function _Gettotal: Double; 
+    property lengthComputable: Boolean read _GetlengthComputable;
+    property loaded: Double read _Getloaded;
+    property total: Double read _Gettotal;
+  end;
+  
+  TJSProgressEvent = class(TJSEvent,IJSProgressEvent)
+  Private
+  Protected
+    function _GetlengthComputable: Boolean; 
+    function _Getloaded: Double; 
+    function _Gettotal: Double; 
+  Public
+    constructor Create(const aType_: UnicodeString; const aEventInitDict: IJSProgressEventInit); overload;
+    constructor Create(const aType_: UnicodeString); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSProgressEvent;
+    property lengthComputable: Boolean read _GetlengthComputable;
+    property loaded: Double read _Getloaded;
+    property total: Double read _Gettotal;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSReadableStreamDefaultReader
+    --------------------------------------------------------------------}
+  
+  IJSReadableStreamDefaultReader = interface(IJSReadableStreamGenericReader)
+    ['{5B471CFF-5A17-3F24-8BB3-2961CBA0B058}']
+    function read: IJSPromise; // Promise<ReadableStreamReadResult>
+    procedure releaseLock;
+  end;
+  
+  TJSReadableStreamDefaultReader = class(TJSReadableStreamGenericReader,IJSReadableStreamDefaultReader)
+  Private
+  Protected
+  Public
+    constructor Create(aStream: IJSReadableStream); overload;
+    function read: IJSPromise; overload; // Promise<ReadableStreamReadResult>
+    procedure releaseLock; overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSReadableStreamDefaultReader;
+  end;
+  
+  { --------------------------------------------------------------------
     TJSUIEvent
     --------------------------------------------------------------------}
   
@@ -8812,7 +9702,8 @@ Type
     --------------------------------------------------------------------}
   
   IJSWindow = interface(IJSEventTarget)
-    ['{81CA455C-B190-310E-AC3B-E34368D0C443}']
+    ['{428CBA68-EE10-39D5-942E-93160AE97CA8}']
+    function _Getlocation: IJSLocation; 
     function _GetdevicePixelRatio: Double; 
     function open(const aUrl: UnicodeString; const aTarget: UnicodeString; const aFeatures: UnicodeString): IJSWindowProxy;
     function open: IJSWindowProxy;
@@ -8820,12 +9711,14 @@ Type
     function open(const aUrl: UnicodeString; const aTarget: UnicodeString): IJSWindowProxy;
     function requestAnimationFrame(const aCallback: TFrameRequestCallback): LongInt;
     procedure cancelAnimationFrame(aHandle: LongInt);
+    property location: IJSLocation read _Getlocation;
     property devicePixelRatio: Double read _GetdevicePixelRatio;
   end;
   
   TJSWindow = class(TJSEventTarget,IJSWindow)
   Private
   Protected
+    function _Getlocation: IJSLocation; 
     function _GetdevicePixelRatio: Double; 
   Public
     function open(const aUrl: UnicodeString; const aTarget: UnicodeString; const aFeatures: UnicodeString): IJSWindowProxy; overload;
@@ -8836,7 +9729,66 @@ Type
     procedure cancelAnimationFrame(aHandle: LongInt); overload;
     class function JSClassName: UnicodeString; override;
     class function Cast(const Intf: IJSObject): IJSWindow;
+    property location: IJSLocation read _Getlocation;
     property devicePixelRatio: Double read _GetdevicePixelRatio;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSXMLHttpRequestEventTarget
+    --------------------------------------------------------------------}
+  
+  IJSXMLHttpRequestEventTarget = interface(IJSEventTarget)
+    ['{F5B4D465-1525-3757-B96D-D4E14D83A032}']
+    function _Getonloadstart: TEventHandler; 
+    function _Getonprogress: TEventHandler; 
+    function _Getonabort: TEventHandler; 
+    function _Getonerror: TEventHandler; 
+    function _Getonload: TEventHandler; 
+    function _Getontimeout: TEventHandler; 
+    function _Getonloadend: TEventHandler; 
+    procedure _Setonloadstart(const aValue: TEventHandler);
+    procedure _Setonprogress(const aValue: TEventHandler);
+    procedure _Setonabort(const aValue: TEventHandler);
+    procedure _Setonerror(const aValue: TEventHandler);
+    procedure _Setonload(const aValue: TEventHandler);
+    procedure _Setontimeout(const aValue: TEventHandler);
+    procedure _Setonloadend(const aValue: TEventHandler);
+    property onloadstart: TEventHandler read _Getonloadstart write _Setonloadstart;
+    property onprogress: TEventHandler read _Getonprogress write _Setonprogress;
+    property onabort: TEventHandler read _Getonabort write _Setonabort;
+    property onerror: TEventHandler read _Getonerror write _Setonerror;
+    property onload: TEventHandler read _Getonload write _Setonload;
+    property ontimeout: TEventHandler read _Getontimeout write _Setontimeout;
+    property onloadend: TEventHandler read _Getonloadend write _Setonloadend;
+  end;
+  
+  TJSXMLHttpRequestEventTarget = class(TJSEventTarget,IJSXMLHttpRequestEventTarget)
+  Private
+  Protected
+    function _Getonloadstart: TEventHandler; 
+    function _Getonprogress: TEventHandler; 
+    function _Getonabort: TEventHandler; 
+    function _Getonerror: TEventHandler; 
+    function _Getonload: TEventHandler; 
+    function _Getontimeout: TEventHandler; 
+    function _Getonloadend: TEventHandler; 
+    procedure _Setonloadstart(const aValue: TEventHandler);
+    procedure _Setonprogress(const aValue: TEventHandler);
+    procedure _Setonabort(const aValue: TEventHandler);
+    procedure _Setonerror(const aValue: TEventHandler);
+    procedure _Setonload(const aValue: TEventHandler);
+    procedure _Setontimeout(const aValue: TEventHandler);
+    procedure _Setonloadend(const aValue: TEventHandler);
+  Public
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSXMLHttpRequestEventTarget;
+    property onloadstart: TEventHandler read _Getonloadstart write _Setonloadstart;
+    property onprogress: TEventHandler read _Getonprogress write _Setonprogress;
+    property onabort: TEventHandler read _Getonabort write _Setonabort;
+    property onerror: TEventHandler read _Getonerror write _Setonerror;
+    property onload: TEventHandler read _Getonload write _Setonload;
+    property ontimeout: TEventHandler read _Getontimeout write _Setontimeout;
+    property onloadend: TEventHandler read _Getonloadend write _Setonloadend;
   end;
   
   { --------------------------------------------------------------------
@@ -9726,6 +10678,138 @@ Type
   end;
   
   { --------------------------------------------------------------------
+    TJSXMLHttpRequestUpload
+    --------------------------------------------------------------------}
+  
+  IJSXMLHttpRequestUpload = interface(IJSXMLHttpRequestEventTarget)
+    ['{9D686DEC-4392-374E-AB8E-4CA0C1B54601}']
+  end;
+  
+  TJSXMLHttpRequestUpload = class(TJSXMLHttpRequestEventTarget,IJSXMLHttpRequestUpload)
+  Private
+  Protected
+  Public
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSXMLHttpRequestUpload;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSXMLHttpRequest
+    --------------------------------------------------------------------}
+  
+  // Union of Document, XMLHttpRequestBodyInit
+  TXMLHttpRequest_send_body_Type = Variant;
+  IJSXMLHttpRequest = interface(IJSXMLHttpRequestEventTarget)
+    ['{A2BCBF78-E03D-30AB-96F0-0950EBA7941B}']
+    function _Getonreadystatechange: TEventHandler; 
+    function _GetreadyState: Word; 
+    function _Gettimeout: Cardinal; 
+    function _GetwithCredentials: Boolean; 
+    function _Getupload: IJSXMLHttpRequestUpload; 
+    function _GetresponseURL: UTF8String; 
+    function _Getstatus: Word; 
+    function _GetstatusText: UnicodeString; 
+    function _GetresponseType: TXMLHttpRequestResponseType; 
+    function _Getresponse: Variant; 
+    function _GetresponseText: UnicodeString; 
+    function _GetresponseXML: IJSDocument; 
+    function _GetmozAnon: Boolean; 
+    function _GetmozSystem: Boolean; 
+    procedure _Setonreadystatechange(const aValue: TEventHandler);
+    procedure _Settimeout(const aValue: Cardinal);
+    procedure _SetwithCredentials(const aValue: Boolean);
+    procedure _SetresponseType(const aValue: TXMLHttpRequestResponseType);
+    procedure open(const aMethod: UnicodeString; const aUrl: UnicodeString);
+    procedure open(const aMethod: UnicodeString; const aUrl: UnicodeString; aAsync: Boolean; const aUser: UnicodeString; const aPassword: UnicodeString);
+    procedure open(const aMethod: UnicodeString; const aUrl: UnicodeString; aAsync: Boolean);
+    procedure open(const aMethod: UnicodeString; const aUrl: UnicodeString; aAsync: Boolean; const aUser: UnicodeString);
+    procedure setRequestHeader(const aHeader: UnicodeString; const aValue: UnicodeString);
+    procedure send(aBody: IJSDocument);
+    procedure send;
+    procedure send(const aBody: TXMLHttpRequestBodyInit);
+    procedure abort;
+    function getResponseHeader(const aHeader: UnicodeString): UnicodeString;
+    function getAllResponseHeaders: UnicodeString;
+    procedure overrideMimeType(const aMime: UnicodeString);
+    property onreadystatechange: TEventHandler read _Getonreadystatechange write _Setonreadystatechange;
+    property readyState: Word read _GetreadyState;
+    property timeout: Cardinal read _Gettimeout write _Settimeout;
+    property withCredentials: Boolean read _GetwithCredentials write _SetwithCredentials;
+    property upload: IJSXMLHttpRequestUpload read _Getupload;
+    property responseURL: UTF8String read _GetresponseURL;
+    property status: Word read _Getstatus;
+    property statusText: UnicodeString read _GetstatusText;
+    property responseType: TXMLHttpRequestResponseType read _GetresponseType write _SetresponseType;
+    property response: Variant read _Getresponse;
+    property responseText: UnicodeString read _GetresponseText;
+    property responseXML: IJSDocument read _GetresponseXML;
+    property mozAnon: Boolean read _GetmozAnon;
+    property mozSystem: Boolean read _GetmozSystem;
+  end;
+  
+  TJSXMLHttpRequest = class(TJSXMLHttpRequestEventTarget,IJSXMLHttpRequest)
+  Private
+  Protected
+    function _Getonreadystatechange: TEventHandler; 
+    function _GetreadyState: Word; 
+    function _Gettimeout: Cardinal; 
+    function _GetwithCredentials: Boolean; 
+    function _Getupload: IJSXMLHttpRequestUpload; 
+    function _GetresponseURL: UTF8String; 
+    function _Getstatus: Word; 
+    function _GetstatusText: UnicodeString; 
+    function _GetresponseType: TXMLHttpRequestResponseType; 
+    function _Getresponse: Variant; 
+    function _GetresponseText: UnicodeString; 
+    function _GetresponseXML: IJSDocument; 
+    function _GetmozAnon: Boolean; 
+    function _GetmozSystem: Boolean; 
+    procedure _Setonreadystatechange(const aValue: TEventHandler);
+    procedure _Settimeout(const aValue: Cardinal);
+    procedure _SetwithCredentials(const aValue: Boolean);
+    procedure _SetresponseType(const aValue: TXMLHttpRequestResponseType);
+  Public
+    Const
+      UNSENT = 0;
+      OPENED = 1;
+      HEADERS_RECEIVED = 2;
+      LOADING = 3;
+      DONE = 4;
+  Public
+    constructor Create(const aParams: IJSMozXMLHttpRequestParameters); overload;
+    constructor Create; overload;
+    constructor Create(const aIgnored: UnicodeString); overload;
+    procedure open(const aMethod: UnicodeString; const aUrl: UnicodeString); overload;
+    procedure open(const aMethod: UnicodeString; const aUrl: UnicodeString; aAsync: Boolean; const aUser: UnicodeString; const aPassword: UnicodeString); overload;
+    procedure open(const aMethod: UnicodeString; const aUrl: UnicodeString; aAsync: Boolean); overload;
+    procedure open(const aMethod: UnicodeString; const aUrl: UnicodeString; aAsync: Boolean; const aUser: UnicodeString); overload;
+    procedure setRequestHeader(const aHeader: UnicodeString; const aValue: UnicodeString); overload;
+    procedure send(aBody: IJSDocument); overload;
+    procedure send; overload;
+    procedure send(const aBody: TXMLHttpRequestBodyInit); overload;
+    procedure abort; overload;
+    function getResponseHeader(const aHeader: UnicodeString): UnicodeString; overload;
+    function getAllResponseHeaders: UnicodeString; overload;
+    procedure overrideMimeType(const aMime: UnicodeString); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSXMLHttpRequest;
+    property onreadystatechange: TEventHandler read _Getonreadystatechange write _Setonreadystatechange;
+    property readyState: Word read _GetreadyState;
+    property timeout: Cardinal read _Gettimeout write _Settimeout;
+    property withCredentials: Boolean read _GetwithCredentials write _SetwithCredentials;
+    property upload: IJSXMLHttpRequestUpload read _Getupload;
+    property responseURL: UTF8String read _GetresponseURL;
+    property status: Word read _Getstatus;
+    property statusText: UnicodeString read _GetstatusText;
+    property responseType: TXMLHttpRequestResponseType read _GetresponseType write _SetresponseType;
+    property response: Variant read _Getresponse;
+    property responseText: UnicodeString read _GetresponseText;
+    property responseXML: IJSDocument read _GetresponseXML;
+    property mozAnon: Boolean read _GetmozAnon;
+    property mozSystem: Boolean read _GetmozSystem;
+  end;
+  
+  { --------------------------------------------------------------------
     TJSAudioBufferSourceNode
     --------------------------------------------------------------------}
   
@@ -10472,6 +11556,76 @@ var
 begin
   event:=H.GetObject(TJSEvent) as IJSEvent;
   Result:=H.AllocBool(TEventListener(aMethod)(event));
+end;
+
+function JOBCallQueuingStrategySize(const aMethod: TMethod; var H: TJOBCallbackHelper): PByte;
+var
+  chunk: Variant;
+begin
+  chunk:=H.GetVariant;
+  Result:=H.AllocDouble(TQueuingStrategySize(aMethod)(chunk));
+end;
+
+function TJSAbortSignal._Getaborted: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('aborted');
+end;
+
+function TJSAbortSignal._Getreason: Variant;
+begin
+  Result:=ReadJSPropertyVariant('reason');
+end;
+
+function TJSAbortSignal._Getonabort: TEventHandler;
+begin
+  Result:=(TEventHandlerNonNull(ReadJSPropertyMethod('onabort')));
+end;
+
+procedure TJSAbortSignal._Setonabort(const aValue : TEventHandler);
+var
+  m : TJOB_Method;
+begin
+  m:=TJOB_Method.create(TMethod(aValue),@JobCallEventHandlerNonNull);
+  try
+    InvokeJSNoResult('onabort',[m],jiSet);
+  finally
+    m.free
+  end;
+end;
+
+function TJSAbortSignal.abort(const aReason: Variant): IJSAbortSignal;
+begin
+  Result:=InvokeJSObjectResult('abort',[aReason],TJSAbortSignal) as IJSAbortSignal;
+end;
+
+function TJSAbortSignal.abort: IJSAbortSignal;
+begin
+  Result:=InvokeJSObjectResult('abort',[],TJSAbortSignal) as IJSAbortSignal;
+end;
+
+function TJSAbortSignal.timeout(aMilliseconds: QWord): IJSAbortSignal;
+begin
+  Result:=InvokeJSObjectResult('timeout',[aMilliseconds],TJSAbortSignal) as IJSAbortSignal;
+end;
+
+function TJSAbortSignal.any(const aSignals: TJSAbortSignalDynArray): IJSAbortSignal;
+begin
+  Result:=InvokeJSObjectResult('any',[aSignals],TJSAbortSignal) as IJSAbortSignal;
+end;
+
+procedure TJSAbortSignal.throwIfAborted;
+begin
+  InvokeJSNoResult('throwIfAborted',[]);
+end;
+
+class function TJSAbortSignal.JSClassName: UnicodeString;
+begin
+  Result:='AbortSignal';
+end;
+
+class function TJSAbortSignal.Cast(const Intf: IJSObject): IJSAbortSignal;
+begin
+  Result:=TJSAbortSignal.JOBCast(Intf);
 end;
 
 function TJSAnalyserOptions._GetfftSize: Cardinal;
@@ -11699,6 +12853,117 @@ begin
   Result:=TJSBiquadFilterNode.JOBCast(Intf);
 end;
 
+function TJSBlob._Getsize: QWord;
+begin
+  Result:=ReadJSPropertyInt64('size');
+end;
+
+function TJSBlob._Gettype_: UnicodeString;
+begin
+  Result:=ReadJSPropertyUnicodeString('type');
+end;
+
+constructor TJSBlob.Create(const aBlobParts: TBlobPartDynArray; const aOptions: IJSBlobPropertyBag);
+begin
+  JOBCreate([aBlobParts,aOptions]);
+end;
+
+constructor TJSBlob.Create;
+begin
+  JOBCreate([]);
+end;
+
+constructor TJSBlob.Create(const aBlobParts: TBlobPartDynArray);
+begin
+  JOBCreate([aBlobParts]);
+end;
+
+function TJSBlob.slice(aStart: Int64; aEnd_: Int64; const aContentType: UnicodeString): IJSBlob;
+begin
+  Result:=InvokeJSObjectResult('slice',[aStart,aEnd_,aContentType],TJSBlob) as IJSBlob;
+end;
+
+function TJSBlob.slice: IJSBlob;
+begin
+  Result:=InvokeJSObjectResult('slice',[],TJSBlob) as IJSBlob;
+end;
+
+function TJSBlob.slice(aStart: Int64): IJSBlob;
+begin
+  Result:=InvokeJSObjectResult('slice',[aStart],TJSBlob) as IJSBlob;
+end;
+
+function TJSBlob.slice(aStart: Int64; aEnd_: Int64): IJSBlob;
+begin
+  Result:=InvokeJSObjectResult('slice',[aStart,aEnd_],TJSBlob) as IJSBlob;
+end;
+
+function TJSBlob.stream: IJSReadableStream;
+begin
+  Result:=InvokeJSObjectResult('stream',[],TJSReadableStream) as IJSReadableStream;
+end;
+
+function TJSBlob.text: IJSPromise; // Promise<USVString>
+begin
+  Result:=InvokeJSObjectResult('text',[],TJSPromise) as IJSPromise;
+end;
+
+function TJSBlob.arrayBuffer: IJSPromise; // Promise<ArrayBuffer>
+begin
+  Result:=InvokeJSObjectResult('arrayBuffer',[],TJSPromise) as IJSPromise;
+end;
+
+function TJSBlob.bytes: IJSPromise; // Promise<Uint8Array>
+begin
+  Result:=InvokeJSObjectResult('bytes',[],TJSPromise) as IJSPromise;
+end;
+
+class function TJSBlob.JSClassName: UnicodeString;
+begin
+  Result:='Blob';
+end;
+
+class function TJSBlob.Cast(const Intf: IJSObject): IJSBlob;
+begin
+  Result:=TJSBlob.JOBCast(Intf);
+end;
+
+function TJSBlobPropertyBag._Gettype_: UnicodeString;
+begin
+  Result:=ReadJSPropertyUnicodeString('type');
+end;
+
+function TJSBlobPropertyBag._Getendings: TEndingType;
+begin
+  Result:=ReadJSPropertyUnicodeString('endings');
+end;
+
+procedure TJSBlobPropertyBag._Settype_(const aValue : UnicodeString);
+begin
+  WriteJSPropertyUnicodeString('type',aValue);
+end;
+
+procedure TJSBlobPropertyBag._Setendings(const aValue : TEndingType);
+begin
+  WriteJSPropertyUnicodeString('endings',aValue);
+end;
+
+constructor TJSBlobPropertyBag.create(const aDict : TJSBlobPropertyBagRec); overload;
+begin
+  Self.type_:=aDict.type_;
+  Self.endings:=aDict.endings;
+end;
+
+class function TJSBlobPropertyBag.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSBlobPropertyBag.Cast(const Intf: IJSObject): IJSBlobPropertyBag;
+begin
+  Result:=TJSBlobPropertyBag.JOBCast(Intf);
+end;
+
 function TJSChannelMergerOptions._GetnumberOfInputs: Cardinal;
 begin
   Result:=ReadJSPropertyInt64('numberOfInputs');
@@ -12497,6 +13762,31 @@ end;
 class function TJSDOMRectInit.Cast(const Intf: IJSObject): IJSDOMRectInit;
 begin
   Result:=TJSDOMRectInit.JOBCast(Intf);
+end;
+
+function TJSDOMStringList._Getlength_: Cardinal;
+begin
+  Result:=ReadJSPropertyInt64('length');
+end;
+
+function TJSDOMStringList.item(aIndex: Cardinal): UnicodeString;
+begin
+  Result:=InvokeJSUnicodeStringResult('item',[aIndex]);
+end;
+
+function TJSDOMStringList.contains(const aString_: UnicodeString): Boolean;
+begin
+  Result:=InvokeJSBooleanResult('contains',[aString_]);
+end;
+
+class function TJSDOMStringList.JSClassName: UnicodeString;
+begin
+  Result:='DOMStringList';
+end;
+
+class function TJSDOMStringList.Cast(const Intf: IJSObject): IJSDOMStringList;
+begin
+  Result:=TJSDOMStringList.JOBCast(Intf);
 end;
 
 function TJSDynamicsCompressorOptions._Getattack: Single;
@@ -15147,6 +16437,111 @@ begin
   Result:=TJSEventInit.JOBCast(Intf);
 end;
 
+function TJSBody._GetbodyUsed: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('bodyUsed');
+end;
+
+function TJSBody.arrayBuffer: IJSPromise; // Promise<ArrayBuffer>
+begin
+  Result:=InvokeJSObjectResult('arrayBuffer',[],TJSPromise) as IJSPromise;
+end;
+
+function TJSBody.blob: IJSPromise; // Promise<Blob>
+begin
+  Result:=InvokeJSObjectResult('blob',[],TJSPromise) as IJSPromise;
+end;
+
+function TJSBody.bytes: IJSPromise; // Promise<Uint8Array>
+begin
+  Result:=InvokeJSObjectResult('bytes',[],TJSPromise) as IJSPromise;
+end;
+
+function TJSBody.formData: IJSPromise; // Promise<FormData>
+begin
+  Result:=InvokeJSObjectResult('formData',[],TJSPromise) as IJSPromise;
+end;
+
+function TJSBody.json: IJSPromise; // Promise<JSON>
+begin
+  Result:=InvokeJSObjectResult('json',[],TJSPromise) as IJSPromise;
+end;
+
+function TJSBody.text: IJSPromise; // Promise<USVString>
+begin
+  Result:=InvokeJSObjectResult('text',[],TJSPromise) as IJSPromise;
+end;
+
+class function TJSBody.JSClassName: UnicodeString;
+begin
+  Result:='Body';
+end;
+
+class function TJSBody.Cast(const Intf: IJSObject): IJSBody;
+begin
+  Result:=TJSBody.JOBCast(Intf);
+end;
+
+function TJSFetchReadableStreamReadDataDone._Getdone: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('done');
+end;
+
+procedure TJSFetchReadableStreamReadDataDone._Setdone(const aValue : Boolean);
+begin
+  WriteJSPropertyBoolean('done',aValue);
+end;
+
+constructor TJSFetchReadableStreamReadDataDone.create(const aDict : TJSFetchReadableStreamReadDataDoneRec); overload;
+begin
+  Self.done:=aDict.done;
+end;
+
+class function TJSFetchReadableStreamReadDataDone.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSFetchReadableStreamReadDataDone.Cast(const Intf: IJSObject): IJSFetchReadableStreamReadDataDone;
+begin
+  Result:=TJSFetchReadableStreamReadDataDone.JOBCast(Intf);
+end;
+
+function TJSFetchReadableStreamReadDataArray._Getvalue: IJSUint8Array;
+begin
+  Result:=ReadJSPropertyObject('value',TJSUint8Array) as IJSUint8Array;
+end;
+
+procedure TJSFetchReadableStreamReadDataArray._Setvalue(const aValue : IJSUint8Array);
+begin
+  WriteJSPropertyObject('value',aValue);
+end;
+
+constructor TJSFetchReadableStreamReadDataArray.create(const aDict : TJSFetchReadableStreamReadDataArrayRec); overload;
+begin
+  Self.value:=aDict.value;
+end;
+
+class function TJSFetchReadableStreamReadDataArray.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSFetchReadableStreamReadDataArray.Cast(const Intf: IJSObject): IJSFetchReadableStreamReadDataArray;
+begin
+  Result:=TJSFetchReadableStreamReadDataArray.JOBCast(Intf);
+end;
+
+class function TJSFormData.JSClassName: UnicodeString;
+begin
+  Result:='FormData';
+end;
+
+class function TJSFormData.Cast(const Intf: IJSObject): IJSFormData;
+begin
+  Result:=TJSFormData.JOBCast(Intf);
+end;
+
 function TJSGainOptions._Getgain: Single;
 begin
   Result:=ReadJSPropertyDouble('gain');
@@ -16278,6 +17673,121 @@ end;
 class function TJSKeyboardEventInit.Cast(const Intf: IJSObject): IJSKeyboardEventInit;
 begin
   Result:=TJSKeyboardEventInit.JOBCast(Intf);
+end;
+
+function TJSLocation._Gethref: UTF8String;
+begin
+  Result:=ReadJSPropertyUTF8String('href');
+end;
+
+function TJSLocation._Getorigin: UTF8String;
+begin
+  Result:=ReadJSPropertyUTF8String('origin');
+end;
+
+function TJSLocation._Getprotocol: UTF8String;
+begin
+  Result:=ReadJSPropertyUTF8String('protocol');
+end;
+
+function TJSLocation._Gethost: UTF8String;
+begin
+  Result:=ReadJSPropertyUTF8String('host');
+end;
+
+function TJSLocation._Gethostname: UTF8String;
+begin
+  Result:=ReadJSPropertyUTF8String('hostname');
+end;
+
+function TJSLocation._Getport: UTF8String;
+begin
+  Result:=ReadJSPropertyUTF8String('port');
+end;
+
+function TJSLocation._Getpathname: UTF8String;
+begin
+  Result:=ReadJSPropertyUTF8String('pathname');
+end;
+
+function TJSLocation._Getsearch: UTF8String;
+begin
+  Result:=ReadJSPropertyUTF8String('search');
+end;
+
+function TJSLocation._Gethash: UTF8String;
+begin
+  Result:=ReadJSPropertyUTF8String('hash');
+end;
+
+function TJSLocation._GetancestorOrigins: IJSDOMStringList;
+begin
+  Result:=ReadJSPropertyObject('ancestorOrigins',TJSDOMStringList) as IJSDOMStringList;
+end;
+
+procedure TJSLocation._Setprotocol(const aValue : UTF8String);
+begin
+  WriteJSPropertyUTF8String('protocol',aValue);
+end;
+
+procedure TJSLocation._Sethost(const aValue : UTF8String);
+begin
+  WriteJSPropertyUTF8String('host',aValue);
+end;
+
+procedure TJSLocation._Sethostname(const aValue : UTF8String);
+begin
+  WriteJSPropertyUTF8String('hostname',aValue);
+end;
+
+procedure TJSLocation._Setport(const aValue : UTF8String);
+begin
+  WriteJSPropertyUTF8String('port',aValue);
+end;
+
+procedure TJSLocation._Setpathname(const aValue : UTF8String);
+begin
+  WriteJSPropertyUTF8String('pathname',aValue);
+end;
+
+procedure TJSLocation._Setsearch(const aValue : UTF8String);
+begin
+  WriteJSPropertyUTF8String('search',aValue);
+end;
+
+procedure TJSLocation._Sethash(const aValue : UTF8String);
+begin
+  WriteJSPropertyUTF8String('hash',aValue);
+end;
+
+procedure TJSLocation.assign(const aUrl: UTF8String);
+begin
+  InvokeJSNoResult('assign',[aUrl]);
+end;
+
+procedure TJSLocation.replace(const aUrl: UTF8String);
+begin
+  InvokeJSNoResult('replace',[aUrl]);
+end;
+
+procedure TJSLocation.reload(aForceget: Boolean);
+begin
+  InvokeJSNoResult('reload',[aForceget]);
+end;
+
+procedure TJSLocation.reload;
+begin
+  InvokeJSNoResult('reload',[]);
+end;
+
+class function TJSLocation.JSClassName: UnicodeString;
+begin
+  Result:='Location';
+end;
+
+class function TJSLocation.Cast(const Intf: IJSObject): IJSLocation;
+begin
+  Result:=TJSLocation.JOBCast(Intf);
 end;
 
 function TJSMouseEvent._GetscreenX: Double;
@@ -17726,6 +19236,495 @@ end;
 class function TJSPointerEventInit.Cast(const Intf: IJSObject): IJSPointerEventInit;
 begin
   Result:=TJSPointerEventInit.JOBCast(Intf);
+end;
+
+function TJSProgressEvent._GetlengthComputable: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('lengthComputable');
+end;
+
+function TJSProgressEvent._Getloaded: Double;
+begin
+  Result:=ReadJSPropertyDouble('loaded');
+end;
+
+function TJSProgressEvent._Gettotal: Double;
+begin
+  Result:=ReadJSPropertyDouble('total');
+end;
+
+constructor TJSProgressEvent.Create(const aType_: UnicodeString; const aEventInitDict: IJSProgressEventInit);
+begin
+  JOBCreate([aType_,aEventInitDict]);
+end;
+
+constructor TJSProgressEvent.Create(const aType_: UnicodeString);
+begin
+  JOBCreate([aType_]);
+end;
+
+class function TJSProgressEvent.JSClassName: UnicodeString;
+begin
+  Result:='ProgressEvent';
+end;
+
+class function TJSProgressEvent.Cast(const Intf: IJSObject): IJSProgressEvent;
+begin
+  Result:=TJSProgressEvent.JOBCast(Intf);
+end;
+
+function TJSProgressEventInit._GetlengthComputable: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('lengthComputable');
+end;
+
+function TJSProgressEventInit._Getloaded: Double;
+begin
+  Result:=ReadJSPropertyDouble('loaded');
+end;
+
+function TJSProgressEventInit._Gettotal: Double;
+begin
+  Result:=ReadJSPropertyDouble('total');
+end;
+
+procedure TJSProgressEventInit._SetlengthComputable(const aValue : Boolean);
+begin
+  WriteJSPropertyBoolean('lengthComputable',aValue);
+end;
+
+procedure TJSProgressEventInit._Setloaded(const aValue : Double);
+begin
+  WriteJSPropertyDouble('loaded',aValue);
+end;
+
+procedure TJSProgressEventInit._Settotal(const aValue : Double);
+begin
+  WriteJSPropertyDouble('total',aValue);
+end;
+
+constructor TJSProgressEventInit.create(const aDict : TJSProgressEventInitRec); overload;
+begin
+  Self.lengthComputable:=aDict.lengthComputable;
+  Self.loaded:=aDict.loaded;
+  Self.total:=aDict.total;
+end;
+
+class function TJSProgressEventInit.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSProgressEventInit.Cast(const Intf: IJSObject): IJSProgressEventInit;
+begin
+  Result:=TJSProgressEventInit.JOBCast(Intf);
+end;
+
+function TJSQueuingStrategy._GethighWaterMark: Double;
+begin
+  Result:=ReadJSPropertyDouble('highWaterMark');
+end;
+
+function TJSQueuingStrategy._Getsize: TQueuingStrategySize;
+begin
+  Result:=(TQueuingStrategySize(ReadJSPropertyMethod('size')));
+end;
+
+procedure TJSQueuingStrategy._SethighWaterMark(const aValue : Double);
+begin
+  WriteJSPropertyDouble('highWaterMark',aValue);
+end;
+
+procedure TJSQueuingStrategy._Setsize(const aValue : TQueuingStrategySize);
+var
+  m : TJOB_Method;
+begin
+  m:=TJOB_Method.create(TMethod(aValue),@JobCallQueuingStrategySize);
+  try
+    InvokeJSNoResult('size',[m],jiSet);
+  finally
+    m.free
+  end;
+end;
+
+constructor TJSQueuingStrategy.create(const aDict : TJSQueuingStrategyRec); overload;
+begin
+  Self.highWaterMark:=aDict.highWaterMark;
+  Self.size:=aDict.size;
+end;
+
+class function TJSQueuingStrategy.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSQueuingStrategy.Cast(const Intf: IJSObject): IJSQueuingStrategy;
+begin
+  Result:=TJSQueuingStrategy.JOBCast(Intf);
+end;
+
+function TJSQueuingStrategyInit._GethighWaterMark: Double;
+begin
+  Result:=ReadJSPropertyDouble('highWaterMark');
+end;
+
+procedure TJSQueuingStrategyInit._SethighWaterMark(const aValue : Double);
+begin
+  WriteJSPropertyDouble('highWaterMark',aValue);
+end;
+
+constructor TJSQueuingStrategyInit.create(const aDict : TJSQueuingStrategyInitRec); overload;
+begin
+  Self.highWaterMark:=aDict.highWaterMark;
+end;
+
+class function TJSQueuingStrategyInit.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSQueuingStrategyInit.Cast(const Intf: IJSObject): IJSQueuingStrategyInit;
+begin
+  Result:=TJSQueuingStrategyInit.JOBCast(Intf);
+end;
+
+function TJSCountQueuingStrategy._GethighWaterMark: Double;
+begin
+  Result:=ReadJSPropertyDouble('highWaterMark');
+end;
+
+function TJSCountQueuingStrategy._Getsize: IJSFunction;
+begin
+  Result:=ReadJSPropertyObject('size',TJSFunction) as IJSFunction;
+end;
+
+constructor TJSCountQueuingStrategy.Create(const aInit: IJSQueuingStrategyInit);
+begin
+  JOBCreate([aInit]);
+end;
+
+class function TJSCountQueuingStrategy.JSClassName: UnicodeString;
+begin
+  Result:='CountQueuingStrategy';
+end;
+
+class function TJSCountQueuingStrategy.Cast(const Intf: IJSObject): IJSCountQueuingStrategy;
+begin
+  Result:=TJSCountQueuingStrategy.JOBCast(Intf);
+end;
+
+function TJSByteLengthQueuingStrategy._GethighWaterMark: Double;
+begin
+  Result:=ReadJSPropertyDouble('highWaterMark');
+end;
+
+function TJSByteLengthQueuingStrategy._Getsize: IJSFunction;
+begin
+  Result:=ReadJSPropertyObject('size',TJSFunction) as IJSFunction;
+end;
+
+constructor TJSByteLengthQueuingStrategy.Create(const aInit: IJSQueuingStrategyInit);
+begin
+  JOBCreate([aInit]);
+end;
+
+class function TJSByteLengthQueuingStrategy.JSClassName: UnicodeString;
+begin
+  Result:='ByteLengthQueuingStrategy';
+end;
+
+class function TJSByteLengthQueuingStrategy.Cast(const Intf: IJSObject): IJSByteLengthQueuingStrategy;
+begin
+  Result:=TJSByteLengthQueuingStrategy.JOBCast(Intf);
+end;
+
+function TJSReadableStreamGenericReader._Getclosed: IJSPromise;
+begin
+  Result:=ReadJSPropertyObject('closed',TJSPromise) as IJSPromise;
+end;
+
+function TJSReadableStreamGenericReader.cancel(const aReason: Variant): IJSPromise; // Promise<undefined>
+begin
+  Result:=InvokeJSObjectResult('cancel',[aReason],TJSPromise) as IJSPromise;
+end;
+
+function TJSReadableStreamGenericReader.cancel: IJSPromise; // Promise<undefined>
+begin
+  Result:=InvokeJSObjectResult('cancel',[],TJSPromise) as IJSPromise;
+end;
+
+class function TJSReadableStreamGenericReader.JSClassName: UnicodeString;
+begin
+  Result:='ReadableStreamGenericReader';
+end;
+
+class function TJSReadableStreamGenericReader.Cast(const Intf: IJSObject): IJSReadableStreamGenericReader;
+begin
+  Result:=TJSReadableStreamGenericReader.JOBCast(Intf);
+end;
+
+constructor TJSReadableStreamDefaultReader.Create(aStream: IJSReadableStream);
+begin
+  JOBCreate([aStream]);
+end;
+
+function TJSReadableStreamDefaultReader.read: IJSPromise; // Promise<ReadableStreamReadResult>
+begin
+  Result:=InvokeJSObjectResult('read',[],TJSPromise) as IJSPromise;
+end;
+
+procedure TJSReadableStreamDefaultReader.releaseLock;
+begin
+  InvokeJSNoResult('releaseLock',[]);
+end;
+
+class function TJSReadableStreamDefaultReader.JSClassName: UnicodeString;
+begin
+  Result:='ReadableStreamDefaultReader';
+end;
+
+class function TJSReadableStreamDefaultReader.Cast(const Intf: IJSObject): IJSReadableStreamDefaultReader;
+begin
+  Result:=TJSReadableStreamDefaultReader.JOBCast(Intf);
+end;
+
+function TJSReadableStreamReadResult._Getvalue: Variant;
+begin
+  Result:=ReadJSPropertyVariant('value');
+end;
+
+function TJSReadableStreamReadResult._Getdone: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('done');
+end;
+
+procedure TJSReadableStreamReadResult._Setvalue(const aValue : Variant);
+begin
+  WriteJSPropertyVariant('value',aValue);
+end;
+
+procedure TJSReadableStreamReadResult._Setdone(const aValue : Boolean);
+begin
+  WriteJSPropertyBoolean('done',aValue);
+end;
+
+constructor TJSReadableStreamReadResult.create(const aDict : TJSReadableStreamReadResultRec); overload;
+begin
+  Self.value:=aDict.value;
+  Self.done:=aDict.done;
+end;
+
+class function TJSReadableStreamReadResult.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSReadableStreamReadResult.Cast(const Intf: IJSObject): IJSReadableStreamReadResult;
+begin
+  Result:=TJSReadableStreamReadResult.JOBCast(Intf);
+end;
+
+function TJSReadableStream._Getlocked: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('locked');
+end;
+
+constructor TJSReadableStream.Create(aUnderlyingSource: IJSObject; const aStrategy: IJSQueuingStrategy);
+begin
+  JOBCreate([aUnderlyingSource,aStrategy]);
+end;
+
+constructor TJSReadableStream.Create;
+begin
+  JOBCreate([]);
+end;
+
+constructor TJSReadableStream.Create(aUnderlyingSource: IJSObject);
+begin
+  JOBCreate([aUnderlyingSource]);
+end;
+
+function TJSReadableStream.from(const aAsyncIterable: Variant): IJSReadableStream;
+begin
+  Result:=InvokeJSObjectResult('from',[aAsyncIterable],TJSReadableStream) as IJSReadableStream;
+end;
+
+function TJSReadableStream.cancel(const aReason: Variant): IJSPromise; // Promise<undefined>
+begin
+  Result:=InvokeJSObjectResult('cancel',[aReason],TJSPromise) as IJSPromise;
+end;
+
+function TJSReadableStream.cancel: IJSPromise; // Promise<undefined>
+begin
+  Result:=InvokeJSObjectResult('cancel',[],TJSPromise) as IJSPromise;
+end;
+
+function TJSReadableStream.getReader(const aOptions: IJSReadableStreamGetReaderOptions): TReadableStreamReader;
+begin
+  Result:=InvokeJSVariantResult('getReader',[aOptions]);
+end;
+
+function TJSReadableStream.getReader: TReadableStreamReader;
+begin
+  Result:=InvokeJSVariantResult('getReader',[]);
+end;
+
+function TJSReadableStream.pipeThrough(const aTransform: IJSReadableWritablePair; const aOptions: IJSStreamPipeOptions): IJSReadableStream;
+begin
+  Result:=InvokeJSObjectResult('pipeThrough',[aTransform,aOptions],TJSReadableStream) as IJSReadableStream;
+end;
+
+function TJSReadableStream.pipeThrough(const aTransform: IJSReadableWritablePair): IJSReadableStream;
+begin
+  Result:=InvokeJSObjectResult('pipeThrough',[aTransform],TJSReadableStream) as IJSReadableStream;
+end;
+
+function TJSReadableStream.tee: TJSReadableStreamDynArray;
+begin
+  Result:=InvokeJSObjectResult('tee',[],TJSArray) as TJSReadableStreamDynArray;
+end;
+
+class function TJSReadableStream.JSClassName: UnicodeString;
+begin
+  Result:='ReadableStream';
+end;
+
+class function TJSReadableStream.Cast(const Intf: IJSObject): IJSReadableStream;
+begin
+  Result:=TJSReadableStream.JOBCast(Intf);
+end;
+
+function TJSReadableStreamGetReaderOptions._Getmode: TReadableStreamReaderMode;
+begin
+  Result:=ReadJSPropertyUnicodeString('mode');
+end;
+
+procedure TJSReadableStreamGetReaderOptions._Setmode(const aValue : TReadableStreamReaderMode);
+begin
+  WriteJSPropertyUnicodeString('mode',aValue);
+end;
+
+constructor TJSReadableStreamGetReaderOptions.create(const aDict : TJSReadableStreamGetReaderOptionsRec); overload;
+begin
+  Self.mode:=aDict.mode;
+end;
+
+class function TJSReadableStreamGetReaderOptions.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSReadableStreamGetReaderOptions.Cast(const Intf: IJSObject): IJSReadableStreamGetReaderOptions;
+begin
+  Result:=TJSReadableStreamGetReaderOptions.JOBCast(Intf);
+end;
+
+function TJSReadableStreamIteratorOptions._GetpreventCancel: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('preventCancel');
+end;
+
+procedure TJSReadableStreamIteratorOptions._SetpreventCancel(const aValue : Boolean);
+begin
+  WriteJSPropertyBoolean('preventCancel',aValue);
+end;
+
+constructor TJSReadableStreamIteratorOptions.create(const aDict : TJSReadableStreamIteratorOptionsRec); overload;
+begin
+  Self.preventCancel:=aDict.preventCancel;
+end;
+
+class function TJSReadableStreamIteratorOptions.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSReadableStreamIteratorOptions.Cast(const Intf: IJSObject): IJSReadableStreamIteratorOptions;
+begin
+  Result:=TJSReadableStreamIteratorOptions.JOBCast(Intf);
+end;
+
+function TJSReadableWritablePair._Getreadable: IJSReadableStream;
+begin
+  Result:=ReadJSPropertyObject('readable',TJSReadableStream) as IJSReadableStream;
+end;
+
+procedure TJSReadableWritablePair._Setreadable(const aValue : IJSReadableStream);
+begin
+  WriteJSPropertyObject('readable',aValue);
+end;
+
+constructor TJSReadableWritablePair.create(const aDict : TJSReadableWritablePairRec); overload;
+begin
+  Self.readable:=aDict.readable;
+end;
+
+class function TJSReadableWritablePair.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSReadableWritablePair.Cast(const Intf: IJSObject): IJSReadableWritablePair;
+begin
+  Result:=TJSReadableWritablePair.JOBCast(Intf);
+end;
+
+function TJSStreamPipeOptions._GetpreventClose: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('preventClose');
+end;
+
+function TJSStreamPipeOptions._GetpreventAbort: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('preventAbort');
+end;
+
+function TJSStreamPipeOptions._GetpreventCancel: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('preventCancel');
+end;
+
+function TJSStreamPipeOptions._Getsignal: IJSAbortSignal;
+begin
+  Result:=ReadJSPropertyObject('signal',TJSAbortSignal) as IJSAbortSignal;
+end;
+
+procedure TJSStreamPipeOptions._SetpreventClose(const aValue : Boolean);
+begin
+  WriteJSPropertyBoolean('preventClose',aValue);
+end;
+
+procedure TJSStreamPipeOptions._SetpreventAbort(const aValue : Boolean);
+begin
+  WriteJSPropertyBoolean('preventAbort',aValue);
+end;
+
+procedure TJSStreamPipeOptions._SetpreventCancel(const aValue : Boolean);
+begin
+  WriteJSPropertyBoolean('preventCancel',aValue);
+end;
+
+procedure TJSStreamPipeOptions._Setsignal(const aValue : IJSAbortSignal);
+begin
+  WriteJSPropertyObject('signal',aValue);
+end;
+
+constructor TJSStreamPipeOptions.create(const aDict : TJSStreamPipeOptionsRec); overload;
+begin
+  Self.preventClose:=aDict.preventClose;
+  Self.preventAbort:=aDict.preventAbort;
+  Self.preventCancel:=aDict.preventCancel;
+  Self.signal:=aDict.signal;
+end;
+
+class function TJSStreamPipeOptions.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSStreamPipeOptions.Cast(const Intf: IJSObject): IJSStreamPipeOptions;
+begin
+  Result:=TJSStreamPipeOptions.JOBCast(Intf);
 end;
 
 function TJSScriptProcessorNode._Getonaudioprocess: TEventHandler;
@@ -24016,6 +26015,11 @@ begin
   Result:=TJSnsIPrintSettings.JOBCast(Intf);
 end;
 
+function TJSWindow._Getlocation: IJSLocation;
+begin
+  Result:=ReadJSPropertyObject('location',TJSLocation) as IJSLocation;
+end;
+
 function TJSWindow._GetdevicePixelRatio: Double;
 begin
   Result:=ReadJSPropertyDouble('devicePixelRatio');
@@ -24066,6 +26070,383 @@ end;
 class function TJSWindow.Cast(const Intf: IJSObject): IJSWindow;
 begin
   Result:=TJSWindow.JOBCast(Intf);
+end;
+
+function TJSXMLHttpRequestEventTarget._Getonloadstart: TEventHandler;
+begin
+  Result:=(TEventHandlerNonNull(ReadJSPropertyMethod('onloadstart')));
+end;
+
+function TJSXMLHttpRequestEventTarget._Getonprogress: TEventHandler;
+begin
+  Result:=(TEventHandlerNonNull(ReadJSPropertyMethod('onprogress')));
+end;
+
+function TJSXMLHttpRequestEventTarget._Getonabort: TEventHandler;
+begin
+  Result:=(TEventHandlerNonNull(ReadJSPropertyMethod('onabort')));
+end;
+
+function TJSXMLHttpRequestEventTarget._Getonerror: TEventHandler;
+begin
+  Result:=(TEventHandlerNonNull(ReadJSPropertyMethod('onerror')));
+end;
+
+function TJSXMLHttpRequestEventTarget._Getonload: TEventHandler;
+begin
+  Result:=(TEventHandlerNonNull(ReadJSPropertyMethod('onload')));
+end;
+
+function TJSXMLHttpRequestEventTarget._Getontimeout: TEventHandler;
+begin
+  Result:=(TEventHandlerNonNull(ReadJSPropertyMethod('ontimeout')));
+end;
+
+function TJSXMLHttpRequestEventTarget._Getonloadend: TEventHandler;
+begin
+  Result:=(TEventHandlerNonNull(ReadJSPropertyMethod('onloadend')));
+end;
+
+procedure TJSXMLHttpRequestEventTarget._Setonloadstart(const aValue : TEventHandler);
+var
+  m : TJOB_Method;
+begin
+  m:=TJOB_Method.create(TMethod(aValue),@JobCallEventHandlerNonNull);
+  try
+    InvokeJSNoResult('onloadstart',[m],jiSet);
+  finally
+    m.free
+  end;
+end;
+
+procedure TJSXMLHttpRequestEventTarget._Setonprogress(const aValue : TEventHandler);
+var
+  m : TJOB_Method;
+begin
+  m:=TJOB_Method.create(TMethod(aValue),@JobCallEventHandlerNonNull);
+  try
+    InvokeJSNoResult('onprogress',[m],jiSet);
+  finally
+    m.free
+  end;
+end;
+
+procedure TJSXMLHttpRequestEventTarget._Setonabort(const aValue : TEventHandler);
+var
+  m : TJOB_Method;
+begin
+  m:=TJOB_Method.create(TMethod(aValue),@JobCallEventHandlerNonNull);
+  try
+    InvokeJSNoResult('onabort',[m],jiSet);
+  finally
+    m.free
+  end;
+end;
+
+procedure TJSXMLHttpRequestEventTarget._Setonerror(const aValue : TEventHandler);
+var
+  m : TJOB_Method;
+begin
+  m:=TJOB_Method.create(TMethod(aValue),@JobCallEventHandlerNonNull);
+  try
+    InvokeJSNoResult('onerror',[m],jiSet);
+  finally
+    m.free
+  end;
+end;
+
+procedure TJSXMLHttpRequestEventTarget._Setonload(const aValue : TEventHandler);
+var
+  m : TJOB_Method;
+begin
+  m:=TJOB_Method.create(TMethod(aValue),@JobCallEventHandlerNonNull);
+  try
+    InvokeJSNoResult('onload',[m],jiSet);
+  finally
+    m.free
+  end;
+end;
+
+procedure TJSXMLHttpRequestEventTarget._Setontimeout(const aValue : TEventHandler);
+var
+  m : TJOB_Method;
+begin
+  m:=TJOB_Method.create(TMethod(aValue),@JobCallEventHandlerNonNull);
+  try
+    InvokeJSNoResult('ontimeout',[m],jiSet);
+  finally
+    m.free
+  end;
+end;
+
+procedure TJSXMLHttpRequestEventTarget._Setonloadend(const aValue : TEventHandler);
+var
+  m : TJOB_Method;
+begin
+  m:=TJOB_Method.create(TMethod(aValue),@JobCallEventHandlerNonNull);
+  try
+    InvokeJSNoResult('onloadend',[m],jiSet);
+  finally
+    m.free
+  end;
+end;
+
+class function TJSXMLHttpRequestEventTarget.JSClassName: UnicodeString;
+begin
+  Result:='XMLHttpRequestEventTarget';
+end;
+
+class function TJSXMLHttpRequestEventTarget.Cast(const Intf: IJSObject): IJSXMLHttpRequestEventTarget;
+begin
+  Result:=TJSXMLHttpRequestEventTarget.JOBCast(Intf);
+end;
+
+class function TJSXMLHttpRequestUpload.JSClassName: UnicodeString;
+begin
+  Result:='XMLHttpRequestUpload';
+end;
+
+class function TJSXMLHttpRequestUpload.Cast(const Intf: IJSObject): IJSXMLHttpRequestUpload;
+begin
+  Result:=TJSXMLHttpRequestUpload.JOBCast(Intf);
+end;
+
+class function TJSInputStream.JSClassName: UnicodeString;
+begin
+  Result:='InputStream';
+end;
+
+class function TJSInputStream.Cast(const Intf: IJSObject): IJSInputStream;
+begin
+  Result:=TJSInputStream.JOBCast(Intf);
+end;
+
+class function TJSMozChannel.JSClassName: UnicodeString;
+begin
+  Result:='MozChannel';
+end;
+
+class function TJSMozChannel.Cast(const Intf: IJSObject): IJSMozChannel;
+begin
+  Result:=TJSMozChannel.JOBCast(Intf);
+end;
+
+function TJSMozXMLHttpRequestParameters._GetmozAnon: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('mozAnon');
+end;
+
+function TJSMozXMLHttpRequestParameters._GetmozSystem: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('mozSystem');
+end;
+
+procedure TJSMozXMLHttpRequestParameters._SetmozAnon(const aValue : Boolean);
+begin
+  WriteJSPropertyBoolean('mozAnon',aValue);
+end;
+
+procedure TJSMozXMLHttpRequestParameters._SetmozSystem(const aValue : Boolean);
+begin
+  WriteJSPropertyBoolean('mozSystem',aValue);
+end;
+
+constructor TJSMozXMLHttpRequestParameters.create(const aDict : TJSMozXMLHttpRequestParametersRec); overload;
+begin
+  Self.mozAnon:=aDict.mozAnon;
+  Self.mozSystem:=aDict.mozSystem;
+end;
+
+class function TJSMozXMLHttpRequestParameters.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSMozXMLHttpRequestParameters.Cast(const Intf: IJSObject): IJSMozXMLHttpRequestParameters;
+begin
+  Result:=TJSMozXMLHttpRequestParameters.JOBCast(Intf);
+end;
+
+function TJSXMLHttpRequest._Getonreadystatechange: TEventHandler;
+begin
+  Result:=(TEventHandlerNonNull(ReadJSPropertyMethod('onreadystatechange')));
+end;
+
+function TJSXMLHttpRequest._GetreadyState: Word;
+begin
+  Result:=ReadJSPropertyLongInt('readyState');
+end;
+
+function TJSXMLHttpRequest._Gettimeout: Cardinal;
+begin
+  Result:=ReadJSPropertyInt64('timeout');
+end;
+
+function TJSXMLHttpRequest._GetwithCredentials: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('withCredentials');
+end;
+
+function TJSXMLHttpRequest._Getupload: IJSXMLHttpRequestUpload;
+begin
+  Result:=ReadJSPropertyObject('upload',TJSXMLHttpRequestUpload) as IJSXMLHttpRequestUpload;
+end;
+
+function TJSXMLHttpRequest._GetresponseURL: UTF8String;
+begin
+  Result:=ReadJSPropertyUTF8String('responseURL');
+end;
+
+function TJSXMLHttpRequest._Getstatus: Word;
+begin
+  Result:=ReadJSPropertyLongInt('status');
+end;
+
+function TJSXMLHttpRequest._GetstatusText: UnicodeString;
+begin
+  Result:=ReadJSPropertyUnicodeString('statusText');
+end;
+
+function TJSXMLHttpRequest._GetresponseType: TXMLHttpRequestResponseType;
+begin
+  Result:=ReadJSPropertyUnicodeString('responseType');
+end;
+
+function TJSXMLHttpRequest._Getresponse: Variant;
+begin
+  Result:=ReadJSPropertyVariant('response');
+end;
+
+function TJSXMLHttpRequest._GetresponseText: UnicodeString;
+begin
+  Result:=ReadJSPropertyUnicodeString('responseText');
+end;
+
+function TJSXMLHttpRequest._GetresponseXML: IJSDocument;
+begin
+  Result:=ReadJSPropertyObject('responseXML',TJSDocument) as IJSDocument;
+end;
+
+function TJSXMLHttpRequest._GetmozAnon: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('mozAnon');
+end;
+
+function TJSXMLHttpRequest._GetmozSystem: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('mozSystem');
+end;
+
+procedure TJSXMLHttpRequest._Setonreadystatechange(const aValue : TEventHandler);
+var
+  m : TJOB_Method;
+begin
+  m:=TJOB_Method.create(TMethod(aValue),@JobCallEventHandlerNonNull);
+  try
+    InvokeJSNoResult('onreadystatechange',[m],jiSet);
+  finally
+    m.free
+  end;
+end;
+
+procedure TJSXMLHttpRequest._Settimeout(const aValue : Cardinal);
+begin
+  WriteJSPropertyDouble('timeout',aValue);
+end;
+
+procedure TJSXMLHttpRequest._SetwithCredentials(const aValue : Boolean);
+begin
+  WriteJSPropertyBoolean('withCredentials',aValue);
+end;
+
+procedure TJSXMLHttpRequest._SetresponseType(const aValue : TXMLHttpRequestResponseType);
+begin
+  WriteJSPropertyUnicodeString('responseType',aValue);
+end;
+
+constructor TJSXMLHttpRequest.Create(const aParams: IJSMozXMLHttpRequestParameters);
+begin
+  JOBCreate([aParams]);
+end;
+
+constructor TJSXMLHttpRequest.Create;
+begin
+  JOBCreate([]);
+end;
+
+constructor TJSXMLHttpRequest.Create(const aIgnored: UnicodeString);
+begin
+  JOBCreate([aIgnored]);
+end;
+
+procedure TJSXMLHttpRequest.open(const aMethod: UnicodeString; const aUrl: UnicodeString);
+begin
+  InvokeJSNoResult('open',[aMethod,aUrl]);
+end;
+
+procedure TJSXMLHttpRequest.open(const aMethod: UnicodeString; const aUrl: UnicodeString; aAsync: Boolean; const aUser: UnicodeString; const aPassword: UnicodeString);
+begin
+  InvokeJSNoResult('open',[aMethod,aUrl,aAsync,aUser,aPassword]);
+end;
+
+procedure TJSXMLHttpRequest.open(const aMethod: UnicodeString; const aUrl: UnicodeString; aAsync: Boolean);
+begin
+  InvokeJSNoResult('open',[aMethod,aUrl,aAsync]);
+end;
+
+procedure TJSXMLHttpRequest.open(const aMethod: UnicodeString; const aUrl: UnicodeString; aAsync: Boolean; const aUser: UnicodeString);
+begin
+  InvokeJSNoResult('open',[aMethod,aUrl,aAsync,aUser]);
+end;
+
+procedure TJSXMLHttpRequest.setRequestHeader(const aHeader: UnicodeString; const aValue: UnicodeString);
+begin
+  InvokeJSNoResult('setRequestHeader',[aHeader,aValue]);
+end;
+
+procedure TJSXMLHttpRequest.send(aBody: IJSDocument);
+begin
+  InvokeJSNoResult('send',[aBody]);
+end;
+
+procedure TJSXMLHttpRequest.send;
+begin
+  InvokeJSNoResult('send',[]);
+end;
+
+procedure TJSXMLHttpRequest.send(const aBody: TXMLHttpRequestBodyInit);
+begin
+  InvokeJSNoResult('send',[aBody]);
+end;
+
+procedure TJSXMLHttpRequest.abort;
+begin
+  InvokeJSNoResult('abort',[]);
+end;
+
+function TJSXMLHttpRequest.getResponseHeader(const aHeader: UnicodeString): UnicodeString;
+begin
+  Result:=InvokeJSUnicodeStringResult('getResponseHeader',[aHeader]);
+end;
+
+function TJSXMLHttpRequest.getAllResponseHeaders: UnicodeString;
+begin
+  Result:=InvokeJSUnicodeStringResult('getAllResponseHeaders',[]);
+end;
+
+procedure TJSXMLHttpRequest.overrideMimeType(const aMime: UnicodeString);
+begin
+  InvokeJSNoResult('overrideMimeType',[aMime]);
+end;
+
+class function TJSXMLHttpRequest.JSClassName: UnicodeString;
+begin
+  Result:='XMLHttpRequest';
+end;
+
+class function TJSXMLHttpRequest.Cast(const Intf: IJSObject): IJSXMLHttpRequest;
+begin
+  Result:=TJSXMLHttpRequest.JOBCast(Intf);
 end;
 
 initialization

@@ -1,29 +1,44 @@
 #!/bin/bash
 set -eu
 
+# -----------------------------------------------------------------------------
+# This script generates docs for all units in castle_game_engine/src.
+#
+# $1 is format (allowed values as for pasdoc's --format option).
+# Output will be placed in subdirectory $1 of current dir
+# so $1 means also subdirectory name.
+#
+# Additional arguments (optional) limit the units for which documentation will be generated:
+# - If you do not provide additional arguments,
+#   then documentation for almost every unit in castle_game_engine/src
+#   will be generated.
+#   This is what should go to https://castle-engine.io/apidoc/html/ .
+# - Otherwise, we only generate documentation for units specified.
+#   This is useful for quickly checking generated documentation.
+#   All filenames should be relative to $CASTLE_ENGINE_UNITS_PATH
+#   directory.
+#
+# Environment:
+# - CASTLE_FIND_AUTO_LINKS=true
+#   If set, then in the output we show possible candidates for auto_link_exclude.txt.
+#   Typical usage:
+#
+#   export CASTLE_FIND_AUTO_LINKS=true
+#   make clean html | less
+#   # browse output, potentially add stuff to auto_link_exclude.txt and commit it.
+# -----------------------------------------------------------------------------
+
+# PasDoc version 0.16.0 is too old
+if pasdoc --version | grep --quiet '0.16.0'; then
+  echo "PasDoc version 0.16.0 is too old to parse Castle Game Engine sources."
+  echo "  Reported version:" "$(pasdoc --version)"
+  exit 1
+fi
+
 # Use pipefail to fail if the "pasdoc"
 # command in "pasdoc ... | grep ..." pipe fails.
 # See http://unix.stackexchange.com/questions/14270/get-exit-status-of-process-thats-piped-to-another
 set -o pipefail
-
-# Generates docs for all units in castle_game_engine/src.
-# $1 is format (allowed values as for pasdoc's --format option),
-# docs will be placed in subdirectory $1 of current dir
-# so $1 means also subdirectory name.
-#
-# If you will not supply argument $2,
-# then documentation for almost every unit in castle_game_engine/src
-# (without automatically generated fonts units
-# and without units that pasdoc can't correctly parse)
-# will be generated.
-#
-# Else documentation for units $2...${$#} (all these arguments
-# should be filenames of units relative to $CASTLE_ENGINE_UNITS_PATH
-# directory) will be generated.
-# E.g.: ./mk_docs.sh html audio/alutils.pas
-# This is useful for quickly checking generated documentation
-# for some particular unit, because generating documentation
-# for all units takes a while.
 
 # "os-native path" in this file means "under Windows it must
 # *not* be Cygwin/MinGW/MSys/Git-for-Windows POSIX path,
@@ -58,6 +73,11 @@ fi
 FIND='find'
 if [ -n "$CYGWIN_OR_SIMILAR" ]; then
   FIND='/bin/find' # On Cygwin, make sure to use Cygwin's find, not the one from Windows
+fi
+
+SED='sed'
+if command -v gsed > /dev/null 2>&1; then
+  SED='gsed' # On macOS, prefer GNU sed if available (e.g. via Homebrew)
 fi
 
 # calculate PASDOC_CACHE (os-native path)
@@ -148,113 +168,151 @@ else
   done
 fi
 
-PASDOC_INCLUDE_DIRS="\
-  --include common_includes/\
-  --include transform/\
-  --include services/\
-  --include services/steam/\
-  --include scene/\
-  --include scene/load/\
-  --include scene/load/spine/\
-  --include scene/load/md3/\
-  --include scene/load/collada/\
-  --include scene/x3d/\
-  --include audio/\
-  --include base/\
-  --include base/$TARGET_OS/\
-  --include base_rendering/\
-  --include fonts/
-  --include fonts/$TARGET_OS/\
-  --include images/\
-  --include window/\
-  --include window/$TARGET_OS/\
-  --include window/gtk/
-"
+# Start building options to pasdoc, as bash array
+PASDOC_OPTIONS=(
+  --format="$PASDOC_FORMAT"
+  --output="${OUTPUT_PATH}"
+  --define="${TARGET_OS}"
+  --define=FPC
+  --define=VER3
+  --define=VER3_2
+  --define=VER3_2_2
+  --define=PASDOC
+  --write-uses-list
+  --title="Castle Game Engine"
+  --source="$TMP_PAS_LIST"
+  --cache-dir="$PASDOC_CACHE"
+  --auto-abstract
+  --introduction=../doc/pasdoc/introduction.pasdoc
+  --auto-link
+  --auto-link-exclude=../doc/pasdoc/auto_link_exclude.txt
+  --external-class-hierarchy=../doc/pasdoc/external_class_hierarchy.txt
+  --visible-members='public,published,automated,protected?'
+  --html-head=../doc/pasdoc/html-parts/head.html
+  --html-body-begin=../doc/pasdoc/html-parts/body-begin.html
+  --html-body-end=../doc/pasdoc/html-parts/body-end.html
+  --css-based-on-bootstrap=../doc/pasdoc/html-parts/cge-pasdoc.css
+  --show-source-position
+  --source-url-pattern='https://github.com/castle-engine/castle-engine/blob/master/src/{FILE}#L{LINE}'
+  --source-root="$(pwd)"
+  --inherited-members=default-hide
+)
 
+# add include directories to pasdoc options
+PASDOC_OPTIONS+=(
+  --include common_includes/
+  --include transform/
+  --include services/
+  --include services/steam/
+  --include scene/
+  --include scene/load/
+  --include scene/load/spine/
+  --include scene/load/md3/
+  --include scene/load/collada/
+  --include scene/x3d/
+  --include audio/
+  --include base/
+  --include base/"${TARGET_OS}"/
+  --include base_rendering/
+  --include fonts/
+  --include fonts/"${TARGET_OS}"/
+  --include images/
+  --include window/
+  --include window/"${TARGET_OS}"/
+  --include window/gtk/
+)
+
+# add HTML-specific options
 if [ "${PASDOC_FORMAT}" = 'html' ]; then
-  FORMAT_OPTIONS='--use-tipue-search'
+  PASDOC_OPTIONS+=(--use-tipue-search)
 	cp -R ../doc/pasdoc/logo/castle_game_engine_icon.png \
 	      ../doc/pasdoc/html-parts/images/ \
 	      ../doc/pasdoc/html-parts/castle-engine-website-base/ \
 	      "$OUTPUT_PATH"
-else
-  FORMAT_OPTIONS=''
 fi
 
-# Run pasdoc.
-#
-# Filter result through grep.
-# Thanks to "set -o pipefail" defined above, failure of "pasdoc"
-# will still cause the entire script to fail.
-#
-# We filter out some known pasdoc bugs/missing features:
-# - lack of @groupbegin/groupend implementation for now,
-# - reporting as missing links the exceptions from standard units.
-
-# Word splitting on PASDOC_INCLUDE_DIRS is intentional
-# shellcheck disable=SC2086
-pasdoc \
-  --format "$PASDOC_FORMAT" \
-  $PASDOC_INCLUDE_DIRS \
-  --output "$OUTPUT_PATH" \
-  --define "$TARGET_OS" \
-  --define FPC --define VER3 --define VER3_0 --define VER3_2_0 --define PASDOC \
-  --write-uses-list \
-  --title "Castle Game Engine" \
-  --source "$TMP_PAS_LIST" \
-  --cache-dir "$PASDOC_CACHE" \
-  --auto-abstract \
-  --introduction=../doc/pasdoc/introduction.pasdoc \
-  --auto-link \
-  --auto-link-exclude=../doc/pasdoc/auto_link_exclude.txt \
-  --external-class-hierarchy=../doc/pasdoc/external_class_hierarchy.txt \
-  --visible-members public,published,automated,protected \
-  --html-head ../doc/pasdoc/html-parts/head.html \
-  --html-body-begin ../doc/pasdoc/html-parts/body-begin.html \
-  --html-body-end ../doc/pasdoc/html-parts/body-end.html \
-  --css-based-on-bootstrap ../doc/pasdoc/html-parts/cge-pasdoc.css \
-  --show-source-position \
-  --source-url-pattern 'https://github.com/castle-engine/castle-engine/blob/master/src/{FILE}#L{LINE}' \
-  --source-root "$(pwd)" \
-  $FORMAT_OPTIONS
-
-  # TODO: Commented out grep filtering -- fails with "Disk Full" on GH Actions,
-  # seems some problem with pipes.
-  #
-  #  \
-  # | \
-  # grep --ignore-case --invert-match --fixed-strings \
-  #   --regexp='Tag "groupbegin" is not implemented yet, ignoring' \
-  #   --regexp='Tag "groupend" is not implemented yet, ignoring' \
-  #   --regexp='Could not resolve link "EConvertError"' \
-  #   --regexp='Could not resolve link "EReadError"' \
-  #   --regexp='Could not resolve link "Exception"' \
-  #   --regexp='Could not resolve link "EOSError"' \
-  #   --regexp='Could not resolve link "EInvalidArgument"' \
-  #   --regexp='Could not resolve link "EFOpenError"' \
-  #   --regexp='Could not resolve link "EStreamError"'
-
-# Not anymore:
-# We hide protected members, for now. Makes a cleaner documentation,
-# more useful for engine users, not interested in engine internals.
-
-#  \
-# --graphviz-classes --link-gv-classes jpg \
-# --graphviz-uses    --link-gv-uses    jpg
+# About protected members: We wondered about hiding them.
+# For most engine users, they are not interesting, and they make documentation
+# more cluttered.
+# But then, for some advanced usage, they are useful...
+# TODO: PasDoc should allows to toggle them by JS checkbox.
 
 # Useful to find new items for auto_link_exclude.txt:
-# grep for "Automatically linked identifier", remove duplicates,
-# and see which ones shouldn't be autolinked.
-# --verbosity=3
+# With extra verbosity, we also grep for "Automatically linked identifier",
+# remove duplicates, and these are candidates to add to auto_link_exclude.txt.
+if [[ "${CASTLE_FIND_AUTO_LINKS:-}" = 'true' ]]; then
+  PASDOC_OPTIONS+=(--verbosity=3)
+fi
 
-# Classes graph is too large, dot answers with
-#   dot: width (135399 >= 32768) is too large.
-# and then segfaults.
-#dot -Tjpg -o"$OUTPUT_PATH"GVClasses.jpg "$OUTPUT_PATH"GVClasses.dot
+# We don't use GraphViz now.
+# 1. Classes graph is too large, dot answers with
+#    dot: width (135399 >= 32768) is too large.
+#    and then segfaults.
+# 2. Units graph is possible, but still very large for human eye
+#    and so practically useless for us now...
+#
+# PASDOC_OPTIONS+=(
+# --graphviz-classes --link-gv-classes jpg
+# --graphviz-uses    --link-gv-uses    jpg
+# )
+# dot -Tjpg -o"$OUTPUT_PATH"GVClasses.jpg "$OUTPUT_PATH"GVClasses.dot
+# dot -Tjpg -o"$OUTPUT_PATH"GVUses.jpg    "$OUTPUT_PATH"GVUses.dot
 
-# Units graph is possible, but still very large for human eye
-# and so practically useless for us now...
-#dot -Tjpg -o"$OUTPUT_PATH"GVUses.jpg    "$OUTPUT_PATH"GVUses.dot
+# Run pasdoc.
+if [[ "${CASTLE_FIND_AUTO_LINKS:-}" = 'true' ]]; then
 
-# clean after ourselves
-rm -f "$TMP_PAS_LIST"
+  # Show possible candidates for auto_link_exclude.txt.
+  pasdoc "${PASDOC_OPTIONS[@]}" | \
+    grep --ignore-case --fixed-strings  --regexp='Automatically linked identifier' | \
+    "${SED}" -e 's/.*Automatically linked identifier "\([a-zA-Z0-9_.]*\)" (in description of .*/\1/' | \
+    sort | \
+    uniq
+
+elif [[ -n "${GITHUB_WORKSPACE:-}" ]]; then
+
+  # We don't filter when in GitHub Actions -- it fails with "Disk Full" on GH Actions,
+  # reasons still unknown.
+  pasdoc "${PASDOC_OPTIONS[@]}"
+
+else
+
+  # Default (when "make clean html" not in GitHub Actions):
+  # Filter result through grep.
+  # Thanks to "set -o pipefail" defined above, failure of "pasdoc"
+  # will still cause the entire script to fail.
+  #
+  # We filter out some known pasdoc bugs/missing features:
+  # - lack of @groupbegin/groupend implementation for now,
+  # - reporting as missing links the exceptions from standard units.
+
+  pasdoc "${PASDOC_OPTIONS[@]}" | \
+  grep --ignore-case --invert-match --fixed-strings \
+    --regexp='Tag "groupbegin" is not implemented yet, ignoring' \
+    --regexp='Tag "groupend" is not implemented yet, ignoring' \
+    --regexp='Could not resolve link "EConvertError"' \
+    --regexp='Could not resolve link "EReadError"' \
+    --regexp='Could not resolve link "Exception"' \
+    --regexp='Could not resolve link "EOSError"' \
+    --regexp='Could not resolve link "EInvalidArgument"' \
+    --regexp='Could not resolve link "EFOpenError"' \
+    --regexp='Could not resolve link "EStreamError"'
+
+fi
+
+# cleanup docs in HTML
+if [ "${PASDOC_FORMAT}" = 'html' ]; then
+  for FFF in "${OUTPUT_PATH}"*.html; do
+    # Remove bootstrap css, js included by PasDoc.
+    # In CGE theme, we already include Bootstrap CSS and JS
+    # (in similar versions, so it should make no difference).
+    # Duplicating them makes dropdown-menu using Bootstrap JS (like "Documentation")
+    # not working.
+    "${SED}" -i \
+      -e 's|<link rel="StyleSheet" type="text/css" href="bootstrap.min.css">|<!-- link rel="StyleSheet" type="text/css" href="bootstrap.min.css" --> <!-- CGE already includes Bootstrap CSS -->|' \
+      -e 's|<script src="bootstrap.bundle.min.js"></script>|<!-- script src="bootstrap.bundle.min.js"></script --> <!-- CGE already includes Bootstrap JS -->|' \
+      "$FFF"
+  done
+fi
+
+# cleanup
+rm -f "${TMP_PAS_LIST}"

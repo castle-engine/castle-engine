@@ -37,7 +37,7 @@ jobs:
         zip -r castle-engine-only-api-reference.zip reference
         mv castle-engine-only-api-reference.zip ../
     - name: Archive Artifacts
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
         name: api-reference
         path: castle-engine-only-api-reference.zip

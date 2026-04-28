@@ -237,6 +237,12 @@
     FParent: TCastleUserInterface;
     FLastSeenContainerWidth, FLastSeenContainerHeight: Integer;
 
+    { If we are processing something within this components, and thus
+      destroying this component would be dangerous now, this is > 0. }
+    ProcessingEvents: Cardinal;
+    { Last reeason for ProcessingEvents > 0, for logging / debug purposes. }
+    ProcessingEventsDescription: String;
+
     { Show Name and ClassName for debug/log purposes. }
     function DebugName: String;
 
@@ -1703,6 +1709,13 @@ end;
 
 destructor TCastleUserInterface.Destroy;
 begin
+  if ProcessingEvents <> 0 then
+    WritelnWarning('Component "%s" (class "%s") is being destroyed while processing its own event "%s". This can lead to undefined behavior and crashes. Defer destroying it to later, e.g. with ApplicationProperties.FreeDelayed.', [
+      Name,
+      ClassName,
+      ProcessingEventsDescription
+    ]);
+
   GLContextClose;
   FreeAndNil(FControls);
   FreeAndNil(FBorder);

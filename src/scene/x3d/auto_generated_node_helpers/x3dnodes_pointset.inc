@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2025 Michalis Kamburelis.
+  Copyright 2015-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -32,6 +32,8 @@
     function GetFogCoord: TFogCoordinateNode;
     procedure SetFogCoord(const Value: TFogCoordinateNode);
 {$endif not CASTLE_SLIM_NODES}
+    function GetNormal: TAbstractNormalNode;
+    procedure SetNormal(const Value: TAbstractNormalNode);
   public
     { Create node fields and events. }
     procedure CreateNode; override;
@@ -68,6 +70,12 @@
     {  }
     property FogCoord: TFogCoordinateNode read GetFogCoord write SetFogCoord;
 {$endif not CASTLE_SLIM_NODES}
+
+    strict private FFdNormal: TSFNode;
+    { Internal wrapper for property @code(Normal). This wrapper API may change, we advise to access simpler @code(Normal) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdNormal: TSFNode read FFdNormal;
+    { Normal vectors on a point set allow points to react to lighting, which makes sense if point set approximates some real solid object. }
+    property Normal: TAbstractNormalNode read GetNormal write SetNormal;
 
     strict private FFdSkinWeights0: TMFVec4f;
     { Internal wrapper for property @code(SkinWeights0). This wrapper API may change, we advise to access simpler @code(SkinWeights0) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -146,6 +154,19 @@ begin
 end;
 
 {$endif not CASTLE_SLIM_NODES}
+function TPointSetNode.GetNormal: TAbstractNormalNode;
+begin
+  if FdNormal.Value is TAbstractNormalNode then
+    Result := TAbstractNormalNode(FdNormal.Value)
+  else
+    Result := nil;
+end;
+
+procedure TPointSetNode.SetNormal(const Value: TAbstractNormalNode);
+begin
+  FdNormal.Send(Value);
+end;
+
 procedure TPointSetNode.SetSkinWeights0(const Value: array of TVector4);
 begin
   FdSkinWeights0.Send(Value);
@@ -196,6 +217,10 @@ begin
    FdFogCoord.ChangeAlways := chGeometry;
   AddField(FFdFogCoord);
 {$endif not CASTLE_SLIM_NODES}
+
+  FFdNormal := TSFNode.Create(Self, True, 'normal', [TAbstractNormalNode]);
+   FdNormal.ChangeAlways := chGeometry;
+  AddField(FFdNormal);
 
   FFdSkinWeights0 := TMFVec4f.Create(Self, True, 'skinWeights0', []);
    FdSkinWeights0.ChangeAlways := chGeometry;

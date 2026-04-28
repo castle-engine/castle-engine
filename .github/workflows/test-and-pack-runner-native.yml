@@ -90,7 +90,7 @@ jobs:
 
     - name: Install macOS dependencies
       if: ${{ runner.os == 'macOS' }}
-      run: brew install gnu-sed coreutils findutils
+      run: brew install gnu-sed coreutils findutils 7zip
 
     - name: Install Windows dependencies
       if: ${{ runner.os == 'Windows' }}
@@ -227,7 +227,13 @@ jobs:
         wget --progress=bar:force:noscroll \
           https://github.com/pasdoc/pasdoc/archive/refs/heads/master.zip \
           --output-document pasdoc-master.zip
-        unzip -q pasdoc-master.zip
+
+        # Prefer to use 7zz, installed from https://formulae.brew.sh/formula/sevenzip#default ,
+        # because unzip fails to unpack zip with umlaults on macOS,
+        # which PasDoc uses for our tests:
+        # https://github.com/pasdoc/pasdoc/tree/master/tests/testcases_output/html/ok_unicode_identifiers_utf8
+        if command -v 7zz >/dev/null 2>&1; then 7zz x pasdoc-master.zip; else unzip -q pasdoc-master.zip; fi
+
         mv pasdoc-master pasdoc
         cd pasdoc
         make
@@ -287,7 +293,7 @@ jobs:
       #   and the build does not rely on cge_clean_all.
       #
       if: ${{ matrix.runner != 'windows-latest' && !matrix.is_gh_ubuntu }}
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
         name: ${{ matrix.runner }}-release
         path: "castle-engine*.zip"
@@ -298,7 +304,7 @@ jobs:
       run: CGE_PACK_BUNDLE=yes ./tools/internal/pack_release/pack_release.sh windows_installer
     - name: Archive Artifacts (exe)
       if: ${{ runner.os == 'Windows' }}
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
         name: ${{ matrix.runner }}-installer-release
         path: "castle-engine-setup-*.exe"

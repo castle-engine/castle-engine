@@ -1335,7 +1335,7 @@ begin
 
   { Show controls help once, when game starts }
   if (not ControlsHelpShown) and
-     (Container.FrontView = Self) then
+     (Container.CurrentFrontView = Self) then
   begin
     ControlsHelpShown := true;
     PauseGame;
@@ -1345,7 +1345,7 @@ begin
   end;
 
   { If player is dead and we did not show game over view we do that }
-  if IsPlayerDead and (Container.FrontView <> ViewGameOver) then
+  if IsPlayerDead and (Container.CurrentFrontView <> ViewGameOver) then
   begin
     ScenePlayer.Exists := false;
     Container.PushView(ViewGameOver);
@@ -1353,7 +1353,7 @@ begin
   end;
 
   { If level is completed and we did not show level complete we do that }
-  if LevelComplete and (Container.FrontView <> ViewLevelComplete) then
+  if LevelComplete and (Container.CurrentFrontView <> ViewLevelComplete) then
   begin
     PlayerRigidBody.Exists := false;
     PauseGame;
@@ -1388,7 +1388,7 @@ begin
     MainViewport.Camera.Translation := CamPos;
   end;
 
-  if Container.FrontView = Self then // do not react to input under ViewPause, ViewControlsHelp
+  if Container.CurrentFrontView = Self then // do not react to input under ViewPause, ViewControlsHelp
   begin
     if CheckboxAdvancedPlayer.Checked then
       { uncomment to see less advanced versions }
@@ -1422,7 +1422,7 @@ begin
     Exit(true);
   end;
 
-  if Event.IsKey(keyEscape) and (Container.FrontView = ViewPlay) then
+  if Event.IsKey(keyEscape) and (Container.CurrentFrontView = ViewPlay) then
   begin
     ClickPause(nil);
     Exit(true);

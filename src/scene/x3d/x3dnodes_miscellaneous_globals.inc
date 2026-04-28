@@ -302,8 +302,7 @@ begin
   if List <> nil then
   begin
     for I := 0 to List.Count - 1 do
-      if (List.Items[I] <> nil) and
-         (List.Items[I].VRML1ParentsCount + List.Items[I].ParentFieldsCount = 0) then
+      if (List.Items[I] <> nil) and List.Items[I].Unused then
         List.Items[I].Free;
     FreeAndNil(List);
   end;

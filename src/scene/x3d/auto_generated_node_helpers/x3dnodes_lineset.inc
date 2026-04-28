@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2025 Michalis Kamburelis.
+  Copyright 2015-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -32,6 +32,8 @@
     function GetFogCoord: TFogCoordinateNode;
     procedure SetFogCoord(const Value: TFogCoordinateNode);
 {$endif not CASTLE_SLIM_NODES}
+    function GetNormal: TAbstractNormalNode;
+    procedure SetNormal(const Value: TAbstractNormalNode);
     function GetMode: TLineMode;
     procedure SetMode(const Value: TLineMode);
   public
@@ -70,6 +72,12 @@
     {  }
     property FogCoord: TFogCoordinateNode read GetFogCoord write SetFogCoord;
 {$endif not CASTLE_SLIM_NODES}
+
+    strict private FFdNormal: TSFNode;
+    { Internal wrapper for property @code(Normal). This wrapper API may change, we advise to access simpler @code(Normal) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdNormal: TSFNode read FFdNormal;
+    { Normal vectors on a line set allow lines to react to lighting. }
+    property Normal: TAbstractNormalNode read GetNormal write SetNormal;
 
     strict private FFdVertexCount: TMFInt32;
     { Internal wrapper for property @code(VertexCount). This wrapper API may change, we advise to access simpler @code(VertexCount) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -206,6 +214,19 @@ begin
 end;
 
 {$endif not CASTLE_SLIM_NODES}
+function TLineSetNode.GetNormal: TAbstractNormalNode;
+begin
+  if FdNormal.Value is TAbstractNormalNode then
+    Result := TAbstractNormalNode(FdNormal.Value)
+  else
+    Result := nil;
+end;
+
+procedure TLineSetNode.SetNormal(const Value: TAbstractNormalNode);
+begin
+  FdNormal.Send(Value);
+end;
+
 procedure TLineSetNode.SetVertexCount(const Value: array of Int32);
 begin
   FdVertexCount.Send(Value);
@@ -276,6 +297,10 @@ begin
    FdFogCoord.ChangeAlways := chGeometry;
   AddField(FFdFogCoord);
 {$endif not CASTLE_SLIM_NODES}
+
+  FFdNormal := TSFNode.Create(Self, True, 'normal', [TAbstractNormalNode]);
+   FdNormal.ChangeAlways := chGeometry;
+  AddField(FFdNormal);
 
   FFdVertexCount := TMFInt32.Create(Self, True, 'vertexCount', []);
    FdVertexCount.ChangeAlways := chGeometry;

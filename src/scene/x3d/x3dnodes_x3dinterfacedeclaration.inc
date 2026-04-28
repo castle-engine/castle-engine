@@ -47,7 +47,7 @@
     procedure SetFieldOrEvent(const Value: TX3DFieldOrEvent);
   private
     { Create a copy of current FieldOrEvent.
-      Sets NewParentNode as Result.ParentNode.
+      Sets Result.ParentNode to NewParentNode (can be @nil).
       Note the new copy will not have ParentIntefaceDeclaration set
       (as the idea is that you own created copy, not this TX3DInterfaceDeclaration
       instance).
@@ -64,9 +64,11 @@
     constructor Create(AParentNode: TX3DNode);
     destructor Destroy; override;
 
-    { Containing node, if any, for this VRML interface declaration.
-      This must also be set to FieldOrEvent.ParentNode created for this
-      interface declaration. }
+    { Containing node, if any, for this X3D interface declaration.
+      This can be @nil for interface declarations not directly
+      contained in any node, for example for prototype declarations.
+      This must also be equal to FieldOrEvent.ParentNode created for this
+      interface declaration, see @link(FieldOrEvent). }
     property ParentNode: TX3DNode read FParentNode;
 
     { Field or event of this interface declaration.
@@ -138,6 +140,8 @@
       happen). }
     function AccessType: TX3DAccessType;
 
+    { Make deep copy of this TX3DInterfaceDeclaration.
+      NewParentNode can be @nil, just like our @link(ParentNode) can be @nil. }
     function DeepCopy(const NewParentNode: TX3DNode;
       const CopyState: TX3DNodeDeepCopyState): TX3DInterfaceDeclaration;
   end;
