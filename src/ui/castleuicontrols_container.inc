@@ -1807,6 +1807,7 @@ var
 begin
   FlushCollectedMotion;
   UpdateCurrentMousePositionAndTouches;
+  ApplicationProperties._UserInteraction;
 
   Result := false;
 

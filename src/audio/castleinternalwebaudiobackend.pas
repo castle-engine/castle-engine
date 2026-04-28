@@ -131,6 +131,8 @@ type
     FJSAudioContext: IJSAudioContext;
     FMasterGainNode: IJSGainNode;
     FDistanceModel: TSoundDistanceModel;
+    function UserInteractionResumeAccepted(const aValue: Variant): Variant;
+    function UserInteractionResumeRejected(const aValue: Variant): Variant;
   public
     property JSAudioContext: IJSAudioContext read FJSAudioContext;
     property MasterGainNode: IJSGainNode read FMasterGainNode;
@@ -145,6 +147,12 @@ type
     procedure SetDistanceModel(const Value: TSoundDistanceModel); override;
     procedure SetDopplerFactor(const Value: Single); override;
     procedure SetListener(const Position, Direction, Up: TVector3); override;
+
+    { Call this to resume playback when user interacts with the page.
+      This is needed to comply with browser autoplay policies,
+      which require a user interaction to start audio playback.
+      See https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Best_practices#autoplay_policy }
+    procedure UserInteraction; override;
   end;
 
 { TWebAudioSoundBufferBackend ------------------------------------------------ }
@@ -513,6 +521,33 @@ begin
       FJSAudioContext.SampleRate
     ]);
   InformationSummary := 'Web Audio';
+end;
+
+procedure TWebAudioSoundEngineBackend.UserInteraction;
+var
+  ResumePromise: IJSPromise;
+begin
+  if (FJSAudioContext <> nil) and (FJSAudioContext.State = 'suspended') then
+  begin
+    WritelnLog('Web Audio context is suspended. Attempting to resume due to user interaction.');
+    ResumePromise := FJSAudioContext.Resume;
+    ResumePromise._Then(
+      @UserInteractionResumeAccepted,
+      @UserInteractionResumeRejected
+    );
+  end;
+end;
+
+function TWebAudioSoundEngineBackend.UserInteractionResumeAccepted(const aValue: Variant): Variant;
+begin
+  WritelnLog('Web Audio context resumed successfully after user interaction.');
+  Result := aValue;
+end;
+
+function TWebAudioSoundEngineBackend.UserInteractionResumeRejected(const aValue: Variant): Variant;
+begin
+  WritelnWarning('Failed to resume Web Audio context after user interaction. Sound may not play until the user interacts with the page again.');
+  Result := aValue;
 end;
 
 procedure TWebAudioSoundEngineBackend.ContextClose;

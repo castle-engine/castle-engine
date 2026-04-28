@@ -197,6 +197,10 @@ type
     procedure SetDistanceModel(const Value: TSoundDistanceModel); virtual; abstract;
     procedure SetDopplerFactor(const Value: Single); virtual; abstract;
     procedure SetListener(const Position, Direction, Up: TVector3); virtual; abstract;
+    { Do something when user interaction happens.
+      Used to resume playback when user interacts with the page on WebAudio
+      backend, likely not useful with other backends. }
+    procedure UserInteraction; virtual; abstract;
   end;
 
 implementation

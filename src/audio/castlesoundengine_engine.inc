@@ -51,6 +51,8 @@
     procedure ReinitializeJavaActivity(Sender: TObject);
     procedure ApplicationPause(Sender: TObject);
     procedure ApplicationResume(Sender: TObject);
+    procedure ApplicationUserInteraction(Sender: TObject);
+
     { Pause the sound engine, useful when Android activity gets inactive.
       When paused, sound backend is for sure inactive, and it cannot be activated
       (calling ContextOpen, or playing a sound, will @bold(not) activate it). }
@@ -376,6 +378,8 @@ begin
     {$ifdef FPC}@{$endif} ApplicationPause);
   ApplicationProperties.OnResume.Add(
     {$ifdef FPC}@{$endif} ApplicationResume);
+  ApplicationProperties.OnUserInteraction.Add(
+    {$ifdef FPC}@{$endif} ApplicationUserInteraction);
 end;
 
 destructor TSoundEngine.Destroy;
@@ -388,6 +392,8 @@ begin
       {$ifdef FPC}@{$endif} ApplicationPause);
     ApplicationProperties(false).OnResume.Remove(
       {$ifdef FPC}@{$endif} ApplicationResume);
+    ApplicationProperties(false).OnUserInteraction.Remove(
+      {$ifdef FPC}@{$endif} ApplicationUserInteraction);
   end;
 
   ContextClose;
@@ -879,6 +885,12 @@ end;
 procedure TSoundEngine.ApplicationResume(Sender: TObject);
 begin
   Paused := false;
+end;
+
+procedure TSoundEngine.ApplicationUserInteraction(Sender: TObject);
+begin
+  if IsContextOpenSuccess then
+    Backend.UserInteraction;
 end;
 
 procedure TSoundEngine.SetPaused(const Value: boolean);
