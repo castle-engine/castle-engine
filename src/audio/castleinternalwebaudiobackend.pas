@@ -455,11 +455,21 @@ var
 begin
   Stop;
 
-  if (FBuffer = nil) or (FBuffer.AudioBuffer = nil) then
-    Exit;
-  if FBuffer.PendingDecode then
+  if FBuffer = nil then
   begin
-    WritelnWarning('Cannot play sound "%s" because it is still decoding. Try to play again when decoding finishes.', [UriDisplay(FBuffer.Url)]);
+    WritelnWarning('Cannot play sound because no buffer is set.');
+    Exit;
+  end;
+  if FBuffer.PendingDecode then // note that this usually implies "FBuffer.AudioBuffer = nil" too
+  begin
+    WritelnWarning('Cannot play sound "%s" because it is still decoding. Try to play again when decoding finishes.', [
+      UriDisplay(FBuffer.Url)
+    ]);
+    Exit;
+  end;
+  if FBuffer.AudioBuffer = nil then
+  begin
+    WritelnWarning('Cannot play sound because buffer is not initialized. Report a bug.');
     Exit;
   end;
 
