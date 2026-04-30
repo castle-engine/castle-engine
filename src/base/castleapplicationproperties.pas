@@ -294,7 +294,7 @@ type
     property OnResume: TNotifyEventList read FOnResume;
     { @groupEnd }
 
-    { Called whenever user interacts with the application happens,
+    { Called when user interacts with the application,
       for example clicks mouse, presses a key, touches the screen.
       This is used by the web target, when certain things
       (like audio playback) can be activated only in response to user interaction. }
