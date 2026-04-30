@@ -108,8 +108,26 @@ type
       This determines how NodesConnect connects the nodes. }
     FSpatial: Boolean;
 
-    { For tracking playback state. }
-    FPlayStartTime: Double;
+    { For tracking playback state.
+
+      This already takes into account FPlayOffset at the moment of starting
+      playback, i.e. this is shifted from AudioContext.CurrentTime
+      to pretend we started playing earlier when FPlayOffset > 0. }
+    FPlayStartTime: TFloatTime;
+
+    { Initial playback offset.
+
+      This is set by SetOffset, which is done by:
+
+      - When not currently playing.
+        Happens from TSoundEngine.InternalPlay, by
+        "Params.Offset := PlayingSound.InitialOffset"
+        to indicate initial offset.
+
+      - Or when currently playing.
+        Happens from TCastlePlayingSound.SetOffset.
+        This changes playing sound offset, and we implement it by starting
+        sound again. }
     FPlayOffset: Single;
     FPlaying: Boolean;
 
@@ -185,9 +203,9 @@ procedure TWebAudioSoundBufferBackend.ContextOpen(const AUrl: String);
   procedure ContextOpenFromSoundFile(const SoundFile: TSoundFile);
   const
     NumChannelsForFormat: array [TSoundDataFormat] of Cardinal = (1, 1, 2, 2);
-    SampleSizeForFormat: array [TSoundDataFormat] of Cardinal = (1, 2, 2, 4);
+    FrameSizeInBytesForFormat: array [TSoundDataFormat] of Cardinal = (1, 2, 2, 4);
   var
-    NumChannels, NumFrames, SampleSize: Cardinal;
+    NumChannels, NumFrames, FrameSizeInBytes: Cardinal;
     ChannelData: IJSFloat32Array;
     ChannelDataSingle: TSingleList;
     I: Integer;
@@ -196,9 +214,9 @@ procedure TWebAudioSoundBufferBackend.ContextOpen(const AUrl: String);
     SampleInt16: Int16;
   begin
     NumChannels := NumChannelsForFormat[SoundFile.DataFormat];
-    SampleSize := SampleSizeForFormat[SoundFile.DataFormat];
+    FrameSizeInBytes := FrameSizeInBytesForFormat[SoundFile.DataFormat];
 
-    NumFrames := SoundFile.DataSize div SampleSize;
+    NumFrames := SoundFile.DataSize div FrameSizeInBytes;
     if NumFrames = 0 then
       raise Exception.CreateFmt('Sound file "%s" has no audio frames', [UriDisplay(Url)]);
 
@@ -219,7 +237,7 @@ procedure TWebAudioSoundBufferBackend.ContextOpen(const AUrl: String);
               // Int8 for each channel, convert to float in range [-1.0, 1.0]
               for I := 0 to NumFrames - 1 do
               begin
-                SampleInt8 := PInt8(SoundFile.Data)[I * SampleSize + Channel * SizeOf(Int8)];
+                SampleInt8 := PInt8(SoundFile.Data)[I * NumChannels + Channel];
                 ChannelDataSingle[I] := SampleInt8 / High(Int8);
               end;
             end;
@@ -228,7 +246,7 @@ procedure TWebAudioSoundBufferBackend.ContextOpen(const AUrl: String);
               // Int16 for each channel, convert to float in range [-1.0, 1.0]
               for I := 0 to NumFrames - 1 do
               begin
-                SampleInt16 := PInt16(SoundFile.Data)[I * SampleSize + Channel * SizeOf(Int16)];
+                SampleInt16 := PInt16(SoundFile.Data)[I * NumChannels + Channel];
                 ChannelDataSingle[I] := SampleInt16 / High(Int16);
               end;
             end;
@@ -491,10 +509,10 @@ begin
   else
     SourceNode.Start;
 
-  { Record start time for PlayingOrPaused tracking }
-  FPlayStartTime := AudioCtx.CurrentTime;
+  { Record start time for PlayingOrPaused tracking,
+    pretending that we started without any offset. }
+  FPlayStartTime := AudioCtx.CurrentTime - FPlayOffset / Max(FPitch, 0.001);
   FPlaying := true;
-  FPlayOffset := 0;
 end;
 
 procedure TWebAudioSoundSourceBackend.Stop;
@@ -517,7 +535,7 @@ end;
 procedure TWebAudioSoundSourceBackend.SetVelocity(const Value: TVector3);
 begin
   { Doppler was removed from the Web Audio API specification.
-\
+
     See
     https://github.com/emscripten-core/emscripten/issues/4587
     https://github.com/WebAudio/web-audio-api/issues/372
@@ -606,7 +624,7 @@ begin
   if FPlaying then
   begin
     CurrentTime := GetAudioContext.currentTime;
-    Elapsed := CurrentTime - FPlayStartTime + FPlayOffset;
+    Elapsed := (CurrentTime - FPlayStartTime) * FPitch;
     if (FBuffer <> nil) and (FBuffer.Duration > 0) and FLoop then
     begin
       { For looping sounds, wrap around }
