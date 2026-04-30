@@ -9,7 +9,7 @@ program fpmake;
 
 { Define HAS_SEPARATE_IOS if iOS is a separate OS .
   FPC versions before 3.2.2 set OS = Darwin for both macOS and iOS
-  (and CPU was the only way to distiguish between them;
+  (and CPU was the only way to distinguish between them;
   this made sense, when macOS was only for x86_64, and iOS only for Arm/Aarch64).}
 {$define HAS_SEPARATE_IOS}
 {$ifdef VER3_0} {$undef HAS_SEPARATE_IOS} {$endif}
@@ -17,8 +17,8 @@ program fpmake;
 
 { Define HAS_WASI if OS = WasiP1 is supported. }
 {$define HAS_WASI}
-{$ifndef VER3_0} {$undef HAS_WASI} {$endif}
-{$ifndef VER3_2} {$undef HAS_WASI} {$endif}
+{$ifdef VER3_0} {$undef HAS_WASI} {$endif}
+{$ifdef VER3_2} {$undef HAS_WASI} {$endif}
 
 uses
   { It seems that FPC > 3.0.x requires thread support for FpMkUnit. }
