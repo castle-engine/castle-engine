@@ -43,6 +43,8 @@
     following David Emerson patch from
     http://free-pascal-general.1045716.n5.nabble.com/freetype-unit-unicode-td4866273.html
     adjusted to use our CastleUnicode unit.
+
+  - More detailed error reporting around FT_Load_Glyph and FT_Get_Glyph.
 }
 unit CastleInternalFreeType;
 
@@ -167,7 +169,8 @@ const
   sErrErrorInCleanup : string = 'freeing Font Manager object';
   sErrSetPixelSize : string = 'setting pixel size %d';
   sErrSetCharSize : string = 'setting char size %d';
-  sErrLoadingGlyph : string = 'loading glyph';
+  sErrLoadGlyph : string = 'loading glyph %d (FT_Load_Glyph)';
+  sErrGetGlyph : string = 'getting glyph %d (FT_Get_Glyph)';
   sErrKerning : string = 'determining kerning distance';
   sErrMakingString1 : string = 'making string bitmaps step 1';
   sErrMakingString2 : string = 'making string bitmaps step 2';
@@ -482,15 +485,17 @@ begin
   result^.character := c;
   result^.GlyphIndex := FT_Get_Char_Index (CurFont.font, c);
   //WriteFT_Face(CurFont.Font);
+  { FT_Load_Glyph sets "glyph slot" in CurFont.Font^.glyph.
+    See https://freetype.org/freetype2/docs/reference/ft2-glyph_retrieval.html#ft_load_glyph }
   e := FT_Load_Glyph (CurFont.font, result^.GlyphIndex, FT_Load_Default);
   if e <> 0 then
     begin
-    FTError (sErrLoadingGlyph, e);
+    FTError (Format(sErrLoadGlyph, [c]), e);
     end;
   e := FT_Get_Glyph (Curfont.font^.glyph, result^.glyph);
   if e <> 0 then
     begin
-    FTError (sErrLoadingGlyph, e);
+    FTError (Format(sErrGetGlyph, [c]), e);
     end;
   CurSize^.Glyphs.Add (result);
 end;
