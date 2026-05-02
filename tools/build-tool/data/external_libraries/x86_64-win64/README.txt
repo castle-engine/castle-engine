@@ -22,7 +22,9 @@ Origins:
 - FreeType: https://www.freetype.org/download.html
   which links to https://github.com/ubawurinna/freetype-windows-binaries
 
-  wget 'https://github.com/ubawurinna/freetype-windows-binaries/raw/master/release%20dll/win64/freetype.dll' --output-document=freetype.dll
+  wget 'https://github.com/ubawurinna/freetype-windows-binaries/raw/master/release%20dll/x64/freetype.dll' --output-document=freetype.dll
+
+  Updated on 2026-05-02, should reflect FreeType version 2.14.3.
 
 - Microsoft Redistributables:
 
