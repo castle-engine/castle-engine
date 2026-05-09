@@ -330,10 +330,10 @@ begin
 
     FSuccessMessage := FormatDot(
       'Duration: %f' + NL +
-      'Format: %s' + NL +
+      'Channels: %d' + NL +
       'Frequency: %d', [
       Sound.Duration,
-      DataFormatToStr(Sound.DataFormat),
+      Sound.Channels,
       Sound.Frequency
     ]);
     SoundButton.Enabled := true;

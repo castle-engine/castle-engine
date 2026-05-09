@@ -55,7 +55,7 @@ type
   TWebAudioSoundBufferBackend = class(TSoundBufferBackend)
   strict private
     FDuration: TFloatTime;
-    FDataFormat: TSoundDataFormat;
+    FChannels: Cardinal;
     FFrequency: Cardinal;
     { JavaScript AudioBuffer object. }
     FAudioBuffer: IJSAudioBuffer;
@@ -67,7 +67,7 @@ type
     procedure ContextClose; override;
 
     function Duration: TFloatTime; override;
-    function DataFormat: TSoundDataFormat; override;
+    function Channels: Cardinal; override;
     function Frequency: Cardinal; override;
 
     property AudioBuffer: IJSAudioBuffer read FAudioBuffer;
@@ -202,8 +202,7 @@ procedure TWebAudioSoundBufferBackend.ContextOpen(const AUrl: String);
 
   procedure ContextOpenFromSoundFile(const SoundFile: TSoundFile);
   const
-    NumChannelsForFormat: array [TSoundDataFormat] of Cardinal = (1, 1, 2, 2);
-    FrameSizeInBytesForFormat: array [TSoundDataFormat] of Cardinal = (1, 2, 2, 4);
+    SampleSize: array [TSoundSampleFormat] of Cardinal = (1, 2);
   var
     NumChannels, NumFrames, FrameSizeInBytes: Cardinal;
     ChannelData: IJSFloat32Array;
@@ -213,8 +212,8 @@ procedure TWebAudioSoundBufferBackend.ContextOpen(const AUrl: String);
     SampleInt8: Int8;
     SampleInt16: Int16;
   begin
-    NumChannels := NumChannelsForFormat[SoundFile.DataFormat];
-    FrameSizeInBytes := FrameSizeInBytesForFormat[SoundFile.DataFormat];
+    NumChannels := SoundFile.Channels;
+    FrameSizeInBytes := SampleSize[SoundFile.SampleFormat] * NumChannels;
 
     NumFrames := SoundFile.DataSize div FrameSizeInBytes;
     if NumFrames = 0 then
@@ -231,8 +230,8 @@ procedure TWebAudioSoundBufferBackend.ContextOpen(const AUrl: String);
 
       for Channel := 0 to NumChannels - 1 do
       begin
-        case SoundFile.DataFormat of
-          sfMono8, sfStereo8:
+        case SoundFile.SampleFormat of
+          sfPcm8:
             begin
               // Int8 for each channel, convert to float in range [-1.0, 1.0]
               for I := 0 to NumFrames - 1 do
@@ -241,7 +240,7 @@ procedure TWebAudioSoundBufferBackend.ContextOpen(const AUrl: String);
                 ChannelDataSingle[I] := SampleInt8 / High(Int8);
               end;
             end;
-          sfMono16, sfStereo16:
+          sfPcm16:
             begin
               // Int16 for each channel, convert to float in range [-1.0, 1.0]
               for I := 0 to NumFrames - 1 do
@@ -250,7 +249,7 @@ procedure TWebAudioSoundBufferBackend.ContextOpen(const AUrl: String);
                 ChannelDataSingle[I] := SampleInt16 / High(Int16);
               end;
             end;
-          else raise Exception.CreateFmt('Unsupported sound data format %d', [Ord(SoundFile.DataFormat)]);
+          else raise Exception.CreateFmt('Unsupported sound data format %d', [Ord(SoundFile.SampleFormat)]);
         end;
       end;
 
@@ -270,7 +269,7 @@ procedure TWebAudioSoundBufferBackend.ContextOpen(const AUrl: String);
     F := TSoundFile.Create(Url);
     try
       FDuration := F.Duration;
-      FDataFormat := F.DataFormat;
+      FChannels := F.Channels;
       FFrequency := F.Frequency;
       ContextOpenFromSoundFile(F);
     finally FreeAndNil(F) end;
@@ -325,16 +324,7 @@ begin
   FAudioBuffer := TJSAudioBuffer.Cast(aValue);
   FDuration := FAudioBuffer.Duration;
   FFrequency := Round(FAudioBuffer.SampleRate);
-
-  { In this case, we don't have and also don't need the exact information
-    about the data format. We just set DataFormat based on the number of
-    channels.
-    TODO: TSoundBufferBackend should just have Channels:Cardinal, not DataFormat. }
-
-  if FAudioBuffer.numberOfChannels = 1 then
-    FDataFormat := sfMono16
-  else
-    FDataFormat := sfStereo16;
+  FChannels := FAudioBuffer.NumberOfChannels;
 
   Result := aValue;
 end;
@@ -351,9 +341,9 @@ begin
   Result := FDuration;
 end;
 
-function TWebAudioSoundBufferBackend.DataFormat: TSoundDataFormat;
+function TWebAudioSoundBufferBackend.Channels: Cardinal;
 begin
-  Result := FDataFormat;
+  Result := FChannels;
 end;
 
 function TWebAudioSoundBufferBackend.Frequency: Cardinal;

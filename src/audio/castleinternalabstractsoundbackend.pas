@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2022 Michalis Kamburelis.
+  Copyright 2010-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -39,9 +39,12 @@ type
       like the ones that can be created by TRepoSoundEngine for not defined sounds.) }
     property Url: String read FUrl;
 
-    { Sound buffer information. }
+    { Duration in seconds. }
     function Duration: TFloatTime; virtual; abstract;
-    function DataFormat: TSoundDataFormat; virtual; abstract;
+
+    { Number of channels (1 for mono, 2 for stereo, etc). }
+    function Channels: Cardinal; virtual; abstract;
+
     function Frequency: Cardinal; virtual; abstract;
 
     constructor Create(const ASoundEngine: TSoundEngineBackend);
@@ -59,11 +62,12 @@ type
   { TSoundBufferBackend descendant that loads sound files using TSoundFile.
     Should be used by sound backends that cannot load sound files themselves,
     and rely on TSoundFile to do it (right now, this applies to all backends
-    except FMOD). }
+    except FMOD and WebAudio). }
   TSoundBufferBackendFromSoundFile = class(TSoundBufferBackend)
   strict private
     FDuration: TFloatTime;
-    FDataFormat: TSoundDataFormat;
+    FSampleFormat: TSoundSampleFormat;
+    FChannels: Cardinal;
     FFrequency: Cardinal;
   protected
     { Optionally change (pre-process in some way) SoundFile contents
@@ -80,7 +84,13 @@ type
   public
     procedure ContextOpen(const AUrl: String); override;
     function Duration: TFloatTime; override;
-    function DataFormat: TSoundDataFormat; override;
+    { Format of the sample. Note that this is not virtual,
+      and is not present in ancestor TSoundBufferBackend, and this is deliberate.
+      Only sound formats that we decompress in CGE (with or without streaming,
+      so using TSoundFile or TStreamedSoundFile) support the TSoundSampleFormat
+      enum, the other formats are "opaque" for us. }
+    function SampleFormat: TSoundSampleFormat;
+    function Channels: Cardinal; override;
     function Frequency: Cardinal; override;
   end;
 
@@ -89,7 +99,7 @@ type
     Note that this doesn't actually open file immediately in ContextOpen
     (it does not create TStreamedSoundFile instance at that point).
     Instead the file will be opened on-demand when needed (when playing this,
-    or accessing Duration / DataFormat / Frequency).
+    or accessing @link(Duration) / @link(SampleFormat) / @link(Channels) / @link(Frequency)).
 
     This is especially useful on Android, where switching from/to the application
     requires to close/reopen the OpenAL context.
@@ -106,14 +116,16 @@ type
     FStreamConfigRead: Boolean;
     // Fields below are valid only if FStreamConfigRead
     FDuration: TFloatTime;
-    FDataFormat: TSoundDataFormat;
+    FSampleFormat: TSoundSampleFormat;
+    FChannels: Cardinal;
     FFrequency: Cardinal;
     procedure ReadStreamConfigFromTemp;
   protected
     procedure ReadStreamConfig(const StreamedSoundFile: TStreamedSoundFile);
   public
     function Duration: TFloatTime; override;
-    function DataFormat: TSoundDataFormat; override;
+    function SampleFormat: TSoundSampleFormat;
+    function Channels: Cardinal; override;
     function Frequency: Cardinal; override;
   end;
 
@@ -231,9 +243,14 @@ begin
   Result := FDuration;
 end;
 
-function TSoundBufferBackendFromSoundFile.DataFormat: TSoundDataFormat;
+function TSoundBufferBackendFromSoundFile.SampleFormat: TSoundSampleFormat;
 begin
-  Result := FDataFormat;
+  Result := FSampleFormat;
+end;
+
+function TSoundBufferBackendFromSoundFile.Channels: Cardinal;
+begin
+  Result := FChannels;
 end;
 
 function TSoundBufferBackendFromSoundFile.Frequency: Cardinal;
@@ -259,7 +276,8 @@ begin
   try
     ContextOpenPreProcess(F);
     FDuration := F.Duration;
-    FDataFormat := F.DataFormat;
+    FSampleFormat := F.SampleFormat;
+    FChannels := F.Channels;
     FFrequency := F.Frequency;
     ContextOpenFromSoundFile(F);
   finally FreeAndNil(F) end;
@@ -274,11 +292,18 @@ begin
   Result := FDuration;
 end;
 
-function TSoundBufferBackendFromStreamedFile.DataFormat: TSoundDataFormat;
+function TSoundBufferBackendFromStreamedFile.SampleFormat: TSoundSampleFormat;
 begin
   if not FStreamConfigRead then
     ReadStreamConfigFromTemp;
-  Result := FDataFormat;
+  Result := FSampleFormat;
+end;
+
+function TSoundBufferBackendFromStreamedFile.Channels: Cardinal;
+begin
+  if not FStreamConfigRead then
+    ReadStreamConfigFromTemp;
+  Result := FChannels;
 end;
 
 function TSoundBufferBackendFromStreamedFile.Frequency: Cardinal;
@@ -293,7 +318,8 @@ begin
   if not FStreamConfigRead then
   begin
     FDuration := StreamedSoundFile.Duration;
-    FDataFormat := StreamedSoundFile.DataFormat;
+    FSampleFormat := StreamedSoundFile.SampleFormat;
+    FChannels := StreamedSoundFile.Channels;
     FFrequency := StreamedSoundFile.Frequency;
     FStreamConfigRead := true;
   end;

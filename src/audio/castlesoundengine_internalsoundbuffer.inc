@@ -64,11 +64,10 @@
       like the ones that can be created by TRepoSoundEngine for not defined sounds.) }
     property Url: String read FUrl;
 
-    { Data format (bits per sample, stereo or mono) of the loaded sound file.
-      Typical applications don't need this value, this is just an information
-      about the loaded sound file.
+    { Number of channels (1 for mono, 2 for stereo, etc).
+      This is just an information about the loaded sound file.
       Undefined if backend is not loaded. }
-    function DataFormat: TSoundDataFormat;
+    function Channels: Cardinal;
 
     { Frequency (sample rate) of the loaded sound file.
       Typical applications don't need this value, this is just an information
@@ -94,12 +93,12 @@ begin
   Backend := SoundEngineBackend.CreateBuffer(SoundLoading);
 end;
 
-function TInternalSoundBuffer.DataFormat: TSoundDataFormat;
+function TInternalSoundBuffer.Channels: Cardinal;
 begin
   if BackendIsOpen then
-    Result := Backend.DataFormat
+    Result := Backend.Channels
   else
-    Result := Default(TSoundDataFormat);
+    Result := 0;
 end;
 
 function TInternalSoundBuffer.Frequency: Cardinal;

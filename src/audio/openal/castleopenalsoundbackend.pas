@@ -178,11 +178,9 @@ type
   end;
 
 const
-  ALDataFormat: array [TSoundDataFormat] of TALuint = (
-    AL_FORMAT_MONO8,
-    AL_FORMAT_MONO16,
-    AL_FORMAT_STEREO8,
-    AL_FORMAT_STEREO16
+  ALDataFormat: array [{ channels } 1..2, TSoundSampleFormat] of TALuint = (
+    (AL_FORMAT_MONO8, AL_FORMAT_MONO16),
+    (AL_FORMAT_STEREO8, AL_FORMAT_STEREO16)
   );
 
 { Check and report (as warnings) OpenAL errors as often as possible.
@@ -317,7 +315,11 @@ begin
   Result := StreamedFile.Read(HelperBufferPtr^, HelperBufferSize);
   if Result > 0 then
   begin
-    alBufferData(ALBuffer, ALDataFormat[StreamedFile.DataFormat],
+    if not Between(StreamedFile.Channels, 1, 2) then
+      raise ESoundFileError.CreateFmt('OpenAL backend supports only 1 or 2 channels (got %d)', [
+        StreamedFile.Channels
+      ]);
+    alBufferData(ALBuffer, ALDataFormat[StreamedFile.Channels, StreamedFile.SampleFormat],
       HelperBufferPtr, Result, StreamedFile.Frequency);
     {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alBufferData ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
   end else
@@ -390,7 +392,11 @@ begin
   alCreateBuffers(1, @ALBuffer);
   {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alCreateBuffers ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
   try
-    alBufferData(ALBuffer, ALDataFormat[SoundFile.DataFormat],
+    if not Between(SoundFile.Channels, 1, 2) then
+      raise ESoundFileError.CreateFmt('OpenAL backend supports only 1 or 2 channels (got %d)', [
+        SoundFile.Channels
+      ]);
+    alBufferData(ALBuffer, ALDataFormat[SoundFile.Channels, SoundFile.SampleFormat],
       SoundFile.Data, SoundFile.DataSize, SoundFile.Frequency);
     {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alBufferData ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
   except
@@ -473,7 +479,7 @@ var
 begin
   // make a clear warning when trying to play stereo sound as spatial
   if FSpatial and
-     (FBuffer.DataFormat in [sfStereo8, sfStereo16]) then
+     (FBuffer.Channels > 1) then
     WritelnWarning('Stereo sound files are *never* played as spatial by OpenAL. Convert sound file "%s" to mono (e.g. by Audacity or SOX).', [
       UriDisplay(FBuffer.Url)
     ]);

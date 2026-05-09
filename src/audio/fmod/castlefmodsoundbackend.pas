@@ -55,7 +55,7 @@ type
   TFMODSoundBufferBackend = class(TSoundBufferBackend)
   strict private
     FDuration: TFloatTime;
-    FDataFormat: TSoundDataFormat;
+    FChannels: Cardinal;
     FFrequency: Cardinal;
   private
     FSoundLoading: TSoundLoading;
@@ -67,7 +67,7 @@ type
     procedure ContextOpen(const AUrl: String); override;
     procedure ContextClose; override;
     function Duration: TFloatTime; override;
-    function DataFormat: TSoundDataFormat; override;
+    function Channels: Cardinal; override;
     function Frequency: Cardinal; override;
   end;
 
@@ -198,30 +198,18 @@ var
     // We know that PcmSamples = Miliseconds * Frequency / 1000.
     FFrequency := Int64(PcmSamples) * 1000 div Miliseconds;
 
-    // calculate FDataFormat
+    // calculate FChannels
     CheckFMOD(FMOD_Sound_GetFormat(FMODSound, @SoundType, @SoundFormat, @SoundChannels, @SoundBits));
-    if SoundChannels >= 2 then
-    begin
-      if SoundBits >= 16 then
-        FDataFormat := sfStereo16
-      else
-        FDataFormat := sfStereo8;
-    end else
-    begin
-      if SoundBits >= 16 then
-        FDataFormat := sfMono16
-      else
-        FDataFormat := sfMono8;
-    end;
+    FChannels := SoundChannels;
+    // FBits := SoundBits; // maybe useful in the future, to know if this is 8 or 16-bit sound
 
     if LogSoundLoading then
-      WritelnLog('FMOD loaded "%s": type %s, format: %s, channels: %d, bits: %d (%s), frequency: %d, duration: %f', [
+      WritelnLog('FMOD loaded "%s": type %s, format: %s, channels: %d, bits: %d, frequency: %d, duration: %f', [
         UriDisplay(AUrl),
         SoundTypeToStr(SoundType),
         SoundFormatToStr(SoundFormat),
         SoundChannels,
         SoundBits,
-        DataFormatToStr(FDataFormat),
         FFrequency,
         FDuration
       ]);
@@ -273,9 +261,9 @@ begin
   Result := FDuration;
 end;
 
-function TFMODSoundBufferBackend.DataFormat: TSoundDataFormat;
+function TFMODSoundBufferBackend.Channels: Cardinal;
 begin
-  Result := FDataFormat;
+  Result := FChannels;
 end;
 
 function TFMODSoundBufferBackend.Frequency: Cardinal;
