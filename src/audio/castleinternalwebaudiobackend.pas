@@ -36,7 +36,7 @@ procedure UseWebAudioSoundBackend;
 
 implementation
 
-uses SysUtils, Classes, Math, Job.Js,
+uses SysUtils, Classes, Math, Job.Js, Generics.Collections,
   CastleVectors, CastleTimeUtils, CastleLog, CastleUtils,
   CastleStringUtils, CastleInternalSoundFile, CastleInternalJobWeb,
   CastleUriUtils, CastleDownload,
@@ -46,6 +46,8 @@ uses SysUtils, Classes, Math, Job.Js,
 
 type
   TWebAudioSoundEngineBackend = class;
+  TWebAudioSoundSourceBackend = class;
+  TWebAudioSoundSourceBackendList = {$ifdef FPC}specialize{$endif} TObjectList<TWebAudioSoundSourceBackend>;
 
   { CGE sound buffer maps to WebAudio AudioBuffer, which is created from a TSoundFile.
     See https://developer.mozilla.org/en-US/docs/Web/API/BaseAudioContext/createBuffer .
@@ -60,9 +62,13 @@ type
     { JavaScript AudioBuffer object. }
     FAudioBuffer: IJSAudioBuffer;
     FPendingDecode: Boolean;
+    FSources: TWebAudioSoundSourceBackendList;
     function DecodeAudioDataSuccess(const aValue: Variant): Variant;
     function DecodeAudioDataError(const aValue: Variant): Variant;
   public
+    constructor Create(const ASoundEngine: TSoundEngineBackend);
+    destructor Destroy; override;
+
     procedure ContextOpen(const AUrl: String); override;
     procedure ContextClose; override;
 
@@ -75,6 +81,10 @@ type
     { Decoding of non-WAV data is asynchronous in WebAudio,
       this property is @true while decoding is in-progress. }
     property PendingDecode: Boolean read FPendingDecode;
+
+    { List of TWebAudioSoundSourceBackend that are associated with this buffer.
+      Maintained to call their BufferDecodingFinishedXxx. }
+    property Sources: TWebAudioSoundSourceBackendList read FSources;
   end;
 
   { CGE sound source maps to WebAudio
@@ -130,6 +140,7 @@ type
         sound again. }
     FPlayOffset: Single;
     FPlaying: Boolean;
+    FPendingPlaying: Boolean;
 
     function Backend: TWebAudioSoundEngineBackend;
     function GetAudioContext: IJSAudioContext;
@@ -138,7 +149,11 @@ type
     procedure NodesConnect;
     { Undo the work of NodesDisconnect. }
     procedure NodesDisconnect;
+  private
+    procedure BufferDecodingFinishedSuccess(Sender: TObject);
+    procedure BufferDecodingFinishedError(Sender: TObject);
   public
+    destructor Destroy; override;
     procedure ContextOpen; override;
     procedure ContextClose; override;
     function PlayingOrPaused: Boolean; override;
@@ -192,6 +207,25 @@ type
   end;
 
 { TWebAudioSoundBufferBackend ------------------------------------------------ }
+
+constructor TWebAudioSoundBufferBackend.Create(const ASoundEngine: TSoundEngineBackend);
+begin
+  inherited;
+  FSources := TWebAudioSoundSourceBackendList.Create(false);
+end;
+
+destructor TWebAudioSoundBufferBackend.Destroy;
+begin
+  if FSources <> nil then
+  begin
+    { Make sure to clear TWebAudioSoundSourceBackend.FBuffer references to us.
+      Note that SetBuffer(nil) also modifies this FSources list. }
+    while FSources.Count > 0 do
+      FSources.First.SetBuffer(nil);
+    FreeAndNil(FSources);
+  end;
+  inherited;
+end;
 
 procedure TWebAudioSoundBufferBackend.ContextOpen(const AUrl: String);
 
@@ -317,6 +351,8 @@ begin
 end;
 
 function TWebAudioSoundBufferBackend.DecodeAudioDataSuccess(const aValue: Variant): Variant;
+var
+  Source: TWebAudioSoundSourceBackend;
 begin
   FPendingDecode := false;
   WritelnLog('Successfully decoded audio data for "%s"', [UriDisplay(Url)]);
@@ -326,13 +362,22 @@ begin
   FFrequency := Round(FAudioBuffer.SampleRate);
   FChannels := FAudioBuffer.NumberOfChannels;
 
+  // note: iteration like this assumes that BufferDecodingFinishedSuccess never modifies FSources list
+  for Source in FSources do
+    Source.BufferDecodingFinishedSuccess(Self);
   Result := aValue;
 end;
 
 function TWebAudioSoundBufferBackend.DecodeAudioDataError(const aValue: Variant): Variant;
+var
+  Source: TWebAudioSoundSourceBackend;
 begin
   FPendingDecode := false;
   WritelnWarning('Failed to decode audio data for "%s"', [UriDisplay(Url)]);
+
+  // note: iteration like this assumes that BufferDecodingFinishedError never modifies FSources list
+  for Source in FSources do
+    Source.BufferDecodingFinishedError(Self);
   Result := aValue;
 end;
 
@@ -352,6 +397,14 @@ begin
 end;
 
 { TWebAudioSoundSourceBackend ------------------------------------------------ }
+
+destructor TWebAudioSoundSourceBackend.Destroy;
+begin
+  { Avoid FBuffer.FSources having dangling reference to this instance. }
+  if FBuffer <> nil then
+    FBuffer.Sources.Remove(Self);
+  inherited;
+end;
 
 function TWebAudioSoundSourceBackend.Backend: TWebAudioSoundEngineBackend;
 begin
@@ -433,11 +486,19 @@ function TWebAudioSoundSourceBackend.PlayingOrPaused: Boolean;
 var
   CurrentTime, Elapsed, BufferDuration: Double;
 begin
-  if (not FPlaying) or (FBuffer = nil) then
+  { Note that sources with FPendingPlaying (but not FPlaying) must still
+    return PlayingOrPaused = true, otherwise they will be reused for other
+    playback (sound engine will assume the playback finished super-quickly). }
+
+  if (not (FPlaying or FPendingPlaying)) or (FBuffer = nil) then
     Exit(false);
 
   { Looping sounds never stop on their own }
   if FLoop then
+    Exit(true);
+
+  { Don't check time for pending play, it didn't yet set FPlayStartTime }
+  if FPendingPlaying then
     Exit(true);
 
   { Check if the sound has finished playing based on elapsed time.
@@ -457,6 +518,26 @@ begin
   Result := FPlaying;
 end;
 
+procedure TWebAudioSoundSourceBackend.BufferDecodingFinishedSuccess(Sender: TObject);
+begin
+  if FPendingPlaying then
+  begin
+    WritelnLog('Buffer "%s" finished decoding, starting playback that was pending.', [UriDisplay(FBuffer.Url)]);
+    Play(false);
+    { Note that Play calls Stop which sets FPendingPlaying to false, so we don't need to set it here. }
+  end else
+  begin
+    // too verbose for normal usage
+    // WritelnWarning('Buffer "%s" finished decoding, but there is no pending playback.', [UriDisplay(FBuffer.Url)]);
+  end;
+end;
+
+procedure TWebAudioSoundSourceBackend.BufferDecodingFinishedError(Sender: TObject);
+begin
+  // Not logging anything, as the error is already logged in TWebAudioSoundBufferBackend.DecodeAudioDataError.
+  FPendingPlaying := false;
+end;
+
 procedure TWebAudioSoundSourceBackend.Play(const BufferChangedRecently: Boolean);
 var
   AudioCtx: IJSAudioContext;
@@ -470,14 +551,18 @@ begin
   end;
   if FBuffer.PendingDecode then // note that this usually implies "FBuffer.AudioBuffer = nil" too
   begin
-    WritelnWarning('Cannot play sound "%s" because it is still decoding. Try to play again when decoding finishes.', [
-      UriDisplay(FBuffer.Url)
-    ]);
+    // too verbose for normal usage
+    // WritelnLog('Sound "%s" is still decoding, will play once decoding finishes.', [
+    //   UriDisplay(FBuffer.Url)
+    // ]);
+    FPendingPlaying := true;
     Exit;
   end;
   if FBuffer.AudioBuffer = nil then
   begin
-    WritelnWarning('Cannot play sound because buffer is not initialized. Report a bug.');
+    WritelnWarning('Cannot play sound because buffer is not initialized. This may happen if audio data failed to decode for some reason. Buffer URL: "%s".', [
+      UriDisplay(FBuffer.Url)
+    ]);
     Exit;
   end;
 
@@ -514,6 +599,7 @@ begin
   end;
   SourceNode := nil;
   FPlaying := false;
+  FPendingPlaying := false;
 end;
 
 procedure TWebAudioSoundSourceBackend.SetPosition(const Value: TVector3);
@@ -580,7 +666,15 @@ end;
 
 procedure TWebAudioSoundSourceBackend.SetBuffer(const Value: TSoundBufferBackend);
 begin
-  FBuffer := Value as TWebAudioSoundBufferBackend;
+  if FBuffer <> Value then
+  begin
+    if FBuffer <> nil then
+      FBuffer.Sources.Remove(Self);
+    FBuffer := Value as TWebAudioSoundBufferBackend;
+    FPendingPlaying := false; // cancel any pending play that was waiting for decoding previous buffer
+    if FBuffer <> nil then
+      FBuffer.Sources.Add(Self);
+  end;
 end;
 
 procedure TWebAudioSoundSourceBackend.SetPitch(const Value: Single);
