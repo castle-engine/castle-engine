@@ -1,6 +1,5 @@
-// -*- compile-command: "castle-engine compile --mode=debug && castle-engine run" -*-
 {
-  Copyright 2021-2025 Michalis Kamburelis.
+  Copyright 2021-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -604,6 +603,7 @@ begin
     [
       'src/base/android/',
       'src/files/indy/',
+      'src/base/wasi/',
       'src/base_rendering/web/',
       'src/audio/castleinternalwebaudiobackend.pas',
 
@@ -696,6 +696,7 @@ begin
       'src/delphi/castleinternaldelphidesign.pas',
       'src/base/android/',
       'src/files/indy/',
+      'src/base/wasi/',
       'src/base_rendering/web/',
       'src/audio/castleinternalwebaudiobackend.pas',
 

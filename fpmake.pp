@@ -317,6 +317,11 @@ begin
     P.Targets.AddUnit('castlevectors.pas');
     P.Targets.AddUnit('castlevectorsinternaldouble.pas');
     P.Targets.AddUnit('castlevectorsinternalsingle.pas');
+    if TargetWeb then
+    begin
+      P.SourcePath.Add('src/base/wasi/');
+      P.Targets.AddUnit('castleinternalwebutils.pas');
+    end;
 
     P.SourcePath.Add('src/base_rendering');
     P.Targets.AddUnit('castlegles.pas');

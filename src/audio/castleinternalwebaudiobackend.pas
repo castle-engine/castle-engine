@@ -39,7 +39,7 @@ implementation
 uses SysUtils, Classes, Math, Job.Js, Generics.Collections,
   CastleVectors, CastleTimeUtils, CastleLog, CastleUtils,
   CastleStringUtils, CastleInternalSoundFile, CastleInternalJobWeb,
-  CastleUriUtils, CastleDownload,
+  CastleUriUtils, CastleDownload, CastleInternalWebUtils,
   CastleInternalAbstractSoundBackend, CastleSoundBase, CastleSoundEngine;
 
 { Sound backend classes ------------------------------------------------------ }
@@ -63,6 +63,7 @@ type
     FAudioBuffer: IJSAudioBuffer;
     FPendingDecode: Boolean;
     FSources: TWebAudioSoundSourceBackendList;
+    FDecodingPromise: IJSPromise;
     function DecodeAudioDataSuccess(const aValue: Variant): Variant;
     function DecodeAudioDataError(const aValue: Variant): Variant;
   public
@@ -182,6 +183,7 @@ type
     FJSAudioContext: IJSAudioContext;
     FMasterGainNode: IJSGainNode;
     FDistanceModel: TSoundDistanceModel;
+    FResumePromise: IJSPromise;
     function UserInteractionResumeAccepted(const aValue: Variant): Variant;
     function UserInteractionResumeRejected(const aValue: Variant): Variant;
   public
@@ -189,6 +191,7 @@ type
     property MasterGainNode: IJSGainNode read FMasterGainNode;
     property DistanceModel: TSoundDistanceModel read FDistanceModel;
 
+    destructor Destroy; override;
     function ContextOpen(const ADevice: String;
       out Information, InformationSummary: String): Boolean; override;
     procedure ContextClose; override;
@@ -224,6 +227,7 @@ begin
       FSources.First.SetBuffer(nil);
     FreeAndNil(FSources);
   end;
+  UnregisterPromiseAndNil(FDecodingPromise);
   inherited;
 end;
 
@@ -329,7 +333,12 @@ procedure TWebAudioSoundBufferBackend.ContextOpen(const AUrl: String);
   begin
     ArrayBuffer := UrlToArrayBuffer(Url);
     FPendingDecode := true;
-    Backend.JSAudioContext.DecodeAudioData(ArrayBuffer)._Then(
+
+    // clear previous FDecodingPromise, if existed
+    UnregisterPromiseAndNil(FDecodingPromise);
+
+    FDecodingPromise := Backend.JSAudioContext.DecodeAudioData(ArrayBuffer);
+    RegisterPromiseCallbacks(FDecodingPromise,
       @DecodeAudioDataSuccess,
       @DecodeAudioDataError
     );
@@ -347,6 +356,7 @@ end;
 procedure TWebAudioSoundBufferBackend.ContextClose;
 begin
   FAudioBuffer := nil;
+  UnregisterPromiseAndNil(FDecodingPromise);
   inherited;
 end;
 
@@ -729,6 +739,12 @@ end;
 
 { TWebAudioSoundEngineBackend ------------------------------------------------ }
 
+destructor TWebAudioSoundEngineBackend.Destroy;
+begin
+  UnregisterPromiseAndNil(FResumePromise);
+  inherited;
+end;
+
 function TWebAudioSoundEngineBackend.ContextOpen(const ADevice: String;
   out Information, InformationSummary: String): Boolean;
 begin
@@ -755,14 +771,16 @@ begin
 end;
 
 procedure TWebAudioSoundEngineBackend.UserInteraction;
-var
-  ResumePromise: IJSPromise;
 begin
   if (FJSAudioContext <> nil) and (FJSAudioContext.State = 'suspended') then
   begin
     WritelnLog('Web Audio context is suspended. Attempting to resume due to user interaction.');
-    ResumePromise := FJSAudioContext.Resume;
-    ResumePromise._Then(
+
+    // clear previous FResumePromise, if existed
+    UnregisterPromiseAndNil(FResumePromise);
+
+    FResumePromise := FJSAudioContext.Resume;
+    RegisterPromiseCallbacks(FResumePromise,
       @UserInteractionResumeAccepted,
       @UserInteractionResumeRejected
     );
@@ -793,6 +811,7 @@ begin
     FJSAudioContext.Close;
     FJSAudioContext := nil;
   end;
+  UnregisterPromiseAndNil(FResumePromise);
 end;
 
 function TWebAudioSoundEngineBackend.CreateBuffer(
