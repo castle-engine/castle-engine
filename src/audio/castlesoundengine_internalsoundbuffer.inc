@@ -73,7 +73,7 @@
       Typical applications don't need this value, this is just an information
       about the loaded sound file.
       Undefined if backend is not loaded. }
-    function Frequency: Cardinal;
+    function Frequency: TSoundFrequency;
   end;
 
   TSoundBuffer = TInternalSoundBuffer deprecated 'use TInternalSoundBuffer';
@@ -101,7 +101,7 @@ begin
     Result := 0;
 end;
 
-function TInternalSoundBuffer.Frequency: Cardinal;
+function TInternalSoundBuffer.Frequency: TSoundFrequency;
 begin
   if BackendIsOpen then
     Result := Backend.Frequency

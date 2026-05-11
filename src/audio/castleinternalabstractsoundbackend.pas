@@ -45,7 +45,7 @@ type
     { Number of channels (1 for mono, 2 for stereo, etc). }
     function Channels: Cardinal; virtual; abstract;
 
-    function Frequency: Cardinal; virtual; abstract;
+    function Frequency: TSoundFrequency; virtual; abstract;
 
     constructor Create(const ASoundEngine: TSoundEngineBackend);
 
@@ -68,7 +68,7 @@ type
     FDuration: TFloatTime;
     FSampleFormat: TSoundSampleFormat;
     FChannels: Cardinal;
-    FFrequency: Cardinal;
+    FFrequency: TSoundFrequency;
   protected
     { Optionally change (pre-process in some way) SoundFile contents
       before loading it. Called by @link(ContextOpen),
@@ -91,7 +91,7 @@ type
       enum, the other formats are "opaque" for us. }
     function SampleFormat: TSoundSampleFormat;
     function Channels: Cardinal; override;
-    function Frequency: Cardinal; override;
+    function Frequency: TSoundFrequency; override;
   end;
 
   { TSoundBufferBackend descendant that loads sound files using TStreamedSoundFile.
@@ -118,7 +118,7 @@ type
     FDuration: TFloatTime;
     FSampleFormat: TSoundSampleFormat;
     FChannels: Cardinal;
-    FFrequency: Cardinal;
+    FFrequency: TSoundFrequency;
     procedure ReadStreamConfigFromTemp;
   protected
     procedure ReadStreamConfig(const StreamedSoundFile: TStreamedSoundFile);
@@ -126,7 +126,7 @@ type
     function Duration: TFloatTime; override;
     function SampleFormat: TSoundSampleFormat;
     function Channels: Cardinal; override;
-    function Frequency: Cardinal; override;
+    function Frequency: TSoundFrequency; override;
   end;
 
   { Abstract sound engine sound source: something in 3D that plays sound. }
@@ -253,7 +253,7 @@ begin
   Result := FChannels;
 end;
 
-function TSoundBufferBackendFromSoundFile.Frequency: Cardinal;
+function TSoundBufferBackendFromSoundFile.Frequency: TSoundFrequency;
 begin
   Result := FFrequency;
 end;
@@ -306,7 +306,7 @@ begin
   Result := FChannels;
 end;
 
-function TSoundBufferBackendFromStreamedFile.Frequency: Cardinal;
+function TSoundBufferBackendFromStreamedFile.Frequency: TSoundFrequency;
 begin
   if not FStreamConfigRead then
     ReadStreamConfigFromTemp;

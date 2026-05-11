@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2019 Michalis Kamburelis.
+  Copyright 2010-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -86,6 +86,12 @@ type
       In general case, we advise to use it for longer sounds (like music tracks). }
     slStreaming
   );
+
+  { Frequency (sample rate) of the loaded sound file.
+    This is a floating point type, because some sound backends (like FMOD or
+    WebAudio) allow for non-integer frequencies.
+    Used for @link(TCastleSound.Frequency). }
+  TSoundFrequency = Single;
 
 implementation
 

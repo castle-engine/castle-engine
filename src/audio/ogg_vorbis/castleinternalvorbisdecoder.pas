@@ -147,11 +147,11 @@ type
     // Is VorbisFile valid, e.g. we can call ov_clear on it.
     VorbisFileValid: Boolean;
     procedure OpenVorbisFile(out SampleFormat: TSoundSampleFormat; out Channels: Cardinal;
-      out Frequency: Cardinal; out Duration: TFloatTime);
+      out Frequency: TSoundFrequency; out Duration: TFloatTime);
     procedure CloseVorbisFile;
   public
     constructor Create(const ASourceStream: TStream;
-      out SampleFormat: TSoundSampleFormat; out Channels: Cardinal; out Frequency: Cardinal;
+      out SampleFormat: TSoundSampleFormat; out Channels: Cardinal; out Frequency: TSoundFrequency;
       out Duration: TFloatTime);
     destructor Destroy; override;
     function Read(var Buffer; BufferSize: Longint): Longint; override;
@@ -162,12 +162,12 @@ type
 
     { Use this function to register OggVorbis handling with RegisterSoundFormat. }
     class function ReadStream(const Url: String; const Stream: TStream;
-      out SampleFormat: TSoundSampleFormat; out Channels: Cardinal; out Frequency: Cardinal;
+      out SampleFormat: TSoundSampleFormat; out Channels: Cardinal; out Frequency: TSoundFrequency;
       out Duration: TFloatTime): TStream;
   end;
 
 constructor TOggVorbisStream.Create(const ASourceStream: TStream;
-  out SampleFormat: TSoundSampleFormat; out Channels: Cardinal; out Frequency: Cardinal;
+  out SampleFormat: TSoundSampleFormat; out Channels: Cardinal; out Frequency: TSoundFrequency;
   out Duration: TFloatTime);
 begin
   inherited Create(ASourceStream);
@@ -181,7 +181,7 @@ begin
 end;
 
 procedure TOggVorbisStream.OpenVorbisFile(
-  out SampleFormat: TSoundSampleFormat; out Channels: Cardinal; out Frequency: Cardinal;
+  out SampleFormat: TSoundSampleFormat; out Channels: Cardinal; out Frequency: TSoundFrequency;
   out Duration: TFloatTime);
 var
   DurationRaw: {$ifdef CASTLE_TREMOLO} Int64 {$else} Double {$endif};
@@ -297,7 +297,7 @@ function TOggVorbisStream.Seek(const Offset: Int64; Origin: TSeekOrigin): Int64;
 var
   IgnoreSampleFormat: TSoundSampleFormat;
   IgnoreChannels: Cardinal;
-  IgnoreFrequency: Cardinal;
+  IgnoreFrequency: TSoundFrequency;
   IgnoreDuration: TFloatTime;
 begin
   // Seek is also used to track current position, but we don't track it
@@ -319,7 +319,7 @@ begin
 end;
 
 class function TOggVorbisStream.ReadStream(const Url: String; const Stream: TStream;
-  out SampleFormat: TSoundSampleFormat; out Channels: Cardinal; out Frequency: Cardinal;
+  out SampleFormat: TSoundSampleFormat; out Channels: Cardinal; out Frequency: TSoundFrequency;
   out Duration: TFloatTime): TStream;
 begin
   Result := TOggVorbisStream.Create(Stream, SampleFormat, Channels, Frequency, Duration);

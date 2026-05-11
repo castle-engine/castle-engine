@@ -58,7 +58,7 @@ type
   strict private
     FDuration: TFloatTime;
     FChannels: Cardinal;
-    FFrequency: Cardinal;
+    FFrequency: TSoundFrequency;
     { JavaScript AudioBuffer object. }
     FAudioBuffer: IJSAudioBuffer;
     FPendingDecode: Boolean;
@@ -75,7 +75,7 @@ type
 
     function Duration: TFloatTime; override;
     function Channels: Cardinal; override;
-    function Frequency: Cardinal; override;
+    function Frequency: TSoundFrequency; override;
 
     property AudioBuffer: IJSAudioBuffer read FAudioBuffer;
 
@@ -369,7 +369,7 @@ begin
 
   FAudioBuffer := TJSAudioBuffer.Cast(aValue);
   FDuration := FAudioBuffer.Duration;
-  FFrequency := Round(FAudioBuffer.SampleRate);
+  FFrequency := FAudioBuffer.SampleRate;
   FChannels := FAudioBuffer.NumberOfChannels;
 
   // note: iteration like this assumes that BufferDecodingFinishedSuccess never modifies FSources list
@@ -401,7 +401,7 @@ begin
   Result := FChannels;
 end;
 
-function TWebAudioSoundBufferBackend.Frequency: Cardinal;
+function TWebAudioSoundBufferBackend.Frequency: TSoundFrequency;
 begin
   Result := FFrequency;
 end;

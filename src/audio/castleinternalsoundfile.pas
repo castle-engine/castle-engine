@@ -70,7 +70,7 @@ type
     DataStream: TMemoryStream;
     FSampleFormat: TSoundSampleFormat;
     FChannels: Cardinal;
-    FFrequency: Cardinal;
+    FFrequency: TSoundFrequency;
     FDuration: TFloatTime;
   public
     { Load a sound data from a given URL.
@@ -105,7 +105,7 @@ type
     property Channels: Cardinal read FChannels;
 
     { Sound frequency (number of samples to play per second). }
-    property Frequency: Cardinal read FFrequency;
+    property Frequency: TSoundFrequency read FFrequency;
 
     { Duration in seconds. Returns -1 if not known. }
     property Duration: TFloatTime read FDuration;
@@ -120,7 +120,7 @@ type
     CompressedStream, DecompressedStream: TStream;
     FSampleFormat: TSoundSampleFormat;
     FChannels: Cardinal;
-    FFrequency: Cardinal;
+    FFrequency: TSoundFrequency;
     FDuration: TFloatTime;
   public
     { Load a sound from a given URL.
@@ -147,7 +147,7 @@ type
     property Channels: Cardinal read FChannels;
 
     { Sound frequency (number of samples to play per second). }
-    property Frequency: Cardinal read FFrequency;
+    property Frequency: TSoundFrequency read FFrequency;
 
     { Duration in seconds. }
     property Duration: TFloatTime read FDuration;
@@ -169,7 +169,7 @@ type
     by SampleFormat and Channels. }
   TSoundReadEvent = function (
     const Url: String; const Stream: TStream;
-    out SampleFormat: TSoundSampleFormat; out Channels: Cardinal; out Frequency: Cardinal;
+    out SampleFormat: TSoundSampleFormat; out Channels: Cardinal; out Frequency: TSoundFrequency;
     out Duration: TFloatTime): TStream
     of object;
 
@@ -276,7 +276,7 @@ begin
 
       if LogSoundLoading then
       begin
-        WritelnLog('Sound', 'Loaded "%s": %s, %s, channels: %d, size: %d, frequency: %d, duration: %f', [
+        WritelnLog('Sound', 'Loaded "%s": %s, %s, channels: %d, size: %d, frequency: %f, duration: %f', [
           UriDisplay(AUrl),
           MimeType,
           SampleFormatToStr[FSampleFormat],
@@ -384,7 +384,7 @@ begin
 
       if LogSoundLoading then
       begin
-        WritelnLog('Sound', 'Loaded "%s": %s, %s, channels: %d, frequency: %d, duration: %f', [
+        WritelnLog('Sound', 'Loaded "%s": %s, %s, channels: %d, frequency: %f, duration: %f', [
           UriDisplay(AUrl),
           MimeType,
           SampleFormatToStr[FSampleFormat],
@@ -436,12 +436,12 @@ type
 
   TWAVReader = class
     class function Read(const Url: String; const Stream: TStream;
-      out SampleFormat: TSoundSampleFormat; out Channels: Cardinal; out Frequency: Cardinal;
+      out SampleFormat: TSoundSampleFormat; out Channels: Cardinal; out Frequency: TSoundFrequency;
       out Duration: TFloatTime): TStream;
   end;
 
 class function TWAVReader.Read(const Url: String; const Stream: TStream;
-  out SampleFormat: TSoundSampleFormat; out Channels: Cardinal; out Frequency: Cardinal;
+  out SampleFormat: TSoundSampleFormat; out Channels: Cardinal; out Frequency: TSoundFrequency;
   out Duration: TFloatTime): TStream;
 
 { WAV file reader. Written mostly based on
@@ -493,6 +493,7 @@ var
   Riff: TWavRiffChunk;
   WavFormat: TWavFormatChunk;
   Header: TWavChunkHeader;
+  FrequencyInt: UInt32;
 begin
   Stream.ReadBuffer(Riff, SizeOf(Riff));
   if not (IdCompare(Riff.Header.ID, 'RIFF') and IdCompare(Riff.wID, 'WAVE')) then
@@ -540,8 +541,10 @@ begin
         16: SampleFormat := sfPcm16;
         else raise EWavLoadError.CreateFmt('Invalid WAV file %s: Only 8 or 16-bit encodings are supported', [Url]);
       end;
-      { calculate Frequency }
-      Frequency := WavFormat.SamplesPerSec;
+      { calculate Frequency (and FrequencyInt -- WAV format allows
+        only integer frequencies, so we can preserve precision more) }
+      FrequencyInt := WavFormat.SamplesPerSec;
+      Frequency := FrequencyInt;
       { There may be some additional stuff here in format chunk.
         The meaning depends on FormatTag value.
         http://www.sonicspot.com/guide/wavefiles.html
@@ -579,9 +582,9 @@ begin
   if Result = nil then
     raise EWavLoadError.Create('WAV file has no data chunk');
 
-  if (Frequency = 0) or (Result.Size = 0) then
+  if (FrequencyInt = 0) or (Result.Size = 0) then
     raise EWavLoadError.Create('WAV file has Frequency or DataSize equal zero');
-  Duration := Result.Size / (Frequency * (SampleSize[SampleFormat] * Channels));
+  Duration := Result.Size / (Int64(FrequencyInt) * SampleSize[SampleFormat] * Channels);
 end;
 
 { Registering sound formats -------------------------------------------------- }

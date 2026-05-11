@@ -320,7 +320,7 @@ begin
         StreamedFile.Channels
       ]);
     alBufferData(ALBuffer, ALDataFormat[StreamedFile.Channels, StreamedFile.SampleFormat],
-      HelperBufferPtr, Result, StreamedFile.Frequency);
+      HelperBufferPtr, Result, Round(StreamedFile.Frequency));
     {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alBufferData ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
   end else
   if Source.FLoop then
@@ -397,7 +397,7 @@ begin
         SoundFile.Channels
       ]);
     alBufferData(ALBuffer, ALDataFormat[SoundFile.Channels, SoundFile.SampleFormat],
-      SoundFile.Data, SoundFile.DataSize, SoundFile.Frequency);
+      SoundFile.Data, SoundFile.DataSize, Round(SoundFile.Frequency));
     {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alBufferData ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
   except
     alFreeBuffer(ALBuffer);

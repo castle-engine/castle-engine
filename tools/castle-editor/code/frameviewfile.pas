@@ -331,7 +331,7 @@ begin
     FSuccessMessage := FormatDot(
       'Duration: %f' + NL +
       'Channels: %d' + NL +
-      'Frequency: %d', [
+      'Frequency: %f', [
       Sound.Duration,
       Sound.Channels,
       Sound.Frequency

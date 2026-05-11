@@ -56,7 +56,7 @@ type
   strict private
     FDuration: TFloatTime;
     FChannels: Cardinal;
-    FFrequency: Cardinal;
+    FFrequency: TSoundFrequency;
   private
     FSoundLoading: TSoundLoading;
     FMODSound: PFMOD_SOUND;
@@ -68,7 +68,7 @@ type
     procedure ContextClose; override;
     function Duration: TFloatTime; override;
     function Channels: Cardinal; override;
-    function Frequency: Cardinal; override;
+    function Frequency: TSoundFrequency; override;
   end;
 
   TFMODSoundSourceBackend = class(TSoundSourceBackend)
@@ -196,7 +196,10 @@ var
     // calculate FFrequency.
     CheckFMOD(FMOD_Sound_GetLength(FMODSound, @PcmSamples, FMOD_TIMEUNIT_PCM));
     // We know that PcmSamples = Miliseconds * Frequency / 1000.
-    FFrequency := Int64(PcmSamples) * 1000 div Miliseconds;
+    if Miliseconds = 0 then
+      FFrequency := 0 // whatever, just don't crash
+    else
+      FFrequency := Int64(PcmSamples) * 1000 / Miliseconds;
 
     // calculate FChannels
     CheckFMOD(FMOD_Sound_GetFormat(FMODSound, @SoundType, @SoundFormat, @SoundChannels, @SoundBits));
@@ -204,7 +207,7 @@ var
     // FBits := SoundBits; // maybe useful in the future, to know if this is 8 or 16-bit sound
 
     if LogSoundLoading then
-      WritelnLog('FMOD loaded "%s": type %s, format: %s, channels: %d, bits: %d, frequency: %d, duration: %f', [
+      WritelnLog('FMOD loaded "%s": type %s, format: %s, channels: %d, bits: %d, frequency: %f, duration: %f', [
         UriDisplay(AUrl),
         SoundTypeToStr(SoundType),
         SoundFormatToStr(SoundFormat),
@@ -266,7 +269,7 @@ begin
   Result := FChannels;
 end;
 
-function TFMODSoundBufferBackend.Frequency: Cardinal;
+function TFMODSoundBufferBackend.Frequency: TSoundFrequency;
 begin
   Result := FFrequency;
 end;
