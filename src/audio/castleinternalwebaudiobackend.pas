@@ -365,12 +365,18 @@ var
   Source: TWebAudioSoundSourceBackend;
 begin
   FPendingDecode := false;
-  WritelnLog('Successfully decoded audio data for "%s"', [UriDisplay(Url)]);
 
   FAudioBuffer := TJSAudioBuffer.Cast(aValue);
   FDuration := FAudioBuffer.Duration;
   FFrequency := FAudioBuffer.SampleRate;
   FChannels := FAudioBuffer.NumberOfChannels;
+
+  WritelnLog('Successfully decoded audio data for "%s": channels: %d, frequency: %f, duration: %f', [
+    UriDisplay(Url),
+    FChannels,
+    FFrequency,
+    FDuration
+  ]);
 
   // note: iteration like this assumes that BufferDecodingFinishedSuccess never modifies FSources list
   for Source in FSources do

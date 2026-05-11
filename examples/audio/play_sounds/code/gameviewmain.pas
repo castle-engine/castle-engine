@@ -34,9 +34,12 @@ type
   private
     type
       TButtonSound = class(TCastleButton)
+      strict private
+        procedure UpdateSoundProperties;
       public
         Sound: TCastleSound;
         constructor Create(const AOwner: TComponent; const SoundFileUrl: String); reintroduce;
+        procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
       end;
 
       TPlayingSoundUiOwner = class(TComponent)
@@ -97,11 +100,31 @@ begin
   // Sound.Stream := true;
   Sound.Url := SoundFileUrl;
 
+  UpdateSoundProperties;
+end;
+
+procedure TViewMain.TButtonSound.UpdateSoundProperties;
+begin
   Caption := FormatDot('%s (%f)', [
     // extract last URL component, i.e. just the filename
-    UriDisplay(SoundFileUrl, true),
+    UriDisplay(Sound.Url, true),
     Sound.Duration
   ]);
+  Tooltip := FormatDot('Duration: %f seconds, Frequency: %f Hz, Channels: %d', [
+    Sound.Duration,
+    Sound.Frequency,
+    Sound.Channels
+  ]);
+end;
+
+procedure TViewMain.TButtonSound.Update(const SecondsPassed: Single; var HandleInput: boolean);
+begin
+  inherited;
+  { On some backends and some formats (right now: this concerns only
+    WebAudio backend and Ogg Vorbis format) the properties of the sound
+    (like Duration) are only learned with a delay after setting Url.
+    So update the caption continuously. }
+  UpdateSoundProperties;
 end;
 
 { TPlayingSoundUiOwner ---------------------------------------------------------- }
