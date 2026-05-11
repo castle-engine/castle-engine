@@ -46,10 +46,13 @@ type
       strict private
         SliderSoundVolume, SliderSoundPitch: TCastleFloatSlider;
         CheckboxLoop: TCastleCheckbox;
+        LabelSoundOffset: TCastleLabel;
         procedure ClickStop(Sender: TObject);
         procedure ChangeSliderSoundVolume(Sender: TObject);
         procedure ChangeSliderSoundPitch(Sender: TObject);
         procedure ChangeCheckboxLoop(Sender: TObject);
+        procedure Update(const Sender: TCastleUserInterface;
+          const SecondsPassed: Single; var HandleInput: boolean);
       public
         PlayingSound: TCastlePlayingSound;
         constructor Create(const AOwner: TComponent; const APlayingSound: TCastlePlayingSound;
@@ -78,7 +81,7 @@ implementation
 
 uses SysUtils,
   CastleLog, CastleWindow, CastleUriUtils, CastleTimeUtils,
-  CastleSoundBase, CastleViewport, CastleUtils;
+  CastleSoundBase, CastleViewport, CastleUtils, CastleApplicationProperties;
 
 { TButtonSound --------------------------------------------------------- }
 
@@ -143,6 +146,7 @@ begin
 
   // use Self as Owner of Ui, so below we just call Self.FindRequiredComponent
   Ui := UiFactory.UserInterfaceLoad(Self);
+  Ui.OnUpdate := {$ifdef FPC}@{$endif} Update;
   GroupPlayingSounds.InsertFront(Ui);
 
   LabelSoundName := FindRequiredComponent('LabelSoundName') as TCastleLabel;
@@ -150,6 +154,9 @@ begin
 
   ButtonStop := FindRequiredComponent('ButtonStop') as TCastleButton;
   ButtonStop.OnClick := {$ifdef FPC}@{$endif}ClickStop;
+
+  LabelSoundOffset := FindRequiredComponent('LabelSoundOffset') as TCastleLabel;
+  LabelSoundOffset.Caption := FormatDot('%f', [PlayingSound.Offset]);
 
   SliderSoundVolume := FindRequiredComponent('SliderSoundVolume') as TCastleFloatSlider;
   SliderSoundVolume.Value := PlayingSound.Volume;
@@ -182,6 +189,13 @@ end;
 procedure TViewMain.TPlayingSoundUiOwner.ChangeCheckboxLoop(Sender: TObject);
 begin
   PlayingSound.Loop := CheckboxLoop.Checked;
+end;
+
+procedure TViewMain.TPlayingSoundUiOwner.Update(const Sender: TCastleUserInterface;
+  const SecondsPassed: Single; var HandleInput: boolean);
+begin
+  inherited;
+  LabelSoundOffset.Caption := FormatDot('%f', [PlayingSound.Offset]);
 end;
 
 { TViewMain ----------------------------------------------------------------- }
@@ -219,7 +233,8 @@ begin
 
   LabelPlayingSounds.Caption := Format('Currently playing sounds (max %d):',
     [SoundEngine.MaxAllocatedSources]);
-  ButtonExit.OnClick := {$ifdef FPC}@{$endif}ClickExit;
+  ButtonExit.OnClick := {$ifdef FPC}@{$endif} ClickExit;
+  ButtonExit.Exists := ApplicationProperties.ShowUserInterfaceToQuit;
 
   { List the sound files to load.
     Hint: We could also use FindFiles from CastleFindFiles unit to automatically

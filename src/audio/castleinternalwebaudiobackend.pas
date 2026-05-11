@@ -694,10 +694,28 @@ begin
 end;
 
 procedure TWebAudioSoundSourceBackend.SetPitch(const Value: Single);
+var
+  CurrentOffset: Single;
 begin
-  FPitch := Value;
-  if SourceNode <> nil then // SourceNode may be nil if not currently playing
+  if FPlaying and (SourceNode <> nil) then
+  begin
+    { Save CurrentOffset and later change FPlayStartTime because:
+
+      Our GetOffset implementation calculates offset based on elapsed time
+      and current pitch.
+      Changing pitch during playback, without updating FPlayStartTime,
+      would cause GetOffset to be wrong.
+
+      It would be easier of WebAudio's AudioBufferSourceNode had a method to get
+      current playback position, but it doesn't (the only solution seems
+      to be AudioWorklet with custom processing, which is too complex for our
+      needs), so we have to track it ourselves. }
+    CurrentOffset := GetOffset;
+    FPitch := Value;
+    FPlayStartTime := GetAudioContext.CurrentTime - CurrentOffset / Max(FPitch, 0.001);
     SourceNode.PlaybackRate.Value := Value;
+  end else
+    FPitch := Value;
 end;
 
 procedure TWebAudioSoundSourceBackend.SetReferenceDistance(const Value: Single);
@@ -723,7 +741,7 @@ var
 begin
   if FPlaying then
   begin
-    CurrentTime := GetAudioContext.currentTime;
+    CurrentTime := GetAudioContext.CurrentTime;
     Elapsed := (CurrentTime - FPlayStartTime) * FPitch;
     if (FBuffer <> nil) and (FBuffer.Duration > 0) and FLoop then
     begin
