@@ -2148,6 +2148,7 @@ function TCastleContainer.EventRelease(const Event: TInputPressRelease): Boolean
 begin
   FlushCollectedMotion;
   UpdateCurrentMousePositionAndTouches;
+  ApplicationProperties._UserInteraction;
 
   Inc(FProcessingEvents);
   try
