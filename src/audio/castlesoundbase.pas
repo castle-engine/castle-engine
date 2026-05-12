@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2019 Michalis Kamburelis.
+  Copyright 2010-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -71,25 +71,6 @@ type
     procedure Add(const AName, ACaption: string); reintroduce;
   end;
 
-  { Sound sample format.
-
-    8-bit data is unsigned.
-    Just like in case of 8-bit WAV files, and OpenAL AL_FORMAT_MONO8 / AL_FORMAT_STEREO8:
-    It is expressed as an unsigned value over the range 0 to 255, 128 being an audio output level of zero.
-
-    16-bit data is signed.
-    Just like in case of 16-bit WAV files, and OpenAL AL_FORMAT_MONO16 / AL_FORMAT_STEREO16:
-    It is expressed as a signed value over the range -32768 to 32767, 0 being an audio output level of zero.
-
-    Stereo data is expressed in an interleaved format, left channel sample followed by the right channel sample.
-  }
-  TSoundDataFormat = (
-    sfMono8,
-    sfMono16,
-    sfStereo8,
-    sfStereo16
-  );
-
   { How to load a sound buffer. }
   TSoundLoading = (
     { Load entire sound file at once.
@@ -106,7 +87,11 @@ type
     slStreaming
   );
 
-function DataFormatToStr(const DataFormat: TSoundDataFormat): string;
+  { Frequency (sample rate) of the loaded sound file.
+    This is a floating point type, because some sound backends (like FMOD or
+    WebAudio) allow for non-integer frequencies.
+    Used for @link(TCastleSound.Frequency). }
+  TSoundFrequency = Single;
 
 implementation
 
@@ -120,20 +105,6 @@ begin
   D.FName := AName;
   D.FCaption := ACaption;
   inherited Add(D);
-end;
-
-{ global functions ----------------------------------------------------------- }
-
-function DataFormatToStr(const DataFormat: TSoundDataFormat): string;
-const
-  DataFormatStr: array [TSoundDataFormat] of String = (
-    'mono 8',
-    'mono 16',
-    'stereo 8',
-    'stereo 16'
-  );
-begin
-  Result := DataFormatStr[DataFormat];
 end;
 
 end.

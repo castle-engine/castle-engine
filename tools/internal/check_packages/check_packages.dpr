@@ -1,6 +1,5 @@
-// -*- compile-command: "castle-engine compile --mode=debug && castle-engine run" -*-
 {
-  Copyright 2021-2025 Michalis Kamburelis.
+  Copyright 2021-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -604,7 +603,9 @@ begin
     [
       'src/base/android/',
       'src/files/indy/',
+      'src/base/wasi/',
       'src/base_rendering/web/',
+      'src/audio/castleinternalwebaudiobackend.pas',
 
       // Ignore units that are only to be compiled when pulled by CastleHttps with FPC 3.2.x
       'src/files/castleinternalforfpc32x*.pas'
@@ -695,7 +696,9 @@ begin
       'src/delphi/castleinternaldelphidesign.pas',
       'src/base/android/',
       'src/files/indy/',
+      'src/base/wasi/',
       'src/base_rendering/web/',
+      'src/audio/castleinternalwebaudiobackend.pas',
 
       // This will be in castle_engine_design package
       'src/files/tools/',
@@ -811,7 +814,6 @@ begin
     ],
     [
       'src/files/indy/',
-      'src/base_rendering/web/',
 
       // Ignore units that are only to be compiled when pulled by CastleHttps with FPC 3.2.x
       'src/files/castleinternalforfpc32x*.pas'

@@ -148,6 +148,7 @@ begin
   FMaxAllocatedSources := DefaultMaxAllocatedSources;
 
   {$ifdef CASTLE_SOUND_BACKEND_DEFAULT_OPENAL} UseOpenALSoundBackend; {$endif}
+  {$ifdef CASTLE_SOUND_BACKEND_DEFAULT_WEBAUDIO} UseWebAudioSoundBackend; {$endif}
 end;
 
 destructor TSoundAllocator.Destroy;

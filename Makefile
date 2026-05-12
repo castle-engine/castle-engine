@@ -415,7 +415,8 @@ clean: cleanexamples
 					-iname '*.rsm' -or \
 					-iname '*.log' -or \
 					-iname libsteam_api.so -or \
-					-iname libsteam_api.dylib \
+					-iname libsteam_api.dylib -or \
+					-iname packagefiles.xml \
 				')' \
 	     -print \
 	     | xargs rm -f

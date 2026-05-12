@@ -1,5 +1,5 @@
 ﻿{
-  Copyright 2021-2024 Andrzej Kilijański, Michalis Kamburelis.
+  Copyright 2021-2026 Andrzej Kilijański, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -68,14 +68,14 @@ type
       See ../README.md for documentation about allowed keys/mouse/touch input. }
     WasInputJump: Boolean;
 
-    { Checks this is firs Update when InputShot occurred.
+    { Checks this is first Update when InputShot occurred.
       See ../README.md for documentation about allowed keys/mouse/touch input. }
     WasInputShot: Boolean;
 
     { Player abilities }
     PlayerCanDoubleJump: Boolean;
     WasDoubleJump: Boolean;
-    PlayerCanShot: Boolean;
+    PlayerCanShoot: Boolean;
     PlayerCollectedCoins: Integer;
     PlayerHitPoints: Integer;
     PlayerAnimationToLoop: String;
@@ -282,7 +282,7 @@ begin
     Container.Pressed.Items[keyD] or
     Container.Pressed.Items[keyArrowRight];
 
-  { Mouse, or any finger, pressing in left-lower part of the screen. }
+  { Mouse, or any finger, pressing in right-lower part of the screen. }
   if buttonLeft in Container.MousePressed then
     for I := 0 to Container.TouchesCount - 1 do
       if (Container.Touches[I].Position.X >= Container.PixelsWidth * 0.5) and
@@ -323,8 +323,8 @@ begin
   RBody := Player.RigidBody;
   if RBody <> nil then
   begin
-    RBody.OnCollisionEnter := {$ifdef FPC}@{$endif}PlayerCollisionEnter;
-    RBody.OnCollisionExit := {$ifdef FPC}@{$endif}PlayerCollisionExit;
+    RBody.OnCollisionEnter := {$ifdef FPC}@{$endif} PlayerCollisionEnter;
+    RBody.OnCollisionExit := {$ifdef FPC}@{$endif} PlayerCollisionExit;
   end;
 
   WasInputJump := false;
@@ -334,7 +334,7 @@ procedure TViewPlay.ConfigurePlayerAbilities(const Player: TCastleScene);
 begin
   PlayerCanDoubleJump := false;
   WasDoubleJump := false;
-  PlayerCanShot := false;
+  PlayerCanShoot := false;
   ResetHitPoints;
 
   ResetCollectedCoins;
@@ -360,7 +360,7 @@ begin
     if Pos('Shot', CollisionDetails.OtherTransform.Name) > 0 then
     begin
       SoundEngine.Play(NamedSound('PowerUp'));
-      PlayerCanShot := true;
+      PlayerCanShoot := true;
       CollisionDetails.OtherTransform.Exists := false;
     end else
     if Pos('Key', CollisionDetails.OtherTransform.Name) > 0 then
@@ -1048,16 +1048,17 @@ begin
   else if Vel.X > 1 then
     ScenePlayer.Scale := Vector3(1, 1, 1);
 
-  if PlayerCanShot then
+  if PlayerCanShoot then
   begin
     if InputShot then
     begin
-      if WasInputShot = false  then
+      if not WasInputShot then
       begin
         SoundEngine.Play(NamedSound('Shot'));
         WasInputShot := true;
 
-        Shot(ScenePlayer, ScenePlayer.LocalToWorld(Vector3(ScenePLayer.BoundingBox.SizeX / 2 + 5, 0, 0)),
+        Shot(ScenePlayer, ScenePlayer.LocalToWorld(
+          Vector3(ScenePlayer.BoundingBox.SizeX / 2 + 5, 0, 0)),
           Vector3(ScenePlayer.Scale.X, 1, 0));
       end;
     end else

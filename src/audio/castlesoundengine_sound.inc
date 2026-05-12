@@ -130,15 +130,15 @@
       The sound is loaded once you set @link(Url) and don't get any loading exceptions. }
     function Duration: Single;
 
-    { Sound data format (disregarding compression on top of it), for informational purposes.
-      Undefined if not loaded yet.
+    { Number of channels (1 for mono, 2 for stereo, etc).
+      0 if not loaded yet.
       The sound is loaded once you set @link(Url) and don't get any loading exceptions. }
-    function DataFormat: TSoundDataFormat;
+    function Channels: Cardinal;
 
     { Frequency (sample rate) of the loaded sound file.
       0 if not loaded yet.
       The sound is loaded once you set @link(Url) and don't get any loading exceptions. }
-    function Frequency: Cardinal;
+    function Frequency: TSoundFrequency;
   published
     { URL of the sound file.
       Set this to load a new sound buffer, you can set to '' to clear the sound buffer.
@@ -445,15 +445,15 @@ begin
     Result := -1;
 end;
 
-function TCastleSound.DataFormat: TSoundDataFormat;
+function TCastleSound.Channels: Cardinal;
 begin
   if FBuffer <> nil then
-    Result := FBuffer.DataFormat
+    Result := FBuffer.Channels
   else
-    Result := Default(TSoundDataFormat); // whatever, just not memory garbage
+    Result := 0;
 end;
 
-function TCastleSound.Frequency: Cardinal;
+function TCastleSound.Frequency: TSoundFrequency;
 begin
   if FBuffer <> nil then
     Result := FBuffer.Frequency

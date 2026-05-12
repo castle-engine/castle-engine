@@ -68,7 +68,7 @@ type
     FOnGLContextEarlyOpen, FOnGLContextOpen, FOnGLContextClose: TGLContextEventList;
     FOnUpdate, FOnInitializeJavaActivity,
       FOnGLContextOpenObject, FOnGLContextCloseObject,
-      FOnPause, FOnResume: TNotifyEventList;
+      FOnPause, FOnResume, FOnUserInteraction: TNotifyEventList;
     FOnWarning: TWarningEventList;
     FOnLog: TLogEventList;
     FOnInitializeDebug: TProcedureList;
@@ -294,6 +294,12 @@ type
     property OnResume: TNotifyEventList read FOnResume;
     { @groupEnd }
 
+    { Called when user interacts with the application,
+      for example clicks mouse, presses a key, touches the screen.
+      This is used by the web target, when certain things
+      (like audio playback) can be activated only in response to user interaction. }
+    property OnUserInteraction: TNotifyEventList read FOnUserInteraction;
+
     { Events called upon @link(WritelnWarning). }
     property OnWarning: TWarningEventList read FOnWarning;
 
@@ -330,6 +336,8 @@ type
     procedure _Pause;
     { @exclude }
     procedure _Resume;
+    { @exclude }
+    procedure _UserInteraction;
     { @exclude }
     procedure _Warning(const Category, Message: String);
     { @exclude }
@@ -461,6 +469,7 @@ begin
   FOnInitializeJavaActivity := TNotifyEventList.Create;
   FOnPause := TNotifyEventList.Create;
   FOnResume := TNotifyEventList.Create;
+  FOnUserInteraction := TNotifyEventList.Create;
   FOnWarning := TWarningEventList.Create;
   FOnLog := TLogEventList.Create;
   FOnInitializeDebug := TProcedureList.Create;
@@ -492,6 +501,7 @@ begin
   FreeAndNil(FOnInitializeJavaActivity);
   FreeAndNil(FOnPause);
   FreeAndNil(FOnResume);
+  FreeAndNil(FOnUserInteraction);
   FreeAndNil(FOnWarning);
   FreeAndNil(FOnLog);
   FreeAndNil(FOnInitializeDebug);
@@ -615,6 +625,11 @@ end;
 procedure TCastleApplicationProperties._Resume;
 begin
   FOnResume.ExecuteAll(Self);
+end;
+
+procedure TCastleApplicationProperties._UserInteraction;
+begin
+  FOnUserInteraction.ExecuteAll(Self);
 end;
 
 procedure TCastleApplicationProperties._Warning(const Category, Message: String);

@@ -178,11 +178,9 @@ type
   end;
 
 const
-  ALDataFormat: array [TSoundDataFormat] of TALuint = (
-    AL_FORMAT_MONO8,
-    AL_FORMAT_MONO16,
-    AL_FORMAT_STEREO8,
-    AL_FORMAT_STEREO16
+  ALDataFormat: array [{ channels } 1..2, TSoundSampleFormat] of TALuint = (
+    (AL_FORMAT_MONO8, AL_FORMAT_MONO16),
+    (AL_FORMAT_STEREO8, AL_FORMAT_STEREO16)
   );
 
 { Check and report (as warnings) OpenAL errors as often as possible.
@@ -317,8 +315,12 @@ begin
   Result := StreamedFile.Read(HelperBufferPtr^, HelperBufferSize);
   if Result > 0 then
   begin
-    alBufferData(ALBuffer, ALDataFormat[StreamedFile.DataFormat],
-      HelperBufferPtr, Result, StreamedFile.Frequency);
+    if not Between(StreamedFile.Channels, 1, 2) then
+      raise ESoundFileError.CreateFmt('OpenAL backend supports only 1 or 2 channels (got %d)', [
+        StreamedFile.Channels
+      ]);
+    alBufferData(ALBuffer, ALDataFormat[StreamedFile.Channels, StreamedFile.SampleFormat],
+      HelperBufferPtr, Result, Round(StreamedFile.Frequency));
     {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alBufferData ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
   end else
   if Source.FLoop then
@@ -390,8 +392,12 @@ begin
   alCreateBuffers(1, @ALBuffer);
   {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alCreateBuffers ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
   try
-    alBufferData(ALBuffer, ALDataFormat[SoundFile.DataFormat],
-      SoundFile.Data, SoundFile.DataSize, SoundFile.Frequency);
+    if not Between(SoundFile.Channels, 1, 2) then
+      raise ESoundFileError.CreateFmt('OpenAL backend supports only 1 or 2 channels (got %d)', [
+        SoundFile.Channels
+      ]);
+    alBufferData(ALBuffer, ALDataFormat[SoundFile.Channels, SoundFile.SampleFormat],
+      SoundFile.Data, SoundFile.DataSize, Round(SoundFile.Frequency));
     {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alBufferData ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
   except
     alFreeBuffer(ALBuffer);
@@ -473,7 +479,7 @@ var
 begin
   // make a clear warning when trying to play stereo sound as spatial
   if FSpatial and
-     (FBuffer.DataFormat in [sfStereo8, sfStereo16]) then
+     (FBuffer.Channels > 1) then
     WritelnWarning('Stereo sound files are *never* played as spatial by OpenAL. Convert sound file "%s" to mono (e.g. by Audacity or SOX).', [
       UriDisplay(FBuffer.Url)
     ]);
@@ -963,13 +969,6 @@ begin
 
   { Try to initialize OpenAL.
     Sets Information, EFXSupported. }
-
-  {$ifdef WASI}
-  // TODO: web: WASI does not support OpenAL, and we don't have a backend using WebAudio yet, also we fail without exceptions because WASI doesn't have longjmp
-  Information := 'Sound playback not supported on WebAssembly yet';
-  InformationSummary := Information;
-  Exit(false);
-  {$endif}
 
   { We don't do alcProcessContext/alcSuspendContext, no need
     (spec says that context is initially in processing state). }
