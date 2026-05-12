@@ -305,7 +305,12 @@ begin
     begin
       PlayingSoundUiOwners.Remove(PlayingSoundUiOwner);
       // This frees TPlayingSoundUiOwner, along with UI
-      PlayingSoundUiOwner.Free;
+      { Do not free PlayingSoundUiOwner immediately, because this may be called
+        from ButtonStop.OnClick, and then freeing PlayingSoundUiOwner would
+        free the very object on which we are processing event -- which is not
+        allowed, may crash (and CGE warns about it). }
+      //PlayingSoundUiOwner.Free;
+      ApplicationProperties.FreeDelayed(PlayingSoundUiOwner);
       Break;
     end;
 end;
