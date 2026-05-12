@@ -247,7 +247,7 @@ procedure TWebAudioSoundBufferBackend.ContextOpen(const AUrl: String);
     ChannelDataSingle: TSingleList;
     I: Integer;
     Channel: Integer;
-    SampleInt8: Int8;
+    SampleUInt8: UInt8;
     SampleInt16: Int16;
   begin
     NumChannels := SoundFile.Channels;
@@ -271,11 +271,11 @@ procedure TWebAudioSoundBufferBackend.ContextOpen(const AUrl: String);
         case SoundFile.SampleFormat of
           sfPcm8:
             begin
-              // Int8 for each channel, convert to float in range [-1.0, 1.0]
+              // UInt8 for each channel, convert to float in range [-1.0, 1.0]
               for I := 0 to NumFrames - 1 do
               begin
-                SampleInt8 := PInt8(SoundFile.Data)[I * NumChannels + Channel];
-                ChannelDataSingle[I] := SampleInt8 / High(Int8);
+                SampleUInt8 := PUInt8(SoundFile.Data)[I * NumChannels + Channel];
+                ChannelDataSingle[I] := (SampleUInt8 - 128) / 128;
               end;
             end;
           sfPcm16:
