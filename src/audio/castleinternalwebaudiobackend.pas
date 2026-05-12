@@ -637,25 +637,36 @@ begin
 end;
 
 function TWebAudioSoundSourceBackend.SourceNodeEnded(Event: IJSEvent): Variant;
-
-  function JsObjectsEqual(const A, B: IJSObject): Boolean;
-  begin
-    { Compare using GetJSObjectCastSrc, since comparing just by reference
-      ("Result := A = B;") will be wrong, Job.Js will map to different interfaces.
-      Comparing by GetJSObjectID is also wrong. }
-    Result :=
-      ((A = nil) and (B = nil)) or
-      ((A <> nil) and (B <> nil) and (A.GetJSObjectCastSrc = B.GetJSObjectCastSrc));
-  end;
-
 begin
   Result := Event; // return value of this does not seem to matter
+
+  (*We would like to have here some security, in case the event comes
+    from IJSAudioBufferSourceNode that is not our current SourceNode.
+    This was in particular important before we added the code to unregisted
+    from "SourceNode.OnEnded := ..." (which needs to be done using a dummy
+    object, not by "SourceNode.OnEnded := nil", but that's unrelated problem of
+    Job.Js).
+
+    However, it doesn't seem we can reliably compare the Event.Target
+    with SourceNode?
+
+    - Comparing references is not useful (they always differ),
+      likely due to how Job.Js maps JavaScript objects to Pascal interfaces.
+      "if Event.Target <> SourceNode then"
+
+    - Comparing by GetJSObjectID is also not useful, they also always differ.
+
+    - Comparing using GetJSObjectCastSrc is pointless: seems to be always nil
+      in our siuations.
+
+    TODO: The proper solution is unknown.
 
   if not JsObjectsEqual(Event.Target, SourceNode) then
   begin
     WritelnWarning('Received SourceNodeEnded event, but for wrong SourceNode. This should never happen, as we disconnect SourceNode.OnEnded.');
     Exit;
   end;
+  *)
 
   if WebAudioVerboseLog then
     WritelnLog('Sound finished playing (notified about it by OnEnded). This is normal if the sound reached its end.');
