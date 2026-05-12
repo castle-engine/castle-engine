@@ -155,7 +155,6 @@ type
     { Undo the work of NodesDisconnect. }
     procedure NodesDisconnect;
     function SourceNodeEnded(Event: IJSEvent): Variant;
-    function DummySourceNodeEnded(Event: IJSEvent): Variant;
   private
     procedure BufferDecodingFinishedSuccess(Sender: TObject);
     procedure BufferDecodingFinishedError(Sender: TObject);
@@ -422,6 +421,24 @@ begin
   Result := FFrequency;
 end;
 
+{ TDummyEventHandler --------------------------------------------------------- }
+
+type
+  TDummyEventHandler = class
+    function DummySourceNodeEnded(Event: IJSEvent): Variant;
+  end;
+
+var
+  DummyEventHandler: TDummyEventHandler;
+
+function TDummyEventHandler.DummySourceNodeEnded(Event: IJSEvent): Variant;
+begin
+  { This is a dummy handler that does nothing, used to avoid crashes when
+    SourceNode.OnEnded is called but we can no longer handle it,
+    maybe even the TWebAudioSoundSourceBackend instance is destroyed. }
+  Result := Event;
+end;
+
 { TWebAudioSoundSourceBackend ------------------------------------------------ }
 
 destructor TWebAudioSoundSourceBackend.Destroy;
@@ -632,6 +649,8 @@ function TWebAudioSoundSourceBackend.SourceNodeEnded(Event: IJSEvent): Variant;
   end;
 
 begin
+  Result := Event; // return value of this does not seem to matter
+
   if not JsObjectsEqual(Event.Target, SourceNode) then
   begin
     WritelnWarning('Received SourceNodeEnded event, but for wrong SourceNode. This should never happen, as we disconnect SourceNode.OnEnded.');
@@ -643,15 +662,6 @@ begin
 
   FPlaying := false; // means that Stop will not call SourceNode.Stop, which should not be necessary
   Stop;
-  Result := Event; // Null; // return value of this does not seem to matter
-end;
-
-function TWebAudioSoundSourceBackend.DummySourceNodeEnded(Event: IJSEvent): Variant;
-begin
-  { This is a dummy handler that does nothing, used to avoid crashes when
-    SourceNode.OnEnded is called but we can no longer handle it,
-    maybe even the TWebAudioSoundSourceBackend instance is destroyed. }
-  Result := Event;
 end;
 
 procedure TWebAudioSoundSourceBackend.Stop;
@@ -665,7 +675,7 @@ begin
       and will work even if TWebAudioSoundSourceBackend instance is destroyed
       by the time it is called. }
     //SourceNode.OnEnded := nil;
-    SourceNode.OnEnded := {$ifdef FPC}@{$endif} DummySourceNodeEnded;
+    SourceNode.OnEnded := {$ifdef FPC}@{$endif} DummyEventHandler.DummySourceNodeEnded;
 
     if FPlaying then
       SourceNode.Stop; // should not be necessary if already FPlaying = false
@@ -965,4 +975,10 @@ begin
   SoundEngine.InternalBackend := TWebAudioSoundEngineBackend.Create;
 end;
 
+initialization
+  DummyEventHandler := TDummyEventHandler.Create;
+finalization
+  { Let DummyEventHandler leak, in case some references to it remain from
+    JS objects and will be called after finalization. }
+  // FreeAndNil(DummyEventHandler);
 end.
