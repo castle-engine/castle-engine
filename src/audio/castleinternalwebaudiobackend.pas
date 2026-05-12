@@ -150,6 +150,7 @@ type
     procedure NodesConnect;
     { Undo the work of NodesDisconnect. }
     procedure NodesDisconnect;
+    function SourceNodeEnded(Event: IJSEvent): Variant;
   private
     procedure BufferDecodingFinishedSuccess(Sender: TObject);
     procedure BufferDecodingFinishedError(Sender: TObject);
@@ -344,10 +345,14 @@ procedure TWebAudioSoundBufferBackend.ContextOpen(const AUrl: String);
     );
   end;
 
+var
+  SoundMimeType: String;
 begin
   inherited;
 
-  if UriMimeType(Url) = 'audio/wav' then
+  SoundMimeType := UriMimeType(Url);
+  if (SoundMimeType = 'audio/wav') or
+     (SoundMimeType = 'audio/x-wav') then
     UseSoundFile
   else
     UseDecodeAudioData;
@@ -589,6 +594,7 @@ begin
   SourceNode.Buffer := FBuffer.AudioBuffer;
   SourceNode.Loop := FLoop;
   SourceNode.PlaybackRate.Value := FPitch;
+  SourceNode.OnEnded := {$ifdef FPC}@{$endif} SourceNodeEnded;
 
   { Connect: SourceNode -> our GainNode (which is already connected to the rest
     of the audio graph by NodesConnect) }
@@ -606,11 +612,26 @@ begin
   FPlaying := true;
 end;
 
+function TWebAudioSoundSourceBackend.SourceNodeEnded(Event: IJSEvent): Variant;
+begin
+  if SourceNode <> nil then
+  begin
+    SourceNode.Disconnect;
+    SourceNode := nil;
+  end;
+  FPlaying := false;
+  FPendingPlaying := false;
+  Result := Null; // return value of this event is not event, as far as we know
+end;
+
 procedure TWebAudioSoundSourceBackend.Stop;
 begin
   if FPlaying and (SourceNode <> nil) then
   begin
     SourceNode.Stop;
+    { Disconnect without parameters:
+      "If no parameters are provided, all outgoing connections are disconnected."
+      https://developer.mozilla.org/en-US/docs/Web/API/AudioNode/disconnect }
     SourceNode.Disconnect;
   end;
   SourceNode := nil;
