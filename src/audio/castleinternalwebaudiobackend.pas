@@ -31,6 +31,10 @@ unit CastleInternalWebAudioBackend;
 
 interface
 
+var
+  { Set to @true for extra logging. }
+  WebAudioVerboseLog: Boolean = false;
+
 { Use this to set sound engine backend to Web Audio. }
 procedure UseWebAudioSoundBackend;
 
@@ -151,6 +155,7 @@ type
     { Undo the work of NodesDisconnect. }
     procedure NodesDisconnect;
     function SourceNodeEnded(Event: IJSEvent): Variant;
+    function DummySourceNodeEnded(Event: IJSEvent): Variant;
   private
     procedure BufferDecodingFinishedSuccess(Sender: TObject);
     procedure BufferDecodingFinishedError(Sender: TObject);
@@ -424,6 +429,8 @@ begin
   { Avoid FBuffer.FSources having dangling reference to this instance. }
   if FBuffer <> nil then
     FBuffer.Sources.Remove(Self);
+  if SourceNode <> nil then
+    Stop; // stop playing, and make sure SourceNode.OnEnded doesn't refer to us
   inherited;
 end;
 
@@ -548,8 +555,8 @@ begin
     { Note that Play calls Stop which sets FPendingPlaying to false, so we don't need to set it here. }
   end else
   begin
-    // too verbose for normal usage
-    // WritelnWarning('Buffer "%s" finished decoding, but there is no pending playback.', [UriDisplay(FBuffer.Url)]);
+    if WebAudioVerboseLog then
+      WritelnWarning('Buffer "%s" finished decoding, but there is no pending playback.', [UriDisplay(FBuffer.Url)]);
   end;
 end;
 
@@ -572,10 +579,10 @@ begin
   end;
   if FBuffer.PendingDecode then // note that this usually implies "FBuffer.AudioBuffer = nil" too
   begin
-    // too verbose for normal usage
-    // WritelnLog('Sound "%s" is still decoding, will play once decoding finishes.', [
-    //   UriDisplay(FBuffer.Url)
-    // ]);
+    if WebAudioVerboseLog then
+      WritelnLog('Sound "%s" is still decoding, will play once decoding finishes. This is normal for 1st play of non-WAV files.', [
+        UriDisplay(FBuffer.Url)
+      ]);
     FPendingPlaying := true;
     Exit;
   end;
@@ -613,28 +620,63 @@ begin
 end;
 
 function TWebAudioSoundSourceBackend.SourceNodeEnded(Event: IJSEvent): Variant;
-begin
-  if SourceNode <> nil then
+
+  function JsObjectsEqual(const A, B: IJSObject): Boolean;
   begin
-    SourceNode.Disconnect;
-    SourceNode := nil;
+    { Compare using GetJSObjectCastSrc, since comparing just by reference
+      ("Result := A = B;") will be wrong, Job.Js will map to different interfaces.
+      Comparing by GetJSObjectID is also wrong. }
+    Result :=
+      ((A = nil) and (B = nil)) or
+      ((A <> nil) and (B <> nil) and (A.GetJSObjectCastSrc = B.GetJSObjectCastSrc));
   end;
-  FPlaying := false;
-  FPendingPlaying := false;
-  Result := Null; // return value of this event is not event, as far as we know
+
+begin
+  if not JsObjectsEqual(Event.Target, SourceNode) then
+  begin
+    WritelnWarning('Received SourceNodeEnded event, but for wrong SourceNode. This should never happen, as we disconnect SourceNode.OnEnded.');
+    Exit;
+  end;
+
+  if WebAudioVerboseLog then
+    WritelnLog('Sound finished playing (notified about it by OnEnded). This is normal if the sound reached its end.');
+
+  FPlaying := false; // means that Stop will not call SourceNode.Stop, which should not be necessary
+  Stop;
+  Result := Event; // Null; // return value of this does not seem to matter
+end;
+
+function TWebAudioSoundSourceBackend.DummySourceNodeEnded(Event: IJSEvent): Variant;
+begin
+  { This is a dummy handler that does nothing, used to avoid crashes when
+    SourceNode.OnEnded is called but we can no longer handle it,
+    maybe even the TWebAudioSoundSourceBackend instance is destroyed. }
+  Result := Event;
 end;
 
 procedure TWebAudioSoundSourceBackend.Stop;
 begin
-  if FPlaying and (SourceNode <> nil) then
+  if SourceNode <> nil then
   begin
-    SourceNode.Stop;
+    { Avoid SourceNodeEnded being called after we set SourceNode := nil below.
+      This would be correct... but it crashes now, it seems Job.Js is not ready
+      to assign nil to SourceNode.OnEnded.
+      So instead we assign a dummy handler that does nothing,
+      and will work even if TWebAudioSoundSourceBackend instance is destroyed
+      by the time it is called. }
+    //SourceNode.OnEnded := nil;
+    SourceNode.OnEnded := {$ifdef FPC}@{$endif} DummySourceNodeEnded;
+
+    if FPlaying then
+      SourceNode.Stop; // should not be necessary if already FPlaying = false
+
     { Disconnect without parameters:
       "If no parameters are provided, all outgoing connections are disconnected."
       https://developer.mozilla.org/en-US/docs/Web/API/AudioNode/disconnect }
     SourceNode.Disconnect;
+    SourceNode := nil;
   end;
-  SourceNode := nil;
+
   FPlaying := false;
   FPendingPlaying := false;
 end;
