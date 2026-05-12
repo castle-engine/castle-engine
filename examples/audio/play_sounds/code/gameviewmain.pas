@@ -1,5 +1,5 @@
 {
-  Copyright 2019-2023 Michalis Kamburelis.
+  Copyright 2019-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -153,22 +153,22 @@ begin
   LabelSoundName.Caption := UriDisplay(PlayingSound.Sound.Url, true);
 
   ButtonStop := FindRequiredComponent('ButtonStop') as TCastleButton;
-  ButtonStop.OnClick := {$ifdef FPC}@{$endif}ClickStop;
+  ButtonStop.OnClick := {$ifdef FPC}@{$endif} ClickStop;
 
   LabelSoundOffset := FindRequiredComponent('LabelSoundOffset') as TCastleLabel;
   LabelSoundOffset.Caption := FormatDot('%f', [PlayingSound.Offset]);
 
   SliderSoundVolume := FindRequiredComponent('SliderSoundVolume') as TCastleFloatSlider;
   SliderSoundVolume.Value := PlayingSound.Volume;
-  SliderSoundVolume.OnChange := {$ifdef FPC}@{$endif}ChangeSliderSoundVolume;
+  SliderSoundVolume.OnChange := {$ifdef FPC}@{$endif} ChangeSliderSoundVolume;
 
   SliderSoundPitch := FindRequiredComponent('SliderSoundPitch') as TCastleFloatSlider;
   SliderSoundPitch.Value := PlayingSound.Pitch;
-  SliderSoundPitch.OnChange := {$ifdef FPC}@{$endif}ChangeSliderSoundPitch;
+  SliderSoundPitch.OnChange := {$ifdef FPC}@{$endif} ChangeSliderSoundPitch;
 
   CheckboxLoop := FindRequiredComponent('CheckboxLoop') as TCastleCheckbox;
   CheckboxLoop.Checked := PlayingSound.Loop;
-  CheckboxLoop.OnChange := {$ifdef FPC}@{$endif}ChangeCheckboxLoop;
+  CheckboxLoop.OnChange := {$ifdef FPC}@{$endif} ChangeCheckboxLoop;
 end;
 
 procedure TViewMain.TPlayingSoundUiOwner.ClickStop(Sender: TObject);
@@ -222,7 +222,7 @@ procedure TViewMain.Start;
         Exit;
       end;
     end;
-    Button.OnClick := {$ifdef FPC}@{$endif}ClickPlayBuffer;
+    Button.OnClick := {$ifdef FPC}@{$endif} ClickPlayBuffer;
     GroupSoundBuffers.InsertFront(Button);
   end;
 
@@ -273,15 +273,16 @@ begin
   inherited;
   SenderButton := Sender as TButtonSound;
 
-  { Note: by freeing TCastlePlayingSound at state stop (using FreeAtStop)
-    we make sure sound stops at state Stop too. }
+  { Note: by freeing TCastlePlayingSound at TViewMain stop
+    (by passing FreeAtStop below)
+    we make sure sound stops at view Stop too. }
   PlayingSound := TCastlePlayingSound.Create(FreeAtStop);
   PlayingSound.FreeOnStop := true;
   PlayingSound.Sound := SenderButton.Sound;
   { It's better to make PlayingSoundStop a method of TViewMain,
     not TPlayingSoundUiOwner, because when it occurs the whole instance
     of TPlayingSoundUiOwner (along with the UI) should be destroyed. }
-  PlayingSound.OnStop := {$ifdef FPC}@{$endif}PlayingSoundStop;
+  PlayingSound.OnStop := {$ifdef FPC}@{$endif} PlayingSoundStop;
   SoundEngine.Play(PlayingSound);
 
   PlayingSoundUiOwner := TPlayingSoundUiOwner.Create(FreeAtStop, PlayingSound,
