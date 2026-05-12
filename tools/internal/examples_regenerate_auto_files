@@ -28,6 +28,9 @@ if which cygpath.exe > /dev/null; then
   FIND='/bin/find' # On Cygwin, make sure to use Cygwin's find, not the one from Windows
 fi
 
+# Make sure openai_config.inc, unsplash_secrets.inc exist, to keep the state of auto-files stable.
+make prepare-examples -C "${CASTLE_ENGINE_PATH}"
+
 "${FIND}" \
   "${CASTLE_ENGINE_PATH}/examples/" \
   '(' -iname CastleEngineManifest.xml ')' -and \
