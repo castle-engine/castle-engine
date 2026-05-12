@@ -3285,7 +3285,9 @@ begin
         voSetView: FinalSetView(Rec.View);
         voPushView: FinalPushView(Rec.View);
         voPopView: FinalPopView(true);
+        {$ifndef COMPILER_CASE_ANALYSIS}
         else raise EInternalError.Create('TCastleContainer.ProcessViewChanges: unknown operation');
+        {$endif}
       end;
   finally
     Dec(FDisableStackChange);
