@@ -249,6 +249,13 @@ begin
   AddSoundBufferButton('castle-data:/sounds/stereo_test.wav');
   AddSoundBufferButton('castle-data:/sounds/temple_adam_goh-44000Hz-16bit-mono.ogg');
 
+  // mp3 and flac, only for backends that support them (FMOD and WebAudio)
+  {$if defined(WASI) or defined(PLAY_SOUNDS_TEST_FMOD)}
+  AddSoundBufferButton('castle-data:/sounds/beating_that_thing.mp3');
+  AddSoundBufferButton('castle-data:/sounds/interact.mp3');
+  AddSoundBufferButton('castle-data:/sounds/swosh-05.flac');
+  {$endif}
+
   PlayingSoundUiFactory := TCastleComponentFactory.Create(FreeAtStop);
   PlayingSoundUiFactory.Url := 'castle-data:/part_playing_sound.castle-user-interface';
 end;
@@ -283,11 +290,15 @@ begin
     not TPlayingSoundUiOwner, because when it occurs the whole instance
     of TPlayingSoundUiOwner (along with the UI) should be destroyed. }
   PlayingSound.OnStop := {$ifdef FPC}@{$endif} PlayingSoundStop;
-  SoundEngine.Play(PlayingSound);
 
   PlayingSoundUiOwner := TPlayingSoundUiOwner.Create(FreeAtStop, PlayingSound,
     PlayingSoundUiFactory, GroupPlayingSounds);
   PlayingSoundUiOwners.Add(PlayingSoundUiOwner);
+
+  { Call Play last, as playing sound may stop immediately
+    (thus calling PlayingSoundStop) if we failed to load it,
+    e.g. trying to play unsupported format (mp3 or flac with OpenAL). }
+  SoundEngine.Play(PlayingSound);
 end;
 
 procedure TViewMain.PlayingSoundStop(Sender: TObject);
