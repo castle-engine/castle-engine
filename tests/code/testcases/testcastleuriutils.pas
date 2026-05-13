@@ -447,11 +447,18 @@ begin
 end;
 
 procedure TTestUriUtils.TestUriMimeType;
+var
+  Gzipped: Boolean;
 begin
   AssertEquals('image/png', UriMimeType('aaa.png'));
   AssertEquals('image/png', UriMimeType('aaa.png#some-anchor'));
   AssertEquals('image/png', UriMimeType('castle-data:/aaa.png'));
   AssertEquals('image/png', UriMimeType('castle-data:/aaa.png#some-anchor'));
+
+  { we practically invented the Gzipped logic to handle VRML/X3D
+    files like .x3dv.gz, but it should work for all files. }
+  AssertEquals('image/png', UriMimeType('aaa.png.gz', Gzipped));
+  AssertTrue(Gzipped);
 
   AssertEquals('image/png', UriMimeType('%23/aaa.png'));
   AssertEquals('image/png', UriMimeType('%23/aaa.png#some-anchor'));
@@ -467,6 +474,29 @@ begin
   AssertEquals('application/json', UriMimeType('dragon.json#skin:dark'));
   AssertEquals('application/json', UriMimeType('castle-data:/dragon.json'));
   AssertEquals('application/json', UriMimeType('castle-data:/dragon.json#skin:dark'));
+
+  AssertEquals('model/vrml', UriMimeType('foo.wrl', Gzipped));
+  AssertFalse(Gzipped);
+  AssertEquals('model/vrml', UriMimeType('foo.wrl.gz', Gzipped));
+  AssertTrue(Gzipped);
+  AssertEquals('model/vrml', UriMimeType('foo.wrz', Gzipped));
+  AssertTrue(Gzipped);
+
+  // test also with uppercase
+  AssertEquals('model/vrml', UriMimeType('FOO.WRL', Gzipped));
+  AssertFalse(Gzipped);
+  AssertEquals('model/vrml', UriMimeType('FOO.WRL.GZ', Gzipped));
+  AssertTrue(Gzipped);
+  AssertEquals('model/vrml', UriMimeType('FOO.WRZ', Gzipped));
+  AssertTrue(Gzipped);
+
+  AssertEquals('application/gzip', UriMimeType('something.gz', Gzipped));
+  AssertTrue(Gzipped);
+  AssertEquals('application/gzip', UriMimeType('something.unrecognized.gz', Gzipped));
+  AssertTrue(Gzipped);
+
+  AssertEquals('text/plain', UriMimeType('.gitignore', Gzipped));
+  AssertFalse(Gzipped);
 end;
 
 procedure TTestUriUtils.TestRelativeFilenameToUriSafe;

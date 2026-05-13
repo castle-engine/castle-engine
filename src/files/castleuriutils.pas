@@ -1145,9 +1145,174 @@ var
   FUriMimeExtensions: TStringStringMap;
 
 function UriMimeExtensions: TStringStringMap;
+
+  { Fill FUriMimeExtensions with initial useful content. }
+  procedure AddDefaultMimeExtensions;
+  begin
+    { Parts of this list were based on LCL code
+      lcl/interfaces/customdrawn/customdrawnobject_android.inc
+      (license is LGPL with static linking exception, just like our engine).
+
+      See also various resources linked from
+      "Function to get the mimetype from a file extension" thread on Lazarus
+      mailing list:
+      http://comments.gmane.org/gmane.comp.ide.lazarus.general/62738
+
+      We somewhat cleaned it up (e.g. "postscript" and "mpeg" lowercase),
+      fixed categorization, and fixed/added many types looking at
+      /etc/mime.types and
+      /usr/share/mime/packages/freedesktop.org.xml on Debian.
+
+      For description of MIME content types see also
+      https://en.wikipedia.org/wiki/Internet_media_type
+      http://en.wikipedia.org/wiki/MIME
+      http://tools.ietf.org/html/rfc4288
+
+      Later, this list was extended to support all 3D and 2D model formats
+      and other files used in our engine. Internally, we communicate
+      "file types" as a string with MIME type, so all supported resource types
+      must be expressed as MIME types.
+    }
+
+    // 3D models (see also castle-model-viewer MIME specification in castle-model-viewer/desktop/castle-model-viewer.xml)
+    FUriMimeExtensions.Add('.wrl', 'model/vrml');
+    FUriMimeExtensions.Add('.wrz', 'model/vrml');
+    FUriMimeExtensions.Add('.x3dv', 'model/x3d+vrml');
+    FUriMimeExtensions.Add('.x3dvz', 'model/x3d+vrml');
+    FUriMimeExtensions.Add('.x3d', 'model/x3d+xml');
+    FUriMimeExtensions.Add('.x3dz', 'model/x3d+xml');
+    FUriMimeExtensions.Add('.x3db', 'model/x3d+binary');
+    FUriMimeExtensions.Add('.dae', 'model/vnd.collada+xml');
+    { See http://en.wikipedia.org/wiki/.3ds about 3ds mime type.
+      application/x-3ds is better (3DS is hardly an "image"),
+      but Debian /usr/share/mime/packages/freedesktop.org.xml also uses
+      image/x-3ds, so I guess image/x-3ds is more popular. }
+    FUriMimeExtensions.Add('.3ds', 'image/x-3ds');
+    FUriMimeExtensions.Add('.max', 'image/x-3ds');
+    FUriMimeExtensions.Add('.iv', 'application/x-inventor');
+    FUriMimeExtensions.Add('.md3', 'application/x-md3');
+    FUriMimeExtensions.Add('.obj', 'application/x-wavefront-obj');
+    FUriMimeExtensions.Add('.geo', 'application/x-geo');
+    FUriMimeExtensions.Add('.kanim', 'application/x-castle-anim-frames');
+    FUriMimeExtensions.Add('.castle-anim-frames', 'application/x-castle-anim-frames');
+    FUriMimeExtensions.Add('.json', 'application/json');
+    { Note that https://en.wikipedia.org/wiki/PLY_(file_format)
+      says PLY is text/plain, but we need specific MIME type to distinguish it.
+      X_ITE uses model/ply, so let's follow it.
+      https://create3000.github.io/x_ite/#supported-file-formats }
+    FUriMimeExtensions.Add('.ply', 'model/ply');
+    { Various sites propose various MIME types for STL:
+      https://gist.github.com/allysonsouza/1bf9d4a0295a14373979cd23d15df0a9
+        application/wavefront-stl
+        application/vnd.ms-pki.stl
+      We used application/x-stl in the past.
+      Let's follow https://en.wikipedia.org/wiki/STL_(file_format) . }
+    FUriMimeExtensions.Add('.stl', 'model/stl');
+    FUriMimeExtensions.Add('.glb', 'model/gltf-binary');
+    FUriMimeExtensions.Add('.gltf', 'model/gltf+json');
+    // Images.
+    { Only images that we cannot handle in CastleImages unit are listed below.
+      For handled images, their extensions and mime types are recorded
+      by CastleImages inside the URIMimeExtensions. }
+    FUriMimeExtensions.Add('.svg', 'image/svg+xml');
+    FUriMimeExtensions.Add('.ico', 'image/x-icon');
+    FUriMimeExtensions.Add('.icns', 'image/icns');
+    FUriMimeExtensions.Add('.castle-sprite-sheet', 'application/x-castle-sprite-sheet');
+    { I didn't found real MIME type for Starling Texture Atlas.
+      Created as image type based on
+      https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types
+    }
+    FUriMimeExtensions.Add('.starling-xml', 'application/x-starling-sprite-sheet');
+    FUriMimeExtensions.Add('.cocos2d-plist', 'application/x-cocos2d-sprite-sheet');
+    FUriMimeExtensions.Add('.plist', 'application/x-plist');
+
+    // HTML
+    FUriMimeExtensions.Add('.htm', 'text/html');
+    FUriMimeExtensions.Add('.html', 'text/html');
+    FUriMimeExtensions.Add('.shtml', 'text/html');
+    FUriMimeExtensions.Add('.css', 'text/css');
+    FUriMimeExtensions.Add('.php', 'text/php');
+
+    // Plain text
+    FUriMimeExtensions.Add('.txt', 'text/plain');
+    FUriMimeExtensions.Add('.pas', 'text/plain');
+    FUriMimeExtensions.Add('.pp', 'text/plain');
+    FUriMimeExtensions.Add('.inc', 'text/plain');
+    FUriMimeExtensions.Add('.c', 'text/plain');
+    FUriMimeExtensions.Add('.cpp', 'text/plain');
+    FUriMimeExtensions.Add('.java', 'text/plain');
+    FUriMimeExtensions.Add('.log', 'text/plain');
+    FUriMimeExtensions.Add('.md', 'text/plain');
+
+    // Videos
+    FUriMimeExtensions.Add('.mp4', 'video/mp4');
+    FUriMimeExtensions.Add('.avi', 'video/x-msvideo');
+    FUriMimeExtensions.Add('.mpeg', 'video/mpeg');
+    FUriMimeExtensions.Add('.mpg', 'video/mpeg');
+    FUriMimeExtensions.Add('.mpe', 'video/mpeg');
+    FUriMimeExtensions.Add('.ogv', 'video/ogg');
+    FUriMimeExtensions.Add('.mov', 'video/quicktime');
+    FUriMimeExtensions.Add('.flv', 'video/x-flv');
+    FUriMimeExtensions.Add('.swf', 'application/x-shockwave-flash');
+    FUriMimeExtensions.Add('.swfl', 'application/x-shockwave-flash');
+
+    // Sounds
+    FUriMimeExtensions.Add('.mp3', 'audio/mpeg');
+    FUriMimeExtensions.Add('.ogg', 'audio/ogg');
+    FUriMimeExtensions.Add('.oga', 'audio/ogg');
+    FUriMimeExtensions.Add('.wav', 'audio/wav');
+    FUriMimeExtensions.Add('.mid', 'audio/midi');
+    FUriMimeExtensions.Add('.midi', 'audio/midi');
+    FUriMimeExtensions.Add('.au', 'audio/basic');
+    FUriMimeExtensions.Add('.snd', 'audio/basic');
+    FUriMimeExtensions.Add('.mp2', 'audio/mpeg');
+
+    // Documents
+    FUriMimeExtensions.Add('.rtf', 'text/rtf');
+    FUriMimeExtensions.Add('.eps', 'application/postscript');
+    FUriMimeExtensions.Add('.ps', 'application/postscript');
+    FUriMimeExtensions.Add('.pdf', 'application/pdf');
+    FUriMimeExtensions.Add('.csv', 'application/csv');
+    // Documents - old MS Office
+    FUriMimeExtensions.Add('.xls', 'application/vnd.ms-excel');
+    FUriMimeExtensions.Add('.doc', 'application/msword');
+    FUriMimeExtensions.Add('.ppt', 'application/vnd.ms-powerpoint');
+    // Documents - open standards
+    FUriMimeExtensions.Add('.odt', 'application/vnd.oasis.opendocument.text');
+    FUriMimeExtensions.Add('.ods', 'application/vnd.oasis.opendocument.spreadsheet');
+    FUriMimeExtensions.Add('.odp', 'application/vnd.oasis.opendocument.presentation');
+    FUriMimeExtensions.Add('.odg', 'application/vnd.oasis.opendocument.graphics');
+    FUriMimeExtensions.Add('.odc', 'application/vnd.oasis.opendocument.chart');
+    FUriMimeExtensions.Add('.odf', 'application/vnd.oasis.opendocument.formula');
+    FUriMimeExtensions.Add('.odi', 'application/vnd.oasis.opendocument.image');
+    // Documents - new MS Office
+    FUriMimeExtensions.Add('.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    FUriMimeExtensions.Add('.pptx', 'application/vnd.openxmlformats-officedocument.presentationml.presentation');
+    FUriMimeExtensions.Add('.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+
+    // Compressed archives
+    FUriMimeExtensions.Add('.zip', 'application/zip');
+    FUriMimeExtensions.Add('.tar', 'application/x-tar');
+    FUriMimeExtensions.Add('.rar', 'application/x-rar-compressed');
+    FUriMimeExtensions.Add('.gz', 'application/gzip');
+
+    // Various
+    FUriMimeExtensions.Add('.xml', 'application/xml');
+    FUriMimeExtensions.Add('.castlescript', 'text/x-castlescript');
+    FUriMimeExtensions.Add('.kscript', 'text/x-castlescript');
+    FUriMimeExtensions.Add('.js', 'application/javascript');
+    FUriMimeExtensions.Add('.castle-user-interface', 'text/x-castle-user-interface');
+    FUriMimeExtensions.Add('.castle-transform', 'text/x-castle-transform');
+    FUriMimeExtensions.Add('.castle-component', 'text/x-castle-component');
+    FUriMimeExtensions.Add('.tmx', 'application/x-tiled-map');
+  end;
+
 begin
   if FUriMimeExtensions = nil then
+  begin
     FUriMimeExtensions := TStringStringMap.Create;
+    AddDefaultMimeExtensions;
+  end;
   Result := FUriMimeExtensions;
 end;
 
