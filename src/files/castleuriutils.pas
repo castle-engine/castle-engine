@@ -1211,17 +1211,16 @@ function UriMimeExtensions: TStringStringMap;
     FUriMimeExtensions.Add('.glb', 'model/gltf-binary');
     FUriMimeExtensions.Add('.gltf', 'model/gltf+json');
     // Images.
-    { Only images that we cannot handle in CastleImages unit are listed below.
-      For handled images, their extensions and mime types are recorded
-      by CastleImages inside the URIMimeExtensions. }
+    { Only images that we *cannot* handle in CastleImages unit are listed below.
+      For images we can handle -> their extensions and mime types are added
+      to UriMimeExtensions by CastleImages.RegisterMimeTypes. }
     FUriMimeExtensions.Add('.svg', 'image/svg+xml');
     FUriMimeExtensions.Add('.ico', 'image/x-icon');
     FUriMimeExtensions.Add('.icns', 'image/icns');
     FUriMimeExtensions.Add('.castle-sprite-sheet', 'application/x-castle-sprite-sheet');
     { I didn't found real MIME type for Starling Texture Atlas.
       Created as image type based on
-      https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types
-    }
+      https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types }
     FUriMimeExtensions.Add('.starling-xml', 'application/x-starling-sprite-sheet');
     FUriMimeExtensions.Add('.cocos2d-plist', 'application/x-cocos2d-sprite-sheet');
     FUriMimeExtensions.Add('.plist', 'application/x-plist');
@@ -1257,7 +1256,7 @@ function UriMimeExtensions: TStringStringMap;
     FUriMimeExtensions.Add('.swfl', 'application/x-shockwave-flash');
 
     // Sounds
-    FUriMimeExtensions.Add('.mp3', 'audio/mpeg');
+    FUriMimeExtensions.Add('.mp3', 'audio/mpeg'); // see https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/MIME_types/Common_types
     FUriMimeExtensions.Add('.ogg', 'audio/ogg');
     FUriMimeExtensions.Add('.oga', 'audio/ogg');
     FUriMimeExtensions.Add('.wav', 'audio/wav');
@@ -1266,6 +1265,7 @@ function UriMimeExtensions: TStringStringMap;
     FUriMimeExtensions.Add('.au', 'audio/basic');
     FUriMimeExtensions.Add('.snd', 'audio/basic');
     FUriMimeExtensions.Add('.mp2', 'audio/mpeg');
+    FUriMimeExtensions.Add('.flac', 'audio/flac'); // see https://en.wikipedia.org/wiki/FLAC , https://mimetype.io/audio/flac , https://mimetype.io/audio/x-flac
 
     // Documents
     FUriMimeExtensions.Add('.rtf', 'text/rtf');
