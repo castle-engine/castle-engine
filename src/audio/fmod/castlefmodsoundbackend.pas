@@ -17,7 +17,7 @@
   See https://castle-engine.io/fmod
   about using FMOD with CGE.
 }
-unit CastleFMODSoundBackend;
+unit CastleFmodSoundBackend;
 
 {$I castleconf.inc}
 
@@ -28,13 +28,13 @@ interface
   If you plan to use FMOD for your entire application,
   then it is beneficial to call this before any sound loading/playing,
   as then the default sound backend (OpenAL on most platforms)
-  wil not even be initialized.
+  will not even be initialized.
 
   This does nothing (and shows a warning) if the dynamic FMOD library
   could not be found. Therefore, applications on platforms where FMOD
   is dynamic (all platforms except iOS and Nintendo Switch now)
   gracefully fallback from FMOD to the default backend, if FMOD library cannot be found. }
-procedure UseFMODSoundBackend;
+procedure UseFmodSoundBackend;
 
 implementation
 
@@ -47,7 +47,7 @@ uses SysUtils, Classes, Math, StrUtils, CTypes,
     {$ifdef FPC} CastleAndroidNativeAppGlue, {$else} Androidapi.AppGlue, {$endif}
     CastleAndroidInternalAssetStream,
   {$endif}
-  CastleInternalFMOD;
+  CastleInternalFmod;
 
 { sound backend classes interface -------------------------------------------- }
 

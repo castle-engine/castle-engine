@@ -19,7 +19,7 @@
   https://fmod.com/resources/documentation-api?version=2.0&page=core-api.html
   ========================================================================================
 }
-unit CastleInternalFMOD;
+unit CastleInternalFmod;
 
 interface
 
