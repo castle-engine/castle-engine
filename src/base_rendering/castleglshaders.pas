@@ -58,6 +58,9 @@
       if no declaration "precision mediump/lowp/highp float;" is found in the code.
       This is practically universally needed for OpenGLES fragment shader,
       that have no default precision.
+
+      See also WebGL recommendations:
+      https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/WebGL_best_practices#be_precise_with_glsl_precision_annotations
     )
 
     @item(
@@ -1757,6 +1760,47 @@ const
       IsPrefix(LinePrefix, S, false);
   end;
 
+  { Workaround bug of old ANGLE version in Firefox,
+    that requires main() to be after all "varying" declarations.
+    See
+    https://bugzilla.mozilla.org/show_bug.cgi?id=2039887
+    https://github.com/michaliskambi/firefox-webgl-angle-varying-bug
+
+    Shaders where this is necessary (only vertex shaders
+    are affected by this bug, and only if we'll generate
+    there code using our "plugs" system) should have markers
+    "/* CASTLE-MAIN-BEGIN */" and "/* CASTLE-MAIN-END */.
+    Example: src/scene/glsl/source/main_shading_phong.vs .
+
+    Not doing this would break many features of our engine shaders
+    using "varying" variables, like
+    - clip planes (to implement X3D ClipPlane node) (testcase: pope call in Unholy)
+    - bump mapping
+    - fog
+    - water in examples/terrain/
+    - time to shader (in castle-model-viewer-mobile demo)
+  }
+  procedure WebGLMoveMainBlockToEnd;
+  {$ifdef CASTLE_WEBGL}
+  const
+    SMarkerBegin = '/* CASTLE-MAIN-BEGIN */';
+    SMarkerEnd = '/* CASTLE-MAIN-END */';
+  var
+    MarkerBegin, MarkerEnd: Integer;
+    Main: String;
+  begin
+    MarkerBegin := Pos(SMarkerBegin, S);
+    if MarkerBegin = 0 then Exit;
+    MarkerEnd := Pos(SMarkerEnd, S);
+    if MarkerEnd = 0 then Exit;
+    Main := CopyPos(S, MarkerBegin, MarkerEnd + Length(SMarkerEnd) - 1);
+    Delete(S, MarkerBegin, MarkerEnd + Length(SMarkerEnd) - MarkerBegin);
+    S := S + NL + Main;
+  {$else}
+  begin
+  {$endif}
+  end;
+
 const
   { FPC < 2.4.4 doesn't have it defined }
   GL_GEOMETRY_SHADER = $8DD9;
@@ -1805,6 +1849,8 @@ begin
      (not HasLine('#version ', S)) then
     S := {$ifdef OpenGLES} GLES30CoreHeader {$else} GL31CoreHeader {$endif}
       [ShaderType] + S;
+
+  WebGLMoveMainBlockToEnd;
 
   ShaderId := CreateShader(S);
 

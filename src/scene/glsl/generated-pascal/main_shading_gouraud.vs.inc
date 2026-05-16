@@ -54,6 +54,7 @@
 '' + LineEnding +
 '/* CASTLE-LIGHTING-MODEL */' + LineEnding +
 '' + LineEnding +
+'/* CASTLE-MAIN-BEGIN */' + LineEnding +
 'void main(void)' + LineEnding +
 '{' + LineEnding +
 '  vec4 vertex_object = castle_Vertex;' + LineEnding +
@@ -112,4 +113,5 @@
 '  castle_Color      = temp_castle_Color;' + LineEnding +
 '  #endif' + LineEnding +
 '}' + LineEnding +
+'/* CASTLE-MAIN-END */' + LineEnding +
 ''

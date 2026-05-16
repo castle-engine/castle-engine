@@ -52,6 +52,7 @@ vec4 castle_apply_color_per_vertex(vec4 color)
 
 /* CASTLE-LIGHTING-MODEL */
 
+/* CASTLE-MAIN-BEGIN */
 void main(void)
 {
   vec4 vertex_object = castle_Vertex;
@@ -110,3 +111,4 @@ void main(void)
   castle_Color      = temp_castle_Color;
   #endif
 }
+/* CASTLE-MAIN-END */

@@ -33,6 +33,7 @@ varying vec4 castle_ColorPerVertexFragment;
 /* Include fragment shader utilities used by both Gouraud and Phong shading. */
 /* CASTLE-COMMON-CODE */
 
+/* CASTLE-MAIN-BEGIN */
 void main(void)
 {
   #ifdef COLOR_PER_VERTEX
@@ -78,3 +79,4 @@ void main(void)
 
   gl_Position = castle_ProjectionMatrix * castle_vertex_eye;
 }
+/* CASTLE-MAIN-END */

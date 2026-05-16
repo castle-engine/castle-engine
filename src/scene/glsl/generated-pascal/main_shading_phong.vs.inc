@@ -35,6 +35,7 @@
 '/* Include fragment shader utilities used by both Gouraud and Phong shading. */' + LineEnding +
 '/* CASTLE-COMMON-CODE */' + LineEnding +
 '' + LineEnding +
+'/* CASTLE-MAIN-BEGIN */' + LineEnding +
 'void main(void)' + LineEnding +
 '{' + LineEnding +
 '  #ifdef COLOR_PER_VERTEX' + LineEnding +
@@ -80,4 +81,5 @@
 '' + LineEnding +
 '  gl_Position = castle_ProjectionMatrix * castle_vertex_eye;' + LineEnding +
 '}' + LineEnding +
+'/* CASTLE-MAIN-END */' + LineEnding +
 ''
