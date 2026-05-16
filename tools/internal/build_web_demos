@@ -125,8 +125,10 @@ do_project examples/ifc # TODO: web: no open dialog (works, but could be more im
 do_project examples/user_interface/zombie_fighter
 do_project examples/viewport_and_scenes/cars_demo
 do_project examples/viewport_and_scenes/collisions
+do_project examples/viewport_and_scenes/bump_mapping
+do_project examples/viewport_and_scenes/occlusion_culling
 do_project examples/3d_games/eye_of_beholder # TODO: web: fog
-do_project examples/creature_behaviors # TODO: web: bump mapping, mouse look
+do_project examples/creature_behaviors # TODO: web: mouse look
 do_project examples/third_person_navigation # TODO: web: mouse look
 do_project examples/physics/physics_3d_shooter # TODO: web: mouse look
 do_project examples/3d_games/dungeons_and_skeletons_fight # TODO: web: mouse look
@@ -137,8 +139,8 @@ do_project tools/castle-editor-portable
 do_project tests
 
 # 3d, problems critical
-# do_project examples/3d_games/explore_impressive_castle # TODO: web: bump mapping, mouse look, weird blinking
-# do_project examples/terrain # TODO: web: terrain shader doesn't compile, water shader doesn't compile
+# do_project examples/3d_games/explore_impressive_castle # TODO: web: mouse look, weird blinking, fails with "Uncaught RangeError: invalid or out-of-range index"
+# do_project examples/terrain # TODO: web: water has FBO errors
 # do_project examples/research_special_rendering_methods/test_rendering_opengl_capabilities/ # TODO: web: EFramebufferInvalid: Framebuffer check failed: INCOMPLETE_ATTACHMENT: Not all framebuffer attachment points are "framebuffer attachment complete" (FBO error number 36054)
 
 do_project examples/screen_effects_demo # TODO: edge-detect effect fails
