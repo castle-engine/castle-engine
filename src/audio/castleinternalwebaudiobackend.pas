@@ -866,9 +866,8 @@ begin
 
   { See https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Best_practices#autoplay_policy
     for a description of browser autoplay policies. }
-  // TODO: Expose SoundEngine.Resume, doing FJSAudioContext.Resume
   if FJSAudioContext.State = 'suspended' then
-    WritelnWarning('Web Audio context is suspended. You must call "SoundEngine.Resume" from an event considered "user interaction" by browsers (like a mouse click) to resume playback.');
+    WritelnWarning('Web Audio context is suspended. Will be resumed on user interaction (like a mouse click).');
 
   Result := true;
   Information := FormatDot('Web Audio context initialized successfully.' + NL +
