@@ -1,6 +1,6 @@
 {%MainUnit x3dnodes.pas}
 {
-  Copyright 2002-2023 Michalis Kamburelis.
+  Copyright 2002-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -395,6 +395,7 @@ var
 var
   I: Integer;
   DisplayChars: Integer;
+  SavedFontSize: Single;
 begin
   {$warnings off} // using FontData, will be internal in the future
   FontData := Font.FontData;
@@ -405,48 +406,58 @@ begin
     Exit;
   end;
 
-  YScale := Size / Font.Height;
-  { TODO: Use maxEntent, length for VRML 2.0. Use width for VRML 1.0. }
-  XScale := YScale;
-
-  TextWidths := TSingleList.Create;
+  { In logic below, we use Font.Height and Font.TextWidth but we also
+    use FontData directly to render glyphs, and we use sizes of the glyphs
+    from font data.
+    Effectively, we assume that Font.Size (which determines
+    Font.Height, Font.TextWidth) match Font.OptimalSize (which
+    determines FontData glyph sizes). }
+  SavedFontSize := Font.Size;
+  Font.Size := FontData.Size; // Font.OptimalSize; <- should be the same
   try
-    TextWidths.Count := Strings.Count;
-    MaxTextWidth := 0;
-    for I := 0 to TextWidths.Count - 1 do
-    begin
-      TextWidths.L[I] := Font.TextWidth(Strings[I]);
-      MaxVar(MaxTextWidth, TextWidths.L[I]);
-    end;
+    YScale := Size / Font.Height;
+    { TODO: Use maxEntent, length for VRML 2.0. Use width for VRML 1.0. }
+    XScale := YScale;
 
-    if Strings.Count <> 0 then
-    begin
-      ExtraTexOrigin := Vector2(StringPosX(0) * XScale, StringPosY(0) * YScale);
-      if MaxDisplayChars < 0 then
-        for I := 0 to Strings.Count - 1 do
-          Print(StringPosX(I), StringPosY(I), Strings[I], XScale, YScale) //optimize in case MaxDisplayChars = -1
-      else
+    TextWidths := TSingleList.Create;
+    try
+      TextWidths.Count := Strings.Count;
+      MaxTextWidth := 0;
+      for I := 0 to TextWidths.Count - 1 do
       begin
-        DisplayChars := MaxDisplayChars;
-        for I := 0 to Strings.Count - 1 do
+        TextWidths.L[I] := Font.TextWidth(Strings[I]);
+        MaxVar(MaxTextWidth, TextWidths.L[I]);
+      end;
+
+      if Strings.Count <> 0 then
+      begin
+        ExtraTexOrigin := Vector2(StringPosX(0) * XScale, StringPosY(0) * YScale);
+        if MaxDisplayChars < 0 then
+          for I := 0 to Strings.Count - 1 do
+            Print(StringPosX(I), StringPosY(I), Strings[I], XScale, YScale) //optimize in case MaxDisplayChars = -1
+        else
         begin
-          if StringLength(Strings[I]) < DisplayChars then
-            Print(StringPosX(I), StringPosY(I), Strings[I], XScale, YScale)
-          else
-            Print(StringPosX(I), StringPosY(I), StringCopy(Strings[I], 1, DisplayChars), XScale, YScale);
-          Dec(DisplayChars, StringLength(Strings[I]));
-          if DisplayChars <= 0 then
-            Break;
+          DisplayChars := MaxDisplayChars;
+          for I := 0 to Strings.Count - 1 do
+          begin
+              if StringLength(Strings[I]) < DisplayChars then
+              Print(StringPosX(I), StringPosY(I), Strings[I], XScale, YScale)
+            else
+              Print(StringPosX(I), StringPosY(I), StringCopy(Strings[I], 1, DisplayChars), XScale, YScale);
+            Dec(DisplayChars, StringLength(Strings[I]));
+            if DisplayChars <= 0 then
+              Break;
+          end;
         end;
       end;
-    end;
 
-    { These events should be generated only when
-      the default values of length and maxExtent are used.
-      For now, we ignore length and maxExtent, so these events are
-      simply always generated. }
-    SendEvents;
-  finally FreeAndNil(TextWidths) end;
+      { These events should be generated only when
+        the default values of length and maxExtent are used.
+        For now, we ignore length and maxExtent, so these events are
+        simply always generated. }
+      SendEvents;
+    finally FreeAndNil(TextWidths) end;
+  finally Font.Size := SavedFontSize end;
 end;
 
 function TTextNode.Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode;
