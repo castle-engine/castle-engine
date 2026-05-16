@@ -379,6 +379,40 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
+<DeployFile LocalName="data\sounds/beating_that_thing.mp3" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>beating_that_thing.mp3</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>beating_that_thing.mp3</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>beating_that_thing.mp3</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sounds/interact.mp3" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>interact.mp3</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>interact.mp3</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>interact.mp3</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
 <DeployFile LocalName="data\sounds/misc_sound-22000Hz-8bit-mono.wav" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/sounds/</RemoteDir>
@@ -427,23 +461,6 @@
  <Platform Name="Win64">
   <RemoteDir>./data/sounds/</RemoteDir>
   <RemoteName>negative-44100Hz-8bit-stereo.wav</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\sounds/original_versions/beating_that_thing.mp3" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-  <RemoteName>beating_that_thing.mp3</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-  <RemoteName>beating_that_thing.mp3</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-  <RemoteName>beating_that_thing.mp3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -583,6 +600,23 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
+<DeployFile LocalName="data\sounds/swosh-05.flac" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>swosh-05.flac</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>swosh-05.flac</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>swosh-05.flac</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
 <DeployFile LocalName="data\sounds/temple_adam_goh-44000Hz-16bit-mono.ogg" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/sounds/</RemoteDir>
@@ -702,6 +736,40 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
+<DeployFile LocalName="data\sounds/beating_that_thing.mp3" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>beating_that_thing.mp3</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>beating_that_thing.mp3</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>beating_that_thing.mp3</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sounds/interact.mp3" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>interact.mp3</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>interact.mp3</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>interact.mp3</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
 <DeployFile LocalName="data\sounds/misc_sound-22000Hz-8bit-mono.wav" Configuration="Release" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/sounds/</RemoteDir>
@@ -750,23 +818,6 @@
  <Platform Name="Win64">
   <RemoteDir>./data/sounds/</RemoteDir>
   <RemoteName>negative-44100Hz-8bit-stereo.wav</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\sounds/original_versions/beating_that_thing.mp3" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-  <RemoteName>beating_that_thing.mp3</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-  <RemoteName>beating_that_thing.mp3</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-  <RemoteName>beating_that_thing.mp3</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -903,6 +954,23 @@
  <Platform Name="Win64">
   <RemoteDir>./data/sounds/</RemoteDir>
   <RemoteName>stereo_test.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sounds/swosh-05.flac" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>swosh-05.flac</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>swosh-05.flac</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>swosh-05.flac</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
