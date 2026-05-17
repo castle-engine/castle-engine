@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+
+<!--
+Rules for automatic processing
+(converting, compressing, downscaling, mipmap creation...) of images.
+See https://castle-engine.io/auto_generated_textures
+-->
+
+<properties>
+  <!--
+  Make downscaled version of all textures,
+  to avoid FPC+WebAssembly 2 GB memory limit when loading large textures.
+  -->
+  <auto_generated_textures>
+    <scales>
+      <scale value="2">
+        <platforms>
+          <platform>Web</platform>
+        </platforms>
+      </scale>
+    </scales>
+    <include path="level/*" recursive="True" />
+  </auto_generated_textures>
+</properties>

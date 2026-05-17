@@ -25,7 +25,8 @@ implementation
 
 uses SysUtils, Classes,
   CastleWindow, CastleApplicationProperties, CastleConfig,
-  CastleComponentSerialize, CastleSoundEngine, GameViewportUnderUi
+  CastleComponentSerialize, CastleSoundEngine, GameViewportUnderUi,
+  CastleTextureImages
   {$region 'Castle Initialization Uses'}
   // The content here may be automatically updated by CGE editor.
   , GameViewPlay
@@ -68,6 +69,13 @@ begin
   ViewWin := TViewWin.Create(Application);
   ViewCredits := TViewCredits.Create(Application);
   {$endregion 'Castle View Creation'}
+
+  { On web, use 2x smaller textures, to avoid hitting FPC+WebAssembly 2 GB
+    memory limit (because Job.Js arrays have a bug
+    when trying to copy memory to address > 2 GB, they pass signed offset). }
+  {$ifdef WASI}
+  TextureLoadingScale := 2;
+  {$endif}
 
   UserConfig.Load;
   SoundEngine.Volume := UserConfig.GetFloat('sound_volume', 1);
