@@ -87,7 +87,7 @@ begin
   Result := inherited;
   if Result then Exit; // allow the ancestor to handle keys
 
-  if Event.IsKey(CtrlO) then
+  if Event.IsKey(keyO) then
   begin
     MainViewport.OcclusionCulling := not MainViewport.OcclusionCulling;
     CheckboxOcclusionCulling.Checked := MainViewport.OcclusionCulling;
