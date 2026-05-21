@@ -11,7 +11,7 @@ See https://castle-engine.io/auto_generated_textures
   Make downscaled version of all textures,
   to avoid FPC+WebAssembly 2 GB memory limit when loading large textures.
   -->
-  <auto_generated_textures>
+  <auto_generated_textures short_dir_names="True">
     <scales>
       <scale value="2">
         <platforms>
