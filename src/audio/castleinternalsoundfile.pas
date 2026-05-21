@@ -494,6 +494,7 @@ var
   WavFormat: TWavFormatChunk;
   Header: TWavChunkHeader;
   FrequencyInt: UInt32;
+  HasWavFormat: Boolean;
 begin
   Stream.ReadBuffer(Riff, SizeOf(Riff));
   if not (IdCompare(Riff.Header.ID, 'RIFF') and IdCompare(Riff.wID, 'WAVE')) then
@@ -515,6 +516,8 @@ begin
   end;
 
   Result := nil;
+  FrequencyInt := 0;
+  HasWavFormat := false;
 
   while Stream.Position < Int64(Riff.Header.Len + SizeOf(TWavChunkHeader)) do
   begin
@@ -535,11 +538,17 @@ begin
           UriDisplay(Url)
         ]);
       Channels := WavFormat.Channels;
+      if Channels = 0 then
+        raise EWavLoadError.CreateFmt('Zero channels in WAV file "%s"', [
+          UriDisplay(Url)
+        ]);
       { calculate SampleFormat }
       case WavFormat.BitsPerSample of
         8 : SampleFormat := sfPcm8;
         16: SampleFormat := sfPcm16;
-        else raise EWavLoadError.CreateFmt('Invalid WAV file %s: Only 8 or 16-bit encodings are supported', [Url]);
+        else raise EWavLoadError.CreateFmt('Unsupported WAV file "%s": Only 8 or 16-bit encodings are supported', [
+          UriDisplay(Url)
+        ]);
       end;
       { calculate Frequency (and FrequencyInt -- WAV format allows
         only integer frequencies, so we can preserve precision more) }
@@ -553,6 +562,7 @@ begin
         are uncompressed and still have some data here
         (szklane_lasy/sounds/cantDoIt.wav). So be prepared always for some data here. }
       Stream.Seek(Header.Len - SizeOf(WavFormat), soFromCurrent);
+      HasWavFormat := true;
     end else
 
     if IdCompare(Header.ID, 'data') then
@@ -579,11 +589,14 @@ begin
       Stream.Seek(1, soFromCurrent);
   end;
 
+  // perform correctness checks
+  if not HasWavFormat then
+    raise EWavLoadError.Create('WAV file has no "format" chunk');
   if Result = nil then
-    raise EWavLoadError.Create('WAV file has no data chunk');
-
+    raise EWavLoadError.Create('WAV file has no "data" chunk');
   if (FrequencyInt = 0) or (Result.Size = 0) then
-    raise EWavLoadError.Create('WAV file has Frequency or DataSize equal zero');
+    raise EWavLoadError.Create('WAV file has "Frequency" or "DataSize" equal zero');
+
   Duration := Result.Size / (Int64(FrequencyInt) * SampleSize[SampleFormat] * Channels);
 end;
 
