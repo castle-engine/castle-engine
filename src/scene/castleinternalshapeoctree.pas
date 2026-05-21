@@ -208,11 +208,6 @@ type
       const TriangleToIgnore: PTriangle;
       const IgnoreMarginAtStart: boolean;
       const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean; override;
-
-  public
-    { For Hierarchical Occlusion Culling }
-    LastVisitedFrameId: Cardinal;
-    Visible: boolean;
   end;
 
   TShapeOctree = class(TBaseTrianglesOctree)

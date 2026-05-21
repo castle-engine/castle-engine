@@ -52,9 +52,6 @@ type
     OcclusionQueryAsked: boolean;
     OcclusionQueryAskedFrameId: TFrameId;
 
-    { For Hierarchical Occlusion Culling. }
-    RenderedFrameId: Cardinal;
-
     { Do not share the cache of this shape with other shapes.
       Offers tiny optimization when you know that this shape cannot be shared anyway.
       Never change it after initial render. }
