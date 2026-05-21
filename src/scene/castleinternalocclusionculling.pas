@@ -66,7 +66,7 @@ implementation
 
 uses SysUtils,
   CastleClassUtils, CastleInternalShapeOctree, CastleInternalGLUtils,
-  CastleUtils;
+  CastleUtils, CastleTimeUtils, CastleLog;
 
 { TOcclusionCullingUtilsRenderer ------------------------------------------------- }
 
@@ -248,10 +248,15 @@ procedure TOcclusionCullingRenderer.Render(const CollectedShape: TCollectedShape
       (CollectedShape.Shape.ParentScene.InternalWorldReferences > 1);
   end;
 
+const
+  { On WebGL, we sometimes get occlusion query results after many frames
+    since asking. Ignore them in such case. }
+  MaxOcclusionQueryResultAge = 1; // frames
 var
   Shape: TGLShape;
   WasVisible: Boolean;
   QueryResultAvailable, OcclusionQueryAsk: Boolean;
+  QueryResultAge: Int64;
 begin
   Shape := CollectedShape.Shape;
 
@@ -260,8 +265,16 @@ begin
      (Shape.OcclusionQueryId <> GLObjectNone) then
   begin
     QueryResultAvailable := OcclusionQueryResultAvailable(Shape.OcclusionQueryId);
-    WasVisible := (not QueryResultAvailable) or
-      OcclusionQueryHit(Shape.OcclusionQueryId);
+    if not QueryResultAvailable then
+      WasVisible := true // assume is visible
+    else
+    begin
+      QueryResultAge := TFramesPerSecond.RenderFrameId - Shape.OcclusionQueryAskedFrameId;
+      if QueryResultAge > MaxOcclusionQueryResultAge then
+        WasVisible := true // assume is visible, query result is too old to trust it
+      else
+        WasVisible := OcclusionQueryHit(Shape.OcclusionQueryId);
+    end;
   end else
   begin
     WasVisible := true; // assume is visible
@@ -306,6 +319,8 @@ begin
     end;
 
     glEndQuery(QueryTarget);
+
+    Shape.OcclusionQueryAskedFrameId := TFramesPerSecond.RenderFrameId;
   end else
   begin
     if WasVisible then

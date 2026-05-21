@@ -24,7 +24,8 @@ interface
 uses Generics.Collections,
   X3DNodes, X3DFields, CastleImages, CastleVectors, CastleClassUtils,
   {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
-  CastleGLUtils, CastleInternalRenderer, CastleRenderOptions, CastleShapes;
+  CastleGLUtils, CastleInternalRenderer, CastleRenderOptions, CastleShapes,
+  CastleTimeUtils;
 
 type
   { Shape within a scene rendered using OpenGL.
@@ -49,6 +50,7 @@ type
       OcclusionQueryId. }
     OcclusionQueryId: TGLQuery;
     OcclusionQueryAsked: boolean;
+    OcclusionQueryAskedFrameId: TFrameId;
 
     { For Hierarchical Occlusion Culling. }
     RenderedFrameId: Cardinal;
