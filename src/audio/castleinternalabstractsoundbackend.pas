@@ -119,8 +119,17 @@ type
     FSampleFormat: TSoundSampleFormat;
     FChannels: Cardinal;
     FFrequency: TSoundFrequency;
+    { Create a temporary TStreamedSoundFile instance to read
+      stream config (duration, sample format, etc).
+      This is used when Duration / SampleFormat / Channels / Frequency are
+      accessed before the sound is actually played. }
     procedure ReadStreamConfigFromTemp;
   protected
+    { Read stream config (duration, sample format, etc) from
+      given StreamedSoundFile. If you create TStreamedSoundFile to play
+      this buffer, call this method to read stream "config"
+      (duration, sample format, etc) from it, and store it in fields of this
+      class. }
     procedure ReadStreamConfig(const StreamedSoundFile: TStreamedSoundFile);
   public
     function Duration: TFloatTime; override;

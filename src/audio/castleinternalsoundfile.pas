@@ -131,7 +131,7 @@ type
         or the OggVorbis stream is invalid.)
 
         Also when reading from the underlying stream failed
-        (e.g. strean ended prematurely).
+        (e.g. stream ended prematurely).
       )
     }
     constructor Create(const AUrl: String);
@@ -336,7 +336,7 @@ begin
 
     { create NewDataStream with 16-bit samples }
     NewDataStream := TMemoryStream.Create;
-    NewDataStream.Size  := DataSize * 2;
+    NewDataStream.Size := DataSize * 2;
     PSource := Data;
     PDest := NewDataStream.Memory;
     while PtrUInt(PSource) < PtrUInt(Data) + DataSize do
@@ -519,85 +519,90 @@ begin
   FrequencyInt := 0;
   HasWavFormat := false;
 
-  while Stream.Position < Int64(Riff.Header.Len + SizeOf(TWavChunkHeader)) do
-  begin
-    Stream.ReadBuffer(Header, SizeOf(Header));
-
- {
-    Writeln('Got chunk "',
-      SReadableForm(Header.ID[0] + Header.ID[1] + Header.ID[2] + Header.ID[3]) +
-      '", length ', Header.Len,
-      ', remaining stream size ', Stream.Size - Stream.Position);
- }
-
-    if IdCompare(Header.ID, 'fmt ') then
+  try
+    while Stream.Position < Int64(Riff.Header.Len + SizeOf(TWavChunkHeader)) do
     begin
-      Stream.ReadBuffer(WavFormat, SizeOf(WavFormat));
-      if WavFormat.FormatTag <> 1 then
-        raise EWavLoadError.CreateFmt('Not supported format of "%s". Only uncompressed (PCM) WAV files are supported. Convert WAV files to uncompressed e.g. using Audacity or Sox.', [
-          UriDisplay(Url)
-        ]);
-      Channels := WavFormat.Channels;
-      if Channels = 0 then
-        raise EWavLoadError.CreateFmt('Zero channels in WAV file "%s"', [
-          UriDisplay(Url)
-        ]);
-      { calculate SampleFormat }
-      case WavFormat.BitsPerSample of
-        8 : SampleFormat := sfPcm8;
-        16: SampleFormat := sfPcm16;
-        else raise EWavLoadError.CreateFmt('Unsupported WAV file "%s": Only 8 or 16-bit encodings are supported', [
-          UriDisplay(Url)
-        ]);
+      Stream.ReadBuffer(Header, SizeOf(Header));
+
+  {
+      Writeln('Got chunk "',
+        SReadableForm(Header.ID[0] + Header.ID[1] + Header.ID[2] + Header.ID[3]) +
+        '", length ', Header.Len,
+        ', remaining stream size ', Stream.Size - Stream.Position);
+  }
+
+      if IdCompare(Header.ID, 'fmt ') then
+      begin
+        Stream.ReadBuffer(WavFormat, SizeOf(WavFormat));
+        if WavFormat.FormatTag <> 1 then
+          raise EWavLoadError.CreateFmt('Not supported format of "%s". Only uncompressed (PCM) WAV files are supported. Convert WAV files to uncompressed e.g. using Audacity or Sox.', [
+            UriDisplay(Url)
+          ]);
+        Channels := WavFormat.Channels;
+        if Channels = 0 then
+          raise EWavLoadError.CreateFmt('Zero channels in WAV file "%s"', [
+            UriDisplay(Url)
+          ]);
+        { calculate SampleFormat }
+        case WavFormat.BitsPerSample of
+          8 : SampleFormat := sfPcm8;
+          16: SampleFormat := sfPcm16;
+          else raise EWavLoadError.CreateFmt('Unsupported WAV file "%s": Only 8 or 16-bit encodings are supported', [
+            UriDisplay(Url)
+          ]);
+        end;
+        { calculate Frequency (and FrequencyInt -- WAV format allows
+          only integer frequencies, so we can preserve precision more) }
+        FrequencyInt := WavFormat.SamplesPerSec;
+        Frequency := FrequencyInt;
+        { There may be some additional stuff here in format chunk.
+          The meaning depends on FormatTag value.
+          http://www.sonicspot.com/guide/wavefiles.html
+          says they can only happen for compressed WAV data, but I have examples
+          of files created (probably) by Windows 95 wav recorder that
+          are uncompressed and still have some data here
+          (szklane_lasy/sounds/cantDoIt.wav). So be prepared always for some data here. }
+        Stream.Seek(Header.Len - SizeOf(WavFormat), soFromCurrent);
+        HasWavFormat := true;
+      end else
+
+      if IdCompare(Header.ID, 'data') then
+      begin
+        { calculate Result }
+        if Result <> nil then
+          raise EWavLoadError.Create('WAV file must not contain multiple data chunks');
+        Result := TMemoryStream.Create;
+        Result.Size := Header.Len;
+        Stream.ReadBuffer(TMemoryStream(Result).Memory^, Header.Len);
+      end else
+
+      begin
+        { skip any unknown chunks }
+        Stream.Seek(Header.Len, soFromCurrent);
       end;
-      { calculate Frequency (and FrequencyInt -- WAV format allows
-        only integer frequencies, so we can preserve precision more) }
-      FrequencyInt := WavFormat.SamplesPerSec;
-      Frequency := FrequencyInt;
-      { There may be some additional stuff here in format chunk.
-        The meaning depends on FormatTag value.
-        http://www.sonicspot.com/guide/wavefiles.html
-        says they can only happen for compressed WAV data, but I have examples
-        of files created (probably) by Windows 95 wav recorder that
-        are uncompressed and still have some data here
-        (szklane_lasy/sounds/cantDoIt.wav). So be prepared always for some data here. }
-      Stream.Seek(Header.Len - SizeOf(WavFormat), soFromCurrent);
-      HasWavFormat := true;
-    end else
 
-    if IdCompare(Header.ID, 'data') then
-    begin
-      { calculate Result }
-      if Result <> nil then
-        raise EWavLoadError.Create('WAV file must not contain multiple data chunks');
-      Result := TMemoryStream.Create;
-      Result.Size := Header.Len;
-      Stream.ReadBuffer(TMemoryStream(Result).Memory^, Header.Len);
-    end else
-
-    begin
-      { skip any unknown chunks }
-      Stream.Seek(Header.Len, soFromCurrent);
+      { all RIFF chunks are 2-byte-aligned, and DataSize doesn't include this padding,
+        according to http://www.sonicspot.com/guide/wavefiles.html
+        We have to account for it, and skip this padding (otherwise we would get
+        nonsense header next, that is cut off by eof and/or has wild Header.Len).
+        Testcase with szklane_lasy/sounds/cantDoIt.wav. }
+      if Odd(Header.Len) then
+        Stream.Seek(1, soFromCurrent);
     end;
 
-    { all RIFF chunks are 2-byte-aligned, and DataSize doesn't include this padding,
-      according to http://www.sonicspot.com/guide/wavefiles.html
-      We have to account for it, and skip this padding (otherwise we would get
-      nonsense header next, that is cut off by eof and/or has wild Header.Len).
-      Testcase with szklane_lasy/sounds/cantDoIt.wav. }
-    if Odd(Header.Len) then
-      Stream.Seek(1, soFromCurrent);
+    // perform correctness checks
+    if not HasWavFormat then
+      raise EWavLoadError.Create('WAV file has no "format" chunk');
+    if Result = nil then
+      raise EWavLoadError.Create('WAV file has no "data" chunk');
+    if (FrequencyInt = 0) or (Result.Size = 0) then
+      raise EWavLoadError.Create('WAV file has "Frequency" or "DataSize" equal zero');
+
+    Duration := Result.Size / (Int64(FrequencyInt) * SampleSize[SampleFormat] * Channels);
+  except
+    FreeAndNil(Result);
+    raise;
   end;
-
-  // perform correctness checks
-  if not HasWavFormat then
-    raise EWavLoadError.Create('WAV file has no "format" chunk');
-  if Result = nil then
-    raise EWavLoadError.Create('WAV file has no "data" chunk');
-  if (FrequencyInt = 0) or (Result.Size = 0) then
-    raise EWavLoadError.Create('WAV file has "Frequency" or "DataSize" equal zero');
-
-  Duration := Result.Size / (Int64(FrequencyInt) * SampleSize[SampleFormat] * Channels);
 end;
 
 { Registering sound formats -------------------------------------------------- }
