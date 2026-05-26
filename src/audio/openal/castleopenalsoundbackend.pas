@@ -368,22 +368,30 @@ begin
 end;
 
 function TOpenALStreaming.FillBuffer(const ALBuffer: TALuint): Integer;
-begin
-  Result := StreamedFile.Read(HelperBufferPtr^, HelperBufferSize);
-  if Result > 0 then
+
+  { Do StreamedFile.Read and use the result to fill the buffer ALBuffer.
+    If StreamedFile.Read returns 0, then this returns 0 too. }
+  function FillBufferWithoutRewind: Integer;
   begin
-    if not Between(StreamedFile.Channels, 1, 2) then
-      raise ESoundFileError.CreateFmt('OpenAL backend supports only 1 or 2 channels (got %d)', [
-        StreamedFile.Channels
-      ]);
-    alBufferData(ALBuffer, ALDataFormat[StreamedFile.Channels, StreamedFile.SampleFormat],
-      HelperBufferPtr, Result, Round(StreamedFile.Frequency));
-    {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alBufferData ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
-  end else
-  if Source.FLoop then
+    Result := StreamedFile.Read(HelperBufferPtr^, HelperBufferSize);
+    if Result > 0 then
+    begin
+      if not Between(StreamedFile.Channels, 1, 2) then
+        raise ESoundFileError.CreateFmt('OpenAL backend supports only 1 or 2 channels (got %d)', [
+          StreamedFile.Channels
+        ]);
+      alBufferData(ALBuffer, ALDataFormat[StreamedFile.Channels, StreamedFile.SampleFormat],
+        HelperBufferPtr, Result, Round(StreamedFile.Frequency));
+      {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alBufferData ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
+    end;
+  end;
+
+begin
+  Result := FillBufferWithoutRewind;
+  if (Result = 0) and Source.FLoop then
   begin
     StreamedFile.Rewind;
-    Result := FillBuffer(ALBuffer);
+    Result := FillBufferWithoutRewind;
   end;
 end;
 
