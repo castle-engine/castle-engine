@@ -99,6 +99,9 @@ begin
 
     The downside is a possible additional work at run-time
     (but it's done in a thread and should not matter in normal use-cases).
+    Also, setting Offset of a streaming sound is not supported
+    with all sound backends (but this application doesn't set TCastleSound.Offset,
+    only displays it, so no problem).
   }
   // Sound.Stream := true;
   Sound.Url := SoundFileUrl;

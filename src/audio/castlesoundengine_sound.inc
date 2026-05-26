@@ -157,7 +157,13 @@
 
       If you plan to change @link(Stream), note that it is best to do it before
       setting @link(Url). Changing @link(Stream) while @link(Url) is already set
-      means that the sound is reloaded. }
+      means that the sound is reloaded.
+
+      TODO: Changing sound offset during playback, by writing to
+      @link(TCastlePlayingSound.Offset), is not yet implemented for streaming
+      sounds for some sound backends (like OpenAL).
+      Consider to disable streaming if you need to modify
+      @link(TCastlePlayingSound.Offset) for your sound. }
     property Stream: Boolean read FStream write SetStream default false;
 
     { Volume (how loud the sound is).
