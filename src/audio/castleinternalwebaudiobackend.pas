@@ -294,11 +294,11 @@ procedure TWebAudioSoundBufferBackend.ContextOpen(const AUrl: String);
             end;
           else raise Exception.CreateFmt('Unsupported sound data format %d', [Ord(SoundFile.SampleFormat)]);
         end;
-      end;
 
-      { Get the Float32Array for this channel }
-      ChannelData := FAudioBuffer.getChannelData(Channel);
-      ChannelData.CopyFromMemory(PByte(ChannelDataSingle.L), NumFrames * SizeOf(Single));
+        { Get the Float32Array for this channel }
+        ChannelData := FAudioBuffer.getChannelData(Channel);
+        ChannelData.CopyFromMemory(PByte(ChannelDataSingle.L), NumFrames * SizeOf(Single));
+      end;
     finally
       FreeAndNil(ChannelDataSingle);
     end;
