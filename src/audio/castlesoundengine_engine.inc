@@ -844,8 +844,8 @@ function TSoundEngine.ParseParametersHelp: string;
 
 begin
   Result :=
-    '  --audio-device DEVICE-NAME' +nl+
-    '                        Choose sound output device.' +nl+
+    '  --audio-device DEVICE-NAME' + NL +
+    '                        Choose sound output device.' + NL +
     DevicesHelp +
     '  --no-sound            Turn off sound.';
 end;
@@ -913,6 +913,7 @@ procedure TSoundEngine.SetInternalBackend(const Value: TSoundEngineBackend);
 begin
   ContextClose;
   FreeAndNil(Backend);
+  FreeAndNil(FDevices); // reinitialize devices after changing backend
   Backend := Value;
 end;
 
