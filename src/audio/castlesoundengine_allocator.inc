@@ -179,7 +179,7 @@ begin
     for I := 0 to FAllocatedSources.Count - 1 do
       { Although usually we are sure that every FAllocatedSources[I] <> nil,
         in this case we must take into account that maybe our constructor
-        raise ENonMoreSources and so some FAllocatedSources[I] were
+        raise ENoMoreSources and so some FAllocatedSources[I] were
         not initialized. }
       if FAllocatedSources[I] <> nil then
       begin
@@ -263,7 +263,7 @@ begin
 
     Note that if FAllocatedSources[MinPriorityIndex].Priority
     is equal to Priority, we *do* interrupt already playing sound.
-    The assumption is here that the newer sound is more imoportant. }
+    The assumption is here that the newer sound is more important. }
   if (Result = nil) and
      (FAllocatedSources[MinPriorityIndex].Priority <= Priority) then
   begin

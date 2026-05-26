@@ -102,14 +102,14 @@ begin
     However we need TSoundFile to know the Duration of the sound correctly,
     which we will later use for PlayingOrPaused implementation. }
 
-  FileName := UriToFilenameSafe(SoundFile.URL);
+  FileName := UriToFilenameSafe(SoundFile.Url);
   { Workaround sox on Windows being unable to process filenames with backslashes. }
   {$ifdef MSWINDOWS}
   FileName := SReplaceChars(FileName, '\', '/');
   {$endif}
   if FileName = '' then
     raise ESoundFileError.CreateFmt('URL "%s" does not translate to a filename, and SOX can only play local files',
-      [SoundFile.URL]);
+      [SoundFile.Url]);
 end;
 
 { TSoxSoundSourceBackend -------------------------------------------------- }

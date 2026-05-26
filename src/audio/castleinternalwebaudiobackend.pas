@@ -657,7 +657,7 @@ begin
     - Comparing by GetJSObjectID is also not useful, they also always differ.
 
     - Comparing using GetJSObjectCastSrc is pointless: seems to be always nil
-      in our siuations.
+      in our situations.
 
     TODO: The proper solution is unknown.
 
