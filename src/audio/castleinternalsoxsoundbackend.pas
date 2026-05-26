@@ -155,6 +155,7 @@ begin
     FPlayProcess.Terminate(0);
     FreeAndNil(FPlayProcess);
   end;
+  FPlayStarted := false;
 end;
 
 procedure TSoxSoundSourceBackend.SetPosition(const Value: TVector3);
