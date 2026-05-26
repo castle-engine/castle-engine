@@ -1,5 +1,5 @@
 {
-  Copyright 2019-2022 Michalis Kamburelis.
+  Copyright 2019-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -126,7 +126,8 @@ type
 type
   EFMODError = class(Exception);
 
-procedure CheckFMOD(const FMODResult: TFMOD_RESULT; const When: String = ''; const Warning: Boolean = false);
+procedure CheckFMOD(const FMODResult: TFMOD_RESULT;
+  const When: String = ''; const Warning: Boolean = false);
 var
   ErrorStr: String;
 begin
@@ -456,8 +457,18 @@ begin
     We should instead allocate many sound sources (MaxAllocatedSources large?)
     and let FMOD to do its job. }
 
+  { Note that FMOD priority is inverse to our priority
+    (smaller values are more important in FMOD),
+    so we need to invert it here.
+
+    - CGE: 0 = least important, 1 = most important
+
+    - FMOD: 0 = most important, 256 = least important
+      ( https://www.fmod.com/docs/2.03/api/core-api-channel.html#channel_setpriority )
+  }
+
   if FMODChannel = nil then Exit;
-  CheckFMOD(FMOD_Channel_SetPriority(FMODChannel, Round(Value * 256)));
+  CheckFMOD(FMOD_Channel_SetPriority(FMODChannel, Round((1 - Value) * 256)));
 end;
 
 function TFMODSoundSourceBackend.GetOffset: Single;
@@ -539,8 +550,10 @@ end;
 
 procedure TFMODSoundEngineBackend.ContextClose;
 begin
-  CheckFMOD(FMOD_System_Close(FMODSystem));
-  CheckFMOD(FMOD_System_Release(FMODSystem));
+  { Check errors from below FMOD calls, but continue anyway, as we are
+    closing context anyway and we want to release all resources. }
+  CheckFMOD(FMOD_System_Close(FMODSystem), 'FMOD_System_Close', true);
+  CheckFMOD(FMOD_System_Release(FMODSystem), 'FMOD_System_Release', true);
   FMODSystem := nil;
   FmodLibraryUsingEnd;
 end;
