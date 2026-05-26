@@ -147,6 +147,7 @@ begin
   FMinAllocatedSources := DefaultMinAllocatedSources;
   FMaxAllocatedSources := DefaultMaxAllocatedSources;
 
+  {$ifdef CASTLE_SOUND_BACKEND_DEFAULT_SOX} UseSOXSoundBackend; {$endif}
   {$ifdef CASTLE_SOUND_BACKEND_DEFAULT_OPENAL} UseOpenALSoundBackend; {$endif}
   {$ifdef CASTLE_SOUND_BACKEND_DEFAULT_WEBAUDIO} UseWebAudioSoundBackend; {$endif}
 end;

@@ -27,6 +27,9 @@ unit CastleSoundEngine;
   {$else}
     { Full-featured backend using OpenAL. }
     {$define CASTLE_SOUND_BACKEND_DEFAULT_OPENAL}
+
+    { Dummy backend using "sox" command-line. Only for testing, not for production use. }
+    {.$define CASTLE_SOUND_BACKEND_DEFAULT_SOX}
   {$endif}
 {$endif}
 
@@ -70,6 +73,7 @@ uses XMLRead, StrUtils, Generics.Defaults,
   CastleLog, CastleInternalVorbisFile, CastleInternalDataURI,
   CastleParameters, CastleXmlUtils, CastleFilesUtils, CastleConfig,
   CastleUriUtils, CastleDownload, CastleMessaging, CastleApplicationProperties
+  {$ifdef CASTLE_SOUND_BACKEND_DEFAULT_SOX}, CastleInternalSoxSoundBackend {$endif}
   {$ifdef CASTLE_SOUND_BACKEND_DEFAULT_OPENAL}, CastleOpenALSoundBackend {$endif}
   {$ifdef CASTLE_SOUND_BACKEND_DEFAULT_WEBAUDIO}, CastleInternalWebAudioBackend {$endif}
   , CastleComponentSerialize;
