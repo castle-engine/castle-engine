@@ -529,6 +529,10 @@ end;
 
 destructor TRepoSoundEngine.Destroy;
 begin
+  // Avoid FSoundEngine being a dangling pointer
+  if FSoundEngine = Self then
+    FSoundEngine := nil;
+
   FreeAndNil(FSoundImportanceNames);
   FreeAndNil(FSounds);
   FreeAndNil(FSoundGroups);
