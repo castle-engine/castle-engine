@@ -24,13 +24,10 @@ uses SysUtils, Classes,
   CastleUtils, CastleTimeUtils, CastleSoundBase, CastleInternalVorbisFile;
 
 type
-  ESoundFormatNotSupportedByOpenAL = class(ESoundFileError)
-  end deprecated 'do not use, this is not raised by anything anymore';
-
   ESoundFormatAlreadyRegistered = class(Exception);
 
   { Sound format. This describes the uncompressed sound data format,
-    used by our @link(TSoundFile.Format) and @link(TStreamedSoundFile.Format).
+    used by our @link(TSoundFile.SampleFormat) and @link(TStreamedSoundFile.SampleFormat).
 
     This is @italic(not) an exhaustive list of all sound formats supported,
     as with some sound backends (like FMOD) some sound
@@ -64,6 +61,7 @@ type
     sfPcm16
   );
 
+  { Sound file data, loaded in memory completely (not streaming). }
   TSoundFile = class
   strict private
     FUrl: String;
@@ -91,7 +89,7 @@ type
     { URL from which we loaded this sound file. }
     property Url: String read FUrl;
 
-    { Sound data, to be interpreted according to @link(Format) and @link(Channels).
+    { Sound data, to be interpreted according to @link(SampleFormat) and @link(Channels).
       Contents of this are readonly. }
     function Data: Pointer;
 
@@ -114,6 +112,11 @@ type
     procedure ConvertTo16bit;
   end;
 
+  { Sound file data, that can be read in parts (streamed) using @link(Read)
+    and rewound using @link(Rewind).
+    This is an alternative to @link(TSoundFile) for long sound files,
+    where reading them to memory completely is not desirable (would
+    take a while, would consume too much memory). }
   TStreamedSoundFile = class
   strict private
     FUrl: String;
