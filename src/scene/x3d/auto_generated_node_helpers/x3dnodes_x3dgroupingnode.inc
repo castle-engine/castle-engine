@@ -26,10 +26,8 @@
   strict private
     function GetBBox: TBox3D;
     procedure SetBBox(const Value: TBox3D);
-{$ifndef CASTLE_SLIM_NODES}
     function GetVisible: Boolean;
     procedure SetVisible(const Value: Boolean);
-{$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
     function GetBboxDisplay: Boolean;
     procedure SetBboxDisplay(const Value: Boolean);
@@ -63,15 +61,11 @@
     { Internal wrapper for property @code(BboxSize). This wrapper API may change, we advise to access simpler @code(BboxSize) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
-{$ifndef CASTLE_SLIM_NODES}
     strict private FFdVisible: TSFBool;
     { Internal wrapper for property @code(Visible). This wrapper API may change, we advise to access simpler @code(Visible) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdVisible: TSFBool read FFdVisible;
-{$endif not CASTLE_SLIM_NODES}
-{$ifndef CASTLE_SLIM_NODES}
-    { Is this group visible (@italic(not implemented yet)). While this is not implemented for an entire group, note that you can use @link(TAbstractShapeNode.Visible) to toggle visibility of each shape. }
+    { Is the content inside displayed. The value of this field has no effect on animation behaviors, collision behaviors, event passing, or other non-visual characteristics. }
     property Visible: Boolean read GetVisible write SetVisible;
-{$endif not CASTLE_SLIM_NODES}
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdBboxDisplay: TSFBool;
@@ -115,7 +109,6 @@ begin
   FdBBoxSize.Send(ValueSize);
 end;
 
-{$ifndef CASTLE_SLIM_NODES}
 function TAbstractGroupingNode.GetVisible: Boolean;
 begin
   Result := FdVisible.Value;
@@ -126,7 +119,6 @@ begin
   FdVisible.Send(Value);
 end;
 
-{$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
 function TAbstractGroupingNode.GetBboxDisplay: Boolean;
 begin
@@ -166,11 +158,9 @@ begin
    FdBboxSize.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdBboxSize);
 
-{$ifndef CASTLE_SLIM_NODES}
   FFdVisible := TSFBool.Create(Self, True, 'visible', true);
    FdVisible.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdVisible);
-{$endif not CASTLE_SLIM_NODES}
 
 {$ifndef CASTLE_SLIM_NODES}
   FFdBboxDisplay := TSFBool.Create(Self, True, 'bboxDisplay', false);

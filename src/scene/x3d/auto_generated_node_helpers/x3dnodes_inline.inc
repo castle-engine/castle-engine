@@ -92,7 +92,7 @@
     strict private FFdVisible: TSFBool;
     { Internal wrapper for property @code(Visible). This wrapper API may change, we advise to access simpler @code(Visible) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdVisible: TSFBool read FFdVisible;
-    { Not implemented. Whether or not the content within a node is visually displayed. The value of this field has no effect on animation behaviors, collision behaviors, event passing, or other non-visual characteristics. }
+    { Is the content inside displayed. The value of this field has no effect on animation behaviors, collision behaviors, event passing, or other non-visual characteristics. }
     property Visible: Boolean read GetVisible write SetVisible;
 
     strict private FFdBboxCenter: TSFVec3f;
