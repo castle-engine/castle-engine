@@ -58,7 +58,7 @@ var
 begin
   inherited Notification(AComponent, Operation);
 
-  if Operation = opRemove then
+  if (Operation = opRemove) and (FEventList <> nil) then
   begin
     for I := FEventList.Count - 1 downto 0 do
     begin
@@ -74,7 +74,7 @@ var
 begin
   if not (TObject(TMethod(AEvent).Data) is TComponent) then
     raise ECastleComponentNotification.Create(
-      'You can only add callbacks form TComponent instances to TCastleComponentNotification.');
+      'You can only add callbacks from TComponent instances to TCastleComponentNotification.');
   EventComponent := TObject(TMethod(AEvent).Data) as TComponent;
 
   if FEventList = nil then
@@ -108,19 +108,23 @@ procedure TCastleComponentNotification.Notify(const AComponent: TComponent);
 var
   I: Integer;
 begin
-  for I := 0 to FEventList.Count -1 do
+  if FEventList = nil then
+    Exit;
+  for I := 0 to FEventList.Count - 1 do
     FEventList[I](AComponent);
 end;
 
 destructor TCastleComponentNotification.Destroy;
 var
-  I: integer;
+  I: Integer;
 begin
-  for I := 0 to FEventList.Count - 1 do
-    TComponent(TMethod(FEventList[i]).Data).RemoveFreeNotification(Self);
-
-  FreeAndNil(FEventList);
-  inherited Destroy;
+  if FEventList <> nil then
+  begin
+    for I := 0 to FEventList.Count - 1 do
+      TComponent(TMethod(FEventList[I]).Data).RemoveFreeNotification(Self);
+    FreeAndNil(FEventList);
+  end;
+  inherited;
 end;
 
 end.
