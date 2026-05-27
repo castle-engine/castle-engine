@@ -132,6 +132,7 @@ castle-game-engine-*.fpm
 /examples/audio/game_3d_sound/game_3d_sound
 /examples/audio/internal/fmod_api_test/fmod_api_test
 /examples/audio/play_sounds/play_sounds
+/examples/audio/music_collection_player/music_collection_player
 /examples/audio/simplest_play_sound/simplest_play_sound
 /examples/audio/test_sound_source_allocator/test_sound_source_allocator
 /examples/castlescript/castle_calculator/castle_calculator
