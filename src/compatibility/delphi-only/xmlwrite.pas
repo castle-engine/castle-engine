@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Delphi XML reading routines.
+{ Delphi XML writing routines.
   This unit is compatible with a subset of FPC XMLWrite unit. }
 unit XMLWrite;
 

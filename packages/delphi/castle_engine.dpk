@@ -220,7 +220,6 @@ contains
   custapp in '..\..\src\compatibility\delphi-only\custapp.pas',
   dom in '..\..\src\compatibility\delphi-only\dom.pas',
   FPHashCompatibility in '..\..\src\compatibility\delphi-only\FPHashCompatibility.pas',
-  singleinstance in '..\..\src\compatibility\delphi-only\singleinstance.pas',
   uriparser in '..\..\src\compatibility\delphi-only\uriparser.pas',
   xmlread in '..\..\src\compatibility\delphi-only\xmlread.pas',
   xmlwrite in '..\..\src\compatibility\delphi-only\xmlwrite.pas',

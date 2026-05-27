@@ -352,7 +352,7 @@ interface
 uses {$define read_interface_uses}
   {$I castlewindow_backend.inc}
   {$undef read_interface_uses}
-  { FPC units }
+  { Standard units }
   SysUtils, Classes, Generics.Collections, CustApp, CTypes,
   { Castle Game Engine units }
   {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
