@@ -706,7 +706,7 @@
       FDuringSettingTransformationFromPhysicsEngine: Boolean;
 
       FLayer: TPhysicsLayer;
-      WarningDone_MultipleReferencesInWorld: Boolean;
+      DoneWarningMultipleReferencesInWorld: Boolean;
 
       { List of collisions from previous step. }
       FPrevCollisions: TCastleRigidBodyList;
@@ -2890,7 +2890,7 @@ begin
     raise Exception.Create('Cannot initialize physics in behavior not added to transform.');
 
   // reset warning state
-  WarningDone_MultipleReferencesInWorld := false;
+  DoneWarningMultipleReferencesInWorld := false;
 
   { We don't really need to access Parent.Parent, but
 
@@ -3585,7 +3585,7 @@ begin
     See https://forum.castle-engine.io/t/domino-physics-demo-problems-with-transformreference/1973/2 }
   if Parent.InternalWorldReferences > 1 then
   begin
-    WritelnWarningOnce(WarningDone_MultipleReferencesInWorld,
+    WritelnWarningOnce(DoneWarningMultipleReferencesInWorld,
       'Physics on %s cannot work reliably. Reason: it is present multiple times inside the Viewport, because it is inside "TCastleTransformReference.Reference".' + NL +
       '  Possible solutions:' + NL +
       '  A. Duplicate (clone) the instance, thus not use TCastleTransformReference.' + NL +
