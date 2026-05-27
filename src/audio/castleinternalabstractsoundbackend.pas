@@ -157,9 +157,11 @@ type
 
     { Check whether the sound is still playing. }
     function PlayingOrPaused: boolean; virtual; abstract;
-    { Play sound from the beginning.
-      May be called on an already playing sound, should then restart playing it from beginning. }
-    procedure Play(const BufferChangedRecently: Boolean); virtual; abstract;
+    { Play sound from the InitialOffset.
+      May be called on an already playing sound, should then restart playing
+      it from the InitialOffset. }
+    procedure Play(const BufferChangedRecently: Boolean;
+      const InitialOffset: TFloatTime); virtual; abstract;
     { Stop the sound playing.
       May be called on an already stopped sound, should do nothing then. }
     procedure Stop; virtual; abstract;
@@ -184,6 +186,11 @@ type
     procedure SetPriority(const Value: Single); virtual; abstract;
     function GetOffset: Single; virtual; abstract;
     procedure SetOffset(const Value: Single); virtual; abstract;
+    { Get / set current position in the sound, in seconds.
+      Guaranteed to be called only on a playing sound source
+      (in contrast, the initial offset used when starting playback
+      is passed as a parameter to @link(Play), and not by setting
+      this property). }
     property Offset: Single read GetOffset write SetOffset;
   end;
 

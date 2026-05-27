@@ -49,8 +49,8 @@
     ReferenceDistance: Single;
     { See @link(TCastleSound.MaxDistance), by default 10000. }
     MaxDistance: Single;
-    { Offset is a position in time of the sound. }
-    Offset: Single;
+    { InitialOffset is a position in time of the sound when it starts playing. }
+    InitialOffset: Single;
 
     { See TCastleSound.Priority for range and meaning. }
     property Priority: Single read FPriority write SetPriority {$ifdef FPC}default 0.5{$endif};

@@ -59,7 +59,8 @@ type
     procedure ContextOpen; override;
     procedure ContextClose; override;
     function PlayingOrPaused: boolean; override;
-    procedure Play(const BufferChangedRecently: Boolean); override;
+    procedure Play(const BufferChangedRecently: Boolean;
+      const InitialOffset: TFloatTime); override;
     procedure Stop; override;
     procedure SetPosition(const Value: TVector3); override;
     procedure SetVelocity(const Value: TVector3); override;
@@ -128,7 +129,8 @@ begin
   Result := (FBuffer <> nil) and FPlayStarted and (FPlayStart.ElapsedTime < FBuffer.Duration);
 end;
 
-procedure TSoxSoundSourceBackend.Play(const BufferChangedRecently: Boolean);
+procedure TSoxSoundSourceBackend.Play(const BufferChangedRecently: Boolean;
+  const InitialOffset: TFloatTime);
 begin
   Stop;
 

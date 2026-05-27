@@ -150,8 +150,8 @@ type
     FPlayStartTime: TFloatTime;
 
     FPitch: Single; //< Last value set by SetPitch
-    FInitialOffset: Single; //< Last value set by SetOffset when not playing
     FDoneWarningOffsetStreaming: Boolean;
+    FDoneWarningSetOffsetAL10: Boolean;
 
     function ALVersion11: Boolean;
   private
@@ -171,7 +171,8 @@ type
     procedure ContextOpen; override;
     procedure ContextClose; override;
     function PlayingOrPaused: boolean; override;
-    procedure Play(const BufferChangedRecently: Boolean); override;
+    procedure Play(const BufferChangedRecently: Boolean;
+      const InitialOffset: TFloatTime); override;
     procedure Stop; override;
     procedure SetPosition(const Value: TVector3); override;
     procedure SetVelocity(const Value: TVector3); override;
@@ -551,9 +552,11 @@ begin
   Result := (SourceState = AL_PLAYING) or (SourceState = AL_PAUSED);
 end;
 
-procedure TOpenALSoundSourceBackend.Play(const BufferChangedRecently: Boolean);
+procedure TOpenALSoundSourceBackend.Play(const BufferChangedRecently: Boolean;
+  const InitialOffset: TFloatTime);
 var
   CompleteBuffer: TOpenALSoundBufferBackend;
+  EffectiveInitialOffset: TFloatTime;
 begin
   // make a clear warning when trying to play stereo sound as spatial
   if FSpatial and
@@ -561,6 +564,8 @@ begin
     WritelnWarning('Stereo sound files are *never* played as spatial by OpenAL. Convert sound file "%s" to mono (e.g. by Audacity or SOX).', [
       UriDisplay(FBuffer.Url)
     ]);
+
+  EffectiveInitialOffset := 0;
 
   if FBuffer is TOpenALStreamBufferBackend then
   begin
@@ -570,6 +575,11 @@ begin
     // start feed buffers thread
     Assert(Streaming <> nil);
     Streaming.FeedBuffers;
+
+    if InitialOffset > 0 then
+      WritelnWarningOnce(FDoneWarningOffsetStreaming, 'Starting streaming sound with non-zero offset is not supported by OpenAL backend. Sound "%s" will be played from the beginning.', [
+        UriDisplay(FBuffer.Url)
+      ]);
   end else
 
   if FBuffer is TOpenALSoundBufferBackend then
@@ -614,6 +624,12 @@ begin
         Sleep(10);
     end;
 
+    if InitialOffset > 0 then
+    begin
+      EffectiveInitialOffset := InitialOffset;
+      SetOffset(InitialOffset);
+    end;
+
     alSourcePlay(ALSource);
     {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcePlay ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
   end else
@@ -622,8 +638,7 @@ begin
   if FBuffer <> nil then
     raise EInternalError.CreateFmt('Cannot play buffer class type %s', [FBuffer.ClassName]);
 
-  FPlayStartTime := SoundEngine.CurrentTime - FInitialOffset / Max(FPitch, 0.001);
-  FInitialOffset := 0; // clear for next play
+  FPlayStartTime := SoundEngine.CurrentTime - EffectiveInitialOffset / Max(FPitch, 0.001);
 end;
 
 procedure TOpenALSoundSourceBackend.Stop;
@@ -884,23 +899,17 @@ procedure TOpenALSoundSourceBackend.SetOffset(const Value: Single);
 var
   ErrorCode: TALenum;
 begin
-  { For streaming sounds, do not set AL_SEC_OFFSET, do not set our
-    FInitialOffset either, as neither would have a reasonable effect.
-    We don't implement now starting streaming sounds from non-zero offset.
+  { For streaming sounds, do not set AL_SEC_OFFSET as it would not
+    have a reasonable effect (would only set offset within current buffer).
 
-    Note that TSoundEngine.InternalPlay always calls SetOffset after setting
-    buffer, so we always know whether we have streaming sound here in practice. }
+    Note that this should only be called on a playing sound,
+    so FBuffer should be <> nil now. }
 
-  if (FBuffer is TOpenALStreamBufferBackend) and // also checks FBuffer <> nil
-     (Value <> 0) then
+  if FBuffer is TOpenALStreamBufferBackend then // also checks FBuffer <> nil
   begin
     WritelnWarningOnce(FDoneWarningOffsetStreaming, 'TOpenALSoundSourceBackend.SetOffset is not supported for streaming sounds');
     Exit;
   end;
-
-  // store FInitialOffset, it will be useful in Play implementation
-  if not PlayingOrPaused then
-    FInitialOffset := Value;
 
   if ALVersion11 then
   begin
@@ -921,7 +930,8 @@ begin
     if ErrorCode <> AL_NO_ERROR then
       raise EALError.Create(ErrorCode,
         'OpenAL error AL_xxx at setting sound offset : ' + alGetString(ErrorCode));
-  end;
+  end else
+    WritelnWarningOnce(FDoneWarningSetOffsetAL10, 'TOpenALSoundSourceBackend.SetOffset is not supported for OpenAL < 1.1');
 end;
 
 { TOpenALSoundEngineBackend -------------------------------------------------- }

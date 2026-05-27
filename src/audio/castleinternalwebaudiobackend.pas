@@ -125,25 +125,12 @@ type
 
     { For tracking playback state.
 
-      This already takes into account FPlayOffset at the moment of starting
+      This takes into account InitialOffset at the moment of starting
       playback, i.e. this is shifted from AudioContext.CurrentTime
-      to pretend we started playing earlier when FPlayOffset > 0. }
+      to pretend we started playing earlier, if we actually started
+      with InitialOffset > 0. }
     FPlayStartTime: TFloatTime;
 
-    { Initial playback offset.
-
-      This is set by SetOffset, which is done by:
-
-      - When not currently playing.
-        Happens from TSoundEngine.InternalPlay, by
-        "Params.Offset := PlayingSound.InitialOffset"
-        to indicate initial offset.
-
-      - Or when currently playing.
-        Happens from TCastlePlayingSound.SetOffset.
-        This changes playing sound offset, and we implement it by starting
-        sound again. }
-    FPlayOffset: Single;
     FPlaying: Boolean;
     FPendingPlaying: Boolean;
 
@@ -163,7 +150,8 @@ type
     procedure ContextOpen; override;
     procedure ContextClose; override;
     function PlayingOrPaused: Boolean; override;
-    procedure Play(const BufferChangedRecently: Boolean); override;
+    procedure Play(const BufferChangedRecently: Boolean;
+      const InitialOffset: TFloatTime); override;
     procedure Stop; override;
     procedure SetPosition(const Value: TVector3); override;
     procedure SetVelocity(const Value: TVector3); override;
@@ -513,7 +501,6 @@ begin
   FSpatial := true;
   FLoop := false;
   FPlaying := false;
-  FPlayOffset := 0;
 
   NodesConnect;
 end;
@@ -583,7 +570,8 @@ begin
   FPendingPlaying := false;
 end;
 
-procedure TWebAudioSoundSourceBackend.Play(const BufferChangedRecently: Boolean);
+procedure TWebAudioSoundSourceBackend.Play(const BufferChangedRecently: Boolean;
+  const InitialOffset: TFloatTime);
 var
   AudioCtx: IJSAudioContext;
 begin
@@ -625,14 +613,14 @@ begin
   SourceNode.Connect(FGainNode);
 
   { Start playback }
-  if FPlayOffset > 0 then
-    SourceNode.Start(0, FPlayOffset)
+  if InitialOffset > 0 then
+    SourceNode.Start(0, InitialOffset)
   else
     SourceNode.Start;
 
   { Record start time for PlayingOrPaused tracking,
     pretending that we started without any offset. }
-  FPlayStartTime := AudioCtx.CurrentTime - FPlayOffset / Max(FPitch, 0.001);
+  FPlayStartTime := AudioCtx.CurrentTime - InitialOffset / Max(FPitch, 0.001);
   FPlaying := true;
 end;
 
@@ -839,10 +827,9 @@ end;
 
 procedure TWebAudioSoundSourceBackend.SetOffset(const Value: Single);
 begin
-  FPlayOffset := Value;
   { If currently playing, restart with new offset }
   if FPlaying then
-    Play(false);
+    Play(false, Value);
 end;
 
 { TWebAudioSoundEngineBackend ------------------------------------------------ }

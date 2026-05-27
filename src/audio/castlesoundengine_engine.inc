@@ -581,7 +581,6 @@ begin
       Result.MinGain := Parameters.MinGain;
       Result.MaxGain := Parameters.MaxGain;
       {$warnings on}
-      Result.Offset  := Parameters.Offset;
       Result.Spatial := Parameters.Spatial;
 
       Result.Position := Parameters.Position; // will be ignored when Spatial = false, which is OK
@@ -589,7 +588,7 @@ begin
       Result.ReferenceDistance := Parameters.ReferenceDistance; // will be ignored when Spatial = false, which is OK
       Result.MaxDistance       := Parameters.MaxDistance; // will be ignored when Spatial = false, which is OK
 
-      Result.Backend.Play(true);
+      Result.Backend.Play(true, Parameters.InitialOffset);
     end;
   end;
 end;
@@ -659,7 +658,7 @@ begin
     Params.MinGain    := ASound.MinGain;
     Params.MaxGain    := ASound.MaxGain;
     {$warnings on}
-    Params.Offset     := PlayingSound.InitialOffset;
+    Params.InitialOffset     := PlayingSound.InitialOffset;
     Params.ReferenceDistance := ASound.ReferenceDistance; // will be ignored when Spatial = false, which is OK
     Params.MaxDistance       := ASound.MaxDistance; // will be ignored when Spatial = false, which is OK
 

@@ -84,7 +84,8 @@ type
     procedure ContextOpen; override;
     procedure ContextClose; override;
     function PlayingOrPaused: boolean; override;
-    procedure Play(const BufferChangedRecently: Boolean); override;
+    procedure Play(const BufferChangedRecently: Boolean;
+      const InitialOffset: TFloatTime); override;
     procedure Stop; override;
     procedure SetPosition(const Value: TVector3); override;
     procedure SetVelocity(const Value: TVector3); override;
@@ -317,9 +318,13 @@ begin
   Result := B <> 0;
 end;
 
-procedure TFMODSoundSourceBackend.Play(const BufferChangedRecently: Boolean);
+procedure TFMODSoundSourceBackend.Play(const BufferChangedRecently: Boolean;
+  const InitialOffset: TFloatTime);
 begin
   if FMODChannel = nil then Exit;
+
+  if InitialOffset > 0 then
+    SetOffset(InitialOffset);
 
   CheckFMOD(FMOD_Channel_SetPaused(FMODChannel, 0));
 end;
