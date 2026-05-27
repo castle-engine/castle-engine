@@ -143,7 +143,7 @@ type
     { URL from which we loaded this sound file. }
     property Url: String read FUrl;
 
-    { Format of sound sample in @link(Data). }
+    { Format of sound samples returned by @link(Read). }
     property SampleFormat: TSoundSampleFormat read FSampleFormat;
 
     { Number of channels (1 = mono, 2 = stereo and so on). }
