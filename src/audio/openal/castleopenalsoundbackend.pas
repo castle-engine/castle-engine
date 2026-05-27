@@ -118,7 +118,11 @@ type
     FReferenceDistance, FMaxDistance: Single;
 
     { When did we start playing, assuming that we play from InitialOffset = 0
-      and with Pitch = 1.
+      and with Pitch = 1. That is, if we actually play from different offset
+      and with different pitch, then this is not the "real" time when
+      we started playing, it is adjusted to suit the needs of GetOffset
+      implementation that assumes current offset is
+      "(SoundEngine.CurrentTime - FPlayStartTime) * FPitch".
 
       Used to know GetOffset on a streaming sound.
 
@@ -145,12 +149,15 @@ type
       so we need to have this properly figured out anyway. }
     FPlayStartTime: TFloatTime;
 
+    FPitch: Single; //< Last value set by SetPitch
+    FInitialOffset: Single; //< Last value set by SetOffset when not playing
+    FDoneWarningOffsetStreaming: Boolean;
+
     function ALVersion11: Boolean;
   private
     FBuffer: TSoundBufferBackend;
     ALSource: TALuint;
     FLoop: Boolean;
-    FPitch: Single; //< Last value set by SetPitch
 
     { When buffer is streamed, OpenAL source looping need to be off,
       otherwise, one buffer will be looped. This procedure cares about that. }
@@ -615,9 +622,8 @@ begin
   if FBuffer <> nil then
     raise EInternalError.CreateFmt('Cannot play buffer class type %s', [FBuffer.ClassName]);
 
-  { TODO: We behave below as if FPlayOffset is zero.
-    Does OpenAL backend support non-zero InitialOffset? If not -> we should implement it. }
-  FPlayStartTime := SoundEngine.CurrentTime - {FPlayOffset} 0 / Max(FPitch, 0.001);
+  FPlayStartTime := SoundEngine.CurrentTime - FInitialOffset / Max(FPitch, 0.001);
+  FInitialOffset := 0; // clear for next play
 end;
 
 procedure TOpenALSoundSourceBackend.Stop;
@@ -878,6 +884,24 @@ procedure TOpenALSoundSourceBackend.SetOffset(const Value: Single);
 var
   ErrorCode: TALenum;
 begin
+  { For streaming sounds, do not set AL_SEC_OFFSET, do not set our
+    FInitialOffset either, as neither would have a reasonable effect.
+    We don't implement now starting streaming sounds from non-zero offset.
+
+    Note that TSoundEngine.InternalPlay always calls SetOffset after setting
+    buffer, so we always know whether we have streaming sound here in practice. }
+
+  if (FBuffer is TOpenALStreamBufferBackend) and // also checks FBuffer <> nil
+     (Value <> 0) then
+  begin
+    WritelnWarningOnce(FDoneWarningOffsetStreaming, 'TOpenALSoundSourceBackend.SetOffset is not supported for streaming sounds');
+    Exit;
+  end;
+
+  // store FInitialOffset, it will be useful in Play implementation
+  if not PlayingOrPaused then
+    FInitialOffset := Value;
+
   if ALVersion11 then
   begin
     { We have to check alGetError now, because we need to catch
