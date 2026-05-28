@@ -626,7 +626,11 @@ begin
     end;
 
     if FpPipe(msgpipe) <> 0 then
+    begin
         AndroidLog(alError, 'NativeAppGlue: Could not create pipe');
+        { There isn't any way to continue application in this case. }
+        Exit(nil);
+    end;
 
     android_app^.msgread := msgpipe[0];
     android_app^.msgwrite := msgpipe[1];
