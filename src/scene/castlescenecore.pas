@@ -5059,7 +5059,7 @@ var
       - are not Inline,
       - are not Switch,
       - are not LOD,
-      - do not have TransformFunctionality,
+      - do not have TransformFunctionality.
 
       For these nodes we don't necessarily create TShapeTreeGroup
       (unless they have visible=FALSE when building shapes tree),
@@ -5076,8 +5076,7 @@ var
       Exit;
     end;
 
-    { In other cases (nodes with TransformFunctionality, or Inline)
-      we have optimized path. }
+    { In other cases we have optimized path. }
 
     Validities := Validities - [
       fvShapesActiveVisibleCount
