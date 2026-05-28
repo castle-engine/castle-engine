@@ -4977,14 +4977,13 @@ var
   procedure HandleShapesTreeTraversing;
   begin
     Validities := Validities - [
-      { Calculation traverses over active shapes. }
-      fvShapesActiveCount,
-      fvShapesActiveVisibleCount,
-      { Calculation traverses over active nodes (uses RootNode.Traverse). }
-      fvMainLightForShadows
+      fvShapesActiveVisibleCount
     ];
 
-    InternalGeometryChanged([gcActiveShapesChanged], nil);
+    { Potentially some objects appear, some disappear.
+      Without this, pressing Ctrl doesn't make 2nd sphere appear in
+      demo-models/x3d/visible_toggling.x3dv }
+    FreeAndNil(FOctreeRendering);
 
     InternalIncShapesHash;
     VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
