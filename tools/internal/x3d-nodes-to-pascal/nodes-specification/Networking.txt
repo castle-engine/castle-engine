@@ -76,6 +76,7 @@ Inline : X3DChildNode, X3DBoundedObject, X3DUrlObject {
 
     @seealso TAbstractGroupingNode.Visible
     """
+    change: chShapeTreeVisible
   SFVec3f  []       bboxCenter 0 0 0
     range: (-Inf,Inf)
   SFVec3f  []       bboxSize   -1 -1 -1
