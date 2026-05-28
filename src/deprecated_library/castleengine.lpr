@@ -1,6 +1,6 @@
 { -*- compile-command: "./castleengine_compile.sh" -*- }
 {
-  Copyright 2013-2025 Jan Adamec, Michalis Kamburelis.
+  Copyright 2013-2026 Jan Adamec, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -130,7 +130,7 @@ begin
     Viewport.AutoNavigation := true;
     Window.Controls.InsertFront(Viewport);
 
-    TouchNavigation := TCastleTouchNavigation.Create(nil);
+    TouchNavigation := TCastleTouchNavigation.Create(Window);
     TouchNavigation.FullSize := true;
     TouchNavigation.Viewport := Viewport;
     Window.Controls.InsertFront(TouchNavigation);
@@ -156,7 +156,11 @@ begin
 
     CGEApp_Close(QuitWhenNoOpenWindows);
     FreeAndNil(Window);
+
+    // nil things owned by Window, to avoid having dangling pointers
     MainScene := nil;
+    Viewport := nil;
+    TouchNavigation := nil;
   except
     on E: TObject do WritelnWarning('Window', 'CGE_Close: ' + ExceptMessage(E));
   end;
@@ -375,6 +379,7 @@ var
   SaveFileName: string;
   UrlProcessing: TUrlProcessing;
   RootNodeCopy: TX3DRootNode;
+  SaveOptions: TCastleSceneSaveOptions;
 begin
   if not CGE_VerifyScene('CGE_SaveSceneToFile') then
     exit;
@@ -396,7 +401,13 @@ begin
       RootNodeCopy := MainScene.RootNode.DeepCopy as TX3DRootNode;
       try
         ProcessUrls(RootNodeCopy, SaveFileName, UrlProcessing);
-        SaveNode(RootNodeCopy, SaveFileName, 'cge_library');
+        SaveOptions := TCastleSceneSaveOptions.Create(nil);
+        try
+          SaveOptions.Generator := 'Castle Game Engine (library)';
+          SaveNode(RootNodeCopy, SaveFileName, SaveOptions);
+        finally
+          FreeAndNil(SaveOptions);
+        end;
       finally
         FreeAndNil(RootNodeCopy);
       end;
