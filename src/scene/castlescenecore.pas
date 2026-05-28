@@ -3712,8 +3712,20 @@ function TChangedAllTraverser.Traverse(
     for I := 0 to SwitchNode.FdChildren.Count - 1 do
     begin
       ChildNode := SwitchNode.FdChildren[I];
+
       ChildGroup := TShapeTreeGroup.Create(ParentScene);
-      ChildGroup.BoundedFunctionality := ChildNode.BoundedFunctionality;
+      { Note: We don't do now
+          ChildGroup.BoundedFunctionality := ChildNode.BoundedFunctionality;
+
+        That's because the ChildNode will have a corresponding TShapeTree descendant
+        (maybe TShapeTreeGroup, TShapeTreeTransform etc.) created inside
+        ChildNode.TraverseInternal (which iterates over ChildNode itself,
+        as a start), if we create a wrapper for it at all (e.g. we create
+        wrapper for Switch/LOD/Transform, but not for plain Group now).
+
+        We have created the ChildGroup here only because we need a single
+        TShapeTree to be placed in SwitchTree, to make "Switch.whichChoice"
+        index correspond to index in SwitchTree.Children. }
       SwitchTree.Children.Add(ChildGroup);
 
       Traverser := TChangedAllTraverser.Create;
@@ -3753,7 +3765,9 @@ function TChangedAllTraverser.Traverse(
     begin
       ChildNode := LODNode.FdChildren[I];
       ChildGroup := TShapeTreeGroup.Create(ParentScene);
-      ChildGroup.BoundedFunctionality := ChildNode.BoundedFunctionality;
+      { See above HandleSwitch for explanation why we don't assign
+        ChildGroup.BoundedFunctionality here. }
+      // ChildGroup.BoundedFunctionality := ChildNode.BoundedFunctionality;
       LODTree.Children.Add(ChildGroup);
 
       Traverser := TChangedAllTraverser.Create;
@@ -3935,6 +3949,30 @@ function TChangedAllTraverser.Traverse(
     ParentScene.ScreenEffectNodes.Add(Node);
   end;
 
+  procedure HandleInline(const Node: TInlineNode);
+  var
+    NewShapeGroup: TShapeTreeGroup;
+    Traverser: TChangedAllTraverser;
+  begin
+    if Node.Inlined <> nil then // ignore Inline nodes with no loaded content
+    begin
+      NewShapeGroup := TShapeTreeGroup.Create(ParentScene);
+      NewShapeGroup.BoundedFunctionality := Node.BoundedFunctionality;
+      ShapesGroup.Children.Add(NewShapeGroup);
+
+      Traverser := TChangedAllTraverser.Create;
+      try
+        Traverser.ParentScene := ParentScene;
+        Traverser.ShapesGroup := NewShapeGroup;
+        Traverser.Active := Active;
+        Node.Inlined.TraverseInternal(StateStack, TX3DNode,
+          {$ifdef FPC}@{$endif} Traverser.Traverse, ParentInfo);
+      finally FreeAndNil(Traverser) end;
+    end;
+
+    TraverseIntoChildren := false;
+  end;
+
 begin
   Result := nil;
 
@@ -3963,7 +4001,10 @@ begin
     HandleVisibilitySensor(TVisibilitySensorNode(Node))
   else
   if Node is TScreenEffectNode then
-    HandleScreenEffect(TScreenEffectNode(Node));
+    HandleScreenEffect(TScreenEffectNode(Node))
+  else
+  if Node is TInlineNode then
+    HandleInline(TInlineNode(Node));
 end;
 
 procedure TCastleSceneCore.BeforeNodesFree(const InternalChangedAll: boolean);
