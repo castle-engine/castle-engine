@@ -148,7 +148,7 @@ initialization
   RegisterSerializableComponent(R);
 
   RegisterSerializableComponent(TCastleRopeJoint, ['Physics', 'Joint', 'Rope']);
-  RegisterSerializableComponent(TCastleHingeJoint, ['Physics', 'Joint', 'Hinge ']);
+  RegisterSerializableComponent(TCastleHingeJoint, ['Physics', 'Joint', 'Hinge']);
   RegisterSerializableComponent(TCastleBallJoint, ['Physics', 'Joint', 'Ball']);
   RegisterSerializableComponent(TCastleDistanceJoint, ['Physics', 'Joint', 'Distance']);
   RegisterSerializableComponent(TCastleGrabJoint, ['Physics', 'Joint', 'Grab']);

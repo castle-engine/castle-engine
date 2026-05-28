@@ -2356,7 +2356,7 @@ begin
   PendingRemovals;
 
   { Before we start destroying the transform we need to remove all behaviors from
-    it, because destroying behavior calls on it events like BeforeParentDetach,
+    it, because destroying behavior calls on it events like ParentBeforeDetach,
     ParentChanged.
 
     And we want Parent (this TCastleTransform) state to be valid
@@ -2364,7 +2364,7 @@ begin
 
     In case of descendants, like TCastleScene, also their state has to be valid
     in case behavior's implementation accesses them, e.g. doing
-    "(Parent as TCastleScene).StopAnimation" from BeforeParentDetach implementation.
+    "(Parent as TCastleScene).StopAnimation" from ParentBeforeDetach implementation.
     That's why we do this from BeforeDestruction, before e.g. TCastleScene.Destroy starts
     destroying the instance. }
 

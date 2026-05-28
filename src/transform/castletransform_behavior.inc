@@ -117,7 +117,7 @@
       This is also called at the destruction of behavior (more precisely from BeforeDestruction now).
       Even in this case, we guarantee that @link(Parent) is still valid during this call,
       and not in half-destroyed state.
-      Before the actual destructor of TCastleBehavior we do BeforeParentDetach and BeforeWorldDetach
+      Before the actual destructor of TCastleBehavior we do ParentBeforeDetach and WorldBeforeDetach
       and set Parent to @nil. }
     procedure ParentBeforeDetach; virtual;
 
@@ -131,7 +131,7 @@
       This is also called at the destruction of behavior (more precisely from BeforeDestruction now).
       Even in this case, we guarantee that @link(Parent) is still valid during this call,
       and not in half-destroyed state.
-      Before the actual destructor of TCastleBehavior we do BeforeParentDetach and BeforeWorldDetach
+      Before the actual destructor of TCastleBehavior we do ParentBeforeDetach and WorldBeforeDetach
       and set Parent to @nil. }
     procedure WorldBeforeDetach; virtual;
 
@@ -302,7 +302,7 @@ begin
         MyStuff: TObject;
         constructor Create;
         destructor Destroy; override;
-        procedure BeforeParentDetach; override;
+        procedure ParentBeforeDetach; override;
       end;
 
       constructor TMyBehavior.Create;
@@ -317,9 +317,9 @@ begin
         inherited;
       end;
 
-      procedure TMyBehavior.BeforeParentDetach;
+      procedure TMyBehavior.ParentBeforeDetach;
       begin
-        MyStuff.Xxx := ...; // <- this is safe, because BeforeParentDetach is done from BeforeBehaviorDestroy
+        MyStuff.Xxx := ...; // <- this is safe, because ParentBeforeDetach is done from BeforeBehaviorDestroy
         inherited;
       end;
 
@@ -331,7 +331,7 @@ begin
       end;
 
     Thanks to calling Parent.BeforeBehaviorDestroy in TCastleBehavior.BeforeDestruction
-    (and not TCastleBehavior.Destroy) accessing MyStuff in TMyBehavior.BeforeParentDetach
+    (and not TCastleBehavior.Destroy) accessing MyStuff in TMyBehavior.ParentBeforeDetach
     is safe.
   }
 
