@@ -242,11 +242,9 @@
     { Shape.bboxCenter/Size changed, so TShape.LocalBoundingBox changed. }
     chBBox,
 
-    { Result of traversing shapes tree changed, for example
-      @link(TBoundedNodeFunctionality.Visible) changed.
-      This calls InternalIncShapesHash making the CastleShapes calculate
-      new list of shapes. }
-    chShapesTreeTraversing
+    { Result of traversing @italic(only visible) shapes tree changed, because
+      @link(TBoundedNodeFunctionality.Visible) changed. }
+    chShapeTreeVisible
   );
   TX3DChanges = set of TX3DChange;
 

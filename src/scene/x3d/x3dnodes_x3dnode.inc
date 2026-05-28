@@ -733,7 +733,8 @@
 
     { Like @link(Traverse), but it takes explicit starting state stack
       and starting ParentInfo. Not generally useful, use only for special
-      purposes. }
+      purposes.
+      This does pass Self to TraversingFunc (unlike TraverseIntoChildren). }
     function TraverseInternal(StateStack: TX3DGraphTraverseStateStack;
       NodeClass: TX3DNodeClass;
       TraversingFunc: TTraversingFunc;

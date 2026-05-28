@@ -3949,6 +3949,9 @@ function TChangedAllTraverser.Traverse(
     ParentScene.ScreenEffectNodes.Add(Node);
   end;
 
+  { Add TShapeTreeGroup to ShapesGroup, corresponding to TInlineNode.
+    This allows to handle TInlineNode.Visible, because we
+    pass Node.BoundedFunctionality to TShapeTreeGroup.BoundedFunctionality. }
   procedure HandleInline(const Node: TInlineNode);
   var
     NewShapeGroup: TShapeTreeGroup;
@@ -3969,6 +3972,30 @@ function TChangedAllTraverser.Traverse(
           {$ifdef FPC}@{$endif} Traverser.Traverse, ParentInfo);
       finally FreeAndNil(Traverser) end;
     end;
+
+    TraverseIntoChildren := false;
+  end;
+
+  { Add TShapeTreeGroup to ShapesGroup, corresponding to any node with
+    TBoundedNodeFunctionality and visible=FALSE.
+    This allows to toggle visibility of such nodes. }
+  procedure HandleBoundedFunctionality(const Node: TX3DNode);
+  var
+    NewShapeGroup: TShapeTreeGroup;
+    Traverser: TChangedAllTraverser;
+  begin
+    NewShapeGroup := TShapeTreeGroup.Create(ParentScene);
+    NewShapeGroup.BoundedFunctionality := Node.BoundedFunctionality;
+    ShapesGroup.Children.Add(NewShapeGroup);
+
+    Traverser := TChangedAllTraverser.Create;
+    try
+      Traverser.ParentScene := ParentScene;
+      Traverser.ShapesGroup := NewShapeGroup;
+      Traverser.Active := Active;
+      Node.TraverseIntoChildren(StateStack, TX3DNode,
+        {$ifdef FPC}@{$endif} Traverser.Traverse, ParentInfo);
+    finally FreeAndNil(Traverser) end;
 
     TraverseIntoChildren := false;
   end;
@@ -4004,7 +4031,17 @@ begin
     HandleScreenEffect(TScreenEffectNode(Node))
   else
   if Node is TInlineNode then
-    HandleInline(TInlineNode(Node));
+    HandleInline(TInlineNode(Node))
+  else
+  { We only create TShapeTreeGroup for other grouping nodes (like Group)
+    if it is necessary (they have visible=FALSE).
+    This means that toggling their visible is more expensive (when
+    changing visible from TRUE to FALSE, we need to remake the shapes tree),
+    but OTOH the tree is simpler (flatten) for the most usual case
+    (when their visible=TRUE and stays TRUE). }
+  if (Node.BoundedFunctionality <> nil) and
+     (not Node.BoundedFunctionality.Visible) then
+    HandleBoundedFunctionality(Node);
 end;
 
 procedure TCastleSceneCore.BeforeNodesFree(const InternalChangedAll: boolean);
@@ -5012,11 +5049,36 @@ var
     end;
   end;
 
-  { When changing something like TBoundedNodeFunctionality.Visible,
+  { When changing TBoundedNodeFunctionality.Visible,
     we need to redraw with new visibility,
     and note that iteration over shapes will return different shapes. }
-  procedure HandleShapesTreeTraversing;
+  procedure HandleChangeShapeTreeVisible;
   begin
+    { Special unoptimal path for nodes that
+
+      - are not Inline,
+      - are not Switch,
+      - are not LOD,
+      - do not have TransformFunctionality,
+
+      For these nodes we don't necessarily create TShapeTreeGroup
+      (unless they have visible=FALSE when building shapes tree),
+      so no place to process their BoundedNodeFunctionality.Visible change.
+      So to make their visible change from TRUE->FALSE work,
+      we need ScheduleChangedAll (rebuild shapes tree). }
+    if (ANode.BoundedFunctionality <> nil) and
+       (not (ANode is TInlineNode)) and
+       (not (ANode is TSwitchNode)) and
+       (not (ANode is TLodNode)) and
+       (ANode.TransformFunctionality = nil) then
+    begin
+      ScheduleChangedAll(false);
+      Exit;
+    end;
+
+    { In other cases (nodes with TransformFunctionality, or Inline)
+      we have optimized path. }
+
     Validities := Validities - [
       fvShapesActiveVisibleCount
     ];
@@ -5096,7 +5158,7 @@ begin
       chGroupChildren, chGroupChildrenAdd: HandleChangeChildren(Change = chGroupChildrenAdd);
       chBBox: HandleChangeBBox;
       chVisibleGeometry, chVisibleNonGeometry, chRedisplay: HandleVisibleChange;
-      chShapesTreeTraversing: HandleShapesTreeTraversing;
+      chShapeTreeVisible: HandleChangeShapeTreeVisible;
       else ;
     end;
   finally EndChangesSchedule end;

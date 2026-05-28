@@ -159,7 +159,7 @@ begin
   AddField(FFdBboxSize);
 
   FFdVisible := TSFBool.Create(Self, True, 'visible', true);
-   FdVisible.ChangeAlways := chShapesTreeTraversing;
+   FdVisible.ChangeAlways := chShapeTreeVisible;
   AddField(FFdVisible);
 
 {$ifndef CASTLE_SLIM_NODES}

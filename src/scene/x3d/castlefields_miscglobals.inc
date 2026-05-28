@@ -1,6 +1,6 @@
 {%MainUnit x3dfields.pas}
 {
-  Copyright 2002-2023 Michalis Kamburelis.
+  Copyright 2002-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -74,7 +74,7 @@ const
     'Children',
     'Children added',
     'BBox',
-    'Shapes Tree Traversing'
+    'Shapes Tree Visible'
   );
 
 function X3DChangesToStr(const Changes: TX3DChanges): string;
