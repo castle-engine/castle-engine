@@ -15,6 +15,17 @@
 }
 
 {$ifdef read_interface}
+
+  { Functionality for all nodes that may have a bounding box defined
+    and may have their contents hidden.
+    Corresponds to the X3D node @url(https://www.web3d.org/specifications/X3Dv4Draft/ISO-IEC19775-1v4.1-CD/Part01/components/grouping.html#X3DBoundedObject
+    X3DBoundedObject). }
+  TBoundedNodeFunctionality = class(TNodeFunctionality)
+    function BoundingBox: TBox3D; virtual; abstract;
+    function BBoxDisplay: Boolean; virtual; abstract;
+    function Visible: Boolean; virtual; abstract;
+  end;
+
   { Base node that may contain children nodes.
 
     You should not use this class directly usually,
@@ -60,6 +71,18 @@
   strict private
     type
       TChildrenArray = array of TAbstractChildNode;
+      TAbstractGroupingNodeBoundedFunctionality = class(TBoundedNodeFunctionality)
+      strict private
+        FParent: TAbstractGroupingNode;
+      public
+        constructor Create(const AParent: TAbstractGroupingNode);
+        property Parent: TAbstractGroupingNode read FParent;
+        function BoundingBox: TBox3D; override;
+        function BBoxDisplay: Boolean; override;
+        function Visible: Boolean; override;
+      end;
+    var
+      FBoundedFunctionality: TAbstractGroupingNodeBoundedFunctionality;
     function ToChildrenArray(const Nodes: TMFNode): TChildrenArray;
     procedure EventAddChildrenReceive(
       const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
@@ -519,6 +542,34 @@ begin
   inherited;
 end;
 
+{ TAbstractGroupingNode.TAbstractGroupingNodeBoundedFunctionality ----------- }
+
+constructor TAbstractGroupingNode.TAbstractGroupingNodeBoundedFunctionality.Create(
+  const AParent: TAbstractGroupingNode);
+begin
+  inherited Create(AParent);
+  FParent := AParent;
+end;
+
+function TAbstractGroupingNode.TAbstractGroupingNodeBoundedFunctionality.BoundingBox: TBox3D;
+begin
+  Result := Parent.BBox;
+end;
+
+function TAbstractGroupingNode.TAbstractGroupingNodeBoundedFunctionality.BBoxDisplay: Boolean;
+begin
+  {$ifdef CASTLE_SLIM_NODES}
+  Result := false;
+  {$else}
+  Result := Parent.BboxDisplay;
+  {$endif}
+end;
+
+function TAbstractGroupingNode.TAbstractGroupingNodeBoundedFunctionality.Visible: Boolean;
+begin
+  Result := Parent.Visible;
+end;
+
 { TAbstractGroupingNode --------------------------------------------------- }
 
 constructor TAbstractGroupingNode.Create(const AX3DName: String = ''; const ABaseUrl: String = '');
@@ -533,6 +584,9 @@ begin
     This extension was invented before X3D 4 added it. }
   FFdVisible.AddAlternativeName('render', 0);
   {$endif}
+
+  FBoundedFunctionality := TAbstractGroupingNodeBoundedFunctionality.Create(Self);
+  AddFunctionality(FBoundedFunctionality);
 end;
 
 function TAbstractGroupingNode.ToChildrenArray(

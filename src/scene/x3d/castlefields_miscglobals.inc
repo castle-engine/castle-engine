@@ -73,7 +73,8 @@ const
     'Wireframe',
     'Children',
     'Children added',
-    'BBox'
+    'BBox',
+    'Shapes Tree Traversing'
   );
 
 function X3DChangesToStr(const Changes: TX3DChanges): string;

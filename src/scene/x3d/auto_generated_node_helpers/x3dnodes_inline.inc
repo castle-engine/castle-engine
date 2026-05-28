@@ -243,7 +243,7 @@ begin
   AddField(FFdUrl);
 
   FFdVisible := TSFBool.Create(Self, True, 'visible', true);
-   FdVisible.ChangeAlways := chVisibleNonGeometry;
+   FdVisible.ChangeAlways := chShapesTreeTraversing;
   AddField(FFdVisible);
 
   FFdBboxCenter := TSFVec3f.Create(Self, False, 'bboxCenter', Vector3(0, 0, 0));

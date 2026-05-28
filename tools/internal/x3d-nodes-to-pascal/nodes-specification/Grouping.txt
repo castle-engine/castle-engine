@@ -25,6 +25,7 @@ X3DGroupingNode : X3DChildNode, X3DBoundedObject {
     range: [0,Inf) or -1 -1 -1
   SFBool  [in,out] visible        TRUE
     doc: Is the content inside displayed. The value of this field has no effect on animation behaviors, collision behaviors, event passing, or other non-visual characteristics.
+    change: chShapesTreeTraversing
   SFBool  [in,out] bboxDisplay    FALSE
     not-slim
     doc: Is the bounding box of this group visible (@italic(not implemented yet)). While this is not implemented for an X3D group, note that you can use @link(TDebugTransformBox) to easily display bounding box of a whole @link(TCastleTransform).

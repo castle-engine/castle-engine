@@ -91,9 +91,22 @@
   {$I auto_generated_node_helpers/x3dnodes_anchor.inc}
   end;
 
-  { Embed another X3D scene into the current scene. }
+  { Add another model (in X3D, glTF or other formats) into the current scene. }
   TInlineNode = class(TAbstractInternalGroupingNode)
   strict private
+    type
+      TInlineNodeBoundedFunctionality = class(TBoundedNodeFunctionality)
+      strict private
+        FParent: TInlineNode;
+      public
+        constructor Create(const AParent: TInlineNode);
+        property Parent: TInlineNode read FParent;
+        function BoundingBox: TBox3D; override;
+        function BBoxDisplay: Boolean; override;
+        function Visible: Boolean; override;
+      end;
+    var
+      FBoundedFunctionality: TInlineNodeBoundedFunctionality;
     procedure EventLoadReceive(
       const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
     procedure EventUrlReceive(
@@ -372,12 +385,38 @@ begin
   Result := false;
 end;
 
+{ TInlineNode.TInlineNodeBoundedFunctionality -------------------------------- }
+
+constructor TInlineNode.TInlineNodeBoundedFunctionality.Create(const AParent: TInlineNode);
+begin
+  inherited Create(AParent);
+  FParent := AParent;
+end;
+
+function TInlineNode.TInlineNodeBoundedFunctionality.BoundingBox: TBox3D;
+begin
+  Result := Parent.BBox;
+end;
+
+function TInlineNode.TInlineNodeBoundedFunctionality.BBoxDisplay: Boolean;
+begin
+  Result := Parent.BboxDisplay;
+end;
+
+function TInlineNode.TInlineNodeBoundedFunctionality.Visible: Boolean;
+begin
+  Result := Parent.Visible;
+end;
+
 { TInlineNode ---------------------------------------------------------------- }
 
 constructor TInlineNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
   AddFunctionality(TUrlFunctionality.Create(Self));
+
+  FBoundedFunctionality := TInlineNodeBoundedFunctionality.Create(Self);
+  AddFunctionality(FBoundedFunctionality);
 
   FdLoad.AddNotification({$ifdef FPC}@{$endif} EventLoadReceive);
   FdUrl.AddNotification({$ifdef FPC}@{$endif} EventUrlReceive);

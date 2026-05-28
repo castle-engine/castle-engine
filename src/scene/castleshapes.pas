@@ -846,20 +846,34 @@ type
     This class owns it's children TShapeTree.
     Since TShapeTree is a simple tree structure, there are no duplicates
     possible, that is given TShapeTree instance may be within only
-    one parent TShapeTree. (VRML node's parenting mechanism is more
+    one parent TShapeTree. (X3D node's parenting mechanism is more
     complicated than this, because of DEF/USE mechanism.) }
   TShapeTreeGroup = class(TShapeTree)
   strict private
     FChildren: TShapeTreeList;
+    FBoundedFunctionality: TBoundedNodeFunctionality;
     procedure ChildrenChanged(Sender: TObject;
       {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} Item: TShapeTree;
       Action: TCollectionNotification);
   private
     function MaxShapesCountCore: Integer; override;
+
+    { Overrides TraverseCore to call it recursively on all the children
+      (or a subset of them, see @link(TraverseGroupLimitChildren)).
+
+      @italic(Descendants should not override this method.
+      Instead override TraverseGroupLimitChildren, to only limit
+      the children.) }
     procedure TraverseCore(const Func: TShapeTraverseFunc;
       const OnlyActive: boolean;
       const OnlyVisible: boolean = false;
       const OnlyCollidable: boolean = false); override;
+
+    { Override in descendants to limit the children that are traversed. }
+    procedure TraverseGroupLimitChildren(
+      const OnlyActive, OnlyVisible, OnlyCollidable: Boolean;
+      var ChildIndexBegin, ChildIndexEnd: Integer); virtual;
+
     procedure FastTransformUpdateCore(var AnythingChanged: Boolean;
       const ParentTransformation: TTransformation); override;
   public
@@ -867,6 +881,12 @@ type
     destructor Destroy; override;
 
     property Children: TShapeTreeList read FChildren;
+
+    { TBoundedNodeFunctionality instance, if any (may be @nil)
+      representing this group. The @link(TBoundedNodeFunctionality.Visible)
+      is honored, so you can hide the group. }
+    property BoundedFunctionality: TBoundedNodeFunctionality
+      read FBoundedFunctionality write FBoundedFunctionality;
 
     function EnumerateTextures(const Enumerate: TEnumerateShapeTexturesFunction): Pointer; override;
 
@@ -899,10 +919,9 @@ type
   strict private
     FSwitchNode: TSwitchNode;
   private
-    procedure TraverseCore(const Func: TShapeTraverseFunc;
-      const OnlyActive: boolean;
-      const OnlyVisible: boolean = false;
-      const OnlyCollidable: boolean = false); override;
+    procedure TraverseGroupLimitChildren(
+      const OnlyActive, OnlyVisible, OnlyCollidable: Boolean;
+      var ChildIndexBegin, ChildIndexEnd: Integer); override;
   public
     property SwitchNode: TSwitchNode read FSwitchNode write FSwitchNode;
 
@@ -1002,10 +1021,9 @@ type
     FLevel: Cardinal;
     FWasLevel_ChangedSend: boolean;
   private
-    procedure TraverseCore(const Func: TShapeTraverseFunc;
-      const OnlyActive: boolean;
-      const OnlyVisible: boolean = false;
-      const OnlyCollidable: boolean = false); override;
+    procedure TraverseGroupLimitChildren(
+      const OnlyActive, OnlyVisible, OnlyCollidable: Boolean;
+      var ChildIndexBegin, ChildIndexEnd: Integer); override;
     procedure FastTransformUpdateCore(var AnythingChanged: Boolean;
       const ParentTransformation: TTransformation); override;
   public
@@ -3322,10 +3340,29 @@ end;
 procedure TShapeTreeGroup.TraverseCore(const Func: TShapeTraverseFunc;
   const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
 var
-  I: Integer;
+  I, ChildIndexBegin, ChildIndexEnd: Integer;
 begin
-  for I := 0 to FChildren.Count - 1 do
+  // honor TBoundedNodeFunctionality.Visible
+  if OnlyVisible and
+     (BoundedFunctionality <> nil) and
+     (not BoundedFunctionality.Visible) then
+    Exit;
+
+  ChildIndexBegin := 0;
+  ChildIndexEnd := FChildren.Count - 1;
+
+  TraverseGroupLimitChildren(
+    OnlyActive, OnlyVisible, OnlyCollidable,
+    ChildIndexBegin, ChildIndexEnd);
+
+  for I := ChildIndexBegin to ChildIndexEnd do
     FChildren.Items[I].Traverse(Func, OnlyActive, OnlyVisible, OnlyCollidable);
+end;
+
+procedure TShapeTreeGroup.TraverseGroupLimitChildren(
+  const OnlyActive, OnlyVisible, OnlyCollidable: boolean;
+  var ChildIndexBegin, ChildIndexEnd: Integer);
+begin
 end;
 
 procedure TShapeTreeGroup.FastTransformUpdateCore(var AnythingChanged: Boolean;
@@ -3381,19 +3418,27 @@ end;
 
 { TShapeTreeSwitch ------------------------------------------------------- }
 
-procedure TShapeTreeSwitch.TraverseCore(const Func: TShapeTraverseFunc;
-  const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
+procedure TShapeTreeSwitch.TraverseGroupLimitChildren(
+  const OnlyActive, OnlyVisible, OnlyCollidable: Boolean;
+  var ChildIndexBegin, ChildIndexEnd: Integer);
 var
   WhichChoice: Integer;
 begin
+  inherited;
   if OnlyActive then
   begin
     WhichChoice := SwitchNode.FdWhichChoice.Value;
     if (WhichChoice >= 0) and
        (WhichChoice < Children.Count) then
-      Children.Items[WhichChoice].Traverse(Func, OnlyActive, OnlyVisible, OnlyCollidable);
-  end else
-    inherited;
+    begin
+      ChildIndexBegin := WhichChoice;
+      ChildIndexEnd := WhichChoice;
+    end else
+    begin
+      ChildIndexBegin := 0;
+      ChildIndexEnd := -1;
+    end;
+  end;
 end;
 
 {$ifdef SHAPE_ITERATOR_SOPHISTICATED}
@@ -3581,16 +3626,23 @@ begin
   end;
 end;
 
-procedure TShapeTreeLOD.TraverseCore(const Func: TShapeTraverseFunc;
-  const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
+procedure TShapeTreeLOD.TraverseGroupLimitChildren(
+  const OnlyActive, OnlyVisible, OnlyCollidable: Boolean;
+  var ChildIndexBegin, ChildIndexEnd: Integer);
 begin
-  if Children.Count > 0 then
+  inherited;
+  if OnlyActive then
   begin
-    if OnlyActive then
-      { Now we know that Level < Children.Count, no need to check it. }
-      Children.Items[Level].Traverse(Func, OnlyActive, OnlyVisible, OnlyCollidable)
-    else
-      inherited;
+    if {(Level >= 0) and} // Level is unsigned, so always >= 0
+       (Level < Children.Count) then
+    begin
+      ChildIndexBegin := Level;
+      ChildIndexEnd := Level;
+    end else
+    begin
+      ChildIndexBegin := 0;
+      ChildIndexEnd := -1;
+    end;
   end;
 end;
 

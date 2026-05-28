@@ -1,6 +1,6 @@
 {%MainUnit x3dnodes.pas}
 {
-  Copyright 2002-2025 Michalis Kamburelis.
+  Copyright 2002-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -73,6 +73,7 @@
     FTransformFunctionality: TTransformFunctionality;
     FTimeFunctionality: TTimeDependentFunctionality;
     FGenTexFunctionality: TGeneratedTextureFunctionality;
+    FBoundedFunctionality: TBoundedNodeFunctionality;
     WithinDirectEnumerateAll: Boolean;
   private
     FX3DName: string;
@@ -1209,6 +1210,8 @@
     property TimeFunctionality: TTimeDependentFunctionality read FTimeFunctionality;
     { Fast shortcut to Functionality(TGeneratedTextureFunctionality). }
     property GenTexFunctionality: TGeneratedTextureFunctionality read FGenTexFunctionality;
+    { Fast shortcut to Functionality(TBoundedNodeFunctionality). }
+    property BoundedFunctionality: TBoundedNodeFunctionality read FBoundedFunctionality;
   end;
 
   { List of TX3DNode. }
@@ -3770,12 +3773,14 @@ procedure TX3DNode.AddFunctionality(const F: TNodeFunctionality);
     FTransformFunctionality := Functionality(TTransformFunctionality) as TTransformFunctionality;
     FTimeFunctionality := Functionality(TTimeDependentFunctionality) as TTimeDependentFunctionality;
     FGenTexFunctionality := Functionality(TGeneratedTextureFunctionality) as TGeneratedTextureFunctionality;
+    FBoundedFunctionality := Functionality(TBoundedNodeFunctionality) as TBoundedNodeFunctionality;
   end;
 
 begin
   Assert(not ( (F is TTransformFunctionality) and (FTransformFunctionality <> nil) ), 'Do not add 2 functionalities implementing TTransformFunctionality');
   Assert(not ( (F is TTimeDependentFunctionality) and (FTimeFunctionality <> nil) ), 'Do not add 2 functionalities implementing TTimeDependentFunctionality');
   Assert(not ( (F is TGeneratedTextureFunctionality) and (FGenTexFunctionality <> nil) ), 'Do not add 2 functionalities implementing TGeneratedTextureFunctionality');
+  Assert(not ( (F is TBoundedNodeFunctionality) and (FBoundedFunctionality <> nil) ), 'Do not add 2 functionalities implementing TBoundedNodeFunctionality');
 
   if FFunctionalityList = nil then
     FFunctionalityList := TNodeFunctionalityList.Create(true);

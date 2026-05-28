@@ -3706,12 +3706,14 @@ function TChangedAllTraverser.Traverse(
   begin
     SwitchTree := TShapeTreeSwitch.Create(ParentScene);
     SwitchTree.SwitchNode := SwitchNode;
+    SwitchTree.BoundedFunctionality := SwitchNode.BoundedFunctionality;
     ShapesGroup.Children.Add(SwitchTree);
 
     for I := 0 to SwitchNode.FdChildren.Count - 1 do
     begin
       ChildNode := SwitchNode.FdChildren[I];
       ChildGroup := TShapeTreeGroup.Create(ParentScene);
+      ChildGroup.BoundedFunctionality := ChildNode.BoundedFunctionality;
       SwitchTree.Children.Add(ChildGroup);
 
       Traverser := TChangedAllTraverser.Create;
@@ -3736,28 +3738,23 @@ function TChangedAllTraverser.Traverse(
     I: Integer;
   begin
     LODTree := TShapeTreeLOD.Create(ParentScene);
+    LODTree.BoundedFunctionality := LODNode.BoundedFunctionality;
     LODTree.Node := LODNode;
     LODTree.InverseTransform := StateStack.Top.Transformation.InverseTransform;
     ShapesGroup.Children.Add(LODTree);
     ParentScene.ShapeLODs.Add(LODTree);
 
-    { First add TShapeTreeGroup.Create as children, as many times
-      as there are LODNode.FdChildren. Reason: LODTree.CalculateLevel
-      uses this Count. }
-
-    for I := 0 to LODNode.FdChildren.Count - 1 do
-      LODTree.Children.Add(TShapeTreeGroup.Create(ParentScene));
-
-    { No point in calling UpdateLODLevel here, it will be called
-      from BeforeRender anyway.
-    if ParentScene.ProcessEvents and
-       ParentScene.GetCameraLocal(CameraLocalPosition) then
-      ParentScene.UpdateLODLevel(LODTree, CameraLocalPosition); }
+    { Note that we don't call UpdateLODLevel here (which also necessitated
+      to first add all children TShapeTreeGroup.Create), before recursing
+      into them.
+      Reason: it is not necessary, it will be called from BeforeRender anyway. }
 
     for I := 0 to LODNode.FdChildren.Count - 1 do
     begin
       ChildNode := LODNode.FdChildren[I];
-      ChildGroup := TShapeTreeGroup(LODTree.Children.Items[I]);
+      ChildGroup := TShapeTreeGroup.Create(ParentScene);
+      ChildGroup.BoundedFunctionality := ChildNode.BoundedFunctionality;
+      LODTree.Children.Add(ChildGroup);
 
       Traverser := TChangedAllTraverser.Create;
       try
@@ -3784,6 +3781,7 @@ function TChangedAllTraverser.Traverse(
 
     TransformTree := TShapeTreeTransform.Create(ParentScene);
     TransformTree.TransformFunctionality := TransformFunctionality;
+    TransformTree.BoundedFunctionality := TransformNode.BoundedFunctionality;
 
     { We want to save at TransformState the state right before traversing
       inside this TransformNode.
@@ -4973,6 +4971,25 @@ var
     end;
   end;
 
+  { When changing something like TBoundedNodeFunctionality.Visible,
+    we need to redraw with new visibility,
+    and note that iteration over shapes will return different shapes. }
+  procedure HandleShapesTreeTraversing;
+  begin
+    Validities := Validities - [
+      { Calculation traverses over active shapes. }
+      fvShapesActiveCount,
+      fvShapesActiveVisibleCount,
+      { Calculation traverses over active nodes (uses RootNode.Traverse). }
+      fvMainLightForShadows
+    ];
+
+    InternalGeometryChanged([gcActiveShapesChanged], nil);
+
+    InternalIncShapesHash;
+    VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
+  end;
+
 begin
   ANode := TX3DNode(Field.ParentNode);
   Assert(ANode <> nil);
@@ -5039,6 +5056,7 @@ begin
       chGroupChildren, chGroupChildrenAdd: HandleChangeChildren(Change = chGroupChildrenAdd);
       chBBox: HandleChangeBBox;
       chVisibleGeometry, chVisibleNonGeometry, chRedisplay: HandleVisibleChange;
+      chShapesTreeTraversing: HandleShapesTreeTraversing;
       else ;
     end;
   finally EndChangesSchedule end;
