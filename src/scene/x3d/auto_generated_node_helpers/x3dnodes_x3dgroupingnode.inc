@@ -64,7 +64,11 @@
     strict private FFdVisible: TSFBool;
     { Internal wrapper for property @code(Visible). This wrapper API may change, we advise to access simpler @code(Visible) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdVisible: TSFBool read FFdVisible;
-    { Is the content inside displayed. The value of this field has no effect on animation behaviors, collision behaviors, event passing, or other non-visual characteristics. To put it another way, when this is @false, we merely do not render the @link(TAbstractShapeNode shapes) inside the group. Everything else, like lights inside the group, works as normal. }
+    { Are shapes inside this group displayed.
+
+    The value of this field has no effect on animation behaviors, collision behaviors, event passing, lighting, or other non-visual characteristics. When this is @false, we merely do not render the @link(TAbstractShapeNode shapes) inside the group. Everything else works as usual.
+
+    Changing this property at run-time is optimized for some nodes: @link(TTransformNode) and other nodes that transform things (see @link(TX3DNode.TransformFunctionality)), @link(TSwitchNode), @link(TLodNode), @link(TInlineNode). For other nodes (like @link(TGroupNode)), changing this property at run-time is not optimized. So we recommend to use one of the optimized nodes (like @link(TTransformNode) or @link(TSwitchNode)) if you plan to change visibility at run-time and you have non-trivial content. }
     property Visible: Boolean read GetVisible write SetVisible;
 
 {$ifndef CASTLE_SLIM_NODES}

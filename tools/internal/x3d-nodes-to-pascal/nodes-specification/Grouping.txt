@@ -24,7 +24,13 @@ X3DGroupingNode : X3DChildNode, X3DBoundedObject {
   SFVec3f []       bboxSize       -1 -1 -1
     range: [0,Inf) or -1 -1 -1
   SFBool  [in,out] visible        TRUE
-    doc: Is the content inside displayed. The value of this field has no effect on animation behaviors, collision behaviors, event passing, or other non-visual characteristics. To put it another way, when this is @false, we merely do not render the @link(TAbstractShapeNode shapes) inside the group. Everything else, like lights inside the group, works as normal.
+    doc: """
+    Are shapes inside this group displayed.
+
+    The value of this field has no effect on animation behaviors, collision behaviors, event passing, lighting, or other non-visual characteristics. When this is @false, we merely do not render the @link(TAbstractShapeNode shapes) inside the group. Everything else works as usual.
+
+    Changing this property at run-time is optimized for some nodes: @link(TTransformNode) and other nodes that transform things (see @link(TX3DNode.TransformFunctionality)), @link(TSwitchNode), @link(TLodNode), @link(TInlineNode). For other nodes (like @link(TGroupNode)), changing this property at run-time is not optimized. So we recommend to use one of the optimized nodes (like @link(TTransformNode) or @link(TSwitchNode)) if you plan to change visibility at run-time and you have non-trivial content.
+    """
     change: chShapeTreeVisible
   SFBool  [in,out] bboxDisplay    FALSE
     not-slim

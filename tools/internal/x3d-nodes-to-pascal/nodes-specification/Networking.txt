@@ -69,9 +69,13 @@ Inline : X3DChildNode, X3DBoundedObject, X3DUrlObject {
     doc: URL of the content to be loaded. Multiple URLs can be provided, each one will be tried in turn.
 
   SFBool   [in,out] visible              TRUE
-    doc: Is the content inside displayed. The value of this field has no effect on animation behaviors, collision behaviors, event passing, or other non-visual characteristics. To put it another way, when this is @false, we merely do not render the @link(TAbstractShapeNode shapes) inside the group. Everything else, like lights inside the group, works as normal.
-    change: chShapeTreeVisible
+    doc: """
+    Are shapes inside this group displayed.
 
+    The value of this field has no effect on animation behaviors, collision behaviors, event passing, lighting, or other non-visual characteristics. When this is @false, we merely do not render the @link(TAbstractShapeNode shapes) inside the group. Everything else works as usual.
+
+    @seealso TAbstractGroupingNode.Visible
+    """
   SFVec3f  []       bboxCenter 0 0 0
     range: (-Inf,Inf)
   SFVec3f  []       bboxSize   -1 -1 -1
