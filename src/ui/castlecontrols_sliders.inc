@@ -397,7 +397,8 @@ var
 begin
   inherited;
   RR := RenderRect;
-  DrawSliderPosition(RR, MapRange(Value, Min, Max, 0, 1));
+  if not SameValue(Min, Max) then // avoid crashes when Min = Max
+    DrawSliderPosition(RR, MapRange(Value, Min, Max, 0, 1));
   if DisplayValue then
     DrawSliderText(RR, ValueToStr(Value));
 end;
@@ -562,7 +563,8 @@ var
 begin
   inherited;
   RR := RenderRect;
-  DrawSliderPosition(RR, MapRange(Value, Min, Max, 0, 1));
+  if Min <> Max then // avoid crashes when Min = Max
+    DrawSliderPosition(RR, MapRange(Value, Min, Max, 0, 1));
   if DisplayValue then
     DrawSliderText(RR, ValueToStr(Value));
 end;
