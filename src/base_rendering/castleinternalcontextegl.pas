@@ -139,7 +139,7 @@ const
 begin
   Result := eglCreateContext(Display, Config, ShareContextEgl, @ContextAttribsEs3);
   if Result = EGL_NO_CONTEXT then
-    Context := eglCreateContext(Display, Config, ShareContextEgl, @ContextAttribsEs2);
+    Result := eglCreateContext(Display, Config, ShareContextEgl, @ContextAttribsEs2);
 end;
 
 {$else}
