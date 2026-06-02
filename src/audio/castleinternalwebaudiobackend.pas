@@ -133,6 +133,7 @@ type
 
     FPlaying: Boolean;
     FPendingPlaying: Boolean;
+    FPendingPlayingInitialOffset: TFloatTime;
 
     function Backend: TWebAudioSoundEngineBackend;
     function GetAudioContext: IJSAudioContext;
@@ -555,7 +556,7 @@ begin
   if FPendingPlaying then
   begin
     WritelnLog('Buffer "%s" finished decoding, starting playback that was pending.', [UriDisplay(FBuffer.Url)]);
-    Play(false);
+    Play(false, FPendingPlayingInitialOffset);
     { Note that Play calls Stop which sets FPendingPlaying to false, so we don't need to set it here. }
   end else
   begin
@@ -589,6 +590,7 @@ begin
         UriDisplay(FBuffer.Url)
       ]);
     FPendingPlaying := true;
+    FPendingPlayingInitialOffset := InitialOffset;
     Exit;
   end;
   if FBuffer.AudioBuffer = nil then
