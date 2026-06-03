@@ -216,6 +216,7 @@ end;
 - **Mode**: Adjust to ObjFpc mode (not Delphi mode) for FPC but also use `{$ifndef FPC}` as necessary to provide Delphi alternative.
 - Supports older FPC and Delphi versions, so e.g. we cannot use "inline variables" (`var X := 1;` inside `begin`...`end`).
 - Keep all identifiers PascalCase. Even `String` and `Boolean` (although lots of existing code doesn't follow it and has `string` and `boolean`, but write `String` and `Boolean` in all new code). Even single-letter variables like `I` for loop iteration follow this rule.
+    - Exception: `false`, `true`, `nil` remain lowercase.
 - **Documentation**: PasDoc comments before each public identifier (see "PasDoc Documentation Style" below)
 - **Backward Compatibility**: Use `deprecated` to maintain old APIs
 - **Warnings**: Fix all compiler warnings

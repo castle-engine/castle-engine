@@ -47,6 +47,7 @@ type
       SoundPlaying: TCastlePlayingSound;
       { We maintain offset ourselves, to keep even even for stopped sounds. }
       Offset: Single;
+      SongDurationKnown: Boolean;
     procedure SoundPlayingStopped(Sender: TObject);
     procedure ClickPlayPause(Sender: TObject);
     procedure ClickBack(Sender: TObject);
@@ -89,8 +90,15 @@ begin
   SoundSong.Url := Song.UrlMusic;
   ButtonLoop.Pressed := DefaultLoop;
 
-  // offset related UI
-  SliderOffset.Max := SoundSong.Duration; // after assigning SoundSong.Url
+  { Offset related UI.
+
+    Note about SongDurationKnown:
+    - when using WebAudio (on web platform), the Duration only becomes known
+      after sound is asynchronously loaded.
+    - on other backends, Duration is known immediately after assigning SoundSong.Url. }
+  SongDurationKnown := SoundSong.Duration > 0;
+  if SongDurationKnown then
+    SliderOffset.Max := SoundSong.Duration;
   Offset := 0;
   SliderOffset.Value := Offset;
   SliderOffset.OnChange := {$ifdef FPC}@{$endif} SliderOffsetChange;
@@ -126,12 +134,20 @@ begin
     SoundPlaying.Stop;
     SoundPlaying.OnStop := nil;
   end;
+  SongDurationKnown := false;
   inherited;
 end;
 
 procedure TViewPlaySong.Update(const SecondsPassed: Single; var HandleInput: Boolean);
 begin
   inherited;
+  { On WebAudio, SoundSong.Duration becomes known with a small delay
+    after assigning SoundSong.Url. }
+  if not SongDurationKnown and (SoundSong.Duration > 0) then
+  begin
+    SongDurationKnown := true;
+    SliderOffset.Max := SoundSong.Duration;
+  end;
   if SoundPlaying.Playing then
   begin
     { keep saving Offset from SoundPlaying, to be able to resume playback
