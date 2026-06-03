@@ -622,7 +622,57 @@ begin
   finally FreeAndNil(Img) end;
 end;
 
+(*
+TODO:
+Test and use this with Windows+Delphi.
+Possibly move to some shared unit, to use also in rest of CGE.
+
+{$if (not defined(FPC)) and defined(MSWINDOWS)}
+{ Implement simple ExecuteProcess replacement for Delphi on Windows,
+  using WinAPI CreateProcess. }
+function ExecuteProcess(const Exe: String; const Args: array of String): Integer;
+
+  function WinQuote(const S: String): String;
+  begin
+    if Pos(' ', S) > 0 then
+    begin
+      if Pos('"', S) > 0 then
+        raise Exception.Create('Arguments with both double quote (") and space characters are not supported in ExecuteProcess on Delphi');
+      Result := '"' + S + '"'
+    end else
+      Result := S;
+  end;
+
+var
+  I: Integer;
+  CommandLine: String;
+  StartupInfo: TStartupInfo;
+  ProcessInfo: TProcessInformation;
+begin
+  CommandLine := WinQuote(Exe);
+  for I := 0 to Length(Args) - 1 do
+    CommandLine := CommandLine + ' ' + WinQuote(Args[I]);
+
+  StartupInfo := Default(TStartupInfo);
+  StartupInfo.cb := SizeOf(StartupInfo);
+
+  if not CreateProcess(nil, PChar(CommandLine), nil, nil, false, 0, nil,
+    nil, StartupInfo, ProcessInfo) then
+    raise Exception.Create('Failed to execute process ' + Exe);
+  WaitForSingleObject(ProcessInfo.hProcess, INFINITE);
+  GetExitCodeProcess(ProcessInfo.hProcess, @Result);
+  CloseHandle(ProcessInfo.hProcess);
+  CloseHandle(ProcessInfo.hThread);
+end;
+{$endif}
+*)
+
+{$ifdef FPC}
+  {$define HAS_EXECUTEPROCESS}
+{$endif}
+
 procedure TTestImages.TestDecompressAndFlipVertical;
+{$ifdef HAS_EXECUTEPROCESS}
 var
   CompressonatorExe: String;
 
@@ -828,6 +878,12 @@ begin
   if CreatedWindow then
     DestroyWindowForTest(Window);
 end;
+{$else}
+begin
+  WritelnLog('ExecuteProcess not available, skipping TestDecompressAndFlipVertical');
+  AbortTest;
+end;
+{$endif}
 
 initialization
   RegisterTest(TTestImages);
