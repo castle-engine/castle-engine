@@ -429,7 +429,7 @@ type
       Can only be @true when @link(TextureFloat) is @true.
 
       OpenGL ES and WebGL require separate extension to enable linear filtering,
-      and the distinction is important for us as sometimes float textures
+      and the distinction is important for us, as sometimes float textures
       with nearest filtering are enough: e.g. to pass TSkinNode joints
       information, we use nearest filtering.
 
@@ -1262,15 +1262,20 @@ begin
     {$endif};
 
   FTextureFloat :=
-    { On WebGL 2, no need for any extension, according to tests and to
-      https://developer.mozilla.org/en-US/docs/Web/API/OES_texture_float :
-      """Note: This extension is only available to WebGL1 contexts.
-      In WebGL2, the functionality of this extension is available on the WebGL2
-      context by default.
-      """
-    }
-    {$if defined(CASTLE_WEBGL)} VersionWebGL_2 or HasExtension('GL_OES_texture_float')
-    {$elseif defined(OpenGLES)} HasExtension('GL_OES_texture_float')
+    {$if defined(CASTLE_WEBGL)}
+      { With WebGL >= 2: no need for any extension, according to tests and to
+        https://developer.mozilla.org/en-US/docs/Web/API/OES_texture_float :
+        """Note: This extension is only available to WebGL1 contexts.
+        In WebGL2, the functionality of this extension is available on the WebGL2
+        context by default.
+        """ }
+      VersionWebGL_2 or HasExtension('GL_OES_texture_float')
+    {$elseif defined(OpenGLES)}
+      { With OpenGL ES >= 3.0: no need for any extension,
+        https://en.wikipedia.org/wiki/OpenGL_ES says:
+        """greatly enhanced texturing functionality including guaranteed
+        support for floating point textures...""" }
+      VersionES_3_0 or HasExtension('GL_OES_texture_float')
     {$else}
       (HasExtension('GL_ATI_texture_float') or HasExtension('GL_ARB_texture_float'))
       { OpenGL 3.0 has float textures guaranteed to be available in "core".
