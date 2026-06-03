@@ -91,8 +91,8 @@ procedure TGLFeatures.InitializeDebug;
 begin
   if HasExtension('GL_KHR_debug') then
   begin
-    if not Assigned(glDebugMessageCallback) then raise Exception.Create('glDebugMessageCallback missing');
-    if not Assigned(glDebugMessageControl) then raise Exception.Create('glDebugMessageControl missing');
+    if not Assigned({$ifdef OpenGLES} glDebugMessageCallback_Proc {$else} glDebugMessageCallback {$endif}) then raise Exception.Create('glDebugMessageCallback missing');
+    if not Assigned({$ifdef OpenGLES} glDebugMessageControl_Proc {$else} glDebugMessageControl {$endif}) then raise Exception.Create('glDebugMessageControl missing');
 
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
     glDebugMessageCallback(

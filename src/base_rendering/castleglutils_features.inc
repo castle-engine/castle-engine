@@ -659,7 +659,7 @@ begin
     raise Exception.Create('WebGL context not initialized');
   {$endif}
   {$ifdef CASTLE_GL_USES_CALLBACKS}
-  if not Assigned(glGetString) then
+  if not Assigned({$ifdef OpenGLES} glGetString_Proc {$else} glGetString {$endif}) then
     raise Exception.Create('Failed to load OpenGL(ES) library');
   {$endif}
 
