@@ -209,7 +209,7 @@ begin
   {$elseif defined(FPC)}
   Save_FpImage(Img, Stream, TFPWriterPNM.Create);
   {$else}
-  raise EImageSaveError.Create('Cannot save BMP (neither FpImage nor Vampyre Imaging Library available at compile-time)');
+  raise EImageSaveError.Create('Cannot save PNM (neither FpImage nor Vampyre Imaging Library available at compile-time)');
   {$endif}
 end;
 

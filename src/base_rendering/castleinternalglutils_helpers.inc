@@ -325,11 +325,11 @@ begin
   {$ifdef CASTLE_WEBGL}
   ResultVariant := GL.GetParameter(Param);
   if VarIsEmpty(ResultVariant) then
-    raise Exception.CreateFmt('Unexpected VarIsEmpty for glGetFloat(%d)', [
+    raise Exception.CreateFmt('Unexpected VarIsEmpty for glGetBoolean(%d)', [
       Param
     ]);
   if VarIsNull(ResultVariant) then
-    raise Exception.CreateFmt('Unexpected VarIsNull for glGetFloat(%d)', [
+    raise Exception.CreateFmt('Unexpected VarIsNull for glGetBoolean(%d)', [
       Param
     ]);
   Result := ResultVariant;

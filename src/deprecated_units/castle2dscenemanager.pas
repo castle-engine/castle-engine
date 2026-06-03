@@ -259,7 +259,7 @@ begin
     Testcase: castle-engine-priv/contrib/scaling_bug/my_new_project_standalone.lpr . }
   if (not CastleDesignMode) and (Camera = nil) then
   begin
-    WritelnWarning('Creating camera, because it was missing in design file. For the future, please uppgrade to use TCastleViewport instead of deprecated TCastle2DSceneManager.');
+    WritelnWarning('Creating camera, because it was missing in design file. For the future, please upgrade to use TCastleViewport instead of deprecated TCastle2DSceneManager.');
     SetupCamera;
     Setup2D;
   end;

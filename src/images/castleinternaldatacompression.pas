@@ -237,7 +237,7 @@ var
   LeftoverUniqueBytes: array [1..MaxLeftoverUniqueBytes] of Byte;
   LeftoverUniqueBytesCount: Byte;
 
-  { Put LeftoverUniqueBytes* into Dest, if LeftoverUniqueBytesCount is zero.
+  { Put LeftoverUniqueBytes* into Dest, if LeftoverUniqueBytesCount is non-zero.
     Set LeftoverUniqueBytesCount to zero. }
   procedure FlushLeftoverUniqueBytes;
   var

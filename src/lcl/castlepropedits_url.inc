@@ -153,7 +153,7 @@ var
 begin
   Dialog := TCastleOpenDialog.Create(nil);
   try
-    Dialog.Filter := 'CGE User Interace Design (*.castle-user-interface)|*.castle-user-interface|All Files|*';
+    Dialog.Filter := 'CGE User Interface Design (*.castle-user-interface)|*.castle-user-interface|All Files|*';
     Dialog.AdviceDataDirectory := PropertyEditorsAdviceDataDirectory;
     if (GetStrValue = '') and PropertyEditorsAdviceDataDirectory then
       Dialog.URL := 'castle-data:/' // make it easier to open files within data folder
@@ -203,7 +203,7 @@ begin
   try
     Dialog.Filter := 
       'CGE Design (*.castle-user-interface, *.castle-transform, *.castle-component)|*.castle-user-interface;*.castle-transform;*.castle-component|' +
-      'CGE User Interace Design (*.castle-user-interface)|*.castle-user-interface|' + 
+      'CGE User Interface Design (*.castle-user-interface)|*.castle-user-interface|' + 
       'CGE Transform Design (*.castle-transform)|*.castle-transform|' +
       'CGE Non-Visual Design (*.castle-component)|*.castle-component|' +      
       'All Files|*';

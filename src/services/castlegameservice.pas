@@ -548,7 +548,7 @@ const
     'Signed Out',
     'Signing In...',
     'Signed In',
-    'Signing Out..'
+    'Signing Out...'
   );
 begin
   Result := Names[Status];

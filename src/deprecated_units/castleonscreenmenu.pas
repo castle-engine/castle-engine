@@ -15,7 +15,7 @@
 
 { On-screen menu displayed in OpenGL (TCastleOnScreenMenu). }
 unit CastleOnScreenMenu
-  deprecated 'use TCastleVerticalGroup with buttons, sliders inside to desing on-screen menus';
+  deprecated 'use TCastleVerticalGroup with buttons, sliders inside to design on-screen menus';
 
 {$I castleconf.inc}
 
@@ -618,7 +618,7 @@ begin
   if Menu <> nil then
     Menu.Click; // keep deprecated Menu.Click working
   {$warnings on}
-  if Menu.SoundClick <> nil then
+  if (Menu <> nil) and (Menu.SoundClick <> nil) then
     SoundEngine.Play(Menu.SoundClick)
   else
     {$warnings off} // keep deprecated working
