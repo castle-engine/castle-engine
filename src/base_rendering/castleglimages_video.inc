@@ -155,7 +155,7 @@ var
   I: Integer;
 begin
   for I := 0 to High(FItems) do
-    FreeTexture(FItems[0]);
+    FreeTexture(FItems[I]);
   inherited;
 end;
 

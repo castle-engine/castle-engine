@@ -1513,11 +1513,14 @@ var
       A := 1/11, B = 10/11
   }
   procedure FitWithin(var A, B: Single; const Max: Single);
+  var
+    Sum: Single;
   begin
-    if A + B > Max then
+    Sum := A + B;
+    if Sum > Max then
     begin
-      A := Max * A / (A + B);
-      B := Max * B / (A + B);
+      A := Max * A / Sum;
+      B := Max * B / Sum;
     end;
   end;
 

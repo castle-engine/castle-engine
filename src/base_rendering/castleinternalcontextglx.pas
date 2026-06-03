@@ -208,6 +208,7 @@ begin
         More involved selection possible. }
       FBConfig := FBConfigs^;
       XVisual := glXGetVisualFromFBConfig(XDisplay, FBConfig);
+      XFree(FBConfigs);
     end else
       XVisual := glXChooseVisual(XDisplay, XScreen, Attribs.L);
   finally FreeAndNil(Attribs) end;

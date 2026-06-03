@@ -923,7 +923,7 @@ begin
     if GetProcedureAddress(hlibICU, TestProcName) = nil then begin
       // Unable to get ICU version
       UnloadICU;
-      AndroidLog(alWarn, 'Cannot use libicuuc.so --- no versioned ucnv_open found, and unversioned ucnv_open not available. . WideString conversion will fail for special UTF-8 characters');
+      AndroidLog(alWarn, 'Cannot use libicuuc.so --- no versioned ucnv_open found, and unversioned ucnv_open not available. WideString conversion will fail for special UTF-8 characters');
       exit;
     end;
   end;

@@ -677,14 +677,11 @@ end;
 
 procedure TRenderContext.WarningViewportTooLarge;
 begin
-  if not WarningViewportTooLargeDone then
-  begin
-    WritelnWarning('Setting viewport to %s, which has dimensions larger than maximum allowed %s. (Further warnings of the same type will not be shown.)', [
-      FViewport.ToString,
-      GLFeatures.MaxViewportDimensions.ToString
-    ]);
-    WarningViewportTooLargeDone := true;
-  end;
+  WritelnWarningOnce(WarningViewportTooLargeDone,
+    'Setting viewport to %s, which has dimensions larger than maximum allowed %s. (Further warnings of the same type will not be shown.)', [
+    FViewport.ToString,
+    GLFeatures.MaxViewportDimensions.ToString
+  ]);
 end;
 
 procedure TRenderContext.SetViewport(const Value: TRectangle);
@@ -694,12 +691,13 @@ begin
 
   if not FViewport.Equals(Value) then
   begin
+    FViewport := Value;
+
     if (GLFeatures <> nil) and
        ((FViewport.Width > GLFeatures.MaxViewportDimensions.X) or
         (FViewport.Height > GLFeatures.MaxViewportDimensions.Y)) then
       WarningViewportTooLarge;
 
-    FViewport := Value;
     UpdateViewport;
   end;
 end;
