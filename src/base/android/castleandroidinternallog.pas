@@ -32,7 +32,8 @@ procedure AndroidLogRobust(const Priority: TAndroidLogPriority; const S: string)
 implementation
 
 uses {$ifdef FPC} CTypes, {$else} Androidapi.Log, {$endif}
-  SysUtils, CastleUtils;
+  SysUtils,
+  CastleUtils, CastleUnicode;
 
 // Define __android_log_write for FPC.
 // Delphi already defines it for Androidapi.Log.
@@ -89,18 +90,33 @@ begin
 end;
 
 procedure AndroidLogRobust(const Priority: TAndroidLogPriority; const S: string);
-var
-  I: Integer;
 const
   { The limit is actually 4076,
     see http://jhshi.me/2014/06/30/stop-android-logcat-from-truncating-log-line/index.html .
     It's safer to cut off earlier. }
   MaxChunkLength = 4000;
+var
+  I: Integer;
+  SLen: Integer;
 begin
-  I := 1;
-  while I <= Length(S) do
+  { First go with fast case, which is true for most log messages.
+
+    When Length (in Char, whether it's AnsiChar or WideChar)
+    of S is <= MaxChunkLength,
+    -> then length of S in UTF-8 characters (StringLength) also must be
+    <= MaxChunkLength.
+    So there's no need to ever call more expensive StringLength or StringCopy. }
+  if Length(S) <= MaxChunkLength then
   begin
-    AndroidLog(Priority, Copy(S, I, MaxChunkLength));
+    AndroidLog(Priority, S);
+    Exit;
+  end;
+
+  I := 1;
+  SLen := StringLength(S);
+  while I <= SLen do
+  begin
+    AndroidLog(Priority, StringCopy(S, I, MaxChunkLength));
     I := I + MaxChunkLength;
   end;
 end;
