@@ -48,13 +48,14 @@ type
     procedure TestPngFloat;
     procedure TestKtxFloat;
     procedure TestPixel1x1;
+    procedure TestDecompressAndFlipVertical;
   end;
 
 implementation
 
 uses SysUtils, Classes,
   CastleVectors, CastleImages, CastleFilesUtils, CastleDownload, CastleUriUtils,
-  CastleInternalPng, CastleLog, CastleColors;
+  CastleInternalPng, CastleLog, CastleColors, CastleWindow;
 
 procedure TTestImages.TestBasicImageLoad;
 var
@@ -619,6 +620,213 @@ begin
     Img.FlipVertical;
     AssertVectorEquals(Color, Img.Colors[0, 0, 0]);
   finally FreeAndNil(Img) end;
+end;
+
+procedure TTestImages.TestDecompressAndFlipVertical;
+var
+  CompressonatorExe: String;
+
+  { Find CompressonatorCLI executable just like
+    tools/build-tool/code/tooltexturegeneration.pas .
+    Returns '' if not found. }
+  function FindCompressonator: String;
+  begin
+    Result := FindExe('CompressonatorCLI');
+    if Result = '' then
+      // on Linux, new released on https://github.com/GPUOpen-Tools/Compressonator/releases have it lowercase
+      Result := FindExe('compressonatorcli');
+  end;
+
+  {$ifdef UNIX}
+  { Execute Exe as a bash script. }
+  function ExecuteProcessBashScript(const Exe: String; const Args: array of String): Integer;
+  var
+    NewArgs: array of String;
+    I: Integer;
+  begin
+    SetLength(NewArgs, Length(Args) + 1);
+    NewArgs[0] := Exe;
+    for I := 0 to Length(Args) - 1 do
+      NewArgs[I + 1] := Args[I];
+    Result := ExecuteProcess('/bin/bash', NewArgs);
+  end;
+  {$endif}
+
+  { Run CompressonatorCLI with given arguments. }
+  procedure RunCompressonator(const Args: array of String);
+  var
+    ProcessExit: Integer;
+  begin
+    AssertTrue('CompressonatorCLI executable not found, cannot run Compressonator',
+      CompressonatorExe <> '');
+
+    {$ifdef UNIX}
+    // CompressonatorCLI is just a bash script on Unix
+    ProcessExit := ExecuteProcessBashScript(CompressonatorExe, Args);
+    {$else}
+    ProcessExit := ExecuteProcess(CompressonatorExe, Args);
+    {$endif}
+
+    AssertEquals('CompressonatorCLI failed with exit code ' + IntToStr(ProcessExit),
+      0, ProcessExit);
+  end;
+
+  { Test on image sized Width x Height. }
+  procedure TestCore(const Width, Height: Integer;
+    const Compression: TTextureCompression;
+    const CompressionNameForCompressonator: String;
+    const CompareEpsilon: Single = 0.1);
+  var
+    InitialImage: TRGBImage;
+    CompressedImage: TGPUCompressedImage;
+    DecompressedImage: TCastleImage;
+    InitialImageFileName, CompressedImageFileName: String;
+    X, Y: Integer;
+    Col: TCastleColor;
+  begin
+    InitialImageFileName := GetTempFileNamePrefix + 'TestDecompressAndFlipVertical.png';
+    CompressedImageFileName := ExtractFilePath(InitialImageFileName) + 'TestDecompressAndFlipVertical.ktx';
+
+    // create temp image with given size
+    InitialImage := TRGBImage.Create(Width, Height);
+    try
+      for X := 0 to Width - 1 do
+        for Y := 0 to Height - 1 do
+          InitialImage.Colors[X, Y, 0] := Vector4(1, Y/Height, 0.5, 1.0);
+      SaveImage(InitialImage, InitialImageFileName);
+    finally FreeAndNil(InitialImage) end;
+
+    // convert it to KTX encoded with S3TC compression
+    RunCompressonator(['-nomipmap', '-fd', CompressionNameForCompressonator,
+      InitialImageFileName, CompressedImageFileName]);
+
+    CompressedImage := LoadEncodedImage(CompressedImageFileName) as TGPUCompressedImage;
+    try
+      {.$define TestDecompressAndFlipVertical_Verbose}
+      {$ifdef TestDecompressAndFlipVertical_Verbose}
+      WritelnLog('Compressed image has size %d x %d, compression %s', [
+        CompressedImage.Width,
+        CompressedImage.Height,
+        TextureCompressionToString(CompressedImage.Compression)
+      ]);
+      {$endif}
+      AssertEquals(Width, CompressedImage.Width);
+      AssertEquals(Height, CompressedImage.Height);
+      AssertTrue(CompressedImage.Compression = Compression);
+
+      DecompressedImage := DecompressTexture(CompressedImage);
+      try
+        for X := 0 to Width - 1 do
+          for Y := 0 to Height - 1 do
+          begin
+            Col := DecompressedImage.Colors[X, Y, 0];
+            {$ifdef TestDecompressAndFlipVertical_Verbose}
+            WritelnLog('Pixel %d x %d has color %s', [
+              X,
+              Y,
+              Col.ToString
+            ]);
+            {$endif}
+            AssertSameValue(1.0, Col[0], CompareEpsilon);
+            AssertSameValue(1-Y/Height, Col[1], CompareEpsilon);
+            AssertSameValue(0.5, Col[2], CompareEpsilon);
+            AssertSameValue(1.0, Col[3], CompareEpsilon);
+          end;
+      finally FreeAndNil(DecompressedImage) end;
+
+      { Now test CompressedImage.FlipVertical, and that
+        DecompressTexture(CompressedImage) gives the same result as before, but flipped vertically. }
+      CompressedImage.FlipVertical;
+      DecompressedImage := DecompressTexture(CompressedImage);
+      try
+        for X := 0 to Width - 1 do
+          for Y := 0 to Height - 1 do
+          begin
+            Col := DecompressedImage.Colors[X, Y, 0];
+            {$ifdef TestDecompressAndFlipVertical_Verbose}
+            WritelnLog('Pixel %d x %d has color %s', [
+              X,
+              Y,
+              Col.ToString
+            ]);
+            {$endif}
+            AssertSameValue(1.0, Col[0], CompareEpsilon);
+            AssertSameValue(Y/Height, Col[1], CompareEpsilon);
+            AssertSameValue(0.5, Col[2], CompareEpsilon);
+            AssertSameValue(1.0, Col[3], CompareEpsilon);
+          end;
+      finally FreeAndNil(DecompressedImage) end;
+    finally FreeAndNil(CompressedImage) end;
+
+    CheckDeleteFile(InitialImageFileName, true);
+    CheckDeleteFile(CompressedImageFileName, true);
+  end;
+
+var
+  CreatedWindow: Boolean;
+  Window: TCastleWindow;
+begin
+  if not CanUseFileSystem then // for GetTempFileNamePrefix
+  begin
+    AbortTest;
+    Exit;
+  end;
+
+  CompressonatorExe := FindCompressonator;
+  if CompressonatorExe = '' then
+  begin
+    WritelnLog('CompressonatorCLI executable not found, skipping TestDecompressAndFlipVertical');
+    AbortTest;
+    Exit;
+  end;
+
+  { We need DecompressTexture, either because we have a rendering context
+    (because of GUI run) or because we can create a window+context for testing
+    (when we run with --console on desktops). }
+  if not Assigned(DecompressTexture) then
+  begin
+    if not CanCreateWindowForTest then
+    begin
+      WritelnLog('DecompressTexture function not assigned, and cannot create window for test, skipping TestDecompressAndFlipVertical');
+      AbortTest;
+      Exit;
+    end;
+
+    CreatedWindow := true;
+    Window := CreateWindowForTest;
+    Window.Open;
+    AssertTrue('DecompressTexture function not assigned, even after creating window',
+      Assigned(DecompressTexture));
+  end else
+    CreatedWindow := false;
+
+  { Note that
+      TestCore(1, 12);
+    will not work as well, compression by Compressonator goes to bad quality
+    when the block is not full 4x4. }
+
+  // Note: Compressonator with -fd DXT1 gives tcDxt1_RGBA, never tcDxt1_RGB
+
+  // DXT1
+  TestCore(4, 12, tcDxt1_RGBA, 'DXT1');
+  TestCore(8, 8, tcDxt1_RGBA, 'DXT1', 0.2);
+  TestCore(12, 4, tcDxt1_RGBA, 'DXT1', 0.3);
+  TestCore(16, 16, tcDxt1_RGBA, 'DXT1');
+
+  // DXT3
+  TestCore(4, 12, tcDxt3, 'DXT3');
+  TestCore(8, 8, tcDxt3, 'DXT3', 0.2);
+  TestCore(12, 4, tcDxt3, 'DXT3', 0.3);
+  TestCore(16, 16, tcDxt3, 'DXT3');
+
+  // DXT5
+  TestCore(4, 12, tcDxt5, 'DXT5');
+  TestCore(8, 8, tcDxt5, 'DXT5', 0.2);
+  TestCore(12, 4, tcDxt5, 'DXT5', 0.3);
+  TestCore(16, 16, tcDxt5, 'DXT5');
+
+  if CreatedWindow then
+    DestroyWindowForTest(Window);
 end;
 
 initialization

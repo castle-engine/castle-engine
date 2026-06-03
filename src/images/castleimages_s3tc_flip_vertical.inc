@@ -269,6 +269,11 @@ begin
       Dec(UpperRow, RowSize);
     end;
 
+    { When (Height div 4) is odd, e.g. we have Height=12, then the middle
+      row also needs to be flipped. }
+    if LowerRow = UpperRow then
+      FlipRow(LowerRow, FlipBlock[4]);
+
     FreeMem(TempRow);
   end else
   if Height = 3 then
