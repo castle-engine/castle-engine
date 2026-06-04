@@ -167,6 +167,10 @@ begin
   for I := 0 to FAllocatedSources.Count - 1 do
     FAllocatedSources[I] := TInternalSoundSource.Create(Backend);
 
+  { Initialize LastSoundRefresh now, otherwise the 1st Update would calculate
+    a huge SecondsPassed (TimerSeconds from zero-initialized LastSoundRefresh). }
+  LastSoundRefresh := Timer;
+
   ApplicationProperties.OnUpdate.Add({$ifdef FPC}@{$endif} Update);
 end;
 
