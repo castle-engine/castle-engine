@@ -163,18 +163,69 @@ type
 { TSkinToInitialize ---------------------------------------------------------- }
 
 type
+  TSkinToInitializeList = class;
+
   { Information about skin, to be used later. }
   TSkinToInitialize = class
+  strict private
+    FCanonical: TSkinToInitialize;
+  public
+    { The glTF skin this information is about. }
+    GltfSkin: TPasGLTF.TSkin;
+
+    { Decoded inverse bind matrices. }
+    InverseBindMatrices: TPasGLTF.TMatrix4x4DynamicArray;
+
     { Each item here is a TAbstractGroupingNode.
       Direct children of each of TAbstractGroupingNode (grouping node) here
       (that are TShapeNode and have SkinWeights0 and SkinJoints0 fields)
       should have skinning applied. }
     ParentsOfShapes: TX3DNodeList;
+
+    { Instead of adding shapes to this skin, add them to the "canonical" skin
+      indicated by this property.
+      This is either @nil, or something other than Self.
+
+      We set skin as canonical when we find another skin that is "equivalent" to it,
+      meaning it has the same skeleton, joints, and inverse bind matrices.
+
+      Such skins can be safely merged into a single X3D TSkinNode, gathering shapes
+      into one TSkinNode.FdShapes list.
+
+      This allows to support glTF files that declare multiple, but identical, skins.
+      And some shapes using one skin, some the other.
+      While we don't support in general multiple skins using same skeleton
+      (we warn about it), but in this case this can be supported by merging skins,
+      i.e. have one skin with all shapes.
+
+      Testcase: Kenney "mini characters" exported by UnityGLTF, see
+      https://forum.castle-engine.io/t/cge-doesnt-load-process-some-glb-models/2158
+      There, the body and head meshes reference two distinct skins that have
+      identical joints and inverse bind matrices. }
+    property Canonical: TSkinToInitialize read FCanonical;
+
     constructor Create;
     destructor Destroy; override;
+
+    { Initialize @link(InverseBindMatrices) by decoding the accessor
+      specified in GltfSkin.InverseBindMatrices. }
+    procedure InitializeInverseBindMatrices(const Document: TPasGLTF.TDocument);
+
+    { Find Canonical value by looking for equivalent skins on
+      the SkinsToInitialize list.
+      Call this *before* adding this TSkinToInitialize to SkinsToInitialize
+      but after setting GltfSkin and InverseBindMatrices. }
+    procedure InitializeCanonical(const SkinsToInitialize: TSkinToInitializeList);
+
+    { Fill count and contents of Target from our InverseBindMatrices.
+      Since we read the InverseBindMatrices anyway,
+      for InitializeCanonical, so we can later use them many times. }
+    procedure AssignToInverseBindMatrices(const Target: TMatrix4List);
   end;
 
-  TSkinToInitializeList = {$ifdef FPC}specialize{$endif} TObjectDictionary<TPasGLTF.TSkin, TSkinToInitialize>;
+  TSkinToInitializeList = class({$ifdef FPC}specialize{$endif}
+    TObjectDictionary<TPasGLTF.TSkin, TSkinToInitialize>)
+  end;
 
 constructor TSkinToInitialize.Create;
 begin
@@ -186,6 +237,85 @@ destructor TSkinToInitialize.Destroy;
 begin
   FreeAndNil(ParentsOfShapes);
   inherited;
+end;
+
+procedure TSkinToInitialize.InitializeInverseBindMatrices(const Document: TPasGLTF.TDocument);
+var
+  Accessor: TPasGLTF.TAccessor;
+begin
+  if (not Between(GltfSkin.InverseBindMatrices, 0, Document.Accessors.Count - 1)) then
+  begin
+    WritelnWarning('glTF', 'Missing glTF accessor (index %d, but we only have %d accessors)', [
+      GltfSkin.InverseBindMatrices,
+      Document.Accessors.Count
+    ]);
+    Exit;
+  end;
+  Accessor := Document.Accessors[GltfSkin.InverseBindMatrices];
+  InverseBindMatrices := Accessor.DecodeAsMatrix4x4Array(false);
+end;
+
+procedure TSkinToInitialize.InitializeCanonical(
+  const SkinsToInitialize: TSkinToInitializeList);
+
+  { Check are two glTF skins "equivalent", which means they have the same
+    skeleton root, the same joints (same indexes, in the same order)
+    and the same inverse bind matrices. }
+  function SkinsEquivalent(const ASkinToInitialize, BSkinToInitialize: TSkinToInitialize): Boolean;
+  var
+    A, B: TPasGLTF.TSkin;
+    I: Integer;
+  begin
+    A := ASkinToInitialize.GltfSkin;
+    B := BSkinToInitialize.GltfSkin;
+    if A = B then
+      Exit(true);
+
+    if A.Skeleton <> B.Skeleton then
+      Exit(false);
+
+    // compare joints
+    if A.Joints.Count <> B.Joints.Count then
+      Exit(false);
+    for I := 0 to A.Joints.Count - 1 do
+      if A.Joints[I] <> B.Joints[I] then
+        Exit(false);
+
+    Result := (A.InverseBindMatrices = B.InverseBindMatrices) or
+      ( ( Length(ASkinToInitialize.InverseBindMatrices) =
+          Length(BSkinToInitialize.InverseBindMatrices) ) and
+        CompareMem(
+          Pointer(ASkinToInitialize.InverseBindMatrices),
+          Pointer(BSkinToInitialize.InverseBindMatrices),
+          Length(ASkinToInitialize.InverseBindMatrices) * SizeOf(TPasGLTF.TMatrix4x4) )
+      );
+  end;
+
+var
+  SkinToInitialize: TSkinToInitialize;
+begin
+  Assert(GltfSkin <> nil);
+  for SkinToInitialize in SkinsToInitialize.Values do
+  begin
+    Assert(SkinToInitialize <> Self);
+    if SkinsEquivalent(SkinToInitialize, Self) then
+    begin
+      FCanonical := SkinToInitialize;
+      // too verbose for normal usage
+      // WritelnLog('Found equivalent skin "%s" for skin "%s", merging shapes into one skin', [
+      //   SkinToInitialize.GltfSkin.Name,
+      //   GltfSkin.Name
+      // ]);
+      Exit;
+    end;
+  end;
+end;
+
+procedure TSkinToInitialize.AssignToInverseBindMatrices(const Target: TMatrix4List);
+begin
+  Target.Count := Length(InverseBindMatrices);
+  if Target.Count <> 0 then
+    Move(InverseBindMatrices[0], Target.L[0], SizeOf(TMatrix4) * Target.Count);
 end;
 
 { TAnimation ----------------------------------------------------------------- }
@@ -1577,6 +1707,7 @@ var
     end;
   end;
 
+  { unused now
   procedure AccessorToMatrix4(const AccessorIndex: Integer; const List: TMatrix4List; const ForVertex: Boolean);
   var
     Accessor: TPasGLTF.TAccessor;
@@ -1593,6 +1724,7 @@ var
         Move(A[0], List.L[0], SizeOf(TMatrix4) * Len);
     end;
   end;
+  }
 
   procedure AccessorToRotation(const AccessorIndex: Integer; const Field: TMFRotation; const ForVertex: Boolean;
     const ReturnQuaternions: Boolean);
@@ -1985,7 +2117,7 @@ var
       and making the node collide as a box (otherwise every frame we would recalculate octree). }
     procedure ApplySkin(const Skin: TPasGLTF.TSkin);
     var
-      SkinToInitialize: TSkinToInitialize;
+      SkinToInitialize, SkinToAddShapes: TSkinToInitialize;
       ParentOfShapes: TAbstractGroupingNode;
     begin
       { Look for existing Skin in SkinsToInitialize first,
@@ -1996,12 +2128,20 @@ var
       if not SkinsToInitialize.TryGetValue(Skin, SkinToInitialize) then
       begin
         SkinToInitialize := TSkinToInitialize.Create;
+        SkinToInitialize.GltfSkin := Skin;
+        SkinToInitialize.InitializeInverseBindMatrices(Document);
+        SkinToInitialize.InitializeCanonical(SkinsToInitialize);
         SkinsToInitialize.Add(Skin, SkinToInitialize);
       end;
 
+      // use TSkinToInitialize.Canonical, to add shapes into one skin
+      SkinToAddShapes := SkinToInitialize;
+      if SkinToAddShapes.Canonical <> nil then
+        SkinToAddShapes := SkinToInitialize.Canonical;
+
       // ParentOfShapes is the group created inside ReadMesh
       ParentOfShapes := Transform.FdChildren.InternalItems.Last as TAbstractGroupingNode;
-      SkinToInitialize.ParentsOfShapes.Add(ParentOfShapes);
+      SkinToAddShapes.ParentsOfShapes.Add(ParentOfShapes);
     end;
 
   var
@@ -2403,6 +2543,14 @@ var
     ShapeNode: TShapeNode;
     NewSkeleton: TAbstractGroupingNode;
   begin
+    if SkinToInitialize.Canonical <> nil then
+    begin
+      { no need to process SkinToInitialize, as the canonical skin will
+        be processed and has all the shapes. }
+      Assert(SkinToInitialize.ParentsOfShapes.Count = 0);
+      Exit;
+    end;
+
     SkinNode := TSkinNode.Create(Skin.Name, BaseUrl);
     try
 
@@ -2444,7 +2592,7 @@ var
 
           - but our AddSkinToHierarchy for previous and new skin node conflict:
             they both want to replace NewSkeleton with their skin node
-            in X3D hierarchy. Ony one will remain, and the other SkinNode
+            in X3D hierarchy. Only one will remain, and the other SkinNode
             would be discarded.
 
           We're OK in this case to discard the new skin,
@@ -2474,8 +2622,8 @@ var
         SkinNode.FdJoints[I] := Nodes[Skin.Joints[I]];
       end;
 
-      // calculate SkinNode.JInverseBindMatrices
-      AccessorToMatrix4(Skin.InverseBindMatrices, SkinNode.FdInverseBindMatrices.Items, false);
+      // calculate SkinNode.InverseBindMatrices
+      SkinToInitialize.AssignToInverseBindMatrices(SkinNode.FdInverseBindMatrices.Items);
 
       if SkinNode.FdJoints.Count <>
         SkinNode.FdInverseBindMatrices.Count then

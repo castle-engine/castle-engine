@@ -30,6 +30,8 @@ type
     procedure TestSaveLoadUnlitMaterial;
     procedure TestSaveLoadMesh;
     procedure TestRoundTripGltfFile;
+    procedure TestDuplicateIdenticalSkins;
+    procedure TestNonIdenticalSkins;
   end;
 
 implementation
@@ -378,6 +380,101 @@ begin
   finally
     FreeAndNil(Original);
   end;
+end;
+
+type
+  { Count TSkinNode instances (and shapes gathered in them) and all TShapeNode
+    instances, to be used as callbacks for TX3DNode.EnumerateNodes. }
+  TSkinNodesCounter = class
+    SkinCount, ShapesInSkins, TotalShapes: Integer;
+    procedure HandleSkinNode(Node: TX3DNode);
+    procedure HandleShapeNode(Node: TX3DNode);
+  end;
+
+procedure TSkinNodesCounter.HandleSkinNode(Node: TX3DNode);
+begin
+  Inc(SkinCount);
+  Inc(ShapesInSkins, (Node as TSkinNode).FdShapes.Count);
+end;
+
+procedure TSkinNodesCounter.HandleShapeNode(Node: TX3DNode);
+begin
+  Inc(TotalShapes);
+end;
+
+procedure TTestX3DLoadGltf.TestDuplicateIdenticalSkins;
+var
+  Loaded: TX3DRootNode;
+  Counter: TSkinNodesCounter;
+begin
+  { Some glTF exporters (e.g. UnityGLTF) declare multiple, but identical, skins:
+    different glTF skin indexes that have the same skeleton, joints and
+    inverse bind matrices. We merge them into a single X3D TSkinNode that
+    gathers shapes of all the meshes referencing these skins.
+
+    Testcase from https://forum.castle-engine.io/t/cge-doesnt-load-process-some-glb-models/2158
+    reduced to a minimal model: 2 meshes ("body-mesh", "head-mesh"), each
+    referencing a distinct but identical skin. }
+
+  Loaded := LoadNode('castle-data:/gltf/duplicate_identical_skins.gltf');
+  try
+    Counter := TSkinNodesCounter.Create;
+    try
+      Loaded.EnumerateNodes(TSkinNode,
+        {$ifdef FPC}@{$endif} Counter.HandleSkinNode, false);
+
+      // 2 identical glTF skins resulted in only 1 TSkinNode
+      AssertEquals('Identical skins should be merged into a single TSkinNode',
+        1, Counter.SkinCount);
+
+      // Both meshes (body and head) gathered in the one skin node
+      AssertEquals('Both skinned meshes should be present in the merged skin',
+        2, Counter.ShapesInSkins);
+    finally FreeAndNil(Counter) end;
+  finally FreeAndNil(Loaded) end;
+end;
+
+procedure TTestX3DLoadGltf.TestNonIdenticalSkins;
+var
+  Loaded: TX3DRootNode;
+  Counter: TSkinNodesCounter;
+begin
+  { Two skins that share the same skeleton and joints, but have *different*
+    inverse bind matrices, so they are *not* equivalent and cannot be merged.
+    This is not supported (a single skeleton subtree cannot be reparented into
+    two TSkinNode instances), so we keep only one skin and leave the other
+    mesh in place (unanimated) -- but we must not lose it.
+
+    Minimal model: 2 meshes ("body-mesh", "head-mesh"), each referencing a
+    distinct skin with the same joints but different inverse bind matrices.
+
+    Note: which of the two skins "wins" is not deterministic (it depends on the
+    skins iteration order), so we only assert order-independent facts: exactly
+    one skin node, with one shape, and both meshes still present in the scene. }
+
+  Loaded := LoadNode('castle-data:/gltf/non_identical_skins.gltf');
+  try
+    Counter := TSkinNodesCounter.Create;
+    try
+      Loaded.EnumerateNodes(TSkinNode,
+        {$ifdef FPC}@{$endif} Counter.HandleSkinNode, false);
+      Loaded.EnumerateNodes(TShapeNode,
+        {$ifdef FPC}@{$endif} Counter.HandleShapeNode, false);
+
+      // Non-equivalent skins are not merged; only one skin survives
+      AssertEquals('Non-identical skins sharing a skeleton should result in 1 TSkinNode',
+        1, Counter.SkinCount);
+
+      // Only the surviving skin's mesh is gathered as a skinned shape
+      AssertEquals('Only one mesh should be skinned (the other skin is discarded)',
+        1, Counter.ShapesInSkins);
+
+      // Both meshes must still be present in the scene (the discarded skin's
+      // mesh stays in place, unanimated, and must not be lost)
+      AssertEquals('Both meshes must remain present in the scene',
+        2, Counter.TotalShapes);
+    finally FreeAndNil(Counter) end;
+  finally FreeAndNil(Loaded) end;
 end;
 
 initialization
