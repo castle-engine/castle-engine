@@ -572,15 +572,23 @@ begin
       use one renderbuffer or one texture with combined depth/stencil info.
       Other possibilities may be not available at all,
       as OpenGL only guarantees we can create FBO matching current screen configuration. }
-    {$ifndef OpenGLES}
+    {$if not defined(OpenGLES)}
     if Stencil and GLFeatures.PackedDepthStencil then
     begin
       DepthBufferFormatPacked := GL_DEPTH_STENCIL;
       DepthAttachmentWithStencil := true;
       DepthAttachmentPacked := GL_DEPTH_STENCIL_ATTACHMENT;
     end else
-    // TODO-es This is probably needed on gles too?
-    // we have GL_DEPTH_STENCIL_OES.
+    {$elseif defined(CASTLE_WEBGL)}
+    { WebGL 2.0 has GL_DEPTH24_STENCIL8 and GL_DEPTH_STENCIL_ATTACHMENT as core.
+      PackedDepthStencil is true on WebGL 2.0 (see FPackedDepthStencil detection). }
+    if Stencil and GLFeatures.PackedDepthStencil then
+    begin
+      DepthBufferFormatPacked := GL_DEPTH24_STENCIL8;
+      DepthAttachmentWithStencil := true;
+      DepthAttachmentPacked := GL_DEPTH_STENCIL_ATTACHMENT;
+    end else
+    // TODO: non-WebGL OpenGLES may also need packed depth+stencil (GL_DEPTH_STENCIL_OES).
     {$endif}
     begin
       DepthBufferFormatPacked :=
