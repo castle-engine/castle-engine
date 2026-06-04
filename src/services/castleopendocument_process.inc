@@ -96,17 +96,29 @@ end;
 {$else}
 
 procedure RunCmdFromPath(const ProgramFilename, Parameter: string);
+
+  { Quote an argument for /bin/sh (used by _System): wrap it in single quotes
+    (apostrophes), and escape any single quote inside as the 4-char sequence '\''
+    (so ' to end string, then \' to get literal ', then ' to start string again).
+
+    This means that all arguments will be passed as parameters to
+    ProgramFilename, and not cause shell injection (which would cause shell
+    to do interesting things, if it sees $, ; , &&, backticks etc.).
+    It also means parameters with spaces will be passed correctly.
+
+    Note: quoting with " is not enough, because inside double
+    quotes the shell still interprets $ and backticks. }
+  function ShellQuote(const S: string): AnsiString;
+  const
+    Q = '''';
+  begin
+    Result := Q + StringReplace(S, Q, Q + '\' + Q + Q, [rfReplaceAll]) + Q;
+  end;
+
 var
   Command: AnsiString;
 begin
-  if (Pos('"', ProgramFilename) <> 0) or
-     (Pos('"', Parameter) <> 0) then
-  begin
-    WritelnWarning('RunCmdFromPath', 'Not implemented for the case when ProgramFilename or Parameter contain a double quote');
-    Exit;
-  end;
-
-  Command := Format('"%s" "%s"', [ProgramFilename, Parameter]);
+  Command := ShellQuote(ProgramFilename) + ' ' + ShellQuote(Parameter);
   _System(PAnsiChar(Command));
 end;
 
