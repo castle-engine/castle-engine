@@ -1138,6 +1138,7 @@ begin
   {$endif}
 
   begin
+    WritelnLog('glTexImage2D called from TImageTextureResource.UpdateTextureContentsRgbaFloat, size: %dx%d', [Width, Height]);
     glTexImage2D(GL_TEXTURE_2D, Level, ImageInternalFormat,
       Width, Height, 0, ImageFormat, GL_FLOAT, GLData);
     FAllocatedWidth := Width;

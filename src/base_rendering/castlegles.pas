@@ -1706,6 +1706,9 @@ procedure glDebugMessageControl(source:GLenum; _type:GLenum; severity:GLenum; co
 
 procedure GLESInitialization;
 
+var
+  CrazyVerboseGLES: boolean = false;
+
 implementation
 
 uses CastleInternalEgl, CastleLog;
@@ -2396,6 +2399,22 @@ begin
   else if E = GL_RGB16F then Result := 'GL_RGB16F'
   else if E = GL_DEPTH_COMPONENT24 then Result := 'GL_DEPTH_COMPONENT24'
   else if E = GL_DEPTH24_STENCIL8 then Result := 'GL_DEPTH24_STENCIL8'
+  // float textures internal formats
+  else if E = GL_R32F then Result := 'GL_R32F'
+  else if E = GL_R16F then Result := 'GL_R16F'
+  else if E = GL_RG32F then Result := 'GL_RG32F'
+  else if E = GL_RG16F then Result := 'GL_RG16F'
+  else if E = GL_RGB32F then Result := 'GL_RGB32F'
+  else if E = GL_RGB16F then Result := 'GL_RGB16F'
+  else if E = GL_RGBA32F then Result := 'GL_RGBA32F'
+  else if E = GL_RGBA16F then Result := 'GL_RGBA16F'
+  // error codes
+  // else if E = GL_NO_ERROR then Result := 'GL_NO_ERROR' // this is zero, don't convert to string as ambiguous with other enums
+  else if E = GL_INVALID_ENUM then Result := 'GL_INVALID_ENUM'
+  else if E = GL_INVALID_VALUE then Result := 'GL_INVALID_VALUE'
+  else if E = GL_INVALID_OPERATION then Result := 'GL_INVALID_OPERATION'
+  else if E = GL_OUT_OF_MEMORY then Result := 'GL_OUT_OF_MEMORY'
+  else if E = GL_INVALID_FRAMEBUFFER_OPERATION then Result := 'GL_INVALID_FRAMEBUFFER_OPERATION'
   else Result := IntToStr(Integer(E));
 end;
 
@@ -2408,1909 +2427,1925 @@ begin
     Exit;
   Err := glGetError_Proc();
   if Err <> GL_NO_ERROR then
+  begin
     WritelnWarning('OpenGLES', ProcName + ' error: ' + GLEnumName(Err));
+
+    Halt; // don't allow to render the error dialog, which would obscure the above in log
+
+    // raise Exception.CreateFmt('OpenGLES: %s error: %s', [
+    //   ProcName,
+    //   GLEnumName(Err)
+    // ]);
+  end;
 end;
 
+{ Pass to WritelnLog but only if CrazyVerboseGLES.
+  Allows to control the verbosity at runtime too. }
+procedure GlesLog(const Msg: String);
+begin
+  if CrazyVerboseGLES then
+    WritelnLog('OpenGLES', Msg);
+end;
 
 procedure glActiveTexture(texture:GLenum);
 begin
-  WritelnLog('OpenGLES', 'glActiveTexture' + ' texture=' + GLEnumName(texture));
+  GlesLog('glActiveTexture' + ' texture=' + GLEnumName(texture));
   glActiveTexture_Proc(texture);
   GLESCheckError('glActiveTexture');
 end;
 
 procedure glAttachShader(_program:GLuint; shader:GLuint);
 begin
-  WritelnLog('OpenGLES', 'glAttachShader' + ' _program=' + IntToStr(Integer(_program)) + ' shader=' + IntToStr(Integer(shader)));
+  GlesLog('glAttachShader' + ' _program=' + IntToStr(Integer(_program)) + ' shader=' + IntToStr(Integer(shader)));
   glAttachShader_Proc(_program, shader);
   GLESCheckError('glAttachShader');
 end;
 
 procedure glBindAttribLocation(_program:GLuint; index:GLuint; name:PAnsiChar);
 begin
-  WritelnLog('OpenGLES', 'glBindAttribLocation' + ' _program=' + IntToStr(Integer(_program)) + ' index=' + IntToStr(Integer(index)));
+  GlesLog('glBindAttribLocation' + ' _program=' + IntToStr(Integer(_program)) + ' index=' + IntToStr(Integer(index)));
   glBindAttribLocation_Proc(_program, index, name);
   GLESCheckError('glBindAttribLocation');
 end;
 
 procedure glBindBuffer(target:GLenum; buffer:GLuint);
 begin
-  WritelnLog('OpenGLES', 'glBindBuffer' + ' target=' + GLEnumName(target) + ' buffer=' + IntToStr(Integer(buffer)));
+  GlesLog('glBindBuffer' + ' target=' + GLEnumName(target) + ' buffer=' + IntToStr(Integer(buffer)));
   glBindBuffer_Proc(target, buffer);
   GLESCheckError('glBindBuffer');
 end;
 
 procedure glBindFramebuffer(target:GLenum; framebuffer:GLuint);
 begin
-  WritelnLog('OpenGLES', 'glBindFramebuffer' + ' target=' + GLEnumName(target) + ' framebuffer=' + IntToStr(Integer(framebuffer)));
+  GlesLog('glBindFramebuffer' + ' target=' + GLEnumName(target) + ' framebuffer=' + IntToStr(Integer(framebuffer)));
   glBindFramebuffer_Proc(target, framebuffer);
   GLESCheckError('glBindFramebuffer');
 end;
 
 procedure glBindRenderbuffer(target:GLenum; renderbuffer:GLuint);
 begin
-  WritelnLog('OpenGLES', 'glBindRenderbuffer' + ' target=' + GLEnumName(target) + ' renderbuffer=' + IntToStr(Integer(renderbuffer)));
+  GlesLog('glBindRenderbuffer' + ' target=' + GLEnumName(target) + ' renderbuffer=' + IntToStr(Integer(renderbuffer)));
   glBindRenderbuffer_Proc(target, renderbuffer);
   GLESCheckError('glBindRenderbuffer');
 end;
 
 procedure glBindTexture(target:GLenum; texture:GLuint);
 begin
-  WritelnLog('OpenGLES', 'glBindTexture' + ' target=' + GLEnumName(target) + ' texture=' + IntToStr(Integer(texture)));
+  GlesLog('glBindTexture' + ' target=' + GLEnumName(target) + ' texture=' + IntToStr(Integer(texture)));
   glBindTexture_Proc(target, texture);
   GLESCheckError('glBindTexture');
 end;
 
 procedure glBlendColor(red:GLclampf; green:GLclampf; blue:GLclampf; alpha:GLclampf);
 begin
-  WritelnLog('OpenGLES', 'glBlendColor');
+  GlesLog('glBlendColor');
   glBlendColor_Proc(red, green, blue, alpha);
   GLESCheckError('glBlendColor');
 end;
 
 procedure glBlendEquation(mode:GLenum);
 begin
-  WritelnLog('OpenGLES', 'glBlendEquation' + ' mode=' + GLEnumName(mode));
+  GlesLog('glBlendEquation' + ' mode=' + GLEnumName(mode));
   glBlendEquation_Proc(mode);
   GLESCheckError('glBlendEquation');
 end;
 
 procedure glBlendEquationSeparate(modeRGB:GLenum; modeAlpha:GLenum);
 begin
-  WritelnLog('OpenGLES', 'glBlendEquationSeparate' + ' modeRGB=' + GLEnumName(modeRGB) + ' modeAlpha=' + GLEnumName(modeAlpha));
+  GlesLog('glBlendEquationSeparate' + ' modeRGB=' + GLEnumName(modeRGB) + ' modeAlpha=' + GLEnumName(modeAlpha));
   glBlendEquationSeparate_Proc(modeRGB, modeAlpha);
   GLESCheckError('glBlendEquationSeparate');
 end;
 
 procedure glBlendFunc(sfactor:GLenum; dfactor:GLenum);
 begin
-  WritelnLog('OpenGLES', 'glBlendFunc' + ' sfactor=' + GLEnumName(sfactor) + ' dfactor=' + GLEnumName(dfactor));
+  GlesLog('glBlendFunc' + ' sfactor=' + GLEnumName(sfactor) + ' dfactor=' + GLEnumName(dfactor));
   glBlendFunc_Proc(sfactor, dfactor);
   GLESCheckError('glBlendFunc');
 end;
 
 procedure glBlendFuncSeparate(srcRGB:GLenum; dstRGB:GLenum; srcAlpha:GLenum; dstAlpha:GLenum);
 begin
-  WritelnLog('OpenGLES', 'glBlendFuncSeparate' + ' srcRGB=' + GLEnumName(srcRGB) + ' dstRGB=' + GLEnumName(dstRGB) + ' srcAlpha=' + GLEnumName(srcAlpha) + ' dstAlpha=' + GLEnumName(dstAlpha));
+  GlesLog('glBlendFuncSeparate' + ' srcRGB=' + GLEnumName(srcRGB) + ' dstRGB=' + GLEnumName(dstRGB) + ' srcAlpha=' + GLEnumName(srcAlpha) + ' dstAlpha=' + GLEnumName(dstAlpha));
   glBlendFuncSeparate_Proc(srcRGB, dstRGB, srcAlpha, dstAlpha);
   GLESCheckError('glBlendFuncSeparate');
 end;
 
 procedure glBufferData(target:GLenum; size:GLsizeiptr; data:pointer; usage:GLenum);
 begin
-  WritelnLog('OpenGLES', 'glBufferData' + ' target=' + GLEnumName(target) + ' size=' + IntToStr(size) + ' usage=' + GLEnumName(usage));
+  GlesLog('glBufferData' + ' target=' + GLEnumName(target) + ' size=' + IntToStr(size) + ' usage=' + GLEnumName(usage));
   glBufferData_Proc(target, size, data, usage);
   GLESCheckError('glBufferData');
 end;
 
 procedure glBufferSubData(target:GLenum; offset:GLintptr; size:GLsizeiptr; data:pointer);
 begin
-  WritelnLog('OpenGLES', 'glBufferSubData' + ' target=' + GLEnumName(target) + ' offset=' + IntToStr(offset) + ' size=' + IntToStr(size));
+  GlesLog('glBufferSubData' + ' target=' + GLEnumName(target) + ' offset=' + IntToStr(offset) + ' size=' + IntToStr(size));
   glBufferSubData_Proc(target, offset, size, data);
   GLESCheckError('glBufferSubData');
 end;
 
 function glCheckFramebufferStatus(target:GLenum): GLenum;
 begin
-  WritelnLog('OpenGLES', 'glCheckFramebufferStatus' + ' target=' + GLEnumName(target));
+  GlesLog('glCheckFramebufferStatus' + ' target=' + GLEnumName(target));
   Result := glCheckFramebufferStatus_Proc(target);
   GLESCheckError('glCheckFramebufferStatus');
 end;
 
 procedure glClear(mask:GLbitfield);
 begin
-  WritelnLog('OpenGLES', 'glClear' + ' mask=' + IntToStr(Integer(mask)));
+  GlesLog('glClear' + ' mask=' + IntToStr(Integer(mask)));
   glClear_Proc(mask);
   GLESCheckError('glClear');
 end;
 
 procedure glClearColor(red:GLclampf; green:GLclampf; blue:GLclampf; alpha:GLclampf);
 begin
-  WritelnLog('OpenGLES', 'glClearColor');
+  GlesLog('glClearColor');
   glClearColor_Proc(red, green, blue, alpha);
   GLESCheckError('glClearColor');
 end;
 
 procedure glClearDepthf(depth:GLclampf);
 begin
-  WritelnLog('OpenGLES', 'glClearDepthf');
+  GlesLog('glClearDepthf');
   glClearDepthf_Proc(depth);
   GLESCheckError('glClearDepthf');
 end;
 
 procedure glClearStencil(s:GLint);
 begin
-  WritelnLog('OpenGLES', 'glClearStencil' + ' s=' + IntToStr(s));
+  GlesLog('glClearStencil' + ' s=' + IntToStr(s));
   glClearStencil_Proc(s);
   GLESCheckError('glClearStencil');
 end;
 
 procedure glColorMask(red:GLboolean; green:GLboolean; blue:GLboolean; alpha:GLboolean);
 begin
-  WritelnLog('OpenGLES', 'glColorMask');
+  GlesLog('glColorMask');
   glColorMask_Proc(red, green, blue, alpha);
   GLESCheckError('glColorMask');
 end;
 
 procedure glCompileShader(shader:GLuint);
 begin
-  WritelnLog('OpenGLES', 'glCompileShader' + ' shader=' + IntToStr(Integer(shader)));
+  GlesLog('glCompileShader' + ' shader=' + IntToStr(Integer(shader)));
   glCompileShader_Proc(shader);
   GLESCheckError('glCompileShader');
 end;
 
 procedure glCompressedTexImage2D(target:GLenum; level:GLint; internalformat:GLenum; width:GLsizei; height:GLsizei; border:GLint; imageSize:GLsizei; data:pointer);
 begin
-  WritelnLog('OpenGLES', 'glCompressedTexImage2D' + ' target=' + GLEnumName(target) + ' level=' + IntToStr(level) + ' internalformat=' + GLEnumName(internalformat) + ' width=' + IntToStr(width));
+  GlesLog('glCompressedTexImage2D' + ' target=' + GLEnumName(target) + ' level=' + IntToStr(level) + ' internalformat=' + GLEnumName(internalformat) + ' width=' + IntToStr(width));
   glCompressedTexImage2D_Proc(target, level, internalformat, width, height, border, imageSize, data);
   GLESCheckError('glCompressedTexImage2D');
 end;
 
 procedure glCompressedTexSubImage2D(target:GLenum; level:GLint; xoffset:GLint; yoffset:GLint; width:GLsizei; height:GLsizei; format:GLenum; imageSize:GLsizei; data:pointer);
 begin
-  WritelnLog('OpenGLES', 'glCompressedTexSubImage2D' + ' target=' + GLEnumName(target) + ' level=' + IntToStr(level) + ' xoffset=' + IntToStr(xoffset) + ' yoffset=' + IntToStr(yoffset));
+  GlesLog('glCompressedTexSubImage2D' + ' target=' + GLEnumName(target) + ' level=' + IntToStr(level) + ' xoffset=' + IntToStr(xoffset) + ' yoffset=' + IntToStr(yoffset));
   glCompressedTexSubImage2D_Proc(target, level, xoffset, yoffset, width, height, format, imageSize, data);
   GLESCheckError('glCompressedTexSubImage2D');
 end;
 
 procedure glCopyTexImage2D(target:GLenum; level:GLint; internalformat:GLenum; x:GLint; y:GLint; width:GLsizei; height:GLsizei; border:GLint);
 begin
-  WritelnLog('OpenGLES', 'glCopyTexImage2D' + ' target=' + GLEnumName(target) + ' level=' + IntToStr(level) + ' internalformat=' + GLEnumName(internalformat) + ' x=' + IntToStr(x));
+  GlesLog('glCopyTexImage2D' + ' target=' + GLEnumName(target) + ' level=' + IntToStr(level) + ' internalformat=' + GLEnumName(internalformat) + ' x=' + IntToStr(x));
   glCopyTexImage2D_Proc(target, level, internalformat, x, y, width, height, border);
   GLESCheckError('glCopyTexImage2D');
 end;
 
 procedure glCopyTexSubImage2D(target:GLenum; level:GLint; xoffset:GLint; yoffset:GLint; x:GLint; y:GLint; width:GLsizei; height:GLsizei);
 begin
-  WritelnLog('OpenGLES', 'glCopyTexSubImage2D' + ' target=' + GLEnumName(target) + ' level=' + IntToStr(level) + ' xoffset=' + IntToStr(xoffset) + ' yoffset=' + IntToStr(yoffset));
+  GlesLog('glCopyTexSubImage2D' + ' target=' + GLEnumName(target) + ' level=' + IntToStr(level) + ' xoffset=' + IntToStr(xoffset) + ' yoffset=' + IntToStr(yoffset));
   glCopyTexSubImage2D_Proc(target, level, xoffset, yoffset, x, y, width, height);
   GLESCheckError('glCopyTexSubImage2D');
 end;
 
 function glCreateProgram: GLuint;
 begin
-  WritelnLog('OpenGLES', 'glCreateProgram');
+  GlesLog('glCreateProgram');
   Result := glCreateProgram_Proc();
   GLESCheckError('glCreateProgram');
 end;
 
 function glCreateShader(_type:GLenum): GLuint;
 begin
-  WritelnLog('OpenGLES', 'glCreateShader' + ' _type=' + GLEnumName(_type));
+  GlesLog('glCreateShader' + ' _type=' + GLEnumName(_type));
   Result := glCreateShader_Proc(_type);
   GLESCheckError('glCreateShader');
 end;
 
 procedure glCullFace(mode:GLenum);
 begin
-  WritelnLog('OpenGLES', 'glCullFace' + ' mode=' + GLEnumName(mode));
+  GlesLog('glCullFace' + ' mode=' + GLEnumName(mode));
   glCullFace_Proc(mode);
   GLESCheckError('glCullFace');
 end;
 
 procedure glDeleteBuffers(n:GLsizei; buffers:pGLuint);
 begin
-  WritelnLog('OpenGLES', 'glDeleteBuffers' + ' n=' + IntToStr(n));
+  GlesLog('glDeleteBuffers' + ' n=' + IntToStr(n));
   glDeleteBuffers_Proc(n, buffers);
   GLESCheckError('glDeleteBuffers');
 end;
 
 procedure glDeleteFramebuffers(n:GLsizei; framebuffers:pGLuint);
 begin
-  WritelnLog('OpenGLES', 'glDeleteFramebuffers' + ' n=' + IntToStr(n));
+  GlesLog('glDeleteFramebuffers' + ' n=' + IntToStr(n));
   glDeleteFramebuffers_Proc(n, framebuffers);
   GLESCheckError('glDeleteFramebuffers');
 end;
 
 procedure glDeleteProgram(_program:GLuint);
 begin
-  WritelnLog('OpenGLES', 'glDeleteProgram' + ' _program=' + IntToStr(Integer(_program)));
+  GlesLog('glDeleteProgram' + ' _program=' + IntToStr(Integer(_program)));
   glDeleteProgram_Proc(_program);
   GLESCheckError('glDeleteProgram');
 end;
 
 procedure glDeleteRenderbuffers(n:GLsizei; renderbuffers:pGLuint);
 begin
-  WritelnLog('OpenGLES', 'glDeleteRenderbuffers' + ' n=' + IntToStr(n));
+  GlesLog('glDeleteRenderbuffers' + ' n=' + IntToStr(n));
   glDeleteRenderbuffers_Proc(n, renderbuffers);
   GLESCheckError('glDeleteRenderbuffers');
 end;
 
 procedure glDeleteShader(shader:GLuint);
 begin
-  WritelnLog('OpenGLES', 'glDeleteShader' + ' shader=' + IntToStr(Integer(shader)));
+  GlesLog('glDeleteShader' + ' shader=' + IntToStr(Integer(shader)));
   glDeleteShader_Proc(shader);
   GLESCheckError('glDeleteShader');
 end;
 
 procedure glDeleteTextures(n:GLsizei; textures:pGLuint);
 begin
-  WritelnLog('OpenGLES', 'glDeleteTextures' + ' n=' + IntToStr(n));
+  GlesLog('glDeleteTextures' + ' n=' + IntToStr(n));
   glDeleteTextures_Proc(n, textures);
   GLESCheckError('glDeleteTextures');
 end;
 
 procedure glDepthFunc(func:GLenum);
 begin
-  WritelnLog('OpenGLES', 'glDepthFunc' + ' func=' + GLEnumName(func));
+  GlesLog('glDepthFunc' + ' func=' + GLEnumName(func));
   glDepthFunc_Proc(func);
   GLESCheckError('glDepthFunc');
 end;
 
 procedure glDepthMask(flag:GLboolean);
 begin
-  WritelnLog('OpenGLES', 'glDepthMask');
+  GlesLog('glDepthMask');
   glDepthMask_Proc(flag);
   GLESCheckError('glDepthMask');
 end;
 
 procedure glDepthRangef(zNear:GLclampf; zFar:GLclampf);
 begin
-  WritelnLog('OpenGLES', 'glDepthRangef');
+  GlesLog('glDepthRangef');
   glDepthRangef_Proc(zNear, zFar);
   GLESCheckError('glDepthRangef');
 end;
 
 procedure glDetachShader(_program:GLuint; shader:GLuint);
 begin
-  WritelnLog('OpenGLES', 'glDetachShader' + ' _program=' + IntToStr(Integer(_program)) + ' shader=' + IntToStr(Integer(shader)));
+  GlesLog('glDetachShader' + ' _program=' + IntToStr(Integer(_program)) + ' shader=' + IntToStr(Integer(shader)));
   glDetachShader_Proc(_program, shader);
   GLESCheckError('glDetachShader');
 end;
 
 procedure glDisable(cap:GLenum);
 begin
-  WritelnLog('OpenGLES', 'glDisable' + ' cap=' + GLEnumName(cap));
+  GlesLog('glDisable' + ' cap=' + GLEnumName(cap));
   glDisable_Proc(cap);
   GLESCheckError('glDisable');
 end;
 
 procedure glDisableVertexAttribArray(index:GLuint);
 begin
-  WritelnLog('OpenGLES', 'glDisableVertexAttribArray' + ' index=' + IntToStr(Integer(index)));
+  GlesLog('glDisableVertexAttribArray' + ' index=' + IntToStr(Integer(index)));
   glDisableVertexAttribArray_Proc(index);
   GLESCheckError('glDisableVertexAttribArray');
 end;
 
 procedure glDrawArrays(mode:GLenum; first:GLint; count:GLsizei);
 begin
-  WritelnLog('OpenGLES', 'glDrawArrays' + ' mode=' + GLEnumName(mode) + ' first=' + IntToStr(first) + ' count=' + IntToStr(count));
+  GlesLog('glDrawArrays' + ' mode=' + GLEnumName(mode) + ' first=' + IntToStr(first) + ' count=' + IntToStr(count));
   glDrawArrays_Proc(mode, first, count);
   GLESCheckError('glDrawArrays');
 end;
 
 procedure glDrawElements(mode:GLenum; count:GLsizei; _type:GLenum; indices:pointer);
 begin
-  WritelnLog('OpenGLES', 'glDrawElements' + ' mode=' + GLEnumName(mode) + ' count=' + IntToStr(count) + ' _type=' + GLEnumName(_type));
+  GlesLog('glDrawElements' + ' mode=' + GLEnumName(mode) + ' count=' + IntToStr(count) + ' _type=' + GLEnumName(_type));
   glDrawElements_Proc(mode, count, _type, indices);
   GLESCheckError('glDrawElements');
 end;
 
 procedure glEnable(cap:GLenum);
 begin
-  WritelnLog('OpenGLES', 'glEnable' + ' cap=' + GLEnumName(cap));
+  GlesLog('glEnable' + ' cap=' + GLEnumName(cap));
   glEnable_Proc(cap);
   GLESCheckError('glEnable');
 end;
 
 procedure glEnableVertexAttribArray(index:GLuint);
 begin
-  WritelnLog('OpenGLES', 'glEnableVertexAttribArray' + ' index=' + IntToStr(Integer(index)));
+  GlesLog('glEnableVertexAttribArray' + ' index=' + IntToStr(Integer(index)));
   glEnableVertexAttribArray_Proc(index);
   GLESCheckError('glEnableVertexAttribArray');
 end;
 
 procedure glFinish;
 begin
-  WritelnLog('OpenGLES', 'glFinish');
+  GlesLog('glFinish');
   glFinish_Proc;
   GLESCheckError('glFinish');
 end;
 
 procedure glFlush;
 begin
-  WritelnLog('OpenGLES', 'glFlush');
+  GlesLog('glFlush');
   glFlush_Proc;
   GLESCheckError('glFlush');
 end;
 
 procedure glFramebufferRenderbuffer(target:GLenum; attachment:GLenum; renderbuffertarget:GLenum; renderbuffer:GLuint);
 begin
-  WritelnLog('OpenGLES', 'glFramebufferRenderbuffer' + ' target=' + GLEnumName(target) + ' attachment=' + GLEnumName(attachment) + ' renderbuffertarget=' + GLEnumName(renderbuffertarget) + ' renderbuffer=' + IntToStr(Integer(renderbuffer)));
+  GlesLog('glFramebufferRenderbuffer' + ' target=' + GLEnumName(target) + ' attachment=' + GLEnumName(attachment) + ' renderbuffertarget=' + GLEnumName(renderbuffertarget) + ' renderbuffer=' + IntToStr(Integer(renderbuffer)));
   glFramebufferRenderbuffer_Proc(target, attachment, renderbuffertarget, renderbuffer);
   GLESCheckError('glFramebufferRenderbuffer');
 end;
 
 procedure glFramebufferTexture2D(target:GLenum; attachment:GLenum; textarget:GLenum; texture:GLuint; level:GLint);
 begin
-  WritelnLog('OpenGLES', 'glFramebufferTexture2D' + ' target=' + GLEnumName(target) + ' attachment=' + GLEnumName(attachment) + ' textarget=' + GLEnumName(textarget) + ' texture=' + IntToStr(Integer(texture)));
+  GlesLog('glFramebufferTexture2D' + ' target=' + GLEnumName(target) + ' attachment=' + GLEnumName(attachment) + ' textarget=' + GLEnumName(textarget) + ' texture=' + IntToStr(Integer(texture)));
   glFramebufferTexture2D_Proc(target, attachment, textarget, texture, level);
   GLESCheckError('glFramebufferTexture2D');
 end;
 
 procedure glFrontFace(mode:GLenum);
 begin
-  WritelnLog('OpenGLES', 'glFrontFace' + ' mode=' + GLEnumName(mode));
+  GlesLog('glFrontFace' + ' mode=' + GLEnumName(mode));
   glFrontFace_Proc(mode);
   GLESCheckError('glFrontFace');
 end;
 
 procedure glGenBuffers(n:GLsizei; buffers:pGLuint);
 begin
-  WritelnLog('OpenGLES', 'glGenBuffers' + ' n=' + IntToStr(n));
+  GlesLog('glGenBuffers' + ' n=' + IntToStr(n));
   glGenBuffers_Proc(n, buffers);
   GLESCheckError('glGenBuffers');
 end;
 
 procedure glGenerateMipmap(target:GLenum);
 begin
-  WritelnLog('OpenGLES', 'glGenerateMipmap' + ' target=' + GLEnumName(target));
+  GlesLog('glGenerateMipmap' + ' target=' + GLEnumName(target));
   glGenerateMipmap_Proc(target);
   GLESCheckError('glGenerateMipmap');
 end;
 
 procedure glGenFramebuffers(n:GLsizei; framebuffers:pGLuint);
 begin
-  WritelnLog('OpenGLES', 'glGenFramebuffers' + ' n=' + IntToStr(n));
+  GlesLog('glGenFramebuffers' + ' n=' + IntToStr(n));
   glGenFramebuffers_Proc(n, framebuffers);
   GLESCheckError('glGenFramebuffers');
 end;
 
 procedure glGenRenderbuffers(n:GLsizei; renderbuffers:pGLuint);
 begin
-  WritelnLog('OpenGLES', 'glGenRenderbuffers' + ' n=' + IntToStr(n));
+  GlesLog('glGenRenderbuffers' + ' n=' + IntToStr(n));
   glGenRenderbuffers_Proc(n, renderbuffers);
   GLESCheckError('glGenRenderbuffers');
 end;
 
 procedure glGenTextures(n:GLsizei; textures:pGLuint);
 begin
-  WritelnLog('OpenGLES', 'glGenTextures' + ' n=' + IntToStr(n));
+  GlesLog('glGenTextures' + ' n=' + IntToStr(n));
   glGenTextures_Proc(n, textures);
   GLESCheckError('glGenTextures');
 end;
 
 procedure glGetActiveAttrib(_program:GLuint; index:GLuint; bufsize:GLsizei; length:pGLsizei; size:pGLint; _type:pGLenum; name:PAnsiChar);
 begin
-  WritelnLog('OpenGLES', 'glGetActiveAttrib' + ' _program=' + IntToStr(Integer(_program)) + ' index=' + IntToStr(Integer(index)) + ' bufsize=' + IntToStr(bufsize));
+  GlesLog('glGetActiveAttrib' + ' _program=' + IntToStr(Integer(_program)) + ' index=' + IntToStr(Integer(index)) + ' bufsize=' + IntToStr(bufsize));
   glGetActiveAttrib_Proc(_program, index, bufsize, length, size, _type, name);
   GLESCheckError('glGetActiveAttrib');
 end;
 
 procedure glGetActiveUniform(_program:GLuint; index:GLuint; bufsize:GLsizei; length:pGLsizei; size:pGLint; _type:pGLenum; name:PAnsiChar);
 begin
-  WritelnLog('OpenGLES', 'glGetActiveUniform' + ' _program=' + IntToStr(Integer(_program)) + ' index=' + IntToStr(Integer(index)) + ' bufsize=' + IntToStr(bufsize));
+  GlesLog('glGetActiveUniform' + ' _program=' + IntToStr(Integer(_program)) + ' index=' + IntToStr(Integer(index)) + ' bufsize=' + IntToStr(bufsize));
   glGetActiveUniform_Proc(_program, index, bufsize, length, size, _type, name);
   GLESCheckError('glGetActiveUniform');
 end;
 
 procedure glGetAttachedShaders(_program:GLuint; maxcount:GLsizei; count:pGLsizei; shaders:pGLuint);
 begin
-  WritelnLog('OpenGLES', 'glGetAttachedShaders' + ' _program=' + IntToStr(Integer(_program)) + ' maxcount=' + IntToStr(maxcount));
+  GlesLog('glGetAttachedShaders' + ' _program=' + IntToStr(Integer(_program)) + ' maxcount=' + IntToStr(maxcount));
   glGetAttachedShaders_Proc(_program, maxcount, count, shaders);
   GLESCheckError('glGetAttachedShaders');
 end;
 
 function glGetAttribLocation(_program:GLuint; name:PAnsiChar): CInt32;
 begin
-  WritelnLog('OpenGLES', 'glGetAttribLocation' + ' _program=' + IntToStr(Integer(_program)));
+  GlesLog('glGetAttribLocation' + ' _program=' + IntToStr(Integer(_program)));
   Result := glGetAttribLocation_Proc(_program, name);
   GLESCheckError('glGetAttribLocation');
 end;
 
 procedure glGetBooleanv(pname:GLenum; params:pGLboolean);
 begin
-  WritelnLog('OpenGLES', 'glGetBooleanv' + ' pname=' + GLEnumName(pname));
+  GlesLog('glGetBooleanv' + ' pname=' + GLEnumName(pname));
   glGetBooleanv_Proc(pname, params);
   GLESCheckError('glGetBooleanv');
 end;
 
 procedure glGetBufferParameteriv(target:GLenum; pname:GLenum; params:pGLint);
 begin
-  WritelnLog('OpenGLES', 'glGetBufferParameteriv' + ' target=' + GLEnumName(target) + ' pname=' + GLEnumName(pname));
+  GlesLog('glGetBufferParameteriv' + ' target=' + GLEnumName(target) + ' pname=' + GLEnumName(pname));
   glGetBufferParameteriv_Proc(target, pname, params);
   GLESCheckError('glGetBufferParameteriv');
 end;
 
 function glGetError: GLenum;
 begin
-  WritelnLog('OpenGLES', 'glGetError');
+  GlesLog('glGetError');
   Result := glGetError_Proc();
 end;
 
 procedure glGetFloatv(pname:GLenum; params:pGLfloat);
 begin
-  WritelnLog('OpenGLES', 'glGetFloatv' + ' pname=' + GLEnumName(pname));
+  GlesLog('glGetFloatv' + ' pname=' + GLEnumName(pname));
   glGetFloatv_Proc(pname, params);
   GLESCheckError('glGetFloatv');
 end;
 
 procedure glGetFramebufferAttachmentParameteriv(target:GLenum; attachment:GLenum; pname:GLenum; params:pGLint);
 begin
-  WritelnLog('OpenGLES', 'glGetFramebufferAttachmentParameteriv' + ' target=' + GLEnumName(target) + ' attachment=' + GLEnumName(attachment) + ' pname=' + GLEnumName(pname));
+  GlesLog('glGetFramebufferAttachmentParameteriv' + ' target=' + GLEnumName(target) + ' attachment=' + GLEnumName(attachment) + ' pname=' + GLEnumName(pname));
   glGetFramebufferAttachmentParameteriv_Proc(target, attachment, pname, params);
   GLESCheckError('glGetFramebufferAttachmentParameteriv');
 end;
 
 procedure glGetIntegerv(pname:GLenum; params:pGLint);
 begin
-  WritelnLog('OpenGLES', 'glGetIntegerv' + ' pname=' + GLEnumName(pname));
+  GlesLog('glGetIntegerv' + ' pname=' + GLEnumName(pname));
   glGetIntegerv_Proc(pname, params);
   GLESCheckError('glGetIntegerv');
 end;
 
 procedure glGetProgramiv(_program:GLuint; pname:GLenum; params:pGLint);
 begin
-  WritelnLog('OpenGLES', 'glGetProgramiv' + ' _program=' + IntToStr(Integer(_program)) + ' pname=' + GLEnumName(pname));
+  GlesLog('glGetProgramiv' + ' _program=' + IntToStr(Integer(_program)) + ' pname=' + GLEnumName(pname));
   glGetProgramiv_Proc(_program, pname, params);
   GLESCheckError('glGetProgramiv');
 end;
 
 procedure glGetProgramInfoLog(_program:GLuint; bufsize:GLsizei; length:pGLsizei; infolog:PAnsiChar);
 begin
-  WritelnLog('OpenGLES', 'glGetProgramInfoLog' + ' _program=' + IntToStr(Integer(_program)) + ' bufsize=' + IntToStr(bufsize));
+  GlesLog('glGetProgramInfoLog' + ' _program=' + IntToStr(Integer(_program)) + ' bufsize=' + IntToStr(bufsize));
   glGetProgramInfoLog_Proc(_program, bufsize, length, infolog);
   GLESCheckError('glGetProgramInfoLog');
 end;
 
 procedure glGetRenderbufferParameteriv(target:GLenum; pname:GLenum; params:pGLint);
 begin
-  WritelnLog('OpenGLES', 'glGetRenderbufferParameteriv' + ' target=' + GLEnumName(target) + ' pname=' + GLEnumName(pname));
+  GlesLog('glGetRenderbufferParameteriv' + ' target=' + GLEnumName(target) + ' pname=' + GLEnumName(pname));
   glGetRenderbufferParameteriv_Proc(target, pname, params);
   GLESCheckError('glGetRenderbufferParameteriv');
 end;
 
 procedure glGetShaderiv(shader:GLuint; pname:GLenum; params:pGLint);
 begin
-  WritelnLog('OpenGLES', 'glGetShaderiv' + ' shader=' + IntToStr(Integer(shader)) + ' pname=' + GLEnumName(pname));
+  GlesLog('glGetShaderiv' + ' shader=' + IntToStr(Integer(shader)) + ' pname=' + GLEnumName(pname));
   glGetShaderiv_Proc(shader, pname, params);
   GLESCheckError('glGetShaderiv');
 end;
 
 procedure glGetShaderInfoLog(shader:GLuint; bufsize:GLsizei; length:pGLsizei; infolog:PAnsiChar);
 begin
-  WritelnLog('OpenGLES', 'glGetShaderInfoLog' + ' shader=' + IntToStr(Integer(shader)) + ' bufsize=' + IntToStr(bufsize));
+  GlesLog('glGetShaderInfoLog' + ' shader=' + IntToStr(Integer(shader)) + ' bufsize=' + IntToStr(bufsize));
   glGetShaderInfoLog_Proc(shader, bufsize, length, infolog);
   GLESCheckError('glGetShaderInfoLog');
 end;
 
 procedure glGetShaderPrecisionFormat(shadertype:GLenum; precisiontype:GLenum; range:pGLint; precision:pGLint);
 begin
-  WritelnLog('OpenGLES', 'glGetShaderPrecisionFormat' + ' shadertype=' + GLEnumName(shadertype) + ' precisiontype=' + GLEnumName(precisiontype));
+  GlesLog('glGetShaderPrecisionFormat' + ' shadertype=' + GLEnumName(shadertype) + ' precisiontype=' + GLEnumName(precisiontype));
   glGetShaderPrecisionFormat_Proc(shadertype, precisiontype, range, precision);
   GLESCheckError('glGetShaderPrecisionFormat');
 end;
 
 procedure glGetShaderSource(shader:GLuint; bufsize:GLsizei; length:pGLsizei; source:PAnsiChar);
 begin
-  WritelnLog('OpenGLES', 'glGetShaderSource' + ' shader=' + IntToStr(Integer(shader)) + ' bufsize=' + IntToStr(bufsize));
+  GlesLog('glGetShaderSource' + ' shader=' + IntToStr(Integer(shader)) + ' bufsize=' + IntToStr(bufsize));
   glGetShaderSource_Proc(shader, bufsize, length, source);
   GLESCheckError('glGetShaderSource');
 end;
 
 function glGetString(name:GLenum): PGLubyte;
 begin
-  WritelnLog('OpenGLES', 'glGetString' + ' name=' + GLEnumName(name));
+  GlesLog('glGetString' + ' name=' + GLEnumName(name));
   Result := glGetString_Proc(name);
   GLESCheckError('glGetString');
 end;
 
 procedure glGetTexParameterfv(target:GLenum; pname:GLenum; params:pGLfloat);
 begin
-  WritelnLog('OpenGLES', 'glGetTexParameterfv' + ' target=' + GLEnumName(target) + ' pname=' + GLEnumName(pname));
+  GlesLog('glGetTexParameterfv' + ' target=' + GLEnumName(target) + ' pname=' + GLEnumName(pname));
   glGetTexParameterfv_Proc(target, pname, params);
   GLESCheckError('glGetTexParameterfv');
 end;
 
 procedure glGetTexParameteriv(target:GLenum; pname:GLenum; params:pGLint);
 begin
-  WritelnLog('OpenGLES', 'glGetTexParameteriv' + ' target=' + GLEnumName(target) + ' pname=' + GLEnumName(pname));
+  GlesLog('glGetTexParameteriv' + ' target=' + GLEnumName(target) + ' pname=' + GLEnumName(pname));
   glGetTexParameteriv_Proc(target, pname, params);
   GLESCheckError('glGetTexParameteriv');
 end;
 
 procedure glGetUniformfv(_program:GLuint; location:GLint; params:pGLfloat);
 begin
-  WritelnLog('OpenGLES', 'glGetUniformfv' + ' _program=' + IntToStr(Integer(_program)) + ' location=' + IntToStr(location));
+  GlesLog('glGetUniformfv' + ' _program=' + IntToStr(Integer(_program)) + ' location=' + IntToStr(location));
   glGetUniformfv_Proc(_program, location, params);
   GLESCheckError('glGetUniformfv');
 end;
 
 procedure glGetUniformiv(_program:GLuint; location:GLint; params:pGLint);
 begin
-  WritelnLog('OpenGLES', 'glGetUniformiv' + ' _program=' + IntToStr(Integer(_program)) + ' location=' + IntToStr(location));
+  GlesLog('glGetUniformiv' + ' _program=' + IntToStr(Integer(_program)) + ' location=' + IntToStr(location));
   glGetUniformiv_Proc(_program, location, params);
   GLESCheckError('glGetUniformiv');
 end;
 
 function glGetUniformLocation(_program:GLuint; name:PAnsiChar): CInt32;
 begin
-  WritelnLog('OpenGLES', 'glGetUniformLocation' + ' _program=' + IntToStr(Integer(_program)));
+  GlesLog('glGetUniformLocation' + ' _program=' + IntToStr(Integer(_program)));
   Result := glGetUniformLocation_Proc(_program, name);
   GLESCheckError('glGetUniformLocation');
 end;
 
 procedure glGetVertexAttribfv(index:GLuint; pname:GLenum; params:pGLfloat);
 begin
-  WritelnLog('OpenGLES', 'glGetVertexAttribfv' + ' index=' + IntToStr(Integer(index)) + ' pname=' + GLEnumName(pname));
+  GlesLog('glGetVertexAttribfv' + ' index=' + IntToStr(Integer(index)) + ' pname=' + GLEnumName(pname));
   glGetVertexAttribfv_Proc(index, pname, params);
   GLESCheckError('glGetVertexAttribfv');
 end;
 
 procedure glGetVertexAttribiv(index:GLuint; pname:GLenum; params:pGLint);
 begin
-  WritelnLog('OpenGLES', 'glGetVertexAttribiv' + ' index=' + IntToStr(Integer(index)) + ' pname=' + GLEnumName(pname));
+  GlesLog('glGetVertexAttribiv' + ' index=' + IntToStr(Integer(index)) + ' pname=' + GLEnumName(pname));
   glGetVertexAttribiv_Proc(index, pname, params);
   GLESCheckError('glGetVertexAttribiv');
 end;
 
 procedure glGetVertexAttribPointerv(index:GLuint; pname:GLenum; pointer:Ppointer);
 begin
-  WritelnLog('OpenGLES', 'glGetVertexAttribPointerv' + ' index=' + IntToStr(Integer(index)) + ' pname=' + GLEnumName(pname));
+  GlesLog('glGetVertexAttribPointerv' + ' index=' + IntToStr(Integer(index)) + ' pname=' + GLEnumName(pname));
   glGetVertexAttribPointerv_Proc(index, pname, pointer);
   GLESCheckError('glGetVertexAttribPointerv');
 end;
 
 procedure glHint(target:GLenum; mode:GLenum);
 begin
-  WritelnLog('OpenGLES', 'glHint' + ' target=' + GLEnumName(target) + ' mode=' + GLEnumName(mode));
+  GlesLog('glHint' + ' target=' + GLEnumName(target) + ' mode=' + GLEnumName(mode));
   glHint_Proc(target, mode);
   GLESCheckError('glHint');
 end;
 
 function glIsBuffer(buffer:GLuint): GLboolean;
 begin
-  WritelnLog('OpenGLES', 'glIsBuffer' + ' buffer=' + IntToStr(Integer(buffer)));
+  GlesLog('glIsBuffer' + ' buffer=' + IntToStr(Integer(buffer)));
   Result := glIsBuffer_Proc(buffer);
   GLESCheckError('glIsBuffer');
 end;
 
 function glIsEnabled(cap:GLenum): GLboolean;
 begin
-  WritelnLog('OpenGLES', 'glIsEnabled' + ' cap=' + GLEnumName(cap));
+  GlesLog('glIsEnabled' + ' cap=' + GLEnumName(cap));
   Result := glIsEnabled_Proc(cap);
   GLESCheckError('glIsEnabled');
 end;
 
 function glIsFramebuffer(framebuffer:GLuint): GLboolean;
 begin
-  WritelnLog('OpenGLES', 'glIsFramebuffer' + ' framebuffer=' + IntToStr(Integer(framebuffer)));
+  GlesLog('glIsFramebuffer' + ' framebuffer=' + IntToStr(Integer(framebuffer)));
   Result := glIsFramebuffer_Proc(framebuffer);
   GLESCheckError('glIsFramebuffer');
 end;
 
 function glIsProgram(_program:GLuint): GLboolean;
 begin
-  WritelnLog('OpenGLES', 'glIsProgram' + ' _program=' + IntToStr(Integer(_program)));
+  GlesLog('glIsProgram' + ' _program=' + IntToStr(Integer(_program)));
   Result := glIsProgram_Proc(_program);
   GLESCheckError('glIsProgram');
 end;
 
 function glIsRenderbuffer(renderbuffer:GLuint): GLboolean;
 begin
-  WritelnLog('OpenGLES', 'glIsRenderbuffer' + ' renderbuffer=' + IntToStr(Integer(renderbuffer)));
+  GlesLog('glIsRenderbuffer' + ' renderbuffer=' + IntToStr(Integer(renderbuffer)));
   Result := glIsRenderbuffer_Proc(renderbuffer);
   GLESCheckError('glIsRenderbuffer');
 end;
 
 function glIsShader(shader:GLuint): GLboolean;
 begin
-  WritelnLog('OpenGLES', 'glIsShader' + ' shader=' + IntToStr(Integer(shader)));
+  GlesLog('glIsShader' + ' shader=' + IntToStr(Integer(shader)));
   Result := glIsShader_Proc(shader);
   GLESCheckError('glIsShader');
 end;
 
 function glIsTexture(texture:GLuint): GLboolean;
 begin
-  WritelnLog('OpenGLES', 'glIsTexture' + ' texture=' + IntToStr(Integer(texture)));
+  GlesLog('glIsTexture' + ' texture=' + IntToStr(Integer(texture)));
   Result := glIsTexture_Proc(texture);
   GLESCheckError('glIsTexture');
 end;
 
 procedure glLineWidth(width:GLfloat);
 begin
-  WritelnLog('OpenGLES', 'glLineWidth');
+  GlesLog('glLineWidth');
   glLineWidth_Proc(width);
   GLESCheckError('glLineWidth');
 end;
 
 procedure glLinkProgram(_program:GLuint);
 begin
-  WritelnLog('OpenGLES', 'glLinkProgram' + ' _program=' + IntToStr(Integer(_program)));
+  GlesLog('glLinkProgram' + ' _program=' + IntToStr(Integer(_program)));
   glLinkProgram_Proc(_program);
   GLESCheckError('glLinkProgram');
 end;
 
 procedure glPixelStorei(pname:GLenum; param:GLint);
 begin
-  WritelnLog('OpenGLES', 'glPixelStorei' + ' pname=' + GLEnumName(pname) + ' param=' + IntToStr(param));
+  GlesLog('glPixelStorei' + ' pname=' + GLEnumName(pname) + ' param=' + IntToStr(param));
   glPixelStorei_Proc(pname, param);
   GLESCheckError('glPixelStorei');
 end;
 
 procedure glPolygonOffset(factor:GLfloat; units:GLfloat);
 begin
-  WritelnLog('OpenGLES', 'glPolygonOffset');
+  GlesLog('glPolygonOffset');
   glPolygonOffset_Proc(factor, units);
   GLESCheckError('glPolygonOffset');
 end;
 
 procedure glReadPixels(x:GLint; y:GLint; width:GLsizei; height:GLsizei; format:GLenum; _type:GLenum; pixels:pointer);
 begin
-  WritelnLog('OpenGLES', 'glReadPixels' + ' x=' + IntToStr(x) + ' y=' + IntToStr(y) + ' width=' + IntToStr(width) + ' height=' + IntToStr(height));
+  GlesLog('glReadPixels' + ' x=' + IntToStr(x) + ' y=' + IntToStr(y) + ' width=' + IntToStr(width) + ' height=' + IntToStr(height));
   glReadPixels_Proc(x, y, width, height, format, _type, pixels);
   GLESCheckError('glReadPixels');
 end;
 
 procedure glReleaseShaderCompiler;
 begin
-  WritelnLog('OpenGLES', 'glReleaseShaderCompiler');
+  GlesLog('glReleaseShaderCompiler');
   glReleaseShaderCompiler_Proc;
   GLESCheckError('glReleaseShaderCompiler');
 end;
 
 procedure glRenderbufferStorage(target:GLenum; internalformat:GLenum; width:GLsizei; height:GLsizei);
 begin
-  WritelnLog('OpenGLES', 'glRenderbufferStorage' + ' target=' + GLEnumName(target) + ' internalformat=' + GLEnumName(internalformat) + ' width=' + IntToStr(width) + ' height=' + IntToStr(height));
+  GlesLog('glRenderbufferStorage' + ' target=' + GLEnumName(target) + ' internalformat=' + GLEnumName(internalformat) + ' width=' + IntToStr(width) + ' height=' + IntToStr(height));
   glRenderbufferStorage_Proc(target, internalformat, width, height);
   GLESCheckError('glRenderbufferStorage');
 end;
 
 procedure glSampleCoverage(value:GLclampf; invert:GLboolean);
 begin
-  WritelnLog('OpenGLES', 'glSampleCoverage');
+  GlesLog('glSampleCoverage');
   glSampleCoverage_Proc(value, invert);
   GLESCheckError('glSampleCoverage');
 end;
 
 procedure glScissor(x:GLint; y:GLint; width:GLsizei; height:GLsizei);
 begin
-  WritelnLog('OpenGLES', 'glScissor' + ' x=' + IntToStr(x) + ' y=' + IntToStr(y) + ' width=' + IntToStr(width) + ' height=' + IntToStr(height));
+  GlesLog('glScissor' + ' x=' + IntToStr(x) + ' y=' + IntToStr(y) + ' width=' + IntToStr(width) + ' height=' + IntToStr(height));
   glScissor_Proc(x, y, width, height);
   GLESCheckError('glScissor');
 end;
 
 procedure glShaderBinary(n:GLsizei; shaders:pGLuint; binaryformat:GLenum; binary:pointer; length:GLsizei);
 begin
-  WritelnLog('OpenGLES', 'glShaderBinary' + ' n=' + IntToStr(n) + ' binaryformat=' + GLEnumName(binaryformat));
+  GlesLog('glShaderBinary' + ' n=' + IntToStr(n) + ' binaryformat=' + GLEnumName(binaryformat));
   glShaderBinary_Proc(n, shaders, binaryformat, binary, length);
   GLESCheckError('glShaderBinary');
 end;
 
 procedure glShaderSource(shader:GLuint; count:GLsizei; _string:PPGLchar; length:pGLint);
 begin
-  WritelnLog('OpenGLES', 'glShaderSource' + ' shader=' + IntToStr(Integer(shader)) + ' count=' + IntToStr(count));
+  GlesLog('glShaderSource' + ' shader=' + IntToStr(Integer(shader)) + ' count=' + IntToStr(count));
   glShaderSource_Proc(shader, count, _string, length);
   GLESCheckError('glShaderSource');
 end;
 
 procedure glStencilFunc(func:GLenum; ref:GLint; mask:GLuint);
 begin
-  WritelnLog('OpenGLES', 'glStencilFunc' + ' func=' + GLEnumName(func) + ' ref=' + IntToStr(ref) + ' mask=' + IntToStr(Integer(mask)));
+  GlesLog('glStencilFunc' + ' func=' + GLEnumName(func) + ' ref=' + IntToStr(ref) + ' mask=' + IntToStr(Integer(mask)));
   glStencilFunc_Proc(func, ref, mask);
   GLESCheckError('glStencilFunc');
 end;
 
 procedure glStencilFuncSeparate(face:GLenum; func:GLenum; ref:GLint; mask:GLuint);
 begin
-  WritelnLog('OpenGLES', 'glStencilFuncSeparate' + ' face=' + GLEnumName(face) + ' func=' + GLEnumName(func) + ' ref=' + IntToStr(ref) + ' mask=' + IntToStr(Integer(mask)));
+  GlesLog('glStencilFuncSeparate' + ' face=' + GLEnumName(face) + ' func=' + GLEnumName(func) + ' ref=' + IntToStr(ref) + ' mask=' + IntToStr(Integer(mask)));
   glStencilFuncSeparate_Proc(face, func, ref, mask);
   GLESCheckError('glStencilFuncSeparate');
 end;
 
 procedure glStencilMask(mask:GLuint);
 begin
-  WritelnLog('OpenGLES', 'glStencilMask' + ' mask=' + IntToStr(Integer(mask)));
+  GlesLog('glStencilMask' + ' mask=' + IntToStr(Integer(mask)));
   glStencilMask_Proc(mask);
   GLESCheckError('glStencilMask');
 end;
 
 procedure glStencilMaskSeparate(face:GLenum; mask:GLuint);
 begin
-  WritelnLog('OpenGLES', 'glStencilMaskSeparate' + ' face=' + GLEnumName(face) + ' mask=' + IntToStr(Integer(mask)));
+  GlesLog('glStencilMaskSeparate' + ' face=' + GLEnumName(face) + ' mask=' + IntToStr(Integer(mask)));
   glStencilMaskSeparate_Proc(face, mask);
   GLESCheckError('glStencilMaskSeparate');
 end;
 
 procedure glStencilOp(fail:GLenum; zfail:GLenum; zpass:GLenum);
 begin
-  WritelnLog('OpenGLES', 'glStencilOp' + ' fail=' + GLEnumName(fail) + ' zfail=' + GLEnumName(zfail) + ' zpass=' + GLEnumName(zpass));
+  GlesLog('glStencilOp' + ' fail=' + GLEnumName(fail) + ' zfail=' + GLEnumName(zfail) + ' zpass=' + GLEnumName(zpass));
   glStencilOp_Proc(fail, zfail, zpass);
   GLESCheckError('glStencilOp');
 end;
 
 procedure glStencilOpSeparate(face:GLenum; fail:GLenum; zfail:GLenum; zpass:GLenum);
 begin
-  WritelnLog('OpenGLES', 'glStencilOpSeparate' + ' face=' + GLEnumName(face) + ' fail=' + GLEnumName(fail) + ' zfail=' + GLEnumName(zfail) + ' zpass=' + GLEnumName(zpass));
+  GlesLog('glStencilOpSeparate' + ' face=' + GLEnumName(face) + ' fail=' + GLEnumName(fail) + ' zfail=' + GLEnumName(zfail) + ' zpass=' + GLEnumName(zpass));
   glStencilOpSeparate_Proc(face, fail, zfail, zpass);
   GLESCheckError('glStencilOpSeparate');
 end;
 
 procedure glTexImage2D(target:GLenum; level:GLint; internalformat:GLenum; width:GLsizei; height:GLsizei; border:GLint; format:GLenum; _type:GLenum; pixels:pointer);
 begin
-  WritelnLog('OpenGLES', 'glTexImage2D' + ' target=' + GLEnumName(target) + ' level=' + IntToStr(level) + ' internalformat=' + GLEnumName(internalformat) + ' width=' + IntToStr(width));
+  GlesLog('glTexImage2D' + ' target=' + GLEnumName(target) + ' level=' + IntToStr(level) + ' internalformat=' + GLEnumName(internalformat) + ' width=' + IntToStr(width) + ' height=' + IntToStr(height) + ' border=' + IntToStr(border) + ' format=' + GLEnumName(format) + ' type=' + GLEnumName(_type));
   glTexImage2D_Proc(target, level, internalformat, width, height, border, format, _type, pixels);
   GLESCheckError('glTexImage2D');
 end;
 
 procedure glTexParameterf(target:GLenum; pname:GLenum; param:GLfloat);
 begin
-  WritelnLog('OpenGLES', 'glTexParameterf' + ' target=' + GLEnumName(target) + ' pname=' + GLEnumName(pname));
+  GlesLog('glTexParameterf' + ' target=' + GLEnumName(target) + ' pname=' + GLEnumName(pname));
   glTexParameterf_Proc(target, pname, param);
   GLESCheckError('glTexParameterf');
 end;
 
 procedure glTexParameterfv(target:GLenum; pname:GLenum; params:pGLfloat);
 begin
-  WritelnLog('OpenGLES', 'glTexParameterfv' + ' target=' + GLEnumName(target) + ' pname=' + GLEnumName(pname));
+  GlesLog('glTexParameterfv' + ' target=' + GLEnumName(target) + ' pname=' + GLEnumName(pname));
   glTexParameterfv_Proc(target, pname, params);
   GLESCheckError('glTexParameterfv');
 end;
 
 procedure glTexParameteri(target:GLenum; pname:GLenum; param:GLint);
 begin
-  WritelnLog('OpenGLES', 'glTexParameteri' + ' target=' + GLEnumName(target) + ' pname=' + GLEnumName(pname) + ' param=' + IntToStr(param));
+  GlesLog('glTexParameteri' + ' target=' + GLEnumName(target) + ' pname=' + GLEnumName(pname) + ' param=' + IntToStr(param));
   glTexParameteri_Proc(target, pname, param);
   GLESCheckError('glTexParameteri');
 end;
 
 procedure glTexParameteriv(target:GLenum; pname:GLenum; params:pGLint);
 begin
-  WritelnLog('OpenGLES', 'glTexParameteriv' + ' target=' + GLEnumName(target) + ' pname=' + GLEnumName(pname));
+  GlesLog('glTexParameteriv' + ' target=' + GLEnumName(target) + ' pname=' + GLEnumName(pname));
   glTexParameteriv_Proc(target, pname, params);
   GLESCheckError('glTexParameteriv');
 end;
 
 procedure glTexSubImage2D(target:GLenum; level:GLint; xoffset:GLint; yoffset:GLint; width:GLsizei; height:GLsizei; format:GLenum; _type:GLenum; pixels:pointer);
 begin
-  WritelnLog('OpenGLES', 'glTexSubImage2D' + ' target=' + GLEnumName(target) + ' level=' + IntToStr(level) + ' xoffset=' + IntToStr(xoffset) + ' yoffset=' + IntToStr(yoffset));
+  GlesLog('glTexSubImage2D' + ' target=' + GLEnumName(target) + ' level=' + IntToStr(level) + ' xoffset=' + IntToStr(xoffset) + ' yoffset=' + IntToStr(yoffset));
   glTexSubImage2D_Proc(target, level, xoffset, yoffset, width, height, format, _type, pixels);
   GLESCheckError('glTexSubImage2D');
 end;
 
 procedure glUniform1f(location:GLint; x:GLfloat);
 begin
-  WritelnLog('OpenGLES', 'glUniform1f' + ' location=' + IntToStr(location));
+  GlesLog('glUniform1f' + ' location=' + IntToStr(location));
   glUniform1f_Proc(location, x);
   GLESCheckError('glUniform1f');
 end;
 
 procedure glUniform1fv(location:GLint; count:GLsizei; v:pGLfloat);
 begin
-  WritelnLog('OpenGLES', 'glUniform1fv' + ' location=' + IntToStr(location) + ' count=' + IntToStr(count));
+  GlesLog('glUniform1fv' + ' location=' + IntToStr(location) + ' count=' + IntToStr(count));
   glUniform1fv_Proc(location, count, v);
   GLESCheckError('glUniform1fv');
 end;
 
 procedure glUniform1i(location:GLint; x:GLint);
 begin
-  WritelnLog('OpenGLES', 'glUniform1i' + ' location=' + IntToStr(location) + ' x=' + IntToStr(x));
+  GlesLog('glUniform1i' + ' location=' + IntToStr(location) + ' x=' + IntToStr(x));
   glUniform1i_Proc(location, x);
   GLESCheckError('glUniform1i');
 end;
 
 procedure glUniform1iv(location:GLint; count:GLsizei; v:pGLint);
 begin
-  WritelnLog('OpenGLES', 'glUniform1iv' + ' location=' + IntToStr(location) + ' count=' + IntToStr(count));
+  GlesLog('glUniform1iv' + ' location=' + IntToStr(location) + ' count=' + IntToStr(count));
   glUniform1iv_Proc(location, count, v);
   GLESCheckError('glUniform1iv');
 end;
 
 procedure glUniform2f(location:GLint; x:GLfloat; y:GLfloat);
 begin
-  WritelnLog('OpenGLES', 'glUniform2f' + ' location=' + IntToStr(location));
+  GlesLog('glUniform2f' + ' location=' + IntToStr(location));
   glUniform2f_Proc(location, x, y);
   GLESCheckError('glUniform2f');
 end;
 
 procedure glUniform2fv(location:GLint; count:GLsizei; v:pGLfloat);
 begin
-  WritelnLog('OpenGLES', 'glUniform2fv' + ' location=' + IntToStr(location) + ' count=' + IntToStr(count));
+  GlesLog('glUniform2fv' + ' location=' + IntToStr(location) + ' count=' + IntToStr(count));
   glUniform2fv_Proc(location, count, v);
   GLESCheckError('glUniform2fv');
 end;
 
 procedure glUniform2i(location:GLint; x:GLint; y:GLint);
 begin
-  WritelnLog('OpenGLES', 'glUniform2i' + ' location=' + IntToStr(location) + ' x=' + IntToStr(x) + ' y=' + IntToStr(y));
+  GlesLog('glUniform2i' + ' location=' + IntToStr(location) + ' x=' + IntToStr(x) + ' y=' + IntToStr(y));
   glUniform2i_Proc(location, x, y);
   GLESCheckError('glUniform2i');
 end;
 
 procedure glUniform2iv(location:GLint; count:GLsizei; v:pGLint);
 begin
-  WritelnLog('OpenGLES', 'glUniform2iv' + ' location=' + IntToStr(location) + ' count=' + IntToStr(count));
+  GlesLog('glUniform2iv' + ' location=' + IntToStr(location) + ' count=' + IntToStr(count));
   glUniform2iv_Proc(location, count, v);
   GLESCheckError('glUniform2iv');
 end;
 
 procedure glUniform3f(location:GLint; x:GLfloat; y:GLfloat; z:GLfloat);
 begin
-  WritelnLog('OpenGLES', 'glUniform3f' + ' location=' + IntToStr(location));
+  GlesLog('glUniform3f' + ' location=' + IntToStr(location));
   glUniform3f_Proc(location, x, y, z);
   GLESCheckError('glUniform3f');
 end;
 
 procedure glUniform3fv(location:GLint; count:GLsizei; v:pGLfloat);
 begin
-  WritelnLog('OpenGLES', 'glUniform3fv' + ' location=' + IntToStr(location) + ' count=' + IntToStr(count));
+  GlesLog('glUniform3fv' + ' location=' + IntToStr(location) + ' count=' + IntToStr(count));
   glUniform3fv_Proc(location, count, v);
   GLESCheckError('glUniform3fv');
 end;
 
 procedure glUniform3i(location:GLint; x:GLint; y:GLint; z:GLint);
 begin
-  WritelnLog('OpenGLES', 'glUniform3i' + ' location=' + IntToStr(location) + ' x=' + IntToStr(x) + ' y=' + IntToStr(y) + ' z=' + IntToStr(z));
+  GlesLog('glUniform3i' + ' location=' + IntToStr(location) + ' x=' + IntToStr(x) + ' y=' + IntToStr(y) + ' z=' + IntToStr(z));
   glUniform3i_Proc(location, x, y, z);
   GLESCheckError('glUniform3i');
 end;
 
 procedure glUniform3iv(location:GLint; count:GLsizei; v:pGLint);
 begin
-  WritelnLog('OpenGLES', 'glUniform3iv' + ' location=' + IntToStr(location) + ' count=' + IntToStr(count));
+  GlesLog('glUniform3iv' + ' location=' + IntToStr(location) + ' count=' + IntToStr(count));
   glUniform3iv_Proc(location, count, v);
   GLESCheckError('glUniform3iv');
 end;
 
 procedure glUniform4f(location:GLint; x:GLfloat; y:GLfloat; z:GLfloat; w:GLfloat);
 begin
-  WritelnLog('OpenGLES', 'glUniform4f' + ' location=' + IntToStr(location));
+  GlesLog('glUniform4f' + ' location=' + IntToStr(location));
   glUniform4f_Proc(location, x, y, z, w);
   GLESCheckError('glUniform4f');
 end;
 
 procedure glUniform4fv(location:GLint; count:GLsizei; v:pGLfloat);
 begin
-  WritelnLog('OpenGLES', 'glUniform4fv' + ' location=' + IntToStr(location) + ' count=' + IntToStr(count));
+  GlesLog('glUniform4fv' + ' location=' + IntToStr(location) + ' count=' + IntToStr(count));
   glUniform4fv_Proc(location, count, v);
   GLESCheckError('glUniform4fv');
 end;
 
 procedure glUniform4i(location:GLint; x:GLint; y:GLint; z:GLint; w:GLint);
 begin
-  WritelnLog('OpenGLES', 'glUniform4i' + ' location=' + IntToStr(location) + ' x=' + IntToStr(x) + ' y=' + IntToStr(y) + ' z=' + IntToStr(z));
+  GlesLog('glUniform4i' + ' location=' + IntToStr(location) + ' x=' + IntToStr(x) + ' y=' + IntToStr(y) + ' z=' + IntToStr(z));
   glUniform4i_Proc(location, x, y, z, w);
   GLESCheckError('glUniform4i');
 end;
 
 procedure glUniform4iv(location:GLint; count:GLsizei; v:pGLint);
 begin
-  WritelnLog('OpenGLES', 'glUniform4iv' + ' location=' + IntToStr(location) + ' count=' + IntToStr(count));
+  GlesLog('glUniform4iv' + ' location=' + IntToStr(location) + ' count=' + IntToStr(count));
   glUniform4iv_Proc(location, count, v);
   GLESCheckError('glUniform4iv');
 end;
 
 procedure glUniformMatrix2fv(location:GLint; count:GLsizei; transpose:GLboolean; value:pGLfloat);
 begin
-  WritelnLog('OpenGLES', 'glUniformMatrix2fv' + ' location=' + IntToStr(location) + ' count=' + IntToStr(count));
+  GlesLog('glUniformMatrix2fv' + ' location=' + IntToStr(location) + ' count=' + IntToStr(count));
   glUniformMatrix2fv_Proc(location, count, transpose, value);
   GLESCheckError('glUniformMatrix2fv');
 end;
 
 procedure glUniformMatrix3fv(location:GLint; count:GLsizei; transpose:GLboolean; value:pGLfloat);
 begin
-  WritelnLog('OpenGLES', 'glUniformMatrix3fv' + ' location=' + IntToStr(location) + ' count=' + IntToStr(count));
+  GlesLog('glUniformMatrix3fv' + ' location=' + IntToStr(location) + ' count=' + IntToStr(count));
   glUniformMatrix3fv_Proc(location, count, transpose, value);
   GLESCheckError('glUniformMatrix3fv');
 end;
 
 procedure glUniformMatrix4fv(location:GLint; count:GLsizei; transpose:GLboolean; value:pGLfloat);
 begin
-  WritelnLog('OpenGLES', 'glUniformMatrix4fv' + ' location=' + IntToStr(location) + ' count=' + IntToStr(count));
+  GlesLog('glUniformMatrix4fv' + ' location=' + IntToStr(location) + ' count=' + IntToStr(count));
   glUniformMatrix4fv_Proc(location, count, transpose, value);
   GLESCheckError('glUniformMatrix4fv');
 end;
 
 procedure glUseProgram(_program:GLuint);
 begin
-  WritelnLog('OpenGLES', 'glUseProgram' + ' _program=' + IntToStr(Integer(_program)));
+  GlesLog('glUseProgram' + ' _program=' + IntToStr(Integer(_program)));
   glUseProgram_Proc(_program);
   GLESCheckError('glUseProgram');
 end;
 
 procedure glValidateProgram(_program:GLuint);
 begin
-  WritelnLog('OpenGLES', 'glValidateProgram' + ' _program=' + IntToStr(Integer(_program)));
+  GlesLog('glValidateProgram' + ' _program=' + IntToStr(Integer(_program)));
   glValidateProgram_Proc(_program);
   GLESCheckError('glValidateProgram');
 end;
 
 procedure glVertexAttrib1f(indx:GLuint; x:GLfloat);
 begin
-  WritelnLog('OpenGLES', 'glVertexAttrib1f' + ' indx=' + IntToStr(Integer(indx)));
+  GlesLog('glVertexAttrib1f' + ' indx=' + IntToStr(Integer(indx)));
   glVertexAttrib1f_Proc(indx, x);
   GLESCheckError('glVertexAttrib1f');
 end;
 
 procedure glVertexAttrib1fv(indx:GLuint; values:pGLfloat);
 begin
-  WritelnLog('OpenGLES', 'glVertexAttrib1fv' + ' indx=' + IntToStr(Integer(indx)));
+  GlesLog('glVertexAttrib1fv' + ' indx=' + IntToStr(Integer(indx)));
   glVertexAttrib1fv_Proc(indx, values);
   GLESCheckError('glVertexAttrib1fv');
 end;
 
 procedure glVertexAttrib2f(indx:GLuint; x:GLfloat; y:GLfloat);
 begin
-  WritelnLog('OpenGLES', 'glVertexAttrib2f' + ' indx=' + IntToStr(Integer(indx)));
+  GlesLog('glVertexAttrib2f' + ' indx=' + IntToStr(Integer(indx)));
   glVertexAttrib2f_Proc(indx, x, y);
   GLESCheckError('glVertexAttrib2f');
 end;
 
 procedure glVertexAttrib2fv(indx:GLuint; values:pGLfloat);
 begin
-  WritelnLog('OpenGLES', 'glVertexAttrib2fv' + ' indx=' + IntToStr(Integer(indx)));
+  GlesLog('glVertexAttrib2fv' + ' indx=' + IntToStr(Integer(indx)));
   glVertexAttrib2fv_Proc(indx, values);
   GLESCheckError('glVertexAttrib2fv');
 end;
 
 procedure glVertexAttrib3f(indx:GLuint; x:GLfloat; y:GLfloat; z:GLfloat);
 begin
-  WritelnLog('OpenGLES', 'glVertexAttrib3f' + ' indx=' + IntToStr(Integer(indx)));
+  GlesLog('glVertexAttrib3f' + ' indx=' + IntToStr(Integer(indx)));
   glVertexAttrib3f_Proc(indx, x, y, z);
   GLESCheckError('glVertexAttrib3f');
 end;
 
 procedure glVertexAttrib3fv(indx:GLuint; values:pGLfloat);
 begin
-  WritelnLog('OpenGLES', 'glVertexAttrib3fv' + ' indx=' + IntToStr(Integer(indx)));
+  GlesLog('glVertexAttrib3fv' + ' indx=' + IntToStr(Integer(indx)));
   glVertexAttrib3fv_Proc(indx, values);
   GLESCheckError('glVertexAttrib3fv');
 end;
 
 procedure glVertexAttrib4f(indx:GLuint; x:GLfloat; y:GLfloat; z:GLfloat; w:GLfloat);
 begin
-  WritelnLog('OpenGLES', 'glVertexAttrib4f' + ' indx=' + IntToStr(Integer(indx)));
+  GlesLog('glVertexAttrib4f' + ' indx=' + IntToStr(Integer(indx)));
   glVertexAttrib4f_Proc(indx, x, y, z, w);
   GLESCheckError('glVertexAttrib4f');
 end;
 
 procedure glVertexAttrib4fv(indx:GLuint; values:pGLfloat);
 begin
-  WritelnLog('OpenGLES', 'glVertexAttrib4fv' + ' indx=' + IntToStr(Integer(indx)));
+  GlesLog('glVertexAttrib4fv' + ' indx=' + IntToStr(Integer(indx)));
   glVertexAttrib4fv_Proc(indx, values);
   GLESCheckError('glVertexAttrib4fv');
 end;
 
 procedure glVertexAttribPointer(indx:GLuint; size:GLint; _type:GLenum; normalized:GLboolean; stride:GLsizei; ptr:pointer);
 begin
-  WritelnLog('OpenGLES', 'glVertexAttribPointer' + ' indx=' + IntToStr(Integer(indx)) + ' size=' + IntToStr(size) + ' _type=' + GLEnumName(_type));
+  GlesLog('glVertexAttribPointer' + ' indx=' + IntToStr(Integer(indx)) + ' size=' + IntToStr(size) + ' _type=' + GLEnumName(_type));
   glVertexAttribPointer_Proc(indx, size, _type, normalized, stride, ptr);
   GLESCheckError('glVertexAttribPointer');
 end;
 
 procedure glViewport(x:GLint; y:GLint; width:GLsizei; height:GLsizei);
 begin
-  WritelnLog('OpenGLES', 'glViewport' + ' x=' + IntToStr(x) + ' y=' + IntToStr(y) + ' width=' + IntToStr(width) + ' height=' + IntToStr(height));
+  GlesLog('glViewport' + ' x=' + IntToStr(x) + ' y=' + IntToStr(y) + ' width=' + IntToStr(width) + ' height=' + IntToStr(height));
   glViewport_Proc(x, y, width, height);
   GLESCheckError('glViewport');
 end;
 
 procedure glReadBuffer(Src: GLenum);
 begin
-  WritelnLog('OpenGLES', 'glReadBuffer' + ' Src=' + GLEnumName(Src));
+  GlesLog('glReadBuffer' + ' Src=' + GLEnumName(Src));
   glReadBuffer_Proc(Src);
   GLESCheckError('glReadBuffer');
 end;
 
 procedure glDrawRangeElements(Mode: GLenum; Start, Endd: GLuint; Count: GLsizei; Kind: GLenum; Indices: Pointer);
 begin
-  WritelnLog('OpenGLES', 'glDrawRangeElements' + ' Mode=' + GLEnumName(Mode) + ' Start=' + IntToStr(Integer(Start)) + ' Endd=' + IntToStr(Integer(Endd)) + ' Count=' + IntToStr(Count));
+  GlesLog('glDrawRangeElements' + ' Mode=' + GLEnumName(Mode) + ' Start=' + IntToStr(Integer(Start)) + ' Endd=' + IntToStr(Integer(Endd)) + ' Count=' + IntToStr(Count));
   glDrawRangeElements_Proc(Mode, Start, Endd, Count, Kind, Indices);
   GLESCheckError('glDrawRangeElements');
 end;
 
 procedure glTexImage3D(target:TGLenum; level:TGLint; internalformat:TGLint; width:TGLsizei; height:TGLsizei; depth:TGLsizei; border:TGLint; format:TGLenum; _type:TGLenum; pixels:pointer);
 begin
-  WritelnLog('OpenGLES', 'glTexImage3D' + ' target=' + GLEnumName(target) + ' level=' + IntToStr(level) + ' internalformat=' + IntToStr(internalformat) + ' width=' + IntToStr(width));
+  GlesLog('glTexImage3D' + ' target=' + GLEnumName(target) + ' level=' + IntToStr(level) + ' internalformat=' + IntToStr(internalformat) + ' width=' + IntToStr(width));
   glTexImage3D_Proc(target, level, internalformat, width, height, depth, border, format, _type, pixels);
   GLESCheckError('glTexImage3D');
 end;
 
 procedure glTexSubImage3D(target:TGLenum; level:TGLint; xoffset:TGLint; yoffset:TGLint; zoffset:TGLint; width:TGLsizei; height:TGLsizei; depth:TGLsizei; format:TGLenum; _type:TGLenum; pixels:pointer);
 begin
-  WritelnLog('OpenGLES', 'glTexSubImage3D' + ' target=' + GLEnumName(target) + ' level=' + IntToStr(level) + ' xoffset=' + IntToStr(xoffset) + ' yoffset=' + IntToStr(yoffset));
+  GlesLog('glTexSubImage3D' + ' target=' + GLEnumName(target) + ' level=' + IntToStr(level) + ' xoffset=' + IntToStr(xoffset) + ' yoffset=' + IntToStr(yoffset));
   glTexSubImage3D_Proc(target, level, xoffset, yoffset, zoffset, width, height, depth, format, _type, pixels);
   GLESCheckError('glTexSubImage3D');
 end;
 
 procedure glCopyTexSubImage3D(target:TGLenum; level:TGLint; xoffset:TGLint; yoffset:TGLint; zoffset:TGLint; x:TGLint; y:TGLint; width:TGLsizei; height:TGLsizei);
 begin
-  WritelnLog('OpenGLES', 'glCopyTexSubImage3D' + ' target=' + GLEnumName(target) + ' level=' + IntToStr(level) + ' xoffset=' + IntToStr(xoffset) + ' yoffset=' + IntToStr(yoffset));
+  GlesLog('glCopyTexSubImage3D' + ' target=' + GLEnumName(target) + ' level=' + IntToStr(level) + ' xoffset=' + IntToStr(xoffset) + ' yoffset=' + IntToStr(yoffset));
   glCopyTexSubImage3D_Proc(target, level, xoffset, yoffset, zoffset, x, y, width, height);
   GLESCheckError('glCopyTexSubImage3D');
 end;
 
 procedure glCompressedTexImage3D(target:TGLenum; level:TGLint; internalformat:TGLenum; width:TGLsizei; height:TGLsizei; depth:TGLsizei; border:TGLint; imageSize:TGLsizei; data:pointer);
 begin
-  WritelnLog('OpenGLES', 'glCompressedTexImage3D' + ' target=' + GLEnumName(target) + ' level=' + IntToStr(level) + ' internalformat=' + GLEnumName(internalformat) + ' width=' + IntToStr(width));
+  GlesLog('glCompressedTexImage3D' + ' target=' + GLEnumName(target) + ' level=' + IntToStr(level) + ' internalformat=' + GLEnumName(internalformat) + ' width=' + IntToStr(width));
   glCompressedTexImage3D_Proc(target, level, internalformat, width, height, depth, border, imageSize, data);
   GLESCheckError('glCompressedTexImage3D');
 end;
 
 procedure glCompressedTexSubImage3D(target:TGLenum; level:TGLint; xoffset:TGLint; yoffset:TGLint; zoffset:TGLint; width:TGLsizei; height:TGLsizei; depth:TGLsizei; format:TGLenum; imageSize:TGLsizei; data:pointer);
 begin
-  WritelnLog('OpenGLES', 'glCompressedTexSubImage3D' + ' target=' + GLEnumName(target) + ' level=' + IntToStr(level) + ' xoffset=' + IntToStr(xoffset) + ' yoffset=' + IntToStr(yoffset));
+  GlesLog('glCompressedTexSubImage3D' + ' target=' + GLEnumName(target) + ' level=' + IntToStr(level) + ' xoffset=' + IntToStr(xoffset) + ' yoffset=' + IntToStr(yoffset));
   glCompressedTexSubImage3D_Proc(target, level, xoffset, yoffset, zoffset, width, height, depth, format, imageSize, data);
   GLESCheckError('glCompressedTexSubImage3D');
 end;
 
 procedure glGenQueries(n:TGLsizei; ids:PGLuint);
 begin
-  WritelnLog('OpenGLES', 'glGenQueries' + ' n=' + IntToStr(n));
+  GlesLog('glGenQueries' + ' n=' + IntToStr(n));
   glGenQueries_Proc(n, ids);
   GLESCheckError('glGenQueries');
 end;
 
 procedure glDeleteQueries(n:TGLsizei; ids:PGLuint);
 begin
-  WritelnLog('OpenGLES', 'glDeleteQueries' + ' n=' + IntToStr(n));
+  GlesLog('glDeleteQueries' + ' n=' + IntToStr(n));
   glDeleteQueries_Proc(n, ids);
   GLESCheckError('glDeleteQueries');
 end;
 
 function glIsQuery(id:TGLuint): GLboolean;
 begin
-  WritelnLog('OpenGLES', 'glIsQuery' + ' id=' + IntToStr(Integer(id)));
+  GlesLog('glIsQuery' + ' id=' + IntToStr(Integer(id)));
   Result := glIsQuery_Proc(id);
   GLESCheckError('glIsQuery');
 end;
 
 procedure glBeginQuery(target:TGLenum; id:TGLuint);
 begin
-  WritelnLog('OpenGLES', 'glBeginQuery' + ' target=' + GLEnumName(target) + ' id=' + IntToStr(Integer(id)));
+  GlesLog('glBeginQuery' + ' target=' + GLEnumName(target) + ' id=' + IntToStr(Integer(id)));
   glBeginQuery_Proc(target, id);
   GLESCheckError('glBeginQuery');
 end;
 
 procedure glEndQuery(target:TGLenum);
 begin
-  WritelnLog('OpenGLES', 'glEndQuery' + ' target=' + GLEnumName(target));
+  GlesLog('glEndQuery' + ' target=' + GLEnumName(target));
   glEndQuery_Proc(target);
   GLESCheckError('glEndQuery');
 end;
 
 procedure glGetQueryiv(target:TGLenum; pname:TGLenum; params:PGLint);
 begin
-  WritelnLog('OpenGLES', 'glGetQueryiv' + ' target=' + GLEnumName(target) + ' pname=' + GLEnumName(pname));
+  GlesLog('glGetQueryiv' + ' target=' + GLEnumName(target) + ' pname=' + GLEnumName(pname));
   glGetQueryiv_Proc(target, pname, params);
   GLESCheckError('glGetQueryiv');
 end;
 
 procedure glGetQueryObjectuiv(id:TGLuint; pname:TGLenum; params:PGLuint);
 begin
-  WritelnLog('OpenGLES', 'glGetQueryObjectuiv' + ' id=' + IntToStr(Integer(id)) + ' pname=' + GLEnumName(pname));
+  GlesLog('glGetQueryObjectuiv' + ' id=' + IntToStr(Integer(id)) + ' pname=' + GLEnumName(pname));
   glGetQueryObjectuiv_Proc(id, pname, params);
   GLESCheckError('glGetQueryObjectuiv');
 end;
 
 function glUnmapBuffer(Target: GLuint): GLboolean;
 begin
-  WritelnLog('OpenGLES', 'glUnmapBuffer' + ' Target=' + IntToStr(Integer(Target)));
+  GlesLog('glUnmapBuffer' + ' Target=' + IntToStr(Integer(Target)));
   Result := glUnmapBuffer_Proc(Target);
   GLESCheckError('glUnmapBuffer');
 end;
 
 procedure glGetBufferPointerv(target:TGLenum; pname:TGLenum; params:Ppointer);
 begin
-  WritelnLog('OpenGLES', 'glGetBufferPointerv' + ' target=' + GLEnumName(target) + ' pname=' + GLEnumName(pname));
+  GlesLog('glGetBufferPointerv' + ' target=' + GLEnumName(target) + ' pname=' + GLEnumName(pname));
   glGetBufferPointerv_Proc(target, pname, params);
   GLESCheckError('glGetBufferPointerv');
 end;
 
 procedure glDrawBuffers(n:TGLsizei; bufs:PGLenum);
 begin
-  WritelnLog('OpenGLES', 'glDrawBuffers' + ' n=' + IntToStr(n));
+  GlesLog('glDrawBuffers' + ' n=' + IntToStr(n));
   glDrawBuffers_Proc(n, bufs);
   GLESCheckError('glDrawBuffers');
 end;
 
 procedure glUniformMatrix2x3fv(location:TGLint; count:TGLsizei; transpose:TGLboolean; value:PGLfloat);
 begin
-  WritelnLog('OpenGLES', 'glUniformMatrix2x3fv' + ' location=' + IntToStr(location) + ' count=' + IntToStr(count));
+  GlesLog('glUniformMatrix2x3fv' + ' location=' + IntToStr(location) + ' count=' + IntToStr(count));
   glUniformMatrix2x3fv_Proc(location, count, transpose, value);
   GLESCheckError('glUniformMatrix2x3fv');
 end;
 
 procedure glUniformMatrix3x2fv(location:TGLint; count:TGLsizei; transpose:TGLboolean; value:PGLfloat);
 begin
-  WritelnLog('OpenGLES', 'glUniformMatrix3x2fv' + ' location=' + IntToStr(location) + ' count=' + IntToStr(count));
+  GlesLog('glUniformMatrix3x2fv' + ' location=' + IntToStr(location) + ' count=' + IntToStr(count));
   glUniformMatrix3x2fv_Proc(location, count, transpose, value);
   GLESCheckError('glUniformMatrix3x2fv');
 end;
 
 procedure glUniformMatrix2x4fv(location:TGLint; count:TGLsizei; transpose:TGLboolean; value:PGLfloat);
 begin
-  WritelnLog('OpenGLES', 'glUniformMatrix2x4fv' + ' location=' + IntToStr(location) + ' count=' + IntToStr(count));
+  GlesLog('glUniformMatrix2x4fv' + ' location=' + IntToStr(location) + ' count=' + IntToStr(count));
   glUniformMatrix2x4fv_Proc(location, count, transpose, value);
   GLESCheckError('glUniformMatrix2x4fv');
 end;
 
 procedure glUniformMatrix4x2fv(location:TGLint; count:TGLsizei; transpose:TGLboolean; value:PGLfloat);
 begin
-  WritelnLog('OpenGLES', 'glUniformMatrix4x2fv' + ' location=' + IntToStr(location) + ' count=' + IntToStr(count));
+  GlesLog('glUniformMatrix4x2fv' + ' location=' + IntToStr(location) + ' count=' + IntToStr(count));
   glUniformMatrix4x2fv_Proc(location, count, transpose, value);
   GLESCheckError('glUniformMatrix4x2fv');
 end;
 
 procedure glUniformMatrix3x4fv(location:TGLint; count:TGLsizei; transpose:TGLboolean; value:PGLfloat);
 begin
-  WritelnLog('OpenGLES', 'glUniformMatrix3x4fv' + ' location=' + IntToStr(location) + ' count=' + IntToStr(count));
+  GlesLog('glUniformMatrix3x4fv' + ' location=' + IntToStr(location) + ' count=' + IntToStr(count));
   glUniformMatrix3x4fv_Proc(location, count, transpose, value);
   GLESCheckError('glUniformMatrix3x4fv');
 end;
 
 procedure glUniformMatrix4x3fv(location:TGLint; count:TGLsizei; transpose:TGLboolean; value:PGLfloat);
 begin
-  WritelnLog('OpenGLES', 'glUniformMatrix4x3fv' + ' location=' + IntToStr(location) + ' count=' + IntToStr(count));
+  GlesLog('glUniformMatrix4x3fv' + ' location=' + IntToStr(location) + ' count=' + IntToStr(count));
   glUniformMatrix4x3fv_Proc(location, count, transpose, value);
   GLESCheckError('glUniformMatrix4x3fv');
 end;
 
 procedure glBlitFramebuffer(srcX0:TGLint; srcY0:TGLint; srcX1:TGLint; srcY1:TGLint; dstX0:TGLint; dstY0:TGLint; dstX1:TGLint; dstY1:TGLint; mask:TGLbitfield; filter:TGLenum);
 begin
-  WritelnLog('OpenGLES', 'glBlitFramebuffer' + ' srcX0=' + IntToStr(srcX0) + ' srcY0=' + IntToStr(srcY0) + ' srcX1=' + IntToStr(srcX1) + ' srcY1=' + IntToStr(srcY1));
+  GlesLog('glBlitFramebuffer' + ' srcX0=' + IntToStr(srcX0) + ' srcY0=' + IntToStr(srcY0) + ' srcX1=' + IntToStr(srcX1) + ' srcY1=' + IntToStr(srcY1));
   glBlitFramebuffer_Proc(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter);
   GLESCheckError('glBlitFramebuffer');
 end;
 
 procedure glRenderbufferStorageMultisample(target:TGLenum; samples:TGLsizei; internalformat:TGLenum; width:TGLsizei; height:TGLsizei);
 begin
-  WritelnLog('OpenGLES', 'glRenderbufferStorageMultisample' + ' target=' + GLEnumName(target) + ' samples=' + IntToStr(samples) + ' internalformat=' + GLEnumName(internalformat) + ' width=' + IntToStr(width));
+  GlesLog('glRenderbufferStorageMultisample' + ' target=' + GLEnumName(target) + ' samples=' + IntToStr(samples) + ' internalformat=' + GLEnumName(internalformat) + ' width=' + IntToStr(width));
   glRenderbufferStorageMultisample_Proc(target, samples, internalformat, width, height);
   GLESCheckError('glRenderbufferStorageMultisample');
 end;
 
 procedure glFramebufferTextureLayer(target:TGLenum; attachment:TGLenum; texture:TGLuint; level:TGLint; layer:TGLint);
 begin
-  WritelnLog('OpenGLES', 'glFramebufferTextureLayer' + ' target=' + GLEnumName(target) + ' attachment=' + GLEnumName(attachment) + ' texture=' + IntToStr(Integer(texture)) + ' level=' + IntToStr(level));
+  GlesLog('glFramebufferTextureLayer' + ' target=' + GLEnumName(target) + ' attachment=' + GLEnumName(attachment) + ' texture=' + IntToStr(Integer(texture)) + ' level=' + IntToStr(level));
   glFramebufferTextureLayer_Proc(target, attachment, texture, level, layer);
   GLESCheckError('glFramebufferTextureLayer');
 end;
 
 function glMapBufferRange(Target: GLuint; Offset: GLintptr; Len: GLsizeiptr; Access: GLbitfield): Pointer;
 begin
-  WritelnLog('OpenGLES', 'glMapBufferRange' + ' Target=' + IntToStr(Integer(Target)) + ' Offset=' + IntToStr(Offset) + ' Len=' + IntToStr(Len) + ' Access=' + IntToStr(Integer(Access)));
+  GlesLog('glMapBufferRange' + ' Target=' + IntToStr(Integer(Target)) + ' Offset=' + IntToStr(Offset) + ' Len=' + IntToStr(Len) + ' Access=' + IntToStr(Integer(Access)));
   Result := glMapBufferRange_Proc(Target, Offset, Len, Access);
   GLESCheckError('glMapBufferRange');
 end;
 
 procedure glFlushMappedBufferRange(target:TGLenum; offset:TGLintptr; length:TGLsizeiptr);
 begin
-  WritelnLog('OpenGLES', 'glFlushMappedBufferRange' + ' target=' + GLEnumName(target) + ' offset=' + IntToStr(offset) + ' length=' + IntToStr(length));
+  GlesLog('glFlushMappedBufferRange' + ' target=' + GLEnumName(target) + ' offset=' + IntToStr(offset) + ' length=' + IntToStr(length));
   glFlushMappedBufferRange_Proc(target, offset, length);
   GLESCheckError('glFlushMappedBufferRange');
 end;
 
 procedure glBindVertexArray(A: GLuint);
 begin
-  WritelnLog('OpenGLES', 'glBindVertexArray' + ' A=' + IntToStr(Integer(A)));
+  GlesLog('glBindVertexArray' + ' A=' + IntToStr(Integer(A)));
   glBindVertexArray_Proc(A);
   GLESCheckError('glBindVertexArray');
 end;
 
 procedure glDeleteVertexArrays(Count: GLuint; P: PGLuint);
 begin
-  WritelnLog('OpenGLES', 'glDeleteVertexArrays' + ' Count=' + IntToStr(Integer(Count)));
+  GlesLog('glDeleteVertexArrays' + ' Count=' + IntToStr(Integer(Count)));
   glDeleteVertexArrays_Proc(Count, P);
   GLESCheckError('glDeleteVertexArrays');
 end;
 
 procedure glGenVertexArrays(Count: GLuint; P: PGLuint);
 begin
-  WritelnLog('OpenGLES', 'glGenVertexArrays' + ' Count=' + IntToStr(Integer(Count)));
+  GlesLog('glGenVertexArrays' + ' Count=' + IntToStr(Integer(Count)));
   glGenVertexArrays_Proc(Count, P);
   GLESCheckError('glGenVertexArrays');
 end;
 
 function glIsVertexArray(arr:TGLuint): TGLboolean;
 begin
-  WritelnLog('OpenGLES', 'glIsVertexArray' + ' arr=' + IntToStr(Integer(arr)));
+  GlesLog('glIsVertexArray' + ' arr=' + IntToStr(Integer(arr)));
   Result := glIsVertexArray_Proc(arr);
   GLESCheckError('glIsVertexArray');
 end;
 
 procedure glGetIntegeri_v(target:TGLenum; ind:TGLuint; data:PGLint);
 begin
-  WritelnLog('OpenGLES', 'glGetIntegeri_v' + ' target=' + GLEnumName(target) + ' ind=' + IntToStr(Integer(ind)));
+  GlesLog('glGetIntegeri_v' + ' target=' + GLEnumName(target) + ' ind=' + IntToStr(Integer(ind)));
   glGetIntegeri_v_Proc(target, ind, data);
   GLESCheckError('glGetIntegeri_v');
 end;
 
 procedure glBeginTransformFeedback(Mode: GLuint);
 begin
-  WritelnLog('OpenGLES', 'glBeginTransformFeedback' + ' Mode=' + IntToStr(Integer(Mode)));
+  GlesLog('glBeginTransformFeedback' + ' Mode=' + IntToStr(Integer(Mode)));
   glBeginTransformFeedback_Proc(Mode);
   GLESCheckError('glBeginTransformFeedback');
 end;
 
 procedure glEndTransformFeedback;
 begin
-  WritelnLog('OpenGLES', 'glEndTransformFeedback');
+  GlesLog('glEndTransformFeedback');
   glEndTransformFeedback_Proc;
   GLESCheckError('glEndTransformFeedback');
 end;
 
 procedure glBindBufferRange(target:TGLenum; ind:TGLuint; buffer:TGLuint; offset:TGLintptr; size:TGLsizeiptr);
 begin
-  WritelnLog('OpenGLES', 'glBindBufferRange' + ' target=' + GLEnumName(target) + ' ind=' + IntToStr(Integer(ind)) + ' buffer=' + IntToStr(Integer(buffer)) + ' offset=' + IntToStr(offset));
+  GlesLog('glBindBufferRange' + ' target=' + GLEnumName(target) + ' ind=' + IntToStr(Integer(ind)) + ' buffer=' + IntToStr(Integer(buffer)) + ' offset=' + IntToStr(offset));
   glBindBufferRange_Proc(target, ind, buffer, offset, size);
   GLESCheckError('glBindBufferRange');
 end;
 
 procedure glBindBufferBase(Target, Ind, Buffer: GLuint);
 begin
-  WritelnLog('OpenGLES', 'glBindBufferBase' + ' Target=' + IntToStr(Integer(Target)) + ' Ind=' + IntToStr(Integer(Ind)) + ' Buffer=' + IntToStr(Integer(Buffer)));
+  GlesLog('glBindBufferBase' + ' Target=' + IntToStr(Integer(Target)) + ' Ind=' + IntToStr(Integer(Ind)) + ' Buffer=' + IntToStr(Integer(Buffer)));
   glBindBufferBase_Proc(Target, Ind, Buffer);
   GLESCheckError('glBindBufferBase');
 end;
 
 procedure glTransformFeedbackVaryings(Prog: GLuint; Count: GLsizei; const Varyings: PPAnsiChar; BufferMode: GLuint);
 begin
-  WritelnLog('OpenGLES', 'glTransformFeedbackVaryings' + ' Prog=' + IntToStr(Integer(Prog)) + ' Count=' + IntToStr(Count) + ' BufferMode=' + IntToStr(Integer(BufferMode)));
+  GlesLog('glTransformFeedbackVaryings' + ' Prog=' + IntToStr(Integer(Prog)) + ' Count=' + IntToStr(Count) + ' BufferMode=' + IntToStr(Integer(BufferMode)));
   glTransformFeedbackVaryings_Proc(Prog, Count, Varyings, BufferMode);
   GLESCheckError('glTransformFeedbackVaryings');
 end;
 
 procedure glGetTransformFeedbackVarying(prog:TGLuint; ind:TGLuint; bufSize:TGLsizei; length:PGLsizei; size:PGLsizei; _type:PGLenum; name:PGLchar);
 begin
-  WritelnLog('OpenGLES', 'glGetTransformFeedbackVarying' + ' prog=' + IntToStr(Integer(prog)) + ' ind=' + IntToStr(Integer(ind)) + ' bufSize=' + IntToStr(bufSize));
+  GlesLog('glGetTransformFeedbackVarying' + ' prog=' + IntToStr(Integer(prog)) + ' ind=' + IntToStr(Integer(ind)) + ' bufSize=' + IntToStr(bufSize));
   glGetTransformFeedbackVarying_Proc(prog, ind, bufSize, length, size, _type, name);
   GLESCheckError('glGetTransformFeedbackVarying');
 end;
 
 procedure glVertexAttribIPointer(ind:TGLuint; size:TGLint; _type:TGLenum; stride:TGLsizei; p:pointer);
 begin
-  WritelnLog('OpenGLES', 'glVertexAttribIPointer' + ' ind=' + IntToStr(Integer(ind)) + ' size=' + IntToStr(size) + ' _type=' + GLEnumName(_type) + ' stride=' + IntToStr(stride));
+  GlesLog('glVertexAttribIPointer' + ' ind=' + IntToStr(Integer(ind)) + ' size=' + IntToStr(size) + ' _type=' + GLEnumName(_type) + ' stride=' + IntToStr(stride));
   glVertexAttribIPointer_Proc(ind, size, _type, stride, p);
   GLESCheckError('glVertexAttribIPointer');
 end;
 
 procedure glGetVertexAttribIiv(ind:TGLuint; pname:TGLenum; params:PGLint);
 begin
-  WritelnLog('OpenGLES', 'glGetVertexAttribIiv' + ' ind=' + IntToStr(Integer(ind)) + ' pname=' + GLEnumName(pname));
+  GlesLog('glGetVertexAttribIiv' + ' ind=' + IntToStr(Integer(ind)) + ' pname=' + GLEnumName(pname));
   glGetVertexAttribIiv_Proc(ind, pname, params);
   GLESCheckError('glGetVertexAttribIiv');
 end;
 
 procedure glGetVertexAttribIuiv(ind:TGLuint; pname:TGLenum; params:PGLuint);
 begin
-  WritelnLog('OpenGLES', 'glGetVertexAttribIuiv' + ' ind=' + IntToStr(Integer(ind)) + ' pname=' + GLEnumName(pname));
+  GlesLog('glGetVertexAttribIuiv' + ' ind=' + IntToStr(Integer(ind)) + ' pname=' + GLEnumName(pname));
   glGetVertexAttribIuiv_Proc(ind, pname, params);
   GLESCheckError('glGetVertexAttribIuiv');
 end;
 
 procedure glVertexAttribI4i(ind:TGLuint; x:TGLint; y:TGLint; z:TGLint; w:TGLint);
 begin
-  WritelnLog('OpenGLES', 'glVertexAttribI4i' + ' ind=' + IntToStr(Integer(ind)) + ' x=' + IntToStr(x) + ' y=' + IntToStr(y) + ' z=' + IntToStr(z));
+  GlesLog('glVertexAttribI4i' + ' ind=' + IntToStr(Integer(ind)) + ' x=' + IntToStr(x) + ' y=' + IntToStr(y) + ' z=' + IntToStr(z));
   glVertexAttribI4i_Proc(ind, x, y, z, w);
   GLESCheckError('glVertexAttribI4i');
 end;
 
 procedure glVertexAttribI4ui(ind:TGLuint; x:TGLuint; y:TGLuint; z:TGLuint; w:TGLuint);
 begin
-  WritelnLog('OpenGLES', 'glVertexAttribI4ui' + ' ind=' + IntToStr(Integer(ind)) + ' x=' + IntToStr(Integer(x)) + ' y=' + IntToStr(Integer(y)) + ' z=' + IntToStr(Integer(z)));
+  GlesLog('glVertexAttribI4ui' + ' ind=' + IntToStr(Integer(ind)) + ' x=' + IntToStr(Integer(x)) + ' y=' + IntToStr(Integer(y)) + ' z=' + IntToStr(Integer(z)));
   glVertexAttribI4ui_Proc(ind, x, y, z, w);
   GLESCheckError('glVertexAttribI4ui');
 end;
 
 procedure glVertexAttribI4iv(ind:TGLuint; v:PGLint);
 begin
-  WritelnLog('OpenGLES', 'glVertexAttribI4iv' + ' ind=' + IntToStr(Integer(ind)));
+  GlesLog('glVertexAttribI4iv' + ' ind=' + IntToStr(Integer(ind)));
   glVertexAttribI4iv_Proc(ind, v);
   GLESCheckError('glVertexAttribI4iv');
 end;
 
 procedure glVertexAttribI4uiv(ind:TGLuint; v:PGLuint);
 begin
-  WritelnLog('OpenGLES', 'glVertexAttribI4uiv' + ' ind=' + IntToStr(Integer(ind)));
+  GlesLog('glVertexAttribI4uiv' + ' ind=' + IntToStr(Integer(ind)));
   glVertexAttribI4uiv_Proc(ind, v);
   GLESCheckError('glVertexAttribI4uiv');
 end;
 
 procedure glGetUniformuiv(prog:TGLuint; location:TGLint; params:PGLuint);
 begin
-  WritelnLog('OpenGLES', 'glGetUniformuiv' + ' prog=' + IntToStr(Integer(prog)) + ' location=' + IntToStr(location));
+  GlesLog('glGetUniformuiv' + ' prog=' + IntToStr(Integer(prog)) + ' location=' + IntToStr(location));
   glGetUniformuiv_Proc(prog, location, params);
   GLESCheckError('glGetUniformuiv');
 end;
 
 function glGetFragDataLocation(prog:TGLuint; name:PGLchar): TGLint;
 begin
-  WritelnLog('OpenGLES', 'glGetFragDataLocation' + ' prog=' + IntToStr(Integer(prog)));
+  GlesLog('glGetFragDataLocation' + ' prog=' + IntToStr(Integer(prog)));
   Result := glGetFragDataLocation_Proc(prog, name);
   GLESCheckError('glGetFragDataLocation');
 end;
 
 procedure glUniform1ui(location:TGLint; v0:TGLuint);
 begin
-  WritelnLog('OpenGLES', 'glUniform1ui' + ' location=' + IntToStr(location) + ' v0=' + IntToStr(Integer(v0)));
+  GlesLog('glUniform1ui' + ' location=' + IntToStr(location) + ' v0=' + IntToStr(Integer(v0)));
   glUniform1ui_Proc(location, v0);
   GLESCheckError('glUniform1ui');
 end;
 
 procedure glUniform2ui(location:TGLint; v0:TGLuint; v1:TGLuint);
 begin
-  WritelnLog('OpenGLES', 'glUniform2ui' + ' location=' + IntToStr(location) + ' v0=' + IntToStr(Integer(v0)) + ' v1=' + IntToStr(Integer(v1)));
+  GlesLog('glUniform2ui' + ' location=' + IntToStr(location) + ' v0=' + IntToStr(Integer(v0)) + ' v1=' + IntToStr(Integer(v1)));
   glUniform2ui_Proc(location, v0, v1);
   GLESCheckError('glUniform2ui');
 end;
 
 procedure glUniform3ui(location:TGLint; v0:TGLuint; v1:TGLuint; v2:TGLuint);
 begin
-  WritelnLog('OpenGLES', 'glUniform3ui' + ' location=' + IntToStr(location) + ' v0=' + IntToStr(Integer(v0)) + ' v1=' + IntToStr(Integer(v1)) + ' v2=' + IntToStr(Integer(v2)));
+  GlesLog('glUniform3ui' + ' location=' + IntToStr(location) + ' v0=' + IntToStr(Integer(v0)) + ' v1=' + IntToStr(Integer(v1)) + ' v2=' + IntToStr(Integer(v2)));
   glUniform3ui_Proc(location, v0, v1, v2);
   GLESCheckError('glUniform3ui');
 end;
 
 procedure glUniform4ui(location:TGLint; v0:TGLuint; v1:TGLuint; v2:TGLuint; v3:TGLuint);
 begin
-  WritelnLog('OpenGLES', 'glUniform4ui' + ' location=' + IntToStr(location) + ' v0=' + IntToStr(Integer(v0)) + ' v1=' + IntToStr(Integer(v1)) + ' v2=' + IntToStr(Integer(v2)));
+  GlesLog('glUniform4ui' + ' location=' + IntToStr(location) + ' v0=' + IntToStr(Integer(v0)) + ' v1=' + IntToStr(Integer(v1)) + ' v2=' + IntToStr(Integer(v2)));
   glUniform4ui_Proc(location, v0, v1, v2, v3);
   GLESCheckError('glUniform4ui');
 end;
 
 procedure glUniform1uiv(location:TGLint; count:TGLsizei; value:PGLuint);
 begin
-  WritelnLog('OpenGLES', 'glUniform1uiv' + ' location=' + IntToStr(location) + ' count=' + IntToStr(count));
+  GlesLog('glUniform1uiv' + ' location=' + IntToStr(location) + ' count=' + IntToStr(count));
   glUniform1uiv_Proc(location, count, value);
   GLESCheckError('glUniform1uiv');
 end;
 
 procedure glUniform2uiv(location:TGLint; count:TGLsizei; value:PGLuint);
 begin
-  WritelnLog('OpenGLES', 'glUniform2uiv' + ' location=' + IntToStr(location) + ' count=' + IntToStr(count));
+  GlesLog('glUniform2uiv' + ' location=' + IntToStr(location) + ' count=' + IntToStr(count));
   glUniform2uiv_Proc(location, count, value);
   GLESCheckError('glUniform2uiv');
 end;
 
 procedure glUniform3uiv(location:TGLint; count:TGLsizei; value:PGLuint);
 begin
-  WritelnLog('OpenGLES', 'glUniform3uiv' + ' location=' + IntToStr(location) + ' count=' + IntToStr(count));
+  GlesLog('glUniform3uiv' + ' location=' + IntToStr(location) + ' count=' + IntToStr(count));
   glUniform3uiv_Proc(location, count, value);
   GLESCheckError('glUniform3uiv');
 end;
 
 procedure glUniform4uiv(location:TGLint; count:TGLsizei; value:PGLuint);
 begin
-  WritelnLog('OpenGLES', 'glUniform4uiv' + ' location=' + IntToStr(location) + ' count=' + IntToStr(count));
+  GlesLog('glUniform4uiv' + ' location=' + IntToStr(location) + ' count=' + IntToStr(count));
   glUniform4uiv_Proc(location, count, value);
   GLESCheckError('glUniform4uiv');
 end;
 
 procedure glClearBufferiv(buffer:TGLenum; drawbuffer:TGLint; value:PGLint);
 begin
-  WritelnLog('OpenGLES', 'glClearBufferiv' + ' buffer=' + GLEnumName(buffer) + ' drawbuffer=' + IntToStr(drawbuffer));
+  GlesLog('glClearBufferiv' + ' buffer=' + GLEnumName(buffer) + ' drawbuffer=' + IntToStr(drawbuffer));
   glClearBufferiv_Proc(buffer, drawbuffer, value);
   GLESCheckError('glClearBufferiv');
 end;
 
 procedure glClearBufferuiv(buffer:TGLenum; drawbuffer:TGLint; value:PGLuint);
 begin
-  WritelnLog('OpenGLES', 'glClearBufferuiv' + ' buffer=' + GLEnumName(buffer) + ' drawbuffer=' + IntToStr(drawbuffer));
+  GlesLog('glClearBufferuiv' + ' buffer=' + GLEnumName(buffer) + ' drawbuffer=' + IntToStr(drawbuffer));
   glClearBufferuiv_Proc(buffer, drawbuffer, value);
   GLESCheckError('glClearBufferuiv');
 end;
 
 procedure glClearBufferfv(buffer:TGLenum; drawbuffer:TGLint; value:PGLfloat);
 begin
-  WritelnLog('OpenGLES', 'glClearBufferfv' + ' buffer=' + GLEnumName(buffer) + ' drawbuffer=' + IntToStr(drawbuffer));
+  GlesLog('glClearBufferfv' + ' buffer=' + GLEnumName(buffer) + ' drawbuffer=' + IntToStr(drawbuffer));
   glClearBufferfv_Proc(buffer, drawbuffer, value);
   GLESCheckError('glClearBufferfv');
 end;
 
 procedure glClearBufferfi(buffer:TGLenum; drawbuffer:TGLint; depth:TGLfloat; stencil:TGLint);
 begin
-  WritelnLog('OpenGLES', 'glClearBufferfi' + ' buffer=' + GLEnumName(buffer) + ' drawbuffer=' + IntToStr(drawbuffer) + ' stencil=' + IntToStr(stencil));
+  GlesLog('glClearBufferfi' + ' buffer=' + GLEnumName(buffer) + ' drawbuffer=' + IntToStr(drawbuffer) + ' stencil=' + IntToStr(stencil));
   glClearBufferfi_Proc(buffer, drawbuffer, depth, stencil);
   GLESCheckError('glClearBufferfi');
 end;
 
 function glGetStringi(name:TGLenum; ind:TGLuint): PGLubyte;
 begin
-  WritelnLog('OpenGLES', 'glGetStringi' + ' name=' + GLEnumName(name) + ' ind=' + IntToStr(Integer(ind)));
+  GlesLog('glGetStringi' + ' name=' + GLEnumName(name) + ' ind=' + IntToStr(Integer(ind)));
   Result := glGetStringi_Proc(name, ind);
   GLESCheckError('glGetStringi');
 end;
 
 procedure glCopyBufferSubData(readTarget:TGLenum; writeTarget:TGLenum; readOffset:TGLintptr; writeOffset:TGLintptr; size:TGLsizeiptr);
 begin
-  WritelnLog('OpenGLES', 'glCopyBufferSubData' + ' readTarget=' + GLEnumName(readTarget) + ' writeTarget=' + GLEnumName(writeTarget) + ' readOffset=' + IntToStr(readOffset) + ' writeOffset=' + IntToStr(writeOffset));
+  GlesLog('glCopyBufferSubData' + ' readTarget=' + GLEnumName(readTarget) + ' writeTarget=' + GLEnumName(writeTarget) + ' readOffset=' + IntToStr(readOffset) + ' writeOffset=' + IntToStr(writeOffset));
   glCopyBufferSubData_Proc(readTarget, writeTarget, readOffset, writeOffset, size);
   GLESCheckError('glCopyBufferSubData');
 end;
 
 procedure glGetUniformIndices(prog:TGLuint; uniformCount:TGLsizei; uniformNames:PPGLchar; uniformIndices:PGLuint);
 begin
-  WritelnLog('OpenGLES', 'glGetUniformIndices' + ' prog=' + IntToStr(Integer(prog)) + ' uniformCount=' + IntToStr(uniformCount));
+  GlesLog('glGetUniformIndices' + ' prog=' + IntToStr(Integer(prog)) + ' uniformCount=' + IntToStr(uniformCount));
   glGetUniformIndices_Proc(prog, uniformCount, uniformNames, uniformIndices);
   GLESCheckError('glGetUniformIndices');
 end;
 
 procedure glGetActiveUniformsiv(prog:TGLuint; uniformCount:TGLsizei; uniformIndices:PGLuint; pname:TGLenum; params:PGLint);
 begin
-  WritelnLog('OpenGLES', 'glGetActiveUniformsiv' + ' prog=' + IntToStr(Integer(prog)) + ' uniformCount=' + IntToStr(uniformCount) + ' pname=' + GLEnumName(pname));
+  GlesLog('glGetActiveUniformsiv' + ' prog=' + IntToStr(Integer(prog)) + ' uniformCount=' + IntToStr(uniformCount) + ' pname=' + GLEnumName(pname));
   glGetActiveUniformsiv_Proc(prog, uniformCount, uniformIndices, pname, params);
   GLESCheckError('glGetActiveUniformsiv');
 end;
 
 function glGetUniformBlockIndex(prog:TGLuint; uniformBlockName:PGLchar): TGLuint;
 begin
-  WritelnLog('OpenGLES', 'glGetUniformBlockIndex' + ' prog=' + IntToStr(Integer(prog)));
+  GlesLog('glGetUniformBlockIndex' + ' prog=' + IntToStr(Integer(prog)));
   Result := glGetUniformBlockIndex_Proc(prog, uniformBlockName);
   GLESCheckError('glGetUniformBlockIndex');
 end;
 
 procedure glGetActiveUniformBlockiv(prog:TGLuint; uniformBlockIndex:TGLuint; pname:TGLenum; params:PGLint);
 begin
-  WritelnLog('OpenGLES', 'glGetActiveUniformBlockiv' + ' prog=' + IntToStr(Integer(prog)) + ' uniformBlockIndex=' + IntToStr(Integer(uniformBlockIndex)) + ' pname=' + GLEnumName(pname));
+  GlesLog('glGetActiveUniformBlockiv' + ' prog=' + IntToStr(Integer(prog)) + ' uniformBlockIndex=' + IntToStr(Integer(uniformBlockIndex)) + ' pname=' + GLEnumName(pname));
   glGetActiveUniformBlockiv_Proc(prog, uniformBlockIndex, pname, params);
   GLESCheckError('glGetActiveUniformBlockiv');
 end;
 
 procedure glGetActiveUniformBlockName(prog:TGLuint; uniformBlockIndex:TGLuint; bufSize:TGLsizei; length:PGLsizei; uniformBlockName:PGLchar);
 begin
-  WritelnLog('OpenGLES', 'glGetActiveUniformBlockName' + ' prog=' + IntToStr(Integer(prog)) + ' uniformBlockIndex=' + IntToStr(Integer(uniformBlockIndex)) + ' bufSize=' + IntToStr(bufSize));
+  GlesLog('glGetActiveUniformBlockName' + ' prog=' + IntToStr(Integer(prog)) + ' uniformBlockIndex=' + IntToStr(Integer(uniformBlockIndex)) + ' bufSize=' + IntToStr(bufSize));
   glGetActiveUniformBlockName_Proc(prog, uniformBlockIndex, bufSize, length, uniformBlockName);
   GLESCheckError('glGetActiveUniformBlockName');
 end;
 
 procedure glUniformBlockBinding(prog:TGLuint; uniformBlockIndex:TGLuint; uniformBlockBinding:TGLuint);
 begin
-  WritelnLog('OpenGLES', 'glUniformBlockBinding' + ' prog=' + IntToStr(Integer(prog)) + ' uniformBlockIndex=' + IntToStr(Integer(uniformBlockIndex)) + ' uniformBlockBinding=' + IntToStr(Integer(uniformBlockBinding)));
+  GlesLog('glUniformBlockBinding' + ' prog=' + IntToStr(Integer(prog)) + ' uniformBlockIndex=' + IntToStr(Integer(uniformBlockIndex)) + ' uniformBlockBinding=' + IntToStr(Integer(uniformBlockBinding)));
   glUniformBlockBinding_Proc(prog, uniformBlockIndex, uniformBlockBinding);
   GLESCheckError('glUniformBlockBinding');
 end;
 
 procedure glDrawArraysInstanced(Mode: GLuint; First, Count, InstanceCount: GLsizei);
 begin
-  WritelnLog('OpenGLES', 'glDrawArraysInstanced' + ' Mode=' + IntToStr(Integer(Mode)) + ' First=' + IntToStr(First) + ' Count=' + IntToStr(Count) + ' InstanceCount=' + IntToStr(InstanceCount));
+  GlesLog('glDrawArraysInstanced' + ' Mode=' + IntToStr(Integer(Mode)) + ' First=' + IntToStr(First) + ' Count=' + IntToStr(Count) + ' InstanceCount=' + IntToStr(InstanceCount));
   glDrawArraysInstanced_Proc(Mode, First, Count, InstanceCount);
   GLESCheckError('glDrawArraysInstanced');
 end;
 
 procedure glDrawElementsInstanced(Mode: GLuint; Count, Kind: GLsizei; Indices: PGLuint; InstanceCount: GLsizei);
 begin
-  WritelnLog('OpenGLES', 'glDrawElementsInstanced' + ' Mode=' + IntToStr(Integer(Mode)) + ' Count=' + IntToStr(Count) + ' Kind=' + IntToStr(Kind));
+  GlesLog('glDrawElementsInstanced' + ' Mode=' + IntToStr(Integer(Mode)) + ' Count=' + IntToStr(Count) + ' Kind=' + IntToStr(Kind));
   glDrawElementsInstanced_Proc(Mode, Count, Kind, Indices, InstanceCount);
   GLESCheckError('glDrawElementsInstanced');
 end;
 
 function glFenceSync(condition:TGLenum; flags:TGLbitfield): TGLsync;
 begin
-  WritelnLog('OpenGLES', 'glFenceSync' + ' condition=' + GLEnumName(condition) + ' flags=' + IntToStr(Integer(flags)));
+  GlesLog('glFenceSync' + ' condition=' + GLEnumName(condition) + ' flags=' + IntToStr(Integer(flags)));
   Result := glFenceSync_Proc(condition, flags);
   GLESCheckError('glFenceSync');
 end;
 
 function glIsSync(sync:TGLsync): TGLboolean;
 begin
-  WritelnLog('OpenGLES', 'glIsSync');
+  GlesLog('glIsSync');
   Result := glIsSync_Proc(sync);
   GLESCheckError('glIsSync');
 end;
 
 procedure glDeleteSync(sync:TGLsync);
 begin
-  WritelnLog('OpenGLES', 'glDeleteSync');
+  GlesLog('glDeleteSync');
   glDeleteSync_Proc(sync);
   GLESCheckError('glDeleteSync');
 end;
 
 function glClientWaitSync(sync:TGLsync; flags:TGLbitfield; timeout:TGLuint64): TGLenum;
 begin
-  WritelnLog('OpenGLES', 'glClientWaitSync' + ' flags=' + IntToStr(Integer(flags)) + ' timeout=' + IntToStr(Int64(timeout)));
+  GlesLog('glClientWaitSync' + ' flags=' + IntToStr(Integer(flags)) + ' timeout=' + IntToStr(Int64(timeout)));
   Result := glClientWaitSync_Proc(sync, flags, timeout);
   GLESCheckError('glClientWaitSync');
 end;
 
 procedure glWaitSync(sync:TGLsync; flags:TGLbitfield; timeout:TGLuint64);
 begin
-  WritelnLog('OpenGLES', 'glWaitSync' + ' flags=' + IntToStr(Integer(flags)) + ' timeout=' + IntToStr(Int64(timeout)));
+  GlesLog('glWaitSync' + ' flags=' + IntToStr(Integer(flags)) + ' timeout=' + IntToStr(Int64(timeout)));
   glWaitSync_Proc(sync, flags, timeout);
   GLESCheckError('glWaitSync');
 end;
 
 procedure glGetInteger64v(pname:TGLenum; data:PGLint64);
 begin
-  WritelnLog('OpenGLES', 'glGetInteger64v' + ' pname=' + GLEnumName(pname));
+  GlesLog('glGetInteger64v' + ' pname=' + GLEnumName(pname));
   glGetInteger64v_Proc(pname, data);
   GLESCheckError('glGetInteger64v');
 end;
 
 procedure glGetSynciv(sync:TGLsync; pname:TGLenum; count:TGLsizei; length:PGLsizei; values:PGLint);
 begin
-  WritelnLog('OpenGLES', 'glGetSynciv' + ' pname=' + GLEnumName(pname) + ' count=' + IntToStr(count));
+  GlesLog('glGetSynciv' + ' pname=' + GLEnumName(pname) + ' count=' + IntToStr(count));
   glGetSynciv_Proc(sync, pname, count, length, values);
   GLESCheckError('glGetSynciv');
 end;
 
 procedure glGetInteger64i_v(target:TGLenum; ind:TGLuint; data:PGLint64);
 begin
-  WritelnLog('OpenGLES', 'glGetInteger64i_v' + ' target=' + GLEnumName(target) + ' ind=' + IntToStr(Integer(ind)));
+  GlesLog('glGetInteger64i_v' + ' target=' + GLEnumName(target) + ' ind=' + IntToStr(Integer(ind)));
   glGetInteger64i_v_Proc(target, ind, data);
   GLESCheckError('glGetInteger64i_v');
 end;
 
 procedure glGetBufferParameteri64v(target:TGLenum; pname:TGLenum; params:PGLint64);
 begin
-  WritelnLog('OpenGLES', 'glGetBufferParameteri64v' + ' target=' + GLEnumName(target) + ' pname=' + GLEnumName(pname));
+  GlesLog('glGetBufferParameteri64v' + ' target=' + GLEnumName(target) + ' pname=' + GLEnumName(pname));
   glGetBufferParameteri64v_Proc(target, pname, params);
   GLESCheckError('glGetBufferParameteri64v');
 end;
 
 procedure glGenSamplers(count:TGLsizei; samplers:PGLuint);
 begin
-  WritelnLog('OpenGLES', 'glGenSamplers' + ' count=' + IntToStr(count));
+  GlesLog('glGenSamplers' + ' count=' + IntToStr(count));
   glGenSamplers_Proc(count, samplers);
   GLESCheckError('glGenSamplers');
 end;
 
 procedure glDeleteSamplers(count:TGLsizei; samplers:PGLuint);
 begin
-  WritelnLog('OpenGLES', 'glDeleteSamplers' + ' count=' + IntToStr(count));
+  GlesLog('glDeleteSamplers' + ' count=' + IntToStr(count));
   glDeleteSamplers_Proc(count, samplers);
   GLESCheckError('glDeleteSamplers');
 end;
 
 function glIsSampler(sampler:TGLuint): TGLboolean;
 begin
-  WritelnLog('OpenGLES', 'glIsSampler' + ' sampler=' + IntToStr(Integer(sampler)));
+  GlesLog('glIsSampler' + ' sampler=' + IntToStr(Integer(sampler)));
   Result := glIsSampler_Proc(sampler);
   GLESCheckError('glIsSampler');
 end;
 
 procedure glBindSampler(u:TGLuint; sampler:TGLuint);
 begin
-  WritelnLog('OpenGLES', 'glBindSampler' + ' u=' + IntToStr(Integer(u)) + ' sampler=' + IntToStr(Integer(sampler)));
+  GlesLog('glBindSampler' + ' u=' + IntToStr(Integer(u)) + ' sampler=' + IntToStr(Integer(sampler)));
   glBindSampler_Proc(u, sampler);
   GLESCheckError('glBindSampler');
 end;
 
 procedure glSamplerParameteri(sampler:TGLuint; pname:TGLenum; param:TGLint);
 begin
-  WritelnLog('OpenGLES', 'glSamplerParameteri' + ' sampler=' + IntToStr(Integer(sampler)) + ' pname=' + GLEnumName(pname) + ' param=' + IntToStr(param));
+  GlesLog('glSamplerParameteri' + ' sampler=' + IntToStr(Integer(sampler)) + ' pname=' + GLEnumName(pname) + ' param=' + IntToStr(param));
   glSamplerParameteri_Proc(sampler, pname, param);
   GLESCheckError('glSamplerParameteri');
 end;
 
 procedure glSamplerParameteriv(sampler:TGLuint; pname:TGLenum; param:PGLint);
 begin
-  WritelnLog('OpenGLES', 'glSamplerParameteriv' + ' sampler=' + IntToStr(Integer(sampler)) + ' pname=' + GLEnumName(pname));
+  GlesLog('glSamplerParameteriv' + ' sampler=' + IntToStr(Integer(sampler)) + ' pname=' + GLEnumName(pname));
   glSamplerParameteriv_Proc(sampler, pname, param);
   GLESCheckError('glSamplerParameteriv');
 end;
 
 procedure glSamplerParameterf(sampler:TGLuint; pname:TGLenum; param:TGLfloat);
 begin
-  WritelnLog('OpenGLES', 'glSamplerParameterf' + ' sampler=' + IntToStr(Integer(sampler)) + ' pname=' + GLEnumName(pname));
+  GlesLog('glSamplerParameterf' + ' sampler=' + IntToStr(Integer(sampler)) + ' pname=' + GLEnumName(pname));
   glSamplerParameterf_Proc(sampler, pname, param);
   GLESCheckError('glSamplerParameterf');
 end;
 
 procedure glSamplerParameterfv(sampler:TGLuint; pname:TGLenum; param:PGLfloat);
 begin
-  WritelnLog('OpenGLES', 'glSamplerParameterfv' + ' sampler=' + IntToStr(Integer(sampler)) + ' pname=' + GLEnumName(pname));
+  GlesLog('glSamplerParameterfv' + ' sampler=' + IntToStr(Integer(sampler)) + ' pname=' + GLEnumName(pname));
   glSamplerParameterfv_Proc(sampler, pname, param);
   GLESCheckError('glSamplerParameterfv');
 end;
 
 procedure glGetSamplerParameteriv(sampler:TGLuint; pname:TGLenum; params:PGLint);
 begin
-  WritelnLog('OpenGLES', 'glGetSamplerParameteriv' + ' sampler=' + IntToStr(Integer(sampler)) + ' pname=' + GLEnumName(pname));
+  GlesLog('glGetSamplerParameteriv' + ' sampler=' + IntToStr(Integer(sampler)) + ' pname=' + GLEnumName(pname));
   glGetSamplerParameteriv_Proc(sampler, pname, params);
   GLESCheckError('glGetSamplerParameteriv');
 end;
 
 procedure glGetSamplerParameterfv(sampler:TGLuint; pname:TGLenum; params:PGLfloat);
 begin
-  WritelnLog('OpenGLES', 'glGetSamplerParameterfv' + ' sampler=' + IntToStr(Integer(sampler)) + ' pname=' + GLEnumName(pname));
+  GlesLog('glGetSamplerParameterfv' + ' sampler=' + IntToStr(Integer(sampler)) + ' pname=' + GLEnumName(pname));
   glGetSamplerParameterfv_Proc(sampler, pname, params);
   GLESCheckError('glGetSamplerParameterfv');
 end;
 
 procedure glVertexAttribDivisor(Ind, Divisor: GLuint);
 begin
-  WritelnLog('OpenGLES', 'glVertexAttribDivisor' + ' Ind=' + IntToStr(Integer(Ind)) + ' Divisor=' + IntToStr(Integer(Divisor)));
+  GlesLog('glVertexAttribDivisor' + ' Ind=' + IntToStr(Integer(Ind)) + ' Divisor=' + IntToStr(Integer(Divisor)));
   glVertexAttribDivisor_Proc(Ind, Divisor);
   GLESCheckError('glVertexAttribDivisor');
 end;
 
 procedure glBindTransformFeedback(target:TGLenum; id:TGLuint);
 begin
-  WritelnLog('OpenGLES', 'glBindTransformFeedback' + ' target=' + GLEnumName(target) + ' id=' + IntToStr(Integer(id)));
+  GlesLog('glBindTransformFeedback' + ' target=' + GLEnumName(target) + ' id=' + IntToStr(Integer(id)));
   glBindTransformFeedback_Proc(target, id);
   GLESCheckError('glBindTransformFeedback');
 end;
 
 procedure glDeleteTransformFeedbacks(n:TGLsizei; ids:PGLuint);
 begin
-  WritelnLog('OpenGLES', 'glDeleteTransformFeedbacks' + ' n=' + IntToStr(n));
+  GlesLog('glDeleteTransformFeedbacks' + ' n=' + IntToStr(n));
   glDeleteTransformFeedbacks_Proc(n, ids);
   GLESCheckError('glDeleteTransformFeedbacks');
 end;
 
 procedure glGenTransformFeedbacks(n:TGLsizei; ids:PGLuint);
 begin
-  WritelnLog('OpenGLES', 'glGenTransformFeedbacks' + ' n=' + IntToStr(n));
+  GlesLog('glGenTransformFeedbacks' + ' n=' + IntToStr(n));
   glGenTransformFeedbacks_Proc(n, ids);
   GLESCheckError('glGenTransformFeedbacks');
 end;
 
 function glIsTransformFeedback(id:TGLuint): TGLboolean;
 begin
-  WritelnLog('OpenGLES', 'glIsTransformFeedback' + ' id=' + IntToStr(Integer(id)));
+  GlesLog('glIsTransformFeedback' + ' id=' + IntToStr(Integer(id)));
   Result := glIsTransformFeedback_Proc(id);
   GLESCheckError('glIsTransformFeedback');
 end;
 
 procedure glPauseTransformFeedback;
 begin
-  WritelnLog('OpenGLES', 'glPauseTransformFeedback');
+  GlesLog('glPauseTransformFeedback');
   glPauseTransformFeedback_Proc;
   GLESCheckError('glPauseTransformFeedback');
 end;
 
 procedure glResumeTransformFeedback;
 begin
-  WritelnLog('OpenGLES', 'glResumeTransformFeedback');
+  GlesLog('glResumeTransformFeedback');
   glResumeTransformFeedback_Proc;
   GLESCheckError('glResumeTransformFeedback');
 end;
 
 procedure glGetProgramBinary(prog:TGLuint; bufSize:TGLsizei; length:PGLsizei; binaryFormat:PGLenum; binary:pointer);
 begin
-  WritelnLog('OpenGLES', 'glGetProgramBinary' + ' prog=' + IntToStr(Integer(prog)) + ' bufSize=' + IntToStr(bufSize));
+  GlesLog('glGetProgramBinary' + ' prog=' + IntToStr(Integer(prog)) + ' bufSize=' + IntToStr(bufSize));
   glGetProgramBinary_Proc(prog, bufSize, length, binaryFormat, binary);
   GLESCheckError('glGetProgramBinary');
 end;
 
 procedure glProgramBinary(prog:TGLuint; binaryFormat:TGLenum; binary:pointer; length:TGLsizei);
 begin
-  WritelnLog('OpenGLES', 'glProgramBinary' + ' prog=' + IntToStr(Integer(prog)) + ' binaryFormat=' + GLEnumName(binaryFormat) + ' length=' + IntToStr(length));
+  GlesLog('glProgramBinary' + ' prog=' + IntToStr(Integer(prog)) + ' binaryFormat=' + GLEnumName(binaryFormat) + ' length=' + IntToStr(length));
   glProgramBinary_Proc(prog, binaryFormat, binary, length);
   GLESCheckError('glProgramBinary');
 end;
 
 procedure glProgramParameteri(prog:TGLuint; pname:TGLenum; value:TGLint);
 begin
-  WritelnLog('OpenGLES', 'glProgramParameteri' + ' prog=' + IntToStr(Integer(prog)) + ' pname=' + GLEnumName(pname) + ' value=' + IntToStr(value));
+  GlesLog('glProgramParameteri' + ' prog=' + IntToStr(Integer(prog)) + ' pname=' + GLEnumName(pname) + ' value=' + IntToStr(value));
   glProgramParameteri_Proc(prog, pname, value);
   GLESCheckError('glProgramParameteri');
 end;
 
 procedure glInvalidateFramebuffer(target:TGLenum; numAttachments:TGLsizei; attachments:PGLenum);
 begin
-  WritelnLog('OpenGLES', 'glInvalidateFramebuffer' + ' target=' + GLEnumName(target) + ' numAttachments=' + IntToStr(numAttachments));
+  GlesLog('glInvalidateFramebuffer' + ' target=' + GLEnumName(target) + ' numAttachments=' + IntToStr(numAttachments));
   glInvalidateFramebuffer_Proc(target, numAttachments, attachments);
   GLESCheckError('glInvalidateFramebuffer');
 end;
 
 procedure glInvalidateSubFramebuffer(target:TGLenum; numAttachments:TGLsizei; attachments:PGLenum; x:TGLint; y:TGLint; width:TGLsizei; height:TGLsizei);
 begin
-  WritelnLog('OpenGLES', 'glInvalidateSubFramebuffer' + ' target=' + GLEnumName(target) + ' numAttachments=' + IntToStr(numAttachments) + ' x=' + IntToStr(x));
+  GlesLog('glInvalidateSubFramebuffer' + ' target=' + GLEnumName(target) + ' numAttachments=' + IntToStr(numAttachments) + ' x=' + IntToStr(x));
   glInvalidateSubFramebuffer_Proc(target, numAttachments, attachments, x, y, width, height);
   GLESCheckError('glInvalidateSubFramebuffer');
 end;
 
 procedure glTexStorage2D(target:TGLenum; levels:TGLsizei; internalformat:TGLenum; width:TGLsizei; height:TGLsizei);
 begin
-  WritelnLog('OpenGLES', 'glTexStorage2D' + ' target=' + GLEnumName(target) + ' levels=' + IntToStr(levels) + ' internalformat=' + GLEnumName(internalformat) + ' width=' + IntToStr(width));
+  GlesLog('glTexStorage2D' + ' target=' + GLEnumName(target) + ' levels=' + IntToStr(levels) + ' internalformat=' + GLEnumName(internalformat) + ' width=' + IntToStr(width));
   glTexStorage2D_Proc(target, levels, internalformat, width, height);
   GLESCheckError('glTexStorage2D');
 end;
 
 procedure glTexStorage3D(target:TGLenum; levels:TGLsizei; internalformat:TGLenum; width:TGLsizei; height:TGLsizei; depth:TGLsizei);
 begin
-  WritelnLog('OpenGLES', 'glTexStorage3D' + ' target=' + GLEnumName(target) + ' levels=' + IntToStr(levels) + ' internalformat=' + GLEnumName(internalformat) + ' width=' + IntToStr(width));
+  GlesLog('glTexStorage3D' + ' target=' + GLEnumName(target) + ' levels=' + IntToStr(levels) + ' internalformat=' + GLEnumName(internalformat) + ' width=' + IntToStr(width));
   glTexStorage3D_Proc(target, levels, internalformat, width, height, depth);
   GLESCheckError('glTexStorage3D');
 end;
 
 procedure glGetInternalformativ(target:TGLenum; internalformat:TGLenum; pname:TGLenum; count:TGLsizei; params:PGLint);
 begin
-  WritelnLog('OpenGLES', 'glGetInternalformativ' + ' target=' + GLEnumName(target) + ' internalformat=' + GLEnumName(internalformat) + ' pname=' + GLEnumName(pname) + ' count=' + IntToStr(count));
+  GlesLog('glGetInternalformativ' + ' target=' + GLEnumName(target) + ' internalformat=' + GLEnumName(internalformat) + ' pname=' + GLEnumName(pname) + ' count=' + IntToStr(count));
   glGetInternalformativ_Proc(target, internalformat, pname, count, params);
   GLESCheckError('glGetInternalformativ');
 end;
 
 procedure glEGLImageTargetTexture2DOES(target:GLenum; image:GLeglImageOES);
 begin
-  WritelnLog('OpenGLES', 'glEGLImageTargetTexture2DOES' + ' target=' + GLEnumName(target));
+  GlesLog('glEGLImageTargetTexture2DOES' + ' target=' + GLEnumName(target));
   glEGLImageTargetTexture2DOES_Proc(target, image);
   GLESCheckError('glEGLImageTargetTexture2DOES');
 end;
 
 procedure glEGLImageTargetRenderbufferStorageOES(target:GLenum; image:GLeglImageOES);
 begin
-  WritelnLog('OpenGLES', 'glEGLImageTargetRenderbufferStorageOES' + ' target=' + GLEnumName(target));
+  GlesLog('glEGLImageTargetRenderbufferStorageOES' + ' target=' + GLEnumName(target));
   glEGLImageTargetRenderbufferStorageOES_Proc(target, image);
   GLESCheckError('glEGLImageTargetRenderbufferStorageOES');
 end;
 
 procedure glGetProgramBinaryOES(_program:GLuint; bufSize:GLsizei; length:pGLsizei; binaryFormat:pGLenum; binary:pointer);
 begin
-  WritelnLog('OpenGLES', 'glGetProgramBinaryOES' + ' _program=' + IntToStr(Integer(_program)) + ' bufSize=' + IntToStr(bufSize));
+  GlesLog('glGetProgramBinaryOES' + ' _program=' + IntToStr(Integer(_program)) + ' bufSize=' + IntToStr(bufSize));
   glGetProgramBinaryOES_Proc(_program, bufSize, length, binaryFormat, binary);
   GLESCheckError('glGetProgramBinaryOES');
 end;
 
 procedure glProgramBinaryOES(_program:GLuint; binaryFormat:GLenum; binary:pointer; length:GLint);
 begin
-  WritelnLog('OpenGLES', 'glProgramBinaryOES' + ' _program=' + IntToStr(Integer(_program)) + ' binaryFormat=' + GLEnumName(binaryFormat) + ' length=' + IntToStr(length));
+  GlesLog('glProgramBinaryOES' + ' _program=' + IntToStr(Integer(_program)) + ' binaryFormat=' + GLEnumName(binaryFormat) + ' length=' + IntToStr(length));
   glProgramBinaryOES_Proc(_program, binaryFormat, binary, length);
   GLESCheckError('glProgramBinaryOES');
 end;
 
 function glMapBufferOES(target:GLenum; access:GLenum): pointer;
 begin
-  WritelnLog('OpenGLES', 'glMapBufferOES' + ' target=' + GLEnumName(target) + ' access=' + GLEnumName(access));
+  GlesLog('glMapBufferOES' + ' target=' + GLEnumName(target) + ' access=' + GLEnumName(access));
   Result := glMapBufferOES_Proc(target, access);
   GLESCheckError('glMapBufferOES');
 end;
 
 function glUnmapBufferOES(target:GLenum): GLboolean;
 begin
-  WritelnLog('OpenGLES', 'glUnmapBufferOES' + ' target=' + GLEnumName(target));
+  GlesLog('glUnmapBufferOES' + ' target=' + GLEnumName(target));
   Result := glUnmapBufferOES_Proc(target);
   GLESCheckError('glUnmapBufferOES');
 end;
 
 procedure glGetBufferPointervOES(target:GLenum; pname:GLenum; params:Ppointer);
 begin
-  WritelnLog('OpenGLES', 'glGetBufferPointervOES' + ' target=' + GLEnumName(target) + ' pname=' + GLEnumName(pname));
+  GlesLog('glGetBufferPointervOES' + ' target=' + GLEnumName(target) + ' pname=' + GLEnumName(pname));
   glGetBufferPointervOES_Proc(target, pname, params);
   GLESCheckError('glGetBufferPointervOES');
 end;
 
 procedure glTexImage3DOES(target:GLenum; level:GLint; internalformat:GLenum; width:GLsizei; height:GLsizei; depth:GLsizei; border:GLint; format:GLenum; _type:GLenum; pixels:pointer);
 begin
-  WritelnLog('OpenGLES', 'glTexImage3DOES' + ' target=' + GLEnumName(target) + ' level=' + IntToStr(level) + ' internalformat=' + GLEnumName(internalformat) + ' width=' + IntToStr(width));
+  GlesLog('glTexImage3DOES' + ' target=' + GLEnumName(target) + ' level=' + IntToStr(level) + ' internalformat=' + GLEnumName(internalformat) + ' width=' + IntToStr(width));
   glTexImage3DOES_Proc(target, level, internalformat, width, height, depth, border, format, _type, pixels);
   GLESCheckError('glTexImage3DOES');
 end;
 
 procedure glTexSubImage3DOES(target:GLenum; level:GLint; xoffset:GLint; yoffset:GLint; zoffset:GLint; width:GLsizei; height:GLsizei; depth:GLsizei; format:GLenum; _type:GLenum; pixels:pointer);
 begin
-  WritelnLog('OpenGLES', 'glTexSubImage3DOES' + ' target=' + GLEnumName(target) + ' level=' + IntToStr(level) + ' xoffset=' + IntToStr(xoffset) + ' yoffset=' + IntToStr(yoffset));
+  GlesLog('glTexSubImage3DOES' + ' target=' + GLEnumName(target) + ' level=' + IntToStr(level) + ' xoffset=' + IntToStr(xoffset) + ' yoffset=' + IntToStr(yoffset));
   glTexSubImage3DOES_Proc(target, level, xoffset, yoffset, zoffset, width, height, depth, format, _type, pixels);
   GLESCheckError('glTexSubImage3DOES');
 end;
 
 procedure glCopyTexSubImage3DOES(target:GLenum; level:GLint; xoffset:GLint; yoffset:GLint; zoffset:GLint; x:GLint; y:GLint; width:GLsizei; height:GLsizei);
 begin
-  WritelnLog('OpenGLES', 'glCopyTexSubImage3DOES' + ' target=' + GLEnumName(target) + ' level=' + IntToStr(level) + ' xoffset=' + IntToStr(xoffset) + ' yoffset=' + IntToStr(yoffset));
+  GlesLog('glCopyTexSubImage3DOES' + ' target=' + GLEnumName(target) + ' level=' + IntToStr(level) + ' xoffset=' + IntToStr(xoffset) + ' yoffset=' + IntToStr(yoffset));
   glCopyTexSubImage3DOES_Proc(target, level, xoffset, yoffset, zoffset, x, y, width, height);
   GLESCheckError('glCopyTexSubImage3DOES');
 end;
 
 procedure glCompressedTexImage3DOES(target:GLenum; level:GLint; internalformat:GLenum; width:GLsizei; height:GLsizei; depth:GLsizei; border:GLint; imageSize:GLsizei; data:pointer);
 begin
-  WritelnLog('OpenGLES', 'glCompressedTexImage3DOES' + ' target=' + GLEnumName(target) + ' level=' + IntToStr(level) + ' internalformat=' + GLEnumName(internalformat) + ' width=' + IntToStr(width));
+  GlesLog('glCompressedTexImage3DOES' + ' target=' + GLEnumName(target) + ' level=' + IntToStr(level) + ' internalformat=' + GLEnumName(internalformat) + ' width=' + IntToStr(width));
   glCompressedTexImage3DOES_Proc(target, level, internalformat, width, height, depth, border, imageSize, data);
   GLESCheckError('glCompressedTexImage3DOES');
 end;
 
 procedure glCompressedTexSubImage3DOES(target:GLenum; level:GLint; xoffset:GLint; yoffset:GLint; zoffset:GLint; width:GLsizei; height:GLsizei; depth:GLsizei; format:GLenum; imageSize:GLsizei; data:pointer);
 begin
-  WritelnLog('OpenGLES', 'glCompressedTexSubImage3DOES' + ' target=' + GLEnumName(target) + ' level=' + IntToStr(level) + ' xoffset=' + IntToStr(xoffset) + ' yoffset=' + IntToStr(yoffset));
+  GlesLog('glCompressedTexSubImage3DOES' + ' target=' + GLEnumName(target) + ' level=' + IntToStr(level) + ' xoffset=' + IntToStr(xoffset) + ' yoffset=' + IntToStr(yoffset));
   glCompressedTexSubImage3DOES_Proc(target, level, xoffset, yoffset, zoffset, width, height, depth, format, imageSize, data);
   GLESCheckError('glCompressedTexSubImage3DOES');
 end;
 
 procedure glFramebufferTexture3DOES(target:GLenum; attachment:GLenum; textarget:GLenum; texture:GLuint; level:GLint; zoffset:GLint);
 begin
-  WritelnLog('OpenGLES', 'glFramebufferTexture3DOES' + ' target=' + GLEnumName(target) + ' attachment=' + GLEnumName(attachment) + ' textarget=' + GLEnumName(textarget) + ' texture=' + IntToStr(Integer(texture)));
+  GlesLog('glFramebufferTexture3DOES' + ' target=' + GLEnumName(target) + ' attachment=' + GLEnumName(attachment) + ' textarget=' + GLEnumName(textarget) + ' texture=' + IntToStr(Integer(texture)));
   glFramebufferTexture3DOES_Proc(target, attachment, textarget, texture, level, zoffset);
   GLESCheckError('glFramebufferTexture3DOES');
 end;
 
 procedure glGetPerfMonitorGroupsAMD(numGroups:pGLint; groupsSize:GLsizei; groups:pGLuint);
 begin
-  WritelnLog('OpenGLES', 'glGetPerfMonitorGroupsAMD' + ' groupsSize=' + IntToStr(groupsSize));
+  GlesLog('glGetPerfMonitorGroupsAMD' + ' groupsSize=' + IntToStr(groupsSize));
   glGetPerfMonitorGroupsAMD_Proc(numGroups, groupsSize, groups);
   GLESCheckError('glGetPerfMonitorGroupsAMD');
 end;
 
 procedure glGetPerfMonitorCountersAMD(group:GLuint; numCounters:pGLint; maxActiveCounters:pGLint; counterSize:GLsizei; counters:pGLuint);
 begin
-  WritelnLog('OpenGLES', 'glGetPerfMonitorCountersAMD' + ' group=' + IntToStr(Integer(group)) + ' counterSize=' + IntToStr(counterSize));
+  GlesLog('glGetPerfMonitorCountersAMD' + ' group=' + IntToStr(Integer(group)) + ' counterSize=' + IntToStr(counterSize));
   glGetPerfMonitorCountersAMD_Proc(group, numCounters, maxActiveCounters, counterSize, counters);
   GLESCheckError('glGetPerfMonitorCountersAMD');
 end;
 
 procedure glGetPerfMonitorGroupStringAMD(group:GLuint; bufSize:GLsizei; length:pGLsizei; groupString:PAnsiChar);
 begin
-  WritelnLog('OpenGLES', 'glGetPerfMonitorGroupStringAMD' + ' group=' + IntToStr(Integer(group)) + ' bufSize=' + IntToStr(bufSize));
+  GlesLog('glGetPerfMonitorGroupStringAMD' + ' group=' + IntToStr(Integer(group)) + ' bufSize=' + IntToStr(bufSize));
   glGetPerfMonitorGroupStringAMD_Proc(group, bufSize, length, groupString);
   GLESCheckError('glGetPerfMonitorGroupStringAMD');
 end;
 
 procedure glGetPerfMonitorCounterStringAMD(group:GLuint; counter:GLuint; bufSize:GLsizei; length:pGLsizei; counterString:PAnsiChar);
 begin
-  WritelnLog('OpenGLES', 'glGetPerfMonitorCounterStringAMD' + ' group=' + IntToStr(Integer(group)) + ' counter=' + IntToStr(Integer(counter)) + ' bufSize=' + IntToStr(bufSize));
+  GlesLog('glGetPerfMonitorCounterStringAMD' + ' group=' + IntToStr(Integer(group)) + ' counter=' + IntToStr(Integer(counter)) + ' bufSize=' + IntToStr(bufSize));
   glGetPerfMonitorCounterStringAMD_Proc(group, counter, bufSize, length, counterString);
   GLESCheckError('glGetPerfMonitorCounterStringAMD');
 end;
 
 procedure glGetPerfMonitorCounterInfoAMD(group:GLuint; counter:GLuint; pname:GLenum; data:pointer);
 begin
-  WritelnLog('OpenGLES', 'glGetPerfMonitorCounterInfoAMD' + ' group=' + IntToStr(Integer(group)) + ' counter=' + IntToStr(Integer(counter)) + ' pname=' + GLEnumName(pname));
+  GlesLog('glGetPerfMonitorCounterInfoAMD' + ' group=' + IntToStr(Integer(group)) + ' counter=' + IntToStr(Integer(counter)) + ' pname=' + GLEnumName(pname));
   glGetPerfMonitorCounterInfoAMD_Proc(group, counter, pname, data);
   GLESCheckError('glGetPerfMonitorCounterInfoAMD');
 end;
 
 procedure glGenPerfMonitorsAMD(n:GLsizei; monitors:pGLuint);
 begin
-  WritelnLog('OpenGLES', 'glGenPerfMonitorsAMD' + ' n=' + IntToStr(n));
+  GlesLog('glGenPerfMonitorsAMD' + ' n=' + IntToStr(n));
   glGenPerfMonitorsAMD_Proc(n, monitors);
   GLESCheckError('glGenPerfMonitorsAMD');
 end;
 
 procedure glDeletePerfMonitorsAMD(n:GLsizei; monitors:pGLuint);
 begin
-  WritelnLog('OpenGLES', 'glDeletePerfMonitorsAMD' + ' n=' + IntToStr(n));
+  GlesLog('glDeletePerfMonitorsAMD' + ' n=' + IntToStr(n));
   glDeletePerfMonitorsAMD_Proc(n, monitors);
   GLESCheckError('glDeletePerfMonitorsAMD');
 end;
 
 procedure glSelectPerfMonitorCountersAMD(monitor:GLuint; enable:GLboolean; group:GLuint; numCounters:GLint; countersList:pGLuint);
 begin
-  WritelnLog('OpenGLES', 'glSelectPerfMonitorCountersAMD' + ' monitor=' + IntToStr(Integer(monitor)) + ' group=' + IntToStr(Integer(group)) + ' numCounters=' + IntToStr(numCounters));
+  GlesLog('glSelectPerfMonitorCountersAMD' + ' monitor=' + IntToStr(Integer(monitor)) + ' group=' + IntToStr(Integer(group)) + ' numCounters=' + IntToStr(numCounters));
   glSelectPerfMonitorCountersAMD_Proc(monitor, enable, group, numCounters, countersList);
   GLESCheckError('glSelectPerfMonitorCountersAMD');
 end;
 
 procedure glBeginPerfMonitorAMD(monitor:GLuint);
 begin
-  WritelnLog('OpenGLES', 'glBeginPerfMonitorAMD' + ' monitor=' + IntToStr(Integer(monitor)));
+  GlesLog('glBeginPerfMonitorAMD' + ' monitor=' + IntToStr(Integer(monitor)));
   glBeginPerfMonitorAMD_Proc(monitor);
   GLESCheckError('glBeginPerfMonitorAMD');
 end;
 
 procedure glEndPerfMonitorAMD(monitor:GLuint);
 begin
-  WritelnLog('OpenGLES', 'glEndPerfMonitorAMD' + ' monitor=' + IntToStr(Integer(monitor)));
+  GlesLog('glEndPerfMonitorAMD' + ' monitor=' + IntToStr(Integer(monitor)));
   glEndPerfMonitorAMD_Proc(monitor);
   GLESCheckError('glEndPerfMonitorAMD');
 end;
 
 procedure glGetPerfMonitorCounterDataAMD(monitor:GLuint; pname:GLenum; dataSize:GLsizei; data:pGLuint; bytesWritten:pGLint);
 begin
-  WritelnLog('OpenGLES', 'glGetPerfMonitorCounterDataAMD' + ' monitor=' + IntToStr(Integer(monitor)) + ' pname=' + GLEnumName(pname) + ' dataSize=' + IntToStr(dataSize));
+  GlesLog('glGetPerfMonitorCounterDataAMD' + ' monitor=' + IntToStr(Integer(monitor)) + ' pname=' + GLEnumName(pname) + ' dataSize=' + IntToStr(dataSize));
   glGetPerfMonitorCounterDataAMD_Proc(monitor, pname, dataSize, data, bytesWritten);
   GLESCheckError('glGetPerfMonitorCounterDataAMD');
 end;
 
 procedure glDebugMessageCallback(callback:GLDEBUGPROC; userParam:Pointer);
 begin
-  WritelnLog('OpenGLES', 'glDebugMessageCallback');
+  GlesLog('glDebugMessageCallback');
   glDebugMessageCallback_Proc(callback, userParam);
   GLESCheckError('glDebugMessageCallback');
 end;
 
 procedure glDebugMessageControl(source:GLenum; _type:GLenum; severity:GLenum; count:GLsizei; ids:PGLuint; enabled:GLboolean);
 begin
-  WritelnLog('OpenGLES', 'glDebugMessageControl' + ' source=' + GLEnumName(source) + ' _type=' + GLEnumName(_type) + ' severity=' + GLEnumName(severity) + ' count=' + IntToStr(count));
+  GlesLog('glDebugMessageControl' + ' source=' + GLEnumName(source) + ' _type=' + GLEnumName(_type) + ' severity=' + GLEnumName(severity) + ' count=' + IntToStr(count));
   glDebugMessageControl_Proc(source, _type, severity, count, ids, enabled);
   GLESCheckError('glDebugMessageControl');
 end;

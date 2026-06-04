@@ -23,7 +23,8 @@ interface
 implementation
 
 uses SysUtils,
-  CastleWindow, CastleLog, CastleUIControls, CastleTimeUtils
+  CastleWindow, CastleLog, CastleUIControls, CastleTimeUtils,
+  CastleGLUtils
   {$region 'Castle Initialization Uses'}
   // The content here may be automatically updated by CGE editor.
   , GameViewMain
@@ -72,6 +73,8 @@ initialization
     See https://castle-engine.io/window_size . }
   Window.FullScreen := true;
   Window.AntiAliasing := aa4SamplesNicer;
+
+  LogGLInformationVerbose := true;
 
   { Handle command-line parameters like --fullscreen and --window.
     By doing this last, you let user to override your fullscreen / mode setup. }

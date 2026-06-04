@@ -733,6 +733,7 @@ begin
   {$ifdef CASTLE_WEBGL}
   // TODO: web: Fix initializing empty depth texture on WebGL
   {$else}
+  WritelnLog('glTexImage2D called from TRendererCache.TextureDepth_IncReference');
   glTexImage2d(GL_TEXTURE_2D, 0, ImageInternalFormat,
     Width, Height, 0, GL_DEPTH_COMPONENT, ImageType, nil);
   {$endif}
@@ -823,6 +824,7 @@ begin
     InternalFormat := GL_RGB16F_ARB { same thing as GL_RGB_FLOAT16_ATI };
 
   { Do not init any texture image. Just initialize texture sizes and formats. }
+  WritelnLog('glTexImage2D called from TRendererCache.TextureFloat_IncReference');
   glTexImage2d(GL_TEXTURE_2D, 0, InternalFormat,
     Width, Height, 0, GL_RGB, GL_FLOAT, nil);
   TextureMemoryProfiler.Allocate(Result, '', 'rgb-float',

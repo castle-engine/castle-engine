@@ -436,6 +436,7 @@ var
             See https://sourceforge.net/p/castle-engine/tickets/22/ . }
           GL_TRUE) else
       {$endif}
+        WritelnLog('glTexImage2D called from CreateScreenEffectTexture, InternalFormat=' + GLEnumName(InternalFormat) + ' Format=' + GLEnumName(Format) + ' Type=' + GLEnumName(AType));
         glTexImage2D(ScreenEffectTextureTarget, 0, InternalFormat,
           ScreenEffectTextureWidth,
           ScreenEffectTextureHeight, 0, Format, AType,

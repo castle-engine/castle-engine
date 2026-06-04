@@ -301,6 +301,7 @@ begin
     {$endif}
 
     UncompressedGLFormatAndInternalFormat(Image, ImageFormat, ImageInternalFormat, ImageSwizzle);
+    WritelnLog('glTexImage2D called from CastleTexImage2D, ImageFormat=' + GLEnumName(ImageFormat) + ' ImageInternalFormat=' + GLEnumName(ImageInternalFormat));
     glTexImage2D(Target, Level, ImageInternalFormat,
       Image.Width, Image.Height, 0, ImageFormat, ImageGLType(Image),
       ImageGLData(Image));
