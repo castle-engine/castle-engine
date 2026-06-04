@@ -697,6 +697,21 @@ begin
   SingleTextureTransform := TextureTransform;
 end;
 
+{ X3D utilities -------------------------------------------------------------- }
+
+{ Does Node have a parent that is TSkinNode, meaning it is directly a child
+  of TSkinNode (e.g. in TSkinNode.FdSkeleton or TSkinNode.FdShapes).
+  @nil if none. }
+function HasParentSkin(const Node: TX3DNode): TSkinNode;
+var
+  I: Integer;
+begin
+  Result := nil;
+  for I := 0 to Node.ParentFieldsCount - 1 do
+    if Node.ParentFieldsNode[I] is TSkinNode then
+      Exit(TSkinNode(Node.ParentFieldsNode[I]));
+end;
+
 { LoadGltf ------------------------------------------------------------------- }
 
 { Main routine that converts glTF -> X3D nodes, doing most of the work. }
@@ -2340,6 +2355,13 @@ var
         begin
           WritelnWarning('AddSkinToHierarchy found unexpected state, Skin.Skeleton has a parent that is not TAbstractGroupingNode. Submit a bug with glTF testcase.');
           Continue;
+        end else
+        begin
+          { We know now that ParentNode is TSkinNode (and <> nil).
+            The "ParentNode <> Skin" would indicate that the skeleton is a
+            root of more than one skin, which is not supported.
+            We also check for it already in ReadSkin, so this should not happen. }
+          Assert(ParentNode = Skin, 'Skeleton is affected by more than one skin, but we already checked+warned about this in ReadSkin');
         end;
       end;
     finally FreeAndNil(ParentFieldsCopy) end;
@@ -2373,12 +2395,13 @@ var
   procedure ReadSkin(const Skin: TPasGLTF.TSkin;
     const SkinToInitialize: TSkinToInitialize);
   var
-    SkinNode: TSkinNode;
+    SkinNode, PreviousSkinNode: TSkinNode;
     SkeletonRootIndex: Integer;
     I: Integer;
     ParentOfShapesUncasted: TX3DNode;
     ParentOfShapes: TAbstractGroupingNode;
     ShapeNode: TShapeNode;
+    NewSkeleton: TAbstractGroupingNode;
   begin
     SkinNode := TSkinNode.Create(Skin.Name, BaseUrl);
     try
@@ -2386,7 +2409,7 @@ var
       // calculate SkinNode.Skeleton (root joint)
       SkeletonRootIndex := Skin.Skeleton;
       if SkeletonRootIndex = -1 then
-        SkinNode.Skeleton := CurrentScene
+        NewSkeleton := CurrentScene
       else
       begin
         if not Between(SkeletonRootIndex, 0, Nodes.Count - 1) then
@@ -2397,8 +2420,40 @@ var
           ]);
           Exit;
         end;
-        SkinNode.Skeleton := Nodes[SkeletonRootIndex] as TAbstractGroupingNode;
+        NewSkeleton := Nodes[SkeletonRootIndex] as TAbstractGroupingNode;
       end;
+
+      { Check we don't have more than one skin referring to the same skeleton,
+        as this is not supported. }
+      PreviousSkinNode := HasParentSkin(NewSkeleton);
+      if PreviousSkinNode <> nil then
+      begin
+        Assert(PreviousSkinNode <> SkinNode, 'Impossible for NewSkeleton to already refer to newly created SkinNode');
+        WritelnWarning('glTF', 'Skeleton "%s" is a root of more than one skin (named: "%s" and "%s"). This is not supported (see KHR_skin_strict discussion).', [
+          NewSkeleton.NiceName,
+          PreviousSkinNode.X3DName,
+          SkinNode.X3DName
+        ]);
+        { Do not continue, as we would then cause more problems:
+          - we would move shapes affected by this skin node into our
+            SkinNode.FdShapes, by below code:
+
+              ...
+              SkinNode.FdShapes.Add(ShapeNode);
+              ParentOfShapes.FdChildren.Delete(I)
+
+          - but our AddSkinToHierarchy for previous and new skin node conflict:
+            they both want to replace NewSkeleton with their skin node
+            in X3D hierarchy. Ony one will remain, and the other SkinNode
+            would be discarded.
+
+          We're OK in this case to discard the new skin,
+          but keep the shapes then (unanimated) in the place where they are.
+        }
+        Exit;
+      end;
+
+      SkinNode.Skeleton := NewSkeleton;
 
       AddSkinToHierarchy(SkinNode);
 
