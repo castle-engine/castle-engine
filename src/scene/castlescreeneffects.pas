@@ -438,8 +438,7 @@ var
       {$endif}
         glTexImage2D(ScreenEffectTextureTarget, 0, InternalFormat,
           ScreenEffectTextureWidth,
-          ScreenEffectTextureHeight, 0, Format, AType,
-          {$ifdef CASTLE_WEBGL} IJSArrayBufferView {$endif} (nil));
+          ScreenEffectTextureHeight, 0, Format, AType, nil);
     end;
 
   begin
