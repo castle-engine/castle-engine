@@ -214,7 +214,7 @@ begin
   MakeContextCurrent;
   EventBeforeRender;
   EventRender;
-  Result := SaveScreen_NoFlush(Rect, SaveScreenBuffer);
+  Result := SaveScreen_NoFlush(SaveRect, SaveScreenBuffer);
 end;
 
 procedure TCastleControlContainer.InitializeContext;

@@ -675,7 +675,7 @@ begin
     EventBeforeRender;
     EventRender;
   end;
-  Result := SaveScreen_NoFlush(PixelsRect, Parent.SaveScreenBuffer);
+  Result := SaveScreen_NoFlush(SaveRect, Parent.SaveScreenBuffer);
 end;
 
 { TCastleControl -------------------------------------------------- }
