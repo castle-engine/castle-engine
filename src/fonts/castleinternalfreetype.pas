@@ -445,7 +445,7 @@ procedure TFontManager.SetPixelSize (aSize : integer);
       until (r < 0) or
          ( (available_sizes^[r].height=asize) and
            (available_sizes^[r].width=asize) );
-      if r >= 0 then
+      if r < 0 then
         raise FreeTypeException.CreateFmt ('Size %d not available for %s %s',
                   [aSize, style_name, family_name]);
       end;
@@ -481,7 +481,7 @@ function TFontManager.CreateGlyph (c : TUnicodeChar) : PMgrGlyph;
 var e : integer;
 begin
   new (result);
-  FillByte(Result^,SizeOf(Result),0);
+  FillByte(Result^,SizeOf(TMgrGlyph),0);
   result^.character := c;
   result^.GlyphIndex := FT_Get_Char_Index (CurFont.font, c);
   //WriteFT_Face(CurFont.Font);
