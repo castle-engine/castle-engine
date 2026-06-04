@@ -146,20 +146,39 @@ const
   begin
     Result := GLFeatures.TextureModernFormatsAndSwizzle
 
-      { WebGL 2 doesn't have texture swizzle, but ImageInternalFormat
-        should be GL_*32F for float textures.
+      { - For WebGL:
 
-        Testcase: animate_bones_by_code, using float textures for joints,
-        Firefox and Vivaldi make warnings in console if we use GL_RGBA
-        instead of GL_RGBA32F for ImageInternalFormat for TRGBAlphaFloatImage.
+          WebGL 2 (which always has TextureFloat) doesn't have texture swizzle,
+          but ImageInternalFormat should be GL_*32F for float textures.
 
-        Seems all textures should use modern enums with WebGL 2:
-        https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/texImage2D
+          Testcase: animate_bones_by_code, using float textures for joints,
+          Firefox and Vivaldi make warnings in console if we use GL_RGBA
+          instead of GL_RGBA32F for ImageInternalFormat for TRGBAlphaFloatImage.
 
-        Note: It would seem the same should apply to non-float textures...
-        but then our font rendering is broken.
-        Looks like we need old enums for non-float textures? }
-      {$ifdef CASTLE_WEBGL} or (IsFloatImage(Img) and GLFeatures.VersionWebGL_2) {$endif};
+          Seems all textures should use modern enums with WebGL 2:
+          https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/texImage2D
+
+          Note: It would seem the same should apply to non-float textures...
+          but then our font rendering is broken.
+          Looks like we need old enums for non-float textures?
+
+        - For OpenGLES:
+
+          Same thing applies to OpenGLES, which may (but doesn't have to)
+          support texture swizzle, but regardless of it:
+          we need to use modern enums for float textures.
+
+          Testcase: run example with skinned animation,
+          like walking_adventure, on mobile device with float textures.
+          Without this fix, we will get error, details:
+
+            glTexImage2D called from CastleTexImage2D, ImageFormat=GL_RGBA ImageInternalFormat=GL_RGBA
+            OpenGLES: glTexImage2D target=GL_TEXTURE_2D level=0 internalformat=GL_RGBA width=1 height=1 border=0 format=GL_RGBA type=GL_FLOAT
+            OpenGLES: glTexImage2D error: GL_INVALID_OPERATION
+      }
+      {$if defined(CASTLE_WEBGL) or defined(OpenGLES)}
+      or (IsFloatImage(Img) and GLFeatures.TextureFloat)
+      {$endif};
   end;
 
 begin
