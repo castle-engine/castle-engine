@@ -119,7 +119,7 @@ do_project examples/animations/play_animation
 do_project examples/2d_games/space_shooter
 do_project examples/tiled/map_viewer # TODO: web: no open dialog (works, but could be more impressive)
 do_project examples/tiled/strategy_game_demo
-do_project examples/screen_effects_demo # TODO: edge-detect effect fails
+do_project examples/screen_effects_demo
 
 # 3d
 do_project examples/ifc # TODO: web: no open dialog (works, but could be more impressive)
