@@ -126,8 +126,28 @@ begin
   Canvas := TJSHTMLCanvasElement.Cast(CanvasBase);
 
   ContextOptions := TJSWebGLContextAttributes.Create;
+
+  { We need alpha = false to avoid subtle issues.
+    Default value alpha = true causes blending to be applied to the whole canvas,
+    so it's blended with the final page color (like white) when the pixel
+    written to screen happens to have alpha < 1.0.
+
+    Testcases where we have issues without this fix:
+    - if a screen effect writes fragment alpha < 1.0
+    - when rendering 3D shapes with blending, like:
+      - cat hair in castle-model-viewer-mobile
+      - trees' leaves in walking_adventure
+    - when rendering text and 2D images with blending, like:
+      - outline of "credits" text in platformer
+      - outline of assets in platformer in fullscreen
+      - heart that is invisible (once you lose health) in platformer
+      - around cge logo in buttons on component_gallery
+      - around "The Unholy Society" assets (when no screen effects active) }
+  ContextOptions.Alpha := false;
+
   { Seems to have no effect. }
   ContextOptions.Antialias := false;
+
   { This is critical to have correct text rendering.
     By default premultipliedAlpha is true, we don't want this,
     we assume not premultiplied in all our operations, including when delivering
