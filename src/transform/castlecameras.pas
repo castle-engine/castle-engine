@@ -132,7 +132,8 @@ type
 
     { Viewport we should manipulate.
       This is @nil, or TCastleViewport instance, but it cannot be declared as
-      TCastleViewport due to unit dependencies. }
+      TCastleViewport due to unit dependencies.
+      @exclude }
     function InternalViewport: TCastleUserInterface;
 
     { If this is @true, then Camera is non-nil, InternalViewport is non-nil,
@@ -683,6 +684,7 @@ type
     function Motion(const Event: TInputMotion): boolean; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
+    { @exclude }
     function InternalUsingMouseLook: Boolean;
   published
     { Use mouse look to navigate (rotate the camera).

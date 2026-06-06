@@ -601,7 +601,8 @@
     procedure ExistsInRootChanged; virtual;
 
     { Helper for InternalBuildNode.
-      Result must be TAbstractChildNode or @nil. }
+      Result must be TAbstractChildNode or @nil.
+      @exclude }
     function InternalBuildNodeInside: TObject; virtual;
   public
     const
@@ -2135,7 +2136,8 @@
       and thus it is never @nil.
       Caller should make a check before calling this,
       like @code(if not (csTransient in Transform.ComponentState) then...)
-      if it wants to avoid storing csTransient. }
+      if it wants to avoid storing csTransient.
+      @exclude }
     function InternalBuildNode: TObject;
   published
     { Is this object (and all children) visible and colliding.

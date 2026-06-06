@@ -64,7 +64,9 @@ type
     function PropertySections(const PropertyName: String): TPropertySections; override;
     function FontLoaded: Boolean; override;
 
+    { @exclude }
     property InternalBold: boolean read FInternalBold write FInternalBold default false;
+    { @exclude }
     property InternalItalic: boolean read FInternalItalic write FInternalItalic default false;
 
     procedure PrepareResources; override;

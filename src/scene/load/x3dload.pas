@@ -27,7 +27,7 @@ unit X3DLoad;
 {$I castleconf.inc}
 
 { Model formats support.
-  You can use conditional defines to disable support for some model formats 
+  You can use conditional defines to disable support for some model formats
   to make the exe smaller.
 
   Note: Don't define these symbols by editing engine sources,
@@ -51,14 +51,14 @@ unit X3DLoad;
 
 { IFC unit is known to cause building errors with FPC on Win64/AArch64,
 
-  $ cd play_animation 
+  $ cd play_animation
   $ castle-engine --os=win64 --cpu=aarch64 compile
   ...
   Linking play_animation_standalone.exe
   Error: Failed reading coff file, invalid section index while reading /home/michalis/sources/castle-engine/castle-engine/examples/animations/play_animation/castle-engine-output/compilation/aarch64-win64/castleifc.o
   Error: Compilation raised exception internally
   An unhandled exception occurred at $0000000000781E21:
-  EAccessViolation: Access violation  
+  EAccessViolation: Access violation
 }
 {$if defined(WIN64) and defined(CPUAARCH64)}
   {$define CASTLE_IFC_SUPPORT_DISABLE}
@@ -390,13 +390,15 @@ type
   #) *)
 procedure RegisterModelFormat(const ModelFormat: TModelFormat);
 
-{ Used by castle-model-viewer/utils/output_document_types/ . }
+{ Used by castle-model-viewer/utils/output_document_types/ }
 {$ifdef CASTLE_INTERNAL_EXPOSE_MODEL_FORMATS}
 type
+  // @exclude
   TModelFormatList = class({$ifdef FPC}specialize{$endif} TObjectList<TModelFormat>)
     function FindMimeType(const MimeType: string): TModelFormat;
   end;
 
+// @exclude
 function InternalRegisteredModelFormats: TModelFormatList;
 {$endif CASTLE_INTERNAL_EXPOSE_MODEL_FORMATS}
 

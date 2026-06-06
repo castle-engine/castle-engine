@@ -323,6 +323,7 @@
     procedure DesignerInfo(const SList: TStrings); override;
     procedure DesignerWarnings(const SList: TStrings); override;
     function GetEnumerator: TEnumerator;
+    { @exclude }
     procedure InternalSetContainer(const Value: TCastleContainer); virtual;
 
     (*Override this method to react to user pressing a key, mouse button or mouse wheel.

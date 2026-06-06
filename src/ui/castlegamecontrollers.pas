@@ -253,7 +253,8 @@ type
       Always returns TExplicitControllerManagerBackend, but cannot be
       declared as such.
       Used by CASTLE_WINDOW_LIBRARY when
-      an external API notifies us about the controllers state. }
+      an external API notifies us about the controllers state.
+      @exclude }
     function InternalExplicitBackend: TInternalControllerManagerBackend;
 
     { Used by CastleWindow to notify us that some devices have been

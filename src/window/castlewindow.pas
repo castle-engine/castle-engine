@@ -1613,7 +1613,8 @@ type
 
       Note that this is for internal usage in the engine. In your applications,
       you should set TCastleUserInterface.Cursor on any UI control (including on TCastleView),
-      never set this property directly. }
+      never set this property directly.
+      @exclude }
     property InternalCursor: TMouseCursor read FCursor write SetCursor default mcDefault;
 
     { List of user-interface controls currently active.

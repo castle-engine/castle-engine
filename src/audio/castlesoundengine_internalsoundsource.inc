@@ -159,6 +159,7 @@
 
   TSound = TInternalSoundSource deprecated 'play sounds using TCastleSoundSource + TCastleSound';
 
+  { @exclude }
   TInternalSoundSourceList = class({$ifdef FPC}specialize{$endif} TObjectList<TInternalSoundSource>)
   public
     { Sort sounds by Used + Priority, descending.

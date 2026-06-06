@@ -926,7 +926,8 @@ type
       Both OldNode and NewNode may be @nil, this method can handle it.
 
       It is allowed to call this even when OldNode = NewNode, which means that nothing
-      really changes. }
+      really changes.
+      @exclude }
     procedure InternalMoveShapeAssociations(
       const OldNode, NewNode: TX3DNode; const ContainingShapes: TObject); override;
 
@@ -1314,7 +1315,8 @@ type
       so some shapes are not 2-manifold but whole scene is 2-manifold.
       This is independent (doesn't take into account) the value
       of @link(TCastleRenderOptions.WholeSceneManifold
-      RenderOptions.WholeSceneManifold). }
+      RenderOptions.WholeSceneManifold).
+      @exclude }
     function InternalDetectedWholeSceneManifold(
       const ForceRecalculation: Boolean = false): Boolean;
 
@@ -1357,7 +1359,8 @@ type
       (when e.g. animation moves some shape by changing it's transformation).
 
       Note that when VRML/X3D scene contains Collision nodes, this octree
-      contains the @italic(visible (not necessarily collidable)) objects. }
+      contains the @italic(visible (not necessarily collidable)) objects.
+      @exclude }
     function InternalOctreeRendering: TShapeOctree;
 
     { A spatial structure containing all collidable shapes (and then
@@ -1385,7 +1388,8 @@ type
       contains the @italic(collidable (not necessarily rendered)) objects.
 
       This is kept up-to-date automatically when the scene changes.
-      TODO: Temporarily, this is updated simply by rebuilding. }
+      TODO: Temporarily, this is updated simply by rebuilding.
+      @exclude }
     function InternalOctreeDynamicCollisions: TShapeOctree;
 
     { Octree for collisions.
@@ -1398,7 +1402,8 @@ type
       Instead use TCastleViewport
       and then use @code(Viewport.Items.WorldXxxCollision) methods like
       @link(TCastleAbstractRootTransform.WorldRay Viewport.Items.WorldRay) or
-      @link(TCastleAbstractRootTransform.WorldSphereCollision Viewport.Items.WorldSphereCollision).) }
+      @link(TCastleAbstractRootTransform.WorldSphereCollision Viewport.Items.WorldSphereCollision).)
+      @exclude }
     function InternalOctreeCollisions: TBaseTrianglesOctree;
 
     function UseInternalOctreeCollisions: boolean;
@@ -1691,7 +1696,8 @@ type
       Note that, since some fields are only in some descendants (e.g. MoveSpeed
       is only at TCastleWalkNavigation) then some TNavigationInfoNode settings
       are just not transferred to all Navigation instances like
-      TCastleExamineNavigation }
+      TCastleExamineNavigation.
+      @exclude }
     procedure InternalUpdateNavigation(
       const Navigation: TCastleNavigation);
 
@@ -1813,7 +1819,8 @@ type
     function Caption: String;
 
     { Global lights of this scene. Read-only.
-      Useful to shine these lights on other scenes, if TCastleScene.CastGlobalLights. }
+      Useful to shine these lights on other scenes, if TCastleScene.CastGlobalLights.
+      @exclude }
     property InternalGlobalLights: TLightInstancesList read FGlobalLights;
 
     { Find a named X3D node in the current node graph.
@@ -2146,7 +2153,9 @@ type
     property FileName: String read FUrl write SetUrl; deprecated;
     {$endif}
 
+    { @exclude }
     procedure InternalIncShapesHash;
+    { @exclude }
     property InternalShapesHash: TShapesHash read FShapesHash;
 
     { Load again the model from current URL.

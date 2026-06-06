@@ -89,7 +89,8 @@
       TIndexedTriangleSetNode. That is, these indexes have 3 items for each triangle,
       6 items for each quad. You can use them to index all the vertex coordinates
       and per-vertex attributes, and thus render TQuadSetNode just like you would render
-      TIndexedTriangleSetNode. }
+      TIndexedTriangleSetNode.
+      @exclude }
     function InternalTrianglesCoordIndex: TMFLong;
 
     procedure InternalCoordPolygons(

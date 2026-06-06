@@ -163,9 +163,12 @@
       are preserved when you switch
       e.g. NavigationType from ntWalk to ntExamine to ntWalk again.
 
-      @groupBegin }
+      @groupBegin
+      @exclude }
     function InternalExamineNavigation: TCastleExamineNavigation;
+    // @exclude
     function InternalWalkNavigation: TCastleWalkNavigation;
+    // @exclude
     function Internal2DNavigation: TCastle2DNavigation;
     { @groupEnd }
 
@@ -224,6 +227,7 @@
       read GetNavigationType write SetNavigationType
       default ntNone;
 
+    { @exclude }
     class function InternalGetNavigationType(const V: TCastleViewport): TNavigationType;
   published
     { Assign sensible @link(Navigation) looking

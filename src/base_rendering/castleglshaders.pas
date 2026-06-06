@@ -643,7 +643,7 @@ property CurrentProgram: TGLSLProgram
   read GetCurrentProgram write SetCurrentProgram;
 {$endif FPC}
 
-// @exclude User by RenderContext.SetCurrentProgram
+{ Used by RenderContext.SetCurrentProgram. @exclude }
 procedure InternalSetCurrentProgram(const Value: TGLSLProgram);
 
 var

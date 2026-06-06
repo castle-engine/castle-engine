@@ -32,7 +32,8 @@
     so only TCastleView instances should be present at the top-level of the UI hierarchy
     in TInternalChildrenControls. And you should manage TCastleView instances using
     @link(TCastleContainer.View), @link(TCastleContainer.PushView) etc. that will make
-    it added / removed from the TInternalChildrenControls automatically. }
+    it added / removed from the TInternalChildrenControls automatically.
+    @exclude }
   TInternalChildrenControls = class
   strict private
     FParent: TCastleUserInterface;

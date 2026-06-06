@@ -35,7 +35,8 @@
     procedure ExecuteCompiledScript(const HandlerName: string;  ReceivedValue: TX3DField); virtual; abstract;
 
     { Called before changing one node into another,
-      when old node may have beeen associated with a shape using TShapeTree.AssociateNode. }
+      when old node may have beeen associated with a shape using TShapeTree.AssociateNode.
+      @exclude }
     procedure InternalMoveShapeAssociations(const OldNode, NewNode: TX3DNode; const ContainingShapes: TObject); virtual; abstract;
 
     { Render options used to render this scene.
@@ -50,8 +51,11 @@
     function NextEventTime: TX3DTime; virtual; abstract;
     procedure ChangedAll(const OnlyAdditions: Boolean = false); virtual; abstract;
     procedure BeforeNodesFree(const InternalChangedAll: boolean = false); virtual; abstract;
+    { @exclude }
     procedure InternalChangedField(const Field: TX3DField; const Change: TX3DChange); overload; virtual; abstract;
+    { @exclude }
     procedure InternalChangedField(const Field: TX3DField); overload;
+    { @exclude }
     function InternalCastingShadowVolumesNow: Boolean; virtual; abstract;
   end;
 

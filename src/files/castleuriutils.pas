@@ -432,7 +432,8 @@ function UrlDecode(const S: String): String;
 
 { Encode a single form value for application/x-www-form-urlencoded encoding.
   This is similar to UrlEncode, but it also replaces space with plus,
-  and it allows fewer characters unescaped. }
+  and it allows fewer characters unescaped.
+  @exclude }
 function InternalUrlEncodeForm(const S: String): String;
 
 { Extract query parameters from URL ending like @code(?model=foo&texture=bar).

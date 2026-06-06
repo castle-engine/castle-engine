@@ -190,7 +190,8 @@
 
       Do not change or access this yourself.
       You can change this only by calling procedure like UseFMODSoundBackend
-      from CastleFMODSoundBackend unit. }
+      from CastleFMODSoundBackend unit.
+      @exclude }
     property InternalBackend: TSoundEngineBackend read Backend write SetInternalBackend;
 
     { Did we attempt to initialize sound rendering context.

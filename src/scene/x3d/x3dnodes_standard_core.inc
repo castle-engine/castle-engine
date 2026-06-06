@@ -36,6 +36,7 @@
     function GetMetadataDouble(const Key: String): Double;
     procedure SetMetadataDouble(const Key: String; const Value: Double);
   public
+    { @exclude }
     procedure InternalInsertMetadata(const M: TAbstractMetadataNode);
 
     { Find a "metadata" information within this node with given key.
@@ -192,7 +193,8 @@
 
     { TCastleSceneCore calls this if transformation of this changed
       and we didn't Traverse after this change.
-      Returns if any change actually occurred. }
+      Returns if any change actually occurred.
+      @exclude }
     function InternalUpdateTransformation(const Transformation: TTransformation): Boolean;
 
     { Transformation of this bindable node.

@@ -71,7 +71,8 @@
 
       Returns changed X3D coordinates field (or @nil if there is no skin).
       You should call TX3DField.Changed on it (unless you use it from some
-      TCastleSceneCore initialization, when there's no point in notifying about this). }
+      TCastleSceneCore initialization, when there's no point in notifying about this).
+      @exclude }
     procedure InternalUpdateSkin;
 
     { Fill the FdJoints array, if it is empty.

@@ -492,7 +492,8 @@
   { Internal TPixelTextureNode descendant for nodes that may be used
     by many scenes at once (right now this just means: FontTexture),
     Such nodes need special protection to not free their rendering resources
-    too early (e.g. when TCastleScene using them is destroyed). }
+    too early (e.g. when TCastleScene using them is destroyed).
+    @exclude }
   TInternalReusedPixelTextureNode = class(TPixelTextureNode)
 
   end;

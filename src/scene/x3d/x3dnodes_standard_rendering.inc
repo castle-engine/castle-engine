@@ -60,7 +60,8 @@
 
       Returns @true if this is available. In this case, RangeCount must
       be set to something <> nil, and the rest of returned variables
-      are mainly to generate proper warnings by MakeCoordRanges. }
+      are mainly to generate proper warnings by MakeCoordRanges.
+      @exclude }
     function InternalCoordRangesCounts(out RangeCount: TInt32List;
       out SRanges, SRangeName: string;
       out RangeMinimumCount: Cardinal): boolean; virtual;
@@ -210,7 +211,8 @@
       Otherwise should return @true and set ACoord = @nil.
 
       For VRML 1.0, coord may be taken from State, that's why we have to
-      pass current traverse state here. }
+      pass current traverse state here.
+      @exclude }
     function InternalCoord(State: TX3DGraphTraverseState;
       out ACoord: TMFVec3f): boolean; virtual;
 
@@ -224,7 +226,7 @@
 
       @raises(ENotCoordinateBasedNode If node is not coordinate-based,
         that is @link(InternalCoord) returns false.)
-    }
+      @exclude }
     function InternalCoordinates(State: TX3DGraphTraverseState): TMFVec3f;
 
     { Node's "coord" field where you can place TCoordinateNode, or @nil if not available.
@@ -276,11 +278,13 @@
     { Returns normal vectors that are specified explicitly.
       The vectors are taken from the Normal node inside our FdNormal field.
       In case of problems (no Normal node specified, invalid node specified etc.)
-      returns @nil. }
+      returns @nil.
+      @exclude }
     function InternalNormal: TVector3List;
 
     { Returns tangent vectors that are specified explicitly, see @link(TAbstractComposedGeometryNode.Tangent).
-      Returns @nil if not specified. }
+      Returns @nil if not specified.
+      @exclude }
     function InternalTangent: TVector4List;
 
     { Node's list of coordinate indexes.
@@ -304,7 +308,8 @@
       (when CoordIndex is assigned).
 
       Call this only for nodes with coordinates, that is only when
-      @link(InternalCoord) returns @true. }
+      @link(InternalCoord) returns @true.
+      @exclude }
     procedure InternalMakeCoordRanges(
       State: TX3DGraphTraverseState;
       CoordRangeHandler: TCoordRangeHandler);
@@ -319,7 +324,8 @@
       In this class this does nothing. Some, but not all, coordinate-based
       nodes (the ones when @link(InternalCoord) returns @true) override this.
       So currently, whether this is implemented is coordinated with
-      CastleInternalNormals and such internal needs. }
+      CastleInternalNormals and such internal needs.
+      @exclude }
     procedure InternalCoordPolygons(
       State: TX3DGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); virtual;
@@ -334,7 +340,8 @@
       this node has a field for texCoord, but it's empty right now.
 
       In base TAbstractGeometryNode class this looks at TexCoordField,
-      eventually returns @false. }
+      eventually returns @false.
+      @exclude }
     function InternalTexCoord(State: TX3DGraphTraverseState;
       out ATexCoord: TX3DNode): boolean; virtual;
 
@@ -400,12 +407,16 @@
       Note that only one of Color and ColorRGBA may return non-nil,
       since "color" field may contain only one of them.
 
-      @groupBegin }
+      @groupBegin
+      @exclude }
     function InternalColor: TMFVec3f;
+    // @exclude
     function InternalColorRGBA: TMFColorRGBA;
+    // @exclude
     function InternalColorNode: TAbstractColorNode;
     { @groupEnd }
 
+    { @exclude }
     function InternalFogCoord: TMFFloat; virtual;
     function AttribField: TMFNode; virtual;
 
@@ -536,7 +547,8 @@
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
-    { Access the coordinate node, and inside this node access it's points list. }
+    { Access the coordinate node, and inside this node access it's points list.
+      @exclude }
     function InternalCoord(State: TX3DGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
     function CoordField: TSFNode; override;

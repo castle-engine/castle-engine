@@ -322,18 +322,20 @@
 
     { Notify this collider that given TCastleTransform changed.
       It can provoke AutoSize recalculation (if Parent changed)
-      or other reactions (e.g. mesh update, if TransformChanged corresponds to Mesh). }
+      or other reactions (e.g. mesh update, if TransformChanged corresponds to Mesh).
+      @exclude }
     procedure InternalTransformChanged(const TransformChanged: TCastleTransform); virtual;
 
-    { Create collider visualization. }
+    { Create collider visualization. @exclude }
     procedure InternalDesigningBegin; virtual;
-    { Destroy collider visualization. }
+    { Destroy collider visualization. @exclude }
     procedure InternalDesigningEnd; virtual;
 
     procedure ParentBeforeDetach; override;
 
     { Recalculate collider size using parent bounding box, only if @link(AutoSize) says we should recalculate.
       Ignored if not @link(AutoSize). }
+    { @exclude }
     procedure InternalAutoSize;
 
     { Calculate collider size to reflect parent bounding box now.

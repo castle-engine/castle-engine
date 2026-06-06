@@ -627,7 +627,8 @@ type
 
       Parent TCastleSceneCore will also take care of actually using
       this octree: TCastleSceneCore.OctreeCollisions methods actually use the
-      octrees of specific shapes at the bottom. }
+      octrees of specific shapes at the bottom.
+      @exclude }
     function InternalOctreeTriangles: TTriangleOctree;
 
     { Which spatial structrues (octrees, for now) should be created and managed.
@@ -635,7 +636,8 @@ type
       octrees within this TShape.
 
       Parent TCastleSceneCore will take care to keep this value updated,
-      you should only set TCastleSceneCore.Spatial from the outside. }
+      you should only set TCastleSceneCore.Spatial from the outside.
+      @exclude }
     property InternalSpatial: TShapeSpatialStructures read FSpatial write SetSpatial;
 
     { Properties of created triangle octrees.
@@ -645,7 +647,8 @@ type
 
       They are used only when the octree is created, so usually you
       want to set them right before changing @link(InternalSpatial) from []
-      to something else. }
+      to something else.
+      @exclude }
     function InternalTriangleOctreeLimits: POctreeLimits;
 
     { How should the alpha of the resulting calculation be used.

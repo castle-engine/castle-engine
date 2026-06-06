@@ -1006,6 +1006,7 @@ function ProposeComponentName(const ComponentClass: TComponentClass;
   const ComponentsOwner: TComponent;
   BaseName: String = ''): String;
 
+{ @exclude }
 function InternalProposeName(const ComponentClass: TComponentClass;
   const ComponentsOwner: TComponent): String;
   deprecated 'use ProposeComponentName';

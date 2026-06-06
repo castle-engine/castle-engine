@@ -229,6 +229,7 @@
       Empty (following @link(TFloatRectangle.Empty)) means using the whole image. }
     property Region: TFloatRectangle read FRegion write SetRegion;
 
+    { @exclude }
     property InternalVisualizeProtectedSides: Boolean
       read FInternalVisualizeProtectedSides write FInternalVisualizeProtectedSides default true;
 

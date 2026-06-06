@@ -116,7 +116,8 @@
     { All allocated (not necessarily used) sources.
       Accessing this is useful only for debugging tasks,
       in normal circumstances this is internal.
-      This is @nil when ContextOpen was not yet called. }
+      This is @nil when ContextOpen was not yet called.
+      @exclude }
     property InternalAllocatedSources: TInternalSoundSourceList read FAllocatedSources;
 
     { Do we have active sound rendering context.

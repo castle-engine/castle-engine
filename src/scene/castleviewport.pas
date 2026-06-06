@@ -1052,7 +1052,7 @@ type
         @item(See TCastleTransform.InternalBuildNode for more explanation.
           including why it's an internal method.)
       )
-    }
+      @exclude }
     function InternalBuildNode(
       const SaveBaseUrl: String; const UrlProcessing: TUrlProcessing): TX3DRootNode;
   published

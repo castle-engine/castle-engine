@@ -136,7 +136,8 @@ type
     { If Handle not allocated yet, allocate it now.
       This makes sure we have OpenGL context created.
       Our OpenBackend must guarantee it, we want to initialize GLVersion
-      afterwards etc. }
+      afterwards etc.
+      @exclude }
     procedure InternalHandleNeeded;
 
     { This control must always have "native style", which means

@@ -41,7 +41,8 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    { OpenGL VAO identifier, for given context (must be @link(TRenderContext)). }
+    { OpenGL VAO identifier, for given context (must be @link(TRenderContext)).
+      @exclude }
     function InternalHandle(const Context: TComponent): TGLVertexArrayObject;
   end;
 

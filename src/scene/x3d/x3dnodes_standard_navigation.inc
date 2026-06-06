@@ -217,7 +217,8 @@
     { Calculate final field of view value, taking into account aspect ratio.
       The idea is that OrthoViewpoint.fieldOfView specifies the minimal
       extents. Depending on your window aspect ratio, you may need to make
-      one extent (vertical or horizontal) larger to adjust. }
+      one extent (vertical or horizontal) larger to adjust.
+      @exclude }
     class function InternalFieldOfView(
       const AFieldOfView: TFloatRectangle;
       const ViewportWidth, ViewportHeight: Single): TFloatRectangle;
@@ -239,7 +240,8 @@
 
       In particular when FieldOfViewAxis = faSmallest then we perform
       the calculation requested by X3D specification about
-      ViewpointNode fieldOfView behavior. }
+      ViewpointNode fieldOfView behavior.
+      @exclude }
     class function InternalFieldOfView(FieldOfView: Single;
       const FieldOfViewAxis: TFieldOfViewAxis;
       const ViewportWidth, ViewportHeight: Single): TVector2;

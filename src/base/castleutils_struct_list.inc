@@ -108,7 +108,9 @@ type
     function L: PtrT;
 
     {$ifndef FPC}
+    { @exclude }
     function InternalGetItem(const Index: TListSize): T;
+    { @exclude }
     procedure InternalSetItem(const Index: TListSize; const Value: T);
     {$endif}
 

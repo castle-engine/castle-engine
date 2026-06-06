@@ -176,6 +176,7 @@
     property Cursor: TMouseCursor write SetInternalCursor;
       deprecated 'do not set this, engine will override this. Set TCastleUserInterface.Cursor of your UI controls to control the Cursor.';
     {$endif}
+    { @exclude }
     property InternalCursor: TMouseCursor write SetInternalCursor;
 
     { Descendants should override this to change the mouse position
@@ -896,7 +897,8 @@
     { Hide the tooltip, if was displayed, right now.
       Useful if you e.g. want to make a screenshot now - e.g. for castle-model-viewer-mobile.
       TODO: Would be more natural to hide tooltip when parent exists:=false,
-      and then this is unnecessary. }
+      and then this is unnecessary.
+      @exclude }
     procedure InternalTooltipHide;
 
     { Enable automatic scaling of the UI.

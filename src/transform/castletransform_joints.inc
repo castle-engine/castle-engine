@@ -84,12 +84,14 @@
       to visualize physics joints 3D points.
       If you want to visualize the behavior using a visible TCastleTransform,
       then create and add to Parent a descendant of TCastleJointTool,
-      and set InternalCastleDesignInvalidate to @true. }
+      and set InternalCastleDesignInvalidate to @true.
+      @exclude }
     procedure InternalCreateGizmos; virtual;
 
     { Destroy design-time stuff.
       You can destroy any component, just be sure
-      to set InternalCastleDesignInvalidate to @true. }
+      to set InternalCastleDesignInvalidate to @true.
+      @exclude }
     procedure InternalDestroyGizmos; virtual;
   published
     { Makes the joint breakable when force is greater than BreakThresholdForce
