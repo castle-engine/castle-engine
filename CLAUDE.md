@@ -222,6 +222,10 @@ end;
 - **Warnings**: Fix all compiler warnings
 - **Never use**: `with` statement, assembler
 - **Optimizations**: Prefer high-level optimizations (GPU work) over low-level micro-optimizations
+- Sometimes, engine API has to expose internal identifiers. Regular engine users should not use them, but other engine parts need them exposed (e.g. in unit's interface, or in `public` section of some class).
+    - Internal units should have names starting with `CastleInternal`, like `CastleInternalTools`. They are automatically excluded from PasDoc API reference.
+    - Internal classes (in non-internal units) should have names starting with `TInternal`, like `TInternalTransformation` and have `@exclude` in documentaion comment.
+    - Other internal identifiers (in non-internal units), like internal fields, methods, routines -- should have names that start with `Internal`, like `InternalTransformation` and have `@exclude` in documentaion comment.
 
 More information about coding conventions in [CONTRIBUTING.md](CONTRIBUTING.md). Even more in https://castle-engine.io/coding_conventions .
 
