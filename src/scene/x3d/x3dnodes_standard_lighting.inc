@@ -1,6 +1,6 @@
 {%MainUnit x3dnodes.pas}
 {
-  Copyright 2002-2023 Michalis Kamburelis.
+  Copyright 2002-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -31,7 +31,6 @@
   { Base class for all the light nodes. }
   TAbstractLightNode = class(TAbstractChildNode)
   strict private
-    FTransformation: TTransformation;
     WarningWorldTransformDone: Boolean;
     procedure DoWarningWorldTransform;
   protected
@@ -43,6 +42,13 @@
       Set and used internally in CGE.
       @exclude }
     InternalHeadlight: Boolean;
+
+    { Transformation of the light (from the TCastleScene root to this light node).
+      Used only when we are forced to assume that this light node occurs
+      only once within the scene, which right now is assumed by the shadow maps.
+      Most of the code should rely on TLightInstance, which stores
+      transformation specific for light source instance. }
+    InternalTransformation: TTransformation;
 
     constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
 
@@ -70,8 +76,9 @@
     function Scope: TLightScope; virtual;
 
     { Transformation of this light node, to world space.
-      This accounts for transformation to scene space (TCastleScene)
-      and then to viewport root (TCastleViewport.Items) space.
+      This accounts for transformation of all parent TCastleTransform
+      instances in a TCastleViewport, and then all TTransformNode instances
+      within this TCastleScene.
 
       Beware: In X3D, light nodes can be instantiated many times within the scene,
       with different transformations, so @italic(this transformation property
@@ -81,12 +88,13 @@
       For example shadow maps assume this,
       see [https://castle-engine.io/x3d_extensions.php#section_ext_shadow_maps .
 
-      For this to work, we multiply transformation from last traverse
-      (@link(BeforeTraverse) collects transformation to space)
+      For this to work, we multiply @link(InternalTransformation)
       and then use TCastleTransform.WorldTransform.
 
       Call this only when scene is part of some TCastleViewport and thus its
-      world transformation is known.
+      world transformation is known. Otherwise, this returns transformation
+      only inside this TCastleScene, but it will be wrong once TCastleScene
+      is placed in a TCastleViewport with some transformation.
 
       @groupBegin }
     function Transform: TMatrix4;
@@ -321,13 +329,13 @@ const
 constructor TAbstractLightNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-  FTransformation.Init;
+  InternalTransformation.Init;
 end;
 
 procedure TAbstractLightNode.BeforeTraverse(StateStack: TX3DGraphTraverseStateStack);
 begin
   inherited;
-  FTransformation := StateStack.Top.Transformation;
+  InternalTransformation := StateStack.Top.Transformation;
 end;
 
 procedure TAbstractLightNode.MiddleTraverse(StateStack: TX3DGraphTraverseStateStack);
@@ -443,7 +451,7 @@ end;
 
 function TAbstractLightNode.Transform: TMatrix4;
 begin
-  Result := FTransformation.Transform;
+  Result := InternalTransformation.Transform;
   if (Scene <> nil) and Scene.HasWorldTransform then
     Result := Scene.WorldTransform * Result
   else
@@ -452,7 +460,7 @@ end;
 
 function TAbstractLightNode.InverseTransform: TMatrix4;
 begin
-  Result := FTransformation.InverseTransform;
+  Result := InternalTransformation.InverseTransform;
   if (Scene <> nil) and Scene.HasWorldTransform then
     Result := Result * Scene.WorldInverseTransform
   else

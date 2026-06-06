@@ -3780,6 +3780,8 @@ var
   ShapeList: TShapeList;
   Shape: TShape;
 begin
+  Node.InternalTransformation := ParentTransformation;
+
   // TODO: Optimize using TShapeTree.AssociatedShape
 
   ShapeList := TCastleSceneCore(ParentScene).Shapes.TraverseList(false);
