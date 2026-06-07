@@ -6489,7 +6489,7 @@ end;
 
 procedure TCastleSceneCore.FinishTransformationChanges;
 
-  { Call this after FastTransformUpdate was called and it set AnythingChanged
+  { Call this after FastTransformUpdate was called and it set VisibleChange
     (it's parameter) to @true. }
   procedure AfterFastTransformUpdateChanged;
   begin
@@ -6528,30 +6528,42 @@ var
   E: TExposedTransform;
   DepthList: TShapeTreeTransformList;
   TransformShapeTree: TShapeTreeTransform;
-  Changed: boolean;
+  VisibleChange, AnyChange: Boolean;
 begin
-  Changed := false;
+  VisibleChange := false;
+  AnyChange := false;
 
   for DepthList in TransformationDirty do
   begin
     if DepthList <> nil then
     begin
+      AnyChange := AnyChange or (DepthList.Count <> 0);
       for TransformShapeTree in DepthList do
-        TransformShapeTree.FastTransformUpdate(Changed);
+        TransformShapeTree.FastTransformUpdate(VisibleChange);
       DepthList.Clear;
     end;
   end;
 
-  if Changed then
-    AfterFastTransformUpdateChanged;
+  if AnyChange then
+  begin
+    if VisibleChange then
+      AfterFastTransformUpdateChanged;
 
-  for E in FExposedTransforms do
-    E.Synchronize;
+    { Note: This is called regardless of VisibleChange,
+      since we may synchronize transformations that don't contain any Shapes. }
+    for E in FExposedTransforms do
+      E.Synchronize;
 
-  { If any Skin / HAnimHumanoid needs to be updated, do it now.
-    Note that this looks at Shapes transformations, so should be done
-    at the end of FinishTransformationChanges to use latest transformations. }
-  UpdateSkin;
+    { If any Skin / HAnimHumanoid needs to be updated, do it now.
+      Note that this looks at Shapes transformations, so should be done
+      at the end of FinishTransformationChanges to use latest transformations.
+
+      Note: This is called regardless of VisibleChange,
+      since merely changing joint transformation will not set VisibleChange
+      (if the joint doesn't have any Shape inside),
+      but it added skin to Scheduled[Humanoid]SkinUpdates list. }
+    UpdateSkin;
+  end;
 end;
 
 procedure TCastleSceneCore.SetTime(const NewValue: TFloatTime);
@@ -8198,6 +8210,38 @@ end;
 
 procedure TCastleSceneCore.LocalRender(const Params: TRenderParams);
 
+  { Call FinishTransformationChanges that will make sure all transformation
+    changes are reflected in the Shapes tree.
+
+    In the usual case, FinishTransformationChanges is done at the end of Update,
+    and then this call from LocalRender is not necessary
+    (and FinishTransformationChanges should do a "fast track" when it
+    executes nothing, because the TransformationDirty is empty).
+
+    But we have edge-cases when we may keep rendering a scene while not
+    executing it's Update: This happens if rendering code switches scene
+    Exists like "Scene.Exists := RenderingCamera.Target = rtScreen".
+    In such case, the scene will be rendered to screen,
+    but then when rendering shadow maps it will have Exists=false
+    and we never call Update. This is surprising when code does something
+    like "TransformNode.Translation:=...", it it surprising if this will
+    fail because Update was not executed.
+
+    So we make sure we have transformations up-to-date before rendering.
+    This will do ~nothing if Update was executed recently.
+
+    Testcase: TBoundingBoxScene display in Castle Model Viewer
+    on rhan_shrine tests (see castle-model-viewer-mobile demos). }
+  procedure BeforeRenderingUpdateTrasnformations;
+  begin
+    BeginChangesSchedule;
+    try
+      FinishTransformationChanges;
+    finally
+      EndChangesSchedule;
+    end;
+  end;
+
   { Update LOD (level of detail) instances,
 
     - Iterates over ShapeLODs,
@@ -8288,6 +8332,7 @@ procedure TCastleSceneCore.LocalRender(const Params: TRenderParams);
 
 begin
   inherited;
+  BeforeRenderingUpdateTrasnformations;
   UpdateLods;
   RenderingCameraChanged(Params.RenderingCamera);
 end;
