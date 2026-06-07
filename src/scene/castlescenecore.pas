@@ -6447,23 +6447,6 @@ procedure TCastleSceneCore.InternalSetTime(
     IsVisibleNow := false;
   end;
 
-  { Call InternalUpdateSkin.
-    This can be done from anywhere, as long as it gets called
-    fairly soon after every transformation (possible joint node) animation. }
-  procedure UpdateSkin;
-  var
-    I: Integer;
-  begin
-    // process ScheduledSkinUpdates
-    for I := 0 to ScheduledSkinUpdates.Count - 1 do
-      (ScheduledSkinUpdates.Items[I] as TSkinNode).InternalUpdateSkin;
-    ScheduledSkinUpdates.Count := 0;
-    // process ScheduledHumanoidSkinUpdates
-    for I := 0 to ScheduledHumanoidSkinUpdates.Count - 1 do
-      (ScheduledHumanoidSkinUpdates.Items[I] as THAnimHumanoidNode).InternalUpdateSkin;
-    ScheduledHumanoidSkinUpdates.Count := 0;
-  end;
-
 var
   NeedsUpdateTimeDependent: Boolean;
 begin
@@ -6498,11 +6481,6 @@ begin
         been modified by animations (so time sensor nodes events).
         Testcase: mana shot animation in dragon_squash . }
       FinishTransformationChanges;
-
-      { If any Skin / HAnimHumanoid needs to be updated, do it now.
-        Note that this looks at Shapes transformations, so should be done
-        after FinishTransformationChanges to use latest transformations. }
-      UpdateSkin;
     finally
       EndChangesSchedule;
     end;
@@ -6529,6 +6507,23 @@ procedure TCastleSceneCore.FinishTransformationChanges;
     VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
   end;
 
+  { Call InternalUpdateSkin.
+    This can be done from anywhere, as long as it gets called
+    fairly soon after every transformation (possible joint node) animation. }
+  procedure UpdateSkin;
+  var
+    I: Integer;
+  begin
+    // process ScheduledSkinUpdates
+    for I := 0 to ScheduledSkinUpdates.Count - 1 do
+      (ScheduledSkinUpdates.Items[I] as TSkinNode).InternalUpdateSkin;
+    ScheduledSkinUpdates.Count := 0;
+    // process ScheduledHumanoidSkinUpdates
+    for I := 0 to ScheduledHumanoidSkinUpdates.Count - 1 do
+      (ScheduledHumanoidSkinUpdates.Items[I] as THAnimHumanoidNode).InternalUpdateSkin;
+    ScheduledHumanoidSkinUpdates.Count := 0;
+  end;
+
 var
   E: TExposedTransform;
   DepthList: TShapeTreeTransformList;
@@ -6552,6 +6547,11 @@ begin
 
   for E in FExposedTransforms do
     E.Synchronize;
+
+  { If any Skin / HAnimHumanoid needs to be updated, do it now.
+    Note that this looks at Shapes transformations, so should be done
+    at the end of FinishTransformationChanges to use latest transformations. }
+  UpdateSkin;
 end;
 
 procedure TCastleSceneCore.SetTime(const NewValue: TFloatTime);
