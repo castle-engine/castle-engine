@@ -8232,7 +8232,7 @@ procedure TCastleSceneCore.LocalRender(const Params: TRenderParams);
 
     Testcase: TBoundingBoxScene display in Castle Model Viewer
     on rhan_shrine tests (see castle-model-viewer-mobile demos). }
-  procedure BeforeRenderingUpdateTrasnformations;
+  procedure BeforeRenderingUpdateTransformations;
   begin
     BeginChangesSchedule;
     try
@@ -8332,7 +8332,7 @@ procedure TCastleSceneCore.LocalRender(const Params: TRenderParams);
 
 begin
   inherited;
-  BeforeRenderingUpdateTrasnformations;
+  BeforeRenderingUpdateTransformations;
   UpdateLods;
   RenderingCameraChanged(Params.RenderingCamera);
 end;
