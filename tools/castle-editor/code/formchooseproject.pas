@@ -259,7 +259,7 @@ procedure TChooseProjectForm.FormCreate(Sender: TObject);
   end;
 
   {$ifdef LCLGTK3}
-  { With LCL GTK3, InnerBorder seems to be additionally scaled, to limit it. }
+  { With LCL GTK3, InnerBorder seems to be additionally scaled, so limit it. }
   procedure FixGtk3Layout;
   const
     MaxInnerBorder = 8;
