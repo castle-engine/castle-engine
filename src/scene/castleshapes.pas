@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2025 Michalis Kamburelis.
+  Copyright 2003-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -230,8 +230,15 @@ type
       Descendants: Implementation in this class does nothing.
       Descendants should override in they want to react to transformation change.
 
-      Calling inherited is not necessary. }
-    procedure FastTransformUpdateCore(var AnythingChanged: Boolean;
+      Calling inherited is not necessary.
+
+      @param(VisibleChange Set to @true if something visual changed,
+        like transformation of a shape / light / fog
+        since they change how shape / light / fog is rendered.
+
+        Not set to @true when we changed TTransformNode that doesn't contain
+        anything visible.) }
+    procedure FastTransformUpdateCore(var VisibleChange: Boolean;
       const ParentTransformation: TTransformation); virtual;
   public
     constructor Create(const AParentScene: TX3DEventsEngine);
@@ -481,7 +488,7 @@ type
       const OnlyActive: boolean;
       const OnlyVisible: boolean = false;
       const OnlyCollidable: boolean = false); override;
-    procedure FastTransformUpdateCore(var AnythingChanged: Boolean;
+    procedure FastTransformUpdateCore(var VisibleChange: Boolean;
       const ParentTransformation: TTransformation); override;
   public
     { List of TGeneratedShadowMap instances that should affect this shape.
@@ -877,7 +884,7 @@ type
       const OnlyActive, OnlyVisible, OnlyCollidable: Boolean;
       var ChildIndexBegin, ChildIndexEnd: Integer); virtual;
 
-    procedure FastTransformUpdateCore(var AnythingChanged: Boolean;
+    procedure FastTransformUpdateCore(var VisibleChange: Boolean;
       const ParentTransformation: TTransformation); override;
   public
     constructor Create(const AParentScene: TX3DEventsEngine);
@@ -945,7 +952,7 @@ type
     FTransformState: TX3DGraphTraverseState;
     procedure SetTransformFunctionality(const Value: TTransformFunctionality);
   private
-    procedure FastTransformUpdateCore(var AnythingChanged: Boolean;
+    procedure FastTransformUpdateCore(var VisibleChange: Boolean;
       const ParentTransformation: TTransformation); override;
   public
     { Do we need call to FastTransformUpdateCore to recalculate our
@@ -986,7 +993,7 @@ type
         only have this one skeleton in entire model), because they've been
         already updated.
     }
-    procedure FastTransformUpdate(var AnythingChanged: Boolean); virtual;
+    procedure FastTransformUpdate(var VisibleChange: Boolean); virtual;
 
     function DebugInfoWithoutChildren: String; override;
 
@@ -1027,7 +1034,7 @@ type
     procedure TraverseGroupLimitChildren(
       const OnlyActive, OnlyVisible, OnlyCollidable: Boolean;
       var ChildIndexBegin, ChildIndexEnd: Integer); override;
-    procedure FastTransformUpdateCore(var AnythingChanged: Boolean;
+    procedure FastTransformUpdateCore(var VisibleChange: Boolean;
       const ParentTransformation: TTransformation); override;
   public
     InverseTransform: TMatrix4;
@@ -1067,7 +1074,7 @@ type
   strict private
     FNode: TProximitySensorNode;
   private
-    procedure FastTransformUpdateCore(var AnythingChanged: Boolean;
+    procedure FastTransformUpdateCore(var VisibleChange: Boolean;
       const ParentTransformation: TTransformation); override;
   public
     InverseTransform: TMatrix4;
@@ -1081,7 +1088,7 @@ type
   strict private
     FNode: TVisibilitySensorNode;
   private
-    procedure FastTransformUpdateCore(var AnythingChanged: Boolean;
+    procedure FastTransformUpdateCore(var VisibleChange: Boolean;
       const ParentTransformation: TTransformation); override;
   public
     { Bounding box of this visibility sensor instance,
@@ -1103,7 +1110,7 @@ type
     FNode: TAbstractLightNode;
     //DoneWarningLightTransformChanged: Boolean;
   private
-    procedure FastTransformUpdateCore(var AnythingChanged: Boolean;
+    procedure FastTransformUpdateCore(var VisibleChange: Boolean;
       const ParentTransformation: TTransformation); override;
   public
     property Node: TAbstractLightNode read FNode write FNode;
@@ -1115,7 +1122,7 @@ type
   strict private
     FNode: TAbstractBindableNode;
   private
-    procedure FastTransformUpdateCore(var AnythingChanged: Boolean;
+    procedure FastTransformUpdateCore(var VisibleChange: Boolean;
       const ParentTransformation: TTransformation); override;
   public
     property Node: TAbstractBindableNode read FNode write FNode;
@@ -1127,7 +1134,7 @@ type
     from TAbstractBindableNode. }
   TViewpointInstance = class(TBindableInstance)
   private
-    procedure FastTransformUpdateCore(var AnythingChanged: Boolean;
+    procedure FastTransformUpdateCore(var VisibleChange: Boolean;
       const ParentTransformation: TTransformation); override;
   public
     function DebugInfoWithoutChildren: String; override;
@@ -1556,7 +1563,7 @@ begin
   Result := 0;
 end;
 
-procedure TShapeTree.FastTransformUpdateCore(var AnythingChanged: Boolean;
+procedure TShapeTree.FastTransformUpdateCore(var VisibleChange: Boolean;
   const ParentTransformation: TTransformation);
 begin
 end;
@@ -2544,7 +2551,7 @@ begin
     Func(Self);
 end;
 
-procedure TShape.FastTransformUpdateCore(var AnythingChanged: Boolean;
+procedure TShape.FastTransformUpdateCore(var VisibleChange: Boolean;
   const ParentTransformation: TTransformation);
 begin
   State.Transformation := ParentTransformation;
@@ -2553,7 +2560,7 @@ begin
   // a bit faster:
   Validities := Validities - [svBBox, svBoundingSphere];
 
-  AnythingChanged := true;
+  VisibleChange := true;
 end;
 
 function TShape.MaxShapesCountCore: Integer;
@@ -3368,13 +3375,13 @@ procedure TShapeTreeGroup.TraverseGroupLimitChildren(
 begin
 end;
 
-procedure TShapeTreeGroup.FastTransformUpdateCore(var AnythingChanged: Boolean;
+procedure TShapeTreeGroup.FastTransformUpdateCore(var VisibleChange: Boolean;
   const ParentTransformation: TTransformation);
 var
   I: Integer;
 begin
   for I := 0 to FChildren.Count - 1 do
-    FChildren.Items[I].FastTransformUpdateCore(AnythingChanged, ParentTransformation);
+    FChildren.Items[I].FastTransformUpdateCore(VisibleChange, ParentTransformation);
 end;
 
 function TShapeTreeGroup.MaxShapesCountCore: Integer;
@@ -3510,7 +3517,7 @@ begin
   end;
 end;
 
-procedure TShapeTreeTransform.FastTransformUpdate(var AnythingChanged: Boolean);
+procedure TShapeTreeTransform.FastTransformUpdate(var VisibleChange: Boolean);
 begin
   if TransformNeedsUpdate then
   begin
@@ -3519,7 +3526,7 @@ begin
         TransformNode.NiceName,
         Depth
       ]);
-    FastTransformUpdateCore(AnythingChanged, FTransformState.Transformation);
+    FastTransformUpdateCore(VisibleChange, FTransformState.Transformation);
   end else
   begin
     if LogChanges then
@@ -3530,7 +3537,7 @@ begin
   end;
 end;
 
-procedure TShapeTreeTransform.FastTransformUpdateCore(var AnythingChanged: Boolean;
+procedure TShapeTreeTransform.FastTransformUpdateCore(var VisibleChange: Boolean;
   const ParentTransformation: TTransformation);
 var
   NewTransformation: TTransformation;
@@ -3550,7 +3557,7 @@ begin
   TransformNeedsUpdate := false;
 
   // call inherited to update children of TShapeTreeGroup
-  inherited FastTransformUpdateCore(AnythingChanged, NewTransformation);
+  inherited FastTransformUpdateCore(VisibleChange, NewTransformation);
 end;
 
 function TShapeTreeTransform.TransformNode: TX3DNode;
@@ -3670,7 +3677,7 @@ begin
   Result := 'LOD (' + Node.X3DName + ')';
 end;
 
-procedure TShapeTreeLOD.FastTransformUpdateCore(var AnythingChanged: Boolean;
+procedure TShapeTreeLOD.FastTransformUpdateCore(var VisibleChange: Boolean;
   const ParentTransformation: TTransformation);
 
 { Update LOD when parent Transform changes.
@@ -3680,7 +3687,7 @@ procedure TShapeTreeLOD.FastTransformUpdateCore(var AnythingChanged: Boolean;
 begin
   inherited;
   InverseTransform := ParentTransformation.InverseTransform;
-  AnythingChanged := true; // redraw, to take into account InverseTransform in BeforeRender
+  VisibleChange := true; // redraw, to take into account InverseTransform in BeforeRender
 end;
 
 { TProximitySensorInstance ---------------------------------------------- }
@@ -3690,7 +3697,7 @@ begin
   Result := 'ProximitySensor (' + Node.X3DName + ')';
 end;
 
-procedure TProximitySensorInstance.FastTransformUpdateCore(var AnythingChanged: Boolean;
+procedure TProximitySensorInstance.FastTransformUpdateCore(var VisibleChange: Boolean;
   const ParentTransformation: TTransformation);
 
 { Update ProximitySensor when parent Transform changes.
@@ -3719,7 +3726,7 @@ begin
   Result := 'VisibilitySensor (' + Node.X3DName + ')';
 end;
 
-procedure TVisibilitySensorInstance.FastTransformUpdateCore(var AnythingChanged: Boolean;
+procedure TVisibilitySensorInstance.FastTransformUpdateCore(var VisibleChange: Boolean;
   const ParentTransformation: TTransformation);
 
 { Handle the transformation of VisibilitySensor change.
@@ -3732,7 +3739,7 @@ begin
   Transform := ParentTransformation.Transform;
   Box := Node.Box.Transform(Transform);
 
-  AnythingChanged := true;
+  VisibleChange := true;
 end;
 
 { TLightShapeTreeInstance ------------------------------------------------ }
@@ -3742,7 +3749,7 @@ begin
   Result := 'Light (' + Node.NiceName + ')';
 end;
 
-procedure TLightShapeTreeInstance.FastTransformUpdateCore(var AnythingChanged: Boolean;
+procedure TLightShapeTreeInstance.FastTransformUpdateCore(var VisibleChange: Boolean;
   const ParentTransformation: TTransformation);
 
 { When the transformation of light node changes, we should update every
@@ -3811,7 +3818,7 @@ begin
   //   Node.NiceName
   // ]);
 
-  AnythingChanged := true;
+  VisibleChange := true;
 end;
 
 { TBindableInstance ---------------------------------------------- }
@@ -3821,7 +3828,7 @@ begin
   Result := 'Bindable (' + Node.NiceName + ')';
 end;
 
-procedure TBindableInstance.FastTransformUpdateCore(var AnythingChanged: Boolean;
+procedure TBindableInstance.FastTransformUpdateCore(var VisibleChange: Boolean;
   const ParentTransformation: TTransformation);
 
 { Handle the transformation of a TAbstractBindableNode,
@@ -3837,7 +3844,7 @@ procedure TBindableInstance.FastTransformUpdateCore(var AnythingChanged: Boolean
 
 begin
   if Node.InternalUpdateTransformation(ParentTransformation) then
-    AnythingChanged := true;
+    VisibleChange := true;
 end;
 
 { TViewpointInstance --------------------------------------------------------- }
@@ -3847,7 +3854,7 @@ begin
   Result := 'Viewpoint (' + Node.NiceName + ')';
 end;
 
-procedure TViewpointInstance.FastTransformUpdateCore(var AnythingChanged: Boolean;
+procedure TViewpointInstance.FastTransformUpdateCore(var VisibleChange: Boolean;
   const ParentTransformation: TTransformation);
 
 { Handle the transformation of a TViewpointNode.
@@ -3862,7 +3869,7 @@ begin
 
   if Node.InternalUpdateTransformation(ParentTransformation) then
   begin
-    AnythingChanged := true;
+    VisibleChange := true;
 
     { Calling DoBoundViewpointVectorsChanged only when something
       actually changed (when Node.InternalUpdateTransformation returns @true)
