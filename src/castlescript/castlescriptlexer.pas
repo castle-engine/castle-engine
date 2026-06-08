@@ -29,10 +29,10 @@ uses CastleUtils, CastleScript, SysUtils, Math;
 
 type
   TToken = (tokEnd,
-    tokInteger, {< Value of constant integer will be in w TCasScriptLexer.TokenInteger. }
-    tokFloat, {< Value of constant float will be in w TCasScriptLexer.TokenFloat. }
-    tokBoolean, {< Value of constant boolean will be in w TCasScriptLexer.TokenBoolean. }
-    tokString, {< Value of constant string will be in w TCasScriptLexer.TokenString. }
+    tokInteger, {< Value of constant integer will be in TCasScriptLexer.TokenInteger. }
+    tokFloat, {< Value of constant float will be in TCasScriptLexer.TokenFloat. }
+    tokBoolean, {< Value of constant boolean will be in TCasScriptLexer.TokenBoolean. }
+    tokString, {< Value of constant string will be in TCasScriptLexer.TokenString. }
 
     tokIdentifier, {< Identifier will be in TCasScriptLexer.TokenString. }
     tokFuncName, {< Function class of given function will be in TCasScriptLexer.TokenFunctionClass. }
