@@ -212,7 +212,10 @@ begin
     FullUrl := CombineURI(AFunction.Environment.BaseUrl, FullUrl);
 
   try
-    NewImage := LoadImage(FullUrl, [TRGBImage, TRGBAlphaImage]);
+    { Allow all image classes supported by the CastleScript image functions
+      (see image_get_color / image_set_color / image_create below). }
+    NewImage := LoadImage(FullUrl,
+      [TGrayscaleImage, TGrayscaleAlphaImage, TRGBImage, TRGBAlphaImage]);
   except
     on E: Exception do
       raise ECasScriptError.Create('Exception ' + E.ClassName +
@@ -524,21 +527,22 @@ begin
   ParentOfResult := false;
 
   case TCasScriptImage(Arguments[0]).Value.ColorComponentsCount of
-    1, 3: begin
-         WritelnWarning('CastleScript', '"image_set_alpha" not allowed on image without alpha channel');
-       end;
-    2: begin
-         GA := TCasScriptImage(Arguments[0]).Value.PixelPtr(X, Y);
-         GA^.Y := Clamped(Round(TCasScriptFloat(Arguments[3]).Value*255), 0, 255);
-       end;
-    4: begin
-         RGBAlpha := TCasScriptImage(Arguments[0]).Value.PixelPtr(X, Y);
-         RGBAlpha^.W := Clamped(Round(TCasScriptFloat(Arguments[3]).Value*255), 0, 255);
-       end;
+    1, 3:
+      begin
+        WritelnWarning('CastleScript', '"image_set_alpha" not allowed on image without alpha channel');
+      end;
+    2:begin
+        GA := TCasScriptImage(Arguments[0]).Value.PixelPtr(X, Y);
+        GA^.Y := Clamped(Round(TCasScriptFloat(Arguments[3]).Value*255), 0, 255);
+        TCasScriptImage(Arguments[0]).ValueAssigned := true;
+      end;
+    4:begin
+        RGBAlpha := TCasScriptImage(Arguments[0]).Value.PixelPtr(X, Y);
+        RGBAlpha^.W := Clamped(Round(TCasScriptFloat(Arguments[3]).Value*255), 0, 255);
+        TCasScriptImage(Arguments[0]).ValueAssigned := true;
+      end;
     else raise EInternalError.Create('TCasScriptImage: invalid components count');
   end;
-
-  TCasScriptImage(Arguments[0]).ValueAssigned := true;
 end;
 
 { Functions ------------------------------------------------------------------ }

@@ -8,6 +8,7 @@
   and output image URL (usualy just a filename).
   For example
     image_make_by_script data/mkimage_gradient.castlescript new_image.png
+    image_make_by_script data/mkimage_sobel_edge.castlescript new_image.png
 
   Within the script, you have variables:
   - result, helper_img (type image),
