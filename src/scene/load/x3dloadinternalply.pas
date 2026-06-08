@@ -119,7 +119,14 @@ type
       See also
         https://www.useblurry.com/blog/anatomy-of-a-ply-file
     }
-    pnRedSH, pnGreenSH, pnBlueSH, pnAlphaSH,
+    pnRedSH, pnGreenSH, pnBlueSH,
+
+    { "opacity" field corresponds to alpha
+      but stored in logit space (inverse sigmoid).
+
+      See https://github.com/graphdeco-inria/gaussian-splatting/blob/main/scene/gaussian_model.py
+      which applies the sigmoid function to get the actual opacity (get_opacity). }
+    pnOpacityLogit,
 
     // face vertex indices
     pnVertexIndices
@@ -678,6 +685,12 @@ procedure TPlyReader.ReadVertices(const Element: TPlyElement;
   const Normals: TVector3List;
   const ColorsRgba: TVector4List;
   const ColorsRgb: TVector3List);
+
+  function Sigmoid(const X: Single): Single;
+  begin
+    Result := 1 / (1 + Exp(-X));
+  end;
+
 const
   SphericalHarmonicsColorComponentScale =
     //0.5 * Sqrt(1 / Pi);
@@ -721,7 +734,7 @@ begin
           pnRedSH: C.X := 0.5 + SphericalHarmonicsColorComponentScale * ReadFloat(Prop.PropertyType);
           pnGreenSH: C.Y := 0.5 + SphericalHarmonicsColorComponentScale * ReadFloat(Prop.PropertyType);
           pnBlueSH: C.Z := 0.5 + SphericalHarmonicsColorComponentScale * ReadFloat(Prop.PropertyType);
-          pnAlphaSH: C.W := 0.5 + SphericalHarmonicsColorComponentScale * ReadFloat(Prop.PropertyType);
+          pnOpacityLogit: C.W := Sigmoid(ReadFloat(Prop.PropertyType));
           pnUnknown: SkipValue(Prop.PropertyType);
           pnVertexIndices:
             begin
@@ -860,7 +873,7 @@ begin
            (Reader.PropertyIndexes[pnBlueSH] <> -1) ) then
       begin
         if (Reader.PropertyIndexes[pnAlpha] <> -1) or
-           (Reader.PropertyIndexes[pnAlphaSH] <> -1) then
+           (Reader.PropertyIndexes[pnOpacityLogit] <> -1) then
         begin
           ColorNode := TColorRgbaNode.Create;
           ColorsRgba := TColorRgbaNode(ColorNode).FdColor.Items;
