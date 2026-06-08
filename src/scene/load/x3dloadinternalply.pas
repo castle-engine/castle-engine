@@ -604,8 +604,55 @@ end;
 function TPlyReader.ReadFloatColorComponent(const T: TPlyPropertyType): Single;
 begin
   Result := ReadFloat(T);
-  if T in [ptInt8, ptUInt8, ptInt16, ptUInt16, ptInt32, ptUInt32] then
-    Result := Result / 255.0;
+
+  { PLY files "in the wild" actually contain only uint8 for colors.
+
+    What to do for signed values, or non-8-bit values?
+
+    - We decided to be strict: convert accounting for the real range
+      of signed values, and non-8-bit values.
+
+      This is consistent with how Assimp does it, see NormalizeColorValue in
+      https://github.com/assimp/assimp/blob/master/code/AssetLib/Ply/PlyLoader.cpp#L112
+
+      (Though note that Assimp code for EDT_UInt and EDT_Int seems wrong,
+      they don't account for 32-bit range correctly, using e.g. 0xFFFF for EDT_UInt,
+      and using "...(float)0xFF) + 0.5f;" for EDT_Int (treating it like 8-bit
+      signed?).)
+
+    - Many PLY readers seem to just assume PLY files always use uint8 for this.
+
+      happly.h in addVertexColors
+      https://github.com/nmwsharp/happly/blob/master/happly.h#L1581
+      just divides by 255, without checking the actual type.
+
+      https://github.com/ddiakopoulos/tinyply/blob/master/source/example.cpp
+
+      https://github.com/vilya/miniply/blob/master/miniply.cpp
+
+      just return the value as-is, without accounting for the actual type.
+
+    Let's try, for fun, to be the only PLY reader that correctly accounts
+    for the actual type:) Report bugs if some real-world PLY files actually
+    use non-uint8 types for colors and expect different behavior.
+  }
+
+  case T of
+    ptInt8:
+      Result := MapRange(Result, Low(Int8), High(Int8), 0, 1);
+    ptUInt8:
+      Result := Result / High(UInt8); // same: MapRange(Result, Low(UInt8), High(UInt8), 0, 1);
+    ptInt16:
+      Result := MapRange(Result, Low(Int16), High(Int16), 0, 1);
+    ptUInt16:
+      Result := Result / High(UInt16); // same: MapRange(Result, Low(UInt16), High(UInt16), 0, 1);
+    ptInt32:
+      Result := MapRange(Result, Low(Int32), High(Int32), 0, 1);
+    ptUInt32:
+      Result := Result / High(UInt32); // same: MapRange(Result, Low(UInt32), High(UInt32), 0, 1);
+    // for float types, we assume the value is already in 0..1 range, so do nothing
+    else ;
+  end;
 end;
 
 procedure TPlyReader.SkipElement(const Element: TPlyElement);
