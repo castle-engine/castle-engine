@@ -227,8 +227,9 @@ begin
   try
     EnumFontFamilies(dc, @LogFont.lfFaceName, @EnumFontFamProc_IsTrueType, PtrUInt(@Result));
   finally
-    ReleaseDC(0, dc);
+    { Restore the previously selected object before releasing the DC. }
     SelectObject(dc, SavedObj);
+    ReleaseDC(0, dc);
   end;
 end;
 
