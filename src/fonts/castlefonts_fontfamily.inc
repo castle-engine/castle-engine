@@ -1,6 +1,6 @@
 {%MainUnit castlefonts.pas}
 {
-  Copyright 2016-2023 Michalis Kamburelis.
+  Copyright 2016-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -43,6 +43,7 @@ type
     procedure SetBold(const Value: TCastleAbstractFont);
     procedure SetItalic(const Value: TCastleAbstractFont);
     procedure SetBoldItalic(const Value: TCastleAbstractFont);
+    function SubFontCustomizeNeedsPushPop: Boolean;
     procedure SubFontCustomizeBegin(const SF: TCastleAbstractFont);
     procedure SubFontCustomizeEnd(const SF: TCastleAbstractFont);
     procedure SubFontFontSizeChange(Sender: TObject);
@@ -235,10 +236,15 @@ begin
     FBoldItalic.GLContextClose;
 end;
 
+function TCastleFontFamily.SubFontCustomizeNeedsPushPop: Boolean;
+begin
+  Result := (Size <> 0) or CustomizeOutline;
+end;
+
 procedure TCastleFontFamily.SubFontCustomizeBegin(const SF: TCastleAbstractFont);
 begin
   Assert(SF <> nil, 'TCastleFontFamily.SubFontCustomizeBegin should only be called with SF (from SubFont) <> nil');
-  if (Size <> 0) or CustomizeOutline then
+  if SubFontCustomizeNeedsPushPop then
   begin
     SF.PushProperties;
     if Size <> 0 then
@@ -255,7 +261,7 @@ end;
 procedure TCastleFontFamily.SubFontCustomizeEnd(const SF: TCastleAbstractFont);
 begin
   Assert(SF <> nil, 'TCastleFontFamily.SubFontCustomizeEnd should only be called with SF (from SubFont) <> nil');
-  if Size <> 0 then
+  if SubFontCustomizeNeedsPushPop then
     SF.PopProperties;
 end;
 

@@ -468,6 +468,9 @@ begin
   if ApplicationProperties <> nil then
     ApplicationProperties.OnGLContextCloseObject.Remove({$ifdef FPC}@{$endif}GLContextCloseEvent);
   GLContextClose;
+  if (FPropertiesStack <> nil) and
+     (FPropertiesStack.Count <> 0) then
+    WritelnWarning('TCastleAbstractFont.FPropertiesStack not empty, possibly internal error: Push/PopProperties calls not balanced, or we break because of exception in the middle of rendering');
   FreeAndNil(FPropertiesStack);
   FreeAndNil(FFontSizeNotifications);
   inherited;

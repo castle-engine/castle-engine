@@ -31,6 +31,7 @@ type
     procedure TestOverrideFont;
     procedure TestSizeChangeNotificationFontFamily;
     procedure TestSizeChangeNotificationCustomized;
+    procedure TestFontFamilyCustomizeOutlineBalance;
   end;
 
 implementation
@@ -349,6 +350,59 @@ begin
 
   FreeAndNil(F);
   FreeAndNil(CF);
+end;
+
+procedure TTestCastleFonts.TestFontFamilyCustomizeOutlineBalance;
+
+{ Test that TCastleFontFamily, when it customizes only the subfont outline
+  (Size = 0, CustomizeOutline = true), properly restores the subfont properties
+  after each operation.
+
+  This catches the bug when SubFontCustomizeBegin / SubFontCustomizeEnd
+  are not balanced: before 2026-06-08,
+  - Begin did PushProperties (and overrides Outline) when
+    (Size <> 0) or CustomizeOutline,
+  - but End did PopProperties only when Size <> 0.
+
+  So with Size = 0 and CustomizeOutline = true, every TextWidth / Print / ...
+  call would PushProperties (overriding the subfont's Outline) without a matching
+  PopProperties: leaking the properties stack and leaving the subfont's Outline
+  permanently overwritten. }
+
+const
+  FamilyOutline = 2;
+var
+  Font: TCastleFont;
+  Family: TCastleFontFamily;
+  I: Integer;
+begin
+  Font := TCastleFont.Create(nil);
+  try
+    Font.Load(Font_Default3d_Sans);
+    { The subfont starts without outline. }
+    AssertEquals(0, Font.Outline);
+
+    Family := TCastleFontFamily.Create(nil);
+    try
+      Family.Regular := Font;
+      { Customize only the outline, leave size unchanged (Size = 0). }
+      Family.Size := 0;
+      Family.CustomizeOutline := true;
+      Family.Outline := FamilyOutline;
+
+      { Measure text a few times. Each call goes through
+        SubFontCustomizeBegin / SubFontCustomizeEnd. With balanced Push/Pop,
+        the subfont's Outline must be restored to 0 after every call. }
+      for I := 1 to 3 do
+      begin
+        Family.TextWidth('test');
+        { With the bug, SubFontCustomizeEnd does not PopProperties (because Size = 0),
+          so the subfont's Outline stays overwritten with FamilyOutline.
+          With the fix, it is restored to the original 0. }
+        AssertEquals(0, Font.Outline);
+      end;
+    finally FreeAndNil(Family) end;
+  finally FreeAndNil(Font) end;
 end;
 
 initialization
