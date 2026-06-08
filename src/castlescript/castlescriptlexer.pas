@@ -146,11 +146,15 @@ const
   digits = ['0'..'9'];
   Letters = ['a'..'z', 'A'..'Z', '_'];
 
+  { Omit whitespace, including comment blocks. }
   procedure OmitWhiteSpace;
   begin
-    while SCharIs(text, TextPos, whiteChars) do Inc(fTextPos);
-    if SCharIs(text, TextPos, '{') then
-    begin
+    repeat
+      while SCharIs(text, TextPos, whiteChars) do Inc(fTextPos);
+
+      if not SCharIs(text, TextPos, '{') then
+        Exit;
+      // omit comment block
       while Text[TextPos] <> '}' do
       begin
         Inc(fTextPos);
@@ -158,8 +162,9 @@ const
           raise ECasScriptLexerError.Create(Self, 'Unfinished comment');
       end;
       Inc(FTextPos);
-      OmitWhiteSpace; { recusively omit the rest of whitespace }
-    end;
+
+      { continue the loop, to omit the rest of whitespace/comments }
+    until false;
   end;
 
   function ReadSimpleToken: boolean;
