@@ -499,8 +499,8 @@ var
       MaxB := 0;
       for RY := 0 to Bitmap^.Height - 1 do
         for RX := 0 to Bitmap^.Width - 1 do
-          if Bitmap^.Data^[RY + RY * Bitmap^.Pitch] > MaxB then
-            MaxB := Bitmap^.Data^[RY + RY * Bitmap^.Pitch];
+          if Bitmap^.Data^[RX + RY * Bitmap^.Pitch] > MaxB then
+            MaxB := Bitmap^.Data^[RX + RY * Bitmap^.Pitch];
       if MaxB = 0 then
         MaxB := 255; //doesn't matter in this case, the glyph doesn't have a single opaque pixel
 

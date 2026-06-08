@@ -72,7 +72,14 @@ type
   TFontBitmap = record
     height, width, pitch,
     x,y, advanceX, advanceY : integer;
-    { for some reason, default FPC TByteArray has limited length (0..32767).
+
+    { Data expressed as 1 byte for each pixel, in 0..255 range,
+      just like our TGrayscaleImage.
+      Access it like Bitmap.Data^[Y * Bitmap.Pitch + X].
+
+      Note: Using CastleUtils.PByteArray,
+      not standard ^TByteArray,
+      because for some reason, default FPC TByteArray has limited length (0..32767).
       We sometimes need longer (if you try to generate some huge font size, like 300). }
     data : CastleUtils.PByteArray;
   end;
