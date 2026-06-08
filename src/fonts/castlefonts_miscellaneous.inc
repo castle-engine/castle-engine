@@ -46,8 +46,8 @@ const
 
 function SimpleHtmlQuote(const S: String): String;
 const
-  Patterns: array [0..4] of String = ('&amp;', '&lt;', '&gt;', '&apos;', '&quot;');
-  Replacements: array [0..4] of String = ('&', '<', '>', '''', '"');
+  Patterns: array [0..4] of String = ('&', '<', '>', '''', '"');
+  Replacements: array [0..4] of String = ('&amp;', '&lt;', '&gt;', '&apos;', '&quot;');
 begin
   Result := SReplacePatterns(S, Patterns, Replacements, false);
 end;

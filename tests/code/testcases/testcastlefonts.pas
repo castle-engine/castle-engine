@@ -32,6 +32,7 @@ type
     procedure TestSizeChangeNotificationFontFamily;
     procedure TestSizeChangeNotificationCustomized;
     procedure TestFontFamilyCustomizeOutlineBalance;
+    procedure TestSimpleHtmlQuote;
   end;
 
 implementation
@@ -403,6 +404,33 @@ begin
       end;
     finally FreeAndNil(Family) end;
   finally FreeAndNil(Font) end;
+end;
+
+procedure TTestCastleFonts.TestSimpleHtmlQuote;
+begin
+  { SimpleHtmlQuote should ESCAPE special characters, so that the result,
+    when interpreted as HTML (Print with Html = true), shows the original text. }
+
+  { No special characters -> unchanged. }
+  AssertEquals('abc 123', SimpleHtmlQuote('abc 123'));
+  AssertEquals('', SimpleHtmlQuote(''));
+
+  { Each special character is escaped. }
+  AssertEquals('&lt;', SimpleHtmlQuote('<'));
+  AssertEquals('&gt;', SimpleHtmlQuote('>'));
+  AssertEquals('&amp;', SimpleHtmlQuote('&'));
+  AssertEquals('&apos;', SimpleHtmlQuote(''''));
+  AssertEquals('&quot;', SimpleHtmlQuote('"'));
+
+  { Mixed text. }
+  AssertEquals('a &lt; b &amp; c &gt; d', SimpleHtmlQuote('a < b & c > d'));
+  AssertEquals('&lt;b&gt;Hello &amp; bye&lt;/b&gt;',
+    SimpleHtmlQuote('<b>Hello & bye</b>'));
+
+  { Already-escaped input is escaped again (single pass, no double-processing
+    of the '&' we introduce): '&lt;' -> '&amp;lt;', not '&amp;amp;lt;'. }
+  AssertEquals('&amp;lt;', SimpleHtmlQuote('&lt;'));
+  AssertEquals('&amp;amp;', SimpleHtmlQuote('&amp;'));
 end;
 
 initialization
