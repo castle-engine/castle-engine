@@ -671,10 +671,10 @@ begin
           pnGreen: C.Y := ReadFloatColorComponent(Prop.PropertyType);
           pnBlue: C.Z := ReadFloatColorComponent(Prop.PropertyType);
           pnAlpha: C.W := ReadFloatColorComponent(Prop.PropertyType);
-          pnRedSH: C.X := 0.5 + 0.5 * SphericalHarmonicsColorComponentScale * ReadFloat(Prop.PropertyType);
-          pnGreenSH: C.Y := 0.5 + 0.5 * SphericalHarmonicsColorComponentScale * ReadFloat(Prop.PropertyType);
-          pnBlueSH: C.Z := 0.5 + 0.5 * SphericalHarmonicsColorComponentScale * ReadFloat(Prop.PropertyType);
-          pnAlphaSH: C.W := 0.5 + 0.5 * SphericalHarmonicsColorComponentScale * ReadFloat(Prop.PropertyType);
+          pnRedSH: C.X := 0.5 + SphericalHarmonicsColorComponentScale * ReadFloat(Prop.PropertyType);
+          pnGreenSH: C.Y := 0.5 + SphericalHarmonicsColorComponentScale * ReadFloat(Prop.PropertyType);
+          pnBlueSH: C.Z := 0.5 + SphericalHarmonicsColorComponentScale * ReadFloat(Prop.PropertyType);
+          pnAlphaSH: C.W := 0.5 + SphericalHarmonicsColorComponentScale * ReadFloat(Prop.PropertyType);
           pnUnknown: SkipValue(Prop.PropertyType);
           pnVertexIndices:
             begin
