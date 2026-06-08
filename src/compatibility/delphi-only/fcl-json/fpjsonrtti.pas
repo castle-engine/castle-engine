@@ -125,7 +125,10 @@ Type
   private
     FAfterReadObject: TJSONStreamEvent;
     FBeforeReadObject: TJSONStreamEvent;
-    FDateTimeFormat: String;
+    // Castle Game Engine note: unused now, as the DateTimeFormat property and
+    // the ScanDateTime path in ExtractDateTime are commented out (Delphi lacks
+    // ScanDateTime). Restore together with them.
+    // FDateTimeFormat: String;
     FOnGetObject: TJSONGetObjectEvent;
     FOnPropError: TJSONpropertyErrorEvent;
     FOnRestoreProp: TJSONRestorePropertyEvent;
@@ -174,7 +177,11 @@ Type
     Property CaseInsensitive : Boolean Read GetCaseInsensitive Write SetCaseInsensitive ; /// deprecated;
     // DateTime format. If not set, RFC3339DateTimeFormat is assumed.
     // If set, it will be used as an argument to ScanDateTime. If that fails, StrToDateTime is used.
-    Property DateTimeFormat : String Read FDateTimeFormat Write FDateTimeFormat;
+    // Castle Game Engine note:
+    // This property is not implemented in FpJsonRtti for Delphi port now,
+    // so it's commented out.
+    // Property DateTimeFormat : String Read FDateTimeFormat Write FDateTimeFormat;
+
     // Options overning the behaviour
     Property Options : TJSONDestreamOptions Read FOptions Write FOptions;
   end;
@@ -360,19 +367,18 @@ begin
 end;
 
 function TJSONDeStreamer.ExtractDateTime(S: String): TDateTime;
-
-Var
-  Fmt : String;
-  E,fmtSpecified : Boolean;
-
+//   Var
+//     Fmt : String;
+//     E, fmtSpecified : Boolean;
 begin
+  // TODO: We need ScanDateTime in Delphi to make it complete
+{
   E:=False;
   FMT:=DateTimeFormat;
   fmtSpecified:=Fmt<>'';
   if Not fmtSpecified then
     FMT:=RFC3339DateTimeFormat;
-  // TODO: ScanDatetime in delphi
-{  Try
+  Try
     // No TryScanDateTime
     Result:=ScanDatetime(FMT,S);
   except
@@ -381,7 +387,8 @@ begin
     else
       E:=True;
   end;
-  if E then}
+  if E then
+}
     if not TryStrToDateTime(S,Result) then
       if not TryStrToDate(S,Result) then
         if not TryStrToTime(S,Result) then

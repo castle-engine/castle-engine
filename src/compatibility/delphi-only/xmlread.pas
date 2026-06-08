@@ -40,7 +40,10 @@ begin
     Doc.LoadFromStream(Stream);
   except
     on E: Exception do
+    begin
+      FreeAndNil(Doc); // do not leak Doc when loading failed
       raise EXMLReadError.Create('Error when reading XML: ' + E.Message);
+    end;
   end;
 end;
 
@@ -52,7 +55,10 @@ begin
     Doc.LoadFromStream(Stream);
   except
     on E: Exception do
+    begin
+      FreeAndNil(Doc); // do not leak Doc when loading failed
       raise EXMLReadError.Create('Error when reading XML: ' + E.Message);
+    end;
   end;
 end;
 

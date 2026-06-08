@@ -673,10 +673,9 @@ begin
     InternalDocument.DocumentElement := NewChild.InternalNode;
 
     Result := OldChild;
-  end;
-
-  Result := nil;
-  // TODO: Exception? nil?
+  end else
+    // TODO: handle replacing a non-DocumentElement child, maybe raise an exception
+    Result := nil;
 end;
 
 { TDOMNamedNodeMap ----------------------------------------------------------- }

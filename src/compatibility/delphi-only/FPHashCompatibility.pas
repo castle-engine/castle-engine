@@ -304,7 +304,7 @@ begin
     if NewCount > FCapacity then
       SetCapacity(NewCount);
     if FCount < NewCount then
-      FillChar(FHashList^[FCount], (NewCount-FCount) div SizeOf(THashItem), 0);
+      FillChar(FHashList^[FCount], (NewCount-FCount) * SizeOf(THashItem), 0);
     end;
   FCount:=NewCount;
 end;
@@ -447,8 +447,7 @@ end;
 
 class Procedure TFPHashList.Error(const Msg: string; Data: PtrInt);
 begin
-  ///raise EListError.CreateFmt(Msg,[Data]) at get_caller_addr(get_frame), get_caller_frame(get_frame);
-  raise EListError.Create(Msg);
+  raise EListError.CreateFmt(Msg, [Data]);
 end;
 
 Function TFPHashList.Expand: TFPHashList;

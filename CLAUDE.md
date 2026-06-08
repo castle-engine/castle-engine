@@ -218,7 +218,9 @@ end;
 - Keep all identifiers PascalCase. Even `String` and `Boolean` (although lots of existing code doesn't follow it and has `string` and `boolean`, but write `String` and `Boolean` in all new code). Even single-letter variables like `I` for loop iteration follow this rule.
     - Exception: `false`, `true`, `nil` remain lowercase.
 - **Documentation**: PasDoc comments before each public identifier (see "PasDoc Documentation Style" below)
-- **Backward Compatibility**: Use `deprecated` to maintain old APIs
+- **Backward Compatibility**: Use `deprecated` to maintain old APIs.
+    - Special note for `deprecated` directive on a `property` declaration: Delphi does not support `deprecated` on properties, so use `{$ifdef FPC} deprecated '...; {$endif}`.
+    - `deprecated` is fine (with both FPC and Delphi) on routines, methods, types, variables, units.
 - **Warnings**: Fix all compiler warnings
 - **Never use**: `with` statement, assembler
 - **Optimizations**: Prefer high-level optimizations (GPU work) over low-level micro-optimizations
