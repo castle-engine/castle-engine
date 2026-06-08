@@ -27,6 +27,9 @@ unit CastleOpenDocument;
 
 interface
 
+resourcestring
+  SCannotOpenUrl = 'Browser not found on your system.';
+
 { Open URL with the suitable application.
 
   This detects and handles also local files (as filenames, or URLs with "file:"
