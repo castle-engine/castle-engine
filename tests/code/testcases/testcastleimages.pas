@@ -49,6 +49,7 @@ type
     procedure TestKtxFloat;
     procedure TestPixel1x1;
     procedure TestDecompressAndFlipVertical;
+    procedure TestFlipVertical;
   end;
 
 implementation
@@ -884,6 +885,47 @@ begin
   AbortTest;
 end;
 {$endif}
+
+procedure TTestImages.TestFlipVertical;
+
+  { Value stored in pixel (X, Y). Unique per (X, Y) for our small test sizes,
+    so we can detect whether (and how) rows got reordered. }
+  function PixelValue(const X, Y: Integer): Byte;
+  begin
+    Result := Y * 16 + X;
+  end;
+
+const
+  W = 3;
+var
+  Img: TGrayscaleImage;
+  H, X, Y: Integer;
+begin
+  { Test FlipVertical on all heights from 0 to 10. }
+  for H := 0 to 10 do
+  begin
+    Img := TGrayscaleImage.Create(W, H);
+    try
+      AssertEquals(W, Img.Width);
+      AssertEquals(H, Img.Height);
+
+      { Fill each pixel with a value encoding its row and column. }
+      for Y := 0 to H - 1 do
+        for X := 0 to W - 1 do
+          Img.PixelPtr(X, Y)^ := PixelValue(X, Y);
+
+      Img.FlipVertical;
+
+      { After flipping, pixel (X, Y) must hold what was originally at (X, H - 1 - Y). }
+      for Y := 0 to H - 1 do
+        for X := 0 to W - 1 do
+          AssertEquals(
+            Format('FlipVertical with Height=%d, at pixel (%d, %d)', [H, X, Y]),
+            PixelValue(X, H - 1 - Y),
+            Img.PixelPtr(X, Y)^);
+    finally FreeAndNil(Img) end;
+  end;
+end;
 
 initialization
   RegisterTest(TTestImages);
