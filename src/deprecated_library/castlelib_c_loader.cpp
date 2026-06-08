@@ -95,9 +95,9 @@ typedef void (CDECL *PFNRD_CGE_SetNodeFieldValue_SFBool)(const char *szNodeName,
 typedef void (CDECL *PFNRD_CGE_SetNodeFieldValue_SFVec2f)(const char *szNodeName, const char *szFieldName, float val1, float val2);
 typedef void (CDECL *PFNRD_CGE_SetNodeFieldValue_SFVec3f)(const char *szNodeName, const char *szFieldName, float val1, float val2, float val3);
 typedef void (CDECL *PFNRD_CGE_SetNodeFieldValue_SFVec4f)(const char *szNodeName, const char *szFieldName, float val1, float val2, float val3, float val4);
-typedef void (CDECL *PFNRD_CGE_SetNodeFieldValue_SFVec2d)(const char *szNodeName, const char *szFieldName, double val1, float val2);
-typedef void (CDECL *PFNRD_CGE_SetNodeFieldValue_SFVec3d)(const char *szNodeName, const char *szFieldName, double val1, float val2, float val3);
-typedef void (CDECL *PFNRD_CGE_SetNodeFieldValue_SFVec4d)(const char *szNodeName, const char *szFieldName, double val1, float val2, float val3, float val4);
+typedef void (CDECL *PFNRD_CGE_SetNodeFieldValue_SFVec2d)(const char *szNodeName, const char *szFieldName, double val1, double val2);
+typedef void (CDECL *PFNRD_CGE_SetNodeFieldValue_SFVec3d)(const char *szNodeName, const char *szFieldName, double val1, double val2, double val3);
+typedef void (CDECL *PFNRD_CGE_SetNodeFieldValue_SFVec4d)(const char *szNodeName, const char *szFieldName, double val1, double val2, double val3, double val4);
 typedef void (CDECL *PFNRD_CGE_SetNodeFieldValue_SFRotation)(const char *szNodeName, const char *szFieldName, float axisX, float axisY, float axisZ, float rotation);
 typedef void (CDECL *PFNRD_CGE_SetNodeFieldValue_SFString)(const char *szNodeName, const char *szFieldName, const char *value);
 typedef void (CDECL *PFNRD_CGE_SetNodeFieldValue_MFFloat)(const char *szNodeName, const char *szFieldName, int iCount, float *values);
@@ -409,7 +409,7 @@ void CGE_SaveSceneToFile(const char *szFile, int /*ECgeUrlProcessing*/ eUrlProce
 //-----------------------------------------------------------------------------
 int CGE_GetViewpointsCount()
 {
-	if (pfrd_CGE_MoveToViewpoint!=NULL)
+	if (pfrd_CGE_GetViewpointsCount!=NULL)
 		return (*pfrd_CGE_GetViewpointsCount)();
     else
         return 0;

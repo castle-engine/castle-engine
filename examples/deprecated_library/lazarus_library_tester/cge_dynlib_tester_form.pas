@@ -152,7 +152,7 @@ end;
 
 procedure TForm1.FormDestroy(Sender: TObject);
 begin
-  CGE_Close();
+  CGE_Close(true);
   CGE_Finalize();
 end;
 

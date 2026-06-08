@@ -386,9 +386,9 @@ extern void CGE_SetNodeFieldValue_SFBool(const char *szNodeName, const char *szF
 extern void CGE_SetNodeFieldValue_SFVec2f(const char *szNodeName, const char *szFieldName, float val1, float val2);
 extern void CGE_SetNodeFieldValue_SFVec3f(const char *szNodeName, const char *szFieldName, float val1, float val2, float val3);
 extern void CGE_SetNodeFieldValue_SFVec4f(const char *szNodeName, const char *szFieldName, float val1, float val2, float val3, float val4);
-extern void CGE_SetNodeFieldValue_SFVec2d(const char *szNodeName, const char *szFieldName, double val1, float val2);
-extern void CGE_SetNodeFieldValue_SFVec3d(const char *szNodeName, const char *szFieldName, double val1, float val2, float val3);
-extern void CGE_SetNodeFieldValue_SFVec4d(const char *szNodeName, const char *szFieldName, double val1, float val2, float val3, float val4);
+extern void CGE_SetNodeFieldValue_SFVec2d(const char *szNodeName, const char *szFieldName, double val1, double val2);
+extern void CGE_SetNodeFieldValue_SFVec3d(const char *szNodeName, const char *szFieldName, double val1, double val2, double val3);
+extern void CGE_SetNodeFieldValue_SFVec4d(const char *szNodeName, const char *szFieldName, double val1, double val2, double val3, double val4);
 extern void CGE_SetNodeFieldValue_SFRotation(const char *szNodeName, const char *szFieldName, float axisX, float axisY, float axisZ, float rotation);
 extern void CGE_SetNodeFieldValue_SFString(const char *szNodeName, const char *szFieldName, const char *value);
 extern void CGE_SetNodeFieldValue_MFFloat(const char *szNodeName, const char *szFieldName, int iCount, float *values);

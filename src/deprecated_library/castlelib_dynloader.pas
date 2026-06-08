@@ -279,7 +279,7 @@ type
 procedure CGE_Initialize(ApplicationConfigDirectory: PCChar); cdecl; external 'castleengine';
 procedure CGE_Finalize(); cdecl; external 'castleengine';
 procedure CGE_Open(flags: cUInt32; InitialWidth, InitialHeight, Dpi: cUInt32); cdecl; external 'castleengine';
-procedure CGE_Close(); cdecl; external 'castleengine';
+procedure CGE_Close(QuitWhenNoOpenWindows: cBool); cdecl; external 'castleengine';
 procedure CGE_GetOpenGLInformation(szBuffer: pchar; nBufSize: cInt32); cdecl; external 'castleengine';
 procedure CGE_GetCastleEngineVersion(szBuffer: pchar; nBufSize: cInt32); cdecl; external 'castleengine';
 procedure CGE_Resize(uiViewWidth, uiViewHeight: cUInt32); cdecl; external 'castleengine';
