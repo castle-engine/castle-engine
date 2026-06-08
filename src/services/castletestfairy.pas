@@ -33,7 +33,7 @@ type
     class procedure FinalizeRemoteLogging;
   public
     { Send CGE logs to TestFairy.
-      This is onlly necessary on iOS, on Android all the logs are automatically send to TestFairy.
+      This is only necessary on iOS, on Android all the logs are automatically send to TestFairy.
       It does nothing in case TestFairy service is not used. }
     class procedure InitializeRemoteLogging;
   end;

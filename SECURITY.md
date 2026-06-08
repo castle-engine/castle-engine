@@ -2,7 +2,7 @@
 
 ## Reporting a Vulnerability
 
-Plese report any potential security vulnerabilities to `michalis@castle-engine.io` . Thank you!
+Please report any potential security vulnerabilities to `michalis@castle-engine.io` . Thank you!
 
 ## What Security Vulnerabilities May Happen in a Game Engine?
 

@@ -67,7 +67,7 @@ type
       https://castle-engine.io/castle_script.php ,
       for example something crazy like @code(2.0 * sin(5.0) + Pi).
       You can use this method instead of @link(AttributeFloat) to easily allow
-      mathematical exressions in XML attributes.
+      mathematical expressions in XML attributes.
 
       If there is no such attribute returns @false and does not modify Value. }
     function AttributeFloatExpression(const AttrName: string; var Value: Float): boolean;
@@ -79,7 +79,7 @@ type
       https://castle-engine.io/castle_script.php ,
       for example something crazy like @code(2.0 * sin(5.0) + Pi).
       You can use this method instead of @link(AttributeFloat) to easily allow
-      mathematical exressions in XML attributes.
+      mathematical expressions in XML attributes.
 
       @raises EDOMAttributeMissing }
     function AttributeFloatExpression(const AttrName: string): Float;
@@ -90,7 +90,7 @@ type
       https://castle-engine.io/castle_script.php ,
       for example something crazy like @code(2.0 * sin(5.0) + Pi).
       You can use this method instead of @link(AttributeFloatDef) to easily allow
-      mathematical exressions in XML attributes. }
+      mathematical expressions in XML attributes. }
     function AttributeFloatExpressionDef(const AttrName: string; const DefaultValue: Float): Float;
   end;
 

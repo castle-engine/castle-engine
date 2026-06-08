@@ -124,7 +124,7 @@ type
       PushesEverythingInside may be @false. }
     property PushesEverythingInside: boolean
       read FPushesEverythingInside write FPushesEverythingInside default true;
-  end deprecated 'the usefullness of this class is low, as in a typical application you can implement something similar yourself, adjusted to your particular case';
+  end deprecated 'the usefulness of this class is low, as in a typical application you can implement something similar yourself, adjusted to your particular case';
 
   { Transform moving with constant speed between 2 points.
     Moves with a constant speed from (0, 0, 0) to TranslationEnd.
@@ -227,7 +227,7 @@ type
       TVector3; override;
 
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
-  end deprecated 'the usefullness of this class is low, as in a typical application you can implement something similar yourself, adjusted to your particular case';
+  end deprecated 'the usefulness of this class is low, as in a typical application you can implement something similar yourself, adjusted to your particular case';
 
   { Transform representing an alive thing. Basis for players, creatures and everything
     else that has some position, direction and that can be killed.
