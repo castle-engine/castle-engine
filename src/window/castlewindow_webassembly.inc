@@ -917,11 +917,11 @@ end;
     which are web-specific features exposed by TCastleWindow. }
   TCastleWebPointerLock = class(TCastleAbstractPointerLock)
   strict private
-    FIgnoreNextMotion: Boolean;
+    FInternalIgnoreNextMotion: Boolean;
     FWaitingForMiddle: Boolean;
     FMotionToSubtract: TVector2;
   protected
-    procedure IgnoreNextMotion; override;
+    procedure InternalIgnoreNextMotion; override;
     procedure ActiveChanged(const NewValue: Boolean); override;
   public
     procedure Update; override;

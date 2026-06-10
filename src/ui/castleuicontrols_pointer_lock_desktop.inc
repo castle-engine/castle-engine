@@ -29,12 +29,12 @@
     FWaitingForMiddle: Boolean;
     FMotionToSubtract: TVector2;
   protected
-    procedure IgnoreNextMotion; override;
     procedure ActiveChanged(const NewValue: Boolean); override;
   public
     procedure Update; override;
     function Delta(const Event: TInputMotion;
       const ControlRect: TFloatRectangle): TVector2; override;
+    procedure InternalIgnoreNextMotion; override;
   end;
 
 {$endif read_interface}
@@ -232,7 +232,7 @@ begin
   // this is like ReleaseCapture(...) for all possible arguments
 end;
 
-procedure TCastleDesktopPointerLock.IgnoreNextMotion;
+procedure TCastleDesktopPointerLock.InternalIgnoreNextMotion;
 begin
   FIgnoreNextMotion := true;
 end;

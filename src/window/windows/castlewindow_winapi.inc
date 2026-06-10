@@ -2100,7 +2100,7 @@ begin
     OpenWindows[0].FFocused := Value;
     { right after changing Focused, it's safest to consider mouse position
       not suitable for mouse look }
-    OpenWindows[0].Container.MouseLookIgnoreNextMotion;
+    OpenWindows[0].Container.PointerLock.InternalIgnoreNextMotion;
   end;
 end;
 

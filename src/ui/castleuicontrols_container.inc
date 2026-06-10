@@ -748,7 +748,7 @@
 
       Called by controls within this container when something could
       change the container focused control (in @link(TCastleContainer.Focus))
-      (or it's cursor) or @link(TCastleContainer.Focused) or MouseLook.
+      (or it's cursor) or @link(TCastleContainer.Focused).
       In practice, called when TCastleUserInterface.Cursor or
       @link(TCastleUserInterface.CapturesEventsAtPosition) (and so also
       @link(TCastleUserInterface.RenderRect)) results change.
@@ -766,21 +766,6 @@
       (since focused control or final container cursor may also change then). }
     procedure UpdateFocusAndMouseCursor;
 
-    { Internal. @exclude }
-    procedure MouseLookIgnoreNextMotion;
-      deprecated 'use PointerLock.IgnoreNextMotion';
-    { Start mouse look. }
-    procedure MouseLookPress;
-      deprecated 'use PointerLock.Active:=true';
-    { Perform per-update logic of mouse look. }
-    procedure MouseLookUpdate;
-      deprecated 'use PointerLock.Update';
-    { Get current delta, during Motion event. }
-    function MouseLookDelta(const Event: TInputMotion; const ControlRect: TFloatRectangle): TVector2; overload;
-      deprecated 'use PointerLock.Delta';
-    function MouseLookDelta(const Event: TInputMotion): TVector2; overload;
-      deprecated 'use PointerLock.Delta';
-
     { Force passing events to the given control first,
       regardless if this control is under the mouse cursor.
       Before we even send events to the currently "capturing" control
@@ -791,7 +776,8 @@
       (that is, @link(TCastleUserInterface.Focused) will be set to true
       shortly after it becomes the ForceCaptureInput).
 
-      An example when this is useful is when you use camera MouseLook,
+      An example when this is useful is when you use
+      @link(TCastleWalkNavigation.MouseLook),
       and the associated viewport does not fill the full window
       (TCastleViewport.FullSize is @false, and actual sizes are smaller
       than window, and may not include window center). In this case you want
@@ -2614,32 +2600,6 @@ end;
 function TCastleContainer.SettingMousePositionCausesMotion: Boolean;
 begin
   Result := true;
-end;
-
-procedure TCastleContainer.MouseLookPress;
-begin
-  PointerLock.Active := true;
-end;
-
-procedure TCastleContainer.MouseLookUpdate;
-begin
-  PointerLock.Update;
-end;
-
-procedure TCastleContainer.MouseLookIgnoreNextMotion;
-begin
-  PointerLock.IgnoreNextMotion;
-end;
-
-function TCastleContainer.MouseLookDelta(const Event: TInputMotion): TVector2;
-begin
-  Result := PointerLock.Delta(Event);
-end;
-
-function TCastleContainer.MouseLookDelta(const Event: TInputMotion;
-  const ControlRect: TFloatRectangle): TVector2;
-begin
-  Result := PointerLock.Delta(Event, ControlRect);
 end;
 
 procedure TCastleContainer.SetUIScaling(const Value: TUIScaling);

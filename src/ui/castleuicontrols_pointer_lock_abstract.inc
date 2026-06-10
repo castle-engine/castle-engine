@@ -114,9 +114,6 @@
     FActive: Boolean;
     procedure SetActive(const Value: Boolean);
   protected
-    { Next motion event is expected to have wild movement, so ignore it. }
-    procedure IgnoreNextMotion; virtual; abstract;
-
     { Start or stop mouse look. }
     procedure ActiveChanged(const NewValue: Boolean); virtual; abstract;
 
@@ -170,6 +167,11 @@
     { Perform per-update logic of mouse look.
       Allowed to be used, and does nothing, even when @link(Active) is @false. }
     procedure Update; virtual; abstract;
+
+    { Next motion event is expected to have wild movement, so ignore it.
+      This is internal, used by container implementations.
+      @exclude }
+    procedure InternalIgnoreNextMotion; virtual; abstract;
   end;
 
 {$endif read_interface}

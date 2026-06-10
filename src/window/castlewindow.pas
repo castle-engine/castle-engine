@@ -3006,7 +3006,7 @@ begin
     if MouseButton in Container.MousePressed then
       DoMouseUp(Container.MousePosition, MouseButton, 0);
 
-  Container.MouseLookIgnoreNextMotion;
+  Container.PointerLock.InternalIgnoreNextMotion;
 end;
 
 function TCastleWindow.GetColorBits: Cardinal;

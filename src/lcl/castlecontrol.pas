@@ -965,7 +965,7 @@ begin
     if MouseButton in Container.MousePressed then
       CastleMouseUp(MouseButton);
 
-  Container.MouseLookIgnoreNextMotion;
+  Container.PointerLock.InternalIgnoreNextMotion;
 end;
 
 procedure TCastleControl.UpdateShiftState(const Shift: TShiftState);

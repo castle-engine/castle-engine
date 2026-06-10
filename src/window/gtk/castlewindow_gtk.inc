@@ -750,7 +750,7 @@ SIGNAL_WINDOW_BEGIN
     Note: resetting to some hardcoded Container.MousePosition, like Vector2(-1, -1),
     is not enough, testcase: wrong 1st movement in Unholy after alt+tab to fight. }
   GetInitialCursorPos;
-  Container.MouseLookIgnoreNextMotion;
+  Container.PointerLock.InternalIgnoreNextMotion;
   FileMonitor.CheckChanges;
   FFocused := true;
   Result := gfalse;
