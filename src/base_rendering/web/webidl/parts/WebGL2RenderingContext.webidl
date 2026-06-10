@@ -415,34 +415,50 @@ interface mixin WebGL2RenderingContextBase
     [Throws] // Another overhead throws.
     undefined texImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height,
                          GLint border, GLenum format, GLenum type, GLintptr pboOffset);
-    [Throws]
-    undefined texImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height,
-                         GLint border, GLenum format, GLenum type,
-                         HTMLCanvasElement source); // May throw DOMException
-    [Throws]
-    undefined texImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height,
-                         GLint border, GLenum format, GLenum type,
-                         HTMLImageElement source); // May throw DOMException
-    [Throws]
-    undefined texImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height,
-                         GLint border, GLenum format, GLenum type,
-                         HTMLVideoElement source); // May throw DOMException
-    [Throws] // Another overhead throws.
-    undefined texImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height,
-                         GLint border, GLenum format, GLenum type,
-                         ImageBitmap source);
-    [Throws] // Another overhead throws.
-    undefined texImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height,
-                         GLint border, GLenum format, GLenum type,
-                         ImageData source);
-    [Throws] // Another overhead throws.
-    undefined texImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height,
-                         GLint border, GLenum format, GLenum type,
-                         OffscreenCanvas source);
-    [Throws] // Another overhead throws.
-    undefined texImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height,
-                         GLint border, GLenum format, GLenum type,
-                         VideoFrame source);
+
+/*
+  Castle Game Engine note:
+
+  We commented out texImage2D overloads below, as they confused FPC+WebAssembly
+  when trying to call this with last argument = nil
+  (load texture without providing data).
+  Weirdly, while sometimes using
+    {$ifdef CASTLE_WEBGL} IJSArrayBufferView {$endif} (nil)
+  helped, but not in TRendererCache.TextureDepth_IncReference case.
+
+  For now, commenting them out is simplest, we don't use these overloads
+  anyway.
+*/
+
+//    [Throws]
+//    undefined texImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height,
+//                         GLint border, GLenum format, GLenum type,
+//                         HTMLCanvasElement source); // May throw DOMException
+//    [Throws]
+//    undefined texImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height,
+//                         GLint border, GLenum format, GLenum type,
+//                         HTMLImageElement source); // May throw DOMException
+//    [Throws]
+//    undefined texImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height,
+//                         GLint border, GLenum format, GLenum type,
+//                         HTMLVideoElement source); // May throw DOMException
+//    [Throws] // Another overhead throws.
+//    undefined texImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height,
+//                         GLint border, GLenum format, GLenum type,
+//                         ImageBitmap source);
+//    [Throws] // Another overhead throws.
+//    undefined texImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height,
+//                         GLint border, GLenum format, GLenum type,
+//                         ImageData source);
+//    [Throws] // Another overhead throws.
+//    undefined texImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height,
+//                         GLint border, GLenum format, GLenum type,
+//                         OffscreenCanvas source);
+//    [Throws] // Another overhead throws.
+//    undefined texImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height,
+//                         GLint border, GLenum format, GLenum type,
+//                         VideoFrame source);
+
     [Throws] // Another overhead throws.
     undefined texImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height,
                          GLint border, GLenum format, GLenum type, [AllowShared] ArrayBufferView srcData,
