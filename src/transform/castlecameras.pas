@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2024 Michalis Kamburelis.
+  Copyright 2003-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -679,8 +679,6 @@ type
       DefaultMouseLookVerticalSensitivity = Pi * 0.1 / 180;
 
     constructor Create(AOwner: TComponent); override;
-    procedure Update(const SecondsPassed: Single;
-      var HandleInput: boolean); override;
     function Motion(const Event: TInputMotion): boolean; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
@@ -2786,21 +2784,6 @@ begin
   FMouseLookHorizontalSensitivity := DefaultMouseLookHorizontalSensitivity;
   FMouseLookVerticalSensitivity := DefaultMouseLookVerticalSensitivity;
   FInvertVerticalMouseLook := false;
-end;
-
-procedure TCastleMouseLookNavigation.Update(const SecondsPassed: Single;
-  var HandleInput: boolean);
-
-  procedure MouseLookUpdate;
-  begin
-    if InternalUsingMouseLook and
-       (Container <> nil) then
-      Container.PointerLock.Update;
-  end;
-
-begin
-  inherited;
-  MouseLookUpdate;
 end;
 
 procedure TCastleMouseLookNavigation.SetMouseLook(const Value: boolean);

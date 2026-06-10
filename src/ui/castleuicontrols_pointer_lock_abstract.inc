@@ -70,14 +70,6 @@
         Container.PointerLock.Active := false;
     end;
 
-    procedure TViewPlayGame.Update(const SecondsPassed: Single;
-      var HandleInput: Boolean);
-    begin
-      inherited;
-      if Container.PointerLock.Active then
-        Container.PointerLock.Update;
-    end;
-
     function TViewPlayGame.Motion(const Event: TInputMotion): Boolean;
     var
       Delta: TVector2;
@@ -163,10 +155,6 @@
     { Same as @link(Delta) but without ControlRect. This is useful when you
       want to use the default ControlRect (e.g. container rectangle). }
     function Delta(const Event: TInputMotion): TVector2; overload;
-
-    { Perform per-update logic of mouse look.
-      Allowed to be used, and does nothing, even when @link(Active) is @false. }
-    procedure Update; virtual; abstract;
 
     { Next motion event is expected to have wild movement, so ignore it.
       This is internal, used by container implementations.

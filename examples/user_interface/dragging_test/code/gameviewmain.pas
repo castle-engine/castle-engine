@@ -42,7 +42,6 @@ type
     procedure RefreshButtonsPressed;
   public
     procedure Start; override;
-    procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
     function Press(const Event: TInputPressRelease): Boolean; override;
     function Release(const Event: TInputPressRelease): Boolean; override;
     function Motion(const Event: TInputMotion): Boolean; override;
@@ -100,13 +99,6 @@ procedure TViewMain.RefreshButtonsPressed;
 begin
   ButtonDragSimple.Pressed := not WantsDraggingPointerLock;
   ButtonDragPointerLock.Pressed := WantsDraggingPointerLock;
-end;
-
-procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: boolean);
-begin
-  inherited;
-  if Container.PointerLock.Active then
-    Container.PointerLock.Update;
 end;
 
 function TViewMain.Press(const Event: TInputPressRelease): Boolean;

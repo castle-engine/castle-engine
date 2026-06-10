@@ -69,6 +69,9 @@
       TPendingViewOperationList = {$ifdef FPC}specialize{$endif} TStructList<TPendingViewOperationRec>;
     var
       FFocus, FNewFocus: TCastleUserInterfaceList;
+      { Capture controls, for each FingerIndex.
+        The values in this map are never nil. }
+      FCaptureInput: TFingerIndexCaptureMap;
       FForceCaptureInput: TCastleUserInterface;
       FForceCaptureInputObserver: TFreeNotificationObserver;
       FTooltipDelay: Single;
@@ -156,9 +159,6 @@
       FCurrentViewStack, FPendingViewStack: TCastleViewList;
       FDisableStackChange: Cardinal;
       FControls: TInternalChildrenControls;
-      { Capture controls, for each FingerIndex.
-        The values in this map are never nil. }
-      FCaptureInput: TFingerIndexCaptureMap;
     class var
       FInputInspector: TInputInspector;
     procedure ControlsVisibleChange(const Sender: TCastleUserInterface;
@@ -1848,6 +1848,48 @@ procedure TCastleContainer.EventUpdate;
     end;
   end;
 
+  procedure UpdatePointerLock;
+  begin
+    if not PointerLock.Active then Exit;
+
+    { Never "capture" the motion of the mouse when PointerLock.Active.
+
+      Without this, using mouse look and then pressing some mouse button that it handled
+      (e.g. to shoot), makes the subsequent dragging not work
+      -- it is blocked for a short time before releasing left mouse button
+      and then it is blocked until you release right mouse button too
+      (because of "if (Capture <> nil) and (MousePressed = []) then" condition).
+
+      Testcases:
+
+      - examples/physics/physics_3d_shooter/
+
+        Mouse look is active when buttonRight is held.
+        buttonLeft does shoot.
+
+        So without this fix, shooting while mouse looking
+        (clicking buttonLeft while holding buttonRight)
+        stops mouse look, even though user still holds buttonRight.
+
+      - examples/3d_games/explore_impressive_castle/
+
+        As above, though mouse look is permanent (as long as in game view).
+
+        It's a problem in any case (whether mouse look is permanent,
+        or temporary by holding buttonRight): clicking with buttonLeft stops
+        mouse look from working.
+
+      - examples/third_person_navigation/
+
+        We have permanent mouse look by default.
+
+        As both buttonLeft (shoot) and buttonRight (toggle aim) perform some function,
+        they both stop mouse look from working.
+    }
+    FCaptureInput.Clear;
+    // this is like ReleaseCapture(...) for all possible arguments
+  end;
+
 begin
   FlushCollectedMotion;
 
@@ -1868,6 +1910,8 @@ begin
   try
     CallEvents;
   finally Dec(FProcessingEvents) end;
+
+  UpdatePointerLock;
 
   ProcessViewChanges;
 end;

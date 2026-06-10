@@ -31,7 +31,6 @@
   protected
     procedure ActiveChanged(const NewValue: Boolean); override;
   public
-    procedure Update; override;
     function Delta(const Event: TInputMotion;
       const ControlRect: TFloatRectangle): TVector2; override;
     procedure InternalIgnoreNextMotion; override;
@@ -188,48 +187,6 @@ begin
     Container.MousePosition := Middle;
     FWaitingForMiddle := true;
   end;
-end;
-
-procedure TCastleDesktopPointerLock.Update;
-begin
-  if not Active then Exit;
-
-  { Never "capture" the motion of the mouse when MouseLook.
-
-    Without this, using mouse look and then pressing some mouse button that it handled
-    (e.g. to shoot), makes the subsequent dragging not work
-    -- it is blocked for a short time before releasing left mouse button
-    and then it is blocked until you release right mouse button too
-    (because of "if (Capture <> nil) and (MousePressed = []) then" condition).
-
-    Testcases:
-
-    - examples/physics/physics_3d_shooter/
-
-      Mouse look is active when buttonRight is held.
-      buttonLeft does shoot.
-
-      So without this fix, shooting while mouse looking
-      (clicking buttonLeft while holding buttonRight)
-      stops mouse look, even though user still holds buttonRight.
-
-    - examples/3d_games/explore_impressive_castle/
-
-      As above, though mouse look is permanent (as long as in game view).
-
-      It's a problem in any case (whether mouse look is permanent,
-      or temporary by holding buttonRight): clicking with buttonLeft stops
-      mouse look from working.
-
-    - examples/third_person_navigation/
-
-      We have permanent mouse look by default.
-
-      As both buttonLeft (shoot) and buttonRight (toggle aim) perform some function,
-      they both stop mouse look from working.
-  }
-  Container.FCaptureInput.Clear;
-  // this is like ReleaseCapture(...) for all possible arguments
 end;
 
 procedure TCastleDesktopPointerLock.InternalIgnoreNextMotion;
