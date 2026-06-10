@@ -440,27 +440,6 @@ type
 
   TCaptionPart = (cpPublic, cpFps);
 
-  { Container suitable to be used in TCastleWindow.
-    Never create instances of this, just create TCastleWindow,
-    and use container of it (in @link(TCastleWindow.Container)). }
-  TWindowContainer = class(TCastleContainer)
-  private
-    Parent: TCastleWindow;
-  public
-    constructor Create(AParent: TCastleWindow); reintroduce;
-
-    procedure Invalidate; override;
-    function GLInitialized: boolean; override;
-    function PixelsWidth: Integer; override;
-    function PixelsHeight: Integer; override;
-    function PixelsRect: TRectangle; override;
-    function Focused: boolean; override;
-    procedure SetInternalCursor(const Value: TMouseCursor); override;
-    function SaveScreen(const SaveRect: TRectangle): TRGBImage; overload; override;
-    procedure SystemSetMousePosition(const Value: TVector2); override;
-    function SettingMousePositionCausesMotion: Boolean; override;
-  end deprecated 'do not descend from this, instead use custom TCastleView descendants';
-
   {$define read_interface_types}
   {$I castlewindow_backend.inc}
   {$undef read_interface_types}
@@ -496,13 +475,6 @@ type
   {$I castlewindow_backend.inc}
   {$undef read_window_interface}
 
-  protected
-    {$warnings off} // using deprecated class in deprecated method
-    { Create a container class for this window.
-      Override this to use a custom container class, e.g. to override
-      some container methods. }
-    function CreateContainer: TWindowContainer; virtual; deprecated 'instead of custom TWindowContainer descendants, use custom TCastleView descendants';
-    {$warnings on}
   private
     FWidth, FHeight, FLeft, FTop: Integer;
     { Window size reported last to DoResize,
@@ -553,10 +525,7 @@ type
     FMinHeight: Integer;
     FMaxWidth: Integer;
     FMaxHeight: Integer;
-    // Using deprecated TWindowContainer - should be internal in the future
-    {$warnings off}
-    FContainer: TWindowContainer;
-    {$warnings on}
+    FContainer: TCastleContainer;
     FCursor: TMouseCursor;
     { When Open, this says if the window actually has double-buffer. }
     HasDoubleBuffer: Boolean;
@@ -578,6 +547,7 @@ type
     procedure SetLeft(const Value: Integer);
     procedure SetTop(const Value: Integer);
     procedure SetResizeAllowed(const Value: TResizeAllowed);
+    function CreateContainer: TCastleContainer;
 
     { Convert window position from the usual window system convention,
       where (0,0) is left-top, and the window has size FRealWidth/FRealHeight,
@@ -955,11 +925,11 @@ type
     { Instance of the TCastleContainer associated with this window.
 
       Use this to manage everything drawn in the window
-      (all TCatleUserInterface, including @url(https://castle-engine.io/views views),
+      (all TCastleUserInterface, including @url(https://castle-engine.io/views views),
       all 2D controls, including all viewports displaying 3D content),
       some input features (mouse look state, sending fake input events),
       save screen and more. }
-    property Container: TWindowContainer read FContainer;
+    property Container: TCastleContainer read FContainer;
 
     { Is it allowed to suspend (for an indefinite amount of time) waiting
       for user input.
@@ -2620,69 +2590,9 @@ uses
 var
   UnitFinalization: Boolean;
 
+{$I castlewindow_container.inc}
 {$I castlewindowmenu.inc}
 {$I castlewindow_backend.inc}
-
-{ TWindowContainer ----------------------------------------------------------- }
-
-constructor TWindowContainer.Create(AParent: TCastleWindow);
-begin
-  inherited Create(nil);
-  Parent := AParent;
-end;
-
-procedure TWindowContainer.Invalidate;
-begin
-  Parent.Invalidate;
-end;
-
-function TWindowContainer.GLInitialized: boolean;
-begin
-  Result := Parent.GLInitialized;
-end;
-
-function TWindowContainer.PixelsWidth: Integer;
-begin
-  Result := Parent.Width;
-end;
-
-function TWindowContainer.PixelsHeight: Integer;
-begin
-  Result := Parent.Height;
-end;
-
-function TWindowContainer.PixelsRect: TRectangle;
-begin
-  Result := Parent.Rect;
-end;
-
-function TWindowContainer.Focused: boolean;
-begin
-  Result := Parent.Focused;
-end;
-
-procedure TWindowContainer.SetInternalCursor(const Value: TMouseCursor);
-begin
-  Parent.InternalCursor := Value;
-end;
-
-function TWindowContainer.SaveScreen(const SaveRect: TRectangle): TRGBImage;
-begin
-  { In theory, the single-buffer
-    case could be optimized (do not redraw if not needed, that is:
-    if not invalidated), but it's not worth the complication since noone uses
-    single-buffer for normal applications... And also, there is no reliable
-    way to capture screen contents in case of single-buffer. }
-
-  EventBeforeRender;
-  EventRender;
-  Result := SaveScreen_NoFlush(SaveRect, Parent.SaveScreenBuffer);
-end;
-
-procedure TWindowContainer.SystemSetMousePosition(const Value: TVector2);
-begin
-  Parent.SystemSetMousePosition(Value);
-end;
 
 { TCastleWindow ---------------------------------------------------------- }
 
@@ -2712,10 +2622,7 @@ begin
   FAutoRedisplay := true;
   OwnsMainMenu := true;
   FMainMenuVisible := true;
-  // Using deprecated CreateContainer - should be internal in the future
-  {$warnings off}
   FContainer := CreateContainer;
-  {$warnings on}
   Close_KeyString := '';
   SwapFullScreen_Key := keyNone;
   FpsShowOnCaption := false;
@@ -2749,12 +2656,13 @@ begin
   inherited;
 end;
 
-{$warnings off} // using deprecated class in deprecated method
-function TCastleWindow.CreateContainer: TWindowContainer;
+function TCastleWindow.CreateContainer: TCastleContainer;
 begin
-  Result := TWindowContainer.Create(Self);
+  Result :=
+    {$ifdef CASTLE_WINDOW_WEBASSEMBLY} TWindowWebContainer
+    {$else} TWindowContainer
+    {$endif}.Create(Self);
 end;
-{$warnings on}
 
 procedure TCastleWindow.OpenCore;
 {$ifndef OpenGLES}

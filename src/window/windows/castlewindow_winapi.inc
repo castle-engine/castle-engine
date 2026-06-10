@@ -1158,7 +1158,7 @@ procedure TCastleWindow.OpenBackend;
   begin
     if GetCursorPos({$ifdef FPC}@{$endif}InitialCursorPos) then
     begin
-      Container.InitializeMousePosition(LeftTopToCastle(
+      (Container as TWindowContainer).InitializeMousePosition(LeftTopToCastle(
         InitialCursorPos.X - ClientRect.Left,
         InitialCursorPos.Y - ClientRect.Top));
     end;

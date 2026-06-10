@@ -906,7 +906,7 @@ begin
     @X, @Y, nil);
   {$endif}
 
-  Container.InitializeMousePosition(LeftTopToCastle(X, Y));
+  (Container as TWindowContainer).InitializeMousePosition(LeftTopToCastle(X, Y));
 end;
 
 procedure TCastleWindow.OpenBackend;

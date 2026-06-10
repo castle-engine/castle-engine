@@ -69,9 +69,6 @@
       TPendingViewOperationList = {$ifdef FPC}specialize{$endif} TStructList<TPendingViewOperationRec>;
     var
       FFocus, FNewFocus: TCastleUserInterfaceList;
-      { Capture controls, for each FingerIndex.
-        The values in this map are never nil. }
-      FCaptureInput: TFingerIndexCaptureMap;
       FForceCaptureInput: TCastleUserInterface;
       FForceCaptureInputObserver: TFreeNotificationObserver;
       FTooltipDelay: Single;
@@ -92,9 +89,6 @@
       FFps: TFramesPerSecond;
       FPressed: TKeysPressed;
       FMousePressed: TCastleMouseButtons;
-      FMouseLookIgnoreNextMotion: Boolean;
-      FMouseLookWaitingForMiddle: Boolean;
-      FMouseLookMotionToSubtract: TVector2;
       FFocusAndMouseCursorValid: Boolean;
       FOverrideCursor: TMouseCursor;
       FDefaultFont: TCastleAbstractFont;
@@ -114,6 +108,7 @@
       { Inside any virtual method or callback that may do arbitrary things,
         including changing views. }
       FProcessingEvents: Cardinal;
+      FPointerLock: TCastleAbstractPointerLock;
 
     function GetView: TCastleView;
     procedure SetView(const Value: TCastleView);
@@ -161,6 +156,9 @@
       FCurrentViewStack, FPendingViewStack: TCastleViewList;
       FDisableStackChange: Cardinal;
       FControls: TInternalChildrenControls;
+      { Capture controls, for each FingerIndex.
+        The values in this map are never nil. }
+      FCaptureInput: TFingerIndexCaptureMap;
     class var
       FInputInspector: TInputInspector;
     procedure ControlsVisibleChange(const Sender: TCastleUserInterface;
@@ -201,6 +199,14 @@
       Just run examples/window/window_events.lpr,
       move mouse around, and press "5" (this does "MousePosition := window middle"). }
     function SettingMousePositionCausesMotion: Boolean; virtual;
+
+    { Create TCastleAbstractPointerLock instance suitable for this container.
+      In the base class, this creates TCastleDesktopPointerLock, but descendants may
+      override this.
+
+      Descendants note: This is called from constructor,
+      so it should not rely on any fields of the container being initialized yet. }
+    function CreatePointerLock: TCastleAbstractPointerLock; virtual;
   public
     var
       { Optimize rendering of user interface.
@@ -251,6 +257,31 @@
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+
+    { Pointer lock changes how mouse movement is reported.
+
+      When pointer lock is active:
+
+      @unorderedList(
+        @item(Mouse movement is unbounded by the window/canvas borders.)
+
+        @item(Only the "delta" of mouse movement (@link(TInputMotion.Delta)) is
+          useful.
+
+          The position of the mouse, as reported by @link(TInputMotion.Position)
+          and @link(TInputMotion.OldPosition), are undefined.
+        )
+
+        @item(Mouse cursor is hidden.)
+      )
+
+      See @link(TCastleAbstractPointerLock) for more details how does it work.
+
+      This is automatically used by @link(TCastleWalkNavigation.MouseLook).
+      Your applications can also use it explicitly for custom dragging,
+      see examples/user_interface/dragging_test/ for a working code demonstrating
+      this. }
+    property PointerLock: TCastleAbstractPointerLock read FPointerLock;
 
     { Propagate the event to all the @link(Controls).
       You can call these methods explicitly if you want to "fake" some event,
@@ -735,97 +766,20 @@
       (since focused control or final container cursor may also change then). }
     procedure UpdateFocusAndMouseCursor;
 
-    { Internal. @exclude
-      See @link(MouseLookDelta). }
+    { Internal. @exclude }
     procedure MouseLookIgnoreNextMotion;
-
-    { Start mouse look. See @link(MouseLookDelta). }
+      deprecated 'use PointerLock.IgnoreNextMotion';
+    { Start mouse look. }
     procedure MouseLookPress;
-
-    { Perform per-update logic of mouse look. See @link(MouseLookDelta). }
+      deprecated 'use PointerLock.Active:=true';
+    { Perform per-update logic of mouse look. }
     procedure MouseLookUpdate;
-
-    { Read current delta of mouse movement, assuming that mouse look is active.
-
-      On non-web: the mouse position delta is movement from ControlRect middle,
-      and we try to set mouse position to ControlRect middle.
-
-      ControlRect is usually the container rectangle (in final device coordinates)
-      but in general it should be the rectangle of control over which we should
-      do mouse look (so TCastleUserInterface.RenderRect).
-
-      "Mouse look" means that user doesn't see the mouse cursor,
-      but user can move something by dragging with mouse.
-      Moreover, user should not notice any "bounds" to this dragging (that's why we try
-      to keep mouse position in ControlRect middle,
-      to avoid screen borders from acting as constrains on mouse movement).
-
-      This is automatically used by @link(TCastleWalkNavigation.MouseLook).
-      You can use it yourself for custom effects "like mouse look". The template to use this
-      is below.
-      See the engine example examples/user_interface/dragging_test/ for
-      a working code demonstrating this to drag 2D objects with mouse.
-
-      @longCode(#
-
-      function TViewPlayGame.Press(const Event: TInputPressRelease): Boolean;
-      begin
-        Result := inherited;
-        if Result then Exit;
-
-        if Event.IsMouseButton(buttonLeft) then
-        begin
-          Drag := true;
-          Cursor := mcForceNone;
-          Container.MouseLookPress;
-        end;
-      end;
-
-      function TViewPlayGame.Release(const Event: TInputPressRelease): Boolean;
-      begin
-        Result := inherited;
-        if Result then Exit;
-
-        if Event.IsMouseButton(buttonLeft) then
-        begin
-          Drag := false;
-          Cursor := mcDefault;
-        end;
-      end;
-
-      procedure TViewPlayGame.Update(const SecondsPassed: Single;
-        var HandleInput: Boolean);
-      begin
-        inherited;
-        if Drag then
-          Container.MouseLookUpdate;
-      end;
-
-      function TViewPlayGame.Motion(const Event: TInputMotion): Boolean;
-      var
-        Delta: TVector2;
-      begin
-        Result := inherited;
-        if Result then Exit;
-
-        if Drag then
-        begin
-          Delta := Container.MouseLookDelta(Event, Container.Rect);
-          // ...
-          // Use Delta to perform any logic you want.
-          // It may be zero if mouse was not positioned correctly yet,
-          // just make sure that Delta=zero does nothing.
-          // You can use Delta / UiScale to adjust to UI scale
-          // (user will then have to move mouse by more pixels on a larger screen to achieve the same Delta).
-          // ...
-        end;
-      end;
-      #)
-    }
+      deprecated 'use PointerLock.Update';
+    { Get current delta, during Motion event. }
     function MouseLookDelta(const Event: TInputMotion; const ControlRect: TFloatRectangle): TVector2; overload;
-
+      deprecated 'use PointerLock.Delta';
     function MouseLookDelta(const Event: TInputMotion): TVector2; overload;
-      deprecated 'use MouseLookDelta overload with ControlRect parameter';
+      deprecated 'use PointerLock.Delta';
 
     { Force passing events to the given control first,
       regardless if this control is under the mouse cursor.
@@ -1258,6 +1212,7 @@ begin
   FCurrentViewStack := TCastleViewList.Create(false);
   FPendingViewStack := TCastleViewList.Create(false);
   FPendingViewOperations := TPendingViewOperationList.Create;
+  FPointerLock := CreatePointerLock;
 
   { connect 3D device - 3Dconnexion device }
   Mouse3dPollTimer := 0;
@@ -2663,193 +2618,28 @@ end;
 
 procedure TCastleContainer.MouseLookPress;
 begin
-  FMouseLookIgnoreNextMotion := false;
-  FMouseLookWaitingForMiddle := false;
-  FMouseLookMotionToSubtract := TVector2.Zero;
+  PointerLock.Active := true;
 end;
 
 procedure TCastleContainer.MouseLookUpdate;
 begin
-  { Never "capture" the motion of the mouse when MouseLook.
-
-    Without this, using mouse look and then pressing some mouse button that it handled
-    (e.g. to shoot), makes the subsequent dragging not work
-    -- it is blocked for a short time before releasing left mouse button
-    and then it is blocked until you release right mouse button too
-    (because of "if (Capture <> nil) and (MousePressed = []) then" condition).
-
-    Testcases:
-
-    - examples/physics/physics_3d_shooter/
-
-      Mouse look is active when buttonRight is held.
-      buttonLeft does shoot.
-
-      So without this fix, shooting while mouse looking
-      (clicking buttonLeft while holding buttonRight)
-      stops mouse look, even though user still holds buttonRight.
-
-    - examples/3d_games/explore_impressive_castle/
-
-      As above, though mouse look is permanent (as long as in game view).
-
-      It's a problem in any case (whether mouse look is permanent,
-      or temporary by holding buttonRight): clicking with buttonLeft stops
-      mouse look from working.
-
-    - examples/third_person_navigation/
-
-      We have permanent mouse look by default.
-
-      As both buttonLeft (shoot) and buttonRight (toggle aim) perform some function,
-      they both stop mouse look from working.
-  }
-  FCaptureInput.Clear;
-  // this is like ReleaseCapture(...) for all possible arguments
+  PointerLock.Update;
 end;
 
 procedure TCastleContainer.MouseLookIgnoreNextMotion;
 begin
-  FMouseLookIgnoreNextMotion := true;
+  PointerLock.IgnoreNextMotion;
 end;
 
 function TCastleContainer.MouseLookDelta(const Event: TInputMotion): TVector2;
 begin
-  Result := MouseLookDelta(Event, FloatRectangle(PixelsRect));
+  Result := PointerLock.Delta(Event);
 end;
 
 function TCastleContainer.MouseLookDelta(const Event: TInputMotion;
   const ControlRect: TFloatRectangle): TVector2;
-
-  { There's a lot of tricky things in implementing this correctly.
-
-    1. Initially we tried to set mouse position to container center very often
-       (in every Update, and/or in every MouseLookDelta).
-
-       But then:
-       Doing "Result := Event.Position - Event.OldPosition" is bad.
-       Instead "Result := Event.Position - Middle" is better:
-
-       That is because setting MousePosition may (but doesn't have to)
-       generate another Motion in the container to destination position.
-
-       Subtracting Middle (instead of Container.Position, previous
-       known mouse position) solves it. This way
-
-       - The Motion caused by MakeMousePositionedForMouseLook will not do
-         anything bad, as MouseChange wil be 0 then.
-
-       - In case MakeMousePositionedForMouseLook does not cause Motion,
-         we will not measure the changes as too much. Consider this:
-
-          - player moves mouse to MiddleX-10
-          - Motion is generated, I rotate camera by "-10" horizontally
-          - Setting MousePosition sets mouse to the Middle,
-            but this time no Motion is generated
-          - player moved mouse to MiddleX+10. Although mouse was
-            positioned on Middle, TCastleWindow thinks that the mouse
-            is still positioned on Middle-10, and I will get "+20" move
-            for player (while I should get only "+10")
-
-    2. Unfortunately "Result := Event.Position - Middle"
-       is also bad, in case there's unspecified delay in applying SetMousePosition.
-       Effectively, we would apply some differences in positions many times,
-       making the speed of MouseLookDelta faster than normal dragging
-       (and the exact factor "how much faster" can depend on mouse sensitivity,
-       how much is SetMousePosition delayed (on Windows 10 it can be delayed a lot,
-       more than one frame very often)).
-
-       This was easily seen in Unholy fight, and dragging_test example in CGE.
-
-       The new fix is that we allow mouse in a large area in the center,
-       and we do SetMousePosition only when it's outside of this large area.
-       This allows to easily reject Motion events that report such move,
-       as they will have ValidArea(new position)=true but ValidArea(old position)=false.
-
-       In case the Motion event has a summed value of "moving to center by SetMousePosition
-       + movement from user", we will ignore too much, but this should
-       not have noticeable effect on speed (as it will happen seldom).
-
-    3. Actually, 2 was also invalid.
-
-       The new fix is to just use motion delta always,
-       and use explicit SettingMousePositionCausesMotion knowwledge
-       to eventually subtract FMouseLookMotionToSubtract.
-
-    4. Another problem is when player switches to another window, moves the mouse,
-       than goes Alt+Tab back to our window.
-       Next mouse move would cause huge change,
-       because it's really *not* from the middle of the screen.
-
-       Solution to this is to use FMouseLookIgnoreNextMotion
-       for the next event.
-
-    5. Note that earlier I tried to reposition mouse for mouse look at various
-       moments. I tried calling MakeMousePositionedForMouseLook from Press, Motion,
-       Update... all these approaches had some drawbacks, and eventually
-       they have one big drawback: this could result in Motion that isn't rejected
-       below, causing weird first movement.
-  }
-
-  { Position is roughly within the center of the window. }
-  function ValidArea(const P, Middle: TVector2; const Margin: Single): Boolean;
-  begin
-    Result := (Abs(P.X - Middle.X) < Margin * ControlRect.Width) and
-              (Abs(P.Y - Middle.Y) < Margin * ControlRect.Height);
-  end;
-
-var
-  Middle: TVector2;
 begin
-  Result := TVector2.Zero;
-
-  Middle := ControlRect.Center;
-  { Round to integers, because if CastleWindow backend doesn't support
-    sup-pixel accuracy for SetMousePosition, then it ignores the fractional
-    part of SetMousePosition argument.
-    Such fractional part would only cause later "error by 0.5 (or other epsilon)"
-    when using FMouseLookMotionToSubtract to modify Result. }
-  Middle.X := Trunc(Middle.X);
-  Middle.Y := Trunc(Middle.Y);
-
-  if FMouseLookIgnoreNextMotion then
-  begin
-    FMouseLookIgnoreNextMotion := false;
-    FMouseLookWaitingForMiddle := false;
-    FMouseLookMotionToSubtract := TVector2.Zero;
-    Exit;
-  end;
-
-  Result := Event.Position - Event.OldPosition;
-
-  { If FMouseLookWaitingForMiddle then we have set MousePosition := Middle,
-    and now we wait for MousePosition to be reported near Middle.
-
-    Until this happens, we don't apply FMouseLookMotionToSubtract,
-    (as it would cause unexpected shift before the "MousePosition := Middle"
-    is actually realized).
-
-    We still set MousePosition := Middle again
-    (although we already wait for it to happen),
-    in case waiting on "ValidArea(Event.Position, Middle, 1 / 8)" is not reliable.
-  }
-  if FMouseLookWaitingForMiddle and ValidArea(Event.Position, Middle, 1 / 8) then
-    FMouseLookWaitingForMiddle := false;
-
-  if (not FMouseLookWaitingForMiddle) and SettingMousePositionCausesMotion then
-  begin
-    Result := Result - FMouseLookMotionToSubtract;
-    FMouseLookMotionToSubtract := TVector2.Zero;
-  end;
-
-  // When mouse gets too far away from Middle, move it back to Middle.
-  if not ValidArea(Event.Position, Middle, 1 / 4) then
-  begin
-    if not FMouseLookWaitingForMiddle then
-      FMouseLookMotionToSubtract := FMouseLookMotionToSubtract + Middle - Event.Position;
-    MousePosition := Middle;
-    FMouseLookWaitingForMiddle := true;
-  end;
+  Result := PointerLock.Delta(Event, ControlRect);
 end;
 
 procedure TCastleContainer.SetUIScaling(const Value: TUIScaling);
@@ -3527,6 +3317,11 @@ begin
     Result := FFocus.Last // last item is front-most
   else
     Result := nil;
+end;
+
+function TCastleContainer.CreatePointerLock: TCastleAbstractPointerLock;
+begin
+  Result := TCastleDesktopPointerLock.Create(Self);
 end;
 
 {$endif read_implementation}

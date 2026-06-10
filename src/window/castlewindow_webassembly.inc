@@ -41,7 +41,7 @@ strict private
   function PointerLockError(BaseEvent: IJSEvent): Boolean;
   procedure SetPointerLock(const Value: Boolean);
   procedure RequestPointerLockNow;
-public
+private
   { Request "pointer lock" from the browser, which means that
     1. the mouse cursor is hidden and 2. mouse movement is unbounded
     and 3. mouse move is only reported as a delta.
@@ -908,6 +908,40 @@ begin
   { On the web, setting MousePosition does nothing, in particular it doesn't
     generate Motion events. }
   Result := false;
+end;
+
+{ TCastleWebPointerLock ------------------------------------------------------ }
+
+  { Pointer lock implementation on web.
+    We rely on TCastleWindow.PointerLock and PointerLockEffective,
+    which are web-specific features exposed by TCastleWindow. }
+  TCastleWebPointerLock = class(TCastleAbstractPointerLock)
+  strict private
+    FIgnoreNextMotion: Boolean;
+    FWaitingForMiddle: Boolean;
+    FMotionToSubtract: TVector2;
+  protected
+    procedure IgnoreNextMotion; override;
+    procedure ActiveChanged(const NewValue: Boolean); override;
+  public
+    procedure Update; override;
+    function Delta(const Event: TInputMotion;
+      const ControlRect: TFloatRectangle): TVector2; override;
+  end;
+
+// TODO
+
+{ TWindowWebContainer -------------------------------------------------------- }
+
+type
+  TWindowWebContainer = class(TWindowContainer)
+  protected
+    function CreatePointerLock: TCastleAbstractPointerLock; override;
+  end;
+
+function TWindowWebContainer.CreatePointerLock: TCastleAbstractPointerLock;
+begin
+  Result := TCastleWebPointerLock.Create(Self);
 end;
 
 {$endif read_implementation}
