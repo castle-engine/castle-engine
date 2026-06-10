@@ -787,10 +787,25 @@ type
   TFingerIndex = Cardinal;
 
   { Input press or release event.
-    Either key press/release or mouse button press/release or
-    mouse wheel action.
+    Depending on @link(EventType), this may represent either:
+
+    @unorderedList(
+      @item(key press/release)
+      @item(mouse button press/release)
+      @item(mouse wheel being used to scroll)
+      @item(game controller button press/release)
+    )
+
     This is nicely matching with TInputShortcut processing in CastleInputs,
-    so it allows to easily store and check for user actions. }
+    so it allows to easily store and check for user actions.
+
+    In most cases, you should consider this record as read-only and use only
+    the values provided by the engine, without modifying them.
+    Modifying / constructing TInputPressRelease manually is possible
+    for certain tricks, e.g. to simulate user input.
+    Be sure in such cases to construct values using provided
+    constructors in this unit: @link(InputKey), @link(InputMouseButton),
+    @link(InputMouseWheel). }
   TInputPressRelease = record
   public
     EventType: TInputPressReleaseType;
@@ -951,11 +966,28 @@ type
     function Description: string; deprecated;
   end;
 
-  { Motion (movement) of mouse or a finger on a touch device. }
+  { Motion (movement) of mouse or a finger on a touch device.
+
+    In most cases, you should consider this record as read-only and use only
+    the values provided by the engine, without modifying them.
+    Modifying / constructing TInputMotion manually is possible
+    for certain tricks, e.g. to simulate user input.
+    Be sure in such cases to construct values using @link(InputMotion) function. }
   TInputMotion = record
     { Old and new positions of the mouse or finger.
       In the same coordinate system as @link(TInputPressRelease.Position). }
     OldPosition, Position: TVector2;
+
+    { Change of movement.
+
+      On non-web platforms (that don't use the pointer lock API),
+      this is always just @code(@link(Position) - @link(OldPosition)).
+
+      On the web platform, this is the change in position since the last motion
+      event, and it can only be obtained by reading this field.
+      Doing @code(Event.Position - Event.OldPosition) is useless on the web platform,
+      as the "pointer lock API" pretends that mouse didn't move at all. }
+    Delta: TVector2;
 
     { Currently pressed mouse buttons.
       On touch devices, this is always just [buttonLeft]. }
@@ -1578,6 +1610,7 @@ begin
   FillChar(Result, SizeOf(Result), 0);
   Result.OldPosition := OldPosition;
   Result.Position := Position;
+  Result.Delta := Position - OldPosition;
   Result.Pressed := Pressed;
   Result.FingerIndex := FingerIndex;
 end;

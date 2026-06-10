@@ -739,21 +739,23 @@
       See @link(MouseLookDelta). }
     procedure MouseLookIgnoreNextMotion;
 
-    { For tracking mouse look. See @link(MouseLookDelta). }
+    { Start mouse look. See @link(MouseLookDelta). }
     procedure MouseLookPress;
 
-    { For tracking mouse look. See @link(MouseLookDelta). }
+    { Perform per-update logic of mouse look. See @link(MouseLookDelta). }
     procedure MouseLookUpdate;
 
-    { Read mouse position delta from ControlRect middle,
-      and try to set mouse position to ControlRect middle.
+    { Read current delta of mouse movement, assuming that mouse look is active.
+
+      On non-web: the mouse position delta is movement from ControlRect middle,
+      and we try to set mouse position to ControlRect middle.
 
       ControlRect is usually the container rectangle (in final device coordinates)
-      but in general it should be the rectangle of control over which we should do mouse look
-      (so TCastleUserInterface.RenderRect).
+      but in general it should be the rectangle of control over which we should
+      do mouse look (so TCastleUserInterface.RenderRect).
 
-      This can be used to perform "mouse look" or a similar effect,
-      when user doesn't see the mouse cursor, but user can move something by dragging with mouse.
+      "Mouse look" means that user doesn't see the mouse cursor,
+      but user can move something by dragging with mouse.
       Moreover, user should not notice any "bounds" to this dragging (that's why we try
       to keep mouse position in ControlRect middle,
       to avoid screen borders from acting as constrains on mouse movement).
@@ -761,8 +763,8 @@
       This is automatically used by @link(TCastleWalkNavigation.MouseLook).
       You can use it yourself for custom effects "like mouse look". The template to use this
       is below.
-      See the CGE example examples/user_interface/dragging_test/ for a working code
-      demonstrating this.
+      See the engine example examples/user_interface/dragging_test/ for
+      a working code demonstrating this to drag 2D objects with mouse.
 
       @longCode(#
 
@@ -818,7 +820,6 @@
           // ...
         end;
       end;
-
       #)
     }
     function MouseLookDelta(const Event: TInputMotion; const ControlRect: TFloatRectangle): TVector2; overload;
@@ -2349,6 +2350,11 @@ begin
     { Change FCollectedMotion, without calling EventMotionNoCollect.
       This is the point of CASTLE_COLLECT_MOTION optimization. }
     FCollectedMotion.Position := Event.Position;
+    { Sum the position deltas.
+      Note that this is written deliberately in such way that it will
+      work also with web TCastleWindow.PointerLock, where movement
+      Position/OldPosition are not useful, but Delta is. }
+    FCollectedMotion.Delta := FCollectedMotion.Delta + Event.Delta;
     //WritelnLog('Motion', 'Collected motion updated to %s', [Event.Position.ToString]);
   end else
   begin

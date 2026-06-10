@@ -855,6 +855,19 @@ interface DelayNode : AudioNode {
 
 // Mozilla extension
 DelayNode includes AudioNodePassThrough;
+/* parts/DocumentOrShadowRoot.webidl ----------------------------------------------------- */
+/* Castle Game Engine notes:
+   This WEBIDL was cut down to our needs.
+   This is not the original (complete) WEBIDL file,
+   if you want a complete file get it from
+   https://hg.mozilla.org/mozilla-central/raw-file/tip/dom/webidl/
+
+   -------------------------------------------------------------------------------
+*/
+
+interface mixin DocumentOrShadowRoot {
+  readonly attribute Element? pointerLockElement;
+};
 /* parts/Document.webidl ----------------------------------------------------- */
 /* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 
@@ -932,6 +945,18 @@ interface Document : Node {
 };
 
 Document includes NonElementParentNode;
+
+Document includes DocumentOrShadowRoot;
+
+// https://w3c.github.io/pointerlock/#extensions-to-the-document-interface
+// https://w3c.github.io/pointerlock/#extensions-to-the-documentorshadowroot-mixin
+partial interface Document {
+  undefined exitPointerLock();
+
+  // Event handlers
+  attribute EventHandler onpointerlockchange;
+  attribute EventHandler onpointerlockerror;
+};
 /* parts/DOMException.webidl ----------------------------------------------------- */
 /* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* This Source Code Form is subject to the terms of the Mozilla Public
@@ -1234,6 +1259,18 @@ partial interface Element {
   attribute [LegacyNullToEmptyString] DOMString outerHTML;
   [CEReactions, Throws]
   undefined insertAdjacentHTML(DOMString position, DOMString text);
+};
+
+// https://w3c.github.io/pointerlock/#pointerlockoptions-dictionary
+dictionary PointerLockOptions {
+  [Pref="dom.pointer-lock.unadjusted-movement.enabled"]
+  boolean unadjustedMovement = false;
+};
+
+// https://w3c.github.io/pointerlock/#extensions-to-the-element-interface
+partial interface Element {
+  [NewObject, NeedsCallerType, UseCounter, Pref="dom.pointer-lock.enabled"]
+  Promise<undefined> requestPointerLock(optional PointerLockOptions options = {});
 };
 /* parts/EventHandler.webidl ----------------------------------------------------- */
 /* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */

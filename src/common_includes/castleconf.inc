@@ -690,5 +690,6 @@
   CASTLE_PARAMSTR_BUGGY. }
 {.$define CASTLE_ANDROID_ARGV_LOGGING}
 
+// -----------------------------------------------------------------------------
 // keep this line at the end of the file
 {$endif not CASTLE_CONF_INCLUDED}

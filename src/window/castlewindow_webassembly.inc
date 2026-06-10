@@ -25,6 +25,9 @@ CastleInternalJobWeb,
 strict private
   Canvas: IJSHTMLCanvasElement;
   LastClientRectHeight, LastClientRectWidth, LastDevicePixelRatio: Double;
+  FInsideUserGesture: Cardinal;
+  FSchedulePointerLockRequest: Boolean;
+  FPointerLock, FPointerLockEffective: Boolean;
   { Get mouse position from JS event, convert it to CGE coordinates. }
   function JsMousePositionToCastle(const Event: IJSPointerEvent): TVector2;
   function PointerDown(BaseEvent: IJSEvent): Boolean;
@@ -34,6 +37,42 @@ strict private
   function KeyDown(BaseEvent: IJSEvent): Boolean;
   function KeyUp(BaseEvent: IJSEvent): Boolean;
   function ContextMenu(BaseEvent: IJSEvent): Boolean;
+  function PointerLockChange(BaseEvent: IJSEvent): Boolean;
+  function PointerLockError(BaseEvent: IJSEvent): Boolean;
+  procedure SetPointerLock(const Value: Boolean);
+  procedure RequestPointerLockNow;
+public
+  { Request "pointer lock" from the browser, which means that
+    1. the mouse cursor is hidden and 2. mouse movement is unbounded
+    and 3. mouse move is only reported as a delta.
+
+    This is what we need to implement @link(TCastleContainer.MouseLook),
+    except on other platforms we need to take care of more things manually
+    (hiding cursor is independent from repositioning to keeping it unbounded).
+    On the web, SetCursor and setting MousePosition don't work (we decided
+    it would be confusing if underneath that would do pointer lock -- as
+    pointer lock behaves a bit differently) and you have to use this property.
+
+    The request is not applied immediately, user may reject it.
+    User may also exit pointer lock at any time, e.g. by pressing Escape key.
+    We expose PointerLockEffective to communicate this.
+    So treat this property only as "wants to have pointer lock",
+    while PointerLockEffective is "actually has pointer lock now".
+
+    See @url(https://developer.mozilla.org/en-US/docs/Web/API/Pointer_Lock_API
+    pointer lock API docs). }
+  property PointerLock: Boolean read FPointerLock write SetPointerLock;
+
+  { Is the pointer lock, requested or cancelled by @link(PointerLock),
+    currently effective.
+
+    The @link(TInputMotion.PositionDelta) is useful (non-zero) only when this
+    is true.
+
+    Moreover, do not depend on @link(TInputMotion.Position) and
+    @link(TInputMotion.OldPosition) when this is true. Right now,
+    browsers will just report them as if mouse never moved at all. }
+  property PointerLockEffective: Boolean read FPointerLockEffective;
 {$endif read_window_interface}
 
 {$ifdef read_application_interface}
@@ -193,6 +232,11 @@ begin
   JSWindow.addEventListener('keydown', @KeyDown);
   JSWindow.addEventListener('keyup', @KeyUp);
 
+  { Pointer Lock API: observe the pointer lock state
+    https://developer.mozilla.org/en-US/docs/Web/API/Pointer_Lock_API }
+  JSDocument.addEventListener('pointerlockchange', @PointerLockChange);
+  JSDocument.addEventListener('pointerlockerror', @PointerLockError);
+
   // TODO: web: initialize initial cursor position, set initial cursor, initialize DPI if possible
   // GetInitialCursorPos;
   // UpdateCursor;
@@ -245,6 +289,14 @@ begin
   Result := true; // assume not handled, in case of early exit
   Event := TJSPointerEvent.Cast(BaseEvent);
 
+  // handle FSchedulePointerLockRequest, in case user set PointerLock = true
+  // outside of user gesture
+  if FSchedulePointerLockRequest then
+  begin
+    FSchedulePointerLockRequest := false;
+    RequestPointerLockNow;
+  end;
+
   if not JsMouseButtonToCastle(Event.Button, Button) then
     Exit;
   { TODO: web: Get FingerIndex from pointer event
@@ -253,7 +305,13 @@ begin
     to support multi-touch on mobiles. }
   FingerIndex := 0;
   Position := JsMousePositionToCastle(Event);
-  DoMouseDown(Position, Button, FingerIndex);
+
+  Inc(FInsideUserGesture);
+  try
+    DoMouseDown(Position, Button, FingerIndex);
+  finally
+    Dec(FInsideUserGesture);
+  end;
 
   { Prevent default action, like selecting text.
     See https://stackoverflow.com/questions/128923/whats-the-effect-of-adding-return-false-to-a-click-event-listener }
@@ -298,13 +356,18 @@ var
   Event: IJSPointerEvent;
   FingerIndex: TFingerIndex;
   Position: TVector2;
+  SendMotion: TInputMotion;
 begin
   Result := true; // assume not handled, in case of early exit
   Event := TJSPointerEvent.Cast(BaseEvent);
 
   FingerIndex := 0;
   Position := JsMousePositionToCastle(Event);
-  DoMotion(InputMotion(Container.MousePosition, Position, Container.MousePressed, FingerIndex));
+  SendMotion := InputMotion(Container.MousePosition, Position,
+    Container.MousePressed, FingerIndex);
+  if FPointerLockEffective then
+    SendMotion.Delta := Vector2(Event.MovementX, -Event.MovementY);
+  DoMotion(SendMotion);
 
   Result := false;
 end;
@@ -483,13 +546,66 @@ begin
   // No need for this, we always call WebGL through GL/GL2 which are context
 end;
 
+procedure TCastleWindow.RequestPointerLockNow;
+var
+  Options: IJSPointerLockOptions;
+begin
+  Options := TJSPointerLockOptions.Create;
+  // avoid OS mouse acceleration, get raw precise movement
+  Options.UnadjustedMovement := true;
+  Canvas.RequestPointerLock(Options);
+end;
+
+procedure TCastleWindow.SetPointerLock(const Value: Boolean);
+begin
+  if FPointerLock <> Value then
+  begin
+    FPointerLock := Value;
+    if Value then
+    begin
+      if FInsideUserGesture <> 0 then
+        RequestPointerLockNow
+      else
+      begin
+        FSchedulePointerLockRequest := true;
+        WritelnLog('Pointer lock was requested outside of user gesture (PointerDown), will request it on the next PointerDown event');
+      end;
+    end else
+    begin
+      // In case we had RequestPointerLock scheduled, cancel it.
+      FSchedulePointerLockRequest := false;
+      JSDocument.ExitPointerLock;
+    end;
+  end;
+end;
+
+function TCastleWindow.PointerLockChange(BaseEvent: IJSEvent): Boolean;
+begin
+  { TOOD: Ideally, we should check "JSDocument.PointerLockElement = Canvas",
+    but from previous experiments such comparison will not work with Job.Js,
+    references are always different. }
+  FPointerLockEffective := JSDocument.PointerLockElement <> nil;
+  WritelnLog('Pointer lock state changed, now active: %s', [
+    BoolToStr(FPointerLockEffective, true)
+  ]);
+  Result := true;
+end;
+
+function TCastleWindow.PointerLockError(BaseEvent: IJSEvent): Boolean;
+begin
+  WritelnWarning('Web', 'Pointer lock error');
+  Result := true;
+end;
+
 procedure TCastleWindow.SetCursor(const Value: TMouseCursor);
 begin
   if FCursor <> Value then
   begin
     FCursor := Value;
     if not Closed then
-      { TODO: web: UpdateCursor - is this possible on web at all? };
+    begin
+      WritelnWarning('Web', 'Changing mouse cursor on the web is not possible. The only way to hide the cursor -> is to request PointerLock, which hides the cursor and does a few more things (similar to our MouseLook), so it has to be activated by a specific property PointerLock.');
+    end;
   end;
 end;
 
@@ -500,7 +616,9 @@ end;
 
 procedure TCastleWindow.SystemSetMousePosition(const Value: TVector2);
 begin
-  { TODO: web: is this possible? we need it for MouseLook. }
+  { Repositioning the mouse on the web is not possible,
+    so this will never be implemented.
+    See PointerLock, which addresses a similar need, but in a different way. }
 end;
 
 procedure TCastleWindow.UpdateFullScreenBackend;
@@ -787,9 +905,9 @@ end;
 
 function TWindowContainer.SettingMousePositionCausesMotion: Boolean;
 begin
-  { TODO: web: check, using window_events example, what is the correct value
-    (press "5", see if OnMotion is generated). }
-  Result := true;
+  { On the web, setting MousePosition does nothing, in particular it doesn't
+    generate Motion events. }
+  Result := false;
 end;
 
 {$endif read_implementation}

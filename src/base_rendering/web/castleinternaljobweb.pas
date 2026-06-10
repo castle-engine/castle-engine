@@ -14,7 +14,7 @@ uses SysUtils, Job.JS;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {
-  Automatically generated file by TWebIDLToPasWasmJob on 2026-04-28 03:01:16
+  Automatically generated file by TWebIDLToPasWasmJob on 2026-06-10 20:19:26
   
   Used command-line options: 
   --input=castleinternaljobweb.webidl
@@ -103,6 +103,8 @@ Type
   TJSCSSStyleDeclaration = class;
   IJSDelayNode = interface;
   TJSDelayNode = class;
+  IJSDocumentOrShadowRoot = interface;
+  TJSDocumentOrShadowRoot = class;
   IJSContentSecurityPolicy = interface;
   TJSContentSecurityPolicy = class;
   IJSPrincipal = interface;
@@ -403,6 +405,8 @@ Type
   TJSDOMRectInit = class;
   IJSDynamicsCompressorOptions = interface;
   TJSDynamicsCompressorOptions = class;
+  IJSPointerLockOptions = interface;
+  TJSPointerLockOptions = class;
   IJSEventListenerOptions = interface;
   TJSEventListenerOptions = class;
   IJSAddEventListenerOptions = interface;
@@ -855,6 +859,33 @@ Type
     property y: Double read _Gety write _Sety;
     property width: Double read _Getwidth write _Setwidth;
     property height: Double read _Getheight write _Setheight;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSPointerLockOptions
+    --------------------------------------------------------------------}
+  
+  TJSPointerLockOptionsRec = record
+    unadjustedMovement: Boolean;
+  end;
+  
+  IJSPointerLockOptions = interface(IJSObject)
+    ['{5211DF38-1961-391D-9F91-64CAD715E13F}']
+    function _GetunadjustedMovement: Boolean; 
+    procedure _SetunadjustedMovement(const aValue: Boolean);
+    property unadjustedMovement: Boolean read _GetunadjustedMovement write _SetunadjustedMovement;
+  end;
+  
+  TJSPointerLockOptions = class(TJSObject,IJSPointerLockOptions)
+  Private
+  Protected
+    function _GetunadjustedMovement: Boolean; 
+    procedure _SetunadjustedMovement(const aValue: Boolean);
+  Public
+    constructor create(const aDict : TJSPointerLockOptionsRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSPointerLockOptions;
+    property unadjustedMovement: Boolean read _GetunadjustedMovement write _SetunadjustedMovement;
   end;
   
   { --------------------------------------------------------------------
@@ -3094,6 +3125,26 @@ Type
   end;
   
   { --------------------------------------------------------------------
+    TJSDocumentOrShadowRoot
+    --------------------------------------------------------------------}
+  
+  IJSDocumentOrShadowRoot = interface(IJSObject)
+    ['{4DE6A550-C955-32E0-9503-11BE05833C89}']
+    function _GetpointerLockElement: IJSElement; 
+    property pointerLockElement: IJSElement read _GetpointerLockElement;
+  end;
+  
+  TJSDocumentOrShadowRoot = class(TJSObject,IJSDocumentOrShadowRoot)
+  Private
+  Protected
+    function _GetpointerLockElement: IJSElement; 
+  Public
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSDocumentOrShadowRoot;
+    property pointerLockElement: IJSElement read _GetpointerLockElement;
+  end;
+  
+  { --------------------------------------------------------------------
     TJSContentSecurityPolicy
     --------------------------------------------------------------------}
   
@@ -4882,7 +4933,7 @@ Type
   TGLuintDynArray = IJSArray; // array of GLuint
   
   IJSWebGL2RenderingContext = interface(IJSObject)
-    ['{9A4F888B-DEE7-3133-8675-4203EDB67B9A}']
+    ['{052CB39C-14E1-3833-8712-ECD6E64054FD}']
     function _Getcanvas: TCanvasSource; 
     function _GetdrawingBufferWidth: TGLsizei; 
     function _GetdrawingBufferHeight: TGLsizei; 
@@ -5052,13 +5103,6 @@ Type
     procedure texSubImage2D(aTarget: TGLenum; aLevel: TGLint; aXoffset: TGLint; aYoffset: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSOffscreenCanvas);
     procedure texSubImage2D(aTarget: TGLenum; aLevel: TGLint; aXoffset: TGLint; aYoffset: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSVideoFrame);
     procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aPboOffset: TGLintptr);
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSHTMLCanvasElement);
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSHTMLImageElement);
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSHTMLVideoElement);
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSImageBitmap);
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSImageData);
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSOffscreenCanvas);
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSVideoFrame);
     procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSrcData: IJSArrayBufferView; aSrcOffset: TGLuint);
     procedure texImage3D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aDepth: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aPboOffset: TGLintptr);
     procedure texImage3D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aDepth: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSHTMLCanvasElement);
@@ -6049,13 +6093,6 @@ Type
     procedure texSubImage2D(aTarget: TGLenum; aLevel: TGLint; aXoffset: TGLint; aYoffset: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSOffscreenCanvas); overload;
     procedure texSubImage2D(aTarget: TGLenum; aLevel: TGLint; aXoffset: TGLint; aYoffset: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSVideoFrame); overload;
     procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aPboOffset: TGLintptr); overload;
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSHTMLCanvasElement); overload;
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSHTMLImageElement); overload;
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSHTMLVideoElement); overload;
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSImageBitmap); overload;
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSImageData); overload;
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSOffscreenCanvas); overload;
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSVideoFrame); overload;
     procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSrcData: IJSArrayBufferView; aSrcOffset: TGLuint); overload;
     procedure texImage3D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aDepth: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aPboOffset: TGLintptr); overload;
     procedure texImage3D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aDepth: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSHTMLCanvasElement); overload;
@@ -6319,7 +6356,7 @@ Type
     --------------------------------------------------------------------}
   
   IJSWebGL2RenderingContextBase = interface(IJSObject)
-    ['{F6E20F6C-0549-3256-854A-F1323ACC369C}']
+    ['{D408F550-97B4-3B8A-BE72-9AE6F80F11D7}']
     procedure bufferData(aTarget: TGLenum; aSize: TGLsizeiptr; aUsage: TGLenum);
     procedure bufferData(aTarget: TGLenum; aSrcData: IJSArrayBuffer; aUsage: TGLenum);
     procedure bufferData(aTarget: TGLenum; aSrcData: IJSArrayBufferView; aUsage: TGLenum);
@@ -6359,13 +6396,6 @@ Type
     procedure texSubImage2D(aTarget: TGLenum; aLevel: TGLint; aXoffset: TGLint; aYoffset: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSOffscreenCanvas);
     procedure texSubImage2D(aTarget: TGLenum; aLevel: TGLint; aXoffset: TGLint; aYoffset: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSVideoFrame);
     procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aPboOffset: TGLintptr);
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSHTMLCanvasElement);
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSHTMLImageElement);
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSHTMLVideoElement);
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSImageBitmap);
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSImageData);
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSOffscreenCanvas);
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSVideoFrame);
     procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSrcData: IJSArrayBufferView; aSrcOffset: TGLuint);
     procedure texImage3D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aDepth: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aPboOffset: TGLintptr);
     procedure texImage3D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aDepth: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSHTMLCanvasElement);
@@ -6925,13 +6955,6 @@ Type
     procedure texSubImage2D(aTarget: TGLenum; aLevel: TGLint; aXoffset: TGLint; aYoffset: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSOffscreenCanvas); overload;
     procedure texSubImage2D(aTarget: TGLenum; aLevel: TGLint; aXoffset: TGLint; aYoffset: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSVideoFrame); overload;
     procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aPboOffset: TGLintptr); overload;
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSHTMLCanvasElement); overload;
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSHTMLImageElement); overload;
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSHTMLVideoElement); overload;
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSImageBitmap); overload;
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSImageData); overload;
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSOffscreenCanvas); overload;
-    procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSVideoFrame); overload;
     procedure texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSrcData: IJSArrayBufferView; aSrcOffset: TGLuint); overload;
     procedure texImage3D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aDepth: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aPboOffset: TGLintptr); overload;
     procedure texImage3D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aDepth: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSHTMLCanvasElement); overload;
@@ -10062,17 +10085,35 @@ Type
     --------------------------------------------------------------------}
   
   IJSDocument = interface(IJSNode)
-    ['{854193E3-7817-343F-B20F-DC8B7D9CC85A}']
+    ['{940BEBF5-06FF-3254-ADE4-A37A8FEC247E}']
+    function _Getonpointerlockchange: TEventHandler; 
+    function _Getonpointerlockerror: TEventHandler; 
+    function _GetpointerLockElement: IJSElement; 
+    procedure _Setonpointerlockchange(const aValue: TEventHandler);
+    procedure _Setonpointerlockerror(const aValue: TEventHandler);
+    procedure exitPointerLock;
     function getElementById(const aElementId: UnicodeString): IJSElement;
+    property onpointerlockchange: TEventHandler read _Getonpointerlockchange write _Setonpointerlockchange;
+    property onpointerlockerror: TEventHandler read _Getonpointerlockerror write _Setonpointerlockerror;
+    property pointerLockElement: IJSElement read _GetpointerLockElement;
   end;
   
   TJSDocument = class(TJSNode,IJSDocument)
   Private
   Protected
+    function _Getonpointerlockchange: TEventHandler; 
+    function _Getonpointerlockerror: TEventHandler; 
+    function _GetpointerLockElement: IJSElement; 
+    procedure _Setonpointerlockchange(const aValue: TEventHandler);
+    procedure _Setonpointerlockerror(const aValue: TEventHandler);
   Public
+    procedure exitPointerLock; overload;
     function getElementById(const aElementId: UnicodeString): IJSElement; overload;
     class function JSClassName: UnicodeString; override;
     class function Cast(const Intf: IJSObject): IJSDocument;
+    property onpointerlockchange: TEventHandler read _Getonpointerlockchange write _Setonpointerlockchange;
+    property onpointerlockerror: TEventHandler read _Getonpointerlockerror write _Setonpointerlockerror;
+    property pointerLockElement: IJSElement read _GetpointerLockElement;
   end;
   
   { --------------------------------------------------------------------
@@ -10122,7 +10163,7 @@ Type
     --------------------------------------------------------------------}
   
   IJSElement = interface(IJSNode)
-    ['{ABE51DF6-570F-31A0-917E-3E93C20CD2B8}']
+    ['{BB713959-4552-352D-86AD-23B0F35BF839}']
     function _GetnamespaceURI: UnicodeString; 
     function _Getprefix: UnicodeString; 
     function _GetlocalName: UnicodeString; 
@@ -10142,6 +10183,8 @@ Type
     procedure _SetouterHTML(const aValue: UnicodeString);
     function getBoundingClientRect: IJSDOMRect;
     procedure insertAdjacentHTML(const aPosition: UnicodeString; const aText: UnicodeString);
+    function requestPointerLock(const aOptions: IJSPointerLockOptions): IJSPromise; // Promise<undefined>
+    function requestPointerLock: IJSPromise; // Promise<undefined>
     property namespaceURI: UnicodeString read _GetnamespaceURI;
     property prefix: UnicodeString read _Getprefix;
     property localName: UnicodeString read _GetlocalName;
@@ -10180,6 +10223,8 @@ Type
   Public
     function getBoundingClientRect: IJSDOMRect; overload;
     procedure insertAdjacentHTML(const aPosition: UnicodeString; const aText: UnicodeString); overload;
+    function requestPointerLock(const aOptions: IJSPointerLockOptions): IJSPromise; overload; // Promise<undefined>
+    function requestPointerLock: IJSPromise; overload; // Promise<undefined>
     class function JSClassName: UnicodeString; override;
     class function Cast(const Intf: IJSObject): IJSElement;
     property namespaceURI: UnicodeString read _GetnamespaceURI;
@@ -13296,6 +13341,21 @@ begin
   Result:=TJSDelayNode.JOBCast(Intf);
 end;
 
+function TJSDocumentOrShadowRoot._GetpointerLockElement: IJSElement;
+begin
+  Result:=ReadJSPropertyObject('pointerLockElement',TJSElement) as IJSElement;
+end;
+
+class function TJSDocumentOrShadowRoot.JSClassName: UnicodeString;
+begin
+  Result:='DocumentOrShadowRoot';
+end;
+
+class function TJSDocumentOrShadowRoot.Cast(const Intf: IJSObject): IJSDocumentOrShadowRoot;
+begin
+  Result:=TJSDocumentOrShadowRoot.JOBCast(Intf);
+end;
+
 class function TJSContentSecurityPolicy.JSClassName: UnicodeString;
 begin
   Result:='ContentSecurityPolicy';
@@ -13404,6 +13464,50 @@ end;
 class function TJSXULCommandDispatcher.Cast(const Intf: IJSObject): IJSXULCommandDispatcher;
 begin
   Result:=TJSXULCommandDispatcher.JOBCast(Intf);
+end;
+
+function TJSDocument._Getonpointerlockchange: TEventHandler;
+begin
+  Result:=(TEventHandlerNonNull(ReadJSPropertyMethod('onpointerlockchange')));
+end;
+
+function TJSDocument._Getonpointerlockerror: TEventHandler;
+begin
+  Result:=(TEventHandlerNonNull(ReadJSPropertyMethod('onpointerlockerror')));
+end;
+
+function TJSDocument._GetpointerLockElement: IJSElement;
+begin
+  Result:=ReadJSPropertyObject('pointerLockElement',TJSElement) as IJSElement;
+end;
+
+procedure TJSDocument._Setonpointerlockchange(const aValue : TEventHandler);
+var
+  m : TJOB_Method;
+begin
+  m:=TJOB_Method.create(TMethod(aValue),@JobCallEventHandlerNonNull);
+  try
+    InvokeJSNoResult('onpointerlockchange',[m],jiSet);
+  finally
+    m.free
+  end;
+end;
+
+procedure TJSDocument._Setonpointerlockerror(const aValue : TEventHandler);
+var
+  m : TJOB_Method;
+begin
+  m:=TJOB_Method.create(TMethod(aValue),@JobCallEventHandlerNonNull);
+  try
+    InvokeJSNoResult('onpointerlockerror',[m],jiSet);
+  finally
+    m.free
+  end;
+end;
+
+procedure TJSDocument.exitPointerLock;
+begin
+  InvokeJSNoResult('exitPointerLock',[]);
 end;
 
 function TJSDocument.getElementById(const aElementId: UnicodeString): IJSElement;
@@ -14013,6 +14117,16 @@ begin
   InvokeJSNoResult('insertAdjacentHTML',[aPosition,aText]);
 end;
 
+function TJSElement.requestPointerLock(const aOptions: IJSPointerLockOptions): IJSPromise; // Promise<undefined>
+begin
+  Result:=InvokeJSObjectResult('requestPointerLock',[aOptions],TJSPromise) as IJSPromise;
+end;
+
+function TJSElement.requestPointerLock: IJSPromise; // Promise<undefined>
+begin
+  Result:=InvokeJSObjectResult('requestPointerLock',[],TJSPromise) as IJSPromise;
+end;
+
 class function TJSElement.JSClassName: UnicodeString;
 begin
   Result:='Element';
@@ -14036,6 +14150,31 @@ end;
 class function TJSElementCSSInlineStyle.Cast(const Intf: IJSObject): IJSElementCSSInlineStyle;
 begin
   Result:=TJSElementCSSInlineStyle.JOBCast(Intf);
+end;
+
+function TJSPointerLockOptions._GetunadjustedMovement: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('unadjustedMovement');
+end;
+
+procedure TJSPointerLockOptions._SetunadjustedMovement(const aValue : Boolean);
+begin
+  WriteJSPropertyBoolean('unadjustedMovement',aValue);
+end;
+
+constructor TJSPointerLockOptions.create(const aDict : TJSPointerLockOptionsRec); overload;
+begin
+  Self.unadjustedMovement:=aDict.unadjustedMovement;
+end;
+
+class function TJSPointerLockOptions.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSPointerLockOptions.Cast(const Intf: IJSObject): IJSPointerLockOptions;
+begin
+  Result:=TJSPointerLockOptions.JOBCast(Intf);
 end;
 
 function TJSGlobalEventHandlers._Getonabort: TEventHandler;
@@ -21442,41 +21581,6 @@ begin
   InvokeJSNoResult('texImage2D',[aTarget,aLevel,aInternalformat,aWidth,aHeight,aBorder,aFormat,aType_,aPboOffset]);
 end;
 
-procedure TJSWebGL2RenderingContext.texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSHTMLCanvasElement);
-begin
-  InvokeJSNoResult('texImage2D',[aTarget,aLevel,aInternalformat,aWidth,aHeight,aBorder,aFormat,aType_,aSource]);
-end;
-
-procedure TJSWebGL2RenderingContext.texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSHTMLImageElement);
-begin
-  InvokeJSNoResult('texImage2D',[aTarget,aLevel,aInternalformat,aWidth,aHeight,aBorder,aFormat,aType_,aSource]);
-end;
-
-procedure TJSWebGL2RenderingContext.texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSHTMLVideoElement);
-begin
-  InvokeJSNoResult('texImage2D',[aTarget,aLevel,aInternalformat,aWidth,aHeight,aBorder,aFormat,aType_,aSource]);
-end;
-
-procedure TJSWebGL2RenderingContext.texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSImageBitmap);
-begin
-  InvokeJSNoResult('texImage2D',[aTarget,aLevel,aInternalformat,aWidth,aHeight,aBorder,aFormat,aType_,aSource]);
-end;
-
-procedure TJSWebGL2RenderingContext.texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSImageData);
-begin
-  InvokeJSNoResult('texImage2D',[aTarget,aLevel,aInternalformat,aWidth,aHeight,aBorder,aFormat,aType_,aSource]);
-end;
-
-procedure TJSWebGL2RenderingContext.texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSOffscreenCanvas);
-begin
-  InvokeJSNoResult('texImage2D',[aTarget,aLevel,aInternalformat,aWidth,aHeight,aBorder,aFormat,aType_,aSource]);
-end;
-
-procedure TJSWebGL2RenderingContext.texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSVideoFrame);
-begin
-  InvokeJSNoResult('texImage2D',[aTarget,aLevel,aInternalformat,aWidth,aHeight,aBorder,aFormat,aType_,aSource]);
-end;
-
 procedure TJSWebGL2RenderingContext.texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSrcData: IJSArrayBufferView; aSrcOffset: TGLuint);
 begin
   InvokeJSNoResult('texImage2D',[aTarget,aLevel,aInternalformat,aWidth,aHeight,aBorder,aFormat,aType_,aSrcData,aSrcOffset]);
@@ -22925,41 +23029,6 @@ end;
 procedure TJSWebGL2RenderingContextBase.texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aPboOffset: TGLintptr);
 begin
   InvokeJSNoResult('texImage2D',[aTarget,aLevel,aInternalformat,aWidth,aHeight,aBorder,aFormat,aType_,aPboOffset]);
-end;
-
-procedure TJSWebGL2RenderingContextBase.texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSHTMLCanvasElement);
-begin
-  InvokeJSNoResult('texImage2D',[aTarget,aLevel,aInternalformat,aWidth,aHeight,aBorder,aFormat,aType_,aSource]);
-end;
-
-procedure TJSWebGL2RenderingContextBase.texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSHTMLImageElement);
-begin
-  InvokeJSNoResult('texImage2D',[aTarget,aLevel,aInternalformat,aWidth,aHeight,aBorder,aFormat,aType_,aSource]);
-end;
-
-procedure TJSWebGL2RenderingContextBase.texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSHTMLVideoElement);
-begin
-  InvokeJSNoResult('texImage2D',[aTarget,aLevel,aInternalformat,aWidth,aHeight,aBorder,aFormat,aType_,aSource]);
-end;
-
-procedure TJSWebGL2RenderingContextBase.texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSImageBitmap);
-begin
-  InvokeJSNoResult('texImage2D',[aTarget,aLevel,aInternalformat,aWidth,aHeight,aBorder,aFormat,aType_,aSource]);
-end;
-
-procedure TJSWebGL2RenderingContextBase.texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSImageData);
-begin
-  InvokeJSNoResult('texImage2D',[aTarget,aLevel,aInternalformat,aWidth,aHeight,aBorder,aFormat,aType_,aSource]);
-end;
-
-procedure TJSWebGL2RenderingContextBase.texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSOffscreenCanvas);
-begin
-  InvokeJSNoResult('texImage2D',[aTarget,aLevel,aInternalformat,aWidth,aHeight,aBorder,aFormat,aType_,aSource]);
-end;
-
-procedure TJSWebGL2RenderingContextBase.texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSource: IJSVideoFrame);
-begin
-  InvokeJSNoResult('texImage2D',[aTarget,aLevel,aInternalformat,aWidth,aHeight,aBorder,aFormat,aType_,aSource]);
 end;
 
 procedure TJSWebGL2RenderingContextBase.texImage2D(aTarget: TGLenum; aLevel: TGLint; aInternalformat: TGLint; aWidth: TGLsizei; aHeight: TGLsizei; aBorder: TGLint; aFormat: TGLenum; aType_: TGLenum; aSrcData: IJSArrayBufferView; aSrcOffset: TGLuint);
