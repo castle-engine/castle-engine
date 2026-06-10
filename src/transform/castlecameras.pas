@@ -2793,8 +2793,9 @@ procedure TCastleMouseLookNavigation.Update(const SecondsPassed: Single;
 
   procedure MouseLookUpdate;
   begin
-    if InternalUsingMouseLook and (Container <> nil) then
-      Container.MouseLookUpdate;
+    if InternalUsingMouseLook and
+       (Container <> nil) then
+      Container.PointerLock.Update;
   end;
 
 begin
@@ -2807,13 +2808,8 @@ begin
   if FMouseLook <> Value then
   begin
     FMouseLook := Value;
-    if InternalUsingMouseLook then
-    begin
-      Cursor := mcForceNone;
-      if Container <> nil then
-        Container.MouseLookPress;
-    end else
-      Cursor := mcDefault;
+    if Container <> nil then
+      Container.PointerLock.Active := InternalUsingMouseLook;
   end;
 end;
 
@@ -2828,7 +2824,7 @@ function TCastleMouseLookNavigation.Motion(const Event: TInputMotion): boolean;
   var
     MouseChange: TVector2;
   begin
-    MouseChange := Container.MouseLookDelta(Event, RenderRect);
+    MouseChange := Container.PointerLock.Delta(Event, RenderRect);
 
     if not MouseChange.IsPerfectlyZero then
     begin
@@ -3897,12 +3893,10 @@ var
 begin
   inherited;
 
-  { update Cursor every frame, in case InternalViewport.Paused changed
-    (which changes UsingInput and InternalUsingMouseLook) }
-  if InternalUsingMouseLook then
-    Cursor := mcForceNone
-  else
-    Cursor := mcDefault;
+  { update PointerLock.Active every frame,
+    because InternalUsingMouseLook may change when InternalViewport.Paused
+    (and thus UsingInput) changes. }
+  Container.PointerLock.Active := InternalUsingMouseLook;
 
   if (not Valid) then Exit;
 
