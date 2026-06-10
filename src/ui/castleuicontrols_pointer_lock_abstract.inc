@@ -58,11 +58,7 @@
       if Result then Exit;
 
       if Event.IsMouseButton(buttonLeft) then
-      begin
-        Drag := true;
-        Cursor := mcForceNone;
-        Container.MouseLookPress;
-      end;
+        Container.PointerLock.Active := true;
     end;
 
     function TViewPlayGame.Release(const Event: TInputPressRelease): Boolean;
@@ -71,18 +67,15 @@
       if Result then Exit;
 
       if Event.IsMouseButton(buttonLeft) then
-      begin
-        Drag := false;
-        Cursor := mcDefault;
-      end;
+        Container.PointerLock.Active := false;
     end;
 
     procedure TViewPlayGame.Update(const SecondsPassed: Single;
       var HandleInput: Boolean);
     begin
       inherited;
-      if Drag then
-        Container.MouseLookUpdate;
+      if Container.PointerLock.Active then
+        Container.PointerLock.Update;
     end;
 
     function TViewPlayGame.Motion(const Event: TInputMotion): Boolean;
@@ -92,15 +85,16 @@
       Result := inherited;
       if Result then Exit;
 
-      if Drag then
+      if Container.PointerLock.Active then
       begin
-        Delta := Container.MouseLookDelta(Event, Container.Rect);
+        Delta := Container.PointerLock.Delta(Event);
         // ...
         // Use Delta to perform any logic you want.
         // It may be zero if mouse was not positioned correctly yet,
         // just make sure that Delta=zero does nothing.
         // You can use Delta / UiScale to adjust to UI scale
-        // (user will then have to move mouse by more pixels on a larger screen to achieve the same Delta).
+        // (user will then have to move mouse by more pixels on a larger screen
+        // to achieve the same Delta).
         // ...
       end;
     end;
