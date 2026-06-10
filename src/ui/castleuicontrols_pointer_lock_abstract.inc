@@ -138,7 +138,11 @@
   public
     constructor Create(const AContainer: TCastleContainer);
 
-    { Enable or disable pointer lock. See @link(PointerLockEffective). }
+    { Enable or disable pointer lock. See @link(PointerLockEffective).
+      Note that on some platforms (web) user can cancel pointer lock at any time,
+      in which case this property turns to @false.
+      On other platforms (desktop) this stays completely under control
+      of the application. }
     property Active: Boolean read FActive write SetActive;
 
     { Read current delta of mouse movement, assuming that mouse look is active.
