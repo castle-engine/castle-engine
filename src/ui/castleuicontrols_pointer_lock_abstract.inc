@@ -88,14 +88,7 @@
       if Container.PointerLock.Active then
       begin
         Delta := Container.PointerLock.Delta(Event);
-        // ...
         // Use Delta to perform any logic you want.
-        // It may be zero if mouse was not positioned correctly yet,
-        // just make sure that Delta=zero does nothing.
-        // You can use Delta / UiScale to adjust to UI scale
-        // (user will then have to move mouse by more pixels on a larger screen
-        // to achieve the same Delta).
-        // ...
       end;
     end;
     #)
@@ -143,12 +136,30 @@
       Use this only from @link(TCastleContainer.Motion) overrides,
       it needs TInputMotion as input argument to calculate the mouse movement delta.
 
-      ControlRect should be the rectangle (in final device coordinates,
-      like from @link(TCastleUserInterface.RenderRect)) of control over which we
-      should do pointer lock.
-      Some implementations (web) may ignore the ControlRect.
-      Others (desktop) may use it to reposition mouse to the middle
-      of ControlRect. }
+      Always returns zero if @link(Active) is @false.
+      Remember that on some platforms (web) user may cancel the "pointer lock"
+      mode at any moment, so be sure to tolerate it by doing nothing when
+      this is zero.
+
+      It also returns zero if @link(Active) is @true but
+      we have not yet prepared for this mode.
+      On desktops, "not prepared" means that mouse was not positioned
+      correctly yet. On web, "not prepared" means that browser/user didn't yet
+      confirm pointer lock mode.
+      Again, the simple solution is to do nothing when this is zero.
+
+      The returned value is in final device pixels, so it is not affected by
+      UI scale. If you want to adjust to UI scale (so user will have to move
+      mouse by more pixels, when on a larger screen, when UI is larger)
+      then just use @code(Delta / UiScale).
+
+      @param(ControlRectControlRect
+        The rectangle (in final device coordinates,
+        like from @link(TCastleUserInterface.RenderRect)) of control over which we
+        should do pointer lock.
+        Some implementations (web) may ignore the ControlRect.
+        Others (desktop) may use it to reposition mouse to the middle
+        of ControlRect.) }
     function Delta(const Event: TInputMotion;
       const ControlRect: TFloatRectangle): TVector2; overload; virtual; abstract;
 
@@ -156,7 +167,8 @@
       want to use the default ControlRect (e.g. container rectangle). }
     function Delta(const Event: TInputMotion): TVector2; overload;
 
-    { Perform per-update logic of mouse look. }
+    { Perform per-update logic of mouse look.
+      Allowed to be used, and does nothing, even when @link(Active) is @false. }
     procedure Update; virtual; abstract;
   end;
 
