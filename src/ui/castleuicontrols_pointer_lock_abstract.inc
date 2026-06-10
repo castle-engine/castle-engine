@@ -159,7 +159,7 @@
     { Next motion event is expected to have wild movement, so ignore it.
       This is internal, used by container implementations.
       @exclude }
-    procedure InternalIgnoreNextMotion; virtual; abstract;
+    procedure InternalIgnoreNextMotion; virtual;
   end;
 
 {$endif read_interface}
@@ -184,6 +184,11 @@ end;
 function TCastleAbstractPointerLock.Delta(const Event: TInputMotion): TVector2;
 begin
   Result := Delta(Event, FloatRectangle(FContainer.PixelsRect));
+end;
+
+procedure TCastleAbstractPointerLock.InternalIgnoreNextMotion;
+begin
+  // nothing in this class
 end;
 
 {$endif read_implementation}

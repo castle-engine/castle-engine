@@ -26,7 +26,6 @@ strict private
   Canvas: IJSHTMLCanvasElement;
   LastClientRectHeight, LastClientRectWidth, LastDevicePixelRatio: Double;
   FInsideUserGesture: Cardinal;
-  FSchedulePointerLockRequest: Boolean;
   FPointerLock, FPointerLockEffective: Boolean;
   { Get mouse position from JS event, convert it to CGE coordinates. }
   function JsMousePositionToCastle(const Event: IJSPointerEvent): TVector2;
@@ -289,14 +288,6 @@ begin
   Result := true; // assume not handled, in case of early exit
   Event := TJSPointerEvent.Cast(BaseEvent);
 
-  // handle FSchedulePointerLockRequest, in case user set PointerLock = true
-  // outside of user gesture
-  if FSchedulePointerLockRequest then
-  begin
-    FSchedulePointerLockRequest := false;
-    RequestPointerLockNow;
-  end;
-
   if not JsMouseButtonToCastle(Event.Button, Button) then
     Exit;
   { TODO: web: Get FingerIndex from pointer event
@@ -305,13 +296,7 @@ begin
     to support multi-touch on mobiles. }
   FingerIndex := 0;
   Position := JsMousePositionToCastle(Event);
-
-  Inc(FInsideUserGesture);
-  try
-    DoMouseDown(Position, Button, FingerIndex);
-  finally
-    Dec(FInsideUserGesture);
-  end;
+  DoMouseDown(Position, Button, FingerIndex);
 
   { Prevent default action, like selecting text.
     See https://stackoverflow.com/questions/128923/whats-the-effect-of-adding-return-false-to-a-click-event-listener }
@@ -563,17 +548,26 @@ begin
     FPointerLock := Value;
     if Value then
     begin
-      if FInsideUserGesture <> 0 then
-        RequestPointerLockNow
-      else
-      begin
-        FSchedulePointerLockRequest := true;
-        WritelnLog('Pointer lock was requested outside of user gesture (PointerDown), will request it on the next PointerDown event');
-      end;
+      { Note: We considered a mechanism to "schedule" pointer lock request
+        in case this is called outside of user gesture (like
+        "WalkNavigation.MouseLook := buttonRight in Container.MousePressed"
+        in Update of examples/creature_behaviors/ ).
+        But
+
+        - This scheduling is not really a solution. In the above example,
+          Update happens after mouse click, so the "scheduled activation"
+          would not happen anytime soon.
+
+        - It seems it's also not necessary, as browsers allow pointer lock
+          requests also a bit later after user gesture, not necessarily
+          in the same event handler.
+          See https://developer.mozilla.org/en-US/docs/Glossary/Transient_activation
+          "Transient activation expires after a timeout (if not renewed by
+          further interaction)".
+      }
+      RequestPointerLockNow;
     end else
     begin
-      // In case we had RequestPointerLock scheduled, cancel it.
-      FSchedulePointerLockRequest := false;
       JSDocument.ExitPointerLock;
     end;
   end;
@@ -910,28 +904,7 @@ begin
   Result := false;
 end;
 
-{ TCastleWebPointerLock ------------------------------------------------------ }
-
-  { Pointer lock implementation on web.
-    We rely on TCastleWindow.PointerLock and PointerLockEffective,
-    which are web-specific features exposed by TCastleWindow. }
-  TCastleWebPointerLock = class(TCastleAbstractPointerLock)
-  strict private
-    FInternalIgnoreNextMotion: Boolean;
-    FWaitingForMiddle: Boolean;
-    FMotionToSubtract: TVector2;
-  protected
-    procedure InternalIgnoreNextMotion; override;
-    procedure ActiveChanged(const NewValue: Boolean); override;
-  public
-    procedure Update; override;
-    function Delta(const Event: TInputMotion;
-      const ControlRect: TFloatRectangle): TVector2; override;
-  end;
-
-// TODO
-
-{ TWindowWebContainer -------------------------------------------------------- }
+{ TWindowWebContainer and TCastleWebPointerLock ------------------------------ }
 
 type
   TWindowWebContainer = class(TWindowContainer)
@@ -939,9 +912,40 @@ type
     function CreatePointerLock: TCastleAbstractPointerLock; override;
   end;
 
+  { Pointer lock implementation on web.
+    We rely on TCastleWindow.PointerLock and PointerLockEffective,
+    which are web-specific features exposed by TCastleWindow. }
+  TCastleWebPointerLock = class(TCastleAbstractPointerLock)
+  protected
+    procedure ActiveChanged(const NewValue: Boolean); override;
+  public
+    function Delta(const Event: TInputMotion;
+      const ControlRect: TFloatRectangle): TVector2; override;
+  end;
+
 function TWindowWebContainer.CreatePointerLock: TCastleAbstractPointerLock;
 begin
   Result := TCastleWebPointerLock.Create(Self);
+end;
+
+procedure TCastleWebPointerLock.ActiveChanged(const NewValue: Boolean);
+var
+  Window: TCastleWindow;
+begin
+  Window := (Container as TWindowWebContainer).Parent;
+  Window.PointerLock := NewValue;
+end;
+
+function TCastleWebPointerLock.Delta(const Event: TInputMotion;
+  const ControlRect: TFloatRectangle): TVector2;
+var
+  Window: TCastleWindow;
+begin
+  Window := (Container as TWindowWebContainer).Parent;
+  if Window.PointerLockEffective then
+    Result := Event.Delta
+  else
+    Result := TVector2.Zero;
 end;
 
 {$endif read_implementation}
