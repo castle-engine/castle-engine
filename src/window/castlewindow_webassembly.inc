@@ -23,10 +23,8 @@ CastleInternalJobWeb,
 
 {$ifdef read_window_interface}
 strict private
-  Canvas: IJSHTMLCanvasElement;
+  FCanvas: IJSHTMLCanvasElement;
   LastClientRectHeight, LastClientRectWidth, LastDevicePixelRatio: Double;
-  FInsideUserGesture: Cardinal;
-  FPointerLock, FPointerLockEffective: Boolean;
   { Get mouse position from JS event, convert it to CGE coordinates. }
   function JsMousePositionToCastle(const Event: IJSPointerEvent): TVector2;
   function PointerDown(BaseEvent: IJSEvent): Boolean;
@@ -36,42 +34,8 @@ strict private
   function KeyDown(BaseEvent: IJSEvent): Boolean;
   function KeyUp(BaseEvent: IJSEvent): Boolean;
   function ContextMenu(BaseEvent: IJSEvent): Boolean;
-  function PointerLockChange(BaseEvent: IJSEvent): Boolean;
-  function PointerLockError(BaseEvent: IJSEvent): Boolean;
-  procedure SetPointerLock(const Value: Boolean);
-  procedure RequestPointerLockNow;
 private
-  { Request "pointer lock" from the browser, which means that
-    1. the mouse cursor is hidden and 2. mouse movement is unbounded
-    and 3. mouse move is only reported as a delta.
-
-    This is what we need to implement @link(TCastleContainer.MouseLook),
-    except on other platforms we need to take care of more things manually
-    (hiding cursor is independent from repositioning to keeping it unbounded).
-    On the web, SetCursor and setting MousePosition don't work (we decided
-    it would be confusing if underneath that would do pointer lock -- as
-    pointer lock behaves a bit differently) and you have to use this property.
-
-    The request is not applied immediately, user may reject it.
-    User may also exit pointer lock at any time, e.g. by pressing Escape key.
-    We expose PointerLockEffective to communicate this.
-    So treat this property only as "wants to have pointer lock",
-    while PointerLockEffective is "actually has pointer lock now".
-
-    See @url(https://developer.mozilla.org/en-US/docs/Web/API/Pointer_Lock_API
-    pointer lock API docs). }
-  property PointerLock: Boolean read FPointerLock write SetPointerLock;
-
-  { Is the pointer lock, requested or cancelled by @link(PointerLock),
-    currently effective.
-
-    The @link(TInputMotion.PositionDelta) is useful (non-zero) only when this
-    is true.
-
-    Moreover, do not depend on @link(TInputMotion.Position) and
-    @link(TInputMotion.OldPosition) when this is true. Right now,
-    browsers will just report them as if mouse never moved at all. }
-  property PointerLockEffective: Boolean read FPointerLockEffective;
+  property Canvas: IJSHTMLCanvasElement read FCanvas;
 {$endif read_window_interface}
 
 {$ifdef read_application_interface}
@@ -86,7 +50,62 @@ strict private
 
 {$ifdef read_implementation}
 
-{ TCastleWindow ------------------------------------------------------------------ }
+{ Declare TWindowWebContainer and TCastleWebPointerLock ---------------------- }
+
+type
+  TWindowWebContainer = class(TWindowContainer)
+  protected
+    function CreatePointerLock: TCastleAbstractPointerLock; override;
+  end;
+
+  { Pointer lock implementation on web.
+
+    Request "pointer lock" from the browser, which means that
+    1. the mouse cursor is hidden and 2. mouse movement is unbounded
+    and 3. mouse move is only reported as a delta.
+
+    This is what we need to implement @link(TCastleContainer.PointerLock)
+    on the web.
+    On the web, SetCursor and setting MousePosition don't work (and it would
+    be confusing if we would automatically start pointer lock e.g.
+    on setting cursor to none), so pointer lock has to be requested explicitly
+    by @code(Container.PointerLock.Active:=true)
+    (and it works on all platforms).
+
+    The request is not applied immediately, user may reject it.
+    User may also exit pointer lock at any time, e.g. by pressing Escape key.
+    We expose @link(Effective) to communicate this.
+    So treat PointerLock.Active only as "wants to have pointer lock",
+    while @link(Effective) is "actually has pointer lock now".
+
+    See @url(https://developer.mozilla.org/en-US/docs/Web/API/Pointer_Lock_API
+    pointer lock API docs). }
+  TCastleWebPointerLock = class(TCastleAbstractPointerLock)
+  strict private
+    FEffective: Boolean;
+    function PointerLockChange(BaseEvent: IJSEvent): Boolean;
+    function PointerLockError(BaseEvent: IJSEvent): Boolean;
+  protected
+    procedure ActiveChanged(const NewValue: Boolean); override;
+  public
+    procedure RegisterListeners;
+
+    { Is the pointer lock, requested or cancelled by setting @link(Active),
+      currently effective.
+
+      The @link(TInputMotion.Delta) is useful (non-zero) only when this
+      is true.
+
+      Moreover, do not depend on @link(TInputMotion.Position) and
+      @link(TInputMotion.OldPosition) when this is true. Right now,
+      browsers will just report them as if mouse never moved at all. }
+    property Effective: Boolean read FEffective;
+
+    function Delta(const Event: TInputMotion;
+      const ControlRect: TFloatRectangle): TVector2; override;
+  end;
+
+{ TCastleWindow -------------------------------------------------------------- }
 
 procedure TCastleWindow.CreateBackend;
 begin
@@ -161,7 +180,7 @@ begin
   CanvasBase := JSDocument.getElementById('castle-canvas');
   if CanvasBase = nil then
     raise Exception.Create('Failed to find canvas element with id="castle-canvas"');
-  Canvas := TJSHTMLCanvasElement.Cast(CanvasBase);
+  FCanvas := TJSHTMLCanvasElement.Cast(CanvasBase);
 
   ContextOptions := TJSWebGLContextAttributes.Create;
 
@@ -231,10 +250,7 @@ begin
   JSWindow.addEventListener('keydown', @KeyDown);
   JSWindow.addEventListener('keyup', @KeyUp);
 
-  { Pointer Lock API: observe the pointer lock state
-    https://developer.mozilla.org/en-US/docs/Web/API/Pointer_Lock_API }
-  JSDocument.addEventListener('pointerlockchange', @PointerLockChange);
-  JSDocument.addEventListener('pointerlockerror', @PointerLockError);
+  (Container.PointerLock as TCastleWebPointerLock).RegisterListeners;
 
   // TODO: web: initialize initial cursor position, set initial cursor, initialize DPI if possible
   // GetInitialCursorPos;
@@ -350,7 +366,7 @@ begin
   Position := JsMousePositionToCastle(Event);
   SendMotion := InputMotion(Container.MousePosition, Position,
     Container.MousePressed, FingerIndex);
-  if FPointerLockEffective then
+  if (Container.PointerLock as TCastleWebPointerLock).Effective then
     SendMotion.Delta := Vector2(Event.MovementX, -Event.MovementY);
   DoMotion(SendMotion);
 
@@ -529,66 +545,6 @@ end;
 procedure TCastleWindow.BackendMakeCurrent;
 begin
   // No need for this, we always call WebGL through GL/GL2 which are context
-end;
-
-procedure TCastleWindow.RequestPointerLockNow;
-var
-  Options: IJSPointerLockOptions;
-begin
-  Options := TJSPointerLockOptions.Create;
-  // avoid OS mouse acceleration, get raw precise movement
-  Options.UnadjustedMovement := true;
-  Canvas.RequestPointerLock(Options);
-end;
-
-procedure TCastleWindow.SetPointerLock(const Value: Boolean);
-begin
-  if FPointerLock <> Value then
-  begin
-    FPointerLock := Value;
-    if Value then
-    begin
-      { Note: We considered a mechanism to "schedule" pointer lock request
-        in case this is called outside of user gesture (like
-        "WalkNavigation.MouseLook := buttonRight in Container.MousePressed"
-        in Update of examples/creature_behaviors/ ).
-        But
-
-        - This scheduling is not really a solution. In the above example,
-          Update happens after mouse click, so the "scheduled activation"
-          would not happen anytime soon.
-
-        - It seems it's also not necessary, as browsers allow pointer lock
-          requests also a bit later after user gesture, not necessarily
-          in the same event handler.
-          See https://developer.mozilla.org/en-US/docs/Glossary/Transient_activation
-          "Transient activation expires after a timeout (if not renewed by
-          further interaction)".
-      }
-      RequestPointerLockNow;
-    end else
-    begin
-      JSDocument.ExitPointerLock;
-    end;
-  end;
-end;
-
-function TCastleWindow.PointerLockChange(BaseEvent: IJSEvent): Boolean;
-begin
-  { TOOD: Ideally, we should check "JSDocument.PointerLockElement = Canvas",
-    but from previous experiments such comparison will not work with Job.Js,
-    references are always different. }
-  FPointerLockEffective := JSDocument.PointerLockElement <> nil;
-  WritelnLog('Pointer lock state changed, now active: %s', [
-    BoolToStr(FPointerLockEffective, true)
-  ]);
-  Result := true;
-end;
-
-function TCastleWindow.PointerLockError(BaseEvent: IJSEvent): Boolean;
-begin
-  WritelnWarning('Web', 'Pointer lock error');
-  Result := true;
 end;
 
 procedure TCastleWindow.SetCursor(const Value: TMouseCursor);
@@ -904,45 +860,86 @@ begin
   Result := false;
 end;
 
-{ TWindowWebContainer and TCastleWebPointerLock ------------------------------ }
-
-type
-  TWindowWebContainer = class(TWindowContainer)
-  protected
-    function CreatePointerLock: TCastleAbstractPointerLock; override;
-  end;
-
-  { Pointer lock implementation on web.
-    We rely on TCastleWindow.PointerLock and PointerLockEffective,
-    which are web-specific features exposed by TCastleWindow. }
-  TCastleWebPointerLock = class(TCastleAbstractPointerLock)
-  protected
-    procedure ActiveChanged(const NewValue: Boolean); override;
-  public
-    function Delta(const Event: TInputMotion;
-      const ControlRect: TFloatRectangle): TVector2; override;
-  end;
+{ TWindowWebContainer -------------------------------------------------------- }
 
 function TWindowWebContainer.CreatePointerLock: TCastleAbstractPointerLock;
 begin
   Result := TCastleWebPointerLock.Create(Self);
 end;
 
-procedure TCastleWebPointerLock.ActiveChanged(const NewValue: Boolean);
-var
-  Window: TCastleWindow;
+{ TCastleWebPointerLock ------------------------------------------------------ }
+
+procedure TCastleWebPointerLock.RegisterListeners;
 begin
-  Window := (Container as TWindowWebContainer).Parent;
-  Window.PointerLock := NewValue;
+  { Pointer Lock API: observe the pointer lock state
+    https://developer.mozilla.org/en-US/docs/Web/API/Pointer_Lock_API }
+  JSDocument.addEventListener('pointerlockchange', @PointerLockChange);
+  JSDocument.addEventListener('pointerlockerror', @PointerLockError);
+end;
+
+function TCastleWebPointerLock.PointerLockChange(BaseEvent: IJSEvent): Boolean;
+begin
+  { TOOD: Ideally, we should check "JSDocument.PointerLockElement = Canvas",
+    but from previous experiments such comparison will not work with Job.Js,
+    references are always different. }
+  FEffective := JSDocument.PointerLockElement <> nil;
+  WritelnLog('Pointer lock state changed, now active: %s', [
+    BoolToStr(FEffective, true)
+  ]);
+  Result := true;
+end;
+
+function TCastleWebPointerLock.PointerLockError(BaseEvent: IJSEvent): Boolean;
+begin
+  WritelnWarning('Web', 'Pointer lock error');
+  Result := true;
+end;
+
+procedure TCastleWebPointerLock.ActiveChanged(const NewValue: Boolean);
+
+  procedure RequestPointerLockNow;
+  var
+    Window: TCastleWindow;
+    Options: IJSPointerLockOptions;
+  begin
+    Window := (Container as TWindowContainer).Parent;
+    Options := TJSPointerLockOptions.Create;
+    // avoid OS mouse acceleration, get raw precise movement
+    Options.UnadjustedMovement := true;
+    Window.Canvas.RequestPointerLock(Options);
+  end;
+
+begin
+  if NewValue then
+  begin
+    { Note: We considered a mechanism to "schedule" pointer lock request
+      in case this is called outside of user gesture (like
+      "WalkNavigation.MouseLook := buttonRight in Container.MousePressed"
+      in Update of examples/creature_behaviors/ ).
+      But
+
+      - This scheduling is not really a solution. In the above example,
+        Update happens after mouse click, so the "scheduled activation"
+        would not happen anytime soon.
+
+      - It seems it's also not necessary, as browsers allow pointer lock
+        requests also a bit later after user gesture, not necessarily
+        in the same event handler.
+        See https://developer.mozilla.org/en-US/docs/Glossary/Transient_activation
+        "Transient activation expires after a timeout (if not renewed by
+        further interaction)".
+    }
+    RequestPointerLockNow;
+  end else
+  begin
+    JSDocument.ExitPointerLock;
+  end;
 end;
 
 function TCastleWebPointerLock.Delta(const Event: TInputMotion;
   const ControlRect: TFloatRectangle): TVector2;
-var
-  Window: TCastleWindow;
 begin
-  Window := (Container as TWindowWebContainer).Parent;
-  if Window.PointerLockEffective then
+  if Effective then
     Result := Event.Delta
   else
     Result := TVector2.Zero;
