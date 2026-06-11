@@ -50,6 +50,7 @@ type
     procedure UpdateMouseLook;
     procedure WeaponShootAnimationStop(const Scene: TCastleSceneCore;
       const Animation: TTimeSensorNode);
+    procedure PointerLockUserCancelled(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -89,10 +90,13 @@ begin
 
   Controllers.Initialize;
   WalkNavigation.UseGameController;
+
+  Container.PointerLock.OnUserCancelled := {$ifdef FPC}@{$endif} PointerLockUserCancelled;
 end;
 
 procedure TViewPlay.Stop;
 begin
+  Container.PointerLock.OnUserCancelled := nil;
   inherited;
 end;
 
@@ -224,6 +228,17 @@ begin
   begin
     MainNotifications.Show('Saved screenshot to ' + Container.SaveScreenToDefaultFile);
     Exit(true);
+  end;
+end;
+
+procedure TViewPlay.PointerLockUserCancelled(Sender: TObject);
+begin
+  { When user presses Escape on web to cancel pointer lock,
+    we want to show options menu. }
+  if Container.PendingFrontView = Self then
+  begin
+    ViewOptions.OverGame := true;
+    Container.PushView(ViewOptions);
   end;
 end;
 

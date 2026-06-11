@@ -104,6 +104,7 @@
   strict private
     FContainer: TCastleContainer;
     FActive: Boolean;
+    FOnUserCancelled: TNotifyEvent;
     procedure SetActive(const Value: Boolean);
   protected
     { Start or stop mouse look. }
@@ -111,6 +112,12 @@
 
     { Container performing this pointer lock logic. }
     property Container: TCastleContainer read FContainer;
+
+    { Set @link(Active) to @false without calling virtual @link(ActiveChanged).
+      Calls @link(OnUserCancelled) if assigned.
+      To be used by descendants when we lost pointer lock because of user action,
+      e.g. on web when user cancels pointer lock by pressing Escape key. }
+    procedure CancelActive;
   public
     constructor Create(const AContainer: TCastleContainer);
 
@@ -160,6 +167,10 @@
       This is internal, used by container implementations.
       @exclude }
     procedure InternalIgnoreNextMotion; virtual;
+
+    { Called when user cancels pointer lock, e.g. by pressing Escape key on web.
+      When this is triggered, the @link(Active) property is already set to @false. }
+    property OnUserCancelled: TNotifyEvent read FOnUserCancelled write FOnUserCancelled;
   end;
 
 {$endif read_interface}
@@ -179,6 +190,13 @@ begin
     FActive := Value;
     ActiveChanged(Value);
   end;
+end;
+
+procedure TCastleAbstractPointerLock.CancelActive;
+begin
+  FActive := false;
+  if Assigned(FOnUserCancelled) then
+    FOnUserCancelled(Self);
 end;
 
 function TCastleAbstractPointerLock.Delta(const Event: TInputMotion): TVector2;

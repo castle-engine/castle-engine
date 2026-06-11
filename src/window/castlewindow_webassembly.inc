@@ -50,6 +50,9 @@ strict private
 
 {$ifdef read_implementation}
 
+const
+  CanvasElementId = 'castle-canvas';
+
 { Declare TWindowWebContainer and TCastleWebPointerLock ---------------------- }
 
 type
@@ -92,6 +95,8 @@ type
 
     { Is the pointer lock, requested or cancelled by setting @link(Active),
       currently effective.
+
+      This can only be @true if @link(Active) is also @true.
 
       The @link(TInputMotion.Delta) is useful (non-zero) only when this
       is true.
@@ -177,9 +182,11 @@ var
 begin
   { Note that we first check if something is nil, only later we use Cast.
     Because the Cast seems to fail if original is nil, unlike "as" operator. }
-  CanvasBase := JSDocument.getElementById('castle-canvas');
+  CanvasBase := JSDocument.getElementById(CanvasElementId);
   if CanvasBase = nil then
-    raise Exception.Create('Failed to find canvas element with id="castle-canvas"');
+    raise Exception.CreateFmt('Failed to find canvas element with id="%s"', [
+      CanvasElementId
+    ]);
   FCanvas := TJSHTMLCanvasElement.Cast(CanvasBase);
 
   ContextOptions := TJSWebGLContextAttributes.Create;
@@ -878,20 +885,44 @@ begin
 end;
 
 function TCastleWebPointerLock.PointerLockChange(BaseEvent: IJSEvent): Boolean;
+var
+  NewEffective: Boolean;
 begin
-  { TOOD: Ideally, we should check "JSDocument.PointerLockElement = Canvas",
-    but from previous experiments such comparison will not work with Job.Js,
-    references are always different. }
-  FEffective := JSDocument.PointerLockElement <> nil;
-  WritelnLog('Pointer lock state changed, now active: %s', [
-    BoolToStr(FEffective, true)
-  ]);
+  NewEffective :=
+    (JSDocument.PointerLockElement <> nil) and
+    (JSDocument.PointerLockElement.Id = CanvasElementId);
+
+  // log NewEffective and JSDocument.PointerLockElement
+  if JSDocument.PointerLockElement <> nil then
+    WritelnLog('Pointer locked to element: tag=%s id=%s class=%s. This is our canvas: %s', [
+      JSDocument.PointerLockElement.TagName,
+      JSDocument.PointerLockElement.Id,
+      JSDocument.PointerLockElement.ClassName_,
+      BoolToStr(NewEffective, true)
+    ])
+  else
+    WritelnLog('Pointer not locked to any element.');
+
+  if Active then
+  begin
+    FEffective := NewEffective;
+    if not NewEffective then
+      CancelActive;
+    Assert(Active = Effective);
+  end else
+  begin
+    if NewEffective then
+      WritelnWarning('Web', 'Browser reports pointer lock became effective, but it was not requested by setting PointerLock.Active. Ignoring.');
+  end;
+
   Result := true;
 end;
 
 function TCastleWebPointerLock.PointerLockError(BaseEvent: IJSEvent): Boolean;
 begin
   WritelnWarning('Web', 'Pointer lock error');
+  FEffective := false;
+  CancelActive;
   Result := true;
 end;
 
@@ -933,6 +964,7 @@ begin
   end else
   begin
     JSDocument.ExitPointerLock;
+    FEffective := false;
   end;
 end;
 
