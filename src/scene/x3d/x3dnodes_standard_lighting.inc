@@ -47,8 +47,7 @@
       Used only when we are forced to assume that this light node occurs
       only once within the scene, which right now is assumed by the shadow maps.
       Most of the code should rely on TLightInstance, which stores
-      transformation specific for light source instance.
-      @exclude }
+      transformation specific for light source instance. }
     InternalTransformation: TTransformation;
 
     constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;

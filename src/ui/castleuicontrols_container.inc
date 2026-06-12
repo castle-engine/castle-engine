@@ -488,19 +488,25 @@
       const AUIExplicitScale: Single;
       const ADpi, AWidth, AHeight: Single): Single;
 
-    { Controls listening for events (user input, resize, and such) of this container.
+    { Controls listening for events (user input, resize, and such) of this
+      container.
 
-      Usually you explicitly add / remove controls to this list
-      using the @link(TInternalChildrenControls.InsertFront Controls.InsertFront) or
+      Usually you do not add controls to this list directly.
+      Instedad, you create @link(TCastleView) descendants,
+      add children to views, and set view as @link(TCastleContainer.View).
+      See @url(https://castle-engine.io/views more information about views).
+
+      In complex cases, you can however operate directly on this list
+      and add here arbitrary @link(TCastleUserInterface) instances.
+      Use the @link(TInternalChildrenControls.InsertFront Controls.InsertFront) or
       @link(TInternalChildrenControls.InsertBack Controls.InsertBack) methods.
       Freeing any control that is on this list
-      automatically removes it from this list (we use the TComponent.Notification
-      mechanism).
+      automatically removes it from this list.
 
-      Controls on the list should be specified in back-to-front order.
+      Controls on this list should be specified in back-to-front order.
       That is, controls at the beginning of this list
       are rendered first, and are last to catch some events, since the rest
-      of controls cover them. }
+      of controls obscures them. }
     function Controls: TInternalChildrenControls;
 
     { Returns the controls that should receive input events,

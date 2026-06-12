@@ -211,8 +211,7 @@
       Otherwise should return @true and set ACoord = @nil.
 
       For VRML 1.0, coord may be taken from State, that's why we have to
-      pass current traverse state here.
-      @exclude }
+      pass current traverse state here. }
     function InternalCoord(State: TX3DGraphTraverseState;
       out ACoord: TMFVec3f): boolean; virtual;
 
@@ -225,8 +224,7 @@
       is not coordinate-based) this raises ENotCoordinateBasedNode.
 
       @raises(ENotCoordinateBasedNode If node is not coordinate-based,
-        that is @link(InternalCoord) returns false.)
-      @exclude }
+        that is @link(InternalCoord) returns false.) }
     function InternalCoordinates(State: TX3DGraphTraverseState): TMFVec3f;
 
     { Node's "coord" field where you can place TCoordinateNode, or @nil if not available.
@@ -340,8 +338,7 @@
       this node has a field for texCoord, but it's empty right now.
 
       In base TAbstractGeometryNode class this looks at TexCoordField,
-      eventually returns @false.
-      @exclude }
+      eventually returns @false. }
     function InternalTexCoord(State: TX3DGraphTraverseState;
       out ATexCoord: TX3DNode): boolean; virtual;
 

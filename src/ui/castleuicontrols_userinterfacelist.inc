@@ -31,7 +31,7 @@
     procedure InsertBackIfNotExists(const NewItem: TCastleUserInterface);
     procedure InsertBack(const NewItems: TCastleUserInterfaceList); overload;
 
-    { Insert, honoring @link(TCastleUserInterface.KeepInFront). }
+    { Insert at Index, honoring @link(TCastleUserInterface.KeepInFront). }
     procedure InsertWithZOrder(Index: Integer; const Item: TCastleUserInterface);
   end;
 

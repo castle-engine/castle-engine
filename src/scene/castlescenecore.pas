@@ -1315,8 +1315,7 @@ type
       so some shapes are not 2-manifold but whole scene is 2-manifold.
       This is independent (doesn't take into account) the value
       of @link(TCastleRenderOptions.WholeSceneManifold
-      RenderOptions.WholeSceneManifold).
-      @exclude }
+      RenderOptions.WholeSceneManifold). }
     function InternalDetectedWholeSceneManifold(
       const ForceRecalculation: Boolean = false): Boolean;
 

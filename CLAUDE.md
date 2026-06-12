@@ -228,6 +228,7 @@ end;
     - Internal units should have names starting with `CastleInternal`, like `CastleInternalTools`. They are automatically excluded from PasDoc API reference.
     - Internal classes (in non-internal units) should have names starting with `TInternal`, like `TInternalTransformation` and have `@exclude` in documentaion comment.
     - Other internal identifiers (in non-internal units), like internal fields, methods, routines -- should have names that start with `Internal`, like `InternalTransformation` and have `@exclude` in documentaion comment.
+    - We have some exceptions to the above rules in the engine, where we hesitate if given API is useful enough: so we name it `InternalXxx`, but we also mention it, linking to it from non-internal API, so it cannot have `@exclude`.
 
 More information about coding conventions in [CONTRIBUTING.md](CONTRIBUTING.md). Even more in https://castle-engine.io/coding_conventions .
 

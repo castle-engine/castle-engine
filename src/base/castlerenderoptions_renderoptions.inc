@@ -204,8 +204,7 @@ type
       but writing others, and writing depth buffer.
       This property may change to be non-internal some day, please report
       on Castle Game Engine forum / Discord / GitHub
-      ( https://castle-engine.io/talk.php ) if you find it useful.
-      @exclude }
+      ( https://castle-engine.io/talk.php ) if you find it useful. }
     property InternalColorChannels: TColorChannels
       read FColorChannels write SetColorChannels default AllColorChannels;
   published
