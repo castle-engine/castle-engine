@@ -373,8 +373,33 @@ begin
   Position := JsMousePositionToCastle(Event);
   SendMotion := InputMotion(Container.MousePosition, Position,
     Container.MousePressed, FingerIndex);
+
+  { What to use for deltas?
+
+    - movementX/Y are designed for this
+
+    - experiment rejected: Since
+      https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/movementX
+      https://github.com/w3c/pointerlock/issues/42
+      says their coordinates are unreliable and suggests to calculate deltas
+      ourselves, by comparing screenX/Y.
+      But that's wrong advise, as of 2026-06: screenX/Y
+      - in Firefox 151.0.4 is mostly zero,
+      - and reports horizontal-only deltas in Vivaldi 8.0.4033.46 .
+
+    - experiment rejected: we tried scaling them just like we scale position
+      in JsMousePositionToCastle,
+        SendMotion.Delta := Vector2(
+           Event.MovementX * Canvas.Width / Canvas.OffsetWidth,
+          -Event.MovementY * Canvas.Height / Canvas.OffsetHeight);
+      but this resulted in speed being *less* consistent with how MousePosition
+      changes in Firefox in dragging_test, when zoomed in/out.
+
+    All in all, just using movementX/Y is most reliable now.
+  }
   if (Container.PointerLock as TCastleWebPointerLock).Effective then
     SendMotion.Delta := Vector2(Event.MovementX, -Event.MovementY);
+
   DoMotion(SendMotion);
 
   Result := false;
