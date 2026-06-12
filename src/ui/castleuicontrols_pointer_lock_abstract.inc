@@ -225,6 +225,7 @@ begin
   if FActive <> Value then
   begin
     FActive := Value;
+    Container.FlushCollectedMotion;
     ActiveChanged(Value);
   end;
 end;

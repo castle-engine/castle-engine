@@ -149,7 +149,6 @@
     procedure ForceCaptureInputFreeNotification(const Sender: TFreeNotificationObserver);
     function MessageReceived(const Received: TCastleStringList;
       const ReceivedStream: TMemoryStream): Boolean;
-    procedure FlushCollectedMotion;
     procedure EventMotionNoCollect(const Event: TInputMotion);
     function GetMousePosition: TVector2;
     procedure SetMousePosition(const Value: TVector2);
@@ -166,6 +165,7 @@
     class procedure RenderControlPrepare(const ViewportRect: TRectangle);
     { Called when the control C is destroyed or just removed from Controls list. }
     procedure DetachNotification(const C: TCastleUserInterface);
+    procedure FlushCollectedMotion;
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
