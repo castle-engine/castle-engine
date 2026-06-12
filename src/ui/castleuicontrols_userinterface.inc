@@ -323,7 +323,21 @@
     procedure DesignerInfo(const SList: TStrings); override;
     procedure DesignerWarnings(const SList: TStrings); override;
     function GetEnumerator: TEnumerator;
-    { @exclude }
+
+    { Override this method to react to container changes.
+
+      @bold(Never call this method, engine takes care of calling it when needed.)
+      This method is exposed only to be able to override it.
+      To avoid using it by mistake, we name it "Internal" and the @link(Container)
+      property remains read-only, although this method acts as de-facto setter
+      for it.
+
+      @bold(Always call inherited when overriding this.)
+      IOW, do not cancel changing the container by avoiding calling
+      @code(inherited) in descendants -- some code (engine and user)
+      may assume that setting the container happens reliably.
+
+      @exclude }
     procedure InternalSetContainer(const Value: TCastleContainer); virtual;
 
     (*Override this method to react to user pressing a key, mouse button or mouse wheel.

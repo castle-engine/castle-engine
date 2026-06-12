@@ -671,6 +671,7 @@ type
     FInvertVerticalMouseLook: boolean;
     FMouseLook: boolean;
     procedure SetMouseLook(const Value: boolean);
+    procedure PointerLockUserCancelled(Sender: TObject);
   protected
     procedure ProcessMouseLookDelta(const Delta: TVector2); virtual;
   public
@@ -681,15 +682,31 @@ type
     constructor Create(AOwner: TComponent); override;
     function Motion(const Event: TInputMotion): boolean; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
+    procedure InternalSetContainer(const Value: TCastleContainer); override;
 
     { @exclude }
     function InternalUsingMouseLook: Boolean;
   published
     { Use mouse look to navigate (rotate the camera).
 
-      This also makes mouse cursor of Container hidden, and forces
-      mouse position to the middle of the window
-      (to avoid the situation when mouse movement is blocked by screen borders).
+      Underneath, this controls the @link(TCastleContainer.PointerLock
+      Container.PointerLock).
+
+      @unorderedList(
+
+        @item(On platforms other than web,
+          this makes mouse cursor hidden and repositions
+          it to the middle of this control. Remember that TCastleNavigation is
+          an invisible UI control, typically added as child of TCastleViewport,
+          in which case we will reposition mouse to the middle of the viewport.)
+
+        @item(On web, this uses web browser's API for this purpose.
+          It can be cancelled by user at any time,
+          in which case this property changes to @false then and listeners
+          registered by
+          @link(TCastleAbstractPointerLock.AddUserCancelledListener) are fired.
+          See https://castle-engine.io/web#pointer_lock for details.)
+      )
 
       Setting this property at design-time (in CGE editor) does not activate
       the mouse look in CGE editor.
@@ -2854,7 +2871,24 @@ begin
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
+end;
 
+procedure TCastleMouseLookNavigation.InternalSetContainer(const Value: TCastleContainer);
+begin
+  if Container <> nil then
+    Container.PointerLock.RemoveUserCancelledListener(
+      {$ifdef FPC}@{$endif} PointerLockUserCancelled);
+
+  inherited InternalSetContainer(Value);
+
+  if Container <> nil then
+    Container.PointerLock.AddUserCancelledListener(
+      {$ifdef FPC}@{$endif} PointerLockUserCancelled);
+end;
+
+procedure TCastleMouseLookNavigation.PointerLockUserCancelled(Sender: TObject);
+begin
+  MouseLook := false;
 end;
 
 { TCastleWalkNavigation ---------------------------------------------------------------- }

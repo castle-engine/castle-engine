@@ -91,12 +91,14 @@ begin
   Controllers.Initialize;
   WalkNavigation.UseGameController;
 
-  Container.PointerLock.OnUserCancelled := {$ifdef FPC}@{$endif} PointerLockUserCancelled;
+  Container.PointerLock.AddUserCancelledListener(
+    {$ifdef FPC}@{$endif} PointerLockUserCancelled);
 end;
 
 procedure TViewPlay.Stop;
 begin
-  Container.PointerLock.OnUserCancelled := nil;
+  Container.PointerLock.RemoveUserCancelledListener(
+    {$ifdef FPC}@{$endif} PointerLockUserCancelled);
   inherited;
 end;
 

@@ -109,7 +109,8 @@
           @item(It may be cancelled by the user at any time
             (typically by pressing @italic(Escape) key).
             When this happens, @link(Active) is set to @false and
-            @link(OnUserCancelled) is called.)
+            callbacks registered with @link(AddUserCancelledListener)
+            are called.)
 
           @item(See @url(https://castle-engine.io/web#_known_limitations
             known limitations of web backend) for more details about pointer
@@ -126,7 +127,7 @@
   strict private
     FContainer: TCastleContainer;
     FActive: Boolean;
-    FOnUserCancelled: TNotifyEvent;
+    FOnUserCancelled: TNotifyEventList;
     procedure SetActive(const Value: Boolean);
   protected
     { Start or stop mouse look. }
@@ -136,12 +137,13 @@
     property Container: TCastleContainer read FContainer;
 
     { Set @link(Active) to @false without calling virtual @link(ActiveChanged).
-      Calls @link(OnUserCancelled) if assigned.
+      Calls callbacks registered with @link(AddUserCancelledListener).
       To be used by descendants when we lost pointer lock because of user action,
       e.g. on web when user cancels pointer lock by pressing Escape key. }
     procedure CancelActive;
   public
     constructor Create(const AContainer: TCastleContainer);
+    destructor Destroy; override;
 
     { Enable or disable pointer lock.
       Note that on some platforms (web) user can cancel pointer lock at any time,
@@ -194,8 +196,11 @@
     procedure InternalIgnoreNextMotion; virtual;
 
     { Called when user cancels pointer lock, e.g. by pressing Escape key on web.
-      When this is triggered, the @link(Active) property is already set to @false. }
-    property OnUserCancelled: TNotifyEvent read FOnUserCancelled write FOnUserCancelled;
+      When this is triggered, the @link(Active) property is already set to @false.
+      @groupBegin }
+    procedure AddUserCancelledListener(const Event: TNotifyEvent);
+    procedure RemoveUserCancelledListener(const Event: TNotifyEvent);
+    { @groupEnd }
   end;
 
 {$endif read_interface}
@@ -206,6 +211,13 @@ constructor TCastleAbstractPointerLock.Create(const AContainer: TCastleContainer
 begin
   inherited Create;
   FContainer := AContainer;
+  FOnUserCancelled := TNotifyEventList.Create;
+end;
+
+destructor TCastleAbstractPointerLock.Destroy;
+begin
+  FreeAndNil(FOnUserCancelled);
+  inherited;
 end;
 
 procedure TCastleAbstractPointerLock.SetActive(const Value: Boolean);
@@ -220,8 +232,7 @@ end;
 procedure TCastleAbstractPointerLock.CancelActive;
 begin
   FActive := false;
-  if Assigned(FOnUserCancelled) then
-    FOnUserCancelled(Self);
+  FOnUserCancelled.ExecuteAll(Self);
 end;
 
 function TCastleAbstractPointerLock.Delta(const Event: TInputMotion): TVector2;
@@ -232,6 +243,16 @@ end;
 procedure TCastleAbstractPointerLock.InternalIgnoreNextMotion;
 begin
   // nothing in this class
+end;
+
+procedure TCastleAbstractPointerLock.AddUserCancelledListener(const Event: TNotifyEvent);
+begin
+  FOnUserCancelled.Add(Event);
+end;
+
+procedure TCastleAbstractPointerLock.RemoveUserCancelledListener(const Event: TNotifyEvent);
+begin
+  FOnUserCancelled.Remove(Event);
 end;
 
 {$endif read_implementation}

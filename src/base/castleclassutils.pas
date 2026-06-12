@@ -953,6 +953,8 @@ type
     procedure AddIfNotExists(Value: TObject);
   end;
 
+  { List of @code(TNotifyEvent), standard type that defines a callback
+    that can be any method with a "Sender: TObject" parameter. }
   TNotifyEventList = class({$ifdef FPC}specialize{$endif} TMethodList<TNotifyEvent>)
   public
     { Call all (assigned) Items, from first to last. }
@@ -965,6 +967,8 @@ type
     procedure ExecuteBackward(Sender: TObject);
   end;
 
+  { List of @link(TSimpleNotifyEvent), a callback
+    that can be any method that doesn't take any parameters. }
   TSimpleNotifyEventList = class({$ifdef FPC}specialize{$endif} TMethodList<TSimpleNotifyEvent>)
   public
     { Call all (assigned) Items, from first to last. }
@@ -981,6 +985,9 @@ type
     procedure Unassign(const Event: TSimpleNotifyEvent);
   end;
 
+  { List of @code(TProcedure), a standard callback
+    that can be any procedure (not a method of object)
+    that doesn't take any parameters. }
   TProcedureList = class({$ifdef FPC}specialize{$endif} TList<TProcedure>)
   public
     { Call all (assigned) Items, from first to last. }
