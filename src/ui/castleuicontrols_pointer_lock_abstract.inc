@@ -21,7 +21,7 @@
 
   { Logic of "pointer lock".
 
-    Between @link(Start) and @link(Stop):
+    When @link(Active) is @true:
 
     @orderedList(
       @item(Mouse cursor is hidden.)
@@ -87,19 +87,41 @@
 
     This is an abstract class, as the implementation of pointer lock is
     platform-specific.
-    On some backends (non-web, see @link(TDesktopPointerLock)),
-    we actually hide the mouse cursor and
-    keep repositioning mouse to the middle of the screen.
-    On web, we use the @url(https://developer.mozilla.org/en-US/docs/Web/API/Pointer_Lock_API
-    pointer lock API) of browsers, which does all the work for us,
-    and also is activated with potential delay,
-    and also may be cancelled by the user at any time (e.g. by pressing Escape
-    key).
+
+    @unorderedList(
+      @item(On some backends (non-web right now, using @link(TCastleDesktopPointerLock)),
+        we actually hide the mouse cursor and keep repositioning mouse
+        to the middle of the screen.)
+
+      @item(On web, we use the
+        @url(https://developer.mozilla.org/en-US/docs/Web/API/Pointer_Lock_API
+        pointer lock API) of browsers, which does all the work for us,
+        but comes with some quirks:
+
+        @unorderedList(
+          @item(Pointer lock is activated with some delay after setting
+            @link(Active) to @true, and potentially user may reject it
+            altogether.)
+
+          @item(It has to be activated in response (or shortly after)
+            to a user interaction with a page (e.g. mouse click).)
+
+          @item(It may be cancelled by the user at any time
+            (typically by pressing @italic(Escape) key).
+            When this happens, @link(Active) is set to @false and
+            @link(OnUserCancelled) is called.)
+
+          @item(See @url(https://castle-engine.io/web#_known_limitations
+            known limitations of web backend) for more details about pointer
+            lock on web.)
+        )
+      )
+    )
 
     Never create instances of this class directly.
-    Use @link(TCastleContainer.PointerLock) instead which provides the correct
-    implementation for the current platform, tied with the current container
-    and window. }
+    Use only the instance provided by @link(TCastleContainer.PointerLock),
+    which provides the correct implementation for the current platform,
+    tied with the current @link(TCastleContainer container) and window. }
   TCastleAbstractPointerLock = class
   strict private
     FContainer: TCastleContainer;
@@ -121,7 +143,7 @@
   public
     constructor Create(const AContainer: TCastleContainer);
 
-    { Enable or disable pointer lock. See @link(PointerLockEffective).
+    { Enable or disable pointer lock.
       Note that on some platforms (web) user can cancel pointer lock at any time,
       in which case this property turns to @false.
       On other platforms (desktop) this stays completely under control
@@ -129,8 +151,11 @@
     property Active: Boolean read FActive write SetActive;
 
     { Read current delta of mouse movement, assuming that mouse look is active.
-      Use this only from @link(TCastleContainer.Motion) overrides,
-      it needs TInputMotion as input argument to calculate the mouse movement delta.
+
+      Use this only from @link(TCastleUserInterface.Motion) method overrides,
+      as it needs TInputMotion as input argument to calculate the mouse movement
+      delta. Typically, this means you call this from your
+      @url(https://castle-engine.io/views view)'s @code(Motion) method.
 
       Always returns zero if @link(Active) is @false.
       Remember that on some platforms (web) user may cancel the "pointer lock"
