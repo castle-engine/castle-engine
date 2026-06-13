@@ -960,8 +960,27 @@ procedure TCastleWebPointerLock.ActiveChanged(const NewValue: Boolean);
   begin
     Window := (Container as TWindowContainer).Parent;
     Options := TJSPointerLockOptions.Create;
-    // avoid OS mouse acceleration, get raw precise movement
+
+    { Use UnadjustedMovement to avoid OS mouse acceleration,
+      get raw precise movement.
+
+      TODO: Google Chrome and Vivaldi (also based on Chromium) on Linux
+      do not support the UnadjustedMovement option.
+
+      Tested with fail:
+      - Vivaldi 8.0.4033.46 (latest on 2026-06-13), Linux/x86_64
+      - Google Chrome 149.0.7827.114 (latest on 2026-06-13), Linux/x86_64
+
+      Requesting pointer lock with UnadjustedMovement on these browsers results in
+      """Uncaught (in promise) NotSupportedError: The options asked for in this
+      request are not supported on this platform."""
+
+      Firefox on Linux supports it.
+      Tested with success:
+      - Firefox 151.0.4 (latest on 2026-06-13), Linux/x86_64
+    }
     Options.UnadjustedMovement := true;
+
     Window.Canvas.RequestPointerLock(Options);
   end;
 
