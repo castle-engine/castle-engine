@@ -39,7 +39,8 @@ type
       shortcuts. }
     niNormal,
 
-    { Mouse and touch dragging. Both TCastleExamineNavigation and TCastleWalkNavigation implement their own,
+    { Mouse and touch dragging.
+      Both TCastleExamineNavigation and TCastleWalkNavigation implement their own,
       special reactions to mouse dragging, that allows to navigate / rotate
       while pressing specific mouse buttons.
 
