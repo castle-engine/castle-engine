@@ -90,18 +90,34 @@ type
 
     { Did the browser reject the UnadjustedMovement pointer lock option
       with NotSupportedError. Once we learn it's unsupported,
-      RequestPointerLockNow does not request it again. }
+      RequestPointerLockNow does not request it again.
+
+      Note that this can only be set @true on browsers that return
+      Promise from requestPointerLock. This includes Chrome and Vivaldi on Linux,
+      but not Firefox on Linux. Luckily, Firefox on Linux supports
+      UnadjustedMovement. }
     FUnadjustedMovementUnsupported: Boolean;
 
     { Promise of the last RequestPointerLock call, so we can observe its
-      rejection (LockRejected) and unregister callbacks when no longer relevant. }
+      rejection (LockPromiseRejected) and unregister callbacks when no longer relevant.
+
+      Note that this is only assigned (i.e. non-nil; check with "= nil")
+      on browsers that return
+      Promise from requestPointerLock. This includes Chrome and Vivaldi on Linux,
+      but not Firefox on Linux. }
     FRequestPromise: IJSPromise;
 
+    { Listener for document.pointerlockchange event. }
     function PointerLockChange(BaseEvent: IJSEvent): Boolean;
+
+    { Listener for document.pointerlockerror event, used only
+      with browsers that don't return Promise from requestPointerLock
+      (like Firefox on Linux now). }
+    function PointerLockError(BaseEvent: IJSEvent): Boolean;
 
     { Rejection handler (OnRejected for RegisterPromiseCallbacks)
       of the RequestPointerLock promise. }
-    function LockRejected(const aValue: Variant): Variant;
+    function LockPromiseRejected(const aValue: Variant): Variant;
 
     { Request pointer lock from the browser now.
       Includes the UnadjustedMovement option, unless we already learned
@@ -929,7 +945,7 @@ begin
     A failed RequestPointerLock also rejects the returned promise, and only
     the promise rejection carries the reason (error.name), which we need to
     distinguish "UnadjustedMovement unsupported" from other failures.
-    So we handle all failures in LockRejected instead. }
+    So we handle all failures in LockPromiseRejected instead. }
 end;
 
 function TCastleWebPointerLock.PointerLockChange(BaseEvent: IJSEvent): Boolean;
@@ -966,7 +982,16 @@ begin
   Result := true;
 end;
 
-function TCastleWebPointerLock.LockRejected(const aValue: Variant): Variant;
+function TCastleWebPointerLock.PointerLockError(BaseEvent: IJSEvent): Boolean;
+begin
+  WritelnWarning('Web', 'Pointer lock error');
+  FEffective := false;
+  if Active then
+    CancelActive;
+  Result := true;
+end;
+
+function TCastleWebPointerLock.LockPromiseRejected(const aValue: Variant): Variant;
 var
   Error: IJSDOMException;
   ErrorName: String;
@@ -1037,9 +1062,31 @@ begin
   end else
     FRequestPromise := Window.Canvas.RequestPointerLock;
 
-  { Observe the rejection. We don't need an accepted callback: a successful
-    lock is reported by the pointerlockchange event (PointerLockChange). }
-  RegisterPromiseCallbacks(FRequestPromise, nil, @LockRejected);
+  { Did JS return a Promise or null/undefined?
+
+    requestPointerLock is declared to return IJSPromise (a Pascal interface),
+    so when the browser returns no promise (JS null/undefined), Job.Js gives us
+    a nil interface (see TJSObject.InvokeJSObjectResult) -- so we check "= nil".
+
+    Note: do *not* use VarIsNull here. The VarIsNull / Variants.Null advice
+    from https://wiki.lazarus.freepascal.org/WebAssembly/DOM applies only
+    to JS values fetched as Variant, where JS null becomes Variants.Null.
+    Checking here VarIsNull(FRequestPromise) would be useless
+    (always return false). }
+  if FRequestPromise = nil then
+  begin
+    WritelnWarning('Web', 'Browser does not return a promise from requestPointerLock, using pointerlockerror for error handling.');
+    { Some browsers (e.g. Firefox on Linux) don't return a promise.
+      We assign PointerLockError listener then.
+      We don't use it with browsers that return a promise, to avoid
+      double-calling the error handler. }
+    JSDocument.addEventListener('pointerlockerror', @PointerLockError);
+  end else
+  begin
+    { Observe the rejection. We don't need an accepted callback: a successful
+      lock is reported by the pointerlockchange event (PointerLockChange). }
+    RegisterPromiseCallbacks(FRequestPromise, nil, @LockPromiseRejected);
+  end;
 end;
 
 procedure TCastleWebPointerLock.ActiveChanged(const NewValue: Boolean);
