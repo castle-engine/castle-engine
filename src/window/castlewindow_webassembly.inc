@@ -107,6 +107,10 @@ type
       but not Firefox on Linux. }
     FRequestPromise: IJSPromise;
 
+    { We detected that browser doesn't return Promise from requestPointerLock
+      (like Firefox on Linux now). }
+    FPromiseUnsupported: Boolean;
+
     { Listener for document.pointerlockchange event. }
     function PointerLockChange(BaseEvent: IJSEvent): Boolean;
 
@@ -1075,12 +1079,15 @@ begin
     (always return false). }
   if FRequestPromise = nil then
   begin
-    WritelnWarning('Web', 'Browser does not return a promise from requestPointerLock, using pointerlockerror for error handling.');
-    { Some browsers (e.g. Firefox on Linux) don't return a promise.
-      We assign PointerLockError listener then.
-      We don't use it with browsers that return a promise, to avoid
-      double-calling the error handler. }
-    JSDocument.addEventListener('pointerlockerror', @PointerLockError);
+    if not FPromiseUnsupported then
+    begin
+      FPromiseUnsupported := true;
+      WritelnLog('Web', 'Browser does not return a promise from requestPointerLock, using pointerlockerror for error handling.');
+      { We assign PointerLockError listener then.
+        We don't use it with browsers that return a promise, to avoid
+        double-calling the error handler. }
+      JSDocument.addEventListener('pointerlockerror', @PointerLockError);
+    end;
   end else
   begin
     { Observe the rejection. We don't need an accepted callback: a successful
