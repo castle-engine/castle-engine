@@ -15,10 +15,11 @@
 }
 
 {$ifdef read_interface_uses}
-CastleInternalJobWeb,
+Job.Js, CastleInternalJobWeb,
 {$endif}
 
 {$ifdef read_implementation_uses}
+CastleInternalWebUtils,
 {$endif}
 
 {$ifdef read_window_interface}
@@ -86,8 +87,26 @@ type
   TCastleWebPointerLock = class(TCastleAbstractPointerLock)
   strict private
     FEffective: Boolean;
+
+    { Did the browser reject the UnadjustedMovement pointer lock option
+      with NotSupportedError. Once we learn it's unsupported,
+      RequestPointerLockNow does not request it again. }
+    FUnadjustedMovementUnsupported: Boolean;
+
+    { Promise of the last RequestPointerLock call, so we can observe its
+      rejection (LockRejected) and unregister callbacks when no longer relevant. }
+    FRequestPromise: IJSPromise;
+
     function PointerLockChange(BaseEvent: IJSEvent): Boolean;
-    function PointerLockError(BaseEvent: IJSEvent): Boolean;
+
+    { Rejection handler (OnRejected for RegisterPromiseCallbacks)
+      of the RequestPointerLock promise. }
+    function LockRejected(const aValue: Variant): Variant;
+
+    { Request pointer lock from the browser now.
+      Includes the UnadjustedMovement option, unless we already learned
+      (FUnadjustedMovementUnsupported) that this browser rejects it. }
+    procedure RequestPointerLockNow;
   protected
     procedure ActiveChanged(const NewValue: Boolean); override;
   public
@@ -906,7 +925,11 @@ begin
   { Pointer Lock API: observe the pointer lock state
     https://developer.mozilla.org/en-US/docs/Web/API/Pointer_Lock_API }
   JSDocument.addEventListener('pointerlockchange', @PointerLockChange);
-  JSDocument.addEventListener('pointerlockerror', @PointerLockError);
+  { Note: We deliberately do not listen to the 'pointerlockerror' event.
+    A failed RequestPointerLock also rejects the returned promise, and only
+    the promise rejection carries the reason (error.name), which we need to
+    distinguish "UnadjustedMovement unsupported" from other failures.
+    So we handle all failures in LockRejected instead. }
 end;
 
 function TCastleWebPointerLock.PointerLockChange(BaseEvent: IJSEvent): Boolean;
@@ -943,47 +966,83 @@ begin
   Result := true;
 end;
 
-function TCastleWebPointerLock.PointerLockError(BaseEvent: IJSEvent): Boolean;
+function TCastleWebPointerLock.LockRejected(const aValue: Variant): Variant;
+var
+  Error: IJSDOMException;
+  ErrorName: String;
 begin
-  WritelnWarning('Web', 'Pointer lock error');
-  FEffective := false;
-  CancelActive;
-  Result := true;
+  Result := aValue;
+
+  { If user no longer wants pointer lock, ignore this rejection. }
+  if not Active then
+    Exit;
+
+  Error := TJSDOMException.Cast(aValue);
+  ErrorName := Error.Name;
+
+  if (ErrorName = 'NotSupportedError') and (not FUnadjustedMovementUnsupported) then
+  begin
+    { The UnadjustedMovement option is not supported on this browser/OS.
+      Remember it (to not request it again) and retry now without it. }
+    WritelnLog('Web', 'Pointer lock UnadjustedMovement option not supported, retrying without it');
+    FUnadjustedMovementUnsupported := true;
+    RequestPointerLockNow;
+  end else
+  begin
+    { Pointer lock request failed for some other reason,
+      e.g. request was not within / right after a user gesture.
+      We cannot recover, so reset the "wants pointer lock" intent and notify
+      listeners (e.g. to turn off MouseLook). }
+    WritelnWarning('Web', 'Pointer lock request failed: %s (%s)', [
+      ErrorName,
+      Error.Message
+    ]);
+    FEffective := false;
+    CancelActive;
+  end;
 end;
 
-procedure TCastleWebPointerLock.ActiveChanged(const NewValue: Boolean);
+procedure TCastleWebPointerLock.RequestPointerLockNow;
+var
+  Window: TCastleWindow;
+  Options: IJSPointerLockOptions;
+begin
+  Window := (Container as TWindowContainer).Parent;
 
-  procedure RequestPointerLockNow;
-  var
-    Window: TCastleWindow;
-    Options: IJSPointerLockOptions;
-  begin
-    Window := (Container as TWindowContainer).Parent;
-    Options := TJSPointerLockOptions.Create;
+  { Use UnadjustedMovement to avoid OS mouse acceleration,
+    get raw precise movement.
 
-    { Use UnadjustedMovement to avoid OS mouse acceleration,
-      get raw precise movement.
+    Not all browsers/platforms support it. Google Chrome and Vivaldi
+    (also based on Chromium) on Linux reject such request with NotSupportedError:
 
-      TODO: Google Chrome and Vivaldi (also based on Chromium) on Linux
-      do not support the UnadjustedMovement option.
-
-      Tested with fail:
-      - Vivaldi 8.0.4033.46 (latest on 2026-06-13), Linux/x86_64
-      - Google Chrome 149.0.7827.114 (latest on 2026-06-13), Linux/x86_64
-
-      Requesting pointer lock with UnadjustedMovement on these browsers results in
       """Uncaught (in promise) NotSupportedError: The options asked for in this
       request are not supported on this platform."""
 
-      Firefox on Linux supports it.
-      Tested with success:
-      - Firefox 151.0.4 (latest on 2026-06-13), Linux/x86_64
-    }
+    Tested with fail:
+    - Vivaldi 8.0.4033.46 (latest on 2026-06-13), Linux/x86_64
+    - Google Chrome 149.0.7827.114 (latest on 2026-06-13), Linux/x86_64
+
+    Firefox on Linux supports it. Tested with success:
+    - Firefox 151.0.4 (latest on 2026-06-13), Linux/x86_64
+
+    See https://web.dev/articles/disable-mouse-acceleration
+    where it's confirmed that UnadjustedMovement is not supported on Linux
+    by Chromium-based browsers.
+  }
+  if not FUnadjustedMovementUnsupported then
+  begin
+    Options := TJSPointerLockOptions.Create;
     Options.UnadjustedMovement := true;
+    FRequestPromise := Window.Canvas.RequestPointerLock(Options);
+  end else
+    FRequestPromise := Window.Canvas.RequestPointerLock;
 
-    Window.Canvas.RequestPointerLock(Options);
-  end;
+  { Observe the rejection. We don't need an accepted callback: a successful
+    lock is reported by the pointerlockchange event (PointerLockChange). }
+  RegisterPromiseCallbacks(FRequestPromise, nil, @LockRejected);
+end;
 
+procedure TCastleWebPointerLock.ActiveChanged(const NewValue: Boolean);
 begin
   if NewValue then
   begin
@@ -1007,6 +1066,10 @@ begin
     RequestPointerLockNow;
   end else
   begin
+    { Stop observing any pending request promise, so a late rejection
+      (e.g. NotSupportedError) won't trigger a retry after we no longer
+      want the lock. }
+    UnregisterPromiseAndNil(FRequestPromise);
     JSDocument.ExitPointerLock;
     FEffective := false;
   end;

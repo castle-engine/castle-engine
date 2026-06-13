@@ -31,7 +31,7 @@ uses Job.Js, CastleInternalJobWeb;
 
   This allows to use JavaScript promises safely: when the caller
   is no longer interested in the result (in particular, if the instance
-  of the class that has registered callbacks by @link(Then) is freed),
+  of the class that has registered callbacks by @code(JsPromise._Then) is freed),
   you can just free this instance, and the callbacks won't be called anymore.
 
   It would be nice if JavaScript promises had a built-in cancellation mechanism,
@@ -52,7 +52,7 @@ uses Job.Js, CastleInternalJobWeb;
 
   Calling this multiple times @italic(replaces) previous callbacks for the same promise.
   This is in contrast to JavaScript's Promise._Then, which allows to register
-  multiple callbacks for the same promise, then are appended.
+  multiple callbacks for the same promise, that are appended.
 }
 procedure RegisterPromiseCallbacks(const JsPromise: IJSPromise;
   const OnAccepted, OnRejected: TJSPromiseResolver);
