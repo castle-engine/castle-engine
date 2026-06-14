@@ -58,6 +58,7 @@ type
     procedure Start; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
     function Press(const Event: TInputPressRelease): Boolean; override;
+    function Release(const Event: TInputPressRelease): Boolean; override;
     procedure Pause; override;
     procedure Resume; override;
   end;
@@ -137,6 +138,12 @@ begin
   WalkNavigation1.UseGameController;
   WalkNavigation1.RotationHorizontalSpeed := WalkNavigation1.RotationHorizontalSpeed * RotationSpeed;
   WalkNavigation1.RotationVerticalSpeed := WalkNavigation1.RotationVerticalSpeed * RotationSpeed;
+  { Don't move by mouse dragging -- it would happen when user cancels
+    pointer lock on web with Escape key, and move mouse while still
+    holding right mouse button. Works correctly, but confusing. }
+  {$ifdef WASI}
+  WalkNavigation1.Input := WalkNavigation1.Input - [niMouseDragging];
+  {$endif}
   Controllers.Initialize;
   ButtonControllersInitialize.OnClick :=
     {$ifdef FPC}@{$endif} ClickControllersInitialize;
@@ -177,9 +184,6 @@ begin
   { This virtual method is executed every frame (many times per second). }
   Assert(LabelFps <> nil, 'If you remove LabelFps from the design, remember to remove also the assignment "LabelFps.Caption := ..." from code');
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
-
-  // use mouse look when holding right mouse button
-  WalkNavigation1.MouseLook := buttonRight in Container.MousePressed;
 
   { Left and right triggers are analog, they are axes in
     TGameController.AxisLeft/RightTrigger, and they don't generate
@@ -369,6 +373,32 @@ begin
     TryTalk;
     Exit(true); // input was handled
   end;
+
+  if Event.IsMouseButton(buttonRight) then
+  begin
+    { Start mouse look.
+
+      Note: we enable/disable mouse look on TViewPlay.Press/Release,
+      and we *do not* call in TViewPlay.Update something like
+      "WalkNavigation.MouseLook := buttonRight in Container.MousePressed",
+      because forcing mouse look in Update would be bad UX on web after
+      user cancels pointer lock. See https://castle-engine.io/web#pointer_lock . }
+    WalkNavigation1.MouseLook := true;
+    Exit(true);
+  end;
+end;
+
+function TViewMain.Release(const Event: TInputPressRelease): Boolean;
+begin
+  Result := inherited;
+  if Result then Exit; // allow the ancestor to handle keys
+
+  if Event.IsMouseButton(buttonRight) then
+  begin
+    { Stop mouse look. See comment in Press. }
+    WalkNavigation1.MouseLook := false;
+    Exit(true);
+  end;
 end;
 
 procedure TViewMain.ClickControllersInitialize(Sender: TObject);
@@ -381,6 +411,10 @@ end;
 procedure TViewMain.Pause;
 begin
   inherited;
+  { Disable mouse look, which (for now) does not happen
+    automatically on "WalkNavigation1.Exists := false".
+    After resume, user should reenable it by right-clicking. }
+  WalkNavigation1.MouseLook := false;
   { Do not detect A / B (jump / crouch) during talk. }
   WalkNavigation1.Exists := false;
 end;

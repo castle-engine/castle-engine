@@ -605,7 +605,7 @@
       "$$ClassName" : "TCastleLabel",
       "Name" : "Label1",
       "Text" : [
-        "Toggle mouse look: Right mouse button or (advised on web) M key",
+        "Toggle mouse look: Right mouse button or M key",
         "Walk: AWSD, arrows",
         "Jump: space",
         "Shoot rocket: Left mouse button",

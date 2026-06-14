@@ -37,6 +37,7 @@ type
     procedure Start; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
     function Press(const Event: TInputPressRelease): Boolean; override;
+    function Release(const Event: TInputPressRelease): Boolean; override;
   end;
 
 var
@@ -58,6 +59,14 @@ end;
 procedure TViewMain.Start;
 begin
   inherited;
+
+  { Don't move by mouse dragging -- it would happen when user cancels
+    pointer lock on web with Escape key, and move mouse while still
+    holding right mouse button. Works correctly, but confusing. }
+  {$ifdef WASI}
+  WalkNavigationBottom.Input := WalkNavigationBottom.Input - [niMouseDragging];
+  WalkNavigationTop.Input := WalkNavigationTop.Input - [niMouseDragging];
+  {$endif}
 end;
 
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
@@ -66,11 +75,6 @@ begin
   { This virtual method is executed every frame (many times per second). }
   Assert(LabelFps <> nil, 'If you remove LabelFps from the design, remember to remove also the assignment "LabelFps.Caption := ..." from code');
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
-
-  WalkNavigationBottom.MouseLook :=
-    (buttonRight in Container.MousePressed) and ViewportBottom.Focused;
-  WalkNavigationTop.MouseLook :=
-    (buttonRight in Container.MousePressed) and ViewportTop.Focused;
 end;
 
 function TViewMain.Press(const Event: TInputPressRelease): Boolean;
@@ -101,6 +105,29 @@ begin
     if ViewportTop.Focused then
       DropFromViewport(ViewportTop);
     Exit(true); // key was handled
+  end;
+
+  if Event.IsMouseButton(buttonRight) then
+  begin
+    { Start mouse look on the viewport where mouse is. }
+    if ViewportBottom.RenderRect.Contains(Event.Position) then
+      WalkNavigationBottom.MouseLook := true;
+    if ViewportTop.RenderRect.Contains(Event.Position) then
+      WalkNavigationTop.MouseLook := true;
+    Exit(true);
+  end;
+end;
+
+function TViewMain.Release(const Event: TInputPressRelease): Boolean;
+begin
+  Result := inherited;
+  if Result then Exit; // allow the ancestor to handle keys
+
+  if Event.IsMouseButton(buttonRight) then
+  begin
+    WalkNavigationBottom.MouseLook := false;
+    WalkNavigationTop.MouseLook := false;
+    Exit(true);
   end;
 end;
 

@@ -35,6 +35,7 @@ type
     procedure Start; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
     function Press(const Event: TInputPressRelease): Boolean; override;
+    function Release(const Event: TInputPressRelease): Boolean; override;
   end;
 
 var
@@ -55,6 +56,13 @@ end;
 procedure TViewMain.Start;
 begin
   inherited;
+
+  { Don't move by mouse dragging -- it would happen when user cancels
+    pointer lock on web with Escape key, and move mouse while still
+    holding right mouse button. Works correctly, but confusing. }
+  {$ifdef WASI}
+  WalkNavigation1.Input := WalkNavigation1.Input - [niMouseDragging];
+  {$endif}
 end;
 
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
@@ -62,7 +70,6 @@ begin
   inherited;
   { This virtual method is executed every frame (many times per second). }
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
-  WalkNavigation1.MouseLook := buttonRight in Container.MousePressed;
 end;
 
 function TViewMain.Press(const Event: TInputPressRelease): Boolean;
@@ -70,24 +77,31 @@ begin
   Result := inherited;
   if Result then Exit; // allow the ancestor to handle keys
 
-  { This virtual method is executed when user presses
-    a key, a mouse button, or touches a touch-screen.
-
-    Note that each UI control has also events like OnPress and OnClick.
-    These events can be used to handle the "press", if it should do something
-    specific when used in that UI control.
-    The TViewMain.Press method should be used to handle keys
-    not handled in children controls.
-  }
-
-  // Use this to handle keys:
-  {
-  if Event.IsKey(keyXxx) then
+  if Event.IsMouseButton(buttonRight) then
   begin
-    // DoSomething;
-    Exit(true); // key was handled
+    { Start mouse look.
+
+      Note: we enable/disable mouse look on TViewPlay.Press/Release,
+      and we *do not* call in TViewPlay.Update something like
+      "WalkNavigation.MouseLook := buttonRight in Container.MousePressed",
+      because forcing mouse look in Update would be bad UX on web after
+      user cancels pointer lock. See https://castle-engine.io/web#pointer_lock . }
+    WalkNavigation1.MouseLook := true;
+    Exit(true);
   end;
-  }
+end;
+
+function TViewMain.Release(const Event: TInputPressRelease): Boolean;
+begin
+  Result := inherited;
+  if Result then Exit; // allow the ancestor to handle keys
+
+  if Event.IsMouseButton(buttonRight) then
+  begin
+    { Stop mouse look. See comment in TViewMain.Press. }
+    WalkNavigation1.MouseLook := false;
+    Exit(true);
+  end;
 end;
 
 end.

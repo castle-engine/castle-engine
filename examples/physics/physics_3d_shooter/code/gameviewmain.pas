@@ -67,6 +67,8 @@ begin
   { This virtual method is executed every frame (many times per second). }
   Assert(LabelFps <> nil, 'If you remove LabelFps from the design, remember to remove also the assignment "LabelFps.Caption := ..." from code');
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
+
+  LabelMouseLook.Caption := 'Mouse look: ' + BoolToStr(WalkNavigation.MouseLook, true);
 end;
 
 function TViewMain.Press(const Event: TInputPressRelease): Boolean;
@@ -120,7 +122,6 @@ begin
   if Event.IsMouseButton(buttonRight) or Event.IsKey(keyM) then
   begin
     WalkNavigation.MouseLook := not WalkNavigation.MouseLook;
-    LabelMouseLook.Caption := 'Mouse look: ' + BoolToStr(WalkNavigation.MouseLook, true);
     Exit(true);
   end;
 

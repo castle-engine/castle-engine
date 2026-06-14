@@ -1,15 +1,13 @@
-Game instructions:
+F1: show help.
 
-F1 key gives detailed help.
-Fire up the TNT with left mouse button.
-There is no "game objective" but you
-  can investigate many things:
-- you can try to piss off that rat by
-  firing TNTs near him,
-- there is also a "mute area" inside the
-  transparent cylinder
+Click left mouse button on a "TNT" box:
+make it explode.
+Watch out if it explodes close to a rat.
 
-Exit with Escape.
+Hold right mouse button:
+look around (mouse look).
 
-And don't ask me why the rat sounds
-like a duck.
+Walk with AWSD, jump with space.
+
+Explore the "mute area"
+inside the cylinder.

@@ -173,7 +173,7 @@ begin
 
   if Event.IsMouseButton(buttonRight) then
   begin
-    { Stop mouse look. See comment in TViewPlay.Press. }
+    { Stop mouse look. See comment in Press. }
     WalkNavigation.MouseLook := false;
     Exit(true);
   end;

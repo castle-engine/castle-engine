@@ -40,14 +40,11 @@ type
     MapCamera: TCastleCamera;
     PlayerLiving: TCastleLiving;
   private
-    PersistentMouseLook: Boolean;
-
     { components in DesignHud }
     LabelFps: TCastleLabel;
     MainNotifications: TCastleNotifications;
     MapViewport: TCastleViewport;
 
-    procedure UpdateMouseLook;
     procedure WeaponShootAnimationStop(const Scene: TCastleSceneCore;
       const Animation: TTimeSensorNode);
     procedure PointerLockUserCancelled(Sender: TObject);
@@ -55,8 +52,10 @@ type
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
     procedure Stop; override;
+    procedure Resume; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
     function Press(const Event: TInputPressRelease): Boolean; override;
+    function Release(const Event: TInputPressRelease): Boolean; override;
   end;
 
 var
@@ -86,8 +85,6 @@ begin
   MapViewport.Items := MainViewport.Items;
   MapViewport.Camera := MapCamera;
 
-  PersistentMouseLook := true;
-
   Controllers.Initialize;
   WalkNavigation.UseGameController;
 
@@ -102,6 +99,29 @@ begin
   inherited;
 end;
 
+procedure TViewPlay.Resume;
+begin
+  inherited;
+
+  { This is called when user resumed the game.
+
+    Two ways how we can reach this code path:
+
+    1. User starts playing the game, so engine calls Start, and then Resume.
+
+    2. User presses Escape, which
+       - sets WalkNavigation.MouseLook and Container.PointerLock.Active to false
+       - only on web: calls PointerLockUserCancelled
+       - ... which calls Container.PushView(ViewOptions)
+       - user clicks "Resume Game" button in options menu
+       - ... which calls Container.PopView(ViewOptions)
+       - which calls this method, Resume.
+
+    See https://castle-engine.io/web#pointer_lock .
+  }
+  WalkNavigation.MouseLook := true;
+end;
+
 procedure TViewPlay.Update(const SecondsPassed: Single; var HandleInput: Boolean);
 var
   DirectionHorizontal: TVector3;
@@ -109,7 +129,6 @@ var
 begin
   inherited;
   LabelFps.Caption := Container.Fps.ToString;
-  UpdateMouseLook;
 
   GameActive := Container.CurrentFrontView = Self;
 
@@ -143,13 +162,6 @@ begin
   end;
 end;
 
-procedure TViewPlay.UpdateMouseLook;
-begin
-  WalkNavigation.MouseLook := (Container.CurrentFrontView = Self) and
-    ( PersistentMouseLook or
-      (buttonRight in Container.MousePressed) );
-end;
-
 procedure TViewPlay.WeaponShootAnimationStop(const Scene: TCastleSceneCore;
   const Animation: TTimeSensorNode);
 begin
@@ -166,13 +178,6 @@ begin
 
   if Container.CurrentFrontView = Self then
   begin
-    if Event.IsKey(keyF4) then
-    begin
-      PersistentMouseLook := not PersistentMouseLook;
-      UpdateMouseLook;
-      Exit(true);
-    end;
-
     if Event.IsMouseButton(buttonLeft) then
     begin
       if MainViewport.TransformUnderMouse <> nil then
@@ -229,6 +234,32 @@ begin
   if Event.IsKey(keyF5) then
   begin
     MainNotifications.Show('Saved screenshot to ' + Container.SaveScreenToDefaultFile);
+    Exit(true);
+  end;
+
+  if Event.IsMouseButton(buttonRight) then
+  begin
+    { Start mouse look.
+
+      Note: we enable/disable mouse look on TViewPlay.Press/Release,
+      and we *do not* call in TViewPlay.Update something like
+      "WalkNavigation.MouseLook := buttonRight in Container.MousePressed",
+      because forcing mouse look in Update would be bad UX on web after
+      user cancels pointer lock. See https://castle-engine.io/web#pointer_lock . }
+    WalkNavigation.MouseLook := true;
+    Exit(true);
+  end;
+end;
+
+function TViewPlay.Release(const Event: TInputPressRelease): Boolean;
+begin
+  Result := inherited;
+  if Result then Exit; // allow the ancestor to handle keys
+
+  if Event.IsMouseButton(buttonRight) then
+  begin
+    { Stop mouse look. See comment in Press. }
+    WalkNavigation.MouseLook := false;
     Exit(true);
   end;
 end;
