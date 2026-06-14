@@ -129,15 +129,19 @@ do_project examples/viewport_and_scenes/cars_demo
 do_project examples/viewport_and_scenes/collisions
 do_project examples/viewport_and_scenes/bump_mapping
 do_project examples/viewport_and_scenes/occlusion_culling
-do_project examples/3d_games/eye_of_beholder
 do_project examples/creature_behaviors
 do_project examples/third_person_navigation
+do_project examples/physics/physics_3d_demo
 do_project examples/physics/physics_3d_shooter
+do_project examples/physics/physics_explosion
+do_project examples/physics/physics_throw_chickens
+do_project examples/3d_games/eye_of_beholder
 do_project examples/3d_games/dungeons_and_skeletons_fight
 do_project examples/3d_games/walking_adventure
-do_project examples/animations/animate_bones_by_code
-do_project examples/terrain
 do_project examples/3d_games/explore_impressive_castle
+do_project examples/animations/animate_bones_by_code
+do_project examples/animations/optimize_animations_test
+do_project examples/terrain
 do_project examples/research_special_rendering_methods/test_rendering_opengl_capabilities/
 
 do_project tools/castle-editor-portable
