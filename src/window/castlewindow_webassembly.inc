@@ -27,14 +27,22 @@ strict private
   FCanvas: IJSHTMLCanvasElement;
   LastClientRectHeight, LastClientRectWidth, LastDevicePixelRatio: Double;
   { Get mouse position from JS event, convert it to CGE coordinates. }
-  function JsMousePositionToCastle(const Event: IJSPointerEvent): TVector2;
+  function JsMousePositionToCastle(const Event: IJSMouseEvent): TVector2;
   function PointerDown(BaseEvent: IJSEvent): Boolean;
   function PointerUp(BaseEvent: IJSEvent): Boolean;
   function PointerMove(BaseEvent: IJSEvent): Boolean;
+  { Handlers for legacy mouse events, used only while pointer lock is effective,
+    because Chromium does not deliver pointerdown / pointerup during pointer lock. }
+  function MouseDown(BaseEvent: IJSEvent): Boolean;
+  function MouseUp(BaseEvent: IJSEvent): Boolean;
+  function MouseOrPointerDown(const Event: IJSMouseEvent): Boolean;
+  function MouseOrPointerUp(const Event: IJSMouseEvent): Boolean;
   function LostPointerCapture(BaseEvent: IJSEvent): Boolean;
   function KeyDown(BaseEvent: IJSEvent): Boolean;
   function KeyUp(BaseEvent: IJSEvent): Boolean;
   function ContextMenu(BaseEvent: IJSEvent): Boolean;
+  { Shortcut to query our PointerLock implementation, casted to TCastleWebPointerLock. }
+  function PointerLockEffective: Boolean;
 private
   property Canvas: IJSHTMLCanvasElement read FCanvas;
 {$endif read_window_interface}
@@ -290,6 +298,22 @@ begin
   Canvas.addEventListener('pointermove', @PointerMove);
   Canvas.addEventListener('contextmenu', @ContextMenu);
 
+  { Pointer events for down/up are not delivered during pointer lock in Chromium.
+
+    The Pointer Lock spec only guarantees MouseEvents in lock mode, see
+    https://www.w3.org/TR/pointerlock-2/ ,
+    """The pointer-lock target receives all relevant user generated MouseEvent
+    events: namely, all user-generated mousemove, mousedown..."""
+    And see issue https://github.com/w3c/pointerlock/issues/97 .
+
+    So we additionally listen to
+    legacy mousedown / mouseup, but use them only while pointer lock is effective.
+    Conversely, PointerDown / PointerUp ignore events while pointer lock is
+    effective, so we never report a single click twice (e.g. in Firefox, which
+    delivers both pointer and mouse events during lock). }
+  Canvas.addEventListener('mousedown', @MouseDown);
+  Canvas.addEventListener('mouseup', @MouseUp);
+
   { Catching key events on canvas doesn't work, as the canvas needs to be focused,
     see https://developer.mozilla.org/en-US/docs/Web/API/Element/keydown_event .
     For now, we catch key events on the whole window. }
@@ -307,6 +331,11 @@ end;
 procedure TCastleWindow.CloseBackend;
 begin
   { One doesn't close WebGL context. }
+end;
+
+function TCastleWindow.PointerLockEffective: Boolean;
+begin
+  Result := (Container.PointerLock as TCastleWebPointerLock).Effective;
 end;
 
 function JsMouseButtonToCastle(const JsButton: Integer;
@@ -327,7 +356,7 @@ begin
   end;
 end;
 
-function TCastleWindow.JsMousePositionToCastle(const Event: IJSPointerEvent): TVector2;
+function TCastleWindow.JsMousePositionToCastle(const Event: IJSMouseEvent): TVector2;
 begin
   { Some info about various positions:
     https://stephendoddtech.com/blog/game-design/mouse-event-listener-input-html-canvas
@@ -340,15 +369,13 @@ begin
     GL.DrawingBufferHeight - Event.OffsetY * Canvas.Height / Canvas.OffsetHeight);
 end;
 
-function TCastleWindow.PointerDown(BaseEvent: IJSEvent): Boolean;
+function TCastleWindow.MouseOrPointerDown(const Event: IJSMouseEvent): Boolean;
 var
-  Event: IJSPointerEvent;
   Button: TCastleMouseButton;
   FingerIndex: TFingerIndex;
   Position: TVector2;
 begin
   Result := true; // assume not handled, in case of early exit
-  Event := TJSPointerEvent.Cast(BaseEvent);
 
   if not JsMouseButtonToCastle(Event.Button, Button) then
     Exit;
@@ -365,15 +392,13 @@ begin
   Result := false;
 end;
 
-function TCastleWindow.PointerUp(BaseEvent: IJSEvent): Boolean;
+function TCastleWindow.MouseOrPointerUp(const Event: IJSMouseEvent): Boolean;
 var
-  Event: IJSPointerEvent;
   Button: TCastleMouseButton;
   FingerIndex: TFingerIndex;
   Position: TVector2;
 begin
   Result := true; // assume not handled, in case of early exit
-  Event := TJSPointerEvent.Cast(BaseEvent);
 
   if not JsMouseButtonToCastle(Event.Button, Button) then
     Exit;
@@ -382,6 +407,38 @@ begin
   DoMouseUp(Position, Button, FingerIndex);
 
   Result := false;
+end;
+
+function TCastleWindow.PointerDown(BaseEvent: IJSEvent): Boolean;
+begin
+  Result := true; // assume not handled, in case of early exit
+  if PointerLockEffective then
+    Exit; // clicks are handled by MouseDown
+  Result := MouseOrPointerDown(TJSPointerEvent.Cast(BaseEvent));
+end;
+
+function TCastleWindow.PointerUp(BaseEvent: IJSEvent): Boolean;
+begin
+  Result := true; // assume not handled, in case of early exit
+  if PointerLockEffective then
+    Exit; // clicks are handled by MouseUp
+  Result := MouseOrPointerUp(TJSPointerEvent.Cast(BaseEvent));
+end;
+
+function TCastleWindow.MouseDown(BaseEvent: IJSEvent): Boolean;
+begin
+  Result := true; // assume not handled, in case of early exit
+  if not PointerLockEffective then
+    Exit; // clicks are handled by PointerDown
+  Result := MouseOrPointerDown(TJSMouseEvent.Cast(BaseEvent));
+end;
+
+function TCastleWindow.MouseUp(BaseEvent: IJSEvent): Boolean;
+begin
+  Result := true; // assume not handled, in case of early exit
+  if not PointerLockEffective then
+    Exit; // clicks are handled by PointerUp
+  Result := MouseOrPointerUp(TJSMouseEvent.Cast(BaseEvent));
 end;
 
 function TCastleWindow.LostPointerCapture(BaseEvent: IJSEvent): Boolean;
@@ -436,7 +493,7 @@ begin
 
     All in all, just using movementX/Y is most reliable now.
   }
-  if (Container.PointerLock as TCastleWebPointerLock).Effective then
+  if PointerLockEffective then
     SendMotion.Delta := Vector2(Event.MovementX, -Event.MovementY);
 
   DoMotion(SendMotion);
