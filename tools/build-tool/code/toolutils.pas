@@ -141,7 +141,7 @@ implementation
 
 uses {$ifdef UNIX} BaseUnix, {$endif}
   {$ifdef MSWINDOWS} Windows, {$endif}
-  Classes, Process, SysUtils,
+  Classes, SysUtils,
   CastleFilesUtils, CastleUriUtils, CastleLog, CastleXmlUtils, CastleFindFiles,
   CastleZip,
   ToolCommonUtils, ToolProcessRun;
@@ -326,7 +326,7 @@ begin
   {$ifdef MSWINDOWS}
   WindowsErrorBox(Message);
   {$else}
-  RunCommandSimple('zenity', ['--error', '--no-markup', '--text=' + Message]);
+  ExecuteCommandSimple('zenity', ['--error', '--no-markup', '--text=' + Message]);
   {$endif}
 end;
 
@@ -417,7 +417,7 @@ procedure ZipDirectoryTool(const ZipFileName: String; Directory: String;
     if FileExists(ZipFileName) then
       CheckDeleteFile(ZipFileName);
 
-    RunCommandSimple(WorkingDirectory, 'zip',
+    ExecuteCommandSimple(WorkingDirectory, 'zip',
       ['-q', '-r', ZipFileName, NameToIncludeInZip]);
   end;
 

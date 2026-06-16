@@ -1251,7 +1251,7 @@
     { Does the SecondValue list has equal length and instances.
       The instances on the list are compared exactly, i.e. reference
       must match, not only some node properties. }
-    function Equals(SecondValue: TObject): Boolean; {$ifdef TOBJECT_HAS_EQUALS} override; {$endif}
+    function Equals(SecondValue: TObject): Boolean; override;
 
     { Assign from Source. Equivalent to Clear and then AddRange(Source). }
     procedure Assign(const Source: TX3DNodeList); overload;

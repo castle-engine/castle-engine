@@ -774,7 +774,8 @@ Function PathFileSearch(Const Name : String; ImplicitCurrentDir : Boolean = True
 
   Also, uses RegularFileExists instead of FileExists,
   thus it avoids FPC FileExists inconsistency
-  (on Unix, FPC FileExists returns true).
+  (on Unix, FPC FileExists returned true for directories with older FPC versions,
+  see TTestSysUtils.TestDirectoryFileExists for more comments).
   It matters, otherwise e.g. searching for "fpc" on Unix
   could find directory "fpc" that is under a directory on $PATH. }
 
@@ -854,7 +855,7 @@ begin
     user can set there anything, on any OS.
 
     So better do ExpandFileName to make sure the result in absolute,
-    as promised in FindExe API. E.g. RunCommandSimple usage in ToolCommonUtils
+    as promised in FindExe API. E.g. @link(ExecuteCommand) usage in ToolCommonUtils
     assumes it, checking IsPathAbsolute to know whether FindExe should be used again. }
   if Result <> '' then
     Result := ExpandFileName(Result);

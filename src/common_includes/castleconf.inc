@@ -39,7 +39,7 @@
 
 {$ifdef FPC}
   {$if defined(VER2) or defined(VER3_0)}
-    {$fatal You need FPC version >= 3.2.0 to compile Castle Game Engine. See https://castle-engine.io/supported_compilers.php}
+    {$fatal You need FPC version >= 3.2.0 to compile Castle Game Engine. See https://castle-engine.io/supported_compilers}
   {$endif}
 {$else}
   // See http://delphi.wikia.com/wiki/CompilerVersion_Constant
@@ -125,7 +125,7 @@
   {$endif}
 {$endif}
 
-{ Define various necessary things -------------------------------------------- }
+{ Extended-related symbols --------------------------------------------------- }
 
 (*EXTENDED_EQUALS_DOUBLE should be defined when Extended type is
   the same thing as Double type on this platform.
@@ -171,6 +171,8 @@
   {$define EXTENDED_OVERLOADS}
 {$endif}
 
+{ inline related symbols --------------------------------------------------------- }
+
 { We used to disable inline functions/methods when compiling from
   Lazarus package (when CASTLE_ENGINE_LAZARUS_PACKAGE),
   to workaround FPC bug http://bugs.freepascal.org/view.php?id=12223 .
@@ -181,7 +183,7 @@
 
   But with FPC 3.0.2 everything seems to work cool even with "inline",
   so let's try defining it always now.
-  We only support FPC >= 3.0.0 now.
+  We only support FPC >= 3.2.0 now, see https://castle-engine.io/supported_compilers .
 }
 {$define SUPPORTS_INLINE}
 
@@ -193,7 +195,7 @@
   {$define INLINE_GENERIC_VECTORS}
 {$endif}
 
-{$define TOBJECT_HAS_EQUALS}
+{ Delphi verbosity ----------------------------------------------------------- }
 
 { Delphi reports many hints/warnings that are known to be harmless in our case. }
 {$ifndef FPC}
@@ -212,6 +214,8 @@
     TODO: This should eventually by unhidden. }
   {$warn SYMBOL_DEPRECATED off}
 {$endif}
+
+{ Symbols related to Generics.Collections ------------------------------------ }
 
 { If GENERICS_CONSTREF is defined, then various routines used with Generics.Collections
   (like callbacks we pass to TComparer, or OnNotify callback or Notify virtual method)
@@ -248,6 +252,8 @@
 {$if defined(DARWIN) and defined(CPUX86_64) and defined(VER3_2_3)}
   {$define CASTLE_WORKAROUND_DICTIONARY_FIND}
 {$endif}
+
+{ CASTLE_DEFORMAT_BUGGY ------------------------------------------------------ }
 
 { TODO: macOS/Aarch64 (at least with FPC 3.2.3, unknown with 3.3.1)
   fails on DeFormat usage,
@@ -336,7 +342,7 @@
   {$undef ANDROID}
 {$endif CASTLE_NINTENDO_SWITCH}
 
-{ Platform specific adjustments ---------------------------------------------- }
+{ ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION -------------------------------------- }
 
 { On some Android versions, you cannot call dlopen (load dynamic libraries)
   from the initialization section of units. You have to wait for
@@ -497,7 +503,7 @@
       See ../../tools/build-tool/data/android/services/png/README.adoc .
 
   3.If CASTLE_PNG_STATIC is defined, we statically link to libpng.
-    The presense of static libpng library (libpng.a on Unix) is then
+    The presence of static libpng library (libpng.a on Unix) is then
     required at compile-time.
     This is necessary on some platforms, e.g. iOS. The CGE build tool
     automatically uses this flag when necessary.
@@ -641,7 +647,8 @@
   {$define UNIX_WITH_X}
 {$endif}
 
-{ FPC 3.3.1 produces many false warnings. }
+{ FPC 3.3.1 produces many false warnings ------------------------------------- }
+
 {$ifdef FPC}
   {$ifndef VER3_0}
     {$ifndef VER3_2}
@@ -689,6 +696,24 @@
 { Log Argv reading in CastleParameters, to investigate bugs like
   CASTLE_PARAMSTR_BUGGY. }
 {.$define CASTLE_ANDROID_ARGV_LOGGING}
+
+{ Process -------------------------------------------------------------------- }
+
+{ When CASTLE_PROCESS_AVAILABLE is defined, TCastleProcess interface
+  and implementation are functional.
+
+  Otherwise, TCastleProcess is an empty class, with no properties and methods.
+  So you can use CastleInternalProcess, and declaration of TCastleProcess
+  will compile, but actual usage will not compile and should be guarded by
+  "$ifdef CASTLE_PROCESS_AVAILABLE". }
+{$if defined(FPC) and not defined(WASI)}
+  {$define CASTLE_PROCESS_AVAILABLE}
+{$endif}
+
+// TODO: implement for Delphi
+// {$if defined(DELPHI) and (defined(MSWINDOWS) or defined(LINUX))}
+//   {$define CASTLE_PROCESS_AVAILABLE}
+// {$endif}
 
 // keep this line at the end of the file
 {$endif not CASTLE_CONF_INCLUDED}

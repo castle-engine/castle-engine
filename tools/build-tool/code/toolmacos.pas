@@ -134,7 +134,7 @@ begin
 
   //--------------
   // Glue both slices together and delete compiled binaries for each architecture
-  RunCommandSimple('lipo', [ArchIntelBinary, ArchArmBinary, '-output', OutputBinary, '-create']);
+  ExecuteCommandSimple('lipo', [ArchIntelBinary, ArchArmBinary, '-output', OutputBinary, '-create']);
 
   CheckDeleteFile(ArchIntelBinary);
   CheckDeleteFile(ArchArmBinary);
@@ -184,7 +184,7 @@ begin
   SaveResized(Image,  512, IconsetDir + PathDelim + 'icon_512x512.png');
   SaveResized(Image, 1024, IconsetDir + PathDelim + 'icon_512x512@2x.png');
 
-  RunCommandSimple(TempPath, 'iconutil', ['-c', 'icns', Project.Name + '.iconset']);
+  ExecuteCommandSimple(TempPath, 'iconutil', ['-c', 'icns', Project.Name + '.iconset']);
 
   Result := TempPath + Project.Name + '.icns';
 end;
@@ -271,7 +271,7 @@ begin
   { Check Info.plist correctness, following https://wiki.freepascal.org/macOS_property_list_files.
     See https://www.unix.com/man-page/osx/1/plutil/ for command-line options:
     -s means "Don't print anything on success." }
-  RunCommandSimple('plutil', ['-s', OutputBundlePath + 'Contents' + PathDelim + 'Info.plist']);
+  ExecuteCommandSimple('plutil', ['-s', OutputBundlePath + 'Contents' + PathDelim + 'Info.plist']);
 
   OutputBundleExePath := OutputBundlePath +
     'Contents' + PathDelim + 'MacOS' + PathDelim;
@@ -349,7 +349,7 @@ end;
 
 procedure ZipMacAppBundle(const Project: TCastleProject; const BundleParenPath, PackageFileName: String);
 begin
-  //RunCommandSimple(BundleParenPath, 'zip', ['-q', '-r', PackageFileName, Project.Caption + '.app']);
+  //ExecuteCommandSimple(BundleParenPath, 'zip', ['-q', '-r', PackageFileName, Project.Caption + '.app']);
   // Better use internal zip, that doesn't require any tool installed:
   ZipDirectoryTool(
     CombinePaths(BundleParenPath, PackageFileName),
@@ -372,7 +372,7 @@ begin
     Exit('');
   end;
 
-  MyRunCommandIndir(GetCurrentDir, ToolExe, ['--show-sdk-path'], Result, ExitStatus);
+  ExecuteCommand(GetCurrentDir, ToolExe, ['--show-sdk-path'], Result, ExitStatus);
   if ExitStatus <> 0 then
   begin
     WritelnWarning('Running "xcrun --show-sdk-path" failed, exit status %d.', [
@@ -396,7 +396,7 @@ begin
     Exit('');
   end;
 
-  MyRunCommandIndir(GetCurrentDir, ToolExe, ['--print-path'], Result, ExitStatus);
+  ExecuteCommand(GetCurrentDir, ToolExe, ['--print-path'], Result, ExitStatus);
   if ExitStatus <> 0 then
   begin
     WritelnWarning('Running "xcode-select --print-path" failed, exit status %d.', [
@@ -450,7 +450,7 @@ begin
     WritelnWarning('Cannot run "xcrun" to query macOS SDK version. Is Xcode with command-line utilities installed?');
     Exit(false);
   end;
-  MyRunCommandIndir(GetCurrentDir, ToolExe, ['--show-sdk-version'], VersionStr, ExitStatus);
+  ExecuteCommand(GetCurrentDir, ToolExe, ['--show-sdk-version'], VersionStr, ExitStatus);
 
   if ExitStatus <> 0 then
   begin

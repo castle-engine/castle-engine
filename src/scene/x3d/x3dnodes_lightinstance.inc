@@ -93,7 +93,7 @@
     function IndexOfNode(Node: TAbstractLightNode): integer;
     { Find light with given node name. Return @nil if not found. }
     function FindName(NodeName: string): PLightInstance;
-    function Equals(SecondValue: TObject): boolean; {$ifdef TOBJECT_HAS_EQUALS} override; {$endif}
+    function Equals(SecondValue: TObject): boolean; override;
   end;
 
 {$endif read_interface}

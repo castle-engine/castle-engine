@@ -312,9 +312,10 @@ type
 implementation
 
 uses {$ifdef UNIX} BaseUnix, {$endif}
-  StrUtils, DOM, Process,
+  StrUtils, DOM,
   CastleUriUtils, CastleXmlUtils, CastleLog, CastleFilesUtils, CastleImages,
   CastleTimeUtils, CastleComponentSerialize, CastleColors,
+  CastleInternalProcess,
   ToolResources, ToolAndroid, ToolMacOS, ToolWeb,
   ToolTextureGeneration, ToolIOS, ToolAndroidMerging, ToolNintendoSwitch,
   ToolCommonUtils, ToolMacros, ToolCompilerInfo, ToolPackageCollectFiles,
@@ -1033,6 +1034,19 @@ procedure TCastleProject.DoRun(const Target: TTarget;
     end;
   end;
 
+  { Like @link(ExecuteCommand) but override environment to set CASTLE_LOG=stdout. }
+  procedure ExecuteCommandLogStdout(const CurrentDirectory: String;
+    const ExeName: String; const Options: array of string);
+  var
+    OverrideEnvironment: TStringList;
+  begin
+    OverrideEnvironment := EnvironmentStrings;
+    try
+      OverrideEnvironment.Values['CASTLE_LOG'] := 'stdout';
+      ExecuteCommandSimple(CurrentDirectory, ExeName, Options, OverrideEnvironment);
+    finally FreeAndNil(OverrideEnvironment) end;
+  end;
+
 var
   RunWorkingDir: String;
   ExeName: string;
@@ -1062,8 +1076,10 @@ begin
             MaybeUseWineToRun(ExeName, NewParams);
             MaybeRunThroughMacAppBundle(RunWorkingDir, ExeName, NewParams);
             Flush(Output); // needed to see "Running Windows EXE on Unix, trying to use WINE." in right order in editor
-            { We set current path to Path, not OutputPath, because data/ subdirectory is under Path. }
-            RunCommandSimple(RunWorkingDir, ExeName, NewParams.ToArray, 'CASTLE_LOG', 'stdout');
+
+            { Note: We set current path to Path (RunWorkingDir), not OutputPath,
+              because data/ subdirectory is under Path. }
+            ExecuteCommandLogStdout(RunWorkingDir, ExeName, NewParams.ToArray);
           finally FreeAndNil(NewParams) end;
         end;
       end;
@@ -1725,7 +1741,9 @@ begin
     Running editor should not "lock" the project DLLs on Windows.
     We should have a system of services for desktop, to manage DLLs, including custom
     DLLs like Effekseer and FMOD. }
-  RunCommandNoWait(Path, EditorExe, [ManifestFile], [], NewEnvironment);
+  ExecuteCommandNoWait(Path, EditorExe, [ManifestFile], [], NewEnvironment);
+
+  FreeAndNil(NewEnvironment);
 end;
 
 procedure TCastleProject.DoOutput(const OutputKey: String;

@@ -33,11 +33,12 @@ procedure UseSOXSoundBackend;
 
 implementation
 
-uses SysUtils, Classes, Math, Process, StrUtils,
+uses SysUtils, Classes, Math, StrUtils,
   CastleVectors, CastleTimeUtils, CastleXMLConfig,
   CastleClassUtils, CastleStringUtils, CastleInternalSoundFile,
   CastleInternalAbstractSoundBackend, CastleSoundBase, CastleSoundEngine,
-  CastleLog, CastleUtils, CastleUriUtils, CastleFilesUtils;
+  CastleLog, CastleUtils, CastleUriUtils, CastleFilesUtils,
+  CastleInternalProcess;
 
 { sound backend classes interface -------------------------------------------- }
 
@@ -54,7 +55,7 @@ type
     FBuffer: TSoxSoundBufferBackend;
     FPlayStart: TTimerResult;
     FPlayStarted: Boolean;
-    FPlayProcess: TProcess;
+    FPlayProcess: TCastleProcess;
   public
     procedure ContextOpen; override;
     procedure ContextClose; override;
@@ -134,7 +135,7 @@ procedure TSoxSoundSourceBackend.Play(const BufferChangedRecently: Boolean;
 begin
   Stop;
 
-  FPlayProcess := TProcess.Create(nil);
+  FPlayProcess := TCastleProcess.Create(nil);
   { We invoke "sox xxx.wav --default-device" instead of "play xxx.wav",
     because on Windows (Cygwin) the "play" is only a symbolic link,
     so we would have to execute it through bash, making the code more complicated. }
@@ -224,6 +225,7 @@ function TSoxSoundEngineBackend.ContextOpen(const ADevice: String;
   out Information, InformationSummary: String): Boolean;
 var
   SoxVersion: String;
+  SoxStatus: Integer;
 begin
   SoxCommand := FindExe('sox');
   if SoxCommand = '' then
@@ -232,7 +234,8 @@ begin
     InformationSummary := Information;
     Exit(false);
   end;
-  if not RunCommand(SoxCommand, ['--version'], SoxVersion) then
+  ExecuteCommand('', SoxCommand, ['--version'], SoxVersion, SoxStatus);
+  if SoxStatus <> 0 then
   begin
     Information := 'Failed to execute SOX executable with --version';
     InformationSummary := Information;

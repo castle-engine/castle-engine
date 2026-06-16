@@ -83,9 +83,10 @@ procedure GenerateDataInformation(const CurrentDataPath: String);
 
 implementation
 
-uses SysUtils, Process,
+uses SysUtils,
   CastleFilesUtils, CastleLog, CastleFindFiles, CastleUriUtils,
   CastleStringUtils, CastleInternalDirectoryInformation,
+  CastleInternalProcess,
   ToolCommonUtils, ToolUtils, ToolDebian, ToolProcessRun;
 
 { TPackageDirectory ---------------------------------------------------------- }
@@ -129,7 +130,7 @@ var
       raise Exception.CreateFmt('Cannot find "%s" program on $PATH. Make sure it is installed, and available on $PATH', [
         PackagingExeName
       ]);
-    MyRunCommandIndir(TemporaryDir, CommandExe,
+    ExecuteCommand(TemporaryDir, CommandExe,
       PackagingParameters,
       ProcessOutput, ProcessExitStatus);
 

@@ -183,7 +183,7 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
     finally FreeAndNil(Image) end;
 
     { this is worse, as it requires ImageMagick }
-    // RunCommandSimple(FindExe('convert'), [InputFile, '-flip', InputFlippedFile]);
+    // ExecuteCommandSimple(FindExe('convert'), [InputFile, '-flip', InputFlippedFile]);
 
     OutputTempFile := TempPrefix + 'output' + ExtractFileExt(OutputFile);
 
@@ -237,7 +237,7 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
         CommandOptions.AddRange(
           ['-DXT1UseAlpha', '1', '-AlphaThreshold', '0.5']);
 
-      RunCommandSimple(ExtractFilePath(TempPrefix),
+      ExecuteCommandSimple(ExtractFilePath(TempPrefix),
         CommandExe, CommandOptions.ToArray);
     finally FreeAndNil(CommandOptions) end;
 
@@ -263,7 +263,7 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
     { otherwise, assume it's on $PATH }
     TryToolExePath(ToolExe, 'PVRTexToolCLI', C);
 
-    RunCommandSimple(ToolExe, [
+    ExecuteCommandSimple(ToolExe, [
       '-f', CompressionNameForTool,
       '-q', 'pvrtcbest',
       '-m', IntToStr(MipmapsLevel),
@@ -346,7 +346,7 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
     ToolExe := FindExeCastleTool(ToolName);
     TryToolExePath(ToolExe, ToolName, C);
 
-    RunCommandSimple(ToolExe,
+    ExecuteCommandSimple(ToolExe,
       [ColorspaceOption,
        InputFile,
        OutputFile,
@@ -384,7 +384,7 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
           OutputFile
         ]);
       end;
-      RunCommandSimple(ToolExe, CommandOptions.ToArray);
+      ExecuteCommandSimple(ToolExe, CommandOptions.ToArray);
     finally FreeAndNil(CommandOptions) end;
   end;
 

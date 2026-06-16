@@ -542,17 +542,17 @@ var
       end;
 
       {$ifdef MSWINDOWS}
-      RunCommandSimple(AndroidProjectPath, AndroidProjectPath + 'gradlew.bat', Args.ToArray);
+      ExecuteCommandSimple(AndroidProjectPath, AndroidProjectPath + 'gradlew.bat', Args.ToArray);
       {$else}
       if RegularFileExists(AndroidProjectPath + 'gradlew') then
       begin
         Args.Insert(0, './gradlew');
-        RunCommandSimple(AndroidProjectPath, 'bash', Args.ToArray);
+        ExecuteCommandSimple(AndroidProjectPath, 'bash', Args.ToArray);
       end else
       begin
         Writeln('Local Gradle wrapper ("gradlew") not found, so we will call the Gradle on $PATH.');
         Writeln('Make sure you have installed Gradle (e.g. from the Debian "gradle" package), in a version compatible with the Android Gradle plugin (see https://developer.android.com/studio/releases/gradle-plugin.html#updating-gradle ).');
-        RunCommandSimple(AndroidProjectPath, 'gradle', Args.ToArray);
+        ExecuteCommandSimple(AndroidProjectPath, 'gradle', Args.ToArray);
       end;
       {$endif}
     finally FreeAndNil(Args) end;
@@ -650,14 +650,14 @@ begin
   Writeln('Reinstalling application identified as "' + Project.QualifiedName + '".');
   Writeln('If this fails, an often cause is that a previous development version of the application, signed with a different key, remains on the device. In this case uninstall it first by "castle-engine uninstall --target=android" or "adb uninstall ' + Project.QualifiedName + '". Note that it will clear your UserConfig data, unless you pass -k to "adb".');
   Flush(Output); // don't mix output with adb output
-  RunCommandSimple(AdbExe, ['install', '-r', PackageName]);
+  ExecuteCommandSimple(AdbExe, ['install', '-r', PackageName]);
   Writeln('Install successful.');
 end;
 
 procedure UnInstallAndroid(const Project: TCastleProject);
 begin
   Writeln('Uninstalling Android application identified as "' + Project.QualifiedName + '".');
-  RunCommandSimple(AdbExe, ['uninstall', Project.QualifiedName]);
+  ExecuteCommandSimple(AdbExe, ['uninstall', Project.QualifiedName]);
   Writeln('Uninstall successful.');
 end;
 
@@ -666,7 +666,7 @@ var
   ActivityName, LogTag: string;
 begin
   ActivityName := 'io.castleengine.MainActivity';
-  RunCommandSimple(AdbExe, ['shell', 'am', 'start',
+  ExecuteCommandSimple(AdbExe, ['shell', 'am', 'start',
     '-a', 'android.intent.action.MAIN',
     '-n', Project.QualifiedName + '/' + ActivityName ]);
   Writeln('Android application successfully started.');
@@ -680,7 +680,7 @@ begin
     because we don't want to capture output,
     we want to immediately pass it to user.
 
-    Later implementation relies on RunCommandSimple, this way
+    Later implementation relies on ExecuteCommandSimple, this way
     we pass new ChildProcessId to EditorUtils, since it writelns the magic string
     'Castle Game Engine Internal: ProcessID: ...' . And passing this
     ChildProcessId to EditorUtils allows better behavior when using "Stop"
@@ -696,13 +696,13 @@ begin
       but it would not solve issue AD 1 above.
   }
   //ExecuteProcess(AdbExe, ['logcat', '-s', LogTag + ':V']);
-  RunCommandSimple(AdbExe, ['logcat', '-s', LogTag + ':V']);
+  ExecuteCommandSimple(AdbExe, ['logcat', '-s', LogTag + ':V']);
 end;
 
 procedure WritelnAndroidDevices;
 begin
   Writeln('Detecting Android devices:');
-  RunCommandSimple(AdbExe, ['devices']);
+  ExecuteCommandSimple(AdbExe, ['devices']);
 end;
 
 end.

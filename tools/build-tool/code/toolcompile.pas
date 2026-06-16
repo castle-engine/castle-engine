@@ -119,9 +119,9 @@ const
 
 implementation
 
-uses SysUtils, Process, StrUtils,
+uses SysUtils, StrUtils,
   CastleUtils, CastleLog, CastleFilesUtils, CastleFindFiles,
-  CastleInternalTools,
+  CastleInternalTools, CastleInternalProcess,
   ToolCommonUtils, ToolUtils, ToolFpcVersion, ToolCompilerInfo, ToolProcessRun
   {$ifdef DARWIN} , ToolMacOS {$endif};
 
@@ -198,7 +198,7 @@ begin
     if CachedValue <> '' then
     begin
       FpcExe := FindExeFpcCompiler;
-      MyRunCommandIndir(GetCurrentDir, FpcExe, ['-V' + CachedValue, '-iV'], FpcOutput, FpcExitStatus);
+      ExecuteCommand('', FpcExe, ['-V' + CachedValue, '-iV'], FpcOutput, FpcExitStatus);
       if FpcExitStatus <> 0 then
       begin
         WritelnWarning('Failed to execute FPC with "-V' + CachedValue + '" option, indicating that using this option for iPhone Simulator is invalid.' + NL +
@@ -292,6 +292,37 @@ begin
 end;
 
 { Other routines ------------------------------------------------------------- }
+
+{ Like ExecuteCommand with PassThrough=true, but has simpler parameters
+  OverrideEnvironmentName / OverrideEnvironmentValue, instead of OverrideEnvironment,
+  allowing to optionally (when OverrideEnvironmentName <> '') override
+  at most 1 environment variable. }
+procedure RunCommandIndirPassthrough(const CurrentDirectory: String;
+  const ExeName: String;
+  const Options: array of string;
+  var OutputString: String; var ExitStatus: Integer;
+  const OverrideEnvironmentName: String = '';
+  const OverrideEnvironmentValue: String = '';
+  const LineFiltering: TLineFiltering = nil;
+  const LineFilteringData: Pointer = nil;
+  const Flags: TExecuteCommandFlags = []);
+var
+  OverrideEnvironment: TStringList;
+begin
+  // calculate OverrideEnvironment from OverrideEnvironmentName
+  OverrideEnvironment := nil;
+  if OverrideEnvironmentName <> '' then
+  begin
+    OverrideEnvironment := EnvironmentStrings;
+    OverrideEnvironment.Values[OverrideEnvironmentName] := OverrideEnvironmentValue;
+    // WritelnVerbose('Environment: ' + P.Environment.Text);
+  end;
+  try
+    ExecuteCommand(CurrentDirectory, ExeName, Options,
+      OutputString, ExitStatus, LineFiltering, LineFilteringData, Flags,
+      OverrideEnvironment, true);
+  finally FreeAndNil(OverrideEnvironment) end;
+end;
 
 { Writeln a message that FPC/Lazarus crashed and we will retry,
   and clean compilation leftover files. }

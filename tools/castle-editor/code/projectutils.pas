@@ -16,8 +16,6 @@
 { Project-related castle-editor utilities. }
 unit ProjectUtils;
 
-{$mode objfpc}{$H+}
-
 interface
 
 uses
@@ -54,7 +52,7 @@ implementation
 
 uses Forms,
   CastleUriUtils, CastleStringUtils, CastleFindFiles, CastleUtils,
-  CastleFilesUtils,
+  CastleFilesUtils, CastleInternalProcess,
   ToolCommonUtils, ToolProcessRun,
   EditorUtils, FormProject;
 
@@ -83,10 +81,10 @@ begin
     NewEnvironment.Values['CASTLE_ENGINE_PATH'] := CastleEnginePath;
   end;
 
-  MyRunCommandIndir(UriToFilenameSafe(ProjectDirUrl), BuildToolExe,
+  ExecuteCommand(UriToFilenameSafe(ProjectDirUrl), BuildToolExe,
     ['generate-program'], BuildToolOutput, BuildToolStatus, nil, nil,
     // prevent from blinking console on Windows
-    [rcNoConsole],
+    [ecNoConsole],
     NewEnvironment);
   if BuildToolStatus <> 0 then
   begin

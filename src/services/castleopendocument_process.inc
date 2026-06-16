@@ -22,7 +22,7 @@
 
 {$ifdef read_uses}
   // With Delphi, this will compile only on platforms that have Posix.Stdlib, and that's good.
-  {$ifdef FPC} BaseUnix, Process, {$else} Posix.Stdlib, {$endif}
+  {$ifdef FPC} BaseUnix, CastleInternalProcess, {$else} Posix.Stdlib, {$endif}
 {$endif}
 
 {$ifdef read_implementation}
@@ -68,7 +68,7 @@ resourcestring
 procedure RunCmdFromPath(ProgramFilename, Parameter: string);
 var
   OldProgramFilename: String;
-  BrowserProcess: TProcess;
+  BrowserProcess: TCastleProcess;
 begin
   OldProgramFilename:=ProgramFilename;
   ProgramFilename:=PathFileSearch(ProgramFilename);
@@ -79,7 +79,7 @@ begin
     raise EFOpenError.Create(Format(lisCanNotExecute, [ProgramFilename]));
 
   // run
-  BrowserProcess := TProcess.Create(nil);
+  BrowserProcess := TCastleProcess.Create(nil);
   try
     BrowserProcess.Executable := ProgramFilename;
     BrowserProcess.Parameters.Add(Parameter);
