@@ -22,7 +22,7 @@ interface
 
 uses SysUtils, Classes, Generics.Collections,
   CastleFindFiles, CastleStringUtils, CastleUtils, CastleInternalTools,
-  CastleInternalArchitectures,
+  CastleInternalArchitectures, CastleInternalProcess,
   ToolCompile, ToolUtils, ToolServices, ToolAssocDocTypes,
   ToolPackage, ToolManifest, ToolProcess, ToolPackageFormat;
 
@@ -315,7 +315,6 @@ uses {$ifdef UNIX} BaseUnix, {$endif}
   StrUtils, DOM,
   CastleUriUtils, CastleXmlUtils, CastleLog, CastleFilesUtils, CastleImages,
   CastleTimeUtils, CastleComponentSerialize, CastleColors,
-  CastleInternalProcess,
   ToolResources, ToolAndroid, ToolMacOS, ToolWeb,
   ToolTextureGeneration, ToolIOS, ToolAndroidMerging, ToolNintendoSwitch,
   ToolCommonUtils, ToolMacros, ToolCompilerInfo, ToolPackageCollectFiles,

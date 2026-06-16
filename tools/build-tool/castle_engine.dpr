@@ -28,9 +28,9 @@ uses SysUtils,
   CastleUtils, CastleParameters, CastleFindFiles, CastleLog,
   CastleFilesUtils, CastleUriUtils, CastleStringUtils,
   CastleApplicationProperties, CastleInternalProjectLocalSettings,
-  CastleInternalArchitectures,
+  CastleInternalArchitectures, CastleInternalProcess,
   ToolPackageFormat, ToolProject, ToolCompile, ToolIOS, ToolAndroid, ToolManifest,
-  ToolNintendoSwitch, ToolCommonUtils, ToolUtils, ToolProcess,
+  ToolNintendoSwitch, ToolCommonUtils, ToolUtils,
   { For ForcePipesPassthrough, necessary for Windows. } ToolProcessRun,
   ToolCache, ToolCompilerInfo, ToolMacOS;
 
@@ -59,7 +59,7 @@ var
   RemoveMask: String = '';
 
 const
-  Options: array [0..29] of TOption =
+  Options: array [0..30] of TOption =
   (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
     (Short: 'v'; Long: 'version'; Argument: oaNone),
@@ -90,7 +90,8 @@ const
     (Short: #0 ; Long: 'project-parent-dir'; Argument: oaRequired),
     (Short: #0 ; Long: 'project-caption'; Argument: oaRequired),
     (Short: #0 ; Long: 'project-main-view'; Argument: oaRequired),
-    (Short: #0 ; Long: 'remove-mask'; Argument: oaRequired)
+    (Short: #0 ; Long: 'remove-mask'; Argument: oaRequired),
+    (Short: #0 ; Long: 'use-delphi-dcc'; Argument: oaNone)
   );
 
 procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
@@ -288,6 +289,8 @@ begin
               'Only on Windows (ignored on other systems): Force using less performant, but more robust, way to run child processes with "passthrough", like for "castle-engine run". Useful to run "castle-engine run" from PowerShell, outside of CGE editor.') + NL +
             OptionDescription('--remove-mask',
               'Use only with "unused-data" command. Removes files that match the given mask. For example, --remove-mask=*.png will remove all PNG files detected as unused. --remove-mask=* will remove all files detected as unused.') + NL +
+            OptionDescription('--use-delphi-dcc',
+              'When compiling with Delphi, use the historic approach of calling the "dccXXX" compiler directly, instead of using msbuild on the generated .dproj.') + NL +
             TargetOptionHelp +
             NL +
             OSOptionHelp +
@@ -347,6 +350,7 @@ begin
     27: ProjectCaption := Argument;
     28: ProjectMainView := Argument;
     29: RemoveMask := Argument;
+    30: CompileDelphiUsingDcc := true;
     else raise EInternalError.Create('OptionProc');
   end;
 end;

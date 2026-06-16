@@ -87,6 +87,22 @@ uses SysUtils, Classes,
   {$ifdef HAS_STANDARD_PROCESS} Process, {$endif}
   CastleUtils, CastleStringUtils;
 
+type
+  { Type wide enough to contain process id on all platforms.
+
+    Not defined with $ifdef, as this is not opaque type in practice,
+    CGE build tool even does tricks by passing it in text in one place
+    (see internal ToolProcessRun).
+    We just need to explicitly decide on integer type
+    that can fit everything.
+
+    On Windows this is DWORD ( https://docs.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-getcurrentprocessid ).
+
+    On Unix this is pid_t ( https://man7.org/linux/man-pages/man3/pid_t.3.html )
+    which should be signed and no greater than CLong. In practice it is 32 or 64 bit signed
+    integer. }
+  TProcessId = Int64;
+
 {$if defined(HAS_STANDARD_PROCESS)}
 
 { Alias all types and constants (enum value)s) from Process unit,
