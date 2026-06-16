@@ -34,6 +34,8 @@ type
   { Set of flags for @link(ExecuteCommand) and friends. }
   TExecuteCommandFlags = set of TExecuteCommandFlag;
 
+{$ifdef FPC} // needs full TProcess
+
 { Run command in the given directory with the given arguments,
   gathering the output (including error output, so we capture stdout and stderr)
   to a string.
@@ -98,6 +100,8 @@ procedure ExecuteCommand(
   const Flags: TExecuteCommandFlags = [];
   const OverrideEnvironment: TStringList = nil;
   const PassThrough: Boolean = false); overload;
+
+{$endif FPC}
 
 {$endif read_interface}
 
@@ -301,13 +305,69 @@ end;
 { Running processes ---------------------------------------------------------- }
 
 function EnvironmentStrings: TStringList;
+
+{$ifdef FPC}
+// FPC cross-platform implementation using SysUtils.GetEnvironmentXxx.
 var
   I: Integer;
+  S: String;
 begin
   Result := TStringList.Create;
   for I := 1 to GetEnvironmentVariableCount do
-    Result.Add(GetEnvironmentString(I));
+  begin
+    S := GetEnvironmentString(I);
+    { Avoid weird lines "=::=::\" on Windows 11.
+      See comments below for Delphi. }
+    if (S <> '') and (S[1] <> '=') then
+      Result.Add(S);
+  end;
 end;
+
+{$elseif defined(DELPHI) and defined(MSWINDOWS)}
+// For Delphi/Windows, use WinApi GetEnvironmentStrings.
+var
+  EnvBlock, P: PChar;
+  S: String;
+begin
+  Result := TStringList.Create;
+  { GetEnvironmentStrings returns a block of consecutive #0-terminated
+    "name=value" strings, the whole block terminated by an additional #0. }
+  EnvBlock := GetEnvironmentStrings;
+  try
+    P := EnvBlock;
+    while P^ <> #0 do
+    begin
+      S := P; // convert the #0-terminated PChar to String
+      { Skip the special entries that begin with "=", which would then
+        imply env variable with name = '', so unexpected by various APIs,
+        TStringList.Values[] is not ready for this.
+
+        On Windows:
+        - this claims you may see environment like "=X:",
+          https://devblogs.microsoft.com/oldnewthing/20100506-00/?p=14133 ,
+          although this is not confirmed on Windows 11.
+
+        - but we see environment "=::=::\" on Windows 11, so avoid it.
+          Saw also on https://stackoverflow.com/questions/10431689/what-are-these-strange-environment-variables ,
+          without a real explanation (all answers refer to above article
+          about "=X:").
+      }
+      if (S <> '') and (S[1] <> '=') then
+         Result.Add(S);
+      Inc(P, Length(S) + 1); // advance past this string and its #0
+    end;
+  finally
+    FreeEnvironmentStrings(EnvBlock);
+  end;
+end;
+
+{$else}
+begin
+  Result := TStringList.Create;
+  WritelnWarning('EnvironmentStrings not implemented for this compiler and platform');
+end;
+
+{$endif}
 
 function AbsoluteExeName(const ExeName: String): String;
 begin
@@ -325,6 +385,8 @@ begin
         [ExeName, ExeName]);
   end;
 end;
+
+{$ifdef FPC} // needs full TProcess
 
 procedure ExecuteCommand(const CurrentDirectory: String;
   ExeName: String;const Options: array of string;
@@ -377,5 +439,7 @@ begin
     ExitStatus := P.ExitStatus;
   finally FreeAndNil(P) end;
 end;
+
+{$endif FPC}
 
 {$endif read_implementation}

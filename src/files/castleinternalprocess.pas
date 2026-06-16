@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2026-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
@@ -53,6 +53,11 @@ unit CastleInternalProcess;
   in castleconf.inc. }
 {$if defined(FPC) and defined(CASTLE_PROCESS_AVAILABLE)}
   {$define HAS_STANDARD_PROCESS}
+{$endif}
+
+{ Implement own minimal TCastleProcess here. }
+{$if defined(CASTLE_PROCESS_AVAILABLE) and not defined(HAS_STANDARD_PROCESS)}
+  {$define MINIMAL_PROCESS_IMPLEMENTATION}
 {$endif}
 
 { On Windows, if application execution is blocked by "Smart App Control"
@@ -142,7 +147,7 @@ const
   ppNormal = Process.ppNormal;
   ppRealTime = Process.ppRealTime;
 
-{$elseif defined(CASTLE_PROCESS_AVAILABLE)}
+{$elseif defined(MINIMAL_PROCESS_IMPLEMENTATION)}
 
 type
   TProcessOption = (
@@ -176,7 +181,8 @@ type
 
     On Delphi, we implement of subset of the necessary functionality on our side,
     only for certain platforms. }
-  TCastleProcess = class {$ifdef HAS_STANDARD_PROCESS} (TProcess) {$endif}
+  TCastleProcess = class(
+    {$ifdef HAS_STANDARD_PROCESS} TProcess {$else} TComponent {$endif} )
   public
     {$ifdef IMPROVE_WINDOWS_PROCESS_ERROR_MESSAGES}
     procedure Execute; override;
@@ -190,9 +196,12 @@ type
 implementation
 
 uses
-  {$ifdef IMPROVE_WINDOWS_PROCESS_ERROR_MESSAGES}
+  { Windows unit is needed both for IMPROVE_WINDOWS_PROCESS_ERROR_MESSAGES
+    (FPC on Windows) and for EnvironmentStrings implementation using
+    GetEnvironmentStrings (Delphi on Windows). }
+  {$if defined(IMPROVE_WINDOWS_PROCESS_ERROR_MESSAGES) or (defined(DELPHI) and defined(MSWINDOWS))}
   Windows,
-  {$endif IMPROVE_WINDOWS_PROCESS_ERROR_MESSAGES}
+  {$endif}
   CastleFilesUtils, CastleLog;
 
 {$define read_implementation}
