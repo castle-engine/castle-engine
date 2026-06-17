@@ -34,13 +34,12 @@ type
   { Set of flags for @link(ExecuteCommand) and friends. }
   TExecuteCommandFlags = set of TExecuteCommandFlag;
 
-{$ifdef FPC} // needs full TProcess
-
 { Run command in the given directory with the given arguments,
-  gathering the output (including error output, so we capture stdout and stderr)
-  to a string.
+  wait for it to finish.
 
-  Optionally can filter the gathered output (if LineFiltering is not nil).
+  The stdout/stderr of the command are not captured anywhere,
+  they are passed-through as our stdout/stderr.
+  This is in contrast to ExecuteCommandCapture that captures output to String.
 
   Optionally can override environment variables.
   If OverrideEnvironment is <> nil, then we override environment variables for
@@ -55,12 +54,57 @@ type
     try
       OverrideEnvironment.Values['MY_VARIABLE_1_NAME'] := 'my_variable_1_value';
       OverrideEnvironment.Values['MY_VARIABLE_2_NAME'] := 'my_variable_2_value';
-      ExecuteCommand(CurrentDirectory, ExeName, Options, OverrideEnvironment);
+      ExecuteCommandWait(CurrentDirectory, ExeName, Options, OverrideEnvironment);
     finally
       FreeAndNil(OverrideEnvironment);
     end;
   end;
   #)
+
+  This routine is similar to the standard ExecuteProcess in FPC.
+
+  @param(CurrentDirectory Directory in which to run the command.
+    The child process will see this as its current directory (GetCurrentDir()
+    in Pascal).
+    If empty (''), uses current directory of our process.)
+
+  @param(ExeName Executable name, either an absolute filename (with extension
+    like @code(.exe) on Windows) or just the name of executable to find on
+    environment variable $PATH (without extension, even on Windows).)
+
+  @param(OverrideEnvironment
+    When not nil, overrides environment variables for the process.
+    You can start from EnvironmentStrings.
+    Remember to free the passed TStringList after calling this routine.) }
+procedure ExecuteCommandWait(const CurrentDirectory: String;
+  ExeName: String;
+  const Options: array of string;
+  out ExitStatus: Integer;
+  const Flags: TExecuteCommandFlags = [];
+  const OverrideEnvironment: TStringList = nil);
+
+{ Run command in the given directory with the given arguments,
+  wait for it to finish.
+
+  Checks the exit status, and raises an exception if it is not 0.
+  This is in contrast to ExecuteCommandWait that doesn't check the exit status,
+  and only returns it. }
+procedure ExecuteCommandCheckStatus(const CurrentDirectory: String;
+  const ExeName: String;
+  const Options: array of string;
+  const Flags: TExecuteCommandFlags = [];
+  const OverrideEnvironment: TStringList = nil);
+
+{$ifdef FPC} // needs full TProcess
+
+{ Run command in the given directory with the given arguments,
+  gathering the output (including error output, so we capture stdout and stderr)
+  to a string.
+
+  Optionally can filter the gathered output (if LineFiltering is not nil).
+
+  Optionally can override environment variables.
+  See @link(ExecuteCommandWait) for details and example.
 
   This routine is similar to the standard Process.RunCommandIndir in FPC >= 2.6.4,
   but also captures error output, and enables filtering, and enables
@@ -302,7 +346,7 @@ begin
   PendingLine := '';
 end;
 
-{ Running processes ---------------------------------------------------------- }
+{ Environment strings -------------------------------------------------------- }
 
 function EnvironmentStrings: TStringList;
 
@@ -369,6 +413,8 @@ end;
 
 {$endif}
 
+{ AbsoluteExeName ------------------------------------------------------------ }
+
 function AbsoluteExeName(const ExeName: String): String;
 begin
   if IsPathAbsolute(ExeName) then
@@ -384,6 +430,63 @@ begin
       raise Exception.CreateFmt('Cannot find "%s" on environment variable $PATH. Make sure "%s" is installed and $PATH is configured correctly',
         [ExeName, ExeName]);
   end;
+end;
+
+{ ExecuteCommand and friends ------------------------------------------------- }
+
+procedure ExecuteCommandWait(const CurrentDirectory: String;
+  ExeName: String;
+  const Options: array of string;
+  out ExitStatus: Integer;
+  const Flags: TExecuteCommandFlags = [];
+  const OverrideEnvironment: TStringList = nil);
+var
+  P: TCastleProcess;
+  I: Integer;
+begin
+  // default out values
+  ExitStatus := 0;
+
+  ExeName := AbsoluteExeName(ExeName);
+
+  P := TCastleProcess.Create(nil);
+  try
+    P.Executable := ExeName;
+    if CurrentDirectory <> '' then
+      P.CurrentDirectory := CurrentDirectory;
+    if High(Options) >= 0 then
+      for I := Low(Options) to High(Options) do
+        P.Parameters.Add(Options[I]);
+    WritelnLog('Calling ' + ExeName);
+    WritelnLog(P.Parameters.Text);
+
+    if ecNoConsole in Flags then
+      P.Options := P.Options + [poNoConsole];
+    if OverrideEnvironment <> nil then
+      P.Environment := OverrideEnvironment;
+
+    P.Execute;
+    P.WaitOnExit;
+
+    ExitStatus := P.ExitStatus;
+  finally FreeAndNil(P) end;
+end;
+
+procedure ExecuteCommandCheckStatus(const CurrentDirectory: String;
+  const ExeName: String;
+  const Options: array of string;
+  const Flags: TExecuteCommandFlags = [];
+  const OverrideEnvironment: TStringList = nil);
+var
+  ExitStatus: Integer;
+begin
+  ExecuteCommandWait(CurrentDirectory, ExeName, Options, ExitStatus, Flags,
+    OverrideEnvironment);
+  if ExitStatus <> 0 then
+    raise Exception.CreateFmt('Command "%s" exited with non-zero exit status %d', [
+      ExeName,
+      ExitStatus
+    ]);
 end;
 
 {$ifdef FPC} // needs full TProcess

@@ -710,10 +710,9 @@
   {$define CASTLE_PROCESS_AVAILABLE}
 {$endif}
 
-// TODO: implement for Delphi
-// {$if defined(DELPHI) and (defined(MSWINDOWS) or defined(LINUX))}
-//   {$define CASTLE_PROCESS_AVAILABLE}
-// {$endif}
+{$if defined(DELPHI) and (defined(MSWINDOWS) or defined(LINUX))}
+  {$define CASTLE_PROCESS_AVAILABLE}
+{$endif}
 
 // keep this line at the end of the file
 {$endif not CASTLE_CONF_INCLUDED}

@@ -23,11 +23,12 @@ uses
 type
   TTestCastleInternalProcess = class(TCastleTestCase)
     procedure TestEnvironmentStrings;
+    procedure TestProcessExecute;
   end;
 
 implementation
 
-uses CastleInternalProcess, CastleUtils, CastleLog;
+uses CastleInternalProcess, CastleUtils, CastleLog, CastleFilesUtils;
 
 procedure TTestCastleInternalProcess.TestEnvironmentStrings;
 var
@@ -41,6 +42,50 @@ begin
     for I := 0 to Env.Count - 1 do
       AssertTrue(Env.Names[I] <> '');
   finally FreeAndNil(Env) end;
+end;
+
+procedure TTestCastleInternalProcess.TestProcessExecute;
+
+{ If the standard Unix tools touch, ls are available -- have fun
+  testing their usage with ExecuteCommandCheckStatus. }
+
+var
+  TouchExe, LsExe, RmExe, TempDir, TempFileBaseName: String;
+begin
+  if not CanUseFileSystem then // needed for GetTempDirectory
+  begin
+    Abort;
+    Exit;
+  end;
+
+  TouchExe := FindExe('touch');
+  LsExe := FindExe('ls');
+  RmExe := FindExe('rm');
+
+  if (TouchExe = '') or (LsExe = '') or (RmExe = '') then
+  begin
+    WritelnLog('touch, ls or rm not found, skipping TestProcessExecute');
+    Abort;
+    Exit;
+  end;
+
+  WritelnLog('Using Unix tools:' + NL +
+    '  touch: "%s"' + NL +
+    '  ls: "%s"' + NL +
+    '  rm: "%s"', [
+    TouchExe,
+    LsExe,
+    RmExe
+  ]);
+
+  { Run the tools with CurrentDirectory = TempDir, so the relative
+    TempFileBaseName is created/listed/removed there. This also exercises
+    TCastleProcess.CurrentDirectory and the ExitStatus checking. }
+  TempDir := GetTempDirectory;
+  TempFileBaseName := 'castle_internal_process_testfile' + IntToStr(Random(1000000)) + '.txt';
+  ExecuteCommandCheckStatus(TempDir, TouchExe, [TempFileBaseName]);
+  ExecuteCommandCheckStatus(TempDir, LsExe, ['-l', TempFileBaseName]);
+  ExecuteCommandCheckStatus(TempDir, RmExe, ['-f', TempFileBaseName]);
 end;
 
 initialization

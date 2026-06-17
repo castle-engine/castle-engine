@@ -199,10 +199,87 @@ type
     only for certain platforms. }
   TCastleProcess = class(
     {$ifdef HAS_STANDARD_PROCESS} TProcess {$else} TComponent {$endif} )
+  strict private
+    {$ifdef MINIMAL_PROCESS_IMPLEMENTATION}
+    FExecutable: String;
+    FCurrentDirectory: String;
+    FParameters: TStrings;
+    FEnvironment: TStrings;
+    FOptions: TProcessOptions;
+    FStartupOptions: TStartupOptions;
+    FShowWindowOptions: TShowWindowOptions;
+    FPriority: TProcessPriority;
+    { Handle of the running process.
+
+      On Windows this is a THandle, valid (non-zero) after Execute.
+
+      On Unix this is pid_t, again valid (not 0, not -1) after successful Execute.
+      -1 indicates we had error in fork() and process was not started. }
+    FHandle: TProcessId;
+    FExitStatus: Integer;
+    procedure SetParameters(const Value: TStrings);
+    procedure SetEnvironment(const Value: TStrings);
+    {$endif MINIMAL_PROCESS_IMPLEMENTATION}
   public
     {$ifdef IMPROVE_WINDOWS_PROCESS_ERROR_MESSAGES}
     procedure Execute; override;
     {$endif IMPROVE_WINDOWS_PROCESS_ERROR_MESSAGES}
+
+    {$ifdef MINIMAL_PROCESS_IMPLEMENTATION}
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+
+    { Absolute executable path, from @link(FindExe) or @link(AbsoluteExeName). }
+    property Executable: String Read FExecutable Write FExecutable;
+
+    { Parameters passed to the process. }
+    property Parameters: TStrings Read FParameters Write SetParameters;
+
+    { Current directory for the process.
+      The child process will see this as its current directory
+      (GetCurrentDir() from its point of view).) }
+    property CurrentDirectory: String Read FCurrentDirectory Write FCurrentDirectory;
+
+    { Process exit status, valid only after process finishes and you waited for
+      it using @link(WaitOnExit). }
+    property ExitStatus: Integer Read FExitStatus;
+
+    { Start process. }
+    procedure Execute; virtual;
+
+    { Forcefully terminate process now.
+      The AExitCode parameter is ignored on Unix, as we cannot dictate the
+      child's exit code then.
+      It is honored on Windows. }
+    function Terminate(const AExitCode: Integer): Boolean; virtual;
+
+    { Wait until process finishes. }
+    function WaitOnExit: Boolean; virtual;
+
+    { Environment variables passed to the process, if not empty.
+      If you want to adjust process environment, then usually you want to start
+      with @link(EnvironmentStrings), to start with the same environment as
+      the current process, and then adjust it.
+      If empty, the process inherits the environment of the current process. }
+    property Environment: TStrings Read FEnvironment Write SetEnvironment;
+
+    { Options, ignored in this minimal implementation for now. }
+    property Options: TProcessOptions Read FOptions Write FOptions;
+
+    { Startup options, ignored in this minimal implementation for now. }
+    property StartupOptions: TStartupOptions Read FStartupOptions Write FStartupOptions;
+
+    { ShowWindow (WinAPI) options, ignored in this minimal implementation for now. }
+    property ShowWindow: TShowWindowOptions Read FShowWindowOptions Write FShowWindowOptions;
+
+    { Process priority, ignored in this minimal implementation for now. }
+    property Priority: TProcessPriority Read FPriority Write FPriority;
+
+    { Internal handle of the running process.
+      On Windows this is a THandle, on Unix this is pid_t.
+      Valid after Execute. }
+    property ProcessHandle: TProcessId Read FHandle;
+    {$endif MINIMAL_PROCESS_IMPLEMENTATION}
   end;
 
 {$define read_interface}
@@ -212,11 +289,17 @@ type
 implementation
 
 uses
-  { Windows unit is needed both for IMPROVE_WINDOWS_PROCESS_ERROR_MESSAGES
-    (FPC on Windows) and for EnvironmentStrings implementation using
-    GetEnvironmentStrings (Delphi on Windows). }
+  { Windows unit is needed
+    - for IMPROVE_WINDOWS_PROCESS_ERROR_MESSAGES
+      (FPC on Windows)
+    - for EnvironmentStrings implementation using
+      GetEnvironmentStrings (Delphi on Windows)
+    - for MINIMAL_PROCESS_IMPLEMENTATION on Windows. }
   {$if defined(IMPROVE_WINDOWS_PROCESS_ERROR_MESSAGES) or (defined(DELPHI) and defined(MSWINDOWS))}
   Windows,
+  {$endif}
+  {$if defined(MINIMAL_PROCESS_IMPLEMENTATION) and defined(UNIX)}
+  Posix.Unistd, Posix.SysWait, Posix.Signal, Posix.Errno,
   {$endif}
   CastleFilesUtils, CastleLog;
 
@@ -279,5 +362,47 @@ begin
   end;
 end;
 {$endif IMPROVE_WINDOWS_PROCESS_ERROR_MESSAGES}
+
+{$ifdef MINIMAL_PROCESS_IMPLEMENTATION}
+constructor TCastleProcess.Create(AOwner: TComponent);
+begin
+  inherited;
+  FParameters := TStringList.Create;
+  FEnvironment := TStringList.Create;
+end;
+
+destructor TCastleProcess.Destroy;
+begin
+  {$ifdef MSWINDOWS}
+  if FHandle <> 0 then
+  begin
+    CloseHandle(FHandle);
+    FHandle := 0;
+  end;
+  {$endif MSWINDOWS}
+  FreeAndNil(FParameters);
+  FreeAndNil(FEnvironment);
+  inherited;
+end;
+
+procedure TCastleProcess.SetParameters(const Value: TStrings);
+begin
+  FParameters.Assign(Value);
+end;
+
+procedure TCastleProcess.SetEnvironment(const Value: TStrings);
+begin
+  FEnvironment.Assign(Value);
+end;
+
+{$if defined(MSWINDOWS)}
+  {$I castleinternalprocess_minimal_process_windows.inc}
+{$endif}
+
+{$if defined(UNIX)}
+  {$I castleinternalprocess_minimal_process_unix.inc}
+{$endif}
+
+{$endif MINIMAL_PROCESS_IMPLEMENTATION}
 
 end.

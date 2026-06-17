@@ -51,14 +51,14 @@ var
   that is helpful for CGE editor to detect the process ID of the child
   process of "castle-engine run" and thus perform "Stop" more reliably.
 
-  TODO: Some things make it "not good enough" to move to more general
-  CastleInternalProcess:
-  - "magic" string 'Castle Game Engine Internal: ProcessID: '
-  - ForcePipesPassthrough complication, the need for it should be reseached,
+  This is very similar to CGE standard ExecuteCommandWait, but:
+
+  - it prints "magic" string 'Castle Game Engine Internal: ProcessID: '
+    TODO: maybe we can get rid of it.
+
+  - it has ForcePipesPassthrough complication.
+    TODO: the need for it should be reseached,
     and either do it automatically on Windows, or remove.
-  - maybe also introduce rename then:
-    ExecuteCommandSimple -> Execute
-    ExecuteCommand -> ExecuteCaptureOutput
 }
 procedure ExecuteCommandSimple(
   const ExeName: String; const Options: array of string); overload;
@@ -98,7 +98,11 @@ procedure ExecuteCommandSimple(
     The stdout/stderr is not captured to any string,
     it is only passed-through as our stdout/stderr.
 
-    This is in contrast to ExecuteCommand that captures output to String. }
+    This is in contrast to ExecuteCommand that captures output to String.
+
+    This is just like ExecuteCommandWait,
+    but with additional logic doing
+    "Castle Game Engine Internal: ProcessID ..." output. }
   procedure ExecuteNoPipes(const CurrentDirectory: String;
     ExeName: String;
     const Options: array of string;
