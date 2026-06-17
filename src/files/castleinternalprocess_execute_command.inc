@@ -354,7 +354,7 @@ end;
 
 function EnvironmentStrings: TStringList;
 
-{$ifdef FPC}
+{$if defined(FPC)}
 // FPC cross-platform implementation using SysUtils.GetEnvironmentXxx.
 var
   I: Integer;
