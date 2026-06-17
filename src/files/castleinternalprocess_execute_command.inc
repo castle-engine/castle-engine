@@ -34,6 +34,8 @@ type
   { Set of flags for @link(ExecuteCommand) and friends. }
   TExecuteCommandFlags = set of TExecuteCommandFlag;
 
+{$ifdef CASTLE_PROCESS_AVAILABLE}
+
 { Run command in the given directory with the given arguments,
   wait for it to finish.
 
@@ -94,6 +96,8 @@ procedure ExecuteCommandCheckStatus(const CurrentDirectory: String;
   const Options: array of string;
   const Flags: TExecuteCommandFlags = [];
   const OverrideEnvironment: TStringList = nil);
+
+{$endif CASTLE_PROCESS_AVAILABLE}
 
 {$ifdef HAS_STANDARD_PROCESS} // needs full TProcess
 
@@ -434,6 +438,8 @@ end;
 
 { ExecuteCommand and friends ------------------------------------------------- }
 
+{$ifdef CASTLE_PROCESS_AVAILABLE}
+
 procedure ExecuteCommandWait(const CurrentDirectory: String;
   ExeName: String;
   const Options: array of string;
@@ -488,6 +494,8 @@ begin
       ExitStatus
     ]);
 end;
+
+{$endif CASTLE_PROCESS_AVAILABLE}
 
 {$ifdef HAS_STANDARD_PROCESS} // needs full TProcess
 
