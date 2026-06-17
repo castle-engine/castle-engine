@@ -710,7 +710,7 @@
   {$define CASTLE_PROCESS_AVAILABLE}
 {$endif}
 
-{$if defined(DELPHI) and (defined(MSWINDOWS) or defined(LINUX))}
+{$if defined(DELPHI) and (defined(MSWINDOWS) or defined(UNIX))}
   {$define CASTLE_PROCESS_AVAILABLE}
 {$endif}
 
