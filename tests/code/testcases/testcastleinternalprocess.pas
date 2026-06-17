@@ -22,6 +22,7 @@ uses
 
 type
   TTestCastleInternalProcess = class(TCastleTestCase)
+  published
     procedure TestEnvironmentStrings;
     procedure TestProcessExecute;
   end;
