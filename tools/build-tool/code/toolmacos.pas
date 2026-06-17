@@ -372,7 +372,7 @@ begin
     Exit('');
   end;
 
-  ExecuteCommand(GetCurrentDir, ToolExe, ['--show-sdk-path'], Result, ExitStatus);
+  ExecuteCommandCapture(GetCurrentDir, ToolExe, ['--show-sdk-path'], Result, ExitStatus);
   if ExitStatus <> 0 then
   begin
     WritelnWarning('Running "xcrun --show-sdk-path" failed, exit status %d.', [
@@ -396,7 +396,7 @@ begin
     Exit('');
   end;
 
-  ExecuteCommand(GetCurrentDir, ToolExe, ['--print-path'], Result, ExitStatus);
+  ExecuteCommandCapture(GetCurrentDir, ToolExe, ['--print-path'], Result, ExitStatus);
   if ExitStatus <> 0 then
   begin
     WritelnWarning('Running "xcode-select --print-path" failed, exit status %d.', [
@@ -450,7 +450,7 @@ begin
     WritelnWarning('Cannot run "xcrun" to query macOS SDK version. Is Xcode with command-line utilities installed?');
     Exit(false);
   end;
-  ExecuteCommand(GetCurrentDir, ToolExe, ['--show-sdk-version'], VersionStr, ExitStatus);
+  ExecuteCommandCapture(GetCurrentDir, ToolExe, ['--show-sdk-version'], VersionStr, ExitStatus);
 
   if ExitStatus <> 0 then
   begin

@@ -235,9 +235,9 @@ begin
 
   SoxVersion := '';
   {$ifdef FPC}
-  { ExecuteCommand (capturing output) is only available with FPC.
+  { ExecuteCommandCapture is only available with FPC.
     With Delphi we just leave SoxVersion empty. }
-  ExecuteCommand('', SoxCommand, ['--version'], SoxVersion, SoxStatus);
+  ExecuteCommandCapture('', SoxCommand, ['--version'], SoxVersion, SoxStatus);
   if SoxStatus <> 0 then
   begin
     Information := 'Failed to execute SOX executable with --version';

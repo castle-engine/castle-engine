@@ -130,7 +130,7 @@ var
       raise Exception.CreateFmt('Cannot find "%s" program on $PATH. Make sure it is installed, and available on $PATH', [
         PackagingExeName
       ]);
-    ExecuteCommand(TemporaryDir, CommandExe,
+    ExecuteCommandCapture(TemporaryDir, CommandExe,
       PackagingParameters,
       ProcessOutput, ProcessExitStatus);
 

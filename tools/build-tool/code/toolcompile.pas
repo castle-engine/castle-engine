@@ -204,7 +204,7 @@ begin
     if CachedValue <> '' then
     begin
       FpcExe := FindExeFpcCompiler;
-      ExecuteCommand('', FpcExe, ['-V' + CachedValue, '-iV'], FpcOutput, FpcExitStatus);
+      ExecuteCommandCapture('', FpcExe, ['-V' + CachedValue, '-iV'], FpcOutput, FpcExitStatus);
       if FpcExitStatus <> 0 then
       begin
         WritelnWarning('Failed to execute FPC with "-V' + CachedValue + '" option, indicating that using this option for iPhone Simulator is invalid.' + NL +
@@ -299,7 +299,7 @@ end;
 
 { Other routines ------------------------------------------------------------- }
 
-{ Like ExecuteCommand with PassThrough=true, but has simpler parameters
+{ Like ExecuteCommandCapture with PassThrough=true, but has simpler parameters
   OverrideEnvironmentName / OverrideEnvironmentValue, instead of OverrideEnvironment,
   allowing to optionally (when OverrideEnvironmentName <> '') override
   at most 1 environment variable. }
@@ -324,7 +324,7 @@ begin
     // WritelnVerbose('Environment: ' + P.Environment.Text);
   end;
   try
-    ExecuteCommand(CurrentDirectory, ExeName, Options,
+    ExecuteCommandCapture(CurrentDirectory, ExeName, Options,
       OutputString, ExitStatus, LineFiltering, LineFilteringData, Flags,
       OverrideEnvironment, true);
   finally FreeAndNil(OverrideEnvironment) end;

@@ -14,7 +14,8 @@
 }
 
 { Running processes, using @link(TCastleProcess) class
-  or simple routines like @link(ExecuteCommand).
+  or simple routines like @link(ExecuteCommand), @link(ExecuteCommandCapture)
+  and others.
 
   This is implemented in various ways depending on the compiler / platform:
 
@@ -42,7 +43,8 @@
   FPC's Process unit, TProcess class or @code(ExecuteProcess) utility.
   This way our code is Delphi-compatible, you benefit from some
   @link(TCastleProcess) improvements,
-  and our family of @code(ExecuteCommand) routines offer some extra features
+  and our family of @code(ExecuteCommand) and @code(ExecuteCommandCapture)
+  routines offer some extra features
   (compared to FPC's @code(RunCommand) routines). }
 unit CastleInternalProcess;
 

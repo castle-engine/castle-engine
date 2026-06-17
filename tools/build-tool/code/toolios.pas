@@ -536,7 +536,7 @@ begin
   if XcodeSelectExe = '' then
     raise Exception.Create('Cannot find "xcode-select". Make sure that Xcode with command-line utilities is installed.');
 
-  ExecuteCommand(XcodeProject, XcodeSelectExe, ['--print-path'], OutputString, ExitStatus);
+  ExecuteCommandCapture(XcodeProject, XcodeSelectExe, ['--print-path'], OutputString, ExitStatus);
 
   if ExitStatus <> 0 then
     raise Exception.CreateFmt('Running "xcode-select" failed, exit status %d, output "%s".', [

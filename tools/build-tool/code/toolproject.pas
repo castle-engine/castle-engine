@@ -1033,7 +1033,7 @@ procedure TCastleProject.DoRun(const Target: TTarget;
     end;
   end;
 
-  { Like @link(ExecuteCommand) but override environment to set CASTLE_LOG=stdout. }
+  { Like @link(ExecuteCommandSimple) but override environment to set CASTLE_LOG=stdout. }
   procedure ExecuteCommandLogStdout(const CurrentDirectory: String;
     const ExeName: String; const Options: array of string);
   var

@@ -132,7 +132,7 @@ begin
   inherited;
 
   ToolExe := FindExeFpcCompiler;
-  ExecuteCommand('', ToolExe, ['-iV'], ToolOutput, ToolExitStatus,
+  ExecuteCommandCapture('', ToolExe, ['-iV'], ToolOutput, ToolExitStatus,
     // use ecNoConsole to not blink with a console when CGE editor starts
     nil, nil, [ecNoConsole]);
   if ToolExitStatus <> 0 then
@@ -175,7 +175,7 @@ begin
   inherited;
 
   ToolExe := FindExeLazbuild;
-  ExecuteCommand(GetCurrentDir, ToolExe, ['--version'], ToolOutput, ToolExitStatus,
+  ExecuteCommandCapture(GetCurrentDir, ToolExe, ['--version'], ToolOutput, ToolExitStatus,
     // use ecNoConsole to not blink with a console when CGE editor starts
     nil, nil, [ecNoConsole]);
   if ToolExitStatus <> 0 then

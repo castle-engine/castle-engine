@@ -81,7 +81,7 @@ begin
     NewEnvironment.Values['CASTLE_ENGINE_PATH'] := CastleEnginePath;
   end;
 
-  ExecuteCommand(UriToFilenameSafe(ProjectDirUrl), BuildToolExe,
+  ExecuteCommandCapture(UriToFilenameSafe(ProjectDirUrl), BuildToolExe,
     ['generate-program'], BuildToolOutput, BuildToolStatus, nil, nil,
     // prevent from blinking console on Windows
     [ecNoConsole],

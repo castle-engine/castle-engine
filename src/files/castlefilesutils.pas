@@ -855,8 +855,9 @@ begin
     user can set there anything, on any OS.
 
     So better do ExpandFileName to make sure the result in absolute,
-    as promised in FindExe API. E.g. @link(ExecuteCommand) usage in ToolCommonUtils
-    assumes it, checking IsPathAbsolute to know whether FindExe should be used again. }
+    as promised in FindExe API. E.g. @code(AbsoluteExeName) used
+    by routines in @code(CastleInternalProcess) unit assumes it,
+    checking IsPathAbsolute to know whether FindExe should be used again. }
   if Result <> '' then
     Result := ExpandFileName(Result);
 end;

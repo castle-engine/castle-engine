@@ -445,7 +445,7 @@ procedure TPreferencesForm.ButtonRegisterLazarusPackagesClick(Sender: TObject);
     PackageFileName := CastleEnginePath + LpkFileName;
 
     WritelnLog('Executing: lazbuild --add-package-link "' + PackageFileName + '"');
-    ExecuteCommand('' { no better directory, but also should not matter },
+    ExecuteCommandCapture('' { no better directory, but also should not matter },
       LazbuildExe, [
         '--add-package-link',
         PackageFileName

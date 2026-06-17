@@ -35,7 +35,7 @@ var
 
   ExeName is either an absolute (with extension) filename or merely
   a name (without extension) to be searched on $PATH following standard OS conventions.
-  Just like for @link(ExecuteCommand).
+  Just like for @link(ExecuteCommand) and friends.
 
   Raises exception if command fails (detected by exit code <> 0).
 
@@ -51,7 +51,7 @@ var
   that is helpful for CGE editor to detect the process ID of the child
   process of "castle-engine run" and thus perform "Stop" more reliably.
 
-  This is very similar to CGE standard ExecuteCommandWait, but:
+  This is very similar to CGE standard @link(ExecuteCommandCheckStatus), but:
 
   - it prints "magic" string 'Castle Game Engine Internal: ProcessID: '
     TODO: maybe we can get rid of it.
@@ -98,9 +98,10 @@ procedure ExecuteCommandSimple(
     The stdout/stderr is not captured to any string,
     it is only passed-through as our stdout/stderr.
 
-    This is in contrast to ExecuteCommand that captures output to String.
+    This is in contrast to @link(ExecuteCommandCapture)
+    that captures output to String.
 
-    This is just like ExecuteCommandWait,
+    This is just like @link(ExecuteCommand),
     but with additional logic doing
     "Castle Game Engine Internal: ProcessID ..." output. }
   procedure ExecuteNoPipes(const CurrentDirectory: String;
@@ -152,7 +153,7 @@ begin
       In practice this is used only to reliably doing "Stop" from CGE editor
       on running "castle-engine run" (for desktop or Android apps),
       and these work OK on Windows too. }
-    ExecuteCommand(CurrentDirectory, ExeName, Options,
+    ExecuteCommandCapture(CurrentDirectory, ExeName, Options,
       IgnoredOutput, ProcessStatus, nil, nil, [], OverrideEnvironment, true)
   else
     ExecuteNoPipes(CurrentDirectory, ExeName, Options,

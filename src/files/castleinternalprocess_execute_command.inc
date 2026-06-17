@@ -4,7 +4,7 @@
 
 { Copy current environemt variables.
   Useful as a starting point for the OverrideEnvironment parameter of
-  @link(ExecuteCommand). }
+  @link(ExecuteCommand), @link(ExecuteCommandCapture) and others. }
 function EnvironmentStrings: TStringList;
 
 { Find absolute filename of an executable, given its name.
@@ -16,13 +16,13 @@ function EnvironmentStrings: TStringList;
   If ExeName is not found, raises an exception.
 
   There's no need to process your ExeName with this function before passing it
-  to @link(ExecuteCommand). But you should process it with this function
+  to @link(ExecuteCommand) and friends. But you should process it with this function
   if you use directly TCastleProcess and want to set
   @code(TCastleProcess.Executable). }
 function AbsoluteExeName(const ExeName: String): String;
 
 type
-  { Line filtering used by @link(ExecuteCommand) and friends.
+  { Line filtering used by @link(ExecuteCommandCapture) and friends.
     You can process the variable Line in any way.
     Return whether to pass it (return @false to completely discard it,
     any edits to Line don't matter then). }
@@ -56,7 +56,7 @@ type
     try
       OverrideEnvironment.Values['MY_VARIABLE_1_NAME'] := 'my_variable_1_value';
       OverrideEnvironment.Values['MY_VARIABLE_2_NAME'] := 'my_variable_2_value';
-      ExecuteCommandWait(CurrentDirectory, ExeName, Options, OverrideEnvironment);
+      ExecuteCommand(CurrentDirectory, ExeName, Options, OverrideEnvironment);
     finally
       FreeAndNil(OverrideEnvironment);
     end;
@@ -78,7 +78,7 @@ type
     When not nil, overrides environment variables for the process.
     You can start from EnvironmentStrings.
     Remember to free the passed TStringList after calling this routine.) }
-procedure ExecuteCommandWait(const CurrentDirectory: String;
+procedure ExecuteCommand(const CurrentDirectory: String;
   ExeName: String;
   const Options: array of string;
   out ExitStatus: Integer;
@@ -89,7 +89,7 @@ procedure ExecuteCommandWait(const CurrentDirectory: String;
   wait for it to finish.
 
   Checks the exit status, and raises an exception if it is not 0.
-  This is in contrast to ExecuteCommandWait that doesn't check the exit status,
+  This is in contrast to ExecuteCommand that doesn't check the exit status,
   and only returns it. }
 procedure ExecuteCommandCheckStatus(const CurrentDirectory: String;
   const ExeName: String;
@@ -108,7 +108,7 @@ procedure ExecuteCommandCheckStatus(const CurrentDirectory: String;
   Optionally can filter the gathered output (if LineFiltering is not nil).
 
   Optionally can override environment variables.
-  See @link(ExecuteCommandWait) for details and example.
+  See @link(ExecuteCommand) for details and example.
 
   This routine is similar to the standard Process.RunCommandIndir in FPC >= 2.6.4,
   but also captures error output, and enables filtering, and enables
@@ -139,7 +139,7 @@ procedure ExecuteCommandCheckStatus(const CurrentDirectory: String;
   @param(PassThrough
     If @true, we let the collected output (stdout and stderr combined)
     to go to our output.) }
-procedure ExecuteCommand(
+procedure ExecuteCommandCapture(
   const CurrentDirectory: String;
   ExeName: String; const Options: array of string;
   out OutputString: String; out ExitStatus: integer;
@@ -440,7 +440,7 @@ end;
 
 {$ifdef CASTLE_PROCESS_AVAILABLE}
 
-procedure ExecuteCommandWait(const CurrentDirectory: String;
+procedure ExecuteCommand(const CurrentDirectory: String;
   ExeName: String;
   const Options: array of string;
   out ExitStatus: Integer;
@@ -486,7 +486,7 @@ procedure ExecuteCommandCheckStatus(const CurrentDirectory: String;
 var
   ExitStatus: Integer;
 begin
-  ExecuteCommandWait(CurrentDirectory, ExeName, Options, ExitStatus, Flags,
+  ExecuteCommand(CurrentDirectory, ExeName, Options, ExitStatus, Flags,
     OverrideEnvironment);
   if ExitStatus <> 0 then
     raise Exception.CreateFmt('Command "%s" exited with non-zero exit status %d', [
@@ -499,7 +499,7 @@ end;
 
 {$ifdef HAS_STANDARD_PROCESS} // needs full TProcess
 
-procedure ExecuteCommand(const CurrentDirectory: String;
+procedure ExecuteCommandCapture(const CurrentDirectory: String;
   ExeName: String;const Options: array of string;
   out OutputString: String; out ExitStatus: integer;
   const LineFiltering: TLineFiltering = nil;
