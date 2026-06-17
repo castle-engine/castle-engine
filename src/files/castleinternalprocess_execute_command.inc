@@ -95,7 +95,7 @@ procedure ExecuteCommandCheckStatus(const CurrentDirectory: String;
   const Flags: TExecuteCommandFlags = [];
   const OverrideEnvironment: TStringList = nil);
 
-{$ifdef FPC} // needs full TProcess
+{$ifdef HAS_STANDARD_PROCESS} // needs full TProcess
 
 { Run command in the given directory with the given arguments,
   gathering the output (including error output, so we capture stdout and stderr)
@@ -145,7 +145,7 @@ procedure ExecuteCommand(
   const OverrideEnvironment: TStringList = nil;
   const PassThrough: Boolean = false); overload;
 
-{$endif FPC}
+{$endif HAS_STANDARD_PROCESS}
 
 {$endif read_interface}
 
@@ -489,7 +489,7 @@ begin
     ]);
 end;
 
-{$ifdef FPC} // needs full TProcess
+{$ifdef HAS_STANDARD_PROCESS} // needs full TProcess
 
 procedure ExecuteCommand(const CurrentDirectory: String;
   ExeName: String;const Options: array of string;
@@ -543,6 +543,6 @@ begin
   finally FreeAndNil(P) end;
 end;
 
-{$endif FPC}
+{$endif HAS_STANDARD_PROCESS}
 
 {$endif read_implementation}
