@@ -841,6 +841,8 @@ var
   Rocket2: TCastleTransform;
   RocketDesign2: TRocketDesign;
 begin
+  Rocket1 := nil;
+  Rocket2 := nil;
   RocketsOwner := nil;
   RocketDesign1 := nil;
   RocketDesign2 := nil;
@@ -893,6 +895,8 @@ var
   Rocket1: TCastleTransform;
   Rocket2: TCastleTransform;
 begin
+  Rocket1 := nil;
+  Rocket2 := nil;
   RocketsOwner := nil;
   RocketDesign := nil;
   RocketsFactory := nil;

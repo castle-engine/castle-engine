@@ -17,6 +17,8 @@
 { Test CastleUriUtils unit. }
 unit TestCastleUriUtils;
 
+{$I ../../../src/common_includes/castleconf.inc}
+
 interface
 
 uses
