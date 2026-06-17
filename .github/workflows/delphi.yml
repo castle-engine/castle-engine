@@ -85,36 +85,37 @@ jobs:
           tools/build-tool/castle-engine_compile.sh
           cp tools/build-tool/castle-engine.exe installed/bin/
 
-      - name: Set environment - BUILD_TOOL
-        run: echo "BUILD_TOOL=`cygpath --mixed \"${CASTLE_ENGINE_PATH}\"/installed/bin/castle-engine.exe`" >> $GITHUB_ENV
+      - name: Extend $PATH to include CGE build tool
+        run: echo "${CASTLE_ENGINE_PATH}/installed/bin/" >> $GITHUB_PATH
+
       - name: Check Old Delphi-Specific AutoTests (Win64)
         run: |
           cd 'tests/delphi_tests/'
-          ${BUILD_TOOL} clean
-          ${BUILD_TOOL} compile --compiler=delphi --os=win64 --cpu=x86_64
-          ${BUILD_TOOL} run
+          castle-engine clean
+          castle-engine compile --compiler=delphi --os=win64 --cpu=x86_64
+          castle-engine run
       - name: Check Old Delphi-Specific AutoTests (Win32)
         run: |
           cd 'tests/delphi_tests/'
-          ${BUILD_TOOL} clean
-          ${BUILD_TOOL} compile --compiler=delphi --os=win32 --cpu=i386
-          ${BUILD_TOOL} run
+          castle-engine clean
+          castle-engine compile --compiler=delphi --os=win32 --cpu=i386
+          castle-engine run
       - name: Check AutoTests (Win64)
         run: |
           cd tests/
-          ${BUILD_TOOL} clean
-          ${BUILD_TOOL} compile --compiler=delphi --os=win64 --cpu=x86_64
-          ${BUILD_TOOL} run -- --console --no-window-create
+          castle-engine clean
+          castle-engine compile --compiler=delphi --os=win64 --cpu=x86_64
+          castle-engine run -- --console --no-window-create
       - name: Check AutoTests (Win32)
         run: |
           cd tests/
-          ${BUILD_TOOL} clean
-          ${BUILD_TOOL} compile --compiler=delphi --os=win32 --cpu=i386
-          ${BUILD_TOOL} run -- --console --no-window-create
+          castle-engine clean
+          castle-engine compile --compiler=delphi --os=win32 --cpu=i386
+          castle-engine run -- --console --no-window-create
       - name: Build Templates (Win64)
-        run: make test-editor-templates CASTLE_ENGINE_TOOL_OPTIONS="--compiler=delphi --os=win64 --cpu=x86_64" BUILD_TOOL="${BUILD_TOOL}"
+        run: make test-editor-templates CASTLE_ENGINE_TOOL_OPTIONS="--compiler=delphi --os=win64 --cpu=x86_64" BUILD_TOOL="castle-engine"
       - name: Build Templates (Win32)
-        run: make test-editor-templates CASTLE_ENGINE_TOOL_OPTIONS="--compiler=delphi --os=win32 --cpu=i386" BUILD_TOOL="${BUILD_TOOL}"
+        run: make test-editor-templates CASTLE_ENGINE_TOOL_OPTIONS="--compiler=delphi --os=win32 --cpu=i386" BUILD_TOOL="castle-engine"
 
       # Our examples do pass with Delphi 10.2, but the host with delphi_10_2
       # is right now a really weak machine -- building Win64 examples takes 2h 45m,
@@ -126,28 +127,69 @@ jobs:
       # If we'll have better hardware, we'll resume them.
       - name: Build Examples (Win64)
         if: ${{ matrix.host-label != 'delphi_10_2' }}
-        run: make examples-delphi CASTLE_ENGINE_TOOL_OPTIONS="--os=win64 --cpu=x86_64" BUILD_TOOL="${BUILD_TOOL}"
+        run: make examples-delphi CASTLE_ENGINE_TOOL_OPTIONS="--os=win64 --cpu=x86_64" BUILD_TOOL="castle-engine"
       - name: Build Examples (Win32)
         if: ${{ matrix.host-label != 'delphi_10_2' }}
-        run: make examples-delphi CASTLE_ENGINE_TOOL_OPTIONS="--os=win32 --cpu=i386" BUILD_TOOL="${BUILD_TOOL}"
+        run: make examples-delphi CASTLE_ENGINE_TOOL_OPTIONS="--os=win32 --cpu=i386" BUILD_TOOL="castle-engine"
 
       - name: Build Delphi-specific Examples (Win64)
         run: |
           cd examples/delphi/vcl
-          ${BUILD_TOOL} clean
-          ${BUILD_TOOL} compile --compiler=delphi --os=win64 --cpu=x86_64
+          castle-engine clean
+          castle-engine compile --compiler=delphi --os=win64 --cpu=x86_64
           cd ../../..
           cd examples/delphi/fmx
-          ${BUILD_TOOL} clean
-          ${BUILD_TOOL} compile --compiler=delphi --os=win64 --cpu=x86_64
+          castle-engine clean
+          castle-engine compile --compiler=delphi --os=win64 --cpu=x86_64
           cd ../../..
       - name: Build Delphi-specific Examples (Win32)
         run: |
           cd examples/delphi/vcl
-          ${BUILD_TOOL} clean
-          ${BUILD_TOOL} compile --compiler=delphi --os=win32 --cpu=i386
+          castle-engine clean
+          castle-engine compile --compiler=delphi --os=win32 --cpu=i386
           cd ../../..
           cd examples/delphi/fmx
-          ${BUILD_TOOL} clean
-          ${BUILD_TOOL} compile --compiler=delphi --os=win32 --cpu=i386
+          castle-engine clean
+          castle-engine compile --compiler=delphi --os=win32 --cpu=i386
           cd ../../..
+
+  delphi_non_windows:
+    name: Delphi build for Non-Windows (Job)
+    runs-on: delphi_12_2
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Fix bash multi-line scripts in this job
+        run: echo "SHELLOPTS=igncr" >> $GITHUB_ENV
+
+      - name: Set environment - CASTLE_ENGINE_PATH
+        run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+
+      # We need CGE build tool to run Delphi from command-line.
+      - name: Build Build Tool
+        run: |
+          rm -Rf installed/
+          mkdir -p installed/bin/
+          tools/build-tool/castle-engine_compile.sh
+          cp tools/build-tool/castle-engine.exe installed/bin/
+
+      - name: Extend $PATH to include CGE build tool
+        run: echo "${CASTLE_ENGINE_PATH}/installed/bin/" >> $GITHUB_PATH
+
+      - name: Build Tests for Linux (Delphi)
+        run: |
+          cd tests/
+          castle-engine compile --compiler=delphi --os=linux --cpu=x86_64
+      - name: Build Platformer for Linux (Delphi)
+        run: |
+          cd examples/2d_games/platformer/
+          castle-engine compile --compiler=delphi --os=linux --cpu=x86_64
+      - name: Build CLI test for macOS/Intel (Delphi)
+        run: |
+          cd examples/viewport_and_scenes/scene_information_cli_tool
+          castle-engine compile --compiler=delphi --os=macos --cpu=x86_64
+      - name: Build CLI test for macOS/Aarch64 (Delphi)
+        run: |
+          cd examples/viewport_and_scenes/scene_information_cli_tool
+          castle-engine compile --compiler=delphi --os=macos --cpu=aarch64
+
