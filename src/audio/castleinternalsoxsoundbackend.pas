@@ -22,10 +22,6 @@ unit CastleInternalSoxSoundBackend;
 
 {$I castleconf.inc}
 
-{$ifndef FPC}
-  {$message fatal 'This internal unit is only for FPC, not Delphi.'}
-{$endif}
-
 interface
 
 { Use this to set sound engine backend to SOX. }
@@ -225,7 +221,9 @@ function TSoxSoundEngineBackend.ContextOpen(const ADevice: String;
   out Information, InformationSummary: String): Boolean;
 var
   SoxVersion: String;
+  {$ifdef FPC}
   SoxStatus: Integer;
+  {$endif}
 begin
   SoxCommand := FindExe('sox');
   if SoxCommand = '' then
@@ -234,6 +232,11 @@ begin
     InformationSummary := Information;
     Exit(false);
   end;
+
+  SoxVersion := '';
+  {$ifdef FPC}
+  { ExecuteCommand (capturing output) is only available with FPC.
+    With Delphi we just leave SoxVersion empty. }
   ExecuteCommand('', SoxCommand, ['--version'], SoxVersion, SoxStatus);
   if SoxStatus <> 0 then
   begin
@@ -243,6 +246,7 @@ begin
   end;
 
   SoxVersion := Trim(SoxVersion); // remove final newline
+  {$endif}
 
   Result := true;
   Information := 'SOX command found:' + NL +
