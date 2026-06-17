@@ -92,4 +92,3 @@ end;
 initialization
   RegisterTest(TTestCastleInternalProcess);
 end.
-
