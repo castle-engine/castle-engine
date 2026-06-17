@@ -59,7 +59,7 @@ var
   RemoveMask: String = '';
 
 const
-  Options: array [0..30] of TOption =
+  Options: array [0..31] of TOption =
   (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
     (Short: 'v'; Long: 'version'; Argument: oaNone),
@@ -91,7 +91,8 @@ const
     (Short: #0 ; Long: 'project-caption'; Argument: oaRequired),
     (Short: #0 ; Long: 'project-main-view'; Argument: oaRequired),
     (Short: #0 ; Long: 'remove-mask'; Argument: oaRequired),
-    (Short: #0 ; Long: 'use-delphi-dcc'; Argument: oaNone)
+    (Short: #0 ; Long: 'use-delphi-dcc'; Argument: oaNone),
+    (Short: #0 ; Long: 'delphi-version'; Argument: oaRequired)
   );
 
 procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
@@ -291,6 +292,8 @@ begin
               'Use only with "unused-data" command. Removes files that match the given mask. For example, --remove-mask=*.png will remove all PNG files detected as unused. --remove-mask=* will remove all files detected as unused.') + NL +
             OptionDescription('--use-delphi-dcc',
               'When compiling with Delphi, use the historic approach of calling the "dccXXX" compiler directly, instead of using msbuild on the generated .dproj.') + NL +
+            OptionDescription('--delphi-version=VERSION',
+              'When compiling with Delphi, use the given Delphi version. The version provided is the "Product Version", corresponding to the subdirectories of "C:\Program Files (x86)\Embarcadero\Studio", like 37.0 for Delphi 13. By default, the tool automatically detects the latest installed Delphi version.') + NL +
             TargetOptionHelp +
             NL +
             OSOptionHelp +
@@ -351,6 +354,7 @@ begin
     28: ProjectMainView := Argument;
     29: RemoveMask := Argument;
     30: CompileDelphiUsingDcc := true;
+    31: DelphiVersion := Argument;
     else raise EInternalError.Create('OptionProc');
   end;
 end;
