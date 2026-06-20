@@ -122,6 +122,19 @@ const
     'debug'
   );
 
+{ Convert our OS + CPU to the Delphi "Platform" name,
+  like 'Win32', 'Win64', 'Linux64'.
+  @raises(Exception If OS/CPU is not supported by Delphi
+    and RaiseExceptionOnUnsupported.
+    If RaiseExceptionOnUnsupported=false, returns empty string
+    in such case, without an exception or even a warning.) }
+function DelphiPlatform(const OS: TOS; const CPU: TCPU;
+  const RaiseExceptionOnUnsupported: Boolean = true): String;
+
+{ Convert our TCompilationMode to Delphi "Config" name, like 'Release', 'Debug',
+  used for e.g. output directory. }
+function DelphiConfig(const Mode: TCompilationMode): String;
+
 implementation
 
 uses SysUtils, StrUtils,
@@ -1144,10 +1157,8 @@ begin
   finally FreeAndNil(DccOptions) end;
 end;
 
-{ Map our OS + CPU to the Delphi/msbuild "Platform" name,
-  like 'Win32', 'Win64', 'Linux64'.
-  Raises exception for combinations not supported by Delphi. }
-function DelphiMSBuildPlatform(const OS: TOS; const CPU: TCPU): String;
+function DelphiPlatform(const OS: TOS; const CPU: TCPU;
+  const RaiseExceptionOnUnsupported: Boolean = true): String;
 begin
   Result := '';
   case OS of
@@ -1168,11 +1179,22 @@ begin
     iOS:
       if CPU = Aarch64 then Result := 'iOSDevice64';
   end;
-  if Result = '' then
+  if (Result = '') and RaiseExceptionOnUnsupported then
     raise Exception.CreateFmt('OS / CPU combination "%s / %s" is not supported by Delphi (msbuild)', [
       OSToString(OS),
       CPUToString(CPU)
     ]);
+end;
+
+function DelphiConfig(const Mode: TCompilationMode): String;
+begin
+  case Mode of
+    cmRelease, cmValgrind: Result := 'Release';
+    cmDebug              : Result := 'Debug';
+    {$ifndef COMPILER_CASE_ANALYSIS}
+    else raise EInternalError.Create('DelphiConfig: Mode?');
+    {$endif}
+  end;
 end;
 
 { Compile with Delphi using msbuild.
@@ -1206,15 +1228,8 @@ begin
     Exit;
   end;
 
-  MSBuildPlatform := DelphiMSBuildPlatform(Options.OS, Options.CPU);
-
-  case Options.Mode of
-    cmRelease, cmValgrind: MSBuildConfig := 'Release';
-    cmDebug              : MSBuildConfig := 'Debug';
-    {$ifndef COMPILER_CASE_ANALYSIS}
-    else raise EInternalError.Create('CompileDelphiMSBuild: Mode?');
-    {$endif}
-  end;
+  MSBuildPlatform := DelphiPlatform(Options.OS, Options.CPU);
+  MSBuildConfig := DelphiConfig(Options.Mode);
 
   { Add extra using the DCC_Define environment variable.
     The generated .dproj uses $(DCC_Define), making this injection

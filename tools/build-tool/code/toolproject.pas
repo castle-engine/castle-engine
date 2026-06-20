@@ -546,6 +546,37 @@ procedure TCastleProject.DoCompile(const OverrideCompiler: TCompiler; const Targ
       Result := ExplicitStandaloneFile('.lpi');
   end;
 
+  { Adjust executable path in SourceExe (must be an absolute path
+    and have exe extension) to follow Delphi conventions.
+    Delphi conventions are to put executable within a subdirectory
+    like Win32\Debug or Win64\Release, depending on OS/CPU/Mode.
+
+    Note that we attempt this always when SourceExe does not seem
+    to exist after compilation. For now, we don't check whether
+    the actual compiler used was Delphi. }
+  procedure AdjustSourceExeForDelphi(var SourceExe: String;
+    const OS: TOS; const CPU: TCPU; const Mode: TCompilationMode);
+  var
+    Platform, Subdir, NewSourceExe: String;
+  begin
+    if not RegularFileExists(SourceExe) then
+    begin
+      Platform := DelphiPlatform(OS, CPU, false);
+      if Platform = '' then
+        Exit; // OS/CPU not supported by Delphi, nothing to do
+      Subdir := Platform + PathDelim + DelphiConfig(Mode);
+      NewSourceExe := CombinePaths(ExtractFilePath(SourceExe),
+        Subdir + PathDelim + ExtractFileName(SourceExe));
+      if RegularFileExists(NewSourceExe) then
+      begin
+        SourceExe := NewSourceExe;
+        WritelnVerbose(Format('Found executable in a subdirectory "%s", following Delphi conventions.', [
+          Subdir
+        ]));
+      end;
+    end;
+  end;
+
 var
   SourceExe, DestExe, MainSource: string;
   CompilerOptions: TCompilerOptions;
@@ -628,6 +659,8 @@ begin
 
                 SourceExe := CombinePaths(Path,
                   ChangeFileExt(MainSource, ExeExtensionOS(OS)));
+                AdjustSourceExeForDelphi(SourceExe,
+                  CompilerOptions.OS, CompilerOptions.CPU, CompilerOptions.Mode);
                 DestExe := CombinePaths(OutputPath,
                   ChangeFileExt(ExecutableName, ExeExtensionOS(OS)));
                 AddExternalLibraries(OutputPath);
