@@ -188,8 +188,7 @@ jobs:
         run: |
           cd examples/viewport_and_scenes/scene_information_cli_tool
           castle-engine compile --compiler=delphi --os=macos --cpu=x86_64
-      # TODO: Building with Delphi for macOS/Aarch64 temporarily broken on delphi_12_2 runner.
-      # - name: Build CLI test for macOS/Aarch64 (Delphi)
-      #   run: |
-      #     cd examples/viewport_and_scenes/scene_information_cli_tool
-      #     castle-engine compile --compiler=delphi --os=macos --cpu=aarch64
+      - name: Build CLI test for macOS/Aarch64 (Delphi)
+        run: |
+          cd examples/viewport_and_scenes/scene_information_cli_tool
+          castle-engine compile --compiler=delphi --os=macos --cpu=aarch64
