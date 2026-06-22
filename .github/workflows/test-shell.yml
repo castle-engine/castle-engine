@@ -30,7 +30,7 @@ jobs:
     name: ShellCheck
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Run ShellCheck
         run: ./tools/internal/shellcheck_here
 
@@ -38,7 +38,7 @@ jobs:
     name: Shell (Compiler-Independent) Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Set environment
         run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
       - name: Shell Tests

@@ -78,7 +78,7 @@ jobs:
             sed_command: gsed
     runs-on: ${{ matrix.runner }}
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
 
     - name: Install FPC+Lazarus
       run: |
