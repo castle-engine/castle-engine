@@ -62,8 +62,7 @@ unit CastleInternalProcess;
   {$define MINIMAL_PROCESS_IMPLEMENTATION}
 {$endif}
 
-{ On Windows, if application execution is blocked by "Smart App Control"
-  (another incarnation of anti-malware protection from Microsoft),
+{ On Windows, if application execution is blocked by "Smart App Control",
   ancestor TProcess makes super-unfriendly exception message
   "Failed to execute  : 4551" by doing:
 
@@ -75,7 +74,15 @@ unit CastleInternalProcess;
   because we don't use deprecated CommandLine, making this error message even
   more cryptic.
 
-  Let's detect and convert it to something helpful for users.
+  See more about "Smart App Control", it in practice blocks unsigned apps:
+  - https://support.microsoft.com/en-us/windows/smart-app-control-frequently-asked-questions-285ea03d-fa88-4d56-882e-6698afdb7003
+  - https://www.guidingtech.com/enable-or-disable-smart-app-control-in-windows-11/
+  - https://www.reddit.com/r/Windows11/comments/1s2t50a/comment/ochifwy/
+
+  Let's detect and convert it to something helpful for users,
+  an exception with nicer message.
+  We will make exception EWindowsSmartAppControlProtection with an improved
+  message in this case.
   This may happen in many real cases -- when editor cannot execute FPC,
   lazbuild, or built user application, all possible when engine tools are not
   properly signed. }
@@ -192,6 +199,19 @@ type
 {$endif}
 
 type
+  { Raised when Windows "Smart App Control" protection prevents executing a process.
+
+    See more about "Smart App Control", it in practice blocks unsigned apps:
+
+    @unorderedlist(
+      @itemSpacing compact
+      @item https://support.microsoft.com/en-us/windows/smart-app-control-frequently-asked-questions-285ea03d-fa88-4d56-882e-6698afdb7003
+      @item https://www.guidingtech.com/enable-or-disable-smart-app-control-in-windows-11/
+      @item https://www.reddit.com/r/Windows11/comments/1s2t50a/comment/ochifwy/
+    )
+  }
+  EWindowsSmartAppControlProtection = class(EProcess);
+
   { Running processes.
 
     On FPC, @link(TCastleProcess) descends and benefits from standard FPC
@@ -340,15 +360,16 @@ begin
          ( (IsPrefix('Failed to execute', E.Message)) and
             IsSuffix(': 4551', E.Message) ) then
       begin
-        E.Message := Format(
-          'Failed to execute application "%s" because of Windows "Smart App Control" (anti-malware protection). ' +
-          'Please turn it temporarily off using "Windows Security → App & browser control → Smart App Control" setting.' +
+        raise EWindowsSmartAppControlProtection.CreateFmt(
+          'Failed to execute application "%s" because of Windows "Smart App Control" protection layer. ' +
+          'Please turn it temporarily off using "Windows Security -> App & browser control -> Smart App Control" setting.' +
           NL + NL +
           'Original error message: %s',
         [
           NiceApplicationName,
           E.Message
         ]);
+        // do not let control pass to the re-raise below.
       end else
       { At least improve the message for other cases,
         by including useful application name. }

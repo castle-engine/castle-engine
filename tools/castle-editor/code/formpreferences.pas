@@ -212,6 +212,22 @@ begin
         'Cannot determine Lazarus executable.' + NL +
         'Make sure Lazarus is installed, and available on $PATH or configured above.';
     end;
+
+    on E: EWindowsSmartAppControlProtection do
+    begin
+      WritelnLog('Cannot determine Lazarus version, error: ' + ExceptMessage(E));
+      LabelLazarusAutoDetected.Caption :=
+        'Cannot determine Lazarus version, Smart App Control blocked us.' + NL +
+        'Turn it temporarily off using "Windows Security -> App & browser control -> Smart App Control".';
+    end;
+
+    on E: Exception do
+    begin
+      WritelnLog('Cannot determine Lazarus version, error: ' + ExceptMessage(E));
+      LabelLazarusAutoDetected.Caption :=
+        'Cannot determine Lazarus version.' + NL +
+        'Make sure Lazarus is installed, and available on $PATH or configured above.';
+    end;
   end;
 
   if FpcExe <> '' then
