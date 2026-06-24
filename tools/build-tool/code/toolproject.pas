@@ -370,11 +370,7 @@ var
 begin
   Files := TStringList.Create;
   try
-    case OS of
-      win32: ProjectDependencies.DeployFiles(dpWin32, Files);
-      win64: ProjectDependencies.DeployFiles(dpWin64, Files);
-      else ; { no need to do anything on other OSes }
-    end;
+    ProjectDependencies.DeployFiles(OS, CPU, Files);
 
     for F in Files do
       AddExternalLibrary(F);
