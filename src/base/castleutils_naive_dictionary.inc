@@ -1,6 +1,6 @@
 {%MainUnit castleutils.pas}
 {
-  Copyright 2002-2025 Michalis Kamburelis.
+  Copyright 2002-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -79,6 +79,8 @@ type
         function GetEnumerator: TEnumerator;
       end;
 
+      TEqualityComparer = {$ifdef FPC}specialize{$endif} IEqualityComparer<TKey>;
+
   strict private
     type
       TEnumerator = record
@@ -96,11 +98,14 @@ type
       FItems: array of TDictionaryPair;
       FKeys: TKeys;
       FValues: TValues;
+      FEqualityComparer: TEqualityComparer;
 
     function GetItems(const AKey: TKey): TValue;
     procedure SetItems(const AKey: TKey; const AValue: TValue);
+    function SameKeys(const AKey1, AKey2: TKey): Boolean;
   public
-    constructor Create;
+    constructor Create; virtual;
+    constructor Create(const AComparer: TEqualityComparer); virtual;
     destructor Destroy; override;
 
     function TryGetValue(const Key: TKey; out Value: TValue): Boolean;
@@ -230,6 +235,20 @@ begin
   FValues.Parent := Self;
 end;
 
+constructor TDictionary{$ifndef FPC}<TKey,TValue>{$endif}.Create(const AComparer: TEqualityComparer);
+begin
+  { repeat what parameter-less Create does, instead of calling it,
+    because it is virtual and we don't want to call descedant logic here
+    (like TComponentMap.Create which would call us back and cause infinite recursion). }
+  inherited Create;
+  FKeys := TKeys.Create;
+  FKeys.Parent := Self;
+  FValues := TValues.Create;
+  FValues.Parent := Self;
+
+  FEqualityComparer := AComparer;
+end;
+
 destructor TDictionary{$ifndef FPC}<TKey,TValue>{$endif}.Destroy;
 begin
   FreeAndNil(FKeys);
@@ -243,6 +262,14 @@ begin
     raise EListError.CreateFmt('Dictionary key "%s" does not exist', [AKey]);
 end;
 
+function TDictionary{$ifndef FPC}<TKey,TValue>{$endif}.SameKeys(const AKey1, AKey2: TKey): Boolean;
+begin
+  if Assigned(FEqualityComparer) then
+    Result := FEqualityComparer.Equals(AKey1, AKey2)
+  else
+    Result := AKey1 = AKey2;
+end;
+
 procedure TDictionary{$ifndef FPC}<TKey,TValue>{$endif}.SetItems(const AKey: TKey; const AValue: TValue);
 var
   I: Integer;
@@ -250,9 +277,9 @@ begin
   // TDictionary from Generics.Collections also sets the value for existing key,
   // but raises an exception for new key.
   for I := 0 to High(FItems) do
-    if FItems[I].Key = Key then
+    if SameKeys(FItems[I].Key, AKey) then
     begin
-      FItems[I].Value := Value;
+      FItems[I].Value := AValue;
       Exit;
     end;
   raise EListError.Create('Dictionary key does not exist, cannot set');
@@ -263,7 +290,7 @@ var
   I: Integer;
 begin
   for I := 0 to High(FItems) do
-    if FItems[I].Key = Key then
+    if SameKeys(FItems[I].Key, Key) then
     begin
       Value := FItems[I].Value;
       Exit(true);
@@ -289,7 +316,7 @@ var
   I: Integer;
 begin
   for I := 0 to High(FItems) do
-    if FItems[I].Key = Key then
+    if SameKeys(FItems[I].Key, Key) then
     begin
       FItems[I].Value := Value;
       Exit;
@@ -302,7 +329,7 @@ var
   I: Integer;
 begin
   for I := 0 to High(FItems) do
-    if FItems[I].Key = Key then
+    if SameKeys(FItems[I].Key, Key) then
     begin
       System.Delete(FItems, I, 1);
       Exit;
