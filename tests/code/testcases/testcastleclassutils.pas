@@ -464,6 +464,7 @@ procedure TTestCastleClassUtils.TestComponentMap;
 var
   ComponentMap: TComponentMap;
   C1, C2, C3: TComponent;
+  Key, StoredKey: String;
 begin
   C1 := nil;
   C2 := nil;
@@ -502,6 +503,20 @@ begin
       AssertTrue(ComponentMap.ContainsKey('c1'));
       AssertFalse(ComponentMap.ContainsKey('C3'));
       AssertFalse(ComponentMap.ContainsKey('c3'));
+
+      { Verify that the original case of the keys is preserved.
+        We use a case-insensitive comparer, but we do not lowercase the
+        stored keys, so the key remains 'MixedCaseKey', not 'mixedcasekey'. }
+      ComponentMap.Add('MixedCaseKey', C3);
+      AssertEquals(3, ComponentMap.Count);
+      AssertTrue(ComponentMap.ContainsKey('mixedcasekey')); // case-insensitive match
+      StoredKey := '';
+      for Key in ComponentMap.Keys do
+        if SameText(Key, 'MixedCaseKey') then
+          StoredKey := Key;
+      AssertEquals('MixedCaseKey', StoredKey);
+      ComponentMap.Remove('MixedCaseKey');
+      AssertEquals(2, ComponentMap.Count);
 
       ComponentMap['c1'] := C3; // overwrite C1 with C3
       AssertEquals(2, ComponentMap.Count);

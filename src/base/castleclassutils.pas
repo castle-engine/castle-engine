@@ -43,7 +43,7 @@ unit CastleClassUtils;
 
 interface
 
-uses Classes, SysUtils, Contnrs, Generics.Collections,
+uses Classes, SysUtils, Contnrs, Generics.Collections, Generics.Defaults,
   CastleUtils, CastleStringUtils;
 
 { ---------------------------------------------------------------------------- }
@@ -783,21 +783,17 @@ type
 
     The values can never be @nil.
 
-    Internally, the way the case-insensitivity is implemented:
-    1. Names of the components are stored lowercase.
-    2. Methods @link(Add), @link(AddOrSetValue), @link(TryGetValue),
-    @link(Remove), @link(ContainsKey) do exactly the same thing as ancestor
-    methods, but they convert the key to lowercase before calling
-    the ancestor method. }
+    The case-insensitivity is achieved by using a case-insensitive comparer
+    for the dictionary keys. This means the original case of the keys is
+    preserved (we don't lowercase them), and case-insensitive matching is done
+    by the (still hashed, so fast) ancestor methods. }
   TComponentMap = class({$ifdef FPC}specialize{$endif} TDictionary<String, TComponent>)
   strict private
     function GetItem(const Key: String): TComponent;
   public
+    constructor Create; {$ifdef FPC} override; {$else} reintroduce; {$endif}
     procedure Add(const Key: String; const Value: TComponent);
     procedure AddOrSetValue(const Key: String; const Value: TComponent);
-    function TryGetValue(const Key: String; out Value: TComponent): Boolean;
-    procedure Remove(const Key: String);
-    function ContainsKey(const Key: String): Boolean;
     property Items[const Key: String]: TComponent read GetItem write AddOrSetValue; default;
   end;
 
@@ -2249,6 +2245,74 @@ end;
 
 { TComponentMap ------------------------------------------------------------- }
 
+{ The ready-made case-insensitive comparer TIStringComparer.Ordinal (from
+  Generics.Defaults) is broken with FPC 3.2.x: it raises an access violation
+  on the very first dictionary lookup. Mechanism:
+
+  - TIStringComparer.Ordinal returns a comparer whose GetHashCode and Equals
+    delegate to an inherited @italic(class variable) FEqualityComparer
+    (TOrdinalComparer.FEqualityComparer), which holds the default ordinal
+    comparer used to hash/compare the lowercased key.
+
+  - That class variable is set by the TOrdinalComparer class constructor, which
+    obtains the default comparer via THashService.LookupEqualityComparer. That
+    lookup reads instance tables that are themselves filled by @italic(another)
+    class's class constructor (THashService.Create / TExtendedHashService.Create).
+
+  - The order in which FPC runs class constructors of generic specializations is
+    not guaranteed. So TOrdinalComparer's class constructor can run before the
+    hash-service tables are initialized; the lookup then returns nil, leaving
+    FEqualityComparer = nil. The first Add/TryGetValue calls GetHashCode through
+    this nil interface -> EAccessViolation.
+
+  This is fixed in FPC 3.3.1 by commit 2e9a84654368830ccbca0c687e248352e0e3fb70
+  ( https://gitlab.com/freepascal.org/fpc/source/-/commit/2e9a846543 ).
+
+  So only for FPC 3.2.x (VER3_2) we avoid TIStringComparer.Ordinal and instead
+  construct a comparer from these explicit equality + hash functions.
+  Later FPC and Delphi use TIStringComparer.Ordinal directly
+  (see TComponentMap.Create). }
+{$if defined(FPC) and defined(VER3_2)}
+function ComponentMapKeyEquals(constref ALeft, ARight: String): Boolean;
+begin
+  Result := SameText(ALeft, ARight);
+end;
+
+{ FNV-1a hash of the lowercased key, so that keys equal by SameText
+  (which ignores ASCII case, just like Pascal identifiers) hash equally. }
+{$I norqcheckbegin.inc}
+function ComponentMapKeyHash(constref AValue: String): UInt32;
+var
+  S: String;
+  I: Integer;
+begin
+  S := LowerCase(AValue);
+  Result := 2166136261;
+  for I := 1 to Length(S) do
+  begin
+    Result := Result xor Ord(S[I]);
+    Result := Result * 16777619;
+  end;
+end;
+{$I norqcheckend.inc}
+{$endif}
+
+constructor TComponentMap.Create;
+begin
+  { Use a case-insensitive comparer for the keys.
+    This way the keys are matched ignoring case, but their original case
+    is preserved (we don't lowercase the keys we store). }
+  inherited Create(
+    {$if defined(FPC) and defined(VER3_2)}
+    { Workaround broken TIStringComparer.Ordinal on FPC 3.2.x, see comment above. }
+    specialize TEqualityComparer<String>.Construct(
+      @ComponentMapKeyEquals, @ComponentMapKeyHash)
+    {$else}
+    TIStringComparer.Ordinal
+    {$endif}
+  );
+end;
+
 function TComponentMap.GetItem(const Key: String): TComponent;
 begin
   if not TryGetValue(Key, Result) then
@@ -2261,7 +2325,7 @@ begin
     raise EListError.Create('Cannot add empty key to TComponentMap');
   if Value = nil then
     raise EListError.Create('Cannot add nil value to TComponentMap');
-  inherited Add(LowerCase(Key), Value);
+  inherited Add(Key, Value);
 end;
 
 procedure TComponentMap.AddOrSetValue(const Key: String; const Value: TComponent);
@@ -2270,22 +2334,7 @@ begin
     raise EListError.Create('Cannot add empty key to TComponentMap');
   if Value = nil then
     raise EListError.Create('Cannot add nil value to TComponentMap');
-  inherited AddOrSetValue(LowerCase(Key), Value);
-end;
-
-function TComponentMap.TryGetValue(const Key: String; out Value: TComponent): Boolean;
-begin
-  Result := inherited TryGetValue(LowerCase(Key), Value);
-end;
-
-procedure TComponentMap.Remove(const Key: String);
-begin
-  inherited Remove(LowerCase(Key));
-end;
-
-function TComponentMap.ContainsKey(const Key: String): Boolean;
-begin
-  Result := inherited ContainsKey(LowerCase(Key));
+  inherited AddOrSetValue(Key, Value);
 end;
 
 { initialization / finalization ---------------------------------------------- }
