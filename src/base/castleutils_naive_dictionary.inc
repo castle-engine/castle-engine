@@ -244,9 +244,18 @@ begin
 end;
 
 procedure TDictionary{$ifndef FPC}<TKey,TValue>{$endif}.SetItems(const AKey: TKey; const AValue: TValue);
+var
+  I: Integer;
 begin
-  // TDictionary from Generics.Collections also does here equivalent of Add, not AddOrSetValue.
-  Add(AKey, AValue);
+  // TDictionary from Generics.Collections also sets the value for existing key,
+  // but raises an exception for new key.
+  for I := 0 to High(FItems) do
+    if FItems[I].Key = Key then
+    begin
+      FItems[I].Value := Value;
+      Exit;
+    end;
+  raise EListError.Create('Dictionary key does not exist, cannot set');
 end;
 
 function TDictionary{$ifndef FPC}<TKey,TValue>{$endif}.TryGetValue(const Key: TKey; out Value: TValue): Boolean;

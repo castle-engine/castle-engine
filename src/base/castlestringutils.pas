@@ -157,8 +157,9 @@ type
 
     { Access dictionary items.
       Setting this is allowed regardless if the key previously existed or not,
-      in other words: setting this does AddOrSetValue, contrary to the ancestor TDictionary
-      that only allows setting when the key already exists. }
+      in other words: setting this does @code(AddOrSetValue),
+      contrary to the ancestor TDictionary that only sets the value
+      if the key already exists, and otherwise (on new key) raises an exception. }
     property Items [const AKey: string]: string read GetItems write SetItems; default;
   end;
 
