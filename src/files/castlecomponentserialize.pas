@@ -1244,6 +1244,8 @@ function TCastleComponentFactory.InternalComponentLoad(
 var
   Reader: TCastleJsonReader;
 begin
+  ComponentsMap := nil; // default value for out parameter, in case of exception
+
   Reader := TCastleJsonReader.Create;
   try
     Reader.FOwner := InstanceOwner;
@@ -1257,11 +1259,11 @@ begin
 
     Reader.FinishResolvingComponentProperties;
 
-    ComponentsMap := Reader.ComponentsMap;
-    Reader.ComponentsMap := nil; // so that Reader destructor does not free it
-
     if Assigned(OnInternalTranslateDesign) and (FTranslationGroupName <> '') then
       OnInternalTranslateDesign(Result, FTranslationGroupName);
+
+    ComponentsMap := Reader.ComponentsMap;
+    Reader.ComponentsMap := nil; // so that Reader destructor does not free it
   finally
     FreeAndNil(Reader);
   end;
