@@ -47,6 +47,7 @@ type
     procedure TestForIn;
     procedure TestSimpleNotifyEventListPack;
     procedure TestSimpleNotifyEventListUnassign;
+    procedure TestComponentMap;
   end;
 
   TFoo = class
@@ -457,6 +458,66 @@ begin
     AssertTrue(SameSimpleNotifyEvent({$ifdef FPC}@{$endif} DummyCallback, L[0]));
     AssertTrue(SameSimpleNotifyEvent({$ifdef FPC}@{$endif} DummyCallback, L[1]));
   finally FreeAndNil(L) end;
+end;
+
+procedure TTestCastleClassUtils.TestComponentMap;
+var
+  ComponentMap: TComponentMap;
+  C1, C2, C3: TComponent;
+begin
+  C1 := nil;
+  C2 := nil;
+  C3 := nil;
+  try
+    C1 := TComponent.Create(nil);
+    C2 := TComponent.Create(nil);
+    C3 := TComponent.Create(nil);
+
+    ComponentMap := TComponentMap.Create;
+    try
+      ComponentMap.Add('C1', C1);
+      AssertEquals(1, ComponentMap.Count);
+      ComponentMap.Add('C2', C2);
+      AssertEquals(2, ComponentMap.Count);
+
+      try
+        ComponentMap.Add('C1', C3); // overwrite C1 with C3
+        Fail('Should raise EListError because of duplicate key C1 (value C3 doesn''t matter)');
+      except
+        on E: Exception do
+          AssertTrue(E is EListError);
+      end;
+      AssertEquals(2, ComponentMap.Count);
+
+      try
+        ComponentMap.Add('c1', C3); // overwrite C1 with C3
+        Fail('Should raise EListError because of duplicate key C1 (value C3 doesn''t matter)');
+      except
+        on E: Exception do
+          AssertTrue(E is EListError);
+      end;
+      AssertEquals(2, ComponentMap.Count);
+
+      AssertTrue(ComponentMap.ContainsKey('C1'));
+      AssertTrue(ComponentMap.ContainsKey('c1'));
+      AssertFalse(ComponentMap.ContainsKey('C3'));
+      AssertFalse(ComponentMap.ContainsKey('c3'));
+
+      ComponentMap['c1'] := C3; // overwrite C1 with C3
+      AssertEquals(2, ComponentMap.Count);
+      AssertTrue(ComponentMap['C1'] = C3);
+
+      ComponentMap.Remove('C1');
+      AssertEquals(1, ComponentMap.Count);
+      AssertFalse(ComponentMap.ContainsKey('C1'));
+      AssertFalse(ComponentMap.ContainsKey('c1'));
+      AssertTrue(ComponentMap.ContainsKey('C2'));
+    finally FreeAndNil(ComponentMap) end;
+  finally
+    FreeAndNil(C1);
+    FreeAndNil(C2);
+    FreeAndNil(C3);
+  end;
 end;
 
 initialization

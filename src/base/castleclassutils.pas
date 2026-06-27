@@ -773,6 +773,34 @@ type
 procedure TranslateProperties(const C: TComponent;
   const TranslatePropertyEvent: TTranslatePropertyEvent);
 
+type
+  { Used by @link(TCastleComponentFactory.ComponentLoadWithMap)
+    to return names of the loaded components.
+    This is a simple String -> TComponent dictionary.
+
+    The dictionary keys cannot be '' (an empty string).
+    The dictionary keys ignore case, just like Pascal identifiers.
+
+    The values can never be @nil.
+
+    Internally, the way the case-insensitivity is implemented:
+    1. Names of the components are stored lowercase.
+    2. Methods @link(Add), @link(AddOrSetValue), @link(TryGetValue),
+    @link(Remove), @link(ContainsKey) do exactly the same thing as ancestor
+    methods, but they convert the key to lowercase before calling
+    the ancestor method. }
+  TComponentMap = class({$ifdef FPC}specialize{$endif} TDictionary<String, TComponent>)
+  strict private
+    function GetItem(const Key: String): TComponent;
+  public
+    procedure Add(const Key: String; const Value: TComponent);
+    procedure AddOrSetValue(const Key: String; const Value: TComponent);
+    function TryGetValue(const Key: String; out Value: TComponent): Boolean;
+    procedure Remove(const Key: String);
+    function ContainsKey(const Key: String): Boolean;
+    property Items[const Key: String]: TComponent read GetItem write AddOrSetValue; default;
+  end;
+
 { ---------------------------------------------------------------------------- }
 { @section(Variables to read/write standard input/output using TStream classes.
   Initialized and finalized in this unit.) }
@@ -2217,6 +2245,47 @@ begin
 begin
   WritelnWarning('Localization (TranslateProperties) not implemented for Delphi yet.');
 {$endif}
+end;
+
+{ TComponentMap ------------------------------------------------------------- }
+
+function TComponentMap.GetItem(const Key: String): TComponent;
+begin
+  if not TryGetValue(Key, Result) then
+    raise EListError.Create('Dictionary key does not exist');
+end;
+
+procedure TComponentMap.Add(const Key: String; const Value: TComponent);
+begin
+  if Key = '' then
+    raise EListError.Create('Cannot add empty key to TComponentMap');
+  if Value = nil then
+    raise EListError.Create('Cannot add nil value to TComponentMap');
+  inherited Add(LowerCase(Key), Value);
+end;
+
+procedure TComponentMap.AddOrSetValue(const Key: String; const Value: TComponent);
+begin
+  if Key = '' then
+    raise EListError.Create('Cannot add empty key to TComponentMap');
+  if Value = nil then
+    raise EListError.Create('Cannot add nil value to TComponentMap');
+  inherited AddOrSetValue(LowerCase(Key), Value);
+end;
+
+function TComponentMap.TryGetValue(const Key: String; out Value: TComponent): Boolean;
+begin
+  Result := inherited TryGetValue(LowerCase(Key), Value);
+end;
+
+procedure TComponentMap.Remove(const Key: String);
+begin
+  inherited Remove(LowerCase(Key));
+end;
+
+function TComponentMap.ContainsKey(const Key: String): Boolean;
+begin
+  Result := inherited ContainsKey(LowerCase(Key));
 end;
 
 { initialization / finalization ---------------------------------------------- }
