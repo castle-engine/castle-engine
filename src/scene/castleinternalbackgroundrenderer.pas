@@ -837,7 +837,7 @@ procedure TBackground2D.Render(const RenderingCamera: TRenderingCamera;
     Assert(Texture2D <> nil);
 
     Material.EmissiveColor := Node.Color.XYZ;
-    Material.Transparency := 1 - Node.Color.W;
+    Material.Transparency := OpacityToTransparency(Node.Color.W);
 
     // TODO: check do they differ
     TexCoords.SetPoint(Node.FdTexCoords.Items);

@@ -47,8 +47,9 @@
       Value 0 (DefaultTransparency) means fully opaque, 1 means fully transparent. }
     property Transparency: Single read GetTransparency write SetTransparency;
 
-    { Opacity of the material, just @code(1 - @link(Transparency)).
-      Sometimes it is more intuitive to use this than Transparency. }
+    { Opacity, or "alpha" of the material, equivalent to just
+      @code(1 - @link(Transparency)).
+      Sometimes it is more intuitive to use this, rather than @link(Transparency). }
     property Opacity: Single read GetOpacity write SetOpacity;
 
     { Single color that is the best approximation of this material look.
@@ -209,7 +210,7 @@ end;
 
 procedure TMaterialInfo.SetOpacity(const Value: Single);
 begin
-  Transparency := 1 - Value;
+  Transparency := OpacityToTransparency(Value);
 end;
 
 { TPhongMaterialInfo --------------------------------------------------------- }

@@ -1359,7 +1359,7 @@ var
 
     Result := TMaterialNode.Create;
     Result.DiffuseColor := PbrMetallicRoughness.BaseColorFactor.XYZ;
-    Result.Transparency := 1 - PbrMetallicRoughness.BaseColorFactor.W;
+    Result.Transparency := OpacityToTransparency(PbrMetallicRoughness.BaseColorFactor.W);
     Result.EmissiveColor := Vector3FromGltf(Material.EmissiveFactor);
 
     // Metallic/roughness conversion idea from X3DOM.
@@ -1404,7 +1404,7 @@ var
 
     Result := TPhysicalMaterialNode.Create;
     Result.BaseColor := PbrMetallicRoughness.BaseColorFactor.XYZ;
-    Result.Transparency := 1 - PbrMetallicRoughness.BaseColorFactor.W;
+    Result.Transparency := OpacityToTransparency(PbrMetallicRoughness.BaseColorFactor.W);
     Result.Metallic := PbrMetallicRoughness.MetallicFactor;
     Result.Roughness := PbrMetallicRoughness.RoughnessFactor;
     Result.EmissiveColor := Vector3FromGltf(Material.EmissiveFactor);
@@ -1450,7 +1450,7 @@ var
 
     Result := TUnlitMaterialNode.Create;
     Result.EmissiveColor := BaseColorFactor.XYZ;
-    Result.Transparency := 1 - BaseColorFactor.W;
+    Result.Transparency := OpacityToTransparency(BaseColorFactor.W);
 
     ReadTexture(Material.PBRMetallicRoughness.BaseColorTexture,
       BaseColorTexture, BaseColorTextureMapping, TexTransforms);

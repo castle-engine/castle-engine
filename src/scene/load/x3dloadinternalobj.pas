@@ -761,7 +761,7 @@ const
         Material.AmbientColor, Material.DiffuseColor);
       MatPhong.DiffuseColor := Material.DiffuseColor;
       MatPhong.SpecularColor := Material.SpecularColor;
-      MatPhong.Transparency := 1 - Material.Opacity;
+      MatPhong.Transparency := OpacityToTransparency(Material.Opacity);
       MatPhong.Shininess := Material.SpecularExponent / 128.0;
 
       MatPhong.DiffuseTexture := Material.DiffuseTexture.CreateNode(BaseUrl);
@@ -773,7 +773,7 @@ const
       MatPhysical := TPhysicalMaterialNode.Create;
       Result.Material := MatPhysical;
       MatPhysical.BaseColor := Material.DiffuseColor;
-      MatPhysical.Transparency := 1 - Material.Opacity;
+      MatPhysical.Transparency := OpacityToTransparency(Material.Opacity);
 
       MatPhysical.BaseTexture := Material.DiffuseTexture.CreateNode(BaseUrl);
       MatPhysical.NormalTexture := Material.NormalTexture.CreateNode(BaseUrl);
