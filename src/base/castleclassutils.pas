@@ -2273,7 +2273,9 @@ end;
   Later FPC and Delphi use TIStringComparer.Ordinal directly
   (see TComponentMap.Create). }
 {$if defined(FPC) and defined(VER3_2)}
-function ComponentMapKeyEquals(constref ALeft, ARight: String): Boolean;
+function ComponentMapKeyEquals(
+  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif}
+  ALeft, ARight: String): Boolean;
 begin
   Result := SameText(ALeft, ARight);
 end;
@@ -2281,7 +2283,9 @@ end;
 { FNV-1a hash of the lowercased key, so that keys equal by SameText
   (which ignores ASCII case, just like Pascal identifiers) hash equally. }
 {$I norqcheckbegin.inc}
-function ComponentMapKeyHash(constref AValue: String): UInt32;
+function ComponentMapKeyHash(
+  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif}
+  AValue: String): UInt32;
 var
   S: String;
   I: Integer;
