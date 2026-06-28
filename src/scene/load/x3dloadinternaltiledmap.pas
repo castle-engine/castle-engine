@@ -368,7 +368,7 @@ const
 
     This could be avoided when using RenderContext.DepthFunc := dfAlways,
     we even tried it at one point (TCastleTiledMap.AssumePerfectRenderingOrder),
-    but it had with it's own disadvantages:
+    but it has with its own disadvantages:
     Rendering with RenderContext.DepthFunc = dfAlways
     assumes that really *everything*, including other things
     that could be behind / in front of this Tiled map, are arranged in the TCastleViewport.Items
