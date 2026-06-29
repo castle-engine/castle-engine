@@ -1404,7 +1404,7 @@ procedure TCastleProject.DoClean;
     begin
       if Verbose then
         Writeln('Deleting ' + FileName);
-      CheckDeleteFile(FileName);
+      CheckDeleteFile(FileName, false, true);
       Inc(DeletedFiles);
     end;
   end;
