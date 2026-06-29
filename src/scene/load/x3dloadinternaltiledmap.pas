@@ -794,7 +794,9 @@ var
 
       if not ValidTileId(Frame) then
       begin
-        WritelnWarning('Invalid TileId:%d TilePosition:' + TilePosition.ToString, [Frame]);
+        WritelnWarning('Invalid tile index %d requested to be shown at map position (%s). This may happen if your ".tsx" file has incorrect (outdated, too small) "tilecount".', [
+          Frame, TilePosition.ToString
+        ]);
         Exit;
       end;
 
