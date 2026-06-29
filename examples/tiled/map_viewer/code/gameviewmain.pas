@@ -33,6 +33,7 @@ type
     ButtonOpen, ButtonAnimations: TCastleButton;
     CheckboxSmoothScaling, CheckboxSmoothScalingSafeBorder: TCastleCheckbox;
     MapCamera: TCastleCamera;
+    TestMapObjects: TCastleTransform;
   private
     TiledAnimations: Boolean;
     procedure ClickOpen(Sender: TObject);
@@ -86,6 +87,11 @@ end;
 
 procedure TViewMain.OpenMap(const MapUrl: String);
 begin
+  { Empty TestMapObjects, freeing all children.
+    This removes the effect of pressing "T" on previously loaded map. }
+  while TestMapObjects.Count > 0 do
+    TestMapObjects[0].Free;
+
   TiledMap.Url := MapUrl;
   MapCamera.Translation := TVector3.Zero;
   MapCamera.Orthographic.Height := 1000; // resets zoom in/out
@@ -135,6 +141,66 @@ begin
 end;
 
 function TViewMain.Press(const Event: TInputPressRelease): Boolean;
+
+  { Add a few rectangles on positions matching tiles on the map.
+    You press T multiple times to add more rectangles. }
+  procedure TestAddingComponents;
+
+    { Create new component (simple randomly colored rectangle) to put on a map,
+      placing it at (MapX, MapY).
+      Given MapX, MapY are "tile coordinates", so
+      - 0,0 is bottom-left tile of the map,
+      - Map.Data.Width-1, Map.Data.Height-1 is top-right tile of the map. }
+    function AddTestRectangle(const MapX, MapY: Integer;
+      const ZInFrontMap: Single): TCastleTransform;
+    var
+      NewPlane: TCastlePlane;
+      T: TVector2;
+    begin
+      NewPlane := TCastlePlane.Create(FreeAtStop);
+      NewPlane.Axis := 2;
+      NewPlane.Material := pmUnlit;
+      NewPlane.Color := Vector4(Random, Random, Random, 1);
+      NewPlane.Size := Vector2(TiledMap.Data.TileWidth, TiledMap.Data.TileHeight);
+
+      T := TiledMap.Data.TileRenderPosition(Vector2Integer(MapX, MapY));
+      T := T + Vector2(TiledMap.Data.TileWidth / 2, TiledMap.Data.TileHeight / 2);
+      NewPlane.Translation := Vector3(T, ZInFrontMap);
+
+      //TiledMap.Add(NewPlane);
+      { We add to TestMapObjects, so we can easily remove all test objects later.
+        TestMapObjects is a trivial child of TiledMap with no extra transformation. }
+      TestMapObjects.Add(NewPlane);
+
+      Result := NewPlane;
+    end;
+
+  const
+    { Must be equal to TCastleTiledMapConverter constant. }
+    LayerZDistanceIncrease = 10;
+  var
+    ZInFrontMap: Single;
+    I: Integer;
+  begin
+    { Camera looks down in -Z direction, so place at positive Z to be above
+      the map.
+      Note: This needs to be in front of the map, so Z must account for
+      the Z of the front-most layer of the map. }
+    ZInFrontMap := TiledMap.Data.Layers.Count  * LayerZDistanceIncrease;
+
+    // sample object at left-bottom tile of the map
+    AddTestRectangle(0, 0, ZInFrontMap);
+    // sample objects at right-bottom tile of the map
+    AddTestRectangle(TiledMap.Data.Width - 1, TiledMap.Data.Height - 1, ZInFrontMap);
+    // a few random objects at random tiles of the map
+    for I := 1 to 100 do
+    begin
+      AddTestRectangle(
+        Random(TiledMap.Data.Width),
+        Random(TiledMap.Data.Height), ZInFrontMap);
+    end;
+  end;
+
 begin
   Result := inherited;
   if Result then Exit;
@@ -149,6 +215,9 @@ begin
   if Event.IsKey(key2) then
     if TiledMap.Data.Layers.Count > 2 then
       TiledMap.Data.Layers[2].Exists := not TiledMap.Data.Layers[2].Exists;
+
+  if Event.IsKey(keyT) then
+    TestAddingComponents;
 end;
 
 end.
