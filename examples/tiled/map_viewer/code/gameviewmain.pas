@@ -167,6 +167,10 @@ function TViewMain.Press(const Event: TInputPressRelease): Boolean;
       // T := TiledMap.Data.TileRenderPosition(Vector2Integer(MapX, MapY));
       // T := T + Vector2(TiledMap.Data.TileWidth / 2, TiledMap.Data.TileHeight / 2);
 
+      { Note: Instywad of using ZInFrontMap here, we could also set
+        TestMapObjects.Translation to Vector3(0, 0, ZInFrontMap).
+        Then NewPlane.Translation would need simple Z = 0. }
+
       T := TiledMap.TileRectangle(Vector2Integer(MapX, MapY)).Center;
       NewPlane.Translation := Vector3(T, ZInFrontMap);
 
@@ -180,9 +184,6 @@ function TViewMain.Press(const Event: TInputPressRelease): Boolean;
       Result := NewPlane;
     end;
 
-  const
-    { Must be equal to TCastleTiledMapConverter constant. }
-    LayerZDistanceIncrease = 10;
   var
     ZInFrontMap: Single;
     I: Integer;
@@ -191,7 +192,7 @@ function TViewMain.Press(const Event: TInputPressRelease): Boolean;
       the map.
       Note: This needs to be in front of the map, so Z must account for
       the Z of the front-most layer of the map. }
-    ZInFrontMap := TiledMap.Data.Layers.Count  * LayerZDistanceIncrease;
+    ZInFrontMap := TiledMap.Data.Layers.Count  * TiledMap.LayersZDistance;
 
     // sample object at left-bottom tile of the map
     AddTestRectangle(0, 0, ZInFrontMap);
