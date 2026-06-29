@@ -163,14 +163,19 @@ function TViewMain.Press(const Event: TInputPressRelease): Boolean;
       NewPlane.Color := Vector4(Random, Random, Random, 1);
       NewPlane.Size := Vector2(TiledMap.Data.TileWidth, TiledMap.Data.TileHeight);
 
-      T := TiledMap.Data.TileRenderPosition(Vector2Integer(MapX, MapY));
-      T := T + Vector2(TiledMap.Data.TileWidth / 2, TiledMap.Data.TileHeight / 2);
+      // Using TileRenderPosition for this also works.
+      // T := TiledMap.Data.TileRenderPosition(Vector2Integer(MapX, MapY));
+      // T := T + Vector2(TiledMap.Data.TileWidth / 2, TiledMap.Data.TileHeight / 2);
+
+      T := TiledMap.TileRectangle(Vector2Integer(MapX, MapY)).Center;
       NewPlane.Translation := Vector3(T, ZInFrontMap);
 
-      //TiledMap.Add(NewPlane);
       { We add to TestMapObjects, so we can easily remove all test objects later.
         TestMapObjects is a trivial child of TiledMap with no extra transformation. }
       TestMapObjects.Add(NewPlane);
+
+      // This also works, we would just have more work to cleanup the test rectangles later.
+      //TiledMap.Add(NewPlane);
 
       Result := NewPlane;
     end;
