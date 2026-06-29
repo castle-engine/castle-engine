@@ -167,7 +167,7 @@ function TViewMain.Press(const Event: TInputPressRelease): Boolean;
       // T := TiledMap.Data.TileRenderPosition(Vector2Integer(MapX, MapY));
       // T := T + Vector2(TiledMap.Data.TileWidth / 2, TiledMap.Data.TileHeight / 2);
 
-      { Note: Instywad of using ZInFrontMap here, we could also set
+      { Note: Instead of using ZInFrontMap here, we could also set
         TestMapObjects.Translation to Vector3(0, 0, ZInFrontMap).
         Then NewPlane.Translation would need simple Z = 0. }
 

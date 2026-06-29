@@ -113,6 +113,8 @@ type
       TLayers = set of TLayerIndex;
     const
       AllLayers = [Low(TLayerIndex)..High(TLayerIndex)];
+      // Matches TCastleTiledMap default
+      DefaultLayersZDistance = 10.0;
     var
       { Workaround rendering artifacts for tilesets without alpha bleeding.
         Set before @link(ConvertMap). }
@@ -121,10 +123,10 @@ type
       { See @link(TCastleTiledMap.ForceTilesetSpacing). }
       ForceTilesetSpacing : Boolean;
 
-      { Layers to load.  }
+      { Layers to load. By default "all layers". }
       Layers: TLayers;
 
-      { Distance between layers in Z. }
+      { Distance between layers in Z. By default @link(DefaultLayersZDistance). }
       LayersZDistance: Single;
 
     constructor Create(const ATiledMap: TCastleTiledMapData);
@@ -837,6 +839,7 @@ begin
   inherited Create;
 
   Layers := AllLayers;
+  LayersZDistance := DefaultLayersZDistance;
 
   Map := ATiledMap;
 

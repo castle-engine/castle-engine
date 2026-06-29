@@ -175,7 +175,13 @@ type
       Note: Too small values of this property may cause z-fighting
       (visual artifacts) between layers.
       For example, value = 1.0 was too small on our testcase
-      examples/tiled/map_viewer/data/maps/desert_with_objects.tmx . }
+      examples/tiled/map_viewer/data/maps/desert_with_objects.tmx .
+
+      Note: We have experimented with alternative rendering way that would avoid
+      relying on Z, with "RenderContext.DepthFunc := dfAlways".
+      But this would mean you need to place everything (including
+      your objects on the map) in the correct order. Using Z coordinate to determine
+      the order is simpler. }
     property LayersZDistance: Single read FLayersZDistance write SetLayersZDistance
       stored LayersZDistanceStored nodefault;
   end;
