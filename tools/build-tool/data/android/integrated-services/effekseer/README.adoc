@@ -1,0 +1,31 @@
+## libeffekseer (special effects library) for Android
+
+This service adds the `Effekseer` library to the Android project, which allows CGE to use particle based eyecandy in effekseer enabled projects.
+
+You can request this service explicitly in link:https://castle-engine.io/project_manifest[CastleEngineManifest.xml]. You can request it only for Android:
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<project name="..." game_units="...">
+  <android>
+    <services>
+      <service name="effekseer" />
+    </services>
+  </android>
+</project>
+----
+
+### Source code libeffekseer
+
+The exact source code of this library is on
+
+  https://github.com/Kagamma/cge-effekseer
+
+Available binaries
+https://github.com/Kagamma/cge-effekseer/releases/download/1.61a/effekseer-binaries-161a.zip
+
+Effekseer for CGE is based on the official libeffekseer code: https://github.com/effekseer/Effekseer
+and has its own fork at: https://github.com/castle-engine/Effekseer
+
+To build Effekseer for CGE please read the instructions at: https://github.com/Kagamma/cge-effekseer
