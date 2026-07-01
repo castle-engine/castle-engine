@@ -28,6 +28,9 @@ set -euxo pipefail
 # Define APPLE_CODESIGN_SCRIPTS="/path/to/castle-build-ci/apple"
 # to codesign and notarize macOS apps.
 #
+# Define WINDOWS_CODESIGN='true' to codesign Windows executables
+# (castle-editor.exe, castle-engine.exe, etc.) using SignPath.
+#
 # Uses bash strict mode, see http://redsymbol.net/articles/unofficial-bash-strict-mode/
 # (but without IFS modification, deliberately, we want to split on space).
 #
@@ -196,6 +199,18 @@ detect_platform ()
   echo "Using sed: ${SED} $(${SED} --version | head -n 1)"
 }
 
+# Pass each exe in $@ to codesign on Windows using SignPath,
+# if only WINDOWS_CODESIGN='true' .
+process_exe ()
+{
+  if [[ "${WINDOWS_CODESIGN:-}" = 'true' ]]; then
+    for EXE in "$@"; do
+      # TODO:
+      echo "CodeSigning ${EXE}"
+    done
+  fi
+}
+
 # Compile build tool (castle-engine executable), put it on $PATH .
 # Makes it for the *host* OS/CPU, so it's e.g. castle-engine Linux binary
 # if we run on Linux, even if we're cross-compiling for Windows.
@@ -325,10 +340,14 @@ add_external_tool ()
   else
     castle-engine "${CASTLE_BUILD_TOOL_OPTIONS[@]}" compile
     mv "${EXE_NAME}" "${OUTPUT_BIN}"
+    process_exe "${EXE_NAME}"
 
     if [[ "${GITHUB_NAME}" = 'castle-model-viewer' ]]; then
       castle-engine "${CASTLE_BUILD_TOOL_OPTIONS[@]}" compile --manifest-name=CastleEngineManifest.converter.xml
-      mv castle-model-converter"${EXE_EXTENSION}" "${OUTPUT_BIN}"
+      local BONUS_EXE_NAME
+      BONUS_EXE_NAME="castle-model-converter${EXE_EXTENSION}"
+      mv "${BONUS_EXE_NAME}" "${OUTPUT_BIN}"
+      process_exe "${BONUS_EXE_NAME}"
     fi
   fi
 }
@@ -538,13 +557,19 @@ pack_platform_dir ()
 
   # Place tools (except editor) binaries in bin-to-keep subdirectory
   mkdir -p "${TEMP_PATH_CGE}"bin-to-keep
-  cp tools/build-tool/castle-engine"${EXE_EXTENSION}" \
-     tools/texture-font-to-pascal/texture-font-to-pascal"${EXE_EXTENSION}" \
-     tools/image-to-pascal/image-to-pascal"${EXE_EXTENSION}" \
-     tools/castle-curves/castle-curves"${EXE_EXTENSION}" \
-     tools/to-data-uri/to-data-uri"${EXE_EXTENSION}" \
-     tools/internal/fpc-cge/fpc-cge"${EXE_EXTENSION}" \
-     "${TEMP_PATH_CGE}"bin-to-keep
+  # bash array of tools to copy to bin-to-keep subdirectory
+  TOOLS_EXES=(
+    tools/build-tool/castle-engine"${EXE_EXTENSION}"
+    tools/texture-font-to-pascal/texture-font-to-pascal"${EXE_EXTENSION}"
+    tools/image-to-pascal/image-to-pascal"${EXE_EXTENSION}"
+    tools/castle-curves/castle-curves"${EXE_EXTENSION}"
+    tools/to-data-uri/to-data-uri"${EXE_EXTENSION}"
+    tools/internal/fpc-cge/fpc-cge"${EXE_EXTENSION}"
+  )
+  # codesign tools (castle-engine etc.) on Windows
+  process_exe "${TOOLS_EXES[@]}"
+  # move to bin-to-keep
+  cp "${TOOLS_EXES[@]}" "${TEMP_PATH_CGE}"bin-to-keep
   # codesign tools (castle-engine etc.) on macOS
   if [[ -n "${APPLE_CODESIGN_SCRIPTS:-}" ]]; then
     "${APPLE_CODESIGN_SCRIPTS}/sign_executable" \
@@ -566,8 +591,9 @@ pack_platform_dir ()
     fi
   else
     lazbuild_twice "${CASTLE_LAZBUILD_OPTIONS[@]}" tools/castle-editor/castle_editor.lpi
-    cp tools/castle-editor/castle-editor"${EXE_EXTENSION}" \
-       "${TEMP_PATH_CGE}"bin-to-keep
+    EDITOR_EXE_NAME="tools/castle-editor/castle-editor${EXE_EXTENSION}"
+    process_exe "${EDITOR_EXE_NAME}"
+    cp "${EDITOR_EXE_NAME}" "${TEMP_PATH_CGE}"bin-to-keep
   fi
 
   # On Linux compile also Qt5 editor version.
@@ -743,6 +769,8 @@ pack_windows_installer ()
     "/F${ARCHIVE_NAME}" \
     "/DMyAppSrcDir=${CASTLE_ENGINE_PATH_STRIP_FINAL_SLASH}" \
     "/DMyAppVersion=${CGE_VERSION}"
+
+  process_exe "${OUTPUT_DIRECTORY}/${ARCHIVE_NAME}.exe"
 
   # cleanup to save disk space
   rm -Rf "${TEMP_PATH}"
