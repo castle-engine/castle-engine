@@ -2170,22 +2170,46 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
     end;
 
   var
-    RelativeEnginePaths: Boolean;
     S, EnginePathPrefix: String;
   begin
-    RelativeEnginePaths := IsPrefix(
+    Result := '';
+
+    { Put paths to the engine in DPROJ.
+      But only for projects inside the engine (our examples/tools),
+      in which case it can be relative path.
+
+      Note: In the past, we used to do this for all projects,
+      adding absolute paths to CGE in DPROJ (for projects outside of the engine
+      as well), doing
+        EnginePathPrefix := CastleEnginePath + 'src/'
+
+      But this was not good:
+      - makes DPROJ specific to given user on a given machine,
+        assumes specific engine installation path,
+        so not suitable to be put in a version control system.
+      - It also makes DPROJ specific to a given CGE version,
+        as we change engine paths between versions.
+
+      New approach: DPROJ for projects (outside of CGE examples/tools,
+      which is a special case to make example run out-of-the-box in all
+      possible cases) don't contain CGE paths. We rely on:
+      - from Delphi IDE: user must do "Configure Delphi to Use Engine".
+      - from castle-engine build tool, invoked also from castle-editor:
+        we provide search paths to find CGE (in both dcc and msbuild approaches)
+        on the command-line. }
+
+    if IsPrefix(
       ExpandFileName(CastleEnginePath),
       ExpandFileName(Path),
-      not FileNameCaseSensitive);
-    if RelativeEnginePaths then
-      EnginePathPrefix := ExtractRelativePath(Path, CastleEnginePath) + 'src/'
-    else
-      EnginePathPrefix := CastleEnginePath + 'src/';
-    Result := '';
-    for S in EnginePaths do
-      Result := SAppendPart(Result, ';', PathNormalizeDelimiter(EnginePathPrefix + S));
-    for S in EnginePathsDelphi do
-      Result := SAppendPart(Result, ';', PathNormalizeDelimiter(EnginePathPrefix + S));
+      not FileNameCaseSensitive) then
+    begin
+      EnginePathPrefix := ExtractRelativePath(Path, CastleEnginePath) + 'src/';
+      for S in EnginePaths do
+        Result := SAppendPart(Result, ';', PathNormalizeDelimiter(EnginePathPrefix + S));
+      for S in EnginePathsDelphi do
+        Result := SAppendPart(Result, ';', PathNormalizeDelimiter(EnginePathPrefix + S));
+    end;
+
     for S in Manifest.SearchPaths do
       Result := SAppendPart(Result, ';', PathNormalizeDelimiter(S));
   end;
