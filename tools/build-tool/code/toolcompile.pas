@@ -1204,9 +1204,33 @@ end;
   This is our recommended and default approach now.
   See ../delphi_dcc_vs_msbuild.md for discussion. }
 procedure CompileDelphiMSBuild(const WorkingDirectory, CompileFile: String; const Options: TCompilerOptions);
+
+  procedure AddEnginePath(var SearchPaths: String; NewPath: String);
+  begin
+    NewPath := CastleEnginePath + 'src' + PathDelim + NewPath;
+    if not DirectoryExists(NewPath) then
+      WritelnWarning('Path', 'Path "%s" does not exist. Make sure that $CASTLE_ENGINE_PATH points to the directory containing Castle Game Engine sources.', [
+        NewPath
+      ]);
+    SearchPaths := SAppendPart(SearchPaths, ';', NewPath);
+  end;
+
+  procedure AddEngineSearchPaths(var SearchPaths: String);
+  var
+    S: String;
+  begin
+    if CastleEnginePath <> '' then
+    begin
+      for S in EnginePaths do
+        AddEnginePath(SearchPaths, S);
+      for S in EnginePathsDelphi do
+        AddEnginePath(SearchPaths, S);
+    end;
+  end;
+
 var
   DelphiPath, RsVars, DprojFile, DprojFileAbsolute: String;
-  MSBuildPlatform, MSBuildConfig, ExtraDefines, IgnoredOptions: String;
+  MSBuildPlatform, MSBuildConfig, ExtraDefines, ExtraUnitSearchPath, IgnoredOptions: String;
   WrapperBat, WrapperBatContents, OutPath, MSBuildOutput: String;
   ComSpec, MsBuildVerbosity: String;
   MSBuildExitStatus: Integer;
@@ -1231,15 +1255,26 @@ begin
   MSBuildPlatform := DelphiPlatform(Options.OS, Options.CPU);
   MSBuildConfig := DelphiConfig(Options.Mode);
 
-  { Add extra using the DCC_Define environment variable.
+  { Add extra defines using the DCC_Define environment variable.
     The generated .dproj uses $(DCC_Define), making this injection
     possible. }
   ExtraDefines := '';
-  IgnoredOptions := '';
   for S in Options.Defines do
     ExtraDefines := SAppendPart(ExtraDefines, ';', S);
+
+  { Similarly, add extra unit search paths using the DCC_UnitSearchPath.
+    Note: project search paths are assumed to be already set in the .dproj file.
+    We add engine search paths, so the building works when $CASTLE_ENGINE_PATH
+    is set, regardless if Delphi was pointed to the engine sources using
+    "Configure Delphi to Use Engine". }
+  ExtraUnitSearchPath := '';
+  AddEngineSearchPaths(ExtraUnitSearchPath);
+
+  { Make a warning that Options.ExtraOptions are unsupported. }
+  IgnoredOptions := '';
   if Options.ExtraOptions.Count > 0 then
-    WritelnWarning('Delphi', 'Extra compiler options have been provided, but they are ignored when compiling with msbuild. The extra compiler options are:' + NL + Options.ExtraOptions.Text);
+    WritelnWarning('Delphi', 'Extra compiler options have been provided, but they are ignored when compiling with msbuild. The extra compiler options are:' + NL +
+      Options.ExtraOptions.Text);
 
   { Write bat that sets up the Delphi environment (calling rsvars.bat)
     then runs msbuild. }
@@ -1260,6 +1295,7 @@ begin
     'call "' + RsVars + '"' + NL +
     'if errorlevel 1 exit /b 1' + NL +
     'set "DCC_Define=' + ExtraDefines + '"' + NL +
+    'set "DCC_UnitSearchPath=' + ExtraUnitSearchPath + '"' + NL +
     'msbuild "' + DprojFileAbsolute + '"' +
       ' /target:Build' +
       ' /p:Config=' + MSBuildConfig +
