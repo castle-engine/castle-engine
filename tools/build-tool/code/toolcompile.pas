@@ -1230,7 +1230,7 @@ procedure CompileDelphiMSBuild(const WorkingDirectory, CompileFile: String; cons
 
 var
   DelphiPath, RsVars, DprojFile, DprojFileAbsolute: String;
-  MSBuildPlatform, MSBuildConfig, ExtraDefines, ExtraUnitSearchPath, IgnoredOptions: String;
+  MSBuildPlatform, MSBuildConfig, ExtraDefines, ExtraUnitSearchPath: String;
   WrapperBat, WrapperBatContents, OutPath, MSBuildOutput: String;
   ComSpec, MsBuildVerbosity: String;
   MSBuildExitStatus: Integer;
@@ -1271,7 +1271,6 @@ begin
   AddEngineSearchPaths(ExtraUnitSearchPath);
 
   { Make a warning that Options.ExtraOptions are unsupported. }
-  IgnoredOptions := '';
   if Options.ExtraOptions.Count > 0 then
     WritelnWarning('Delphi', 'Extra compiler options have been provided, but they are ignored when compiling with msbuild. The extra compiler options are:' + NL +
       Options.ExtraOptions.Text);
