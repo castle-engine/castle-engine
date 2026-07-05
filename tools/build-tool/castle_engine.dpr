@@ -354,7 +354,7 @@ begin
     28: ProjectMainView := Argument;
     29: RemoveMask := Argument;
     30: CompileDelphiUsingDcc := true;
-    31: DelphiVersion := Argument;
+    31: ForceDelphiVersion := TDelphiVersion.FromString(Argument);
     else raise EInternalError.Create('OptionProc');
   end;
 end;

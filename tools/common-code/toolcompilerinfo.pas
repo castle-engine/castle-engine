@@ -1,5 +1,5 @@
 {
-  Copyright 2019-2025 Michalis Kamburelis.
+  Copyright 2019-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -15,6 +15,10 @@
 
 { Information about compiler and IDE. }
 unit ToolCompilerInfo;
+
+{$ifdef FPC}
+  {$modeswitch advancedrecords}
+{$endif}
 
 interface
 
@@ -81,6 +85,43 @@ function FindExeLazarusIDE(const ExceptionWhenMissing: Boolean = true): String;
   @raises EExecutableNotFound When the exe is not found and ExceptionWhenMissing. }
 function FindExeLazbuild(const ExceptionWhenMissing: Boolean = true): String;
 
+type
+  { Delphi version.
+
+    This is like
+    - 23.0 for Delphi 12
+    - 37.0 for Delphi 13
+
+    This corresponds to the version number in the registry, under
+    - HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Embarcadero\BDS\
+    - HKEY_CURRENT_USER\SOFTWARE\Embarcadero\BDS\
+
+    This also corresponds to the version number in the Delphi path, underneath
+    C:\Program Files (x86)\Embarcadero\Studio
+    (if you installed to the default location).
+
+    See "Product Version" on
+    https://docwiki.embarcadero.com/RADStudio/Florence/en/Compiler_Versions . }
+  TDelphiVersion = record
+    Major, Minor: Integer;
+    function ToString: String;
+    class function FromString(const S: String): TDelphiVersion; static;
+    class function TryFromString(const S: String; out Version: TDelphiVersion): Boolean; static;
+    function LargerThan(const Other: TDelphiVersion): Boolean;
+    function LargerThanOrEqual(const Other: TDelphiVersion): Boolean;
+  end;
+
+var
+  { Set the @link(TDelphiVersion.Major) to non-zero to force using given
+    Delphi version, instead of automatically detecting
+    the latest Delphi version, by FindDelphiPath. }
+  ForceDelphiVersion: TDelphiVersion = (Major: 0; Minor: 0);
+
+const
+  Delphi11: TDelphiVersion = (Major: 22; Minor: 0);
+  Delphi12: TDelphiVersion = (Major: 23; Minor: 0);
+  Delphi13: TDelphiVersion = (Major: 37; Minor: 0);
+
 { Find the path of Delphi installation.
   Ends with PathDelim.
 
@@ -103,27 +144,9 @@ function FindExeLazbuild(const ExceptionWhenMissing: Boolean = true): String;
     If ExceptionWhenMissing is @false, we return '' in these situations,
     and AppExe is also set to ''.
   ) }
-function FindDelphiPath(const ExceptionWhenMissing: Boolean): String;
-function FindDelphiPath(const ExceptionWhenMissing: Boolean; out AppExe: String): String;
-
-var
-  { Delphi version.
-
-    This is like
-    - 23.0 for Delphi 12
-    - 37.0 for Delphi 13
-
-    This corresponds to the version number in the registry, under
-    - HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Embarcadero\BDS\
-    - HKEY_CURRENT_USER\SOFTWARE\Embarcadero\BDS\
-
-    This also corresponds to the version number in the Delphi path, underneath
-    C:\Program Files (x86)\Embarcadero\Studio
-    (if you installed to the default location).
-
-    See "Product Version" on
-    https://docwiki.embarcadero.com/RADStudio/Florence/en/Compiler_Versions . }
-  DelphiVersion: String = '';
+function FindDelphiPath(const ExceptionWhenMissing: Boolean): String; overload;
+function FindDelphiPath(const ExceptionWhenMissing: Boolean;
+  out AppExe: String; out FoundDelphiVersion: TDelphiVersion): String; overload;
 
 implementation
 
@@ -297,7 +320,8 @@ begin
     raise EExecutableNotFound.Create('Cannot find "lazbuild" program. Make sure it is installed, and available on environment variable $PATH. If you use the CGE editor, you can also set Lazarus location in "Preferences".');
 end;
 
-function FindDelphiPath(const ExceptionWhenMissing: Boolean; out AppExe: String): String;
+function FindDelphiPath(const ExceptionWhenMissing: Boolean;
+  out AppExe: String; out FoundDelphiVersion: TDelphiVersion): String;
 {$ifdef MSWINDOWS}
 
 { Our algorithm to find Delphi location in the registry (using some guesswork and regedit searching, confirmed by
@@ -308,7 +332,7 @@ function FindDelphiPath(const ExceptionWhenMissing: Boolean; out AppExe: String)
   - Read subdirs from machine: HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Embarcadero\BDS\
   - Each subdirectory is the version number. Pick the latest.
     Pick user-specific latest, if both HKEY_CURRENT_USER and HKEY_LOCAL_MACHINE will have the same versions.
-    To compare them, treat as floats (as they look like "22.0").
+    To compare them, we use TDelphiVersion (converting string to 2 ints).
   - Inside the chosen subdir, use:
     - key "App" which is like "c:\program files (x86)\embarcadero\studio\22.0\bin\bds.exe".
     - key "RootDir", like "c:\program files (x86)\embarcadero\studio\22.0\"
@@ -359,20 +383,21 @@ var
 
   { Calculate FindDelphiPath result and AppExe, by scanning the registry
     for the largest Delphi version. }
-  function FindLargestDelphiVersion(out AppExe: String): String;
+  function FindLargestDelphiVersion(out AppExe: String;
+    out FoundDelphiVersion: TDelphiVersion): String;
   var
-    LargestKeyAsFloat: Double;
+    LargestKeyAsVersion: TDelphiVersion;
     LargestKeyDelphiRootDir: String;
     LargestKeyDelphiApp: String;
 
     { Scan subdirectories of registry in RootKey + BasePath,
       looking for the largest Delphi version.
-      Updates LargestKeyAsFloat, LargestKeyDelphiRootDir, LargestKeyDelphiApp. }
+      Updates LargestKeyAsVersion, LargestKeyDelphiRootDir, LargestKeyDelphiApp. }
     procedure ScanRegistryForLargest(const RootKey: HKEY; const BasePath: UnicodeString);
     var
       KeyName: UnicodeString;
       KeyNames: TUnicodeStringArray;
-      KeyFloat: Double;
+      KeyAsVersion: TDelphiVersion;
     begin
       R.RootKey := RootKey;
 
@@ -381,23 +406,24 @@ var
       R.CloseKey;
 
       for KeyName in KeyNames do
-        if TryStrToFloatDot(UTF8Encode(KeyName), KeyFloat) and
-          (KeyFloat >= LargestKeyAsFloat) then
+        if TDelphiVersion.TryFromString(UTF8Encode(KeyName), KeyAsVersion) and
+           (KeyAsVersion.LargerThanOrEqual(LargestKeyAsVersion)) then
         begin
           if RegistryReadDelphiVersion(BasePath + KeyName,
             LargestKeyDelphiRootDir, LargestKeyDelphiApp) then
           begin
-            LargestKeyAsFloat := KeyFloat;
-            //WritelnLog('Delphi %f found in %s', [LargestKeyAsFloat, LargestKeyDelphiRootDir]);
+            LargestKeyAsVersion := KeyAsVersion;
+            //WritelnLog('Delphi %s found in %s', [LargestKeyAsVersion.ToString, LargestKeyDelphiRootDir]);
           end;
         end;
     end;
 
   begin { FindLargestDelphiVersion }
-    // default out value
+    // default out values
     AppExe := '';
+    FoundDelphiVersion := Default(TDelphiVersion);
 
-    LargestKeyAsFloat := 0;
+    LargestKeyAsVersion := Default(TDelphiVersion);
     ScanRegistryForLargest(RegistryRoot1, RegistryPath1);
     ScanRegistryForLargest(RegistryRoot2, RegistryPath2);
 
@@ -406,15 +432,19 @@ var
     begin
       Result := InclPathDelim(Result);
       AppExe := LargestKeyDelphiApp;
+      FoundDelphiVersion := LargestKeyAsVersion;
     end;
 
     if (Result = '') and ExceptionWhenMissing then
       raise EExecutableNotFound.Create('Cannot find Delphi installation in the registry. Make sure Delphi is installed correctly.');
   end;
 
-  { Calculate FindDelphiPath result and AppExe, by checking the registry
-    for a specific Delphi version. }
-  function UseDelphiVersion(out AppExe: String): String;
+  { Use ForceDelphiVersion (must have Major <> 0) to
+    calculate FindDelphiPath result and AppExe, FoundDelphiVersion.
+    Checks the registry for a specific Delphi version.
+    FoundDelphiVersion is always set to ForceDelphiVersion, if the version is found,
+    or zero if not. }
+  function UseDelphiVersion(out AppExe: String; out FoundDelphiVersion: TDelphiVersion): String;
   var
     DelphiRootDir, DelphiApp: String;
   begin
@@ -423,47 +453,54 @@ var
     AppExe := '';
     DelphiRootDir := '';
     DelphiApp := '';
+    FoundDelphiVersion := Default(TDelphiVersion);
 
     R.RootKey := RegistryRoot1;
-    if R.KeyExists(RegistryPath1 + DelphiVersion) and
-      RegistryReadDelphiVersion(RegistryPath1 + UnicodeString(DelphiVersion),
+    if R.KeyExists(RegistryPath1 + ForceDelphiVersion.ToString) and
+      RegistryReadDelphiVersion(RegistryPath1 + UnicodeString(ForceDelphiVersion.ToString),
         DelphiRootDir, DelphiApp) then
     begin
       Result := InclPathDelim(DelphiRootDir);
       AppExe := DelphiApp;
+      FoundDelphiVersion := ForceDelphiVersion;
       Exit;
     end;
 
     R.RootKey := RegistryRoot2;
-    if R.KeyExists(RegistryPath2 + DelphiVersion) and
-      RegistryReadDelphiVersion(RegistryPath2 + UnicodeString(DelphiVersion),
+    if R.KeyExists(RegistryPath2 + ForceDelphiVersion.ToString) and
+      RegistryReadDelphiVersion(RegistryPath2 + UnicodeString(ForceDelphiVersion.ToString),
         DelphiRootDir, DelphiApp) then
     begin
       Result := InclPathDelim(DelphiRootDir);
       AppExe := DelphiApp;
+      FoundDelphiVersion := ForceDelphiVersion;
       Exit;
     end;
 
     if ExceptionWhenMissing then
       raise EExecutableNotFound.CreateFmt('Delphi version "%s" was requested, but not found in the registry. Make sure it is installed correctly. ' +
         'To let the tool automatically detect the latest Delphi version, just do not use the --delphi-version parameter.', [
-        DelphiVersion
+        ForceDelphiVersion.ToString
       ]);
   end;
 
 begin
   R := TRegistry.Create(KEY_READ);
   try
-    if DelphiVersion = '' then
-      Result := FindLargestDelphiVersion(AppExe)
+    if ForceDelphiVersion.Major = 0 then
+      Result := FindLargestDelphiVersion(AppExe, FoundDelphiVersion)
     else
-      Result := UseDelphiVersion(AppExe);
+      Result := UseDelphiVersion(AppExe, FoundDelphiVersion);
   finally FreeAndNil(R) end;
 end;
 
 {$else}
 
 begin
+  // default out values
+  AppExe := '';
+  FoundDelphiVersion := Default(TDelphiVersion);
+
   // just in case Delphi IDE will be available on non-Windows some day
   Result := FindExe('dcc32');
   if Result <> '' then
@@ -477,8 +514,51 @@ end;
 function FindDelphiPath(const ExceptionWhenMissing: Boolean): String;
 var
   IgnoreAppExe: String;
+  IgnoreFoundDelphiVersion: TDelphiVersion;
 begin
-  Result := FindDelphiPath(ExceptionWhenMissing, IgnoreAppExe);
+  Result := FindDelphiPath(ExceptionWhenMissing, IgnoreAppExe, IgnoreFoundDelphiVersion);
+end;
+
+function TDelphiVersion.ToString: String;
+begin
+  Result := Format('%d.%d', [Major, Minor]);
+end;
+
+class function TDelphiVersion.FromString(const S: String): TDelphiVersion;
+begin
+  if not TryFromString(S, Result) then
+    raise Exception.CreateFmt('Invalid Delphi version string, must be <major>.<minor>: "%s"', [S]);
+end;
+
+class function TDelphiVersion.TryFromString(const S: String; out Version: TDelphiVersion): Boolean;
+var
+  DotPos: Integer;
+begin
+  DotPos := Pos('.', S);
+  if DotPos = 0 then
+    Exit(false);
+  try
+    Version.Major := StrToInt(Copy(S, 1, DotPos - 1));
+    Version.Minor := StrToInt(SEnding(S, DotPos + 1));
+    Result := true;
+  except
+    on E: EConvertError do
+      Result := false;
+  end;
+end;
+
+function TDelphiVersion.LargerThan(const Other: TDelphiVersion): Boolean;
+begin
+  Result :=
+    (Major > Other.Major) or
+    ((Major = Other.Major) and (Minor > Other.Minor));
+end;
+
+function TDelphiVersion.LargerThanOrEqual(const Other: TDelphiVersion): Boolean;
+begin
+  Result :=
+    (Major > Other.Major) or
+    ((Major = Other.Major) and (Minor >= Other.Minor));
 end;
 
 end.
