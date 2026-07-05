@@ -36,6 +36,7 @@
     public property FdDistanceFromShape: TSFFloat read FFdDistanceFromShape;
     {  }
     property DistanceFromShape: Single read GetDistanceFromShape write SetDistanceFromShape;
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -67,6 +68,12 @@ begin
   AddField(FFdDistanceFromShape);
 
   DefaultContainerField := 'viewpoint';
+end;
+
+procedure TViewpointMirrorNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+  ExtensionNames.Add(X3DType);
 end;
 
 {$endif read_implementation}

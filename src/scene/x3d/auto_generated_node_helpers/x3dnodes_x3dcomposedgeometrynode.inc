@@ -210,6 +210,7 @@
       @item(Equal to @link(FdSkinWeights0) count.)
     ) }
     procedure SetSkinJoints0(const Value: TInt32List); overload;
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -450,6 +451,19 @@ begin
   FFdSkinJoints0 := TMFInt32.Create(Self, True, 'skinJoints0', []);
    FdSkinJoints0.ChangeAlways := chGeometry;
   AddField(FFdSkinJoints0);
+end;
+
+procedure TAbstractComposedGeometryNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+{$ifndef CASTLE_SLIM_NODES}
+  if not FdRadianceTransfer.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdRadianceTransfer.X3DName);
+{$endif not CASTLE_SLIM_NODES}
+  if not FdSkinWeights0.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdSkinWeights0.X3DName);
+  if not FdSkinJoints0.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdSkinJoints0.X3DName);
 end;
 
 {$endif read_implementation}

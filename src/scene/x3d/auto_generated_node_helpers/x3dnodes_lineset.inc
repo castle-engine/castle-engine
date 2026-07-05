@@ -152,6 +152,7 @@
     procedure SetSkinJoints0(const Value: array of Int32); overload;
     { Joints for the skinned animation. See @link(TAbstractComposedGeometryNode.SetSkinJoints0) for details. }
     procedure SetSkinJoints0(const Value: TInt32List); overload;
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -317,6 +318,15 @@ begin
   FFdSkinJoints0 := TMFInt32.Create(Self, True, 'skinJoints0', []);
    FdSkinJoints0.ChangeAlways := chGeometry;
   AddField(FFdSkinJoints0);
+end;
+
+procedure TLineSetNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+  if not FdSkinWeights0.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdSkinWeights0.X3DName);
+  if not FdSkinJoints0.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdSkinJoints0.X3DName);
 end;
 
 {$endif read_implementation}

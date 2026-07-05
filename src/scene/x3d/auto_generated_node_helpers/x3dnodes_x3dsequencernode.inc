@@ -56,6 +56,7 @@
     public property FdForceContinuousValue_changed: TSFBool read FFdForceContinuousValue_changed;
     { Send value_changed event on any input, even you receive set_fraction that does not change previous key range. This means that sequencer node generates output event (value_changed) more often, even if internal node knowledge says that "no change occurred". See https://castle-engine.io/x3d_implementation_eventutilities_extensions.php }
     property ForceContinuousValue_changed: Boolean read GetForceContinuousValue_changed write SetForceContinuousValue_changed;
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -108,6 +109,13 @@ begin
   FFdForceContinuousValue_changed := TSFBool.Create(Self, True, 'forceContinuousValue_changed', false);
    FdForceContinuousValue_changed.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdForceContinuousValue_changed);
+end;
+
+procedure TAbstractSequencerNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+  if not FdForceContinuousValue_changed.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdForceContinuousValue_changed.X3DName);
 end;
 
 {$endif read_implementation}

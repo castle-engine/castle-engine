@@ -92,6 +92,7 @@
     public property FdTexCoord: TSFNode read FFdTexCoord;
     {  }
     property TexCoord: TX3DNode read GetTexCoord write SetTexCoord;
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -211,6 +212,13 @@ begin
   FFdTexCoord := TSFNode.Create(Self, True, 'texCoord', [TTextureCoordinateGeneratorNode, TProjectedTextureCoordinateNode, TMultiGeneratedTextureCoordinateNode]);
    FdTexCoord.ChangeAlways := chGeometry;
   AddField(FFdTexCoord);
+end;
+
+procedure TTextNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+  if not FdTexCoord.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdTexCoord.X3DName);
 end;
 
 {$endif read_implementation}

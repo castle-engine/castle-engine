@@ -46,7 +46,7 @@ X3DPunctualLightNode : X3DLightNode {
 
   SFFloat    [in,out]      projectionNear        0
     range: > 0
-    doc: Projection near, for shadow maps. See https://castle-engine.io/shadow_maps . }
+    doc: Projection near, for shadow maps. See https://castle-engine.io/shadow_maps .
     # We want to set UpdateNeeded := true for all GeneratedShadowMap using
     # this light. For now, simply send chVisibleGeometry that will
     # force updating all GeneratedShadowMaps.
@@ -55,7 +55,7 @@ X3DPunctualLightNode : X3DLightNode {
 
   SFFloat    [in,out]      projectionFar         0
     range: anything > projectionNear
-    doc: Projection far, for shadow maps. See https://castle-engine.io/shadow_maps . }
+    doc: Projection far, for shadow maps. See https://castle-engine.io/shadow_maps .
     # We want to set UpdateNeeded := true for all GeneratedShadowMap using
     # this light. For now, simply send chVisibleGeometry that will
     # force updating all GeneratedShadowMaps.
@@ -63,7 +63,7 @@ X3DPunctualLightNode : X3DLightNode {
     is-extension: true
 
   SFVec3f    [in,out]      up                    0 0 0
-    doc: View up vector, for shadow maps. See https://castle-engine.io/shadow_maps . }
+    doc: View up vector, for shadow maps. See https://castle-engine.io/shadow_maps .
     # We want to set UpdateNeeded := true for all GeneratedShadowMap using
     # this light. For now, simply send chVisibleGeometry that will
     # force updating all GeneratedShadowMaps.
@@ -72,7 +72,7 @@ X3DPunctualLightNode : X3DLightNode {
 
   SFNode     []            defaultShadowMap      NULL
     range: GeneratedShadowMap
-    doc: Shadow map used by this light source. See https://castle-engine.io/shadow_maps . }
+    doc: Shadow map used by this light source. See https://castle-engine.io/shadow_maps .
     change: chEverything
     is-extension: true
 }

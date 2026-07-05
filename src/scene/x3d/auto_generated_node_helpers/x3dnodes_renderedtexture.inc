@@ -176,6 +176,7 @@
     strict private FEventRendering: TSFBoolEvent;
     {  }
     public property EventRendering: TSFBoolEvent read FEventRendering;
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -463,6 +464,12 @@ begin
 
   FEventRendering := TSFBoolEvent.Create(Self, 'rendering', false);
   AddEvent(FEventRendering);
+end;
+
+procedure TRenderedTextureNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+  ExtensionNames.Add(X3DType);
 end;
 
 {$endif read_implementation}

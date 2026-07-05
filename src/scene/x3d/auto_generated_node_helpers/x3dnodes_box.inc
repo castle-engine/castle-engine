@@ -56,6 +56,7 @@
     public property FdTexCoord: TSFNode read FFdTexCoord;
     {  }
     property TexCoord: TX3DNode read GetTexCoord write SetTexCoord;
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -121,6 +122,15 @@ begin
    FdTexCoord.ChangeAlways := chGeometry;
    FdTexCoord.OnBeforeValueChange := {$ifdef FPC}@{$endif}MoveShapeAssociations;
   AddField(FFdTexCoord);
+end;
+
+procedure TBoxNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+  if not FdCcw.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdCcw.X3DName);
+  if not FdTexCoord.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdTexCoord.X3DName);
 end;
 
 {$endif read_implementation}

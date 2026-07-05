@@ -30,6 +30,7 @@
     var
     FFieldClass: TX3DFieldClass;
     FInEvent: boolean;
+    FInternalRouteCount: Cardinal;
     { To avoid allocating memory for FNotifications list in the most-common case
       when 0 or 1 notification is enough, store 1st notification in special
       field instead. }
@@ -146,6 +147,14 @@
       For now, this simply returns whether any callback is registered
       by AddNotification. }
     function SendNeeded: boolean;
+
+    { @exclude
+      How many routes (TX3DRoute) use this event as source or destination.
+      This is maintained by TX3DRoute, do not modify this from elsewhere.
+      Used e.g. to detect whether an extension (non-standard) event
+      is actually used by the loaded model, see TX3DNode.GetExtensions. }
+    property InternalRouteCount: Cardinal
+      read FInternalRouteCount write FInternalRouteCount;
 
     { Assign from another event. The FieldClass and InEvent is copied.
 

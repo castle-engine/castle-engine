@@ -39,6 +39,7 @@
     public property FdEffects: TMFNode read FFdEffects;
     { @url(https://castle-engine.io/shaders Shader effects) used to render background geometry. }
     procedure SetEffects(const Value: array of TEffectNode);
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -86,6 +87,15 @@ begin
   FFdEffects := TMFNode.Create(Self, False, 'effects', [TEffectNode]);
    FdEffects.ChangeAlways := chEverything;
   AddField(FFdEffects);
+end;
+
+procedure TAbstractBackgroundNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+  if not FdShaders.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdShaders.X3DName);
+  if not FdEffects.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdEffects.X3DName);
 end;
 
 {$endif read_implementation}

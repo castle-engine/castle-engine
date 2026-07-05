@@ -76,6 +76,7 @@
     public property FdCompareMode: TSFStringEnum read FFdCompareMode;
     { @deprecated This is ignored now. It was unportable and complicated to maintain. }
     property CompareMode: TShadowMapCompareMode read GetCompareMode write SetCompareMode;
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -182,6 +183,12 @@ begin
   FFdCompareMode := TSFStringEnum.Create(Self, False, 'compareMode', @CompareModeNames, Ord(High(CompareModeNames)) + 1, Ord(smCompareRLEqual));
    FdCompareMode.ChangeAlways := chTextureRendererProperties;
   AddField(FFdCompareMode);
+end;
+
+procedure TGeneratedShadowMapNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+  ExtensionNames.Add(X3DType);
 end;
 
 {$endif read_implementation}

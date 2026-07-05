@@ -116,6 +116,7 @@
     public property FdGuiTexture: TSFBool read FFdGuiTexture;
     {  }
     property GuiTexture: Boolean read GetGuiTexture write SetGuiTexture;
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -284,6 +285,13 @@ begin
   AddField(FFdGuiTexture);
 
   DefaultContainerField := 'textureProperties';
+end;
+
+procedure TTexturePropertiesNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+  if not FdGuiTexture.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdGuiTexture.X3DName);
 end;
 
 {$endif read_implementation}

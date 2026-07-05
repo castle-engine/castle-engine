@@ -166,6 +166,7 @@
     public property FdGravityTransform: TSFBool read FFdGravityTransform;
     { Should the gravity vector be affected by the viewpoint transformation, that is by the @link(TTransformNode) instances that contain this TAbstractViewpointNode. }
     property GravityTransform: Boolean read GetGravityTransform write SetGravityTransform;
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -372,6 +373,31 @@ begin
   FFdGravityTransform := TSFBool.Create(Self, True, 'gravityTransform', true);
    FdGravityTransform.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdGravityTransform);
+end;
+
+procedure TAbstractViewpointNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+  if not FdAutoCenterOfRotation.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdAutoCenterOfRotation.X3DName);
+  if EventCameraMatrix.InternalRouteCount > 0 then
+    ExtensionNames.Add(X3DType + '.' + EventCameraMatrix.X3DName);
+  if EventCameraInverseMatrix.InternalRouteCount > 0 then
+    ExtensionNames.Add(X3DType + '.' + EventCameraInverseMatrix.X3DName);
+  if EventCameraRotationMatrix.InternalRouteCount > 0 then
+    ExtensionNames.Add(X3DType + '.' + EventCameraRotationMatrix.X3DName);
+  if EventCameraRotationInverseMatrix.InternalRouteCount > 0 then
+    ExtensionNames.Add(X3DType + '.' + EventCameraRotationInverseMatrix.X3DName);
+  if not FdCameraMatrixSendAlsoOnOffscreenRendering.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdCameraMatrixSendAlsoOnOffscreenRendering.X3DName);
+  if not FdDirection.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdDirection.X3DName);
+  if not FdUp.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdUp.X3DName);
+  if not FdGravityUp.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdGravityUp.X3DName);
+  if not FdGravityTransform.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdGravityTransform.X3DName);
 end;
 
 {$endif read_implementation}

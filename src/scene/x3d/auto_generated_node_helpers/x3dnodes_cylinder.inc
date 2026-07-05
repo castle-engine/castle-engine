@@ -88,6 +88,7 @@
     public property FdSlices: TSFInt32 read FFdSlices;
     { How many "slices" to use to approximate the cylinder. The cylinder is rendered using polygons (triangles and quads) that approximate the cylinder shape. The more slices, the more the cylinder will look like a cylinder. Slices divide the objects like slices of a pizza. The default value of 0 means to follow global variable @link(DefaultTriangulationSlices). }
     property Slices: Integer read GetSlices write SetSlices;
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -211,6 +212,15 @@ begin
   FFdSlices := TSFInt32.Create(Self, True, 'slices', 0);
    FdSlices.ChangeAlways := chGeometry;
   AddField(FFdSlices);
+end;
+
+procedure TCylinderNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+  if not FdTexCoord.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdTexCoord.X3DName);
+  if not FdSlices.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdSlices.X3DName);
 end;
 
 {$endif read_implementation}
