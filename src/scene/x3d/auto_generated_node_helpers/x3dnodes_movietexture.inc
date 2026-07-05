@@ -90,7 +90,7 @@
     strict private FFdFlipVertically: TSFBool;
     { Internal wrapper for property @code(FlipVertically). This wrapper API may change, we advise to access simpler @code(FlipVertically) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdFlipVertically: TSFBool read FFdFlipVertically;
-    {  }
+    { Flip the texture contents vertically. Allows to use unchanged WebGL/glTF texture coordinates, where (0,0) is top-left, with this texture. See @url(https://castle-engine.io/x3d_implementation_texturing_extensions.php }
     property FlipVertically: Boolean read GetFlipVertically write SetFlipVertically;
 
     strict private FEventDuration_changed: TSFTimeEvent;
@@ -108,6 +108,7 @@
     strict private FEventIsPaused: TSFBoolEvent;
     {  }
     public property EventIsPaused: TSFBoolEvent read FEventIsPaused;
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -247,6 +248,13 @@ begin
 
   FEventIsPaused := TSFBoolEvent.Create(Self, 'isPaused', false);
   AddEvent(FEventIsPaused);
+end;
+
+procedure TMovieTextureNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+  if not FdFlipVertically.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdFlipVertically.X3DName);
 end;
 
 {$endif read_implementation}

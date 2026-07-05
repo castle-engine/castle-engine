@@ -62,8 +62,11 @@ ImageTexture : X3DTexture2DNode, X3DUrlObject {
   MFString [in,out] url               []
     range: [URI]
     change: chTextureImage
+
   SFBool   []       flipVertically    FALSE
     change: chTextureImage
+    is-extension: true
+    doc: Flip the texture contents vertically. Allows to use unchanged WebGL/glTF texture coordinates, where (0,0) is top-left, with this texture. See @url(https://castle-engine.io/x3d_implementation_texturing_extensions.php#section_flip_vertically flipVertically docs) for more details.
 }
 
 MovieTexture : X3DTexture2DNode, X3DSoundSourceNode, X3DUrlObject {
@@ -85,8 +88,12 @@ MovieTexture : X3DTexture2DNode, X3DSoundSourceNode, X3DUrlObject {
   MFString [in,out] url               []
     range: [URI]
     change: chTextureImage
+
   SFBool   []       flipVertically    FALSE
     change: chTextureImage
+    is-extension: true
+    doc: Flip the texture contents vertically. Allows to use unchanged WebGL/glTF texture coordinates, where (0,0) is top-left, with this texture. See @url(https://castle-engine.io/x3d_implementation_texturing_extensions.php#section_flip_vertically flipVertically docs) for more details.
+
   SFTime   [out]    duration_changed
   SFTime   [out]    elapsedTime
   SFBool   [out]    isActive
