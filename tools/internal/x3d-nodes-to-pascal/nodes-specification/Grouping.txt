@@ -27,7 +27,9 @@ X3DGroupingNode : X3DChildNode, X3DBoundedObject {
     doc: """
     Are shapes inside this group displayed.
 
-    The value of this field has no effect on animation behaviors, collision behaviors, event passing, lighting, or other non-visual characteristics. When this is @false, we merely do not render the @link(TAbstractShapeNode shapes) inside the group. Everything else works as usual.
+    The value of this field has no effect on animation behaviors, collision behaviors, event passing or other non-visual characteristics.
+
+    TODO: Right now, this affects only shapes visibility. When this is @false, we do not render the @link(TAbstractShapeNode shapes) inside the group. In the future, this will affects also lighting and fog nodes inside the group (following X3D and related glTF extension).
 
     Changing this property at run-time is optimized for some nodes: @link(TTransformNode) and other nodes that transform things (see @link(TX3DNode.TransformFunctionality)), @link(TSwitchNode), @link(TLodNode), @link(TInlineNode). For other nodes (like @link(TGroupNode)), changing this property at run-time is not optimized. So we recommend to use one of the optimized nodes (like @link(TTransformNode) or @link(TSwitchNode)) if you plan to change visibility at run-time and you have non-trivial content.
     """

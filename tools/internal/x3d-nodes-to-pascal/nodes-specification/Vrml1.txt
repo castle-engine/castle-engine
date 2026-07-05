@@ -180,13 +180,17 @@ Texture2 : X3DTexture2D {
   SFEnum [in,out] wrapT TEXWRAP_REPEAT
     enumerated-type-vrml1: WrapNames1
     change: chTexturePropertiesNode
+
   SFEnum [in,out] model 0
     enumerated-type-vrml1: TextureModelNames1
     change: chTexturePropertiesNode
     doc: Ignored. Unknown extension to VRML 1.0 spec, found on models in http://www-vrl.umich.edu/sel_prj/EECS498/ .
+    is-extension: true
+
   SFVec3f [in,out] blendColor 0 0 0
     change: chTexturePropertiesNode
     doc: Ignored. Unknown extension to VRML 1.0 spec, found on models in http://www-vrl.umich.edu/sel_prj/EECS498/ .
+    is-extension: true
 }
 
 Texture2Transform : X3DChildNode {

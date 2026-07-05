@@ -65,9 +65,11 @@ X3DComposedGeometryNode : X3DGeometryNode {
   MFVec3f    [in,out]      radianceTransfer  []
     not-slim
     change: chGeometry
+    is-extension: true
 
   MFVec4f    [in,out]      skinWeights0     []
     change: chGeometry
+    is-extension: true
     doc: """
     Weights for the skinned animation.
 
@@ -87,6 +89,7 @@ X3DComposedGeometryNode : X3DGeometryNode {
 
   MFInt32    [in,out]      skinJoints0     []
     change: chGeometry
+    is-extension: true
     doc: """
     Joints for the skinned animation.
 
@@ -178,9 +181,11 @@ IndexedLineSet : X3DGeometryNode {
 
   MFVec4f    [in,out]      skinWeights0     []
     change: chGeometry
+    is-extension: true
     doc: Weights for the skinned animation. See @link(TAbstractComposedGeometryNode.SetSkinWeights0) for details.
   MFInt32    [in,out]      skinJoints0     []
     change: chGeometry
+    is-extension: true
     doc: Joints for the skinned animation. See @link(TAbstractComposedGeometryNode.SetSkinJoints0) for details.
 }
 
@@ -265,9 +270,11 @@ LineSet : X3DGeometryNode {
 
   MFVec4f    [in,out]      skinWeights0     []
     change: chGeometry
+    is-extension: true
     doc: Weights for the skinned animation. See @link(TAbstractComposedGeometryNode.SetSkinWeights0) for details.
   MFInt32    [in,out]      skinJoints0     []
     change: chGeometry
+    is-extension: true
     doc: Joints for the skinned animation. See @link(TAbstractComposedGeometryNode.SetSkinJoints0) for details.
 }
 
@@ -308,9 +315,11 @@ PointSet : X3DGeometryNode {
 
   MFVec4f    [in,out]      skinWeights0     []
     change: chGeometry
+    is-extension: true
     doc: Weights for the skinned animation. See @link(TAbstractComposedGeometryNode.SetSkinWeights0) for details.
   MFInt32    [in,out]      skinJoints0     []
     change: chGeometry
+    is-extension: true
     doc: Joints for the skinned animation. See @link(TAbstractComposedGeometryNode.SetSkinJoints0) for details.
 }
 
