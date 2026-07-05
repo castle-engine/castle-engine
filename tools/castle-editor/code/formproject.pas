@@ -1337,6 +1337,7 @@ end;
 procedure TProjectForm.ActionOpenProjectCodeExecute(Sender: TObject);
 var
   Exe, DelphiExe: String;
+  IgnoredFoundDelphiVersion: TDelphiVersion;
   Ce: TCodeEditor;
 begin
   if CodeEditor = ceAutodetect then
@@ -1373,7 +1374,7 @@ begin
       end;
     ceDelphi:
       begin
-        FindDelphiPath(true, DelphiExe);
+        FindDelphiPath(true, DelphiExe, IgnoredFoundDelphiVersion);
 
         { Open through DPROJ, this seems to be the only thing that works reliably. }
         if ProjectDelphi = '' then
@@ -3107,6 +3108,7 @@ procedure TProjectForm.OpenPascal(const FileName: String; Line: Integer;
   Column: Integer);
 var
   Exe, DelphiExe, VsCodeFileArgument: String;
+  IgnoredFoundDelphiVersion: TDelphiVersion;
   Ce: TCodeEditor;
 begin
   if CodeEditor = ceAutodetect then
@@ -3158,7 +3160,7 @@ begin
       end;
     ceDelphi:
       begin
-        FindDelphiPath(true, DelphiExe);
+        FindDelphiPath(true, DelphiExe, IgnoredFoundDelphiVersion);
 
         { Open through DPROJ }
         (*

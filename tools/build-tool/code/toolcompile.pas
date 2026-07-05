@@ -1230,7 +1230,7 @@ procedure CompileDelphiMSBuild(const WorkingDirectory, CompileFile: String; cons
 
 var
   DelphiPath, RsVars, DprojFile, DprojFileAbsolute: String;
-  MSBuildPlatform, MSBuildConfig, ExtraDefines, ExtraUnitSearchPath, IgnoredOptions: String;
+  MSBuildPlatform, MSBuildConfig, ExtraDefines, ExtraUnitSearchPath: String;
   WrapperBat, WrapperBatContents, OutPath, MSBuildOutput: String;
   ComSpec, MsBuildVerbosity: String;
   MSBuildExitStatus: Integer;
@@ -1271,7 +1271,6 @@ begin
   AddEngineSearchPaths(ExtraUnitSearchPath);
 
   { Make a warning that Options.ExtraOptions are unsupported. }
-  IgnoredOptions := '';
   if Options.ExtraOptions.Count > 0 then
     WritelnWarning('Delphi', 'Extra compiler options have been provided, but they are ignored when compiling with msbuild. The extra compiler options are:' + NL +
       Options.ExtraOptions.Text);
@@ -1317,8 +1316,37 @@ begin
 end;
 
 procedure CompileDelphi(const WorkingDirectory, CompileFile: String; const Options: TCompilerOptions);
+
+  { Detect Delphi versions that require dcc.
+
+    Delphi 10 + msbuild has problems: If we add engine paths to DCC_UnitSearchPath,
+    the command-line is too long and we get errors about command-line
+    not fitting in 32k.
+
+    We could not workaround them by using environment references like
+    $(CGESRC) in the DCC_UnitSearchPath. It seems msbuild expands them before
+    passing to dcc, so we still get too long command-line.
+
+    Workaround: just don't use msbuild with older Delphi.
+    The main use-case for msbuild is easy building for non-Windows,
+    which we don't support on Delphi 10 anyway,
+    see https://castle-engine.io/delphi#_delphi_versions_supported . }
+  function OlderDelphi: Boolean;
+  var
+    DelphiPath: String;
+    DelphiAppExe: String;
+    FoundDelphiVersion: TDelphiVersion;
+  begin
+    DelphiPath := FindDelphiPath(false, DelphiAppExe, FoundDelphiVersion);
+    Result := (DelphiPath <> '') and Delphi11.LargerThan(FoundDelphiVersion);
+    if Result then
+      WritelnWarning('Detected old Delphi version %s, falling back to dcc compilation instead of msbuild (to avoid 32k command-line limit).', [
+        FoundDelphiVersion.ToString
+      ]);
+  end;
+
 begin
-  if CompileDelphiUsingDcc then
+  if CompileDelphiUsingDcc or OlderDelphi then
     CompileDelphiDcc(WorkingDirectory, CompileFile, Options)
   else
     CompileDelphiMSBuild(WorkingDirectory, CompileFile, Options);
