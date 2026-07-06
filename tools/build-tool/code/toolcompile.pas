@@ -1316,37 +1316,17 @@ begin
 end;
 
 procedure CompileDelphi(const WorkingDirectory, CompileFile: String; const Options: TCompilerOptions);
+begin
+  { Use "dcc" for Windows, "msbuild" for non-Windows.
 
-  { Detect Delphi versions that require dcc.
-
-    Delphi 10 + msbuild has problems: If we add engine paths to DCC_UnitSearchPath,
-    the command-line is too long and we get errors about command-line
+    We would like to just use msbuild everywhere, but it has problems:
+    On some systems, if we add engine paths to DCC_UnitSearchPath,
+    the command-line gets too long and we get errors about command-line
     not fitting in 32k.
 
-    We could not workaround them by using environment references like
-    $(CGESRC) in the DCC_UnitSearchPath. It seems msbuild expands them before
-    passing to dcc, so we still get too long command-line.
+    See https://github.com/castle-engine/castle-engine/blob/master/tools/build-tool/delphi_dcc_vs_msbuild.md . }
 
-    Workaround: just don't use msbuild with older Delphi.
-    The main use-case for msbuild is easy building for non-Windows,
-    which we don't support on Delphi 10 anyway,
-    see https://castle-engine.io/delphi#_delphi_versions_supported . }
-  function OlderDelphi: Boolean;
-  var
-    DelphiPath: String;
-    DelphiAppExe: String;
-    FoundDelphiVersion: TDelphiVersion;
-  begin
-    DelphiPath := FindDelphiPath(false, DelphiAppExe, FoundDelphiVersion);
-    Result := (DelphiPath <> '') and Delphi11.LargerThan(FoundDelphiVersion);
-    if Result then
-      WritelnWarning('Detected old Delphi version %s, falling back to dcc compilation instead of msbuild (to avoid 32k command-line limit).', [
-        FoundDelphiVersion.ToString
-      ]);
-  end;
-
-begin
-  if CompileDelphiUsingDcc or OlderDelphi then
+  if CompileDelphiUsingDcc or (Options.OS in AllWindowsOSes) then
     CompileDelphiDcc(WorkingDirectory, CompileFile, Options)
   else
     CompileDelphiMSBuild(WorkingDirectory, CompileFile, Options);
