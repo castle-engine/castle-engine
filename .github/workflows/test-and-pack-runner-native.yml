@@ -54,6 +54,7 @@ jobs:
           #ubuntu-latest,
           ubuntu-22.04,
 
+          windows-11-arm64,
           windows-latest
         ]
         include:

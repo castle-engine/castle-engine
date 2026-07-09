@@ -33,7 +33,7 @@ unit CastleInternalTools;
 interface
 
 uses Classes, Dom,
-  CastleFindFiles;
+  CastleFindFiles, CastleInternalArchitectures;
 
 const
   { Paths with units and include files that are for all OSes and all compilers.
@@ -129,17 +129,6 @@ type
   TDependency = (depFreetype, depZlib, depPng, depSound, depOggVorbis, depHttps);
   TDependencies = set of TDependency;
 
-  { Platforms where we make effort to copy extra files alongside the EXE
-    ("deploy").
-    This is done when building a CGE project
-    using build tool ("castle-engine compile")
-    or in Delphi IDE (with our CastleInternalDelphiDesign feature).
-
-    TODO: In the future, we could use TOS and TCPU and make it general.
-    For now, this is practically only used by Windows platforms that need
-    some DLLs, on other platforms we're fine with just using system libraries. }
-  TDeployFilesPlatform = (dpWin32, dpWin64);
-
   { Managing project dependencies: reading from manifest, guessing based on data etc. }
   TProjectDependencies = class
   strict private
@@ -162,7 +151,7 @@ type
 
     { Add deploy files (.dll on Windows) to Files, based on given platform and project
       dependencies. The resulting filenames are relative to build tool's data. }
-    procedure DeployFiles(const DeployPlatform: TDeployFilesPlatform;
+    procedure DeployFiles(const OS: TOS; const CPU: TCPU;
       const Files: TStrings);
   end;
 
@@ -338,79 +327,120 @@ begin
     {$ifdef FPC}@{$endif} AddDependencyFromFoundDataFile, [ffRecursive]);
 end;
 
-procedure TProjectDependencies.DeployFiles(const DeployPlatform: TDeployFilesPlatform;
+procedure TProjectDependencies.DeployFiles(const OS: TOS; const CPU: TCPU;
   const Files: TStrings);
 var
   Prefix: String;
+  AddVCRuntime: boolean;
 begin
-  case DeployPlatform of
-    dpWin32:
-      begin
-        { Matches CPUToString(CPU) + '-' + OSToString(OS) for win32. }
-        Prefix := 'external_libraries/i386-win32/';
+  if (OS = win32) and (CPU = i386) then
+  begin
+    { Matches CPUToString(CPU) + '-' + OSToString(OS) for win32. }
+    Prefix := 'external_libraries/i386-win32/';
 
-        if depFreetype in Dependencies then
-        begin
-          Files.Add(Prefix + 'freetype.dll');
-          Files.Add(Prefix + 'vcruntime140.dll');
-        end;
-        if depZlib in Dependencies then
-          Files.Add(Prefix + 'zlib1.dll');
-        if depPng in Dependencies then
-          Files.Add(Prefix + 'libpng12.dll');
-        if depSound in Dependencies then
-        begin
-          Files.Add(Prefix + 'OpenAL32.dll');
-          Files.Add(Prefix + 'wrap_oal.dll');
-        end;
-        if depOggVorbis in Dependencies then
-        begin
-          Files.Add(Prefix + 'ogg.dll');
-          Files.Add(Prefix + 'vorbis.dll');
-          Files.Add(Prefix + 'vorbisenc.dll');
-          Files.Add(Prefix + 'vorbisfile.dll');
-          Files.Add(Prefix + 'msvcr120.dll');
-        end;
-        if depHttps in Dependencies then
-        begin
-          Files.Add(Prefix + 'openssl/libeay32.dll');
-          Files.Add(Prefix + 'openssl/ssleay32.dll');
-        end;
-      end;
+    if depFreetype in Dependencies then
+    begin
+      Files.Add(Prefix + 'freetype.dll');
+      Files.Add(Prefix + 'vcruntime140.dll');
+    end;
+    if depZlib in Dependencies then
+      Files.Add(Prefix + 'zlib1.dll');
+    if depPng in Dependencies then
+      Files.Add(Prefix + 'libpng12.dll');
+    if depSound in Dependencies then
+    begin
+      Files.Add(Prefix + 'OpenAL32.dll');
+      Files.Add(Prefix + 'wrap_oal.dll');
+    end;
+    if depOggVorbis in Dependencies then
+    begin
+      Files.Add(Prefix + 'ogg.dll');
+      Files.Add(Prefix + 'vorbis.dll');
+      Files.Add(Prefix + 'vorbisenc.dll');
+      Files.Add(Prefix + 'vorbisfile.dll');
+      Files.Add(Prefix + 'msvcr120.dll');
+    end;
+    if depHttps in Dependencies then
+    begin
+      Files.Add(Prefix + 'openssl/libeay32.dll');
+      Files.Add(Prefix + 'openssl/ssleay32.dll');
+    end;
+  end
+  else if (OS = win64) and (CPU = x86_64) then
+  begin
+    { Matches CPUToString(CPU) + '-' + OSToString(OS) for win64. }
+    Prefix := 'external_libraries/x86_64-win64/';
 
-    dpWin64:
-      begin
-        { Matches CPUToString(CPU) + '-' + OSToString(OS) for win32. }
-        Prefix := 'external_libraries/x86_64-win64/';
+    if depFreetype in Dependencies then
+    begin
+      Files.Add(Prefix + 'freetype.dll');
+      Files.Add(Prefix + 'vcruntime140.dll');
+    end;
+    if depZlib in Dependencies then
+      Files.Add(Prefix + 'zlib1.dll');
+    if depPng in Dependencies then
+      Files.Add(Prefix + 'libpng14-14.dll');
+    if depSound in Dependencies then
+    begin
+      Files.Add(Prefix + 'OpenAL32.dll');
+      Files.Add(Prefix + 'wrap_oal.dll');
+    end;
+    if depOggVorbis in Dependencies then
+    begin
+      Files.Add(Prefix + 'libogg.dll');
+      Files.Add(Prefix + 'libvorbis.dll');
+      { Files.Add(Prefix + 'vorbisenc.dll'); not present? }
+      Files.Add(Prefix + 'vorbisfile.dll');
+      Files.Add(Prefix + 'msvcr120.dll');
+    end;
+    if depHttps in Dependencies then
+    begin
+      Files.Add(Prefix + 'openssl/libeay32.dll');
+      Files.Add(Prefix + 'openssl/ssleay32.dll');
+    end;
+  end
+  else if (OS = win64) and (CPU = aarch64) then
+  begin
+    Prefix := 'external_libraries/' + CPUToString(CPU) + '-' + OSToString(OS);
+    AddVCRuntime := false;
 
-        if depFreetype in Dependencies then
-        begin
-          Files.Add(Prefix + 'freetype.dll');
-          Files.Add(Prefix + 'vcruntime140.dll');
-        end;
-        if depZlib in Dependencies then
-          Files.Add(Prefix + 'zlib1.dll');
-        if depPng in Dependencies then
-          Files.Add(Prefix + 'libpng14-14.dll');
-        if depSound in Dependencies then
-        begin
-          Files.Add(Prefix + 'OpenAL32.dll');
-          Files.Add(Prefix + 'wrap_oal.dll');
-        end;
-        if depOggVorbis in Dependencies then
-        begin
-          Files.Add(Prefix + 'libogg.dll');
-          Files.Add(Prefix + 'libvorbis.dll');
-          { Files.Add(Prefix + 'vorbisenc.dll'); not present? }
-          Files.Add(Prefix + 'vorbisfile.dll');
-          Files.Add(Prefix + 'msvcr120.dll');
-        end;
-        if depHttps in Dependencies then
-        begin
-          Files.Add(Prefix + 'openssl/libeay32.dll');
-          Files.Add(Prefix + 'openssl/ssleay32.dll');
-        end;
-      end;
+    if depFreetype in Dependencies then
+      Files.Add(Prefix + 'freetype.dll');
+    if depZlib in Dependencies then
+    begin
+      Files.Add(Prefix + 'zlib1.dll');
+      AddVCRuntime := true;
+    end;
+    if depPng in Dependencies then
+    begin
+      Files.Add(Prefix + 'libpng16.dll');
+      AddVCRuntime := true;
+    end;
+    if depSound in Dependencies then
+    begin
+      Files.Add(Prefix + 'OpenAL32.dll');
+      AddVCRuntime := true;
+    end;
+    if depOggVorbis in Dependencies then
+    begin
+      Files.Add(Prefix + 'libogg.dll');
+      Files.Add(Prefix + 'libvorbis.dll');
+      Files.Add(Prefix + 'vorbisenc.dll');
+      Files.Add(Prefix + 'vorbisfile.dll');
+      AddVCRuntime := true;
+    end;
+    if depHttps in Dependencies then
+    begin
+      Files.Add(Prefix + 'openssl/libssl-3-arm64.dll');
+      Files.Add(Prefix + 'openssl/libcrypto-3-arm64.dll');
+    end;
+    if AddVCRuntime then
+    begin
+      Files.Add(Prefix + 'vcruntime140.dll');
+      Files.Add(Prefix + 'msvcp140.dll');
+      Files.Add(Prefix + 'msvcp140_1.dll');
+      Files.Add(Prefix + 'msvcp140_2.dll');
+    end;
   end;
 end;
 
