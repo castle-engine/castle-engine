@@ -45,6 +45,9 @@ jobs:
       APPLE_P12_PASSWORD: ${{ secrets.APPLE_P12_PASSWORD }}
       APPLE_KEYCHAIN_PASSWORD: ${{ secrets.APPLE_KEYCHAIN_PASSWORD }}
       APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+      AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
   test_and_pack_arm_runner:
     uses: ./.github/workflows/test-and-pack-arm-runner.yml
   test_shell:

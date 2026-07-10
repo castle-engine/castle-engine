@@ -27,6 +27,12 @@ on:
         required: true
       APPLE_APP_PASSWORD:
         required: true
+      AZURE_CLIENT_ID:
+        required: true
+      AZURE_TENANT_ID:
+        required: true
+      AZURE_SUBSCRIPTION_ID:
+        required: true
   # push:
   # pull_request:
 
@@ -36,8 +42,10 @@ defaults:
 
 # GitHub CodeQL recommends to explicitly set permissions for GITHUB_TOKEN.
 # See https://docs.github.com/en/actions/tutorials/authenticate-with-github_token .
+# Moreover, we need id-token: write to allow Azure federated login.
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   test_and_pack:
