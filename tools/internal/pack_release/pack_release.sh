@@ -27,12 +27,12 @@ set -euxo pipefail
 #
 # Optionally define APPLE_BUNDLE_NOTARIZE to a script that notarizes macOS app bundle
 # (and signs main executable inside it, it should not be signed again with
-# SIGN_EXECUTABLE).
+# SIGN_EXECUTABLES).
 #
-# Optionally define SIGN_EXECUTABLE to a script that signs executables
+# Optionally define SIGN_EXECUTABLES to a script that signs executables
 # accepting multiple filenames or directory names as parameters.
 # This can be used to sign executables on macOS and Windows,
-# it will work with both windows/sign_executable and apple/sign_executable
+# it will work with both windows/sign_executables and apple/sign_executables
 # from https://github.com/castle-engine/castle-build-ci/ .
 #
 # Uses bash strict mode, see http://redsymbol.net/articles/unofficial-bash-strict-mode/
@@ -208,10 +208,10 @@ detect_platform ()
 # Exception: do not pass the *main* exe inside each Apple bundle,
 # as this will be handled by APPLE_BUNDLE_NOTARIZE script.
 # Pass here other (non-main) executables in a bundle, and every other exe.
-sign_executable ()
+sign_executables ()
 {
-  if [[ -n "${SIGN_EXECUTABLE:-}" ]]; then
-    "${SIGN_EXECUTABLE}" "$@"
+  if [[ -n "${SIGN_EXECUTABLES:-}" ]]; then
+    "${SIGN_EXECUTABLES}" "$@"
   fi
 }
 
@@ -343,14 +343,14 @@ add_external_tool ()
     mv "${EXE_NAME}".app "${OUTPUT_BIN}"
   else
     castle-engine "${CASTLE_BUILD_TOOL_OPTIONS[@]}" compile
-    sign_executable "${EXE_NAME}"
+    sign_executables "${EXE_NAME}"
     mv "${EXE_NAME}" "${OUTPUT_BIN}"
 
     if [[ "${GITHUB_NAME}" = 'castle-model-viewer' ]]; then
       castle-engine "${CASTLE_BUILD_TOOL_OPTIONS[@]}" compile --manifest-name=CastleEngineManifest.converter.xml
       local BONUS_EXE_NAME
       BONUS_EXE_NAME="castle-model-converter${EXE_EXTENSION}"
-      sign_executable "${BONUS_EXE_NAME}"
+      sign_executables "${BONUS_EXE_NAME}"
       mv "${BONUS_EXE_NAME}" "${OUTPUT_BIN}"
     fi
   fi
@@ -573,7 +573,7 @@ pack_platform_dir ()
   # move to bin-to-keep
   cp "${TOOLS_EXES[@]}" "${TEMP_PATH_CGE}"bin-to-keep
   # codesign tools (castle-engine etc.) on macOS and Windows
-  sign_executable "${TEMP_PATH_CGE}"bin-to-keep/*
+  sign_executables "${TEMP_PATH_CGE}"bin-to-keep/*
 
   # Compile castle-editor with lazbuild (or CGE build tool, to get macOS app bundle),
   # place it in bin-to-keep subdirectory
@@ -591,7 +591,7 @@ pack_platform_dir ()
   else
     lazbuild_twice "${CASTLE_LAZBUILD_OPTIONS[@]}" tools/castle-editor/castle_editor.lpi
     EDITOR_EXE_NAME="tools/castle-editor/castle-editor${EXE_EXTENSION}"
-    sign_executable "${EDITOR_EXE_NAME}"
+    sign_executables "${EDITOR_EXE_NAME}"
     cp "${EDITOR_EXE_NAME}" "${TEMP_PATH_CGE}"bin-to-keep
   fi
 
@@ -766,7 +766,7 @@ pack_windows_installer ()
     "/DMyAppSrcDir=${CASTLE_ENGINE_PATH_STRIP_FINAL_SLASH}" \
     "/DMyAppVersion=${CGE_VERSION}"
 
-  sign_executable "${OUTPUT_DIRECTORY}/${ARCHIVE_NAME}.exe"
+  sign_executables "${OUTPUT_DIRECTORY}/${ARCHIVE_NAME}.exe"
 
   # cleanup to save disk space
   rm -Rf "${TEMP_PATH}"

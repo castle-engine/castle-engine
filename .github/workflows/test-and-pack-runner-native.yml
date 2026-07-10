@@ -276,13 +276,13 @@ jobs:
         if [[ "${GITHUB_REF}" == "refs/heads/master" || "${GITHUB_REF}" == "refs/heads/windows-code-signing" ]]; then
           if [[ "${FPC_OS}" = 'darwin' ]]; then
             export APPLE_BUNDLE_NOTARIZE="/tmp/castle-build-ci/apple/sign_notarize_bundle"
-            export SIGN_EXECUTABLE="/tmp/castle-build-ci/apple/sign_executable"
+            export SIGN_EXECUTABLES="/tmp/castle-build-ci/apple/sign_executables"
             /tmp/castle-build-ci/apple/setup_signing
           fi
 
           if [[ "${FPC_OS}" = 'win64' || "${FPC_OS}" = 'win32' ]]; then
             export AZURE_SIGNING_CLIENT_PARENT="$RUNNER_TEMP/sign-tools/"
-            export SIGN_EXECUTABLE="/tmp/castle-build-ci/windows/sign_executable"
+            export SIGN_EXECUTABLES="/tmp/castle-build-ci/windows/sign_executables"
             /tmp/castle-build-ci/windows/setup_signing
           fi
         fi
