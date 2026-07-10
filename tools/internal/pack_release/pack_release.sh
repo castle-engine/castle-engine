@@ -21,15 +21,19 @@ set -euxo pipefail
 # - 1 argument 'windows_installer' to build a Windows installer.
 #   This requires InnoSetup installed.
 #
-# Define CGE_PACK_BUNDLE=yes for a special behavior:
+# Optionally define CGE_PACK_BUNDLE=yes for a special behavior:
 # - The generated archive will be named -bundle
 # - We will expect fpc-OS-CPU.zip, and we will unpack it and distribute along with CGE
 #
-# Define APPLE_CODESIGN_SCRIPTS="/path/to/castle-build-ci/apple"
-# to codesign and notarize macOS apps.
+# Optionally define APPLE_BUNDLE_NOTARIZE to a script that notarizes macOS app bundle
+# (and signs main executable inside it, it should not be signed again with
+# SIGN_EXECUTABLE).
 #
-# Define WINDOWS_CODESIGN='true' to codesign Windows executables
-# (castle-editor.exe, castle-engine.exe, etc.) using SignPath.
+# Optionally define SIGN_EXECUTABLE to a script that signs executables
+# accepting multiple filenames or directory names as parameters.
+# This can be used to sign executables on macOS and Windows,
+# it will work with both windows/sign_executable and apple/sign_executable
+# from https://github.com/castle-engine/castle-build-ci/ .
 #
 # Uses bash strict mode, see http://redsymbol.net/articles/unofficial-bash-strict-mode/
 # (but without IFS modification, deliberately, we want to split on space).
@@ -199,15 +203,13 @@ detect_platform ()
   echo "Using sed: ${SED} $(${SED} --version | head -n 1)"
 }
 
-# Pass each exe in $@ to codesign on Windows using SignPath,
-# if only WINDOWS_CODESIGN='true' .
-process_exe ()
+# Pass each exe in $@ to codesign on Windows or macOS.
+# (do not pass only *main* exe in Apple bundles, as this will be handled
+# by APPLE_BUNDLE_NOTARIZE script, which will also notarize the bundle).
+sign_executables ()
 {
-  if [[ "${WINDOWS_CODESIGN:-}" = 'true' ]]; then
-    for EXE in "$@"; do
-      # TODO:
-      echo "CodeSigning ${EXE}"
-    done
+  if [[ -n "${SIGN_EXECUTABLE:-}" ]]; then
+    "${SIGN_EXECUTABLE}" "$@"
   fi
 }
 
@@ -331,8 +333,8 @@ add_external_tool ()
   if [[ "${OS}" = 'darwin' && "${GITHUB_NAME}" != 'pascal-language-server' ]]; then
     # on macOS, build app bundle, and move it to output path
     castle-engine "${CASTLE_BUILD_TOOL_OPTIONS[@]}" package --package-format=mac-app-bundle
-    if [[ -n "${APPLE_CODESIGN_SCRIPTS:-}" ]]; then
-      "${APPLE_CODESIGN_SCRIPTS}/sign_notarize_bundle" \
+    if [[ -n "${APPLE_BUNDLE_NOTARIZE:-}" ]]; then
+      "${APPLE_BUNDLE_NOTARIZE}" \
         "${EXE_NAME}".app \
         "${EXE_NAME}"
     fi
@@ -340,14 +342,14 @@ add_external_tool ()
   else
     castle-engine "${CASTLE_BUILD_TOOL_OPTIONS[@]}" compile
     mv "${EXE_NAME}" "${OUTPUT_BIN}"
-    process_exe "${EXE_NAME}"
+    sign_executable "${EXE_NAME}"
 
     if [[ "${GITHUB_NAME}" = 'castle-model-viewer' ]]; then
       castle-engine "${CASTLE_BUILD_TOOL_OPTIONS[@]}" compile --manifest-name=CastleEngineManifest.converter.xml
       local BONUS_EXE_NAME
       BONUS_EXE_NAME="castle-model-converter${EXE_EXTENSION}"
       mv "${BONUS_EXE_NAME}" "${OUTPUT_BIN}"
-      process_exe "${BONUS_EXE_NAME}"
+      sign_executable "${BONUS_EXE_NAME}"
     fi
   fi
 }
@@ -566,15 +568,10 @@ pack_platform_dir ()
     tools/to-data-uri/to-data-uri"${EXE_EXTENSION}"
     tools/internal/fpc-cge/fpc-cge"${EXE_EXTENSION}"
   )
-  # codesign tools (castle-engine etc.) on Windows
-  process_exe "${TOOLS_EXES[@]}"
   # move to bin-to-keep
   cp "${TOOLS_EXES[@]}" "${TEMP_PATH_CGE}"bin-to-keep
-  # codesign tools (castle-engine etc.) on macOS
-  if [[ -n "${APPLE_CODESIGN_SCRIPTS:-}" ]]; then
-    "${APPLE_CODESIGN_SCRIPTS}/sign_executable" \
-      "${TEMP_PATH_CGE}"bin-to-keep
-  fi
+  # codesign tools (castle-engine etc.) on macOS and Windows
+  sign_executables "${TEMP_PATH_CGE}"bin-to-keep/*
 
   # Compile castle-editor with lazbuild (or CGE build tool, to get macOS app bundle),
   # place it in bin-to-keep subdirectory
@@ -584,15 +581,15 @@ pack_platform_dir ()
     cd ../../
     cp -R tools/castle-editor/castle-editor.app \
        "${TEMP_PATH_CGE}"bin-to-keep
-    if [[ -n "${APPLE_CODESIGN_SCRIPTS:-}" ]]; then
-      "${APPLE_CODESIGN_SCRIPTS}/sign_notarize_bundle" \
+    if [[ -n "${APPLE_BUNDLE_NOTARIZE:-}" ]]; then
+      "${APPLE_BUNDLE_NOTARIZE}" \
         "${TEMP_PATH_CGE}"bin-to-keep/castle-editor.app \
         castle-editor
     fi
   else
     lazbuild_twice "${CASTLE_LAZBUILD_OPTIONS[@]}" tools/castle-editor/castle_editor.lpi
     EDITOR_EXE_NAME="tools/castle-editor/castle-editor${EXE_EXTENSION}"
-    process_exe "${EDITOR_EXE_NAME}"
+    sign_executable "${EDITOR_EXE_NAME}"
     cp "${EDITOR_EXE_NAME}" "${TEMP_PATH_CGE}"bin-to-keep
   fi
 
@@ -767,7 +764,7 @@ pack_windows_installer ()
     "/DMyAppSrcDir=${CASTLE_ENGINE_PATH_STRIP_FINAL_SLASH}" \
     "/DMyAppVersion=${CGE_VERSION}"
 
-  process_exe "${OUTPUT_DIRECTORY}/${ARCHIVE_NAME}.exe"
+  sign_executable "${OUTPUT_DIRECTORY}/${ARCHIVE_NAME}.exe"
 
   # cleanup to save disk space
   rm -Rf "${TEMP_PATH}"

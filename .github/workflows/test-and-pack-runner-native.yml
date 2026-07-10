@@ -239,17 +239,29 @@ jobs:
         make
         bin/pasdoc --version # check it's OK
 
+    - name: Azure Login (for Windows CodeSigning)
+      if: ${{ runner.os == 'Windows' && ( github.ref == 'refs/heads/master' || github.ref == 'refs/heads/windows-code-signing' ) }}
+      uses: azure/login@v3
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
     - name: Pack Release
       env:
-        # for codesigning
+        # for Apple codesigning
         APPLE_IDENTITY: ${{ vars.APPLE_IDENTITY }}
         APPLE_BUILD_CERTIFICATE_BASE64: ${{ secrets.APPLE_BUILD_CERTIFICATE_BASE64 }}
         APPLE_P12_PASSWORD: ${{ secrets.APPLE_P12_PASSWORD }}
         APPLE_KEYCHAIN_PASSWORD: ${{ secrets.APPLE_KEYCHAIN_PASSWORD }}
-        # for notarization
+        # for Apple notarization
         APPLE_ID: ${{ vars.APPLE_ID }}
         APPLE_TEAM_ID: ${{ vars.APPLE_TEAM_ID }}
         APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+        # for Azure (Windows) codesigning
+        AZURE_ENDPOINT: ${{ vars.AZURE_ENDPOINT }}
+        AZURE_CODESIGNING_ACCOUNT_NAME: ${{ vars.AZURE_CODESIGNING_ACCOUNT_NAME }}
+        AZURE_CERTIFICATE_PROFILE_NAME: ${{ vars.AZURE_CERTIFICATE_PROFILE_NAME }}
       run: |
         rm -f castle-engine*.zip # remove previous artifacts
         # Determine OS/CPU for pack_release, which is just our current OS/CPU,
@@ -258,10 +270,23 @@ jobs:
         FPC_CPU="`fpc -iTP`"
         echo "Packing for OS / CPU: ${FPC_OS} / ${FPC_CPU}"
         export CGE_PACK_BUNDLE=yes
-        if [ "${FPC_OS}" = 'darwin' ]; then
-          export APPLE_CODESIGN_SCRIPTS="/tmp/castle-build-ci/apple"
-          "${APPLE_CODESIGN_SCRIPTS}/setup_signing"
+
+        # Sign (for Windows and Apple), only on chosen branches
+        # (Azure federated login only works on specific branches)
+        if [[ "${GITHUB_REF}" == "refs/heads/master" || "${GITHUB_REF}" == "refs/heads/windows-code-signing" ]]; then
+          if [[ "${FPC_OS}" = 'darwin' ]]; then
+            export APPLE_BUNDLE_NOTARIZE="/tmp/castle-build-ci/apple/sign_notarize_bundle"
+            export SIGN_EXECUTABLE="/tmp/castle-build-ci/apple/sign_executable"
+            /tmp/castle-build-ci/apple/setup_signing
+          fi
+
+          if [[ "${FPC_OS}" = 'win64' || "${FPC_OS}" = 'win32' ]]; then
+            export AZURE_SIGNING_CLIENT_PARENT="$RUNNER_TEMP/sign-tools/"
+            export SIGN_EXECUTABLE="/tmp/castle-build-ci/windows/sign_executable"
+            /tmp/castle-build-ci/windows/setup_signing
+          fi
         fi
+
         ./tools/internal/pack_release/pack_release.sh "${FPC_OS}" "${FPC_CPU}"
 
     - name: Archive Artifacts (zip)
