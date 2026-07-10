@@ -27,8 +27,10 @@ defaults:
 
 # GitHub CodeQL recommends to explicitly set permissions for GITHUB_TOKEN.
 # See https://docs.github.com/en/actions/tutorials/authenticate-with-github_token .
+# Moreover, we need id-token: write to allow Azure federated login.
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   quick_test:
