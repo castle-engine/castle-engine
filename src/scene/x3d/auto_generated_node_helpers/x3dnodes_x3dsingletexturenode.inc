@@ -64,6 +64,7 @@
     public property FdAlphaChannel: TSFStringEnum read FFdAlphaChannel;
     {  }
     property AlphaChannel: TAutoAlphaChannel read GetAlphaChannel write SetAlphaChannel;
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -141,6 +142,19 @@ begin
   FFdAlphaChannel := TSFStringEnum.Create(Self, False, 'alphaChannel', @AlphaToString, Ord(High(AlphaToString)) + 1, Ord(acAuto));
    FdAlphaChannel.ChangeAlways := chVisibleVRML1State;
   AddField(FFdAlphaChannel);
+end;
+
+procedure TAbstractSingleTextureNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+  if not FdEffects.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdEffects.X3DName);
+{$ifndef CASTLE_SLIM_NODES}
+  if not FdCrossOrigin.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdCrossOrigin.X3DName);
+{$endif not CASTLE_SLIM_NODES}
+  if not FdAlphaChannel.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdAlphaChannel.X3DName);
 end;
 
 {$endif read_implementation}

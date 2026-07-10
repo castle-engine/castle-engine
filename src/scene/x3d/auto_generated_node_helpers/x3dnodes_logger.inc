@@ -56,6 +56,7 @@
     strict private FEventWrite: TXFAnyEvent;
     {  }
     public property EventWrite: TXFAnyEvent read FEventWrite;
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -116,6 +117,12 @@ begin
 
   FEventWrite := TXFAnyEvent.Create(Self, 'write', true);
   AddEvent(FEventWrite);
+end;
+
+procedure TLoggerNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+  ExtensionNames.Add(X3DType);
 end;
 
 {$endif read_implementation}

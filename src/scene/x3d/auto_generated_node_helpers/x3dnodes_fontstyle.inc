@@ -118,6 +118,7 @@
     public property FdBlending: TSFBool read FFdBlending;
     {  }
     property Blending: Boolean read GetBlending write SetBlending;
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -267,6 +268,13 @@ begin
   FFdBlending := TSFBool.Create(Self, False, 'blending', true);
    FdBlending.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdBlending);
+end;
+
+procedure TFontStyleNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+  if not FdBlending.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdBlending.X3DName);
 end;
 
 {$endif read_implementation}

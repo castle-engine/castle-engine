@@ -52,6 +52,7 @@
     public property FdProjectionLocation: TSFVec3f read FFdProjectionLocation;
     {  }
     property ProjectionLocation: TVector3 read GetProjectionLocation write SetProjectionLocation;
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -109,6 +110,15 @@ begin
   FFdProjectionLocation := TSFVec3f.Create(Self, True, 'projectionLocation', Vector3(0, 0, 0));
    FdProjectionLocation.ChangeAlways := chVisibleGeometry;
   AddField(FFdProjectionLocation);
+end;
+
+procedure TAbstractDirectionalLightNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+  if not FdProjectionRectangle.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdProjectionRectangle.X3DName);
+  if not FdProjectionLocation.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdProjectionLocation.X3DName);
 end;
 
 {$endif read_implementation}

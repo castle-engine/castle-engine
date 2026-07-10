@@ -262,6 +262,7 @@
     {  }
     property TransSpecularExp: Single read GetTransSpecularExp write SetTransSpecularExp;
 {$endif not CASTLE_SLIM_NODES}
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -670,6 +671,41 @@ begin
 {$endif not CASTLE_SLIM_NODES}
 
   DefaultContainerField := 'material';
+end;
+
+procedure TMaterialNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+{$ifndef CASTLE_SLIM_NODES}
+  if not FdFogImmune.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdFogImmune.X3DName);
+{$endif not CASTLE_SLIM_NODES}
+  if not FdMirror.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdMirror.X3DName);
+{$ifndef CASTLE_SLIM_NODES}
+  if not FdReflSpecular.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdReflSpecular.X3DName);
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
+  if not FdReflDiffuse.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdReflDiffuse.X3DName);
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
+  if not FdTransSpecular.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdTransSpecular.X3DName);
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
+  if not FdTransDiffuse.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdTransDiffuse.X3DName);
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
+  if not FdReflSpecularExp.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdReflSpecularExp.X3DName);
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
+  if not FdTransSpecularExp.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdTransSpecularExp.X3DName);
+{$endif not CASTLE_SLIM_NODES}
 end;
 
 {$endif read_implementation}

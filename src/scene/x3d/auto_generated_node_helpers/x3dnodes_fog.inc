@@ -76,6 +76,7 @@
     public property FdVolumetricVisibilityStart: TSFFloat read FFdVolumetricVisibilityStart;
     {  }
     property VolumetricVisibilityStart: Single read GetVolumetricVisibilityStart write SetVolumetricVisibilityStart;
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -176,6 +177,17 @@ begin
   FFdVolumetricVisibilityStart := TSFFloat.Create(Self, True, 'volumetricVisibilityStart', 0);
    FdVolumetricVisibilityStart.ChangeAlways := chRedisplay;
   AddField(FFdVolumetricVisibilityStart);
+end;
+
+procedure TFogNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+  if not FdVolumetric.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdVolumetric.X3DName);
+  if not FdVolumetricDirection.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdVolumetricDirection.X3DName);
+  if not FdVolumetricVisibilityStart.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdVolumetricVisibilityStart.X3DName);
 end;
 
 {$endif read_implementation}

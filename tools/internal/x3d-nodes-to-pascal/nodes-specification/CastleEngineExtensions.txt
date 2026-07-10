@@ -23,9 +23,13 @@
 # to declare KambiAppearance by EXTERNPROTO and fallback on standard
 # Appearance.
 KambiAppearance : Appearance {
+  node-is-extension: true
 }
 
+# See https://castle-engine.io/shadow_maps
 GeneratedShadowMap : X3DSingleTextureNode {
+  node-is-extension: true
+
   SFString   [in,out]      update           "NONE"
     range: ["NONE"|"NEXT_FRAME_ONLY"|"ALWAYS"]
     enumerated-type: TTextureUpdate TextureUpdateNames upNone
@@ -53,13 +57,19 @@ GeneratedShadowMap : X3DSingleTextureNode {
     doc: @deprecated This is ignored now. It was unportable and complicated to maintain.
 }
 
+# See https://castle-engine.io/x3d_extensions#_deprecated_3d_text_node_text3d
 Text3D : Text {
+  node-is-extension: true
+
   SFFloat    [in,out]      depth       0.1
     range: >= 0
     change: chGeometry
 }
 
+# See https://castle-engine.io/x3d_extensions#_automatic_processing_of_inlined_content_node_kambiinline
 KambiInline : Inline {
+  node-is-extension: true
+
   MFString   [in,out]      replaceNames  []
     change: chEverything
   MFNode     [in,out]      replaceNodes  []
@@ -68,9 +78,13 @@ KambiInline : Inline {
 }
 
 KambiNavigationInfo : NavigationInfo {
+  node-is-extension: true
 }
 
+# See https://castle-engine.io/x3d_extensions#_teapot_primitive_teapot_node
 Teapot : X3DGeometryNode {
+  node-is-extension: true
+
   SFVec3f    []            size        3 3 3
   SFBool     []            solid       TRUE
   SFBool     []            manifold    FALSE
@@ -78,7 +92,10 @@ Teapot : X3DGeometryNode {
     range: TextureCoordinateGenerator, ProjectedTextureCoordinate, MultiGeneratedTextureCoordinate
 }
 
+# See https://castle-engine.io/x3d_implementation_texturing_extensions.php
 RenderedTexture : X3DSingleTextureNode {
+  node-is-extension: true
+
   SFNode     [in,out]      background       NULL
     range: X3DBackgroundNode
     change: chGeneratedTextureUpdateNeeded
@@ -132,7 +149,10 @@ RenderedTexture : X3DSingleTextureNode {
   SFBool     [out]         rendering
 }
 
+# See https://castle-engine.io/x3d_extensions#_events_logger_logger_node
 Logger : X3DChildNode {
+  node-is-extension: true
+
   SFInt32    [in,out]      level       1
   SFString   []            logFile     ""
   SFBool     [in,out]      enabled     TRUE
@@ -150,17 +170,23 @@ Logger : X3DChildNode {
 # MultiGeneratedTextureCoordinate now descends from MultiTextureCoordinate.
 # See TMultiGeneratedTextureCoordinateNode comments for reasons.
 MultiGeneratedTextureCoordinate : MultiTextureCoordinate {
+  node-is-extension: true
 }
 
+# See https://castle-engine.io/shadow_maps
 ProjectedTextureCoordinate : X3DSingleTextureCoordinateNode {
+  node-is-extension: true
+
   SFNode     [in,out]      projector   NULL
     range: SpotLight, DirectionalLight, X3DViewpointNode, TSpotLightNode_1, TDirectionalLightNode_1
     change: chTextureCoordinate
     doc: Viewpoint or light that determine how is the texture projected.
 }
 
-# See https://castle-engine.io/x3d_extensions_screen_effects.php
+# See https://castle-engine.io/screen_effects
 ScreenEffect : X3DChildNode {
+  node-is-extension: true
+
   SFBool     [in,out]      enabled     TRUE
     change: chScreenEffectEnabled
   SFBool     [in,out]      needsDepth  FALSE
@@ -172,6 +198,7 @@ ScreenEffect : X3DChildNode {
 
 # See https://castle-engine.io/shaders
 Effect : X3DChildNode {
+  node-is-extension: true
 
   SFString   []            language    ""
     range: ["CG"|"GLSL"|"HLSL"|...]
@@ -212,6 +239,7 @@ Effect : X3DChildNode {
 # See https://castle-engine.io/shaders
 EffectPart : X3DNode, X3DUrlObject {
   default-container-field: parts
+  node-is-extension: true
 
   MFString [in,out] url      []
     change: chEverything
@@ -223,6 +251,8 @@ EffectPart : X3DNode, X3DUrlObject {
 
 # See https://castle-engine.io/shaders
 ShaderTexture : X3DSingleTextureNode {
+  node-is-extension: true
+
   SFString []       defaultTexCoord "BOUNDS2D"
     #range: ["BOUNDS2D"|"BOUNDS3D"]
     change: chEverything
@@ -232,6 +262,8 @@ ShaderTexture : X3DSingleTextureNode {
 # See https://castle-engine.io/x3d_extensions.php#section_ext_blending
 BlendMode {
   default-container-field: blendMode
+  node-is-extension: true
+
   SFString   [in,out]      srcFactor   "src_alpha"
     range: ["zero", ..., "one_minus_constant_alpha"]
     enumerated-type: TBlendingSourceFactor BlendingSourceFactorNames bsSrcAlpha
@@ -242,19 +274,28 @@ BlendMode {
   SFFloat    [in,out]      colorTransparency  0
 }
 
+# See https://castle-engine.io/mirror_plane
 ViewpointMirror {
   default-container-field: viewpoint
+  node-is-extension: true
+
   SFFloat   [in,out]      distanceFromShape 0.01
 }
 
+# See https://castle-engine.io/x3d_implementation_interpolation_extensions.php#section_orientation_interpolator_2d
 OrientationInterpolator2D : X3DInterpolatorNode {
+  node-is-extension: true
+
   MFFloat    [in,out] keyValue      []
     change: chNone
   SFVec3f    [in,out] axis          0 0 1
   SFRotation [out]    value_changed
 }
 
+# See https://castle-engine.io/skin
 Skin : X3DChildNode {
+  node-is-extension: true
+
   MFNode [in,out] joints []
     range: Transform
     change: chEverything

@@ -36,6 +36,7 @@
     public property FdDepth: TSFFloat read FFdDepth;
     {  }
     property Depth: Single read GetDepth write SetDepth;
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -65,6 +66,12 @@ begin
   FFdDepth := TSFFloat.Create(Self, True, 'depth', 0.1);
    FdDepth.ChangeAlways := chGeometry;
   AddField(FFdDepth);
+end;
+
+procedure TText3DNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+  ExtensionNames.Add(X3DType);
 end;
 
 {$endif read_implementation}

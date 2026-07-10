@@ -94,6 +94,7 @@
 
     See examples/shaders/shader_effects_on_background/ for a demo. }
     procedure SetShaderLibraries(const Value: TCastleStringList); overload;
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -181,6 +182,12 @@ begin
   FFdShaderLibraries := TMFString.Create(Self, False, 'shaderLibraries', []);
    FdShaderLibraries.ChangeAlways := chEverything;
   AddField(FFdShaderLibraries);
+end;
+
+procedure TEffectNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+  ExtensionNames.Add(X3DType);
 end;
 
 {$endif read_implementation}

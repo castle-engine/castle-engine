@@ -24,8 +24,6 @@
 {$ifdef read_interface}
 
   strict private
-    function GetShadows: Boolean;
-    procedure SetShadows(const Value: Boolean);
     function GetShadowVolumesMain: Boolean;
     procedure SetShadowVolumesMain(const Value: Boolean);
     function GetShowProxyGeometry: Boolean;
@@ -43,12 +41,6 @@
     procedure CreateNode; override;
     class function ClassX3DType: String; override;
 
-    strict private FFdShadows: TSFBool;
-    { Internal wrapper for property @code(Shadows). This wrapper API may change, we advise to access simpler @code(Shadows) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
-    public property FdShadows: TSFBool read FFdShadows;
-    {  }
-    property Shadows: Boolean read GetShadows write SetShadows;
-
     strict private FFdShadowVolumesMain: TSFBool;
     { Internal wrapper for property @code(ShadowVolumesMain). This wrapper API may change, we advise to access simpler @code(ShadowVolumesMain) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdShadowVolumesMain: TSFBool read FFdShadowVolumesMain;
@@ -64,42 +56,33 @@
     strict private FFdProjectionNear: TSFFloat;
     { Internal wrapper for property @code(ProjectionNear). This wrapper API may change, we advise to access simpler @code(ProjectionNear) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdProjectionNear: TSFFloat read FFdProjectionNear;
-    { Projection near, for shadow maps. See https://castle-engine.io/x3d_extensions_shadow_maps.php }
+    { Projection near, for shadow maps. See https://castle-engine.io/shadow_maps . }
     property ProjectionNear: Single read GetProjectionNear write SetProjectionNear;
 
     strict private FFdProjectionFar: TSFFloat;
     { Internal wrapper for property @code(ProjectionFar). This wrapper API may change, we advise to access simpler @code(ProjectionFar) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdProjectionFar: TSFFloat read FFdProjectionFar;
-    { Projection far, for shadow maps. See https://castle-engine.io/x3d_extensions_shadow_maps.php }
+    { Projection far, for shadow maps. See https://castle-engine.io/shadow_maps . }
     property ProjectionFar: Single read GetProjectionFar write SetProjectionFar;
 
     strict private FFdUp: TSFVec3f;
     { Internal wrapper for property @code(Up). This wrapper API may change, we advise to access simpler @code(Up) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdUp: TSFVec3f read FFdUp;
-    { View up vector, for shadow maps. See https://castle-engine.io/x3d_extensions_shadow_maps.php }
+    { View up vector, for shadow maps. See https://castle-engine.io/shadow_maps . }
     property Up: TVector3 read GetUp write SetUp;
 
     strict private FFdDefaultShadowMap: TSFNode;
     { Internal wrapper for property @code(DefaultShadowMap). This wrapper API may change, we advise to access simpler @code(DefaultShadowMap) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdDefaultShadowMap: TSFNode read FFdDefaultShadowMap;
-    { Shadow map used by this light source. See https://castle-engine.io/x3d_extensions_shadow_maps.php }
+    { Shadow map used by this light source. See https://castle-engine.io/shadow_maps . }
     property DefaultShadowMap: TGeneratedShadowMapNode read GetDefaultShadowMap write SetDefaultShadowMap;
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TAbstractPunctualLightNode ----------------------------------------------- }
-
-function TAbstractPunctualLightNode.GetShadows: Boolean;
-begin
-  Result := FdShadows.Value;
-end;
-
-procedure TAbstractPunctualLightNode.SetShadows(const Value: Boolean);
-begin
-  FdShadows.Send(Value);
-end;
 
 function TAbstractPunctualLightNode.GetShadowVolumesMain: Boolean;
 begin
@@ -173,10 +156,6 @@ procedure TAbstractPunctualLightNode.CreateNode;
 begin
   inherited;
 
-  FFdShadows := TSFBool.Create(Self, False, 'shadows', false);
-   FdShadows.ChangeAlways := chShadowMaps;
-  AddField(FFdShadows);
-
   FFdShadowVolumesMain := TSFBool.Create(Self, True, 'shadowVolumesMain', false);
    FdShadowVolumesMain.ChangeAlways := chLightForShadowVolumes;
   AddField(FFdShadowVolumesMain);
@@ -200,6 +179,23 @@ begin
   FFdDefaultShadowMap := TSFNode.Create(Self, False, 'defaultShadowMap', [TGeneratedShadowMapNode]);
    FdDefaultShadowMap.ChangeAlways := chEverything;
   AddField(FFdDefaultShadowMap);
+end;
+
+procedure TAbstractPunctualLightNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+  if not FdShadowVolumesMain.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdShadowVolumesMain.X3DName);
+  if not FdShowProxyGeometry.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdShowProxyGeometry.X3DName);
+  if not FdProjectionNear.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdProjectionNear.X3DName);
+  if not FdProjectionFar.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdProjectionFar.X3DName);
+  if not FdUp.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdUp.X3DName);
+  if not FdDefaultShadowMap.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdDefaultShadowMap.X3DName);
 end;
 
 {$endif read_implementation}

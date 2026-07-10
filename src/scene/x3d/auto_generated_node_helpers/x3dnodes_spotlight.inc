@@ -60,6 +60,7 @@
     public property FdProjectionAngle: TSFFloat read FFdProjectionAngle;
     {  }
     property ProjectionAngle: Single read GetProjectionAngle write SetProjectionAngle;
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -132,6 +133,13 @@ begin
    FdProjectionAngle.ChangeAlways := chVisibleGeometry;
    FdProjectionAngle.Angle := true;
   AddField(FFdProjectionAngle);
+end;
+
+procedure TSpotLightNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+  if not FdProjectionAngle.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdProjectionAngle.X3DName);
 end;
 
 {$endif read_implementation}
