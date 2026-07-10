@@ -674,15 +674,12 @@ pack_platform_dir ()
       do_unzip fpc-dist.zip
       rm -f fpc-dist.zip # remove as soon as no longer needed, to save disk space, important for GHA on GH-hosted runners
       ARCHIVE_NAME_BUNDLE='-bundle'
-      # Sign and notarize for macOS.
-      # Note: do this *before* moving here fpc-cge, as fpc-cge is already
-      # signed, along with all binaries in bin (previously bin-to-keep).
-      # And trying to sign again results in codesign error
-      # "....fpc-cge: is already signed"
-      if [[ -n "${APPLE_CODESIGN_SCRIPTS:-}" ]]; then
-        "${APPLE_CODESIGN_SCRIPTS}/sign_executable" \
-          "${TEMP_PATH_CGE}"tools/contrib/fpc/bin
-      fi
+
+      # fpc binaries are now in "${TEMP_PATH_CGE}"tools/contrib/fpc/bin.
+      # Note that we don't codesign them, because castle-fpc CI already
+      # signed them (for macOS and Windows).
+      # See https://github.com/castle-engine/castle-fpc workflows.
+
       mv "${TEMP_PATH_CGE}"bin/fpc-cge"${EXE_EXTENSION}" "${TEMP_PATH_CGE}"tools/contrib/fpc/bin
       ;;
     'no'|'')
