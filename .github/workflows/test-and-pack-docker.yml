@@ -144,30 +144,44 @@ jobs:
     strategy:
       matrix:
         pack-job-name: [
-          win64-x86_64,
+          # In the past, we made also Windows releases from Docker,
+          # since we can cross-compile Windows from our Docker image (running Linux).
+          # We don't do it anymore,
+          # let all Windows builds be done by test-and-pack-runner-native.yml
+          # and happen natively on Windows.
+          #
+          # This allows
+          # - Packing on Windows using InnoSetup
+          # - Signing on Windows using SignTool + Azure Signing DLL (although
+          #   there's cross-platform jsign as alternative)
+          # - Packing on Windows means we pack sources with Windows line endings
+          #   (minor, since Unix line endings will also work in all compilers,
+          #   but it's consistent).
+          # win64-x86_64,
+          # win32-i386-bundle,
+          # win64-x86_64-bundle,
+
           linux-x86_64,
-          win32-i386-bundle,
-          win64-x86_64-bundle,
           linux-x86_64-bundle
         ]
         include:
-          - pack-job-name: win64-x86_64
-            os: win64
-            cpu: x86_64
-            bundle: false
+          # - pack-job-name: win64-x86_64
+          #   os: win64
+          #   cpu: x86_64
+          #   bundle: false
+          # - pack-job-name: win32-i386-bundle
+          #   os: win32
+          #   cpu: i386
+          #   bundle: true
+          # - pack-job-name: win64-x86_64-bundle
+          #   os: win64
+          #   cpu: x86_64
+          #   bundle: true
+
           - pack-job-name: linux-x86_64
             os: linux
             cpu: x86_64
             bundle: false
-
-          - pack-job-name: win32-i386-bundle
-            os: win32
-            cpu: i386
-            bundle: true
-          - pack-job-name: win64-x86_64-bundle
-            os: win64
-            cpu: x86_64
-            bundle: true
           - pack-job-name: linux-x86_64-bundle
             os: linux
             cpu: x86_64

@@ -424,6 +424,9 @@ cge_clean_all ()
   # (as may contain user data, API keys, that is also not auto-generated).
   rm -f examples/network/ask_openai_assistant/code/openai_config.inc \
         examples/network/random_image_from_unsplash/code/unsplash_secrets.inc
+
+  # Remove previous artifacts from test-and-pack-runner-native.yml steps
+  rm -f castle-engine-setup-*.exe castle-engine*.zip
 }
 
 # Prepare directory with precompiled CGE.
