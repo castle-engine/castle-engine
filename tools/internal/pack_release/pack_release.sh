@@ -55,6 +55,16 @@ set -euxo pipefail
 # - macOS (install GNU sed from Homebrew)
 # ----------------------------------------------------------------------------
 
+# -----------------------------------------------------------------------
+# Adjust MSys2, in case this runs inside MSys2 (like in GitHub Actions runner).
+
+# Avoid MSys2 path conversion, as we pass parameters that look like Unix paths.
+# See .github/workflows/use_cygpath_not_msys_automatic_conversions.md
+# for explanation.
+export MSYS2_ENV_CONV_EXCL='*'
+export MSYS2_ARG_CONV_EXCL='*'
+export MSYS_NO_PATHCONV=1
+
 # ----------------------------------------------------------------------------
 # Define global variables
 
@@ -760,16 +770,38 @@ pack_windows_installer ()
   # would be handled OK as well.
   CASTLE_ENGINE_PATH_STRIP_FINAL_SLASH="${CASTLE_ENGINE_PATH%/}"
 
+  local ISS_FILE
+  ISS_FILE="${CASTLE_ENGINE_PATH}/tools/internal/pack_release/cge-windows-setup.iss"
+
+  # bash array with InnoSetup options.
   # See https://jrsoftware.org/ishelp/index.php?topic=compilercmdline
   # and https://jrsoftware.org/ispphelp/index.php?topic=isppcc (for preprocessor additional options).
-  "${INNO_SETUP_CLI}" \
-    "${CASTLE_ENGINE_PATH}/tools/internal/pack_release/cge-windows-setup.iss" \
-    "/O${OUTPUT_DIRECTORY}" \
-    "/F${ARCHIVE_NAME}" \
-    "/DMyAppSrcDir=${CASTLE_ENGINE_PATH_STRIP_FINAL_SLASH}" \
+  local INNO_SETUP_OPTIONS
+  INNO_SETUP_OPTIONS=(
+    "${ISS_FILE}"
+    "/O${OUTPUT_DIRECTORY}"
+    "/F${ARCHIVE_NAME}"
+    "/DMyAppSrcDir=${CASTLE_ENGINE_PATH_STRIP_FINAL_SLASH}"
     "/DMyAppVersion=${CGE_VERSION}"
+  )
 
-  sign_executables "${OUTPUT_DIRECTORY}/${ARCHIVE_NAME}.exe"
+  # Extend INNO_SETUP_OPTIONS for signing
+  if [[ -n "${SIGN_EXECUTABLES:-}" ]]; then
+    # Reading InnoSetup docs, they want indirection which makes this complicated.
+    # Command-line option "/Sname=command" must be used to define a sign tool.
+    # Then in the .iss script, "SignTool=name $f" must be used to actually sign
+    # (we enable this when CastleSigning is defined).
+    INNO_SETUP_OPTIONS+=(
+      "/SCastleSignTool=bash ${SIGN_EXECUTABLES} \$p"
+      "/DCastleSigning"
+    )
+  fi
+
+  "${INNO_SETUP_CLI}" "${INNO_SETUP_OPTIONS[@]}"
+
+  # No longer necessary: InnoSetup now signs the installer and uninstaller
+  # automatically.
+  #sign_executables "${OUTPUT_DIRECTORY}/${ARCHIVE_NAME}.exe"
 
   # cleanup to save disk space
   rm -Rf "${TEMP_PATH}"

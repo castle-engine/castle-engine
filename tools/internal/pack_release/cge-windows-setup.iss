@@ -57,6 +57,12 @@ Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
 
+; Signing: pack_release.sh defines CastleSigning (and the CastleSignTool
+; command via /S) only when signing is desired.
+#ifdef CastleSigning
+SignTool=CastleSignTool $q$f$q
+#endif
+
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "armenian"; MessagesFile: "compiler:Languages\Armenian.isl"
