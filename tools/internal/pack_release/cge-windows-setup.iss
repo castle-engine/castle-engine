@@ -59,8 +59,15 @@ WizardStyle=modern
 
 ; Signing: pack_release.sh defines CastleSigning (and the CastleSignTool
 ; command via /S) only when signing is desired.
+;
+; Note: Do not add double quotes below, like $q$f$q, as InnoSetup will add
+; double quotes around automatically. And having two double quotes -> means
+; they collapse into an empty string and don't protect anything,
+; and then backslashes inside the path disappear, and CastleSignTool
+; gets invalid filenames like "D:acastle-enginecastle-engineuninst.e32.tmp".
+;
 #ifdef CastleSigning
-SignTool=CastleSignTool $q$f$q
+SignTool=CastleSignTool $f
 #endif
 
 [Languages]
