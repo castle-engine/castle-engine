@@ -40,7 +40,7 @@ jobs:
     runs-on: ${{ matrix.host-label }}
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       # We want to provide multi-line scripts to "run" steps below,
       # which isn't easy with GH Actions + Windows it seems.
@@ -157,7 +157,7 @@ jobs:
     name: Delphi build for Non-Windows (Job)
     runs-on: delphi_12_2
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Fix bash multi-line scripts in this job
         run: echo "SHELLOPTS=igncr" >> $GITHUB_ENV

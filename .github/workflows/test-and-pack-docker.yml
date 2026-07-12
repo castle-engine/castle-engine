@@ -43,7 +43,7 @@ jobs:
     # See https://hub.docker.com/r/kambi/castle-engine-cloud-builds-tools/ .
     container: kambi/castle-engine-cloud-builds-tools:${{ matrix.docker-tag }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       # Set env CASTLE_ENGINE_PATH following
       # https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#environment-files
       # https://brandur.org/fragments/github-actions-env-vars-in-env-vars
@@ -80,7 +80,7 @@ jobs:
     runs-on: ubuntu-latest
     container: kambi/castle-engine-cloud-builds-tools:cge-none
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Set environment
         run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
       - name: Build Examples
@@ -101,7 +101,7 @@ jobs:
     runs-on: ubuntu-latest
     container: kambi/castle-engine-cloud-builds-tools:cge-none
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Set environment
         run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
 
@@ -187,7 +187,7 @@ jobs:
             cpu: x86_64
             bundle: true
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         # Using CASTLE_PACK_GHA_DISK_SPACE_SAVE=true assumes that
         # - we have dir named exactly "castle_game_engine"
         # - parent dir of it is writeable.
