@@ -458,7 +458,7 @@ clean: cleanexamples
 #
 # Note: Do not use -execdir, only -exec, as BUILD_TOOL may be relative.
 # This also implies to pass project using --project.
-	if [ -x $(BUILD_TOOL) ]; then \
+	if command -v $(BUILD_TOOL) > /dev/null 2>&1; then \
 	  "$(FIND)" . \
 	  '(' -path ./tools/castle-editor/data/project_templates -prune ')' -or \
 	  '(' -path ./tools/castle-editor-portable/data/project_templates -prune ')' -or \

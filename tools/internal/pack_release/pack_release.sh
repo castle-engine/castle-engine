@@ -584,7 +584,7 @@ pack_platform_dir ()
     tools/internal/fpc-cge/fpc-cge"${EXE_EXTENSION}"
   )
   # move to bin-to-keep
-  cp "${TOOLS_EXES[@]}" "${TEMP_PATH_CGE}"bin-to-keep
+  mv "${TOOLS_EXES[@]}" "${TEMP_PATH_CGE}"bin-to-keep
   # codesign tools (castle-engine etc.) on macOS and Windows
   sign_executables "${TEMP_PATH_CGE}"bin-to-keep/*
 
@@ -592,9 +592,9 @@ pack_platform_dir ()
   # place it in bin-to-keep subdirectory
   if [[ "${OS}" = 'darwin' ]]; then
     cd tools/castle-editor/
-    ../build-tool/castle-engine"${EXE_EXTENSION}" "${CASTLE_BUILD_TOOL_OPTIONS[@]}" package --package-format=mac-app-bundle
+    castle-engine "${CASTLE_BUILD_TOOL_OPTIONS[@]}" package --package-format=mac-app-bundle
     cd ../../
-    cp -R tools/castle-editor/castle-editor.app \
+    mv tools/castle-editor/castle-editor.app \
        "${TEMP_PATH_CGE}"bin-to-keep
     if [[ -n "${APPLE_BUNDLE_NOTARIZE:-}" ]]; then
       "${APPLE_BUNDLE_NOTARIZE}" \
@@ -605,7 +605,7 @@ pack_platform_dir ()
     lazbuild_twice "${CASTLE_LAZBUILD_OPTIONS[@]}" tools/castle-editor/castle_editor.lpi
     EDITOR_EXE_NAME="tools/castle-editor/castle-editor${EXE_EXTENSION}"
     sign_executables "${EDITOR_EXE_NAME}"
-    cp "${EDITOR_EXE_NAME}" "${TEMP_PATH_CGE}"bin-to-keep
+    mv "${EDITOR_EXE_NAME}" "${TEMP_PATH_CGE}"bin-to-keep
   fi
 
   # On Linux compile also Qt5 editor version.
