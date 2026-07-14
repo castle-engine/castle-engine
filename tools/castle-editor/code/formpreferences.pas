@@ -218,7 +218,7 @@ begin
       WritelnLog('Cannot determine Lazarus version, error: ' + ExceptMessage(E));
       LabelLazarusAutoDetected.Caption :=
         'Cannot determine Lazarus version, Smart App Control blocked us.' + NL +
-        'Turn it temporarily off using "Windows Security -> App & browser control -> Smart App Control".';
+        'Turn it temporarily off using "Windows Security -> App and browser control -> Smart App Control".';
     end;
 
     on E: Exception do
