@@ -161,7 +161,11 @@ jobs:
           # win32-i386-bundle,
           # win64-x86_64-bundle,
 
-          linux-x86_64,
+          # In the past, we made also non-bundled releases.
+          # Dropped now: distributing them is more hassle (SF mirrors this,
+          # and their space is limited) and they are not that useful.
+          # linux-x86_64,
+
           linux-x86_64-bundle
         ]
         include:
@@ -178,10 +182,11 @@ jobs:
           #   cpu: x86_64
           #   bundle: true
 
-          - pack-job-name: linux-x86_64
-            os: linux
-            cpu: x86_64
-            bundle: false
+          # - pack-job-name: linux-x86_64
+          #   os: linux
+          #   cpu: x86_64
+          #   bundle: false
+
           - pack-job-name: linux-x86_64-bundle
             os: linux
             cpu: x86_64
@@ -198,22 +203,6 @@ jobs:
       - name: Set environment
         run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE/castle_game_engine" >> $GITHUB_ENV
 
-      # Remove previous output.
-      # Not necessary in practice, since this runs on GH-hosted runners that are
-      # always cleaned at start, but also doesn't hurt.
-      - name: Remove previous artifacts
-        run: rm -f castle-engine*.zip
-
-      # No need to download fpc-xxx.zip here anymore,
-      # this is downloaded from pack_release.sh if necessary.
-      # - name: Download bundled FPC
-      #   if: ${{ matrix.bundle }}
-      #   uses: robinraju/release-downloader@v1.12
-      #   with:
-      #     repository: "castle-engine/castle-fpc"
-      #     latest: true
-      #     fileName: "fpc-${{ matrix.os }}-${{ matrix.cpu }}.zip"
-
       - name: Define CGE_PACK_BUNDLE
         if: ${{ matrix.bundle }}
         run: echo "CGE_PACK_BUNDLE=yes" >> $GITHUB_ENV
@@ -222,11 +211,14 @@ jobs:
         run: echo "CASTLE_PACK_GHA_DISK_SPACE_SAVE=true" >> $GITHUB_ENV
 
       - name: Pack
-        run: ./castle_game_engine/tools/internal/pack_release/pack_release.sh ${{ matrix.os }} ${{ matrix.cpu }}
+        run: |
+          ./castle_game_engine/tools/internal/pack_release/pack_release.sh zip,tarxz ${{ matrix.os }} ${{ matrix.cpu }}
 
       - name: Archive Artifacts
         uses: actions/upload-artifact@v7
         with:
           name: release-from-docker-${{ matrix.pack-job-name }}
-          path: "castle-engine*.zip"
+          path: |
+            castle-engine*.zip
+            castle-engine*.tar.xz
           if-no-files-found: error

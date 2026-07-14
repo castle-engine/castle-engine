@@ -5,7 +5,7 @@
 ;
 ; For debug purposes you can run it from InnoSetup GUI, just uncomment and adjust MyAppSrcDir .
 ; But for production it should always be used from command-line by calling
-; "./pack_release.sh windows_installer".
+; "./pack_release.sh innosetup win64 x86_64".
 ; The pack_release.sh will prepare directory for this to work (MyAppSrcDir),
 ; and configure output dir and filename.
 

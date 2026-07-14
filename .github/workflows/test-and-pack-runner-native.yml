@@ -272,7 +272,7 @@ jobs:
           fi
         fi
 
-        ./tools/internal/pack_release/pack_release.sh ${{ matrix.build_os }} ${{ matrix.build_cpu }}
+        ./tools/internal/pack_release/pack_release.sh zip ${{ matrix.build_os }} ${{ matrix.build_cpu }}
 
     - name: Archive Artifacts (zip)
       # We don't archive build on:
@@ -293,32 +293,11 @@ jobs:
         path: "castle-engine*.zip"
         if-no-files-found: error
 
-    # Only for Win64: make also non-bundled release.
-    # (Not done for others, as they would consume lots of disk space and time for little gain.)
-    - name: Pack Release (ZIP, Not Bundled)
-      if: ${{ matrix.job-name == 'win64-x86_64' }}
-      env:
-        # for Azure (Windows) codesigning
-        AZURE_ENDPOINT: ${{ vars.AZURE_ENDPOINT }}
-        AZURE_CODESIGNING_ACCOUNT_NAME: ${{ vars.AZURE_CODESIGNING_ACCOUNT_NAME }}
-        AZURE_CERTIFICATE_PROFILE_NAME: ${{ vars.AZURE_CERTIFICATE_PROFILE_NAME }}
-      run: |
-        export CGE_PACK_BUNDLE=no
-        ./tools/internal/pack_release/pack_release.sh ${{ matrix.build_os }} ${{ matrix.build_cpu }}
-
-    - name: Archive Artifacts (nobundle-release)
-      if: ${{ matrix.job-name == 'win64-x86_64' }}
-      uses: actions/upload-artifact@v7
-      with:
-        name: ${{ matrix.job-name }}-nobundle-release
-        path: "castle-engine*.zip"
-        if-no-files-found: error
-
-    # Only for Win64: Pack Windows installer (InnoSetup) release.
+    # Only for Win64: Pack also Windows installer (InnoSetup) + 7z releases.
     # This passes a subset of previous "Pack Release (ZIP, Bundled FPC)"
     # env variables, just because there's no point configuring Apple signing
     # -- this is Windows-only.
-    - name: Pack Release (Windows Installer, Bundled FPC)
+    - name: Pack Release (Windows Installer + 7z, Bundled FPC)
       if: ${{ matrix.job-name == 'win64-x86_64' }}
       env:
         # for Azure (Windows) codesigning
@@ -327,12 +306,14 @@ jobs:
         AZURE_CERTIFICATE_PROFILE_NAME: ${{ vars.AZURE_CERTIFICATE_PROFILE_NAME }}
       run: |
         export CGE_PACK_BUNDLE=yes
-        ./tools/internal/pack_release/pack_release.sh windows_installer
+        ./tools/internal/pack_release/pack_release.sh innosetup,7z ${{ matrix.build_os }} ${{ matrix.build_cpu }}
 
     - name: Archive Artifacts (installer-release)
       if: ${{ matrix.job-name == 'win64-x86_64' }}
       uses: actions/upload-artifact@v7
       with:
         name: ${{ matrix.job-name }}-installer-release
-        path: "castle-engine-setup-*.exe"
+        path: |
+          castle-engine-setup-*.exe
+          castle-engine-*.7z
         if-no-files-found: error

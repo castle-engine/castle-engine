@@ -4,26 +4,27 @@ set -euxo pipefail
 # ----------------------------------------------------------------------------
 # Pack Castle Game Engine release (source + binaries).
 #
-# Call with:
+# Call with 3 arguments: PACK_FORMAT OS CPU
 #
-# - 2 arguments, OS and CPU (names matching CGE build tool and FPC),
-#   to pack for the given platform. Example:
+# - PACK_FORMAT is a comma-separated list of: zip, innosetup, 7z, tarxz
 #
-#     ./pack_release.sh linux x86_64
-#     ./pack_release.sh win64 x86_64
-#     ./pack_release.sh darwin x86_64
-#     ./pack_release.sh freebsd x86_64
+# - OS and CPU are the target for which to build everything,
+#   names matching CGE build tool and FPC.
 #
-#  Hint: To get the current OS/CPU, you can ask FPC,
-#  like $(fpc -iTO) and $(fpc -iTP). That's the advantage of following
-#  in CGE naming the same convention as FPC.
+# Example:
 #
-# - 1 argument 'windows_installer' to build a Windows installer.
-#   This requires InnoSetup installed.
+#     ./pack_release.sh zip linux x86_64
+#     ./pack_release.sh zip win64 x86_64
+#     ./pack_release.sh innosetup win64 x86_64
+#
+# Hint: To get the current OS/CPU, you can ask FPC,
+# like $(fpc -iTO) and $(fpc -iTP). That's the advantage of following
+# in CGE naming the same convention as FPC.
 #
 # Optionally define CGE_PACK_BUNDLE=yes for a special behavior:
 # - The generated archive will be named -bundle
-# - We will expect fpc-OS-CPU.zip, and we will unpack it and distribute along with CGE
+# - We will download fpc-OS-CPU.zip from https://github.com/castle-engine/castle-fpc/
+#   and we will unpack it and distribute along with CGE
 #
 # Optionally define APPLE_BUNDLE_NOTARIZE to a script that notarizes macOS app bundle
 # (and signs main executable inside it, it should not be signed again with
@@ -92,13 +93,37 @@ TEMP_PARENT="/tmp/castle-engine-release-$$/"
 cleanup_temp ()
 {
   echo "Cleaning up temporary dir ${TEMP_PARENT}"
-  rm -Rf "${TEMP_PARENT}"
+
+  # rm seems to sometimes fail with "rm: fts_read failed: No such file
+  # or directory" on GH hosted windows runner, so ignore errors.
+  rm -Rf "${TEMP_PARENT}" || true
 }
 
 trap cleanup_temp EXIT
 
 # ----------------------------------------------------------------------------
 # Define functions
+
+# Read and check command-line parameters, set global variables PACK_FORMAT, OS, CPU.
+parse_parameters ()
+{
+  if [ $# -lt 3 ]; then
+    echo 'pack_release: Requires 3 arguments: PACK_FORMAT OS CPU'
+    exit 1
+  fi
+
+  PACK_FORMAT="$1"
+  OS="$2"
+  CPU="$3"
+
+  # early check that $PACK_FORMAT is valid
+  for ONE_PACK_FORMAT in ${PACK_FORMAT//,/ }; do
+    case "${ONE_PACK_FORMAT}" in
+      zip|innosetup|7z|tarxz) ;;
+      *) echo "pack_release: Invalid format ${ONE_PACK_FORMAT}"; exit 1 ;;
+    esac
+  done
+}
 
 # Require building release with latest stable FPC, as supported by CGE,
 # see https://castle-engine.io/supported_compilers.php .
@@ -441,9 +466,7 @@ cge_clean_all ()
 
 # Prepare directory with precompiled CGE.
 #
-# Parameters:
-# - $1: OS
-# - $2: CPU
+# Reads $OS, $CPU (set by parse_parameters).
 #
 # Output:
 #
@@ -467,10 +490,6 @@ cge_clean_all ()
 #   depending on whether CGE_PACK_BUNDLE was defined.
 pack_platform_dir ()
 {
-  OS="$1"
-  CPU="$2"
-  shift 2
-
   # comparisons in this script assume lowercase OS name, like darwin or win32
   OS=$(echo -n "${OS}" | tr '[:upper:]' '[:lower:]')
 
@@ -708,54 +727,11 @@ pack_platform_dir ()
   esac
 }
 
-# Prepare zip with precompiled CGE.
-# zip is placed in OUTPUT_DIRECTORY.
-# Parameters:
-# - $1: OS
-# - $2: CPU
-pack_platform_zip ()
-{
-  OS="$1"
-  CPU="$2"
-  shift 2
-
-  pack_platform_dir "${OS}" "${CPU}"
-
-  local ARCHIVE_NAME="castle-engine-${CGE_VERSION}-${OS}-${CPU}${ARCHIVE_NAME_BUNDLE}.zip"
-
-  cd "${CASTLE_ENGINE_PATH}"/..
-  rm -f "${ARCHIVE_NAME}"
-  zip -r "${ARCHIVE_NAME}" castle_game_engine/
-
-  # move ARCHIVE_NAME to OUTPUT_DIRECTORY
-  local CURRENT_DIRECTORY
-  CURRENT_DIRECTORY=$(pwd)
-  if which cygpath.exe > /dev/null; then
-    CURRENT_DIRECTORY="$(cygpath --mixed "${CURRENT_DIRECTORY}")"
-  fi
-  # Do not try to move if archive is already in OUTPUT_DIRECTORY.
-  # This can happen when CASTLE_PACK_GHA_DISK_SPACE_SAVE=true,
-  # then zip is not created in /tmp/... but in parent of castle_game_engine,
-  # which may be exactly OUTPUT_DIRECTORY.
-  if [[ "${CURRENT_DIRECTORY}" != "${OUTPUT_DIRECTORY}" ]]; then
-    mv -f "${ARCHIVE_NAME}" "${OUTPUT_DIRECTORY}"
-  fi
-
-  # rm seems to sometimes fail with "rm: fts_read failed: No such file
-  # or directory" on GH hosted windows runner, so ignore errors.
-  rm -Rf "${TEMP_PATH}" || true
-}
-
-# Prepare Windows installer with precompiled CGE.
+# Prepare Windows installer using InnoSetup with precompiled CGE.
 # Requires InnoSetup installed.
 # Result is placed in OUTPUT_DIRECTORY.
-pack_windows_installer ()
+pack_innosetup ()
 {
-  OS="win64"
-  CPU="x86_64"
-
-  pack_platform_dir "${OS}" "${CPU}"
-
   local ARCHIVE_NAME="castle-engine-setup-${CGE_VERSION}"
 
   # Detect iscc location
@@ -802,26 +778,93 @@ pack_windows_installer ()
   # No longer necessary: InnoSetup now signs the installer and uninstaller
   # automatically.
   #sign_executables "${OUTPUT_DIRECTORY}/${ARCHIVE_NAME}.exe"
+}
 
-  # cleanup to save disk space
-  rm -Rf "${TEMP_PATH}"
+# Start packing to zip / 7z / tar.xz.
+# Pass $ARCHIVE_NAME as $1.
+# After this, the current working directory contains a child called
+# castle_game_engine/ which you should pack to $ARCHIVE_NAME .
+common_pack_begin ()
+{
+  local ARCHIVE_NAME
+  ARCHIVE_NAME="$1"
+  shift 1
+
+  cd "${CASTLE_ENGINE_PATH}"/..
+
+  # Remove old archive, as both zip and 7z would just add to existing archive
+  # if it exists, while we want to create new one.
+  rm -f "${ARCHIVE_NAME}"
+}
+
+# Finish packing to zip / 7z / tar.xz.
+# Again pass $ARCHIVE_NAME as $1.
+# Moves $ARCHIVE_NAME to $OUTPUT_DIRECTORY .
+common_pack_end ()
+{
+  local ARCHIVE_NAME
+  ARCHIVE_NAME="$1"
+  shift 1
+
+  # move ARCHIVE_NAME to OUTPUT_DIRECTORY
+  local CURRENT_DIRECTORY
+  CURRENT_DIRECTORY=$(pwd)
+  if which cygpath.exe > /dev/null; then
+    CURRENT_DIRECTORY="$(cygpath --mixed "${CURRENT_DIRECTORY}")"
+  fi
+  # Do not try to move if archive is already in OUTPUT_DIRECTORY.
+  # This can happen when CASTLE_PACK_GHA_DISK_SPACE_SAVE=true,
+  # then zip is not created in /tmp/... but in parent of castle_game_engine,
+  # which may be exactly OUTPUT_DIRECTORY.
+  if [[ "${CURRENT_DIRECTORY}" != "${OUTPUT_DIRECTORY}" ]]; then
+    mv -f "${ARCHIVE_NAME}" "${OUTPUT_DIRECTORY}"
+  fi
+}
+
+# Prepare zip with precompiled CGE.
+# zip is placed in OUTPUT_DIRECTORY.
+pack_zip ()
+{
+  local ARCHIVE_NAME="castle-engine-${CGE_VERSION}-${OS}-${CPU}${ARCHIVE_NAME_BUNDLE}.zip"
+  common_pack_begin "${ARCHIVE_NAME}"
+  zip -r "${ARCHIVE_NAME}" castle_game_engine/
+  common_pack_end "${ARCHIVE_NAME}"
+}
+
+# Pack to 7z.
+# This has significantly smaller file size than zip.
+# On Windows 11, 7z is supported natively (double-click opens it in Explorer).
+pack_7z ()
+{
+  local ARCHIVE_NAME="castle-engine-${CGE_VERSION}-${OS}-${CPU}${ARCHIVE_NAME_BUNDLE}.7z"
+  common_pack_begin "${ARCHIVE_NAME}"
+  7z a -t7z -mx=9 "${ARCHIVE_NAME}" castle_game_engine
+  common_pack_end "${ARCHIVE_NAME}"
+}
+
+# Pack to tar.xz.
+# This has significantly smaller file size than zip.
+# Popular on Linux, e.g. https://www.blender.org/download/ uses tar.xz.
+pack_tarxz ()
+{
+  local ARCHIVE_NAME="castle-engine-${CGE_VERSION}-${OS}-${CPU}${ARCHIVE_NAME_BUNDLE}.tar.xz"
+  common_pack_begin "${ARCHIVE_NAME}"
+  # xz options: -T0 uses all cores (big speedup on multi-core machines),
+  # -9 is max compression level.
+  tar -cf - castle_game_engine/ | xz -T0 -9 > "${ARCHIVE_NAME}"
+  common_pack_end "${ARCHIVE_NAME}"
 }
 
 # ----------------------------------------------------------------------------
 # Main body
 
+parse_parameters "$@"
 detect_platform
 check_fpc_version
 check_lazarus_version
 prepare_build_tool
 calculate_cge_version
-if [[ -n "${1:-}" ]]; then
-  if [[ "${1}" = 'windows_installer' ]]; then
-    pack_windows_installer
-  else
-    pack_platform_zip "${1}" "${2}"
-  fi
-else
-  echo 'pack_release: Requires 2 arguments, OS and CPU, or 1 argument "windows_installer"'
-  exit 1
-fi
+pack_platform_dir
+for ONE_PACK_FORMAT in ${PACK_FORMAT//,/ }; do
+  "pack_${ONE_PACK_FORMAT}"
+done
