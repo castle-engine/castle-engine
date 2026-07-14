@@ -98,7 +98,7 @@ jobs:
     - name: List downloaded files
       run: ls -R
     - name: SHA256 checksums of files
-      run: sha256sum *.zip *.exe
+      run: sha256sum *.zip *.exe *.7z *.tar.xz
 
     # We use automatic GITHUB_TOKEN secret provided by GitHub with GH CLI, see
     # https://docs.github.com/en/actions/security-guides/automatic-token-authentication
@@ -116,7 +116,14 @@ jobs:
     # Releases files in the GitHub release.
     - name: Release Artifacts
       if: ${{ github.ref == 'refs/heads/master' }}
-      run: gh release --repo ${{ github.repository }} upload ${{ env.release_tag }} --clobber castle-engine*.zip castle-engine-setup-*.exe
+      run: |
+        gh release --repo ${{ github.repository }} \
+          upload ${{ env.release_tag }} \
+          --clobber \
+          castle-engine*.zip \
+          castle-engine-setup-*.exe \
+          castle-engine*.7z \
+          castle-engine*.tar.xz
       env:
         GH_TOKEN: ${{ github.token }}
 
@@ -134,7 +141,12 @@ jobs:
         install -m 600 -D /dev/null ~/.ssh/id_rsa
         echo "$SSH_PRIVATE_KEY_SOURCEFORGE" > ~/.ssh/id_rsa
         echo "$SSH_KNOWN_HOSTS_SOURCEFORGE" > ~/.ssh/known_hosts
-        scp castle-engine*.zip castle-engine-setup-*.exe kambi,castle-engine@frs.sourceforge.net:/home/frs/project/c/ca/castle-engine/castle_game_engine/
+        scp \
+          castle-engine*.zip \
+          castle-engine-setup-*.exe \
+          castle-engine*.7z \
+          castle-engine*.tar.xz \
+          kambi,castle-engine@frs.sourceforge.net:/home/frs/project/c/ca/castle-engine/castle_game_engine/
       env:
         SSH_PRIVATE_KEY_SOURCEFORGE: ${{ secrets.SSH_PRIVATE_KEY_SOURCEFORGE }}
         SSH_KNOWN_HOSTS_SOURCEFORGE: ${{ secrets.SSH_KNOWN_HOSTS_SOURCEFORGE }}
