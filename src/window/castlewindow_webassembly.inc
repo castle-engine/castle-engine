@@ -25,8 +25,10 @@ CastleInternalJobWeb,
 strict private
   Canvas: IJSHTMLCanvasElement;
   LastClientRectHeight, LastClientRectWidth, LastDevicePixelRatio: Double;
+
   { Get mouse position from JS event, convert it to CGE coordinates. }
   function JsMousePositionToCastle(const Event: IJSPointerEvent): TVector2;
+
   function PointerDown(BaseEvent: IJSEvent): Boolean;
   function PointerUp(BaseEvent: IJSEvent): Boolean;
   function PointerMove(BaseEvent: IJSEvent): Boolean;
@@ -34,6 +36,22 @@ strict private
   function KeyDown(BaseEvent: IJSEvent): Boolean;
   function KeyUp(BaseEvent: IJSEvent): Boolean;
   function ContextMenu(BaseEvent: IJSEvent): Boolean;
+
+  { Called when the window loses focus, e.g. because the user switched
+    to another application (Alt+Tab) or browser tab (Ctrl+Tab).
+    We will not receive keyup events then, and we don't want to keep
+    considering keys like "Ctrl" or "Alt" being pressed forever,
+    this would also block navigation.
+
+    Testcase: TCastleWalkNavigation in examples/terrain will not move player
+    by AWSD after Ctrl+Tab (and go back to tab by mouse click)
+    if it thinks Ctrl/Alt are pressed.
+
+    See https://developer.mozilla.org/en-US/docs/Web/API/Window/blur_event .
+
+    We could alternatively (or additionally) watch
+    https://developer.mozilla.org/en-US/docs/Web/API/Document/visibilitychange_event }
+  function Blur(BaseEvent: IJSEvent): Boolean;
 {$endif read_window_interface}
 
 {$ifdef read_application_interface}
@@ -192,6 +210,7 @@ begin
     For now, we catch key events on the whole window. }
   JSWindow.addEventListener('keydown', @KeyDown);
   JSWindow.addEventListener('keyup', @KeyUp);
+  JSWindow.addEventListener('blur', @Blur);
 
   // TODO: web: initialize initial cursor position, set initial cursor, initialize DPI if possible
   // GetInitialCursorPos;
@@ -454,6 +473,12 @@ begin
   // actually KeyString is not used in KeyUp, but we had it calculated anyway
   if Key <> keyNone then
     DoKeyUp(Key);
+  Result := false;
+end;
+
+function TCastleWindow.Blur(BaseEvent: IJSEvent): Boolean;
+begin
+  ReleaseAllKeysAndMouse;
   Result := false;
 end;
 
