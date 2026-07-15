@@ -2,7 +2,7 @@
    space to the fragment shader.
 */
 
-varying vec4 water_vertex_object;
+varying highp vec4 water_vertex_object;
 
 void PLUG_vertex_object_space(const in vec4 vertex_object, inout vec3 normal_object)
 {
