@@ -120,6 +120,7 @@ do_project examples/2d_games/space_shooter
 do_project examples/tiled/map_viewer # TODO: web: no open dialog (works, but could be more impressive)
 do_project examples/tiled/strategy_game_demo
 do_project examples/screen_effects_demo
+do_project examples/user_interface/test_all_view_events
 
 # 3d
 do_project examples/ifc # TODO: web: no open dialog (works, but could be more impressive)
@@ -132,6 +133,7 @@ do_project examples/3d_games/eye_of_beholder
 do_project examples/creature_behaviors # TODO: web: mouse look
 do_project examples/third_person_navigation # TODO: web: mouse look
 do_project examples/physics/physics_3d_shooter # TODO: web: mouse look
+do_project examples/physics/physics_3d_demo
 do_project examples/3d_games/dungeons_and_skeletons_fight # TODO: web: mouse look
 do_project examples/3d_games/walking_adventure # TODO: web: mouse look
 do_project examples/animations/animate_bones_by_code
