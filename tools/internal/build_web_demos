@@ -107,10 +107,10 @@ do_project ()
 
 # Examples tested on the web now:
 
-# initial (simplest) web demos
-do_project examples/web/simplest
-do_project examples/web/simplest_viewport
-do_project examples/web/simplest_invaders
+# initial (simplest) web demos (no longer exposed publicly)
+# do_project examples/web/simplest
+# do_project examples/web/simplest_viewport
+# do_project examples/web/simplest_invaders
 
 # 2d
 do_project examples/2d_games/platformer
