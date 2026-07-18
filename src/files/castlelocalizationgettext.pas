@@ -92,11 +92,13 @@ type
   { TMOFile descendant that allows iterating through all strings. }
   TCastleMOFile = class(TMOFile)
   private
+    AncestorConstructorFinished: Boolean;
     function GetKey(const AIndex: Cardinal): String;
     function GetValue(const AIndex: Cardinal): String;
   public
     constructor Create(const Stream: TStream);
     constructor Create(const Url: String);
+    destructor Destroy; override;
 
     property Count: Cardinal read StringCount;
     property Keys[const AIndex: Cardinal]: String read GetKey;
@@ -382,16 +384,40 @@ end;
 constructor TCastleMOFile.Create(const Stream: TStream);
 begin
   inherited Create(Stream);
+  AncestorConstructorFinished := true;
 end;
 
 constructor TCastleMOFile.Create(const Url: String);
 var
   S: TStream;
 begin
-  S := Download(Url);
+  { We need soForceMemoryStream, because ancestor does AStream.Position := ...,
+    while not every other stream (like TReadAssetStream for Android)
+    supports seeking. }
+  S := Download(Url, [soForceMemoryStream]);
   try
     Create(S);
   finally FreeAndNil(S) end;
+end;
+
+destructor TCastleMOFile.Destroy;
+begin
+  { Ancestor TMOFile doesn't react gracefully to an exception
+    inside its constructor (which is possible, e.g. if AStream.Position:=...
+    raise excception because the stream is not seekable).
+    In that case, TMOFile.Destroy blindly tried to "FreeMem(HashTable);"
+    but HashTable was never initialized, and this causes a crash
+    (FreeMem is not graceful on nil, unlike e.g. FreeAndNil).
+
+    Solution: we have to avoid calling inherited Destroy in that case.
+    This way exception during construction is properly reported, it doesn't
+    change into SEGFAULT from FreeMem, although it means we let some memory
+    leak (TMOFile constructor did part of initialization).
+
+    In effect, we will get clear exception like "TReadAssetStream.Seek not supported"
+    if we try to use TReadAssetStream with ancestor constructor. }
+  if AncestorConstructorFinished then
+    inherited;
 end;
 
 function TCastleMOFile.GetKey(const AIndex: Cardinal): String;
