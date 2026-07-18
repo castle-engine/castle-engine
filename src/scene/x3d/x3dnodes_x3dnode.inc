@@ -61,6 +61,8 @@
 
   TNodeFunctionalityList = {$ifdef FPC}specialize{$endif} TObjectList<TNodeFunctionality>;
 
+  TNodeNamesMap = {$ifdef FPC_OBJFPC}specialize{$endif} TDictionary<String, TX3DNode>;
+
   TNodeFunctionalityClass = class of TNodeFunctionality;
 
   TFindNodeOption = (fnNilOnMissing, fnOnlyActive);
@@ -823,6 +825,15 @@
       TryFindNodeByName and TryFindNode return @nil if such node
       is not found. FindNodeByName and FindNode raise exception EX3DNotFound
       in this case.
+
+      @italic(Calling this method multiple times without changing the node graph
+      is very inefficient.) Use @link(CreateNodeNamesMap) instead,
+      and use it repeatedly to find nodes by name fast.
+
+      @param(OnlyActive If @true, then only active nodes are searched.
+        For example, if you have a Switch node, only the currently active child
+        will be searched. If @false, then really all nodes are searched.)
+
       @raises(EX3DNotFound FindNodeByName and FindNode raise
         this exception when node is not found.)
       @groupBegin }
@@ -837,6 +848,21 @@
     function FindNode(FindClass: TX3DNodeClass;
       OnlyActive: Boolean): TX3DNode; overload; deprecated 'use FindNode(NodeClass: TX3DNodeClass, FindName: String, Options: TFindNodeOptions = [])';
     { @groupEnd }
+
+    { Create a map from node names (@link(TX3DNode.X3DName)) to node instances,
+      for all nodes in the tree starting here.
+      Using this method repeatedly is much more efficient than using
+      @link(TX3DNode.FindNodeByName) or @link(TX3DNode.TryFindNodeByName).
+
+      Be careful: This map is not updated when the graph changes
+      (nodes are added/removed). If you change the graph, you need to
+      release the old map (it will have dangling pointers if you freed some nodes)
+      and create a new one.
+
+      @param(OnlyActive If @true, then only active nodes are included in the map.
+        For example, if you have a Switch node, only the currently active child
+        will be included in the map. If @false, then really all nodes are included.) }
+    function CreateNodeNamesMap(const OnlyActive: Boolean): TNodeNamesMap;
 
     { Find a node by name and class, in this node and children (recursively).
 
@@ -2688,6 +2714,30 @@ begin
 end;
 
 {$endif}
+
+type
+  TCreateNodeNamesMapHelper = class
+    Map: TNodeNamesMap;
+    procedure EnumerateCallback(Node: TX3DNode);
+  end;
+
+procedure TCreateNodeNamesMapHelper.EnumerateCallback(Node: TX3DNode);
+begin
+  if Node.X3DName <> '' then
+    Map.AddOrSetValue(Node.X3DName, Node);
+end;
+
+function TX3DNode.CreateNodeNamesMap(const OnlyActive: Boolean): TNodeNamesMap;
+var
+  Helper: TCreateNodeNamesMapHelper;
+begin
+  Result := TNodeNamesMap.Create;
+  Helper := TCreateNodeNamesMapHelper.Create;
+  try
+    Helper.Map := Result;
+    EnumerateNodes({$ifdef FPC}@{$endif} Helper.EnumerateCallback, OnlyActive);
+  finally FreeAndNil(Helper) end;
+end;
 
 { TX3DNode.TryFindNodeState/Transform ----------------------------------------- }
 
