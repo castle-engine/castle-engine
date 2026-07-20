@@ -110,7 +110,6 @@ begin
   begin
     if WantsDraggingPointerLock then
     begin
-      Cursor := mcForceNone; // TODO: why is this necessary here
       Container.PointerLock.Active := true
     end else
       DraggingSimple := true;
@@ -127,7 +126,6 @@ begin
   begin
     DraggingSimple := false;
     Container.PointerLock.Active := false;
-    Cursor := mcDefault; // TODO: why is this necessary here
     Exit(true);
   end;
 end;
