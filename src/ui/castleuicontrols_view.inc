@@ -161,12 +161,14 @@
       ancestor, see TCastleUserInterface.Container) but it is
       already assigned even during @link(Start) and @link(Stop).
 
-      This method @italic(deliberately hides the ancestor @link(TCastleUserInterface.Container)
-      method).
-      This way it will work always, in particular also during @link(Start) method.
+      This method @italic(deliberately hides the ancestor
+      @link(TCastleUserInterface.Container) method).
+      Compared to ancestor, this will work in more cases,
+      in particular also during @link(Start) method.
       This allows you to do code like this in overridden @link(Start) method:
 
-      @longCode(# Container.OverrideCursor := mcNone; #) }
+      @longCode(# Container.PointerLock.AddUserCancelledListener(
+        {$ifdef FPC}@{$endif} PointerLockUserCancelled);; #) }
     function Container: TCastleContainer;
 
     { Assign this component as owner for your controls,

@@ -33,10 +33,12 @@ strict private
   function PointerDown(BaseEvent: IJSEvent): Boolean;
   function PointerUp(BaseEvent: IJSEvent): Boolean;
   function PointerMove(BaseEvent: IJSEvent): Boolean;
+
   { Handlers for legacy mouse events, used only while pointer lock is effective,
     because Chromium does not deliver pointerdown / pointerup during pointer lock. }
   function MouseDown(BaseEvent: IJSEvent): Boolean;
   function MouseUp(BaseEvent: IJSEvent): Boolean;
+
   function MouseOrPointerDown(const Event: IJSMouseEvent): Boolean;
   function MouseOrPointerUp(const Event: IJSMouseEvent): Boolean;
   function LostPointerCapture(BaseEvent: IJSEvent): Boolean;

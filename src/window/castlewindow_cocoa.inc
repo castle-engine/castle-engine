@@ -38,13 +38,16 @@
 
   TODO:
 
-  - Test on real hardware (testing it through remote connection like Team Viewer
+  - Test mouse cursor hiding / showing / changing look on a real hardware.
+    (as testing. it through remote connection like Team Viewer
     or VNC is bad, as they try to control the mouse):
 
-      Hide / show mouse cursor (for mouse look), this is controlled by
-      TCastleUserInterface.Cursor, TCastleWindow.OverrideCursor.
+      Hide / show mouse cursor, this is controlled by
+      TCastleUserInterface.Cursor,
+      TCastleContainer.OverrideCursor,
+      and internal mechanism used by TCastleDesktopPointerLock.
 
-      Doesn't seem to work (as if NSCursor.hide didn't do anything)...
+      It doesn't seem to work (as if NSCursor.hide didn't do anything)...
       but only tested over Team Viewer and VNC,
       and they may mess this test, as they want to control mouse.
       Search for NSCursor.hide to find implementation of it.
