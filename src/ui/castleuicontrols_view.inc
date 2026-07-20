@@ -155,7 +155,7 @@
 
     function StateContainer: TCastleContainer; deprecated 'use Container to get the container in which we are already started, use PredictedContainer if the state is not yet started';
 
-    { The container in which the view works.
+    (*The container in which the view works.
 
       This is just like @link(Container) property (from
       ancestor, see TCastleUserInterface.Container) but it is
@@ -168,7 +168,7 @@
       This allows you to do code like this in overridden @link(Start) method:
 
       @longCode(# Container.PointerLock.AddUserCancelledListener(
-        {$ifdef FPC}@{$endif} PointerLockUserCancelled);; #) }
+        {$ifdef FPC}@{$endif} PointerLockUserCancelled);; #) *)
     function Container: TCastleContainer;
 
     { Assign this component as owner for your controls,
