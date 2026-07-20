@@ -110,9 +110,10 @@ begin
   if Event.IsMouseButton(buttonRight) then
   begin
     { Start mouse look on the viewport where mouse is. }
-    if ViewportBottom.RenderRect.Contains(Event.Position) then
-      WalkNavigationBottom.MouseLook := true;
-    if ViewportTop.RenderRect.Contains(Event.Position) then
+    if ViewportBottom.Focused then
+      WalkNavigationBottom.MouseLook := true
+    else
+    if ViewportTop.Focused then
       WalkNavigationTop.MouseLook := true;
     Exit(true);
   end;
