@@ -1030,11 +1030,22 @@ begin
   { Pointer Lock API: observe the pointer lock state
     https://developer.mozilla.org/en-US/docs/Web/API/Pointer_Lock_API }
   JSDocument.addEventListener('pointerlockchange', @PointerLockChange);
-  { Note: We deliberately do not listen to the 'pointerlockerror' event.
-    A failed RequestPointerLock also rejects the returned promise, and only
-    the promise rejection carries the reason (error.name), which we need to
-    distinguish "UnadjustedMovement unsupported" from other failures.
-    So we handle all failures in LockPromiseRejected instead. }
+
+  { Note: We do not listen for the 'pointerlockerror' event.
+
+    - When FPromiseUnsupported = @false (so requestPointerLock returns a Promise):
+
+        A failed RequestPointerLock also rejects the returned promise, and only
+        the promise rejection carries the reason (error.name), which we need to
+        distinguish "UnadjustedMovement unsupported" from other failures.
+        So we handle all failures in LockPromiseRejected instead.
+
+    - When FPromiseUnsupported = @true (so requestPointerLock does not return a Promise):
+
+        We will register 'pointerlockerror' listener in
+        RequestPointerLockNow, when we detect that FPromiseUnsupported
+        should be true.
+  }
 end;
 
 function TCastleWebPointerLock.PointerLockChange(BaseEvent: IJSEvent): Boolean;
