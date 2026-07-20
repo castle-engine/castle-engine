@@ -484,6 +484,41 @@ var
   Position: TVector2;
   SendMotion: TInputMotion;
 begin
+  { TODO: Format call below (done by WritelnLog)
+    is hanging the application in Firefox and Vivaldi (Chromium based).
+    And it's not about logging (my first guess was we clog the console
+    by log from every MouseMove): even S:=Format(....),
+    even with hardcoded argyments, still hangs (see below).
+    Browser and page remain interactive, but WASM application seemingly hangs,
+    nothing is rendered or logged anymore.
+    No error in console.
+
+    Is this FPC+WebAssembly bug? Weird, as very similar code works OK
+    on MouseDown / PointerDown.
+
+  // this hangs!
+  WritelnLog('TCastleWindow.PointerMove: position %f %f, movement %f %f', [
+    TJSPointerEvent.Cast(BaseEvent).OffsetX,
+    TJSPointerEvent.Cast(BaseEvent).OffsetY,
+    TJSPointerEvent.Cast(BaseEvent).MovementX,
+    TJSPointerEvent.Cast(BaseEvent).MovementY
+  ]);
+
+  // even this hangs!
+  S := Format('TCastleWindow.PointerMove: position %f %f, movement %f %f', [
+    1, 2, 3, 4
+  ]);
+
+    Using FloatToStr, or our FloatToStrDot, works OK.
+
+  // this works OK
+  WritelnLog('TCastleWindow.PointerMove: position ' +
+    FloatToStrDot(TJSPointerEvent.Cast(BaseEvent).OffsetX) + ' ' +
+    FloatToStrDot(TJSPointerEvent.Cast(BaseEvent).OffsetY) + ', movement ' +
+    FloatToStrDot(TJSPointerEvent.Cast(BaseEvent).MovementX) + ' ' +
+    FloatToStrDot(TJSPointerEvent.Cast(BaseEvent).MovementY));
+  }
+
   Result := true; // assume not handled, in case of early exit
   Event := TJSPointerEvent.Cast(BaseEvent);
 
