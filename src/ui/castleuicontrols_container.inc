@@ -2349,7 +2349,8 @@ begin
       Note that this is written deliberately in such way that it will
       work also with web TCastleWindow.PointerLock, where movement
       Position/OldPosition are not useful, but Delta is. }
-    FCollectedMotion.Delta := FCollectedMotion.Delta + Event.Delta;
+    FCollectedMotion.InternalWebDelta :=
+      FCollectedMotion.InternalWebDelta + Event.InternalWebDelta;
     //WritelnLog('Motion', 'Collected motion updated to %s', [Event.Position.ToString]);
   end else
   begin

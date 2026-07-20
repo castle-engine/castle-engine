@@ -980,14 +980,41 @@ type
 
     { Change of movement.
 
-      On non-web platforms (that don't use the pointer lock API),
-      this is always just @code(@link(Position) - @link(OldPosition)).
+      Applications should not use this, at this point.
 
-      On the web platform, this is the change in position since the last motion
-      event, and it can only be obtained by reading this field.
-      Doing @code(Event.Position - Event.OldPosition) is useless on the web platform,
-      as the "pointer lock API" pretends that mouse didn't move at all. }
-    Delta: TVector2;
+      Applications should use:
+
+      - When pointer lock is not used, i.e. when
+        @link(TCastleContainer.PointerLock.Active MyContainer.PointerLock.Active)
+        is @false:
+
+          Just do @code(Event.Position - Event.OldPosition) to get the change
+          in position.
+
+      - When pointer lock is used, i.e. when
+        @link(TCastleContainer.PointerLock.Active MyContainer.PointerLock.Active)
+        is @true:
+
+          Read deltas by @link(TCastleAbstractPointerLock.Delta
+          MyContainer.PointerLock.Delta(Event)).
+          It may use, under the hood, Event.InternalWebDelta.
+
+      What it contains now:
+
+      On platforms other than web,
+      or when the web platform is used without pointer lock,
+      this is just zero.
+      (In the past: it was @code(@link(Position) - @link(OldPosition),
+      but that was useless given we don't advise using it.)
+
+      On the web platform, when pointer lock is used,
+      this is the change in position reported by the browser pointer lock API.
+      Doing @code(Event.Position - Event.OldPosition) is not useful on the
+      web platform when pointer lock is used,
+      as the "pointer lock API" pretends that mouse didn't move at all.
+
+      @exclude }
+    InternalWebDelta: TVector2;
 
     { Currently pressed mouse buttons.
       On touch devices, this is always just [buttonLeft]. }
@@ -1610,7 +1637,6 @@ begin
   FillChar(Result, SizeOf(Result), 0);
   Result.OldPosition := OldPosition;
   Result.Position := Position;
-  Result.Delta := Position - OldPosition;
   Result.Pressed := Pressed;
   Result.FingerIndex := FingerIndex;
 end;

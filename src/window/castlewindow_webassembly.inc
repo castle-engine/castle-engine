@@ -1234,7 +1234,7 @@ function TCastleWebPointerLock.Delta(const Event: TInputMotion;
   const ControlRect: TFloatRectangle): TVector2;
 begin
   if Effective then
-    Result := Event.Delta
+    Result := Event.InternalWebDelta
   else
     Result := TVector2.Zero;
 end;
@@ -1257,7 +1257,7 @@ begin
 
     - experiment rejected: we tried scaling them just like we scale position
       in JsMousePositionToCastle,
-        SendMotion.Delta := Vector2(
+        SendMotion.InternalWebDelta := Vector2(
            Event.MovementX * Canvas.Width / Canvas.OffsetWidth,
           -Event.MovementY * Canvas.Height / Canvas.OffsetHeight);
       but this resulted in speed being *less* consistent with how MousePosition
@@ -1266,7 +1266,7 @@ begin
     All in all, just using movementX/Y is most reliable now.
   }
   if FEffective then
-    SendMotion.Delta := Vector2(Event.MovementX, -Event.MovementY);
+    SendMotion.InternalWebDelta := Vector2(Event.MovementX, -Event.MovementY);
 end;
 
 {$endif read_implementation}
