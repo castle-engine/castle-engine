@@ -1,19 +1,30 @@
 # Multiple Windows and Viewports Demo
 
-Demo of using the same 3D world inside 4 viewports, in 2 windows (containers).
+Demo of using the same 3D world inside 4 viewports, in 2 windows (2 containers).
 
-Technically this means that we have
-- 1x TCastleRootTransform
-- that is referenced by 4x instances of TCastleViewport, in TCastleViewport.Items
-- we have 2x TCastleWindow.
+**Note this is quite non-standard setup. In usual applications, you have only 1 window, and 1 container, as this is sufficient and works cross-platform. Only desktop platforms allow multiple windows. And a single window can still contain multiple viewports (nice for e.g. split-screen games; simple games are fine with just 1 viewport).**
 
-    Each window corresponds to 1 TCastleContainer (so we have 2x TCastleContainer) in the application.
+In this demo we have:
 
-    Each window contains 2x TCastleViewport.
+- 1x `TCastleRootTransform` (3D world shared by all viewports)
 
-Walk using AWSD - and note that it affects the navigation in the viewport under mouse.
+- The "one shared world" is referenced by 4x instances of `TCastleViewport`, by setting `TCastleViewport.Items` to the same value.
 
-Drop physical box using Enter key.
+- We have 2x `TCastleWindow`.
+
+    Each window corresponds to 1 `TCastleContainer` (so we have 2x `TCastleContainer`) in the application.
+
+    Each window contains 2x `TCastleViewport`: top and bottom.
+
+    Each viewport has its own camera, and it's own `TCastleWalkNavigation` (so you can move the camera in each viewport independently).
+
+Navigation:
+
+- Walk using AWSD. It affects the navigation in the viewport under mouse.
+
+- Look around by moving the mouse while the right mouse button is pressed. Again, it affects the navigation in the viewport under mouse.
+
+Drop physical box using Enter key. This is mainly useful to prove that indeed all 4 viewports share the same 3D world, and you can see the same box in all 4 viewports.
 
 ![Screenshot](screenshot.png)
 
