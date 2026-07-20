@@ -176,6 +176,10 @@ type
 
     function Delta(const Event: TInputMotion;
       const ControlRect: TFloatRectangle): TVector2; override;
+
+    { Calculate proper Delta from IJSPointerEvent, at each PointerMove. }
+    procedure CalculateDelta(var SendMotion: TInputMotion;
+      const Event: IJSPointerEvent);
   end;
 
 { TCastleWindow -------------------------------------------------------------- }
@@ -516,43 +520,40 @@ begin
     FloatToStrDot(TJSPointerEvent.Cast(BaseEvent).OffsetX) + ' ' +
     FloatToStrDot(TJSPointerEvent.Cast(BaseEvent).OffsetY) + ', movement ' +
     FloatToStrDot(TJSPointerEvent.Cast(BaseEvent).MovementX) + ' ' +
-    FloatToStrDot(TJSPointerEvent.Cast(BaseEvent).MovementY));
+    FloatToStrDot(TJSPointerEvent.Cast(BaseEvent).MovementY) +
+    ' screenX: ' + FloatToStrDot(TJSPointerEvent.Cast(BaseEvent).ScreenX) +
+    ' screenY: ' + FloatToStrDot(TJSPointerEvent.Cast(BaseEvent).ScreenY) +
+    ' clientX: ' + FloatToStrDot(TJSPointerEvent.Cast(BaseEvent).ClientX) +
+    ' clientY: ' + FloatToStrDot(TJSPointerEvent.Cast(BaseEvent).ClientY) +
+    ' button: ' + IntToStr(TJSPointerEvent.Cast(BaseEvent).Button) +
+    ' buttons: ' + IntToStr(TJSPointerEvent.Cast(BaseEvent).Buttons) +
+    ' detail: ' + IntToStr(TJSPointerEvent.Cast(BaseEvent).Detail) +
+    ' bubbles: ' + BoolToStr(TJSPointerEvent.Cast(BaseEvent).Bubbles, true) +
+    ' cancelable: ' + BoolToStr(TJSPointerEvent.Cast(BaseEvent).Cancelable, true) +
+    ' composed: ' + BoolToStr(TJSPointerEvent.Cast(BaseEvent).Composed, true)
+  );
   }
 
   Result := true; // assume not handled, in case of early exit
   Event := TJSPointerEvent.Cast(BaseEvent);
 
+  { Firefox sends wrong PointerMove events during pointer lock,
+    right *before* sending PointerDown/Up events. It seems it synthesizes
+    "mouse moved to center of the screen" and sends them before sending
+    the actual PointerDown/Up events.
+    Since they are send before (not after) we cannot detect them by easy flag
+    like FIgnoreNextMotion.
+
+    Luckily, they contain Button <> -1 (which normal move events never do).
+    So we just reject them in this case. }
+  if Event.Button <> -1 then
+    Exit(false);
+
   FingerIndex := 0;
   Position := JsMousePositionToCastle(Event);
   SendMotion := InputMotion(Container.MousePosition, Position,
     Container.MousePressed, FingerIndex);
-
-  { What to use for deltas?
-
-    - movementX/Y are designed for this
-
-    - experiment rejected: Since
-      https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/movementX
-      https://github.com/w3c/pointerlock/issues/42
-      says their coordinates are unreliable and suggests to calculate deltas
-      ourselves, by comparing screenX/Y.
-      But that's wrong advise, as of 2026-06: screenX/Y
-      - in Firefox 151.0.4 is mostly zero,
-      - and reports horizontal-only deltas in Vivaldi 8.0.4033.46 .
-
-    - experiment rejected: we tried scaling them just like we scale position
-      in JsMousePositionToCastle,
-        SendMotion.Delta := Vector2(
-           Event.MovementX * Canvas.Width / Canvas.OffsetWidth,
-          -Event.MovementY * Canvas.Height / Canvas.OffsetHeight);
-      but this resulted in speed being *less* consistent with how MousePosition
-      changes in Firefox in dragging_test, when zoomed in/out.
-
-    All in all, just using movementX/Y is most reliable now.
-  }
-  if PointerLockEffective then
-    SendMotion.Delta := Vector2(Event.MovementX, -Event.MovementY);
-
+  (Container.PointerLock as TCastleWebPointerLock).CalculateDelta(SendMotion, Event);
   DoMotion(SendMotion);
 
   Result := false;
@@ -1267,6 +1268,36 @@ begin
     Result := Event.Delta
   else
     Result := TVector2.Zero;
+end;
+
+procedure TCastleWebPointerLock.CalculateDelta(var SendMotion: TInputMotion;
+  const Event: IJSPointerEvent);
+begin
+  { What to use for deltas?
+
+    - movementX/Y are designed for this
+
+    - experiment rejected: Since
+      https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/movementX
+      https://github.com/w3c/pointerlock/issues/42
+      says their coordinates are unreliable and suggests to calculate deltas
+      ourselves, by comparing screenX/Y.
+      But that's wrong advise, as of 2026-06: screenX/Y
+      - in Firefox 151.0.4 is mostly zero,
+      - and reports horizontal-only deltas in Vivaldi 8.0.4033.46 .
+
+    - experiment rejected: we tried scaling them just like we scale position
+      in JsMousePositionToCastle,
+        SendMotion.Delta := Vector2(
+           Event.MovementX * Canvas.Width / Canvas.OffsetWidth,
+          -Event.MovementY * Canvas.Height / Canvas.OffsetHeight);
+      but this resulted in speed being *less* consistent with how MousePosition
+      changes in Firefox in dragging_test, when zoomed in/out.
+
+    All in all, just using movementX/Y is most reliable now.
+  }
+  if FEffective then
+    SendMotion.Delta := Vector2(Event.MovementX, -Event.MovementY);
 end;
 
 {$endif read_implementation}
