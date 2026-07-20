@@ -158,6 +158,7 @@
       FCurrentViewStack, FPendingViewStack: TCastleViewList;
       FDisableStackChange: Cardinal;
       FControls: TInternalChildrenControls;
+      FInternalOverrideCursor: TMouseCursor; //< overrides even public OverrideCursor
     class var
       FInputInspector: TInputInspector;
     procedure ControlsVisibleChange(const Sender: TCastleUserInterface;
@@ -1437,6 +1438,9 @@ var
 
     if OverrideCursor <> mcDefault then
       Result := OverrideCursor;
+    // FInternalOverrideCursor overrides everything, even OverrideCursor
+    if FInternalOverrideCursor <> mcDefault then
+      Result := FInternalOverrideCursor;
 
     { Do not hide when
       - container is not focused (mouse look doesn't work

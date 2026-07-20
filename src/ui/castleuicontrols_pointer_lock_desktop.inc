@@ -20,8 +20,10 @@
 //type
 
   { Pointer lock implementation on desktops.
-    We hide the mouse cursor (modifying @link(TCastleContainer.OverrideCursor))
-    and keep repositioning mouse to the middle of the screen (or specified
+    We hide the mouse cursor (using @link(TCastleContainer)
+    internal mechanism, so we override whatever cursor is set by
+    @link(TCastleUserInterface.Cursor) or @link(TCastleContainer.OverrideCursor)).
+    We keep repositioning mouse to the middle of the screen (or specified
     ControlRect). }
   TCastleDesktopPointerLock = class(TCastleAbstractPointerLock)
   strict private
@@ -47,10 +49,10 @@ begin
     FIgnoreNextMotion := false;
     FWaitingForMiddle := false;
     FMotionToSubtract := TVector2.Zero;
-    Container.OverrideCursor := mcForceNone;
+    Container.FInternalOverrideCursor := mcForceNone;
   end else
   begin
-    Container.OverrideCursor := mcDefault;
+    Container.FInternalOverrideCursor := mcDefault;
   end;
 end;
 
