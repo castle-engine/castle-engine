@@ -488,56 +488,21 @@ var
   Position: TVector2;
   SendMotion: TInputMotion;
 begin
-  { TODO: Format call below (done by WritelnLog)
-    is hanging the application in Firefox and Vivaldi (Chromium based).
-    And it's not about logging (my first guess was we clog the console
-    by log from every MouseMove): even S:=Format(....),
-    even with hardcoded argyments, still hangs (see below).
-    Browser and page remain interactive, but WASM application seemingly hangs,
-    nothing is rendered or logged anymore.
-    No error in console.
-
-    Is this FPC+WebAssembly bug? Weird, as very similar code works OK
-    on MouseDown / PointerDown.
-
-  // this hangs!
-  WritelnLog('TCastleWindow.PointerMove: position %f %f, movement %f %f', [
-    TJSPointerEvent.Cast(BaseEvent).OffsetX,
-    TJSPointerEvent.Cast(BaseEvent).OffsetY,
-    TJSPointerEvent.Cast(BaseEvent).MovementX,
-    TJSPointerEvent.Cast(BaseEvent).MovementY
-  ]);
-
-  // even this hangs!
-  S := Format('TCastleWindow.PointerMove: position %f %f, movement %f %f', [
-    1, 2, 3, 4
-  ]);
-
-    Using FloatToStr, or our FloatToStrDot, works OK.
-
-  // this works OK
-  WritelnLog('TCastleWindow.PointerMove: position ' +
-    FloatToStrDot(TJSPointerEvent.Cast(BaseEvent).OffsetX) + ' ' +
-    FloatToStrDot(TJSPointerEvent.Cast(BaseEvent).OffsetY) + ', movement ' +
-    FloatToStrDot(TJSPointerEvent.Cast(BaseEvent).MovementX) + ' ' +
-    FloatToStrDot(TJSPointerEvent.Cast(BaseEvent).MovementY) +
-    ' screenX: ' + FloatToStrDot(TJSPointerEvent.Cast(BaseEvent).ScreenX) +
-    ' screenY: ' + FloatToStrDot(TJSPointerEvent.Cast(BaseEvent).ScreenY) +
-    ' clientX: ' + FloatToStrDot(TJSPointerEvent.Cast(BaseEvent).ClientX) +
-    ' clientY: ' + FloatToStrDot(TJSPointerEvent.Cast(BaseEvent).ClientY) +
-    ' button: ' + IntToStr(TJSPointerEvent.Cast(BaseEvent).Button) +
-    ' buttons: ' + IntToStr(TJSPointerEvent.Cast(BaseEvent).Buttons) +
-    ' detail: ' + IntToStr(TJSPointerEvent.Cast(BaseEvent).Detail) +
-    ' bubbles: ' + BoolToStr(TJSPointerEvent.Cast(BaseEvent).Bubbles, true) +
-    ' cancelable: ' + BoolToStr(TJSPointerEvent.Cast(BaseEvent).Cancelable, true) +
-    ' composed: ' + BoolToStr(TJSPointerEvent.Cast(BaseEvent).Composed, true)
-  );
-  }
-
   Result := true; // assume not handled, in case of early exit
   Event := TJSPointerEvent.Cast(BaseEvent);
 
-  { Firefox sends wrong PointerMove events during pointer lock,
+  { TODO: Report FPC/WebAssembly bug: Format %f hangs when given integer
+    value. Below, it is critical we use %d for MovementX/MovementY.
+
+  WritelnLog('TCastleWindow.PointerMove: offset %f %f, movement %d %d, screen %f %f, button: %d', [
+    Event.OffsetX, Event.OffsetY,
+    Event.MovementX, Event.MovementY,
+    Event.ScreenX, Event.ScreenY,
+    Event.Button
+  ]);
+  }
+
+  { Firefox (tested on Linux) sends wrong PointerMove events during pointer lock,
     right *before* sending PointerDown/Up events. It seems it synthesizes
     "mouse moved to center of the screen" and sends them before sending
     the actual PointerDown/Up events.
@@ -545,7 +510,11 @@ begin
     like FIgnoreNextMotion.
 
     Luckily, they contain Button <> -1 (which normal move events never do).
-    So we just reject them in this case. }
+    So we just reject them in this case.
+
+    Note that Chromium-based browsers (Vivaldi tested, also on Linux) also seem
+    to send such events with Button=0, but they always contain MovementX=MovementY=0,
+    so they would be harmless even if not ignored. }
   if Event.Button <> -1 then
     Exit(false);
 
