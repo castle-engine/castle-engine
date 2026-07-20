@@ -56,6 +56,7 @@
     public property FdTexCoord: TSFNode read FFdTexCoord;
     {  }
     property TexCoord: TX3DNode read GetTexCoord write SetTexCoord;
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -120,6 +121,12 @@ begin
   FFdTexCoord := TSFNode.Create(Self, True, 'texCoord', [TTextureCoordinateGeneratorNode, TProjectedTextureCoordinateNode, TMultiGeneratedTextureCoordinateNode]);
    FdTexCoord.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdTexCoord);
+end;
+
+procedure TTeapotNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+  ExtensionNames.Add(X3DType);
 end;
 
 {$endif read_implementation}

@@ -66,6 +66,7 @@ implementation
 
 uses SysUtils, DOM,
   CastleImages, CastleUriUtils, CastleLog, CastleFilesUtils, CastleXmlUtils,
+  CastleInternalProcess,
   ToolEmbeddedImages, ToolIosPbxGeneration, ToolServices, ToolCommonUtils,
   ToolServicesOperations, ToolProcessRun;
 
@@ -111,7 +112,7 @@ procedure CompileIOS(const Compiler: TCompiler;
 
     DeleteFile(LinkRes); // delete it, to allow later FindLinkRes to work
 
-    RunCommandSimple('libtool', ['-static', '-o', OutputLibrary, '-filelist',
+    ExecuteCommandSimple('libtool', ['-static', '-o', OutputLibrary, '-filelist',
       CompilationOutput + 'lib_cge_project_object_files.txt']);
     if not RegularFileExists(OutputLibrary) then
       raise Exception.CreateFmt('Creating library "%s" failed', [OutputLibrary]);
@@ -162,7 +163,7 @@ begin
     if IosArm32Support then
        Options.Add(CompilationOutputPath(Compiler, iOS   , arm    , CompilationWorkingDirectory) + IOSPartialLibraryName);
     Options.Add(CompilationOutputPath(Compiler, iOS   , aarch64, CompilationWorkingDirectory) + IOSPartialLibraryName);
-    RunCommandSimple('libtool', Options.ToArray)
+    ExecuteCommandSimple('libtool', Options.ToArray)
   finally FreeAndNil(Options) end;
 end;
 
@@ -446,9 +447,9 @@ var
       { If current binary architecture is x86_64, use CocoaPods native binaries
         also with x86_64 architecture. }
       if DefaultCPU = x86_64 then
-        RunCommandSimple(XcodeProject, 'arch', ['-x86_64', 'pod', 'install'])
+        ExecuteCommandSimple(XcodeProject, 'arch', ['-x86_64', 'pod', 'install'])
       else
-        RunCommandSimple(XcodeProject, 'pod', ['install']);
+        ExecuteCommandSimple(XcodeProject, 'pod', ['install']);
     end;
   end;
 
@@ -535,7 +536,7 @@ begin
   if XcodeSelectExe = '' then
     raise Exception.Create('Cannot find "xcode-select". Make sure that Xcode with command-line utilities is installed.');
 
-  MyRunCommandIndir(XcodeProject, XcodeSelectExe, ['--print-path'], OutputString, ExitStatus);
+  ExecuteCommandCapture(XcodeProject, XcodeSelectExe, ['--print-path'], OutputString, ExitStatus);
 
   if ExitStatus <> 0 then
     raise Exception.CreateFmt('Running "xcode-select" failed, exit status %d, output "%s".', [
@@ -568,7 +569,7 @@ begin
     RemoveNonEmptyDir(ExportPath);
   CheckForceDirectories(ExportPath);
 
-  RunCommandSimple(XcodeProject, XcodeBuildExe, [
+  ExecuteCommandSimple(XcodeProject, XcodeBuildExe, [
     '-allowProvisioningUpdates',
     '-workspace', Project.Name + '.xcworkspace',
     '-scheme', Project.Caption,
@@ -577,7 +578,7 @@ begin
     '-archivePath', ArchivePath,
     'archive'
   ]);
-  RunCommandSimple(XcodeProject, XcodeBuildExe, [
+  ExecuteCommandSimple(XcodeProject, XcodeBuildExe, [
     '-allowProvisioningUpdates',
     '-archivePath', ArchivePath,
     '-exportOptionsPlist', XcodeProject + 'export_options.plist',

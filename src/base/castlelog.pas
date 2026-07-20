@@ -22,7 +22,23 @@ unit CastleLog;
 {$if (not defined(FPC)) and defined(MSWINDOWS) and defined(DEBUG)}
   { Log using WinAPI OutputDebugString.
     This is comfortably visible in Delphi IDE Event Log.
-    See https://stackoverflow.com/questions/11218434/how-to-view-output-of-outputdebugstring }
+    See https://stackoverflow.com/questions/11218434/how-to-view-output-of-outputdebugstring
+
+    Note: We also considered using Log.d from Fmx.Types, it would look cleaner
+    than using WinAPI's OutputDebugString directly. But Fmx.Types is not
+    available in all situations:
+    - It works on all platforms with Delphi...
+      but only as long as we use FMX for GUI under the hood.
+    - So this would be not OK when CGE doesn't use FMX for GUI:
+      - TCastleWindow applications using Delphi/Win[32|64] are not using
+        FMX, we use WinAPI directly there.
+      - Also TCastleControl based on VCL -- obviously doesn't use FMX, only VCL.
+    - Though it would be OK for other combinations now.
+      - TCastleControl based on FMX would of course be good, for Windows too.
+      - TCastleWindow on all non-Windows platforms right now also uses FMX,
+        so it would be OK there too.
+
+    See https://www.youtube.com/watch?v=U3rHwL_Q7W8 . }
   {$define CASTLE_LOG_TO_WINDOWS_EVENT_LOG}
 {$endif}
 

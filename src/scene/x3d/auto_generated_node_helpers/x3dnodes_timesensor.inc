@@ -72,6 +72,7 @@
     public property FdDetectAffectedFields: TSFBool read FFdDetectAffectedFields;
     {  }
     property DetectAffectedFields: Boolean read GetDetectAffectedFields write SetDetectAffectedFields;
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -152,6 +153,15 @@ begin
   FFdDetectAffectedFields := TSFBool.Create(Self, False, 'detectAffectedFields', true);
    FdDetectAffectedFields.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdDetectAffectedFields);
+end;
+
+procedure TTimeSensorNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+  if not FdFractionIncreasing.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdFractionIncreasing.X3DName);
+  if not FdDetectAffectedFields.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdDetectAffectedFields.X3DName);
 end;
 
 {$endif read_implementation}

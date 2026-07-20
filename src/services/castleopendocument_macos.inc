@@ -19,7 +19,7 @@
 
 { OpenDocument and OpenUrl implementations for macOS. }
 
-// Relies on RunCmdFromPath
+// for ExecuteCommandNoWait
 {$I castleopendocument_process.inc}
 
 {$ifdef read_unit_compiler_directives}
@@ -75,7 +75,7 @@ end;
 function OpenDocument(APath: String): Boolean;
 begin
   Result := True;
-  RunCmdFromPath('open',APath);
+  ExecuteCommandNoWait('open', [APath]);
 end;
 
 {$endif read_implementation}

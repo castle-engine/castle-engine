@@ -5,7 +5,7 @@
 ;
 ; For debug purposes you can run it from InnoSetup GUI, just uncomment and adjust MyAppSrcDir .
 ; But for production it should always be used from command-line by calling
-; "./pack_release.sh windows_installer".
+; "./pack_release.sh innosetup win64 x86_64".
 ; The pack_release.sh will prepare directory for this to work (MyAppSrcDir),
 ; and configure output dir and filename.
 
@@ -56,6 +56,19 @@ SetupIconFile={#MyAppSrcDir}\doc\pasdoc\logo\castle_game_engine_icon.ico
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
+
+; Signing: pack_release.sh defines CastleSigning (and the CastleSignTool
+; command via /S) only when signing is desired.
+;
+; Note: Do not add double quotes below, like $q$f$q, as InnoSetup will add
+; double quotes around automatically. And having two double quotes -> means
+; they collapse into an empty string and don't protect anything,
+; and then backslashes inside the path disappear, and CastleSignTool
+; gets invalid filenames like "D:acastle-enginecastle-engineuninst.e32.tmp".
+;
+#ifdef CastleSigning
+SignTool=CastleSignTool $f
+#endif
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"

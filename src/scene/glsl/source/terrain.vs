@@ -4,7 +4,7 @@
    This simply saves position and normal in object space,
    to be used by terrain.fs code. */
 
-varying vec3 terrain_position;
+varying highp vec3 terrain_position;
 varying vec3 terrain_normal;
 
 void PLUG_vertex_object_space(

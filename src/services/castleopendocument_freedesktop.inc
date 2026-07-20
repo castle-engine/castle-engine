@@ -21,7 +21,7 @@
   XDG https://www.freedesktop.org/wiki/ , in practice:
   desktop Unix like Linux, FreeBSD. }
 
-// Relies on RunCmdFromPath
+// for ExecuteCommandNoWait
 {$I castleopendocument_process.inc}
 
 {$ifdef read_implementation}
@@ -66,10 +66,10 @@ begin
       Exit(OpenDocument(FileName));
   end;
 
-  Result := FindDefaultBrowser(ABrowser) and FileExists(ABrowser) and FileIsExecutable(ABrowser);
+  Result := FindDefaultBrowser(ABrowser) and FileExists(ABrowser);
   if not Result then
     Exit;
-  RunCmdFromPath(ABrowser, AUrl);
+  ExecuteCommandNoWait(ABrowser, [AUrl]);
 end;
 
 // Open a document with the default application associated with it in the system
@@ -89,7 +89,7 @@ begin
   if lApp='' then
     Exit(False);
 
-  RunCmdFromPath(lApp,APath);
+  ExecuteCommandNoWait(lApp, [APath]);
 end;
 
 {$endif read_implementation}

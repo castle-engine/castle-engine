@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2024 Michalis Kamburelis.
+  Copyright 2018-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -129,7 +129,7 @@ type
   private
     function InternalComponentLoad(
       const InstanceOwner: TComponent;
-      const AssociateReferences: TPersistent;
+      out ComponentMap: TComponentMap;
       const LoadInfo: TInternalComponentLoadInfo): TComponent;
   public
     { Main constructor.
@@ -286,6 +286,18 @@ type
       #) }
     function ComponentLoad(const InstanceOwner: TComponent;
       const AssociateReferences: TPersistent = nil): TComponent;
+
+    { Just like @link(ComponentLoad) but returns additional
+      ComponentMap which contains all loaded components.
+
+      Caller is responsible for freeing the ComponentMap.
+
+      Unlike @link(ComponentLoad), this method does not have
+      @code(AssociateReferences) parameter, but you can implement various
+      other ways to associate the loaded components with your variables using
+      ComponentMap. }
+    function ComponentLoadWithMap(const InstanceOwner: TComponent;
+      out ComponentMap: TComponentMap): TComponent;
   published
     { Load design from given URL.
       Set to '' to clear the loaded component.
@@ -295,7 +307,7 @@ type
       the translation group derived from URL base name. E.g. loading
       @code("castle-data:/foo/my_design.castle-user-interface") will use translation
       group @code("my_design"). }
-    property Url: String read FUrl write SetUrl;  
+    property Url: String read FUrl write SetUrl;
   end;
 
   TSerializedComponent = TCastleComponentFactory deprecated 'use TCastleComponentFactory';
@@ -499,7 +511,7 @@ type
         Reader: TCastleJsonReader;
       end;
     var
-      ComponentNames: TStringList;
+      ComponentMap: TComponentMap;
     { Events called by FJsonDeStreamer }
     procedure GetObject(AObject: TObject; Info: PPropInfo;
       AData: TJsonObject; DataName: TJsonStringType; var AValue: TObject);
@@ -540,7 +552,7 @@ type
       SerializationProcessPool: TSerializationProcessReaderList;
       SerializationProcessPoolUsed: Integer;
 
-    { Find component name in ComponentNames.
+    { Find component name in ComponentMap.
 
       Note: Do not use Owner.FindComponent(FindName) to resolve names
       during deserialization.
@@ -551,17 +563,17 @@ type
       existing components.
 
       See TTestCastleComponentSerialize.TestPastePreserveReferences
-      for testcase why this is important. Thanks to ComponentNames
+      for testcase why this is important. Thanks to ComponentMap
       e.g. copy-paste (in editor) of viewport + camera into
       the same design works correctly.
 
-      Note that having ComponentNames with fallback on Owner.FindComponent
+      Note that having ComponentMap with fallback on Owner.FindComponent
       would also be bad: since the name reference may be found in design
       before the object is defined, e.g. viewport with
       propery "Camera": "Camera1" may be specified before Camera1 is defined.
       We should then wait for Camera1 (not reuse unrelated Camera1 from existing
       Owner).
-      So instead, FindComponentName looks *only* in ComponentNames. }
+      So instead, FindComponentName looks *only* in ComponentMap. }
     function FindComponentName(const FindName: String): TComponent;
 
     { Events called by DeStreamer }
@@ -818,18 +830,9 @@ begin
 end;
 
 function TCastleJsonReader.FindComponentName(const FindName: String): TComponent;
-var
-  NameIndex: Integer;
 begin
-  NameIndex := ComponentNames.IndexOf(FindName);
-  if NameIndex <> -1 then
-  begin
-    Result := ComponentNames.Objects[NameIndex] as TComponent;
-    Assert(Result <> nil); // all object on this list should be non-nil
-    Exit;
-  end;
-
-  Result := nil;
+  if not ComponentMap.TryGetValue(FindName, Result) then
+    Result := nil;
 end;
 
 procedure TCastleJsonReader.RestoreProperty(Sender: TObject; AObject: TObject;
@@ -866,17 +869,19 @@ procedure TCastleJsonReader.RestoreProperty(Sender: TObject; AObject: TObject;
       Inc(Number);
       Result := NameWithoutNumber + IntToStr(Number);
     { Using Owner.FindComponent, not FindComponentName:
-      because we rename based on what exists in Owner, not ComponentNames. }
+      because we rename based on what exists in Owner, not ComponentMap. }
     until Owner.FindComponent(Result) = nil;
   end;
 
 var
   TI: PTypeInfo;
   NewName: TJsonStringType;
+  AObjectComponent: TComponent;
 begin
   TI := Info^.PropType{$ifndef FPC}^{$endif};
   if (TI^.Kind in [{$ifdef FPC} tkSString, tkLString, tkAString {$else} tkUString {$endif}]) and
-     (Info^.Name = 'Name') then
+     (Info^.Name = 'Name') and
+     (AObject is TComponent) then
   begin
     { We handle setting Name ourselves, this way we can change the Name
       to avoid conflicts. This way we can safely add new components into
@@ -901,15 +906,53 @@ begin
         then the mechanism below kicks-in.)
     }
     NewName := AValue.AsString;
-    ComponentNames.AddObject(NewName, AObject);
 
-    { Using Owner.FindComponent, not FindComponentName:
-      because we rename based on what exists in Owner, not ComponentNames. }
-    if Owner.FindComponent(NewName) <> nil then
+    AObjectComponent := TComponent(AObject);
+
+    { We ignore subcomponents, which are equivalent to "objects not owned by
+      the Owner". Since they are not owned by Owner, there's no point in checking
+      for conflict by Owner.FindComponent .
+      They should also not be referenced elsewhere, so no point in adding them
+      to ComponentMap.
+
+      Their names should not be stored anyway (serialization checks
+      for csSubComponent too), but older versions of this code did save names
+      for subcomponents.
+
+      Equivalent check to "AObjectComponent.Owner = Owner"
+      (this is safe, Owner is never nil, we check it)
+      would be "not (csSubComponent in AObjectComponent.ComponentStyle)". }
+    if AObjectComponent.Owner = Owner then
     begin
-      if AObject is TCastleComponent then
-        TCastleComponent(AObject).InternalOriginalName := NewName;
-      NewName := RenameUniquely(Owner, NewName);
+      { NewName = '' here is possible, as it is possible to serialize
+        components with empty name. See TTestCastleComponentSerialize.TestSaveLoad1 .
+
+        Having NewName that already exists in the ComponentMap
+        dictionary is also possible here, in case when we upgrade old design
+        when TCastleViewport.Camera was a subcomponent (but it is not anymore!),
+        and thus we can have  multiple objects with name 'Camera'.
+        See TTestCastleComponentSerialize.TestDeserializeObjectReferences
+        and tests/data/designs/test_object_references.castle-user-interface .
+        So we add using AddOrSetValue, not just Add.
+
+        We will deal with duplicated name lower (changing NewName,
+        before it gets assigned to AObject, so that Owner never owns 2 objects
+        with duplicate names -- we would get exception then).
+        For now, make sure ComponentMap contains the map of names *as seen
+        in the design file* (so not accounting for renames). }
+      if NewName <> '' then
+      begin
+        ComponentMap.AddOrSetValue(NewName, AObjectComponent);
+
+        { Using Owner.FindComponent, not FindComponentName:
+          because we rename based on what exists in Owner, not ComponentMap. }
+        if Owner.FindComponent(NewName) <> nil then
+        begin
+          if AObject is TCastleComponent then
+            TCastleComponent(AObject).InternalOriginalName := NewName;
+          NewName := RenameUniquely(Owner, NewName);
+        end;
+      end;
     end;
 
     SetStrProp(AObject, Info, NewName);
@@ -1087,9 +1130,7 @@ begin
 
   SerializationProcessPool := TSerializationProcessReaderList.Create(true);
 
-  ComponentNames := TStringList.Create;
-  ComponentNames.CaseSensitive := false;
-  ComponentNames.Duplicates := dupError;
+  ComponentMap := TComponentMap.Create;
 end;
 
 destructor TCastleJsonReader.Destroy;
@@ -1097,7 +1138,9 @@ begin
   FreeAndNil(ResolveObjectProperties);
   FreeAndNil(FDeStreamer);
   FreeAndNil(SerializationProcessPool);
-  FreeAndNil(ComponentNames);
+  { Note that caller can "steal" ComponentMap instance by copying this value
+    and setting this field to nil. }
+  FreeAndNil(ComponentMap);
   Dec(InternalLoadingComponent);
   inherited;
 end;
@@ -1185,36 +1228,51 @@ end;
 
 function TCastleComponentFactory.ComponentLoad(const InstanceOwner: TComponent;
   const AssociateReferences: TPersistent): TComponent;
-begin
-  Result := InternalComponentLoad(InstanceOwner, AssociateReferences, nil);
-end;
 
-function TCastleComponentFactory.InternalComponentLoad(
-  const InstanceOwner: TComponent;
-  const AssociateReferences: TPersistent;
-  const LoadInfo: TInternalComponentLoadInfo): TComponent;
-
-  { Set AssociateReferences fields matching component names in ComponentNames. }
-  procedure MakeAssociateReferences(const ComponentNames: TStringList);
+  { Set AssociateReferences fields matching component names in ComponentMap. }
+  procedure MakeAssociateReferences(const ComponentMap: TComponentMap);
   var
-    I: Integer;
     FieldAddr: ^TComponent;
+    Pair: {$ifdef FPC} TComponentMap.TDictionaryPair {$else} TPair<String, TComponent> {$endif};
   begin
-    for I := 0 to ComponentNames.Count - 1 do
+    for Pair in ComponentMap do
     begin
-      FieldAddr := AssociateReferences.FieldAddress(ComponentNames[I]);
+      FieldAddr := AssociateReferences.FieldAddress(Pair.Key);
       if FieldAddr <> nil then
       begin
         //Assert(FieldAddr^ = nil); // may not be true, user can reuse AssociateReferences
-        Assert(ComponentNames.Objects[I] is TComponent); // also checks ComponentNames.Objects[I] <> nil
-        FieldAddr^ := ComponentNames.Objects[I] as TComponent;
+        Assert(Pair.Value <> nil);
+        FieldAddr^ := Pair.Value;
       end;
     end;
   end;
 
 var
+  ComponentMap: TComponentMap;
+begin
+  Result := InternalComponentLoad(InstanceOwner, ComponentMap, nil);
+  try
+    if AssociateReferences <> nil then
+      MakeAssociateReferences(ComponentMap);
+  finally FreeAndNil(ComponentMap) end;
+end;
+
+function TCastleComponentFactory.ComponentLoadWithMap(
+  const InstanceOwner: TComponent;
+  out ComponentMap: TComponentMap): TComponent;
+begin
+  Result := InternalComponentLoad(InstanceOwner, ComponentMap, nil);
+end;
+
+function TCastleComponentFactory.InternalComponentLoad(
+  const InstanceOwner: TComponent;
+  out ComponentMap: TComponentMap;
+  const LoadInfo: TInternalComponentLoadInfo): TComponent;
+var
   Reader: TCastleJsonReader;
 begin
+  ComponentMap := nil; // default value for out parameter, in case of exception
+
   Reader := TCastleJsonReader.Create;
   try
     Reader.FOwner := InstanceOwner;
@@ -1228,11 +1286,11 @@ begin
 
     Reader.FinishResolvingComponentProperties;
 
-    if AssociateReferences <> nil then
-      MakeAssociateReferences(Reader.ComponentNames);
-
     if Assigned(OnInternalTranslateDesign) and (FTranslationGroupName <> '') then
       OnInternalTranslateDesign(Result, FTranslationGroupName);
+
+    ComponentMap := Reader.ComponentMap;
+    Reader.ComponentMap := nil; // so that Reader destructor does not free it
   finally
     FreeAndNil(Reader);
   end;
@@ -1251,13 +1309,15 @@ function InternalStringToComponent(const Contents: String;
 var
   Factory: TCastleComponentFactory;
   ContentsStringStream: TStringStream;
+  ComponentMap: TComponentMap;
 begin
   ContentsStringStream := TStringStream.Create(Contents);
   try
     Factory := TCastleComponentFactory.Create(nil);
     try
       Factory.LoadFromStream(ContentsStringStream, '');
-      Result := Factory.InternalComponentLoad(Owner, nil, LoadInfo);
+      Result := Factory.InternalComponentLoad(Owner, ComponentMap, LoadInfo);
+      FreeAndNil(ComponentMap);
     finally FreeAndNil(Factory) end;
   finally FreeAndNil(ContentsStringStream) end;
 end;

@@ -61,6 +61,7 @@
     public property FdBlendColor: TSFVec3f read FFdBlendColor;
     { Ignored. Unknown extension to VRML 1.0 spec, found on models in http://www-vrl.umich.edu/sel_prj/EECS498/ . }
     property BlendColor: TVector3 read GetBlendColor write SetBlendColor;
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -125,6 +126,15 @@ begin
   FFdBlendColor := TSFVec3f.Create(Self, True, 'blendColor', Vector3(0, 0, 0));
    FdBlendColor.ChangeAlways := chTexturePropertiesNode;
   AddField(FFdBlendColor);
+end;
+
+procedure TTexture2Node_1.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+  if not FdModel.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdModel.X3DName);
+  if not FdBlendColor.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdBlendColor.X3DName);
 end;
 
 {$endif read_implementation}

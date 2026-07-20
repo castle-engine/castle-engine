@@ -275,8 +275,13 @@ procedure TX3DRoute.UnsetEnding(
   const DestEnding: boolean;
   const RemoveFromDestructionNotification: boolean);
 begin
-  if (Event <> nil) and (not DestEnding) then
-    Event.RemoveNotification({$ifdef FPC}@{$endif} EventReceive);
+  if Event <> nil then
+  begin
+    if not DestEnding then
+      Event.RemoveNotification({$ifdef FPC}@{$endif} EventReceive);
+    Assert(Event.InternalRouteCount > 0);
+    Event.InternalRouteCount := Event.InternalRouteCount - 1;
+  end;
 
   if Node <> nil then
   begin
@@ -363,6 +368,11 @@ begin
     Assert(FieldOrEvent is TX3DEvent);
     Event := TX3DEvent(FieldOrEvent);
   end;
+
+  { Increase InternalRouteCount already now.
+    Even if we raise ERouteSetEndingError below, the callers will call
+    UnsetEnding (that decreases InternalRouteCount), so this stays balanced. }
+  Event.InternalRouteCount := Event.InternalRouteCount + 1;
 
   if (not Internal) and (Event.InEvent <> DestEnding) then
   begin

@@ -41,6 +41,7 @@
     public property FdReplaceNodes: TMFNode read FFdReplaceNodes;
     {  }
     procedure SetReplaceNodes(const Value: array of TAbstractNode);
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -86,6 +87,12 @@ begin
   FFdReplaceNodes := TMFNode.Create(Self, True, 'replaceNodes', [TAbstractNode]);
    FdReplaceNodes.ChangeAlways := chEverything;
   AddField(FFdReplaceNodes);
+end;
+
+procedure TKambiInlineNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+  ExtensionNames.Add(X3DType);
 end;
 
 {$endif read_implementation}

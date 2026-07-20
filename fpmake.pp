@@ -423,6 +423,7 @@ begin
     P.Targets.AddUnit('castlehttps.pas');
     P.Targets.AddUnit('castleinternaldirectoryinformation.pas');
     P.Targets.AddUnit('castleinternalfilemonitor.pas');
+    P.Targets.AddUnit('castleinternalprocess.pas');
     P.Targets.AddUnit('castleinternalurlutils.pas');
     P.Targets.AddUnit('castlelocalizationgettext.pas');
     P.Targets.AddUnit('castlerecentfiles.pas');

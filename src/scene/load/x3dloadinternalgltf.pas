@@ -871,11 +871,12 @@ var
 
   procedure ReadHeader;
   const
-    SupportedExtensions: array [0..3] of String = (
+    SupportedExtensions: array [0..4] of String = (
       'KHR_materials_pbrSpecularGlossiness',
       'KHR_texture_transform',
       'KHR_lights_punctual',
-      'KHR_materials_unlit'
+      'KHR_materials_unlit',
+      'KHR_node_visibility'
     );
   var
     ExtRequired: String;
@@ -1359,7 +1360,7 @@ var
 
     Result := TMaterialNode.Create;
     Result.DiffuseColor := PbrMetallicRoughness.BaseColorFactor.XYZ;
-    Result.Transparency := 1 - PbrMetallicRoughness.BaseColorFactor.W;
+    Result.Transparency := OpacityToTransparency(PbrMetallicRoughness.BaseColorFactor.W);
     Result.EmissiveColor := Vector3FromGltf(Material.EmissiveFactor);
 
     // Metallic/roughness conversion idea from X3DOM.
@@ -1404,7 +1405,7 @@ var
 
     Result := TPhysicalMaterialNode.Create;
     Result.BaseColor := PbrMetallicRoughness.BaseColorFactor.XYZ;
-    Result.Transparency := 1 - PbrMetallicRoughness.BaseColorFactor.W;
+    Result.Transparency := OpacityToTransparency(PbrMetallicRoughness.BaseColorFactor.W);
     Result.Metallic := PbrMetallicRoughness.MetallicFactor;
     Result.Roughness := PbrMetallicRoughness.RoughnessFactor;
     Result.EmissiveColor := Vector3FromGltf(Material.EmissiveFactor);
@@ -1450,7 +1451,7 @@ var
 
     Result := TUnlitMaterialNode.Create;
     Result.EmissiveColor := BaseColorFactor.XYZ;
-    Result.Transparency := 1 - BaseColorFactor.W;
+    Result.Transparency := OpacityToTransparency(BaseColorFactor.W);
 
     ReadTexture(Material.PBRMetallicRoughness.BaseColorTexture,
       BaseColorTexture, BaseColorTextureMapping, TexTransforms);
@@ -2144,6 +2145,27 @@ var
       SkinToAddShapes.ParentsOfShapes.Add(ParentOfShapes);
     end;
 
+    { Process glTF extensions for TPasGLTF.TNode.
+      Right now: just KHR_node_visibility. }
+    procedure ReadNodeExtensions(const Node: TPasGLTF.TNode; const Transform: TTransformNode);
+    var
+      JsonVisibilityItem: TPasJSONItem;
+      JsonVisibilityObject: TPasJSONItemObject;
+    begin
+      if Node.Extensions is TPasJSONItemObject then
+      begin
+        JsonVisibilityItem := TPasJSONItemObject(Node.Extensions).Properties['KHR_node_visibility'];
+        if JsonVisibilityItem is TPasJSONItemObject then
+        begin
+          JsonVisibilityObject := TPasJSONItemObject(JsonVisibilityItem);
+          if JsonVisibilityObject.Properties['visible'] is TPasJSONItemBoolean then
+          begin
+            Transform.Visible := TPasJSONItemBoolean(JsonVisibilityObject.Properties['visible']).Value;
+          end;
+        end;
+      end;
+    end;
+
   var
     Node: TPasGLTF.TNode;
     NodeMatrix: TMatrix4;
@@ -2195,6 +2217,8 @@ var
         ReadCamera(Node.Camera, Transform);
 
       Lights.ReadNode(Node, Transform);
+
+      ReadNodeExtensions(Node, Transform);
 
       for ChildNodeIndex in Node.Children do
         ReadNode(ChildNodeIndex, Transform);

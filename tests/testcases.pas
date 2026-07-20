@@ -30,6 +30,7 @@ uses
   TestCastleRectangles,
   TestCastleFindFiles,
   TestCastleFilesUtils,
+  TestCastleInternalProcess,
   TestCastleUtilsLists,
   TestCastleClassUtils,
   TestCastleVectors,

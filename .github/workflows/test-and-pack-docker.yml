@@ -43,7 +43,7 @@ jobs:
     # See https://hub.docker.com/r/kambi/castle-engine-cloud-builds-tools/ .
     container: kambi/castle-engine-cloud-builds-tools:${{ matrix.docker-tag }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       # Set env CASTLE_ENGINE_PATH following
       # https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#environment-files
       # https://brandur.org/fragments/github-actions-env-vars-in-env-vars
@@ -80,7 +80,7 @@ jobs:
     runs-on: ubuntu-latest
     container: kambi/castle-engine-cloud-builds-tools:cge-none
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Set environment
         run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
       - name: Build Examples
@@ -101,7 +101,7 @@ jobs:
     runs-on: ubuntu-latest
     container: kambi/castle-engine-cloud-builds-tools:cge-none
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Set environment
         run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
 
@@ -144,36 +144,55 @@ jobs:
     strategy:
       matrix:
         pack-job-name: [
-          win64-x86_64,
-          linux-x86_64,
-          win32-i386-bundle,
-          win64-x86_64-bundle,
+          # In the past, we made also Windows releases from Docker,
+          # since we can cross-compile Windows from our Docker image (running Linux).
+          # We don't do it anymore,
+          # let all Windows builds be done by test-and-pack-runner-native.yml
+          # and happen natively on Windows.
+          #
+          # This allows
+          # - Packing on Windows using InnoSetup
+          # - Signing on Windows using SignTool + Azure Signing DLL (although
+          #   there's cross-platform jsign as alternative)
+          # - Packing on Windows means we pack sources with Windows line endings
+          #   (minor, since Unix line endings will also work in all compilers,
+          #   but it's consistent).
+          # win64-x86_64,
+          # win32-i386-bundle,
+          # win64-x86_64-bundle,
+
+          # In the past, we made also non-bundled releases.
+          # Dropped now: distributing them is more hassle (SF mirrors this,
+          # and their space is limited) and they are not that useful.
+          # linux-x86_64,
+
           linux-x86_64-bundle
         ]
         include:
-          - pack-job-name: win64-x86_64
-            os: win64
-            cpu: x86_64
-            bundle: false
-          - pack-job-name: linux-x86_64
-            os: linux
-            cpu: x86_64
-            bundle: false
+          # - pack-job-name: win64-x86_64
+          #   os: win64
+          #   cpu: x86_64
+          #   bundle: false
+          # - pack-job-name: win32-i386-bundle
+          #   os: win32
+          #   cpu: i386
+          #   bundle: true
+          # - pack-job-name: win64-x86_64-bundle
+          #   os: win64
+          #   cpu: x86_64
+          #   bundle: true
 
-          - pack-job-name: win32-i386-bundle
-            os: win32
-            cpu: i386
-            bundle: true
-          - pack-job-name: win64-x86_64-bundle
-            os: win64
-            cpu: x86_64
-            bundle: true
+          # - pack-job-name: linux-x86_64
+          #   os: linux
+          #   cpu: x86_64
+          #   bundle: false
+
           - pack-job-name: linux-x86_64-bundle
             os: linux
             cpu: x86_64
             bundle: true
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         # Using CASTLE_PACK_GHA_DISK_SPACE_SAVE=true assumes that
         # - we have dir named exactly "castle_game_engine"
         # - parent dir of it is writeable.
@@ -184,22 +203,6 @@ jobs:
       - name: Set environment
         run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE/castle_game_engine" >> $GITHUB_ENV
 
-      # Remove previous output.
-      # Not necessary in practice, since this runs on GH-hosted runners that are
-      # always cleaned at start, but also doesn't hurt.
-      - name: Remove previous artifacts
-        run: rm -f castle-engine*.zip
-
-      # No need to download fpc-xxx.zip here anymore,
-      # this is downloaded from pack_release.sh if necessary.
-      # - name: Download bundled FPC
-      #   if: ${{ matrix.bundle }}
-      #   uses: robinraju/release-downloader@v1.12
-      #   with:
-      #     repository: "castle-engine/castle-fpc"
-      #     latest: true
-      #     fileName: "fpc-${{ matrix.os }}-${{ matrix.cpu }}.zip"
-
       - name: Define CGE_PACK_BUNDLE
         if: ${{ matrix.bundle }}
         run: echo "CGE_PACK_BUNDLE=yes" >> $GITHUB_ENV
@@ -208,11 +211,14 @@ jobs:
         run: echo "CASTLE_PACK_GHA_DISK_SPACE_SAVE=true" >> $GITHUB_ENV
 
       - name: Pack
-        run: ./castle_game_engine/tools/internal/pack_release/pack_release.sh ${{ matrix.os }} ${{ matrix.cpu }}
+        run: |
+          ./castle_game_engine/tools/internal/pack_release/pack_release.sh zip,tarxz ${{ matrix.os }} ${{ matrix.cpu }}
 
       - name: Archive Artifacts
         uses: actions/upload-artifact@v7
         with:
           name: release-from-docker-${{ matrix.pack-job-name }}
-          path: "castle-engine*.zip"
+          path: |
+            castle-engine*.zip
+            castle-engine*.tar.xz
           if-no-files-found: error

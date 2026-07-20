@@ -27,6 +27,12 @@ on:
         required: true
       APPLE_APP_PASSWORD:
         required: true
+      AZURE_CLIENT_ID:
+        required: true
+      AZURE_TENANT_ID:
+        required: true
+      AZURE_SUBSCRIPTION_ID:
+        required: true
   # push:
   # pull_request:
 
@@ -36,49 +42,65 @@ defaults:
 
 # GitHub CodeQL recommends to explicitly set permissions for GITHUB_TOKEN.
 # See https://docs.github.com/en/actions/tutorials/authenticate-with-github_token .
+# Moreover, we need id-token: write to allow Azure federated login.
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   test_and_pack:
     name: Test and Pack
     strategy:
       matrix:
-        runner: [
-          macos-15-intel,
-          macos-latest,
-
-          # TODO: Using ubuntu-22.04 instead of ubuntu-latest as a workaround
-          # for zip crashes,
-          # see test-and-pack-docker.yml notes.
-          #ubuntu-latest,
-          ubuntu-22.04,
-
-          windows-latest
+        # Job names correspond to target OS/CPU for this build.
+        # We follow FPC and CGE conventions for OS/CPU names.
+        job-name: [
+          darwin-x86_64,
+          darwin-aarch64,
+          linux-x86_64,
+          win64-x86_64,
+          win32-i386
         ]
         include:
-          # Add is_macos variable to easily check for any macOS.
-          # Default is false, and then we override it to true for macos runners.
-          - is_macos: false
-          - runner: macos-15-intel
-            is_macos: true
-          - runner: macos-latest
-            is_macos: true
+          # Specify runner and OS/CPU.
+          #
+          # Note: In *most* jobs, the build_os/build_cpu is equivalent to getting
+          # them by `fpc -iTO` and `fpc -iTP` on the runner, but it is
+          # not the case for win32.
+          #
+          # Note: windows-latest is used twice, for win32 and win64 builds.
 
-          # Add is_gh_ubuntu variable to easily check for any GHA-hosted Ubuntu.
-          - is_gh_ubuntu: false
-          - runner: ubuntu-22.04
-            is_gh_ubuntu: true
+          - job-name: darwin-x86_64
+            runner: macos-15-intel
+            build_os: darwin
+            build_cpu: x86_64
 
-          # on macOS, pack_release.sh calls gsed, which behaves more like Linux sed.
-          - sed_command: sed
-          - runner: macos-15-intel
-            sed_command: gsed
-          - runner: macos-latest
-            sed_command: gsed
+          - job-name: darwin-aarch64
+            runner: macos-latest
+            build_os: darwin
+            build_cpu: aarch64
+
+          - job-name: linux-x86_64
+            # TODO: Using ubuntu-22.04 instead of ubuntu-latest as a workaround
+            # for zip crashes, see test-and-pack-docker.yml notes.
+            # runner: ubuntu-latest
+            runner: ubuntu-22.04
+            build_os: linux
+            build_cpu: x86_64
+
+          - job-name: win64-x86_64
+            runner: windows-latest
+            build_os: win64
+            build_cpu: x86_64
+
+          - job-name: win32-i386
+            runner: windows-latest
+            build_os: win32
+            build_cpu: i386
+
     runs-on: ${{ matrix.runner }}
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
 
     - name: Install FPC+Lazarus
       run: |
@@ -86,7 +108,10 @@ jobs:
         git clone https://github.com/castle-engine/castle-build-ci.git --depth=1 --single-branch --branch=master
         castle-build-ci/install_dependencies
         # Use setup_castle_engine to install FPC and Lazarus, not CGE.
-        castle-build-ci/setup_castle_engine --install-castle-engine=false --install-lazarus=true
+        # Install on build_os/cpu: In case of win32, these would not be autodetected
+        # as default on this platform.
+        castle-build-ci/setup_castle_engine --install-castle-engine=false --install-lazarus=true \
+          --os=${{ matrix.build_os }} --cpu=${{ matrix.build_cpu }}
 
     - name: Install macOS dependencies
       if: ${{ runner.os == 'macOS' }}
@@ -107,46 +132,9 @@ jobs:
         # force Git Bash
         echo "WINDOWS_FORCE_GIT_BASH=true" >> $GITHUB_ENV
 
-        # Disable broken MSys2 paths conversion:
-        # MSys2 does something quite unexpected by default: it autoconverts
-        # any parameter that looks like Unix path to Windows path.
-        # See https://www.msys2.org/docs/filesystem-paths/ .
-        #
-        # This does result in weird problems when calling iscc.
-        # It seems (reported in bash through "set -x") it's calling something
-        # sensible, like this
-        #
-        #   iscc
-        #     'D:\a\castle-engine\castle-engine/tools/internal/pack_release/cge-windows-setup.iss'
-        #     /OD:/a/castle-engine/castle-engine
-        #     /Fcastle-engine-setup-7.0-alpha.snapshot
-        #     /DMyAppSrcDir=C:/Users/RUNNER~1/AppData/Local/Temp/castle-engine-release-1378/castle_game_engine
-        #     /DMyAppVersion=7.0-alpha.snapshot
-        #
-        # (see iscc command-line docs). But in reality, it is passing (detected by
-        # our https://github.com/michaliskambi/report-params/ ) these nonsense
-        # parameters:
-        #
-        #   iscc
-        #     D:\a\castle-engine\castle-engine/tools/internal/pack_release/cge-windows-setup.iss
-        #     C:\Program Files\Git\OD;A:\castle-engine\castle-engine
-        #     C:/Program Files/Git/Fcastle-engine-setup-7.0-alpha.snapshot
-        #     C:\Program Files\Git\DMyAppSrcDir=C;C:\Program Files\Git\Users\RUNNER~1\AppData\Local\Temp\castle-engine-release-1378\castle_game_engine
-        #     C:/Program Files/Git/DMyAppVersion=7.0-alpha.snapshot
-        #
-        # As you see, it added "C:/Program Files/Git/" or "C:\Program Files\Git\" prefix
-        # in front of every parameter that started with /.
-        # This of course breaks iscc later.
-        # We don't want this. Our scripts are prepared to call `cygpath` to deal
-        # with path conversion problems explicitly. It is much much more reliable,
-        # and it is explicit -- easy to debug.
-        echo "MSYS2_ENV_CONV_EXCL='*'" >> $GITHUB_ENV
-
-        # Disable broken Git For Windows MSys paths conversion
-        # Git For Windows has a different name for above:
-        # https://stackoverflow.com/questions/7250130/how-to-stop-mingw-and-msys-from-mangling-path-names-given-at-the-command-line
-        # https://github.com/git-for-windows/git/issues/577
-        # https://github.com/git-for-windows/msys2-runtime/pull/11
+        # see use_cygpath_not_msys_automatic_conversions.md
+        echo "MSYS2_ENV_CONV_EXCL=*" >> $GITHUB_ENV
+        echo "MSYS2_ARG_CONV_EXCL=*" >> $GITHUB_ENV
         echo "MSYS_NO_PATHCONV=1" >> $GITHUB_ENV
 
     - name: Set environment CASTLE_ENGINE_PATH
@@ -180,8 +168,6 @@ jobs:
       run: lazbuild --version
     - name: (Info) Make version
       run: make --version
-    - name: (Info) Sed version
-      run: ${{ matrix.sed_command }} --version
     # Make sure we got GNU "make", not Embarcadero "make".
     # This is important, as Delphi installer inserts Embarcadero "make" into PATH,
     # earlier than Cygwin's. It has to be corrected after installation.
@@ -199,7 +185,7 @@ jobs:
       # TODO: Don't build on macos-latest, takes too long and floods log with
       # "ld: warning: object file (/Users/runner/work/castle-game/castle-game/castle-engine/tools/build-tool/castle-engine-output/build-tool-compilation/castle_engine.o) was built for newer 'macOS' version (11.0) than being linked (10.15)" .
       # Reconsider once we have eliminated the above warnings.
-      #if: ${{ matrix.runner != 'macos-latest' && matrix.runner != 'macos-15-intel' }}
+      #if: ${{ matrix.build_os != 'darwin' }}
       # TODO: Skip examples, for quick test of recent macOS work
       if: false
       run: make clean examples CASTLE_CONSERVE_DISK_SPACE=true
@@ -239,73 +225,95 @@ jobs:
         make
         bin/pasdoc --version # check it's OK
 
-    - name: Pack Release
+    - name: Azure Login (for Windows CodeSigning)
+      # Sign for Windows only on chosen branches,
+      # because Azure federated login only works on specific branches.
+      if: ${{ runner.os == 'Windows' && ( github.ref == 'refs/heads/master' || github.ref == 'refs/heads/windows-code-signing' ) }}
+      uses: azure/login@v3
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    - name: Setup for CodeSigning
+      # same as azure/login condition
+      if: ${{ runner.os == 'Windows' && ( github.ref == 'refs/heads/master' || github.ref == 'refs/heads/windows-code-signing' ) }}
+      run: |
+        export AZURE_SIGNING_CLIENT_PARENT="$RUNNER_TEMP/sign-tools/"
+        echo "AZURE_SIGNING_CLIENT_PARENT=${AZURE_SIGNING_CLIENT_PARENT}" >> $GITHUB_ENV
+        echo "SIGN_EXECUTABLES=/tmp/castle-build-ci/windows/sign_executables" >> $GITHUB_ENV
+        /tmp/castle-build-ci/windows/setup_signing
+
+    - name: Pack Release (ZIP, Bundled FPC)
       env:
-        # for codesigning
+        # for Apple codesigning
         APPLE_IDENTITY: ${{ vars.APPLE_IDENTITY }}
         APPLE_BUILD_CERTIFICATE_BASE64: ${{ secrets.APPLE_BUILD_CERTIFICATE_BASE64 }}
         APPLE_P12_PASSWORD: ${{ secrets.APPLE_P12_PASSWORD }}
         APPLE_KEYCHAIN_PASSWORD: ${{ secrets.APPLE_KEYCHAIN_PASSWORD }}
-        # for notarization
+        # for Apple notarization
         APPLE_ID: ${{ vars.APPLE_ID }}
         APPLE_TEAM_ID: ${{ vars.APPLE_TEAM_ID }}
         APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+        # for Azure (Windows) codesigning
+        AZURE_ENDPOINT: ${{ vars.AZURE_ENDPOINT }}
+        AZURE_CODESIGNING_ACCOUNT_NAME: ${{ vars.AZURE_CODESIGNING_ACCOUNT_NAME }}
+        AZURE_CERTIFICATE_PROFILE_NAME: ${{ vars.AZURE_CERTIFICATE_PROFILE_NAME }}
       run: |
-        rm -f castle-engine*.zip # remove previous artifacts
-        # Determine OS/CPU for pack_release, which is just our current OS/CPU,
-        # as we don't cross-compile here.
-        FPC_OS="`fpc -iTO`"
-        FPC_CPU="`fpc -iTP`"
-        echo "Packing for OS / CPU: ${FPC_OS} / ${FPC_CPU}"
         export CGE_PACK_BUNDLE=yes
-        if [ "${FPC_OS}" = 'darwin' ]; then
-          export APPLE_CODESIGN_SCRIPTS="/tmp/castle-build-ci/apple"
-          "${APPLE_CODESIGN_SCRIPTS}/setup_signing"
+
+        # Sign (for Windows and Apple), only on chosen branches
+        # (Azure federated login only works on specific branches)
+        if [[ "${GITHUB_REF}" == "refs/heads/master" || "${GITHUB_REF}" == "refs/heads/windows-code-signing" ]]; then
+          if [[ "${{ matrix.build_os }}" == "darwin" ]]; then
+            export APPLE_BUNDLE_NOTARIZE="/tmp/castle-build-ci/apple/sign_notarize_bundle"
+            export SIGN_EXECUTABLES="/tmp/castle-build-ci/apple/sign_executables"
+            /tmp/castle-build-ci/apple/setup_signing
+          fi
         fi
-        ./tools/internal/pack_release/pack_release.sh "${FPC_OS}" "${FPC_CPU}"
+
+        ./tools/internal/pack_release/pack_release.sh zip ${{ matrix.build_os }} ${{ matrix.build_cpu }}
 
     - name: Archive Artifacts (zip)
       # We don't archive build on:
       #
-      # - windows-latest, because the test-and-pack-docker.yml is also doing
-      #   equivalent build (castle-engine-7.0-alpha.snapshot-win64-x86_64.zip).
-      #   Moreover that Docker job is also doing version bundled
-      #   with FPC (castle-engine-7.0-alpha.snapshot-win64-x86_64-bundle.zip)
-      #   and win32 (castle-engine-7.0-alpha.snapshot-win32-i386.zip).
-      #   OTOH, windows-latest is doing castle-engine-setup-7.0-alpha.snapshot.exe,
-      #   as it has to be done on Windows (with InnoSetup).
+      # - linux-x86_64, because the test-and-pack-docker.yml is also doing
+      #   equivalent build (castle-engine-7.0-alpha.snapshot-linux-x86_64.zip).
       #
-      #   The differences between doing a job in Docker and windows-latest are
-      #   ignorable:
-      #   - From Docker, we get Unix line endings even for Windows build
-      #     since its a checkout on Linux.
-      #     (disadvantage but ignorable, nothing seems to complain?),
+      #   The Docker job is a bit better:
       #   - PasDoc version from Docker is slightly different (advantage,
       #     we control PasDoc version in Docker better, consistent with others).
       #   - Docker build is a bit safer, as packing is a separate job,
       #     not depending that cge_clean_all in pack_release.sh
       #     cleans everything.
-      #
-      # - is_gh_ubuntu, because the test-and-pack-docker.yml is also doing
-      #   equivalent build (castle-engine-7.0-alpha.snapshot-linux-x86_64.zip).
-      #   The Docker job is a bit better, see above about windows-latest:
-      #   PasDoc version in Docker is more consistent,
-      #   and the build does not rely on cge_clean_all.
-      #
-      if: ${{ matrix.runner != 'windows-latest' && !matrix.is_gh_ubuntu }}
+      if: ${{ matrix.job-name != 'linux-x86_64' }}
       uses: actions/upload-artifact@v7
       with:
-        name: ${{ matrix.runner }}-release
+        name: ${{ matrix.job-name }}-release
         path: "castle-engine*.zip"
         if-no-files-found: error
 
-    - name: Pack Release (Windows Installer, Bundled FPC)
-      if: ${{ runner.os == 'Windows' }}
-      run: CGE_PACK_BUNDLE=yes ./tools/internal/pack_release/pack_release.sh windows_installer
-    - name: Archive Artifacts (exe)
-      if: ${{ runner.os == 'Windows' }}
+    # Only for Win64: Pack also Windows installer (InnoSetup) + 7z releases.
+    # This passes a subset of previous "Pack Release (ZIP, Bundled FPC)"
+    # env variables, just because there's no point configuring Apple signing
+    # -- this is Windows-only.
+    - name: Pack Release (Windows Installer + 7z, Bundled FPC)
+      if: ${{ matrix.job-name == 'win64-x86_64' }}
+      env:
+        # for Azure (Windows) codesigning
+        AZURE_ENDPOINT: ${{ vars.AZURE_ENDPOINT }}
+        AZURE_CODESIGNING_ACCOUNT_NAME: ${{ vars.AZURE_CODESIGNING_ACCOUNT_NAME }}
+        AZURE_CERTIFICATE_PROFILE_NAME: ${{ vars.AZURE_CERTIFICATE_PROFILE_NAME }}
+      run: |
+        export CGE_PACK_BUNDLE=yes
+        ./tools/internal/pack_release/pack_release.sh innosetup,7z ${{ matrix.build_os }} ${{ matrix.build_cpu }}
+
+    - name: Archive Artifacts (installer-release)
+      if: ${{ matrix.job-name == 'win64-x86_64' }}
       uses: actions/upload-artifact@v7
       with:
-        name: ${{ matrix.runner }}-installer-release
-        path: "castle-engine-setup-*.exe"
+        name: ${{ matrix.job-name }}-installer-release
+        path: |
+          castle-engine-setup-*.exe
+          castle-engine-*.7z
         if-no-files-found: error

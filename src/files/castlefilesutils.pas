@@ -225,13 +225,22 @@ function ExpandHomePath(const FileName: string): string;
 
 { Remove file.
 
-  Similar to standard DeleteFile, but this checks result and raises exception
-  or makes a warning (see Warn parameter) in case of trouble
+  Similar to the standard DeleteFile, but this checks result and raises exception
+  or makes a warning (see Warn parameter) in case of trouble.
 
   When Warn = @false (default) raises an exception on failure,
   otherwise (when Warn = @true) makes only WritelnWarning on failure.
-  @raises ERemoveFailed If delete failed, and Warn = @false. }
-procedure CheckDeleteFile(const FileName: string; const Warn: Boolean = false);
+  @raises ERemoveFailed If delete failed, and Warn = @false.
+
+  On Windows, if RetryOnWindows,
+  this also retries deletion if the file is locked by another
+  process. This seems to be a common problem on Windows, e.g. when executable
+  just finished running -- it may continue to be locked for a while by
+  OS cleanup / virus scanner. This matters e.g. when our build tool wants to
+  do "castle-engine clean" right after the executable finished running
+  by "castle-engine run". }
+procedure CheckDeleteFile(const FileName: string; const Warn: Boolean = false;
+  const RetryOnWindows: Boolean = false);
 
 { Remove empty directory.
 
@@ -559,9 +568,57 @@ begin
 {$endif}
 end;
 
-procedure CheckDeleteFile(const FileName: string; const Warn: Boolean);
+procedure CheckDeleteFile(const FileName: string; const Warn, RetryOnWindows: Boolean);
+
+  { Delete file, on Windows retrying a few times (with increasing delays)
+    if the first attempt fails.
+
+    Rationale: On Windows, a file may stay locked for a short while
+    after it should logically be free, in particular an executable just after
+    it was executed.
+
+    Retries / waiting feels weird here (a proper OS should do this by itself
+    if it's so universally needed) ... but others also do this:
+    - mingw: https://github.com/git-for-windows/git/blob/main/compat/mingw.c
+      retry_ask_yes_no
+      mingw_unlink
+    - msbuild: https://github.com/dotnet/msbuild/issues/199
+  }
+  function TryDeleteFile: Boolean;
+  {$ifdef MSWINDOWS}
+  const
+    { Delays (in milliseconds) to wait before successive retries.
+      The total wait (~1.5 second) is enough for the transient locks
+      described above to be released. }
+    RetryDelays: array [0..6] of Cardinal = (10, 20, 50, 100, 200, 400, 800);
+  var
+    I: Integer;
+  begin
+    if SysUtils.DeleteFile(FileName) then
+      Exit(true);
+    if RetryOnWindows then
+    begin
+      for I := Low(RetryDelays) to High(RetryDelays) do
+      begin
+        Sleep(RetryDelays[I]);
+        if SysUtils.DeleteFile(FileName) then
+        begin
+          WritelnLog('File', Format('Deleted file "%s" only after %d retries (it was temporarily locked, e.g. by anti-virus or OS finishing process teardown)',
+            [FileName, I + 1]));
+          Exit(true);
+        end;
+      end;
+    end;
+    Result := false;
+  end;
+  {$else}
+  begin
+    Result := SysUtils.DeleteFile(FileName);
+  end;
+  {$endif}
+
 begin
-  if not SysUtils.DeleteFile(FileName) then
+  if not TryDeleteFile then
   begin
     if Warn then
       WritelnWarning('File', Format('Cannot delete file "%s"', [FileName])) else
@@ -774,7 +831,8 @@ Function PathFileSearch(Const Name : String; ImplicitCurrentDir : Boolean = True
 
   Also, uses RegularFileExists instead of FileExists,
   thus it avoids FPC FileExists inconsistency
-  (on Unix, FPC FileExists returns true).
+  (on Unix, FPC FileExists returned true for directories with older FPC versions,
+  see TTestSysUtils.TestDirectoryFileExists for more comments).
   It matters, otherwise e.g. searching for "fpc" on Unix
   could find directory "fpc" that is under a directory on $PATH. }
 
@@ -854,8 +912,9 @@ begin
     user can set there anything, on any OS.
 
     So better do ExpandFileName to make sure the result in absolute,
-    as promised in FindExe API. E.g. RunCommandSimple usage in ToolCommonUtils
-    assumes it, checking IsPathAbsolute to know whether FindExe should be used again. }
+    as promised in FindExe API. E.g. @code(AbsoluteExeName) used
+    by routines in @code(CastleInternalProcess) unit assumes it,
+    checking IsPathAbsolute to know whether FindExe should be used again. }
   if Result <> '' then
     Result := ExpandFileName(Result);
 end;

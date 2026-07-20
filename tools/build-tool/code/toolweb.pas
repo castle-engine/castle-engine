@@ -54,7 +54,7 @@ procedure CompileWeb(const Project: TCastleProject;
       Writeln('wasm-opt found, using it to optimize the release build.');
       SizeBefore := FileSize(ProjectWasmExe);
       TimeStart := Timer;
-      RunCommandSimple(WorkingDirectory, WasmOptExe, [
+      ExecuteCommandSimple(WorkingDirectory, WasmOptExe, [
         '-O3',
         '--all-features',
         ProjectWasmExe,
@@ -90,7 +90,7 @@ begin
   if Pas2jsExe = '' then
     raise Exception.Create('Cannot find "pas2js" executable on $PATH');
 
-  RunCommandSimple(OutputPath, Pas2jsExe, [
+  ExecuteCommandSimple(OutputPath, Pas2jsExe, [
     '-Jc', '-Jirtl.js',
     '-Tbrowser',
     // no hints -- just like FPC, pas2js displays excessive hints
@@ -147,7 +147,7 @@ begin
   OpenUrl('http://localhost:3000/index.html?random_suffix_to_avoid_cache=' + RandomString);
 
   // must be run last; Ctrl+C on our build tool should kill the compileserver too
-  RunCommandSimple(DistPath, CompileServerExe, ['--port=3000']);
+  ExecuteCommandSimple(DistPath, CompileServerExe, ['--port=3000']);
 end;
 
 procedure PackageWeb(const Project: TCastleProject;

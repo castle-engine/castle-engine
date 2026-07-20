@@ -17,6 +17,8 @@
 { Test X3DNodes unit. }
 unit TestX3DNodes;
 
+{$I ../../../src/common_includes/castleconf.inc}
+
 interface
 
 uses

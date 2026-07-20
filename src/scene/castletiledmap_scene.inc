@@ -1,6 +1,6 @@
 ﻿{%MainUnit castletiledmap.pas}
 {
-  Copyright 2023-2024 Michalis Kamburelis.
+  Copyright 2023-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -40,6 +40,7 @@ type
     FSmoothScaling, FSmoothScalingSafeBorder: Boolean;
     FScene: TCastleScene;
     FLayers: TLayers;
+    FLayersZDistance: Single;
     procedure SetForceTilesetSpacing(const AValue: Boolean);
     procedure SetUrl(const Value: String);
     procedure SetSmoothScaling(const Value: Boolean);
@@ -47,9 +48,14 @@ type
     procedure ReloadMap;
     procedure UpdateSmoothScaling;
     procedure SetLayers(const Value: TLayers);
+    procedure SetLayersZDistance(const Value: Single);
+    function LayersZDistanceStored: Boolean;
   protected
     function InternalBuildNodeInside: TObject; override;
   public
+    const
+      DefaultLayersZDistance = 10.0;
+
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure BeforeDestruction; override;
@@ -153,6 +159,31 @@ type
       So eventually, we want to allow just using @code(MyMap.Layers[<layer-index>].Exists)
       to hide/show layers. }
     property Layers: TLayers read FLayers write SetLayers default AllLayers;
+
+    { If the map has multiple layers, each layer is displayed at a different Z coordinate.
+      The first (bottom-most) layer is at Z=0,
+      next one is at Z=LayersZDistance,
+      the next one is at Z=2*LayersZDistance, etc.
+
+      When adding your own objects, place them at appropriate Z to make
+      them visible in front of or behind the desired map layers.
+
+      Note that changing this when map is loaded reloads it,
+      and automatically starts animations.
+      You can stop them with @link(StopAnimations).
+
+      Note: Too small values of this property may cause z-fighting
+      (visual artifacts) between layers.
+      For example, value = 1.0 was too small on our testcase
+      examples/tiled/map_viewer/data/maps/desert_with_objects.tmx .
+
+      Note: We have experimented with alternative rendering way that would avoid
+      relying on Z, with "RenderContext.DepthFunc := dfAlways".
+      But this would mean you need to place everything (including
+      your objects on the map) in the correct order. Using Z coordinate to determine
+      the order is simpler. }
+    property LayersZDistance: Single read FLayersZDistance write SetLayersZDistance
+      stored LayersZDistanceStored nodefault;
   end;
 
 {$endif read_interface}
@@ -172,6 +203,7 @@ begin
   FSmoothScaling := false;
   FSmoothScalingSafeBorder := false;
   FForceTilesetSpacing := false;
+  FLayersZDistance := DefaultLayersZDistance;
 
   FLayers := AllLayers;
 
@@ -253,6 +285,7 @@ begin
       Converter.SmoothScalingSafeBorder := SmoothScalingSafeBorder;
       Converter.ForceTilesetSpacing := ForceTilesetSpacing;
       Converter.Layers := Layers;
+      Converter.LayersZDistance := LayersZDistance;
       Converter.ConvertMap;
       FScene.Load(Converter.RootNode, true);
       PlayAnimations;
@@ -356,6 +389,20 @@ begin
     Result := FScene.RootNode.DeepCopy
   else
     Result := nil;
+end;
+
+procedure TCastleTiledMap.SetLayersZDistance(const Value: Single);
+begin
+  if FLayersZDistance <> Value then
+  begin
+    FLayersZDistance := Value;
+    ReloadMap;
+  end;
+end;
+
+function TCastleTiledMap.LayersZDistanceStored: Boolean;
+begin
+  Result := FLayersZDistance <> DefaultLayersZDistance;
 end;
 
 {$endif read_implementation}

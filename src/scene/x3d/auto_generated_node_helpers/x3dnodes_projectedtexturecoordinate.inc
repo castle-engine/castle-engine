@@ -36,6 +36,7 @@
     public property FdProjector: TSFNode read FFdProjector;
     { Viewpoint or light that determine how is the texture projected. }
     property Projector: TX3DNode read GetProjector write SetProjector;
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -68,6 +69,12 @@ begin
   FFdProjector := TSFNode.Create(Self, True, 'projector', [TSpotLightNode, TDirectionalLightNode, TAbstractViewpointNode, TSpotLightNode_1, TDirectionalLightNode_1]);
    FdProjector.ChangeAlways := chTextureCoordinate;
   AddField(FFdProjector);
+end;
+
+procedure TProjectedTextureCoordinateNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+  ExtensionNames.Add(X3DType);
 end;
 
 {$endif read_implementation}

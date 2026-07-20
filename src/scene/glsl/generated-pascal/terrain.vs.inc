@@ -6,7 +6,7 @@
 '   This simply saves position and normal in object space,' + LineEnding +
 '   to be used by terrain.fs code. */' + LineEnding +
 '' + LineEnding +
-'varying vec3 terrain_position;' + LineEnding +
+'varying highp vec3 terrain_position;' + LineEnding +
 'varying vec3 terrain_normal;' + LineEnding +
 '' + LineEnding +
 'void PLUG_vertex_object_space(' + LineEnding +

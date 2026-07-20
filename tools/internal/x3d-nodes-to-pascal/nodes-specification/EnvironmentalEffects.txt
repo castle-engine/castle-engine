@@ -2,10 +2,13 @@ X3DBackgroundNode : X3DBindableNode {
   MFNode     [in,out]      shaders          []
     range: X3DShaderNode
     change: chEverything
+    is-extension: true
     doc: Shaders used to render background geometry.
+
   MFNode     []            effects          []
     range: Effect
     change: chEverything
+    is-extension: true
     doc: @url(https://castle-engine.io/shaders Shader effects) used to render background geometry.
 }
 
@@ -48,11 +51,14 @@ X3DFogObject {
   SFBool   [in,out]      volumetric                    FALSE
     doc: Activate volumetric fog, see https://castle-engine.io/x3d_extensions.php#ext_fog_volumetric .
     change: chRedisplay
+    is-extension: true
   SFVec3f  [in,out]      volumetricDirection           0 -1 0
     range: any non-zero vector
     change: chRedisplay
+    is-extension: true
   SFFloat  [in,out]      volumetricVisibilityStart     0
     change: chRedisplay
+    is-extension: true
 }
 
 Background : X3D3DBackgroundNode {
@@ -101,11 +107,14 @@ Fog : X3DBindableNode, X3DFogObject {
   SFBool   [in,out]      volumetric                    FALSE
     change: chRedisplay
     doc: Activate volumetric fog, see https://castle-engine.io/x3d_extensions.php#ext_fog_volumetric .
+    is-extension: true
   SFVec3f  [in,out]      volumetricDirection           0 -1 0
     range: any non-zero vector
     change: chRedisplay
+    is-extension: true
   SFFloat  [in,out]      volumetricVisibilityStart     0
     change: chRedisplay
+    is-extension: true
 }
 
 FogCoordinate : X3DGeometricPropertyNode {
@@ -134,11 +143,14 @@ LocalFog : X3DChildNode, X3DFogObject {
   SFBool   [in,out]      volumetric                    FALSE
     doc: Activate volumetric fog, see https://castle-engine.io/x3d_extensions.php#ext_fog_volumetric .
     change: chEverything
+    is-extension: true
   SFVec3f  [in,out]      volumetricDirection           0 -1 0
     range: any non-zero vector
     change: chEverything
+    is-extension: true
   SFFloat  [in,out]      volumetricVisibilityStart     0
     change: chEverything
+    is-extension: true
 }
 
 TextureBackground : X3D3DBackgroundNode {

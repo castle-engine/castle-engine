@@ -17,11 +17,7 @@
 { Test CastleImages. }
 unit TestCastleImages;
 
-{$ifndef FPC}
-  {$pointermath on}
-{$endif}
-
-// For USE_VAMPYRE_IMAGING
+// For USE_VAMPYRE_IMAGING, CASTLE_PROCESS_AVAILABLE, $pointermath on
 {$I ../../../src/common_includes/castleconf.inc}
 
 interface
@@ -56,7 +52,7 @@ implementation
 
 uses SysUtils, Classes,
   CastleVectors, CastleImages, CastleFilesUtils, CastleDownload, CastleUriUtils,
-  CastleInternalPng, CastleLog, CastleColors, CastleWindow;
+  CastleInternalPng, CastleLog, CastleColors, CastleWindow, CastleInternalProcess;
 
 procedure TTestImages.TestBasicImageLoad;
 var
@@ -623,57 +619,8 @@ begin
   finally FreeAndNil(Img) end;
 end;
 
-(*
-TODO:
-Test and use this with Windows+Delphi.
-Possibly move to some shared unit, to use also in rest of CGE.
-
-{$if (not defined(FPC)) and defined(MSWINDOWS)}
-{ Implement simple ExecuteProcess replacement for Delphi on Windows,
-  using WinAPI CreateProcess. }
-function ExecuteProcess(const Exe: String; const Args: array of String): Integer;
-
-  function WinQuote(const S: String): String;
-  begin
-    if Pos(' ', S) > 0 then
-    begin
-      if Pos('"', S) > 0 then
-        raise Exception.Create('Arguments with both double quote (") and space characters are not supported in ExecuteProcess on Delphi');
-      Result := '"' + S + '"'
-    end else
-      Result := S;
-  end;
-
-var
-  I: Integer;
-  CommandLine: String;
-  StartupInfo: TStartupInfo;
-  ProcessInfo: TProcessInformation;
-begin
-  CommandLine := WinQuote(Exe);
-  for I := 0 to Length(Args) - 1 do
-    CommandLine := CommandLine + ' ' + WinQuote(Args[I]);
-
-  StartupInfo := Default(TStartupInfo);
-  StartupInfo.cb := SizeOf(StartupInfo);
-
-  if not CreateProcess(nil, PChar(CommandLine), nil, nil, false, 0, nil,
-    nil, StartupInfo, ProcessInfo) then
-    raise Exception.Create('Failed to execute process ' + Exe);
-  WaitForSingleObject(ProcessInfo.hProcess, INFINITE);
-  GetExitCodeProcess(ProcessInfo.hProcess, @Result);
-  CloseHandle(ProcessInfo.hProcess);
-  CloseHandle(ProcessInfo.hThread);
-end;
-{$endif}
-*)
-
-{$ifdef FPC}
-  {$define HAS_EXECUTEPROCESS}
-{$endif}
-
 procedure TTestImages.TestDecompressAndFlipVertical;
-{$ifdef HAS_EXECUTEPROCESS}
+{$ifdef CASTLE_PROCESS_AVAILABLE}
 var
   CompressonatorExe: String;
 
@@ -690,7 +637,7 @@ var
 
   {$ifdef UNIX}
   { Execute Exe as a bash script. }
-  function ExecuteProcessBashScript(const Exe: String; const Args: array of String): Integer;
+  procedure ExecuteProcessBashScript(const Exe: String; const Args: array of String);
   var
     NewArgs: array of String;
     I: Integer;
@@ -699,27 +646,23 @@ var
     NewArgs[0] := Exe;
     for I := 0 to Length(Args) - 1 do
       NewArgs[I + 1] := Args[I];
-    Result := ExecuteProcess('/bin/bash', NewArgs);
+    //Result := ExecuteProcess('/bin/bash', NewArgs);
+    ExecuteCommandCheckStatus('', '/bin/bash', NewArgs);
   end;
   {$endif}
 
   { Run CompressonatorCLI with given arguments. }
   procedure RunCompressonator(const Args: array of String);
-  var
-    ProcessExit: Integer;
   begin
     AssertTrue('CompressonatorCLI executable not found, cannot run Compressonator',
       CompressonatorExe <> '');
 
     {$ifdef UNIX}
     // CompressonatorCLI is just a bash script on Unix
-    ProcessExit := ExecuteProcessBashScript(CompressonatorExe, Args);
+    ExecuteProcessBashScript(CompressonatorExe, Args);
     {$else}
-    ProcessExit := ExecuteProcess(CompressonatorExe, Args);
+    ExecuteCommandCheckStatus('', CompressonatorExe, Args);
     {$endif}
-
-    AssertEquals('CompressonatorCLI failed with exit code ' + IntToStr(ProcessExit),
-      0, ProcessExit);
   end;
 
   { Test on image sized Width x Height. }

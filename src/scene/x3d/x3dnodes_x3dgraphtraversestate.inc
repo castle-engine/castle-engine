@@ -94,7 +94,7 @@
       (it means that renderer is absolutely sure that different transformation
       of geometry doesn't affect the generated arrays). }
     function Equals(SecondValue: TX3DGraphTraverseState;
-      const IgnoreTransform: boolean): boolean; {$ifdef TOBJECT_HAS_EQUALS} reintroduce; {$endif}
+      const IgnoreTransform: boolean): boolean; reintroduce;
 
     { Texture that determines the primary RGB color and transparency (opacity).
 

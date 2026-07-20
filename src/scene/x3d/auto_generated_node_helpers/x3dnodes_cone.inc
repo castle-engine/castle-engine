@@ -88,6 +88,7 @@
     public property FdStacks: TSFInt32 read FFdStacks;
     { How many "stacks" to use to approximate the cone. The cone is rendered using polygons (triangles and quads) that approximate the cone shape. The more stacks, the more the cone will look like a cone. Stacks divide the objects like stacks of a tower. The default value of 0 means to follow global variable @link(DefaultTriangulationStacks). }
     property Stacks: Integer read GetStacks write SetStacks;
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -211,6 +212,17 @@ begin
   FFdStacks := TSFInt32.Create(Self, True, 'stacks', 0);
    FdStacks.ChangeAlways := chGeometry;
   AddField(FFdStacks);
+end;
+
+procedure TConeNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+  if not FdTexCoord.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdTexCoord.X3DName);
+  if not FdSlices.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdSlices.X3DName);
+  if not FdStacks.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdStacks.X3DName);
 end;
 
 {$endif read_implementation}

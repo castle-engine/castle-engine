@@ -48,6 +48,7 @@
     public property FdFieldOfViewForceVertical: TSFBool read FFdFieldOfViewForceVertical;
     {  }
     property FieldOfViewForceVertical: Boolean read GetFieldOfViewForceVertical write SetFieldOfViewForceVertical;
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -95,6 +96,13 @@ begin
   FFdFieldOfViewForceVertical := TSFBool.Create(Self, True, 'fieldOfViewForceVertical', false);
    FdFieldOfViewForceVertical.ChangeAlways := chViewpointProjection;
   AddField(FFdFieldOfViewForceVertical);
+end;
+
+procedure TViewpointNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+  if not FdFieldOfViewForceVertical.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdFieldOfViewForceVertical.X3DName);
 end;
 
 {$endif read_implementation}

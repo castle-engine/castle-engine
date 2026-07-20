@@ -24,7 +24,9 @@ uniform float height_2;
 uniform float layers_influence;
 uniform float steep_emphasize;
 
-varying vec3 terrain_position;
+// We declare this "highp" for consistency with uv, calculated in PLUG_main_texture_apply.
+varying highp vec3 terrain_position;
+
 varying vec3 terrain_normal;
 
 // avoid redeclaring when no "separate compilation units" available (OpenGLES)
@@ -40,8 +42,14 @@ void PLUG_main_texture_apply(inout vec4 fragment_color, const in vec3 normal)
      This is consistent with calculating TexCoord for TCastleTerrainData.Height.
      We just flip the sign, because the terrain textures always have repeat = true,
      so there's no need to shift the texture in any way.
+
+     This is critical to be declared "highp" on web (WebGL), otherwise
+     the UVs have small precision and after being multiplied by uv_scale
+     below, the texture appears pixelated (as if "nearest" filtering was used).
+     Testcase: examples/terrain/ only on Chrome/Vivaldi. (On Firefox,
+     the precision is good enough even without explicit highp.)
   */
-  vec2 uv = vec2(terrain_position.x, -terrain_position.z);
+  highp vec2 uv = vec2(terrain_position.x, -terrain_position.z);
 
   /* What does this mean?
      normal_slope (normal.y)

@@ -18,7 +18,7 @@ unit FormProject;
 
 {$I castleconf.inc}
 
-{ Hack to use OpenDocument instead of RunCommandNoWait to execute Delphi.
+{ Hack to use OpenDocument instead of ExecuteCommandNoWait to execute Delphi.
   This assumes that Delphi is associated on your system with Pascal files.
   OTOH it will work a bit nicer, not opening new Delphi instance each time,
   as Windows underneath will use DDE to communicate with Delphi BDSLauncher. }
@@ -650,7 +650,7 @@ uses TypInfo, LCLType, RegExpr, StrUtils, LCLVersion,
   CastleFonts, X3DLoad, CastleFileFilters, CastleImages, CastleSoundEngine,
   CastleLclEditHack, CastleRenderOptions, CastleTimeUtils,
   CastleInternalFileMonitor, CastleInternalProjectLocalSettings,
-  CastleInternalArchitectures,
+  CastleInternalArchitectures, CastleInternalProcess,
   FormAbout, FormChooseProject, FormPreferences, FormSpriteSheetEditor,
   FormSystemInformation, FormRestartCustomEditor, FormImportSketchfab,
   ToolCompilerInfo, ToolCommonUtils, ToolProcess, ToolFpcVersion, ToolProcessRun;
@@ -1337,6 +1337,7 @@ end;
 procedure TProjectForm.ActionOpenProjectCodeExecute(Sender: TObject);
 var
   Exe, DelphiExe: String;
+  IgnoredFoundDelphiVersion: TDelphiVersion;
   Ce: TCodeEditor;
 begin
   if CodeEditor = ceAutodetect then
@@ -1365,7 +1366,7 @@ begin
 
         { Open through LPI to change the project. }
         if ProjectLazarus <> '' then
-          RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectLazarus])
+          ExecuteCommandNoWait(CreateTemporaryDir, Exe, [ProjectLazarus])
         else
           ErrorBox('Lazarus project not defined (neither "standalone_source" nor "lazarus_project" were specified in CastleEngineManifest.xml).' + NL +
             NL +
@@ -1373,7 +1374,7 @@ begin
       end;
     ceDelphi:
       begin
-        FindDelphiPath(true, DelphiExe);
+        FindDelphiPath(true, DelphiExe, IgnoredFoundDelphiVersion);
 
         { Open through DPROJ, this seems to be the only thing that works reliably. }
         if ProjectDelphi = '' then
@@ -1396,7 +1397,7 @@ begin
         {$ifdef DELPHI_OPEN_SHELL}
         OpenDocument(ProjectDelphi); // hack to open Pascal names in existing Delphi window, using DDE
         {$else}
-        RunCommandNoWait(ProjectPath, DelphiExe, [
+        ExecuteCommandNoWait(ProjectPath, DelphiExe, [
           ProjectDelphi
           //ProjectStandaloneSource
         ]);
@@ -1405,7 +1406,7 @@ begin
     ceVSCode:
       begin
         Exe := FindExeVSCode(true);
-        RunCommandNoWait(ProjectPath, Exe, [
+        ExecuteCommandNoWait(ProjectPath, Exe, [
           { --add would add project to workspace in current window.
             See OpenPascal for comments. }
           //'--add',
@@ -1414,7 +1415,7 @@ begin
             VS Code on Windows inability to deal with spaces in filenames.
             See OpenPascal for comments. }
           '.'
-        ], [rcNoConsole]);
+        ], [ecNoConsole]);
       end;
     else raise EInternalError.Create('CodeEditor?');
   end;
@@ -3086,7 +3087,7 @@ begin
       for I := 0 to Parameters.Count - 1 do
         Parameters[I] := SReplacePatterns(Parameters[I], Macros, true);
     finally FreeAndNil(Macros) end;
-    RunCommandNoWait(CreateTemporaryDir, Exe, Parameters.ToArray);
+    ExecuteCommandNoWait(CreateTemporaryDir, Exe, Parameters.ToArray);
   finally FreeAndNil(Parameters) end;
 end;
 
@@ -3107,6 +3108,7 @@ procedure TProjectForm.OpenPascal(const FileName: String; Line: Integer;
   Column: Integer);
 var
   Exe, DelphiExe, VsCodeFileArgument: String;
+  IgnoredFoundDelphiVersion: TDelphiVersion;
   Ce: TCodeEditor;
 begin
   if CodeEditor = ceAutodetect then
@@ -3133,7 +3135,7 @@ begin
         if ProjectLazarus = '' then
         begin
           WritelnWarning('Lazarus project not defined (neither "standalone_source" nor "lazarus_project" were specified in CastleEngineManifest.xml), the file will be opened without changing Lazarus project.');
-          RunCommandNoWait(CreateTemporaryDir, Exe, [FileName]);
+          ExecuteCommandNoWait(CreateTemporaryDir, Exe, [FileName]);
         end else
         if not LazarusVersion.AtLeast(2, 2, 0) then
         begin
@@ -3149,16 +3151,16 @@ begin
           }
 
           WritelnWarning('Lazarus is older than 2.2, file will be opened without changing Lazarus project.');
-          RunCommandNoWait(CreateTemporaryDir, Exe, [FileName]);
+          ExecuteCommandNoWait(CreateTemporaryDir, Exe, [FileName]);
         end else
         begin
           // pass both project name, and particular filename, to open file within this project.
-          RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectLazarus, FileName])
+          ExecuteCommandNoWait(CreateTemporaryDir, Exe, [ProjectLazarus, FileName])
         end;
       end;
     ceDelphi:
       begin
-        FindDelphiPath(true, DelphiExe);
+        FindDelphiPath(true, DelphiExe, IgnoredFoundDelphiVersion);
 
         { Open through DPROJ }
         (*
@@ -3204,7 +3206,7 @@ begin
         {$ifdef DELPHI_OPEN_SHELL}
         OpenDocument(FileName); // hack to open Pascal names in existing Delphi window, using DDE
         {$else}
-        RunCommandNoWait(ProjectPath, DelphiExe, [
+        ExecuteCommandNoWait(ProjectPath, DelphiExe, [
           FileName
         ]);
         {$endif}
@@ -3249,11 +3251,11 @@ begin
           VsCodeFileArgument += ':' + IntToStr(Line);
           if Column <> -1 then
             VsCodeFileArgument += ':' + IntToStr(Column);
-          RunCommandNoWait(ProjectPath, Exe, ['.', '--goto', VsCodeFileArgument],
-            [rcNoConsole]);
+          ExecuteCommandNoWait(ProjectPath, Exe, ['.', '--goto', VsCodeFileArgument],
+            [ecNoConsole]);
         end else
-          RunCommandNoWait(ProjectPath, Exe, ['.', VsCodeFileArgument],
-            [rcNoConsole]);
+          ExecuteCommandNoWait(ProjectPath, Exe, ['.', VsCodeFileArgument],
+            [ecNoConsole]);
       end;
     else raise EInternalError.Create('CodeEditor?');
   end;
@@ -3275,7 +3277,7 @@ procedure TProjectForm.ShellListViewDoubleClick(Sender: TObject);
       Exit;
     end;
 
-    RunCommandNoWait(CreateTemporaryDir, Exe, Arguments);
+    ExecuteCommandNoWait(CreateTemporaryDir, Exe, Arguments);
   end;
 
   procedure OpenLazarusProject(const FileName: String);
@@ -3283,7 +3285,7 @@ procedure TProjectForm.ShellListViewDoubleClick(Sender: TObject);
     Exe: String;
   begin
     Exe := FindExeLazarusIDE;
-    RunCommandNoWait(CreateTemporaryDir, Exe, [FileName]);
+    ExecuteCommandNoWait(CreateTemporaryDir, Exe, [FileName]);
   end;
 
 var
@@ -3546,11 +3548,11 @@ begin
       Exit;
     end;
 
-    RunCommandNoWait(ProjectPath, BuildToolExe,
+    ExecuteCommandNoWait(ProjectPath, BuildToolExe,
       ['editor-run', '--gui-errors', '--wait-for-process-exit', IntToStr(CurrentProcessId)],
-      [rcNoConsole]);
+      [ecNoConsole]);
 
-    { Once ProposeSaveDesign and RunCommandNoWait are both successful,
+    { Once ProposeSaveDesign and ExecuteCommandNoWait are both successful,
       we want to terminate ASAP as user is waiting for new editor to run. }
     Application.Terminate;
   end;

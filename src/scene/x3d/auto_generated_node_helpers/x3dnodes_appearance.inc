@@ -186,6 +186,7 @@
     public property FdAlphaChannel: TSFStringEnum read FFdAlphaChannel;
     {  }
     property AlphaChannel: TAutoAlphaChannel read GetAlphaChannel write SetAlphaChannel;
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -518,6 +519,29 @@ begin
   AddField(FFdAlphaChannel);
 
   DefaultContainerField := 'appearance';
+end;
+
+procedure TAppearanceNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+  if not FdReceiveShadows.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdReceiveShadows.X3DName);
+  if not FdShadowCaster.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdShadowCaster.X3DName);
+  if not FdNormalMap.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdNormalMap.X3DName);
+{$ifndef CASTLE_SLIM_NODES}
+  if not FdHeightMap.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdHeightMap.X3DName);
+{$endif not CASTLE_SLIM_NODES}
+  if not FdHeightMapScale.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdHeightMapScale.X3DName);
+  if not FdBlendMode.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdBlendMode.X3DName);
+  if not FdEffects.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdEffects.X3DName);
+  if not FdAlphaChannel.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdAlphaChannel.X3DName);
 end;
 
 {$endif read_implementation}

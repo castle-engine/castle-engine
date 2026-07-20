@@ -478,6 +478,7 @@
         <DCCReference Include="..\..\src\castlescript\castlescriptvectors.pas"/>
         <DCCReference Include="..\..\src\scene\castleinternalshapesrenderer.pas"/>
         <DCCReference Include="..\..\src\files\castleinternalfilemonitor.pas"/>
+        <DCCReference Include="..\..\src\files\castleinternalprocess.pas"/>
         <DCCReference Include="..\..\src\scene\castleinternalscreeneffects.pas"/>
         <DCCReference Include="..\..\src\scene\x3d\castleinternalnodesunsupported.pas"/>
         <DCCReference Include="..\..\src\vampyre_imaginglib\src\Source\JpegLib\imjidctasm.pas"/>

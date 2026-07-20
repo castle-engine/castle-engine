@@ -945,25 +945,25 @@ begin
   if AddrOfError = nil then
     AddrOfError := {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif};
 
-  AssertEquals(Expected.Width, Actual.Width);
-  AssertEquals(Expected.Height, Actual.Height);
-  AssertEquals(Expected.Depth, Actual.Depth);
-  AssertEquals(Expected.Size, Actual.Size);
+  AssertEquals('', Expected.Width, Actual.Width, AddrOfError);
+  AssertEquals('', Expected.Height, Actual.Height, AddrOfError);
+  AssertEquals('', Expected.Depth, Actual.Depth, AddrOfError);
+  AssertEquals('', Expected.Size, Actual.Size, AddrOfError);
 
-  AssertTrue(CompareMemDebug(Expected.RawPixels, Actual.RawPixels, Expected.Size));
-  AssertTrue(CompareMem     (Expected.RawPixels, Actual.RawPixels, Expected.Size));
+  AssertTrue('', CompareMemDebug(Expected.RawPixels, Actual.RawPixels, Expected.Size), AddrOfError);
+  AssertTrue('', CompareMem     (Expected.RawPixels, Actual.RawPixels, Expected.Size), AddrOfError);
 
   // either both are TGPUCompressedImage, or both are not
-  AssertTrue(
+  AssertTrue('',
     (Expected.ClassType = TGPUCompressedImage) =
-    (Actual.ClassType = TGPUCompressedImage));
+    (Actual.ClassType = TGPUCompressedImage), AddrOfError);
 
   // if both are TGPUCompressedImage, check Compression matches
   if Expected is TGPUCompressedImage then
   begin
-    AssertTrue(
+    AssertTrue('',
       TGPUCompressedImage(Expected).Compression =
-      TGPUCompressedImage(Actual).Compression);
+      TGPUCompressedImage(Actual).Compression, AddrOfError);
   end;
 end;
 

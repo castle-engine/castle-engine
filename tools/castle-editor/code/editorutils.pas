@@ -20,9 +20,10 @@ unit EditorUtils;
 
 interface
 
-uses Classes, Types, Controls, StdCtrls, Process, Menus, Generics.Collections,
+uses Classes, Types, Controls, StdCtrls, Menus, Generics.Collections,
   Dialogs, Contnrs, ActnList,
   CastleStringUtils, CastleInternalTools, CastleInternalArchitectures,
+  CastleInternalProcess,
   ToolManifest, ToolProcess;
 
 type
@@ -70,7 +71,7 @@ type
     sending output to TOutputList. }
   TAsynchronousProcess = class
   strict private
-    Process: TProcess;
+    Process: TCastleProcess;
     { Text read from Process output, but not passed to OutputList yet. }
     PendingLines: String;
     FRunning: Boolean;
@@ -475,7 +476,7 @@ begin
     Environment.Values['JAVA_HOME'] := JavaHome;
 
   { create Process and call Process.Execute }
-  Process := TProcess.Create(nil);
+  Process := TCastleProcess.Create(nil);
   Process.Executable := ExeName;
   if CurrentDirectory <> '' then
     Process.CurrentDirectory := CurrentDirectory;

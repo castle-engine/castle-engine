@@ -302,7 +302,7 @@ begin
 
   FMaterial := TUnlitMaterialNode.Create;
   FMaterial.EmissiveColor := FColor.XYZ;
-  FMaterial.Transparency := 1 - FColor.W;
+  FMaterial.Transparency := OpacityToTransparency(FColor.W);
 
   Appearance := TAppearanceNode.Create;
   Appearance.ShadowCaster := false;
@@ -332,7 +332,7 @@ begin
   if TCastleColor.PerfectlyEquals(FColor, AValue) then Exit;
   FColor := AValue;
   FMaterial.EmissiveColor := FColor.XYZ;
-  FMaterial.Transparency := 1 - FColor.W;
+  FMaterial.Transparency := OpacityToTransparency(FColor.W);
 end;
 
 { TDebugSphere ----------------------------------------------------------------- }

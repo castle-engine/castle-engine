@@ -75,8 +75,9 @@ interface
 uses
   {$ifdef MSWINDOWS} Windows, {$ifndef FPC} ShlObj, {$endif} {$endif}
   {$ifdef UNIX} {$ifdef FPC} BaseUnix, Unix, Dl, {$else} Posix.Unistd, {$endif} {$endif}
-  {$ifndef FPC} Classes, {$endif}
-  Variants, SysUtils, Math, Generics.Collections;
+  Classes,
+  Variants, SysUtils, Math,
+  Generics.Collections, Generics.Defaults;
 
 {$define read_interface}
 

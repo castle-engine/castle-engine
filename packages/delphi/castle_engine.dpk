@@ -317,6 +317,7 @@ contains
   castlescriptvectors in '..\..\src\castlescript\castlescriptvectors.pas',
   castleinternalshapesrenderer in '..\..\src\scene\castleinternalshapesrenderer.pas',
   castleinternalfilemonitor in '..\..\src\files\castleinternalfilemonitor.pas',
+  castleinternalprocess in '..\..\src\files\castleinternalprocess.pas',
   castleinternalscreeneffects in '..\..\src\scene\castleinternalscreeneffects.pas',
   castleinternalnodesunsupported in '..\..\src\scene\x3d\castleinternalnodesunsupported.pas',
   imjidctasm in '..\..\src\vampyre_imaginglib\src\Source\JpegLib\imjidctasm.pas',

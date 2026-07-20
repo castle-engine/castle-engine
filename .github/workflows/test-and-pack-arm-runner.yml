@@ -67,7 +67,7 @@ jobs:
           build_cpu: aarch64
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: pguyot/arm-runner-action@v2
         with:
           base_image: ${{ matrix.base_image }}
@@ -162,11 +162,14 @@ jobs:
 
             # Pack Release
             cd "${CASTLE_ENGINE_PATH}"
-            CGE_PACK_BUNDLE=yes ./tools/internal/pack_release/pack_release.sh ${FPC_OS} ${FPC_CPU}
+            export CGE_PACK_BUNDLE=yes
+            ./tools/internal/pack_release/pack_release.sh zip,tarxz ${FPC_OS} ${FPC_CPU}
 
       - name: Archive Artifacts
         uses: actions/upload-artifact@v7
         with:
           name: raspberry-pi-${{ matrix.arch }}-release
-          path: "castle-engine*.zip"
+          path: |
+            castle-engine*.zip
+            castle-engine*.tar.xz
           if-no-files-found: error

@@ -77,6 +77,7 @@
     public property FdSkeleton: TSFNode read FFdSkeleton;
     { Common root of the joints hierarchy. }
     property Skeleton: TAbstractGroupingNode read GetSkeleton write SetSkeleton;
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -155,6 +156,12 @@ begin
   FFdSkeleton := TSFNode.Create(Self, True, 'skeleton', [TAbstractGroupingNode]);
    FdSkeleton.ChangeAlways := chEverything;
   AddField(FFdSkeleton);
+end;
+
+procedure TSkinNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+  ExtensionNames.Add(X3DType);
 end;
 
 {$endif read_implementation}

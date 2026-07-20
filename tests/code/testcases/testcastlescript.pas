@@ -25,6 +25,8 @@ unit TestCastleScript;
   {$define CASTLE_SCRIPT_FPC}
 {$endif}
 
+{$I ../../../src/common_includes/castleconf.inc}
+
 interface
 
 uses

@@ -34,6 +34,10 @@
     procedure SetIntensity(const Value: Single);
     function GetIsOn: Boolean;
     procedure SetIsOn(const Value: Boolean);
+    function GetShadows: Boolean;
+    procedure SetShadows(const Value: Boolean);
+    function GetShadowIntensity: Single;
+    procedure SetShadowIntensity(const Value: Single);
     function GetShadowVolumes: Boolean;
     procedure SetShadowVolumes(const Value: Boolean);
   public
@@ -71,6 +75,20 @@
     {  }
     property IsOn: Boolean read GetIsOn write SetIsOn;
 
+    strict private FFdShadows: TSFBool;
+    { Internal wrapper for property @code(Shadows). This wrapper API may change, we advise to access simpler @code(Shadows) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdShadows: TSFBool read FFdShadows;
+    { Control @url(https://castle-engine.io/shadow_maps shadow maps) generation for this light. }
+    property Shadows: Boolean read GetShadows write SetShadows;
+
+    strict private FFdShadowIntensity: TSFFloat;
+    { Internal wrapper for property @code(ShadowIntensity). This wrapper API may change, we advise to access simpler @code(ShadowIntensity) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdShadowIntensity: TSFFloat read FFdShadowIntensity;
+    { How much light is obscured by shapes that cast shadows, relevant only if @link(Shadows) is @true. Ranges from 0 (light not obscured, no visible shadows) to 1 (light completely obscured, full-intensity shadows).
+
+    TODO: Not implemented yet in Castle Game Engine. }
+    property ShadowIntensity: Single read GetShadowIntensity write SetShadowIntensity;
+
     strict private FFdEffects: TMFNode;
     { Internal wrapper for property @code(Effects). This wrapper API may change, we advise to access simpler @code(Effects) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdEffects: TMFNode read FFdEffects;
@@ -82,6 +100,7 @@
     public property FdShadowVolumes: TSFBool read FFdShadowVolumes;
     {  }
     property ShadowVolumes: Boolean read GetShadowVolumes write SetShadowVolumes;
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -139,6 +158,26 @@ begin
   FdOn.Send(Value);
 end;
 
+function TAbstractLightNode.GetShadows: Boolean;
+begin
+  Result := FdShadows.Value;
+end;
+
+procedure TAbstractLightNode.SetShadows(const Value: Boolean);
+begin
+  FdShadows.Send(Value);
+end;
+
+function TAbstractLightNode.GetShadowIntensity: Single;
+begin
+  Result := FdShadowIntensity.Value;
+end;
+
+procedure TAbstractLightNode.SetShadowIntensity(const Value: Single);
+begin
+  FdShadowIntensity.Send(Value);
+end;
+
 procedure TAbstractLightNode.SetEffects(const Value: array of TEffectNode);
 var
   L: Integer;
@@ -192,6 +231,15 @@ begin
    FdOn.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdOn);
 
+  FFdShadows := TSFBool.Create(Self, True, 'shadows', false);
+   FdShadows.ChangeAlways := chShadowMaps;
+  AddField(FFdShadows);
+
+  FFdShadowIntensity := TSFFloat.Create(Self, True, 'shadowIntensity', 1);
+   FdShadowIntensity.ChangeAlways := chNone;
+   FdShadowIntensity.MustBeNonnegative := true;
+  AddField(FFdShadowIntensity);
+
   FFdEffects := TMFNode.Create(Self, False, 'effects', [TEffectNode]);
    FdEffects.ChangeAlways := chEverything;
   AddField(FFdEffects);
@@ -199,6 +247,15 @@ begin
   FFdShadowVolumes := TSFBool.Create(Self, True, 'shadowVolumes', false);
    FdShadowVolumes.ChangeAlways := chLightForShadowVolumes;
   AddField(FFdShadowVolumes);
+end;
+
+procedure TAbstractLightNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+  if not FdEffects.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdEffects.X3DName);
+  if not FdShadowVolumes.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdShadowVolumes.X3DName);
 end;
 
 {$endif read_implementation}

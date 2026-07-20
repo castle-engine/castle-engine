@@ -106,6 +106,7 @@
     public property FdTranslation: TSFVec3f read FFdTranslation;
     {  }
     property Translation: TVector3 read GetTranslation write SetTranslation;
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -267,6 +268,17 @@ begin
   FFdTranslation := TSFVec3f.Create(Self, True, 'translation', Vector3(0, 0, 0));
    FdTranslation.ChangeAlways := chTransform;
   AddField(FFdTranslation);
+end;
+
+procedure THAnimSegmentNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+  if not FdRotation.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdRotation.X3DName);
+  if not FdScale.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdScale.X3DName);
+  if not FdTranslation.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdTranslation.X3DName);
 end;
 
 {$endif read_implementation}

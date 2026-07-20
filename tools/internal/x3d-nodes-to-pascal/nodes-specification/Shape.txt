@@ -68,20 +68,24 @@ X3DShapeNode : X3DChildNode, X3DBoundedObject {
   SFVec3f [in,out] bboxSize -1 -1 -1
     range: [0,Inf) or -1 -1 -1
 
+  SFBool   [in,out]     visible            TRUE
+    doc: """
+    Is the shape visible. Shapes that are not visible are not rendered, but otherwise are still processed (for example, hidden shapes are still used for collision detection). Toggling this is guaranteed to be ultra-fast.
+
+    Note: An alternative method to hide (and more) things is to wrap them in a @link(TSwitchNode), and toggle @link(TSwitchNode.WhichChoice) between -1 and 0. When @link(TSwitchNode.WhichChoice) is -1, the children are not processed (not rendered, and do not collide).
+    """
+
   # CASTLE GAME ENGINE EXTENSIONS:
   SFString [in,out]     shading            "DEFAULT"
     range: ["DEFAULT"|"GOURAUD"|"PHONG"|"WIREFRAME"]
     enumerated-type: TShading ShadingNames shDefault
+    is-extension: true
     doc: How to display given shape.
-  SFBool   [in,out]     visible            TRUE
-    doc: """
-Is the shape visible. Shapes that are not visible are not rendered, but otherwise are still processed (for example, hidden shapes are still used for collision detection). Toggling this is guaranteed to be ultra-fast.
 
-Note: An alternative method to hide (and more) things in X3D is to wrap them in a @link(TSwitchNode), and toggle @link(TSwitchNode.WhichChoice) between -1 and 0. When @link(TSwitchNode.WhichChoice) is -1, the children are not processed (not rendered, and do not collide).
-"""
   SFString []           collision          "DEFAULT"
     range: ["DEFAULT"|"BOX"|"NONE"]
     enumerated-type: TShapeCollision ShapeCollisionNames scDefault
+    is-extension: true
     doc: How does the given shape collide. This only matters if @link(TCastleSceneCore.PreciseCollisions) is @true, otherwise the whole scene (with all shapes) collides as one big bounding box.
 }
 
@@ -135,28 +139,43 @@ Appearance : X3DAppearanceNode {
   MFNode     []            receiveShadows  []
     range: X3DPunctualLightNode
     change: chShadowMaps
+    is-extension: true
+
   SFBool     [in,out]      shadowCaster     TRUE
     change: chShadowCasters
+    is-extension: true
+
   SFNode     [in,out]      normalMap        NULL
     range: X3DTexture2DNode
     change: chEverything
+    is-extension: true
     doc: Normal map of this appearance. See https://castle-engine.io/x3d_implementation_texturing_extensions.php#section_ext_bump_mapping . @deprecated It is better to set normal map within the material node, using the @link(TAbstractOneSidedMaterialNode.NormalTexture).
+
   SFNode     [in,out]      heightMap        NULL
     range: X3DTexture2DNode
     not-slim
     doc: Height map of this appearance. See https://castle-engine.io/x3d_implementation_texturing_extensions.php#section_ext_bump_mapping . @deprecated
+    is-extension: true
+
   SFFloat    [in,out]      heightMapScale   0.01
+    is-extension: true
+
   SFNode     [in,out]      blendMode        NULL
     range: BlendMode
     change: chEverything
+    is-extension: true
     doc: Determines the exact blending equation used, in case @link(AlphaMode) indicates blending. See https://castle-engine.io/x3d_extensions.php#section_ext_blending .
+
   MFNode     []            effects          []
     range: Effect
     change: chEverything
+    is-extension: true
     doc: Additional shader code for rendering this shape. See https://castle-engine.io/shaders . The shader effects they are easy to use, cooperate with CGE built-in rendering features, and one code is more portable to both mobile and desktop.
+
   SFString   [in,out]      alphaChannel     "AUTO"
     range: ["AUTO"|"NONE"|"TEST"|"BLENDING"]
     enumerated-type: TAutoAlphaChannel AlphaToString acAuto
+    is-extension: true
 }
 
 FillProperties : X3DAppearanceChildNode {
@@ -225,20 +244,28 @@ Material : X3DOneSidedMaterialNode {
   # CASTLE GAME ENGINE EXTENSIONS:
   SFBool     [in,out]      fogImmune             FALSE
     not-slim
+    is-extension: true
   SFFloat    [in,out]      mirror                0.0
     range: [0.0; 1.0]
+    is-extension: true
   MFColor    [in,out]      reflSpecular          []
     not-slim
+    is-extension: true
   MFColor    [in,out]      reflDiffuse           []
     not-slim
+    is-extension: true
   MFColor    [in,out]      transSpecular         []
     not-slim
+    is-extension: true
   MFColor    [in,out]      transDiffuse          []
     not-slim
+    is-extension: true
   SFFloat    [in,out]      reflSpecularExp       1000000
     not-slim
+    is-extension: true
   SFFloat    [in,out]      transSpecularExp      1000000
     not-slim
+    is-extension: true
 }
 
 PhysicalMaterial : X3DOneSidedMaterialNode {

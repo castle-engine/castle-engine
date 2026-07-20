@@ -145,6 +145,7 @@
     public property FdHeadlightNode: TSFNode read FFdHeadlightNode;
     { Headlight to shine, if @link(Headlight) is @true. See https://castle-engine.io/x3d_implementation_navigation_extensions.php }
     property HeadlightNode: TAbstractLightNode read GetHeadlightNode write SetHeadlightNode;
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -338,6 +339,21 @@ begin
   FFdHeadlightNode := TSFNode.Create(Self, True, 'headlightNode', [TAbstractLightNode]);
    FdHeadlightNode.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdHeadlightNode);
+end;
+
+procedure TNavigationInfoNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+  if not FdBlendingSort.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdBlendingSort.X3DName);
+  if not FdTimeOriginAtLoad.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdTimeOriginAtLoad.X3DName);
+  if not FdHeadBobbing.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdHeadBobbing.X3DName);
+  if not FdHeadBobbingTime.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdHeadBobbingTime.X3DName);
+  if not FdHeadlightNode.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdHeadlightNode.X3DName);
 end;
 
 {$endif read_implementation}

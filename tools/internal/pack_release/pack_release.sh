@@ -4,29 +4,37 @@ set -euxo pipefail
 # ----------------------------------------------------------------------------
 # Pack Castle Game Engine release (source + binaries).
 #
-# Call with:
+# Call with 3 arguments: PACK_FORMAT OS CPU
 #
-# - 2 arguments, OS and CPU (names matching CGE build tool and FPC),
-#   to pack for the given platform. Example:
+# - PACK_FORMAT is a comma-separated list of: zip, innosetup, 7z, tarxz
 #
-#     ./pack_release.sh linux x86_64
-#     ./pack_release.sh win64 x86_64
-#     ./pack_release.sh darwin x86_64
-#     ./pack_release.sh freebsd x86_64
+# - OS and CPU are the target for which to build everything,
+#   names matching CGE build tool and FPC.
 #
-#  Hint: To get the current OS/CPU, you can ask FPC,
-#  like $(fpc -iTO) and $(fpc -iTP). That's the advantage of following
-#  in CGE naming the same convention as FPC.
+# Example:
 #
-# - 1 argument 'windows_installer' to build a Windows installer.
-#   This requires InnoSetup installed.
+#     ./pack_release.sh zip linux x86_64
+#     ./pack_release.sh zip win64 x86_64
+#     ./pack_release.sh innosetup win64 x86_64
 #
-# Define CGE_PACK_BUNDLE=yes for a special behavior:
+# Hint: To get the current OS/CPU, you can ask FPC,
+# like $(fpc -iTO) and $(fpc -iTP). That's the advantage of following
+# in CGE naming the same convention as FPC.
+#
+# Optionally define CGE_PACK_BUNDLE=yes for a special behavior:
 # - The generated archive will be named -bundle
-# - We will expect fpc-OS-CPU.zip, and we will unpack it and distribute along with CGE
+# - We will download fpc-OS-CPU.zip from https://github.com/castle-engine/castle-fpc/
+#   and we will unpack it and distribute along with CGE
 #
-# Define APPLE_CODESIGN_SCRIPTS="/path/to/castle-build-ci/apple"
-# to codesign and notarize macOS apps.
+# Optionally define APPLE_BUNDLE_NOTARIZE to a script that notarizes macOS app bundle
+# (and signs main executable inside it, it should not be signed again with
+# SIGN_EXECUTABLES).
+#
+# Optionally define SIGN_EXECUTABLES to a script that signs executables
+# accepting multiple filenames or directory names as parameters.
+# This can be used to sign executables on macOS and Windows,
+# it will work with both windows/sign_executables and apple/sign_executables
+# from https://github.com/castle-engine/castle-build-ci/ .
 #
 # Uses bash strict mode, see http://redsymbol.net/articles/unofficial-bash-strict-mode/
 # (but without IFS modification, deliberately, we want to split on space).
@@ -47,6 +55,16 @@ set -euxo pipefail
 # - FreeBSD (install GNU make and GNU sed)
 # - macOS (install GNU sed from Homebrew)
 # ----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------
+# Adjust MSys2, in case this runs inside MSys2 (like in GitHub Actions runner).
+
+# Avoid MSys2 path conversion, as we pass parameters that look like Unix paths.
+# See .github/workflows/use_cygpath_not_msys_automatic_conversions.md
+# for explanation.
+export MSYS2_ENV_CONV_EXCL='*'
+export MSYS2_ARG_CONV_EXCL='*'
+export MSYS_NO_PATHCONV=1
 
 # ----------------------------------------------------------------------------
 # Define global variables
@@ -75,13 +93,37 @@ TEMP_PARENT="/tmp/castle-engine-release-$$/"
 cleanup_temp ()
 {
   echo "Cleaning up temporary dir ${TEMP_PARENT}"
-  rm -Rf "${TEMP_PARENT}"
+
+  # rm seems to sometimes fail with "rm: fts_read failed: No such file
+  # or directory" on GH hosted windows runner, so ignore errors.
+  rm -Rf "${TEMP_PARENT}" || true
 }
 
 trap cleanup_temp EXIT
 
 # ----------------------------------------------------------------------------
 # Define functions
+
+# Read and check command-line parameters, set global variables PACK_FORMAT, OS, CPU.
+parse_parameters ()
+{
+  if [ $# -lt 3 ]; then
+    echo 'pack_release: Requires 3 arguments: PACK_FORMAT OS CPU'
+    exit 1
+  fi
+
+  PACK_FORMAT="$1"
+  OS="$2"
+  CPU="$3"
+
+  # early check that $PACK_FORMAT is valid
+  for ONE_PACK_FORMAT in ${PACK_FORMAT//,/ }; do
+    case "${ONE_PACK_FORMAT}" in
+      zip|innosetup|7z|tarxz) ;;
+      *) echo "pack_release: Invalid format ${ONE_PACK_FORMAT}"; exit 1 ;;
+    esac
+  done
+}
 
 # Require building release with latest stable FPC, as supported by CGE,
 # see https://castle-engine.io/supported_compilers.php .
@@ -194,6 +236,18 @@ detect_platform ()
   echo "Using make: ${MAKE} $(${MAKE} --version | head -n 1)"
   echo "Using find: ${FIND} $(${FIND} --version | head -n 1)"
   echo "Using sed: ${SED} $(${SED} --version | head -n 1)"
+}
+
+# Pass each exe in $@ to codesign on Windows or macOS.
+#
+# Exception: do not pass the *main* exe inside each Apple bundle,
+# as this will be handled by APPLE_BUNDLE_NOTARIZE script.
+# Pass here other (non-main) executables in a bundle, and every other exe.
+sign_executables ()
+{
+  if [[ -n "${SIGN_EXECUTABLES:-}" ]]; then
+    "${SIGN_EXECUTABLES}" "$@"
+  fi
 }
 
 # Compile build tool (castle-engine executable), put it on $PATH .
@@ -316,19 +370,23 @@ add_external_tool ()
   if [[ "${OS}" = 'darwin' && "${GITHUB_NAME}" != 'pascal-language-server' ]]; then
     # on macOS, build app bundle, and move it to output path
     castle-engine "${CASTLE_BUILD_TOOL_OPTIONS[@]}" package --package-format=mac-app-bundle
-    if [[ -n "${APPLE_CODESIGN_SCRIPTS:-}" ]]; then
-      "${APPLE_CODESIGN_SCRIPTS}/sign_notarize_bundle" \
+    if [[ -n "${APPLE_BUNDLE_NOTARIZE:-}" ]]; then
+      "${APPLE_BUNDLE_NOTARIZE}" \
         "${EXE_NAME}".app \
         "${EXE_NAME}"
     fi
     mv "${EXE_NAME}".app "${OUTPUT_BIN}"
   else
     castle-engine "${CASTLE_BUILD_TOOL_OPTIONS[@]}" compile
+    sign_executables "${EXE_NAME}"
     mv "${EXE_NAME}" "${OUTPUT_BIN}"
 
     if [[ "${GITHUB_NAME}" = 'castle-model-viewer' ]]; then
       castle-engine "${CASTLE_BUILD_TOOL_OPTIONS[@]}" compile --manifest-name=CastleEngineManifest.converter.xml
-      mv castle-model-converter"${EXE_EXTENSION}" "${OUTPUT_BIN}"
+      local BONUS_EXE_NAME
+      BONUS_EXE_NAME="castle-model-converter${EXE_EXTENSION}"
+      sign_executables "${BONUS_EXE_NAME}"
+      mv "${BONUS_EXE_NAME}" "${OUTPUT_BIN}"
     fi
   fi
 }
@@ -401,13 +459,14 @@ cge_clean_all ()
   # (as may contain user data, API keys, that is also not auto-generated).
   rm -f examples/network/ask_openai_assistant/code/openai_config.inc \
         examples/network/random_image_from_unsplash/code/unsplash_secrets.inc
+
+  # Remove previous artifacts from test-and-pack-runner-native.yml steps
+  rm -f castle-engine-setup-*.exe castle-engine*.zip
 }
 
 # Prepare directory with precompiled CGE.
 #
-# Parameters:
-# - $1: OS
-# - $2: CPU
+# Reads $OS, $CPU (set by parse_parameters).
 #
 # Output:
 #
@@ -431,10 +490,6 @@ cge_clean_all ()
 #   depending on whether CGE_PACK_BUNDLE was defined.
 pack_platform_dir ()
 {
-  OS="$1"
-  CPU="$2"
-  shift 2
-
   # comparisons in this script assume lowercase OS name, like darwin or win32
   OS=$(echo -n "${OS}" | tr '[:upper:]' '[:lower:]')
 
@@ -538,36 +593,38 @@ pack_platform_dir ()
 
   # Place tools (except editor) binaries in bin-to-keep subdirectory
   mkdir -p "${TEMP_PATH_CGE}"bin-to-keep
-  cp tools/build-tool/castle-engine"${EXE_EXTENSION}" \
-     tools/texture-font-to-pascal/texture-font-to-pascal"${EXE_EXTENSION}" \
-     tools/image-to-pascal/image-to-pascal"${EXE_EXTENSION}" \
-     tools/castle-curves/castle-curves"${EXE_EXTENSION}" \
-     tools/to-data-uri/to-data-uri"${EXE_EXTENSION}" \
-     tools/internal/fpc-cge/fpc-cge"${EXE_EXTENSION}" \
-     "${TEMP_PATH_CGE}"bin-to-keep
-  # codesign tools (castle-engine etc.) on macOS
-  if [[ -n "${APPLE_CODESIGN_SCRIPTS:-}" ]]; then
-    "${APPLE_CODESIGN_SCRIPTS}/sign_executable" \
-      "${TEMP_PATH_CGE}"bin-to-keep
-  fi
+  # bash array of tools to copy to bin-to-keep subdirectory
+  TOOLS_EXES=(
+    tools/build-tool/castle-engine"${EXE_EXTENSION}"
+    tools/texture-font-to-pascal/texture-font-to-pascal"${EXE_EXTENSION}"
+    tools/image-to-pascal/image-to-pascal"${EXE_EXTENSION}"
+    tools/castle-curves/castle-curves"${EXE_EXTENSION}"
+    tools/to-data-uri/to-data-uri"${EXE_EXTENSION}"
+    tools/internal/fpc-cge/fpc-cge"${EXE_EXTENSION}"
+  )
+  # move to bin-to-keep
+  mv "${TOOLS_EXES[@]}" "${TEMP_PATH_CGE}"bin-to-keep
+  # codesign tools (castle-engine etc.) on macOS and Windows
+  sign_executables "${TEMP_PATH_CGE}"bin-to-keep/*
 
   # Compile castle-editor with lazbuild (or CGE build tool, to get macOS app bundle),
   # place it in bin-to-keep subdirectory
   if [[ "${OS}" = 'darwin' ]]; then
     cd tools/castle-editor/
-    ../build-tool/castle-engine"${EXE_EXTENSION}" "${CASTLE_BUILD_TOOL_OPTIONS[@]}" package --package-format=mac-app-bundle
+    castle-engine "${CASTLE_BUILD_TOOL_OPTIONS[@]}" package --package-format=mac-app-bundle
     cd ../../
-    cp -R tools/castle-editor/castle-editor.app \
+    mv tools/castle-editor/castle-editor.app \
        "${TEMP_PATH_CGE}"bin-to-keep
-    if [[ -n "${APPLE_CODESIGN_SCRIPTS:-}" ]]; then
-      "${APPLE_CODESIGN_SCRIPTS}/sign_notarize_bundle" \
+    if [[ -n "${APPLE_BUNDLE_NOTARIZE:-}" ]]; then
+      "${APPLE_BUNDLE_NOTARIZE}" \
         "${TEMP_PATH_CGE}"bin-to-keep/castle-editor.app \
         castle-editor
     fi
   else
     lazbuild_twice "${CASTLE_LAZBUILD_OPTIONS[@]}" tools/castle-editor/castle_editor.lpi
-    cp tools/castle-editor/castle-editor"${EXE_EXTENSION}" \
-       "${TEMP_PATH_CGE}"bin-to-keep
+    EDITOR_EXE_NAME="tools/castle-editor/castle-editor${EXE_EXTENSION}"
+    sign_executables "${EDITOR_EXE_NAME}"
+    mv "${EDITOR_EXE_NAME}" "${TEMP_PATH_CGE}"bin-to-keep
   fi
 
   # On Linux compile also Qt5 editor version.
@@ -648,15 +705,12 @@ pack_platform_dir ()
       do_unzip fpc-dist.zip
       rm -f fpc-dist.zip # remove as soon as no longer needed, to save disk space, important for GHA on GH-hosted runners
       ARCHIVE_NAME_BUNDLE='-bundle'
-      # Sign and notarize for macOS.
-      # Note: do this *before* moving here fpc-cge, as fpc-cge is already
-      # signed, along with all binaries in bin (previously bin-to-keep).
-      # And trying to sign again results in codesign error
-      # "....fpc-cge: is already signed"
-      if [[ -n "${APPLE_CODESIGN_SCRIPTS:-}" ]]; then
-        "${APPLE_CODESIGN_SCRIPTS}/sign_executable" \
-          "${TEMP_PATH_CGE}"tools/contrib/fpc/bin
-      fi
+
+      # fpc binaries are now in "${TEMP_PATH_CGE}"tools/contrib/fpc/bin.
+      # Note that we don't codesign them, because castle-fpc CI already
+      # signed them (for macOS and Windows).
+      # See https://github.com/castle-engine/castle-fpc workflows.
+
       mv "${TEMP_PATH_CGE}"bin/fpc-cge"${EXE_EXTENSION}" "${TEMP_PATH_CGE}"tools/contrib/fpc/bin
       ;;
     'no'|'')
@@ -673,54 +727,11 @@ pack_platform_dir ()
   esac
 }
 
-# Prepare zip with precompiled CGE.
-# zip is placed in OUTPUT_DIRECTORY.
-# Parameters:
-# - $1: OS
-# - $2: CPU
-pack_platform_zip ()
-{
-  OS="$1"
-  CPU="$2"
-  shift 2
-
-  pack_platform_dir "${OS}" "${CPU}"
-
-  local ARCHIVE_NAME="castle-engine-${CGE_VERSION}-${OS}-${CPU}${ARCHIVE_NAME_BUNDLE}.zip"
-
-  cd "${CASTLE_ENGINE_PATH}"/..
-  rm -f "${ARCHIVE_NAME}"
-  zip -r "${ARCHIVE_NAME}" castle_game_engine/
-
-  # move ARCHIVE_NAME to OUTPUT_DIRECTORY
-  local CURRENT_DIRECTORY
-  CURRENT_DIRECTORY=$(pwd)
-  if which cygpath.exe > /dev/null; then
-    CURRENT_DIRECTORY="$(cygpath --mixed "${CURRENT_DIRECTORY}")"
-  fi
-  # Do not try to move if archive is already in OUTPUT_DIRECTORY.
-  # This can happen when CASTLE_PACK_GHA_DISK_SPACE_SAVE=true,
-  # then zip is not created in /tmp/... but in parent of castle_game_engine,
-  # which may be exactly OUTPUT_DIRECTORY.
-  if [[ "${CURRENT_DIRECTORY}" != "${OUTPUT_DIRECTORY}" ]]; then
-    mv -f "${ARCHIVE_NAME}" "${OUTPUT_DIRECTORY}"
-  fi
-
-  # rm seems to sometimes fail with "rm: fts_read failed: No such file
-  # or directory" on GH hosted windows runner, so ignore errors.
-  rm -Rf "${TEMP_PATH}" || true
-}
-
-# Prepare Windows installer with precompiled CGE.
+# Prepare Windows installer using InnoSetup with precompiled CGE.
 # Requires InnoSetup installed.
 # Result is placed in OUTPUT_DIRECTORY.
-pack_windows_installer ()
+pack_innosetup ()
 {
-  OS="win64"
-  CPU="x86_64"
-
-  pack_platform_dir "${OS}" "${CPU}"
-
   local ARCHIVE_NAME="castle-engine-setup-${CGE_VERSION}"
 
   # Detect iscc location
@@ -735,34 +746,125 @@ pack_windows_installer ()
   # would be handled OK as well.
   CASTLE_ENGINE_PATH_STRIP_FINAL_SLASH="${CASTLE_ENGINE_PATH%/}"
 
+  local ISS_FILE
+  ISS_FILE="${CASTLE_ENGINE_PATH}/tools/internal/pack_release/cge-windows-setup.iss"
+
+  # bash array with InnoSetup options.
   # See https://jrsoftware.org/ishelp/index.php?topic=compilercmdline
   # and https://jrsoftware.org/ispphelp/index.php?topic=isppcc (for preprocessor additional options).
-  "${INNO_SETUP_CLI}" \
-    "${CASTLE_ENGINE_PATH}/tools/internal/pack_release/cge-windows-setup.iss" \
-    "/O${OUTPUT_DIRECTORY}" \
-    "/F${ARCHIVE_NAME}" \
-    "/DMyAppSrcDir=${CASTLE_ENGINE_PATH_STRIP_FINAL_SLASH}" \
+  local INNO_SETUP_OPTIONS
+  INNO_SETUP_OPTIONS=(
+    "${ISS_FILE}"
+    "/O${OUTPUT_DIRECTORY}"
+    "/F${ARCHIVE_NAME}"
+    "/DMyAppSrcDir=${CASTLE_ENGINE_PATH_STRIP_FINAL_SLASH}"
     "/DMyAppVersion=${CGE_VERSION}"
+  )
 
-  # cleanup to save disk space
-  rm -Rf "${TEMP_PATH}"
+  # Extend INNO_SETUP_OPTIONS for signing
+  if [[ -n "${SIGN_EXECUTABLES:-}" ]]; then
+    # Reading InnoSetup docs, they want indirection which makes this complicated.
+    # Command-line option "/Sname=command" must be used to define a sign tool.
+    # Then in the .iss script, "SignTool=name $f" must be used to actually sign
+    # (we enable this when CastleSigning is defined).
+    INNO_SETUP_OPTIONS+=(
+      "/SCastleSignTool=bash ${SIGN_EXECUTABLES} \$p"
+      "/DCastleSigning"
+    )
+  fi
+
+  "${INNO_SETUP_CLI}" "${INNO_SETUP_OPTIONS[@]}"
+
+  # No longer necessary: InnoSetup now signs the installer and uninstaller
+  # automatically.
+  #sign_executables "${OUTPUT_DIRECTORY}/${ARCHIVE_NAME}.exe"
+}
+
+# Start packing to zip / 7z / tar.xz.
+# Pass $ARCHIVE_NAME as $1.
+# After this, the current working directory contains a child called
+# castle_game_engine/ which you should pack to $ARCHIVE_NAME .
+common_pack_begin ()
+{
+  local ARCHIVE_NAME
+  ARCHIVE_NAME="$1"
+  shift 1
+
+  cd "${CASTLE_ENGINE_PATH}"/..
+
+  # Remove old archive, as both zip and 7z would just add to existing archive
+  # if it exists, while we want to create new one.
+  rm -f "${ARCHIVE_NAME}"
+}
+
+# Finish packing to zip / 7z / tar.xz.
+# Again pass $ARCHIVE_NAME as $1.
+# Moves $ARCHIVE_NAME to $OUTPUT_DIRECTORY .
+common_pack_end ()
+{
+  local ARCHIVE_NAME
+  ARCHIVE_NAME="$1"
+  shift 1
+
+  # move ARCHIVE_NAME to OUTPUT_DIRECTORY
+  local CURRENT_DIRECTORY
+  CURRENT_DIRECTORY=$(pwd)
+  if which cygpath.exe > /dev/null; then
+    CURRENT_DIRECTORY="$(cygpath --mixed "${CURRENT_DIRECTORY}")"
+  fi
+  # Do not try to move if archive is already in OUTPUT_DIRECTORY.
+  # This can happen when CASTLE_PACK_GHA_DISK_SPACE_SAVE=true,
+  # then zip is not created in /tmp/... but in parent of castle_game_engine,
+  # which may be exactly OUTPUT_DIRECTORY.
+  if [[ "${CURRENT_DIRECTORY}" != "${OUTPUT_DIRECTORY}" ]]; then
+    mv -f "${ARCHIVE_NAME}" "${OUTPUT_DIRECTORY}"
+  fi
+}
+
+# Prepare zip with precompiled CGE.
+# zip is placed in OUTPUT_DIRECTORY.
+pack_zip ()
+{
+  local ARCHIVE_NAME="castle-engine-${CGE_VERSION}-${OS}-${CPU}${ARCHIVE_NAME_BUNDLE}.zip"
+  common_pack_begin "${ARCHIVE_NAME}"
+  zip -r "${ARCHIVE_NAME}" castle_game_engine/
+  common_pack_end "${ARCHIVE_NAME}"
+}
+
+# Pack to 7z.
+# This has significantly smaller file size than zip.
+# On Windows 11, 7z is supported natively (double-click opens it in Explorer).
+pack_7z ()
+{
+  local ARCHIVE_NAME="castle-engine-${CGE_VERSION}-${OS}-${CPU}${ARCHIVE_NAME_BUNDLE}.7z"
+  common_pack_begin "${ARCHIVE_NAME}"
+  7z a -t7z -mx=9 "${ARCHIVE_NAME}" castle_game_engine
+  common_pack_end "${ARCHIVE_NAME}"
+}
+
+# Pack to tar.xz.
+# This has significantly smaller file size than zip.
+# Popular on Linux, e.g. https://www.blender.org/download/ uses tar.xz.
+pack_tarxz ()
+{
+  local ARCHIVE_NAME="castle-engine-${CGE_VERSION}-${OS}-${CPU}${ARCHIVE_NAME_BUNDLE}.tar.xz"
+  common_pack_begin "${ARCHIVE_NAME}"
+  # xz options: -T0 uses all cores (big speedup on multi-core machines),
+  # -9 is max compression level.
+  tar -cf - castle_game_engine/ | xz -T0 -9 > "${ARCHIVE_NAME}"
+  common_pack_end "${ARCHIVE_NAME}"
 }
 
 # ----------------------------------------------------------------------------
 # Main body
 
+parse_parameters "$@"
 detect_platform
 check_fpc_version
 check_lazarus_version
 prepare_build_tool
 calculate_cge_version
-if [[ -n "${1:-}" ]]; then
-  if [[ "${1}" = 'windows_installer' ]]; then
-    pack_windows_installer
-  else
-    pack_platform_zip "${1}" "${2}"
-  fi
-else
-  echo 'pack_release: Requires 2 arguments, OS and CPU, or 1 argument "windows_installer"'
-  exit 1
-fi
+pack_platform_dir
+for ONE_PACK_FORMAT in ${PACK_FORMAT//,/ }; do
+  "pack_${ONE_PACK_FORMAT}"
+done

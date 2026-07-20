@@ -60,7 +60,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license for details.
 "/>
     <Version Major="6" Minor="93" Release="1"/>
-    <Files Count="1207">
+    <Files Count="1211">
       <Item1>
         <Filename Value="../../src/audio/castleinternalabstractsoundbackend.pas"/>
         <UnitName Value="CastleInternalAbstractSoundBackend"/>
@@ -4912,13 +4912,29 @@ See https://castle-engine.io/license for details.
         <Type Value="Include"/>
       </Item104>
       <Item1206>
-        <Filename Value="../../src/ui/castleuicontrols_pointer_lock_abstract.inc"/>
-        <Type Value="Include"/>
+        <Filename Value="../../src/files/castleinternalprocess.pas"/>
+        <UnitName Value="CastleInternalProcess"/>
       </Item1206>
       <Item1207>
-        <Filename Value="../../src/ui/castleuicontrols_pointer_lock_desktop.inc"/>
+        <Filename Value="../../src/files/castleinternalprocess_execute_command.inc"/>
         <Type Value="Include"/>
       </Item1207>
+      <Item1208>
+        <Filename Value="../../src/files/castleinternalprocess_minimal_process_windows.inc"/>
+        <Type Value="Include"/>
+      </Item1208>
+      <Item1209>
+        <Filename Value="../../src/files/castleinternalprocess_minimal_process_unix.inc"/>
+        <Type Value="Include"/>
+      </Item1209>
+      <Item1210>
+        <Filename Value="../../src/ui/castleuicontrols_pointer_lock_abstract.inc"/>
+        <Type Value="Include"/>
+      </Item1210>
+      <Item1211>
+        <Filename Value="../../src/ui/castleuicontrols_pointer_lock_desktop.inc"/>
+        <Type Value="Include"/>
+      </Item1211>
     </Files>
     <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="1">

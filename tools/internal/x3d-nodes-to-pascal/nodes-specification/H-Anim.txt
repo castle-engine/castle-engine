@@ -164,12 +164,15 @@ HAnimSegment : X3DGroupingNode {
   SFRotation [in,out] rotation         0 0 1 0
     range: (-Inf,Inf)|[-1,1]
     change: chTransform
+    is-extension: true
   SFVec3f    [in,out] scale            1 1 1
     range: (0,Inf)
     change: chTransform
+    is-extension: true
   SFVec3f    [in,out] translation      0 0 0
     range: (-Inf,Inf)|[-1,1]
     change: chTransform
+    is-extension: true
 }
 
 HAnimSite : X3DGroupingNode {

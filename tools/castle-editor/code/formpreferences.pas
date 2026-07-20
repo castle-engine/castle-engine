@@ -124,6 +124,7 @@ implementation
 
 uses CastleOpenDocument, CastleUtils, CastleLog, CastleSoundEngine,
   CastleStringUtils, CastleFilesUtils, CastleUriUtils,
+  CastleInternalProcess,
   ToolCompilerInfo, ToolFpcVersion, ToolCommonUtils, ToolManifest,
   ToolProcessRun,
   EditorUtils, ProjectUtils;
@@ -209,6 +210,22 @@ begin
       WritelnLog('Cannot determine Lazarus executable, error: ' + ExceptMessage(E));
       LabelLazarusAutoDetected.Caption :=
         'Cannot determine Lazarus executable.' + NL +
+        'Make sure Lazarus is installed, and available on $PATH or configured above.';
+    end;
+
+    on E: EWindowsSmartAppControlProtection do
+    begin
+      WritelnLog('Cannot determine Lazarus version, error: ' + ExceptMessage(E));
+      LabelLazarusAutoDetected.Caption :=
+        'Cannot determine Lazarus version, Smart App Control blocked us.' + NL +
+        'Turn it temporarily off using "Windows Security -> App and browser control -> Smart App Control".';
+    end;
+
+    on E: Exception do
+    begin
+      WritelnLog('Cannot determine Lazarus version, error: ' + ExceptMessage(E));
+      LabelLazarusAutoDetected.Caption :=
+        'Cannot determine Lazarus version.' + NL +
         'Make sure Lazarus is installed, and available on $PATH or configured above.';
     end;
   end;
@@ -444,14 +461,16 @@ procedure TPreferencesForm.ButtonRegisterLazarusPackagesClick(Sender: TObject);
     PackageFileName := CastleEnginePath + LpkFileName;
 
     WritelnLog('Executing: lazbuild --add-package-link "' + PackageFileName + '"');
-    MyRunCommandIndir(
-      GetCurrentDir { no better directory, but also should not matter },
+    ExecuteCommandCapture('' { no better directory, but also should not matter },
       LazbuildExe, [
         '--add-package-link',
         PackageFileName
       ], LazbuildOutput, LazbuildExitStatus);
 
-    WritelnLog('Execution finished: lazbuild status %d, output:' + NL + '%s', [LazbuildExitStatus, LazbuildOutput]);
+    WritelnLog('Execution finished: lazbuild status %d, output:' + NL + '%s', [
+      LazbuildExitStatus,
+      LazbuildOutput
+    ]);
 
     if (LazbuildExitStatus <> 0) or
        (Pos('Invalid option', LazbuildOutput) <> 0) { lazbuild has exit status 0 in this case } then

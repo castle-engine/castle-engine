@@ -27,6 +27,7 @@
     { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: String; override;
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -42,6 +43,12 @@ end;
 procedure TMultiGeneratedTextureCoordinateNode.CreateNode;
 begin
   inherited;
+end;
+
+procedure TMultiGeneratedTextureCoordinateNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+  ExtensionNames.Add(X3DType);
 end;
 
 {$endif read_implementation}
