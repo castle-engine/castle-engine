@@ -688,13 +688,15 @@ type
       DefaultMouseLookVerticalSensitivity = Pi * 0.1 / 180;
 
     constructor Create(AOwner: TComponent); override;
-    procedure BeforeDestruction; override;
     function Motion(const Event: TInputMotion): boolean; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
     procedure InternalSetContainer(const Value: TCastleContainer); override;
     procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
 
-    { @exclude }
+    { @exclude
+      Are we in a state where we want + can grab mouse look?
+      Doesn't look at FPointerLockController, only considers does *this*
+      navigation want to use mouse look. }
     function InternalUsingMouseLook: Boolean;
   published
     { Use mouse look to navigate (rotate the camera).
@@ -720,7 +722,9 @@ type
 
       Setting this property at design-time (in CGE editor) does not activate
       the mouse look in CGE editor.
-      It only controls the mouse look once the application is running. }
+      It only controls the mouse look once the application is running.
+
+      Only one navigation at a time can have mouse look active. If you set this property to @true}
     property MouseLook: boolean read FMouseLook write SetMouseLook default false;
 
     { Mouse look sensitivity, if @link(MouseLook) is working.
@@ -2813,18 +2817,6 @@ begin
   FInvertVerticalMouseLook := false;
 end;
 
-procedure TCastleMouseLookNavigation.BeforeDestruction;
-begin
-  { If we controlled Container.PointerLock.Active, we need to release it now. }
-  if FPointerLockController = Self then
-  begin
-    FPointerLockController := nil;
-    if Container <> nil then
-      Container.PointerLock.Active := false;
-  end;
-  inherited;
-end;
-
 procedure TCastleMouseLookNavigation.UpdateContainerPointerLock;
 var
   NewInternalUsingMouseLook: Boolean;
@@ -2866,21 +2858,21 @@ begin
   end;
 
   if NewInternalUsingMouseLook then
+  begin
     // grab mouse look, we want to control it from now on
-    FPointerLockController := Self
-  else
+    FPointerLockController := Self;
+    // InternalUsingMouseLook is true only if we have Container
+    Assert(Container <> nil);
+    WritelnLog('Pointer lock (MouseLook) activation by %s(%s)', [Name, ClassName]);
+  end else
+  begin
     // release mouse look, this also means we don't want to control it anymore
     FPointerLockController := nil;
+    WritelnLog('Pointer lock (MouseLook) release by %s(%s)', [Name, ClassName]);
+  end;
 
   if Container <> nil then
-  begin
     Container.PointerLock.Active := NewInternalUsingMouseLook;
-
-    if NewInternalUsingMouseLook then
-      WritelnLog('Pointer lock (MouseLook) activation by %s(%s)', [Name, ClassName])
-    else
-      WritelnLog('Pointer lock (MouseLook) release by %s(%s)', [Name, ClassName]);
-  end;
 end;
 
 procedure TCastleMouseLookNavigation.SetMouseLook(const Value: boolean);
@@ -2930,13 +2922,9 @@ begin
   Result := inherited;
   if Result or (Event.FingerIndex <> 0) then Exit;
 
-  {$warnings off} // using deprecated ContainerSizeKnown
   if InternalUsingMouseLook and
     Container.Focused and
-    ContainerSizeKnown and
-    Valid and
     (FPointerLockController = Self) then
-  {$warnings on}
   begin
     HandleMouseLook;
     Exit;
@@ -2945,7 +2933,14 @@ end;
 
 function TCastleMouseLookNavigation.InternalUsingMouseLook: Boolean;
 begin
-  Result := MouseLook and (niNormal in UsingInput);
+  {$warnings off} // using deprecated ContainerSizeKnown
+  Result := MouseLook and
+    (niNormal in UsingInput) and
+    { we cannot grab PointerLock if Container is nil }
+    (Container <> nil) and
+    ContainerSizeKnown and
+    Valid;
+  {$warnings on}
 
   { Note: we used to have here condition "and (not CastleDesignMode)"
     as escaping from MouseLook was impossible, if you enable it in Object Inspector.
@@ -2965,6 +2960,23 @@ end;
 
 procedure TCastleMouseLookNavigation.InternalSetContainer(const Value: TCastleContainer);
 begin
+  if Container <> Value then
+  begin
+    { If we controlled Container.PointerLock.Active, we need to release it now.
+      Note: If this call changes from one non-nil Container to another non-nil
+      Container, then we will reactivate pointer lock on the new Container by
+      UpdateContainerPointerLock at the end of this method.
+      We still need to release pointer lock on the old Container. }
+    if FPointerLockController = Self then
+    begin
+      FPointerLockController := nil;
+      FLastInternalUsingMouseLook := false;
+      if Container <> nil then
+        Container.PointerLock.Active := false;
+      WritelnLog('Pointer lock (MouseLook) release by %s(%s) due to Container change', [Name, ClassName]);
+    end;
+  end;
+
   if Container <> nil then
     Container.PointerLock.RemoveUserCancelledListener(
       {$ifdef FPC}@{$endif} PointerLockUserCancelled);
@@ -2974,6 +2986,9 @@ begin
   if Container <> nil then
     Container.PointerLock.AddUserCancelledListener(
       {$ifdef FPC}@{$endif} PointerLockUserCancelled);
+
+  // possibly assigning Container changed InternalUsingMouseLook to true
+  UpdateContainerPointerLock;
 end;
 
 procedure TCastleMouseLookNavigation.PointerLockUserCancelled(Sender: TObject);
