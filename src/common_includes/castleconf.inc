@@ -714,23 +714,6 @@
   {$define CASTLE_PROCESS_AVAILABLE}
 {$endif}
 
-{ Process -------------------------------------------------------------------- }
-
-{ When CASTLE_PROCESS_AVAILABLE is defined, TCastleProcess interface
-  and implementation are functional.
-
-  Otherwise, TCastleProcess is an empty class, with no properties and methods.
-  So you can use CastleInternalProcess, and declaration of TCastleProcess
-  will compile, but actual usage will not compile and should be guarded by
-  "$ifdef CASTLE_PROCESS_AVAILABLE". }
-{$if defined(FPC) and not defined(WASI)}
-  {$define CASTLE_PROCESS_AVAILABLE}
-{$endif}
-
-{$if defined(DELPHI) and (defined(MSWINDOWS) or defined(UNIX))}
-  {$define CASTLE_PROCESS_AVAILABLE}
-{$endif}
-
 // -----------------------------------------------------------------------------
 // keep this line at the end of the file
 {$endif not CASTLE_CONF_INCLUDED}
