@@ -667,12 +667,19 @@ type
     during which mouse cursor is hidden and we look at MouseLookDelta every frame. }
   TCastleMouseLookNavigation = class(TCastleNavigation)
   strict private
-    FMouseLookHorizontalSensitivity: Single;
-    FMouseLookVerticalSensitivity: Single;
-    FInvertVerticalMouseLook: boolean;
-    FMouseLook: boolean;
+    var
+      FMouseLookHorizontalSensitivity: Single;
+      FMouseLookVerticalSensitivity: Single;
+      FInvertVerticalMouseLook: boolean;
+      FMouseLook: boolean;
+      FLastInternalUsingMouseLook: Boolean;
+    class var
+      FPointerLockController: TCastleMouseLookNavigation;
     procedure SetMouseLook(const Value: boolean);
     procedure PointerLockUserCancelled(Sender: TObject);
+    { Potentially set Container.PointerLock.Active and FPointerLockController,
+      observing InternalUsingMouseLook changes. }
+    procedure UpdateContainerPointerLock;
   protected
     procedure ProcessMouseLookDelta(const Delta: TVector2); virtual;
   public
@@ -681,9 +688,11 @@ type
       DefaultMouseLookVerticalSensitivity = Pi * 0.1 / 180;
 
     constructor Create(AOwner: TComponent); override;
+    procedure BeforeDestruction; override;
     function Motion(const Event: TInputMotion): boolean; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
     procedure InternalSetContainer(const Value: TCastleContainer); override;
+    procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
 
     { @exclude }
     function InternalUsingMouseLook: Boolean;
@@ -2804,19 +2813,98 @@ begin
   FInvertVerticalMouseLook := false;
 end;
 
+procedure TCastleMouseLookNavigation.BeforeDestruction;
+begin
+  { If we controlled Container.PointerLock.Active, we need to release it now. }
+  if FPointerLockController = Self then
+  begin
+    FPointerLockController := nil;
+    if Container <> nil then
+      Container.PointerLock.Active := false;
+  end;
+  inherited;
+end;
+
+procedure TCastleMouseLookNavigation.UpdateContainerPointerLock;
+var
+  NewInternalUsingMouseLook: Boolean;
+begin
+  { We need to avoid multiple things trying to control
+    single Container.PointerLock.Active value. We may have multiple
+    TCastleWalkNavigation instances (like examples/window/multiple_windows_and_viewports/ )
+    and also user code trying to control it (like examples/user_interface/dragging_test ).
+    So we track:
+    1. Current component causing PointerLock.Active := true, if any.
+    2. What is our previous "desired pointer lock active" state (InternalUsingMouseLook),
+       and only switch if InternalUsingMouseLook changes (and nothing else
+       wants to control pointer lock now).
+  }
+
+  { Don't do anything if no change to InternalUsingMouseLook.
+    This avoids TCastleMouseLookNavigation
+    messing with user's code (like in dragging_test) trying to control pointer
+    lock, in which case FPointerLockController = nil but we should
+    never touch PointerLock.Active if user didn't set MouseLook:=true ever. }
+  NewInternalUsingMouseLook := InternalUsingMouseLook;
+  if FLastInternalUsingMouseLook = NewInternalUsingMouseLook then
+    Exit;
+
+  FLastInternalUsingMouseLook := NewInternalUsingMouseLook;
+
+  { Don't try to control Container.PointerLock.Active when other control
+    is already controlling it. This may happen if you try to set MouseLook := true
+    on multiple TCastleWalkNavigation instances. }
+  if (FPointerLockController <> nil) and
+     (FPointerLockController <> Self) then
+  begin
+    if NewInternalUsingMouseLook then
+      WritelnWarning('Multiple navigation components try to have MouseLook active at the same time, this is not possible: %s(%s) and %s(%s)', [
+        FPointerLockController.Name, FPointerLockController.ClassName,
+        Name, ClassName
+      ]);
+    Exit;
+  end;
+
+  if NewInternalUsingMouseLook then
+    // grab mouse look, we want to control it from now on
+    FPointerLockController := Self
+  else
+    // release mouse look, this also means we don't want to control it anymore
+    FPointerLockController := nil;
+
+  if Container <> nil then
+  begin
+    Container.PointerLock.Active := NewInternalUsingMouseLook;
+
+    if NewInternalUsingMouseLook then
+      WritelnLog('Pointer lock (MouseLook) activation by %s(%s)', [Name, ClassName])
+    else
+      WritelnLog('Pointer lock (MouseLook) release by %s(%s)', [Name, ClassName]);
+  end;
+end;
+
 procedure TCastleMouseLookNavigation.SetMouseLook(const Value: boolean);
 begin
   if FMouseLook <> Value then
   begin
     FMouseLook := Value;
-    if Container <> nil then
-      Container.PointerLock.Active := InternalUsingMouseLook;
+    UpdateContainerPointerLock;
   end;
 end;
 
 procedure TCastleMouseLookNavigation.ProcessMouseLookDelta(const Delta: TVector2);
 begin
   // nothing in this class
+end;
+
+procedure TCastleMouseLookNavigation.Update(const SecondsPassed: Single;
+  var HandleInput: boolean);
+begin
+  inherited;
+  { We keep checking "do we need to control pointer lock" every frame,
+    because changing InternalViewport.Paused -> changes InternalUsingMouseLook
+    value. }
+  UpdateContainerPointerLock;
 end;
 
 function TCastleMouseLookNavigation.Motion(const Event: TInputMotion): boolean;
@@ -2846,7 +2934,8 @@ begin
   if InternalUsingMouseLook and
     Container.Focused and
     ContainerSizeKnown and
-    Valid then
+    Valid and
+    (FPointerLockController = Self) then
   {$warnings on}
   begin
     HandleMouseLook;
@@ -3910,11 +3999,6 @@ var
   HowMuch: Single;
 begin
   inherited;
-
-  { update PointerLock.Active every frame,
-    because InternalUsingMouseLook may change when InternalViewport.Paused
-    (and thus UsingInput) changes. }
-  Container.PointerLock.Active := InternalUsingMouseLook;
 
   if (not Valid) then Exit;
 
