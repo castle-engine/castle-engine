@@ -1,5 +1,5 @@
 {
-  Copyright 2023-2023 Michalis Kamburelis.
+  Copyright 2023-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,6 +25,10 @@ uses CastleWindow;
 var
   Window1, Window2: TCastleWindow;
 
+  { Set to @true to use second window.
+    Otherwise we only test a single window with 2 viewports. }
+  Window2Use: Boolean = true;
+
 implementation
 
 uses SysUtils,
@@ -49,20 +53,26 @@ procedure ApplicationInitialize;
 begin
   { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
   Window1.Container.LoadSettings('castle-data:/CastleSettings.xml');
-  Window2.Container.LoadSettings('castle-data:/CastleSettings.xml');
+  if Window2Use then
+    Window2.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
   { Create views (see https://castle-engine.io/views ). }
   ViewMainInWindow1 := TViewMain.Create(Application);
-  ViewMainInWindow2 := TViewMain.Create(Application);
+  if Window2Use then
+    ViewMainInWindow2 := TViewMain.Create(Application);
 
   Window1.Container.View := ViewMainInWindow1;
-  Window2.Container.View := ViewMainInWindow2;
+  if Window2Use then
+    Window2.Container.View := ViewMainInWindow2;
 
   { Make all 4 viewports refer to one world,
     from ViewMainInWindow1.ViewportTop.Items }
   ShareWorld(ViewMainInWindow1.ViewportTop, ViewMainInWindow1.ViewportBottom);
-  ShareWorld(ViewMainInWindow1.ViewportTop, ViewMainInWindow2.ViewportTop);
-  ShareWorld(ViewMainInWindow1.ViewportTop, ViewMainInWindow2.ViewportBottom);
+  if Window2Use then
+  begin
+    ShareWorld(ViewMainInWindow1.ViewportTop, ViewMainInWindow2.ViewportTop);
+    ShareWorld(ViewMainInWindow1.ViewportTop, ViewMainInWindow2.ViewportBottom);
+  end;
 end;
 
 initialization
@@ -78,34 +88,38 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   Window1 := TCastleWindow.Create(Application);
-  Window2 := TCastleWindow.Create(Application);
+  if Window2Use then
+    Window2 := TCastleWindow.Create(Application);
   Application.MainWindow := Window1;
 
   Window1.Left := Application.ScreenWidth div 9;
   Window1.Width := Application.ScreenWidth div 3;
 
-  Window2.Left := Application.ScreenWidth - Application.ScreenWidth div 9 - Application.ScreenWidth div 3;
-  Window2.Width := Application.ScreenWidth div 3;
+  if Window2Use then
+  begin
+    Window2.Left := Application.ScreenWidth - Application.ScreenWidth div 9 - Application.ScreenWidth div 3;
+    Window2.Width := Application.ScreenWidth div 3;
 
-  { Open Window2 now. Window1 will be open by main application file.
-    This way of opening many windows is nice to keep auto-generated
-    main application file (DPR).
-    You can also easily ifdef-out the creation of Window2
-    on systems that don't support multiple windows,
-    so on Android or iOS will have only Window1.
+    { Open Window2 now. Window1 will be open by main application file.
+      This way of opening many windows is nice to keep auto-generated
+      main application file (DPR).
+      You can also easily ifdef-out the creation of Window2
+      on systems that don't support multiple windows,
+      so on Android or iOS will have only Window1.
 
-    Alternative approach would be to modify DPR to open all windows
-    in a desired order, like
+      Alternative approach would be to modify DPR to open all windows
+      in a desired order, like
 
-      Window1.Open;
-      Window2.Open;
-      Application.Run;
+        Window1.Open;
+        Window2.Open;
+        Application.Run;
 
-    instead of Window1.OpenAndRun.
-    This would be more explicit, and it makes sense if you really
-    target only desktops (where multiple windows are supported).
-  }
-  Window2.Open;
+      instead of Window1.OpenAndRun.
+      This would be more explicit, and it makes sense if you really
+      target only desktops (where multiple windows are supported).
+    }
+    Window2.Open;
+  end;
 
   { Handle command-line parameters like --fullscreen and --window.
     By doing this last, you let user to override your fullscreen / mode setup. }
