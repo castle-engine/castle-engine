@@ -419,6 +419,17 @@ end;
 procedure TViewMain.Resume;
 begin
   WalkNavigation1.Exists := true;
+
+  { In this demo, we only have mouse look while holding right mouse button.
+    When resuming, it's more natural to have mouse look disabled.
+    This avoids the issue:
+
+    If user was holding right mouse button when switching to ViewTalk,
+    but released it during ViewTalk -> we will not receive
+    TViewMain.Release about it (because TViewTalk has InterceptInput = true).
+    So it would be wrong to have mouse look on resume. }
+  WalkNavigation1.MouseLook := false;
+
   inherited;
 end;
 
