@@ -54,6 +54,10 @@ begin
   begin
     Container.FInternalOverrideCursor := mcDefault;
   end;
+  { This sets FFocusAndMouseCursorValid:=false which means
+    we calculate new final cursor ASAP, which is necessary because
+    we changed FInternalOverrideCursor above. }
+  Container.ControlsVisibleChange(nil, [chCursor], false);
 end;
 
 function TCastleDesktopPointerLock.Delta(const Event: TInputMotion;
