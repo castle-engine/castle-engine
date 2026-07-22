@@ -142,7 +142,11 @@
     FContainer: TCastleContainer;
     FActive: Boolean;
     FOnUserCancelled: TNotifyEventList;
+    FController: TCastleUserInterface;
+    FControllerObserver: TFreeNotificationObserver;
     procedure SetActive(const Value: Boolean);
+    procedure SetController(const Value: TCastleUserInterface);
+    procedure ControllerFreeNotification(const Sender: TFreeNotificationObserver);
   protected
     { Start or stop mouse look. }
     procedure ActiveChanged(const NewValue: Boolean); virtual; abstract;
@@ -220,6 +224,27 @@
     procedure AddUserCancelledListener(const Event: TNotifyEvent);
     procedure RemoveUserCancelledListener(const Event: TNotifyEvent);
     { @groupEnd }
+
+    { Optionally, when requesting pointer lock (by setting @link(Active) to @true),
+      you can set this property to indicate what component is responsible
+      for the pointer lock.
+
+      This controller, and not others, should process deltas during pointer lock.
+      This controller should also set @link(Active) to @false when no longer needed.
+      This is just a convention: since in practice it doesn't make sense for
+      mutliple components to process pointer lock deltas at the same time,
+      this property allows them to coordinate "which one processes deltas now"
+      and avoid conflicts.
+      E.g. when we have multiple viewports and multiple TCastleWalkNavigation
+      instances, only one of them can effectively process pointer lock deltas.
+
+      There is one guaranteed effect of setting this:
+      we will make sure to pass @link(Motion) events to this controller,
+      first, even if it is not focused. This allows to capture motion events
+      even by TCastleWalkNavigation that doesn't fill the middle of the screen.
+      This makes sense, since mouse position in general should not matter
+      when pointer lock is active. }
+    property Controller: TCastleUserInterface read FController write SetController;
   end;
 
 {$endif read_interface}
@@ -231,11 +256,15 @@ begin
   inherited Create;
   FContainer := AContainer;
   FOnUserCancelled := TNotifyEventList.Create;
+  FControllerObserver := TFreeNotificationObserver.Create(nil);
+  FControllerObserver.OnFreeNotification := {$ifdef FPC}@{$endif} ControllerFreeNotification;
 end;
 
 destructor TCastleAbstractPointerLock.Destroy;
 begin
   FreeAndNil(FOnUserCancelled);
+  Controller := nil;
+  FreeAndNil(FControllerObserver);
   inherited;
 end;
 
@@ -278,6 +307,20 @@ end;
 procedure TCastleAbstractPointerLock.RemoveUserCancelledListener(const Event: TNotifyEvent);
 begin
   FOnUserCancelled.Remove(Event);
+end;
+
+procedure TCastleAbstractPointerLock.SetController(const Value: TCastleUserInterface);
+begin
+  if FController <> Value then
+  begin
+    FController := Value;
+    FControllerObserver.Observed := Value;
+  end;
+end;
+
+procedure TCastleAbstractPointerLock.ControllerFreeNotification(const Sender: TFreeNotificationObserver);
+begin
+  Controller := nil;
 end;
 
 {$endif read_implementation}

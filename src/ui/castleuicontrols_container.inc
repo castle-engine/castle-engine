@@ -2397,12 +2397,22 @@ procedure TCastleContainer.EventMotionNoCollect(const Event: TInputMotion);
               Exit(true);
 
           { try C.Motion itself }
-          if (C <> ForceCaptureInput) and C.Motion(Event) then
+          if (C <> ForceCaptureInput) and
+             (C <> PointerLock.Controller) and
+             C.Motion(Event) then
             Exit(true);
         finally Dec(C.ProcessingEvents) end;
       end;
 
       Result := false;
+    end;
+
+    function UsePointerLockController: Boolean;
+    begin
+      Result :=
+        (PointerLock.Controller <> nil) and
+        (PointerLock.Controller.Container = Self) { currently added to our Controls tree } and
+        PointerLock.Controller.Exists;
     end;
 
   var
@@ -2413,6 +2423,13 @@ procedure TCastleContainer.EventMotionNoCollect(const Event: TInputMotion);
     if UseForceCaptureInput then
     begin
       if ForceCaptureInput.Motion(Event) then
+        Exit;
+    end;
+
+    { pass to PointerLock.Controller }
+    if UsePointerLockController and (ForceCaptureInput <> PointerLock.Controller) then
+    begin
+      if PointerLock.Controller.Motion(Event) then
         Exit;
     end;
 
