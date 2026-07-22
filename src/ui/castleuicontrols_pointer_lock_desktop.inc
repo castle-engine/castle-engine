@@ -23,8 +23,7 @@
     We hide the mouse cursor (using @link(TCastleContainer)
     internal mechanism, so we override whatever cursor is set by
     @link(TCastleUserInterface.Cursor) or @link(TCastleContainer.OverrideCursor)).
-    We keep repositioning mouse to the middle of the screen (or specified
-    ControlRect). }
+    We keep repositioning mouse to the middle of the container. }
   TCastleDesktopPointerLock = class(TCastleAbstractPointerLock)
   strict private
     FIgnoreNextMotion: Boolean;
@@ -33,8 +32,7 @@
   protected
     procedure ActiveChanged(const NewValue: Boolean); override;
   public
-    function Delta(const Event: TInputMotion;
-      const ControlRect: TFloatRectangle): TVector2; override;
+    function Delta(const Event: TInputMotion): TVector2; override;
     procedure InternalIgnoreNextMotion; override;
   end;
 
@@ -60,8 +58,9 @@ begin
   Container.ControlsVisibleChange(nil, [chCursor], false);
 end;
 
-function TCastleDesktopPointerLock.Delta(const Event: TInputMotion;
-  const ControlRect: TFloatRectangle): TVector2;
+function TCastleDesktopPointerLock.Delta(const Event: TInputMotion): TVector2;
+var
+  ControlRect: TFloatRectangle;
 
   { There's a lot of tricky things in implementing this correctly.
 
@@ -146,6 +145,7 @@ begin
   Result := TVector2.Zero;
   if not Active then Exit;
 
+  ControlRect := FloatRectangle(Container.PixelsRect);
   Middle := ControlRect.Center;
   { Round to integers, because if CastleWindow backend doesn't support
     sup-pixel accuracy for SetMousePosition, then it ignores the fractional

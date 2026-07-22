@@ -197,21 +197,8 @@
       The returned value is in final device pixels, so it is not affected by
       UI scale. If you want to adjust to UI scale (so user will have to move
       mouse by more pixels, when on a larger screen, when UI is larger)
-      then just use @code(Delta / UiScale).
-
-      @param(ControlRect
-        The rectangle (in final device coordinates,
-        like from @link(TCastleUserInterface.RenderRect)) of control over which we
-        should do pointer lock.
-        Some implementations (web) may ignore the ControlRect.
-        Others (desktop) may use it to reposition mouse to the middle
-        of ControlRect.) }
-    function Delta(const Event: TInputMotion;
-      const ControlRect: TFloatRectangle): TVector2; overload; virtual; abstract;
-
-    { Same as @link(Delta) but without ControlRect. This is useful when you
-      want to use the default ControlRect (e.g. container rectangle). }
-    function Delta(const Event: TInputMotion): TVector2; overload;
+      then just use @code(Delta / UiScale). }
+    function Delta(const Event: TInputMotion): TVector2; virtual; abstract;
 
     { Next motion event is expected to have wild movement, so ignore it.
       This is internal, used by container implementations.
@@ -287,11 +274,6 @@ begin
     Container.FlushCollectedMotion;
   FActive := false;
   FOnUserCancelled.ExecuteAll(Self);
-end;
-
-function TCastleAbstractPointerLock.Delta(const Event: TInputMotion): TVector2;
-begin
-  Result := Delta(Event, FloatRectangle(FContainer.PixelsRect));
 end;
 
 procedure TCastleAbstractPointerLock.InternalIgnoreNextMotion;

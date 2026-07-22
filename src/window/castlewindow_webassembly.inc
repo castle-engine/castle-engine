@@ -175,8 +175,7 @@ type
       browsers will just report them as if mouse never moved at all. }
     property Effective: Boolean read FEffective;
 
-    function Delta(const Event: TInputMotion;
-      const ControlRect: TFloatRectangle): TVector2; override;
+    function Delta(const Event: TInputMotion): TVector2; override;
 
     { Calculate proper Delta from IJSPointerEvent, at each PointerMove. }
     procedure CalculateDelta(var SendMotion: TInputMotion;
@@ -1237,8 +1236,7 @@ begin
   end;
 end;
 
-function TCastleWebPointerLock.Delta(const Event: TInputMotion;
-  const ControlRect: TFloatRectangle): TVector2;
+function TCastleWebPointerLock.Delta(const Event: TInputMotion): TVector2;
 begin
   if Effective then
     Result := Event.InternalWebDelta
