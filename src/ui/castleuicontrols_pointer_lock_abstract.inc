@@ -239,7 +239,8 @@ begin
   if FActive <> Value then
   begin
     FActive := Value;
-    Container.FlushCollectedMotion;
+    if not (csDestroying in Container.ComponentState) then
+      Container.FlushCollectedMotion;
     ActiveChanged(Value);
   end;
 end;
