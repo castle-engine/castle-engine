@@ -676,10 +676,13 @@ type
     procedure SetMouseLook(const Value: boolean);
     procedure PointerLockUserCancelled(Sender: TObject);
     { Potentially set Container.PointerLock.Active and PointerLock.Controller,
-      observing InternalUsingMouseLook changes. }
-    procedure UpdateContainerPointerLock;
+      observing InternalUsingMouseLook changes.
+      @param(ForceDisable When @true, we behave as it InternalUsingMouseLook
+        is @false, and thus disable pointer lock handling.) }
+    procedure UpdateContainerPointerLock(const ForceDisable: Boolean = false);
   protected
     procedure ProcessMouseLookDelta(const Delta: TVector2); virtual;
+    procedure ReleasePointerLock; override;
   public
     const
       DefaultMouseLookHorizontalSensitivity = Pi * 0.1 / 180;
@@ -2815,7 +2818,13 @@ begin
   FInvertVerticalMouseLook := false;
 end;
 
-procedure TCastleMouseLookNavigation.UpdateContainerPointerLock;
+procedure TCastleMouseLookNavigation.ReleasePointerLock;
+begin
+  inherited;
+  UpdateContainerPointerLock(true);
+end;
+
+procedure TCastleMouseLookNavigation.UpdateContainerPointerLock(const ForceDisable: Boolean);
 var
   NewInternalUsingMouseLook: Boolean;
 begin
@@ -2835,7 +2844,7 @@ begin
     messing with user's code (like in dragging_test) trying to control pointer
     lock, in which case PointerLock.Controller = nil but we should
     never touch PointerLock.Active if user didn't set MouseLook:=true ever. }
-  NewInternalUsingMouseLook := InternalUsingMouseLook;
+  NewInternalUsingMouseLook := InternalUsingMouseLook and (not ForceDisable);
   if FLastInternalUsingMouseLook = NewInternalUsingMouseLook then
     Exit;
 

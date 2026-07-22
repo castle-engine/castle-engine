@@ -1874,6 +1874,10 @@ procedure TCastleContainer.EventUpdate;
 
   procedure UpdatePointerLock;
   begin
+    if (PointerLock.Controller <> nil) and
+       (not PointerLock.Controller.ExistsInRoot) then
+      PointerLock.Controller.ReleasePointerLock;
+
     if not PointerLock.Active then Exit;
 
     { Never "capture" the motion of the mouse when PointerLock.Active.

@@ -314,6 +314,11 @@
     { Theme that should be used by this control.
       Either CustomTheme or global @link(Theme). }
     function Theme: TCastleTheme;
+
+    { Called if this instance set itself as @link(TCastleAbstractPointerLock.Controller)
+      but it no longer exists. This gives a chance to release pointer lock,
+      as it should not be help by control that doesn't exist. }
+    procedure ReleasePointerLock; virtual;
   public
     const
       DefaultWidth = 100.0;
@@ -3096,6 +3101,10 @@ begin
   if (Parent <> nil) and
      (not Parent.RenderRect.Contains(RenderRectWithBorder)) then
     SList.Add('The rectangle occupied by this control is outside of the parent rectangle. The events (like mouse clicks) may not reach this control. You must always fit child control inside the parent.');
+end;
+
+procedure TCastleUserInterface.ReleasePointerLock;
+begin
 end;
 
 {$define read_implementation_methods}

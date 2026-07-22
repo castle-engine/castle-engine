@@ -227,12 +227,24 @@
       E.g. when we have multiple viewports and multiple TCastleWalkNavigation
       instances, only one of them can effectively process pointer lock deltas.
 
-      There is one guaranteed effect of setting this:
-      we will make sure to pass @link(Motion) events to this controller,
-      first, even if it is not focused. This allows to capture motion events
-      even by TCastleWalkNavigation that doesn't fill the middle of the screen.
-      This makes sense, since mouse position in general should not matter
-      when pointer lock is active. }
+      Guaranteed effects of setting this:
+
+      @orderedList(
+        @item(We will make sure to pass @link(Motion) events to this controller,
+          first, even if it is not focused. This allows to capture motion events
+          even by TCastleWalkNavigation that doesn't fill the middle of the screen.
+          This makes sense, since mouse position in general should not matter
+          when pointer lock is active.
+        )
+
+        @item(When we detect this no longer exists (or parent of it)
+          we will call @link(TCastleUserInterface.ReleasePointerLock) on it.
+          Once the control (and its parents) exist again, it will again
+          receive events like @link(Update), so it can again then grab
+          mouse look (that's what TCastleWalkNavigation does, for example).
+        )
+      )
+    }
     property Controller: TCastleUserInterface read FController write SetController;
   end;
 

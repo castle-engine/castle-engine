@@ -411,11 +411,8 @@ end;
 procedure TViewMain.Pause;
 begin
   inherited;
-  { Disable mouse look, which (for now) does not happen
-    automatically on "WalkNavigation1.Exists := false".
-    After resume, user should reenable it by right-clicking. }
-  WalkNavigation1.MouseLook := false;
-  { Do not detect A / B (jump / crouch) during talk. }
+  { Do not detect A / B (jump / crouch) during talk.
+    Also do not perform mouse look during talk. }
   WalkNavigation1.Exists := false;
 end;
 
