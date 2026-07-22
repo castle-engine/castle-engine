@@ -250,10 +250,6 @@
     procedure CheckUIScaleChanged;
     { Recalculate FLastSeenContainerWidth/Height, call Resize if needed. }
     procedure CheckResize;
-
-    { This instance and all its parents have @link(Exists) = @true.
-      Note that this doesn't check if @link(Container) is @nil or not. }
-    function ExistsInRoot: Boolean;
   protected
     procedure Loaded; override;
 
@@ -861,6 +857,15 @@
         NewParent.InsertFront(Control); // or InsertBack, as InsertControl...
       #) }
     property Parent: TCastleUserInterface read FParent {write SetParent};
+
+    { Does this control, and all its parents up to the root,
+      have @link(Exists) = @true.
+
+      Note that this doesn't check whether the control is actually part of some
+      @link(Container). So this may be @true even for a control that is not
+      (yet) added to any container. It only checks that "this control,
+      and all parents going up the tree, have @link(Exists) = @true". }
+    function ExistsInRoot: Boolean;
 
     { Control position and size.
       Use this to base other controls size/position on this control's

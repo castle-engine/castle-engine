@@ -48,6 +48,7 @@ type
     procedure TestRecursiveSize;
     procedure TestForIn;
     procedure TestDetachParent;
+    procedure TestExistsInRoot;
     procedure TestContainerSettingsNoWindow;
     procedure TestContainerSettingsClosedWindow;
     procedure TestContainerSettingsOpenWindow;
@@ -259,6 +260,76 @@ begin
     AssertTrue(U3.Container = nil);
   finally
     FreeAndNil(Container);
+    FreeAndNil(U1);
+    FreeAndNil(U2);
+    FreeAndNil(U3);
+  end;
+end;
+
+procedure TTestCastleUIControls.TestExistsInRoot;
+var
+  Container: TTestContainer;
+  Alone, U1, U2, U3: TCastleUserInterface;
+begin
+  Container := nil;
+  Alone := nil;
+  U1 := nil;
+  U2 := nil;
+  U3 := nil;
+  try
+    Container := TTestContainer.Create(nil);
+    Alone := TCastleUserInterface.Create(nil);
+    U1 := TCastleUserInterface.Create(nil);
+    U2 := TCastleUserInterface.Create(nil);
+    U3 := TCastleUserInterface.Create(nil);
+
+    { ExistsInRoot doesn't care about Container, only about Exists of self and parents. }
+    AssertTrue('Alone, not in any container', Alone.ExistsInRoot);
+    Alone.Exists := false;
+    AssertFalse('Alone, not existing', Alone.ExistsInRoot);
+    Alone.Exists := true;
+
+    { U1 -> U2 -> U3 hierarchy, U1 inside Container. }
+    Container.Controls.InsertFront(U1);
+    U1.InsertFront(U2);
+    U2.InsertFront(U3);
+    AssertTrue(U1.Parent = nil); // parent of top-level control in container is nil
+    AssertTrue(U2.Parent = U1);
+    AssertTrue(U3.Parent = U2);
+
+    AssertTrue('U1 initially', U1.ExistsInRoot);
+    AssertTrue('U2 initially', U2.ExistsInRoot);
+    AssertTrue('U3 initially', U3.ExistsInRoot);
+
+    { Non-existing leaf affects only itself. }
+    U3.Exists := false;
+    AssertTrue('U1, when U3 doesn''t exist', U1.ExistsInRoot);
+    AssertTrue('U2, when U3 doesn''t exist', U2.ExistsInRoot);
+    AssertFalse('U3, when U3 doesn''t exist', U3.ExistsInRoot);
+    U3.Exists := true;
+
+    { Non-existing middle affects itself and children. }
+    U2.Exists := false;
+    AssertTrue('U1, when U2 doesn''t exist', U1.ExistsInRoot);
+    AssertFalse('U2, when U2 doesn''t exist', U2.ExistsInRoot);
+    AssertFalse('U3, when U2 doesn''t exist', U3.ExistsInRoot);
+
+    { Non-existing root affects everything, regardless of children Exists. }
+    U1.Exists := false;
+    U2.Exists := true;
+    AssertFalse('U1, when U1 doesn''t exist', U1.ExistsInRoot);
+    AssertFalse('U2, when U1 doesn''t exist', U2.ExistsInRoot);
+    AssertFalse('U3, when U1 doesn''t exist', U3.ExistsInRoot);
+
+    { Detaching from a non-existing parent makes the subtree exist again. }
+    U1.RemoveControl(U2);
+    AssertTrue(U2.Parent = nil);
+    AssertFalse('U1, after detaching U2', U1.ExistsInRoot);
+    AssertTrue('U2, after detaching U2', U2.ExistsInRoot);
+    AssertTrue('U3, after detaching U2', U3.ExistsInRoot);
+  finally
+    FreeAndNil(Container);
+    FreeAndNil(Alone);
     FreeAndNil(U1);
     FreeAndNil(U2);
     FreeAndNil(U3);
