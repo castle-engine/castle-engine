@@ -422,7 +422,7 @@ function FindFiles_NonRecursive(const Path, Mask: String;
             FileInfo := Default(TFileInfo); // clear information like FileInfo.Size to zero
             FileInfo.Name := D.Name;
             FileInfo.Directory := true;
-            FileInfo.URL := UriIncludeSlash(Path) + D.Name;
+            FileInfo.URL := UriIncludeSlash(Path) + UrlEncode(D.Name);
             if Assigned(FileProc) then
             begin
               FileProc(FileInfo, FileProcData, StopSearch);
@@ -439,7 +439,7 @@ function FindFiles_NonRecursive(const Path, Mask: String;
             FileInfo.Name := F.Name;
             FileInfo.Directory := false;
             FileInfo.Size := F.Size;
-            FileInfo.URL := UriIncludeSlash(Path) + F.Name;
+            FileInfo.URL := UriIncludeSlash(Path) + UrlEncode(F.Name);
             FileInfo.Symlink := false; // packaged data cannot contain symlinks, as they are not portable to all platforms
             if Assigned(FileProc) then
             begin

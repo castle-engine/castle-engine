@@ -122,7 +122,8 @@ begin
     'file name with spaces.txt', false, []);
   try
     AssertEquals(1, List.Count);
-    AssertTrue(0 <> Pos('%20', List[0].Url));
+    if Pos('%20', List[0].Url) = 0 then
+      Fail('Expected %20 in URL, but not found: ' + List[0].Url);
     AssertEquals(
       { It's undefined whether we get castle-data:/ or resolved file:/...,
         so do ResolveCastleDataUrl to make test always correct. }
