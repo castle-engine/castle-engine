@@ -51,7 +51,7 @@ procedure TTestCastleInternalProcess.TestProcessExecute;
 
 {$ifndef CASTLE_PROCESS_AVAILABLE}
 begin
-  Abort; // cannot use ExecuteCommandCheckStatus
+  AbortTest; // cannot use ExecuteCommandCheckStatus
   Exit;
 end;
 {$else}
@@ -64,7 +64,7 @@ var
 begin
   if not CanUseFileSystem then // needed for GetTempDirectory
   begin
-    Abort;
+    AbortTest;
     Exit;
   end;
 
@@ -75,7 +75,7 @@ begin
   if (TouchExe = '') or (LsExe = '') or (RmExe = '') then
   begin
     WritelnLog('touch, ls or rm not found, skipping TestProcessExecute');
-    Abort;
+    AbortTest;
     Exit;
   end;
 
