@@ -102,23 +102,11 @@ end;
 procedure TViewPlay.Resume;
 begin
   inherited;
-
-  { This is called when user resumed the game.
-
-    Two ways how we can reach this code path:
-
-    1. User starts playing the game, so engine calls Start, and then Resume.
-
-    2. User presses Escape, which
-       - sets WalkNavigation.MouseLook and Container.PointerLock.Active to false
-       - only on web: calls PointerLockUserCancelled
-       - ... which calls Container.PushView(ViewOptions)
-       - user clicks "Resume Game" button in options menu
-       - ... which calls Container.PopView(ViewOptions)
-       - which calls this method, Resume.
-
-    See https://castle-engine.io/web#pointer_lock .
-  }
+  { 1. Enable mouse look when starting the game,
+    2. Reenable mouse look, necessary on the web when resuming from the
+       "Options" screen that we entered using "Escape" +
+       pointer lock cancellation.
+    See ../resuming_mouse_look.md for more information. }
   WalkNavigation.MouseLook := true;
 end;
 
@@ -236,32 +224,12 @@ begin
     MainNotifications.Show('Saved screenshot to ' + Container.SaveScreenToDefaultFile);
     Exit(true);
   end;
-
-  if Event.IsMouseButton(buttonRight) then
-  begin
-    { Start mouse look.
-
-      Note: we enable/disable mouse look on TViewPlay.Press/Release,
-      and we *do not* call in TViewPlay.Update something like
-      "WalkNavigation.MouseLook := buttonRight in Container.MousePressed",
-      because forcing mouse look in Update would be bad UX on web after
-      user cancels pointer lock. See https://castle-engine.io/web#pointer_lock . }
-    WalkNavigation.MouseLook := true;
-    Exit(true);
-  end;
 end;
 
 function TViewPlay.Release(const Event: TInputPressRelease): Boolean;
 begin
   Result := inherited;
   if Result then Exit; // allow the ancestor to handle keys
-
-  if Event.IsMouseButton(buttonRight) then
-  begin
-    { Stop mouse look. See comment in Press. }
-    WalkNavigation.MouseLook := false;
-    Exit(true);
-  end;
 end;
 
 procedure TViewPlay.PointerLockUserCancelled(Sender: TObject);
