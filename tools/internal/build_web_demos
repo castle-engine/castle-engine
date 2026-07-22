@@ -144,7 +144,8 @@ do_project examples/3d_games/explore_impressive_castle
 do_project examples/animations/animate_bones_by_code
 do_project examples/animations/optimize_animations_test
 do_project examples/terrain
-do_project examples/research_special_rendering_methods/test_rendering_opengl_capabilities/
+do_project examples/research_special_rendering_methods/test_rendering_opengl_capabilities
+do_project examples/window/multiple_windows_and_viewports
 
 do_project tools/castle-editor-portable
 do_project tests
