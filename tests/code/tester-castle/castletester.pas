@@ -1,5 +1,5 @@
 ﻿{
-  Copyright 2022-2025 Andrzej Kilijański, Dean Zobec, Michael Van Canneyt, Michalis Kamburelis.
+  Copyright 2022-2026 Andrzej Kilijański, Dean Zobec, Michael Van Canneyt, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,7 +13,9 @@
   ----------------------------------------------------------------------------
 }
 
-{ Running tests, compatible with fpcunit, using some code from fpcunit
+{ Running tests with extra helpers for Castle Game Engine.
+
+  This is mostly compatible with FpcUnit, using some code from FpcUnit
   (part of Free Component Library (FCL)) by Dean Zobec, Michael Van Canneyt.
   See https://wiki.lazarus.freepascal.org/fpcunit for more info. }
 unit CastleTester;
@@ -23,7 +25,8 @@ interface
 // FPC: Do not warn that Rtti is experimental
 {$ifdef FPC} {$warnings off} {$endif}
 
-uses SysUtils, Classes, Generics.Collections, Rtti, CastleVectors, CastleBoxes,
+uses SysUtils, Classes, Generics.Collections, Rtti,
+  CastleVectors, CastleBoxes,
   CastleFrustum, CastleImages, CastleRectangles, CastleWindow, CastleViewport;
 
 {$ifdef FPC} {$warnings on} {$endif}
@@ -110,7 +113,6 @@ type
 
     function GetTest(const Index: Integer): TCastleTest;
   private
-    FNotifyTestFail: TNotifyTestFail;
     FCurrentTestName: String;
 
     FWindowForTest: TCastleWindow;
@@ -352,8 +354,6 @@ type
     FTestPassedCount: Integer;
     FTestFailedCount: Integer;
 
-    procedure SetNotifyTestFail(const ANotifyTestFail: TNotifyTestFail);
-
     { Scans test case using RTTI }
     procedure ScanTestCase(TestCase: TCastleTestCase);
 
@@ -433,7 +433,7 @@ type
 
     { Callback after test fail }
     property NotifyTestFail: TNotifyTestFail read FNotifyTestFail
-      write SetNotifyTestFail;
+      write FNotifyTestFail;
 
     { Callback after test count changed }
     property NotifyTestCountChanged: TNotifyTestCountChanged
@@ -522,7 +522,6 @@ end;
 procedure TCastleTester.AddTestCase(const TestCase: TCastleTestCase);
 begin
   FTestCaseList.Add(TestCase);
-  TestCase.FNotifyTestFail := FNotifyTestFail;
   TestCase.FCastleTester := Self;
 end;
 
@@ -674,7 +673,7 @@ begin
     on E: TObject do
     begin
       // call FNotifyTestFail
-      if Assigned(FNotifyTestFail) then
+      if Assigned(NotifyTestFail) then
       begin
         FailMsg := E.ClassName;
         if E is Exception then
@@ -753,21 +752,6 @@ begin
     end;
   end;
   {$endif}
-end;
-
-procedure TCastleTester.SetNotifyTestFail(
-  const ANotifyTestFail: TNotifyTestFail);
-var
-  TestCase: TCastleTestCase;
-begin
-  if @FNotifyTestFail = @ANotifyTestFail then
-    Exit;
-
-  FNotifyTestFail := ANotifyTestFail;
-  for TestCase in FTestCaseList do
-  begin
-    TestCase.FNotifyTestFail := ANotifyTestFail;
-  end;
 end;
 
 procedure TCastleTester.SetTestCount(const NewTestCount: Integer);

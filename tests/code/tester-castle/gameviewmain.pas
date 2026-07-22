@@ -70,7 +70,7 @@ implementation
 
 uses SysUtils,
   CastleColors, CastleUtils, CastleTesterParameters, CastleLog,
-  CastleApplicationProperties;
+  CastleApplicationProperties, CastleStringUtils;
 
 { TViewMain ----------------------------------------------------------------- }
 
@@ -107,10 +107,8 @@ end;
 
 procedure TViewMain.LogFailure(const AMessage: String);
 begin
-  if LabelFailedTests.Caption = '' then
-    LabelFailedTests.Caption :=  AMessage
-  else
-    LabelFailedTests.Caption := LabelFailedTests.Caption + NL + AMessage;
+  WritelnWarning('Test failed: ' + AMessage);
+  LabelFailedTests.Caption := SAppendPart(LabelFailedTests.Caption, NL, AMessage);
 end;
 
 procedure TViewMain.Start;
