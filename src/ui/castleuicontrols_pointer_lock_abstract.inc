@@ -190,7 +190,7 @@
       mouse by more pixels, when on a larger screen, when UI is larger)
       then just use @code(Delta / UiScale).
 
-      @param(ControlRectControlRect
+      @param(ControlRect
         The rectangle (in final device coordinates,
         like from @link(TCastleUserInterface.RenderRect)) of control over which we
         should do pointer lock.
