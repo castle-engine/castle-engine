@@ -123,6 +123,7 @@
     procedure ProcessViewChanges;
 
     function UseForceCaptureInput: Boolean;
+    function UsePointerLockController: Boolean;
     function TryGetFingerOfControl(const C: TCastleUserInterface; out Finger: TFingerIndex): Boolean;
     procedure SetDpi(const Value: Single);
     procedure SetUIScaling(const Value: TUIScaling);
@@ -1338,6 +1339,14 @@ begin
     ForceCaptureInput.ExistsInRoot;
 end;
 
+function TCastleContainer.UsePointerLockController: Boolean;
+begin
+  Result :=
+    (PointerLock.Controller <> nil) and
+    (PointerLock.Controller.Container = Self) { currently added to our Controls tree } and
+    PointerLock.Controller.ExistsInRoot;
+end;
+
 function TCastleContainer.PassEvents(const C: TCastleUserInterface;
   const EventPosition: TVector2;
   const CheckEventPosition: Boolean = true): Boolean;
@@ -1875,7 +1884,9 @@ procedure TCastleContainer.EventUpdate;
   procedure UpdatePointerLock;
   begin
     if (PointerLock.Controller <> nil) and
-       (not PointerLock.Controller.ExistsInRoot) then
+       { Detect if PointerLock.Controller.ExistsInRoot = false
+         or PointerLock.Controller.Container is something else than us. }
+       (not UsePointerLockController) then
       PointerLock.Controller.ReleasePointerLock;
 
     if not PointerLock.Active then Exit;
@@ -2415,14 +2426,6 @@ procedure TCastleContainer.EventMotionNoCollect(Event: TInputMotion);
       end;
 
       Result := false;
-    end;
-
-    function UsePointerLockController: Boolean;
-    begin
-      Result :=
-        (PointerLock.Controller <> nil) and
-        (PointerLock.Controller.Container = Self) { currently added to our Controls tree } and
-        PointerLock.Controller.ExistsInRoot;
     end;
 
   var

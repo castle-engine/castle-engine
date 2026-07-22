@@ -317,7 +317,7 @@
 
     { Called if this instance set itself as @link(TCastleAbstractPointerLock.Controller)
       but it no longer exists. This gives a chance to release pointer lock,
-      as it should not be help by control that doesn't exist. }
+      as it should not be held by control that doesn't exist. }
     procedure ReleasePointerLock; virtual;
   public
     const

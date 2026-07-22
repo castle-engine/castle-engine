@@ -677,7 +677,7 @@ type
     procedure PointerLockUserCancelled(Sender: TObject);
     { Potentially set Container.PointerLock.Active and PointerLock.Controller,
       observing InternalUsingMouseLook changes.
-      @param(ForceDisable When @true, we behave as it InternalUsingMouseLook
+      @param(ForceDisable When @true, we behave as if InternalUsingMouseLook
         is @false, and thus disable pointer lock handling.) }
     procedure UpdateContainerPointerLock(const ForceDisable: Boolean = false);
   protected
