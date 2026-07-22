@@ -109,9 +109,8 @@ begin
   if Event.IsMouseButton(buttonLeft) then
   begin
     if WantsDraggingPointerLock then
-    begin
       Container.PointerLock.Active := true
-    end else
+    else
       DraggingSimple := true;
     Exit(true);
   end;
