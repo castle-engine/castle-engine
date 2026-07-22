@@ -167,8 +167,10 @@
       in particular also during @link(Start) method.
       This allows you to do code like this in overridden @link(Start) method:
 
-      @longCode(# Container.PointerLock.AddUserCancelledListener(
-        {$ifdef FPC}@{$endif} PointerLockUserCancelled);; #) *)
+      @longCode(#
+      Container.PointerLock.AddUserCancelledListener(
+        {$ifdef FPC}@{$endif} PointerLockUserCancelled);
+      #) *)
     function Container: TCastleContainer;
 
     { Assign this component as owner for your controls,
