@@ -153,7 +153,12 @@
     { Set @link(Active) to @false without calling virtual @link(ActiveChanged).
       Calls callbacks registered with @link(AddUserCancelledListener).
       To be used by descendants when we lost pointer lock because of user action,
-      e.g. on web when user cancels pointer lock by pressing Escape key. }
+      e.g. on web when user cancels pointer lock by pressing Escape key.
+
+      Descendants are responsible to reset their own state before/after calling
+      this, since this does not call @link(ActiveChanged), so descendants
+      are not notified about the cancellation in any other way.
+      E.g. web implementation sets "FEffective := false" before calling this. }
     procedure CancelActive;
   public
     constructor Create(const AContainer: TCastleContainer);
@@ -238,15 +243,19 @@ procedure TCastleAbstractPointerLock.SetActive(const Value: Boolean);
 begin
   if FActive <> Value then
   begin
-    FActive := Value;
+    // flush before changing Active
     if not (csDestroying in Container.ComponentState) then
       Container.FlushCollectedMotion;
+    FActive := Value;
     ActiveChanged(Value);
   end;
 end;
 
 procedure TCastleAbstractPointerLock.CancelActive;
 begin
+  // flush before changing Active
+  if not (csDestroying in Container.ComponentState) then
+    Container.FlushCollectedMotion;
   FActive := false;
   FOnUserCancelled.ExecuteAll(Self);
 end;
