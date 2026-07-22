@@ -55,7 +55,6 @@ type
     procedure Resume; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
     function Press(const Event: TInputPressRelease): Boolean; override;
-    function Release(const Event: TInputPressRelease): Boolean; override;
   end;
 
 var
@@ -224,12 +223,6 @@ begin
     MainNotifications.Show('Saved screenshot to ' + Container.SaveScreenToDefaultFile);
     Exit(true);
   end;
-end;
-
-function TViewPlay.Release(const Event: TInputPressRelease): Boolean;
-begin
-  Result := inherited;
-  if Result then Exit; // allow the ancestor to handle keys
 end;
 
 procedure TViewPlay.PointerLockUserCancelled(Sender: TObject);
