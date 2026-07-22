@@ -2803,6 +2803,12 @@ var
   TextureNode: TImageTextureNode;
   TempDir: String;
 begin
+  if not CanUseFileSystem then // for GetTempDirectory and FileExists
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   try
     TestUrls := TCastleStringList.Create;
     TestUrls.Add('castle-data:/images/f023ours.jpg');
@@ -2824,28 +2830,31 @@ begin
     TempDir := GetTempDirectory;
     ProcessUrls(RootNode, TempDir + 'testproc.x3d', suNone);
     AssertEquals(1, TextureNode.FdUrl.Count);
-    AssertTrue(TestUrls[0] = TextureNode.FdUrl.Items[0]);  // no change is OK
+    AssertEquals(TestUrls[0], TextureNode.FdUrl.Items[0]);  // no change is OK
 
     // reset URL back to original value
-    TextureNode.SetUrl(TestUrls); 
+    TextureNode.SetUrl(TestUrls);
 
     // run test for suChangeCastleDataToRelative
     ProcessUrls(RootNode, TempDir + 'testproc.x3d', suChangeCastleDataToRelative);
     AssertEquals(1, TextureNode.FdUrl.Count);
     WritelnLog('Replaced %s with %s', [TestUrls[0], TextureNode.FdUrl.Items[0]]);
     // test that TextureNode.FdUrl.Items[0] is now relative path, not absolute URL
-    AssertTrue(not IsPrefix('castle-data:', TextureNode.FdUrl.Items[0]));
+    AssertFalse(IsPrefix('castle-data:', TextureNode.FdUrl.Items[0]));
     {$ifdef MSWINDOWS}
     // on Windows, it may be 'file', if castle-data resolved to different drive than TempDir, then no relative path
     AssertTrue(
-      (UriProtocol(TextureNode.FdUrl.Items[0]) = '') or 
+      Format('Checking protocol of %s', [TextureNode.FdUrl.Items[0]]),
+      (UriProtocol(TextureNode.FdUrl.Items[0]) = '') or
       (UriProtocol(TextureNode.FdUrl.Items[0]) = 'file')
-    ); 
+    );
     {$else}
-    AssertEquals('', UriProtocol(TextureNode.FdUrl.Items[0]));
+    AssertEquals(
+      Format('Checking protocol of %s', [TextureNode.FdUrl.Items[0]]),
+      '', UriProtocol(TextureNode.FdUrl.Items[0]));
     {$endif}
 
-    // Deliberately not reset: let the next test read relative name, 
+    // Deliberately not reset: let the next test read relative name,
     // as an extra test that relative path was correct.
     // TextureNode.SetUrl(TestUrls);
 
@@ -2853,11 +2862,11 @@ begin
     ProcessUrls(RootNode, TempDir + 'testproc.x3d', suEmbedResources);
     AssertEquals(1, TextureNode.FdUrl.Count);
     // test that relative path was read and embedded, so it is now a data: URI
-    AssertTrue(IsPrefix('data:', TextureNode.FdUrl.Items[0])); 
+    AssertTrue(IsPrefix('data:', TextureNode.FdUrl.Items[0]));
     AssertEquals('data', UriProtocol(TextureNode.FdUrl.Items[0]));
 
     // reset URL back to original value
-    TextureNode.SetUrl(TestUrls); 
+    TextureNode.SetUrl(TestUrls);
 
     // run test for suCopyResourcesToSubdirectory
     ProcessUrls(RootNode, TempDir + 'testproc.x3d', suCopyResourcesToSubdirectory);
@@ -2867,22 +2876,25 @@ begin
     AssertTrue(FileExists(TempDir + TextureNode.FdUrl.Items[0]));
 
     // reset URL back to original value
-    TextureNode.SetUrl(TestUrls); 
+    TextureNode.SetUrl(TestUrls);
 
     // run test for suChangeAllPathsToRelative
     ProcessUrls(RootNode, TempDir + 'testproc.x3d', suChangeAllPathsToRelative);
     AssertEquals(1, TextureNode.FdUrl.Count);
     WritelnLog('Replaced %s with %s', [TestUrls[0], TextureNode.FdUrl.Items[0]]);
     // test that TextureNode.FdUrl.Items[0] is now relative path, not absolute URL
-    AssertTrue(not IsPrefix('castle-data:', TextureNode.FdUrl.Items[0]));
+    AssertFalse(IsPrefix('castle-data:', TextureNode.FdUrl.Items[0]));
     {$ifdef MSWINDOWS}
     // on Windows, it may be 'file', if castle-data resolved to different drive than TempDir, then no relative path
     AssertTrue(
-      (UriProtocol(TextureNode.FdUrl.Items[0]) = '') or 
+      Format('Checking protocol of %s', [TextureNode.FdUrl.Items[0]]),
+      (UriProtocol(TextureNode.FdUrl.Items[0]) = '') or
       (UriProtocol(TextureNode.FdUrl.Items[0]) = 'file')
-    ); 
+    );
     {$else}
-    AssertEquals('', UriProtocol(TextureNode.FdUrl.Items[0]));
+    AssertEquals(
+      Format('Checking protocol of %s', [TextureNode.FdUrl.Items[0]]),
+      '', UriProtocol(TextureNode.FdUrl.Items[0]));
     {$endif}
 
     // cleanup after tests
