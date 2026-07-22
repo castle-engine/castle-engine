@@ -62,7 +62,7 @@ type
 implementation
 
 uses CastleRectangles, CastleVectors, CastleUtils, CastleWindow, CastleControls,
-  CastleKeysMouse, CastleLog, CastleStringUtils;
+  CastleKeysMouse, CastleLog, CastleStringUtils, CastleTimeUtils;
 
 { TTestContainer ------------------------------------------------------------- }
 

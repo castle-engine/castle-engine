@@ -15,6 +15,8 @@
 
 unit TestCastleInternalProcess;
 
+{$I ../../../src/common_includes/castleconf.inc}
+
 interface
 
 uses
@@ -46,6 +48,13 @@ begin
 end;
 
 procedure TTestCastleInternalProcess.TestProcessExecute;
+
+{$ifndef CASTLE_PROCESS_AVAILABLE}
+begin
+  Abort; // cannot use ExecuteCommandCheckStatus
+  Exit;
+end;
+{$else}
 
 { If the standard Unix tools touch, ls are available -- have fun
   testing their usage with ExecuteCommandCheckStatus. }
@@ -88,6 +97,8 @@ begin
   ExecuteCommandCheckStatus(TempDir, LsExe, ['-l', TempFileBaseName]);
   ExecuteCommandCheckStatus(TempDir, RmExe, ['-f', TempFileBaseName]);
 end;
+
+{$endif}
 
 initialization
   RegisterTest(TTestCastleInternalProcess);

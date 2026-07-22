@@ -199,6 +199,7 @@ type
 {$endif}
 
 type
+  {$ifdef CASTLE_PROCESS_AVAILABLE}
   { Raised when Windows "Smart App Control" protection prevents executing a process.
 
     See more about "Smart App Control", it in practice blocks unsigned apps:
@@ -211,6 +212,7 @@ type
     )
   }
   EWindowsSmartAppControlProtection = class(EProcess);
+  {$endif}
 
   { Running processes.
 
