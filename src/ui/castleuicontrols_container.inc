@@ -1248,6 +1248,7 @@ begin
   { set to nil by SetForceCaptureInput, to detach free notification }
   ForceCaptureInput := nil;
   FreeAndNil(FTouches);
+  FreeAndNil(FPointerLock);
   inherited;
 end;
 
