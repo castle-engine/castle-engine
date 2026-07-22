@@ -61,7 +61,7 @@
 
   TNodeFunctionalityList = {$ifdef FPC}specialize{$endif} TObjectList<TNodeFunctionality>;
 
-  TNodeNamesMap = {$ifdef FPC_OBJFPC}specialize{$endif} TDictionary<String, TX3DNode>;
+  TNodeNamesMap = {$ifdef FPC}specialize{$endif} TDictionary<String, TX3DNode>;
 
   TNodeFunctionalityClass = class of TNodeFunctionality;
 
