@@ -2365,7 +2365,10 @@ begin
       Position/OldPosition are not useful, but Delta is. }
     FCollectedMotion.InternalWebDelta :=
       FCollectedMotion.InternalWebDelta + Event.InternalWebDelta;
-    FCollectedMotion.Delta := FCollectedMotion.Delta + Event.Delta;
+    { Summing these Delta is not necessary, as EventMotionNoCollect
+      unconditionally sets Event.Delta before passing to controls.
+      So we don't do it. }
+    //FCollectedMotion.Delta := FCollectedMotion.Delta + Event.Delta;
     //WritelnLog('Motion', 'Collected motion updated to %s', [Event.Position.ToString]);
   end else
   begin
@@ -2430,7 +2433,8 @@ procedure TCastleContainer.EventMotionNoCollect(Event: TInputMotion);
     end;
 
     { pass to PointerLock.Controller }
-    if UsePointerLockController and (ForceCaptureInput <> PointerLock.Controller) then
+    if UsePointerLockController and
+       (ForceCaptureInput <> PointerLock.Controller) then
     begin
       if PointerLock.Controller.Motion(Event) then
         Exit;
@@ -2449,7 +2453,9 @@ procedure TCastleContainer.EventMotionNoCollect(Event: TInputMotion);
       Capture := nil;
     end;
 
-    if (Capture <> nil) and (Capture <> ForceCaptureInput) then
+    if (Capture <> nil) and
+       (Capture <> ForceCaptureInput) and
+       (Capture <> PointerLock.Controller) then
     begin
       Capture.Motion(Event);
       Exit; // if something is capturing the input, prevent other controls from getting the events

@@ -2980,9 +2980,7 @@ begin
       if Container.PointerLock.Controller = Self then
       begin
         Container.PointerLock.Controller := nil;
-
-        if Container <> nil then
-          Container.PointerLock.Active := false;
+        Container.PointerLock.Active := false;
         WritelnLog('Pointer lock (MouseLook) release by %s(%s) due to Container change', [Name, ClassName]);
       end;
     end;
