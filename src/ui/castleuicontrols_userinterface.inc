@@ -251,7 +251,8 @@
     { Recalculate FLastSeenContainerWidth/Height, call Resize if needed. }
     procedure CheckResize;
 
-    { This instance and all its' parents have @link(Exists) = @true. }
+    { This instance and all its parents have @link(Exists) = @true.
+      Note that this doesn't check if @link(Container) is @nil or not. }
     function ExistsInRoot: Boolean;
   protected
     procedure Loaded; override;
