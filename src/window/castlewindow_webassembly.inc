@@ -26,6 +26,7 @@ CastleInternalWebUtils,
 strict private
   FCanvas: IJSHTMLCanvasElement;
   LastClientRectHeight, LastClientRectWidth, LastDevicePixelRatio: Double;
+  DoneWarningCursor: Boolean;
 
   { Get mouse position from JS event, convert it to CGE coordinates. }
   function JsMousePositionToCastle(const Event: IJSMouseEvent): TVector2;
