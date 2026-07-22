@@ -251,6 +251,8 @@
     { Recalculate FLastSeenContainerWidth/Height, call Resize if needed. }
     procedure CheckResize;
 
+    { This instance and all its' parents have @link(Exists) = @true. }
+    function ExistsInRoot: Boolean;
   protected
     procedure Loaded; override;
 
@@ -2242,6 +2244,11 @@ begin
     if Parent <> nil then
       Parent.VisibleChange([chChildrenExists]);
   end;
+end;
+
+function TCastleUserInterface.ExistsInRoot: Boolean;
+begin
+  Result := Exists and ( (Parent = nil) or Parent.ExistsInRoot );
 end;
 
 procedure TCastleUserInterface.BorderChange(Sender: TObject);

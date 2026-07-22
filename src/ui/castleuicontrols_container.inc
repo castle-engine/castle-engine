@@ -1335,7 +1335,7 @@ begin
   Result :=
     (ForceCaptureInput <> nil) and
     (ForceCaptureInput.Container = Self) { currently added to our Controls tree } and
-    ForceCaptureInput.Exists;
+    ForceCaptureInput.ExistsInRoot;
 end;
 
 function TCastleContainer.PassEvents(const C: TCastleUserInterface;
@@ -2418,7 +2418,7 @@ procedure TCastleContainer.EventMotionNoCollect(Event: TInputMotion);
       Result :=
         (PointerLock.Controller <> nil) and
         (PointerLock.Controller.Container = Self) { currently added to our Controls tree } and
-        PointerLock.Controller.Exists;
+        PointerLock.Controller.ExistsInRoot;
     end;
 
   var
@@ -2445,9 +2445,9 @@ procedure TCastleContainer.EventMotionNoCollect(Event: TInputMotion);
     if not FCaptureInput.TryGetValue(Event.FingerIndex, Capture) then
       Capture := nil;
 
-    if (Capture <> nil) and not Capture.Exists then
+    if (Capture <> nil) and not Capture.ExistsInRoot then
     begin
-      { No longer capturing, since the Exists returns false now.
+      { No longer capturing, since the ExistsInRoot returns false now.
         We do not send any events to non-existing controls. }
       FCaptureInput.Remove(Event.FingerIndex);
       Capture := nil;
