@@ -823,7 +823,21 @@ begin
     end;
 end;
 
-{ TCastleTestCase }
+{ TCastleTestCase ------------------------------------------------------------ }
+
+function TCastleTestCase.AddTest(const AName: String;
+  {$ifdef FPC}const AMethodPointer: CodePointer{$else}
+      const ARttiMethod: TRttiMethod{$endif}): TCastleTest;
+begin
+  Result := TCastleTest.Create(Self, AName, {$ifdef FPC}AMethodPointer{$else}
+  ARttiMethod{$endif});
+  FTestList.Add(Result);
+end;
+
+{ AssertEquals methods for simple types, passing
+  - Msg = '' (the callee will prepare the message describing expected/actual
+    values)
+  - AddrOfError our caller }
 
 procedure TCastleTestCase.AssertEquals(const Expected, Actual: String);
 begin
@@ -837,13 +851,22 @@ begin
     {$ifdef FPC}get_caller_addr(get_frame){$else}ReturnAddress{$endif});
 end;
 
-function TCastleTestCase.AddTest(const AName: String;
-  {$ifdef FPC}const AMethodPointer: CodePointer{$else}
-      const ARttiMethod: TRttiMethod{$endif}): TCastleTest;
+procedure TCastleTestCase.AssertEquals(const Expected, Actual: Integer);
 begin
-  Result := TCastleTest.Create(Self, AName, {$ifdef FPC}AMethodPointer{$else}
-  ARttiMethod{$endif});
-  FTestList.Add(Result);
+  AssertEquals('', Expected, Actual,
+    {$ifdef FPC}get_caller_addr(get_frame){$else}ReturnAddress{$endif});
+end;
+
+procedure TCastleTestCase.AssertEquals(const Expected, Actual: Cardinal);
+begin
+  AssertEquals('', Expected, Actual,
+    {$ifdef FPC}get_caller_addr(get_frame){$else}ReturnAddress{$endif});
+end;
+
+procedure TCastleTestCase.AssertEquals(const Expected, Actual: Int64);
+begin
+  AssertEquals('', Expected, Actual,
+    {$ifdef FPC}get_caller_addr(get_frame){$else}ReturnAddress{$endif});
 end;
 
 procedure TCastleTestCase.AssertBoxesEqual(const Expected, Actual: TBox3D;
@@ -877,18 +900,25 @@ begin
     Exit; // OK
 
   if Expected.IsEmpty then
-    Fail(Format('Expected empty box, actual box is NOT empty (%s). ' + Msg,
-      [Actual.ToRawString]));
+    Fail(PrepareCustomMsg(Msg) +
+      Format('AssertBoxesEqual: Expected empty box, actual box is NOT empty (%s)',
+      [Actual.ToRawString]),
+      AddrOfError);
 
   if Actual.IsEmpty then
-    Fail(Format('Expected NOT empty box (%s), actual box is empty. ' + Msg,
-      [Expected.ToRawString]), AddrOfError);
+    Fail(PrepareCustomMsg(Msg) +
+      Format('AssertBoxesEqual: Expected NOT empty box (%s), actual box is empty',
+      [Expected.ToRawString]),
+      AddrOfError);
 
   for I := 0 to 2 do
     if (not SameValue(Expected.Data[0][I], Actual.Data[0][I], Epsilon)) or
        (not SameValue(Expected.Data[1][I], Actual.Data[1][I], Epsilon)) then
-      Fail(Format('Boxes are not equal: expected: %s, actual: %s. ' + Msg,
-        [Expected.ToRawString, Actual.ToRawString]), AddrOfError);
+      Fail(PrepareCustomMsg(Msg) +
+        Format('AssertBoxesEqual: Expected box %s, actual %s', [
+          Expected.ToRawString,
+          Actual.ToRawString
+        ]), AddrOfError);
 end;
 
 procedure TCastleTestCase.AssertBoxesEqual(const Msg: String;
@@ -903,8 +933,12 @@ end;
 
 procedure TCastleTestCase.AssertEquals(const Expected, Actual: Single);
 begin
-  AssertTrue('Expected: ' + FloatToStr(Expected) + ' Actual: ' +
-    FloatToStr(Actual), SameValue(Expected, Actual, SingleEpsilon),
+  AssertTrue(
+    FormatDot('AssertEquals: Expected float (Single precision) %f, actual %f', [
+      Expected,
+      Actual
+    ]),
+    SameValue(Expected, Actual, SingleEpsilon),
     {$ifdef FPC}get_caller_addr(get_frame){$else}ReturnAddress{$endif});
 end;
 
@@ -919,13 +953,17 @@ end;
 
 procedure TCastleTestCase.AssertFalse(const ACondition: Boolean);
 begin
-  AssertFalse('', ACondition,
+  AssertFalse('AssertFalse: Expected false', ACondition,
     {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif});
 end;
 
 procedure TCastleTestCase.AssertFilenamesEqual(const Expected, Actual: String);
 begin
-  AssertTrue('Expected: ' + Expected + ' Actual: ' + Actual,
+  AssertTrue(
+    Format('AssertFilenamesEqual: Expected filename "%s", actual "%s"', [
+      Expected,
+      Actual
+    ]),
     CompareFileName(Expected, Actual),
     {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif});
 end;
@@ -944,23 +982,50 @@ begin
   if AddrOfError = nil then
     AddrOfError := {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif};
 
-  AssertEquals('', Expected.Width, Actual.Width, AddrOfError);
-  AssertEquals('', Expected.Height, Actual.Height, AddrOfError);
-  AssertEquals('', Expected.Depth, Actual.Depth, AddrOfError);
-  AssertEquals('', Expected.Size, Actual.Size, AddrOfError);
+  AssertEquals(
+    Format('AssertImagesEqual: Expected image width %d, actual %d', [
+      Expected.Width,
+      Actual.Width
+    ]),
+    Expected.Width, Actual.Width, AddrOfError);
+  AssertEquals(
+    Format('AssertImagesEqual: Expected image height %d, actual %d', [
+      Expected.Height,
+      Actual.Height
+    ]),
+    Expected.Height, Actual.Height, AddrOfError);
+  AssertEquals(
+    Format('AssertImagesEqual: Expected image depth %d, actual %d', [
+      Expected.Depth,
+      Actual.Depth
+    ]),
+    Expected.Depth, Actual.Depth, AddrOfError);
+  AssertEquals(
+    Format('AssertImagesEqual: Expected image size %d, actual %d', [
+      Expected.Size,
+      Actual.Size
+    ]),
+    Expected.Size, Actual.Size, AddrOfError);
 
-  AssertTrue('', CompareMemDebug(Expected.RawPixels, Actual.RawPixels, Expected.Size), AddrOfError);
-  AssertTrue('', CompareMem     (Expected.RawPixels, Actual.RawPixels, Expected.Size), AddrOfError);
+  AssertTrue('AssertImagesEqual: expected equal data (CompareMemDebug)',
+    CompareMemDebug(Expected.RawPixels, Actual.RawPixels, Expected.Size), AddrOfError);
+  AssertTrue('AssertImagesEqual: expected equal data (CompareMem)',
+    CompareMem     (Expected.RawPixels, Actual.RawPixels, Expected.Size), AddrOfError);
 
   // either both are TGPUCompressedImage, or both are not
-  AssertTrue('',
+  AssertTrue(
+    Format('AssertImagesEqual: both or none being GPU compressed, got %s %s', [
+      Expected.ClassName,
+      Actual.ClassName
+    ]),
     (Expected.ClassType = TGPUCompressedImage) =
-    (Actual.ClassType = TGPUCompressedImage), AddrOfError);
+    (Actual.ClassType = TGPUCompressedImage),
+    AddrOfError);
 
   // if both are TGPUCompressedImage, check Compression matches
   if Expected is TGPUCompressedImage then
   begin
-    AssertTrue('',
+    AssertTrue('AssertImagesEqual: Expected GPU compression matching',
       TGPUCompressedImage(Expected).Compression =
       TGPUCompressedImage(Actual).Compression, AddrOfError);
   end;
@@ -1360,7 +1425,8 @@ end;
 
 procedure TCastleTestCase.AssertTrue(const ACondition: Boolean);
 begin
-  AssertTrue('', ACondition, {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif});
+  AssertTrue('AssertTrue: expected true', ACondition,
+    {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif});
 end;
 
 procedure TCastleTestCase.ClearTests;
@@ -1505,11 +1571,11 @@ end;
 
 procedure TCastleTestCase.OnWarningRaiseException(const Category, S: string);
 begin
-  raise Exception.CreateFmt(ClassName +
-    ': received a warning, and any warning here is an error: %s: %s',
-    [Category,
-    S]
-  );
+  raise Exception.CreateFmt('%s: received a warning, and any warning here is an error: %s: %s', [
+    ClassName,
+    Category,
+    S
+  ]);
 end;
 
 function TCastleTestCase.PrepareCustomMsg(const Msg: String): String;
@@ -1539,32 +1605,16 @@ begin
   WritelnLog(Text);
 end;
 
-procedure TCastleTestCase.AssertEquals(const Expected, Actual: Integer);
-begin
-  AssertEquals('', Expected, Actual,
-    {$ifdef FPC}get_caller_addr(get_frame){$else}ReturnAddress{$endif});
-end;
-
-procedure TCastleTestCase.AssertEquals(const Expected, Actual: Cardinal);
-begin
-  AssertEquals('', Expected, Actual,
-    {$ifdef FPC}get_caller_addr(get_frame){$else}ReturnAddress{$endif});
-end;
-
-procedure TCastleTestCase.AssertEquals(const Expected, Actual: Int64);
-begin
-  AssertEquals('', Expected, Actual,
-    {$ifdef FPC}get_caller_addr(get_frame){$else}ReturnAddress{$endif});
-end;
-
 procedure TCastleTestCase.AssertEquals(const Msg: String; const Expected,
   Actual: Integer; AddrOfError: Pointer = nil);
 begin
   if AddrOfError = nil then
     AddrOfError := {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif};
 
-  AssertTrue(PrepareCustomMsg(Msg) + 'Expected: ' + IntToStr(Expected) +
-    ' Actual: ' + IntToStr(Actual), Expected = Actual, AddrOfError);
+  AssertTrue(PrepareCustomMsg(Msg) +
+    Format('AssertEquals: Expected Integer %d, actual %d', [Expected, Actual]),
+    Expected = Actual,
+    AddrOfError);
 end;
 
 procedure TCastleTestCase.AssertEquals(const Msg, Expected, Actual: String;
@@ -1573,8 +1623,10 @@ begin
   if AddrOfError = nil then
     AddrOfError := {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif};
 
-  AssertTrue(PrepareCustomMsg(Msg) + 'Expected: ' + Expected +
-    ' Actual: ' + Actual, Expected = Actual, AddrOfError);
+  AssertTrue(PrepareCustomMsg(Msg) +
+    Format('AssertEquals: Expected String "%s", actual "%s"', [Expected, Actual]),
+    Expected = Actual,
+    AddrOfError);
 end;
 
 procedure TCastleTestCase.AssertEquals(const Msg: String; const Expected,
@@ -1583,8 +1635,13 @@ begin
   if AddrOfError = nil then
     AddrOfError := {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif};
 
-  AssertTrue(PrepareCustomMsg(Msg) + 'Expected: ' + BoolToStr(Expected, true) + ' Actual: ' +
-    BoolToStr(Actual, true), Expected = Actual, AddrOfError);
+  AssertTrue(PrepareCustomMsg(Msg) +
+    Format('AssertEquals: Expected Boolean %s, actual %s', [
+      BoolToStr(Expected, true),
+      BoolToStr(Actual, true)
+    ]),
+    Expected = Actual,
+    AddrOfError);
 end;
 
 procedure TCastleTestCase.AssertEquals(const Msg: String; const Expected,
@@ -1593,8 +1650,10 @@ begin
   if AddrOfError = nil then
     AddrOfError := {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif};
 
-  AssertTrue(PrepareCustomMsg(Msg) + 'Expected: ' + IntToStr(Expected) +
-    ' Actual: ' + IntToStr(Actual), Expected = Actual, AddrOfError);
+  AssertTrue(PrepareCustomMsg(Msg) +
+    Format('AssertEquals: Expected Cardinal %d, actual %d', [Expected, Actual]),
+    Expected = Actual,
+    AddrOfError);
 end;
 
 procedure TCastleTestCase.AssertEquals(const Msg: String; const Expected,
@@ -1603,8 +1662,10 @@ begin
   if AddrOfError = nil then
     AddrOfError := {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif};
 
-  AssertTrue(PrepareCustomMsg(Msg) + 'Expected: ' + IntToStr(Expected) +
-    ' Actual: ' + IntToStr(Actual), Expected = Actual, AddrOfError);
+  AssertTrue(PrepareCustomMsg(Msg) +
+    Format('AssertEquals: Expected Int64 %d, actual %d', [Expected, Actual]),
+    Expected = Actual,
+    AddrOfError);
 end;
 
 procedure TCastleTestCase.AbortTest;
