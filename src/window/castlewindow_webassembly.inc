@@ -720,7 +720,8 @@ begin
     FCursor := Value;
     if not Closed then
     begin
-      WritelnWarning('Web', 'Changing mouse cursor on the web is not possible. The only way to hide the cursor -> is to request PointerLock, which hides the cursor and does a few more things (similar to our MouseLook), so it has to be activated by a specific property PointerLock.');
+      WritelnWarningOnce(DoneWarningCursor, 'Web',
+        'Changing mouse cursor on the web is not possible. If you want to hide the cursor for pointer lock, the "Container.PointerLock.Active := true" is sufficient.');
     end;
   end;
 end;

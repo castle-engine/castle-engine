@@ -133,9 +133,13 @@ procedure WritelnWarning(const MessageBase: string;
 { Shortcut to output a warning, but only if WarningDone is @false.
   Sets WarningDone to @true after the first call. }
 procedure WritelnWarningOnce(var WarningDone: Boolean;
+  const Message: String); overload;
+procedure WritelnWarningOnce(var WarningDone: Boolean;
+  const Category: string; const Message: String); overload;
+procedure WritelnWarningOnce(var WarningDone: Boolean;
   const MessageBase: String; const Args: array of const); overload;
 procedure WritelnWarningOnce(var WarningDone: Boolean;
-  const Message: String); overload;
+  const Category: string; const MessageBase: String; const Args: array of const); overload;
 
 var
   { Dump backtrace (call stack) with each log.
@@ -530,6 +534,26 @@ begin
 end;
 
 procedure WritelnWarningOnce(var WarningDone: Boolean;
+  const Message: String);
+begin
+  if not WarningDone then
+  begin
+    WritelnWarning(Message);
+    WarningDone := true;
+  end;
+end;
+
+procedure WritelnWarningOnce(var WarningDone: Boolean;
+  const Category: String; const Message: String);
+begin
+  if not WarningDone then
+  begin
+    WritelnWarning(Category, Message);
+    WarningDone := true;
+  end;
+end;
+
+procedure WritelnWarningOnce(var WarningDone: Boolean;
   const MessageBase: String; const Args: array of const);
 begin
   if not WarningDone then
@@ -540,11 +564,11 @@ begin
 end;
 
 procedure WritelnWarningOnce(var WarningDone: Boolean;
-  const Message: String);
+  const Category: String; const MessageBase: String; const Args: array of const);
 begin
   if not WarningDone then
   begin
-    WritelnWarning(Message);
+    WritelnWarning(Category, MessageBase, Args);
     WarningDone := true;
   end;
 end;
