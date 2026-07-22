@@ -676,10 +676,9 @@ begin
       // call FNotifyTestFail
       if Assigned(FNotifyTestFail) then
       begin
+        FailMsg := E.ClassName;
         if E is Exception then
-          FailMsg := Exception(E).Message
-        else
-          FailMsg := ''; // exception class not Exception, no better message
+          FailMsg := FailMsg + ': ' + Exception(E).Message;
         FNotifyTestFail(Test.GetFullName, FailMsg);
       end;
 
