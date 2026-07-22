@@ -514,7 +514,12 @@ begin
 
     Note that Chromium-based browsers (Vivaldi tested, also on Linux) also seem
     to send such events with Button=0, but they always contain MovementX=MovementY=0,
-    so they would be harmless even if not ignored. }
+    so they would be harmless even if not ignored.
+
+    Effectively, when either Firefox or Chromium-based browsers send PointerMove
+    with Button <> -1 -> it's useless and we ignore it.
+    Note that normal movement during mouse look, even with mouse button pressed,
+    has Button=-1. }
   if Event.Button <> -1 then
     Exit(false);
 
