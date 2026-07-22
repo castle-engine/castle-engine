@@ -266,10 +266,21 @@
       @unorderedList(
         @item(Mouse movement is unbounded by the window/canvas borders.)
 
-        @item(Only the "delta" of mouse movement (@link(TInputMotion.Delta)) is
-          useful.
+        @item(The only way to get useful "delta of move" from @link(TInputMotion)
+          is to use @link(TCastleAbstractPointerLock.Delta) like this:
 
-          The position of the mouse, as reported by @link(TInputMotion.Position)
+          @longCode(
+          function TViewMain.Motion(const Event: TInputMotion): Boolean;
+          begin
+            Result := inherited;
+            if Result then Exit; // allow the ancestor to handle event
+
+            MoveSomething := MoveSomething + Container.PointerLock.Delta(Event);
+          end;
+          )
+        )
+
+        @item(The position of the mouse, as reported by @link(TInputMotion.Position)
           and @link(TInputMotion.OldPosition), are undefined.
         )
 

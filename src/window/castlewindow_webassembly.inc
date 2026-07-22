@@ -166,8 +166,8 @@ type
 
       This can only be @true if @link(Active) is also @true.
 
-      The @link(TInputMotion.Delta) is useful (non-zero) only when this
-      is true.
+      The @link(TInputMotion.InternalWebDelta) is useful (non-zero)
+      only when this is true.
 
       Moreover, do not depend on @link(TInputMotion.Position) and
       @link(TInputMotion.OldPosition) when this is true. Right now,
