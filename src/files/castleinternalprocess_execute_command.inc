@@ -364,6 +364,18 @@ begin
   for I := 1 to GetEnvironmentVariableCount do
   begin
     S := GetEnvironmentString(I);
+
+    {$ifdef WASI}
+    { Right now, on WebAssembly, GetEnvironmentVariableCount returns 1
+      and GetEnvironmentString(1) has something weird and seemingly random
+      like "CWBOTBWC521". }
+    if Pos('=', S) = 0 then
+    begin
+      WritelnWarning('Ignoring weird (invalid, random?) environment string on WebAssembly: "%s"', [S]);
+      Continue;
+    end;
+    {$endif}
+
     { Avoid weird lines "=::=::\" on Windows 11.
       See comments below for Delphi. }
     if (S <> '') and (S[1] <> '=') then
