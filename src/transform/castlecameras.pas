@@ -2912,7 +2912,7 @@ function TCastleMouseLookNavigation.Motion(const Event: TInputMotion): boolean;
   var
     MouseChange: TVector2;
   begin
-    MouseChange := Container.PointerLock.Delta(Event);
+    MouseChange := Event.Delta;
 
     if not MouseChange.IsPerfectlyZero then
     begin

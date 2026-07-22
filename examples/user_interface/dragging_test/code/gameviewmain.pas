@@ -141,14 +141,13 @@ begin
   Result := inherited;
   if Result then Exit;
 
-  if DraggingSimple then
+  if DraggingSimple or Container.PointerLock.Active then
   begin
-    Drag(Event.Position - Event.OldPosition);
-    Exit(true);
-  end else
-  if Container.PointerLock.Active then
-  begin
-    Drag(Container.PointerLock.Delta(Event));
+    { In both cases (DraggingSimple and PointerLock.Active) the Event.Delta
+      is exactly what we need.
+      - When DraggingSimple, Event.Delta = just Event.Position - Event.OldPosition.
+      - When PointerLock.Active, it's more complicated internally. }
+    Drag(Event.Delta);
     Exit(true);
   end;
 end;

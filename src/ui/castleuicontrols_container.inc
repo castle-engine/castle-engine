@@ -149,7 +149,7 @@
     procedure ForceCaptureInputFreeNotification(const Sender: TFreeNotificationObserver);
     function MessageReceived(const Received: TCastleStringList;
       const ReceivedStream: TMemoryStream): Boolean;
-    procedure EventMotionNoCollect(const Event: TInputMotion);
+    procedure EventMotionNoCollect(Event: TInputMotion);
     function GetMousePosition: TVector2;
     procedure SetMousePosition(const Value: TVector2);
     function GetTouches(const Index: Integer): TTouch;
@@ -266,22 +266,24 @@
       @unorderedList(
         @item(Mouse movement is unbounded by the window/canvas borders.)
 
-        @item(The only way to get useful "delta of move" from @link(TInputMotion)
-          is to use @link(TCastleAbstractPointerLock.Delta) like this:
+        @item(Use ready @link(TInputMotion.Delta) for any logic you want:
 
           @longCode(
           function TViewMain.Motion(const Event: TInputMotion): Boolean;
           begin
             Result := inherited;
             if Result then Exit; // allow the ancestor to handle event
-
-            MoveSomething := MoveSomething + Container.PointerLock.Delta(Event);
+            MoveSomething := MoveSomething + Event.Delta;
           end;
           )
         )
 
         @item(The position of the mouse, as reported by @link(TInputMotion.Position)
           and @link(TInputMotion.OldPosition), are undefined.
+
+          Do not assume that @link(TInputMotion.Delta) is equal to
+          @link(TInputMotion.Position) - @link(TInputMotion.OldPosition).
+          It is not.
         )
 
         @item(Mouse cursor is hidden.)
@@ -2363,6 +2365,7 @@ begin
       Position/OldPosition are not useful, but Delta is. }
     FCollectedMotion.InternalWebDelta :=
       FCollectedMotion.InternalWebDelta + Event.InternalWebDelta;
+    FCollectedMotion.Delta := FCollectedMotion.Delta + Event.Delta;
     //WritelnLog('Motion', 'Collected motion updated to %s', [Event.Position.ToString]);
   end else
   begin
@@ -2375,7 +2378,7 @@ begin
   {$endif}
 end;
 
-procedure TCastleContainer.EventMotionNoCollect(const Event: TInputMotion);
+procedure TCastleContainer.EventMotionNoCollect(Event: TInputMotion);
 
   { Call all TCastleUserInterface.Motion.
     Takes care of accounting for ForceCaptureInput and FCaptureInput. }
@@ -2468,6 +2471,12 @@ procedure TCastleContainer.EventMotionNoCollect(const Event: TInputMotion);
   end;
 
 begin
+  // calculate Event.Delta
+  if PointerLock.Active then
+    Event.Delta := PointerLock.Delta(Event)
+  else
+    Event.Delta := Event.Position - Event.OldPosition;
+
   Inc(FProcessingEvents);
   try
     CallEvents;

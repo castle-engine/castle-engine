@@ -159,6 +159,7 @@ type
     procedure RequestPointerLockNow;
   protected
     procedure ActiveChanged(const NewValue: Boolean); override;
+    function Delta(const Event: TInputMotion): TVector2; override;
   public
     procedure RegisterListeners;
 
@@ -174,8 +175,6 @@ type
       @link(TInputMotion.OldPosition) when this is true. Right now,
       browsers will just report them as if mouse never moved at all. }
     property Effective: Boolean read FEffective;
-
-    function Delta(const Event: TInputMotion): TVector2; override;
 
     { Calculate proper Delta from IJSPointerEvent, at each PointerMove. }
     procedure CalculateDelta(var SendMotion: TInputMotion;

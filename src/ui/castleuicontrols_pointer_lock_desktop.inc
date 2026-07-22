@@ -31,8 +31,8 @@
     FMotionToSubtract: TVector2;
   protected
     procedure ActiveChanged(const NewValue: Boolean); override;
-  public
     function Delta(const Event: TInputMotion): TVector2; override;
+  public
     procedure InternalIgnoreNextMotion; override;
   end;
 

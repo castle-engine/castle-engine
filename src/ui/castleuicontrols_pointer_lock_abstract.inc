@@ -31,16 +31,14 @@
         from the perspective of user dragging something with mouse
         or rotating 3D view in FPS game.)
 
-      @item(The only way to get useful "delta of move" from @link(TInputMotion)
-        is to use @link(TCastleAbstractPointerLock.Delta) like this:
+      @item(Use ready @link(TInputMotion.Delta) for any logic you want:
 
         @longCode(
         function TViewMain.Motion(const Event: TInputMotion): Boolean;
         begin
           Result := inherited;
           if Result then Exit; // allow the ancestor to handle event
-
-          MoveSomething := MoveSomething + Container.PointerLock.Delta(Event);
+          MoveSomething := MoveSomething + Event.Delta;
         end;
         )
       )
@@ -54,6 +52,10 @@
         Some implementations (web) may expose there "no movement at all"
         (as the "pointer lock API" on WWW browsers pretends that mouse didn't
         move at all).
+
+        Do not assume that @link(TInputMotion.Delta) is equal to
+        @link(TInputMotion.Position) - @link(TInputMotion.OldPosition),
+        it is not (on neither platform, now).
       )
     )
 
@@ -85,16 +87,13 @@
     end;
 
     function TViewPlayGame.Motion(const Event: TInputMotion): Boolean;
-    var
-      Delta: TVector2;
     begin
       Result := inherited;
       if Result then Exit;
 
       if Container.PointerLock.Active then
       begin
-        Delta := Container.PointerLock.Delta(Event);
-        // Use Delta to perform any logic you want.
+        // Use Event.Delta to perform any logic you want.
       end;
     end;
     #)
@@ -164,23 +163,16 @@
       are not notified about the cancellation in any other way.
       E.g. web implementation sets "FEffective := false" before calling this. }
     procedure CancelActive;
-  public
-    constructor Create(const AContainer: TCastleContainer);
-    destructor Destroy; override;
-
-    { Enable or disable pointer lock.
-      Note that on some platforms (web) user can cancel pointer lock at any time,
-      in which case this property turns to @false.
-      On other platforms (desktop) this stays completely under control
-      of the application. }
-    property Active: Boolean read FActive write SetActive;
 
     { Read current delta of mouse movement, assuming that mouse look is active.
 
-      Use this only from @link(TCastleUserInterface.Motion) method overrides,
-      as it needs TInputMotion as input argument to calculate the mouse movement
-      delta. Typically, this means you call this from your
-      @url(https://castle-engine.io/views view)'s @code(Motion) method.
+      This is internally used by container to set @link(TInputMotion.Delta)
+      before @link(TInputMotion) is passed to @link(TCastleUserInterface.Motion)
+      events.
+
+      This is called exactly once per motion event (so it doesn't need to be
+      deterministic based on Event; on desktop it will indeed do some
+      side-effects like repositioning mouse).
 
       Always returns zero if @link(Active) is @false.
       Remember that on some platforms (web) user may cancel the "pointer lock"
@@ -199,6 +191,16 @@
       mouse by more pixels, when on a larger screen, when UI is larger)
       then just use @code(Delta / UiScale). }
     function Delta(const Event: TInputMotion): TVector2; virtual; abstract;
+  public
+    constructor Create(const AContainer: TCastleContainer);
+    destructor Destroy; override;
+
+    { Enable or disable pointer lock.
+      Note that on some platforms (web) user can cancel pointer lock at any time,
+      in which case this property turns to @false.
+      On other platforms (desktop) this stays completely under control
+      of the application. }
+    property Active: Boolean read FActive write SetActive;
 
     { Next motion event is expected to have wild movement, so ignore it.
       This is internal, used by container implementations.

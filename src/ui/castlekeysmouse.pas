@@ -978,34 +978,15 @@ type
       In the same coordinate system as @link(TInputPressRelease.Position). }
     OldPosition, Position: TVector2;
 
-    { Change of movement.
+    { Change of movement, internal for web.
 
-      Applications should not use this, at this point.
+      Applications should use @link(Delta) instead.
 
-      Applications should use:
-
-      - When pointer lock is not used, i.e. when
-        @link(TCastleContainer.PointerLock.Active MyContainer.PointerLock.Active)
-        is @false:
-
-          Just do @code(Event.Position - Event.OldPosition) to get the change
-          in position.
-
-      - When pointer lock is used, i.e. when
-        @link(TCastleContainer.PointerLock.Active MyContainer.PointerLock.Active)
-        is @true:
-
-          Read deltas by @link(TCastleAbstractPointerLock.Delta
-          MyContainer.PointerLock.Delta(Event)).
-          It may use, under the hood, Event.InternalWebDelta.
-
-      What it contains now:
+      This contains now:
 
       On platforms other than web,
       or when the web platform is used without pointer lock,
       this is just zero.
-      (In the past: it was @code(@link(Position) - @link(OldPosition),
-      but that was useless given we don't advise using it.)
 
       On the web platform, when pointer lock is used,
       this is the change in position reported by the browser pointer lock API.
@@ -1015,6 +996,30 @@ type
 
       @exclude }
     InternalWebDelta: TVector2;
+
+    { Delta of movement, in the same coordinate system as
+      @link(TInputPressRelease.Position).
+
+      @unorderedList(
+        @item(When pointer lock is not used, i.e. when
+          @link(TCastleContainer.PointerLock.Active MyContainer.PointerLock.Active)
+          is @false:
+
+          This is equal to @code(Event.Position - Event.OldPosition).
+        )
+
+        @item(When pointer lock is used, i.e. when
+          @link(TCastleContainer.PointerLock.Active MyContainer.PointerLock.Active)
+          is @true:
+
+          This is calculated in more complicated, and internal, way,
+          using best "pointer lock" logic for the given platform.
+          See @link(TCastleContainer.PointerLock)
+          and @link(TCastleAbstractPointerLock) for more information.
+        )
+      )
+    }
+    Delta: TVector2;
 
     { Currently pressed mouse buttons.
       On touch devices, this is always just [buttonLeft]. }
@@ -1637,6 +1642,10 @@ begin
   FillChar(Result, SizeOf(Result), 0);
   Result.OldPosition := OldPosition;
   Result.Position := Position;
+  { Set Delta here to something reasonable just in case something will use this
+    prematurely. In normal situation, TCastleContainer.EventMotionNoCollect
+    should set Delta, accounting also for possible pointer lock. }
+  Result.Delta := Position - OldPosition;
   Result.Pressed := Pressed;
   Result.FingerIndex := FingerIndex;
 end;
