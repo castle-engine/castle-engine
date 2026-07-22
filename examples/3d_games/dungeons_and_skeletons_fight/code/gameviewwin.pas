@@ -26,7 +26,9 @@ type
   published
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
-    // ButtonXxx: TCastleButton;
+    ButtonPlayAgain: TCastleButton;
+  private
+    procedure ClickPlayAgain(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -38,6 +40,8 @@ var
 
 implementation
 
+uses GameViewMain;
+
 constructor TViewWin.Create(AOwner: TComponent);
 begin
   inherited;
@@ -48,12 +52,18 @@ procedure TViewWin.Start;
 begin
   inherited;
   { Executed once when view starts. }
+  ButtonPlayAgain.OnClick := {$ifdef FPC}@{$endif} ClickPlayAgain;
 end;
 
 procedure TViewWin.Update(const SecondsPassed: Single; var HandleInput: boolean);
 begin
   inherited;
   { Executed every frame. }
+end;
+
+procedure TViewWin.ClickPlayAgain(Sender: TObject);
+begin
+  Container.View := ViewMain;
 end;
 
 end.
