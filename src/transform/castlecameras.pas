@@ -2808,6 +2808,10 @@ end;
 
 { TCastleMouseLookNavigation ------------------------------------------------- }
 
+var
+  { Extra logging for debugging MouseLook. }
+  LogMouseLook: Boolean = false;
+
 constructor TCastleMouseLookNavigation.Create(AOwner: TComponent);
 begin
   inherited;
@@ -2878,12 +2882,14 @@ begin
     Container.PointerLock.Controller := Self;
     // InternalUsingMouseLook is true only if we have Container
     Assert(Container <> nil);
-    WritelnLog('Pointer lock (MouseLook) activation by %s(%s)', [Name, ClassName]);
+    if LogMouseLook then
+      WritelnLog('Pointer lock (MouseLook) activation by %s(%s)', [Name, ClassName]);
   end else
   begin
     // release mouse look, this also means we don't want to control it anymore
     Container.PointerLock.Controller := nil;
-    WritelnLog('Pointer lock (MouseLook) release by %s(%s)', [Name, ClassName]);
+    if LogMouseLook then
+      WritelnLog('Pointer lock (MouseLook) release by %s(%s)', [Name, ClassName]);
   end;
 
   Container.PointerLock.Active := NewInternalUsingMouseLook;
@@ -2988,7 +2994,8 @@ begin
       begin
         Container.PointerLock.Controller := nil;
         Container.PointerLock.Active := false;
-        WritelnLog('Pointer lock (MouseLook) release by %s(%s) due to Container change', [Name, ClassName]);
+        if LogMouseLook then
+          WritelnLog('Pointer lock (MouseLook) release by %s(%s) due to Container change', [Name, ClassName]);
       end;
     end;
   end;
