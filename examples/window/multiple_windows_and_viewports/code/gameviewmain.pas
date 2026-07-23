@@ -86,9 +86,12 @@ function TViewMain.Press(const Event: TInputPressRelease): Boolean;
   begin
     Box := TransformLoad('castle-data:/drop_box.castle-transform', FreeAtStop);
     Viewport.Camera.GetWorldView(CamPos, CamDir, CamUp);
-    Box.Translation := CamPos + CamDir * 10.0;
+    Box.Translation := CamPos + CamDir * 4.0;
     Box.Direction := CamDir;
     Viewport.Items.Add(Box);
+
+    Assert(Box.RigidBody <> nil); // we designed drop_box.castle-transform to have a RigidBody
+    Box.RigidBody.AddForce(CamDir * 800, false);
   end;
 
 begin
