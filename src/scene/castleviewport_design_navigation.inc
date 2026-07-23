@@ -95,7 +95,12 @@ begin
   Result := inherited;
   if Result then Exit;
 
-  if Event.IsMouseButton(buttonRight) then
+  if Event.IsMouseButton(buttonRight) and
+     (Container <> nil) and
+     { Check no other component controls mouse look. Improves design-time
+       navigation in examples/window/multiple_windows_and_viewports/
+       with 2 viewports. }
+     (Container.PointerLock.Controller = nil) then
   begin
     MouseLook := true;
     ZoomEnabled := false;
