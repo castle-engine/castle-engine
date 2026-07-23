@@ -32,7 +32,7 @@ var
 implementation
 
 uses SysUtils,
-  CastleLog, CastleUIControls, CastleViewport
+  CastleLog, CastleUIControls, CastleViewport, CastleScene, CastleTransform
   {$region 'Castle Initialization Uses'}
   // The content here may be automatically updated by CGE editor.
   , GameViewMain
@@ -43,11 +43,25 @@ procedure ApplicationInitialize;
 
   { Adjust ViewportToChange.Items, changing also camera parent.
     See https://castle-engine.io/multiple_viewports_to_display_one_world }
-  procedure ShareWorld(const TargetViewport, ViewportToChange: TCastleViewport);
+  procedure ShareWorld(const TargetViewport, ViewportToChange: TCastleViewport;
+    const CameraViewName: String);
+  var
+    Camera: TCastleCamera;
+    Text: TCastleText;
   begin
-    ViewportToChange.Items.Remove(ViewportToChange.Camera);
+    Camera := ViewportToChange.Camera;
+
+    { Move Camera from ViewportToChange to TargetViewport.
+      This way both viewports will show the same world. }
+    ViewportToChange.Items.Remove(Camera);
     ViewportToChange.Items := TargetViewport.Items;
-    ViewportToChange.Items.Add(ViewportToChange.Camera);
+    TargetViewport.Items.Add(Camera);
+
+    { Every camera has 1 child, TCastleText.
+      Find it and make it show view name + camera name, so that all cameras
+      are marked in the 3D world. }
+    Text := Camera[0] as TCastleText;
+    Text.Caption := Format('%s (%s)', [Camera.Name, CameraViewName]);
   end;
 
 begin
@@ -67,11 +81,11 @@ begin
 
   { Make all 4 viewports refer to one world,
     from ViewMainInWindow1.ViewportTop.Items }
-  ShareWorld(ViewMainInWindow1.ViewportTop, ViewMainInWindow1.ViewportBottom);
+  ShareWorld(ViewMainInWindow1.ViewportTop, ViewMainInWindow1.ViewportBottom, 'View1');
   if Window2Use then
   begin
-    ShareWorld(ViewMainInWindow1.ViewportTop, ViewMainInWindow2.ViewportTop);
-    ShareWorld(ViewMainInWindow1.ViewportTop, ViewMainInWindow2.ViewportBottom);
+    ShareWorld(ViewMainInWindow1.ViewportTop, ViewMainInWindow2.ViewportTop, 'View2');
+    ShareWorld(ViewMainInWindow1.ViewportTop, ViewMainInWindow2.ViewportBottom, 'View2');
   end;
 end;
 
