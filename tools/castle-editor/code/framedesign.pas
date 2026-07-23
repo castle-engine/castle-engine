@@ -1470,10 +1470,12 @@ begin
     end;
   end;
 
-  if not InternalDesignMouseLook then
-    { do not override cursor when InternalDesignMouseLook,
-      to allow mouse look to hide cursor. }
-    UpdateCursor;
+  { Note: We do this regardless if some TCastleWalkNavigationDesign
+    now uses mouse look (so user right-clicked on some viewport).
+    When mouse look is used, it overrides cursor by Container.FInternalOverrideCursor,
+    which takes precedence over Container.OverrideCursor so we don't need
+    to worry about it. }
+  UpdateCursor;
 
   UpdateHoverComponent;
 end;
@@ -3355,10 +3357,6 @@ begin
     PanelAnchors.Visible;
   TabEvents.TabVisible :=
     (Inspector[itEvents].RowCount <> 0);
-
-  { If necessary, reset OverrideCursor modified by UpdateCursor, to allow mouse look to hide cursor }
-  if InternalDesignMouseLook then
-    CastleControl.Container.OverrideCursor := mcDefault;
 
   UpdateCurrentViewport;
 

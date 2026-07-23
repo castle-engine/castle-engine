@@ -1727,9 +1727,7 @@ begin
     SourceNav := TCastleNavigation(Source);
     Radius              := SourceNav.Radius             ;
     Input               := SourceNav.Input              ;
-    { The Cursor should be synchronized with TCastleMouseLookNavigation.MouseLook,
-      do not blindly copy it from TCastleWalkNavigation to TCastleExamineNavigation. }
-    // Cursor              := SourceNav.Cursor             ;
+    Cursor              := SourceNav.Cursor             ;
     ModelBox            := SourceNav.ModelBox           ;
 
     { TODO: should move to TCastleWalkNavigation.Assign,

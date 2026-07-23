@@ -18,10 +18,6 @@
 
 {$ifdef read_interface}
 
-var
-  { @exclude }
-  InternalDesignMouseLook: Boolean;
-
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -50,8 +46,6 @@ type
 
     property MouseLook stored false;
     property ZoomEnabled stored false;
-    { Also adjusted by MouseLook, and we also don't want to persist this. }
-    property Cursor stored false;
   end;
 
 constructor TCastleWalkNavigationDesign.Create(AOwner: TComponent);
@@ -108,7 +102,6 @@ begin
     // use mouse wheel, as alterntive to +/-, to increase/decrease movement speed
     Input_MoveSpeedInc.Assign(keyNumpadPlus , keyNone, '+', false, buttonLeft, mwUp);
     Input_MoveSpeedDec.Assign(keyNumpadMinus, keyNone, '-', false, buttonLeft, mwDown);
-    InternalDesignMouseLook := true;
     Exit(true);
   end;
 
@@ -139,7 +132,6 @@ begin
     ZoomEnabled := true;
     Input_MoveSpeedInc.MakeClear;
     Input_MoveSpeedDec.MakeClear;
-    InternalDesignMouseLook := false;
     Exit(true);
   end;
 end;
@@ -200,7 +192,6 @@ type
   published
     property RotationAccelerate default false;
     property CheckCollisions default false;
-    property Cursor stored false;
   end;
 
 constructor TCastleExamineNavigationDesign.Create(AOwner: TComponent);
@@ -231,8 +222,6 @@ type
     constructor Create(AOwner: TComponent); override;
   published
     property MouseButtonMove default buttonRight;
-
-    property Cursor stored false;
   end;
 
 constructor TCastle2DNavigationDesign.Create(AOwner: TComponent);
