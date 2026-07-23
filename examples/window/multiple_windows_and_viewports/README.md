@@ -24,7 +24,7 @@ Navigation:
 
 - Look around by moving the mouse while the right mouse button is pressed. Again, it affects the navigation in the viewport under mouse.
 
-Drop physical box using Enter key. This is mainly useful to prove that indeed all 4 viewports share the same 3D world, and you can see the same box in all 4 viewports.
+Drop physical box using _Enter_ key or _Left mouse button press_. This is useful to prove that indeed all 4 viewports share the same 3D world, and you can see the same box in all 4 viewports.
 
 ![Screenshot](screenshot.png)
 

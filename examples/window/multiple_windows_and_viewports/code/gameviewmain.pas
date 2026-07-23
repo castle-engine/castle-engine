@@ -100,7 +100,8 @@ begin
 
   { We check Container.Focused and viewport's Focused,
     to only drop from 1 viewport in focused window. }
-  if Event.IsKey(keyEnter) and Container.Focused then
+  if (Event.IsKey(keyEnter) or Event.IsMouseButton(buttonLeft)) and
+     Container.Focused then
   begin
     if ViewportBottom.Focused then
       DropFromViewport(ViewportBottom)
