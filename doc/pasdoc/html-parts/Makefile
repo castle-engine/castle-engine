@@ -44,5 +44,7 @@ castle-engine-website-base:
 	       $(CGE_WWW_PATH)htdocs/castle-engine-website-base/node_modules \
 	       castle-engine-website-base/
 
+# Make CSS using Dart Sass, https://sass-lang.com/ .
+# Install CLI following https://sass-lang.com/install/ .
 cge-pasdoc.css: cge-pasdoc.scss
 	sass --no-source-map cge-pasdoc.scss:cge-pasdoc.css
