@@ -122,6 +122,11 @@
       - Makes FPendingViewStack reflect FCurrentViewStack. }
     procedure ProcessViewChanges;
 
+    { Check some conditions before be send events to C:
+      C must exist, have existing parents, and be part of this container.
+      In most cases, our event processing logic *does not* need to do this
+      check, as we recursively descend only to existing children. }
+    function UseControl(const C: TCastleUserInterface): Boolean;
     function UseForceCaptureInput: Boolean;
     function UsePointerLockController: Boolean;
     function IsForceCaptureInput(const C: TCastleUserInterface): Boolean;
@@ -531,9 +536,8 @@
       is last on this list. }
     property Focus: TCastleUserInterfaceList read FFocus;
 
-    { First control that receives input events, determined by @link(Focus) list
-      and @link(ForceCaptureInput).
-      @nil if none.
+    { First control that receives input events, determined by the @link(Focus)
+      list. @nil if none.
 
       Be careful when using this: most logic should account for the fact
       that multiple controls may be focused, that's why @link(Focus) is a list.
@@ -1290,7 +1294,6 @@ end;
 procedure TCastleContainer.DetachNotification(const C: TCastleUserInterface);
 var
   Index: Integer;
-  FingerIndex: TFingerIndex;
 begin
   if C = FTooltipParent then
   begin
@@ -1310,10 +1313,7 @@ begin
   end;
 
   if FCaptureInput <> nil then
-  begin
-    while TryGetFingerOfControl(C, FingerIndex) do
-      FCaptureInput.Remove(FingerIndex);
-  end;
+    ReleaseCapture(C);
 end;
 
 function TCastleContainer.TryGetFingerOfControl(const C: TCastleUserInterface; out Finger: TFingerIndex): Boolean;
@@ -1331,30 +1331,34 @@ begin
   Result := false;
 end;
 
+function TCastleContainer.UseControl(const C: TCastleUserInterface): Boolean;
+begin
+  Assert(C <> nil);
+  Result :=
+    (C.Container = Self) { currently added to our Controls tree } and
+    C.ExistsInRoot;
+end;
+
 function TCastleContainer.UseForceCaptureInput: Boolean;
 begin
-  Result :=
-    (ForceCaptureInput <> nil) and
-    (ForceCaptureInput.Container = Self) { currently added to our Controls tree } and
-    ForceCaptureInput.ExistsInRoot;
+  Result := (ForceCaptureInput <> nil) and UseControl(ForceCaptureInput);
 end;
 
 function TCastleContainer.IsForceCaptureInput(const C: TCastleUserInterface): Boolean;
 begin
-  Result := (ForceCaptureInput = C) and UseForceCaptureInput;
+  Assert(C <> nil);
+  Result := (ForceCaptureInput = C) and UseControl(ForceCaptureInput);
 end;
 
 function TCastleContainer.UsePointerLockController: Boolean;
 begin
-  Result :=
-    (PointerLock.Controller <> nil) and
-    (PointerLock.Controller.Container = Self) { currently added to our Controls tree } and
-    PointerLock.Controller.ExistsInRoot;
+  Result := (PointerLock.Controller <> nil) and UseControl(PointerLock.Controller);
 end;
 
 function TCastleContainer.IsPointerLockController(const C: TCastleUserInterface): Boolean;
 begin
-  Result := (PointerLock.Controller = C) and UsePointerLockController;
+  Assert(C <> nil);
+  Result := (PointerLock.Controller = C) and UseControl(PointerLock.Controller);
 end;
 
 function TCastleContainer.PassEvents(const C: TCastleUserInterface;
@@ -1431,17 +1435,27 @@ var
       RecursiveCalculateNewFocus(Controls[I]);
   end;
 
-  { Possibly adds the control to FNewFocus and
-    updates the AnythingForcesNoneCursor if needed. }
+  { Adds the control at the end (front-most) of FNewFocus.
+    Also updates the AnythingForcesNoneCursor if needed. }
   procedure AddInFrontOfNewFocus(const C: TCastleUserInterface);
+  var
+    OldIndex: Integer;
   begin
-    if (not (csDestroying in C.ComponentState)) and
-       (FNewFocus.IndexOf(C) = -1) then
-    begin
-      FNewFocus.Add(C);
-      if C.Cursor = mcForceNone then
-        AnythingForcesNoneCursor := true;
-    end;
+    // early exit in exceptional case
+    if csDestroying in C.ComponentState then
+      Exit;
+
+    { Remove previous occurrence of C from FNewFocus.
+      This follows how we pass messages: we don't send message twice,
+      if the control is e.g. ForceCaptureInput and also under the mouse cursor. }
+    OldIndex := FNewFocus.IndexOf(C);
+    if OldIndex <> -1 then
+      FNewFocus.Delete(OldIndex);
+
+    FNewFocus.Add(C);
+
+    if C.Cursor = mcForceNone then
+      AnythingForcesNoneCursor := true;
   end;
 
   function CalculateMouseCursor: TMouseCursor;
@@ -1487,7 +1501,7 @@ var
 var
   I: Integer;
   Tmp: TCastleUserInterfaceList;
-  ControlUnderFinger0: TCastleUserInterface;
+  CapturedControl: TCastleUserInterface;
 begin
   { since this is called at the end of TInternalChildrenControls.Notify after
     some control is removed, we're paranoid here about checking csDestroying. }
@@ -1507,19 +1521,28 @@ begin
     CalculateNewFocus;
 
     { add controls capturing the input (since they should have Focused = true to
-      show them as receiving input) on top of other controls
+      show them as receiving input) in front of the other controls
       (so that e.g. TCastleOnScreenMenu underneath pressed-down button is
       also still focused,
       and viewport with PointerLock receives is treated as focused,
-      and gets mouse events, regardless of mouse position). }
-    if UseForceCaptureInput then
-      AddInFrontOfNewFocus(ForceCaptureInput) else
+      and gets mouse events, regardless of mouse position).
 
+      This is consistent with how we pass events:
+      - first ForceCaptureInput has a chance
+      - then PointerLock.Controller has a chance
+      - then FCaptureInput (and we cannot base this on finger, so we look at all fingers)
+      - then controls under the mouse/finger have a chance
+
+      We do this in backward order, since the front-most should be the last
+      on which we call AddInFrontOfNewFocus, which just adds it to the end
+      of list.
+    }
+    for CapturedControl in FCaptureInput.Values do
+      AddInFrontOfNewFocus(CapturedControl);
     if UsePointerLockController then
-      AddInFrontOfNewFocus(PointerLock.Controller) else
-
-    if FCaptureInput.TryGetValue(0, ControlUnderFinger0) then
-      AddInFrontOfNewFocus(ControlUnderFinger0);
+      AddInFrontOfNewFocus(PointerLock.Controller);
+    if UseForceCaptureInput then
+      AddInFrontOfNewFocus(ForceCaptureInput);
 
     { update TCastleUserInterface.Focused values, based on differences between FFocus and FNewFocus }
     if not (ApplicationProperties.TouchDevice) then
@@ -1749,11 +1772,13 @@ procedure TCastleContainer.EventUpdate;
           Dec(I);
         end;
 
-        { We already called Update on some controls due
-          to ForceCaptureInput and related mechanisms }
-        if (not IsForceCaptureInput(C)) and
-           (not IsPointerLockController(C)) then
+        { Checking C.FUpdateCalledFrameId avoids calling Update multiple times.
+          We already called Update on some controls due
+          to ForceCaptureInput, PointerLock.Controller FCaptureInput mechanisms. }
+        if C.FUpdateCalledFrameId <> Fps.FrameId then
         begin
+          C.FUpdateCalledFrameId := Fps.FrameId;
+
           { We call Update on all the existing controls,
             but not all receive HandleInput = true.
             See TCastleUserInterface.Update for explanation. }
@@ -1886,7 +1911,11 @@ procedure TCastleContainer.EventUpdate;
     C.ProcessingEventsDescription := 'Update';
     Inc(C.ProcessingEvents);
     try
-      C.Update(Fps.SecondsPassed, HandleInput);
+      if C.FUpdateCalledFrameId <> Fps.FrameId then
+      begin
+        C.FUpdateCalledFrameId := Fps.FrameId;
+        C.Update(Fps.SecondsPassed, HandleInput);
+      end;
     finally Dec(C.ProcessingEvents) end;
   end;
 
@@ -1894,16 +1923,25 @@ procedure TCastleContainer.EventUpdate;
   var
     I: Integer;
     HandleInput: Boolean;
+    CapturedControl: TCastleUserInterface;
   begin
     HandleInput := true;
 
-    { ForceCaptureInput and friends have the 1st chance to process inputs }
+    // pass to ForceCaptureInput
     if UseForceCaptureInput then
       NonRecursiveUpdate(ForceCaptureInput, HandleInput);
-    if UsePointerLockController and
-       (PointerLock.Controller <> ForceCaptureInput) then
+
+    // pass to PointerLock.Controller
+    if UsePointerLockController then
       NonRecursiveUpdate(PointerLock.Controller, HandleInput);
 
+    // pass to all FCaptureInput (consistent with how we pass Motion and
+    // put on Focus also all controls from FCaptureInput.Values)
+    for CapturedControl in FCaptureInput.Values do
+      if UseControl(CapturedControl) then
+        NonRecursiveUpdate(CapturedControl, HandleInput);
+
+    // pass to all controls, recursively
     I := Controls.Count - 1;
     while I >= 0 do
     begin
@@ -2052,12 +2090,14 @@ function TCastleContainer.EventPress(const Event: TInputPressRelease): Boolean;
       Exit(true);
     end;
 
-    { pass to ForceCaptureInput and friends }
+    // pass to ForceCaptureInput
     if UseForceCaptureInput then
     begin
       if NonRecursivePreviewAndPress(ForceCaptureInput) then
         Exit(true);
     end;
+
+    // pass to PointerLock.Controller
     if UsePointerLockController and
        (PointerLock.Controller <> ForceCaptureInput) then
     begin
@@ -2065,7 +2105,7 @@ function TCastleContainer.EventPress(const Event: TInputPressRelease): Boolean;
         Exit(true);
     end;
 
-    { pass to all Controls with TCastleUserInterface.Press event }
+    // pass to all Controls, recursively
     for I := Controls.Count - 1 downto 0 do
       { checking "I < Controls.Count" below is a poor safeguard in case
         some Press handler changes the Controls.Count.
@@ -2163,12 +2203,14 @@ function TCastleContainer.EventRelease(const Event: TInputPressRelease): Boolean
   begin
     Result := false;
 
-    { pass to ForceCaptureInput and friends }
+    // pass to ForceCaptureInput
     if UseForceCaptureInput then
     begin
       if NonRecursivePreviewAndRelease(ForceCaptureInput) then
         Exit(true);
     end;
+
+    // pass to PointerLock.Controller
     if UsePointerLockController and
        (PointerLock.Controller <> ForceCaptureInput) then
     begin
@@ -2176,25 +2218,22 @@ function TCastleContainer.EventRelease(const Event: TInputPressRelease): Boolean
         Exit(true);
     end;
 
-    { pass to control holding capture }
-
+    // pass to control holding capture from FCaptureInput
     if not FCaptureInput.TryGetValue(Event.FingerIndex, Capture) then
       Capture := nil;
-
-    if (Capture <> nil) and not Capture.Exists then
+    if (Capture <> nil) and not UseControl(Capture) then
     begin
-      { No longer capturing, since the Exists returns false now.
-        We do not send any events to non-existing controls. }
+      { No longer capturing, if UseControl is false
+        (Capture no longer exists, or its parent no longer exist,
+        or its no part of Container anymore). }
       FCaptureInput.Remove(Event.FingerIndex);
       Capture := nil;
     end;
-
     if (Capture <> nil) and (MousePressed = []) then
     begin
       { No longer capturing, but do not set Capture to nil (it should receive the Release event). }
       FCaptureInput.Remove(Event.FingerIndex);
     end;
-
     if (Capture <> nil) and
        (not IsForceCaptureInput(Capture)) and
        (not IsPointerLockController(Capture)) then
@@ -2203,7 +2242,7 @@ function TCastleContainer.EventRelease(const Event: TInputPressRelease): Boolean
       Exit; // if something is capturing the input, prevent other controls from getting the events
     end;
 
-    { pass to all Controls with TCastleUserInterface.Release event }
+    // pass to all Controls with TCastleUserInterface.Release event
     for I := Controls.Count - 1 downto 0 do
       if RecursiveRelease(Controls[I]) then
         Exit(true);
@@ -2435,8 +2474,7 @@ end;
 
 procedure TCastleContainer.EventMotionNoCollect(Event: TInputMotion);
 
-  { Call all TCastleUserInterface.Motion.
-    Takes care of accounting for ForceCaptureInput and friends. }
+  { Call TCastleUserInterface.Motion to all controls. }
   procedure CallEvents;
 
     function RecursiveMotion(const C: TCastleUserInterface): Boolean;
@@ -2480,12 +2518,14 @@ procedure TCastleContainer.EventMotionNoCollect(Event: TInputMotion);
     I: Integer;
     Capture: TCastleUserInterface;
   begin
-    { pass to ForceCaptureInput }
+    // pass to ForceCaptureInput
     if UseForceCaptureInput then
     begin
       if NonRecursiveMotion(ForceCaptureInput) then
         Exit;
     end;
+
+    // pass to PointerLock.Controller
     if UsePointerLockController and
        (ForceCaptureInput <> PointerLock.Controller) then
     begin
@@ -2493,19 +2533,17 @@ procedure TCastleContainer.EventMotionNoCollect(Event: TInputMotion);
         Exit;
     end;
 
-    { pass to control holding capture }
-
+    // pass to control holding capture
     if not FCaptureInput.TryGetValue(Event.FingerIndex, Capture) then
       Capture := nil;
-
-    if (Capture <> nil) and not Capture.ExistsInRoot then
+    if (Capture <> nil) and not UseControl(Capture) then
     begin
-      { No longer capturing, since the ExistsInRoot returns false now.
-        We do not send any events to non-existing controls. }
+      { No longer capturing, since the UseControl(Capture) is false
+        (control or its parent don't exist, or its not a part of this container
+        anymore). }
       FCaptureInput.Remove(Event.FingerIndex);
       Capture := nil;
     end;
-
     if (Capture <> nil) and
        (not IsForceCaptureInput(Capture)) and
        (not IsPointerLockController(Capture)) then
@@ -2514,7 +2552,7 @@ procedure TCastleContainer.EventMotionNoCollect(Event: TInputMotion);
       Exit; // if something is capturing the input, prevent other controls from getting the events
     end;
 
-    { pass to all Controls }
+    // pass to all Controls
     for I := Controls.Count - 1 downto 0 do
       if RecursiveMotion(Controls[I]) then
         Exit;
@@ -3422,12 +3460,6 @@ end;
 
 function TCastleContainer.FocusFront: TCastleUserInterface;
 begin
-  if UseForceCaptureInput then
-    Result := ForceCaptureInput
-  else
-  if UsePointerLockController then
-    Result := PointerLock.Controller
-  else
   if FFocus.Count <> 0 then
     Result := FFocus.Last // last item is front-most
   else

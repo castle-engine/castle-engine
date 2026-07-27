@@ -57,12 +57,15 @@ type
     procedure TestViewsLifecycle;
     procedure TestStopViewFromEvent;
     procedure TestViewChangePending;
+    procedure TestFocus;
+    procedure TestFocusCapturedControl;
   end;
 
 implementation
 
 uses CastleRectangles, CastleVectors, CastleUtils, CastleWindow, CastleControls,
-  CastleKeysMouse, CastleLog, CastleStringUtils, CastleTimeUtils;
+  CastleKeysMouse, CastleLog, CastleStringUtils, CastleTimeUtils,
+  CastleViewport, CastleCameras;
 
 { TTestContainer ------------------------------------------------------------- }
 
@@ -1028,6 +1031,223 @@ begin
     FreeAndNil(V2);
     FreeAndNil(V3);
     FreeAndNil(Container);
+  end;
+end;
+
+type
+  { TCastleWalkNavigation that records how it received Update events, to test
+    that TCastleContainer dispatches Update correctly (order, HandleInput,
+    and exactly once per frame). }
+  TTestWalkNavigation = class(TCastleWalkNavigation)
+  public
+    UpdateCount: Integer;
+    LastHandleInput: Boolean;
+    procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
+  end;
+
+  { UI control that records Update events and optionally handles Press
+    (to become the input-capturing control). }
+  TTestUpdateRecorder = class(TCastleUserInterface)
+  public
+    UpdateCount: Integer;
+    LastHandleInput: Boolean;
+    HandlePress: Boolean;
+    function Press(const Event: TInputPressRelease): Boolean; override;
+    procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
+  end;
+
+procedure TTestWalkNavigation.Update(const SecondsPassed: Single; var HandleInput: Boolean);
+begin
+  Inc(UpdateCount);
+  // set LastHandleInput before inherited, to make sure we record the initial value
+  LastHandleInput := HandleInput;
+  inherited;
+end;
+
+function TTestUpdateRecorder.Press(const Event: TInputPressRelease): Boolean;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  if HandlePress then
+    Result := true;
+end;
+
+procedure TTestUpdateRecorder.Update(const SecondsPassed: Single; var HandleInput: Boolean);
+begin
+  Inc(UpdateCount);
+  // set LastHandleInput before inherited, to make sure we record the initial value
+  LastHandleInput := HandleInput;
+  inherited;
+end;
+
+procedure TTestCastleUIControls.TestFocus;
+var
+  Container: TTestContainer;
+  Owner: TComponent;
+  Viewport: TCastleViewport;
+  Button1, Button2: TCastleButton;
+  Nav: TTestWalkNavigation;
+begin
+  Owner := TComponent.Create(nil);
+  try
+    Container := TTestContainer.Create(Owner);
+
+    Viewport := TCastleViewport.Create(Owner);
+    Viewport.FullSize := true;
+
+    Button1 := TCastleButton.Create(Owner);
+    Button1.AutoSize := false;
+    Button1.AnchorDelta := Vector2(10, 10);
+    Button1.Width := 30;
+    Button1.Height := 20;
+
+    Button2 := TCastleButton.Create(Owner);
+    Button2.AutoSize := false;
+    Button2.AnchorDelta := Vector2(60, 60);
+    Button2.Width := 30;
+    Button2.Height := 20;
+
+    { Viewport is added first, so it is back-most; buttons are on top of it. }
+    Container.Controls.InsertFront(Viewport);
+    Container.Controls.InsertFront(Button1);
+    Container.Controls.InsertFront(Button2);
+
+    { Mouse over Button1 (which sits over the FullSize viewport). }
+    Container.MousePosition := Vector2(20, 20);
+    Container.UpdateFocusAndMouseCursor;
+
+    AssertEquals(2, Container.Focus.Count);
+    AssertTrue('Viewport focused (under mouse)', Container.Focus[0] = Viewport);
+    AssertTrue('Button1 focused (under mouse)', Container.Focus[1] = Button1);
+    AssertTrue('FocusFront is Button1 (front-most under mouse)', Container.FocusFront = Button1);
+
+    { Add navigation to the viewport. It is under the mouse (FullSize
+      inside FullSize viewport), so it is focused, but not front-most:
+      Button1 is still on top. }
+    Nav := TTestWalkNavigation.Create(Owner);
+    Viewport.Navigation := Nav;
+    AssertTrue('Nav parent is Viewport', Nav.Parent = Viewport);
+    AssertTrue('Nav container is Container', Nav.Container = Container);
+    Container.UpdateFocusAndMouseCursor;
+
+    AssertEquals(3, Container.Focus.Count);
+    AssertTrue('Viewport focused (under mouse)', Container.Focus[0] = Viewport);
+    AssertTrue('Nav focused (under mouse)', Container.Focus[1] = Nav);
+    AssertTrue('Button1 focused (under mouse)', Container.Focus[2] = Button1);
+    AssertTrue('FocusFront still Button1 (nav not forced yet)',
+      Container.FocusFront = Button1);
+
+    { Make the navigation as ForceCaptureInput. Now it is forced front-most,
+      and it appears exactly once on the Focus list (not twice,
+      even though it is both under the mouse and forced). }
+    Container.ForceCaptureInput := Nav;
+    Container.UpdateFocusAndMouseCursor;
+
+    AssertEquals(3, Container.Focus.Count);
+    AssertTrue('Viewport focused (under mouse)', Container.Focus[0] = Viewport);
+    AssertTrue('Button1 focused (under mouse)', Container.Focus[1] = Button1);
+    AssertTrue('Nav focused and forced (under mouse)', Container.Focus[2] = Nav);
+
+    { Update working: Nav (as ForceCaptureInput) is updated with HandleInput=true,
+      and exactly once. The "exactly once" is meaningful because Nav is also
+      under the mouse, hence also reachable by the recursive Update pass.
+      We have special code (FUpdateCalledFrameId) to ensure a double Update call. }
+    Nav.UpdateCount := 0;
+    Container.EventUpdate;
+    AssertEquals('Nav updated exactly once per frame', 1, Nav.UpdateCount);
+    AssertTrue('Nav received HandleInput=true (ForceCaptureInput)',
+      Nav.LastHandleInput);
+
+    { Viewport is no longer FullSize and is moved away from the mouse.
+      Nav is still ForceCaptureInput, so it remains front-most focused and
+      still receives Update with HandleInput=true, even though it is no longer
+      under the mouse. }
+    Viewport.FullSize := false;
+    Viewport.AnchorDelta := Vector2(50, 50);
+    Viewport.Width := 40;
+    Viewport.Height := 40;
+    { Mouse stays at (20,20): inside Button1, outside Viewport (and Nav). }
+    Container.UpdateFocusAndMouseCursor;
+
+    AssertEquals(2, Container.Focus.Count);
+    AssertTrue('Button1 focused (under mouse)', Container.Focus[0] = Button1);
+    AssertTrue('Nav still focused once (forced, off-mouse)', Container.Focus[1] = Nav);
+    AssertTrue('FocusFront still Nav (forced)', Container.FocusFront = Nav);
+
+    Nav.UpdateCount := 0;
+    Container.EventUpdate;
+    AssertEquals('Nav updated exactly once (forced, off-mouse)', 1, Nav.UpdateCount);
+    AssertTrue('Nav received HandleInput=true (forced, off-mouse)',
+      Nav.LastHandleInput);
+
+    { Nav is no longer ForceCaptureInput. As it is not under the mouse,
+      it drops off the Focus list, is no longer FocusFront, and receives
+      Update only with HandleInput=false. }
+    Container.ForceCaptureInput := nil;
+    Container.UpdateFocusAndMouseCursor;
+
+    AssertEquals(1, Container.Focus.Count);
+    AssertTrue('FocusFront is Button1 again', Container.FocusFront = Button1);
+
+    Nav.UpdateCount := 0;
+    Container.EventUpdate;
+    AssertEquals('Nav still updated once (recursively)', 1, Nav.UpdateCount);
+    AssertFalse('Nav received HandleInput=false (not under mouse, not forced)',
+      Nav.LastHandleInput);
+  finally
+    FreeAndNil(Owner);
+  end;
+end;
+
+procedure TTestCastleUIControls.TestFocusCapturedControl;
+var
+  Container: TTestContainer;
+  Owner: TComponent;
+  Capturing: TTestUpdateRecorder;
+begin
+  Container := nil;
+  Owner := nil;
+  try
+    Container := TTestContainer.Create(nil);
+    Owner := TComponent.Create(nil);
+
+    { A control occupying the left-bottom [0,40] x [0,40] area, that handles
+      Press (and thus starts capturing the input). }
+    Capturing := TTestUpdateRecorder.Create(Owner);
+    Capturing.HandlePress := true;
+    Capturing.AnchorDelta := Vector2(0, 0);
+    Capturing.Width := 40;
+    Capturing.Height := 40;
+    Container.Controls.InsertFront(Capturing);
+
+    { Press over the control -> it handles Press -> it becomes the capturing
+      control (present in Container's FCaptureInput). }
+    Container.EventPress(InputMouseButton(Vector2(20, 20), buttonLeft, 0, []));
+
+    { Move the mouse off the control. Since it is capturing input, it should
+      still be front-most focused, and still receive Update with
+      HandleInput=true -- and exactly once per frame (not twice, even though
+      the recursive Update pass also descends to it). }
+    Container.MousePosition := Vector2(95, 95);
+    Container.UpdateFocusAndMouseCursor;
+
+    AssertEquals('Capturing control is the only one focused (holds capture)',
+      1, Container.Focus.Count);
+    AssertTrue('Capturing control is focused (holds capture)',
+      Container.Focus[0] = Capturing);
+    AssertTrue('Capturing control is front-most focused',
+      Container.FocusFront = Capturing);
+
+    Capturing.UpdateCount := 0;
+    Container.EventUpdate;
+    AssertEquals('Capturing control updated exactly once per frame',
+      1, Capturing.UpdateCount);
+    AssertTrue('Capturing control received HandleInput=true (holds capture)',
+      Capturing.LastHandleInput);
+  finally
+    FreeAndNil(Container);
+    FreeAndNil(Owner);
   end;
 end;
 

@@ -236,6 +236,7 @@
   private
     FParent: TCastleUserInterface;
     FLastSeenContainerWidth, FLastSeenContainerHeight: Integer;
+    FUpdateCalledFrameId: TFrameId;
 
     { If we are processing something within this component, and thus
       destroying this component would be dangerous now, this is > 0. }
