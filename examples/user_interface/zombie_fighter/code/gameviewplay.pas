@@ -1,5 +1,5 @@
 {
-  Copyright 2016-2023 Michalis Kamburelis.
+  Copyright 2016-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -18,9 +18,9 @@ unit GameViewPlay;
 
 interface
 
-uses Classes, CastleControls, CastleUIControls, CastleOnScreenMenu,
-  CastleViewport, CastleSceneCore, CastleScene,
-  CastleCameras, CastleKeysMouse;
+uses Classes,
+  CastleControls, CastleUIControls, CastleViewport, CastleSceneCore, CastleScene,
+  CastleCameras, CastleKeysMouse, X3DNodes, CastleVectors;
 
 type
   TViewPlay = class(TCastleView)
@@ -30,13 +30,17 @@ type
     MainViewport, MapViewport: TCastleViewport;
     ButtonBack: TCastleButton;
   strict private
+    { TMaterialInfo of the triangle under mouse. }
+    HighlightedMaterial: TMaterialInfo;
+    HighlightedMaterialInitialColor: TVector3;
+    { Do we current point to some enemy (looks at MainViewport.TriangleHit). }
+    function HitEnemy(out MaterialInfo: TMaterialInfo; out Male: Boolean): Boolean;
     procedure ClickBack(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
-    procedure Resume; override;
-    procedure Pause; override;
-    function Press(const Event: TInputPressRelease): boolean; override;
+    function PreviewPress(const Event: TInputPressRelease): boolean; override;
+    procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
   end;
 
 var
@@ -44,9 +48,8 @@ var
 
 implementation
 
-uses CastleVectors, CastleColors,
-  CastleFilesUtils, CastleUtils, CastleTriangles, CastleShapes,
-  CastleComponentSerialize,
+uses CastleColors, CastleFilesUtils, CastleUtils, CastleTriangles, CastleShapes,
+  CastleComponentSerialize, CastleStringUtils,
   GameViewMainMenu, GameViewAskDialog;
 
 { TViewPlay ------------------------------------------------------------- }
@@ -77,49 +80,91 @@ begin
   ButtonBack.OnClick := {$ifdef FPC}@{$endif}ClickBack;
 end;
 
-procedure TViewPlay.Resume;
-begin
-  inherited;
-
-  { Without setting ForceCaptureInput, inputs are only passed
-    when mouse cursor is over the Viewport.
-
-    Usually you set such things in Start method, but here we need to be
-    prepared that we may be covered by the transparent ViewAskDialog view.
-    When ViewAskDialog is active, we do *not* want to forcefully capture input
-    (it would allow user to move by mouse dragging when ViewAskDialog is open).
-    So we set this in Resume, and turn off in Pause. }
-  Container.ForceCaptureInput := MainViewport.Navigation;
-end;
-
-procedure TViewPlay.Pause;
-begin
-  Container.ForceCaptureInput := nil;
-  inherited;
-end;
-
 procedure TViewPlay.ClickBack(Sender: TObject);
 begin
   Container.View := ViewMainMenu;
 end;
 
-function TViewPlay.Press(const Event: TInputPressRelease): boolean;
+function TViewPlay.HitEnemy(out MaterialInfo: TMaterialInfo; out Male: Boolean): Boolean;
+const
+  { Names below correspond to how materials have been named in Blender.
+    Blender puts them in glTF material names,
+    and our importer puts them in TAppearanceNode.X3DName. }
+  MaterialPrefix: array[Boolean] of String = (
+    'female_zombie_material',
+    'male_zombie_material'
+  );
 var
   Triangle: PTriangle;
+  Appearance: TAppearanceNode;
+begin
+  // default out values
+  MaterialInfo := nil;
+  Male := false;
+
+  Triangle := MainViewport.TriangleHit;
+  // abort if triangle has no detailed information (e.g. PreciseCollisions=false)
+  if Triangle = nil then Exit(false);
+
+  // abort if triangle has no shape node (this can happen only if model is VRML 1.0 now)
+  if Triangle^.ShapeNode = nil then Exit(false);
+
+  Appearance := Triangle^.ShapeNode.Appearance;
+  if Appearance = nil then Exit(false);
+
+  MaterialInfo := Triangle^.MaterialInfo;
+  if MaterialInfo = nil then Exit(false);
+
+  Result :=
+    IsPrefix(MaterialPrefix[false], Appearance.X3DName, false) or
+    IsPrefix(MaterialPrefix[true] , Appearance.X3DName, false);
+  if Result then
+  begin
+    Male := IsPrefix(MaterialPrefix[true], Appearance.X3DName, false);
+  end;
+end;
+
+function TViewPlay.PreviewPress(const Event: TInputPressRelease): boolean;
+var
+  EnemyMale: Boolean;
+  IgnoreMaterial: TMaterialInfo;
 begin
   Result := inherited;
   if Result then Exit;
 
+  { Handle this event in PreviewPress, not Press, because we need to handle
+    "mouse down" before TCastleWalkNavigation handles it. }
   if Event.IsMouseButton(buttonLeft) then
   begin
-    Triangle := MainViewport.TriangleHit;
-    if (Triangle <> nil) and // we clicked on something that has triangle information (e.g. because it has PreciseCollisions)
-       (Triangle^.MaterialInfo <> nil)  and // the clicked triangle has a material information
-       ( (Triangle^.MaterialInfo.Node.X3DName = 'MA_female_zombie_material') or
-         (Triangle^.MaterialInfo.Node.X3DName = 'MA_male_zombie_material')) then
+    if HitEnemy(IgnoreMaterial, EnemyMale) then
     begin
-      ViewAskDialog.Male := Triangle^.MaterialInfo.Node.X3DName = 'MA_male_zombie_material';
+      ViewAskDialog.Male := EnemyMale;
       Container.PushView(ViewAskDialog);
+      Exit(true);
+    end;
+  end;
+end;
+
+procedure TViewPlay.Update(const SecondsPassed: Single; var HandleInput: Boolean);
+var
+  NewMaterial: TMaterialInfo;
+  IgnoreMale: Boolean;
+begin
+  inherited;
+
+  { update HighlightedMaterial, changing colors of previously and newly
+    selected enemy. }
+  if not HitEnemy(NewMaterial, IgnoreMale) then
+    NewMaterial := nil;
+  if HighlightedMaterial <> NewMaterial then
+  begin
+    if HighlightedMaterial <> nil then
+      HighlightedMaterial.MainColor := HighlightedMaterialInitialColor;
+    HighlightedMaterial := NewMaterial;
+    if HighlightedMaterial <> nil then
+    begin
+      HighlightedMaterialInitialColor := HighlightedMaterial.MainColor;
+      HighlightedMaterial.MainColor := Vector3(1.5, 1.5, 1); // bump yellowish
     end;
   end;
 end;

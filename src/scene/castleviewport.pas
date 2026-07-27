@@ -494,8 +494,8 @@ type
     destructor Destroy; override;
 
     function AllowSuspendForInput: boolean; override;
-    function Press(const Event: TInputPressRelease): boolean; override;
-    function Release(const Event: TInputPressRelease): boolean; override;
+    function PreviewPress(const Event: TInputPressRelease): boolean; override;
+    function PreviewRelease(const Event: TInputPressRelease): boolean; override;
     function Motion(const Event: TInputMotion): boolean; override;
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
@@ -1992,12 +1992,23 @@ begin
   end;
 end;
 
-function TCastleViewport.Press(const Event: TInputPressRelease): boolean;
+function TCastleViewport.PreviewPress(const Event: TInputPressRelease): boolean;
 var
   I: Integer;
 begin
   Result := inherited;
   if Result or Items.Paused then Exit;
+
+  { Note: We do this in PreviewPress, not Press,
+    because the TCastleTransform stuff inside viewport
+    (like TCastleScene processing touch events,
+    like touch_sensor_tests.x3dv in demo-models) must receive events
+    before viewport UI children (like TCastleWalkNavigation that
+    also wants to capture clicks, to start mouse dragging when niMouseDragging).
+
+    Testcases:
+    - touch_sensor_tests.x3dv in model viewer, click on TouchSensors
+    - zombie_fighter, click on enemies to invoke dialog }
 
   { Call UpdateMouseRayHit at nearest moment.
     As our PointingDevicePress (called below) uses it.
@@ -2022,7 +2033,7 @@ begin
   end;
 end;
 
-function TCastleViewport.Release(const Event: TInputPressRelease): boolean;
+function TCastleViewport.PreviewRelease(const Event: TInputPressRelease): boolean;
 var
   I: Integer;
 begin

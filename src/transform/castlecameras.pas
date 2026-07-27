@@ -1694,13 +1694,11 @@ begin
   begin
     MouseDraggingStart := Container.MousePosition;
     MouseDraggingStarted := Event.FingerIndex;
-    { TODO: Not setting Result to true below is a hack, to allow TCastleViewport
-      to receive presses anyway. A cleaner solution would be to use
-      PreviewPress in TCastleViewport, but this causes other problems,
-      for unknown reason clicking on TouchSensor then still allows navigation like Walk
-      to receive mouse dragging.
-      Testcase: demo-models, touch_sensor_tests.x3dv }
-    // Exit(true);
+    { Click was handled, and we need to set to true, to capture
+      future mouse motion events even outside of the control.
+      Testcase: zombie_fighter, with non-FullSize viewport, and moving
+      by mouse dragging. }
+    Exit(true);
   end;
 
   if (Event.EventType = itMouseWheel) and
@@ -4476,28 +4474,15 @@ begin
   Result := inherited;
   if Result or (Event.FingerIndex <> 0) then Exit;
 
-  { It is possible to have MouseDraggingStarted = -1 even when all buttons
-    released:
-
-    - When setting MouseDraggingStarted to >= 0 in Press,
-      we do not set Result:=true to avoid other issues
-      (see comments in TCastleNevigation.Press).
-    - But as a consequence, TCastleTouchNavigation.Press may also start dragging
-      at the same time.
-    - Then when user releases the mouse,
-      TCastleTouchNavigation.Release is called,
-      and TCastleNavigation.Release is not called.
-      This is actually regardless of whether TCastleTouchNavigation.Release
-      returns false or true. It's because TCastleContainer.EventRelease
-      calls only Capture.Release + Exit when Capture <> nil,
-      it doesn't call Release on others.
-    - In effect, since our TCastleNavigation.Release wasn't called,
-      MouseDraggingStarted is left at -1.
-
-    Testcase: simple_3d_demo, click on touch navigation in the corner,
-    then release. When moving mouse, you should *not* rotate the camera now. }
-  if Event.Pressed = [] then
+  { This was a workaround for old issue, caused by our TCastleNavigation.Press
+    not returning true when it captures mouse.
+    It should not happen anymore, but keep testing. }
+  if (MouseDraggingStarted <> -1) and
+     (Event.Pressed = []) then
+  begin
+    WritelnWarning('TCastleWalkNavigation.Motion: Mouse dragging cancelled, as we detected motion without any mouse button pressed');
     MouseDraggingStarted := -1;
+  end;
 
   if (MouseDraggingStarted <> -1) and
     // Not need to check here ReallyEnableMouseDragging, as MouseDraggingStarted is already <> -1

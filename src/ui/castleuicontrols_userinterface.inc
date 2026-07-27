@@ -419,6 +419,29 @@
     { Similar to @link(Press) but allows the parent control to preview
       the event before it is passed to children UI controls.
 
+      When we want to inform given control that something was pressed,
+      we call:
+
+      @orderedList(
+        @item(@link(TCastleUserInterface.PreviewPress) on this control.)
+        @item(Recursively process all children,
+          calling @link(TCastleUserInterface.PreviewPress) +
+          @link(TCastleUserInterface.Press) on them.)
+        @item(@link(TCastleUserInterface.Press) on this control.)
+      )
+
+      It is important to note that we don't just
+      "call @link(TCastleUserInterface.PreviewPress)
+      on all controls, and then call @link(TCastleUserInterface.Press)
+      on all controls". The approach above is better, as it means that usually
+      you don't need to care whether some key is handled by a child control
+      in its @link(TCastleUserInterface.PreviewPress) or @link(TCastleUserInterface.Press).
+      Most controls handle keys in @link(TCastleUserInterface.Press),
+      but e.g. @link(TCastleViewport) handles keys
+      @link(TCastleUserInterface.PreviewPress) to capture keys before
+      navigation. And in most cases, you should not care where
+      @link(TCastleViewport) handles keys.
+
       @seealso Press }
     function PreviewPress(const Event: TInputPressRelease): boolean; virtual;
 
