@@ -124,6 +124,8 @@
 
     function UseForceCaptureInput: Boolean;
     function UsePointerLockController: Boolean;
+    function IsForceCaptureInput(const C: TCastleUserInterface): Boolean;
+    function IsPointerLockController(const C: TCastleUserInterface): Boolean;
     function TryGetFingerOfControl(const C: TCastleUserInterface; out Finger: TFingerIndex): Boolean;
     procedure SetDpi(const Value: Single);
     procedure SetUIScaling(const Value: TUIScaling);
@@ -789,21 +791,19 @@
 
     { Force passing events to the given control first,
       regardless if this control is under the mouse cursor.
+
       Before we even send events to the currently "capturing" control
       (for example, when you're dragging the slider, it is "capturing" mouse
-      events until you release the mouse), they are send to this control.
+      events until you release the mouse) and to the control currently
+      controlling the @link(PointerLock),
+      they are send to this control.
 
       The control given here will always have focus
       (that is, @link(TCastleUserInterface.Focused) will be set to true
       shortly after it becomes the ForceCaptureInput).
 
-      An example when this is useful is when you use
-      @link(TCastleWalkNavigation.MouseLook),
-      and the associated viewport does not fill the full window
-      (TCastleViewport.FullSize is @false, and actual sizes are smaller
-      than window, and may not include window center). In this case you want
-      to make sure that motion events get passed to this control,
-      and that this control has focus (to keep mouse cursor hidden).
+      An example where this is useful now: make all key presses
+      go to indicated TCastleEdit, even if the mouse is not over it.
 
       The engine itself @italic(never) automatically sets this property.
       It is up to your application code to set this, if you need. }
@@ -1339,12 +1339,22 @@ begin
     ForceCaptureInput.ExistsInRoot;
 end;
 
+function TCastleContainer.IsForceCaptureInput(const C: TCastleUserInterface): Boolean;
+begin
+  Result := (ForceCaptureInput = C) and UseForceCaptureInput;
+end;
+
 function TCastleContainer.UsePointerLockController: Boolean;
 begin
   Result :=
     (PointerLock.Controller <> nil) and
     (PointerLock.Controller.Container = Self) { currently added to our Controls tree } and
     PointerLock.Controller.ExistsInRoot;
+end;
+
+function TCastleContainer.IsPointerLockController(const C: TCastleUserInterface): Boolean;
+begin
+  Result := (PointerLock.Controller = C) and UsePointerLockController;
 end;
 
 function TCastleContainer.PassEvents(const C: TCastleUserInterface;
@@ -1495,12 +1505,18 @@ begin
   begin
     { calculate new FNewFocus value, update AnythingForcesNoneCursor }
     CalculateNewFocus;
+
     { add controls capturing the input (since they should have Focused = true to
       show them as receiving input) on top of other controls
       (so that e.g. TCastleOnScreenMenu underneath pressed-down button is
-      also still focused) }
+      also still focused,
+      and viewport with PointerLock receives is treated as focused,
+      and gets mouse events, regardless of mouse position). }
     if UseForceCaptureInput then
       AddInFrontOfNewFocus(ForceCaptureInput) else
+
+    if UsePointerLockController then
+      AddInFrontOfNewFocus(PointerLock.Controller) else
 
     if FCaptureInput.TryGetValue(0, ControlUnderFinger0) then
       AddInFrontOfNewFocus(ControlUnderFinger0);
@@ -1733,10 +1749,13 @@ procedure TCastleContainer.EventUpdate;
           Dec(I);
         end;
 
-        if C <> ForceCaptureInput then
+        { We already called Update on some controls due
+          to ForceCaptureInput and related mechanisms }
+        if (not IsForceCaptureInput(C)) and
+           (not IsPointerLockController(C)) then
         begin
-          { Although we call Update for all the existing controls, we look
-            at CapturesEventsAtPosition and track HandleInput values.
+          { We call Update on all the existing controls,
+            but not all receive HandleInput = true.
             See TCastleUserInterface.Update for explanation. }
           if C.CapturesEventsAtPosition(MousePosition) then
           begin
@@ -1860,6 +1879,17 @@ procedure TCastleContainer.EventUpdate;
     end;
   end;
 
+  { Call non-recursive Update on C.
+    This is like C.Update, but also takes care of C.ProcessingEvents. }
+  procedure NonRecursiveUpdate(const C: TCastleUserInterface; var HandleInput: Boolean);
+  begin
+    C.ProcessingEventsDescription := 'Update';
+    Inc(C.ProcessingEvents);
+    try
+      C.Update(Fps.SecondsPassed, HandleInput);
+    finally Dec(C.ProcessingEvents) end;
+  end;
+
   procedure CallEvents;
   var
     I: Integer;
@@ -1867,9 +1897,12 @@ procedure TCastleContainer.EventUpdate;
   begin
     HandleInput := true;
 
-    { ForceCaptureInput has the 1st chance to process inputs }
+    { ForceCaptureInput and friends have the 1st chance to process inputs }
     if UseForceCaptureInput then
-      ForceCaptureInput.Update(Fps.SecondsPassed, HandleInput);
+      NonRecursiveUpdate(ForceCaptureInput, HandleInput);
+    if UsePointerLockController and
+       (PointerLock.Controller <> ForceCaptureInput) then
+      NonRecursiveUpdate(PointerLock.Controller, HandleInput);
 
     I := Controls.Count - 1;
     while I >= 0 do
@@ -1885,48 +1918,13 @@ procedure TCastleContainer.EventUpdate;
   begin
     if (PointerLock.Controller <> nil) and
        { Detect if PointerLock.Controller.ExistsInRoot = false
-         or PointerLock.Controller.Container is something else than us. }
+         or PointerLock.Controller.Container is something else than us.
+
+         This way setting Exists:=false on TCastleWalkNavigation with mouse look,
+         or on parent viewport, or removing it from container -> will make
+         stop controlling PointerLock. }
        (not UsePointerLockController) then
       PointerLock.Controller.ReleasePointerLock;
-
-    if not PointerLock.Active then Exit;
-
-    { Never "capture" the motion of the mouse when PointerLock.Active.
-
-      Without this, using mouse look and then pressing some mouse button that it handled
-      (e.g. to shoot), makes the subsequent dragging not work
-      -- it is blocked for a short time before releasing left mouse button
-      and then it is blocked until you release right mouse button too
-      (because of "if (Capture <> nil) and (MousePressed = []) then" condition).
-
-      Testcases:
-
-      - examples/physics/physics_3d_shooter/
-
-        Mouse look is active when buttonRight is held.
-        buttonLeft does shoot.
-
-        So without this fix, shooting while mouse looking
-        (clicking buttonLeft while holding buttonRight)
-        stops mouse look, even though user still holds buttonRight.
-
-      - examples/3d_games/explore_impressive_castle/
-
-        As above, though mouse look is permanent (as long as in game view).
-
-        It's a problem in any case (whether mouse look is permanent,
-        or temporary by holding buttonRight): clicking with buttonLeft stops
-        mouse look from working.
-
-      - examples/third_person_navigation/
-
-        We have permanent mouse look by default.
-
-        As both buttonLeft (shoot) and buttonRight (toggle aim) perform some function,
-        they both stop mouse look from working.
-    }
-    FCaptureInput.Clear;
-    // this is like ReleaseCapture(...) for all possible arguments
   end;
 
 begin
@@ -1982,7 +1980,9 @@ function TCastleContainer.EventPress(const Event: TInputPressRelease): Boolean;
         C.ProcessingEventsDescription := 'Press';
 
         { try C.PreviewPress }
-        if (C <> ForceCaptureInput) and C.PreviewPress(Event) then
+        if (not IsForceCaptureInput(C)) and
+           (not IsPointerLockController(C)) and
+           C.PreviewPress(Event) then
         begin
           if (Event.EventType = itMouseButton) and
             // See below for explanation of "C.Container = Self" comparison.
@@ -2000,7 +2000,9 @@ function TCastleContainer.EventPress(const Event: TInputPressRelease): Boolean;
             Exit(true);
 
         { try C.Press }
-        if (C <> ForceCaptureInput) and C.Press(Event) then
+        if (not IsForceCaptureInput(C)) and
+           (not IsPointerLockController(C)) and
+           C.Press(Event) then
         begin
           { We have to check whether C.Container = Self. That is because
             the implementation of control's Press method could remove itself
@@ -2021,6 +2023,22 @@ function TCastleContainer.EventPress(const Event: TInputPressRelease): Boolean;
     Result := false;
   end;
 
+  { Call C.PreviewPress and C.Press, non-recursively.
+    Takes care of C.ProcessingEvents. }
+  function NonRecursivePreviewAndPress(const C: TCastleUserInterface): Boolean;
+  begin
+    Inc(C.ProcessingEvents);
+    try
+      C.ProcessingEventsDescription := 'PreviewPress';
+      if C.PreviewPress(Event) then
+        Exit(true);
+      C.ProcessingEventsDescription := 'Press';
+      if C.Press(Event) then
+        Exit(true);
+    finally Dec(C.ProcessingEvents) end;
+    Result := false;
+  end;
+
   { Call virtual methods on UI controls, return is event handled. }
   function CallEvents: Boolean;
   var
@@ -2034,12 +2052,16 @@ function TCastleContainer.EventPress(const Event: TInputPressRelease): Boolean;
       Exit(true);
     end;
 
-    { pass to ForceCaptureInput }
+    { pass to ForceCaptureInput and friends }
     if UseForceCaptureInput then
     begin
-      if ForceCaptureInput.PreviewPress(Event) then
+      if NonRecursivePreviewAndPress(ForceCaptureInput) then
         Exit(true);
-      if ForceCaptureInput.Press(Event) then
+    end;
+    if UsePointerLockController and
+       (PointerLock.Controller <> ForceCaptureInput) then
+    begin
+      if NonRecursivePreviewAndPress(PointerLock.Controller) then
         Exit(true);
     end;
 
@@ -2099,7 +2121,9 @@ function TCastleContainer.EventRelease(const Event: TInputPressRelease): Boolean
         C.ProcessingEventsDescription := 'Release';
 
         { try C.PreviewRelease }
-        if (C <> ForceCaptureInput) and C.PreviewRelease(Event) then
+        if (not IsForceCaptureInput(C)) and
+           (not IsPointerLockController(C)) and
+           C.PreviewRelease(Event) then
           Exit(true);
 
         { try to pass release to C children }
@@ -2108,12 +2132,28 @@ function TCastleContainer.EventRelease(const Event: TInputPressRelease): Boolean
             Exit(true);
 
         { try C.Release }
-        if (C <> ForceCaptureInput) and C.Release(Event) then
+        if (not IsForceCaptureInput(C)) and
+           (not IsPointerLockController(C)) and
+           C.Release(Event) then
           Exit(true);
       finally Dec(C.ProcessingEvents) end;
     end;
 
     Result := false;
+  end;
+
+  function NonRecursivePreviewAndRelease(const C: TCastleUserInterface): Boolean;
+  begin
+    Inc(C.ProcessingEvents);
+    try
+      C.ProcessingEventsDescription := 'PreviewRelease';
+      if C.PreviewRelease(Event) then
+        Exit(true);
+      C.ProcessingEventsDescription := 'Release';
+      if C.Release(Event) then
+        Exit(true);
+      Result := false;
+    finally Dec(C.ProcessingEvents) end;
   end;
 
   function CallEvents: Boolean;
@@ -2123,17 +2163,17 @@ function TCastleContainer.EventRelease(const Event: TInputPressRelease): Boolean
   begin
     Result := false;
 
-    { pass to ForceCaptureInput }
+    { pass to ForceCaptureInput and friends }
     if UseForceCaptureInput then
     begin
-      Inc(ForceCaptureInput.ProcessingEvents);
-      try
-        ForceCaptureInput.ProcessingEventsDescription := 'Release(for ForceCaptureInput)';
-        if ForceCaptureInput.PreviewRelease(Event) then
-          Exit(true);
-        if ForceCaptureInput.Release(Event) then
-          Exit(true);
-      finally Dec(ForceCaptureInput.ProcessingEvents) end;
+      if NonRecursivePreviewAndRelease(ForceCaptureInput) then
+        Exit(true);
+    end;
+    if UsePointerLockController and
+       (PointerLock.Controller <> ForceCaptureInput) then
+    begin
+      if NonRecursivePreviewAndRelease(PointerLock.Controller) then
+        Exit(true);
     end;
 
     { pass to control holding capture }
@@ -2155,14 +2195,11 @@ function TCastleContainer.EventRelease(const Event: TInputPressRelease): Boolean
       FCaptureInput.Remove(Event.FingerIndex);
     end;
 
-    if (Capture <> nil) and (Capture <> ForceCaptureInput) then
+    if (Capture <> nil) and
+       (not IsForceCaptureInput(Capture)) and
+       (not IsPointerLockController(Capture)) then
     begin
-      Inc(Capture.ProcessingEvents);
-      try
-        Capture.ProcessingEventsDescription := 'Release(for Capture)';
-        Result := Capture.PreviewRelease(Event);
-        Result := Capture.Release(Event);
-      finally Dec(Capture.ProcessingEvents) end;
+      Result := NonRecursivePreviewAndRelease(Capture);
       Exit; // if something is capturing the input, prevent other controls from getting the events
     end;
 
@@ -2399,7 +2436,7 @@ end;
 procedure TCastleContainer.EventMotionNoCollect(Event: TInputMotion);
 
   { Call all TCastleUserInterface.Motion.
-    Takes care of accounting for ForceCaptureInput and FCaptureInput. }
+    Takes care of accounting for ForceCaptureInput and friends. }
   procedure CallEvents;
 
     function RecursiveMotion(const C: TCastleUserInterface): Boolean;
@@ -2418,14 +2455,25 @@ procedure TCastleContainer.EventMotionNoCollect(Event: TInputMotion);
               Exit(true);
 
           { try C.Motion itself }
-          if (C <> ForceCaptureInput) and
-             (C <> PointerLock.Controller) and
+          if (not IsForceCaptureInput(C)) and
+             (not IsPointerLockController(C)) and
              C.Motion(Event) then
             Exit(true);
         finally Dec(C.ProcessingEvents) end;
       end;
 
       Result := false;
+    end;
+
+    { Call C.Motion, non-recursively.
+      Takes care of C.ProcessingEvents. }
+    function NonRecursiveMotion(const C: TCastleUserInterface): Boolean;
+    begin
+      Inc(C.ProcessingEvents);
+      try
+        C.ProcessingEventsDescription := 'Motion';
+        Result := C.Motion(Event);
+      finally Dec(C.ProcessingEvents) end;
     end;
 
   var
@@ -2435,15 +2483,13 @@ procedure TCastleContainer.EventMotionNoCollect(Event: TInputMotion);
     { pass to ForceCaptureInput }
     if UseForceCaptureInput then
     begin
-      if ForceCaptureInput.Motion(Event) then
+      if NonRecursiveMotion(ForceCaptureInput) then
         Exit;
     end;
-
-    { pass to PointerLock.Controller }
     if UsePointerLockController and
        (ForceCaptureInput <> PointerLock.Controller) then
     begin
-      if PointerLock.Controller.Motion(Event) then
+      if NonRecursiveMotion(PointerLock.Controller) then
         Exit;
     end;
 
@@ -2461,10 +2507,10 @@ procedure TCastleContainer.EventMotionNoCollect(Event: TInputMotion);
     end;
 
     if (Capture <> nil) and
-       (Capture <> ForceCaptureInput) and
-       (Capture <> PointerLock.Controller) then
+       (not IsForceCaptureInput(Capture)) and
+       (not IsPointerLockController(Capture)) then
     begin
-      Capture.Motion(Event);
+      NonRecursiveMotion(Capture);
       Exit; // if something is capturing the input, prevent other controls from getting the events
     end;
 
@@ -3376,8 +3422,11 @@ end;
 
 function TCastleContainer.FocusFront: TCastleUserInterface;
 begin
-  if ForceCaptureInput <> nil then
+  if UseForceCaptureInput then
     Result := ForceCaptureInput
+  else
+  if UsePointerLockController then
+    Result := PointerLock.Controller
   else
   if FFocus.Count <> 0 then
     Result := FFocus.Last // last item is front-most
