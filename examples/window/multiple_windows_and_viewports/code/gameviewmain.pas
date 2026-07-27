@@ -46,7 +46,7 @@ var
 
 implementation
 
-uses SysUtils;
+uses SysUtils, Math;
 
 { TViewMain ----------------------------------------------------------------- }
 
@@ -86,6 +86,7 @@ function TViewMain.Press(const Event: TInputPressRelease): Boolean;
   begin
     Box := TransformLoad('castle-data:/drop_box.castle-transform', FreeAtStop);
     Viewport.Camera.GetWorldView(CamPos, CamDir, CamUp);
+    CamDir.Y := Max(0, CamDir.Y); // don't drop downwards, e.g. when looking at the floor
     Box.Translation := CamPos + CamDir * 4.0;
     Box.Direction := CamDir;
     Viewport.Items.Add(Box);
@@ -94,20 +95,45 @@ function TViewMain.Press(const Event: TInputPressRelease): Boolean;
     Box.RigidBody.AddForce(CamDir * 800, false);
   end;
 
+  { Which viewport (ViewportBottom or ViewportTop) should be used for operations,
+    or @nil. }
+  function CurrentViewport: TCastleViewport;
+  begin
+    { First we check Container.PointerLock.Controller.
+
+      This is important when pointer lock is active, as then mouse position
+      may go outside the controlling viewport, so both viewports may
+      have Focused = true (one, because it is under mouse position;
+      the other, because it is controlling pointer lock, which we always
+      make sure has Focused=true regardless of mouse position).
+
+      IOW, looking at Focused is not enough when pointer lock is active. }
+
+    if Container.PointerLock.Controller = WalkNavigationTop then
+      Exit(ViewportTop);
+    if Container.PointerLock.Controller = WalkNavigationBottom then
+      Exit(ViewportBottom);
+
+    { If pointer lock is not active, then we can just check Focused. }
+    if ViewportTop.Focused then
+      Exit(ViewportTop);
+    if ViewportBottom.Focused then
+      Exit(ViewportBottom);
+
+    Result := nil;
+  end;
+
 begin
   Result := inherited;
   if Result then Exit; // allow the ancestor to handle keys
 
-  { We check Container.Focused and viewport's Focused,
+  { We check Container.Focused and then CurrentViewport,
     to only drop from 1 viewport in focused window. }
   if (Event.IsKey(keyEnter) or Event.IsMouseButton(buttonLeft)) and
      Container.Focused then
   begin
-    if ViewportBottom.Focused then
-      DropFromViewport(ViewportBottom)
-    else
-    if ViewportTop.Focused then
-      DropFromViewport(ViewportTop);
+    if CurrentViewport <> nil then
+      DropFromViewport(CurrentViewport);
     Exit(true); // key was handled
   end;
 
