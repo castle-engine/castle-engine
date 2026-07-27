@@ -151,7 +151,7 @@ do_project tools/castle-editor-portable
 do_project tests
 
 # audio
-do_project examples/audio/game_3d_sound # TODO: uses F5 shortcut (does reload on web)
+do_project examples/audio/game_3d_sound
 do_project examples/audio/play_sounds
 do_project examples/audio/music_collection_player
 
