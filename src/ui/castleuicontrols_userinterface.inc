@@ -237,7 +237,7 @@
     FParent: TCastleUserInterface;
     FLastSeenContainerWidth, FLastSeenContainerHeight: Integer;
 
-    { If we are processing something within this components, and thus
+    { If we are processing something within this component, and thus
       destroying this component would be dangerous now, this is > 0. }
     ProcessingEvents: Cardinal;
     { Last reeason for ProcessingEvents > 0, for logging / debug purposes. }
