@@ -227,7 +227,10 @@ begin
     Exit(true);
   end;
 
-  if Event.IsKey(keyF5) then
+  { Screenshot.
+    "P" is better on the web where F5 is used to refresh the page,
+    remember it as "PrintScreen/Photo". }
+  if Event.IsKey(keyF5) or Event.IsKey(keyP) then
   begin
     Container.SaveScreenToDefaultFile;
     Exit(true);

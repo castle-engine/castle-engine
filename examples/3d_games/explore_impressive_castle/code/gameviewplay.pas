@@ -1,5 +1,5 @@
 {
-  Copyright 2022-2023 Michalis Kamburelis.
+  Copyright 2022-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -205,20 +205,23 @@ begin
       Exit(true);
     end;
 
-    if Event.IsKey(keyP) then
-    begin
-      Container.PushView(ViewWin);
-      Exit(true);
-    end;
-
-    if Event.IsKey(keyO) then
-    begin
-      Container.PushView(ViewDeath);
-      Exit(true);
-    end;
+    // debug keys, to quickly test Win/Death views
+    // if Event.IsKey(keyK) then
+    // begin
+    //   Container.PushView(ViewWin);
+    //   Exit(true);
+    // end;
+    // if Event.IsKey(keyO) then
+    // begin
+    //   Container.PushView(ViewDeath);
+    //   Exit(true);
+    // end;
   end;
 
-  if Event.IsKey(keyF5) then
+  { Screenshot.
+    "P" is better on the web where F5 is used to refresh the page,
+    remember it as "PrintScreen/Photo". }
+  if Event.IsKey(keyF5) or Event.IsKey(keyP) then
   begin
     MainNotifications.Show('Saved screenshot to ' + Container.SaveScreenToDefaultFile);
     Exit(true);
