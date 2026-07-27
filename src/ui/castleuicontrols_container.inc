@@ -521,7 +521,7 @@
       container.
 
       Usually you do not add controls to this list directly.
-      Instedad, you create @link(TCastleView) descendants,
+      Instead, you create @link(TCastleView) descendants,
       add children to views, and set view as @link(TCastleContainer.View).
       See @url(https://castle-engine.io/views more information about views).
 
@@ -2060,7 +2060,7 @@ function TCastleContainer.EventPress(const Event: TInputPressRelease): Boolean;
           if (Event.EventType = itMouseButton) and
              { Check UseControl, in case C becomes non-existing
                or no longer part of our Container while it was handling
-               PreviewPress. We should not send events to such controls. }
+               Press. We should not send events to such controls. }
              UseControl(C) then
             InternalCapturePointerEvents(Event.FingerIndex, C);
           Exit(true);

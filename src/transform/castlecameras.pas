@@ -1735,7 +1735,6 @@ begin
         by mouse dragging. Dragging should work even as mouse gets outside
         of screen.
       - zombie_fighter, clicking on zombie, handled in Press, should work. }
-    Assert(Container <> nil);
     Container.InternalCapturePointerEvents(Event.FingerIndex, Self);
     Exit(false);
   end;
