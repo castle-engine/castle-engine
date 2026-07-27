@@ -510,6 +510,13 @@
       const AUIExplicitScale: Single;
       const ADpi, AWidth, AHeight: Single): Single;
 
+    { Make future mouse/touch events for this finger send to control C.
+      Regular code should not use this, instead capture mouse/touch events
+      by returning "true" from Press or PreviewPress methods.
+      @exclude }
+    procedure InternalCapturePointerEvents(
+      const FingerIndex: TFingerIndex; const C: TCastleUserInterface);
+
     { Controls listening for events (user input, resize, and such) of this
       container.
 
@@ -1991,6 +1998,12 @@ begin
   ProcessViewChanges;
 end;
 
+procedure TCastleContainer.InternalCapturePointerEvents(
+  const FingerIndex: TFingerIndex; const C: TCastleUserInterface);
+begin
+  FCaptureInput.AddOrSetValue(FingerIndex, C);
+end;
+
 function TCastleContainer.EventPress(const Event: TInputPressRelease): Boolean;
 
   { Update state: FMousePosition, FMousePressed, FTouches. }
@@ -2023,9 +2036,11 @@ function TCastleContainer.EventPress(const Event: TInputPressRelease): Boolean;
            C.PreviewPress(Event) then
         begin
           if (Event.EventType = itMouseButton) and
-            // See below for explanation of "C.Container = Self" comparison.
-            (C.Container = Self) then
-            FCaptureInput.AddOrSetValue(Event.FingerIndex, C);
+             { Check UseControl, in case C becomes non-existing
+               or no longer part of our Container while it was handling
+               PreviewPress. We should not send events to such controls. }
+             UseControl(C) then
+            InternalCapturePointerEvents(Event.FingerIndex, C);
           Exit(true);
         end;
 
@@ -2042,17 +2057,12 @@ function TCastleContainer.EventPress(const Event: TInputPressRelease): Boolean;
            (not IsPointerLockController(C)) and
            C.Press(Event) then
         begin
-          { We have to check whether C.Container = Self. That is because
-            the implementation of control's Press method could remove itself
-            from our Controls list. Consider e.g. TCastleOnScreenMenu.Press
-            that may remove itself from the Window.Controls list when clicking
-            "close menu" item. We cannot, in such case, save a reference to
-            this control in FCaptureInput, because we should not speak with it
-            anymore (we don't know when it's destroyed, we cannot call it's
-            Release method because it has Container = nil, and so on). }
           if (Event.EventType = itMouseButton) and
-            (C.Container = Self) then
-            FCaptureInput.AddOrSetValue(Event.FingerIndex, C);
+             { Check UseControl, in case C becomes non-existing
+               or no longer part of our Container while it was handling
+               PreviewPress. We should not send events to such controls. }
+             UseControl(C) then
+            InternalCapturePointerEvents(Event.FingerIndex, C);
           Exit(true);
         end;
       finally Dec(C.ProcessingEvents) end;

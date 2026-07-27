@@ -1694,11 +1694,50 @@ begin
   begin
     MouseDraggingStart := Container.MousePosition;
     MouseDraggingStarted := Event.FingerIndex;
-    { Click was handled, and we need to set to true, to capture
-      future mouse motion events even outside of the control.
-      Testcase: zombie_fighter, with non-FullSize viewport, and moving
-      by mouse dragging. }
-    Exit(true);
+
+    { We want to capture mouse events, to track motion even when it goes
+      outside of the viewport (testcase: zombie_fighter non-FullSize viewport).
+
+      The standard way to do this is to return true from Press,
+      but we cannot really do it here, it would mean that default
+      TCastleWalkNavigation, with default Input (which includes niMouseDragging,
+      so it enters this code path, for *every* mouse button),
+      prevents other things from handling "mouse down".
+
+      - Handling stuff in view's Press is no longer possible.
+        E.g. many examples shoot on buttonLeft, toggle MouseLook on
+        buttonRight.
+
+          All of this would need to change, to handle in PreviewPress
+          (and be selective when it returns true from PreviewPress,
+          otherwise it disables mouse dragging). Alternatively
+          we would need to disable niMouseDragging.
+
+      - TCastleTouchNavigation, when placed behind TCastleWalkNavigation,
+        would not work.
+
+          If this would be everything, it would be a forgivable compatibility break.
+          We have a note in docs https://castle-engine.io/touch_input
+          that says to "place TCastleTouchNavigation in front".
+
+      The only practical solution to this would be to not include
+      niMouseDragging in DefaultInput, otherwise we'd break too much existing code.
+      But even this is problematic, as it means that
+      if someone wants niMouseDragging (which is nice for mobile) ->
+      (s)he has to deal with new limitations of it, e.g. use PreviewPress
+      for stuff.
+
+      Decision for now: we capture the events by Container.InternalCapturePointerEvents,
+      but we return false.
+
+      Testcase:
+      - zombie_fighter, with non-FullSize viewport, and moving
+        by mouse dragging. Dragging should work even as mouse gets outside
+        of screen.
+      - zombie_fighter, clicking on zombie, handled in Press, should work. }
+    Assert(Container <> nil);
+    Container.InternalCapturePointerEvents(Event.FingerIndex, Self);
+    Exit(false);
   end;
 
   if (Event.EventType = itMouseWheel) and
@@ -4474,13 +4513,12 @@ begin
   Result := inherited;
   if Result or (Event.FingerIndex <> 0) then Exit;
 
-  { This was a workaround for old issue, caused by our TCastleNavigation.Press
-    not returning true when it captures mouse.
-    It should not happen anymore, but keep testing. }
-  if (MouseDraggingStarted <> -1) and
-     (Event.Pressed = []) then
+  { In case other control will capture mouse events even when we captured
+    them (by InternalCapturePointerEvents, see Press comments),
+    other controls recapture it (e.g. view handles buttonLeft).
+    We may then not receive Release, and have motion without any mouse button pressed. }
+  if Event.Pressed = [] then
   begin
-    WritelnWarning('TCastleWalkNavigation.Motion: Mouse dragging cancelled, as we detected motion without any mouse button pressed');
     MouseDraggingStarted := -1;
   end;
 

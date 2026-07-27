@@ -39,7 +39,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
-    function PreviewPress(const Event: TInputPressRelease): boolean; override;
+    function Press(const Event: TInputPressRelease): boolean; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
   end;
 
@@ -124,7 +124,7 @@ begin
   end;
 end;
 
-function TViewPlay.PreviewPress(const Event: TInputPressRelease): boolean;
+function TViewPlay.Press(const Event: TInputPressRelease): boolean;
 var
   EnemyMale: Boolean;
   IgnoreMaterial: TMaterialInfo;
@@ -132,8 +132,6 @@ begin
   Result := inherited;
   if Result then Exit;
 
-  { Handle this event in PreviewPress, not Press, because we need to handle
-    "mouse down" before TCastleWalkNavigation handles it. }
   if Event.IsMouseButton(buttonLeft) then
   begin
     if HitEnemy(IgnoreMaterial, EnemyMale) then
