@@ -138,7 +138,6 @@ do_project examples/physics/physics_explosion
 do_project examples/physics/physics_throw_chickens
 do_project examples/3d_games/eye_of_beholder
 do_project examples/3d_games/dungeons_and_skeletons_fight
-do_project examples/physics/physics_3d_demo
 do_project examples/3d_games/walking_adventure
 do_project examples/3d_games/explore_impressive_castle
 do_project examples/animations/animate_bones_by_code
