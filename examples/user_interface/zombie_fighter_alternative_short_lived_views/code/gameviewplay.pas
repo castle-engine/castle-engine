@@ -133,8 +133,7 @@ begin
   begin
     if HitEnemy(IgnoreMaterial, EnemyMale) then
     begin
-      ViewAskDialog.Male := EnemyMale;
-      Container.PushView(ViewAskDialog);
+      Container.PushView(TViewAskDialog.CreateUntilStopped(EnemyMale));
       Exit(true);
     end;
   end;
