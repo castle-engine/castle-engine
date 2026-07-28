@@ -1152,7 +1152,7 @@ begin
     { Update working: Nav (as ForceCaptureInput) is updated with HandleInput=true,
       and exactly once. The "exactly once" is meaningful because Nav is also
       under the mouse, hence also reachable by the recursive Update pass.
-      We have special code (FUpdateCalledFrameId) to ensure a double Update call. }
+      We have special code (FUpdateCalledFrameId) to avoid a double Update call. }
     Nav.UpdateCount := 0;
     Container.EventUpdate;
     AssertEquals('Nav updated exactly once per frame', 1, Nav.UpdateCount);

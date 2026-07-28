@@ -725,7 +725,9 @@ type
       the mouse look in CGE editor.
       It only controls the mouse look once the application is running.
 
-      Only one navigation at a time can have mouse look active. If you set this property to @true}
+      Only one navigation at a time can have mouse look active.
+      It is undefined which one "wins" if you set this property to @true on
+      more than one navigation. }
     property MouseLook: boolean read FMouseLook write SetMouseLook default false;
 
     { Mouse look sensitivity, if @link(MouseLook) is working.

@@ -1372,14 +1372,14 @@ procedure TCastleWindow.SystemSetMousePosition(const Value: TVector2);
 
     Testcase: dragging_test, if we would use SetCursorPos then:
 
-    - TCastleContainer.MouseLookDelta doesn't set FMouseLookWaitingForMiddle to true:
+    - TCastleDesktopPointerLock.Delta doesn't set FWaitingForMiddle to true:
       then we have problems due to occasional rect jump, when moving mouse slowly
-      (because we need to set FMouseLookWaitingForMiddle to true!).
+      (because we need to set FWaitingForMiddle to true!).
 
-    - TCastleContainer.MouseLookDelta sets FMouseLookWaitingForMiddle to true:
+    - TCastleDesktopPointerLock.Delta sets FWaitingForMiddle to true:
       then we have occasional "blocks" when moving mouse very fast
       (like from edge to edge of the screen). Experimenting, we just
-      cannot reliably capture "the end of FMouseLookWaitingForMiddle",
+      cannot reliably capture "the end of FWaitingForMiddle",
       no matter how small/large margin in ValidArea we use.
 
     Info about SendInput:
