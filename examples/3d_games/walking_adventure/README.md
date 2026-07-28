@@ -1,4 +1,4 @@
-# Walking Talking Adventure, With Full Game Controller Support
+# Walking Talking Adventure
 
 Walk around a 3D environment and unwind a mystery by talking to NPCs (horses) and interacting with objects. Features also full game controller (gamepad, joystick) support.
 
@@ -12,7 +12,7 @@ All features:
 
 - talk with NPCs, like horses :)
 
-- All with full game controller support (joystick, gamepad).
+- All with full [game controller support (joystick, gamepad)](https://castle-engine.io/controllers). Only on desktops and _Nintendo Switch_ right now.
 
 Using [Castle Game Engine](https://castle-engine.io/).
 

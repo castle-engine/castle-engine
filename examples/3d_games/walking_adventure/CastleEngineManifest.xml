@@ -9,7 +9,7 @@ See https://castle-engine.io/project_manifest for documentation of this file.
   standalone_source="walk_3d_game_controllers_standalone.dpr"
   game_units="GameInitialize"
   qualified_name="io.castleengine.walking.adventure.controllers"
-  caption="Walking Talking Adventure, With Full Game Controller Support"
+  caption="Walking Talking Adventure"
 >
   <compiler_options>
     <search_paths>
