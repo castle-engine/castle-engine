@@ -230,8 +230,9 @@
       Guaranteed effects of setting this:
 
       @orderedList(
-        @item(We will make sure to pass @link(Motion) events to this controller,
-          first, even if it is not focused. This allows to capture motion events
+        @item(We will make sure to pass @link(TCastleUserInterface.Motion)
+          events to this controller, first, even if it is not focused.
+          This allows to capture motion events
           even by TCastleWalkNavigation that doesn't fill the middle of the screen.
           This makes sense, since mouse position in general should not matter
           when pointer lock is active.
@@ -240,8 +241,9 @@
         @item(When we detect this no longer exists (or parent of it)
           we will call @link(TCastleUserInterface.ReleasePointerLock) on it.
           Once the control (and its parents) exist again, it will again
-          receive events like @link(Update), so it can again then grab
-          mouse look (that's what TCastleWalkNavigation does, for example).
+          receive events like @link(TCastleUserInterface.Update),
+          so it can again then grab mouse look (that's what TCastleWalkNavigation
+          does, for example).
         )
       )
     }

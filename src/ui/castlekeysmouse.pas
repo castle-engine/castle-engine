@@ -1002,14 +1002,14 @@ type
 
       @unorderedList(
         @item(When pointer lock is not used, i.e. when
-          @link(TCastleContainer.PointerLock.Active MyContainer.PointerLock.Active)
+          @link(TCastleAbstractPointerLock.Active MyContainer.PointerLock.Active)
           is @false:
 
           This is equal to @code(Event.Position - Event.OldPosition).
         )
 
         @item(When pointer lock is used, i.e. when
-          @link(TCastleContainer.PointerLock.Active MyContainer.PointerLock.Active)
+          @link(TCastleAbstractPointerLock.Active MyContainer.PointerLock.Active)
           is @true:
 
           This is calculated in more complicated, and internal, way,
