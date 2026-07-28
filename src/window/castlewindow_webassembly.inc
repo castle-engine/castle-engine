@@ -161,6 +161,8 @@ type
     procedure ActiveChanged(const NewValue: Boolean); override;
     function Delta(const Event: TInputMotion): TVector2; override;
   public
+    destructor Destroy; override;
+
     procedure RegisterListeners;
 
     { Is the pointer lock, requested or cancelled by setting @link(Active),
@@ -1034,6 +1036,14 @@ begin
 end;
 
 { TCastleWebPointerLock ------------------------------------------------------ }
+
+destructor TCastleWebPointerLock.Destroy;
+begin
+  UnregisterPromiseAndNil(FRequestPromise);
+  JSDocument.removeEventListener('pointerlockchange', @PointerLockChange);
+  JSDocument.removeEventListener('pointerlockerror', @PointerLockError);
+  inherited;
+end;
 
 procedure TCastleWebPointerLock.RegisterListeners;
 begin
