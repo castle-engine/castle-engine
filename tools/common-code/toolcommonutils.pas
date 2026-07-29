@@ -187,7 +187,7 @@ var
   ToolDir: String;
 begin
   {$ifdef WASI}
-  Exit(''); // WASI does not have ExeName, and also cannot catch exception
+  Exit(''); // WASI does not have ExeName, and may not catch exceptions when CanCatchExceptions=false
   {$endif}
 
   try

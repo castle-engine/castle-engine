@@ -181,8 +181,11 @@ type
       So "try .. except" works reliably and you can use exceptions
       to report error-like conditions, and later recover from them.
 
-      This is @true on all platforms except web.
-      See "Known Limitations" on https://castle-engine.io/web . }
+      This is @true on all platforms now, except on web
+      with older FPC versions.
+      See @url(https://castle-engine.io/web "Known Limitations" in the web documentation).
+      We recommend you use @url(https://wiki.freepascal.org/WebAssembly/Exceptions
+      newer FPC with exceptions support on web) to have this @true on web too. }
     function CanCatchExceptions: Boolean;
 
     { Limit the number of (real) frames per second, to not hog the CPU.
@@ -692,7 +695,23 @@ end;
 
 function TCastleApplicationProperties.CanCatchExceptions: Boolean;
 begin
-  Result := {$ifdef WASI} false {$else} true {$endif};
+  Result :=
+    {$ifdef WASI}
+      {$if defined(FPC_WASM_BRANCHFUL_EXCEPTIONS)}
+        {$info Handling exceptions on web by "branchful" (slower, works everywhere) appoach}
+        true
+      {$elseif defined(FPC_WASM_LEGACY_EXCEPTIONS)}
+        {$info Handling exceptions on web by "legacy wasm" approach}
+        true
+      {$elseif defined(FPC_WASM_EXNREF_EXCEPTIONS)}
+        {$info Handling exceptions on web by "modern wasm (exnref)" approach}
+        true
+      {$else}
+        {$info Not handling exceptions on the web. Use newer FPC and enable it following the instructions at https://wiki.freepascal.org/WebAssembly/Exceptions}
+        false
+      {$endif}
+    {$else} true
+    {$endif};
 end;
 
 initialization

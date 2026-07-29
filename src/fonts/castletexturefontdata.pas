@@ -314,7 +314,7 @@ implementation
 
 uses Classes, SysUtils, Character,
   CastleLog, CastleUtils, CastleUriUtils, CastleFilesUtils, CastleDownload,
-  CastleInternalFreeTypeH;
+  CastleInternalFreeTypeH, CastleApplicationProperties;
 
 { TUnicodeCharEqualityComparer ----------------------------------------------- }
 
@@ -632,11 +632,16 @@ begin
   ReadFontMetadata;
 
   {$ifdef WASI}
-  // TODO: web: WASI does not support FreeType library, also we fail without exceptions because WASI doesn't have longjmp
-  WritelnWarning('TCastleFont', 'Cannot load font "%s", WASI does not support FreeType library', [
-    UriDisplay(Url)
-  ]);
-  Exit;
+  { On the web, we don't have FreeType library.
+    Also, CanCatchExceptions=false is possible (with older FPC) and then
+    raising an exception about FreeType would crash the application. }
+  if not ApplicationProperties.CanCatchExceptions then
+  begin
+    WritelnWarning('TCastleFont', 'Cannot load font "%s", WASI does not support FreeType library', [
+      UriDisplay(Url)
+    ]);
+    Exit;
+  end;
   {$endif}
 
   try
