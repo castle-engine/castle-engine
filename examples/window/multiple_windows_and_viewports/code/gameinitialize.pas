@@ -99,6 +99,8 @@ initialization
     Most of your actual application initialization (in particular, any file reading)
     should happen inside ApplicationInitialize. }
 
+  Window2Use := Application.MultipleWindowsPossible;
+
   Application.OnInitialize := @ApplicationInitialize;
 
   Window1 := TCastleWindow.Create(Application);

@@ -253,6 +253,9 @@ var
   CanvasBase: IJSElement;
   ContextOptions: IJSWebGLContextAttributes;
 begin
+  if Application.OpenWindowsCount > 0 then
+    raise Exception.Create('TCastleWindow on web supports only a single window. In your code, check "Application.MultipleWindowsPossible" and if it is "false" -> avoid opening multiple windows.');
+
   { Note that we first check if something is nil, only later we use Cast.
     Because the Cast seems to fail if original is nil, unlike "as" operator. }
   CanvasBase := JSDocument.getElementById(CanvasElementId);

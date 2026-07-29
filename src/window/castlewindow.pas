@@ -69,9 +69,12 @@
 
   Desktop applications are generally free to create and open
   as many @link(TCastleWindow) instances as they want.
-  Mobile and console applications are limited to a single
+  Mobile, console and web applications are limited to a single
   @link(TCastleWindow) instance which shall be assigned to the
   @link(TCastleApplication.MainWindow Application.MainWindow) property.
+
+  Check the @link(TCastleApplication.MultipleWindowsPossible Application.MultipleWindowsPossible)
+  to know whether the current platform supports multiple windows or not.
 
   @bold(Window features:)
 
