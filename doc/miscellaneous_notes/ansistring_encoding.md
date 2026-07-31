@@ -1,3 +1,9 @@
+## Summary
+
+Define `CASTLE_DONT_CHANGE_STRING_ENCODING` to prevent engine from doing `SetMultiByteConversionCodePage(CP_UTF8)` at initialization.
+
+This is only supported (and works flawlessly) with Delphi, or FPC _DelphiUnicode_ mode, for now. If you are brave, you can hack the engine to enable it also for other FPC modes, knowing that some tests will fail.
+
 ## TODO
 
 - Eliminate in CGE code all `AnsiString` in favor of `Utf8String` when we mean "8-bit, UTF-8 encoded". Use `AnsiString` only when we really mean "8-bit, possible system-specific encoding". Document this, updating https://castle-engine.io/coding_conventions#strings_unicode:
