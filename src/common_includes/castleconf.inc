@@ -714,6 +714,25 @@
   {$define CASTLE_PROCESS_AVAILABLE}
 {$endif}
 
+{ Encoding ------------------------------------------------------------------- }
+
+(*Define symbol CASTLE_DONT_CHANGE_STRING_ENCODING when compiling
+  the engine to *not* force all AnsiString to contain UTF-8.
+
+  When this is defined, we do not call
+
+    SetMultiByteConversionCodePage(CP_UTF8);
+    SetMultiByteRTLFileSystemCodePage(CP_UTF8); // only FPC
+
+  in the initialization of CastleUtils (used by most engine units)
+  to make sure that AnsiString contains UTF-8.
+
+  Note that Lazarus LCL does something similar in its initialization,
+  so even if you define CASTLE_DONT_CHANGE_STRING_ENCODING,
+  you may still have AnsiString containing UTF-8 if you use LCL.
+*)
+{.$define CASTLE_DONT_CHANGE_STRING_ENCODING}
+
 // -----------------------------------------------------------------------------
 // keep this line at the end of the file
 {$endif not CASTLE_CONF_INCLUDED}
