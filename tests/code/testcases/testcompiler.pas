@@ -308,7 +308,13 @@ procedure TTestCompiler.TestAnsiStringUtf8Conversion_Ansi1250;
   has platform-specific encoding (like Windows-1250 on Polish Windows).
 
   This test uses explicit declaration "type AnsiString(1250)" and thus
-  should work on any system, regardless of current system codepage. }
+  should work on any system, regardless of current system codepage.
+
+  This test will pass with CASTLE_DONT_CHANGE_STRING_ENCODING and FPC
+  (String=AnsiString) defined, we made sure of it.
+  Even though we don't support CASTLE_DONT_CHANGE_STRING_ENCODING and FPC
+  (other tests will fail, see castleconf.inc notes), but the basics here are OK.
+}
 
 type
   TAnsiStringPolish = type AnsiString(1250); // Windows-1250, Polish codepage
@@ -392,7 +398,13 @@ procedure TTestCompiler.TestAnsiStringUtf8Conversion_AnsiDefault;
   This test uses declaration "AnsiString" and will only make sense
   if the current system codepage is 1250 (Polish Windows),
   as we hardcode some test values to Polish Windows codepage 1250.
-  It will be skipped on other systems. }
+  It will be skipped on other systems.
+
+  This test will pass with CASTLE_DONT_CHANGE_STRING_ENCODING and FPC
+  (String=AnsiString) defined, we made sure of it.
+  Even though we don't support CASTLE_DONT_CHANGE_STRING_ENCODING and FPC
+  (other tests will fail, see castleconf.inc notes), but the basics here are OK.
+}
 
 var
   AnsiPolish, BackToAnsi: AnsiString;
