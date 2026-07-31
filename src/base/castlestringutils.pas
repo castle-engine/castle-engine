@@ -47,24 +47,6 @@ uses SysUtils, Classes, Generics.Collections,
   CastleUtils;
 
 type
-  { String type that is always 8-bit and contains UTF-8 encoded text,
-    regardless of the standard AnsiString encoding.
-
-    This is just an alias for System.Utf8String,
-    which is available on all supported FPC and Delphi versions
-    and automatically converted from/to AnsiString with "native platform encoding".
-
-    In Castle Game Engine, by default we perform initialization to make
-    AnsiString also carry UTF-8 encoding, so AnsiString = CastleStringUtf8
-    by default. However you can disable this initialization by defining
-    CASTLE_DONT_CHANGE_STRING_ENCODING (see castleconf.inc comments).
-    Then AnsiString contains content in "native platform encoding",
-    which on Windows is an ANSI encoding like Windows-1252
-    (depends on run-time Windows locale). On Linux, "native platform encoding"
-    is still UTF-8 so even with CASTLE_DONT_CHANGE_STRING_ENCODING, there is
-    no observable difference. }
-  CastleStringUtf8 = System.Utf8String;
-
   TDynamicStringArray = array of String;
 
   TStringsHelper = class helper for TStrings
