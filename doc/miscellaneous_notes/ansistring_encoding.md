@@ -21,11 +21,11 @@ By default, Castle Game Engine (just like Lazarus LCL) assumes that `AnsiString`
 - `SetMultiByteConversionCodePage(CP_UTF8)` (for both FPC and Delphi)
 - `SetMultiByteRTLFileSystemCodePage` (for FPC only, since Delphi RTL uses 16-bit UnicodeString)
 
-This gives us nice assumption. `String` is equal to either
+This gives us nice guarantee that `String` is equal to either
 - `AnsiString`, and it holds UTF-8
 - `UnicodeString` (Delphi or FPC with _DelphiUnicode_ RTL), and it holds UTF-16
 
-See https://castle-engine.io/coding_conventions#strings_unicode
+See https://castle-engine.io/coding_conventions#strings_unicode . We happily process strings in a uniform way using `CastleUnicode` routines, and in most cases just using regular Pascal RTL routines for strings.
 
 Define `CASTLE_DONT_CHANGE_STRING_ENCODING` symbol when building the engine to avoid calling the above. You can do it by
 - editing `src/common_includes/castleconf.inc`
@@ -41,11 +41,13 @@ We don't support building with FPC's _DelphiUnicode_ mode yet. We need to fix so
 
 ## Supported only for Delphi, unless you REALLY know what you're doing:)
 
-The `CASTLE_DONT_CHANGE_STRING_ENCODING` option is right now only supported for Delphi. We made sure everything works in this case, and we don't need `AnsiString` to contain UTF-8, it can contain platform-specific encoding. 99% of the engine just uses `String` anyway (which equals `UnicodeString` in Delphi). In rare cases where we needed _"8-bit string with UTF-8, not any other, encoding"_, we used `Utf8String` and we have extensive automatic tests (grep for `TTestCompiler.TestAnsiStringUtf8Conversion`) to make sure it all rocks.
+The `CASTLE_DONT_CHANGE_STRING_ENCODING` option is right now only supported for Delphi.
 
-We initially planned to support it also for FPC (even without _DelphiUnicode_), and it's actually done "half-way". If you define `CASTLE_DONT_CHANGE_STRING_ENCODING`, and (if you know what you're doing!) you will hack `castleconf.inc` to not complain about it, you can build Castle Game Engine with FPC. But we do not guarantee that it will work correctly, and we do not support this configuration.
+We made sure everything works in this case, automated tests pass (and they exercise some funny edge-cases, like Spine JSON files with non-ASCII slot names, non-ASCII characters in filenames, in ZIP entries etc.) and we don't need `AnsiString` to contain UTF-8, it can contain platform-specific encoding. 99% of the engine just uses `String` anyway (which equals `UnicodeString` in Delphi). In rare cases where we needed _"8-bit string with UTF-8, not any other, encoding"_, we used `Utf8String` and we have extensive automatic tests (grep for `TTestCompiler.TestAnsiStringUtf8Conversion`) to make sure it all rocks.
 
-We resigned from full FPC support for `CASTLE_DONT_CHANGE_STRING_ENCODING`, because it would mean we would have to define own string type, like
+We initially planned to support it also for FPC (even without _DelphiUnicode_), and it's actually done "half-way". If you define `CASTLE_DONT_CHANGE_STRING_ENCODING`, and (if you know what you're doing!) you will hack `castleconf.inc` to not complain about it, you can build Castle Game Engine with FPC with this symbol. But then -> we have some things known to be broken (run `tests` to see them). We do not support this configuration. Realistically, it will work, as long as only exchange ASCII text with our engine.
+
+We resigned from full FPC support (that would address all edge-cases) for `CASTLE_DONT_CHANGE_STRING_ENCODING`, because it would mean we would have to define own string type, like
 
 ```delphi
   { Preferred String type throughout Castle Game Engine codebase.
@@ -67,9 +69,9 @@ We resigned from full FPC support for `CASTLE_DONT_CHANGE_STRING_ENCODING`, beca
     {$endif};
 ```
 
-and use it *everywhere* throughout the engine. This makes a big complication to contributing to the engine, every newcomer would need to read _"what is our string type"_. But we want simpler philosophy: _"Castle Game Engine just uses your default String, and you don't need to worry about it"_.
+and use it *everywhere* throughout the engine. This makes a big complication to contributing to the engine, every newcomer would need to read _"what is `CastleString` type"_. But we want simpler philosophy: _"Castle Game Engine just uses your default `String`, and you don't need to worry about it"_.
 
-We initially wanted to use FPC macro `{$define String:=Utf8String}` to resolve this, but FPC macros cannot redefine keywords.
+We initially wanted to use FPC macro `{$define String:=Utf8String}` in `castleconf.inc` to solve this, but FPC macros cannot redefine keywords.
 
 If you insist, and force engine to use `CASTLE_DONT_CHANGE_STRING_ENCODING` with FPC, be aware that subtle things will break. Our engine assumes UTF-8 when using routines like JSON, XML processing, font display, file opening/saving. We do not guarantee in such case what happens if you try to use non-ASCII characters with our engine.
 
@@ -79,7 +81,7 @@ When `CASTLE_DONT_CHANGE_STRING_ENCODING` is defined, and your codebase uses `An
 
 - `AnsiString` and `UnicodeString`
 
-- `AnsiString` and `Utf8String`. Note that there are some quirks in how this works, and FPC 3.2.2 is not perfectly compatible with Delphi, and FPC 3.2.0 has more issues. See the tests in `TTestCompiler.TestAnsiStringUtf8Conversion` for details.
+- `AnsiString` and `Utf8String`. Note that there are some quirks in how this works, and FPC 3.2.2 is not perfectly compatible with Delphi. See the tests in `TTestCompiler.TestAnsiStringUtf8Conversion` for details.
 
 ## Recommendations and what Lazarus does
 
