@@ -81,6 +81,11 @@ procedure TTestDownload.TestLocalCharsCastleData;
   end;
 
 begin
+  {$ifdef CASTLE_DONT_CHANGE_STRING_ENCODING}
+  AbortTest;
+  Exit;
+  {$endif}
+
   TestReading('castle-data:/local_chars/ascii_name.txt');
   TestReading('castle-data:/local_chars/' + UrlEncode('name with Polish chars ćma źrebak żmija wąż królik.txt'));
   TestReading('castle-data:/local_chars/' + UrlEncode('name with Chinese chars 样例中文文本.txt'));
