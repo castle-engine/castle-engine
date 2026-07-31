@@ -154,17 +154,19 @@ initialization
 
   { FPC includes backslash in AllowDirectorySeparators also on non-Windows,
     so backslash will be considered as directory separator by
-    Include/ExcludeTrailingPathDelimiter. This is IMHO very stupid,
+    Include/ExcludeTrailingPathDelimiter. This is IMHO wrong,
     since normal OS routines on Unix *do not* consider backslash to be any
-    special character in a filename, it certainly does not separate dirs.
-    So Include/ExcludeTrailingPathDelimiter are basically buggy by default.
+    special character in a filename, it does not separate directory components.
+    So Include/ExcludeTrailingPathDelimiter are buggy by default.
 
-    Fortunately we can fix it by globally changing AllowDirectorySeparators. }
+    We fix it by globally changing AllowDirectorySeparators. }
   {$ifdef FPC}
   {$ifndef MSWINDOWS}
   AllowDirectorySeparators := AllowDirectorySeparators - ['\'];
   {$endif}
   {$endif}
+
+  {$ifndef CASTLE_DONT_CHANGE_STRING_ENCODING}
 
   { Set UTF-8 in AnsiStrings, just like Lazarus
     (see initialization of lazarus/components/lazutils/fpcadds.pas in Lazarus sources) }
@@ -173,6 +175,8 @@ initialization
 
   {$ifdef FPC}
   SetMultiByteRTLFileSystemCodePage(CP_UTF8);
+  {$endif}
+
   {$endif}
 
   {$ifndef FPC}
