@@ -730,8 +730,33 @@
   Note that Lazarus LCL does something similar in its initialization,
   so even if you define CASTLE_DONT_CHANGE_STRING_ENCODING,
   you may still have AnsiString containing UTF-8 if you use LCL.
+
+  THIS IS ONLY SUPPORTED WITH DELPHI (or FPC DelphiUnicode mode, once we
+  officially support it), i.e. with compilers that have String = UnicodeString.
+  Supporting this with FPC (when String=AnsiString) means we would have to
+  define own string type, like
+
+    CastleString =
+    {$if defined(CASTLE_DONT_CHANGE_STRING_ENCODING) and
+         defined(FPC) and
+         (not defined(FPC_DELPHIUNICODE))}
+      Utf8String
+    {$else}
+      String
+    {$endif};
+
+  and use it *everywhere* throughout the engine.
+  This makes a big complication to contributing to the engine,
+  everyone would need to read "what is our string type" when our whole
+  philosophy is that "Castle Game Engine just uses your default String,
+  so you don't need to worry about it".
+  We considered using FPC macros to resolve this, but they
+  cannot redefine keywords like {$define String:=Utf8String}.
 *)
-{.$define CASTLE_DONT_CHANGE_STRING_ENCODING}
+{$define CASTLE_DONT_CHANGE_STRING_ENCODING}
+{$if defined(FPC) and defined(CASTLE_DONT_CHANGE_STRING_ENCODING) and not defined(FPC_DELPHIUNICODE)}
+  {$message fatal 'CASTLE_DONT_CHANGE_STRING_ENCODING is only supported with Delphi (or FPC DelphiUnicode mode).'}
+{$endif}
 
 // -----------------------------------------------------------------------------
 // keep this line at the end of the file
