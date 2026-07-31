@@ -753,7 +753,7 @@
   We considered using FPC macros to resolve this, but they
   cannot redefine keywords like {$define String:=Utf8String}.
 *)
-{$define CASTLE_DONT_CHANGE_STRING_ENCODING}
+{.$define CASTLE_DONT_CHANGE_STRING_ENCODING}
 {$if defined(FPC) and defined(CASTLE_DONT_CHANGE_STRING_ENCODING) and not defined(FPC_DELPHIUNICODE)}
   {$message fatal 'CASTLE_DONT_CHANGE_STRING_ENCODING is only supported with Delphi (or FPC DelphiUnicode mode).'}
 {$endif}
