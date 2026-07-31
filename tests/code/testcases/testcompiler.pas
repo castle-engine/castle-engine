@@ -349,6 +349,12 @@ begin
   Exit;
   {$endif}
 
+  {$if defined(VER3_2_0)}
+  { This test fails with FPC 3.2.0, AnsiPolish has codepage 0. }
+  AbortTest;
+  Exit;
+  {$endif}
+
   { This test only makes sense if current system default is 1250. }
 
   { Manually set bytes following Polish Windows codepage 1250,
