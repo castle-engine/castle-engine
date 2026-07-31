@@ -47,7 +47,17 @@ type
     jitArray,
     jitObject);
   TJSONFloat = Double;
-  TJSONStringType = {$IFNDEF PAS2JS}UTF8String{$else}string{$ENDIF};
+  TJSONStringType =
+    {$IFDEF PAS2JS}
+      {$IFNDEF PAS2JS}UTF8String{$else}string{$ENDIF}
+    {$ELSE}
+      { With Delphi, let TJSONStringType be UnicodeString
+        (equal to TJSONUnicodeStringType) to map to default "String" in all cases.
+        This makes tricky Spine JSONs in our testcases work both with
+        and without CASTLE_DONT_CHANGE_STRING_ENCODING. }
+      {$define JSON_STRING_TYPE_IS_UNICODE}
+      UnicodeString
+    {$ENDIF};
   TJSONUnicodeStringType = Unicodestring;
   {$IFNDEF PAS2JS}
   TJSONCharType = AnsiChar;
@@ -104,7 +114,7 @@ Type
   end;
 
   { TJSONData }
-  
+
   TJSONData = class(TObject)
   private
     Const
@@ -157,7 +167,7 @@ Type
     Function FindPath(Const APath : TJSONStringType) : TJSONdata;
     Function GetPath(Const APath : TJSONStringType) : TJSONdata;
     Function Clone : TJSONData; virtual; abstract;
-    Function FormatJSON(Options : TFormatOptions = DefaultFormat; Indentsize : Integer = DefaultIndentSize) : TJSONStringType; 
+    Function FormatJSON(Options : TFormatOptions = DefaultFormat; Indentsize : Integer = DefaultIndentSize) : TJSONStringType;
     property Count: Integer read GetCount;
     property Items[Index: Integer]: TJSONData read GetItem write SetItem;
     property Value: TJSONVariant read GetValue write SetValue;
@@ -390,7 +400,7 @@ Type
     Class var StrictEscaping : Boolean;
   public
     Constructor Create(const AValue : TJSONStringType); reintroduce; overload;
-    {$IFNDEF PAS2JS}
+    {$IFNDEF JSON_STRING_TYPE_IS_UNICODE}
     Constructor Create(const AValue : TJSONUnicodeStringType); reintroduce; overload;
     {$ENDIF}
     class function JSONType: TJSONType; override;
@@ -705,7 +715,9 @@ Type
     {$IFNDEF PAS2JS}
     Function Get(Const AName : String; ADefault : Int64) : Int64; overload;
     Function Get(Const AName : String; ADefault : QWord) : QWord; overload;
+    {$IFNDEF JSON_STRING_TYPE_IS_UNICODE}
     Function Get(Const AName : String; ADefault : TJSONUnicodeStringType) : TJSONUnicodeStringType; overload;
+    {$ENDIF}
     {$ENDIF}
     Function Get(Const AName : String; ADefault : Boolean) : Boolean; overload;
     Function Get(Const AName : String; ADefault : TJSONStringType) : TJSONStringType; overload;
@@ -718,7 +730,9 @@ Type
     function Add(const AName: TJSONStringType; AValue: TJSONFloat): Integer; overload;
     function Add(const AName, AValue: TJSONStringType): Integer; overload;
     {$IFNDEF PAS2JS}
+    {$IFNDEF JSON_STRING_TYPE_IS_UNICODE}
     function Add(const AName : String; AValue: TJSONUnicodeStringType): Integer; overload;
+    {$ENDIF}
     function Add(const AName: TJSONStringType; Avalue: Int64): Integer; overload;
     function Add(const AName: TJSONStringType; Avalue: QWord): Integer; overload;
     {$ELSE}
@@ -783,7 +797,9 @@ Function CreateJSON(Data : NativeInt) : TJSONNativeIntNumber; overload;
 Function CreateJSON(Data : TJSONFloat) : TJSONFloatNumber; overload;
 Function CreateJSON(const Data : TJSONStringType) : TJSONString; overload;
 {$IFNDEF PAS2JS}
+{$IFNDEF JSON_STRING_TYPE_IS_UNICODE}
 Function CreateJSON(const Data : TJSONUnicodeStringType) : TJSONString; overload;
+{$ENDIF}
 {$ENDIF}
 Function CreateJSONArray(const Data : Array of {$IFDEF PAS2JS}jsvalue{$else}Const{$ENDIF}) : TJSONArray;
 Function CreateJSONObject(const Data : Array of {$IFDEF PAS2JS}jsvalue{$else}Const{$ENDIF}) : TJSONObject;
@@ -882,7 +898,7 @@ function StringToJSONString(const S: TJSONStringType; Strict : Boolean = False):
 
 Var
   I,J,L : Integer;
-  C : AnsiChar;
+  C : Char;
 
 begin
   I:=1;
@@ -1084,7 +1100,7 @@ begin
   Result:=TJSONStringCLass(DefaultJSONInstanceTypes[jitString]).Create(Data);
 end;
 
-{$IFNDEF PAS2JS}
+{$IFNDEF JSON_STRING_TYPE_IS_UNICODE}
 function CreateJSON(const Data: TJSONUnicodeStringType): TJSONString;
 begin
   Result:=TJSONStringCLass(DefaultJSONInstanceTypes[jitString]).Create(Data);
@@ -1377,12 +1393,12 @@ end;
 { TJSONData }
 
 {$IFNDEF PAS2JS}
-function TJSONData.GetAsUnicodeString: TJSONUnicodeStringType; 
+function TJSONData.GetAsUnicodeString: TJSONUnicodeStringType;
 begin
   Result:=TJSONUnicodeStringType(AsString);
 end;
 
-procedure TJSONData.SetAsUnicodeString(const AValue: TJSONUnicodeStringType); 
+procedure TJSONData.SetAsUnicodeString(const AValue: TJSONUnicodeStringType);
 begin
   AsString:=TJSONStringType(AValue);
 end;
@@ -1684,7 +1700,7 @@ begin
   FValue:=AValue;
 end;
 
-{$IFNDEF PAS2JS}
+{$IFNDEF JSON_STRING_TYPE_IS_UNICODE}
 constructor TJSONString.Create(const AValue: TJSONUnicodeStringType);
 begin
   FValue:= TJSONStringType(AValue);
@@ -2624,7 +2640,7 @@ begin
   If (foUseTabChar in Options) then
     Result:=StringofChar(#9,Indent)
   else
-    Result:=StringOfChar(' ',Indent);  
+    Result:=StringOfChar(' ',Indent);
 end;
 
 function TJSONArray.DoFormatJSON(Options: TFormatOptions; CurrentIndent,
@@ -2635,7 +2651,7 @@ Var
   MultiLine : Boolean;
   SkipWhiteSpace : Boolean;
   Ind : String;
-  
+
 begin
   Result:='[';
   MultiLine:=Not (foSingleLineArray in Options);
@@ -2838,7 +2854,7 @@ procedure TJSONArray.Iterate(Iterator: TJSONArrayIterator; Data: TObject);
 Var
   I : Integer;
   Cont : Boolean;
-  
+
 begin
   I:=0;
   Cont:=True;
@@ -3352,11 +3368,13 @@ begin
 end;
 
 {$IFNDEF PAS2JS}
+{$IFNDEF JSON_STRING_TYPE_IS_UNICODE}
 function TJSONObject.Add(const AName: String; AValue: TJSONUnicodeStringType
   ): Integer;
 begin
   Result:=DoAdd(AName,CreateJSON(AValue));
 end;
+{$ENDIF}
 
 function TJSONObject.Add(const AName: TJSONStringType; Avalue: Int64): Integer;
 begin
@@ -3975,7 +3993,7 @@ begin
     Result:=ADefault;
 end;
 
-{$IFNDEF PAS2JS}
+{$IFNDEF JSON_STRING_TYPE_IS_UNICODE}
 function TJSONObject.Get(const AName: String; ADefault: TJSONUnicodeStringType
   ): TJSONUnicodeStringType;
 Var
