@@ -349,12 +349,6 @@ begin
   Exit;
   {$endif}
 
-  {$if defined(VER3_2_0)}
-  { This test fails with FPC 3.2.0, AnsiPolish has codepage 0. }
-  AbortTest;
-  Exit;
-  {$endif}
-
   { This test only makes sense if current system default is 1250. }
 
   { Manually set bytes following Polish Windows codepage 1250,
@@ -362,6 +356,14 @@ begin
     See https://en.wikipedia.org/wiki/Windows-1250 }
   SetLength(AnsiPolish, Length(AnsiPolishContents));
   Move(AnsiPolishContents[1], AnsiPolish[1], Length(AnsiPolishContents));
+  {$ifdef FPC}
+  if StringCodePage(AnsiPolish) = 0 then
+  begin
+    WritelnLog('StringCodePage(AnsiPolish) = 0, possible with FPC on Linux without locale configured (like in typical Docker or CI environments), skipping test');
+    AbortTest;
+    Exit;
+  end;
+  {$endif}
   CheckAnsiPolish(AnsiPolish);
 
   { Both explicit (with AnsiToUtf8 or Utf8ToAnsi) or implicit conversions
