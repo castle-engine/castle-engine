@@ -116,7 +116,7 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 ```
 
 Results:
-- Debug build size went down (from 129 MB if we did nothing) to 103 MB (here `-XX` gains nothing).
-- Release build size went down (from 23 MB) to 11 MB.
-- Gzip-compressed release build went down (from 5.3 MB) to 2.9 MB.
+- Debug build size: doesn't change in this test, as [DWARF debug information cannot be used with smart linking](https://www.freepascal.org/docs-html/3.2.2/user/userse70.html), so `-XX` has no effect.
+- Release build size went down (from initial 23 MB) to 11 MB.
+- Gzip-compressed release build went down (from initial 5.3 MB) to 2.9 MB.
 
