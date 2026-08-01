@@ -64,9 +64,68 @@ procedure UnregisterPromiseCallbacks(const JsPromise: IJSPromise);
 { If JsPromise assigned, unregister the callbacks and set it to nil. }
 procedure UnregisterPromiseAndNil(var JsPromise: IJSPromise);
 
+{ Add event listener to a JavaScript element,
+  in a way that can be removed later (by doing @link(RemoveEventListener)).
+
+  This workarounds FPC Job.Js issue, that IJSEventTarget.RemoveEventListener
+  method (from CastleInternalJobWeb, generated using Job.Js approach)
+  doesn't work, it doesn't unregister the listener (likely because it is actually
+  a different thing (wrapper around Pascal call) passed to JS removeEventListener
+  than the one that was passed to JS addEventListener?).
+
+  So we never really unregister anything from JavaScript. Instead we register
+  in JavaScript our own proxy, that calls the Pascal @code(Callback).
+  The @link(RemoveEventListener) just makes this proxy do nothing.
+  Consequences:
+
+  @unorderedList(
+    @item(After @link(RemoveEventListener), the @code(Callback) is really
+      not called anymore. Which is the point of all this: it is safe to free
+      the instance that owns the @code(Callback) method afterwards.)
+
+    @item(The proxy registered in JavaScript stays registered, and is never
+      freed. It is reused by the next @link(AddEventListener) with the same
+      @code(Element) and @code(EventName), so a repeated
+      "add, remove, add, remove..." (e.g. reopening TCastleWindow)
+      doesn't accumulate JavaScript listeners.)
+  )
+
+  Adding the same @code(Callback) for the same @code(Element) and
+  @code(EventName) twice does nothing the second time, just like
+  JavaScript addEventListener that ignores duplicates.
+
+  @code(Element) instances are compared by the Pascal interface identity,
+  so pass the same Pascal interface instance (not merely two interfaces
+  wrapping the same JavaScript object) to @link(AddEventListener) and
+  @link(RemoveEventListener). This is naturally satisfied when the element
+  is kept in a field, like @code(TCastleWindow.Canvas). }
+procedure AddEventListener(const Element: IJSEventTarget; const EventName: String;
+  const Callback: TEventListener);
+
+{ Remove listener that was added by @link(AddEventListener).
+  Does nothing if such listener was not added. }
+procedure RemoveEventListener(const Element: IJSEventTarget; const EventName: String;
+  const Callback: TEventListener);
+
+{ Like @link(AddEventListener), but for a JavaScript object that you have
+  as a Job.Js class instance, not as an interface.
+  Use this for the Job.Js globals @code(JSDocument), @code(JSWindow).
+
+  Never pass such class instance to @link(AddEventListener) instead.
+  It would make a temporary interface reference,
+  increasing then decreasing the reference count,
+  and thus freeing the global object. }
+procedure AddEventListenerObject(const Element: TJSEventTarget;
+  const EventName: String; const Callback: TEventListener);
+
+{ Remove listener that was added by @link(AddEventListenerObject).
+  Does nothing if such listener was not added. }
+procedure RemoveEventListenerObject(const Element: TJSEventTarget;
+  const EventName: String; const Callback: TEventListener);
+
 implementation
 
-uses Generics.Collections;
+uses SysUtils, Generics.Collections;
 
 type
   { Call OnAccepted / OnRejected callbacks when a promise is accepted / rejected. }
@@ -170,8 +229,168 @@ begin
   end;
 end;
 
+{ Event listeners ------------------------------------------------------------ }
+
+type
+  { Call the Pascal Callback when a JavaScript event occurs.
+
+    One instance of this class is registered using JavaScript
+    addEventListener by one AddEventListener call here. Since we cannot unregister
+    it from JavaScript (see AddEventListener docs), this instance must be valid
+    forever: all instances are kept on the ListenerProxies list and never freed. }
+  TEventListenerProxy = class
+    { JavaScript object for which we are registered.
+      Exactly one of these is assigned: ElementIntf (when registered by
+      AddEventListener) or ElementObject (when registered by
+      AddEventListenerObject). }
+    ElementIntf: IJSEventTarget;
+    ElementObject: TJSEventTarget;
+
+    { Event name for which we are registered. }
+    EventName: String;
+
+    { Pascal callback to call when the event occurs.
+      Set to nil if RemoveEventListener was called: then we are still registered
+      (as far as JavaScript is concerned),
+      but we do nothing, and we can even be reused by the next
+      AddEventListener with the same element and EventName. }
+    Callback: TEventListener;
+
+    function HandleEvent(Event: IJSEvent): Boolean;
+  end;
+
+  { Track all listeners registered by AddEventListener. }
+  TEventListenerProxyList = {$ifdef FPC}specialize{$endif} TObjectList<TEventListenerProxy>;
+
+var
+  ListenerProxies: TEventListenerProxyList;
+
+function TEventListenerProxy.HandleEvent(Event: IJSEvent): Boolean;
+begin
+  { When Callback is nil, it means that RemoveEventListener was called.
+    In this case we do nothing, and return false (to indicate that the event
+    was not handled). }
+  Result := Assigned(Callback) and Callback(Event);
+end;
+
+{ Find the proxy registered for given element (given as ElementIntf or
+  ElementObject, the other one must be @nil) and EventName, with given Callback.
+  Callback may be = nil, to find a proxy that is registered in JavaScript
+  but currently does nothing (so it can be reused).
+  Returns @nil if there is no such proxy. }
+function FindListenerProxy(const ElementIntf: IJSEventTarget;
+  const ElementObject: TJSEventTarget; const EventName: String;
+  const Callback: TEventListener): TEventListenerProxy;
+var
+  I: Integer;
+begin
+  if Assigned(ListenerProxies) then
+    for I := 0 to ListenerProxies.Count - 1 do
+    begin
+      Result := ListenerProxies[I];
+      if (Result.ElementIntf = ElementIntf) and
+         (Result.ElementObject = ElementObject) and
+         (Result.EventName = EventName) and
+         SameMethods(TMethod(Result.Callback), TMethod(Callback)) then
+        Exit;
+    end;
+  Result := nil;
+end;
+
+{ Common implementation of AddEventListener and AddEventListenerObject.
+  Pass the element either as ElementIntf or as ElementObject, the other one
+  must be @nil. }
+procedure AddListenerCore(const ElementIntf: IJSEventTarget;
+  const ElementObject: TJSEventTarget; const EventName: String;
+  const Callback: TEventListener);
+var
+  Proxy: TEventListenerProxy;
+begin
+  if not Assigned(Callback) then
+    raise Exception.CreateFmt('AddEventListener(%s): Callback must be assigned', [
+      EventName
+    ]);
+
+  { Ignore duplicates, just like JavaScript addEventListener. }
+  if FindListenerProxy(ElementIntf, ElementObject, EventName, Callback) <> nil then
+    Exit;
+
+  { Reuse a proxy that is already registered in JavaScript for this element
+    and EventName, but currently does nothing. }
+  Proxy := FindListenerProxy(ElementIntf, ElementObject, EventName, nil);
+  if Proxy <> nil then
+  begin
+    Proxy.Callback := Callback;
+    Exit;
+  end;
+
+  if not Assigned(ListenerProxies) then
+    ListenerProxies := TEventListenerProxyList.Create(true);
+  Proxy := TEventListenerProxy.Create;
+  Proxy.ElementIntf := ElementIntf;
+  Proxy.ElementObject := ElementObject;
+  Proxy.EventName := EventName;
+  Proxy.Callback := Callback;
+  ListenerProxies.Add(Proxy);
+
+  if ElementObject <> nil then
+    ElementObject.addEventListener(EventName, @Proxy.HandleEvent)
+  else
+    ElementIntf.addEventListener(EventName, @Proxy.HandleEvent);
+end;
+
+{ Common implementation of RemoveEventListener and RemoveEventListenerObject.
+  Pass the element either as ElementIntf or as ElementObject, the other one
+  must be @nil. }
+procedure RemoveListenerCore(const ElementIntf: IJSEventTarget;
+  const ElementObject: TJSEventTarget; const EventName: String;
+  const Callback: TEventListener);
+var
+  Proxy: TEventListenerProxy;
+begin
+  if not Assigned(Callback) then
+    raise Exception.CreateFmt('RemoveEventListener(%s): Callback must be assigned', [
+      EventName
+    ]);
+
+  Proxy := FindListenerProxy(ElementIntf, ElementObject, EventName, Callback);
+  { Just like JavaScript removeEventListener, do nothing if this listener
+    was not registered. }
+  if Proxy <> nil then
+    { We cannot unregister the proxy from JavaScript, and thus we cannot free it.
+      Just make it do nothing, and allow the next AddEventListener to reuse it. }
+    Proxy.Callback := nil;
+end;
+
+procedure AddEventListener(const Element: IJSEventTarget; const EventName: String;
+  const Callback: TEventListener);
+begin
+  AddListenerCore(Element, nil, EventName, Callback);
+end;
+
+procedure RemoveEventListener(const Element: IJSEventTarget; const EventName: String;
+  const Callback: TEventListener);
+begin
+  RemoveListenerCore(Element, nil, EventName, Callback);
+end;
+
+procedure AddEventListenerObject(const Element: TJSEventTarget;
+  const EventName: String; const Callback: TEventListener);
+begin
+  AddListenerCore(nil, Element, EventName, Callback);
+end;
+
+procedure RemoveEventListenerObject(const Element: TJSEventTarget;
+  const EventName: String; const Callback: TEventListener);
+begin
+  RemoveListenerCore(nil, Element, EventName, Callback);
+end;
+
 finalization
   { Not freeing the Promises, in case some promise will be fullfilled
-    after the finalization of this unit. }
+    after the finalization of this unit.
+    Same for ListenerProxies: JavaScript may still call the listeners
+    (that do nothing now) after the finalization of this unit. }
   // FreeAndNil(Promises);
+  // FreeAndNil(ListenerProxies);
 end.

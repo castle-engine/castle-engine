@@ -161,8 +161,13 @@ type
     procedure ActiveChanged(const NewValue: Boolean); override;
     function Delta(const Event: TInputMotion): TVector2; override;
   public
-    destructor Destroy; override;
+    { Reset our state and unregister all listeners from JS objects.
+      Call this when TCastleWindow is closing, to have a clean state,
+      e.g. for future reopening of the window. }
+    procedure WindowClosing;
 
+    { Register listeners for pointer lock events on the document.
+      Call this when TCastleWindow is opening. }
     procedure RegisterListeners;
 
     { Is the pointer lock, requested or cancelled by setting @link(Active),
@@ -321,11 +326,18 @@ begin
 
   Application.OpenWindowsAdd(Self);
 
-  Canvas.addEventListener('pointerdown', @PointerDown);
-  Canvas.addEventListener('pointerup', @PointerUp);
-  Canvas.addEventListener('lostpointercapture', @LostPointerCapture);
-  Canvas.addEventListener('pointermove', @PointerMove);
-  Canvas.addEventListener('contextmenu', @ContextMenu);
+  { Note: We use AddEventListener / RemoveEventListener from CastleInternalWebUtils,
+    not the addEventListener / removeEventListener methods of the JS elements,
+    because only this way we can really unregister the listeners in CloseBackend.
+
+    Note: For the JS globals that are classes, not interfaces
+    (JSWindow, JSDocument), we have to use the AddEventListenerObject /
+    RemoveEventListenerObject variants, see their docs. }
+  AddEventListener(Canvas, 'pointerdown', @PointerDown);
+  AddEventListener(Canvas, 'pointerup', @PointerUp);
+  AddEventListener(Canvas, 'lostpointercapture', @LostPointerCapture);
+  AddEventListener(Canvas, 'pointermove', @PointerMove);
+  AddEventListener(Canvas, 'contextmenu', @ContextMenu);
 
   { Pointer events for down/up are not delivered during pointer lock in Chromium.
 
@@ -340,15 +352,15 @@ begin
     Conversely, PointerDown / PointerUp ignore events while pointer lock is
     effective, so we never report a single click twice (e.g. in Firefox, which
     delivers both pointer and mouse events during lock). }
-  Canvas.addEventListener('mousedown', @MouseDown);
-  Canvas.addEventListener('mouseup', @MouseUp);
+  AddEventListener(Canvas, 'mousedown', @MouseDown);
+  AddEventListener(Canvas, 'mouseup', @MouseUp);
 
   { Catching key events on canvas doesn't work, as the canvas needs to be focused,
     see https://developer.mozilla.org/en-US/docs/Web/API/Element/keydown_event .
     For now, we catch key events on the whole window. }
-  JSWindow.addEventListener('keydown', @KeyDown);
-  JSWindow.addEventListener('keyup', @KeyUp);
-  JSWindow.addEventListener('blur', @Blur);
+  AddEventListenerObject(JSWindow, 'keydown', @KeyDown);
+  AddEventListenerObject(JSWindow, 'keyup', @KeyUp);
+  AddEventListenerObject(JSWindow, 'blur', @Blur);
 
   (Container.PointerLock as TCastleWebPointerLock).RegisterListeners;
 
@@ -360,7 +372,39 @@ end;
 
 procedure TCastleWindow.CloseBackend;
 begin
-  { One doesn't close WebGL context. }
+  { Note that closing TCastleWindow *may* happen on the web.
+    While it doesn't happen in a normal flow, but if user does Window.Close,
+    or we fail during OpenBackend -> then CloseBackend will be called. }
+
+  WritelnLog('Closing TCastleWindow (%s) on web', [
+    PointerToStr(Self)
+  ]);
+
+  (Container.PointerLock as TCastleWebPointerLock).WindowClosing;
+  if Canvas <> nil then
+  begin
+    RemoveEventListener(Canvas, 'pointerdown', @PointerDown);
+    RemoveEventListener(Canvas, 'pointerup', @PointerUp);
+    RemoveEventListener(Canvas, 'lostpointercapture', @LostPointerCapture);
+    RemoveEventListener(Canvas, 'pointermove', @PointerMove);
+    RemoveEventListener(Canvas, 'contextmenu', @ContextMenu);
+    RemoveEventListener(Canvas, 'mousedown', @MouseDown);
+    RemoveEventListener(Canvas, 'mouseup', @MouseUp);
+  end else
+  begin
+    { This is possible if OpenBackend raises early exception,
+      before Canvas was initialized. }
+    WritelnWarning('Web', 'Closing TCastleWindow (%s) on web: Canvas is nil during CloseBackend, this means OpenBackend was not called or was interrupted before Canvas initialization', [
+      PointerToStr(Self)
+    ]);
+  end;
+  RemoveEventListenerObject(JSWindow, 'keydown', @KeyDown);
+  RemoveEventListenerObject(JSWindow, 'keyup', @KeyUp);
+  RemoveEventListenerObject(JSWindow, 'blur', @Blur);
+
+  WritelnLog('Closed TCastleWindow (%s) on web', [
+    PointerToStr(Self)
+  ]);
 end;
 
 function TCastleWindow.PointerLockEffective: Boolean;
@@ -1040,19 +1084,28 @@ end;
 
 { TCastleWebPointerLock ------------------------------------------------------ }
 
-destructor TCastleWebPointerLock.Destroy;
+procedure TCastleWebPointerLock.WindowClosing;
 begin
   UnregisterPromiseAndNil(FRequestPromise);
-  JSDocument.removeEventListener('pointerlockchange', @PointerLockChange);
-  JSDocument.removeEventListener('pointerlockerror', @PointerLockError);
-  inherited;
+  RemoveEventListenerObject(JSDocument, 'pointerlockchange', @PointerLockChange);
+  RemoveEventListenerObject(JSDocument, 'pointerlockerror', @PointerLockError);
+  if FEffective then
+  begin
+    FEffective := false;
+    WritelnWarning('Web', 'Pointer lock was effective, but window is closing. Hard-resetting pointer lock state to non-effective. This should usually not happen, we should either deactivate pointer lock from engine or browser side.');
+  end;
+  FUnadjustedMovementUnsupported := false; // reset, so next LockPromiseRejected will react correctly
+  { Reset, so that RequestPointerLockNow will detect it again (and register
+    the 'pointerlockerror' listener again, as we just removed it)
+    if the window is reopened. }
+  FPromiseUnsupported := false;
 end;
 
 procedure TCastleWebPointerLock.RegisterListeners;
 begin
   { Pointer Lock API: observe the pointer lock state
     https://developer.mozilla.org/en-US/docs/Web/API/Pointer_Lock_API }
-  JSDocument.addEventListener('pointerlockchange', @PointerLockChange);
+  AddEventListenerObject(JSDocument, 'pointerlockchange', @PointerLockChange);
 
   { Note: We do not listen for the 'pointerlockerror' event.
 
@@ -1205,7 +1258,7 @@ begin
       { We assign PointerLockError listener then.
         We don't use it with browsers that return a promise, to avoid
         double-calling the error handler. }
-      JSDocument.addEventListener('pointerlockerror', @PointerLockError);
+      AddEventListenerObject(JSDocument, 'pointerlockerror', @PointerLockError);
     end;
   end else
   begin
