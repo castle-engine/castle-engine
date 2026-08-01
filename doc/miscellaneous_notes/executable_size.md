@@ -57,7 +57,7 @@ These are symbols you can define, roughly in order from _likely to have the most
 - `CASTLE_TILED_MAP_SUPPORT_DISABLE`
 - `CASTLE_COLLADA_SUPPORT_DISABLE`
 - `CASTLE_MD3_SUPPORT_DISABLE`
-- and a few more, see [list of all CASTLE_xxx_SUPPORT_DISABLE symbols](https://github.com/castle-engine/castle-engine/blob/c8ff34be7b46e88c759947388e49f60536bb7b34/src/scene/load/x3dload.pas#L67), but practically speaking disabling most other formats will not have a measurable impact on size.
+- and a few more, see [list of all CASTLE_xxx_SUPPORT_DISABLE symbols in x3dload.pas](https://github.com/castle-engine/castle-engine/blob/master/src/scene/load/x3dload.pas#L67), but practically speaking disabling most other formats will not have a measurable impact on size.
 
 Testing again on the [play_animation](https://github.com/castle-engine/castle-engine/tree/master/examples/animations/play_animation) example, we disabled 4 formats by adding this to the [CastleEngineManifest.xml, inside <compiler_options>](https://github.com/castle-engine/castle-engine/blob/master/examples/animations/play_animation/CastleEngineManifest.xml):
 
