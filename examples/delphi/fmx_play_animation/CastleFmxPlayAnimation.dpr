@@ -11,7 +11,7 @@ uses
   See https://castle-engine.io/dedicated_gpu }
 {$if (not defined(CASTLE_NO_FORCE_DEDICATED_GPU)) and
      (defined(CPU386) or defined(CPUX64) or defined(CPUAMD64)) and
-     (defined(MSWINDOWS) or (defined(LINUX) and defined(FPC)))
+     defined(MSWINDOWS)
 }
     {$ifdef FPC}
       {$asmmode intel}
