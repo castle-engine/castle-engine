@@ -29,6 +29,7 @@ type
     procedure TestAttributeReading;
     procedure TestEmptyAttribute;
     procedure TestGetAttribute;
+    procedure TestNodeValue;
   end;
 
 implementation
@@ -193,6 +194,31 @@ begin
     { Sanity check that non-empty attribute works too. }
     AssertEquals('some_string_value', {$ifdef FPC}UTF8Encode{$endif}(
       Doc.DocumentElement.GetAttribute('some_string')));
+  finally FreeAndNil(Doc); end;
+end;
+
+procedure TTestCastleXmlUtils.TestNodeValue;
+var
+  Doc: TXMLDocument;
+  AttrNode: TDOMAttr;
+begin
+  try
+    URLReadXML(Doc, 'castle-data:/test_empty_attribute.xml');
+
+    { NodeValue (and our helper NodeValue8) of an attribute node
+      with empty value, like empty_string="", should be an empty String.
+      With Delphi, this requires a special check for Null variant
+      in TDOMNode.GetNodeValue (src/compatibility/delphi-only/dom.pas),
+      just like in TDOMElement.AttributeString and TDOMElement.GetAttribute. }
+    AttrNode := Doc.DocumentElement.GetAttributeNode('empty_string');
+    AssertTrue(AttrNode <> nil);
+    AssertEquals('', AttrNode.NodeValue8);
+    AssertEquals('', {$ifdef FPC}UTF8Encode{$endif}(AttrNode.NodeValue));
+
+    { Sanity check that non-empty attribute node works too. }
+    AttrNode := Doc.DocumentElement.GetAttributeNode('some_string');
+    AssertTrue(AttrNode <> nil);
+    AssertEquals('some_string_value', AttrNode.NodeValue8);
   finally FreeAndNil(Doc); end;
 end;
 
