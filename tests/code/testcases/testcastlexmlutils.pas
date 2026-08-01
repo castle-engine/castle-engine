@@ -27,6 +27,7 @@ type
   published
     procedure TestReadResult;
     procedure TestAttributeReading;
+    procedure TestEmptyAttribute;
   end;
 
 implementation
@@ -143,6 +144,30 @@ begin
     I := 456;
     AssertTrue(not Doc.DocumentElement.AttributeInteger('some_int_not_existing', I));
     AssertTrue(I = 456);
+  finally FreeAndNil(Doc); end;
+end;
+
+procedure TTestCastleXmlUtils.TestEmptyAttribute;
+var
+  Doc: TXMLDocument;
+  S: String;
+begin
+  try
+    URLReadXML(Doc, 'castle-data:/test_empty_attribute.xml');
+
+    { Reading an attribute with empty value, like empty_string="",
+      should return @true and yield empty String, not fail.
+      With Delphi, this requires a special check for Null variant
+      in TDOMElement.AttributeString (src/compatibility/delphi-only/dom.pas). }
+    S := 'initial';
+    AssertTrue(Doc.DocumentElement.AttributeString('empty_string', S));
+    AssertEquals('', S);
+
+    AssertEquals('', Doc.DocumentElement.AttributeString('empty_string'));
+    AssertEquals('', Doc.DocumentElement.AttributeStringDef('empty_string', 'default'));
+
+    { Sanity check that non-empty attribute in the same file works too. }
+    AssertEquals('some_string_value', Doc.DocumentElement.AttributeString('some_string'));
   finally FreeAndNil(Doc); end;
 end;
 
