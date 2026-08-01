@@ -619,6 +619,20 @@ begin
   FAntiAliased := AnAntiAliased;
   FUseFallbackGlyph := true;
 
+  {$ifdef WASI}
+  { On the web, we don't have FreeType library.
+    Also, CanCatchExceptions=false is possible (with older FPC) and then
+    raising an exception about FreeType (which InitFontMgr does)
+    would crash the application. }
+  if not ApplicationProperties.CanCatchExceptions then
+  begin
+    WritelnWarning('TCastleFont', 'Cannot load font "%s", WASI does not support FreeType library. Expect further problems after this warning -- TTextureFontData is not fully functional and not ready for this. We recommend to use web with a newer FPC version, that can handle exceptions and will recover from this situation gracefully.', [
+      UriDisplay(Url)
+    ]);
+    Exit;
+  end;
+  {$endif}
+
   InitFontMgr;
   FontId := FontMgr.RequestFont(Url);
 
@@ -630,19 +644,6 @@ begin
   end;
 
   ReadFontMetadata;
-
-  {$ifdef WASI}
-  { On the web, we don't have FreeType library.
-    Also, CanCatchExceptions=false is possible (with older FPC) and then
-    raising an exception about FreeType would crash the application. }
-  if not ApplicationProperties.CanCatchExceptions then
-  begin
-    WritelnWarning('TCastleFont', 'Cannot load font "%s", WASI does not support FreeType library', [
-      UriDisplay(Url)
-    ]);
-    Exit;
-  end;
-  {$endif}
 
   try
     FGlyphsExtra := TGlyphDictionary.Create;
