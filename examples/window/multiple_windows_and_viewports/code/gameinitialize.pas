@@ -121,7 +121,7 @@ initialization
       This way of implementing "opening many windows" allows to keep
       using auto-generated main application file (DPR).
       You can also easily set Window2Use=false to disable the creation
-      of Window2 when you want. Our own example above does above:
+      of Window2 when you want. This very example does (see few lines above):
 
         Window2Use := Application.MultipleWindowsPossible;
 
