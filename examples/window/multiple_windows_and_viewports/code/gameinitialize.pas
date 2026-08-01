@@ -116,12 +116,17 @@ initialization
     Window2.Left := Application.ScreenWidth - Application.ScreenWidth div 9 - Application.ScreenWidth div 3;
     Window2.Width := Application.ScreenWidth div 3;
 
-    { Open Window2 now. Window1 will be open by main application file.
-      This way of opening many windows is nice to keep auto-generated
-      main application file (DPR).
-      You can also easily ifdef-out the creation of Window2
-      on systems that don't support multiple windows,
-      so on Android or iOS will have only Window1.
+    { Open Window2 now. Window1 will be open by main application file
+      (../multiple_windows_and_viewports_standalone.dpr).
+      This way of implementing "opening many windows" allows to keep
+      using auto-generated main application file (DPR).
+      You can also easily set Window2Use=false to disable the creation
+      of Window2 when you want. Our own example above does above:
+
+        Window2Use := Application.MultipleWindowsPossible;
+
+      to disable creation of Window2 on platforms that don't support
+      multiple windows (Android, iOS, Web, Nintendo Switch, ...).
 
       Alternative approach would be to modify DPR to open all windows
       in a desired order, like
@@ -131,8 +136,9 @@ initialization
         Application.Run;
 
       instead of Window1.OpenAndRun.
-      This would be more explicit, and it makes sense if you really
-      target only desktops (where multiple windows are supported).
+      This would be more explicit, and it would make sense if you really
+      target only desktops and want to just assume that
+      Application.MultipleWindowsPossible = true.
     }
     Window2.Open;
   end;
