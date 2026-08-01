@@ -1435,6 +1435,11 @@ begin
   end;
 end;
 
+function TCastleWindow.CreateContainer: TCastleContainer;
+begin
+  Result := TWindowContainer.Create(Self);
+end;
+
 procedure TCastleWindow.CreateBackend;
 begin
   ForcedProcessingState.Window := Self;

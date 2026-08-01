@@ -2659,14 +2659,6 @@ begin
   inherited;
 end;
 
-function TCastleWindow.CreateContainer: TCastleContainer;
-begin
-  Result :=
-    {$ifdef CASTLE_WINDOW_WEBASSEMBLY} TWindowWebContainer
-    {$else} TWindowContainer
-    {$endif}.Create(Self);
-end;
-
 procedure TCastleWindow.OpenCore;
 {$ifndef OpenGLES}
 const

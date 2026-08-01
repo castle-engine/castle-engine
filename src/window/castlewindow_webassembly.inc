@@ -185,6 +185,11 @@ type
 
 { TCastleWindow -------------------------------------------------------------- }
 
+function TCastleWindow.CreateContainer: TCastleContainer;
+begin
+  Result := TWindowWebContainer.Create(Self);
+end;
+
 procedure TCastleWindow.CreateBackend;
 begin
 end;

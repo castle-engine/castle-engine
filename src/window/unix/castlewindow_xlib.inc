@@ -393,6 +393,11 @@ begin
   XWarpPointer(Application.XDisplay, X.None, WindowXID, 0, 0, 0, 0, P.X, P.Y);
 end;
 
+function TCastleWindow.CreateContainer: TCastleContainer;
+begin
+  Result := TWindowContainer.Create(Self);
+end;
+
 procedure TCastleWindow.CreateBackend;
 begin
   windowXID := None;
