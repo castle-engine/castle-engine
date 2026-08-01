@@ -28,6 +28,7 @@ type
     procedure TestReadResult;
     procedure TestAttributeReading;
     procedure TestEmptyAttribute;
+    procedure TestGetAttribute;
   end;
 
 implementation
@@ -168,6 +169,30 @@ begin
 
     { Sanity check that non-empty attribute in the same file works too. }
     AssertEquals('some_string_value', Doc.DocumentElement.AttributeString('some_string'));
+  finally FreeAndNil(Doc); end;
+end;
+
+procedure TTestCastleXmlUtils.TestGetAttribute;
+var
+  Doc: TXMLDocument;
+begin
+  try
+    URLReadXML(Doc, 'castle-data:/test_empty_attribute.xml');
+
+    { GetAttribute follows DOM API: it returns the attribute value,
+      which may be an empty String -- both when the attribute has empty value
+      (like empty_string="") and when the attribute does not exist at all.
+      With Delphi, this requires a special check for Null variant
+      in TDOMElement.GetAttribute (src/compatibility/delphi-only/dom.pas),
+      just like in TDOMElement.AttributeString. }
+    AssertEquals('', {$ifdef FPC}UTF8Encode{$endif}(
+      Doc.DocumentElement.GetAttribute('empty_string')));
+    AssertEquals('', {$ifdef FPC}UTF8Encode{$endif}(
+      Doc.DocumentElement.GetAttribute('not_existing')));
+
+    { Sanity check that non-empty attribute works too. }
+    AssertEquals('some_string_value', {$ifdef FPC}UTF8Encode{$endif}(
+      Doc.DocumentElement.GetAttribute('some_string')));
   finally FreeAndNil(Doc); end;
 end;
 

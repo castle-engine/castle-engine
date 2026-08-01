@@ -519,6 +519,7 @@ begin
   Index := ANodes.IndexOf(Name);
   Result := Index <> -1;
   if Result then
+  begin
     { This can happen when XML has value like original_platforms="".
       Without special check for VarIsNull, it will fail saying that
       it cannot convert Null to String:
@@ -529,11 +530,17 @@ begin
       Value := ''
     else
       Value := ANodes[Index].NodeValue;
+  end;
 end;
 
 function TDOMElement.GetAttribute(const name: String): String;
 begin
-  Result := InternalNode.Attributes[Name];
+  { Same as in TDOMElement.AttributeString, we need to explicitly account
+    for attribute that exists, but is empty, like original_platforms="". }
+  if VarIsNull(InternalNode.Attributes[Name]) then
+    Result := ''
+  else
+    Result := InternalNode.Attributes[Name];
 end;
 
 function TDOMElement.GetAttributeNode(const Name: String): TDOMAttr;
