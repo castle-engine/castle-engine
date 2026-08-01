@@ -47,10 +47,6 @@ begin
   inherited;
 end;
 
-const
-  { Used when we have to save as X3D, but profile information is missing. }
-  DefaultX3DSaveProfile = 'Interchange';
-
 { global routines ------------------------------------------------------------ }
 
 { Write model to a VRML or X3D file.
@@ -93,7 +89,7 @@ var
     begin
       if Root.Profile <> '' then
         Writer.Writeln('PROFILE ' + Root.Profile + NL) else
-        Writer.Writeln('PROFILE ' + DefaultX3DSaveProfile + NL);
+        Writer.Writeln('PROFILE ' + TX3DRootNode.DefaultX3DSaveProfile + NL);
     end;
 
     procedure SaveComponents(Root: TX3DRootNode);
@@ -149,7 +145,7 @@ var
     if Version.Major >= 3 then
     begin
       { X3D, but no TX3DRootNode. Use default X3D profile. }
-      Writer.Writeln('PROFILE ' + DefaultX3DSaveProfile);
+      Writer.Writeln('PROFILE ' + TX3DRootNode.DefaultX3DSaveProfile);
       if (SaveOptions <> nil) and (SaveOptions.Generator <> '') then
         Writer.Writeln(Format('META %s %s',
           [ StringToX3DClassic('generator'),
@@ -182,8 +178,9 @@ var
     begin
       if (Node is TX3DRootNode) and
          (TX3DRootNode(Node).Profile <> '') then
-        Result := TX3DRootNode(Node).Profile else
-        Result := DefaultX3DSaveProfile;
+        Result := TX3DRootNode(Node).Profile
+      else
+        Result := TX3DRootNode.DefaultX3DSaveProfile;
     end;
 
     procedure SaveComponents(Root: TX3DRootNode);

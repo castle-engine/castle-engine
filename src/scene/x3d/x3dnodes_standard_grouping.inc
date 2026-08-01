@@ -236,7 +236,12 @@
       And this way VRML 1.0 WWWInline with separate=FALSE may also work too. }
     function SeparateGroup: boolean; override;
   public
-    ForceVersion: TX3DVersion;
+    const
+      DefaultX3DSaveVersionMajor = 4;
+      DefaultX3DSaveVersionMinor = 1;
+      DefaultX3DSaveProfile = 'Interchange';
+    var
+      ForceVersion: TX3DVersion;
 
     constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     destructor Destroy; override;
@@ -282,8 +287,13 @@
 
     { Set properties to force saving this node graph as X3D.
       If we're already configured to save as X3D (current major version >= 3)
-      then do nothing. Otherwise, sets major/minor versions
-      (by default: for X3D 4.0, Interchange profile).
+      then do nothing.
+
+      Otherwise, sets major/minor versions as indicated
+      by parameters. By default, sets version following
+      @link(DefaultX3DSaveVersionMajor),
+      @link(DefaultX3DSaveVersionMinor) and profile
+      following @link(DefaultX3DSaveProfile).
 
       Provided AMajor must be >= 3, since X3D version is always >= 3.
 
@@ -300,9 +310,10 @@
       the X3D (XML or classic) encoding, which is not a format supported
       by any X3D reader (even our own).
       We will display a warning if you attempt this. }
-    procedure ForceSaveAsX3D(const AMajor: Integer = 4;
-      const AMinor: Integer = 0;
-      const AProfile: string = 'Interchange');
+    procedure ForceSaveAsX3D(
+      const AMajor: Integer = DefaultX3DSaveVersionMajor;
+      const AMinor: Integer = DefaultX3DSaveVersionMinor;
+      const AProfile: string = DefaultX3DSaveProfile);
 
     { Global prototype namespace at the end of parsing the file.
       Useful for things like EXTERNPROTO implementation. }
