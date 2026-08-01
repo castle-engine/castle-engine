@@ -12,7 +12,7 @@ Don't judge the size (or [speed](https://castle-engine.io/optimization)) of the 
 
 We tested on Linux/x86_64 with FPC 3.2.2 with the [play_animation](https://github.com/castle-engine/castle-engine/tree/master/examples/animations/play_animation) example. This example uses `TCastleScene`, `TCastleWindow`, pulling most of the engine dependencies used in a typical game. Switching to release mode reduces the exe size from 129 MB to 23 MB.
 
-Note that this 23 MB executable is compressed when placed in a zip / gzip file, and you usually provide your game to users in a compressed form. (Our _"Run -> Package (Release to Users)"_  makes a ready zip / tar.gz to distribute.) Default gzip compression makes this 23 MB drop to 5.3 MB. That's a reasonable size for a game executable:)
+Note that this 23 MB executable is compressed when placed in a zip / gzip file, and you usually provide your game to users in a compressed form. (Our _"Run -> Package (Release to Users)"_ makes a ready zip / tar.gz to distribute.) Default gzip compression makes this 23 MB drop to 5.3 MB. That's a reasonable size for a game executable :)
 
 Command-line test:
 
@@ -57,7 +57,7 @@ These are symbols you can define, roughly in order from _likely to have the most
 - `CASTLE_TILED_MAP_SUPPORT_DISABLE`
 - `CASTLE_COLLADA_SUPPORT_DISABLE`
 - `CASTLE_MD3_SUPPORT_DISABLE`
-- and a few more, see [list of all CASTLE_xxx_SUPPORT_DISABLE symbols](https://github.com/castle-engine/castle-engine/blob/1886b2f38693495d9f92ff8733ed2f05ad56248d/src/scene/load/x3dload.pas#L67), but practically speaking disabling most other formats will not have a measurable impact on size.
+- and a few more, see [list of all CASTLE_xxx_SUPPORT_DISABLE symbols](https://github.com/castle-engine/castle-engine/blob/c8ff34be7b46e88c759947388e49f60536bb7b34/src/scene/load/x3dload.pas#L67), but practically speaking disabling most other formats will not have a measurable impact on size.
 
 Testing again on the [play_animation](https://github.com/castle-engine/castle-engine/tree/master/examples/animations/play_animation) example, we disabled 4 formats by adding this to the [CastleEngineManifest.xml, inside <compiler_options>](https://github.com/castle-engine/castle-engine/blob/master/examples/animations/play_animation/CastleEngineManifest.xml):
 
