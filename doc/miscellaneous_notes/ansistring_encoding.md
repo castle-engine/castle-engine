@@ -4,22 +4,6 @@ Define `CASTLE_DONT_CHANGE_STRING_ENCODING` to prevent engine from doing `SetMul
 
 This is only supported (and works flawlessly) with Delphi, or FPC _DelphiUnicode_ mode, for now. If you are brave, you can hack the engine to enable it also for other FPC modes, knowing that some tests will fail.
 
-## TODO
-
-- Eliminate in CGE code all `AnsiString` in favor of `Utf8String` when we mean "8-bit, UTF-8 encoded". Use `AnsiString` only when we really mean "8-bit, possible system-specific encoding". Document this, updating https://castle-engine.io/coding_conventions#strings_unicode:
-
-  - We use `Utf8String` when we mean "string with 8-bit characters with UTF-8 encoding".
-
-  - We use `AnsiString` when we mean "string with 8-bi characters with possibly platform-specific encoding". Almost nothing in Castle Game Engine is using this string.
-
-- Possibly just make `CASTLE_DONT_CHANGE_STRING_ENCODING` default, with Delphi and FPC DelphiUnicode? No need for a define.
-
-- Make it also default for Delphi packages. So we don't do `SetMultiByteConversionCodePage(CP_UTF8)` when being installed in Delphi IDE.
-
-- Fix auto-tests. Right now `CASTLE_DONT_CHANGE_STRING_ENCODING` + Delphi has one failure remaining, with reading filename with Chinese characters: `TTestDownload.TestLocalCharsCastleData`.
-
-- Test and fix CGE for FPC DelphiUnicode mode.
-
 ## Introduction
 
 By default, Castle Game Engine (just like Lazarus LCL) assumes that `AnsiString` contains UTF-8. In `initialization` of CastleUtils, we call:
@@ -101,3 +85,28 @@ initialization
   SetMultiByteRTLFileSystemCodePage(CP_UTF8);
 {$IFEND}
 ```
+
+## TODO
+
+- Eliminate in CGE code all `AnsiString` in favor of `Utf8String` when we mean "8-bit, UTF-8 encoded". Use `AnsiString` only when we really mean "8-bit, possible system-specific encoding". Document this, updating https://castle-engine.io/coding_conventions#strings_unicode:
+
+  - We use `Utf8String` when we mean "string with 8-bit characters with UTF-8 encoding".
+
+  - We use `AnsiString` when we mean "string with 8-bi characters with possibly platform-specific encoding". Almost nothing in Castle Game Engine is using this string.
+
+- Possibly just make `CASTLE_DONT_CHANGE_STRING_ENCODING` default, with Delphi and FPC DelphiUnicode? No need for a define.
+
+- Make it also default for Delphi packages. So we don't do `SetMultiByteConversionCodePage(CP_UTF8)` when being installed in Delphi IDE.
+
+- Fix auto-tests.
+    - Right now `CASTLE_DONT_CHANGE_STRING_ENCODING` + Delphi has one failure remaining, with reading filename with Chinese characters: `TTestDownload.TestLocalCharsCastleData`.
+    - delphi_12 test: without `CASTLE_DONT_CHANGE_STRING_ENCODING`: (check auto-tests win64):
+      ```
+      Processing: TTestCompiler.TestAnsiStringUtf8Conversion_Ansi1250
+      TTestCompiler.TestAnsiStringUtf8Conversion_Ansi1250: Failed: EAssertionFailedError: AssertEquals: Expected Integer 1250, actual 65001
+      Exception EAssertionFailedError in module castle-tester.exe at 00000000013003C4.
+      AssertEquals: Expected Integer 1250, actual 65001.
+      ```
+
+- Test and fix CGE for FPC DelphiUnicode mode.
+
