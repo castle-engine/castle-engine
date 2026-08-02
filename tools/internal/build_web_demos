@@ -157,3 +157,4 @@ do_project examples/audio/music_collection_player
 # other repos (outside CGE), git clone them as siblings
 do_project_any "${CASTLE_ENGINE_PATH}/../castle-model-viewer-mobile" 'castle-model-viewer-mobile' # TODO: web: no open dialog
 do_project_any "${CASTLE_ENGINE_PATH}/../castle-dice-throwing" 'castle-dice-throwing'
+do_project_any "${CASTLE_ENGINE_PATH}/../castle-game" 'castle-game'
