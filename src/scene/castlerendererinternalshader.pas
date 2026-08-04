@@ -2716,8 +2716,7 @@ begin
 
       { Clear whole Source }
       for SourceType := Low(SourceType) to High(SourceType) do
-        if SourceType <> stGeometry then
-          Source[SourceType].Count := 0;
+        Source[SourceType].Count := 0;
 
       { Iterate over Node.FdParts, looking for vertex shaders
         and fragment shaders. }
