@@ -2121,6 +2121,7 @@ var
     I: Integer;
     GeometryInputSize, CompleteGeometryShader: String;
     FoundShaderMoveToLast: Boolean;
+    ShaderMoveToLastContents: String;
   begin
     Define('HAS_GEOMETRY_SHADER', stFragment);
 
@@ -2150,7 +2151,9 @@ var
     for I := 0 to Source[stGeometry].Count - 1 do
       if Pos('/* SHADER-MOVE-TO-LAST */', Source[stGeometry][I]) <> 0 then
       begin
-        Source[stGeometry].Exchange(I, Source[stGeometry].Count - 1);
+        ShaderMoveToLastContents := Source[stGeometry][I];
+        Source[stGeometry].Delete(I);
+        Source[stGeometry].Add(ShaderMoveToLastContents);
         FoundShaderMoveToLast := true;
         Break;
       end;
