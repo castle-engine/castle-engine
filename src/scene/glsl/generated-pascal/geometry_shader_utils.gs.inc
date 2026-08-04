@@ -9,8 +9,7 @@
 '   User will have to provide it (in ComposedShader or Effect),' + LineEnding +
 '   or we will discard partial geometry shader code. */' + LineEnding +
 '' + LineEnding +
-'/* Our implementation supports only geometry shaders for GLSL >= 1.50. */' + LineEnding +
-'#version 150' + LineEnding +
+'/* SHADER-MOVE-TO-LAST */' + LineEnding +
 '' + LineEnding +
 '/* PLUG-DECLARATIONS */' + LineEnding +
 '' + LineEnding +

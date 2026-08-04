@@ -2105,10 +2105,65 @@ var
         '/* CASTLE-COMMON-CODE */', {$I common.fs.inc}, [rfReplaceAll]);
   end;
 
+  { Once we are certain that we have a geometry shader
+    (that is, one of Source[stGeometry][...] should have main(),
+    and we plan to compile Source[stGeometry][...]), do some final adjustments:
+
+    - define HAS_GEOMETRY_SHADER for the *fragment* shader code
+      (so fragment shader knows that it is preceded by a geometry shader)
+    - replace CASTLE_GEOMETRY_INPUT_SIZE macro in geometry shader,
+      see https://castle-engine.io/x3d_implementation_shaders.php#section_geometry_input_size
+    - reorder and concatenate geometry shaders to make layout directives
+      appear before any use of unsized arrays in all "compilation units".
+  }
+  procedure FinalizeGeometryShader;
+  var
+    I: Integer;
+    GeometryInputSize, CompleteGeometryShader: String;
+    FoundShaderMoveToLast: Boolean;
+  begin
+    Define('HAS_GEOMETRY_SHADER', stFragment);
+
+    if GLVersion.VendorType <> gvNvidia then
+      GeometryInputSize := 'gl_in.length()'
+    else
+      GeometryInputSize := '';
+
+    { Replace CASTLE_GEOMETRY_INPUT_SIZE }
+    for I := 0 to Source[stGeometry].Count - 1 do
+      Source[stGeometry][I] := StringReplace(Source[stGeometry][I],
+        'CASTLE_GEOMETRY_INPUT_SIZE', GeometryInputSize, [rfReplaceAll]);
+
+    { Move the DefaultGeometryShader code to the end, because it does:
+        ... = castle_vertex_eye[index]
+      and we cannot access *unsized* array with non-constant index
+      before we've seen the layout directives.
+      Without this fix, we would see errors like
+        error: unsized array index must be constant
+      or
+        ERROR: 0:...: '[' : layout must be declared before indexing unsized varying input array with a variable
+      when opening on Intel GPUs models using geometry shaders in Effect nodes,
+      like
+        demo-models/compositing_shaders/geometry_shader_*.x3dv
+    }
+    FoundShaderMoveToLast := false;
+    for I := 0 to Source[stGeometry].Count - 1 do
+      if Pos('/* SHADER-MOVE-TO-LAST */', Source[stGeometry][I]) <> 0 then
+      begin
+        Source[stGeometry].Exchange(I, Source[stGeometry].Count - 1);
+        FoundShaderMoveToLast := true;
+        Break;
+      end;
+    if FoundShaderMoveToLast then
+    begin
+      CompleteGeometryShader := GlueStrings(Source[stGeometry], NL);
+      Source[stGeometry].Clear;
+      Source[stGeometry].Add(CompleteGeometryShader);
+    end;
+  end;
+
 var
   ShaderType: TShaderType;
-  GeometryInputSize: String;
-  I: Integer;
 begin
   EnableLightingModel; // do this early, as later EnableLights may assume it's done
   ShadowMapShaders.GenerateCode(Self);
@@ -2136,16 +2191,8 @@ begin
   EnableMirrorPlaneTexCoords;
 
   if HasGeometryMain then
-  begin
-    Define('HAS_GEOMETRY_SHADER', stFragment);
-    if GLVersion.VendorType = gvATI then
-      GeometryInputSize := 'gl_in.length()' else
-      GeometryInputSize := '';
-    { Replace CASTLE_GEOMETRY_INPUT_SIZE }
-    for I := 0 to Source[stGeometry].Count - 1 do
-      Source[stGeometry][I] := StringReplace(Source[stGeometry][I],
-        'CASTLE_GEOMETRY_INPUT_SIZE', GeometryInputSize, [rfReplaceAll]);
-  end else
+    FinalizeGeometryShader
+  else
     Source[stGeometry].Clear;
 
   if GLVersion.BuggyGLSLFrontFacing then

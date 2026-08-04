@@ -7,8 +7,7 @@
    User will have to provide it (in ComposedShader or Effect),
    or we will discard partial geometry shader code. */
 
-/* Our implementation supports only geometry shaders for GLSL >= 1.50. */
-#version 150
+/* SHADER-MOVE-TO-LAST */
 
 /* PLUG-DECLARATIONS */
 
