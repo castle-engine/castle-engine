@@ -32,11 +32,12 @@
   public
     { Update Hash for this texture shader. }
     procedure Prepare(var Hash: TShaderCodeHash); virtual;
-    procedure Enable(const MainTextureMapping: Integer; const MultiTextureColor: TCastleColor;
+    procedure Enable(
+      const MainTextureMapping: Integer; const MultiTextureColor: TCastleColor;
       var TextureApply, TextureColorDeclare,
         TextureCoordInitialize, TextureCoordMatrix,
-        TextureAttributeDeclare, TextureVaryingDeclareVertex, TextureVaryingDeclareFragment, TextureUniformsDeclare,
-        GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: String); virtual;
+        TextureAttributeDeclare, TextureVaryingDeclareVertex,
+        TextureVaryingDeclareFragment, TextureUniformsDeclare: String); virtual;
   end;
 
   { Setup the necessary shader things to query a texture using texture coordinates. }
@@ -60,11 +61,12 @@
   public
     { Update Hash for this texture shader. }
     procedure Prepare(var Hash: TShaderCodeHash); override;
-    procedure Enable(const MainTextureMapping: Integer; const MultiTextureColor: TCastleColor;
+    procedure Enable(
+      const MainTextureMapping: Integer; const MultiTextureColor: TCastleColor;
       var TextureApply, TextureColorDeclare,
         TextureCoordInitialize, TextureCoordMatrix,
-        TextureAttributeDeclare, TextureVaryingDeclareVertex, TextureVaryingDeclareFragment, TextureUniformsDeclare,
-        GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: String); override;
+        TextureAttributeDeclare, TextureVaryingDeclareVertex,
+        TextureVaryingDeclareFragment, TextureUniformsDeclare: String); override;
   end;
 
   TTextureCoordinateShaderList = {$ifdef FPC}specialize{$endif} TObjectList<TTextureCoordinateShader>;
@@ -101,11 +103,12 @@ begin
 {$include norqcheckend.inc}
 end;
 
-procedure TTextureCoordinateShader.Enable(const MainTextureMapping: Integer; const MultiTextureColor: TCastleColor;
+procedure TTextureCoordinateShader.Enable(
+  const MainTextureMapping: Integer; const MultiTextureColor: TCastleColor;
   var TextureApply, TextureColorDeclare,
     TextureCoordInitialize, TextureCoordMatrix,
-    TextureAttributeDeclare, TextureVaryingDeclareVertex, TextureVaryingDeclareFragment, TextureUniformsDeclare,
-    GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: String);
+    TextureAttributeDeclare, TextureVaryingDeclareVertex,
+    TextureVaryingDeclareFragment, TextureUniformsDeclare: String);
 var
   TexCoordName, TexMatrixName: String;
 begin
@@ -118,29 +121,14 @@ begin
   TextureAttributeDeclare := TextureAttributeDeclare +
     Format('attribute vec4 castle_MultiTexCoord%d;' + NL, [TextureUnit]);
   TextureVaryingDeclareVertex := TextureVaryingDeclareVertex + Format(
+    '/* VARYING-PASSTHROUGH-GEOMETRY-SHADERS */' + NL +
     'varying vec4 %s;' + NL, [TexCoordName]);
   TextureVaryingDeclareFragment := TextureVaryingDeclareFragment + Format(
-    '#ifdef HAS_GEOMETRY_SHADER' + NL +
-    '  #define %s %0:s_geoshader' + NL +
-    '#endif' + NL +
-    'varying vec4 %0:s;' + NL, [TexCoordName]);
+    'varying vec4 %s;' + NL, [TexCoordName]);
 
   if HasMatrixTransform then
     TextureCoordMatrix := TextureCoordMatrix + Format('%s = %s * %0:s;' + NL,
       [TexCoordName, TexMatrixName]);
-
-  GeometryVertexDeclare := GeometryVertexDeclare + Format(
-    'in vec4 %s[CASTLE_GEOMETRY_INPUT_SIZE];' + NL +
-    'out vec4 %0:s_geoshader;', [TexCoordName]);
-  GeometryVertexSet  := GeometryVertexSet +
-    Format('%s_geoshader  = %0:s[index];' + NL, [TexCoordName]);
-  GeometryVertexZero := GeometryVertexZero + Format('%s_geoshader  = vec4(0.0);'
-    + NL, [TexCoordName]);
-  { NVidia will warn here "... might be used before being initialized".
-    Which is of course true --- but we depend that author will always call
-    geometryVertexZero() before geometryVertexAdd(). }
-  GeometryVertexAdd  := GeometryVertexAdd +
-    Format('%s_geoshader += %0:s[index] * scale;' + NL, [TexCoordName]);
 end;
 
 { TTextureShader ------------------------------------------------------------- }
@@ -341,11 +329,12 @@ begin
   end;
 end;
 
-procedure TTextureShader.Enable(const MainTextureMapping: Integer; const MultiTextureColor: TCastleColor;
+procedure TTextureShader.Enable(
+  const MainTextureMapping: Integer; const MultiTextureColor: TCastleColor;
   var TextureApply, TextureColorDeclare,
     TextureCoordInitialize, TextureCoordMatrix,
-    TextureAttributeDeclare, TextureVaryingDeclareVertex, TextureVaryingDeclareFragment, TextureUniformsDeclare,
-    GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: String);
+    TextureAttributeDeclare, TextureVaryingDeclareVertex,
+    TextureVaryingDeclareFragment, TextureUniformsDeclare: String);
 var
   TextureSampleCall, TexCoordName: String;
   Code: TShaderSource;

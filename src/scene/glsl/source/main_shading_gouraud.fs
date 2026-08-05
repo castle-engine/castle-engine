@@ -2,12 +2,6 @@
 
 /* PLUG-DECLARATIONS */
 
-#ifdef HAS_GEOMETRY_SHADER
-  #define castle_vertex_eye castle_vertex_eye_geoshader
-  #define castle_normal_eye castle_normal_eye_geoshader
-  #define castle_Color      castle_Color_geoshader
-#endif
-
 varying vec4 castle_vertex_eye;
 varying vec3 castle_normal_eye;
 varying vec4 castle_Color;
