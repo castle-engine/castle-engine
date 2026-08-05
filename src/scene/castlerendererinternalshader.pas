@@ -2123,7 +2123,24 @@ var
     FoundShaderMoveToLast: Boolean;
     ShaderMoveToLastContents: String;
   begin
-    Define('HAS_GEOMETRY_SHADER', stFragment);
+    { Note: We must specify PlugEarly=true below, because this must be defined
+      before TextureVaryingDeclareFragment checks "#ifdef HAS_GEOMETRY_SHADER...".
+      Otherwise, when using geometry shader with textures, we will get errors
+
+        The XXX shader uses varying castle_TexCoord0, but previous shader does not write to it.
+
+      ... since we failed to use "castle_TexCoord0_geoshader" (with
+      the "_geoshader" suffix) in fragment shader.
+
+      ( Careful: NVidia drivers don't complain about this,
+      and Intel (Mesa) drivers on Linux don't complain about this.
+      Only Intel drivers on Windows complain about this explicitly,
+      confirmed on "Intel(R) UHD Graphics". )
+
+      Testcase: Open any of demo-models/compositing_shaders/geometry_shader_*.x3dv
+      on Windows, with Intel GPU.
+    }
+    Define('HAS_GEOMETRY_SHADER', stFragment, true);
 
     if GLVersion.VendorType <> gvNvidia then
       GeometryInputSize := 'gl_in.length()'
