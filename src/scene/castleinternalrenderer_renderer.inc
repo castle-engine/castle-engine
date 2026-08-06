@@ -1083,6 +1083,40 @@ var
     at the end). }
   ClipPlanesEnabled: Cardinal;
 
+  function HasGeometryShaderEffects(const EffectNodes: TX3DNodeList): Boolean;
+  var
+    I, J: Integer;
+    Effect: TEffectNode;
+    Part: TEffectPartNode;
+  begin
+    for I := 0 to EffectNodes.Count - 1 do
+    begin
+      if EffectNodes[I] is TEffectNode then
+      begin
+        Effect := TEffectNode(EffectNodes[I]);
+        for J := 0 to Effect.FdParts.Count - 1 do
+          if Effect.FdParts[J] is TEffectPartNode then
+          begin
+            Part := TEffectPartNode(Effect.FdParts[J]);
+            if Part.ShaderType = stGeometry then
+              Exit(true);
+          end;
+      end;
+    end;
+    Result := false;
+  end;
+
+  function GetGeometryShaderEffectsPossible: Boolean;
+  begin
+    if Shape.State.Appearance <> nil then
+      if HasGeometryShaderEffects(Shape.State.Appearance.FdEffects.InternalItems) then
+        Exit(true);
+    if Shape.State.Effects <> nil then
+      if HasGeometryShaderEffects(Shape.State.Effects) then
+        Exit(true);
+    Result := false;
+  end;
+
   { Initialize OpenGL clip planes, looking at ClipPlanes list.
     We know we're inside GL_MODELVIEW mode,
     and we know all clip planes are currently disabled. }
@@ -1090,11 +1124,17 @@ var
   var
     I: Integer;
     ClipPlane: PClipPlane;
+    GeometryShaderEffectsPossible: Boolean;
   begin
     ClipPlanesEnabled := 0;
     { GLMaxClipPlanes should be >= 6 with every conforming OpenGL,
       but still better check. }
-    if (GLFeatures.MaxClipPlanes > 0) and (ClipPlanes <> nil) then
+    if (GLFeatures.MaxClipPlanes > 0) and
+       (ClipPlanes <> nil) and
+       (ClipPlanes.Count <> 0) then
+    begin
+      GeometryShaderEffectsPossible := GetGeometryShaderEffectsPossible;
+
       for I := 0 to ClipPlanes.Count - 1 do
       begin
         ClipPlane := PClipPlane(ClipPlanes.Ptr(I));
@@ -1102,7 +1142,8 @@ var
         begin
           Assert(ClipPlanesEnabled < GLFeatures.MaxClipPlanes);
           Shader.EnableClipPlane(ClipPlanesEnabled,
-            PlaneTransform(ClipPlane^.Node.FdPlane.Value, ClipPlane^.Transform));
+            PlaneTransform(ClipPlane^.Node.FdPlane.Value, ClipPlane^.Transform),
+            GeometryShaderEffectsPossible);
           Inc(ClipPlanesEnabled);
 
           { No more clip planes possible, regardless if there are any more
@@ -1110,6 +1151,7 @@ var
           if ClipPlanesEnabled = GLFeatures.MaxClipPlanes then Break;
         end;
       end;
+    end;
   end;
 
   { Disable OpenGL clip planes previously initialized by ClipPlanesBegin. }

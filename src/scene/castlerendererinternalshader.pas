@@ -247,8 +247,11 @@ type
       - OpenGL >= 3.0 (for "glEnable with GL_CLIP_DISTANCE*" in OpenGL API),
       - and again OpenGL >= 3.0 (for GLSL >= 1.30 that includes "gl_ClipDistance"
         built-in).
-      - we actuallly bump it to 3.1, so that CastleGLShaders will add a #version,
+      - we actually bump it to 3.1, so that CastleGLShaders will add a #version,
         which is required for gl_ClipDistance access.
+      - no geometry shaders in Effect nodes. Geometry shaders "passthrough"
+        mechanism needs cpDiscard, which has castle_ClipDistance
+        which can be marked with /* VARYING-PASSTHROUGH-GEOMETRY-SHADERS */.
 
       See
       https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/gl_ClipDistance.xhtml
@@ -262,7 +265,7 @@ type
       This works everywhere where we have shaders,
       including in OpenGLES 2
       (without EXT_clip_cull_distance.txt, which is only since OpenGLES 3).
-      So we write to varying castle_ClipDistance[] (exactly like gl_ClipDistance)
+      So we write to varying castle_ClipDistance* (exactly like gl_ClipDistance)
       and then we discard in fragment shader fragments with distance < 0.
     }
     cpDiscard
@@ -516,16 +519,30 @@ type
       const Matrix: TMatrix4);
     { Enable clip plane.
 
-      The Plane equation must be given in "scene coordinates".
-      IOW, with shape transformation matrix (from X3D Transform nodes) applied,
-      but scene matrix (TCastleScene transformation) not applied,
-      and "camera matrix" not applied.
+      @param(Plane Equation of the clipping plane.
+        This equation must be given in "scene coordinates".
+        IOW, with shape transformation matrix (from X3D Transform nodes) applied,
+        but scene matrix (TCastleScene transformation) not applied,
+        and "camera matrix" not applied.)
 
-      The ClipPlaneIndex must always be one more than previous one
-      on this TShape instance, since it's creation or Initialize call.
-      So you can only call EnableClipPlane with successive integers, from 0. }
+      @param(ClipPlaneIndex Must always be one more than previous one
+        on this TShape instance, since it's creation or Initialize call.
+        So you can only call EnableClipPlane with successive integers, from 0.
+      )
+
+      @param(GeometryShaderEffectsPossible Whether *possibly* (but not for sure)
+        we will use geometry shaders, in Effect nodes, for this shape.
+
+        This is necessary, as geometry shaders in Effect nodes require
+        /* VARYING-PASSTHROUGH-GEOMETRY-SHADERS */ support for clip variables.
+        On desktop OpenGL, this forces a different clip plane algorithm,
+        which may be a little slower.
+
+        On OpenGLES / WebGL, this doesn't matter.
+      )
+    }
     procedure EnableClipPlane(const ClipPlaneIndex: Cardinal;
-      const Plane: TVector4);
+      const Plane: TVector4; const GeometryShaderEffectsPossible: Boolean);
     procedure DisableClipPlane(const ClipPlaneIndex: Cardinal);
     procedure EnableAlphaTest(const AlphaCutoff: Single);
     procedure EnableBumpMapping(const BumpMapping: TBumpMapping;
@@ -1738,7 +1755,8 @@ const
   var
     I: Integer;
     PlaneName: String;
-    PlugVertexDeclarations, PlugVertexImplementation, PlugFragmentImplementation: String;
+    PlugVertexDeclarations, PlugFragmentDeclarations,
+      PlugVertexImplementation, PlugFragmentImplementation: String;
   begin
     { This routine closely cooperates with method EnableClipPlane to set
       up the necessary OpenGL(ES) state.
@@ -1783,22 +1801,36 @@ const
         cpDiscard:
           begin
             PlugVertexDeclarations := '';
+            PlugFragmentDeclarations := '';
             PlugVertexImplementation := '';
             PlugFragmentImplementation := '';
 
             for I := 0 to ClipPlanesCount - 1 do
             begin
               PlaneName := 'castle_ClipPlane' + IntToStr(I);
-              PlugVertexDeclarations := PlugVertexDeclarations +
-                'uniform vec4 ' + PlaneName + ';' + NL;
-              PlugVertexImplementation := PlugVertexImplementation +
-                '  castle_ClipDistance[' + IntToStr(I) + '] = dot(' + PlaneName + ', vertex_eye);' + NL;
-              PlugFragmentImplementation := PlugFragmentImplementation +
-                '  if (castle_ClipDistance[' + IntToStr(I) + '] < 0.0) discard;' + NL;
+              PlugVertexDeclarations := PlugVertexDeclarations + Format(
+                'uniform vec4 %s;' + NL +
+                '/* VARYING-PASSTHROUGH-GEOMETRY-SHADERS */' + NL +
+                'varying float castle_ClipDistance%d;' + NL, [
+                PlaneName,
+                I
+              ]);
+              PlugFragmentDeclarations := PlugFragmentDeclarations + Format(
+                'varying float castle_ClipDistance%d;' + NL, [
+                I
+              ]);
+              PlugVertexImplementation := PlugVertexImplementation + Format(
+                '  castle_ClipDistance%d = dot(%s, vertex_eye);' + NL, [
+                I,
+                PlaneName
+              ]);
+              PlugFragmentImplementation := PlugFragmentImplementation + Format(
+                '  if (castle_ClipDistance%d < 0.0) discard;' + NL, [
+                I
+              ]);
             end;
 
             Plug(stVertex,
-              'varying float castle_ClipDistance[' + IntToStr(ClipPlanesCount) + '];' +NL+
               PlugVertexDeclarations +
               'void PLUG_vertex_eye_space(const in vec4 vertex_eye, const in vec3 normal_eye)' +NL+
               '{' +NL+
@@ -1806,7 +1838,7 @@ const
               '}');
 
             Plug(stFragment,
-              'varying float castle_ClipDistance[' + IntToStr(ClipPlanesCount) + '];' +NL+
+              PlugFragmentDeclarations +
               'void PLUG_main_texture_apply(inout vec4 fragment_color, const in vec3 normal)' +NL+
               '{' +NL+
               PlugFragmentImplementation +
@@ -1814,23 +1846,6 @@ const
           end;
       end;
     end;
-
-    (* TODO: make this work with geometry shaders: (instead of 0, add each index)
-    ClipPlaneGeometryPlug :=
-      '#version 150 compatibility' +NL+
-      'void PLUG_geometry_vertex_set(const int index)' +NL+
-      '{' +NL+
-      '  gl_ClipDistance[0] = gl_in[index].gl_ClipDistance[0];' +NL+
-      '}' +NL+
-      'void PLUG_geometry_vertex_zero()' +NL+
-      '{' +NL+
-      '  gl_ClipDistance[0] = 0.0;' +NL+
-      '}' +NL+
-      'void PLUG_geometry_vertex_add(const int index, const float scale)' +NL+
-      '{' +NL+
-      '  gl_ClipDistance[0] += gl_in[index].gl_ClipDistance[0] * scale;' +NL+
-      '}' +NL;
-    *)
   end;
 
   { Applies effects from various strings here.
@@ -2493,7 +2508,7 @@ begin
 end;
 
 procedure TShader.EnableClipPlane(const ClipPlaneIndex: Cardinal;
-  const Plane: TVector4);
+  const Plane: TVector4; const GeometryShaderEffectsPossible: Boolean);
 var
   Uniform: TDynamicUniformVec4;
 begin
@@ -2515,7 +2530,8 @@ begin
     glEnable(GL_CLIP_PLANE0 + ClipPlaneIndex);
   end else
 
-  if not ForceOpenGLESClipPlanes then
+  if (not ForceOpenGLESClipPlanes) and
+     (not GeometryShaderEffectsPossible) then
   begin
     FClipPlaneAlgorithm := cpClipDistance;
 
