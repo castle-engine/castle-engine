@@ -519,15 +519,16 @@ type
       const Matrix: TMatrix4);
     { Enable clip plane.
 
+      @param(ClipPlaneIndex Must always be one more than previous one
+        on this TShape instance, since it's creation or Initialize call.
+        So you can only call EnableClipPlane with successive integers, from 0.
+      )
+
       @param(Plane Equation of the clipping plane.
         This equation must be given in "scene coordinates".
         IOW, with shape transformation matrix (from X3D Transform nodes) applied,
         but scene matrix (TCastleScene transformation) not applied,
-        and "camera matrix" not applied.)
-
-      @param(ClipPlaneIndex Must always be one more than previous one
-        on this TShape instance, since it's creation or Initialize call.
-        So you can only call EnableClipPlane with successive integers, from 0.
+        and "camera matrix" not applied.
       )
 
       @param(GeometryShaderEffectsPossible Whether *possibly* (but not for sure)
