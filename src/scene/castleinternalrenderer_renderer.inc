@@ -1083,6 +1083,8 @@ var
     at the end). }
   ClipPlanesEnabled: Cardinal;
 
+  { Does EffectNodes contain enabled Effect node with geometry shader?
+    We check enabled, as TShaderCodeHash.AddEffects also checks it. }
   function HasGeometryShaderEffects(const EffectNodes: TX3DNodeList): Boolean;
   var
     I, J: Integer;
@@ -1094,18 +1096,25 @@ var
       if EffectNodes[I] is TEffectNode then
       begin
         Effect := TEffectNode(EffectNodes[I]);
-        for J := 0 to Effect.FdParts.Count - 1 do
-          if Effect.FdParts[J] is TEffectPartNode then
-          begin
-            Part := TEffectPartNode(Effect.FdParts[J]);
-            if Part.ShaderType = stGeometry then
-              Exit(true);
-          end;
+        if Effect.FdEnabled.Value then
+        begin
+          for J := 0 to Effect.FdParts.Count - 1 do
+            if Effect.FdParts[J] is TEffectPartNode then
+            begin
+              Part := TEffectPartNode(Effect.FdParts[J]);
+              if Part.ShaderType = stGeometry then
+                Exit(true);
+            end;
+        end;
       end;
     end;
     Result := false;
   end;
 
+  { Does Shape have enabled Effect node with geometry shader?
+    This reflects usage of
+    - TShader.EnableAppearanceEffects
+    - TShader.EnableGroupEffects }
   function GetGeometryShaderEffectsPossible: Boolean;
   begin
     if Shape.State.Appearance <> nil then
