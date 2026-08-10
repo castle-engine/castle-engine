@@ -17,6 +17,9 @@
 { Physics joints. }
 
 {$ifdef read_interface}
+
+// type section started in CastleTransform.pas
+
   { Base class for physics joints, that connects two physics bodies
     and constraints their relative movement.
 
@@ -81,12 +84,14 @@
       to visualize physics joints 3D points.
       If you want to visualize the behavior using a visible TCastleTransform,
       then create and add to Parent a descendant of TCastleJointTool,
-      and set InternalCastleDesignInvalidate to @true. }
+      and set InternalCastleDesignInvalidate to @true.
+      @exclude }
     procedure InternalCreateGizmos; virtual;
 
     { Destroy design-time stuff.
       You can destroy any component, just be sure
-      to set InternalCastleDesignInvalidate to @true. }
+      to set InternalCastleDesignInvalidate to @true.
+      @exclude }
     procedure InternalDestroyGizmos; virtual;
   published
     { Makes the joint breakable when force is greater than BreakThresholdForce
@@ -476,16 +481,22 @@ end;
 procedure TCastleAbstractTwoBodiesJoint.OnConnectedAddBehavior(
   const Component: TComponent);
 begin
-  FConnectedRigidBody := Component as TCastleRigidBody;
-  SetConnectedRigidBodyEvents;
+  if Component is TCastleRigidBody then
+  begin
+    FConnectedRigidBody := TCastleRigidBody(Component);
+    SetConnectedRigidBodyEvents;
+  end;
 end;
 
 procedure TCastleAbstractTwoBodiesJoint.OnConnectedTransfromRemoveBehavior(
   const Component: TComponent);
 begin
-  DeinitializeKraftJoint;
-  RemoveConnectedRigidBodyEvents;
-  FConnectedRigidBody := nil;
+  if Component is TCastleRigidBody then
+  begin
+    DeinitializeKraftJoint;
+    RemoveConnectedRigidBodyEvents;
+    FConnectedRigidBody := nil;
+  end;
 end;
 
 procedure TCastleAbstractTwoBodiesJoint.OnConnectedRigidBodyInitialized(
@@ -506,10 +517,10 @@ begin
     Exit;
 
   FConnected.AddNotificationOnBehaviorAdded(
-    {$ifdef FPC}@{$endif} OnConnectedAddBehavior, TCastleRigidBody);
+    {$ifdef FPC}@{$endif} OnConnectedAddBehavior);
 
   FConnected.AddNotificationBeforeBehaviorRemove(
-    {$ifdef FPC}@{$endif} OnConnectedTransfromRemoveBehavior, TCastleRigidBody);
+    {$ifdef FPC}@{$endif} OnConnectedTransfromRemoveBehavior);
 
   if FConnectedTransfromFreeObserver = nil then
   begin
@@ -525,11 +536,11 @@ begin
   if FConnected <> nil then
   begin
     { Remove events from previous connected castle transform }
-    FConnected.AddNotificationOnBehaviorAdded(
-      {$ifdef FPC}@{$endif} OnConnectedAddBehavior, TCastleRigidBody);
+    FConnected.RemoveNotificationOnBehaviorAdded(
+      {$ifdef FPC}@{$endif} OnConnectedAddBehavior);
 
-    FConnected.AddNotificationBeforeBehaviorRemove(
-      {$ifdef FPC}@{$endif} OnConnectedTransfromRemoveBehavior, TCastleRigidBody);
+    FConnected.RemoveNotificationBeforeBehaviorRemove(
+      {$ifdef FPC}@{$endif} OnConnectedTransfromRemoveBehavior);
   end;
 
   { Stop watching this transform }
@@ -614,7 +625,7 @@ begin
         recreate joint }
       SetConnectedEvents;
 
-      FConnectedRigidBody := FConnected.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+      FConnectedRigidBody := FConnected.RigidBody;
       if FConnectedRigidBody <> nil then
       begin
         SetConnectedRigidBodyEvents;
@@ -657,16 +668,22 @@ end;
 procedure TCastleAbstractJoint.OnParentTransformAddBehavior(
   const Component: TComponent);
 begin
-  FParentRigidBody := Component as TCastleRigidBody;
-  SetParentRigidBodyEvents;
+  if Component is TCastleRigidBody then
+  begin
+    FParentRigidBody := TCastleRigidBody(Component);
+    SetParentRigidBodyEvents;
+  end;
 end;
 
 procedure TCastleAbstractJoint.OnBeforeParentTransfromRemoveBehavior(
   const Component: TComponent);
 begin
-  DeinitializeKraftJoint;
-  RemoveParentRigidBodyEvents;
-  FParentRigidBody := nil;
+  if Component is TCastleRigidBody then
+  begin
+    DeinitializeKraftJoint;
+    RemoveParentRigidBodyEvents;
+    FParentRigidBody := nil;
+  end;
 end;
 
 procedure TCastleAbstractJoint.OnParentRigidBodyInitialized(
@@ -757,12 +774,12 @@ begin
     Parent has rigid body if has we should try recreate kraft joint. }
 
   Parent.AddNotificationOnBehaviorAdded(
-    {$ifdef FPC}@{$endif} OnParentTransformAddBehavior, TCastleRigidBody);
+    {$ifdef FPC}@{$endif} OnParentTransformAddBehavior);
 
   Parent.AddNotificationBeforeBehaviorRemove(
-    {$ifdef FPC}@{$endif} OnBeforeParentTransfromRemoveBehavior, TCastleRigidBody);
+    {$ifdef FPC}@{$endif} OnBeforeParentTransfromRemoveBehavior);
 
-  FParentRigidBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+  FParentRigidBody := Parent.RigidBody;
   if FParentRigidBody <> nil then
   begin
     SetParentRigidBodyEvents;
@@ -776,10 +793,10 @@ begin
   remove all callbacks also rigid body callbacks }
 
   Parent.RemoveNotificationOnBehaviorAdded(
-    {$ifdef FPC}@{$endif} OnParentTransformAddBehavior, TCastleRigidBody);
+    {$ifdef FPC}@{$endif} OnParentTransformAddBehavior);
 
   Parent.RemoveNotificationBeforeBehaviorRemove(
-    {$ifdef FPC}@{$endif} OnBeforeParentTransfromRemoveBehavior, TCastleRigidBody);
+    {$ifdef FPC}@{$endif} OnBeforeParentTransfromRemoveBehavior);
 
   RemoveParentRigidBodyEvents;
   inherited ParentBeforeDetach;

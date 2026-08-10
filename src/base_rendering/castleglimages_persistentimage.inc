@@ -229,6 +229,7 @@
       Empty (following @link(TFloatRectangle.Empty)) means using the whole image. }
     property Region: TFloatRectangle read FRegion write SetRegion;
 
+    { @exclude }
     property InternalVisualizeProtectedSides: Boolean
       read FInternalVisualizeProtectedSides write FInternalVisualizeProtectedSides default true;
 
@@ -695,11 +696,14 @@ procedure TCastleImagePersistent.Draw(
       Copied from FitWithin inside TDrawableImage.Draw3x3, to mirror what it does.
     }
     procedure FitWithin(var A, B: Single; const Max: Single);
+    var
+      Sum: Single;
     begin
-      if A + B > Max then
+      Sum := A + B;
+      if Sum > Max then
       begin
-        A := Max * A / (A + B);
-        B := Max * B / (A + B);
+        A := Max * A / Sum;
+        B := Max * B / Sum;
       end;
     end;
 

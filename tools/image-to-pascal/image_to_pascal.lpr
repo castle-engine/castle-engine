@@ -117,7 +117,7 @@ var
   UnitName, ImageName: string;
   CodeInterface, CodeImplementation, CodeInitialization, CodeFinalization: string;
   ImageIndex: Integer;
-  OutputUnit: TTextWriter;
+  OutputUnit: TCastleTextWriter;
   Alpha: TAlpha = alphaKeep;
 begin
   { parse params }
@@ -193,7 +193,7 @@ begin
   end;
 
   { output full unit contents }
-  OutputUnit := TTextWriter.Create(OutputDirectory + LowerCase(UnitName) + '.pas');
+  OutputUnit := TCastleTextWriter.Create(OutputDirectory + LowerCase(UnitName) + '.pas');
   OutputUnit.Write(
     '{ -*- buffer-read-only: t -*- }' +NL+
     nl+
@@ -226,7 +226,7 @@ begin
     'end.');
   FreeAndNil(OutputUnit);
 
-  OutputUnit := TTextWriter.Create(OutputDirectory + LowerCase(UnitName) + '.image_data');
+  OutputUnit := TCastleTextWriter.Create(OutputDirectory + LowerCase(UnitName) + '.image_data');
   OutputUnit.Write(CodeImplementation);
   FreeAndNil(OutputUnit);
 end.

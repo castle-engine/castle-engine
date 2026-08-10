@@ -23,7 +23,7 @@ interface
 uses SysUtils, Classes, Generics.Collections,
   CastleKeysMouse, CastleUtils, CastleClassUtils, CastleGLUtils, CastleFonts,
   CastleRectangles, CastleTimeUtils, CastleInternalPk3DConnexion, CastleColors,
-  CastleImages, CastleVectors, CastleJoysticks, CastleApplicationProperties,
+  CastleImages, CastleVectors, CastleGameControllers, CastleApplicationProperties,
   CastleGLImages, CastleRenderContext, CastleComponentSerialize,
   CastleMessaging, CastleStringUtils;
 
@@ -35,6 +35,8 @@ type
   {$I castleuicontrols_initial_types.inc}
   {$I castleuicontrols_touchlist.inc}
   {$I castleuicontrols_inputinspector.inc}
+  {$I castleuicontrols_pointer_lock_abstract.inc}
+  {$I castleuicontrols_pointer_lock_desktop.inc}
   {$I castleuicontrols_container.inc}
   {$I castleuicontrols_userinterface.inc}
   {$I castleuicontrols_userinterfacelist.inc}
@@ -60,6 +62,8 @@ uses DOM, TypInfo, Math,
 {$I castleuicontrols_initial_types.inc}
 {$I castleuicontrols_touchlist.inc}
 {$I castleuicontrols_inputinspector.inc}
+{$I castleuicontrols_pointer_lock_abstract.inc}
+{$I castleuicontrols_pointer_lock_desktop.inc}
 {$I castleuicontrols_container.inc}
 {$I castleuicontrols_userinterface.inc}
 {$I castleuicontrols_userinterfacelist.inc}

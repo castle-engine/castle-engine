@@ -29,10 +29,10 @@ uses CastleUtils, CastleScript, SysUtils, Math;
 
 type
   TToken = (tokEnd,
-    tokInteger, {< Value of constant integer will be in w TCasScriptLexer.TokenInteger. }
-    tokFloat, {< Value of constant float will be in w TCasScriptLexer.TokenFloat. }
-    tokBoolean, {< Value of constant boolean will be in w TCasScriptLexer.TokenBoolean. }
-    tokString, {< Value of constant string will be in w TCasScriptLexer.TokenString. }
+    tokInteger, {< Value of constant integer will be in TCasScriptLexer.TokenInteger. }
+    tokFloat, {< Value of constant float will be in TCasScriptLexer.TokenFloat. }
+    tokBoolean, {< Value of constant boolean will be in TCasScriptLexer.TokenBoolean. }
+    tokString, {< Value of constant string will be in TCasScriptLexer.TokenString. }
 
     tokIdentifier, {< Identifier will be in TCasScriptLexer.TokenString. }
     tokFuncName, {< Function class of given function will be in TCasScriptLexer.TokenFunctionClass. }
@@ -146,11 +146,15 @@ const
   digits = ['0'..'9'];
   Letters = ['a'..'z', 'A'..'Z', '_'];
 
+  { Omit whitespace, including comment blocks. }
   procedure OmitWhiteSpace;
   begin
-    while SCharIs(text, TextPos, whiteChars) do Inc(fTextPos);
-    if SCharIs(text, TextPos, '{') then
-    begin
+    repeat
+      while SCharIs(text, TextPos, whiteChars) do Inc(fTextPos);
+
+      if not SCharIs(text, TextPos, '{') then
+        Exit;
+      // omit comment block
       while Text[TextPos] <> '}' do
       begin
         Inc(fTextPos);
@@ -158,8 +162,9 @@ const
           raise ECasScriptLexerError.Create(Self, 'Unfinished comment');
       end;
       Inc(FTextPos);
-      OmitWhiteSpace; { recusively omit the rest of whitespace }
-    end;
+
+      { continue the loop, to omit the rest of whitespace/comments }
+    until false;
   end;
 
   function ReadSimpleToken: boolean;

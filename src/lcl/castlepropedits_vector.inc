@@ -229,7 +229,21 @@ begin
     V := Vector3(F, F, F);
   except
     on EConvertError do
-      V := Vector3FromStr(NewValue);
+    begin
+      try
+        V := Vector3FromStr(NewValue);
+      except
+        on E: EConvertError do
+        begin
+          E.Message := Format(
+            'Given value is not a valid 3D vector or number: "%s" . ' + NL + NL +
+            'You can provide a value for this field as 1 or 3 numbers. Writing a single number is a shortcut for a 3D vector with 3 equal components, e.g. writing "100" is equivalent to writing "100 100 100". You provided input doesn''t look like either 1 or 3 numbers.', [
+              NewValue
+            ]);
+          raise;
+        end;
+      end;
+    end;
   end;
   SetAllValues(V);
 end;
@@ -237,7 +251,10 @@ end;
 { TSize2DPropertyEditor ------------------------------------------------- }
 
 type
-  { Editor for Size:TVector2 properties, like TCastlePlane.Size. }
+  { Editor for Size:TVector2 properties, like TCastlePlane.Size.
+    In addition to TCastleVector2PropertyEditor, allows to input a single
+    float value as input, and it's interpreted as if it was repeated 2x.
+    E.g. "2" works the same as "2 2". }
   TSize2DPropertyEditor = class(TCastleVector2PropertyEditor)
     procedure SetValue(const NewValue: String); override;
   end;
@@ -253,7 +270,22 @@ begin
     V := Vector2(F, F);
   except
     on EConvertError do
-      V := Vector2FromStr(NewValue);
+    begin
+      try
+        V := Vector2FromStr(NewValue);
+      except
+        on E: EConvertError do
+        begin
+          E.Message := Format(
+            'Given value is not a valid 2D vector or number: "%s" . ' + NL + NL +
+            'You can provide a value for this field as 1 or 2 numbers. Writing a single number is a shortcut for a 2D vector with 2 equal components, e.g. writing "100" is equivalent to writing "100 100". You provided input doesn''t look like either 1 or 2 numbers.', [
+              NewValue
+            ]);
+          raise;
+        end;
+      end;
+    end;
+
   end;
   SetAllValues(V);
 end;

@@ -1,6 +1,6 @@
 {%MainUnit x3dnodes.pas}
 {
-  Copyright 2002-2024 Michalis Kamburelis.
+  Copyright 2002-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -15,6 +15,17 @@
 }
 
 {$ifdef read_interface}
+
+  { Functionality for all nodes that may have a bounding box defined
+    and may have their contents hidden.
+    Corresponds to the X3D node @url(https://www.web3d.org/specifications/X3Dv4Draft/ISO-IEC19775-1v4.1-CD/Part01/components/grouping.html#X3DBoundedObject
+    X3DBoundedObject). }
+  TBoundedNodeFunctionality = class(TNodeFunctionality)
+    function BoundingBox: TBox3D; virtual; abstract;
+    function BBoxDisplay: Boolean; virtual; abstract;
+    function Visible: Boolean; virtual; abstract;
+  end;
+
   { Base node that may contain children nodes.
 
     You should not use this class directly usually,
@@ -60,6 +71,18 @@
   strict private
     type
       TChildrenArray = array of TAbstractChildNode;
+      TAbstractGroupingNodeBoundedFunctionality = class(TBoundedNodeFunctionality)
+      strict private
+        FParent: TAbstractGroupingNode;
+      public
+        constructor Create(const AParent: TAbstractGroupingNode);
+        property Parent: TAbstractGroupingNode read FParent;
+        function BoundingBox: TBox3D; override;
+        function BBoxDisplay: Boolean; override;
+        function Visible: Boolean; override;
+      end;
+    var
+      FBoundedFunctionality: TAbstractGroupingNodeBoundedFunctionality;
     function ToChildrenArray(const Nodes: TMFNode): TChildrenArray;
     procedure EventAddChildrenReceive(
       const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
@@ -153,11 +176,8 @@
     the transformation changes are automatically managed. }
   TTransformFunctionality = class(TNodeFunctionality)
   public
-    { Change State.Transformation for children nodes.
-      Almost all descendants should override only the overload changing
-      TTransformation. }
-    procedure ApplyTransform(const State: TX3DGraphTraverseState); overload; virtual;
-    procedure ApplyTransform(var Transformation: TTransformation); overload; virtual;
+    { Change Transformation for children nodes. }
+    procedure ApplyTransform(var Transformation: TTransformation); virtual;
   end;
 
   { A top-level VRML/X3D node. This is what you get by loading 3D model from file.
@@ -216,11 +236,15 @@
       And this way VRML 1.0 WWWInline with separate=FALSE may also work too. }
     function SeparateGroup: boolean; override;
   public
-    ForceVersion: TX3DVersion;
+    const
+      DefaultX3DSaveVersionMajor = 4;
+      DefaultX3DSaveVersionMinor = 1;
+      DefaultX3DSaveProfile = 'Interchange';
+    var
+      ForceVersion: TX3DVersion;
 
     constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     destructor Destroy; override;
-    function TransformationChange: TNodeTransformationChange; override;
 
     { Should SaveToStream take care to nicely save us, treating as
       a root node of whole VRML file or prototype.
@@ -263,8 +287,13 @@
 
     { Set properties to force saving this node graph as X3D.
       If we're already configured to save as X3D (current major version >= 3)
-      then do nothing. Otherwise, sets major/minor versions
-      (by default: for X3D 4.0, Interchange profile).
+      then do nothing.
+
+      Otherwise, sets major/minor versions as indicated
+      by parameters. By default, sets version following
+      @link(DefaultX3DSaveVersionMajor),
+      @link(DefaultX3DSaveVersionMinor) and profile
+      following @link(DefaultX3DSaveProfile).
 
       Provided AMajor must be >= 3, since X3D version is always >= 3.
 
@@ -281,9 +310,10 @@
       the X3D (XML or classic) encoding, which is not a format supported
       by any X3D reader (even our own).
       We will display a warning if you attempt this. }
-    procedure ForceSaveAsX3D(const AMajor: Integer = 4;
-      const AMinor: Integer = 0;
-      const AProfile: string = 'Interchange');
+    procedure ForceSaveAsX3D(
+      const AMajor: Integer = DefaultX3DSaveVersionMajor;
+      const AMinor: Integer = DefaultX3DSaveVersionMinor;
+      const AProfile: string = DefaultX3DSaveProfile);
 
     { Global prototype namespace at the end of parsing the file.
       Useful for things like EXTERNPROTO implementation. }
@@ -327,6 +357,12 @@
       See https://castle-engine.io/gltf#unique_names
       for documentation why we do this. }
     procedure InternalFixNodeNames;
+
+    { @exclude
+      Assign properties from another TX3DRootNode instance.
+      This touches a few TX3DRootNode-specific properties, like
+      HasForceVersion, ForceVersion, Profile, Components, Meta, Scale. }
+    procedure InternalAssignRootNodeProps(const Source: TX3DRootNode);
   end;
 
   { Children nodes which cannot be modified.
@@ -358,7 +394,6 @@
     constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
-    function TransformationChange: TNodeTransformationChange; override;
 
   {$I auto_generated_node_helpers/x3dnodes_switch.inc}
   end;
@@ -386,7 +421,6 @@
     constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
-    function TransformationChange: TNodeTransformationChange; override;
 
   {$I auto_generated_node_helpers/x3dnodes_transform.inc}
   end;
@@ -402,7 +436,8 @@ function TAbstractInternalGroupingNode.TGeneralGroupingEnumerator.EnumerateChild
   Node, Child: TX3DNode): Pointer;
 begin
   Result := nil;
-  Child.GroupBeforeTraverse(State, WasPointingDeviceSensor);
+  if Child is TAbstractChildNode then
+    TAbstractChildNode(Child).GroupBeforeTraverse(State, WasPointingDeviceSensor);
 end;
 
 procedure GroupBeforeTraverse_AddPointingDeviceSensor(const Child: TX3DNode;
@@ -463,7 +498,7 @@ begin
       implementation... So ApplyTransform must happen in the middle of
       TAbstractInternalGroupingNode.BeforeTraverse call. }
 
-    TransformFunctionality.ApplyTransform(StateStack.Top);
+    TransformFunctionality.ApplyTransform(StateStack.Top.Transformation);
   end;
 
   { We also use it to collect State.PointingDeviceSensors,
@@ -518,6 +553,34 @@ begin
   inherited;
 end;
 
+{ TAbstractGroupingNode.TAbstractGroupingNodeBoundedFunctionality ----------- }
+
+constructor TAbstractGroupingNode.TAbstractGroupingNodeBoundedFunctionality.Create(
+  const AParent: TAbstractGroupingNode);
+begin
+  inherited Create(AParent);
+  FParent := AParent;
+end;
+
+function TAbstractGroupingNode.TAbstractGroupingNodeBoundedFunctionality.BoundingBox: TBox3D;
+begin
+  Result := Parent.BBox;
+end;
+
+function TAbstractGroupingNode.TAbstractGroupingNodeBoundedFunctionality.BBoxDisplay: Boolean;
+begin
+  {$ifdef CASTLE_SLIM_NODES}
+  Result := false;
+  {$else}
+  Result := Parent.BboxDisplay;
+  {$endif}
+end;
+
+function TAbstractGroupingNode.TAbstractGroupingNodeBoundedFunctionality.Visible: Boolean;
+begin
+  Result := Parent.Visible;
+end;
+
 { TAbstractGroupingNode --------------------------------------------------- }
 
 constructor TAbstractGroupingNode.Create(const AX3DName: String = ''; const ABaseUrl: String = '');
@@ -532,6 +595,9 @@ begin
     This extension was invented before X3D 4 added it. }
   FFdVisible.AddAlternativeName('render', 0);
   {$endif}
+
+  FBoundedFunctionality := TAbstractGroupingNodeBoundedFunctionality.Create(Self);
+  AddFunctionality(FBoundedFunctionality);
 end;
 
 function TAbstractGroupingNode.ToChildrenArray(
@@ -681,11 +747,6 @@ begin
 end;
 
 { TTransformFunctionality ---------------------------------------------------- }
-
-procedure TTransformFunctionality.ApplyTransform(const State: TX3DGraphTraverseState);
-begin
-  ApplyTransform(State.Transformation);
-end;
 
 procedure TTransformFunctionality.ApplyTransform(var Transformation: TTransformation);
 begin
@@ -1003,6 +1064,16 @@ begin
     inherited;
 end;
 
+procedure TX3DRootNode.InternalAssignRootNodeProps(const Source: TX3DRootNode);
+begin
+  HasForceVersion := Source.HasForceVersion;
+  ForceVersion := Source.ForceVersion;
+  Scale := Source.Scale;
+  Profile := Source.Profile;
+  Components.Assign(Source.Components);
+  Meta.Assign(Source.Meta);
+end;
+
 function TX3DRootNode.DeepCopyCore(CopyState: TX3DNodeDeepCopyState): TX3DNode;
 var
   Res: TX3DRootNode;
@@ -1011,12 +1082,8 @@ begin
 
   Res := Result as TX3DRootNode;
 
-  Res.HasForceVersion := HasForceVersion;
-  Res.ForceVersion := ForceVersion;
-  Res.Scale := Scale;
-  Res.Profile := Profile;
-  Res.Components.Assign(Components);
-  Res.Meta.Assign(Meta);
+  Res.InternalAssignRootNodeProps(Self);
+
   if ExportedNames <> nil then
   begin
     FreeAndNil(Res.FExportedNames);
@@ -1116,6 +1183,8 @@ procedure TX3DRootNode.ExportNode(const Node: TX3DNode; const ExportedAlias: str
 var
   ExportItem: TX3DExport;
 begin
+  Assert(Node <> nil);
+
   if Node.X3DName = '' then
     raise Exception.Create('You cannot export nodes with empty names');
 
@@ -1134,12 +1203,8 @@ end;
 
 procedure TX3DRootNode.ExportNode(const Node: TX3DNode);
 begin
+  Assert(Node <> nil);
   ExportNode(Node, Node.X3DName);
-end;
-
-function TX3DRootNode.TransformationChange: TNodeTransformationChange;
-begin
-  Result := ntcTransform;
 end;
 
 procedure TX3DRootNode.InternalFixNodeNames;
@@ -1182,11 +1247,6 @@ begin
     Result := Func(Self, FdChildren[FdWhichChoice.Value]);
     if Result <> nil then Exit;
   end;
-end;
-
-function TSwitchNode.TransformationChange: TNodeTransformationChange;
-begin
-  Result := ntcSwitch;
 end;
 
 { TTransformNode.TTransformNodeTransformFunctionality --------------------------------------- }
@@ -1237,11 +1297,6 @@ function TTransformNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction):
 begin
   Result := FdChildren.Enumerate(Func);
   if Result <> nil then Exit;
-end;
-
-function TTransformNode.TransformationChange: TNodeTransformationChange;
-begin
-  Result := ntcTransform;
 end;
 
 procedure RegisterGroupingNodes;

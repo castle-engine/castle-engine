@@ -2,6 +2,8 @@
 
 This uses _Castle Game Engine_ packed in a dynamic library, that exposes a simple C API to load and display 3D models.
 
+You can use `QOpenGLWindow` or `QOpenGLWidget` as a base class for the rendering. While deriving from QOpenGLWidget is more straightforward when you need to use Qt toolbars or other Qt widgets next to the OpenGL content, we use QOpenGLWindow inside windowContainer instead. The reason is, `QOpenGLWidget::initializeGL()` is done with temporary offscreen framebuffer with different format, that may initialise some values in CGE wrong (e.g. `TGLFeatures.CurrentMultiSampling`, disabling multisampling in ScreenEffect shaders). QOpenGLWindow uses the native framebuffer from start. If you don't need advanced effects, using QOpenGLWidget is OK.
+
 Note: The library (for now) exposes only a tiny subset of _Castle Game Engine_ possibilities. To write full-featured games using CGE, you should instead use _Object Pascal_ and link with CGE Pascal units, instead of using CGE library. However, the library is a reasonable approach if you simply want to load / display / manipulate a single 3D model.
 
 ## How to compile

@@ -8,7 +8,7 @@ This example demonstrates how to dynamically (as often as possible, to reflect e
 
     The point here is that `TCoordinateNode.SetPoint` is very efficient. It only updates the necessary rendering resource (VBO contents in OpenGL) and doesn't do any unnecessary work (doesn't rebuild anything, doesn't recreate any resource from scratch).
 
-2. Use shaders. You can use our [shader effects](https://castle-engine.io/compositing_shaders.php) to add a _vertex shader_ that changes the position of each vertex right when it's supposed to be displayed.
+2. Use shaders. You can use our [shader effects](https://castle-engine.io/shaders) to add a _vertex shader_ that changes the position of each vertex right when it's supposed to be displayed.
 
     The advantage is that this is *even faster* because the Pascal code does almost nothing -- we just pass the new `Time` value to the shader. The per-vertex calculation is done by GPU, and GPUs are ridiculously fast at this.
 

@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2023 Michalis Kamburelis.
+  Copyright 2002-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -167,7 +167,12 @@ unit X3DNodes;
 
 interface
 
-uses SysUtils, Generics.Collections, Classes, XMLRead, DOM,
+uses SysUtils, Classes,
+  { Generics.Collections after Classes, so that TCollectionNotification
+    and related cnXxx constants are from Generics.Collections.
+    This is important for FPC that has 2 TCollectionNotification versions. }
+  Generics.Collections,
+  XMLRead, DOM,
   CastleVectors, CastleRectangles, CastleTimeUtils, CastleFonts,
   CastleInternalX3DLexer, CastleUtils, CastleClassUtils,
   X3DFields, CastleBoxes, CastleImages, CastleColors, CastleCameras,
@@ -199,8 +204,8 @@ type
   {$I x3dnodes_standard_core.inc}
   {$I x3dnodes_standard_time.inc}
   {$I x3dnodes_standard_grouping.inc}
-  {$I x3dnodes_standard_networking.inc}
   {$I x3dnodes_standard_rendering.inc}
+  {$I x3dnodes_standard_networking.inc} // networking must be after rendering, as it requires TAbstractGeometryNode to be resolved
   {$I x3dnodes_standard_shape.inc}
   {$I x3dnodes_standard_geometry3d.inc}
   {$I x3dnodes_standard_geometry2d.inc}
@@ -245,19 +250,20 @@ type
 {$I x3dnodes_encoding_xml.inc}
 {$I x3dnodes_save.inc}
 {$I x3dnodes_miscellaneous_globals.inc}
+{$I x3dnodes_processurls.inc}
 
 {$undef read_interface}
 
 implementation
 
-uses Math, StrUtils, URIParser,
+uses Math, StrUtils, URIParser, TypInfo,
   CastleTextureFont_Default3d_Sans,
   X3DLoad, CastleInternalZStream, X3DCameraUtils,
   CastleFilesUtils, CastleUriUtils, CastleUnicode, CastleCurves,
   CastleLog, CastleScriptParser, CastleInternalDataUri, CastleDownload,
   CastleInternalNurbs, CastleQuaternions, CastleXmlUtils, CastleOpenDocument,
   CastleSoundBase, CastleTriangles, X3DLoadInternalUtils, CastleFileFilters,
-  CastleApplicationProperties, CastleInternalNodesUnsupported;
+  CastleApplicationProperties, CastleInternalNodesUnsupported, CastleShapes;
 
 {$define read_implementation}
 
@@ -296,6 +302,7 @@ uses Math, StrUtils, URIParser,
 {$I x3dnodes_nodesmanager.inc}
 {$I x3dnodes_miscellaneous_globals.inc}
 {$I x3dnodes_utils_materials.inc}
+{$I x3dnodes_processurls.inc}
 
 // These must be included after x3dnodes_encoding_{classic,xml}.inc
 {$I x3dnodes_x3dnode.inc}
@@ -344,6 +351,7 @@ uses Math, StrUtils, URIParser,
 {$I auto_generated_node_helpers/x3dnodes_abstractvrml1indexed_1.inc}
 {$I auto_generated_node_helpers/x3dnodes_abstractvrml1separator_1.inc}
 {$I auto_generated_node_helpers/x3dnodes_abstractvrml1transformation_1.inc}
+{$I auto_generated_node_helpers/x3dnodes_acousticproperties.inc}
 {$I auto_generated_node_helpers/x3dnodes_anchor.inc}
 {$I auto_generated_node_helpers/x3dnodes_appearance.inc}
 {$I auto_generated_node_helpers/x3dnodes_arc2d.inc}
@@ -428,6 +436,7 @@ uses Math, StrUtils, URIParser,
 {$I auto_generated_node_helpers/x3dnodes_indexedtrianglestripset.inc}
 {$I auto_generated_node_helpers/x3dnodes_info_1.inc}
 {$I auto_generated_node_helpers/x3dnodes_inline.inc}
+{$I auto_generated_node_helpers/x3dnodes_inlinegeometry.inc}
 {$I auto_generated_node_helpers/x3dnodes_inlineloadcontrol.inc}
 {$I auto_generated_node_helpers/x3dnodes_integersequencer.inc}
 {$I auto_generated_node_helpers/x3dnodes_integertrigger.inc}
@@ -483,6 +492,7 @@ uses Math, StrUtils, URIParser,
 {$I auto_generated_node_helpers/x3dnodes_planesensor.inc}
 {$I auto_generated_node_helpers/x3dnodes_pointlight.inc}
 {$I auto_generated_node_helpers/x3dnodes_pointlight_1.inc}
+{$I auto_generated_node_helpers/x3dnodes_pointproperties.inc}
 {$I auto_generated_node_helpers/x3dnodes_pointset.inc}
 {$I auto_generated_node_helpers/x3dnodes_pointset_1.inc}
 {$I auto_generated_node_helpers/x3dnodes_polyline2d.inc}
@@ -506,6 +516,7 @@ uses Math, StrUtils, URIParser,
 {$I auto_generated_node_helpers/x3dnodes_shaderprogram.inc}
 {$I auto_generated_node_helpers/x3dnodes_shadertexture.inc}
 {$I auto_generated_node_helpers/x3dnodes_shape.inc}
+{$I auto_generated_node_helpers/x3dnodes_skin.inc}
 {$I auto_generated_node_helpers/x3dnodes_sound.inc}
 {$I auto_generated_node_helpers/x3dnodes_sphere.inc}
 {$I auto_generated_node_helpers/x3dnodes_sphere_1.inc}
@@ -710,7 +721,7 @@ initialization
   RegistedInventorNodes;
   RegisterVRML1Nodes;
   RegisterVRML97HAnimNodes;
-  RegisterKambiNodes;
+  RegisterCastleEngineNodes;
   RegisterInstantRealityNodes;
 
   { X3D components registration : }

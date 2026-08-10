@@ -1,6 +1,6 @@
 # Custom Component in CGE editor
 
-You can define custom components, specific to your project, that are available inside [CGE editor](https://castle-engine.io/manual_editor.php):
+You can define custom components, specific to your project, that are available inside [CGE editor](https://castle-engine.io/editor):
 
 - Define a new component by creating a class descending from `TComponent`. You will usually want to descend from CGE class like `TCastleUserInterface` (to make new UI components) or `TCastleTransform` (to make new things that can be put inside a viewport).
 

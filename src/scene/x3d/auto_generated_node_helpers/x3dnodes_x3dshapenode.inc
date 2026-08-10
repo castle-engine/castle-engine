@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2024 Michalis Kamburelis.
+  Copyright 2015-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -30,10 +30,10 @@
     procedure SetGeometry(const Value: TAbstractGeometryNode);
     function GetBBox: TBox3D;
     procedure SetBBox(const Value: TBox3D);
-    function GetShading: TShading;
-    procedure SetShading(const Value: TShading);
     function GetVisible: Boolean;
     procedure SetVisible(const Value: Boolean);
+    function GetShading: TShading;
+    procedure SetShading(const Value: TShading);
     function GetCollision: TShapeCollision;
     procedure SetCollision(const Value: TShapeCollision);
   public
@@ -60,6 +60,8 @@
 
       Manually providing the bounding box makes sense if you can do it more efficiently than the engine. E.g. if the shape vertexes are animated, then the engine would have to recalcualate the perfect bounding box every frame. It is more efficient to calculate a bounding box of all possible animation frames, and store it here.
 
+      For a skinned animation done using GPU, manually-providing bounding box of the shape is mandatory, as the engine cannot calculate correct bounding box automatically. See https://castle-engine.io/skin for details.
+
       The glTF skinned animation automatically fills this field for the affected shapes.
 
       @italic(Note: This property is not useful if you want to know the bounding box of a shape, calculated by the engine). This property only allows to override the automatic engine calculation.
@@ -71,25 +73,26 @@
     { Internal wrapper for property @code(BboxSize). This wrapper API may change, we advise to access simpler @code(BboxSize) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
+    strict private FFdVisible: TSFBool;
+    { Internal wrapper for property @code(Visible). This wrapper API may change, we advise to access simpler @code(Visible) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdVisible: TSFBool read FFdVisible;
+    { Is the shape visible. Shapes that are not visible are not rendered, but otherwise are still processed (for example, hidden shapes are still used for collision detection). Toggling this is guaranteed to be ultra-fast.
+
+    Note: An alternative method to hide (and more) things is to wrap them in a @link(TSwitchNode), and toggle @link(TSwitchNode.WhichChoice) between -1 and 0. When @link(TSwitchNode.WhichChoice) is -1, the children are not processed (not rendered, and do not collide). }
+    property Visible: Boolean read GetVisible write SetVisible;
+
     strict private FFdShading: TSFStringEnum;
     { Internal wrapper for property @code(Shading). This wrapper API may change, we advise to access simpler @code(Shading) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdShading: TSFStringEnum read FFdShading;
     { How to display given shape. }
     property Shading: TShading read GetShading write SetShading;
 
-    strict private FFdVisible: TSFBool;
-    { Internal wrapper for property @code(Visible). This wrapper API may change, we advise to access simpler @code(Visible) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
-    public property FdVisible: TSFBool read FFdVisible;
-    { Is the shape visible. Shapes that are not visible are not rendered, but otherwise are still processed (for example, hidden shapes are still used for collision detection). Toggling this is guaranteed to be ultra-fast.
-
-Note: An alternative method to hide (and more) things in X3D is to wrap them in a @link(TSwitchNode), and toggle @link(TSwitchNode.WhichChoice) between -1 and 0. When @link(TSwitchNode.WhichChoice) is -1, the children are not processed (not rendered, and do not collide). }
-    property Visible: Boolean read GetVisible write SetVisible;
-
     strict private FFdCollision: TSFStringEnum;
     { Internal wrapper for property @code(Collision). This wrapper API may change, we advise to access simpler @code(Collision) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdCollision: TSFStringEnum read FFdCollision;
     { How does the given shape collide. This only matters if @link(TCastleSceneCore.PreciseCollisions) is @true, otherwise the whole scene (with all shapes) collides as one big bounding box. }
     property Collision: TShapeCollision read GetCollision write SetCollision;
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -137,16 +140,6 @@ begin
   FdBBoxSize.Send(ValueSize);
 end;
 
-function TAbstractShapeNode.GetShading: TShading;
-begin
-  Result := TShading(FdShading.EnumValue);
-end;
-
-procedure TAbstractShapeNode.SetShading(const Value: TShading);
-begin
-  FdShading.SendEnumValue(Ord(Value));
-end;
-
 function TAbstractShapeNode.GetVisible: Boolean;
 begin
   Result := FdVisible.Value;
@@ -155,6 +148,16 @@ end;
 procedure TAbstractShapeNode.SetVisible(const Value: Boolean);
 begin
   FdVisible.Send(Value);
+end;
+
+function TAbstractShapeNode.GetShading: TShading;
+begin
+  Result := TShading(FdShading.EnumValue);
+end;
+
+procedure TAbstractShapeNode.SetShading(const Value: TShading);
+begin
+  FdShading.SendEnumValue(Ord(Value));
 end;
 
 function TAbstractShapeNode.GetCollision: TShapeCollision;
@@ -193,17 +196,26 @@ begin
    FdBboxSize.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdBboxSize);
 
-  FFdShading := TSFStringEnum.Create(Self, True, 'shading', @ShadingNames, Ord(High(ShadingNames)) + 1, Ord(shDefault));
-   FdShading.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdShading);
-
   FFdVisible := TSFBool.Create(Self, True, 'visible', true);
    FdVisible.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdVisible);
 
+  FFdShading := TSFStringEnum.Create(Self, True, 'shading', @ShadingNames, Ord(High(ShadingNames)) + 1, Ord(shDefault));
+   FdShading.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdShading);
+
   FFdCollision := TSFStringEnum.Create(Self, False, 'collision', @ShapeCollisionNames, Ord(High(ShapeCollisionNames)) + 1, Ord(scDefault));
    FdCollision.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdCollision);
+end;
+
+procedure TAbstractShapeNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+  if not FdShading.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdShading.X3DName);
+  if not FdCollision.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdCollision.X3DName);
 end;
 
 {$endif read_implementation}

@@ -49,14 +49,18 @@ uses SysUtils, Classes, Math,
   CastleUIControls, CastleRectangles, CastleOnScreenMenu, CastleComponentSerialize,
   CastleCameras, {$ifdef FPC}CastleSceneManager,{$endif} CastleVectors,
   CastleTransform, CastleScene, CastleApplicationProperties, X3DCameraUtils,
-  CastleViewport, CastleInternalRenderer, CastleInternalShapesRenderer;
+  CastleViewport, CastleInternalRenderer, CastleInternalShapesRenderer,
+  CastleRenderOptions;
 
 procedure TTestCastleWindow.Test1;
 var
   Window: TCastleWindow;
 begin
   if not CanCreateWindowForTest then
+  begin
+    AbortTest;
     Exit;
+  end;
 
   Window := CreateWindowForTest;
   try
@@ -71,7 +75,10 @@ var
   C: TCastleButton;
 begin
   if not CanCreateWindowForTest then
+  begin
+    AbortTest;
     Exit;
+  end;
 
   Window := CreateWindowForTest;
   try
@@ -113,7 +120,10 @@ var
   Parent, Child1, Child2: TCastleUserInterface;
 begin
   if not CanCreateWindowForTest then
+  begin
+    AbortTest;
     Exit;
+  end;
 
   Window := CreateWindowForTest;
   try
@@ -240,7 +250,10 @@ var
 
 begin
   if not CanCreateWindowForTest then
+  begin
+    AbortTest;
     Exit;
+  end;
 
   Window := CreateWindowForTest;
   try
@@ -310,7 +323,10 @@ var
   Viewport: TCastleViewport;
 begin
   if not CanCreateWindowForTest then
+  begin
+    AbortTest;
     Exit;
+  end;
 
   ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}OnWarningRaiseException);
   try
@@ -390,7 +406,10 @@ var
   Window: TCastleWindow;
 begin
   if not CanCreateWindowForTest then
+  begin
+    AbortTest;
     Exit;
+  end;
 
   Window := CreateWindowForTest;
   try
@@ -453,14 +472,16 @@ var
   SomeState: TCastleView;
 begin
   if not CanCreateWindowForTest then
+  begin
+    AbortTest;
     Exit;
+  end;
 
   Window := CreateWindowForTest;
   try
     Window.Open;
     SomeState := TCastleView.Create(Window);
     Window.Container.View := SomeState;
-    AssertTrue(TCastleView.Current = SomeState); // deprecated
     AssertTrue(Window.Container.View = SomeState);
   finally
     { let freeing Window cause everything else:
@@ -514,7 +535,10 @@ var
   StateTesting: TStateTestingSize;
 begin
   if not CanCreateWindowForTest then
+  begin
+    AbortTest;
     Exit;
+  end;
 
   Window := CreateWindowForTest;
   try
@@ -534,7 +558,7 @@ begin
       SameValue(StateTesting.EffectiveRect.Width, 160) or
       SameValue(StateTesting.EffectiveRect.Height, 90));
 
-    TCastleView.Current := StateTesting;
+    Window.Container.View := StateTesting;
   finally
     DestroyWindowForTest(Window);
   end;
@@ -582,7 +606,10 @@ var
   StateTesting: TStateTestingSize2;
 begin
   if not CanCreateWindowForTest then
+  begin
+    AbortTest;
     Exit;
+  end;
 
   Window := CreateWindowForTest;
   try
@@ -602,7 +629,7 @@ begin
       SameValue(StateTesting.EffectiveRect.Width, 200) or
       SameValue(StateTesting.EffectiveRect.Height, 400));
 
-    TCastleView.Current := StateTesting;
+    Window.Container.View := StateTesting;
   finally
     DestroyWindowForTest(Window);
   end;
@@ -615,7 +642,10 @@ var
   DummyHandleInput: Boolean;
 begin
   if not CanCreateWindowForTest then
+  begin
+    AbortTest;
     Exit;
+  end;
 
   Window := CreateWindowForTest;
   try
@@ -653,7 +683,10 @@ var
   Scene, Scene2: TCastleScene;
 begin
   if not CanCreateWindowForTest then
+  begin
+    AbortTest;
     Exit;
+  end;
 
   Window := CreateWindowForTest;
   try

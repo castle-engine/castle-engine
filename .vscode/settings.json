@@ -2,6 +2,10 @@
     "cSpell.words": [
         "dscene",
         "filesystems",
+        "RGBA",
+        "TRGBAlphaImage",
+        "TRGBImage",
+        "unoptimal",
         "VRML"
     ],
     "dotnet.defaultSolution": "disable"

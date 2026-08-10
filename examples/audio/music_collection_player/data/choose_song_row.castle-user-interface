@@ -1,0 +1,124 @@
+{
+  "$$ClassName" : "TCastleButton",
+  "AutoSize" : false,
+  "CustomBackground" : true,
+  "CustomBackgroundDisabled" : {
+    "$$ClassName" : "TCastleImagePersistent",
+    "ProtectedSides" : {
+      "$$ClassName" : "TBorder",
+      "AllSides" : 4.0000000000000000E+000
+    },
+    "Url" : "castle-data:/theme/ButtonDisabled.png"
+  },
+  "CustomBackgroundFocused" : {
+    "$$ClassName" : "TCastleImagePersistent",
+    "ProtectedSides" : {
+      "$$ClassName" : "TBorder",
+      "AllSides" : 4.0000000000000000E+000
+    },
+    "Url" : "castle-data:/theme/ButtonFocused.png"
+  },
+  "CustomBackgroundNormal" : {
+    "$$ClassName" : "TCastleImagePersistent",
+    "ProtectedSides" : {
+      "$$ClassName" : "TBorder",
+      "AllSides" : 4.0000000000000000E+000
+    },
+    "Url" : "castle-data:/theme/ButtonNormal.png"
+  },
+  "CustomBackgroundPressed" : {
+    "$$ClassName" : "TCastleImagePersistent",
+    "ProtectedSides" : {
+      "$$ClassName" : "TBorder",
+      "AllSides" : 4.0000000000000000E+000
+    },
+    "Url" : "castle-data:/theme/ButtonPressed.png"
+  },
+  "Height" : 3.0000000000000000E+002,
+  "Image" : {
+    "$$ClassName" : "TCastleImagePersistent"
+  },
+  "Name" : "ButtonSong1",
+  "VerticalAnchorParent" : "vpTop",
+  "VerticalAnchorSelf" : "vpTop",
+  "Width" : 8.5000000000000000E+002,
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleImageControl",
+      "Content" : {
+        "$$ClassName" : "TCastleImagePersistent"
+      },
+      "Height" : 2.5000000000000000E+002,
+      "Name" : "ImageCover",
+      "ProportionalScaling" : "psFit",
+      "Stretch" : true,
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : 2.5000000000000000E+001
+      },
+      "VerticalAnchorParent" : "vpMiddle",
+      "VerticalAnchorSelf" : "vpMiddle",
+      "Width" : 2.8000000000000000E+002
+    },
+    {
+      "$$ClassName" : "TCastleLabel",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Blue" : 1.0000000000000000E+000,
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000
+      },
+      "CustomFont" : "FontRoboto",
+      "FontSize" : 5.0000000000000000E+001,
+      "Name" : "LabelArtist",
+      "Text" : [
+        "Artist"
+      ],
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : 3.0000000000000000E+002,
+        "Y" : 4.0000000000000000E+001
+      },
+      "VerticalAnchorParent" : "vpMiddle",
+      "VerticalAnchorSelf" : "vpMiddle",
+      "$NonVisualComponents" : [
+        {
+          "$$ClassName" : "TCastleFont",
+          "Name" : "FontRoboto",
+          "OptimalSize" : 50,
+          "Url" : "castle-data:/fonts/Roboto-Regular.ttf"
+        }
+      ]
+    },
+    {
+      "$$ClassName" : "TCastleLabel",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Blue" : 1.0000000000000000E+000,
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000
+      },
+      "CustomFont" : "FontRobotoBold",
+      "FontSize" : 5.0000000000000000E+001,
+      "Name" : "LabelTitle",
+      "Text" : [
+        "Track Title"
+      ],
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : 3.0000000000000000E+002,
+        "Y" : -5.2499931335449219E+001
+      },
+      "VerticalAnchorParent" : "vpMiddle",
+      "VerticalAnchorSelf" : "vpMiddle",
+      "$NonVisualComponents" : [
+        {
+          "$$ClassName" : "TCastleFont",
+          "Name" : "FontRobotoBold",
+          "OptimalSize" : 50,
+          "Url" : "castle-data:/fonts/Roboto-SemiBold.ttf"
+        }
+      ]
+    }
+  ]
+}

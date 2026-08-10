@@ -6,7 +6,7 @@
 # - cge-www repository (https://github.com/castle-engine/cge-www)
 #   cloned and placed as a sibling to castle-engine, in ../../../../cge-www/
 
-ALL_TARGETS := body-end.html body-begin.html head.html images castle-engine-website-base
+ALL_TARGETS := body-end.html body-begin.html head.html images castle-engine-website-base cge-pasdoc.css
 
 .PHONY: default
 default: $(ALL_TARGETS)
@@ -25,7 +25,7 @@ CGE_WWW_PATH := ../../../../cge-www/
 images:
 	rm -Rf images
 	mkdir -p images
-	cp -Rf $(CGE_WWW_PATH)htdocs/images/header_icon.png \
+	cp -Rf $(CGE_WWW_PATH)htdocs/images/castle_game_engine_icon.svg \
 	       $(CGE_WWW_PATH)htdocs/images/patreon-brand \
 	       images/
 # The $(CGE_WWW_PATH)htdocs/images/castle_game_engine_icon* are symlinks now,
@@ -43,3 +43,8 @@ castle-engine-website-base:
 	       $(CGE_WWW_PATH)htdocs/castle-engine-website-base/castle-engine.js \
 	       $(CGE_WWW_PATH)htdocs/castle-engine-website-base/node_modules \
 	       castle-engine-website-base/
+
+# Make CSS using Dart Sass, https://sass-lang.com/ .
+# Install CLI following https://sass-lang.com/install/ .
+cge-pasdoc.css: cge-pasdoc.scss
+	sass --no-source-map cge-pasdoc.scss:cge-pasdoc.css

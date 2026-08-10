@@ -281,7 +281,7 @@ begin
       would always fail (or go through DecompressTexture unpacking).
 
       Testcase:
-      - fps_game on GPU supporting ASTC (michalis: worm-linux)
+      - fps_game_old_ai on GPU supporting ASTC (michalis: worm-linux)
       - castle-model-viewer on demo-models/texturing_advanced/astc_compressed/textures_astc_compressed.x3dv
 
       Loading through TCompositeImage also allows them.

@@ -1,5 +1,5 @@
 {
-  Copyright 2000-2024 Michalis Kamburelis.
+  Copyright 2000-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -43,24 +43,28 @@ unit CastleClassUtils;
 
 interface
 
-uses Classes, SysUtils, Contnrs, Generics.Collections,
+uses Classes, SysUtils, Contnrs, Generics.Collections, Generics.Defaults,
   CastleUtils, CastleStringUtils;
 
 { ---------------------------------------------------------------------------- }
 { @section(TStrings utilities) }
 
-{ Add some strings. }
-procedure StringsAdd(Strs: TStrings; Count: integer; itemVal: string='dummy'); overload;
+{ @deprecated }
+procedure StringsAdd(Strs: TStrings; Count: integer; itemVal: string='dummy');
+  deprecated 'this utility is very trivial and seldom useful; better implement it in yourself, without relying on CastleClassUtils';
 
-{ Add all strings from string array to TStrings instance. }
+{ Add all strings from the string array to the TStrings instance. }
 procedure AddStrArrayToStrings(const StrArr: array of string; strlist: TStrings);
+  deprecated 'use TStrings.AddStrings';
 
 type
-  { TStringList that is case sensitive. }
+  { TStringList that is case sensitive.
+    @deprecated
+    Deprecated, better use TStringList directly and set CaseSensitive to true. }
   TStringListCaseSens = class(TStringList)
     constructor Create;
     property CaseSensitive default true;
-  end;
+  end deprecated;
 
 { Splits S by Splitter, and adds each splitted part to Strings.
   Splitting is done by Splitter, i.e. if N is the number of occurrences
@@ -71,13 +75,29 @@ type
 procedure Strings_AddSplittedString(Strings: TStrings;
   const S, Splitter: string);
 
-{ Use this instead of @code(SList.Text := S) to workaround FPC 2.0.2 bug.
-  See [http://www.freepascal.org/mantis/view.php?id=6699] }
+{ @deprecated }
 procedure Strings_SetText(SList: TStrings; const S: String);
+  deprecated 'use SList.Text := S';
 
 { Make sure we don't have more than MaxCount strings on a list.
   Removes the last strings if necessary. }
 procedure Strings_Trim(Strings: TStrings; MaxCount: Cardinal);
+  deprecated 'this utility is very trivial and seldom useful; better implement it in yourself, without relying on CastleClassUtils';
+
+{$ifndef FPC}
+  {$define CASTLE_STRINGS_HELPER_ADDSTRINGS}
+{$endif}
+{$ifdef CASTLE_STRINGS_HELPER_ADDSTRINGS}
+{ AddStrings(array of String) method for TStrings.
+  We know this is
+  - not necessary with Delphi 12.2
+  - and it is necessary with 10.2 .
+  To keep things simple (and tested) we enable it for all Delphis. }
+type
+  TStringsHelper = class helper for TStringList
+    procedure AddStrings(const A: array of String); overload;
+  end;
+{$endif CASTLE_STRINGS_HELPER_ADDSTRINGS}
 
 { ---------------------------------------------------------------------------- }
 { @section(TStream utilities) }
@@ -415,7 +435,7 @@ type
 
   TCastleComponent = class;
 
-  { Use by @link(TCastleComponent.TranslateProperties). }
+  { Used by @link(TCastleComponent.TranslateProperties). }
   TTranslatePropertyEvent = procedure (const Sender: TCastleComponent;
     const PropertyName: String; var PropertyValue: String) of object;
 
@@ -660,11 +680,11 @@ type
       @seealso NonVisualComponentsEnumerate }
     procedure InsertNonVisualComponent(const Index: Integer; const NonVisualComponent: TComponent);
 
-    { Remove component previously added by AddNonVisualComponent. }
+    { Removes the component previously added by AddNonVisualComponent. }
     procedure RemoveNonVisualComponent(const NonVisualComponent: TComponent);
 
-    { Index of component previously added non-visual component.
-      Returns -1 if component was not found. }
+    { Index of the previously added non-visual component.
+      Returns -1 if the component was not found. }
     function NonVisualComponentsIndexOf(const NonVisualComponent: TComponent): Integer;
 
     { Count of components added by AddNonVisualComponent.
@@ -753,6 +773,30 @@ type
 procedure TranslateProperties(const C: TComponent;
   const TranslatePropertyEvent: TTranslatePropertyEvent);
 
+type
+  { Used by @link(TCastleComponentFactory.ComponentLoadWithMap)
+    to return names of the loaded components.
+    This is a simple String -> TComponent dictionary.
+
+    The dictionary keys cannot be '' (an empty string).
+    The dictionary keys ignore case, just like Pascal identifiers.
+
+    The values can never be @nil.
+
+    The case-insensitivity is achieved by using a case-insensitive comparer
+    for the dictionary keys. This means the original case of the keys is
+    preserved (we don't lowercase them), and case-insensitive matching is done
+    by the (still hashed, so fast) ancestor methods. }
+  TComponentMap = class({$ifdef FPC}specialize{$endif} TDictionary<String, TComponent>)
+  strict private
+    function GetItem(const Key: String): TComponent;
+  public
+    constructor Create; {$ifdef FPC} override; {$else} reintroduce; {$endif}
+    procedure Add(const Key: String; const Value: TComponent);
+    procedure AddOrSetValue(const Key: String; const Value: TComponent);
+    property Items[const Key: String]: TComponent read GetItem write AddOrSetValue; default;
+  end;
+
 { ---------------------------------------------------------------------------- }
 { @section(Variables to read/write standard input/output using TStream classes.
   Initialized and finalized in this unit.) }
@@ -761,13 +805,13 @@ var
   { Streams to read/write a standard input/output/error of the program.
 
     Tip: to read the standard input as a text file,
-    you can use @link(TTextReader) and @link(StdInStream):
+    you can use @link(TCastleTextReader) and @link(StdInStream):
 
     @longCode(#
     var
-      StdInReader: TTextReader;
+      StdInReader: TCastleTextReader;
     begin
-      StdInReader := TTextReader.Create(StdInStream, false);
+      StdInReader := TCastleTextReader.Create(StdInStream, false);
       try
         while not StdInReader.Eof do
           DoSomethingWithInputLine(StdInReader.Readln);
@@ -775,14 +819,14 @@ var
     end;
     #)
 
-    The advantage of using @link(TTextReader) above,
+    The advantage of using @link(TCastleTextReader) above,
     compared to using the standard Pascal @code(Readln) procedure
     to read from the standard Pascal @code(Input) text file,
     is that you can easily modify the above code to read from @italic(any)
     stream. So, instead of the standard input, you can easily read
     some stream that decompresses gzip data, or downloads data from
     the Internet... Actually, the overloaded constructor
-    @link(TTextReader.Create) can accept an URL, like a @code(file://...)
+    @link(TCastleTextReader.Create) can accept an URL, like a @code(file://...)
     or @code(http://...), and will internally use the stream returned
     by @link(Download) function for this URL.
 
@@ -845,25 +889,27 @@ var
 
 type
   { Extended TObjectStack for Castle Game Engine. }
-  TCastleObjectStack = class({$ifndef PASDOC}Contnrs.{$endif}TObjectStack)
+  TCastleObjectStack = class(Contnrs.TObjectStack)
   private
     function GetCapacity: TListSize;
     procedure SetCapacity(const Value: TListSize);
   public
+    { How many items can this hold without reallocating memory. }
     property Capacity: TListSize read GetCapacity write SetCapacity;
   end;
 
   { Extended TObjectQueue for Castle Game Engine. }
-  TCastleObjectQueue = class({$ifndef PASDOC}Contnrs.{$endif}TObjectQueue)
+  TCastleObjectQueue = class(Contnrs.TObjectQueue)
   private
     function GetCapacity: TListSize;
     procedure SetCapacity(const Value: TListSize);
   public
+    { How many items can this hold without reallocating memory. }
     property Capacity: TListSize read GetCapacity write SetCapacity;
   end;
 
   { Extended TObjectList for Castle Game Engine. }
-  TCastleObjectList = class({$ifndef PASDOC}Contnrs.{$endif}TObjectList)
+  TCastleObjectList = class(Contnrs.TObjectList)
   public
     { Create and fill with the contents of given array.
 
@@ -873,11 +919,11 @@ type
     constructor CreateFromArray(const FreeObjects: boolean;
       const AItems: array of TObject);
 
-    { Add contents of given array to the list. }
+    { Add the contents of the given array to the list. }
     procedure AddRange(const A: array of TObject); overload;
     procedure AddArray(const A: array of TObject); deprecated 'use AddRange, consistent with other lists';
 
-    { Add contents of other TObjectList instance to the list. }
+    { Add the contents of another TObjectList instance to the list. }
     procedure AddRange(AList: Contnrs.TObjectList); overload;
     procedure AddList(AList: Contnrs.TObjectList); deprecated 'use AddRange, consistent with other lists';
 
@@ -931,7 +977,9 @@ type
     procedure AddIfNotExists(Value: TObject);
   end;
 
-  TNotifyEventList = class({$ifdef FPC}specialize{$endif} TList<TNotifyEvent>)
+  { List of @code(TNotifyEvent), standard type that defines a callback
+    that can be any method with a "Sender: TObject" parameter. }
+  TNotifyEventList = class({$ifdef FPC}specialize{$endif} TMethodList<TNotifyEvent>)
   public
     { Call all (assigned) Items, from first to last. }
     procedure ExecuteAll(Sender: TObject);
@@ -943,7 +991,9 @@ type
     procedure ExecuteBackward(Sender: TObject);
   end;
 
-  TSimpleNotifyEventList = class({$ifdef FPC}specialize{$endif} TList<TSimpleNotifyEvent>)
+  { List of @link(TSimpleNotifyEvent), a callback
+    that can be any method that doesn't take any parameters. }
+  TSimpleNotifyEventList = class({$ifdef FPC}specialize{$endif} TMethodList<TSimpleNotifyEvent>)
   public
     { Call all (assigned) Items, from first to last. }
     procedure ExecuteAll;
@@ -959,6 +1009,9 @@ type
     procedure Unassign(const Event: TSimpleNotifyEvent);
   end;
 
+  { List of @code(TProcedure), a standard callback
+    that can be any procedure (not a method of object)
+    that doesn't take any parameters. }
   TProcedureList = class({$ifdef FPC}specialize{$endif} TList<TProcedure>)
   public
     { Call all (assigned) Items, from first to last. }
@@ -984,6 +1037,7 @@ function ProposeComponentName(const ComponentClass: TComponentClass;
   const ComponentsOwner: TComponent;
   BaseName: String = ''): String;
 
+{ @exclude }
 function InternalProposeName(const ComponentClass: TComponentClass;
   const ComponentsOwner: TComponent): String;
   deprecated 'use ProposeComponentName';
@@ -1087,8 +1141,13 @@ type
   TFreeNotificationObserver = class(TComponent)
   strict private
     FObserved: TComponent;
+    { Are we inside OnFreeNotification event handler.
+      Updated only when FEnableFreeingFromNotification = @false. }
+    FDuringOnFreeNotification: Boolean;
     FOnFreeNotification: TFreeNotificationEvent;
+    FEnableFreeingFromNotification: Boolean;
     procedure SetObserved(const Value: TComponent);
+    procedure SetEnableFreeingFromNotification(const Value: Boolean);
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
@@ -1106,6 +1165,26 @@ type
       our "free notification" from a component that will be freed) and makes it safer
       (we will not expose dangling pointer). }
     property Observed: TComponent read FObserved write SetObserved;
+
+    { If @true, you can free the instane of this TFreeNotificationObserver
+      from inside its own OnFreeNotification event handler.
+      This is sometimes useful, but in this case the OnFreeNotification handler
+      must @italic(guarantee) that it will always either free this TFreeNotificationObserver
+      instance, or change its @link(Observed) to @nil.
+
+      By default, this is @false, and the event handler of this TFreeNotificationObserver
+      cannot free this TFreeNotificationObserver instance.
+      This is standard for all event handlers.
+      Trying to free this instance from inside OnFreeNotification when
+      EnableFreeingFromNotification is @false
+      will make a clear warning + followed by undefined behavior (usually,
+      but this is never guaranteed, EAccessViolation).
+
+      Changing this property is allowed only when we're not inside
+      OnFreeNotification. }
+    property EnableFreeingFromNotification: Boolean
+      read FEnableFreeingFromNotification
+      write SetEnableFreeingFromNotification default false;
   end;
 
 implementation
@@ -1113,8 +1192,8 @@ implementation
 uses
   {$ifdef UNIX} {$ifdef FPC} Unix, {$endif} {$endif}
   {$ifdef MSWINDOWS} Windows, {$endif}
-  StrUtils, Math {$ifdef FPC}, StreamIO, RTTIUtils {$endif}, TypInfo,
-  CastleLog;
+  StrUtils, Math {$ifdef FPC}, StreamIO {$endif}, TypInfo,
+  CastleLog, CastleInternalRttiUtils;
 
 { TStrings helpers ------------------------------------------------------- }
 
@@ -1166,6 +1245,16 @@ begin
   while Cardinal(Strings.Count) > MaxCount do
     Strings.Delete(Strings.Count - 1);
 end;
+
+{$ifdef CASTLE_STRINGS_HELPER_ADDSTRINGS}
+procedure TStringsHelper.AddStrings(const A: array of String);
+var
+  S: String;
+begin
+  for S in A do
+    Add(S);
+end;
+{$endif CASTLE_STRINGS_HELPER_ADDSTRINGS}
 
 { TStream helpers -------------------------------------------------------- }
 
@@ -1241,7 +1330,7 @@ end;
 function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars;
   backEndingChar: boolean; out endingChar: AnsiChar): AnsiString; overload;
 var
-  readLen: integer; { ile znakow odczytales }
+  readLen: integer; { how many characters read }
   ch: AnsiChar;
 begin
   readLen := 0;
@@ -1287,7 +1376,7 @@ end;
 
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars;
   backEndingChar: boolean; out endingChar: integer): AnsiString; overload;
-var readLen: integer; { ile znakow odczytales }
+var readLen: integer; { how many characters read }
     ch: AnsiChar;
 begin
   readLen := 0;
@@ -1512,7 +1601,7 @@ function TPeekCharStream.Seek(const Offset: Int64; Origin: TSeekOrigin): Int64;
 begin
   raise EStreamNotImplementedSeek.Create('TPeekCharStream.Seek not supported');
   {$ifdef FPC}
-  Result := 0; { just to get rid of dummy fpc warning }
+  Result := 0; { Just to get rid of dummy FPC warning. }
   {$endif}
 end;
 
@@ -1520,7 +1609,7 @@ function TPeekCharStream.Write(const Buffer; Count: Longint): Longint;
 begin
   raise EStreamNotImplementedWrite.Create('TPeekCharStream.Write not supported');
   {$ifdef FPC}
-  Result := 0; { just to get rid of dummy fpc warning }
+  Result := 0; { Just to get rid of dummy FPC warning. }
   {$endif}
 end;
 
@@ -1555,7 +1644,7 @@ begin
     Peeked := PeekChar;
     if (Peeked = -1) or (AnsiChar(Peeked) in EndingChars) then
       Exit;
-    { ReadChar will return same thing as Peeked now }
+    { ReadChar will return the same thing as Peeked now. }
     Result := Result + AnsiChar(ReadChar);
   end;
 end;
@@ -1917,7 +2006,9 @@ end;
 
 function TCastleComponent.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'Name') then
+  if ArrayContainsString(PropertyName, [
+       'Name'
+     ]) then
     Result := [psBasic]
   else
     Result := [];
@@ -2159,22 +2250,119 @@ begin
 {$endif}
 end;
 
+{ TComponentMap ------------------------------------------------------------- }
+
+{ The ready-made case-insensitive comparer TIStringComparer.Ordinal (from
+  Generics.Defaults) is broken with FPC 3.2.x: it raises an access violation
+  on the very first dictionary lookup. Mechanism:
+
+  - TIStringComparer.Ordinal returns a comparer whose GetHashCode and Equals
+    delegate to an inherited @italic(class variable) FEqualityComparer
+    (TOrdinalComparer.FEqualityComparer), which holds the default ordinal
+    comparer used to hash/compare the lowercased key.
+
+  - That class variable is set by the TOrdinalComparer class constructor, which
+    obtains the default comparer via THashService.LookupEqualityComparer. That
+    lookup reads instance tables that are themselves filled by @italic(another)
+    class's class constructor (THashService.Create / TExtendedHashService.Create).
+
+  - The order in which FPC runs class constructors of generic specializations is
+    not guaranteed. So TOrdinalComparer's class constructor can run before the
+    hash-service tables are initialized; the lookup then returns nil, leaving
+    FEqualityComparer = nil. The first Add/TryGetValue calls GetHashCode through
+    this nil interface -> EAccessViolation.
+
+  This is fixed in FPC 3.3.1 by commit 2e9a84654368830ccbca0c687e248352e0e3fb70
+  ( https://gitlab.com/freepascal.org/fpc/source/-/commit/2e9a846543 ).
+
+  So only for FPC 3.2.x (VER3_2) we avoid TIStringComparer.Ordinal and instead
+  construct a comparer from these explicit equality + hash functions.
+  Later FPC and Delphi use TIStringComparer.Ordinal directly
+  (see TComponentMap.Create). }
+{$if defined(FPC) and defined(VER3_2)}
+function ComponentMapKeyEquals(
+  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif}
+  ALeft, ARight: String): Boolean;
+begin
+  Result := SameText(ALeft, ARight);
+end;
+
+{ FNV-1a hash of the lowercased key, so that keys equal by SameText
+  (which ignores ASCII case, just like Pascal identifiers) hash equally. }
+{$I norqcheckbegin.inc}
+function ComponentMapKeyHash(
+  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif}
+  AValue: String): UInt32;
+var
+  S: String;
+  I: Integer;
+begin
+  S := LowerCase(AValue);
+  Result := 2166136261;
+  for I := 1 to Length(S) do
+  begin
+    Result := Result xor Ord(S[I]);
+    Result := Result * 16777619;
+  end;
+end;
+{$I norqcheckend.inc}
+{$endif}
+
+constructor TComponentMap.Create;
+begin
+  { Use a case-insensitive comparer for the keys.
+    This way the keys are matched ignoring case, but their original case
+    is preserved (we don't lowercase the keys we store). }
+  inherited Create(
+    {$if defined(FPC) and defined(VER3_2)}
+    { Workaround broken TIStringComparer.Ordinal on FPC 3.2.x, see comment above. }
+    specialize TEqualityComparer<String>.Construct(
+      @ComponentMapKeyEquals, @ComponentMapKeyHash)
+    {$else}
+    TIStringComparer.Ordinal
+    {$endif}
+  );
+end;
+
+function TComponentMap.GetItem(const Key: String): TComponent;
+begin
+  if not TryGetValue(Key, Result) then
+    raise EListError.Create('Dictionary key does not exist');
+end;
+
+procedure TComponentMap.Add(const Key: String; const Value: TComponent);
+begin
+  if Key = '' then
+    raise EListError.Create('Cannot add empty key to TComponentMap');
+  if Value = nil then
+    raise EListError.Create('Cannot add nil value to TComponentMap');
+  inherited Add(Key, Value);
+end;
+
+procedure TComponentMap.AddOrSetValue(const Key: String; const Value: TComponent);
+begin
+  if Key = '' then
+    raise EListError.Create('Cannot add empty key to TComponentMap');
+  if Value = nil then
+    raise EListError.Create('Cannot add nil value to TComponentMap');
+  inherited AddOrSetValue(Key, Value);
+end;
+
 { initialization / finalization ---------------------------------------------- }
 
 procedure InitStdStreams;
 
-{ Note that instead of GetStdHandle(STD_INPUT_HANDLE) I could just use
-  StdInputHandle, as this is initialized by FPC RTL exactly to
-  GetStdHandle(STD_INPUT_HANDLE). Same for other Std*Handle.
-  However
-  1. This would not allow me to write InitStdStream without any $ifdefs,
-     because Windows would still require checking for 0 and INVALID_HANDLE_VALUE
-  2. This is not documented, so I prefer to not depend on this.
-     For example, maybe in the future StdInputHandle will be always left as 0
-     when not IsConsole? I want to exactly avoid this for my Std*Stream.
-}
-
   {$ifdef MSWINDOWS}
+  { Note that instead of GetStdHandle(STD_INPUT_HANDLE) I could just use
+    StdInputHandle, as this is initialized by FPC RTL exactly to
+    GetStdHandle(STD_INPUT_HANDLE). Same for other Std*Handle.
+    However
+    1. This would not allow me to write InitStdStream without any $ifdefs,
+      because Windows would still require checking for 0 and INVALID_HANDLE_VALUE
+    2. This is not documented, so I prefer to not depend on this.
+      For example, maybe in the future StdInputHandle will be always left as 0
+      when not IsConsole? I want to exactly avoid this for my Std*Stream.
+  }
   procedure InitStdStream(var Stream: TStream; nStdHandle: DWord);
   var
     Handle: THandle;
@@ -2198,10 +2386,17 @@ procedure InitStdStreams;
   end;
   {$endif UNIX}
 
+  {$ifdef WASI}
+  procedure InitStdStream(var Stream: TStream);
+  begin
+    Stream := TMemoryStream.Create;
+  end;
+  {$endif WASI}
+
 begin
-  InitStdStream(StdInStream,  {$ifdef MSWINDOWS} STD_INPUT_HANDLE  {$else} StdInputHandle  {$endif});
-  InitStdStream(StdOutStream, {$ifdef MSWINDOWS} STD_OUTPUT_HANDLE {$else} StdOutputHandle {$endif});
-  InitStdStream(StdErrStream, {$ifdef MSWINDOWS} STD_ERROR_HANDLE  {$else} StdErrorHandle  {$endif});
+  InitStdStream(StdInStream  {$if defined(MSWINDOWS)} ,STD_INPUT_HANDLE  {$elseif defined(UNIX)} ,StdInputHandle  {$endif});
+  InitStdStream(StdOutStream {$if defined(MSWINDOWS)} ,STD_OUTPUT_HANDLE {$elseif defined(UNIX)} ,StdOutputHandle {$endif});
+  InitStdStream(StdErrStream {$if defined(MSWINDOWS)} ,STD_ERROR_HANDLE  {$elseif defined(UNIX)} ,StdErrorHandle  {$endif});
 end;
 
 procedure FiniStdStreams;
@@ -2603,6 +2798,11 @@ end;
 
 destructor TFreeNotificationObserver.Destroy;
 begin
+  if FDuringOnFreeNotification then
+    WritelnWarning('TFreeNotificationObserver is being freed while processing OnFreeNotification. ' +
+      'This will lead to undefined behavior later, as our instance will be invalid when OnFreeNotification ends. ' +
+      'To fix this, either change TFreeNotificationObserver.EnableFreeingFromNotification to true, or make sure to not free this instance from inside OnFreeNotification.');
+
   { detach free notification, if any remains }
   Observed := nil;
   inherited;
@@ -2631,13 +2831,31 @@ begin
      (AComponent = FObserved) and
      Assigned(OnFreeNotification) then
   begin
-    OnFreeNotification(Self);
+    if FDuringOnFreeNotification then
+      raise EInternalError.Create('We got TFreeNotificationObserver.Notification during OnFreeNotification on the same instance. This is invalid, as it could cause infinite recursion in event processing.');
 
-    { Possibly OnFreeNotification already changed Observed, and we no longer observe it.
-      But if it didn't... then let's fix it.
-      We know FObserved will be freed, so we can stop watching. }
-    if AComponent = FObserved then
-      Observed := nil;
+    if FEnableFreeingFromNotification then
+    begin
+      OnFreeNotification(Self);
+      { And we really cannot do anything more here when FEnableFreeingFromNotification.
+        We cannot update FDuringOnFreeNotification, we cannot look
+        (even read) our FObserved, as Self may be already freed so accessing
+        any field in a potential EAccessViolation. }
+    end else
+    begin
+      FDuringOnFreeNotification := true;
+      try
+        OnFreeNotification(Self);
+      finally
+        FDuringOnFreeNotification := false;
+      end;
+
+      { Possibly OnFreeNotification already changed Observed, and we no longer observe it.
+        But if it didn't... then let's fix it.
+        We know FObserved will be freed, so we can stop watching. }
+      if AComponent = FObserved then
+        Observed := nil;
+    end;
   end;
 end;
 
@@ -2650,6 +2868,16 @@ begin
     FObserved := Value;
     if FObserved <> nil then
       FObserved.FreeNotification(Self);
+  end;
+end;
+
+procedure TFreeNotificationObserver.SetEnableFreeingFromNotification(const Value: Boolean);
+begin
+  if FEnableFreeingFromNotification <> Value then
+  begin
+    if FDuringOnFreeNotification then
+      raise EInternalError.Create('Cannot change TFreeNotificationObserver.EnableFreeingFromNotification from inside OnFreeNotification event handler.');
+    FEnableFreeingFromNotification := Value;
   end;
 end;
 

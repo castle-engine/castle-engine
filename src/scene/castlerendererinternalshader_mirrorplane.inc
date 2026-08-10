@@ -22,7 +22,8 @@
 //type
   { Shader uniforms calculated by rendering using ViewpointMirror,
     used by GLSL code calculating texture coordinates in case of
-    TextureCoordinateGenerator.mode = "MIRROR-PLANE". }
+    TextureCoordinateGenerator.mode = "MIRROR-PLANE".
+    Follows castlerendererinternalshader_feature_api.md API conventions. }
   TMirrorPlaneUniforms = class
     NormalizedPlane: TVector4;
     CameraPositionOnPlane, CameraSide, CameraUp: TVector3;

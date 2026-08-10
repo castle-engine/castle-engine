@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2024 Michalis Kamburelis.
+  Copyright 2015-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,10 +26,8 @@
   strict private
     function GetBBox: TBox3D;
     procedure SetBBox(const Value: TBox3D);
-{$ifndef CASTLE_SLIM_NODES}
     function GetVisible: Boolean;
     procedure SetVisible(const Value: Boolean);
-{$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
     function GetBboxDisplay: Boolean;
     procedure SetBboxDisplay(const Value: Boolean);
@@ -63,15 +61,17 @@
     { Internal wrapper for property @code(BboxSize). This wrapper API may change, we advise to access simpler @code(BboxSize) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
-{$ifndef CASTLE_SLIM_NODES}
     strict private FFdVisible: TSFBool;
     { Internal wrapper for property @code(Visible). This wrapper API may change, we advise to access simpler @code(Visible) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdVisible: TSFBool read FFdVisible;
-{$endif not CASTLE_SLIM_NODES}
-{$ifndef CASTLE_SLIM_NODES}
-    { Is this group visible (@italic(not implemented yet)). While this is not implemented for an entire group, note that you can use @link(TAbstractShapeNode.Visible) to toggle visibility of each shape. }
+    { Are shapes inside this group displayed.
+
+    The value of this field has no effect on animation behaviors, collision behaviors, event passing or other non-visual characteristics.
+
+    TODO: Right now, this affects only shapes visibility. When this is @false, we do not render the @link(TAbstractShapeNode shapes) inside the group. In the future, this will affects also lighting and fog nodes inside the group (following X3D and related glTF extension).
+
+    Changing this property at run-time is optimized for some nodes: @link(TTransformNode) and other nodes that transform things (see @link(TX3DNode.TransformFunctionality)), @link(TSwitchNode), @link(TLodNode), @link(TInlineNode). For other nodes (like @link(TGroupNode)), changing this property at run-time is not optimized. So we recommend to use one of the optimized nodes (like @link(TTransformNode) or @link(TSwitchNode)) if you plan to change visibility at run-time and you have non-trivial content. }
     property Visible: Boolean read GetVisible write SetVisible;
-{$endif not CASTLE_SLIM_NODES}
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdBboxDisplay: TSFBool;
@@ -115,7 +115,6 @@ begin
   FdBBoxSize.Send(ValueSize);
 end;
 
-{$ifndef CASTLE_SLIM_NODES}
 function TAbstractGroupingNode.GetVisible: Boolean;
 begin
   Result := FdVisible.Value;
@@ -126,7 +125,6 @@ begin
   FdVisible.Send(Value);
 end;
 
-{$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
 function TAbstractGroupingNode.GetBboxDisplay: Boolean;
 begin
@@ -166,11 +164,9 @@ begin
    FdBboxSize.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdBboxSize);
 
-{$ifndef CASTLE_SLIM_NODES}
   FFdVisible := TSFBool.Create(Self, True, 'visible', true);
-   FdVisible.ChangeAlways := chVisibleNonGeometry;
+   FdVisible.ChangeAlways := chShapeTreeVisible;
   AddField(FFdVisible);
-{$endif not CASTLE_SLIM_NODES}
 
 {$ifndef CASTLE_SLIM_NODES}
   FFdBboxDisplay := TSFBool.Create(Self, True, 'bboxDisplay', false);

@@ -26,7 +26,7 @@ ${EXTRA_COMPILER_OPTIONS_ABSOLUTE}"/>
         <PackageName Value="FCL"/>
       </Item1>
       <Item2>
-        <PackageName Value="castle_components"/>
+        <PackageName Value="castle_engine_lcl"/>
       </Item2>
       <Item3>
         <PackageName Value="LCL"/>

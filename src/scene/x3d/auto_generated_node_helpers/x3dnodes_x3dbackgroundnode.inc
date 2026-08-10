@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2024 Michalis Kamburelis.
+  Copyright 2015-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -37,8 +37,9 @@
     strict private FFdEffects: TMFNode;
     { Internal wrapper for property @code(Effects). This wrapper API may change, we advise to access simpler @code(Effects) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdEffects: TMFNode read FFdEffects;
-    { Shader effects (see https://castle-engine.io/compositing_shaders.php) used to render background geometry. }
+    { @url(https://castle-engine.io/shaders Shader effects) used to render background geometry. }
     procedure SetEffects(const Value: array of TEffectNode);
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -86,6 +87,15 @@ begin
   FFdEffects := TMFNode.Create(Self, False, 'effects', [TEffectNode]);
    FdEffects.ChangeAlways := chEverything;
   AddField(FFdEffects);
+end;
+
+procedure TAbstractBackgroundNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+  if not FdShaders.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdShaders.X3DName);
+  if not FdEffects.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdEffects.X3DName);
 end;
 
 {$endif read_implementation}

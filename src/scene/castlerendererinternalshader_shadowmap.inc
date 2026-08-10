@@ -46,7 +46,8 @@
   { List of TShadowMapShader, containing all shadow maps used
     when rendering one shape.
     The methods here just call corresponding TShadowMapShader methods
-    on all children. }
+    on all children.
+    Follows castlerendererinternalshader_feature_api.md API conventions. }
   TShadowMapShaderList = class({$ifdef FPC}specialize{$endif} TStructList<TShadowMapShader>)
   public
     procedure GenerateCode(const Shader: TShader);
@@ -111,7 +112,7 @@ begin
     when given light is applied. }
   Shader.Plug(stFragment,
     Format('uniform %s %s;', [SamplerType, ShadowMapName]) + NL +
-    Format('varying vec4 %s;', [ProjectedTexCoordName]) + NL +
+    Format('varying shadowsPrecision vec4 %s;', [ProjectedTexCoordName]) + NL +
 
     // Do not redeclare shadow() and friends on OpenGLES
     {$ifndef OpenGLES}

@@ -1,0 +1,248 @@
+X3DSoundChannelNode : X3DSoundNode {
+  SFString [in,out] channelCountMode      "MAX"
+    range: ["MAX", "CLAMPED_MAX", "EXPLICIT"]
+    enumerated-type: TChannelCountMode ChannelCountModeNames ccmMax
+  SFString [in,out] channelInterpretation "SPEAKERS"
+    range: ["SPEAKERS", "DISCRETE"]
+    enumerated-type: TChannelInterpretation ChannelInterpretationNames ciSpeakers
+  MFNode   [in,out] children              NULL
+    range: [X3DSoundChannelNode, X3DSoundProcessingNode, X3DSoundSourceNode]
+  SFFloat  [in,out] gain                  1
+    range: (-∞,∞)
+  SFInt32  [out]    channelCount
+    range: [0,∞)
+}
+
+X3DSoundDestinationNode : X3DSoundNode {
+  SFString [in,out] channelCountMode      "MAX"
+    range: ["MAX", "CLAMPED_MAX", "EXPLICIT"]
+    enumerated-type: TChannelCountMode ChannelCountModeNames ccmMax
+  SFString [in,out] channelInterpretation "SPEAKERS"
+    range: ["SPEAKERS", "DISCRETE"]
+    enumerated-type: TChannelInterpretation ChannelInterpretationNames ciSpeakers
+  MFNode   [in,out] children              NULL
+    range: [X3DSoundChannelNode, X3DSoundProcessingNode, X3DSoundSourceNode]
+  SFFloat  [in,out] gain                  1
+    range: (-∞,∞)
+  SFString [in,out] mediaDeviceID         ""
+  SFBool   [out]    isActive
+  SFInt32  [out]    channelCount
+    range: [0,∞)
+}
+
+X3DSoundProcessingNode : X3DTimeDependentNode {
+  SFString [in,out] channelCountMode      "MAX"
+    range: ["MAX", "CLAMPED_MAX", "EXPLICIT"]
+    enumerated-type: TChannelCountMode ChannelCountModeNames ccmMax
+  SFString [in,out] channelInterpretation "SPEAKERS"
+    range: ["SPEAKERS", "DISCRETE"]
+    enumerated-type: TChannelInterpretation ChannelInterpretationNames ciSpeakers
+  MFNode   [in,out] children              NULL
+    range: [X3DSoundChannelNode, X3DSoundProcessingNode, X3DSoundSourceNode]
+  SFBool   [in,out] enabled               TRUE
+  SFFloat  [in,out] gain                  1
+    range: (-∞,∞)
+  SFTime   [in,out] tailTime              0
+    range: [0,∞)
+  SFInt32  [out]    channelCount
+    range: [0,∞)
+}
+
+Analyser :  X3DSoundProcessingNode {
+  SFInt32  [in,out] fftSize               2048
+    range: [0,Inf)
+  SFInt32  [in,out] frequencyBinCount     1024
+    range: [0,Inf)
+  SFFloat  [in,out] minDecibels           -100
+    range: (-Inf,Inf)
+  SFFloat  [in,out] maxDecibels           -30
+    range: (-Inf,Inf)
+  SFFloat  [in,out] smoothingTimeConstant 0.8
+    range: [0,Inf)
+}
+
+AudioDestination : X3DSoundDestinationNode {
+  SFInt32  [in,out] maxChannelCount       2
+    range: [0,Inf)
+}
+
+BiquadFilter : X3DSoundProcessingNode {
+  SFFloat  [in,out] detune                0
+    range: [0,Inf)
+  SFFloat  [in,out] frequency             350
+    range: [0,Inf)
+  SFFloat  [in,out] qualityFactor         1
+    range: [0,Inf)
+  SFString [in,out] type                  "LOWPASS"
+    range: ["LOWPASS",   "HIGHPASS", "BANDPASS", "LOWSHELF", "HIGHSHELF", "PEAKING",  "NOTCH",    "ALLPASS"]
+    enumerated-type: TBiquadFilterType BiquadFilterTypeNames bftLowpass
+}
+
+BufferAudioSource : X3DSoundSourceNode, X3DUrlObject {
+  SFTime   [in,out] autoRefresh           0.0
+    range: [0,Inf)
+  SFTime   [in,out] autoRefreshTimeLimit  3600.0
+    range: [0,Inf)
+  MFFloat  [in,out] buffer                []
+    range: [−1,1]
+  SFTime   [in,out] bufferDuration        0
+    range: [0,Inf)
+  SFString [in,out] channelCountMode      "MAX"
+    range: ["MAX", "CLAMPED_MAX", "EXPLICIT"]
+    enumerated-type: TChannelCountMode ChannelCountModeNames ccmMax
+  SFString [in,out] channelInterpretation "SPEAKERS"
+    range: ["SPEAKERS", "DISCRETE"]
+    enumerated-type: TChannelInterpretation ChannelInterpretationNames ciSpeakers
+  SFFloat  [in,out] detune                0
+    range: [0,Inf)
+  SFBool   [in,out] load                  TRUE
+  SFTime   [in,out] loopEnd               0
+    range: [0,Inf)
+  SFTime   [in,out] loopStart             0
+    range: [0,Inf)
+  SFInt32  [in,out] numberOfChannels      0
+    range: [0,Inf)
+  SFFloat  [in,out] playbackRate          1
+    range: (-Inf,Inf)
+  SFFloat  [in,out] sampleRate            0
+    range: [0,Inf)
+  MFString [in,out] url                   []
+    range: [URI]
+  SFInt32  [out]    bufferLength          0
+    range: [0,Inf)
+  SFInt32  [out]    channelCount
+    range: [0,Inf)
+}
+
+ChannelMerger : X3DSoundChannelNode {
+}
+
+ChannelSelector : X3DSoundChannelNode {
+  SFInt32  [in,out] channelSelection      0
+    range: [0,Inf)
+}
+
+ChannelSplitter : X3DSoundChannelNode {
+  MFNode   [in,out] outputs               NULL
+    range: [X3DSoundChannelNode, X3DSoundProcessingNode, X3DSoundSourceNode]
+}
+
+Convolver : X3DSoundProcessingNode {
+  MFFloat  [in,out] buffer                []
+    range: [−1,1]
+  SFBool   [in,out] normalize             FALSE
+}
+
+Delay : X3DSoundProcessingNode {
+  SFTime   [in,out] delayTime             0
+    range: [0,Inf)
+  SFTime   [in,out] maxDelayTime          1
+    range: [0,Inf)
+}
+
+DynamicsCompressor : X3DSoundProcessingNode {
+  SFTime   [in,out] attack                0.003
+    range: [0,Inf)
+  SFFloat  [in,out] knee                  30
+    range: [0,Inf)
+  SFFloat  [in,out] ratio                 12
+    range: [0,Inf)
+  SFTime   [in,out] release               0.25
+    range: [0,Inf)
+  SFFloat  [in,out] threshold             -24
+    range: [-100,0] [0,Inf)
+  SFFloat  [out]    reduction
+    range: [0,Inf)
+}
+
+Gain : X3DSoundProcessingNode {
+}
+
+ListenerPointSource : X3DSoundSourceNode {
+  SFBool     [in,out] dopplerEnabled     FALSE
+  SFFloat    [in,out] interauralDistance 0
+    range: [0, infinity)
+  SFRotation [in,out] orientation        0 0 1 0
+    range: [-1,1],(-Inf,Inf)
+  SFVec3f    [in,out] position           0 0 0
+    range: (-Inf,Inf)
+  SFBool     [in,out] trackCurrentView   FALSE
+}
+
+MicrophoneSource : X3DSoundSourceNode {
+  SFString [in,out] mediaDeviceID  ""
+}
+
+Oscillator : X3DSoundSourceNode {
+  SFFloat  [in,out] detune           0
+    range: [0,Inf)
+  SFFloat  [in,out] frequency        440.0
+    range: [0,Inf)
+  SFNode   [in,out] periodicWave     NULL
+    range: [PeriodicWave]
+}
+
+PeriodicWave : X3DSoundNode {
+  MFFloat  [in,out] optionsReal []
+  MFFloat  [in,out] optionsImag []
+  SFString [in,out] type        "SQUARE"
+    range: ["SINE", "SQUARE", "SAWTOOTH", "TRIANGLE", "CUSTOM"]
+    enumerated-type: TPeriodicWaveType PeriodicWaveTypeNames pwtSquare
+}
+
+SpatialSound : X3DSoundNode  {
+  MFNode   [in,out] children          NULL
+    range: [X3DSoundChannelNode, X3DSoundProcessingNode, X3DSoundSourceNode]
+  SFFloat  [in,out] coneInnerAngle    6.2832
+    range: [0,2*Pi]
+  SFFloat  [in,out] coneOuterAngle    6.2832
+    range: [0,2*Pi]
+  SFFloat  [in,out] coneOuterGain     0
+    range: (-Inf,Inf)
+  SFVec3f  [in,out] direction         0 0 1
+    range: (-Inf,Inf)
+  SFString [in,out] distanceModel     "INVERSE"
+    range: ["LINEAR" "INVERSE" "EXPONENTIAL"]
+    enumerated-type: TDistanceModel DistanceModelNames dmInverse
+  SFBool   [in,out] dopplerEnabled    FALSE
+  SFBool   [in,out] enableHRTF        FALSE
+  SFFloat  [in,out] gain              1
+    range: (-Inf,Inf)
+  SFFloat  [in,out] intensity         1
+    range: [0,1]
+  SFVec3f  [in,out] location          0 0 0
+    range: (-Inf,Inf)
+  SFFloat  [in,out] maxDistance       10000
+    range: [0,Inf)
+  SFFloat  [in,out] priority          0
+    range: [0,1]
+  SFFloat  [in,out] referenceDistance 1
+    range: [0,Inf)
+  SFFloat  [in,out] rolloffFactor     1
+    range: [0,Inf)
+  SFBool   []       spatialize        TRUE
+}
+
+StreamAudioDestination : X3DSoundDestinationNode {
+  MFString [in,out] streamIdentifier      []
+}
+
+StreamAudioSource : X3DSoundSourceNode {
+  SFString [in,out] channelCountMode      "MAX"
+    range: ["MAX", "CLAMPED_MAX", "EXPLICIT"]
+    enumerated-type: TChannelCountMode ChannelCountModeNames ccmMax
+  SFString [in,out] channelInterpretation "SPEAKERS"
+    range: ["SPEAKERS", "DISCRETE"]
+    enumerated-type: TChannelInterpretation ChannelInterpretationNames ciSpeakers
+  MFString [in,out] streamIdentifier      []
+  SFInt32  [out]    channelCount
+    range: [0,Inf)
+}
+
+WaveShaper : X3DSoundProcessingNode {
+  MFFloat  [in,out] curve                 []
+    range: [-1,-1]
+  SFString [in,out] oversample            "NONE"
+    range: ["NONE", "2X", "4X"]
+    enumerated-type: TOversample OversampleNames osNone
+}

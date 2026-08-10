@@ -10,7 +10,13 @@
       "Items" : {
         "$$ClassName" : "TCastleRootTransform",
         "PhysicsProperties" : {
-          "$$ClassName" : "TPhysicsProperties"
+          "$$ClassName" : "TPhysicsProperties",
+          "LayerCollisions" : {
+            "$$ClassName" : "TCastleLayerCollisions"
+          },
+          "LayerNames" : {
+            "$$ClassName" : "TCastleLayerNames"
+          }
         },
         "$Children" : [
           {
@@ -22,7 +28,7 @@
             "RenderOptions" : {
               "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
-            "URL" : "castle-data:/level.gltf",
+            "Url" : "castle-data:/level.gltf",
             "$Behaviors" : [
               {
                 "$$ClassName" : "TCastleRigidBody",
@@ -53,7 +59,7 @@
                 "RenderOptions" : {
                   "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
-                "URL" : "castle-data:/moving_box.gltf"
+                "Url" : "castle-data:/moving_box.gltf"
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -63,7 +69,7 @@
                 "RenderOptions" : {
                   "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
-                "URL" : "castle-data:/moving_sphere.gltf"
+                "Url" : "castle-data:/moving_sphere.gltf"
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -74,7 +80,7 @@
                 "RenderOptions" : {
                   "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
-                "URL" : "castle-data:/moving_ray.gltf"
+                "Url" : "castle-data:/moving_ray.gltf"
               }
             ]
           },
@@ -198,7 +204,7 @@
       "$Children" : [
         {
           "$$ClassName" : "TCastleButton",
-          "Caption" : "Test Move (with wall sliding)",
+          "Caption" : "Test moving by Move (wall sliding)",
           "CustomBackgroundDisabled" : {
             "$$ClassName" : "TCastleImagePersistent"
           },
@@ -216,6 +222,33 @@
           },
           "Name" : "ButtonTestMove",
           "Toggle" : true,
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop"
+        },
+        {
+          "$$ClassName" : "TCastleButton",
+          "Caption" : "Test moving by PhysicsSphereCast check",
+          "CustomBackgroundDisabled" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundFocused" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundNormal" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundPressed" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "Image" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "Name" : "ButtonTestPhysicsSphere",
+          "Toggle" : true,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -4.9000000000000000E+001
+          },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
         },
@@ -241,7 +274,7 @@
           "Toggle" : true,
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
-            "Y" : -4.9000000000000000E+001
+            "Y" : -9.8000000000000000E+001
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
@@ -268,7 +301,7 @@
           "Toggle" : true,
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
-            "Y" : -9.8000000000000000E+001
+            "Y" : -1.4700000000000000E+002
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
@@ -295,7 +328,7 @@
           "Toggle" : true,
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
-            "Y" : -1.4700000000000000E+002
+            "Y" : -1.9600000000000000E+002
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
@@ -322,7 +355,7 @@
           "Toggle" : true,
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
-            "Y" : -1.9600000000000000E+002
+            "Y" : -2.4500000000000000E+002
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"

@@ -1,6 +1,6 @@
 {%MainUnit castletransform.pas}
 {
-  Copyright 2017-2024 Michalis Kamburelis.
+  Copyright 2017-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -16,7 +16,8 @@
 
 {$ifdef read_interface}
 
-//type
+// type section started in CastleTransform.pas
+
   EMaximumTransformDesignDepth = class(Exception);
 
   { Contents are loaded from an indicated castle-transform file
@@ -29,6 +30,12 @@
     class var
       LoadDepth: Cardinal;
     var
+      { Intermediate TCastleTransform that is child of Self and contains FDesign.
+        This way FDesignContainer is csTransient, not FDesign.
+        This allows to detect hitting FDesign instance with Viewport.TransformHit,
+        useful if FDesign is a TCastleScene.
+        Testcase: Enter to push on examples/3d_games/walking_adventure/ }
+      FDesignContainer: TCastleTransform;
       FDesign: TCastleTransform;
       { We don't use Self as Owner of FDesign, to allow freeing everything
         loaded by TransformLoad by simple FreeAndNil(FDesignOwner). }
@@ -58,6 +65,9 @@
       This makes sense to be used when underlying file on disk
       changed, and you want to reload it. }
     procedure ReloadUrl;
+
+    { Root of the loaded components, or @nil if nothing was loaded yet. }
+    property DesignRoot: TCastleTransform read FDesign;
   published
     { Load file with the transform design.
       The file should be in the format created by Castle Game Engine Editor
@@ -99,6 +109,14 @@ begin
   FDesignObserver := TFreeNotificationObserver.Create(Self);
   FDesignObserver.OnFreeNotification := {$ifdef FPC}@{$endif}DesignFreeNotification;
   FUrlMonitoring.Init({$ifdef FPC}@{$endif} ReloadUrl);
+
+  FDesignContainer := TCastleTransform.Create(Self);
+  { This prevents FDesignContainer and FDesign from
+    - being serialized (in case TCastleTransformDesign is placed inside
+      a hierachy saved using TransformSave. Only URL should be saved.)
+    - or even be visible in the hierachy of castle-editor. }
+  FDesignContainer.SetTransient;
+  Add(FDesignContainer);
 end;
 
 destructor TCastleTransformDesign.Destroy;
@@ -163,14 +181,8 @@ begin
         end;
       end;
 
-      { This prevents this child from
-        - being serialized (in case TCastleTransformDesign is placed inside
-          a hierachy saved using TransformSave. Only URL should be saved.)
-        - or even be visible in the hierachy of castle-editor.
-      }
-      FDesign.SetTransient;
       FDesignObserver.Observed := FDesign;
-      Add(FDesign);
+      FDesignContainer.Add(FDesign);
     end;
   end;
 end;

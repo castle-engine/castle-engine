@@ -3,8 +3,7 @@
    based on the time, to make a simple wave-like animation.
 
    This piece of shader code depends on Castle Game Engine
-   "Shader Effects" feature documented on
-   https://castle-engine.io/compositing_shaders_doc/html/ .
+   "Shader Effects" feature documented on https://castle-engine.io/shaders .
    The routine name PLUG_vertex_object_space_change is special --
    it will be recognized by Castle Game Engine and called during regular
    CGE shaders.

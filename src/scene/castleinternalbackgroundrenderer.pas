@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2024 Michalis Kamburelis.
+  Copyright 2002-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -67,6 +67,7 @@ type
       (corresponds to the rotation of Background in the X3D file transformation). }
     procedure UpdateRotation(const Rotation: TVector4); virtual;
     procedure FreeResources; virtual;
+    procedure Update(const SecondsPassed: Single); virtual;
   end;
 
 { Create background renderer.
@@ -136,6 +137,10 @@ procedure TBackgroundRenderer.FreeResources;
 begin
 end;
 
+procedure TBackgroundRenderer.Update(const SecondsPassed: Single);
+begin
+end;
+
 { TBackgroundScene ----------------------------------------------------------- }
 
 type
@@ -159,6 +164,7 @@ type
       const AllShapesCollector, FilteredShapesCollector: TShapesCollector;
       const ShapesRenderer: TShapesRenderer); override;
     procedure FreeResources; override;
+    procedure Update(const SecondsPassed: Single); override;
   end;
 
 constructor TBackgroundScene.Create;
@@ -229,7 +235,7 @@ procedure TBackgroundScene.Render(const RenderingCamera: TRenderingCamera;
   begin
     { Disable occlusion culling on background.
       It works correctly... but the 1-frame delay is too noticeable,
-      testcase: examples/fps_game/ . }
+      testcase: examples/3d_games/explore_impressive_castle/ . }
     SavedOcclusionCulling := ShapesRenderer.OcclusionCulling;
     ShapesRenderer.OcclusionCulling := false;
 
@@ -274,6 +280,21 @@ procedure TBackgroundScene.FreeResources;
 begin
   inherited;
   Scene.FreeResources([frTextureDataInNodes]);
+end;
+
+procedure TBackgroundScene.Update(const SecondsPassed: Single);
+var
+  DummyRemoveType: TRemoveType;
+begin
+  { We have to execute Scene.Update to process
+    Transform.Rotation change done in UpdateRotation,
+    as only from Scene.Update (with non-zero SecondsPassed)
+    it results in shape transformation (TShapeTreeTransform) change.
+
+    Testcase: demo-models/background/background_animate_rotation.wrl }
+
+  DummyRemoveType := rtNone;
+  Scene.Update(SecondsPassed, DummyRemoveType);
 end;
 
 { TBackground3D --------------------------------------------------------------- }
@@ -816,7 +837,7 @@ procedure TBackground2D.Render(const RenderingCamera: TRenderingCamera;
     Assert(Texture2D <> nil);
 
     Material.EmissiveColor := Node.Color.XYZ;
-    Material.Transparency := 1 - Node.Color.W;
+    Material.Transparency := OpacityToTransparency(Node.Color.W);
 
     // TODO: check do they differ
     TexCoords.SetPoint(Node.FdTexCoords.Items);

@@ -31,13 +31,31 @@ type
 implementation
 
 uses CastleStringUtils, CastleUriUtils, CastleFilesUtils, CastleVectors,
-  CastleConfig;
+  CastleConfig, ToolCommonUtils;
 
 procedure TTestToolProject.TestMacros;
+
+  procedure AdjustApplicationData;
+  var
+    DataPath: string;
+  begin
+    if CastleEnginePath <> '' then
+    begin
+      DataPath := CastleEnginePath +
+        'tools' + PathDelim + 'build-tool' + PathDelim + 'data' + PathDelim;
+      if DirectoryExists(DataPath) then
+        ApplicationDataOverride := FilenameToUriSafe(DataPath);
+    end;
+  end;
+
 var
+  TestProjectFileName: string;
   P: TCastleProject;
 begin
-  P := TCastleProject.Create(UriToFilenameSafe(ResolveCastleDataURL('castle-data:/test_project/')));
+  TestProjectFileName := UriToFilenameSafe(ResolveCastleDataURL('castle-data:/test_project/'));
+  AdjustApplicationData; // now the caste-data should point to build-tool/data, not tests/data
+
+  P := TCastleProject.Create(TestProjectFileName);
   try
     AssertEquals('My Test Project', P.ReplaceMacros('${CAPTION}'));
     AssertEquals('test_project', P.ReplaceMacros('${NAME}'));
@@ -54,6 +72,7 @@ begin
     AssertEquals('no EDITOR_UNITS', P.ReplaceMacros('${IF ${EDITOR_UNITS} <> ''''}has EDITOR_UNITS${ELSE}no EDITOR_UNITS${ENDIF}'));
     AssertEquals('', P.ReplaceMacros('${IF ${EDITOR_UNITS} <> ''''}has EDITOR_UNITS${ENDIF}'));
   finally FreeAndNil(P) end;
+  ApplicationDataOverride := '';
 end;
 
 initialization

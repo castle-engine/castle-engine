@@ -39,7 +39,7 @@ You can also compile the build tool using standard methods for CGE applications:
 
 - Use [CGE command-line build tool](https://castle-engine.io/build_tool) to "bootstrap" it. Run `castle-engine compile` in this directory.
 
-- Or use [Lazarus](https://www.lazarus-ide.org/). Open in Lazarus `castle-engine.lpi` file and compile / run from Lazarus. Make sure to first register [CGE Lazarus packages](https://castle-engine.io/lazarus).
+- Or use [Lazarus](https://www.lazarus-ide.org/). Open in Lazarus `castle_engine.lpi` file and compile / run from Lazarus. Make sure to first register [CGE Lazarus packages](https://castle-engine.io/lazarus).
 
 ## Delphi TODOs
 

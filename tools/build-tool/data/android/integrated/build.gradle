@@ -26,7 +26,11 @@ buildscript {
         //
         // Later we needed to upgrade 4.1.0 -> 7.4.2 to use latest cmake,
         // that has target_link_options .
-        classpath 'com.android.tools.build:gradle:8.1.0'
+        //
+        // Later we need to upgrade to 8.5.1 to support 16k page sizes.
+        // And later, since 8.5.1 is untested with SDK 35,
+        // so we upgrade to 8.8.0 recommended now by Android Studio .
+        classpath 'com.android.tools.build:gradle:8.8.0'
 
         // Do not change the line below, it is necessary for build.gradle merging to work.
         // MERGE-DEPENDENCIES

@@ -27,6 +27,7 @@ var
 implementation
 
 uses CastleUtils,
+  ToolEditorUtils,
   EditorUtils;
 
 {$R *.lfm}

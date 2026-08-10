@@ -16,7 +16,7 @@ Remember to enable server access in the firewall, if you have one. Windows autom
 
     Indy is not distributed with _Castle Game Engine_.
 
-    FPC users: See https://castle-engine.io/manual_network.php#section_indy about installing Indy.
+    FPC users: See https://castle-engine.io/multi_player#indy about installing Indy.
 
     Delphi users: No need to do anything, Indy is part of Delphi.
 
@@ -26,7 +26,7 @@ Remember to enable server access in the firewall, if you have one. Windows autom
 
 * Compiling from Lazarus:
 
-    These examples depend on the `castle_indy` package. Make sure you compile the `packages/castle_indy.lpk` in Lazarus (it depends on Indy package).
+    These examples depend on the `castle_engine_indy` package. Make sure you compile the `packages/lazarus/castle_engine_indy.lpk` in Lazarus (it depends on Indy package).
 
 * Compiling from CGE editor, with FPC compiler:
 

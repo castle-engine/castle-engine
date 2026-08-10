@@ -235,7 +235,7 @@ begin
 end;
 
 const
-  { Ctrl key on most systems, Command key on macOS. }
+  { Ctrl key on most systems, Command key on macOS (called ssMeta by LCL). }
   ssCtrlOrCommand = {$ifdef DARWIN} ssMeta {$else} ssCtrl {$endif};
 
 function KeyToCastle(const Key: Word; const Shift: TShiftState): TKey;

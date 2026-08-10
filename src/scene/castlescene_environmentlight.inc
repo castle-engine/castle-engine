@@ -158,20 +158,13 @@ end;
 
 function TCastleEnvironmentLight.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'DiffuseTextureCubemap') or
-     (PropertyName = 'DiffuseTextureNegativeZ') or
-     (PropertyName = 'DiffuseTexturePositiveZ') or
-     (PropertyName = 'DiffuseTexturePositiveY') or
-     (PropertyName = 'DiffuseTextureNegativeY') or
-     (PropertyName = 'DiffuseTextureNegativeX') or
-     (PropertyName = 'DiffuseTexturePositiveX') or
-     (PropertyName = 'SpecularTextureCubemap') or
-     (PropertyName = 'SpecularTextureNegativeZ') or
-     (PropertyName = 'SpecularTexturePositiveZ') or
-     (PropertyName = 'SpecularTexturePositiveY') or
-     (PropertyName = 'SpecularTextureNegativeY') or
-     (PropertyName = 'SpecularTextureNegativeX') or
-     (PropertyName = 'SpecularTexturePositiveX') then
+  if ArrayContainsString(PropertyName, [
+       'DiffuseTextureCubemap', 'DiffuseTextureNegativeZ', 'DiffuseTexturePositiveZ',
+       'DiffuseTexturePositiveY', 'DiffuseTextureNegativeY', 'DiffuseTextureNegativeX',
+       'DiffuseTexturePositiveX', 'SpecularTextureCubemap', 'SpecularTextureNegativeZ',
+       'SpecularTexturePositiveZ', 'SpecularTexturePositiveY', 'SpecularTextureNegativeY',
+       'SpecularTextureNegativeX', 'SpecularTexturePositiveX'
+     ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);

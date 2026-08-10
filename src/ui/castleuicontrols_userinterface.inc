@@ -236,6 +236,13 @@
   private
     FParent: TCastleUserInterface;
     FLastSeenContainerWidth, FLastSeenContainerHeight: Integer;
+    FUpdateCalledFrameId: TFrameId;
+
+    { If we are processing something within this component, and thus
+      destroying this component would be dangerous now, this is > 0. }
+    ProcessingEvents: Cardinal;
+    { Last reeason for ProcessingEvents > 0, for logging / debug purposes. }
+    ProcessingEventsDescription: String;
 
     { Show Name and ClassName for debug/log purposes. }
     function DebugName: String;
@@ -244,7 +251,6 @@
     procedure CheckUIScaleChanged;
     { Recalculate FLastSeenContainerWidth/Height, call Resize if needed. }
     procedure CheckResize;
-
   protected
     procedure Loaded; override;
 
@@ -305,6 +311,11 @@
     { Theme that should be used by this control.
       Either CustomTheme or global @link(Theme). }
     function Theme: TCastleTheme;
+
+    { Called if this instance set itself as @link(TCastleAbstractPointerLock.Controller)
+      but it no longer exists. This gives a chance to release pointer lock,
+      as it should not be held by control that doesn't exist. }
+    procedure ReleasePointerLock; virtual;
   public
     const
       DefaultWidth = 100.0;
@@ -317,6 +328,21 @@
     procedure DesignerInfo(const SList: TStrings); override;
     procedure DesignerWarnings(const SList: TStrings); override;
     function GetEnumerator: TEnumerator;
+
+    { Override this method to react to container changes.
+
+      @bold(Never call this method, engine takes care of calling it when needed.)
+      This method is exposed only to be able to override it.
+      To avoid using it by mistake, we name it "Internal" and the @link(Container)
+      property remains read-only, although this method acts as de-facto setter
+      for it.
+
+      @bold(Always call inherited when overriding this.)
+      IOW, do not cancel changing the container by avoiding calling
+      @code(inherited) in descendants -- some code (engine and user)
+      may assume that setting the container happens reliably.
+
+      @exclude }
     procedure InternalSetContainer(const Value: TCastleContainer); virtual;
 
     (*Override this method to react to user pressing a key, mouse button or mouse wheel.
@@ -393,6 +419,29 @@
     { Similar to @link(Press) but allows the parent control to preview
       the event before it is passed to children UI controls.
 
+      When we want to inform given control that something was pressed,
+      we call:
+
+      @orderedList(
+        @item(@link(TCastleUserInterface.PreviewPress) on this control.)
+        @item(Recursively process all children,
+          calling @link(TCastleUserInterface.PreviewPress) +
+          @link(TCastleUserInterface.Press) on them.)
+        @item(@link(TCastleUserInterface.Press) on this control.)
+      )
+
+      It is important to note that we don't just
+      "call @link(TCastleUserInterface.PreviewPress)
+      on all controls, and then call @link(TCastleUserInterface.Press)
+      on all controls". The approach above is better, as it means that usually
+      you don't need to care whether some key is handled by a child control
+      in its @link(TCastleUserInterface.PreviewPress) or @link(TCastleUserInterface.Press).
+      Most controls handle keys in @link(TCastleUserInterface.Press),
+      but e.g. @link(TCastleViewport) handles keys
+      @link(TCastleUserInterface.PreviewPress) to capture keys before
+      navigation. And in most cases, you should not care where
+      @link(TCastleViewport) handles keys.
+
       @seealso Press }
     function PreviewPress(const Event: TInputPressRelease): boolean; virtual;
 
@@ -428,20 +477,6 @@
         This is necessary because some sensors, e.g. 3Dconnexion,
         may *not* reported as often as normal @link(Update) calls.) }
     function SensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean; virtual;
-
-    { Axis movement detected by joystick.
-
-      @param JoyID ID of joystick with pressed button
-      @param Axis Number of moved axis }
-    function JoyAxisMove(const JoyID, Axis: Byte): boolean; virtual;
-      deprecated 'use event Joysticks.OnAxisMove, or just observe Joysticks[0].Axis';
-
-    { Joystick button pressed.
-
-      @param JoyID ID of joystick with pressed button
-      @param Button Number of pressed button }
-    function JoyButtonPress(const JoyID, Button: Byte): boolean; virtual;
-      deprecated 'use Joysticks.OnButtonDown or Joysticks.OnButtonPress';
 
     { Control may do here anything that must be continuously repeated.
       E.g. camera handles here falling down due to gravity,
@@ -846,6 +881,15 @@
         NewParent.InsertFront(Control); // or InsertBack, as InsertControl...
       #) }
     property Parent: TCastleUserInterface read FParent {write SetParent};
+
+    { Does this control, and all its parents up to the root,
+      have @link(Exists) = @true.
+
+      Note that this doesn't check whether the control is actually part of some
+      @link(Container). So this may be @true even for a control that is not
+      (yet) added to any container. It only checks that "this control,
+      and all parents going up the tree, have @link(Exists) = @true". }
+    function ExistsInRoot: Boolean;
 
     { Control position and size.
       Use this to base other controls size/position on this control's
@@ -1474,11 +1518,13 @@
       It's by default @true and it makes most sense to leave it @true for
       the majority of components. However some components are not only invisible,
       but also "user doesn't expect to select them by hovering". E.g. TCastleNavigation,
-      or DesignHud in examples/fps_game. It is more intuitive for user then that such
+      or DesignHud in examples/3d_games/explore_impressive_castle .
+      It is more intuitive for user then that such
       component doesn't obscure things underneath.
 
-      Note that hovering over children of UI with EditorSelectOnHover will still select them.
-      This is good e.g. for DesignHud in examples/fps_game. }
+      Note that hovering over children of UI with EditorSelectOnHover
+      will still select them.
+      This is good e.g. for DesignHud in examples/3d_games/explore_impressive_castle. }
     property EditorSelectOnHover: Boolean read FEditorSelectOnHover write FEditorSelectOnHover default true;
 
   {$define read_interface_class}
@@ -1582,16 +1628,6 @@ end;
 function TCastleUserInterface.SensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean;
 begin
   Result := false;
-end;
-
-function TCastleUserInterface.JoyAxisMove(const JoyID, Axis: Byte): boolean;
-begin
-  Result := False;
-end;
-
-function TCastleUserInterface.JoyButtonPress(const JoyID, Button: Byte): boolean;
-begin
-  Result := False;
 end;
 
 procedure TCastleUserInterface.Update(const SecondsPassed: Single;
@@ -1725,6 +1761,13 @@ end;
 
 destructor TCastleUserInterface.Destroy;
 begin
+  if ProcessingEvents <> 0 then
+    WritelnWarning('Component "%s" (class "%s") is being destroyed while processing its own event "%s". This can lead to undefined behavior and crashes. Defer destroying it to later, e.g. with ApplicationProperties.FreeDelayed.', [
+      Name,
+      ClassName,
+      ProcessingEventsDescription
+    ]);
+
   GLContextClose;
   FreeAndNil(FControls);
   FreeAndNil(FBorder);
@@ -2236,6 +2279,11 @@ begin
     if Parent <> nil then
       Parent.VisibleChange([chChildrenExists]);
   end;
+end;
+
+function TCastleUserInterface.ExistsInRoot: Boolean;
+begin
+  Result := Exists and ( (Parent = nil) or Parent.ExistsInRoot );
 end;
 
 procedure TCastleUserInterface.BorderChange(Sender: TObject);
@@ -3082,6 +3130,10 @@ begin
   if (Parent <> nil) and
      (not Parent.RenderRect.Contains(RenderRectWithBorder)) then
     SList.Add('The rectangle occupied by this control is outside of the parent rectangle. The events (like mouse clicks) may not reach this control. You must always fit child control inside the parent.');
+end;
+
+procedure TCastleUserInterface.ReleasePointerLock;
+begin
 end;
 
 {$define read_implementation_methods}

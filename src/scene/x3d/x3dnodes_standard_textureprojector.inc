@@ -1,4 +1,4 @@
-{%MainUnit x3dnodes.pas}
+{%MainUnit castleinternalnodesunsupported.pas}
 {
   Copyright 2023-2023 Michalis Kamburelis.
 

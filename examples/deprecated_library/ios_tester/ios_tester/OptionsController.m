@@ -1,5 +1,5 @@
 /*
-  Copyright 2014 Jan Adamec, Michalis Kamburelis.
+  Copyright 2014-2024 Jan Adamec, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -24,6 +24,22 @@
     [super viewDidLoad];
     
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(OnBtnDone:)];
+
+    // regiser to set content size as compact as possible
+    [self.tableView addObserver:self forKeyPath:@"contentSize" options: NSKeyValueObservingOptionNew context: nil];
+}
+
+//-----------------------------------------------------------------
+- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey,id> *)change context:(void *)context
+{
+    if ([keyPath isEqualToString:@"contentSize"] && object == self.tableView)
+        self.preferredContentSize = self.tableView.contentSize;
+}
+
+//-----------------------------------------------------------------
+- (void)viewDidDisappear:(BOOL)animated
+{
+    [self.tableView removeObserver:self forKeyPath:@"contentSize"];
 }
 
 //-----------------------------------------------------------------
@@ -83,7 +99,16 @@
     {
         case 0:
             opt.walkTwoControls = bOn;
-            CGE_SetVariableInt(ecgevarWalkTouchCtl, bOn ? ecgetciCtlWalkCtlRotate : ecgetciCtlWalkDragRotate);
+            if (opt.walkTwoControls)
+            {
+                CGE_SetVariableInt(ecgevarAutoWalkTouchInterface, ecgetiWalkRotate);
+                CGE_SetWalkNavigationMouseDragMode(ecgemdNone);
+            }
+            else
+            {
+                CGE_SetVariableInt(ecgevarAutoWalkTouchInterface, ecgetiWalk);
+                CGE_SetWalkNavigationMouseDragMode(ecgemdRotate);
+            }
             break;
         case 1: opt.walkHeadBobbing = bOn; CGE_SetVariableInt(ecgevarWalkHeadBobbing, bOn ? 1 : 0); break;
         case 2: opt.ssao = bOn; CGE_SetVariableInt(ecgevarEffectSSAO, bOn ? 1 : 0); break;

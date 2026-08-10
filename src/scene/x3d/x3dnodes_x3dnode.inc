@@ -1,6 +1,6 @@
 {%MainUnit x3dnodes.pas}
 {
-  Copyright 2002-2024 Michalis Kamburelis.
+  Copyright 2002-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -30,7 +30,15 @@
   public
     constructor Create;
     destructor Destroy; override;
+
     { Return a copy or OriginalNode.
+
+      Use this to make a deep copy of OriginalNode,
+      if you already have an instance of TX3DNodeDeepCopyState,
+      which usually means: you are implementing some @code(DeepCopy) method.
+      From the outside, you usually don't use TX3DNodeDeepCopyState directly,
+      and you can just use @link(TX3DNode.DeepCopy)
+      method, like @code(NewNode := OriginalNode.DeepCopy;).
 
       To keep sharing of nodes (DEF/USE mechanism) within the newly
       created copy, we need a list of already duplicated children.
@@ -53,6 +61,8 @@
 
   TNodeFunctionalityList = {$ifdef FPC}specialize{$endif} TObjectList<TNodeFunctionality>;
 
+  TNodeNamesMap = {$ifdef FPC}specialize{$endif} TDictionary<String, TX3DNode>;
+
   TNodeFunctionalityClass = class of TNodeFunctionality;
 
   TFindNodeOption = (fnNilOnMissing, fnOnlyActive);
@@ -65,10 +75,13 @@
     FTransformFunctionality: TTransformFunctionality;
     FTimeFunctionality: TTimeDependentFunctionality;
     FGenTexFunctionality: TGeneratedTextureFunctionality;
+    FBoundedFunctionality: TBoundedNodeFunctionality;
+    WithinDirectEnumerateAll: Boolean;
   private
     FX3DName: string;
     FBaseUrl: String;
     FVRML1Children, FVRML1Parents: TX3DNodeList;
+    FWaitsForRelease: Boolean;
     FKeepExisting: Cardinal;
     FParentFields: TX3DFieldList;
     FPrototypes: TX3DPrototypeBaseList;
@@ -76,7 +89,7 @@
     FImports, FExports: TX3DFileItemList;
     FFields, FFieldsSFNode, FFieldsMFNode: TX3DFieldList;
     FEvents: TX3DEventList;
-    FPrototypeInstance: boolean;
+    FPrototypeInstance: Boolean;
     FPrototypeInstanceSourceNode: TX3DPrototypeNode;
     FPrototypeInstanceHelpers: TX3DNode;
     FDefaultContainerField: string;
@@ -84,6 +97,7 @@
     FInterfaceDeclarations: TX3DInterfaceDeclarationList;
     FCDataField: TMFString;
     FDestructionNotifications: TNodeDestructionNotificationList;
+    FCallingDestructionNotifications: Boolean;
     FScene: TX3DEventsEngine;
     FInternalSceneShape: TObject;
 
@@ -94,7 +108,7 @@
       This is always @false outside of TX3DPrototypeNode.Instantiate
       implementation (as TX3DPrototypeNode.Instantiate sets it to @true
       and changes back to @false for appropriate nodes). }
-    NeedsInstantiateIsClause: boolean;
+    NeedsInstantiateIsClause: Boolean;
 
     function GetVRML1Child(const I: Integer): TX3DNode;
     function GetVRML1Parent(const I: Integer): TX3DNode;
@@ -110,10 +124,10 @@
     procedure NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerField: string = '');
     function TryFindNodeStateTraverse(
       ANode: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
-      ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean): Pointer;
+      ParentInfo: PTraversingInfo; var TraverseIntoChildren: Boolean): Pointer;
     function TryFindNodeTransformTraverse(
       ANode: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
-      ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean): Pointer;
+      ParentInfo: PTraversingInfo; var TraverseIntoChildren: Boolean): Pointer;
     function GetPrototypes(const Index: Integer): TX3DPrototypeBase;
     function GetRoutes(const Index: Integer): TX3DRoute;
     function GetImports(const Index: Integer): TX3DImport;
@@ -138,7 +152,7 @@
     { Make a specified warning, but only once for this node instance.
       Uses WarningDone to track if warning was already done.
       Warning will contain automatically NiceName, so X3D node name and type. }
-    procedure WarningOnce(var WarningDone: boolean; const Message: string);
+    procedure WarningOnce(var WarningDone: Boolean; const Message: string);
 
     { Does actual DeepCopy work. You can override this to copy some
       more properties for descendants. }
@@ -172,7 +186,7 @@
       Currently, this may concern TX3DUnknownNode.
 
       Default @false. }
-    VRML1ChildrenAllowed: boolean;
+    VRML1ChildrenAllowed: Boolean;
 
     { VRML 1.0 children allowed to be added during parsing.
       This is used only by *Inline nodes for now, that do not allow
@@ -184,14 +198,14 @@
       also be @false.
 
       Default @false. }
-    VRML1ChildrenParsingAllowed: boolean;
+    VRML1ChildrenParsingAllowed: Boolean;
 
     { Should SaveToStream save our VRML1Children.
       In this class default implementation returns @true,
       this is what you will want in 99% of cases.
       It's useful to set this to false if you use
       VRML1Children internally, e.g. *Inline nodes. }
-    class function VRML1ChildrenSaveToStream: boolean; virtual;
+    class function VRML1ChildrenSaveToStream: Boolean; virtual;
 
     { Enumerate all active child nodes of given node.
 
@@ -245,7 +259,7 @@
       DirectEnumerateAll, depending on value of OnlyActive param. }
     function DirectEnumerate(
       Func: TEnumerateChildrenFunction;
-      OnlyActive: boolean): Pointer;
+      OnlyActive: Boolean): Pointer;
 
     { Override these methods to determine what happens when
       given node is traversed during Traverse call.
@@ -294,7 +308,7 @@
       (Lexer should advance to the position of next "nodeBodyElement").
       Or return @false without changing Lexer position. }
     function ParseNodeBodyElement(Lexer: TX3DLexer; Reader: TX3DReaderNames;
-      const APositionInParent: Integer): boolean; virtual;
+      const APositionInParent: Integer): Boolean; virtual;
 
     { Called at the end of parsing this node (including children) in any encoding. }
     procedure ParseAfter(Reader: TX3DReaderNames); virtual;
@@ -314,10 +328,6 @@
 
       This should be set in descendants constructor. }
     property CDataField: TMFString read FCDataField write FCDataField;
-
-    { React when this node is processed as an immediate child of a grouping node,
-      within grouping node's BeforeTraverse. }
-    procedure GroupBeforeTraverse(const State: TX3DGraphTraverseState; var WasPointingDeviceSensor: Boolean); virtual;
   public
     { Node fields.
 
@@ -501,20 +511,65 @@
       Methods KeepExistingBegin and KeepExistingEnd simply increase /
       decrease KeepExisting value by 1. This is the most usual usage. }
     property KeepExisting: Cardinal read FKeepExisting write FKeepExisting;
+      {$ifdef FPC}
+      deprecated 'do not access this directly; instead use TX3DNode.WaitForRelease and NodeRelease (eventually KeepExistingBegin and KeepExistingEnd) if you want to control node lifetime';
+      {$endif FPC}
 
-    { Increase @link(KeepExisting) property by 1, preventing the node from being
-      automatically freed when the reference count changes from non-zero to zero. }
+    { Increase "fake reference count" by 1, preventing the node from being
+      automatically freed when the reference count changes from non-zero to zero.
+
+      It is discouraged to use this method.
+      In most cases, @link(TX3DNode.WaitForRelease) and @link(NodeRelease)
+      are easier to use than @link(KeepExistingBegin) + @link(KeepExistingEnd)
+      + @link(FreeIfUnusedAndNil). }
     procedure KeepExistingBegin;
 
-    { Decrease @link(KeepExisting) property by 1. This should match previous
-      @link(KeepExistingBegin) call. When @link(KeepExisting) is zero,
-      the node will be automatically freed when the reference count
-      changes from non-zero to zero.
+    { Decrease "fake reference count" by 1. This should match previous
+      @link(KeepExistingBegin) call. When nothing will refer to this node,
+      and the "fake reference count" is zero, the node will be freed.
 
-      Note that merely calling KeepExistingEnd, or changing @link(KeepExisting)
-      property, @italic(will not) free the node. Follow this with @link(FreeIfUnused)
-      or @link(FreeIfUnusedAndNil) to actually free unused node. }
+      Note that merely calling KeepExistingEnd @italic(will not) free the node.
+      Follow this with @link(FreeIfUnused)
+      or (better) @link(FreeIfUnusedAndNil) to actually free unused node.
+
+      It is discouraged to use this method.
+      In most cases, @link(TX3DNode.WaitForRelease) and @link(NodeRelease)
+      are easier to use than @link(KeepExistingBegin) + @link(KeepExistingEnd)
+      + @link(FreeIfUnusedAndNil). }
     procedure KeepExistingEnd;
+
+    { Do not free this node, even if it will become unused.
+      You must call @link(NodeRelease) to free this node.
+
+      By default, if this method was not used, every X3D node is reference-counted.
+      This means that when the node starts being referenced by some other node
+      (e.g. @link(TAbstractShapeNode.Geometry) refers to @link(TIndexedFaceSetNode) instance),
+      the reference count is increased.
+      When the node stops being referenced (e.g. @link(TAbstractShapeNode.Geometry) is set to @nil),
+      the reference count is decreased.
+      When the reference count reaches zero, the node is freed.
+
+      Calling this routine pauses this "automatic freeing" of the node.
+
+      Calling this rouine multiple times on the same node has no effect.
+      So you don't need to pair every @name call with @link(NodeRelease),
+      it's enough to call @link(NodeRelease) once, no matter how many times
+      you called @name on the same node.
+
+      The reference count is still increased and decreased,
+      but we also keep additional "fake" reference to the node,
+      so it will not be freed.
+
+      This should be always paired with @link(NodeRelease),
+      that will remove this "fake" reference and free the node
+      (if it is unused).
+
+      See the https://castle-engine.io/shaders#node_release for an example of this. }
+    procedure WaitForRelease;
+
+    { Is node unused, looking at all mechanisms (VRML 1.0 parents, X3D parents,
+      KeepExistingBegin/End, WaitsForRelease). }
+    function Unused: Boolean;
 
     { Name of this node. When saving/loading, this comes from VRML/X3D
       "DEF" construct. Empty value means that the name is not defined.
@@ -610,6 +665,22 @@
       at actual instance. }
     class function ClassX3DType: string; virtual;
 
+    { Add to ExtensionNames the extensions (things not defined
+      in the X3D specification) used by this node.
+
+      This node type may be an extension itself (then we add here
+      the node X3D type, like @code('Skin')) or it may use extension
+      fields with non-default values or extension events connected
+      by some ROUTE (then we add here strings like
+      @code('Sphere.texCoord'), i.e. node X3D type + dot + field/event
+      X3D name).
+
+      This method doesn't care about duplicates, it just adds extensions
+      of this node to ExtensionNames. The caller should take care to
+      ignore duplicates, e.g. using TStringList with
+      @code(Duplicates := dupIgnore) and @code(Sorted := true). }
+    procedure GetExtensions(const ExtensionNames: TStrings); virtual;
+
     { Traverse all the nodes of VRML graph that are active.
 
       An "active" part of the VRML graph are the nodes that actually
@@ -680,7 +751,8 @@
 
     { Like @link(Traverse), but it takes explicit starting state stack
       and starting ParentInfo. Not generally useful, use only for special
-      purposes. }
+      purposes.
+      This does pass Self to TraversingFunc (unlike TraverseIntoChildren). }
     function TraverseInternal(StateStack: TX3DGraphTraverseStateStack;
       NodeClass: TX3DNodeClass;
       TraversingFunc: TTraversingFunc;
@@ -723,12 +795,12 @@
 
       @groupBegin }
     procedure EnumerateNodes(
-      proc: TX3DNodeProc; OnlyActive: boolean); overload;
+      proc: TX3DNodeProc; OnlyActive: Boolean); overload;
     procedure EnumerateNodes(nodeClass: TX3DNodeClass;
-      proc: TX3DNodeProc; OnlyActive: boolean); overload;
+      proc: TX3DNodeProc; OnlyActive: Boolean); overload;
     procedure EnumerateNodes(nodeClass: TX3DNodeClass;
       const SeekNodeName: string;
-      proc: TX3DNodeProc; OnlyActive: boolean); overload;
+      proc: TX3DNodeProc; OnlyActive: Boolean); overload;
     { @groupEnd }
 
     { Search nodes, like enumerating nodes but allows early exit during
@@ -740,7 +812,7 @@
       the enumeration of the following nodes stops,
       and we return the callback result. }
     function SearchNodes(const Proc: TX3DNodeSearchProc;
-      const OnlyActive: boolean): Pointer;
+      const OnlyActive: Boolean): Pointer;
 
     { TryFindNodeByName and TryFindNode seek for a node with
       given class (and node name, in case of TryFindNodeByName).
@@ -753,20 +825,44 @@
       TryFindNodeByName and TryFindNode return @nil if such node
       is not found. FindNodeByName and FindNode raise exception EX3DNotFound
       in this case.
+
+      @italic(Calling this method multiple times without changing the node graph
+      is very inefficient.) Use @link(CreateNodeNamesMap) instead,
+      and use it repeatedly to find nodes by name fast.
+
+      @param(OnlyActive If @true, then only active nodes are searched.
+        For example, if you have a Switch node, only the currently active child
+        will be searched. If @false, then really all nodes are searched.)
+
       @raises(EX3DNotFound FindNodeByName and FindNode raise
         this exception when node is not found.)
       @groupBegin }
     function TryFindNodeByName(FindClass: TX3DNodeClass;
       const FindName: string;
-      OnlyActive: boolean): TX3DNode; deprecated 'use FindNode(NodeClass: TX3DNodeClass, FindName: String, Options: TFindNodeOptions = [])';
+      OnlyActive: Boolean): TX3DNode; deprecated 'use FindNode(NodeClass: TX3DNodeClass, FindName: String, Options: TFindNodeOptions = [])';
     function FindNodeByName(FindClass: TX3DNodeClass;
       const FindName: string;
-      OnlyActive: boolean): TX3DNode; deprecated 'use FindNode(NodeClass: TX3DNodeClass, FindName: String, Options: TFindNodeOptions = [])';
+      OnlyActive: Boolean): TX3DNode; deprecated 'use FindNode(NodeClass: TX3DNodeClass, FindName: String, Options: TFindNodeOptions = [])';
     function TryFindNode(FindClass: TX3DNodeClass;
-      OnlyActive: boolean): TX3DNode; deprecated 'use FindNode(NodeClass: TX3DNodeClass, FindName: String, Options: TFindNodeOptions = [])';
+      OnlyActive: Boolean): TX3DNode; deprecated 'use FindNode(NodeClass: TX3DNodeClass, FindName: String, Options: TFindNodeOptions = [])';
     function FindNode(FindClass: TX3DNodeClass;
-      OnlyActive: boolean): TX3DNode; overload; deprecated 'use FindNode(NodeClass: TX3DNodeClass, FindName: String, Options: TFindNodeOptions = [])';
+      OnlyActive: Boolean): TX3DNode; overload; deprecated 'use FindNode(NodeClass: TX3DNodeClass, FindName: String, Options: TFindNodeOptions = [])';
     { @groupEnd }
+
+    { Create a map from node names (@link(TX3DNode.X3DName)) to node instances,
+      for all nodes in the tree starting here.
+      Using this method repeatedly is much more efficient than using
+      @link(TX3DNode.FindNodeByName) or @link(TX3DNode.TryFindNodeByName).
+
+      Be careful: This map is not updated when the graph changes
+      (nodes are added/removed). If you change the graph, you need to
+      release the old map (it will have dangling pointers if you freed some nodes)
+      and create a new one.
+
+      @param(OnlyActive If @true, then only active nodes are included in the map.
+        For example, if you have a Switch node, only the currently active child
+        will be included in the map. If @false, then really all nodes are included.) }
+    function CreateNodeNamesMap(const OnlyActive: Boolean): TNodeNamesMap;
 
     { Find a node by name and class, in this node and children (recursively).
 
@@ -801,12 +897,12 @@
     function TryFindNodeState(
       NodeClass: TX3DNodeClass;
       out Node: TX3DNode;
-      out State: TX3DGraphTraverseState): boolean; deprecated 'use FindNode to look for nodes easier; or iterate over TCastleScene.Shapes.TraverseList if you really need to know nodes with their TX3DGraphTraverseState';
+      out State: TX3DGraphTraverseState): Boolean; deprecated 'use FindNode to look for nodes easier; or iterate over TCastleScene.Shapes.TraverseList if you really need to know nodes with their TX3DGraphTraverseState';
     function TryFindNodeTransform(
       NodeClass: TX3DNodeClass;
       out Node: TX3DNode;
       out Transform: TMatrix4;
-      out TransformScale: Single): boolean; deprecated 'use FindNode to look for nodes easier; or iterate over TCastleScene.Shapes.TraverseList if you really need to know nodes with their transformations';
+      out TransformScale: Single): Boolean; deprecated 'use FindNode to look for nodes easier; or iterate over TCastleScene.Shapes.TraverseList if you really need to know nodes with their transformations';
     { @groupEnd }
 
     { Seeks Self and parent nodes (from VRML1Parents and ParentFields,
@@ -829,7 +925,7 @@
 
     { Looks for a given Node in parents (and self), recursively.
       Similar to TryFindParentByName. Returns @true only if found. }
-    function HasParentNode(Node: TX3DNode): boolean;
+    function HasParentNode(Node: TX3DNode): Boolean;
 
     { Search immediate parents of this node for a node with given FindName.
       Returns @nil if not found. }
@@ -838,7 +934,7 @@
     { Looks for a given node in our children (direct and not, including self).
       If OnlyActive, then only active parts are searched
       ("active" as defined by @link(Traverse)). }
-    function IsNodePresent(Node: TX3DNode; OnlyActive: boolean): boolean;
+    function IsNodePresent(Node: TX3DNode; OnlyActive: Boolean): Boolean;
 
     { Count the occurrences of given node class in our children.
       For example, you can pass NodeClass = TAbstractLightNode to count
@@ -850,7 +946,7 @@
       This traverses both VRML 1.0 children nodes and VRML 2.0 nodes
       inside SFNode and MFNode fields. }
     function NodesCount(NodeClass: TX3DNodeClass;
-      CountOnlyActiveNodes: boolean): integer;
+      CountOnlyActiveNodes: Boolean): integer;
 
     { Save node to a stream. Saves everything, including node name,
       node type, and node contents. }
@@ -858,7 +954,7 @@
 
     { Do the nodes of (exactly) this class should be included
       in VRML 1.0 state (see TX3DGraphTraverseState.VRML1State). }
-    class function VRML1StateNode(out StateNode: TVRML1StateNode): boolean;
+    class function VRML1StateNode(out StateNode: TVRML1StateNode): Boolean;
 
     { Some nodes are present only in specific VRML/X3D version.
       This functions decides it.
@@ -898,7 +994,7 @@
           we look in parent Shape's "appearance" field. So once again
           two different Sphere classes are needed.)
       ) }
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): Boolean;
       virtual;
 
     { Enumerates all children nodes (recursively),
@@ -941,6 +1037,11 @@
     function RoutesCount: Integer;
     procedure AddRoute(const Value: TX3DRoute); overload;
     procedure AddRoute(const Source, Destination: TX3DFieldOrEvent); overload;
+
+    { Removes an X3D route (passing event between 2 nodes) from being stored
+      in this node, and thus from being used.
+      Note that TX3DRoute is "owned" by the node, and thus removing it also
+      frees it. }
     procedure RemoveRoute(const Value: TX3DRoute); overload;
     procedure RemoveRoute(const Index: Integer); overload;
 
@@ -970,23 +1071,6 @@
       Caller owns this newly created copy --- as returned by this method,
       it's not linked anywhere. }
     function DeepCopy: TX3DNode;
-
-    { Internal notes:
-
-      TODO: memory leaks are known to be possible in some difficult cases
-      with PrototypeInstanceHelpers. See e.g.
-      ../../../demo-models/prototypes/warnings/errors/proto_leak.wrl and
-      ../../../demo-models/prototypes/warnings/errors/proto_leak_2.wrl
-      for simple testcases. Reason: PrototypeInstanceHelpers may contain,
-      by DEF statements, links to Self.
-      This causes circular dependency (Self is child of some node on
-      PrototypeInstanceHelpers, but PrototypeInstanceHelpers will
-      be freed only if Self is freed) causing some memory to be left
-      always allocated.
-
-      PrototypeInstanceHelpers are actually always TX3DRootNode,
-      may be declared as such in the future if needed.
-    }
 
     { PrototypeInstance = @true indicates that this node was created
       from a non-external prototype instantiation.
@@ -1022,7 +1106,7 @@
       gory details about this.)
 
       @groupBegin }
-    property PrototypeInstance: boolean read FPrototypeInstance;
+    property PrototypeInstance: Boolean read FPrototypeInstance;
     property PrototypeInstanceSourceNode: TX3DPrototypeNode
       read FPrototypeInstanceSourceNode;
     property PrototypeInstanceHelpers: TX3DNode read FPrototypeInstanceHelpers;
@@ -1106,13 +1190,6 @@
       HasInterfaceDeclarations = @true, like Script or ComposedShader. }
     procedure AddCustomFieldOrEvent(AFieldOrEvent: TX3DFieldOrEvent);
 
-    { What happens when transformation of the node changes.
-      This is internally used by TCastleSceneCore when Transform (or similar)
-      node affecting this node changes. It's an important optimization,
-      to avoid large if clause with many "is" checks that would be quite slow.
-      @exclude }
-    function TransformationChange: TNodeTransformationChange; virtual;
-
     { Nice and concise node description for user.
       Shows node type and name. }
     function NiceName: string;
@@ -1143,7 +1220,7 @@
           This is done for speed, because it's not needed in 99% cases.
 
           However, if your scene contains some node that isn't freed
-          because of @link(KeepExistingBegin),
+          because of @link(KeepExistingBegin) or @link(WaitForRelease),
           then such node will remain attached to non-existing scene.
           You should call UnregisterScene on such node manually, for now.
         )
@@ -1176,15 +1253,28 @@
     property TimeFunctionality: TTimeDependentFunctionality read FTimeFunctionality;
     { Fast shortcut to Functionality(TGeneratedTextureFunctionality). }
     property GenTexFunctionality: TGeneratedTextureFunctionality read FGenTexFunctionality;
+    { Fast shortcut to Functionality(TBoundedNodeFunctionality). }
+    property BoundedFunctionality: TBoundedNodeFunctionality read FBoundedFunctionality;
   end;
 
+  { List of TX3DNode. }
   TX3DNodeList = class({$ifdef FPC}specialize{$endif} TObjectList<TX3DNode>)
-    { Find node by name, @nil if not found.
+  strict private
+    FAutoRemove: Boolean;
+    procedure DestructionNotification(const Node: TX3DNode);
+    procedure SetAutoRemove(const Value: Boolean);
+  protected
+    procedure Notify(
+      {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} Value: TX3DNode;
+      Action: TCollectionNotification); override;
+  public
+    { Find node by name (TX3DNode.X3DName), @nil if not found.
 
-      For empty node name, always returns @nil. This follows the definition
-      of @link(TX3DNode.X3DName):
+      If called with Name = '', always returns @nil (does not search
+      for node with MyNode.X3DName = '' condition).
+      This follows the meaning of @link(TX3DNode.X3DName):
       empty means that node has no name, so it should not be found
-      by searches by name, ever.
+      when searching by name, ever.
 
       @seealso(IndexOfName Returns the node index. This is sometimes more
         flexible (you can always quickly get actual node knowing the index,
@@ -1192,13 +1282,36 @@
         less comfortable (often you're not interested in node index).) }
     function FindName(const Name: string): TX3DNode;
 
-    { Find index of a node with given name, -1 if not found. }
+    { Find index of a node with given name (TX3DNode.X3DName), -1 if not found.
+
+      Consistently with @link(FindName), always returns -1 when Name = ''. }
     function IndexOfName(const Name: string): Integer;
 
+    { Add node only if it's not already on the list. }
     procedure AddIfNotExists(const Node: TX3DNode);
-    function Equals(SecondValue: TObject): boolean; {$ifdef TOBJECT_HAS_EQUALS} override; {$endif}
+
+    { Does the SecondValue list has equal length and instances.
+      The instances on the list are compared exactly, i.e. reference
+      must match, not only some node properties. }
+    function Equals(SecondValue: TObject): Boolean; override;
+
+    { Assign from Source. Equivalent to Clear and then AddRange(Source). }
     procedure Assign(const Source: TX3DNodeList); overload;
+
+    { Assign from Source. Equivalent to Clear and then AddRange(Source). }
     procedure Assign(const Source: array of TX3DNode); overload;
+
+    { If @true then destroyed nodes will be automatically removed from this list.
+      This allows you to safely destroy node instances during the
+      lifetime of this list, without worrying that some dangling pointers remain
+      on this list.
+
+      You can only change this property when the list is empty.
+      Otherwise we could have a weird situation when some nodes are automatically
+      removed from the list, and some are not, which seems counter-intuitive.
+
+      Internally, this is done using TX3DNode.AddDestructionNotification. }
+    property AutoRemove: Boolean read FAutoRemove write SetAutoRemove default false;
   end;
 
 {$endif read_interface}
@@ -1273,7 +1386,15 @@ begin
     instances. }
   if FDestructionNotifications <> nil then
   begin
-    FDestructionNotifications.ExecuteAll(Self);
+    { Use FCallingDestructionNotifications to robustly handle trying to
+      modify the destruction notifications while we're in the middle of
+      iterating over them. }
+    FCallingDestructionNotifications := true;
+    try
+      FDestructionNotifications.ExecuteAll(Self);
+    finally
+      FCallingDestructionNotifications := false;
+    end;
     FreeAndNil(FDestructionNotifications);
   end;
 
@@ -1334,6 +1455,11 @@ end;
 
 procedure TX3DNode.AddDestructionNotification(const Event: TNodeDestructionNotification);
 begin
+  if FCallingDestructionNotifications then
+    raise Exception.CreateFmt('Calling AddDestructionNotification on TX3DNode %s while we iterate over its destruction notifications. This is not allowed, it is too late now to add more destruction notifications.', [
+      NiceName
+    ]);
+
   { create FDestructionNotifications on demand }
   if FDestructionNotifications = nil then
     FDestructionNotifications := TNodeDestructionNotificationList.Create;
@@ -1342,19 +1468,30 @@ end;
 
 procedure TX3DNode.RemoveDestructionNotification(const Event: TNodeDestructionNotification);
 begin
+  { RemoveDestructionNotification calls can be gracefully ignored in this case.
+    It's OK, we iterate over FDestructionNotifications and will destroy
+    FDestructionNotifications when we finish. }
+  if FCallingDestructionNotifications then
+    Exit;
   if FDestructionNotifications <> nil then
     FDestructionNotifications.Remove(Event);
 end;
 
+function TX3DNode.Unused: Boolean;
+begin
+  Result :=
+    (VRML1ParentsCount = 0) and
+    (FParentFields.Count = 0) and
+    (FKeepExisting = 0) and
+    (not FWaitsForRelease);
+end;
+
 procedure TX3DNode.FreeIfUnused;
 begin
-  if (Self <> nil) and
-     (VRML1ParentsCount = 0) and
-     (FParentFields.Count = 0) and
-     (KeepExisting = 0) then
+  if (Self <> nil) and Unused then
   begin
     { For FPC <= 2.2.2:
-      This is written as "Self.Destroy" to actually do the desctruction,
+      This is written as "Self.Destroy" to actually do the destruction,
       freeing memory etc. If I would just call it "Destroy", it would
       perform what destructor does but leaving object instance unfreed.
 
@@ -1373,6 +1510,11 @@ end;
 procedure TX3DNode.KeepExistingEnd;
 begin
   Dec(FKeepExisting);
+end;
+
+procedure TX3DNode.WaitForRelease;
+begin
+  FWaitsForRelease := true;
 end;
 
 procedure TX3DNode.VRML1ChildAdd(const Index: Integer; const Child: TX3DNode);
@@ -1618,9 +1760,42 @@ begin
     Result := Func(Self, PrototypeInstanceSourceNode);
     if Result <> nil then Exit;
 
-    if PrototypeInstanceHelpers <> nil then
+    { Using WithinDirectEnumerateAll we avoid infinite recursion in some
+      edge-cases.
+
+      Testcases in tests/data/proto_reuse_first_node/ .
+      When the ProtoBody contains, as a first node, node that is also reUSEd
+      in further nodes, then we have a problem:
+
+      - Our prototype expansion
+        in TX3DPrototypeNode.Instantiate will set FPrototypeInstance,
+        FPrototypeInstanceSourceNode, FPrototypeInstanceHelpers on the first
+        node in ProtoBody.
+
+      - But in these edge-cases from tests/data/proto_reuse_first_node/,
+        this means that one of the nodes (maybe deep inside)
+        in FPrototypeInstanceHelpers will also have FPrototypeInstanceHelpers set,
+        since it reUSEs the first node. And this will cause
+        infinite recursion here.
+
+      TODO: The flag WithinDirectEnumerateAll is not a fool-proof solution.
+      If something will call
+      DirectEnumerateAll within a callback, like from EnumerateNodes callback,
+      then the WithinDirectEnumerateAll will prevent from visiting it at all.
+      But all "more involved" solutions seem to complicate code a lot,
+      just to address this one simple case:
+
+      - Not have the PrototypeInstanceHelpers? And define some special way
+        to get "prototype used to create this node" that isn't part of
+        TX3DNode information?
+    }
+    if (PrototypeInstanceHelpers <> nil) and
+       (not WithinDirectEnumerateAll) then
     begin
-      Result := Func(Self, PrototypeInstanceHelpers);
+      WithinDirectEnumerateAll := true;
+      try
+        Result := Func(Self, PrototypeInstanceHelpers);
+      finally WithinDirectEnumerateAll := false end;
       if Result <> nil then Exit;
     end;
   end;
@@ -1628,7 +1803,7 @@ end;
 
 function TX3DNode.DirectEnumerate(
   Func: TEnumerateChildrenFunction;
-  OnlyActive: boolean): Pointer;
+  OnlyActive: Boolean): Pointer;
 begin
   if OnlyActive then
     Result := DirectEnumerateActive(Func) else
@@ -1680,7 +1855,7 @@ type
     Node, Child: TX3DNode): Pointer;
   var
     StateNode: TVRML1StateNode;
-    IsTraverseIntoChildren: boolean;
+    IsTraverseIntoChildren: Boolean;
   begin
     Result := nil;
 
@@ -1775,7 +1950,14 @@ begin
  result := '';
 end;
 
-function BlenderRelativePath(const RelativePath: string): boolean;
+procedure TX3DNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  { Nothing to do in TX3DNode.
+    Descendants that define extensions override this
+    (all overrides are auto-generated by x3d-nodes-to-pascal now). }
+end;
+
+function BlenderRelativePath(const RelativePath: string): Boolean;
 begin
   Result := IsPrefix('//', RelativePath, false);
 end;
@@ -1794,7 +1976,7 @@ end;
 
 procedure TX3DNode.Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames);
 var
-  Handled: boolean;
+  Handled: Boolean;
   Position: Integer;
   ChildNode: TX3DNode;
   SavedParentNode: TX3DNode;
@@ -1845,7 +2027,7 @@ begin
 end;
 
 function TX3DNode.ParseNodeBodyElement(Lexer: TX3DLexer; Reader: TX3DReaderNames;
-  const APositionInParent: Integer): boolean;
+  const APositionInParent: Integer): Boolean;
 
   procedure ParseExtensibilityFields;
 
@@ -2176,27 +2358,8 @@ var
               if Fields[FieldIndex] is TSFNode then
               begin
                 SF := Fields[FieldIndex] as TSFNode;
-
                 if SF.Value <> nil then
                   WritelnWarning('X3D', 'X3D XML: More than one value specified for SFNode field ' + SF.NiceName);
-
-                { Although field doesn't have a set position in XML X3D
-                  encoding, when saving later in classic encoding we
-                  need some order of fields. This is yet another problem
-                  with non-unique names, something defined in XML X3D
-                  may be not possible to save in other encoding:
-
-                  <Group>
-                    <Shape> ... <Appearance DEF="XXX" ....> </Shape>
-                    <ROUTE ... using "XXX" name ...>
-                    <Shape> ... <Appearance DEF="XXX" ....> </Shape>
-                    <ROUTE ... using "XXX" name ...>
-                  </Group>
-
-                  This is uneasy to save in classic encoding, since
-                  you cannot insert ROUTE in the middle of "children"
-                  field of Group node in classic encoding.
-                }
                 Fields[FieldIndex].PositionInParent := Position;
                 SF.Value := Child;
                 SF.WarningIfChildNotAllowed(Child);
@@ -2204,7 +2367,48 @@ var
               if Fields[FieldIndex] is TMFNode then
               begin
                 MF := Fields[FieldIndex] as TMFNode;
-                Fields[FieldIndex].PositionInParent := Position;
+
+                { 1. Why Fields[FieldIndex].PositionInParent := Position?
+
+                    We need to set Fields[FieldIndex].PositionInParent,
+                    to later output child nodes (SFNode, MFNode) in correct
+                    order among other stuff in nodes (like ROUTEs
+                    that may rely that some node is already defined).
+
+                    Note that in X3D XML encoding, "fields" don't really have a position.
+                    But we need to assume node position = field position,
+                    to have something useful when saving later in classic encoding.
+
+                  2. Why special check for "if Fields[FieldIndex].PositionInParent  <> -1 then"
+                    used only for TMFNode case?
+
+                    MFNode in X3D XML is especially problematic here,
+                    as children nodes may be mixed with other content,
+                    see tests/data/x3d_xml_routes_nodes_mixed.x3d .
+                    Only *first* (not *last*) child should determine Position,
+                    to later output the MFNode *earlier* than other stuff
+                    (like ROUTEs that may depend on ot).
+
+                  3. Note that duplicate names create edge-cases that are
+                    impossible to convert between encodings.
+                    With non-unique names, something defined in XML X3D
+                    may be not possible to save in classic encoding:
+
+                    <Group>
+                      <Shape> ... <Appearance DEF="XXX" ....> </Shape>
+                      <ROUTE ... using "XXX" name ...>
+                      <Shape> ... <Appearance DEF="XXX" ....> </Shape>
+                      <ROUTE ... using "XXX" name ...>
+                    </Group>
+
+                    This is impossible to save in classic encoding, since
+                    you cannot insert ROUTE in the middle of "children"
+                    field of Group node in classic encoding.
+                }
+
+                if Fields[FieldIndex].PositionInParent  <> -1 then
+                  Fields[FieldIndex].PositionInParent := Position;
+
                 MF.Add(Child);
                 MF.WarningIfChildNotAllowed(Child);
               end else
@@ -2226,7 +2430,7 @@ var
   procedure ParseXMLCdata;
   var
     I: TXMLCDataIterator;
-    CDataExists: boolean;
+    CDataExists: Boolean;
     CData: string;
   begin
     CDataExists := false;
@@ -2283,7 +2487,7 @@ end;
 type
   TEnumerateNodes0Enumerator = class
     Proc: TX3DNodeProc;
-    OnlyActive: boolean;
+    OnlyActive: Boolean;
     function EnumerateChildrenFunction(Node, Child: TX3DNode): Pointer;
   end;
 
@@ -2296,7 +2500,7 @@ type
   end;
 
 procedure TX3DNode.EnumerateNodes(
-  Proc: TX3DNodeProc; OnlyActive: boolean);
+  Proc: TX3DNodeProc; OnlyActive: Boolean);
 var
   Enumerator: TEnumerateNodes0Enumerator;
 begin
@@ -2312,7 +2516,7 @@ type
   TEnumerateNodes1Enumerator = class
     NodeClass: TX3DNodeClass;
     Proc: TX3DNodeProc;
-    OnlyActive: boolean;
+    OnlyActive: Boolean;
     function EnumerateChildrenFunction(Node, Child: TX3DNode): Pointer;
   end;
 
@@ -2325,7 +2529,7 @@ type
   end;
 
 procedure TX3DNode.EnumerateNodes(nodeClass: TX3DNodeClass;
-  Proc: TX3DNodeProc; OnlyActive: boolean);
+  Proc: TX3DNodeProc; OnlyActive: Boolean);
 var
   Enumerator: TEnumerateNodes1Enumerator;
 begin
@@ -2343,7 +2547,7 @@ type
     NodeClass: TX3DNodeClass;
     SeekNodeName: string;
     Proc: TX3DNodeProc;
-    OnlyActive: boolean;
+    OnlyActive: Boolean;
     function EnumerateChildrenFunction(Node, Child: TX3DNode): Pointer;
   end;
 
@@ -2359,7 +2563,7 @@ type
 
 procedure TX3DNode.EnumerateNodes(NodeClass: TX3DNodeClass;
   const SeekNodeName: string;
-  Proc: TX3DNodeProc; OnlyActive: boolean);
+  Proc: TX3DNodeProc; OnlyActive: Boolean);
 var
   Enumerator: TEnumerateNodes2Enumerator;
 begin
@@ -2376,7 +2580,7 @@ end;
 type
   TSearchNodes0Helper = class
     Proc: TX3DNodeSearchProc;
-    OnlyActive: boolean;
+    OnlyActive: Boolean;
     function Callback(Node, Child: TX3DNode): Pointer;
   end;
 
@@ -2390,7 +2594,7 @@ type
   end;
 
 function TX3DNode.SearchNodes(
-  const Proc: TX3DNodeSearchProc; const OnlyActive: boolean): Pointer;
+  const Proc: TX3DNodeSearchProc; const OnlyActive: Boolean): Pointer;
 var
   Helper: TSearchNodes0Helper;
 begin
@@ -2415,7 +2619,7 @@ type
       Result := nil;
   end;
 
-function TX3DNode.TryFindNode(FindClass: TX3DNodeClass; OnlyActive: boolean): TX3DNode;
+function TX3DNode.TryFindNode(FindClass: TX3DNodeClass; OnlyActive: Boolean): TX3DNode;
 var
   Helper: TFindNodeHelper;
 begin
@@ -2426,7 +2630,7 @@ begin
   finally FreeAndNil(Helper) end;
 end;
 
-function TX3DNode.FindNode(FindClass: TX3DNodeClass; OnlyActive: boolean): TX3DNode;
+function TX3DNode.FindNode(FindClass: TX3DNodeClass; OnlyActive: Boolean): TX3DNode;
 begin
   {$warnings off} // usind deprecated in deprecated
   result := TryFindNode(FindClass, OnlyActive);
@@ -2450,7 +2654,7 @@ type
   end;
 
 function TX3DNode.TryFindNodeByName(
-  FindClass: TX3DNodeClass; const FindName: string; OnlyActive: boolean): TX3DNode;
+  FindClass: TX3DNodeClass; const FindName: string; OnlyActive: Boolean): TX3DNode;
 var
   Helper: TFindNodeByNameHelper;
 begin
@@ -2464,7 +2668,7 @@ end;
 
 function TX3DNode.FindNodeByName(
   FindClass: TX3DNodeClass; const FindName: string;
-  OnlyActive: boolean): TX3DNode;
+  OnlyActive: Boolean): TX3DNode;
 begin
   {$warnings off} // usind deprecated in deprecated
   Result := TryFindNodeByName(FindClass, FindName, OnlyActive);
@@ -2511,6 +2715,30 @@ end;
 
 {$endif}
 
+type
+  TCreateNodeNamesMapHelper = class
+    Map: TNodeNamesMap;
+    procedure EnumerateCallback(Node: TX3DNode);
+  end;
+
+procedure TCreateNodeNamesMapHelper.EnumerateCallback(Node: TX3DNode);
+begin
+  if Node.X3DName <> '' then
+    Map.AddOrSetValue(Node.X3DName, Node);
+end;
+
+function TX3DNode.CreateNodeNamesMap(const OnlyActive: Boolean): TNodeNamesMap;
+var
+  Helper: TCreateNodeNamesMapHelper;
+begin
+  Result := TNodeNamesMap.Create;
+  Helper := TCreateNodeNamesMapHelper.Create;
+  try
+    Helper.Map := Result;
+    EnumerateNodes({$ifdef FPC}@{$endif} Helper.EnumerateCallback, OnlyActive);
+  finally FreeAndNil(Helper) end;
+end;
+
 { TX3DNode.TryFindNodeState/Transform ----------------------------------------- }
 
 type
@@ -2521,7 +2749,7 @@ type
 
 function TX3DNode.TryFindNodeStateTraverse(
   ANode: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
-  ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean): Pointer;
+  ParentInfo: PTraversingInfo; var TraverseIntoChildren: Boolean): Pointer;
 var
   Res: TTryFindNodeStateResult;
 begin
@@ -2533,7 +2761,7 @@ end;
 
 function TX3DNode.TryFindNodeState(
   NodeClass: TX3DNodeClass;
-  out Node: TX3DNode; out State: TX3DGraphTraverseState): boolean;
+  out Node: TX3DNode; out State: TX3DGraphTraverseState): Boolean;
 var
   Res: TTryFindNodeStateResult;
 begin
@@ -2555,7 +2783,7 @@ type
 
 function TX3DNode.TryFindNodeTransformTraverse(
   ANode: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
-  ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean): Pointer;
+  ParentInfo: PTraversingInfo; var TraverseIntoChildren: Boolean): Pointer;
 var
   Res: TTryFindNodeTransformResult;
 begin
@@ -2570,7 +2798,7 @@ function TX3DNode.TryFindNodeTransform(
   NodeClass: TX3DNodeClass;
   out Node: TX3DNode;
   out Transform: TMatrix4;
-  out TransformScale: Single): boolean;
+  out TransformScale: Single): Boolean;
 var
   Res: TTryFindNodeTransformResult;
 begin
@@ -2634,7 +2862,7 @@ begin
   Result := nil;
 end;
 
-function TX3DNode.HasParentNode(Node: TX3DNode): boolean;
+function TX3DNode.HasParentNode(Node: TX3DNode): Boolean;
 var
   I: Integer;
 begin
@@ -2664,7 +2892,7 @@ type
       Result := nil;
   end;
 
-function TX3DNode.IsNodePresent(Node: TX3DNode; OnlyActive: boolean): boolean;
+function TX3DNode.IsNodePresent(Node: TX3DNode; OnlyActive: Boolean): Boolean;
 var
   Helper: TIsNodePresentHelper;
 begin
@@ -2685,7 +2913,7 @@ type
   begin Inc(Counter) end;
 
 function TX3DNode.NodesCount(NodeClass: TX3DNodeClass;
-  CountOnlyActiveNodes: boolean): integer;
+  CountOnlyActiveNodes: Boolean): integer;
 var
   C: TNodesCountHelper;
 begin
@@ -2861,11 +3089,11 @@ procedure TX3DNode.NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerFi
   procedure Xml;
   var
     FileItems: TX3DFileItemList;
-    HasContent: boolean;
+    HasContent: Boolean;
     I: Integer;
     WriteContainerField: string;
     ElementName: string;
-    ProtoInstance: boolean;
+    ProtoInstance: Boolean;
     NodeFields, ProtoFields: TCastleStringList;
     SavedParentNode: TX3DNode;
   begin
@@ -3027,7 +3255,7 @@ begin
 end;
 
 {$warnings off} // using deprecated to keep supporting VRML 1
-class function TX3DNode.VRML1StateNode(out StateNode: TVRML1StateNode): boolean;
+class function TX3DNode.VRML1StateNode(out StateNode: TVRML1StateNode): Boolean;
 var
   SN: TVRML1StateNode;
 begin
@@ -3044,7 +3272,7 @@ begin
 end;
 {$warnings on}
 
-class function TX3DNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
+class function TX3DNode.ForVRMLVersion(const Version: TX3DVersion): Boolean;
 begin
   Result := true;
 end;
@@ -3064,7 +3292,7 @@ begin
   FParentFields.Add(Field);
 end;
 
-class function TX3DNode.VRML1ChildrenSaveToStream: boolean;
+class function TX3DNode.VRML1ChildrenSaveToStream: Boolean;
 begin
   Result := true;
 end;
@@ -3154,7 +3382,7 @@ end;
   type
     TRemoveChildrenWithMatchingNameHelper = class
       Wildcard: string;
-      IgnoreCase: boolean;
+      IgnoreCase: Boolean;
       procedure DoIt(ParentNode: TX3DNode; var Node: TX3DNode);
     end;
 
@@ -3307,15 +3535,11 @@ begin
       end;
     end;
 
-    { TODO: No need to copy prototypes for now?
-
-      This DeepCopy is used for now by protos expanding.
-      It does not need prototype links (as protos are already expanded when copying,
-      and they don't need anything more).
-
-      for I := 0 to Prototypes.Count - 1 do
-        ...(Prototypes[I]);
-    }
+    if FPrototypes <> nil then
+    begin
+      for I := 0 to FPrototypes.Count - 1 do
+        Result.AddPrototype(FPrototypes[I].DeepCopy(CopyState));
+    end;
 
     Assert(FieldsCount = Result.FieldsCount);
     Assert(EventsCount = Result.EventsCount);
@@ -3393,11 +3617,6 @@ end;
 procedure TX3DNode.AddCustomField(AField: TX3DField);
 begin
   AddCustomFieldOrEvent(AField);
-end;
-
-function TX3DNode.TransformationChange: TNodeTransformationChange;
-begin
-  Result := ntcNone;
 end;
 
 function TX3DNode.NiceName: string;
@@ -3521,10 +3740,14 @@ begin
 end;
 
 procedure TX3DNode.RemoveRoute(const Value: TX3DRoute);
+var
+  I: Integer;
 begin
   Assert(FRoutes <> nil);
-
-  RemoveRoute(FRoutes.IndexOf(Value));
+  I := FRoutes.IndexOf(Value);
+  if I = -1 then
+    raise ERangeError.Create('Route to remove not found in Routes list');
+  RemoveRoute(I);
 end;
 
 procedure TX3DNode.RemoveRoute(const Index: Integer);
@@ -3624,12 +3847,14 @@ procedure TX3DNode.AddFunctionality(const F: TNodeFunctionality);
     FTransformFunctionality := Functionality(TTransformFunctionality) as TTransformFunctionality;
     FTimeFunctionality := Functionality(TTimeDependentFunctionality) as TTimeDependentFunctionality;
     FGenTexFunctionality := Functionality(TGeneratedTextureFunctionality) as TGeneratedTextureFunctionality;
+    FBoundedFunctionality := Functionality(TBoundedNodeFunctionality) as TBoundedNodeFunctionality;
   end;
 
 begin
   Assert(not ( (F is TTransformFunctionality) and (FTransformFunctionality <> nil) ), 'Do not add 2 functionalities implementing TTransformFunctionality');
   Assert(not ( (F is TTimeDependentFunctionality) and (FTimeFunctionality <> nil) ), 'Do not add 2 functionalities implementing TTimeDependentFunctionality');
   Assert(not ( (F is TGeneratedTextureFunctionality) and (FGenTexFunctionality <> nil) ), 'Do not add 2 functionalities implementing TGeneratedTextureFunctionality');
+  Assert(not ( (F is TBoundedNodeFunctionality) and (FBoundedFunctionality <> nil) ), 'Do not add 2 functionalities implementing TBoundedNodeFunctionality');
 
   if FFunctionalityList = nil then
     FFunctionalityList := TNodeFunctionalityList.Create(true);
@@ -3654,17 +3879,13 @@ begin
     end;
 end;
 
-procedure TX3DNode.GroupBeforeTraverse(const State: TX3DGraphTraverseState; var WasPointingDeviceSensor: Boolean);
-begin
-end;
-
 procedure TX3DNode.MoveShapeAssociations(const Sender: TSFNode; const NewNode: TX3DNode);
 begin
   if Scene <> nil then
     Scene.InternalMoveShapeAssociations(Sender.Value, NewNode, InternalSceneShape);
 end;
 
-procedure TX3DNode.WarningOnce(var WarningDone: boolean; const Message: string);
+procedure TX3DNode.WarningOnce(var WarningDone: Boolean; const Message: string);
 begin
   if not WarningDone then
   begin
@@ -3714,7 +3935,7 @@ begin
     Add(Node);
 end;
 
-function TX3DNodeList.Equals(SecondValue: TObject): boolean;
+function TX3DNodeList.Equals(SecondValue: TObject): Boolean;
 var
   I: Integer;
 begin
@@ -3739,6 +3960,82 @@ procedure TX3DNodeList.Assign(const Source: array of TX3DNode);
 begin
   Clear;
   AddRange(Source);
+end;
+
+procedure TX3DNodeList.SetAutoRemove(const Value: Boolean);
+begin
+  if FAutoRemove <> Value then
+  begin
+    if Count <> 0 then
+      raise Exception.Create('Cannot change TX3DNodeList.AutoRemove when list is not empty');
+    FAutoRemove := Value;
+  end;
+end;
+
+procedure TX3DNodeList.Notify(
+  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} Value: TX3DNode;
+  Action: TCollectionNotification);
+begin
+  if FAutoRemove then
+    case Action of
+      cnAdded: Value.AddDestructionNotification(
+        {$ifdef FPC}@{$endif} DestructionNotification);
+      { Note that this may call RemoveDestructionNotification on node being
+        destroyed right now, while in the middle of node's FDestructionNotifications
+        iteration. But that's OK, FCallingDestructionNotifications will handle
+        it OK. }
+      cnExtracted, cnRemoved: Value.RemoveDestructionNotification(
+        {$ifdef FPC}@{$endif} DestructionNotification);
+      { FPC 3.3.1 introduced new notifications cnDeleting, cnExtracting
+        which we ignore for now. }
+      else ;
+    end;
+
+  { Do above actions before calling inherited, as inherited
+    may free the Value if cnDeleted and OwnsObjects. }
+  inherited;
+end;
+
+procedure TX3DNodeList.DestructionNotification(const Node: TX3DNode);
+
+  { Extract (remove from the list, but never free) given item index.
+    This is similar TObjectList.Extract, except it takes an index. }
+  function Extract(const Index: Integer): TX3DNode;
+  var
+    OldOwnsObjects: Boolean;
+  begin
+    OldOwnsObjects := OwnsObjects;
+    { In case of generic TObjectList, both FPC and Delphi allow
+      to change OwnsObjects at runtime. }
+    OwnsObjects := false;
+    Result := Items[Index];
+    Delete(Index);
+    OwnsObjects := OldOwnsObjects;
+  end;
+
+  { Extract from list (remove without freeing, regardless of OwnsObjects)
+    all occurrences of Item. }
+  procedure ExtractAll(const Item: TObject);
+  var
+    I: Integer;
+  begin
+    I := 0;
+    while I < Count do
+    begin
+      if Items[I] = Item then
+      begin
+        Extract(I);
+      end else
+        Inc(I);
+    end;
+  end;
+
+begin
+  { We use ExtractAll, not something like Removeall,
+    so that removing the nodes from list,
+    while in the middle of their destructor, does not call their destructor again. }
+
+  ExtractAll(Node);
 end;
 
 {$endif read_implementation}

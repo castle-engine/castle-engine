@@ -7,10 +7,18 @@
 
 program fpmake;
 
-// FPC defines iOS as a separate OS since FPC 3.2.2.
+{ Define HAS_SEPARATE_IOS if iOS is a separate OS .
+  FPC versions before 3.2.2 set OS = Darwin for both macOS and iOS
+  (and CPU was the only way to distinguish between them;
+  this made sense, when macOS was only for x86_64, and iOS only for Arm/Aarch64).}
 {$define HAS_SEPARATE_IOS}
 {$ifdef VER3_0} {$undef HAS_SEPARATE_IOS} {$endif}
 {$ifdef VER3_2_0} {$undef HAS_SEPARATE_IOS} {$endif}
+
+{ Define HAS_WASI if OS = WasiP1 is supported. }
+{$define HAS_WASI}
+{$ifdef VER3_0} {$undef HAS_WASI} {$endif}
+{$ifdef VER3_2} {$undef HAS_WASI} {$endif}
 
 uses
   { It seems that FPC > 3.0.x requires thread support for FpMkUnit. }
@@ -19,8 +27,9 @@ uses
 
 var
   P: TPackage;
-  LikeIOS: boolean; //< compiling for iOS target (physical or simulator)
-  Xlib: boolean; //< OS has working Xlib packages
+  LikeIOS: Boolean; //< compiling for iOS target (physical or simulator)
+  Xlib: Boolean; //< OS has working Xlib packages
+  TargetWeb: Boolean;
 begin
   with Installer do
   begin
@@ -43,6 +52,8 @@ begin
       ((Defaults.OS = Darwin) and (Defaults.CPU in [Arm {$ifndef VER3_0} , AArch64 {$endif}]))
       {$endif};
     Xlib := Defaults.OS in (AllUnixOSes - [Android]);
+
+    TargetWeb := {$ifdef HAS_WASI} Defaults.OS = WasiP1 {$else} false {$endif};
 
     { Do "export CASTLE_PACKAGE_NO_DEPENDENCIES=true"
       if you have broken FPC installation without proper Package.fpc files.
@@ -227,6 +238,8 @@ begin
     P.Targets.AddUnit('castlesoundbase.pas');
     P.Targets.AddUnit('castleinternalabstractsoundbackend.pas');
     P.Targets.AddUnit('castleinternalsoxsoundbackend.pas');
+    if TargetWeb then
+      P.Targets.AddUnit('castleinternalwebaudiobackend.pas');
 
     P.SourcePath.Add('src/audio/fmod');
     P.Targets.AddUnit('castleinternalfmod.pas');
@@ -304,6 +317,11 @@ begin
     P.Targets.AddUnit('castlevectors.pas');
     P.Targets.AddUnit('castlevectorsinternaldouble.pas');
     P.Targets.AddUnit('castlevectorsinternalsingle.pas');
+    if TargetWeb then
+    begin
+      P.SourcePath.Add('src/base/wasi/');
+      P.Targets.AddUnit('castleinternalwebutils.pas');
+    end;
 
     P.SourcePath.Add('src/base_rendering');
     P.Targets.AddUnit('castlegles.pas');
@@ -321,6 +339,12 @@ begin
       P.Targets.AddUnit('castleinternalcontextglx.pas');
     if Defaults.OS in AllWindowsOSes then
       P.Targets.AddUnit('castleinternalcontextwgl.pas');
+    if TargetWeb then
+    begin
+      P.SourcePath.Add('src/base_rendering/web/');
+      P.Targets.AddUnit('castleinternaljobweb.pas');
+      P.Targets.AddUnit('castleinternalwebgl.pas');
+    end;
 
     P.SourcePath.Add('src/base_rendering/dglopengl');
     P.Targets.AddUnit('castlegl.pas');
@@ -396,19 +420,27 @@ begin
     P.Targets.AddUnit('castlefilefilters.pas');
     P.Targets.AddUnit('castlefilesutils.pas');
     P.Targets.AddUnit('castlefindfiles.pas');
+    P.Targets.AddUnit('castlehttps.pas');
     P.Targets.AddUnit('castleinternaldirectoryinformation.pas');
     P.Targets.AddUnit('castleinternalfilemonitor.pas');
+    P.Targets.AddUnit('castleinternalprocess.pas');
     P.Targets.AddUnit('castleinternalurlutils.pas');
-    P.Targets.AddUnit('castleinternaltools.pas');
     P.Targets.AddUnit('castlelocalizationgettext.pas');
     P.Targets.AddUnit('castlerecentfiles.pas');
     P.Targets.AddUnit('castleuriutils.pas');
     P.Targets.AddUnit('castlexmlcfginternal.pas');
     P.Targets.AddUnit('castlexmlconfig.pas');
     P.Targets.AddUnit('castlexmlutils.pas');
+    P.Targets.AddUnit('castlezip.pas');
+
+    P.SourcePath.Add('src/files/tools');
+    P.Targets.AddUnit('castleinternaltools.pas');
+    P.Targets.AddUnit('castleinternalprojectlocalsettings.pas');
+    P.Targets.AddUnit('castleinternalarchitectures.pas');
 
     P.SourcePath.Add('src/physics/kraft');
     P.Targets.AddUnit('kraft.pas');
+    P.Targets.AddUnit('castleinternalkraftoverrides.pas');
 
     P.SourcePath.Add('src/ui');
     P.Targets.AddUnit('castlecontrols.pas');
@@ -418,20 +450,20 @@ begin
     P.Targets.AddUnit('castleinternalcameragestures.pas');
     P.Targets.AddUnit('castleinternalcontrolsimages.pas');
     P.Targets.AddUnit('castleinternalinspector.pas');
-    P.Targets.AddUnit('castleinternaljoysticksexplicit.pas');
+    P.Targets.AddUnit('castleinternalgamecontrollersexplicit.pas');
     P.Targets.AddUnit('castleinternalpk3dconnexion.pas');
     P.Targets.AddUnit('castleinternalsettings.pas');
-    P.Targets.AddUnit('castlejoysticks.pas');
+    P.Targets.AddUnit('castlegamecontrollers.pas');
     P.Targets.AddUnit('castlekeysmouse.pas');
     P.Targets.AddUnit('castlenotifications.pas');
     P.Targets.AddUnit('castleuicontrols.pas');
     if Defaults.OS = Linux then
     begin
-      P.Targets.AddUnit('castleinternaljoystickslinux.pas');
+      P.Targets.AddUnit('castleinternalgamecontrollerslinux.pas');
     end;
     if Defaults.OS in AllWindowsOSes then
     begin
-      P.Targets.AddUnit('castleinternaljoystickswindows.pas');
+      P.Targets.AddUnit('castleinternalgamecontrollerswindows.pas');
       P.SourcePath.Add('src/ui/windows');
       P.Targets.AddUnit('castleinternaltdxinput_tlb.pas');
     end;
@@ -445,6 +477,24 @@ begin
     begin
       P.SourcePath.Add('src/window/unix');
       P.Targets.AddUnit('castleinternalxlib.pas');
+
+      P.SourcePath.Add('src/window/gtk/');
+      P.Targets.AddUnit('castleinternalgdkwayland.pas');
+
+      P.SourcePath.Add('src/window/gtk/gtk3/gtk3bindings/');
+      P.Targets.AddUnit('castleinternalatk1.pas');
+      P.Targets.AddUnit('castleinternalcairo1.pas');
+      P.Targets.AddUnit('castleinternalfreetype2_2.pas');
+      P.Targets.AddUnit('castleinternalgdk3.pas');
+      P.Targets.AddUnit('castleinternalgdkpixbuf2.pas');
+      P.Targets.AddUnit('castleinternalgio2.pas');
+      P.Targets.AddUnit('castleinternalglib2.pas');
+      P.Targets.AddUnit('castleinternalgmodule2.pas');
+      P.Targets.AddUnit('castleinternalgobject2.pas');
+      P.Targets.AddUnit('castleinternalgtk3.pas');
+      P.Targets.AddUnit('castleinternalharfbuzz0.pas');
+      P.Targets.AddUnit('castleinternalpango1.pas');
+      P.Targets.AddUnit('castleinternalxlib2.pas');
     end;
 
     P.SourcePath.Add('src/window/deprecated_units');
@@ -462,6 +512,7 @@ begin
     P.Targets.AddUnit('castleinternalnodeinterpolator.pas');
     P.Targets.AddUnit('castleinternalnoise.pas');
     P.Targets.AddUnit('castleinternalnormals.pas');
+    P.Targets.AddUnit('castleinternalprimitivematerial.pas');
     P.Targets.AddUnit('castleinternalrenderer.pas');
     P.Targets.AddUnit('castleinternalshadowmaps.pas');
     P.Targets.AddUnit('castleinternalshapesrenderer.pas');
@@ -510,6 +561,7 @@ begin
     P.Targets.AddUnit('x3dloadinternalimage.pas');
     P.Targets.AddUnit('x3dloadinternalobj.pas');
     P.Targets.AddUnit('x3dloadinternalstl.pas');
+    P.Targets.AddUnit('x3dloadinternalply.pas');
     P.Targets.AddUnit('x3dloadinternaltiledmap.pas');
     P.Targets.AddUnit('x3dloadinternalutils.pas');
 
@@ -520,7 +572,7 @@ begin
     P.Targets.AddUnit('x3dloadinternalmd3.pas');
 
     P.SourcePath.Add('src/scene/load/ifc');
-    P.Targets.AddUnit('castleinternalloadsaveifc.pas');
+    P.Targets.AddUnit('castleifc.pas');
 
     P.SourcePath.Add('src/scene/load/collada');
     P.Targets.AddUnit('x3dloadinternalcollada.pas');

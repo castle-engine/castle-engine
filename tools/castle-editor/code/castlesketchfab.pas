@@ -24,7 +24,7 @@ uses
   {$ifdef UNIX} CThreads, {$endif}
   SysUtils, Classes, Generics.Collections, FpJson, JsonParser, Zipper,
   { Enable https downloads. }
-  {$ifdef FPC} OpenSslSockets, {$endif}
+  CastleHttps,
   { CGE units }
   CastleFilesUtils, CastleDownload, CastleStringUtils, CastleUriUtils, CastleLog,
   CastleUtils, CastleClassUtils, CastleApplicationProperties, CastleImages;
@@ -242,7 +242,7 @@ begin
     SearchUrl := 'https://api.sketchfab.com/v3/search?type=models&downloadable=true';
     if AnimatedOnly then
       SearchUrl += '&animated=true';
-    SearchUrl += '&q=' + InternalUriEscape(Query);
+    SearchUrl += '&q=' + UrlEncode(Query);
     Download.Url := SearchUrl;
 
     Download.Start;

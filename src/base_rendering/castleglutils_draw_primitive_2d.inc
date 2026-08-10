@@ -304,7 +304,7 @@ type
     UniformViewportSize, UniformColor: TGLSLUniform;
     AttribVertex: TGLSLAttribute;
 
-    Vbo: TGLuint;
+    Vbo: TGLBuffer;
     Vao: TVertexArrayObject;
     PointPtr: Pointer;
     PointPtrAllocated: Integer;
@@ -313,7 +313,7 @@ type
 
 destructor TPrimitive2DResources.Destroy;
 begin
-  glFreeBuffer(Vbo);
+  FreeBuffer(Vbo);
   FreeAndNil(Vao);
   FreeAndNil(Prog);
   FreeMem(PointPtr); // not tied to OpenGL, but freed together anyway
@@ -379,10 +379,10 @@ begin
       Primitive2DRes.AttribVertex := Primitive2DRes.Prog.Attribute('vertex');
     end;
 
-    if Primitive2DRes.Vbo = 0 then
+    if Primitive2DRes.Vbo = GLObjectNone then
     begin
       Assert(GLFeatures.VertexBufferObject);
-      glGenBuffers(1, @Primitive2DRes.Vbo);
+      Primitive2DRes.Vbo := glCreateBuffer();
     end;
 
     if Primitive2DRes.Vao = nil then
@@ -467,7 +467,7 @@ begin
       to disable them separately }
     Primitive2DRes.AttribVertex.DisableArray;
 
-    RenderContext.BindBuffer[btArray] := 0;
+    RenderContext.BindBuffer[btArray] := GLObjectNone;
   end else
   begin
     {$ifndef OpenGLES}

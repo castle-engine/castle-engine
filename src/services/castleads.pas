@@ -75,10 +75,10 @@ type
         @link(ShowFullScreenAd), @link(ShowBanner), @link(HideBanner).)
 
       @item(To include the necessary integration code in your Android project,
-        declare your Android project type as "integrated" with
-        the appropriate services (admob, chartboost, startapp...)
+        add the appropriate services (admob, chartboost, startapp...)
         inside CastleEngineManifest.xml .
-        See https://castle-engine.io/android-Project-Services-Integrated-with-Castle-Game-Engine .)
+        See https://castle-engine.io/android_services .
+      )
     )
   }
   TAds = class(TComponent)

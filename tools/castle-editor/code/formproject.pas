@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2024 Michalis Kamburelis.
+  Copyright 2018-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -18,7 +18,7 @@ unit FormProject;
 
 {$I castleconf.inc}
 
-{ Hack to use OpenDocument instead of RunCommandNoWait to execute Delphi.
+{ Hack to use OpenDocument instead of ExecuteCommandNoWait to execute Delphi.
   This assumes that Delphi is associated on your system with Pascal files.
   OTOH it will work a bit nicer, not opening new Delphi instance each time,
   as Windows underneath will use DDE to communicate with Delphi BDSLauncher. }
@@ -34,7 +34,7 @@ uses
   CastlePropEdits, CastleDialogs, X3DNodes, CastleFindFiles,
   DataModuleIcons, CastleClassUtils,
   EditorUtils, FrameDesign, FrameViewFile, FormNewUnit, ToolManifest,
-  ToolPackageFormat;
+  ToolPackageFormat, ToolEditorUtils;
 
 const
   DockLayoutFileName = 'layout.dock-layout';
@@ -43,6 +43,11 @@ const
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ActionMaximizePreview: TAction;
+    ActionComponentDuplicateLinked: TAction;
+    ActionUnInstall: TAction;
+    ActionDevices: TAction;
+    ActionSavePlatformAsDefault: TAction;
     ActionExportToModel: TAction;
     ActionCopyUrl: TAction;
     ActionRunParameterPretendTouchDevice: TAction;
@@ -110,28 +115,36 @@ type
     BitBtnNewView: TBitBtn;
     LabelOpenExistingView: TLabel;
     ListOpenExistingView: TListView;
+    MenuItemMaximizePreview: TMenuItem;
+    MenuItemDuplicateLinkedComponent: TMenuItem;
     MenuItem10: TMenuItem;
     MenuItem11: TMenuItem;
-    MenuItem12: TMenuItem;
+    MenuItemNavigationFly: TMenuItem;
     MenuItem15: TMenuItem;
     MenuItem19: TMenuItem;
     MenuItem43: TMenuItem;
-    MenuItem44: TMenuItem;
+    MenuItemCopyUrl: TMenuItem;
+    MenuItemDevices: TMenuItem;
+    MenuItemUnInstall: TMenuItem;
+    MenuItemInstall: TMenuItem;
+    MenuItemAndroid: TMenuItem;
+    Separator16: TMenuItem;
+    MenuItem47: TMenuItem;
     Separator15: TMenuItem;
-    MenuItem46: TMenuItem;
+    MenuItemExportToModel: TMenuItem;
     MenuItemRunParameterPretendTouchDevice: TMenuItem;
     Separator14: TMenuItem;
     MenuItem21: TMenuItem;
     MenuItem22: TMenuItem;
     MenuItem24: TMenuItem;
     MenuItem27: TMenuItem;
-    MenuItem2888888: TMenuItem;
+    MenuItemPhysicsHideAllJointsTools: TMenuItem;
     MenuItem28: TMenuItem;
-    MenuItem33: TMenuItem;
-    MenuItem39: TMenuItem;
-    MenuItem40: TMenuItem;
+    MenuItemRunParameterCapabilitiesDefault: TMenuItem;
+    MenuItemRunParameterCapabilitiesForceModern: TMenuItem;
+    MenuItemRunParameterCapabilitiesForceFixedFunction: TMenuItem;
     MenuItem41: TMenuItem;
-    MenuItem42: TMenuItem;
+    MenuItemImportSketchfab: TMenuItem;
     Separator13: TMenuItem;
     Separator12: TMenuItem;
     MenuItemRunParameterDefaultWindowOrFullscreen: TMenuItem;
@@ -155,12 +168,12 @@ type
     MenuItemCache: TMenuItem;
     SeparatorBeforeCache: TMenuItem;
     MenuItemWireframe: TMenuItem;
-    MenuItem34: TMenuItem;
-    MenuItem35: TMenuItem;
-    MenuItem36: TMenuItem;
-    MenuItem37: TMenuItem;
+    MenuItemViewportRenderNormal: TMenuItem;
+    MenuItemViewportRenderWireframeOnly: TMenuItem;
+    MenuItemViewportRenderSolidWireframe: TMenuItem;
+    MenuItemViewportRenderNext: TMenuItem;
     Separator10: TMenuItem;
-    MenuShowJointTools28: TMenuItem;
+    MenuItemPhysicsShowAllJointsTools: TMenuItem;
     MenuItem29: TMenuItem;
     MenuItem30: TMenuItem;
     MenuItem31: TMenuItem;
@@ -172,20 +185,20 @@ type
     Separator888888: TMenuItem;
     WarningsPopup: TPopupMenu;
     Separator6: TMenuItem;
-    MenuItem23: TMenuItem;
+    MenuItemViewportGridAxis: TMenuItem;
     MenuSeparator6123: TMenuItem;
     MenuSeparator6: TMenuItem;
     Separator5: TMenuItem;
-    MenuItem20: TMenuItem;
+    MenuItemViewportToggleProjection: TMenuItem;
     Separator4: TMenuItem;
-    MenuItem18: TMenuItem;
-    MenuItem2: TMenuItem;
+    MenuItemViewportSetup2D: TMenuItem;
+    MenuItemNavigationExamine: TMenuItem;
     Separator2: TMenuItem;
-    MenuItem13: TMenuItem;
-    MenuItem14: TMenuItem;
+    MenuItemViewportAlignViewToCamera: TMenuItem;
+    MenuItemViewportAlignCameraToView: TMenuItem;
     Separator3: TMenuItem;
-    MenuItem16: TMenuItem;
-    MenuItem17: TMenuItem;
+    MenuItemNavigation2D: TMenuItem;
+    MenuItemNavigationToggle2D: TMenuItem;
     Separator1: TMenuItem;
     MenuItem4: TMenuItem;
     MenuItem6: TMenuItem;
@@ -206,15 +219,14 @@ type
     MenuItemUIRestoreDefaultDockSettings: TMenuItem;
     MenuItemEnableDisableDocking: TMenuItem;
     MenuItemUIProperties: TMenuItem;
-    MenuItem5: TMenuItem;
+    Separator555: TMenuItem;
     MenuItemUIHierarchy: TMenuItem;
     MenuItemUIExplorer: TMenuItem;
     MenuItemUIDesign: TMenuItem;
-    MenuItem9: TMenuItem;
+    Separator999: TMenuItem;
     MenuItemWindow: TMenuItem;
     MenuItemPackageFormat: TMenuItem;
     MenuItemSeparator12312332424: TMenuItem;
-    MenuItemInstall: TMenuItem;
     MenuItemSeparator12312131: TMenuItem;
     MenuItemPlatform: TMenuItem;
     MenuItemDesignNewNonVisualCustomRoot: TMenuItem;
@@ -238,7 +250,7 @@ type
     ActionEditUnit: TAction;
     ActionOpenProjectCode: TAction;
     ApplicationProperties1: TApplicationProperties;
-    MenuItem1: TMenuItem;
+    MenuItemEditAssociatedUnit: TMenuItem;
     MenuItemRegenerateProject: TMenuItem;
     MenuItemSeparator123123345: TMenuItem;
     OpenPascalUnitDialog: TCastleOpenPascalUnitDialog;
@@ -247,13 +259,13 @@ type
     MenuItemPopupNewUnitView: TMenuItem;
     MenuItemPopupNewUnitBehavior: TMenuItem;
     MenuItemPopupNewUnit: TMenuItem;
-    N3: TMenuItem;
+    Separator333: TMenuItem;
     MenuItemNewUnitView: TMenuItem;
     MenuItemNewUnitClass: TMenuItem;
     MenuItemNewUnitEmpty: TMenuItem;
     MenuItemNewUnitBehavior: TMenuItem;
     MenuItemNewUnit: TMenuItem;
-    N2: TMenuItem;
+    Separator22: TMenuItem;
     MenuItemEditUnitCode: TMenuItem;
     MenuItemOpenProjectCode: TMenuItem;
     MenuItemCode: TMenuItem;
@@ -313,7 +325,7 @@ type
     MenuItemPackageSource: TMenuItem;
     MenuItemModeRelease: TMenuItem;
     MenuItemPackage: TMenuItem;
-    MenuItem3: TMenuItem;
+    Separator3333: TMenuItem;
     MenuItemModeDebug: TMenuItem;
     MenuItemSeparator3: TMenuItem;
     MenuItemSeparator2: TMenuItem;
@@ -339,11 +351,13 @@ type
     TabOutput: TTabSheet;
     ProcessUpdateTimer: TTimer;
     TabWarnings: TTabSheet;
+    procedure ActionComponentDuplicateLinkedExecute(Sender: TObject);
     procedure ActionCopyUrlExecute(Sender: TObject);
     procedure ActionExportToModelExecute(Sender: TObject);
     procedure ActionFindNextExecute(Sender: TObject);
     procedure ActionFindToggleExecute(Sender: TObject);
     procedure ActionImportSketchfabExecute(Sender: TObject);
+    procedure ActionMaximizePreviewExecute(Sender: TObject);
     procedure ActionPhysicsShowAllJointsToolsExecute(Sender: TObject);
     procedure ActionPhysicsHideAllJointsToolsExecute(Sender: TObject);
     procedure ActionFocusDesignExecute(Sender: TObject);
@@ -354,6 +368,7 @@ type
     procedure ActionModeTranslateExecute(Sender: TObject);
     procedure ActionPlayStopExecute(Sender: TObject);
     procedure ActionPlayStopUpdate(Sender: TObject);
+    procedure ActionDevicesExecute(Sender: TObject);
     procedure ActionRunParameterCapabilitiesDefaultExecute(Sender: TObject);
     procedure ActionRunParameterCapabilitiesForceFixedFunctionExecute(
       Sender: TObject);
@@ -365,11 +380,14 @@ type
     procedure ActionRunParameterPretendTouchDeviceExecute(Sender: TObject);
     procedure ActionRunParameterRequestFullScreenExecute(Sender: TObject);
     procedure ActionRunParameterRequestWindowExecute(Sender: TObject);
+    procedure ActionSavePlatformAsDefaultExecute(Sender: TObject);
+    procedure ActionSavePlatformAsDefaultUpdate(Sender: TObject);
     procedure ActionShowCollidersExecute(Sender: TObject);
     procedure ActionSimulationPauseUnpauseExecute(Sender: TObject);
     procedure ActionSimulationPauseUnpauseUpdate(Sender: TObject);
     procedure ActionSimulationPlayStopExecute(Sender: TObject);
     procedure ActionSimulationPlayStopUpdate(Sender: TObject);
+    procedure ActionUnInstallExecute(Sender: TObject);
     procedure ActionViewportGridAxisExecute(Sender: TObject);
     procedure ActionComponentCutExecute(Sender: TObject);
     procedure ActionComponentSaveSelectedExecute(Sender: TObject);
@@ -519,9 +537,14 @@ type
         preview window (ViewFileFrame). }
       ShellListViewUpdating: Cardinal;
       PlatformsInfo: TPlatformInfoList;
+      { TMenuItem that corresponds to TPlatformInfo
+        with TPlatformInfo.UseDefault. }
+      MenuItemDefaultPlatform: TMenuItem;
+      { TMenuItem that corresponds to "Same As Editor" platform }
+      MenuItemSameAsEditorPlatform: TMenuItem;
       CurrentPlatformInfo: Integer; //< Index to PlatformsInfo
       CurrentPackageFormat: TPackageFormat;
-      ListOpenExistingViewStr: TStringList;
+      ProjectViews: TProjectViewList;
       { Anchor docking forms }
       DesignForm: TForm;
       DesignHierarchyForm: TForm;
@@ -533,8 +556,6 @@ type
     procedure BuildToolCall(const Commands: array of String;
       const RestartOnSuccess: Boolean = false);
     procedure BuildToolCallFinished(Sender: TObject);
-    procedure ListOpenExistingViewAddFile(const FileInfo: TFileInfo;
-      var StopSearch: boolean);
     procedure ListOpenExistingViewRefresh;
     procedure MenuItemAddComponentClick(Sender: TObject);
     procedure MenuItemDesignNewCustomRootClick(Sender: TObject);
@@ -600,6 +621,8 @@ type
     function SaveDuringPhysicsSimulation: Boolean;
     function IsCreatingNewDesignAvailable: Boolean;
     procedure DesignObserverFreeNotification(const Sender: TFreeNotificationObserver);
+    { Based on project (in ProjectPath), update MenuItemDefaultPlatform.Caption. }
+    procedure UpdateMenuItemDefaultPlatform;
   public
     { Open a project, given an absolute path to CastleEngineManifest.xml }
     procedure OpenProject(const ManifestUrl: String);
@@ -618,23 +641,19 @@ implementation
 
 {$R *.lfm}
 
-{$warnings off} // using deprecated Castle2DSceneManager to keep it registered
-
 uses TypInfo, LCLType, RegExpr, StrUtils, LCLVersion,
   CastleXmlUtils, CastleLCLUtils, CastleOpenDocument, CastleUriUtils,
   CastleFilesUtils, CastleUtils, CastleVectors, CastleColors, CastleConfig,
-  CastleScene, CastleViewport, Castle2DSceneManager, CastleCameras,
+  CastleScene, CastleViewport, CastleCameras,
   CastleTransform, CastleControls, CastleDownload, CastleApplicationProperties,
   CastleLog, CastleComponentSerialize, CastleSceneCore, CastleStringUtils,
   CastleFonts, X3DLoad, CastleFileFilters, CastleImages, CastleSoundEngine,
   CastleLclEditHack, CastleRenderOptions, CastleTimeUtils,
-  CastleInternalFileMonitor,
+  CastleInternalFileMonitor, CastleInternalProjectLocalSettings,
+  CastleInternalArchitectures, CastleInternalProcess,
   FormAbout, FormChooseProject, FormPreferences, FormSpriteSheetEditor,
   FormSystemInformation, FormRestartCustomEditor, FormImportSketchfab,
-  ToolCompilerInfo, ToolCommonUtils, ToolArchitectures, ToolProcess,
-  ToolFpcVersion;
-
-{$warnings on}
+  ToolCompilerInfo, ToolCommonUtils, ToolProcess, ToolFpcVersion, ToolProcessRun;
 
 {$ifdef LCLGTK2}
   { TODO:
@@ -1004,6 +1023,14 @@ begin
   ImportSketchfabForm.Show;
 end;
 
+procedure TProjectForm.ActionMaximizePreviewExecute(Sender: TObject);
+begin
+  ActionMaximizePreview.Checked := not ActionMaximizePreview.Checked;
+  if Design <> nil then
+    Design.MaximizePreview := ActionMaximizePreview.Checked;
+  SetEnabledVisible(PageControlBottom, not ActionMaximizePreview.Checked);
+end;
+
 procedure TProjectForm.ActionFindNextExecute(Sender: TObject);
 begin
   Assert(Design <> nil); // menu item is disabled otherwise
@@ -1021,6 +1048,12 @@ begin
     Url := MaybeUseDataProtocol(Url);
     Clipboard.AsText := Url;
   end;
+end;
+
+procedure TProjectForm.ActionComponentDuplicateLinkedExecute(Sender: TObject);
+begin
+  Assert(Design <> nil); // menu item is disabled otherwise
+  Design.DuplicateLinkedComponent;
 end;
 
 procedure TProjectForm.ActionExportToModelExecute(Sender: TObject);
@@ -1110,6 +1143,11 @@ begin
   //BitBtnPlayStop.Checked := NowIsRunning;
 end;
 
+procedure TProjectForm.ActionDevicesExecute(Sender: TObject);
+begin
+  BuildToolCall(['devices']);
+end;
+
 procedure TProjectForm.ActionRunParameterCapabilitiesDefaultExecute(
   Sender: TObject);
 begin
@@ -1161,6 +1199,58 @@ begin
   (Sender as TAction).Checked := true; // GroupIndex will make others unselected
 end;
 
+procedure TProjectForm.ActionSavePlatformAsDefaultExecute(Sender: TObject);
+var
+  LocalProjectSettingsOwner: TComponent;
+  LocalProjectSettings: TCastleProjectLocalSettings;
+  P: TPlatformInfo;
+begin
+  P := PlatformsInfo[CurrentPlatformInfo];
+
+  if P.UseDefault then
+    raise EInternalError.Create('Cannot save "Default" as the new platform, it would make no sense (would be confusing if saving default changes what the default implies)');
+
+  LocalProjectSettingsOwner := TComponent.Create(nil);
+  try
+    LocalProjectSettings := ProjectGetLocalSettings(ProjectPath, true, LocalProjectSettingsOwner);
+
+    if MenuItemSameAsEditorPlatform.Checked then
+    begin
+      { "Same As Editor" platform.
+        Note that we detect this using MenuItemSameAsEditorPlatform,
+        not rule like
+
+          (P.Target = targetCustom) and
+          (P.OS = DefaultOS) and
+          (P.CPU = DefaultCPU)
+
+        because the rule above would prevent from setting current platform
+        explicitly (like "Linux / x86_64") as the default. }
+
+      LocalProjectSettings.UsePlatformDefaults := false;
+    end else
+    begin
+      { Other explicit platform }
+      LocalProjectSettings.UsePlatformDefaults := true;
+      LocalProjectSettings.DefaultTarget := P.Target;
+      LocalProjectSettings.DefaultOS := P.OS;
+      LocalProjectSettings.DefaultCPU := P.CPU;
+    end;
+
+    ProjectSetLocalSettings(ProjectPath, LocalProjectSettings);
+  finally FreeAndNil(LocalProjectSettingsOwner) end;
+
+  UpdateMenuItemDefaultPlatform;
+end;
+
+procedure TProjectForm.ActionSavePlatformAsDefaultUpdate(Sender: TObject);
+begin
+  ActionSavePlatformAsDefault.Enabled :=
+    (PlatformsInfo <> nil) and // this can be called before FormCreate
+    Between(CurrentPlatformInfo, 0, PlatformsInfo.Count - 1) and
+    (not PlatformsInfo[CurrentPlatformInfo].UseDefault);
+end;
+
 procedure TProjectForm.ActionShowCollidersExecute(Sender: TObject);
 begin
   Assert(Design <> nil); // menu item is disabled otherwise
@@ -1193,6 +1283,11 @@ begin
   ActionSimulationPlayStop.Enabled := Design <> nil;
   ActionSimulationPlayStop.Checked := (Design <> nil) and
     (CastleApplicationMode in [appSimulation, appSimulationPaused]);
+end;
+
+procedure TProjectForm.ActionUnInstallExecute(Sender: TObject);
+begin
+  BuildToolCall(['uninstall']);
 end;
 
 procedure TProjectForm.ActionComponentSaveSelectedExecute(Sender: TObject);
@@ -1242,6 +1337,7 @@ end;
 procedure TProjectForm.ActionOpenProjectCodeExecute(Sender: TObject);
 var
   Exe, DelphiExe: String;
+  IgnoredFoundDelphiVersion: TDelphiVersion;
   Ce: TCodeEditor;
 begin
   if CodeEditor = ceAutodetect then
@@ -1270,7 +1366,7 @@ begin
 
         { Open through LPI to change the project. }
         if ProjectLazarus <> '' then
-          RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectLazarus])
+          ExecuteCommandNoWait(CreateTemporaryDir, Exe, [ProjectLazarus])
         else
           ErrorBox('Lazarus project not defined (neither "standalone_source" nor "lazarus_project" were specified in CastleEngineManifest.xml).' + NL +
             NL +
@@ -1278,7 +1374,7 @@ begin
       end;
     ceDelphi:
       begin
-        FindDelphiPath(true, DelphiExe);
+        FindDelphiPath(true, DelphiExe, IgnoredFoundDelphiVersion);
 
         { Open through DPROJ, this seems to be the only thing that works reliably. }
         if ProjectDelphi = '' then
@@ -1301,7 +1397,7 @@ begin
         {$ifdef DELPHI_OPEN_SHELL}
         OpenDocument(ProjectDelphi); // hack to open Pascal names in existing Delphi window, using DDE
         {$else}
-        RunCommandNoWait(ProjectPath, DelphiExe, [
+        ExecuteCommandNoWait(ProjectPath, DelphiExe, [
           ProjectDelphi
           //ProjectStandaloneSource
         ]);
@@ -1310,7 +1406,7 @@ begin
     ceVSCode:
       begin
         Exe := FindExeVSCode(true);
-        RunCommandNoWait(ProjectPath, Exe, [
+        ExecuteCommandNoWait(ProjectPath, Exe, [
           { --add would add project to workspace in current window.
             See OpenPascal for comments. }
           //'--add',
@@ -1319,7 +1415,7 @@ begin
             VS Code on Windows inability to deal with spaces in filenames.
             See OpenPascal for comments. }
           '.'
-        ], [rcNoConsole]);
+        ], [ecNoConsole]);
       end;
     else raise EInternalError.Create('CodeEditor?');
   end;
@@ -1603,7 +1699,7 @@ var
   URLFileName: String;
 begin
   if not Docking then Exit;
-  URLFileName := ApplicationConfig(DockLayoutFileName);
+  URLFileName := 'castle-config:/' + DockLayoutFileName;
   { Try to load default layout if user layout is not exist }
   if not UriFileExists(URLFileName) then
     URLFileName := InternalCastleDesignData + 'layouts/' + DockLayoutFileNameDefault;
@@ -1633,7 +1729,7 @@ var
 begin
   if not Docking then Exit;
   try
-    XMLConfig := TXMLConfigStorage.Create(UriToFilenameSafe(ApplicationConfig(DockLayoutFileName)), false);
+    XMLConfig := TXMLConfigStorage.Create(UriToFilenameSafe('castle-config:/' + DockLayoutFileName), false);
     try
       DockMaster.SaveLayoutToConfig(XMLConfig);
       XMLConfig.WriteToDisk;
@@ -1644,6 +1740,27 @@ begin
     on E: Exception do
       ErrorBox('Error saving layout:' + NL + E.Message);
   end;
+end;
+
+procedure TProjectForm.UpdateMenuItemDefaultPlatform;
+var
+  Target: TTarget;
+  OS: TOS;
+  CPU: TCPU;
+  MiCaption: String;
+begin
+  { Determine the Target / OS / CPU just like the build tool }
+  Target := targetCustom;
+  OS := DefaultOS;
+  CPU := DefaultCPU;
+  ProjectOverridePlatform(ProjectPath, Target, OS, CPU);
+
+  MiCaption := 'Default';
+  if Target = targetCustom then
+    MiCaption += ' (' + OSToString(OS) + ' / ' + CPUToString(CPU) + ')'
+  else
+    MiCaption += ' (' + TargetToString(Target) + ')';
+  MenuItemDefaultPlatform.Caption := MiCaption;
 end;
 
 procedure TProjectForm.FormCreate(Sender: TObject);
@@ -1702,7 +1819,9 @@ procedure TProjectForm.FormCreate(Sender: TObject);
 
   procedure BuildPlatformsMenu;
 
-    procedure AddPlatform(const Name: String; const Target: TTarget; const OS: TOS; const CPU: TCPU);
+    function AddPlatform(const Name: String;
+      const UseDefault: Boolean;
+      const Target: TTarget; const OS: TOS; const CPU: TCPU): TMenuItem;
     var
       Mi: TMenuItem;
       MiCaption: String;
@@ -1710,7 +1829,7 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     begin
       Mi := TMenuItem.Create(MenuItemPlatform);
       MiCaption := Name;
-      if Target = targetCustom then
+      if (not UseDefault) and (Target = targetCustom) then
         MiCaption += ' (' + OSToString(OS) + ' / ' + CPUToString(CPU) + ')';
       Mi.Caption := MiCaption;
       Mi.Tag := PlatformsInfo.Count;
@@ -1719,9 +1838,15 @@ procedure TProjectForm.FormCreate(Sender: TObject);
       Mi.RadioItem := true;
       Mi.ShowAlwaysCheckable := true;
       Mi.Checked := Mi.Tag = CurrentPlatformInfo;
-      MenuItemPlatform.Add(Mi);
+
+      // Insert new menu item before the "Save Chosen Platform..." item
+      MenuItemPlatform.Insert(MenuItemPlatform.Count - 2, Mi);
+      //MenuItemPlatform.Add(Mi);
+
+      Result := Mi;
 
       P := TPlatformInfo.Create;
+      P.UseDefault := UseDefault;
       P.Target := Target;
       P.OS := OS;
       P.CPU := CPU;
@@ -1734,34 +1859,44 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     begin
       Mi := TMenuItem.Create(MenuItemPlatform);
       Mi.Caption := '-';
-      MenuItemPlatform.Add(Mi);
+
+      // Insert new menu item before the "Save Chosen Platform..." item
+      MenuItemPlatform.Insert(MenuItemPlatform.Count - 2, Mi);
+      //MenuItemPlatform.Add(Mi);
     end;
 
   begin
     PlatformsInfo := TPlatformInfoList.Create(true);
-    AddPlatform('Default', targetCustom, DefaultOS, DefaultCPU);
+    MenuItemDefaultPlatform :=
+      AddPlatform('Default', true, targetCustom, DefaultOS, DefaultCPU);
     AddPlatformSeparator;
-    AddPlatform('Android (Arm 32-bit and 64-bit)', targetAndroid, { OS and CPU ignored } DefaultOS, DefaultCPU);
-    AddPlatform('Android (emulator 32-bit)', targetCustom, Android, i386);
-    AddPlatform('Android (emulator 64-bit)', targetCustom, Android, x86_64);
+    MenuItemSameAsEditorPlatform :=
+      AddPlatform('Same As Editor', false, targetCustom, DefaultOS, DefaultCPU);
     AddPlatformSeparator;
-    AddPlatform('iOS (Arm 32-bit and 64-bit)', targetIOS, { OS and CPU ignored } DefaultOS, DefaultCPU);
+    AddPlatform('Web', false, targetWeb, { OS and CPU ignored } DefaultOS, DefaultCPU);
     AddPlatformSeparator;
-    AddPlatform('Linux 32-bit', targetCustom, Linux, i386);
-    AddPlatform('Linux 64-bit', targetCustom, Linux, x86_64);
-    AddPlatform('Linux Arm 32-bit', targetCustom, Linux, Arm);
-    AddPlatform('Linux Arm 64-bit', targetCustom, Linux, Aarch64);
+    AddPlatform('Android (Arm 32-bit and 64-bit)', false, targetAndroid, { OS and CPU ignored } DefaultOS, DefaultCPU);
+    AddPlatform('Android (emulator 32-bit)', false, targetCustom, Android, i386);
+    AddPlatform('Android (emulator 64-bit)', false, targetCustom, Android, x86_64);
     AddPlatformSeparator;
-    AddPlatform('Windows 32-bit', targetCustom, Win32, i386);
-    AddPlatform('Windows 64-bit', targetCustom, Win64, x86_64);
+    AddPlatform('iOS (Arm 32-bit and 64-bit)', false, targetIOS, { OS and CPU ignored } DefaultOS, DefaultCPU);
     AddPlatformSeparator;
-    AddPlatform('macOS 64-bit', targetCustom, Darwin, x86_64);
-    AddPlatform('macOS Arm 64-bit', targetCustom, Darwin, Aarch64);
+    AddPlatform('Linux 32-bit', false, targetCustom, Linux, i386);
+    AddPlatform('Linux 64-bit', false, targetCustom, Linux, x86_64);
+    AddPlatform('Linux Arm 32-bit', false, targetCustom, Linux, Arm);
+    AddPlatform('Linux Arm 64-bit', false, targetCustom, Linux, Aarch64);
     AddPlatformSeparator;
-    AddPlatform('FreeBSD 32-bit', targetCustom, FreeBSD, i386);
-    AddPlatform('FreeBSD 64-bit', targetCustom, FreeBSD, x86_64);
+    AddPlatform('Windows 32-bit', false, targetCustom, Win32, i386);
+    AddPlatform('Windows 64-bit', false, targetCustom, Win64, x86_64);
     AddPlatformSeparator;
-    AddPlatform('Nintendo Switch', targetNintendoSwitch, { OS and CPU ignored } DefaultOS, DefaultCPU);
+    AddPlatform('macOS Intel', false, targetCustom, Darwin, x86_64);
+    AddPlatform('macOS Silicon', false, targetCustom, Darwin, Aarch64);
+    AddPlatform('macOS Universal Binary (x86_64 + aarch64)', false, targetMacOS, { OS and CPU ignored } DefaultOS, DefaultCPU);
+    AddPlatformSeparator;
+    AddPlatform('FreeBSD 32-bit', false, targetCustom, FreeBSD, i386);
+    AddPlatform('FreeBSD 64-bit', false, targetCustom, FreeBSD, x86_64);
+    AddPlatformSeparator;
+    AddPlatform('Nintendo Switch', false, targetNintendoSwitch, { OS and CPU ignored } DefaultOS, DefaultCPU);
   end;
 
   procedure BuildPackageFormatsMenu;
@@ -1780,7 +1915,8 @@ procedure TProjectForm.FormCreate(Sender: TObject);
       'iOS Archive -> AppStore',
       'Nintendo Switch Project',
       'macOS App Bundle (APP)',
-      'macOS App Bundle (APP) zip'
+      'macOS App Bundle (APP) zip',
+      'Web build zipped'
     );
   var
     Mi: TMenuItem;
@@ -1805,7 +1941,7 @@ var
 begin
   DesignObserver := TFreeNotificationObserver.Create(Self);
   DesignObserver.OnFreeNotification := {$ifdef FPC}@{$endif} DesignObserverFreeNotification;
-  EnableDocking := UriFileExists(ApplicationConfig('enable-docking.txt'));
+  EnableDocking := UriFileExists('castle-config:/enable-docking.txt');
   MenuItemWindow.SetEnabledVisible(EnableDocking);
   Docking := EnableDocking and UserConfig.GetValue('ProjectForm_Docking', false);
   OutputList := TOutputList.Create(ListOutput);
@@ -1825,7 +1961,7 @@ begin
   BuildPlatformsMenu;
   BuildPackageFormatsMenu;
   ApplicationProperties.OnWarning.Add(@WarningNotification);
-  ListOpenExistingViewStr := TStringList.Create;
+  ProjectViews := TProjectViewList.Create;
   if Docking then
   begin
     // Create dockable forms
@@ -1914,7 +2050,7 @@ begin
   FreeAndNil(DesignOutputForm);
   FreeAndNil(DesignWarningsForm);
   FreeAndNil(PlatformsInfo);
-  FreeAndNil(ListOpenExistingViewStr);
+  FreeAndNil(ProjectViews);
   FreeAndNil(Design);
 
   { It is important to reset ApplicationDataOverride
@@ -2043,12 +2179,11 @@ end;
 
 procedure TProjectForm.ListOpenExistingViewDblClick(Sender: TObject);
 var
-  DesignFileName, DesignUrl: String;
+  DesignUrl: String;
 begin
   if ListOpenExistingView.ItemIndex <> -1 then
   begin
-    DesignFileName := ListOpenExistingViewStr[ListOpenExistingView.ItemIndex];
-    DesignUrl := FilenameToUriSafe(DesignFileName);
+    DesignUrl := ProjectViews[ListOpenExistingView.ItemIndex].Url;
     ProposeOpenDesign(DesignUrl);
   end;
 end;
@@ -2216,7 +2351,7 @@ var
   DockLayoutUrl: String;
 begin
   { Simply remove the dock ui config file in order to restore default settings }
-  DockLayoutUrl := ApplicationConfig(DockLayoutFileName);
+  DockLayoutUrl := 'castle-config:/' + DockLayoutFileName;
   if UriFileExists(DockLayoutUrl) then
     CheckDeleteFile(UriToFilenameSafe(DockLayoutUrl));
   LoadDockLayout;
@@ -2375,7 +2510,7 @@ end;
 
 procedure TProjectForm.MenuItemManualClick(Sender: TObject);
 begin
-  OpenUrl('https://castle-engine.io/manual_intro.php');
+  OpenUrl('https://castle-engine.io/manual');
 end;
 
 procedure TProjectForm.MenuItemModeDebugClick(Sender: TObject);
@@ -2384,56 +2519,29 @@ begin
   MenuItemModeDebug.Checked := true;
 end;
 
-procedure TProjectForm.ListOpenExistingViewAddFile(const FileInfo: TFileInfo; var StopSearch: boolean);
-begin
-  ListOpenExistingViewStr.Append(FileInfo.AbsoluteName);
-end;
-
 procedure TProjectForm.ListOpenExistingViewRefresh;
-
-  function ShortDesignName(const S: String): String;
-  begin
-    Result := DeleteFileExt(ExtractFileName(S));
-    Result := PrefixRemove('gameview', Result, true);
-    Result := PrefixRemove('gamestate', Result, true);
-    Result := SuffixRemove('.castle-user-interface', Result, true);
-  end;
-
 var
   ListItem: TListItem;
-  DesignFileName, ProjectDataUrl: String;
+  MaskSearched: String;
+  View: TProjectView;
 begin
-  { calculate ListOpenExistingViewStr contents }
-  ListOpenExistingViewStr.Clear;
-  { Search in ProjectDataUrl, not ProjectPathUrl, as all designs should be part of data
-    to be possible to open them at runtime.
-    This also avoids finding stuff in castle-engine-output, which is possible,
-    e.g. after "castle-engine package --target=android" the castle-engine-output contains
-    some temporary data with copies of design files -- and we *do not* want to show them here. }
-  ProjectDataUrl := CombineUri(ProjectPathUrl, 'data/');
-  if UriExists(ProjectDataUrl) <> ueNotExists then
-  begin
-    FindFiles(ProjectDataUrl, 'gameview*.castle-user-interface', false, @ListOpenExistingViewAddFile, [ffRecursive]);
-    // support deprecated names
-    FindFiles(ProjectDataUrl, 'gamestate*.castle-user-interface', false, @ListOpenExistingViewAddFile, [ffRecursive]);
-  end;
-  { without sorting, the order would be ~random (as FindFiles enumarates).
-    Note that we sort including the subdirectory names, which is good,
-    we want files in the same subdirectory to be together. }
-  ListOpenExistingViewStr.Sort;
+  ProjectViews.ScanProject(ProjectPathUrl, Manifest.ProposedUnitPrefix, MaskSearched);
+
+  // update LabelOpenExistingView to show mask used for views
+  LabelOpenExistingView.Caption := 'Open Existing View (' + MaskSearched + ') :';
 
   { TODO: It seems LCL UI always shows as if the "Last Modified" (column 2)
     was sorted, and setting ListOpenExistingView.SortColumn from code
     or LFM doesn't change it. }
 
-  { copy ListOpenExistingViewStr contents -> ListOpenExistingView GUI contents }
+  { copy ProjectViews contents -> ListOpenExistingView GUI contents }
   ListOpenExistingView.Items.Clear;
-  for DesignFileName in ListOpenExistingViewStr do
+  for View in ProjectViews do
   begin
     ListItem := ListOpenExistingView.Items.Add;
-    ListItem.Caption := ShortDesignName(DesignFileName);
-    ListItem.SubItems.Append(ExtractRelativePath(ProjectPath, DesignFileName));
-    ListItem.SubItems.Append(FileDateTimeStr(DesignFileName));
+    ListItem.Caption := View.Name;
+    ListItem.SubItems.Append(View.Path);
+    ListItem.SubItems.Append(View.LastModified);
   end;
 end;
 
@@ -2453,6 +2561,7 @@ begin
   ActionComponentPaste.Enabled := Design <> nil;
   ActionComponentCut.Enabled := Design <> nil;
   ActionComponentDuplicate.Enabled := Design <> nil;
+  ActionComponentDuplicateLinked.Enabled := Design <> nil;
   ActionComponentSaveSelected.Enabled := Design <> nil;
   ActionEditAssociatedUnit.Enabled := Design <> nil;
   ActionFocusDesign.Enabled := Design <> nil;
@@ -2462,9 +2571,13 @@ begin
   ActionModeRotate.Enabled := Design <> nil;
   ActionModeScale.Enabled := Design <> nil;
   ActionShowStatistics.Enabled := Design <> nil;
-  ActionFindToggle.Enabled := Design <> nil;
-  ActionFindNext.Enabled := Design <> nil;
   ActionExportToModel.Enabled := Design <> nil;
+
+  // disable ActionFindToggle, as cannot focus when edit hidden
+  ActionFindToggle.Enabled := (Design <> nil) and (not ActionMaximizePreview.Checked);
+  // disable ActionFindNext for consistency with ActionFindToggle,
+  // and would be confusing when hierarchy not visible
+  ActionFindNext.Enabled := (Design <> nil) and (not ActionMaximizePreview.Checked);
 
   { Options that toggle InternalForceWireframe could actually work with Design=nil,
     with current implementation.
@@ -2530,8 +2643,6 @@ begin
   begin
     Design := TDesignFrame.Create(Self);
     DesignObserver.Observed := Design;
-    Design.Parent := PanelAboveTabs;
-    Design.Align := alClient;
     Design.OnUpdateFormCaption := @UpdateFormCaption;
     Design.UndoSystem.OnUpdateUndo := @UpdateUndo;
     Design.OnSelectionChanged := @UpdateRenameItem;
@@ -2541,6 +2652,14 @@ begin
     Design.OnShowStatistics  := @ShowStatistics;
     Design.OnRunningToggle  := @RunningToggle;
     Design.OnApiReferenceOfCurrent := @MenuItemReferenceOfCurrentClick;
+    Design.MaximizePreview := ActionMaximizePreview.Checked;
+
+    { on GTK3, changing Align on a control with Parent may result in calling
+      Paint on it, which calls our TDesignFrame.TDesignerLayer.Render.
+      So we have assigned everything necessary for correct render
+      (like OnShowStatistics) earlier. }
+    Design.Parent := PanelAboveTabs;
+    Design.Align := alClient;
 
     // Update Design.ActionPlayStop, after OnIsRunning and OnRunningToggle are set
     Design.ActionPlayStopUpdate(Design.ActionPlayStop);
@@ -2629,13 +2748,31 @@ begin
   end;
 end;
 
-procedure TProjectForm.WarningNotification(const Category,
-  Message: string);
+procedure TProjectForm.WarningNotification(const Category, Message: string);
+var
+  FixedMessage: String;
 begin
+  FixedMessage := Message;
+
+  { Cocoa LCL list cannot display multi-line items correctly
+    (the item height is always as if we had single line).
+
+    Testcase: PNG 2-line warning:
+      'Initializing dynamic LibPng library failed.' + NL +
+      '  Loading PNG will use a slower approach.'
+    which is normal on macOS.
+
+    So remove newlines from the message. }
+
+  {$ifdef LCLCocoa}
+  FixedMessage := SReplaceChars(FixedMessage, #10, ' '); // replace Unix newlines with spaces
+  FixedMessage := SDeleteChars(FixedMessage, [#13]); // remove leftovers from Windows newlines
+  {$endif LCLCocoa}
+
   if Category <> '' then
-    ListWarnings.Items.Add(Category + ': ' + Message)
+    ListWarnings.Items.Add(Category + ': ' + FixedMessage)
   else
-    ListWarnings.Items.Add(Message);
+    ListWarnings.Items.Add(FixedMessage);
   TabWarnings.Caption := 'Warnings (' + IntToStr(ListWarnings.Count) + ')';
   TabWarnings.TabVisible := true;
 end;
@@ -2950,7 +3087,7 @@ begin
       for I := 0 to Parameters.Count - 1 do
         Parameters[I] := SReplacePatterns(Parameters[I], Macros, true);
     finally FreeAndNil(Macros) end;
-    RunCommandNoWait(CreateTemporaryDir, Exe, Parameters.ToArray);
+    ExecuteCommandNoWait(CreateTemporaryDir, Exe, Parameters.ToArray);
   finally FreeAndNil(Parameters) end;
 end;
 
@@ -2971,6 +3108,7 @@ procedure TProjectForm.OpenPascal(const FileName: String; Line: Integer;
   Column: Integer);
 var
   Exe, DelphiExe, VsCodeFileArgument: String;
+  IgnoredFoundDelphiVersion: TDelphiVersion;
   Ce: TCodeEditor;
 begin
   if CodeEditor = ceAutodetect then
@@ -2997,7 +3135,7 @@ begin
         if ProjectLazarus = '' then
         begin
           WritelnWarning('Lazarus project not defined (neither "standalone_source" nor "lazarus_project" were specified in CastleEngineManifest.xml), the file will be opened without changing Lazarus project.');
-          RunCommandNoWait(CreateTemporaryDir, Exe, [FileName]);
+          ExecuteCommandNoWait(CreateTemporaryDir, Exe, [FileName]);
         end else
         if not LazarusVersion.AtLeast(2, 2, 0) then
         begin
@@ -3013,16 +3151,16 @@ begin
           }
 
           WritelnWarning('Lazarus is older than 2.2, file will be opened without changing Lazarus project.');
-          RunCommandNoWait(CreateTemporaryDir, Exe, [FileName]);
+          ExecuteCommandNoWait(CreateTemporaryDir, Exe, [FileName]);
         end else
         begin
           // pass both project name, and particular filename, to open file within this project.
-          RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectLazarus, FileName])
+          ExecuteCommandNoWait(CreateTemporaryDir, Exe, [ProjectLazarus, FileName])
         end;
       end;
     ceDelphi:
       begin
-        FindDelphiPath(true, DelphiExe);
+        FindDelphiPath(true, DelphiExe, IgnoredFoundDelphiVersion);
 
         { Open through DPROJ }
         (*
@@ -3068,7 +3206,7 @@ begin
         {$ifdef DELPHI_OPEN_SHELL}
         OpenDocument(FileName); // hack to open Pascal names in existing Delphi window, using DDE
         {$else}
-        RunCommandNoWait(ProjectPath, DelphiExe, [
+        ExecuteCommandNoWait(ProjectPath, DelphiExe, [
           FileName
         ]);
         {$endif}
@@ -3113,11 +3251,11 @@ begin
           VsCodeFileArgument += ':' + IntToStr(Line);
           if Column <> -1 then
             VsCodeFileArgument += ':' + IntToStr(Column);
-          RunCommandNoWait(ProjectPath, Exe, ['.', '--goto', VsCodeFileArgument],
-            [rcNoConsole]);
+          ExecuteCommandNoWait(ProjectPath, Exe, ['.', '--goto', VsCodeFileArgument],
+            [ecNoConsole]);
         end else
-          RunCommandNoWait(ProjectPath, Exe, ['.', VsCodeFileArgument],
-            [rcNoConsole]);
+          ExecuteCommandNoWait(ProjectPath, Exe, ['.', VsCodeFileArgument],
+            [ecNoConsole]);
       end;
     else raise EInternalError.Create('CodeEditor?');
   end;
@@ -3139,7 +3277,7 @@ procedure TProjectForm.ShellListViewDoubleClick(Sender: TObject);
       Exit;
     end;
 
-    RunCommandNoWait(CreateTemporaryDir, Exe, Arguments);
+    ExecuteCommandNoWait(CreateTemporaryDir, Exe, Arguments);
   end;
 
   procedure OpenLazarusProject(const FileName: String);
@@ -3147,7 +3285,7 @@ procedure TProjectForm.ShellListViewDoubleClick(Sender: TObject);
     Exe: String;
   begin
     Exe := FindExeLazarusIDE;
-    RunCommandNoWait(CreateTemporaryDir, Exe, [FileName]);
+    ExecuteCommandNoWait(CreateTemporaryDir, Exe, [FileName]);
   end;
 
 var
@@ -3252,10 +3390,8 @@ procedure TProjectForm.BuildToolCall(const Commands: array of String;
 
   procedure AddPlatformParameters(const Params: TStrings; const PlatformInfo: TPlatformInfo);
   begin
-    if (PlatformInfo.Target = targetCustom) and
-       (PlatformInfo.OS = DefaultOS) and
-       (PlatformInfo.CPU = DefaultCPU) then
-      // keep command-line simple, to be simpler for user; no point is adding extra parameters
+    if PlatformInfo.UseDefault then
+      // do not add extra parameters
       Exit;
 
     if PlatformInfo.Target <> targetCustom then
@@ -3345,6 +3481,7 @@ begin
     QueueItem.Parameters.Add(Command);
     // add --mode=xxx parameter
     if not (
+        // we list the few commands that ignore --mode below
         (Command = 'package-source') or
         (Command = 'clean') or
         (Command = 'auto-generate-textures') or
@@ -3353,7 +3490,8 @@ begin
         (Command = 'editor') or
         (Command = 'editor-rebuild-if-needed') or
         (Command = 'editor-run') or
-        (Command = 'cache')
+        (Command = 'cache') or
+        (Command = 'devices')
       ) then
       AddModeParameters(QueueItem.Parameters);
     // add --compiler parameter
@@ -3365,6 +3503,7 @@ begin
        (Command = 'run') or
        (Command = 'package') or
        (Command = 'install') or
+       (Command = 'uninstall') or
        (Command = 'cache') then
       AddPlatformParameters(QueueItem.Parameters, PlatformsInfo[CurrentPlatformInfo]);
     // add --package-format
@@ -3409,11 +3548,11 @@ begin
       Exit;
     end;
 
-    RunCommandNoWait(ProjectPath, BuildToolExe,
+    ExecuteCommandNoWait(ProjectPath, BuildToolExe,
       ['editor-run', '--gui-errors', '--wait-for-process-exit', IntToStr(CurrentProcessId)],
-      [rcNoConsole]);
+      [ecNoConsole]);
 
-    { Once ProposeSaveDesign and RunCommandNoWait are both successful,
+    { Once ProposeSaveDesign and ExecuteCommandNoWait are both successful,
       we want to terminate ASAP as user is waiting for new editor to run. }
     Application.Terminate;
   end;
@@ -3468,6 +3607,8 @@ begin
   MenuItemCache.Enabled := EnableRun;
   MenuItemCacheClean.Enabled := EnableRun;
   ActionRegenerateProject.Enabled := EnableRun;
+  ActionDevices.Enabled := EnableRun;
+  ActionUnInstall.Enabled := EnableRun;
 
   MenuItemStopProcess.Enabled := not EnableRun;
 
@@ -3567,6 +3708,7 @@ begin
 
   DesignExistenceChanged;
   UpdateFormCaption(nil); // make form Caption reflect project name (although this is now done also by DesignExistenceChanged)
+  UpdateMenuItemDefaultPlatform;
 
   if (Manifest.EditorUnits <> '') and
      (ProjectName <> InternalCustomComponentsForProject) then

@@ -1,5 +1,5 @@
 {
-  Copyright 2019-2023 Michalis Kamburelis.
+  Copyright 2019-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -34,19 +34,25 @@ type
   private
     type
       TButtonSound = class(TCastleButton)
+      strict private
+        procedure UpdateSoundProperties;
       public
         Sound: TCastleSound;
         constructor Create(const AOwner: TComponent; const SoundFileUrl: String); reintroduce;
+        procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
       end;
 
       TPlayingSoundUiOwner = class(TComponent)
       strict private
         SliderSoundVolume, SliderSoundPitch: TCastleFloatSlider;
         CheckboxLoop: TCastleCheckbox;
+        LabelSoundOffset: TCastleLabel;
         procedure ClickStop(Sender: TObject);
         procedure ChangeSliderSoundVolume(Sender: TObject);
         procedure ChangeSliderSoundPitch(Sender: TObject);
         procedure ChangeCheckboxLoop(Sender: TObject);
+        procedure Update(const Sender: TCastleUserInterface;
+          const SecondsPassed: Single; var HandleInput: boolean);
       public
         PlayingSound: TCastlePlayingSound;
         constructor Create(const AOwner: TComponent; const APlayingSound: TCastlePlayingSound;
@@ -75,7 +81,7 @@ implementation
 
 uses SysUtils,
   CastleLog, CastleWindow, CastleUriUtils, CastleTimeUtils,
-  CastleSoundBase, CastleViewport, CastleUtils;
+  CastleSoundBase, CastleViewport, CastleUtils, CastleApplicationProperties;
 
 { TButtonSound --------------------------------------------------------- }
 
@@ -93,15 +99,38 @@ begin
 
     The downside is a possible additional work at run-time
     (but it's done in a thread and should not matter in normal use-cases).
+    Also, setting Offset of a streaming sound is not supported
+    with all sound backends (but this application doesn't set TCastleSound.Offset,
+    only displays it, so no problem).
   }
   // Sound.Stream := true;
   Sound.Url := SoundFileUrl;
 
+  UpdateSoundProperties;
+end;
+
+procedure TViewMain.TButtonSound.UpdateSoundProperties;
+begin
   Caption := FormatDot('%s (%f)', [
     // extract last URL component, i.e. just the filename
-    UriDisplay(SoundFileUrl, true),
+    UriDisplay(Sound.Url, true),
     Sound.Duration
   ]);
+  Tooltip := FormatDot('Duration: %f seconds, Frequency: %f Hz, Channels: %d', [
+    Sound.Duration,
+    Sound.Frequency,
+    Sound.Channels
+  ]);
+end;
+
+procedure TViewMain.TButtonSound.Update(const SecondsPassed: Single; var HandleInput: boolean);
+begin
+  inherited;
+  { On some backends and some formats (right now: this concerns only
+    WebAudio backend and Ogg Vorbis format) the properties of the sound
+    (like Duration) are only learned with a delay after setting Url.
+    So update the caption continuously. }
+  UpdateSoundProperties;
 end;
 
 { TPlayingSoundUiOwner ---------------------------------------------------------- }
@@ -120,25 +149,29 @@ begin
 
   // use Self as Owner of Ui, so below we just call Self.FindRequiredComponent
   Ui := UiFactory.UserInterfaceLoad(Self);
+  Ui.OnUpdate := {$ifdef FPC}@{$endif} Update;
   GroupPlayingSounds.InsertFront(Ui);
 
   LabelSoundName := FindRequiredComponent('LabelSoundName') as TCastleLabel;
   LabelSoundName.Caption := UriDisplay(PlayingSound.Sound.Url, true);
 
   ButtonStop := FindRequiredComponent('ButtonStop') as TCastleButton;
-  ButtonStop.OnClick := {$ifdef FPC}@{$endif}ClickStop;
+  ButtonStop.OnClick := {$ifdef FPC}@{$endif} ClickStop;
+
+  LabelSoundOffset := FindRequiredComponent('LabelSoundOffset') as TCastleLabel;
+  LabelSoundOffset.Caption := FormatDot('%f', [PlayingSound.Offset]);
 
   SliderSoundVolume := FindRequiredComponent('SliderSoundVolume') as TCastleFloatSlider;
   SliderSoundVolume.Value := PlayingSound.Volume;
-  SliderSoundVolume.OnChange := {$ifdef FPC}@{$endif}ChangeSliderSoundVolume;
+  SliderSoundVolume.OnChange := {$ifdef FPC}@{$endif} ChangeSliderSoundVolume;
 
   SliderSoundPitch := FindRequiredComponent('SliderSoundPitch') as TCastleFloatSlider;
   SliderSoundPitch.Value := PlayingSound.Pitch;
-  SliderSoundPitch.OnChange := {$ifdef FPC}@{$endif}ChangeSliderSoundPitch;
+  SliderSoundPitch.OnChange := {$ifdef FPC}@{$endif} ChangeSliderSoundPitch;
 
   CheckboxLoop := FindRequiredComponent('CheckboxLoop') as TCastleCheckbox;
   CheckboxLoop.Checked := PlayingSound.Loop;
-  CheckboxLoop.OnChange := {$ifdef FPC}@{$endif}ChangeCheckboxLoop;
+  CheckboxLoop.OnChange := {$ifdef FPC}@{$endif} ChangeCheckboxLoop;
 end;
 
 procedure TViewMain.TPlayingSoundUiOwner.ClickStop(Sender: TObject);
@@ -159,6 +192,13 @@ end;
 procedure TViewMain.TPlayingSoundUiOwner.ChangeCheckboxLoop(Sender: TObject);
 begin
   PlayingSound.Loop := CheckboxLoop.Checked;
+end;
+
+procedure TViewMain.TPlayingSoundUiOwner.Update(const Sender: TCastleUserInterface;
+  const SecondsPassed: Single; var HandleInput: boolean);
+begin
+  inherited;
+  LabelSoundOffset.Caption := FormatDot('%f', [PlayingSound.Offset]);
 end;
 
 { TViewMain ----------------------------------------------------------------- }
@@ -185,7 +225,7 @@ procedure TViewMain.Start;
         Exit;
       end;
     end;
-    Button.OnClick := {$ifdef FPC}@{$endif}ClickPlayBuffer;
+    Button.OnClick := {$ifdef FPC}@{$endif} ClickPlayBuffer;
     GroupSoundBuffers.InsertFront(Button);
   end;
 
@@ -196,7 +236,8 @@ begin
 
   LabelPlayingSounds.Caption := Format('Currently playing sounds (max %d):',
     [SoundEngine.MaxAllocatedSources]);
-  ButtonExit.OnClick := {$ifdef FPC}@{$endif}ClickExit;
+  ButtonExit.OnClick := {$ifdef FPC}@{$endif} ClickExit;
+  ButtonExit.Exists := ApplicationProperties.ShowUserInterfaceToQuit;
 
   { List the sound files to load.
     Hint: We could also use FindFiles from CastleFindFiles unit to automatically
@@ -210,6 +251,13 @@ begin
   AddSoundBufferButton('castle-data:/sounds/save-44100Hz-16bit-stereo.wav');
   AddSoundBufferButton('castle-data:/sounds/stereo_test.wav');
   AddSoundBufferButton('castle-data:/sounds/temple_adam_goh-44000Hz-16bit-mono.ogg');
+
+  // mp3 and flac, only for backends that support them (FMOD and WebAudio)
+  {$if defined(WASI) or defined(PLAY_SOUNDS_TEST_FMOD)}
+  AddSoundBufferButton('castle-data:/sounds/beating_that_thing.mp3');
+  AddSoundBufferButton('castle-data:/sounds/interact.mp3');
+  AddSoundBufferButton('castle-data:/sounds/swosh-05.flac');
+  {$endif}
 
   PlayingSoundUiFactory := TCastleComponentFactory.Create(FreeAtStop);
   PlayingSoundUiFactory.Url := 'castle-data:/part_playing_sound.castle-user-interface';
@@ -235,20 +283,25 @@ begin
   inherited;
   SenderButton := Sender as TButtonSound;
 
-  { Note: by freeing TCastlePlayingSound at state stop (using FreeAtStop)
-    we make sure sound stops at state Stop too. }
+  { Note: by freeing TCastlePlayingSound at TViewMain stop
+    (by passing FreeAtStop below)
+    we make sure sound stops at view Stop too. }
   PlayingSound := TCastlePlayingSound.Create(FreeAtStop);
   PlayingSound.FreeOnStop := true;
   PlayingSound.Sound := SenderButton.Sound;
   { It's better to make PlayingSoundStop a method of TViewMain,
     not TPlayingSoundUiOwner, because when it occurs the whole instance
     of TPlayingSoundUiOwner (along with the UI) should be destroyed. }
-  PlayingSound.OnStop := {$ifdef FPC}@{$endif}PlayingSoundStop;
-  SoundEngine.Play(PlayingSound);
+  PlayingSound.OnStop := {$ifdef FPC}@{$endif} PlayingSoundStop;
 
   PlayingSoundUiOwner := TPlayingSoundUiOwner.Create(FreeAtStop, PlayingSound,
     PlayingSoundUiFactory, GroupPlayingSounds);
   PlayingSoundUiOwners.Add(PlayingSoundUiOwner);
+
+  { Call Play last, as playing sound may stop immediately
+    (thus calling PlayingSoundStop) if we failed to load it,
+    e.g. trying to play unsupported format (mp3 or flac with OpenAL). }
+  SoundEngine.Play(PlayingSound);
 end;
 
 procedure TViewMain.PlayingSoundStop(Sender: TObject);
@@ -266,7 +319,12 @@ begin
     begin
       PlayingSoundUiOwners.Remove(PlayingSoundUiOwner);
       // This frees TPlayingSoundUiOwner, along with UI
-      PlayingSoundUiOwner.Free;
+      { Do not free PlayingSoundUiOwner immediately, because this may be called
+        from ButtonStop.OnClick, and then freeing PlayingSoundUiOwner would
+        free the very object on which we are processing event -- which is not
+        allowed, may crash (and CGE warns about it). }
+      //PlayingSoundUiOwner.Free;
+      ApplicationProperties.FreeDelayed(PlayingSoundUiOwner);
       Break;
     end;
 end;

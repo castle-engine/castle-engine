@@ -11,6 +11,7 @@
         <CompatibilityMode Value="True"/>
       </Flags>
       <SessionStorage Value="InIDEConfig"/>
+      <UseAppBundle Value="False"/>
       <ResourceType Value="res"/>
     </General>
     <BuildModes Count="1">
@@ -34,7 +35,7 @@
     </RunParams>
     <RequiredPackages Count="1">
       <Item1>
-        <PackageName Value="castle_base"/>
+        <PackageName Value="castle_engine_base"/>
       </Item1>
     </RequiredPackages>
     <Units Count="24">
@@ -57,14 +58,10 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="ToolProject"/>
       </Unit3>
-      <Unit4>
-        <Filename Value="../common-code/toolarchitectures.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="ToolArchitectures"/>
-      </Unit4>
       <Unit5>
         <Filename Value="code/toolutils.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="ToolUtils"/>
       </Unit5>
       <Unit6>
         <Filename Value="code/toolandroid.pas"/>
@@ -90,6 +87,7 @@
       <Unit11>
         <Filename Value="code/toolmacros.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="ToolMacros"/>
       </Unit11>
       <Unit12>
         <Filename Value="code/toolnintendoswitch.pas"/>
@@ -138,10 +136,15 @@
         <Filename Value="../common-code/toolservices.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit22>
-      <Unit23>
+      <Unit4>
         <Filename Value="code/tooldebian.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="ToolDebian"/>
+      </Unit4>
+      <Unit23>
+        <Filename Value="code/toolmacos.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="ToolMacOS"/>
       </Unit23>
     </Units>
   </ProjectOptions>

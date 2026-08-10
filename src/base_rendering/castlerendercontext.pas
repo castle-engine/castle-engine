@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2024 Michalis Kamburelis.
+  Copyright 2001-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -131,7 +131,7 @@ type
       FFixedFunctionLighting: boolean;
       FLineType: TLineType;
       FPolygonOffset: TPolygonOffset;
-      FBoundBuffer: array [TBufferTarget] of TGLuint;
+      FBoundBuffer: array [TBufferTarget] of TGLBuffer;
 
     procedure SetLineWidth(const Value: Single);
     procedure SetPointSize(const Value: Single);
@@ -156,8 +156,8 @@ type
     procedure SetFixedFunctionLighting(const Value: boolean);
     procedure SetLineType(const Value: TLineType);
     procedure SetPolygonOffset(const Value: TPolygonOffset);
-    function GetBoundBuffer(const Target: TBufferTarget): TGLuint;
-    procedure SetBoundBuffer(const Target: TBufferTarget; const Value: TGLuint);
+    function GetBoundBuffer(const Target: TBufferTarget): TGLBuffer;
+    procedure SetBoundBuffer(const Target: TBufferTarget; const Value: TGLBuffer);
   private
     FEnabledScissors: TScissorList;
   public
@@ -338,7 +338,7 @@ type
       This optimization actually matters for optimization (Android Samsung Galaxy Tab,
       castle-model-viewer-mobile displaying inspector).
       Without it, TDrawableImage does a lot of redundant glBindBuffer calls. }
-    property BindBuffer[const Target: TBufferTarget]: TGLuint
+    property BindBuffer[const Target: TBufferTarget]: TGLBuffer
       read GetBoundBuffer write SetBoundBuffer;
   end;
 
@@ -549,13 +549,21 @@ end;
 
 
 procedure TRenderContext.SetDepthRange(const Value: TDepthRange);
+
+  {$if defined(OpenGLES) and not defined(CASTLE_WEBGL)}
+  // Define glDepthRange (not existing in OpenGLES) as alias to glDepthRangef
+  procedure glDepthRange(const zNear, zFar: GLclampf);
+  begin
+    glDepthRangef(zNear, zFar);
+  end;
+  {$endif}
+
 begin
   if Self <> RenderContext then
     WarnContextNotCurrent;
 
   if FDepthRange <> Value then
   begin
-    {$ifdef OpenGLES} {$define glDepthRange := glDepthRangef} {$endif}
     FDepthRange := Value;
     case Value of
       drFull: glDepthRange(0  , 1);
@@ -669,14 +677,11 @@ end;
 
 procedure TRenderContext.WarningViewportTooLarge;
 begin
-  if not WarningViewportTooLargeDone then
-  begin
-    WritelnWarning('Setting viewport %s, with has dimensions larger than maximum allowed %s. (Further warnings of the same type will not be shown.)', [
-      FViewport.ToString,
-      GLFeatures.MaxViewportDimensions.ToString
-    ]);
-    WarningViewportTooLargeDone := true;
-  end;
+  WritelnWarningOnce(WarningViewportTooLargeDone,
+    'Setting viewport to %s, which has dimensions larger than maximum allowed %s. (Further warnings of the same type will not be shown.)', [
+    FViewport.ToString,
+    GLFeatures.MaxViewportDimensions.ToString
+  ]);
 end;
 
 procedure TRenderContext.SetViewport(const Value: TRectangle);
@@ -686,12 +691,13 @@ begin
 
   if not FViewport.Equals(Value) then
   begin
+    FViewport := Value;
+
     if (GLFeatures <> nil) and
        ((FViewport.Width > GLFeatures.MaxViewportDimensions.X) or
         (FViewport.Height > GLFeatures.MaxViewportDimensions.Y)) then
       WarningViewportTooLarge;
 
-    FViewport := Value;
     UpdateViewport;
   end;
 end;
@@ -736,7 +742,7 @@ begin
       if Value <> nil then
         glBindVertexArray(Value.InternalHandle(Self))
       else
-        glBindVertexArray(0);
+        glBindVertexArray(GLObjectNone);
     end;
   end;
 end;
@@ -891,12 +897,12 @@ begin
   PolygonOffset := NewState;
 end;
 
-function TRenderContext.GetBoundBuffer(const Target: TBufferTarget): TGLuint;
+function TRenderContext.GetBoundBuffer(const Target: TBufferTarget): TGLBuffer;
 begin
   Result := FBoundBuffer[Target];
 end;
 
-procedure TRenderContext.SetBoundBuffer(const Target: TBufferTarget; const Value: TGLuint);
+procedure TRenderContext.SetBoundBuffer(const Target: TBufferTarget; const Value: TGLBuffer);
 begin
   { TODO: Optimization (avoiding glBindBuffer) disabled.
     Reason: castle-model-viewer (rock.gltf, triangulatio.x3dv) shows

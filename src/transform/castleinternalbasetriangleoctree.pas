@@ -470,9 +470,9 @@ type
       to be "stable" pointers stored inside octrees' lists (so they will be valid
       as long as octree (and eventual children octrees for TShapeOctree)).
 
-      Every triangle is guaranteed to have it's World coordinates updated
-      (to put it simply, when this is used on TShapeOctree, then we
-      call UpdateWorld on each triangle). }
+      Every triangle is guaranteed to have it's SceneSpace coordinates updated
+      (when this is used on TShapeOctree, then we
+      call UpdateSceneSpace on each triangle). }
     procedure EnumerateTriangles(EnumerateTriangleFunc: TEnumerateTriangleFunc);
       virtual; abstract;
 
@@ -944,10 +944,10 @@ function TBaseTrianglesOctree.MoveCollision(
     NewPosShift: TVector3;
   begin
     {$ifdef CONSERVE_TRIANGLE_MEMORY_MORE}
-    Plane := Blocker^.World.Plane;
+    Plane := Blocker^.SceneSpace.Plane;
     PlanePtr := @Plane;
     {$else}
-    PlanePtr := @(Blocker^.World.Plane);
+    PlanePtr := @(Blocker^.SceneSpace.Plane);
     {$endif}
     PlaneNormalPtr := PVector3(PlanePtr);
 
@@ -1001,10 +1001,10 @@ function TBaseTrianglesOctree.MoveCollision(
     NewBlockerIntersection: TVector3;
   begin
     {$ifdef CONSERVE_TRIANGLE_MEMORY_MORE}
-    Plane := Blocker^.World.Plane;
+    Plane := Blocker^.SceneSpace.Plane;
     PlanePtr := @Plane;
     {$else}
-    PlanePtr := @(Blocker^.World.Plane);
+    PlanePtr := @(Blocker^.SceneSpace.Plane);
     {$endif}
 
     {$ifdef DEBUG_WALL_SLIDING}
@@ -1083,13 +1083,13 @@ function TBaseTrianglesOctree.MoveCollision(
         if (NewBlocker <> nil) and
            (NewBlocker <> Blocker) and
            IsTriangleSphereCollision(
-             NewBlocker^.World.Triangle,
-             NewBlocker^.World.Plane,
+             NewBlocker^.SceneSpace.Triangle,
+             NewBlocker^.SceneSpace.Plane,
              ProposedNewPos,
              { NewBlocker is accepted more generously, within 2 * normal radius. }
              Radius * 2) and
            TryPlaneLineIntersection(NewBlockerIntersection,
-             NewBlocker^.World.Plane,
+             NewBlocker^.SceneSpace.Plane,
              OldPos, ProposedNewPos - OldPos) then
         begin
           {$ifdef DEBUG_WALL_SLIDING} Writeln('Wall-sliding: Better blocker found: ', PointerToStr(NewBlocker), '.'); {$endif}
@@ -1099,10 +1099,10 @@ function TBaseTrianglesOctree.MoveCollision(
             (checked above that "not SegmentCollision"). }
 
           {$ifdef CONSERVE_TRIANGLE_MEMORY_MORE}
-          Plane := NewBlocker^.World.Plane;
+          Plane := NewBlocker^.SceneSpace.Plane;
           PlanePtr := @Plane;
           {$else}
-          PlanePtr := @(NewBlocker^.World.Plane);
+          PlanePtr := @(NewBlocker^.SceneSpace.Plane);
           {$endif}
           Projected := PointOnPlaneClosestToPoint(PlanePtr^, OldPos);
           Slide := NewBlockerIntersection - Projected;
@@ -1122,11 +1122,11 @@ function TBaseTrianglesOctree.MoveCollision(
           {$ifdef DEBUG_WALL_SLIDING}
           Writeln('Wall-sliding: Better blocker NOT found: ', PointerToStr(NewBlocker), ' ',
             IsTriangleSphereCollision(
-              NewBlocker^.World.Triangle,
-              NewBlocker^.World.Plane,
+              NewBlocker^.SceneSpace.Triangle,
+              NewBlocker^.SceneSpace.Plane,
               ProposedNewPos, Radius), ' ',
             TryPlaneLineIntersection(NewBlockerIntersection,
-              NewBlocker^.World.Plane,
+              NewBlocker^.SceneSpace.Plane,
               OldPos, ProposedNewPos - OldPos), '.');
           {$endif}
         end;
@@ -1168,7 +1168,7 @@ begin
       Result := true;
       NewPos := ProposedNewPos;
     end else
-    if TryPlaneLineIntersection(BlockerIntersection, Blocker^.World.Plane,
+    if TryPlaneLineIntersection(BlockerIntersection, Blocker^.SceneSpace.Plane,
       OldPos, ProposedNewPos - OldPos) then
       Result := MoveAlongTheBlocker(BlockerIntersection, false, Blocker) else
       Result := MoveAlongTheBlocker(Blocker);

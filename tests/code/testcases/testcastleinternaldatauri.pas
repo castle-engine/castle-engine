@@ -53,12 +53,8 @@ begin
 
   SoundFile := TSoundFile.Create(WavDataUri);
   try
-    // Writeln('Loaded: ', UriCaption(SoundFile.URL));
-    // Writeln('  Format: ', DataFormatToStr(SoundFile.DataFormat));
-    // Writeln('  Frequency: ', SoundFile.Frequency);
-    // Writeln('  Duration: ', SoundFile.Duration:1:2);
-
-    AssertTrue(SoundFile.DataFormat = sfMono16);
+    AssertTrue(SoundFile.SampleFormat = sfPcm16);
+    AssertEquals(1, SoundFile.Channels);
     AssertSameValue(3.75, SoundFile.Duration, 0.01);
     AssertEquals(22050, SoundFile.Frequency);
     AssertEquals('data:audio/x-wav;base64,...', UriCaption(SoundFile.URL));

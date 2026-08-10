@@ -157,8 +157,9 @@ type
 
     { Access dictionary items.
       Setting this is allowed regardless if the key previously existed or not,
-      in other words: setting this does AddOrSetValue, contrary to the ancestor TDictionary
-      that only allows setting when the key already exists. }
+      in other words: setting this does @code(AddOrSetValue),
+      contrary to the ancestor TDictionary that only sets the value
+      if the key already exists, and otherwise (on new key) raises an exception. }
     property Items [const AKey: string]: string read GetItems write SetItems; default;
   end;
 
@@ -297,18 +298,39 @@ function FirstDelimiter(const Delimiters, S: string): Integer;
   Yes, this is simply equivalent to Copy(S, P, MaxInt). }
 function SEnding(const s: string; P: integer): string;
 
+{ Does given string S start with Prefix. }
 function IsPrefix(const Prefix, S: string;
   IgnoreCase: boolean = true): boolean; overload;
+
+{ Does given string S end with Suffix. }
 function IsSuffix(const Suffix, S: string;
   IgnoreCase: boolean = true): boolean; overload;
+
+{ Does given string S start with Prefix and end with Suffix,
+  moreover the prefix and suffix are not overlapping.
+
+  We check the "overlapping" condition to guarantee that the prefix and suffix
+  can be removed independently and their order of removal doesn't matter.
+  For example @code(IsPrefixSuffix('bla', 'abc', 'blaMIDDLEabc')) returns @true,
+  but @code(IsPrefixSuffix('bla', 'abc', 'blabc')) returns @false. }
+function IsPrefixSuffix(const Prefix, Suffix, S: String;
+  const IgnoreCase: Boolean = true): Boolean;
 
 { Removes the prefix, if it is present. More precisely, if
   IsPrefix(Prefix, S, IgnoreCase) then returns S with this prefix
   removed. Else returns S. }
 function PrefixRemove(const Prefix, S: string; IgnoreCase: boolean): string;
 
-{ Like PrefixRemove, but checks for and removes Suffix. }
+{ Removes the suffix, if it is present. }
 function SuffixRemove(const Suffix, S: string; IgnoreCase: boolean): string;
+
+{ Removes the prefix and suffix, if they are both present.
+
+  Just like @link(IsPrefixSuffix), we check the "overlapping" condition.
+  If the prefix and suffix overlap, we do nothing.
+  For example @code(PrefixSuffixRemove('bla', 'abc', 'blaMIDDLEabc')) returns @code('MIDDLE'),
+  but @code(IsPrefixSuffix('bla', 'abc', 'blabc')) returns unmodified @code('blabc'). }
+function PrefixSuffixRemove(const Prefix, Suffix, S: String; const IgnoreCase: Boolean): String;
 
 { Appends to a string S DataSize bytes from Data. }
 procedure SAppendData(var s: string; const Data; DataSize: integer); deprecated 'this function is not very useful';
@@ -504,6 +526,8 @@ function SAppendPart(const s, PartSeparator, NextPart: string): string;
 type
   EDeformatError = class(Exception);
 
+{$ifndef CASTLE_DEFORMAT_BUGGY}
+
 { Parse a string according to the given format, returning the
   values corresponding to placeholders %x in format string.
 
@@ -601,6 +625,8 @@ function TryDeFormat(Data: string; const Format: string;
   const args: array of pointer;
   const IgnoreCase: boolean = true;
   const RelaxedWhitespaceChecking: boolean = true): integer; overload;
+
+{$endif CASTLE_DEFORMAT_BUGGY}
 
 { Replace all strings in Patterns with corresponding strings in Values.
   This is similar to standard StringReplace, but this does many
@@ -915,6 +941,8 @@ function StrToFloatDef(const s: string; DefValue: Extended): Extended;
   can't depend on how compiler stores sets.) }
 function SetToStr(const SetVariable; NumStart, NumEnd: byte): string;
 
+{ Show every character in set, using SReadableForm.
+  Useful for debugging TSetOfChars values. }
 function CharSetToStr(const SetVariable: TSetOfChars): string;
 
 { PCharOrNil simply returns a Pointer(S), you can think of it as a NO-OP.
@@ -1467,7 +1495,8 @@ end;
 function PrefixRemove(const Prefix, S: string; IgnoreCase: boolean): string;
 begin
   if IsPrefix(Prefix, S, IgnoreCase) then
-    Result := SEnding(S, Length(Prefix) + 1) else
+    Result := SEnding(S, Length(Prefix) + 1)
+  else
     Result := S;
 end;
 
@@ -1480,6 +1509,22 @@ begin
       than doing Result := Copy(S, 1, ...) }
     SetLength(Result, Length(s) - Length(Suffix));
   end;
+end;
+
+function IsPrefixSuffix(const Prefix, Suffix, S: String; const IgnoreCase: Boolean): Boolean;
+begin
+  Result :=
+    (Length(S) >= Length(Prefix) + Length(Suffix)) and
+    IsPrefix(Prefix, S, IgnoreCase) and
+    IsSuffix(Suffix, S, IgnoreCase);
+end;
+
+function PrefixSuffixRemove(const Prefix, Suffix, S: String; const IgnoreCase: Boolean): String;
+begin
+  if IsPrefixSuffix(Prefix, Suffix, S, IgnoreCase) then
+    Result := Copy(S, Length(Prefix) + 1, Length(S) - Length(Prefix) - Length(Suffix))
+  else
+    Result := S;
 end;
 
 procedure SAppendData(var s: string; const Data; DataSize: integer);
@@ -1753,6 +1798,8 @@ begin
     Result := S + PartSeparator + NextPart;
 end;
 
+{$ifndef CASTLE_DEFORMAT_BUGGY}
+
 procedure DeFormat(Data: string; const Format: string;
   const args: array of pointer;
   const IgnoreCase: boolean;
@@ -1954,6 +2001,8 @@ begin
   raise EDeformatError.CreateFmt(
     'data ''%s'' too long - unexpected end of format ''%s''', [Data, Format]);
 end;
+
+{$endif CASTLE_DEFORMAT_BUGGY}
 
 function SReplacePatterns(const S: string;
   const Patterns, Values: array of string; const IgnoreCase: boolean): string;

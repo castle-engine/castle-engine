@@ -47,9 +47,9 @@
   )
 
   Functions with Density <> Const return PdfValue for returned point,
-  i.e. for density p(Theta) it's PfdValue = p(Result.Y).
+  i.e. for density p(Theta) it's PdfValue = p(Result.Y).
   These functions try to calculate PdfValue smartly (often calculating
-  PfdValue and calculating Result uses the same intermediate calculation,
+  PdfValue and calculating Result uses the same intermediate calculation,
   so we can save some computation). PdfValue is needed for importance sampling.
 }
 

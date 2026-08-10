@@ -233,14 +233,16 @@ end;
 procedure ZLibInitialization;
 const
   ZLibraryName =
-    {$ifdef UNIX}
+    {$if defined(UNIX)}
       {$ifdef DARWIN} 'libz.dylib'
       {$else} 'libz.so.1'
       {$endif}
-    {$endif}
-    {$ifdef MSWINDOWS} 'zlib1.dll' {$endif};
+    {$elseif defined(MSWINDOWS)} 'zlib1.dll'
+    {$else} '' // TODO: web: No gunziping implemented for now
+    {$endif};
 begin
-  ZLibrary := TDynLib.Load(ZLibraryName, false);
+  if ZLibraryName <> '' then
+    ZLibrary := TDynLib.Load(ZLibraryName, false);
 
   {$ifdef FREEBSD}
   if ZLibrary = nil then

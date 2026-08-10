@@ -155,7 +155,7 @@ begin
 
     RenderToTexture.GLContextClose;
 
-    glFreeTexture(TargetTexture);
+    FreeTexture(TargetTexture);
   finally FreeAndNil(RenderToTexture) end;
 end;
 

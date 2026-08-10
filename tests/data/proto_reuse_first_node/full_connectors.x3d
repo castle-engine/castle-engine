@@ -1,0 +1,391 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE X3D PUBLIC "ISO//Web3D//DTD X3D 4.0//EN" "https://www.web3d.org/specifications/x3d-4.0.dtd">
+<X3D profile='Interchange' version='4.0' xmlns:xsd='http://www.w3.org/2001/XMLSchema-instance' xsd:noNamespaceSchemaLocation='https://www.web3d.org/specifications/x3d-4.0.xsd'>
+  <head>
+    <component name='Geometry2D' level='2'/>
+    <component name='PointingDeviceSensor' level='1'/>
+    <component name='Scripting' level='1'/>
+    <meta name='comment' content='World of Titania'/>
+    <meta name='created' content='Fri, 04 Sep 2015 10:19:01 GMT'/>
+    <meta name='creator' content='Holger Seelig'/>
+    <meta name='generator' content='Titania V3.0.4, http://titania.create3000.de'/>
+    <meta name='generator' content='Sunrize X3D Editor V1.8.16, https://create3000.github.io/sunrize/'/>
+    <meta name='identifier' content='file:///home/holger/Projekte/Cobweb/excite/tests/Components/Shape/Connectors.x3d'/>
+    <meta name='modified' content='Fri, 25 Jul 2025 15:45:38 GMT'/>
+    <meta name='title' content='Connectors'/>
+  </head>
+  <Scene>
+    <ProtoDeclare name='RoundedRectangle2D'>
+      <ProtoInterface>
+        <field accessType='initializeOnly' type='SFFloat' name='cornerRadius' value='1'/>
+        <field accessType='initializeOnly' type='SFVec2f' name='size' value='2 2'/>
+        <field accessType='initializeOnly' type='SFBool' name='solid' value='true'/>
+      </ProtoInterface>
+      <ProtoBody>
+        <IndexedFaceSet DEF='Geometry'>
+          <IS>
+            <connect nodeField='solid' protoField='solid'/>
+          </IS>
+          <Coordinate/>
+        </IndexedFaceSet>
+        <Script DEF='RoundedRectangle2D'
+            directOutput='true'>
+          <field accessType='initializeOnly' type='SFFloat' name='cornerDimension' value='10'/>
+          <field accessType='initializeOnly' type='SFFloat' name='cornerRadius'/>
+          <field accessType='initializeOnly' type='SFVec2f' name='size'/>
+          <field accessType='initializeOnly' type='SFNode' name='geometry'>
+            <IndexedFaceSet USE='Geometry'/>
+          </field>
+          <IS>
+            <connect nodeField='cornerRadius' protoField='cornerRadius'/>
+            <connect nodeField='size' protoField='size'/>
+          </IS>
+<![CDATA[vrmlscript:
+
+function initialize ()
+{
+	var point         = new SFVec3f (cornerRadius, 0, 0);
+	var startRotation = new SFRotation ();
+	var endRotation   = new SFRotation (0, 0, 1, Math .PI / 2);
+	var corner        = new MFVec3f ();
+	var coordIndex    = new MFInt32 ();
+	var points        = new MFVec3f ();
+
+	for (var i = 0; i < cornerDimension * 4; ++ i)
+		coordIndex [coordIndex .length] = i;
+
+	geometry .coordIndex = coordIndex;
+
+	for (var i = 0; i < cornerDimension; ++i)
+		corner [i] = startRotation .slerp (endRotation, i / (cornerDimension - 1)) .multVec (point);
+
+	var translation = new SFVec3f (size .x / 2 - cornerRadius, size .y / 2 - cornerRadius, 0);
+
+	for (var i = 0; i < cornerDimension; ++ i)
+		points [points .length] = corner [i] .add (translation);
+
+	var translation = new SFVec3f (-size .x / 2 + cornerRadius, size .y / 2 - cornerRadius, 0);
+	var rotation    = new SFRotation (0, 0, 1, Math .PI * 0.5);
+
+	for (var i = 0; i < cornerDimension; ++ i)
+		points [points .length] = rotation .multVec (corner [i]) .add (translation);
+
+	var translation = new SFVec3f (-size .x / 2 + cornerRadius, -size .y / 2 + cornerRadius, 0);
+	var rotation    = new SFRotation (0, 0, 1, Math .PI);
+
+	for (var i = 0; i < cornerDimension; ++ i)
+		points [points .length] = rotation .multVec (corner [i]) .add (translation);
+
+	var translation = new SFVec3f (size .x / 2 - cornerRadius, -size .y / 2 + cornerRadius, 0);
+	var rotation    = new SFRotation (0, 0, 1, Math .PI * 1.5);
+
+	for (var i = 0; i < cornerDimension; ++ i)
+		points [points .length] = rotation .multVec (corner [i]) .add (translation);
+
+	geometry .coord .point = points;
+}
+]]>
+        </Script>
+      </ProtoBody>
+    </ProtoDeclare>
+    <ProtoDeclare name='Widget'>
+      <ProtoInterface>
+        <field accessType='inputOutput' type='SFColor' name='fillColor' value='0.1 0.1 0.1'/>
+        <field accessType='inputOutput' type='SFColor' name='lineColor' value='0.4 0.4 0.4'/>
+        <field accessType='inputOutput' type='SFFloat' name='linewidthScaleFactor' value='1'/>
+        <field accessType='inputOutput' type='SFNode' name='geometry'/>
+      </ProtoInterface>
+      <ProtoBody>
+        <Transform DEF='Shape'>
+          <Shape>
+            <IS>
+              <connect nodeField='geometry' protoField='geometry'/>
+            </IS>
+            <Appearance>
+              <Material>
+                <IS>
+                  <connect nodeField='diffuseColor' protoField='fillColor'/>
+                </IS>
+              </Material>
+            </Appearance>
+          </Shape>
+          <Shape>
+            <IS>
+              <connect nodeField='geometry' protoField='geometry'/>
+            </IS>
+            <Appearance>
+              <LineProperties>
+                <IS>
+                  <connect nodeField='linewidthScaleFactor' protoField='linewidthScaleFactor'/>
+                </IS>
+              </LineProperties>
+              <FillProperties
+                  filled='false'
+                  hatched='false'/>
+              <Material
+                  diffuseColor='0 0 0'>
+                <IS>
+                  <connect nodeField='emissiveColor' protoField='lineColor'/>
+                </IS>
+              </Material>
+            </Appearance>
+          </Shape>
+        </Transform>
+      </ProtoBody>
+    </ProtoDeclare>
+    <ProtoDeclare name='Node'>
+      <ProtoInterface>
+        <field accessType='inputOutput' type='SFVec3f' name='translation'/>
+      </ProtoInterface>
+      <ProtoBody>
+        <Group>
+          <PlaneSensor DEF='PlaneSensor'/>
+          <Transform DEF='Node'>
+            <IS>
+              <connect nodeField='translation' protoField='translation'/>
+            </IS>
+            <ProtoInstance name='Widget'>
+              <fieldValue name='geometry'>
+                <ProtoInstance name='RoundedRectangle2D'>
+                  <fieldValue name='cornerRadius' value='0.12'/>
+                  <fieldValue name='size' value='2 1'/>
+                </ProtoInstance>
+              </fieldValue>
+            </ProtoInstance>
+            <Transform DEF='Input'
+                translation='-1 0 0'>
+              <ProtoInstance name='Widget'>
+                <fieldValue name='lineColor' value='0.72 0.14 0.23'/>
+                <fieldValue name='geometry'>
+                  <Disk2D DEF='Connector'
+                      outerRadius='0.2'/>
+                </fieldValue>
+              </ProtoInstance>
+            </Transform>
+            <Transform DEF='Output'
+                translation='1 0 0'>
+              <ProtoInstance name='Widget'>
+                <fieldValue name='lineColor' value='0.44 0.5 0.72'/>
+                <fieldValue name='geometry'>
+                  <Disk2D USE='Connector'/>
+                </fieldValue>
+              </ProtoInstance>
+            </Transform>
+          </Transform>
+        </Group>
+        <Script
+            directOutput='true'>
+          <field accessType='inputOutput' type='SFVec3f' name='translation'/>
+          <field accessType='initializeOnly' type='SFNode' name='sensor'>
+            <PlaneSensor USE='PlaneSensor'/>
+          </field>
+          <field accessType='initializeOnly' type='SFNode' name='transform'>
+            <Transform USE='Node'/>
+          </field>
+          <IS>
+            <connect nodeField='translation' protoField='translation'/>
+          </IS>
+<![CDATA[vrmlscript:
+function initialize ()
+{
+	sensor .offset = translation;
+}
+]]>
+        </Script>
+        <ROUTE fromNode='PlaneSensor' fromField='translation_changed' toNode='Node' toField='set_translation'/>
+      </ProtoBody>
+    </ProtoDeclare>
+    <ProtoDeclare name='Route'>
+      <ProtoInterface>
+        <field accessType='inputOutput' type='SFColor' name='lineColor' value='0.43 0.43 0.98'/>
+        <field accessType='inputOutput' type='SFFloat' name='linewidthScaleFactor' value='2'/>
+        <field accessType='initializeOnly' type='SFNode' name='output'/>
+        <field accessType='initializeOnly' type='SFNode' name='input'/>
+      </ProtoInterface>
+      <ProtoBody>
+        <Shape>
+          <Appearance>
+            <LineProperties>
+              <IS>
+                <connect nodeField='linewidthScaleFactor' protoField='linewidthScaleFactor'/>
+              </IS>
+            </LineProperties>
+            <Material
+                diffuseColor='0 0 0'>
+              <IS>
+                <connect nodeField='emissiveColor' protoField='lineColor'/>
+              </IS>
+            </Material>
+          </Appearance>
+          <LineSet DEF='Geometry_1'
+              vertexCount='2'>
+            <Coordinate
+                point='-1 0 0, 1 0 0'/>
+          </LineSet>
+        </Shape>
+        <Script DEF='Route'
+            directOutput='true'>
+          <field accessType='inputOnly' type='SFVec3f' name='set_translation'/>
+          <field accessType='initializeOnly' type='SFInt32' name='routeDimension' value='21'/>
+          <field accessType='initializeOnly' type='SFNode' name='output'/>
+          <field accessType='initializeOnly' type='SFNode' name='input'/>
+          <field accessType='initializeOnly' type='SFNode' name='geometry'>
+            <LineSet USE='Geometry_1'/>
+          </field>
+          <field accessType='initializeOnly' type='SFNode' name='self'>
+            <Script USE='Route'/>
+          </field>
+          <IS>
+            <connect nodeField='output' protoField='output'/>
+            <connect nodeField='input' protoField='input'/>
+          </IS>
+<![CDATA[vrmlscript:
+function initialize ()
+{
+	Browser .addRoute (output, 'translation_changed', self, 'set_translation');
+	Browser .addRoute (input,  'translation_changed', self, 'set_translation');
+
+	set_translation ();
+}
+
+function set_translation ()
+{
+	geometry .vertexCount [0] = routeDimension;
+
+	var outPoint = output .translation .add (new SFVec3f ( 1, 0, 0));
+	var inPoint  = input  .translation .add (new SFVec3f (-1, 0, 0));
+
+	var w = inPoint .x - outPoint .x;
+	var h = outPoint .y - inPoint .y;
+
+	for (var i = 0; i < routeDimension; ++ i)
+	{
+		var t = i / (routeDimension - 1);
+		var y = h / 2 * (Math .cos (t * Math .PI) - 1);
+
+		geometry .coord .point [i] = outPoint .add (new SFVec3f (t * w, y, 0));
+	}
+}
+]]>
+        </Script>
+      </ProtoBody>
+    </ProtoDeclare>
+    <NavigationInfo
+        type='"PLANE_create3000.de", "ANY"'/>
+    <Background
+        skyColor='0.2 0.2 0.2'/>
+    <OrthoViewpoint
+        description='OrthoViewpoint'
+        position='-3.13496 -4.19776 10'
+        centerOfRotation='-3.13496 -4.19776 0'
+        fieldOfView='0, 0, 10, 10'/>
+    <Viewpoint
+        description='Viewpoint'/>
+    <Transform DEF='Connectors'>
+      <ProtoInstance name='Route'>
+        <fieldValue name='output'>
+          <ProtoInstance name='Node' DEF='N1'>
+            <fieldValue name='translation' value='-3.98323 2.88948 0'/>
+          </ProtoInstance>
+        </fieldValue>
+        <fieldValue name='input'>
+          <ProtoInstance name='Node' DEF='N2'>
+            <fieldValue name='translation' value='-0.0890862 2.96049 0'/>
+          </ProtoInstance>
+        </fieldValue>
+      </ProtoInstance>
+      <ProtoInstance name='Route'>
+        <fieldValue name='output'>
+          <ProtoInstance name='Node' USE='N1'/>
+        </fieldValue>
+        <fieldValue name='input'>
+          <ProtoInstance name='Node' DEF='N3'>
+            <fieldValue name='translation' value='-0.104169 1.16371 0'/>
+          </ProtoInstance>
+        </fieldValue>
+      </ProtoInstance>
+      <ProtoInstance name='Route'>
+        <fieldValue name='output'>
+          <ProtoInstance name='Node' USE='N1'/>
+        </fieldValue>
+        <fieldValue name='input'>
+          <ProtoInstance name='Node' DEF='N4'>
+            <fieldValue name='translation' value='-0.0998688 -0.40172 0'/>
+          </ProtoInstance>
+        </fieldValue>
+      </ProtoInstance>
+      <ProtoInstance name='Route'>
+        <fieldValue name='output'>
+          <ProtoInstance name='Node' USE='N1'/>
+        </fieldValue>
+        <fieldValue name='input'>
+          <ProtoInstance name='Node' DEF='N5'>
+            <fieldValue name='translation' value='-0.0998687 -2.14742 0'/>
+          </ProtoInstance>
+        </fieldValue>
+      </ProtoInstance>
+      <ProtoInstance name='Route'>
+        <fieldValue name='output'>
+          <ProtoInstance name='Node' USE='N2'/>
+        </fieldValue>
+        <fieldValue name='input'>
+          <ProtoInstance name='Node' DEF='N6'>
+            <fieldValue name='translation' value='3.55694 2.4116 0'/>
+          </ProtoInstance>
+        </fieldValue>
+      </ProtoInstance>
+      <ProtoInstance name='Route'>
+        <fieldValue name='output'>
+          <ProtoInstance name='Node' USE='N3'/>
+        </fieldValue>
+        <fieldValue name='input'>
+          <ProtoInstance name='Node' USE='N6'/>
+        </fieldValue>
+      </ProtoInstance>
+      <ProtoInstance name='Route'>
+        <fieldValue name='output'>
+          <ProtoInstance name='Node' USE='N4'/>
+        </fieldValue>
+        <fieldValue name='input'>
+          <ProtoInstance name='Node' DEF='N7'>
+            <fieldValue name='translation' value='3.75106 -0.0794556 0'/>
+          </ProtoInstance>
+        </fieldValue>
+      </ProtoInstance>
+      <ProtoInstance name='Route'>
+        <fieldValue name='output'>
+          <ProtoInstance name='Node' USE='N5'/>
+        </fieldValue>
+        <fieldValue name='input'>
+          <ProtoInstance name='Node' USE='N7'/>
+        </fieldValue>
+      </ProtoInstance>
+      <ProtoInstance name='Route'>
+        <fieldValue name='output'>
+          <ProtoInstance name='Node' USE='N6'/>
+        </fieldValue>
+        <fieldValue name='input'>
+          <ProtoInstance name='Node' DEF='N8'>
+            <fieldValue name='translation' value='7.68077 1.21228 0'/>
+          </ProtoInstance>
+        </fieldValue>
+      </ProtoInstance>
+      <ProtoInstance name='Route'>
+        <fieldValue name='output'>
+          <ProtoInstance name='Node' USE='N7'/>
+        </fieldValue>
+        <fieldValue name='input'>
+          <ProtoInstance name='Node' USE='N8'/>
+        </fieldValue>
+      </ProtoInstance>
+      <ProtoInstance name='Node' USE='N1'/>
+      <ProtoInstance name='Node' USE='N2'/>
+      <ProtoInstance name='Node' USE='N3'/>
+      <ProtoInstance name='Node' USE='N4'/>
+      <ProtoInstance name='Node' USE='N5'/>
+      <ProtoInstance name='Node' USE='N6'/>
+      <ProtoInstance name='Node' USE='N7'/>
+      <ProtoInstance name='Node' USE='N8'/>
+    </Transform>
+  </Scene>
+</X3D>

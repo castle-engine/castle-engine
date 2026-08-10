@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2019 Michalis Kamburelis.
+  Copyright 2010-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -146,12 +146,12 @@ type
     VorbisFile: TOggVorbis_File;
     // Is VorbisFile valid, e.g. we can call ov_clear on it.
     VorbisFileValid: Boolean;
-    procedure OpenVorbisFile(out DataFormat: TSoundDataFormat;
-      out Frequency: Cardinal; out Duration: TFloatTime);
+    procedure OpenVorbisFile(out SampleFormat: TSoundSampleFormat; out Channels: Cardinal;
+      out Frequency: TSoundFrequency; out Duration: TFloatTime);
     procedure CloseVorbisFile;
   public
     constructor Create(const ASourceStream: TStream;
-      out DataFormat: TSoundDataFormat; out Frequency: Cardinal;
+      out SampleFormat: TSoundSampleFormat; out Channels: Cardinal; out Frequency: TSoundFrequency;
       out Duration: TFloatTime);
     destructor Destroy; override;
     function Read(var Buffer; BufferSize: Longint): Longint; override;
@@ -162,16 +162,16 @@ type
 
     { Use this function to register OggVorbis handling with RegisterSoundFormat. }
     class function ReadStream(const Url: String; const Stream: TStream;
-      out DataFormat: TSoundDataFormat; out Frequency: Cardinal;
+      out SampleFormat: TSoundSampleFormat; out Channels: Cardinal; out Frequency: TSoundFrequency;
       out Duration: TFloatTime): TStream;
   end;
 
 constructor TOggVorbisStream.Create(const ASourceStream: TStream;
-  out DataFormat: TSoundDataFormat; out Frequency: Cardinal;
+  out SampleFormat: TSoundSampleFormat; out Channels: Cardinal; out Frequency: TSoundFrequency;
   out Duration: TFloatTime);
 begin
   inherited Create(ASourceStream);
-  OpenVorbisFile(DataFormat, Frequency, Duration);
+  OpenVorbisFile(SampleFormat, Channels, Frequency, Duration);
 end;
 
 destructor TOggVorbisStream.Destroy;
@@ -181,7 +181,7 @@ begin
 end;
 
 procedure TOggVorbisStream.OpenVorbisFile(
-  out DataFormat: TSoundDataFormat; out Frequency: Cardinal;
+  out SampleFormat: TSoundSampleFormat; out Channels: Cardinal; out Frequency: TSoundFrequency;
   out Duration: TFloatTime);
 var
   DurationRaw: {$ifdef CASTLE_TREMOLO} Int64 {$else} Double {$endif};
@@ -201,12 +201,9 @@ begin
   VorbisFileValid := true; // ov_clear on VorbisFile now is valid
 
   OggInfo := ov_info(@VorbisFile, -1);
-
-  if OggInfo^.channels = 1 then
-    DataFormat := sfMono16
-  else
-    DataFormat := sfStereo16;
-
+  // we use ov_read with 16 bits output always, so this is the sample format we return
+  SampleFormat := sfPcm16;
+  Channels := OggInfo^.channels;
   Frequency := OggInfo^.rate;
 
   DurationRaw := ov_time_total(@VorbisFile, -1);
@@ -298,8 +295,9 @@ end;
 
 function TOggVorbisStream.Seek(const Offset: Int64; Origin: TSeekOrigin): Int64;
 var
-  IgnoreDataFormat: TSoundDataFormat;
-  IgnoreFrequency: Cardinal;
+  IgnoreSampleFormat: TSoundSampleFormat;
+  IgnoreChannels: Cardinal;
+  IgnoreFrequency: TSoundFrequency;
   IgnoreDuration: TFloatTime;
 begin
   // Seek is also used to track current position, but we don't track it
@@ -313,7 +311,7 @@ begin
   begin
     CloseVorbisFile;
     Source.Position := 0;
-    OpenVorbisFile(IgnoreDataFormat, IgnoreFrequency, IgnoreDuration);
+    OpenVorbisFile(IgnoreSampleFormat, IgnoreChannels, IgnoreFrequency, IgnoreDuration);
     Exit;
   end;
 
@@ -321,10 +319,10 @@ begin
 end;
 
 class function TOggVorbisStream.ReadStream(const Url: String; const Stream: TStream;
-  out DataFormat: TSoundDataFormat; out Frequency: Cardinal;
+  out SampleFormat: TSoundSampleFormat; out Channels: Cardinal; out Frequency: TSoundFrequency;
   out Duration: TFloatTime): TStream;
 begin
-  Result := TOggVorbisStream.Create(Stream, DataFormat, Frequency, Duration);
+  Result := TOggVorbisStream.Create(Stream, SampleFormat, Channels, Frequency, Duration);
 end;
 
 initialization

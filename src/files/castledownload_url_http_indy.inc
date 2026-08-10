@@ -156,7 +156,7 @@ begin
     { We need to pass User-Agent to avoid Cloudflare answering with 403 Forbidden.
       See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent
       about User-Agent. }
-    IdHttp.Request.UserAgent :=  'Mozilla/5.0 (compatible; CastleGameEngine/1.0; https://castle-engine.io/manual_network.php)';
+    IdHttp.Request.UserAgent :=  'Mozilla/5.0 (compatible; CastleGameEngine/1.0; https://castle-engine.io/url)';
 
     { Use SSL with proper options in case of https protocol.
       Note that using TIdSSLIOHandlerSocketOpenSSL to unencrypted http

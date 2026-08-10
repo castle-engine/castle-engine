@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2024 Michalis Kamburelis.
+  Copyright 2015-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -36,6 +36,12 @@
     procedure SetOrientation(const Value: TVector4);
     function GetRetainUserOffsets: Boolean;
     procedure SetRetainUserOffsets(const Value: Boolean);
+    function GetNearDistance: Single;
+    procedure SetNearDistance(const Value: Single);
+    function GetFarDistance: Single;
+    procedure SetFarDistance(const Value: Single);
+    function GetNavigationInfo: TNavigationInfoNode;
+    procedure SetNavigationInfo(const Value: TNavigationInfoNode);
     function GetCameraMatrixSendAlsoOnOffscreenRendering: Boolean;
     procedure SetCameraMatrixSendAlsoOnOffscreenRendering(const Value: Boolean);
     function GetGravityUp: TVector3;
@@ -85,6 +91,40 @@
     {  }
     property RetainUserOffsets: Boolean read GetRetainUserOffsets write SetRetainUserOffsets;
 
+    strict private FFdNearDistance: TSFFloat;
+    { Internal wrapper for property @code(NearDistance). This wrapper API may change, we advise to access simpler @code(NearDistance) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdNearDistance: TSFFloat read FFdNearDistance;
+    { Near clipping distance to the camera.
+
+      This value is used only if it is positive and this is the currently "bound" viewpoint node (see @link(TAbstractBindableNode.Bound)). Otherwise we fallback of @link(TNavigationInfoNode) information.
+
+      Note: In Castle Game Engine, by default near and far clipping planes are determined by the explicitly set @link(TCastleCamera.ProjectionNear) and @link(TCastleCamera.ProjectionFar) values. They do not depend on the X3D model contents automatically. To make them follow the X3D contents, you need to:
+
+      @orderedlist(
+        @item(set @link(TCastleCamera.ProjectionNear) and @link(TCastleCamera.ProjectionFar) to 0 (meaning "autocalculate"),)
+        @item(set deprecated @link(TCastleRootTransform.MainScene MyViewport.Items.MainScene) to point to the scene that contains this Viewpoint node,)
+        @item(and call @link(TCastleViewport.AssignDefaultCamera) or set deprecated @link(TCastleViewport.AutoCamera).)
+      )
+
+      The model viewers, like Castle Model Viewer, have the relevant code to make @link(TCastleCamera) follow the X3D settings automatically. }
+    property NearDistance: Single read GetNearDistance write SetNearDistance;
+
+    strict private FFdFarDistance: TSFFloat;
+    { Internal wrapper for property @code(FarDistance). This wrapper API may change, we advise to access simpler @code(FarDistance) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdFarDistance: TSFFloat read FFdFarDistance;
+    { Far clipping distance to the camera.
+
+      See @link(NearDistance) for more information when it is used. }
+    property FarDistance: Single read GetFarDistance write SetFarDistance;
+
+    strict private FFdNavigationInfo: TSFNode;
+    { Internal wrapper for property @code(NavigationInfo). This wrapper API may change, we advise to access simpler @code(NavigationInfo) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdNavigationInfo: TSFNode read FFdNavigationInfo;
+    { @italic(Not implemented in Castle Game Engine yet.) @exclude
+
+      Dedicated navigation information for this viewpoint. The specified NavigationInfo node will be bound / unbound when the parent viewpoint will be bound / unbound. }
+    property NavigationInfo: TNavigationInfoNode read GetNavigationInfo write SetNavigationInfo;
+
     strict private FEventCameraMatrix: TSFMatrix4fEvent;
     {  }
     public property EventCameraMatrix: TSFMatrix4fEvent read FEventCameraMatrix;
@@ -126,6 +166,7 @@
     public property FdGravityTransform: TSFBool read FFdGravityTransform;
     { Should the gravity vector be affected by the viewpoint transformation, that is by the @link(TTransformNode) instances that contain this TAbstractViewpointNode. }
     property GravityTransform: Boolean read GetGravityTransform write SetGravityTransform;
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -193,6 +234,39 @@ begin
   FdRetainUserOffsets.Send(Value);
 end;
 
+function TAbstractViewpointNode.GetNearDistance: Single;
+begin
+  Result := FdNearDistance.Value;
+end;
+
+procedure TAbstractViewpointNode.SetNearDistance(const Value: Single);
+begin
+  FdNearDistance.Send(Value);
+end;
+
+function TAbstractViewpointNode.GetFarDistance: Single;
+begin
+  Result := FdFarDistance.Value;
+end;
+
+procedure TAbstractViewpointNode.SetFarDistance(const Value: Single);
+begin
+  FdFarDistance.Send(Value);
+end;
+
+function TAbstractViewpointNode.GetNavigationInfo: TNavigationInfoNode;
+begin
+  if FdNavigationInfo.Value is TNavigationInfoNode then
+    Result := TNavigationInfoNode(FdNavigationInfo.Value)
+  else
+    Result := nil;
+end;
+
+procedure TAbstractViewpointNode.SetNavigationInfo(const Value: TNavigationInfoNode);
+begin
+  FdNavigationInfo.Send(Value);
+end;
+
 function TAbstractViewpointNode.GetCameraMatrixSendAlsoOnOffscreenRendering: Boolean;
 begin
   Result := FdCameraMatrixSendAlsoOnOffscreenRendering.Value;
@@ -256,6 +330,18 @@ begin
    FdRetainUserOffsets.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdRetainUserOffsets);
 
+  FFdNearDistance := TSFFloat.Create(Self, True, 'nearDistance', -1);
+   FdNearDistance.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdNearDistance);
+
+  FFdFarDistance := TSFFloat.Create(Self, True, 'farDistance', -1);
+   FdFarDistance.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdFarDistance);
+
+  FFdNavigationInfo := TSFNode.Create(Self, True, 'navigationInfo', [TNavigationInfoNode]);
+   FdNavigationInfo.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdNavigationInfo);
+
   FEventCameraMatrix := TSFMatrix4fEvent.Create(Self, 'cameraMatrix', false);
   AddEvent(FEventCameraMatrix);
 
@@ -287,6 +373,31 @@ begin
   FFdGravityTransform := TSFBool.Create(Self, True, 'gravityTransform', true);
    FdGravityTransform.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdGravityTransform);
+end;
+
+procedure TAbstractViewpointNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+  if not FdAutoCenterOfRotation.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdAutoCenterOfRotation.X3DName);
+  if EventCameraMatrix.InternalRouteCount > 0 then
+    ExtensionNames.Add(X3DType + '.' + EventCameraMatrix.X3DName);
+  if EventCameraInverseMatrix.InternalRouteCount > 0 then
+    ExtensionNames.Add(X3DType + '.' + EventCameraInverseMatrix.X3DName);
+  if EventCameraRotationMatrix.InternalRouteCount > 0 then
+    ExtensionNames.Add(X3DType + '.' + EventCameraRotationMatrix.X3DName);
+  if EventCameraRotationInverseMatrix.InternalRouteCount > 0 then
+    ExtensionNames.Add(X3DType + '.' + EventCameraRotationInverseMatrix.X3DName);
+  if not FdCameraMatrixSendAlsoOnOffscreenRendering.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdCameraMatrixSendAlsoOnOffscreenRendering.X3DName);
+  if not FdDirection.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdDirection.X3DName);
+  if not FdUp.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdUp.X3DName);
+  if not FdGravityUp.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdGravityUp.X3DName);
+  if not FdGravityTransform.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdGravityTransform.X3DName);
 end;
 
 {$endif read_implementation}

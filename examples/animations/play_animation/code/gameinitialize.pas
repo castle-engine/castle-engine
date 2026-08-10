@@ -37,11 +37,6 @@ var
 { One-time initialization of resources. }
 procedure ApplicationInitialize;
 begin
-  { This is an optimization useful when you animate a hierarchy of Transform
-    nodes (which often happens in case of Spine animation).
-    The animation blending should work the same, regardless if this is false or true. }
-  // OptimizeExtensiveTransformations := true;
-
   { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
   Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
@@ -70,26 +65,7 @@ initialization
   Application.MainWindow := Window;
 
   { Optionally, adjust window fullscreen state and size at this point.
-    Examples:
-
-    Run fullscreen:
-
-      Window.FullScreen := true;
-
-    Run in a 600x400 window:
-
-      Window.FullScreen := false; // default
-      Window.Width := 600;
-      Window.Height := 400;
-
-    Run in a window taking 2/3 of screen (width and height):
-
-      Window.FullScreen := false; // default
-      Window.Width := Application.ScreenWidth * 2 div 3;
-      Window.Height := Application.ScreenHeight * 2 div 3;
-
-    Note that some platforms (like mobile) ignore these window sizes.
-  }
+    See https://castle-engine.io/window_size . }
 
   { Handle command-line parameters like --fullscreen and --window.
     By doing this last, you let user to override your fullscreen / mode setup. }

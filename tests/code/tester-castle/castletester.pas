@@ -1,5 +1,5 @@
 ﻿{
-  Copyright 2022-2024 Andrzej Kilijański, Dean Zobec, Michael Van Canneyt, Michalis Kamburelis.
+  Copyright 2022-2026 Andrzej Kilijański, Dean Zobec, Michael Van Canneyt, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,7 +13,9 @@
   ----------------------------------------------------------------------------
 }
 
-{ Running tests, compatible with fpcunit, using some code from fpcunit
+{ Running tests with extra helpers for Castle Game Engine.
+
+  This is mostly compatible with FpcUnit, using some code from FpcUnit
   (part of Free Component Library (FCL)) by Dean Zobec, Michael Van Canneyt.
   See https://wiki.lazarus.freepascal.org/fpcunit for more info. }
 unit CastleTester;
@@ -23,7 +25,8 @@ interface
 // FPC: Do not warn that Rtti is experimental
 {$ifdef FPC} {$warnings off} {$endif}
 
-uses SysUtils, Classes, Generics.Collections, Rtti, CastleVectors, CastleBoxes,
+uses SysUtils, Classes, Generics.Collections, Rtti,
+  CastleVectors, CastleBoxes,
   CastleFrustum, CastleImages, CastleRectangles, CastleWindow, CastleViewport;
 
 {$ifdef FPC} {$warnings on} {$endif}
@@ -40,7 +43,9 @@ const
   DoubleEpsilon = 1E-12;
 
 type
-
+  { One of the assertions (from TCastleTestCase.AssertXxx methods) failed.
+    Do not confuse this with EAssertionFailed, raised when standard Pascal
+    Assert failed. }
   EAssertionFailedError = class(Exception);
 
   TNotifyTestFail = procedure (const TestName, Msg: String) of object;
@@ -57,6 +62,8 @@ type
   TCastleTestCase = class;
   {$M-}
 
+  { A single TestXxx method that can be executed to perform a test.
+    This refers to TestCase (TCastleTestCase) which is a class holding this method. }
   TCastleTest = class
   strict private
     FTestCase: TCastleTestCase;
@@ -88,6 +95,14 @@ type
   end;
 
   {$M+} // Generate type info for TCastleTestCase and descendants
+
+  { Base class from which you should derive new tests.
+
+    Every published method of this class that starts with the name "Test"
+    will be executed.
+
+    The Setup and Teardown will be called around it, for every such "TestXxx"
+    call. }
   TCastleTestCase = class
   strict private
     FName: String;
@@ -98,15 +113,9 @@ type
 
     function GetTest(const Index: Integer): TCastleTest;
   private
-    FNotifyTestFail: TNotifyTestFail;
     FCurrentTestName: String;
 
     FWindowForTest: TCastleWindow;
-    { Viewport from Application.MainWindow in non-console mode,
-      or viewport from FWindowForViewportTest when Console Mode. }
-    FViewportForTest: TCastleViewport;
-    { Window for Viewport when tester in Console mode }
-    FWindowForViewportTest: TCastleWindow;
     { TCastleTester that runs test case }
     FCastleTester: TCastleTester;
 
@@ -218,7 +227,7 @@ type
     procedure AssertBoxesEqual(const Msg: String; const Expected, Actual: TBox3D;
       const Epsilon: Double; AddrOfError: Pointer = nil); overload;
 
-    procedure AssertImagesEqual(const Expected, Actual: TCastleImage;
+    procedure AssertImagesEqual(const Expected, Actual: TEncodedImage;
       AddrOfError: Pointer = nil);
 
     procedure AssertRectsEqual(const Expected, Actual: TRectangle;
@@ -235,8 +244,17 @@ type
 
     function CompareFileName(Expected, Actual: String): Boolean;
 
-    { Get temporary directory, implementation that works for both Delphi and FPC. }
+    { Get temporary directory.
+      This is a simplest wrapper over the respective FPC / Delphi functions. }
     function GetTempDirectory: String;
+
+    { Create an URL to an existing temporary directory.
+
+      - Determines temporary directory using GetTempDirectory
+      - Adds subdirectory based on SubDirBaseName and random number
+      - Actually creates it using ForceDirectories
+      - Returns URL (not just a filename) of it. }
+    function CreateTemporaryDirUrl(const SubDirBaseName: String): String;
 
     procedure TestLog(Text: String);
 
@@ -255,10 +273,6 @@ type
       because the window will be automatically freed when test method ends anyway. }
     procedure DestroyWindowForTest(var Window: TCastleWindow);
 
-    { If you need a TCastleViewport for testing, you can use this one.
-      This viewport is automatically cleaned when test method ends. }
-    //function GetTestingViewport: TCastleViewport;
-
     { Used by TCastleTester.Scan to add tests }
     function AddTest(const AName: String;
       {$ifdef FPC}const AMethodPointer: CodePointer{$else}
@@ -268,7 +282,8 @@ type
 
       In case you do manually TCastleWindow.Create call,
       you should also honour this method, do not create TCastleWindow instance
-      when this is @false. Abort the test (without any failure) in this case.
+      when this is @false. Abort the test (without any failure) in this case,
+      preferably by @code(AbortTest; Exit;).
 
       All test windows should be created using CreateWindowForTest now,
       and CreateWindowForTest will actually raise exception if this is true.
@@ -276,7 +291,28 @@ type
       This is @false on mobile or when run with --no-window-create . }
     function CanCreateWindowForTest: Boolean;
 
-    { Clears test list }
+    { Are standard files and filesystem things working, so we can use:
+
+      - standard TFileStream, FileExists, DirectoryExists
+
+      - engine's UriToFilenameSafe / FilenameToUriSafe work (return
+        useful filenames).
+
+      - GetTempDirectory, CreateTemporaryDirUrl work.
+
+      Possibly in the future CreateTemporaryDirUrl can work regardless of this,
+      using subdir in castle-config:/ . }
+    function CanUseFileSystem: Boolean;
+
+    { Can catch exceptions on this platform.
+      Shortcut for @code(ApplicationProperties.CanCatchExceptions). }
+    function CanCatchExceptions: Boolean;
+
+    { Can we use (read and write) castle-config:/ .
+      Not possible in Docker now, where we cannot create /.config/... }
+    function CanUseCastleConfig: Boolean;
+
+    { Clears test list. }
     procedure ClearTests;
 
     function TestCount: Integer;
@@ -286,8 +322,11 @@ type
 
     property CurrentTestName: String read FCurrentTestName;
 
-  published
-
+    { Call this when aborting the test, because for some reason it cannot
+      be performed on the given platform.
+      Should be followed by early @code(Exit) from the given testcase,
+      without any error. }
+    procedure AbortTest;
   end;
   {$M-}
 
@@ -315,8 +354,6 @@ type
     FTestPassedCount: Integer;
     FTestFailedCount: Integer;
 
-    procedure SetNotifyTestFail(const ANotifyTestFail: TNotifyTestFail);
-
     { Scans test case using RTTI }
     procedure ScanTestCase(TestCase: TCastleTestCase);
 
@@ -326,8 +363,9 @@ type
 
     procedure SetTestPassedCount(const NewTestCount: Integer);
     procedure SetTestFailedCount(const NewTestCount: Integer);
-
   private
+    FTestAbortedCount: Integer;
+
     { Callbacks to change UI }
     FNotifyTestExecuted: TNotifyTestExecuted;
     FNotifyTestCaseExecuted: TNotifyTestCaseExecuted;
@@ -368,6 +406,10 @@ type
       which is nice to let FPC print backtrace of exception to console,
       if outside code will just let unhandled exception to break the program.
 
+      Note that for platforms where ApplicationProperties.CanCatchExceptions=@false
+      the behavior is always as if this was @true .
+      We always crash the testsuite at first fail then.
+
       Default @true is suitable for console version. }
     property StopOnFirstFail: Boolean read FStopOnFirstFail
       write FStopOnFirstFail default true;
@@ -378,6 +420,11 @@ type
     property TestFailedCount: Integer read FTestFailedCount
       write SetTestFailedCount;
 
+    { Number of tests aborted (because for some reason that could not be performed
+      on the given platform) in the last run.
+      These are also included @link(TestPassedCount). }
+    property TestAbortedCount: Integer read FTestAbortedCount;
+
     property NotifyTestExecuted: TNotifyTestExecuted read FNotifyTestExecuted
       write FNotifyTestExecuted;
 
@@ -386,7 +433,7 @@ type
 
     { Callback after test fail }
     property NotifyTestFail: TNotifyTestFail read FNotifyTestFail
-      write SetNotifyTestFail;
+      write FNotifyTestFail;
 
     { Callback after test count changed }
     property NotifyTestCountChanged: TNotifyTestCountChanged
@@ -425,8 +472,10 @@ function CompareMemDebug(const P1, P2: Pointer; const Size: Integer): Boolean;
 
 implementation
 
-uses TypInfo, Math, {$ifdef FPC}testutils,{$else}IOUtils,{$endif} StrUtils,
-  CastleLog, CastleUtils, CastleStringUtils, CastleTesterParameters;
+uses TypInfo, Math,
+  {$ifdef FPC} TestUtils, {$else} IOUtils, {$endif} StrUtils,
+  CastleLog, CastleUtils, CastleStringUtils, CastleTesterParameters,
+  CastleFilesUtils, CastleUriUtils, CastleApplicationProperties;
 
 { routines ------------------------------------------------------------------- }
 
@@ -473,7 +522,6 @@ end;
 procedure TCastleTester.AddTestCase(const TestCase: TCastleTestCase);
 begin
   FTestCaseList.Add(TestCase);
-  TestCase.FNotifyTestFail := FNotifyTestFail;
   TestCase.FCastleTester := Self;
 end;
 
@@ -501,6 +549,27 @@ begin
 end;
 
 procedure TCastleTester.PrepareTestListToRun(const ATestCaseName: String);
+
+  { Randomize order on L.
+
+    Why? On the web it is useful, because recompiling on the web takes
+    a long time and often crashes after even a simplest code change
+    (so each recompilation starts from scratch).
+    So to find various failing tests, it is helpful to run in various orders
+    from a single build.
+
+    Randomizing is simplest for this. }
+  procedure RandomPermutation(const L: {$ifdef FPC}specialize{$endif} TList<TCastleTest>);
+  var
+    I, J: Integer;
+  begin
+    for I := 0 to L.Count - 1 do
+    begin
+      J := RandomIntRange(I, L.Count - 1);
+      L.Exchange(I, J);
+    end;
+  end;
+
 var
   I, J: Integer;
   TestCase: TCastleTestCase;
@@ -529,8 +598,14 @@ begin
     end;
   end;
 
+  // Hack useful to test various testcases, when multiple may fail, with web
+  {$ifdef WASI}
+  // RandomPermutation(FTestsToRun);
+  {$endif}
+
   TestPassedCount := 0;
   TestFailedCount := 0;
+  FTestAbortedCount := 0;
   if Assigned(FNotifyEnabledTestCountChanged) then
     NotifyEnabledTestCountChanged(Self);
 end;
@@ -598,12 +673,11 @@ begin
     on E: TObject do
     begin
       // call FNotifyTestFail
-      if Assigned(FNotifyTestFail) then
+      if Assigned(NotifyTestFail) then
       begin
+        FailMsg := E.ClassName;
         if E is Exception then
-          FailMsg := Exception(E).Message
-        else
-          FailMsg := ''; // exception class not Exception, no better message
+          FailMsg := FailMsg + ': ' + Exception(E).Message;
         FNotifyTestFail(Test.GetFullName, FailMsg);
       end;
 
@@ -680,21 +754,6 @@ begin
   {$endif}
 end;
 
-procedure TCastleTester.SetNotifyTestFail(
-  const ANotifyTestFail: TNotifyTestFail);
-var
-  TestCase: TCastleTestCase;
-begin
-  if @FNotifyTestFail = @ANotifyTestFail then
-    Exit;
-
-  FNotifyTestFail := ANotifyTestFail;
-  for TestCase in FTestCaseList do
-  begin
-    TestCase.FNotifyTestFail := ANotifyTestFail;
-  end;
-end;
-
 procedure TCastleTester.SetTestCount(const NewTestCount: Integer);
 begin
   FTestsCount := NewTestCount;
@@ -748,7 +807,21 @@ begin
     end;
 end;
 
-{ TCastleTestCase }
+{ TCastleTestCase ------------------------------------------------------------ }
+
+function TCastleTestCase.AddTest(const AName: String;
+  {$ifdef FPC}const AMethodPointer: CodePointer{$else}
+      const ARttiMethod: TRttiMethod{$endif}): TCastleTest;
+begin
+  Result := TCastleTest.Create(Self, AName, {$ifdef FPC}AMethodPointer{$else}
+  ARttiMethod{$endif});
+  FTestList.Add(Result);
+end;
+
+{ AssertEquals methods for simple types, passing
+  - Msg = '' (the callee will prepare the message describing expected/actual
+    values)
+  - AddrOfError our caller }
 
 procedure TCastleTestCase.AssertEquals(const Expected, Actual: String);
 begin
@@ -762,13 +835,22 @@ begin
     {$ifdef FPC}get_caller_addr(get_frame){$else}ReturnAddress{$endif});
 end;
 
-function TCastleTestCase.AddTest(const AName: String;
-  {$ifdef FPC}const AMethodPointer: CodePointer{$else}
-      const ARttiMethod: TRttiMethod{$endif}): TCastleTest;
+procedure TCastleTestCase.AssertEquals(const Expected, Actual: Integer);
 begin
-  Result := TCastleTest.Create(Self, AName, {$ifdef FPC}AMethodPointer{$else}
-  ARttiMethod{$endif});
-  FTestList.Add(Result);
+  AssertEquals('', Expected, Actual,
+    {$ifdef FPC}get_caller_addr(get_frame){$else}ReturnAddress{$endif});
+end;
+
+procedure TCastleTestCase.AssertEquals(const Expected, Actual: Cardinal);
+begin
+  AssertEquals('', Expected, Actual,
+    {$ifdef FPC}get_caller_addr(get_frame){$else}ReturnAddress{$endif});
+end;
+
+procedure TCastleTestCase.AssertEquals(const Expected, Actual: Int64);
+begin
+  AssertEquals('', Expected, Actual,
+    {$ifdef FPC}get_caller_addr(get_frame){$else}ReturnAddress{$endif});
 end;
 
 procedure TCastleTestCase.AssertBoxesEqual(const Expected, Actual: TBox3D;
@@ -802,18 +884,25 @@ begin
     Exit; // OK
 
   if Expected.IsEmpty then
-    Fail(Format('Expected empty box, actual box is NOT empty (%s). ' + Msg,
-      [Actual.ToRawString]));
+    Fail(PrepareCustomMsg(Msg) +
+      Format('AssertBoxesEqual: Expected empty box, actual box is NOT empty (%s)',
+      [Actual.ToRawString]),
+      AddrOfError);
 
   if Actual.IsEmpty then
-    Fail(Format('Expected NOT empty box (%s), actual box is empty. ' + Msg,
-      [Expected.ToRawString]), AddrOfError);
+    Fail(PrepareCustomMsg(Msg) +
+      Format('AssertBoxesEqual: Expected NOT empty box (%s), actual box is empty',
+      [Expected.ToRawString]),
+      AddrOfError);
 
   for I := 0 to 2 do
     if (not SameValue(Expected.Data[0][I], Actual.Data[0][I], Epsilon)) or
        (not SameValue(Expected.Data[1][I], Actual.Data[1][I], Epsilon)) then
-      Fail(Format('Boxes are not equal: expected: %s, actual: %s. ' + Msg,
-        [Expected.ToRawString, Actual.ToRawString]), AddrOfError);
+      Fail(PrepareCustomMsg(Msg) +
+        Format('AssertBoxesEqual: Expected box %s, actual %s', [
+          Expected.ToRawString,
+          Actual.ToRawString
+        ]), AddrOfError);
 end;
 
 procedure TCastleTestCase.AssertBoxesEqual(const Msg: String;
@@ -828,8 +917,12 @@ end;
 
 procedure TCastleTestCase.AssertEquals(const Expected, Actual: Single);
 begin
-  AssertTrue('Expected: ' + FloatToStr(Expected) + ' Actual: ' +
-    FloatToStr(Actual), SameValue(Expected, Actual, SingleEpsilon),
+  AssertTrue(
+    FormatDot('AssertEquals: Expected float (Single precision) %f, actual %f', [
+      Expected,
+      Actual
+    ]),
+    SameValue(Expected, Actual, SingleEpsilon),
     {$ifdef FPC}get_caller_addr(get_frame){$else}ReturnAddress{$endif});
 end;
 
@@ -839,19 +932,22 @@ begin
   if not Assigned(AddrOfError) then
     AddrOfError := {$ifdef FPC}get_caller_addr(get_frame){$else}ReturnAddress{$endif};
 
-
   AssertTrue(Msg, not ACondition, AddrOfError);
 end;
 
 procedure TCastleTestCase.AssertFalse(const ACondition: Boolean);
 begin
-  AssertFalse('', ACondition,
+  AssertFalse('AssertFalse: Expected false', ACondition,
     {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif});
 end;
 
 procedure TCastleTestCase.AssertFilenamesEqual(const Expected, Actual: String);
 begin
-  AssertTrue('Expected: ' + Expected + ' Actual: ' + Actual,
+  AssertTrue(
+    Format('AssertFilenamesEqual: Expected filename "%s", actual "%s"', [
+      Expected,
+      Actual
+    ]),
     CompareFileName(Expected, Actual),
     {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif});
 end;
@@ -865,18 +961,58 @@ begin
 end;
 
 procedure TCastleTestCase.AssertImagesEqual(
-  const Expected, Actual: TCastleImage; AddrOfError: Pointer);
+  const Expected, Actual: TEncodedImage; AddrOfError: Pointer);
 begin
   if AddrOfError = nil then
     AddrOfError := {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif};
 
-  AssertEquals(Expected.Width, Actual.Width);
-  AssertEquals(Expected.Height, Actual.Height);
-  AssertEquals(Expected.Depth, Actual.Depth);
-  AssertEquals(Expected.Size, Actual.Size);
+  AssertEquals(
+    Format('AssertImagesEqual: Expected image width %d, actual %d', [
+      Expected.Width,
+      Actual.Width
+    ]),
+    Expected.Width, Actual.Width, AddrOfError);
+  AssertEquals(
+    Format('AssertImagesEqual: Expected image height %d, actual %d', [
+      Expected.Height,
+      Actual.Height
+    ]),
+    Expected.Height, Actual.Height, AddrOfError);
+  AssertEquals(
+    Format('AssertImagesEqual: Expected image depth %d, actual %d', [
+      Expected.Depth,
+      Actual.Depth
+    ]),
+    Expected.Depth, Actual.Depth, AddrOfError);
+  AssertEquals(
+    Format('AssertImagesEqual: Expected image size %d, actual %d', [
+      Expected.Size,
+      Actual.Size
+    ]),
+    Expected.Size, Actual.Size, AddrOfError);
 
-  AssertTrue(CompareMemDebug(Expected.RawPixels, Actual.RawPixels, Expected.Size));
-  AssertTrue(CompareMem     (Expected.RawPixels, Actual.RawPixels, Expected.Size));
+  AssertTrue('AssertImagesEqual: expected equal data (CompareMemDebug)',
+    CompareMemDebug(Expected.RawPixels, Actual.RawPixels, Expected.Size), AddrOfError);
+  AssertTrue('AssertImagesEqual: expected equal data (CompareMem)',
+    CompareMem     (Expected.RawPixels, Actual.RawPixels, Expected.Size), AddrOfError);
+
+  // either both are TGPUCompressedImage, or both are not
+  AssertTrue(
+    Format('AssertImagesEqual: both or none being GPU compressed, got %s %s', [
+      Expected.ClassName,
+      Actual.ClassName
+    ]),
+    (Expected.ClassType = TGPUCompressedImage) =
+    (Actual.ClassType = TGPUCompressedImage),
+    AddrOfError);
+
+  // if both are TGPUCompressedImage, check Compression matches
+  if Expected is TGPUCompressedImage then
+  begin
+    AssertTrue('AssertImagesEqual: Expected GPU compression matching',
+      TGPUCompressedImage(Expected).Compression =
+      TGPUCompressedImage(Actual).Compression, AddrOfError);
+  end;
 end;
 
 procedure TCastleTestCase.AssertFrustumNormalized(const F: TFrustum);
@@ -1273,7 +1409,8 @@ end;
 
 procedure TCastleTestCase.AssertTrue(const ACondition: Boolean);
 begin
-  AssertTrue('', ACondition, {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif});
+  AssertTrue('AssertTrue: expected true', ACondition,
+    {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif});
 end;
 
 procedure TCastleTestCase.ClearTests;
@@ -1368,39 +1505,61 @@ begin
   {$endif}
 end;
 
+function TCastleTestCase.CreateTemporaryDirUrl(const SubDirBaseName: String): String;
+var
+  Base: String;
+begin
+  if not CanUseFileSystem then
+    raise Exception.Create('Cannot create temporary directory on this system, because CanUseFileSystem=false');
+
+  Base := GetTempDirectory;
+  Result := InclPathDelim(
+    InclPathDelim(Base) + SubDirBaseName + '-' + IntToStr(Random(1000000)));
+  CheckForceDirectories(Result);
+  Result := FilenameToUriSafe(Result);
+  WritelnLog('Created temporary directory: ', Result);
+end;
+
 function TCastleTestCase.GetTest(const Index: Integer): TCastleTest;
 begin
   Result := FTestList[Index];
 end;
 
-{ TODO:
-function TCastleTestCase.GetTestingViewport: TCastleViewport;
-begin
-  raise Exception.Create('Not implemented');
-end;
-}
-
 function TCastleTestCase.CanCreateWindowForTest: Boolean;
 begin
   Result :=
-    {$if defined(ANDROID) or
-         defined(iPHONESIM) or
-         defined(iOS) or
-         defined(CASTLE_NINTENDO_SWITCH)}
-      // On these platforms, we cannot create a window, so we cannot test
-      false
-    {$else}
-      not ParamNoWindowCreate
-    {$endif};
+    { On some platforms, we cannot create arbitrary number of independent
+      windows (TCastleWindow instances). }
+    Application.MultipleWindowsPossible and
+    (not ParamNoWindowCreate);
+end;
+
+function TCastleTestCase.CanUseFileSystem: Boolean;
+begin
+  { On the web, right now, our resources do not map to regular "files / dirs"
+    as checked by FPC FileExists, DirectoryExists. }
+  Result := {$ifdef WASI} false {$else} true {$endif};
+end;
+
+function TCastleTestCase.CanCatchExceptions: Boolean;
+begin
+  Result := ApplicationProperties.CanCatchExceptions;
+end;
+
+function TCastleTestCase.CanUseCastleConfig: Boolean;
+begin
+  { Detect when we're inside Docker in CI, without proper writeable $HOME,
+    and castle-config:/ maps to /.config/ }
+  Result := UriToFilenameSafe('castle-config:/') <> '/.config/';
 end;
 
 procedure TCastleTestCase.OnWarningRaiseException(const Category, S: string);
 begin
-  raise Exception.CreateFmt(ClassName +
-    ': received a warning, and any warning here is an error: %s: %s',
-    [Category,
-    S]
-  );
+  raise Exception.CreateFmt('%s: received a warning, and any warning here is an error: %s: %s', [
+    ClassName,
+    Category,
+    S
+  ]);
 end;
 
 function TCastleTestCase.PrepareCustomMsg(const Msg: String): String;
@@ -1430,32 +1589,16 @@ begin
   WritelnLog(Text);
 end;
 
-procedure TCastleTestCase.AssertEquals(const Expected, Actual: Integer);
-begin
-  AssertEquals('', Expected, Actual,
-    {$ifdef FPC}get_caller_addr(get_frame){$else}ReturnAddress{$endif});
-end;
-
-procedure TCastleTestCase.AssertEquals(const Expected, Actual: Cardinal);
-begin
-  AssertEquals('', Expected, Actual,
-    {$ifdef FPC}get_caller_addr(get_frame){$else}ReturnAddress{$endif});
-end;
-
-procedure TCastleTestCase.AssertEquals(const Expected, Actual: Int64);
-begin
-  AssertEquals('', Expected, Actual,
-    {$ifdef FPC}get_caller_addr(get_frame){$else}ReturnAddress{$endif});
-end;
-
 procedure TCastleTestCase.AssertEquals(const Msg: String; const Expected,
   Actual: Integer; AddrOfError: Pointer = nil);
 begin
   if AddrOfError = nil then
     AddrOfError := {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif};
 
-  AssertTrue(PrepareCustomMsg(Msg) + 'Expected: ' + IntToStr(Expected) +
-    ' Actual: ' + IntToStr(Actual), Expected = Actual, AddrOfError);
+  AssertTrue(PrepareCustomMsg(Msg) +
+    Format('AssertEquals: Expected Integer %d, actual %d', [Expected, Actual]),
+    Expected = Actual,
+    AddrOfError);
 end;
 
 procedure TCastleTestCase.AssertEquals(const Msg, Expected, Actual: String;
@@ -1464,8 +1607,10 @@ begin
   if AddrOfError = nil then
     AddrOfError := {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif};
 
-  AssertTrue(PrepareCustomMsg(Msg) + 'Expected: ' + Expected +
-    ' Actual: ' + Actual, Expected = Actual, AddrOfError);
+  AssertTrue(PrepareCustomMsg(Msg) +
+    Format('AssertEquals: Expected String "%s", actual "%s"', [Expected, Actual]),
+    Expected = Actual,
+    AddrOfError);
 end;
 
 procedure TCastleTestCase.AssertEquals(const Msg: String; const Expected,
@@ -1474,8 +1619,13 @@ begin
   if AddrOfError = nil then
     AddrOfError := {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif};
 
-  AssertTrue(PrepareCustomMsg(Msg) + 'Expected: ' + BoolToStr(Expected, true) + ' Actual: ' +
-    BoolToStr(Actual, true), Expected = Actual, AddrOfError);
+  AssertTrue(PrepareCustomMsg(Msg) +
+    Format('AssertEquals: Expected Boolean %s, actual %s', [
+      BoolToStr(Expected, true),
+      BoolToStr(Actual, true)
+    ]),
+    Expected = Actual,
+    AddrOfError);
 end;
 
 procedure TCastleTestCase.AssertEquals(const Msg: String; const Expected,
@@ -1484,8 +1634,10 @@ begin
   if AddrOfError = nil then
     AddrOfError := {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif};
 
-  AssertTrue(PrepareCustomMsg(Msg) + 'Expected: ' + IntToStr(Expected) +
-    ' Actual: ' + IntToStr(Actual), Expected = Actual, AddrOfError);
+  AssertTrue(PrepareCustomMsg(Msg) +
+    Format('AssertEquals: Expected Cardinal %d, actual %d', [Expected, Actual]),
+    Expected = Actual,
+    AddrOfError);
 end;
 
 procedure TCastleTestCase.AssertEquals(const Msg: String; const Expected,
@@ -1494,15 +1646,22 @@ begin
   if AddrOfError = nil then
     AddrOfError := {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif};
 
-  AssertTrue(PrepareCustomMsg(Msg) + 'Expected: ' + IntToStr(Expected) +
-    ' Actual: ' + IntToStr(Actual), Expected = Actual, AddrOfError);
+  AssertTrue(PrepareCustomMsg(Msg) +
+    Format('AssertEquals: Expected Int64 %d, actual %d', [Expected, Actual]),
+    Expected = Actual,
+    AddrOfError);
 end;
 
-{ TCastleTest }
+procedure TCastleTestCase.AbortTest;
+begin
+  Inc(FCastleTester.FTestAbortedCount);
+end;
+
+{ TCastleTest ---------------------------------------------------------------- }
 
 constructor TCastleTest.Create(const ATestCase: TCastleTestCase;
   const AName: String; {$ifdef FPC}const AMethodPointer: CodePointer{$else}
-      const ARttiMethod: TRttiMethod{$endif});
+  const ARttiMethod: TRttiMethod{$endif});
 begin
   FTestCase := ATestCase;
   Name := AName;

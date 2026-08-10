@@ -113,16 +113,14 @@ begin
     Usually, X3D nodes are freed automatically when they are no longer part
     of scene hierarchy, but in case of GeometryXxx, one of them is always *not*
     in hierarchy. }
-  GeometryTriangle.KeepExistingBegin;
-  GeometryRect.KeepExistingBegin;
+  GeometryTriangle.WaitForRelease;
+  GeometryRect.WaitForRelease;
 end;
 
 procedure DestroyScene;
 begin
-  GeometryTriangle.KeepExistingEnd;
-  GeometryRect.KeepExistingEnd;
-  FreeIfUnusedAndNil(GeometryTriangle);
-  FreeIfUnusedAndNil(GeometryRect);
+  NodeRelease(GeometryTriangle);
+  NodeRelease(GeometryRect);
   FreeAndNil(Scene);
 end;
 

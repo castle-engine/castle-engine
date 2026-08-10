@@ -28,7 +28,7 @@ TEXTUREFONT2PASCAL="${TEXTUREFONT2PASCAL} --sample-text-file=common_unicode_char
 # so that changing sizes used by default by CGE can be easily done by changing +
 # running this shell script.
 TEXT_NODE_FONT_SIZE=25
-$TEXTUREFONT2PASCAL --size "${TEXT_NODE_FONT_SIZE}" ${TTF_FONTS_DIR}/DejaVuSans.ttf --unit-name CastleTextureFont_Default3D_Sans    --function-name Font_Default3D_Sans
+$TEXTUREFONT2PASCAL --size "${TEXT_NODE_FONT_SIZE}" "${TTF_FONTS_DIR}"/DejaVuSans.ttf --unit-name CastleTextureFont_Default3D_Sans    --function-name Font_Default3D_Sans
 
 # For other 11 font variants used by X3D,
 # see castle-model-viewer castle-model-viewer/embedded_data/fonts/ .
@@ -37,4 +37,4 @@ $TEXTUREFONT2PASCAL --size "${TEXT_NODE_FONT_SIZE}" ${TTF_FONTS_DIR}/DejaVuSans.
 # Used by FallbackFont and (default) UIFont.
 # Note that changing the default size here will change the default font size in UI,
 # so we actually cannot do this, to not break compatibility.
-$TEXTUREFONT2PASCAL --size 20 ${TTF_FONTS_DIR}/DejaVuSans.ttf --unit-name CastleTextureFont_DefaultUi --function-name Font_DefaultUi
+$TEXTUREFONT2PASCAL --size 20 "${TTF_FONTS_DIR}"/DejaVuSans.ttf --unit-name CastleTextureFont_DefaultUi --function-name Font_DefaultUi

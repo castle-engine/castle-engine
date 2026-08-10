@@ -8,6 +8,7 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 <project name="timer_test"
   standalone_source="timer_test.dpr"
   qualified_name="io.castleengine.timer.test"
+  caption="Test TCastleTimer"
 >
   <data exists="false" />
 </project>

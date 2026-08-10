@@ -1,6 +1,6 @@
 {%MainUnit x3dnodes.pas}
 {
-  Copyright 2002-2023 Michalis Kamburelis.
+  Copyright 2002-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -31,7 +31,6 @@
   { Base class for all the light nodes. }
   TAbstractLightNode = class(TAbstractChildNode)
   strict private
-    FTransformation: TTransformation;
     WarningWorldTransformDone: Boolean;
     procedure DoWarningWorldTransform;
   protected
@@ -44,20 +43,27 @@
       @exclude }
     InternalHeadlight: Boolean;
 
+    { Transformation of the light (from the TCastleScene root to this light node).
+      Used only when we are forced to assume that this light node occurs
+      only once within the scene, which right now is assumed by the shadow maps.
+      Most of the code should rely on TLightInstance, which stores
+      transformation specific for light source instance. }
+    InternalTransformation: TTransformation;
+
     constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
 
     { Create TLightInstance record describing this light node under given
       State. }
-    function CreateLightInstance(State: TX3DGraphTraverseState): TLightInstance;
+    function CreateLightInstance(const ParentTransformation: TTransformation): TLightInstance;
 
-    { Update TLightInstance record when lighting State changes.
+    { Update TLightInstance record when lighting transformation changes.
       Assumes that LightInstance.Node = Self.
 
       This will set LightInstance.Transform properties, and recalculate
-      all LightInstance properties based on Transform. }
-    procedure UpdateLightInstanceState(
+      all LightInstance properties based on ParentTransformation. }
+    procedure UpdateLightInstanceTransformation(
       var LightInstance: TLightInstance;
-      State: TX3DGraphTraverseState);
+      const ParentTransformation: TTransformation);
 
     { Update TLightInstance record when lighting location/direction (and other
       properties precalculated on TLightInstance) change.
@@ -70,8 +76,9 @@
     function Scope: TLightScope; virtual;
 
     { Transformation of this light node, to world space.
-      This accounts for transformation to scene space (TCastleScene)
-      and then to viewport root (TCastleViewport.Items) space.
+      This accounts for transformation of all parent TCastleTransform
+      instances in a TCastleViewport, and then all TTransformNode instances
+      within this TCastleScene.
 
       Beware: In X3D, light nodes can be instantiated many times within the scene,
       with different transformations, so @italic(this transformation property
@@ -81,20 +88,18 @@
       For example shadow maps assume this,
       see [https://castle-engine.io/x3d_extensions.php#section_ext_shadow_maps .
 
-      For this to work, we multiply transformation from last traverse
-      (@link(BeforeTraverse) collects transformation to space)
+      For this to work, we multiply @link(InternalTransformation)
       and then use TCastleTransform.WorldTransform.
 
       Call this only when scene is part of some TCastleViewport and thus its
-      world transformation is known.
+      world transformation is known. Otherwise, this returns transformation
+      only inside this TCastleScene, but it will be wrong once TCastleScene
+      is placed in a TCastleViewport with some transformation.
 
       @groupBegin }
     function Transform: TMatrix4;
     function InverseTransform: TMatrix4;
     { @groupEnd }
-
-    function TransformationChange: TNodeTransformationChange; override;
-
   {$I auto_generated_node_helpers/x3dnodes_x3dlightnode.inc}
   end;
 
@@ -324,20 +329,20 @@ const
 constructor TAbstractLightNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-  FTransformation.Init;
+  InternalTransformation.Init;
 end;
 
 procedure TAbstractLightNode.BeforeTraverse(StateStack: TX3DGraphTraverseStateStack);
 begin
   inherited;
-  FTransformation := StateStack.Top.Transformation;
+  InternalTransformation := StateStack.Top.Transformation;
 end;
 
 procedure TAbstractLightNode.MiddleTraverse(StateStack: TX3DGraphTraverseStateStack);
 begin
   inherited;
   if Scope = lsLocalVRML1 then
-    StateStack.Top.AddLight(CreateLightInstance(StateStack.Top));
+    StateStack.Top.AddLight(CreateLightInstance(StateStack.Top.Transformation));
 end;
 
 function TAbstractLightNode.Scope: TLightScope;
@@ -403,8 +408,10 @@ begin
 
     *)
 
-    { Note: We do CreateLightInstance with State from TAbstractInternalGroupingNode node,
-      while precisely we should rather use State from TAbstractLightNode
+    { Note: We do CreateLightInstance with State.Transformation from
+      TAbstractInternalGroupingNode node,
+      while precisely we should rather use State.Transformation from
+      TAbstractLightNode
       traverse. But, fortunately, State of TAbstractLightNode doesn't
       change inside (TAbstractLightNode doesn't do anything inside
       BeforeTraverse), so this is the same thing. }
@@ -414,24 +421,24 @@ begin
       E.g. PointLight with global = false should be limited by *both*
       scope (in graph hierarchy) and radius, as far as I understand. }
 
-    State.AddLight(CreateLightInstance(State));
+    State.AddLight(CreateLightInstance(State.Transformation));
   end;
 end;
 
 function TAbstractLightNode.CreateLightInstance(
-  State: TX3DGraphTraverseState): TLightInstance;
+  const ParentTransformation: TTransformation): TLightInstance;
 begin
   Result.Node := Self;
   Result.WorldCoordinates := false;
-  UpdateLightInstanceState(Result, State);
+  UpdateLightInstanceTransformation(Result, ParentTransformation);
 end;
 
-procedure TAbstractLightNode.UpdateLightInstanceState(
+procedure TAbstractLightNode.UpdateLightInstanceTransformation(
   var LightInstance: TLightInstance;
-  State: TX3DGraphTraverseState);
+  const ParentTransformation: TTransformation);
 begin
-  LightInstance.Transform := State.Transformation.Transform;
-  LightInstance.TransformScale := State.Transformation.Scale;
+  LightInstance.Transform := ParentTransformation.Transform;
+  LightInstance.TransformScale := ParentTransformation.Scale;
   UpdateLightInstance(LightInstance);
 end;
 
@@ -444,7 +451,7 @@ end;
 
 function TAbstractLightNode.Transform: TMatrix4;
 begin
-  Result := FTransformation.Transform;
+  Result := InternalTransformation.Transform;
   if (Scene <> nil) and Scene.HasWorldTransform then
     Result := Scene.WorldTransform * Result
   else
@@ -453,7 +460,7 @@ end;
 
 function TAbstractLightNode.InverseTransform: TMatrix4;
 begin
-  Result := FTransformation.InverseTransform;
+  Result := InternalTransformation.InverseTransform;
   if (Scene <> nil) and Scene.HasWorldTransform then
     Result := Result * Scene.WorldInverseTransform
   else
@@ -467,11 +474,6 @@ begin
     WarningWorldTransformDone := true;
     WritelnWarning(NiceName + ' does not know the world transformation, results (like shadow maps) may be incorrect');
   end;
-end;
-
-function TAbstractLightNode.TransformationChange: TNodeTransformationChange;
-begin
-  Result := ntcLight;
 end;
 
 { TAbstractPunctualLightNode --------------------------------------------------------- }

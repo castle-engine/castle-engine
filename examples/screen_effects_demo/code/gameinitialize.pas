@@ -141,11 +141,18 @@ procedure ApplicationInitialize;
       '  float x = screenf_x();' + NL +
       '  float y = screenf_y();' + NL +
       '  #define SCAN_DISTANCE 1.0' + NL +
-      '  vec4 left   = screenf_get_color(vec2(x - SCAN_DISTANCE, y));' + NL +
-      '  vec4 right  = screenf_get_color(vec2(x + SCAN_DISTANCE, y));' + NL +
-      '  vec4 top    = screenf_get_color(vec2(x, y - SCAN_DISTANCE));' + NL +
-      '  vec4 bottom = screenf_get_color(vec2(x, y + SCAN_DISTANCE));' + NL +
-      '  gl_FragColor = (abs(left - right) + abs(top - bottom)) / 2.0;' + NL +
+      '  vec3 left   = screenf_get_color(vec2(x - SCAN_DISTANCE, y)).rgb;' + NL +
+      '  vec3 right  = screenf_get_color(vec2(x + SCAN_DISTANCE, y)).rgb;' + NL +
+      '  vec3 top    = screenf_get_color(vec2(x, y - SCAN_DISTANCE)).rgb;' + NL +
+      '  vec3 bottom = screenf_get_color(vec2(x, y + SCAN_DISTANCE)).rgb;' + NL +
+      '  vec3 edge_detect = abs(left - right) + abs(top - bottom) / 2.0;' + NL +
+      { Note: we make sure to set gl_FragColor.alpha to 1.0.
+        This should not really matter in practice, the final alpha is just
+        stored on the screen without any consequences now
+        (including on web, after we fixed WebGL context initialization).
+        But it may matter in the future if we decide to e.g. support
+        blending screen effects results on screen for some reason. }
+      '  gl_FragColor = vec4(edge_detect / 2.0, 1.0);' + NL +
       '}';
 
     ComposedShader := TComposedShaderNode.Create;

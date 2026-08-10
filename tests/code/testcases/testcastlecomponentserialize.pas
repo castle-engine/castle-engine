@@ -17,6 +17,9 @@
 { Test CastleComponentSerialize unit. }
 unit TestCastleComponentSerialize;
 
+{ Needed for CASTLE_DEFORMAT_BUGGY }
+{$I ../../../src/common_includes/castleconf.inc}
+
 interface
 
 uses
@@ -157,6 +160,12 @@ var
   TestOutputOwner: TComponent;
   TestInput, TestOutput: TMyComponent;
 begin
+  if not CanUseFileSystem then // for GetTempFileNameCheck
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   TempFileName := GetTempFileNameCheck;
 
   TestInput := TMyComponent.Create(nil);
@@ -215,6 +224,12 @@ var
   LoadedUi: TCastleUserInterface;
   TempFileName: String;
 begin
+  if not CanUseFileSystem then // for GetTempFileNameCheck
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   UiOwner := TComponent.Create(nil);
   try
     Ui := TCastleButton.Create(UiOwner);
@@ -258,6 +273,12 @@ var
   LoadedUi: TCastleUserInterface;
   TempFileName: String;
 begin
+  if not CanUseFileSystem then // for GetTempFileNameCheck
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   UiOwner := TComponent.Create(nil);
   try
     Ui := TCastleButton.Create(UiOwner);
@@ -325,6 +346,12 @@ var
   ChildLabel: TCastleLabel;
   TempFileName: String;
 begin
+  if not CanUseFileSystem then // for GetTempFileNameCheck
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   UiOwner := TComponent.Create(nil);
   try
     RootLabel := TCastleLabel.Create(UiOwner);
@@ -387,6 +414,12 @@ var
   TestInput, TestOutput: TMyComponent;
   TempFileName: String;
 begin
+  if not CanUseFileSystem then // for GetTempFileNameCheck
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   TestInput := TMyComponent.Create(nil);
   try
     TestInput.Position := Vector3(1, 2, 3);
@@ -635,11 +668,16 @@ begin
     for I := 0 to ValidOutputNumbersCount - 1 do
       NumbersReadBackPtrs[I] := @(NumbersReadBack[I]);
 
+    {$ifdef CASTLE_DEFORMAT_BUGGY}
+    AbortTest;
+    Exit;
+    {$else}
     ValidOutput := FileToString('castle-data:/designs/test_custom_serialization_valid_output.castle-component');
     DeFormat(ComponentToString(T1), ValidOutput, NumbersReadBackPtrs, false);
 
     for I := 0 to ValidOutputNumbersCount - 1 do
       AssertEquals(ValidOutputNumbers[I], NumbersReadBack[I]);
+    {$endif}
   finally FreeAndNil(COwner) end;
 end;
 
@@ -803,6 +841,8 @@ var
   Rocket2: TCastleTransform;
   RocketDesign2: TRocketDesign;
 begin
+  Rocket1 := nil;
+  Rocket2 := nil;
   RocketsOwner := nil;
   RocketDesign1 := nil;
   RocketDesign2 := nil;
@@ -855,6 +895,8 @@ var
   Rocket1: TCastleTransform;
   Rocket2: TCastleTransform;
 begin
+  Rocket1 := nil;
+  Rocket2 := nil;
   RocketsOwner := nil;
   RocketDesign := nil;
   RocketsFactory := nil;

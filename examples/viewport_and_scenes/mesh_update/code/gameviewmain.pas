@@ -120,10 +120,7 @@ procedure TViewMain.Start;
       Effect can be enabled / disabled, and added to particular X3D appearance,
       or to a group of nodes.
 
-      For more about shader effects :
-      - https://castle-engine.io/compositing_shaders.php
-      - https://castle-engine.io/compositing_shaders_doc/html/
-      - Another example: examples/viewport_and_scenes/shader_effects/ }
+      For more about shader effects see https://castle-engine.io/shaders . }
 
     EffectAnimateMesh := TEffectNode.Create;
     EffectAnimateMesh.Language := slGLSL;

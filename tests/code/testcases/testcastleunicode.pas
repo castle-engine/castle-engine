@@ -31,7 +31,7 @@ type
     procedure TestHtmlEntities;
     procedure TestStringOperations;
     procedure TestIterator;
-    procedure TestUnicodeCharList;
+    procedure TesTUnicodeCharSet;
     procedure TestUnicodeCharToReadableString;
     procedure TestStringEnding;
   end;
@@ -177,11 +177,11 @@ begin
   AssertTrue(I.GetNext); AssertEquals('样', UnicodeCharToString(I.Current));
 end;
 
-procedure TTestUnicode.TestUnicodeCharList;
+procedure TTestUnicode.TesTUnicodeCharSet;
 var
-  L: TUnicodeCharList;
+  L: TUnicodeCharSet;
 begin
-  L := TUnicodeCharList.Create;
+  L := TUnicodeCharSet.Create;
   try
     L.Add('Ć'); // decimal: 262, https://www.compart.com/en/unicode/U+0106
     L.Add('m');

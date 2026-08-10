@@ -62,7 +62,7 @@ begin
     if not Transform.ExistsInRoot then
       continue;
 
-    RigidBody := Transform.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+    RigidBody := Transform.RigidBody;
     if (RigidBody <> nil) and (RigidBody.ExistsInRoot) then
       UpdateRigidBody(RigidBody, SecondsPassed, RemoveMe)
     else

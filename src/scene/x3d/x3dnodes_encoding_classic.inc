@@ -577,7 +577,8 @@ begin
 end;
 
 function LoadX3DClassicInternal(const Stream: TStream;
-  const BaseUrl: String): TX3DRootNode;
+  const BaseUrl: String;
+  const LoadOptions: TCastleSceneLoadOptions): TX3DRootNode;
 var
   PeekStream: TPeekCharStream;
   Lexer: TX3DLexer;
@@ -602,7 +603,7 @@ function LoadX3DClassic(const Url: String;
   function DoIt(BaseStream: TStream; const BaseUrl: String): TX3DRootNode;
   begin
     try
-      Result := LoadX3DClassicInternal(BaseStream, BaseUrl);
+      Result := LoadX3DClassicInternal(BaseStream, BaseUrl, nil);
     finally FreeAndNil(BaseStream) end;
   end;
 
@@ -634,7 +635,7 @@ var
 begin
   Stream := TStringStream.Create(VRMLContents);
   try
-    Result := LoadX3DClassicInternal(Stream, BaseUrl);
+    Result := LoadX3DClassicInternal(Stream, BaseUrl, nil);
   finally FreeAndNil(Stream) end;
 end;
 

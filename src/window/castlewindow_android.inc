@@ -483,6 +483,11 @@ end;
 
 { TCastleWindow ---------------------------------------------------------- }
 
+function TCastleWindow.CreateContainer: TCastleContainer;
+begin
+  Result := TWindowContainer.Create(Self);
+end;
+
 procedure TCastleWindow.CreateBackend;
 begin
   Messaging.OnReceive.Add({$ifdef FPC}@{$endif}HandleOnScreenKeyboard);
@@ -921,6 +926,11 @@ end;
 function TCastleApplication.BackendName: String;
 begin
   Result := 'Android';
+end;
+
+function TCastleApplication.MultipleWindowsPossible: Boolean;
+begin
+  Result := false;
 end;
 
 { TWindowContainer ----------------------------------------------------------- }

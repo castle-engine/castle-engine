@@ -8,6 +8,7 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 <project name="view_3d_model_basic"
   standalone_source="view_3d_model_basic.dpr"
   qualified_name="io.castleengine.view.model.basic"
+  caption="View 3D Model: Basic Version"
 >
   <compiler_options>
     <search_paths>

@@ -1928,9 +1928,9 @@ var
   Flood: array of boolean;
   function isFloodColor(const ax, ay: integer): boolean; {$ifdef FPC}{$IFDEF SUPPORTS_INLINE}Inline;{$ENDIF}{$endif}
   begin
-    if (ax >= 0) and (ay >=0) and (ax <= Width) and (ay <= Height) then
+    if (ax >= 0) and (ay >= 0) and (ax < Width) and (ay < Height) then
     begin
-      if Flood[ax + ay * Height] then
+      if Flood[ax + ay * Width] then
         Result := true
       else
         Result := false;
@@ -1953,31 +1953,31 @@ begin
   SetLength(Flood, Width * Height);
   for ix := Low(Flood) to High(Flood) do Flood[ix] := false;
   OldColor := Colors[x, y, 0]; {grab the OldColor}
-  Flood[x + y * Height] := true; {init the flood seed}
+  Flood[x + y * Width] := true; {init the flood seed}
   repeat
     aFinished := true;
     if x1 < 0 then x1 := 0;
-    if x1 >= Width then x1 := Width - 1;
+    if x2 >= Width then x2 := Width - 1;
     if y1 < 0 then y1 := 0;
-    if y1 >= Height then y1 := Height - 1;
+    if y2 >= Height then y2 := Height - 1;
     for ix := x1 to x2 do
       for iy := y1 to y2 do
-        if not Flood[ix + iy * Height] and
+        if not Flood[ix + iy * Width] and
           ((Colors[ix, iy, 0] - OldColor).Length < aThreshold) and
           NearbyFloodColor then
         begin
-          Flood[ix + iy * Height] := true;
+          Flood[ix + iy * Width] := true;
           aFinished := false;
-          if (ix = x1) then dec(x1);
-          if (ix = x2) then inc(x2);
-          if (iy = y1) then dec(y1);
-          if (iy = y2) then inc(y2);
+          if (ix = x1) and (x1 > 0) then dec(x1);
+          if (ix = x2) and (x2 < Width - 1) then inc(x2);
+          if (iy = y1) and (y1 > 0) then dec(y1);
+          if (iy = y2) and (y2 < Height - 1) then inc(y2);
         end;
   until aFinished;
   //and paint the flood with the aColor
   for ix := x1 to x2 do
     for iy := y1 to y2 do
-      if Flood[ix + iy * Height] then
+      if Flood[ix + iy * Width] then
         Colors[ix, iy, 0] := aColor;
 end;
 

@@ -28,7 +28,7 @@ function HasGenerateMipmap: boolean;
 { Call glGenerateMipmap.
 
   @raises(EGenerateMipmapNotAvailable If glGenerateMipmap
-    is available on this OpenGL version. If you don't want to get
+    is not available on this OpenGL version. If you don't want to get
     this exception, you can always check HasGenerateMipmap
     before calling this.) }
 procedure GenerateMipmap(target: TGLenum);
@@ -48,7 +48,9 @@ procedure GenerateMipmap(target: TGLenum);
 begin
   if GLFeatures.Framebuffer then
   begin
+    {$ifdef CASTLE_GL_USES_CALLBACKS}
     Assert(Assigned(glGenerateMipmap));
+    {$endif CASTLE_GL_USES_CALLBACKS}
     glGenerateMipmap(Target);
   end else
     raise EGenerateMipmapNotAvailable.Create('Framebuffer not supported, glGenerateMipmap not available');

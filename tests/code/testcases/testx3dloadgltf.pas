@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestX3DLoadGltf" -*-
 {
-  Copyright 2021-2022 Michalis Kamburelis.
+  Copyright 2021-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,18 +25,456 @@ uses
 type
   TTestX3DLoadGltf = class(TCastleTestCase)
   published
-    { Nothing to test now, glTF loading is extensively tested as part of other TCastleScene tests.
-      But we need at least 1st test here, otherwise failure
-      "No valid tests found in TTestX3DLoadGltf" }
-    procedure TestDummy;
+    procedure TestSaveLoadTransform;
+    procedure TestSaveLoadPhysicalMaterial;
+    procedure TestSaveLoadUnlitMaterial;
+    procedure TestSaveLoadMesh;
+    procedure TestRoundTripGltfFile;
+    procedure TestDuplicateIdenticalSkins;
+    procedure TestNonIdenticalSkins;
   end;
 
 implementation
 
-uses X3DLoad, CastleVectors, X3DLoadInternalGltf, CastleUtils;
+uses X3DLoad, X3DNodes, CastleVectors, X3DLoadInternalGltf, CastleUtils,
+  CastleUriUtils;
 
-procedure TTestX3DLoadGltf.TestDummy;
+{ Helper function to recursively find a TShapeNode in the node tree }
+function FindShapeNode(const Node: TX3DNode): TShapeNode;
+var
+  I: Integer;
+  Group: TAbstractGroupingNode;
+  ChildResult: TShapeNode;
 begin
+  Result := nil;
+
+  if Node is TShapeNode then
+    Exit(TShapeNode(Node));
+
+  if Node is TAbstractGroupingNode then
+  begin
+    Group := TAbstractGroupingNode(Node);
+    for I := 0 to Group.FdChildren.Count - 1 do
+    begin
+      ChildResult := FindShapeNode(Group.FdChildren[I]);
+      if ChildResult <> nil then
+        Exit(ChildResult);
+    end;
+  end;
+end;
+
+procedure TTestX3DLoadGltf.TestSaveLoadTransform;
+var
+  Original, Loaded: TX3DRootNode;
+  Stream: TMemoryStream;
+  Transform: TTransformNode;
+  Shape: TShapeNode;
+  Box: TBoxNode;
+  Appearance: TAppearanceNode;
+  Material: TPhysicalMaterialNode;
+  LoadedTransform: TTransformNode;
+begin
+  Original := TX3DRootNode.Create;
+  try
+    // Create a transform with a simple box inside
+    Transform := TTransformNode.Create('TestTransform');
+    Transform.Translation := Vector3(1, 2, 3);
+    Transform.Rotation := Vector4(0, 1, 0, Pi / 2);
+    Transform.Scale := Vector3(2, 2, 2);
+
+    Shape := TShapeNode.Create;
+    Box := TBoxNode.Create;
+    Shape.Geometry := Box;
+
+    Appearance := TAppearanceNode.Create;
+    Material := TPhysicalMaterialNode.Create;
+    Material.BaseColor := Vector3(1, 0, 0);
+    Appearance.Material := Material;
+    Shape.Appearance := Appearance;
+
+    Transform.AddChildren(Shape);
+    Original.AddChildren(Transform);
+
+    // Save to glTF
+    Stream := TMemoryStream.Create;
+    try
+      SaveNode(Original, Stream, 'model/gltf+json');
+      Stream.Position := 0;
+
+      // Load back
+      Loaded := LoadNode(Stream, '', 'model/gltf+json');
+      try
+        // Verify structure: should have at least one child
+        AssertTrue('Loaded node should have children', Loaded.FdChildren.Count > 0);
+
+        // Find the transform node
+        // Account for the fact our save + load possibly wraps things in a group.
+        if Loaded.FdChildren[0] is TTransformNode then
+          LoadedTransform := TTransformNode(Loaded.FdChildren[0])
+        else
+        if (Loaded.FdChildren[0] is TGroupNode) and
+           (TGroupNode(Loaded.FdChildren[0]).FdChildren.Count > 0) and
+           (TGroupNode(Loaded.FdChildren[0]).FdChildren[0] is TTransformNode) then
+          LoadedTransform := TTransformNode(TGroupNode(Loaded.FdChildren[0]).FdChildren[0])
+        else
+        begin
+          Fail('Expected transform node in loaded scene');
+          Exit;
+        end;
+
+        // Verify transform values (with some tolerance due to floating point)
+        AssertVectorEquals(Vector3(1, 2, 3), LoadedTransform.Translation, 0.001);
+        AssertVectorEquals(Vector3(2, 2, 2), LoadedTransform.Scale, 0.001);
+        // Note: rotation comparison is tricky due to axis-angle/quaternion conversion
+      finally
+        FreeAndNil(Loaded);
+      end;
+    finally
+      FreeAndNil(Stream);
+    end;
+  finally
+    FreeAndNil(Original);
+  end;
+end;
+
+procedure TTestX3DLoadGltf.TestSaveLoadPhysicalMaterial;
+var
+  Original, Loaded: TX3DRootNode;
+  Stream: TMemoryStream;
+  Shape: TShapeNode;
+  Box: TBoxNode;
+  Appearance: TAppearanceNode;
+  Material: TPhysicalMaterialNode;
+  LoadedMaterial: TPhysicalMaterialNode;
+  LoadedShape: TShapeNode;
+begin
+  Original := TX3DRootNode.Create;
+  try
+    Shape := TShapeNode.Create;
+    Box := TBoxNode.Create;
+    Shape.Geometry := Box;
+
+    Appearance := TAppearanceNode.Create;
+    Material := TPhysicalMaterialNode.Create;
+    Material.BaseColor := Vector3(0.8, 0.2, 0.1);
+    Material.Metallic := 0.7;
+    Material.Roughness := 0.3;
+    Material.EmissiveColor := Vector3(0.1, 0.1, 0.0);
+    Appearance.Material := Material;
+    Shape.Appearance := Appearance;
+
+    Original.AddChildren(Shape);
+
+    // Save to glTF
+    Stream := TMemoryStream.Create;
+    try
+      SaveNode(Original, Stream, 'model/gltf+json');
+      Stream.Position := 0;
+
+      // Load back
+      Loaded := LoadNode(Stream, '', 'model/gltf+json');
+      try
+        // Find the shape with material (recursively)
+        LoadedShape := FindShapeNode(Loaded);
+
+        AssertTrue('Should find a shape node', LoadedShape <> nil);
+        AssertTrue('Shape should have appearance', LoadedShape.Appearance <> nil);
+        AssertTrue('Appearance should have material', LoadedShape.Appearance.Material <> nil);
+        AssertTrue('Material should be TPhysicalMaterialNode',
+          LoadedShape.Appearance.Material is TPhysicalMaterialNode);
+
+        LoadedMaterial := TPhysicalMaterialNode(LoadedShape.Appearance.Material);
+
+        // Verify material properties
+        AssertVectorEquals(Vector3(0.8, 0.2, 0.1), LoadedMaterial.BaseColor, 0.01);
+        AssertSameValue(0.7, LoadedMaterial.Metallic, 0.01);
+        AssertSameValue(0.3, LoadedMaterial.Roughness, 0.01);
+        AssertVectorEquals(Vector3(0.1, 0.1, 0.0), LoadedMaterial.EmissiveColor, 0.01);
+      finally
+        FreeAndNil(Loaded);
+      end;
+    finally
+      FreeAndNil(Stream);
+    end;
+  finally
+    FreeAndNil(Original);
+  end;
+end;
+
+procedure TTestX3DLoadGltf.TestSaveLoadUnlitMaterial;
+var
+  Original, Loaded: TX3DRootNode;
+  Stream: TMemoryStream;
+  Shape: TShapeNode;
+  Box: TBoxNode;
+  Appearance: TAppearanceNode;
+  Material: TUnlitMaterialNode;
+  LoadedMaterial: TUnlitMaterialNode;
+  LoadedShape: TShapeNode;
+begin
+  Original := TX3DRootNode.Create;
+  try
+    Shape := TShapeNode.Create;
+    Box := TBoxNode.Create;
+    Shape.Geometry := Box;
+
+    Appearance := TAppearanceNode.Create;
+    Material := TUnlitMaterialNode.Create;
+    Material.EmissiveColor := Vector3(0.5, 0.8, 0.2);
+    Appearance.Material := Material;
+    Shape.Appearance := Appearance;
+
+    Original.AddChildren(Shape);
+
+    // Save to glTF
+    Stream := TMemoryStream.Create;
+    try
+      SaveNode(Original, Stream, 'model/gltf+json');
+      Stream.Position := 0;
+
+      // Load back
+      Loaded := LoadNode(Stream, '', 'model/gltf+json');
+      try
+        // Find the shape with material (recursively)
+        LoadedShape := FindShapeNode(Loaded);
+
+        AssertTrue('Should find a shape node', LoadedShape <> nil);
+        AssertTrue('Shape should have appearance', LoadedShape.Appearance <> nil);
+        AssertTrue('Appearance should have material', LoadedShape.Appearance.Material <> nil);
+        AssertTrue('Material should be TUnlitMaterialNode',
+          LoadedShape.Appearance.Material is TUnlitMaterialNode);
+
+        LoadedMaterial := TUnlitMaterialNode(LoadedShape.Appearance.Material);
+
+        // Verify material properties
+        // Note: In unlit material, emissiveColor is stored as baseColor in glTF
+        AssertVectorEquals(Vector3(0.5, 0.8, 0.2), LoadedMaterial.EmissiveColor, 0.01);
+      finally
+        FreeAndNil(Loaded);
+      end;
+    finally
+      FreeAndNil(Stream);
+    end;
+  finally
+    FreeAndNil(Original);
+  end;
+end;
+
+procedure TTestX3DLoadGltf.TestSaveLoadMesh;
+var
+  Original, Loaded: TX3DRootNode;
+  Stream: TMemoryStream;
+  Shape: TShapeNode;
+  TriSet: TIndexedTriangleSetNode;
+  Coord: TCoordinateNode;
+  Normal: TNormalNode;
+  Appearance: TAppearanceNode;
+  Material: TPhysicalMaterialNode;
+  LoadedShape: TShapeNode;
+  LoadedGeom: TAbstractGeometryNode;
+begin
+  Original := TX3DRootNode.Create;
+  try
+    Shape := TShapeNode.Create;
+
+    // Create a simple triangle
+    TriSet := TIndexedTriangleSetNode.Create;
+    Coord := TCoordinateNode.Create;
+    Coord.FdPoint.Items.Add(Vector3(0, 0, 0));
+    Coord.FdPoint.Items.Add(Vector3(1, 0, 0));
+    Coord.FdPoint.Items.Add(Vector3(0.5, 1, 0));
+    TriSet.Coord := Coord;
+    TriSet.FdIndex.Items.Add(0);
+    TriSet.FdIndex.Items.Add(1);
+    TriSet.FdIndex.Items.Add(2);
+
+    Normal := TNormalNode.Create;
+    Normal.FdVector.Items.Add(Vector3(0, 0, 1));
+    Normal.FdVector.Items.Add(Vector3(0, 0, 1));
+    Normal.FdVector.Items.Add(Vector3(0, 0, 1));
+    TriSet.Normal := Normal;
+
+    Shape.Geometry := TriSet;
+
+    Appearance := TAppearanceNode.Create;
+    Material := TPhysicalMaterialNode.Create;
+    Material.BaseColor := Vector3(0, 1, 0);
+    Appearance.Material := Material;
+    Shape.Appearance := Appearance;
+
+    Original.AddChildren(Shape);
+
+    // Save to glTF
+    Stream := TMemoryStream.Create;
+    try
+      SaveNode(Original, Stream, 'model/gltf+json');
+      Stream.Position := 0;
+
+      // Load back
+      Loaded := LoadNode(Stream, '', 'model/gltf+json');
+      try
+        // Find the shape (recursively)
+        LoadedShape := FindShapeNode(Loaded);
+
+        AssertTrue('Should find a shape node', LoadedShape <> nil);
+        AssertTrue('Shape should have geometry', LoadedShape.Geometry <> nil);
+
+        LoadedGeom := LoadedShape.Geometry;
+
+        // glTF loading creates TIndexedTriangleSetNode for triangles
+        AssertTrue('Geometry should be triangle-based',
+          (LoadedGeom is TIndexedTriangleSetNode) or (LoadedGeom is TTriangleSetNode));
+
+        // Verify it has coordinates
+        if LoadedGeom is TIndexedTriangleSetNode then
+        begin
+          AssertTrue('Should have coordinates',
+            TIndexedTriangleSetNode(LoadedGeom).Coord <> nil);
+          AssertEquals('Should have 3 vertices', 3,
+            (TIndexedTriangleSetNode(LoadedGeom).Coord as TCoordinateNode).FdPoint.Count);
+        end;
+      finally
+        FreeAndNil(Loaded);
+      end;
+    finally
+      FreeAndNil(Stream);
+    end;
+  finally
+    FreeAndNil(Original);
+  end;
+end;
+
+procedure TTestX3DLoadGltf.TestRoundTripGltfFile;
+var
+  Original, Loaded: TX3DRootNode;
+  Stream: TMemoryStream;
+  TestFile: String;
+begin
+  // Test loading a glTF file, saving it, and loading again
+  TestFile := 'castle-data:/gltf/quaternius/Bunny.gltf';
+
+  // Skip if test file doesn't exist
+  if not UriFileExists(TestFile) then
+    Exit;
+
+  Original := LoadNode(TestFile);
+  try
+    // Save to memory stream
+    Stream := TMemoryStream.Create;
+    try
+      SaveNode(Original, Stream, 'model/gltf+json');
+      Stream.Position := 0;
+
+      // Load back
+      Loaded := LoadNode(Stream, '', 'model/gltf+json');
+      try
+        // Basic verification - both should have children
+        AssertTrue('Original should have children', Original.FdChildren.Count > 0);
+        AssertTrue('Loaded should have children', Loaded.FdChildren.Count > 0);
+      finally
+        FreeAndNil(Loaded);
+      end;
+    finally
+      FreeAndNil(Stream);
+    end;
+  finally
+    FreeAndNil(Original);
+  end;
+end;
+
+type
+  { Count TSkinNode instances (and shapes gathered in them) and all TShapeNode
+    instances, to be used as callbacks for TX3DNode.EnumerateNodes. }
+  TSkinNodesCounter = class
+    SkinCount, ShapesInSkins, TotalShapes: Integer;
+    procedure HandleSkinNode(Node: TX3DNode);
+    procedure HandleShapeNode(Node: TX3DNode);
+  end;
+
+procedure TSkinNodesCounter.HandleSkinNode(Node: TX3DNode);
+begin
+  Inc(SkinCount);
+  Inc(ShapesInSkins, (Node as TSkinNode).FdShapes.Count);
+end;
+
+procedure TSkinNodesCounter.HandleShapeNode(Node: TX3DNode);
+begin
+  Inc(TotalShapes);
+end;
+
+procedure TTestX3DLoadGltf.TestDuplicateIdenticalSkins;
+var
+  Loaded: TX3DRootNode;
+  Counter: TSkinNodesCounter;
+begin
+  { Some glTF exporters (e.g. UnityGLTF) declare multiple, but identical, skins:
+    different glTF skin indexes that have the same skeleton, joints and
+    inverse bind matrices. We merge them into a single X3D TSkinNode that
+    gathers shapes of all the meshes referencing these skins.
+
+    Testcase from https://forum.castle-engine.io/t/cge-doesnt-load-process-some-glb-models/2158
+    reduced to a minimal model: 2 meshes ("body-mesh", "head-mesh"), each
+    referencing a distinct but identical skin. }
+
+  Loaded := LoadNode('castle-data:/gltf/duplicate_identical_skins.gltf');
+  try
+    Counter := TSkinNodesCounter.Create;
+    try
+      Loaded.EnumerateNodes(TSkinNode,
+        {$ifdef FPC}@{$endif} Counter.HandleSkinNode, false);
+
+      // 2 identical glTF skins resulted in only 1 TSkinNode
+      AssertEquals('Identical skins should be merged into a single TSkinNode',
+        1, Counter.SkinCount);
+
+      // Both meshes (body and head) gathered in the one skin node
+      AssertEquals('Both skinned meshes should be present in the merged skin',
+        2, Counter.ShapesInSkins);
+    finally FreeAndNil(Counter) end;
+  finally FreeAndNil(Loaded) end;
+end;
+
+procedure TTestX3DLoadGltf.TestNonIdenticalSkins;
+var
+  Loaded: TX3DRootNode;
+  Counter: TSkinNodesCounter;
+begin
+  { Two skins that share the same skeleton and joints, but have *different*
+    inverse bind matrices, so they are *not* equivalent and cannot be merged.
+    This is not supported (a single skeleton subtree cannot be reparented into
+    two TSkinNode instances), so we keep only one skin and leave the other
+    mesh in place (unanimated) -- but we must not lose it.
+
+    Minimal model: 2 meshes ("body-mesh", "head-mesh"), each referencing a
+    distinct skin with the same joints but different inverse bind matrices.
+
+    Note: which of the two skins "wins" is not deterministic (it depends on the
+    skins iteration order), so we only assert order-independent facts: exactly
+    one skin node, with one shape, and both meshes still present in the scene. }
+
+  Loaded := LoadNode('castle-data:/gltf/non_identical_skins.gltf');
+  try
+    Counter := TSkinNodesCounter.Create;
+    try
+      Loaded.EnumerateNodes(TSkinNode,
+        {$ifdef FPC}@{$endif} Counter.HandleSkinNode, false);
+      Loaded.EnumerateNodes(TShapeNode,
+        {$ifdef FPC}@{$endif} Counter.HandleShapeNode, false);
+
+      // Non-equivalent skins are not merged; only one skin survives
+      AssertEquals('Non-identical skins sharing a skeleton should result in 1 TSkinNode',
+        1, Counter.SkinCount);
+
+      // Only the surviving skin's mesh is gathered as a skinned shape
+      AssertEquals('Only one mesh should be skinned (the other skin is discarded)',
+        1, Counter.ShapesInSkins);
+
+      // Both meshes must still be present in the scene (the discarded skin's
+      // mesh stays in place, unanimated, and must not be lost)
+      AssertEquals('Both meshes must remain present in the scene',
+        2, Counter.TotalShapes);
+    finally FreeAndNil(Counter) end;
+  finally FreeAndNil(Loaded) end;
 end;
 
 initialization

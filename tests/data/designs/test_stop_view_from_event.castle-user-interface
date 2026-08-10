@@ -1,0 +1,46 @@
+{
+  "$$ClassName" : "TCastleUserInterface",
+  "FullSize" : true,
+  "Name" : "Group1",
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleButton",
+      "AutoSize" : false,
+      "Caption" : "MyButton",
+      "CustomBackgroundDisabled" : {
+        "$$ClassName" : "TCastleImagePersistent"
+      },
+      "CustomBackgroundFocused" : {
+        "$$ClassName" : "TCastleImagePersistent"
+      },
+      "CustomBackgroundNormal" : {
+        "$$ClassName" : "TCastleImagePersistent"
+      },
+      "CustomBackgroundPressed" : {
+        "$$ClassName" : "TCastleImagePersistent"
+      },
+      "FullSize" : true,
+      "Height" : 6.5000000000000000E+002,
+      "Image" : {
+        "$$ClassName" : "TCastleImagePersistent"
+      },
+      "Name" : "MyButton",
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : 6.0000000000000000E+001,
+        "Y" : 4.0000000000000000E+001
+      },
+      "Width" : 5.3000000000000000E+002
+    },
+    {
+      "$$ClassName" : "TCastleTimer",
+      "IntervalSeconds" : 1.0000000000000000E-004,
+      "Name" : "MyTimer",
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : 3.3000000000000000E+002,
+        "Y" : 2.5000000000000000E+002
+      }
+    }
+  ]
+}

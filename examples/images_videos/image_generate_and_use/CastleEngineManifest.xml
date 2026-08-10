@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+Specify basic information about the project, including how this project is build.
+See https://castle-engine.io/project_manifest for documentation of this file.
+-->
+
+<project name="image_generate_and_use"
+  standalone_source="image_generate_and_use_standalone.dpr"
+  game_units="GameInitialize"
+  qualified_name="io.castleengine.image.generate.and.use"
+  caption="Generate TDrawableImage and use on TCastleImageTransform"
+>
+  <compiler_options>
+    <search_paths>
+      <path value="code/" />
+    </search_paths>
+  </compiler_options>
+</project>

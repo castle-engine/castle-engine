@@ -30,15 +30,11 @@ type
       These fields will be automatically initialized at Start. }
     LabelFps: TCastleLabel;
     FlyNavigation: TCastleWalkNavigation;
-    CheckboxOptimizeExtensiveTransformations: TCastleCheckbox;
-    CheckboxInternalFastTransformUpdate: TCastleCheckbox;
     CheckboxDynamicBatching: TCastleCheckbox;
     CheckboxAnimateOnlyWhenVisible: TCastleCheckbox;
     CheckboxAnimateSkipTicks1: TCastleCheckbox;
     MainViewport: TCastleViewport;
   private
-    procedure CheckboxOptimizeExtensiveTransformationsChange(Sender: TObject);
-    procedure CheckboxInternalFastTransformUpdateChange(Sender: TObject);
     procedure CheckboxDynamicBatchingChange(Sender: TObject);
     procedure CheckboxAnimateOnlyWhenVisibleChange(Sender: TObject);
     procedure CheckboxAnimateSkipTicks1Change(Sender: TObject);
@@ -46,6 +42,8 @@ type
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
+    function Press(const Event: TInputPressRelease): Boolean; override;
+    function Release(const Event: TInputPressRelease): Boolean; override;
   end;
 
 var
@@ -67,17 +65,13 @@ end;
 procedure TViewMain.Start;
 begin
   inherited;
-  CheckboxOptimizeExtensiveTransformations.OnChange := {$ifdef FPC}@{$endif} CheckboxOptimizeExtensiveTransformationsChange;
-  CheckboxInternalFastTransformUpdate.OnChange := {$ifdef FPC}@{$endif} CheckboxInternalFastTransformUpdateChange;
   CheckboxDynamicBatching.OnChange := {$ifdef FPC}@{$endif} CheckboxDynamicBatchingChange;
   CheckboxAnimateOnlyWhenVisible.OnChange := {$ifdef FPC}@{$endif} CheckboxAnimateOnlyWhenVisibleChange;
   CheckboxAnimateSkipTicks1.OnChange := {$ifdef FPC}@{$endif} CheckboxAnimateSkipTicks1Change;
 
-  // make these 2 optimizations "on" by default in this demo
-  CheckboxOptimizeExtensiveTransformations.Checked := true;
-  CheckboxOptimizeExtensiveTransformationsChange(nil);
-  CheckboxInternalFastTransformUpdate.Checked := true;
-  CheckboxInternalFastTransformUpdateChange(nil);
+  {$ifdef WASI}
+  FlyNavigation.Input := FlyNavigation.Input - [niMouseDragging];
+  {$endif}
 end;
 
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
@@ -87,18 +81,6 @@ begin
   { This virtual method is executed every frame (many times per second). }
   Assert(LabelFps <> nil, 'If you remove LabelFps from the design, remember to remove also the assignment "LabelFps.Caption := ..." from code');
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
-
-  FlyNavigation.MouseLook := buttonRight in Container.MousePressed;
-end;
-
-procedure TViewMain.CheckboxOptimizeExtensiveTransformationsChange(Sender: TObject);
-begin
-  OptimizeExtensiveTransformations := CheckboxOptimizeExtensiveTransformations.Checked;
-end;
-
-procedure TViewMain.CheckboxInternalFastTransformUpdateChange(Sender: TObject);
-begin
-  InternalFastTransformUpdate := CheckboxInternalFastTransformUpdate.Checked;
 end;
 
 procedure TViewMain.CheckboxDynamicBatchingChange(Sender: TObject);
@@ -130,6 +112,38 @@ begin
       Scene := TCastleScene(T);
       Scene.AnimateSkipTicks := IfThen(CheckboxAnimateSkipTicks1.Checked, 1, 0);
     end;
+end;
+
+function TViewMain.Press(const Event: TInputPressRelease): Boolean;
+begin
+  Result := inherited;
+  if Result then Exit; // allow the ancestor to handle keys
+
+  if Event.IsMouseButton(buttonRight) then
+  begin
+    { Start mouse look.
+
+      Note: we enable/disable mouse look on TViewPlay.Press/Release,
+      and we *do not* call in TViewPlay.Update something like
+      "WalkNavigation.MouseLook := buttonRight in Container.MousePressed",
+      because forcing mouse look in Update would be bad UX on web after
+      user cancels pointer lock. See https://castle-engine.io/web#pointer_lock . }
+    FlyNavigation.MouseLook := true;
+    Exit(true);
+  end;
+end;
+
+function TViewMain.Release(const Event: TInputPressRelease): Boolean;
+begin
+  Result := inherited;
+  if Result then Exit; // allow the ancestor to handle keys
+
+  if Event.IsMouseButton(buttonRight) then
+  begin
+    { Stop mouse look. See comment in Press. }
+    FlyNavigation.MouseLook := false;
+    Exit(true);
+  end;
 end;
 
 end.

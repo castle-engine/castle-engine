@@ -1,6 +1,6 @@
 {%MainUnit castleuicontrols.pas}
 {
-  Copyright 2015-2023 Michalis Kamburelis.
+  Copyright 2015-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -41,7 +41,7 @@
 
     @orderedList(
       @item(It is simplest to set @link(DesignUrl)
-        to the design file you created using @url(https://castle-engine.io/manual_editor.php CGE editor).
+        to the design file you created using @url(https://castle-engine.io/editor CGE editor).
         Such user interface controls will be created right before @link(Start)
         and destroyed right after @link(Stop) (so the view UI always "resets"
         when view starts).)
@@ -90,6 +90,13 @@
       FFreeAtStop: TComponent;
       FWaitingForRender: TNotifyEventList;
       FCallBeforeUpdate: TNotifyEventList;
+      { Are we between Resume and Pause.
+        Note that we *do not* expose this property, because from outside
+        it should be enough to check if view equals Container.FrontView.
+        Only internally, these checks may be not equivalent,
+        due to InternalPopView usage with PauseAndResume = false,
+        which may make some view equal to Container.FrontView but not resumed. }
+      FResumed: Boolean;
 
       { Design* private fields }
       FDesignUrl: String;
@@ -102,8 +109,10 @@
 
     procedure InternalStart(const AContainer: TCastleContainer);
     procedure InternalStop;
+    procedure InternalResume;
+    procedure InternalPause;
     procedure StartContainerFreeNotification(const Sender: TFreeNotificationObserver);
-    { Stop yourself and remove from FViewStack, if present there. }
+    { Stop yourself and remove from FCurrentViewStack, if present there. }
     procedure StopIfStarted;
 
     { Design* private routines }
@@ -118,11 +127,6 @@
       If Enable=true: set it to AComponent.
       If Enable=false: set it to nil. }
     procedure SetNameReference(const AComponent: TComponent; const ReferenceName: String; const Enable: Boolean);
-
-    class function GetCurrent: TCastleView; static;
-    class procedure SetCurrent(const Value: TCastleView); static;
-    class function GetCurrentTop: TCastleView; static;
-    class function GetStateStack(const Index: Integer): TCastleView; static;
 
     { Container in which view is started (if view is started)
       or on which we predict it will be started (if view is not started yet).
@@ -151,18 +155,22 @@
 
     function StateContainer: TCastleContainer; deprecated 'use Container to get the container in which we are already started, use PredictedContainer if the state is not yet started';
 
-    { The container in which the view works.
+    (*The container in which the view works.
 
       This is just like @link(Container) property (from
       ancestor, see TCastleUserInterface.Container) but it is
       already assigned even during @link(Start) and @link(Stop).
 
-      This method @italic(deliberately hides the ancestor @link(TCastleUserInterface.Container)
-      method).
-      This way it will work always, in particular also during @link(Start) method.
+      This method @italic(deliberately hides the ancestor
+      @link(TCastleUserInterface.Container) method).
+      Compared to ancestor, this will work in more cases,
+      in particular also during @link(Start) method.
       This allows you to do code like this in overridden @link(Start) method:
 
-      @longCode(# Container.OverrideCursor := mcNone; #) }
+      @longCode(#
+      Container.PointerLock.AddUserCancelledListener(
+        {$ifdef FPC}@{$endif} PointerLockUserCancelled);
+      #) *)
     function Container: TCastleContainer;
 
     { Assign this component as owner for your controls,
@@ -184,7 +192,9 @@
       @code(FreeAndNil(MyInstance)) in the state @link(Stop). }
     function FreeAtStop: TComponent;
   public
-    { When @true, view operations will send a log to CastleLog. }
+    { When @true, view operations will send a log to CastleLog.
+      On start, we will also output the @link(Profiler) summary what took
+      time during starting. }
     class var Log: boolean;
 
     { Create an instance of the view.
@@ -246,6 +256,10 @@
 
     { Executed when view becomes active, it's now part of the view stack.
 
+      Never call this method directly (it should be called by TCastleContainer
+      methods like @link(TCastleContainer.PushView) or @link(TCastleContainer.View)
+      setter). It is exposed only so that you can override it.
+
       Started view is part of the ViewStack, and will soon become
       running (top-most on the stack). When the view is set to be current,
       by @code(Container.View := MyView), this happens:
@@ -263,6 +277,10 @@
     procedure Start; virtual;
 
     { Executed when view is no longer active, no longer part of view stack.
+
+      Never call this method directly (it should be called by TCastleContainer
+      methods like @link(TCastleContainer.PopView) or @link(TCastleContainer.View)
+      setter). It is exposed only so that you can override it.
 
       When the view stops becoming active, this happens:
 
@@ -286,14 +304,22 @@
     { Executed when view is now the top-most view. See @link(Start) and @link(Stop)
       docs about view lifecycle methods.
       This is called after @link(Start), it is also called
-      when you pop another view, making this view the top-most. }
+      when you pop another view, making this view the top-most.
+
+      Never call this method directly (it should be called by TCastleContainer
+      methods like @link(TCastleContainer.PushView) or @link(TCastleContainer.View)
+      setter). It is exposed only so that you can override it. }
     procedure Resume; virtual;
 
     { Executed when view is no longer the top-most view. See @link(Start) and @link(Stop)
       docs about view lifecycle methods.
       This is called before @link(Stop), it is also called
       when another view is pushed over this view, so this stops
-      being the the top-most view. }
+      being the the top-most view.
+
+      Never call this method directly (it should be called by TCastleContainer
+      methods like @link(TCastleContainer.PopView) or @link(TCastleContainer.View)
+      setter). It is exposed only so that you can override it. }
     procedure Pause; virtual;
 
     procedure Finish; virtual; deprecated 'use Stop';
@@ -459,18 +485,32 @@
       loaded components. Like this:
 
       @longCode(#
-      MyButton := DesignedComponent('MyButton') as TCastleButton;
+      for I := 1 to 10 do
+        MyButton[I] := DesignedComponent('MyButton' + IntToStr(I)) as TCastleButton;
       #)
 
-      This method is seldom useful now.
-      The published fields of the view are automatically initialized when
-      loading / unloading design using @link(DesignUrl).
-      There's no need to use DesignedComponent for them.
+      Note: This method should not be necessary for a typical situation,
+      when you have a simple field like @code(MyButton: TCastleButton)
+      declared in your view class (@link(TCastleView) descendant),
+      and you want to initialize it.
+      In this case, just make sure the field is in the @code(published) section
+      of the class, and the field will be automatically initialized when
+      starting the view.
+      It will also be automatically set to @nil when view stops.
+      loading the design using @link(DesignUrl).
+      There's no need to use DesignedComponent for such cases.
+
+      This method is only useful for complicated cases, when e.g. you determine
+      the component name at runtime.
+
+      @param ComponentName Component name to search in th loaded components.
+      @param(RaiseExceptionOnError When @true (default), we raise exception
+        when the component is not found, and we never return @nil.
+        If you pass @false, then we will return @nil when component is not found.)
 
       @seealso DesignUrl }
-    function DesignedComponent(const ComponentName: String): TComponent;
-      //deprecated 'published view fields are automatically initialized now, no need to use this method';
-      // do not deprecate -- there are valid use-cases for it, sometimes it's easier to enumerate strings by code
+    function DesignedComponent(const ComponentName: String;
+      const RaiseExceptionOnError: boolean = true): TComponent;
 
     { TODO: This doesn't work with FPC 3.2.0, see implementation comments.
       It is also not that useful -- unlike Unity "GameObject.GetComponent<T>(): T",
@@ -478,13 +518,9 @@
       be just another way to express "as" cast. }
     // generic function DesignedComponent<T: TComponent>(const ComponentName: String): T; overload;
 
-    class property Current: TCastleView read GetCurrent write SetCurrent; {$ifdef FPC}deprecated 'use Container.View';{$endif}
-    class property CurrentTop: TCastleView read GetCurrentTop; {$ifdef FPC}deprecated 'use Container.FrontView';{$endif}
     class procedure Push(const NewState: TCastleView); deprecated 'use Container.PushView';
     class procedure Pop; overload; deprecated 'use Container.PopView';
     class procedure Pop(const CurrentTopMostState: TCastleView); overload; deprecated 'use Container.PopView';
-    class function StateStackCount: Integer; deprecated 'use Container.ViewStackCount';
-    class property StateStack [const Index: Integer]: TCastleView read GetStateStack; {$ifdef FPC}deprecated 'use Container.ViewStack';{$endif}
   published
     { TCastleView control makes most sense when it is FullSize,
       filling the whole window.
@@ -495,7 +531,10 @@
     property FullSize default true;
   end;
 
-  TCastleViewList = class({$ifdef FPC}specialize{$endif} TObjectList<TCastleView>);
+  TCastleViewList = class({$ifdef FPC}specialize{$endif} TObjectList<TCastleView>)
+    { Debug multiline string: all view names. }
+    function ToString: String; override;
+  end;
 
 {$endif read_interface}
 
@@ -589,7 +628,7 @@ begin
     However, check first that we're still the current view,
     to safeguard from the fact that Start changed view
     (like the loading view, that changes to play view immediately in start). }
-  if AContainer.FViewStack.IndexOf(Self) <> -1 then
+  if AContainer.FCurrentViewStack.IndexOf(Self) <> -1 then
     AContainer.Controls.InsertFront(Self);
 
   Profiler.Stop(TimeStart, Log);
@@ -676,19 +715,15 @@ var
   SavedContainer: TCastleContainer;
 begin
   if (FStartContainer <> nil) and
-     (FStartContainer.FViewStack <> nil) and
-     (FStartContainer.FViewStack.IndexOf(Self) <> -1) then
+     (FStartContainer.FCurrentViewStack <> nil) and
+     (FStartContainer.FCurrentViewStack.IndexOf(Self) <> -1) then
   begin
     SavedContainer := FStartContainer;
 
-    if SavedContainer.FViewStack.Last = Self then
+    if SavedContainer.FCurrentViewStack.Last = Self then
       Pause;
     InternalStop; // this clears FStartContainer
-    SavedContainer.FViewStack.Remove(Self);
-    { deallocate empty FViewStack. Doing this here allows to deallocate
-      FViewStack only once all views finished gracefully. }
-    if SavedContainer.FViewStack.Count = 0 then
-      FreeAndNil(SavedContainer.FViewStack);
+    SavedContainer.FCurrentViewStack.Remove(Self);
   end;
 end;
 
@@ -702,16 +737,41 @@ begin
   inherited;
 end;
 
-procedure TCastleView.Resume;
+procedure TCastleView.InternalResume;
 begin
   if Log then
     WritelnLog('TCastleView', 'Resuming: ' + Name + ': ' + ClassName);
+  if FResumed then
+    WritelnWarning('TCastleView', 'Resuming view that is already resumed, submit a bug');
+  FResumed := true;
+  Resume;
+end;
+
+procedure TCastleView.InternalPause;
+begin
+  if Log then
+    WritelnLog('TCastleView', 'Paused: ' + Name + ': ' + ClassName);
+  if not FResumed then
+    WritelnWarning('TCastleView', 'Pausing view that is already paused, submit a bug');
+  Pause;
+  { Change FResumed *after* Pause call, so FResumed=true during both Resume
+    and Pause.
+    This is consistent with Active that is true during both Start and Stop. }
+  FResumed := false;
+end;
+
+procedure TCastleView.Resume;
+begin
+  { Do not place here any logic, to make sure TCastleView works reliably even when
+    descendant doesn't have "inherited" call.
+    Same as in Start. }
 end;
 
 procedure TCastleView.Pause;
 begin
-  if Log then
-    WritelnLog('TCastleView', 'Paused: ' + Name + ': ' + ClassName);
+  { Do not place here any logic, to make sure TCastleView works reliably even when
+    descendant doesn't have "inherited" call.
+    Same as in Start. }
 end;
 
 procedure TCastleView.Start;
@@ -840,7 +900,7 @@ begin
   begin
     // load FDesignPreloadedSerialized to be able to faster load design, without parsing JSON
     FDesignPreloadedSerialized := TCastleComponentFactory.Create(nil);
-    FDesignPreloadedSerialized.Url :=DesignUrl;
+    FDesignPreloadedSerialized.Url := DesignUrl;
     // load FDesignPreloaded to cache all that's possible,
     // like images used inside TCastleImageControl or TCastleScene.
     FDesignPreloadedOwner := TComponent.Create(nil);
@@ -911,11 +971,16 @@ begin
 end;
 *)
 
-function TCastleView.DesignedComponent(const ComponentName: String): TComponent;
+function TCastleView.DesignedComponent(const ComponentName: String;
+  const RaiseExceptionOnError: Boolean): TComponent;
 begin
   if FDesignLoaded = nil then
     ErrorDesignLoaded;
-  Result := FDesignLoadedOwner.FindRequiredComponent(ComponentName);
+
+  if RaiseExceptionOnError then
+    Result := FDesignLoadedOwner.FindRequiredComponent(ComponentName)
+  else
+    Result := FDesignLoadedOwner.FindComponent(ComponentName);
 end;
 
 function TCastleView.ContainerWidth: Cardinal;
@@ -946,21 +1011,6 @@ begin
     Result := 1.0;
 end;
 
-class function TCastleView.GetCurrent: TCastleView;
-begin
-  Result := RequireMainContainer.View;
-end;
-
-class function TCastleView.GetCurrentTop: TCastleView;
-begin
-  Result := RequireMainContainer.FrontView;
-end;
-
-class procedure TCastleView.SetCurrent(const Value: TCastleView);
-begin
-  RequireMainContainer.View := Value;
-end;
-
 class procedure TCastleView.Push(const NewState: TCastleView);
 begin
   RequireMainContainer.PushView(NewState);
@@ -976,16 +1026,6 @@ begin
   RequireMainContainer.PopView(CurrentTopMostState);
 end;
 
-class function TCastleView.StateStackCount: Integer;
-begin
-  Result := RequireMainContainer.ViewStackCount;
-end;
-
-class function TCastleView.GetStateStack(const Index: Integer): TCastleView;
-begin
-  Result := RequireMainContainer.ViewStack[Index];
-end;
-
 procedure TCastleView.SetNameReference(const AComponent: TComponent; const ReferenceName: String; const Enable: Boolean);
 var
   FieldAddr: ^TComponent;
@@ -999,6 +1039,26 @@ begin
       FieldAddr^ := AComponent
     else
       FieldAddr^ := nil;
+  end;
+end;
+
+{ TCastleViewList ---------------------------------------------------------------- }
+
+function TCastleViewList.ToString: String;
+var
+  I: Integer;
+begin
+  Result := Format('View stack (%d views):', [Count]) + NL;
+  for I := 0 to Count - 1 do
+  begin
+    Assert(Items[I] <> nil); // no nils should be in the list
+
+    { We show Items[I] using PointerToStr as it may be a dangling pointer,
+      we do not check if views have not been freed in the meantime,
+      and in particular when this is called from TCastleContainer.Destroy
+      views may be freed. }
+
+    Result := Result + '  ' + {Items[I].ClassName} PointerToStr(Items[I]) + NL;
   end;
 end;
 

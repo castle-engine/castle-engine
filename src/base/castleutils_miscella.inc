@@ -50,7 +50,7 @@ type
   @raises ECheckFailed Raised with ErrMessage if condition TrueValue if false. }
 procedure Check(TrueValue: boolean; const ErrMessage: string = 'Check failed');
 
-{ Arrays searching ----------------------------------------------------------- }
+{ Array searching ----------------------------------------------------------- }
 
 { Search the array for a given value.
   Returns index (zero-based) or -1 if not found.
@@ -66,18 +66,42 @@ procedure Check(TrueValue: boolean; const ErrMessage: string = 'Check failed');
   #) }
 function ArrayPosStr(const A: String; const Arr: array of String): Integer; overload;
 function ArrayPosText(const A: String; const Arr: array of String;
-  IgnoreCase: boolean = true): Integer; overload;
+  const IgnoreCase: boolean = true): Integer; overload;
 
 function ArrayContainsString(const A: String; const Arr: array of String): Boolean;
 
 { Iff functions ------------------------------------------------------------- }
 
-{ }
+{ Simple conditional function.
+  Returns trueval if boolval is true, falseval otherwise.
+
+  This can be used in a similar way to the ternary operator from C-like languages,
+  e.g. like this
+
+  @longCode(#
+  AvatarHeight := Iff(AvatarCrouch, 0.5, 2.0);
+  #)
+
+  However, remember that this is just a regular function, so both arguments
+  are evaluated before the result is calculated. For example, this code
+  is incorrect:
+
+  @longCode(#
+  // INCORRECT EXAMPLE, DO NOT COPY
+  AvatarHeight := Iff(Avatar <> nil, Avatar.Height, 0.0);
+  #)
+
+  @deprecated
+  Do not use this, as equivalent functions are available in standard
+  Pascal libraries now. Use Math.IfThen, StrUtils.IfThen instead.
+
+  @groupBegin }
 function Iff(boolval: boolean; trueval, falseval: string)  : string;   overload;
 function Iff(boolval: boolean; trueval, falseval: Integer) : Integer;  overload;
 function Iff(boolval: boolean; trueval, falseval: Float)   : Float;    overload;
 function Iff(boolval: boolean; trueval, falseval: Cardinal): Cardinal; overload;
 function Iff(boolval: boolean; trueval, falseval: char)    : char;     overload;
+{ @groupEnd }
 
 { Some helpful version stuff ------------------------------------------------ }
 
@@ -102,8 +126,8 @@ function SCastleEngineProgramHelpSuffix(const AppName, AppVersion: String; const
   deprecated 'use ApplicationProperties.Description';
 
 { If not TrueValue then RaiseLastOSError. }
-procedure OSCheck(TrueValue: boolean); overload;
-procedure OSCheck(TrueValue: boolean; const Place: string); overload;
+procedure OSCheck(const TrueValue: Boolean); overload;
+procedure OSCheck(const TrueValue: Boolean; const Place: String); overload;
 
 type
   { Descend from this to hide a parameterless constructor.
@@ -153,15 +177,27 @@ function FloatToStrFDot(const Value: Extended;
   const Precision: Integer;
   const Digits: Integer): String;
 
-{ Display float as nice concise number to read (but not necessarily with
-  absolute precision):
-  always decimal,
-  no digits after dot if not necessary,
-  show some digits (but not too many - right now 2) after dot if they are meaningful.
+const
+  { Number of digits after the decimal point we show using FloatToStrDisplay
+    by default. This affects the display of floats and vectors in CGE editor's
+    object inspector. }
+  DefaultFloatStrDigits = 5;
 
-  Like other ...Dot routines, always uses dot (.) as a decimal separator,
+{ Display float as nice concise number to read (but not necessarily with
+  absolute precision). This means:
+
+  @unorderedList(
+    @item always decimal,
+    @item no digits after dot if not necessary,
+    @item(show some digits but not too many (because too many digits
+      are usually not useful, being the result of rounding errors
+      and not anything meaningful).)
+  )
+
+  Like the ...Dot routines, this always uses dot (.) as a decimal separator,
   regardless of the user's locale settings. }
-function FloatToStrDisplay(const AValue: Extended): String;
+function FloatToStrDisplay(const AValue: Extended;
+  const ADigits: Byte = DefaultFloatStrDigits): String;
 
 { Like standard TryStrToFloat, but always uses dot (.) as a decimal separator
   for the floating point numbers, regardless of the user's locale settings.
@@ -262,7 +298,7 @@ begin
  if not TrueValue then raise ECheckFailed.Create(errMessage);
 end;
 
-{ arrays searching ---------------------------------------- }
+{ Array searching ---------------------------------------- }
 
 function ArrayPosStr(const A: String; const Arr: array of String): Integer;
 begin
@@ -278,7 +314,7 @@ begin
 end;
 
 function ArrayPosText(const A: String; const Arr: array of String;
-  IgnoreCase: boolean): Integer;
+  const IgnoreCase: boolean): Integer;
 var
   AA: string;
 begin
@@ -350,12 +386,13 @@ begin
     'Platform: ' + SPlatformDescription + '.';
 end;
 
-procedure OSCheck(TrueValue: boolean);
+procedure OSCheck(const TrueValue: Boolean);
 begin
-  if not TrueValue then RaiseLastOSError;
+  if not TrueValue then
+    RaiseLastOSError;
 end;
 
-procedure OSCheck(TrueValue: boolean; const Place: string);
+procedure OSCheck(const TrueValue: Boolean; const Place: String);
 begin
   if not TrueValue then
   try
@@ -439,14 +476,14 @@ begin
   Result := FloatToStrF(Value, FloatFormat, Precision, Digits, FormatSettings);
 end;
 
-function FloatToStrDisplay(const AValue: Extended): String;
+function FloatToStrDisplay(const AValue: Extended; const ADigits: Byte): String;
 begin
   Result := FloatToStrFDot(AValue, ffFixed,
     { With FPC, Precision = 0 is also OK, but with Delphi it's not,
       it will use scientific notation then early, e.g. for 123.0.
       See TTestCastleUtils.TestFloatToStrDisplay testcase. }
     20,
-    2);
+    ADigits);
 
   { We remove trailing zeroes after decimal separator, we don't need them.
     A less hacky way (that doesn't involve string fixing) would be nicer,

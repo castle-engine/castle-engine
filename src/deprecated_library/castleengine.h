@@ -1,5 +1,5 @@
 /*
-  Copyright 2013-2024 Jan Adamec, Michalis Kamburelis.
+  Copyright 2013-2025 Jan Adamec, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,6 +25,8 @@
 
 #ifndef CGE_LIBRARY_INCLUDED
 #define CGE_LIBRARY_INCLUDED
+
+#include <stdbool.h>
 
 #ifdef __GNUC__
 #  ifdef __i386
@@ -58,13 +60,14 @@ enum ECgeVariable   // used for querying engine parameters in CGE_Set/GetVariabl
     ecgevarMouseLook       = 2,   // activate mouse look viewing mode, desktop interface only (int, 1 or 0)
     ecgevarCrossHair       = 3,   // show crosshair in the center of the screen (int, 1 or 0)
     ecgevarAnimationRunning = 4,  // (read-only) engine would like to progress with the animation (int, 1 or 0)
-    ecgevarWalkTouchCtl    = 5,   // walking touch control (int, one of ECgeTouchCtlInterface values)
+    ecgevarAutoWalkTouchInterface = 5,   // walking touch control (int, one of ECgeTouchCtlInterface values)
     ecgevarScenePaused     = 6,   // pause Viewport (int, 1 = on, 0 = off)
     ecgevarAutoRedisplay   = 7,   // automatically redraws the window all the time (int, 1 = on, 0 = off)
     ecgevarHeadlight       = 8,   // avatar's headlight (int, 1 = on, 0 = off)
     ecgevarOcclusionCulling  = 9,   // occlusion culling (int, 1 = on, 0 = off)
     ecgevarPhongShading    = 10,  // phong shading (int, 1 = on, 0 = off)
     ecgevarPreventInfiniteFallingDown = 11,  // prevent infinite falling down (int, 1 = on, 0 = off)
+    ecgevarUIScaling       = 12,  // UI scaling method (int, one of ECgeUIScaling)
 };
 
 enum ECgeNavigationType
@@ -78,11 +81,28 @@ enum ECgeNavigationType
 
 enum ECgeTouchCtlInterface
 {
-    ecgetciNone              = 0,
-    ecgetciCtlWalkCtlRotate  = 1,
-    ecgetciCtlWalkDragRotate = 2,
-    etciCtlFlyCtlWalkDragRotate = 3,
-    etciCtlPanXYDragRotate   = 4,
+    ecgetiNone       = 0,   // no touch controls
+    ecgetiWalk       = 1,   // right control for walking
+    ecgetiWalkRotate = 2,   // right control for walking, left for rotation
+    ecgetiFlyWalk    = 3,
+    ecgetiPan        = 4,
+};
+
+enum ECgeMouseDragMode
+{
+    ecgemdWalkRotate = 0,   // moves and rotates avatar depending on the direction of mouse drag
+    ecgemdRotate     = 1,   // rotates the head when mouse is moved
+    ecgemdNone       = 2,   // ignores the dragging
+};
+
+enum ECgeUIScaling
+{
+    ecgeusNone                  = 0,
+    ecgeusEncloseReferenceSize  = 1,
+    ecgeusEncloseReferenceSizeAutoOrientation = 2,
+    ecgeusFitReferenceSize      = 3,
+    ecgeusExplicitScale         = 4,
+    ecgeusDpiScale              = 5,
 };
 
 enum ECgeMouseCursor
@@ -103,7 +123,10 @@ enum ECgeLibCallbackCode
     ecgelibWarning               = 4,  // sends message in szParam
 };
 
-enum ECgeKey    // values for these constants have to be same as in unit CastleKeysMouse (TKey)
+/* Key on the keyboard.
+   This corresponds to Pascal enum TKey.
+   Integer values of each enum must match exactly. */
+enum ECgeKey
 {
   kcge_None        = 0,
   kcge_PrintScreen = 1,
@@ -213,22 +236,31 @@ enum ECgeKey    // values for these constants have to be same as in unit CastleK
   kcge_Numpad_Enter    = 161,
   kcge_Numpad_Multiply = 162,
   kcge_Numpad_Divide   = 163,
-  kcge_Pad_A      = 164,
-  kcge_Pad_B      = 165,
-  kcge_Pad_X      = 166,
-  kcge_Pad_Y      = 167,
-  kcge_Pad_L      = 168,
-  kcge_Pad_R      = 169,
-  kcge_Pad_ZL     = 170,
-  kcge_Pad_ZR     = 171,
-  kcge_Pad_Plus   = 172,
-  kcge_Pad_Minus  = 173,
-  kcge_Pad_Left   = 174,
-  kcge_Pad_Up     = 175,
-  kcge_Pad_Right  = 176,
-  kcge_Pad_Down   = 177,
   kcge_Comma       = 188,
   kcge_Period      = 190,
+};
+
+/* Game controller button.
+   This corresponds to Pascal enum TGameControllerButton.
+   Integer values of each enum must match exactly. */
+enum ECgeGameControllerButton
+{
+  gbNorth         = 0,
+  gbEast          = 1,
+  gbSouth         = 2,
+  gbWest          = 3,
+  gbLeftBumper    = 4,
+  gbRightBumper   = 5,
+  gbLeftStickClick = 6,
+  gbRightStickClick = 7,
+  gbDPadUp        = 8,
+  gbDPadRight     = 9,
+  gbDPadDown      = 10,
+  gbDPadLeft      = 11,
+  gbView          = 12,
+  gbMenu          = 13,
+  gbGuide         = 14,
+  gbShare         = 15,
 };
 
 enum ECgeMouseButton
@@ -278,6 +310,15 @@ enum ECgeNavigationInput
   ecgeinputExZoom       = 33,
 };
 
+enum ECgeUrlProcessing
+{
+  ecgeurlProcessingNone                 = 0,
+  ecgeurlProcessingCastleDataToRelative = 1,
+  ecgeurlProcessingAllPathsToRelative   = 2,
+  ecgeurlProcessingEmbedResources       = 3,
+  ecgeurlProcessingCopyToOutputDir      = 4,
+};
+
 typedef int (CDECL *TCgeLibraryCallback)(int /*ECgeLibCallbackCode*/eCode, int iParam1, int iParam2, const char *szParam);
 
 
@@ -295,7 +336,6 @@ extern void CGE_Open(unsigned uiFlags, unsigned initialWidth, unsigned initialHe
 extern void CGE_Close(bool quitWhenLastWindowClosed);
 extern void CGE_GetOpenGLInformation(char *szBuffer, int nBufSize);        // szBuffer is filled inside the function with max size of nBufSize
 extern void CGE_GetCastleEngineVersion(char *szBuffer, int nBufSize);      // szBuffer is filled inside the function with max size of nBufSize
-extern void CGE_SetUserInterface(bool bAutomaticTouchInterface); // should be called at the start of the program. Touch interface controls will be updated automatically then.
 
 extern void CGE_Resize(unsigned uiViewWidth, unsigned uiViewHeight);       // let the library know about the viewport size changes
 extern void CGE_Render(void);                                                  // paints the 3d scene into the context
@@ -312,7 +352,7 @@ extern void CGE_KeyDown(int /*ECgeKey*/ eKey);
 extern void CGE_KeyUp(int /*ECgeKey*/ eKey);
 
 extern void CGE_LoadSceneFromFile(const char *szFile);                     // name od the file has to be utf-8 encoded
-extern void CGE_SaveSceneToFile(const char *szFile);
+extern void CGE_SaveSceneToFile(const char *szFile, int /*ECgeUrlProcessing*/ eUrlProcessing);
 
 extern int CGE_GetViewpointsCount(void);
 extern void CGE_GetViewpointName(int iViewpointIdx, char *szName, int nBufSize);    // szName is buffer of size nBufSize, and is filled with utf-8 encoded string
@@ -332,14 +372,37 @@ extern void CGE_SetNavigationInputShortcut(int /*ECgeNavigationInput*/ eInput,
 
 extern int CGE_GetNavigationType(void);
 extern void CGE_SetNavigationType(int /*ECgeNavigationType*/ eNewType);
-
 extern void CGE_SetTouchInterface(int /*ECgeTouchCtlInterface*/ eMode);
+extern void CGE_SetAutoTouchInterface(bool bAutomaticTouchInterface); // should be called at the start of the program. Touch interface controls will be updated automatically then.
+extern void CGE_SetWalkNavigationMouseDragMode(int /*ECgeMouseDragMode*/ eMode);
 
 extern void CGE_SetVariableInt(int /*ECgeVariable*/ eVar, int nValue);
 extern int CGE_GetVariableInt(int /*ECgeVariable*/ eVar);
 
-extern void CGE_SetNodeFieldValue(const char *szNodeName, const char *szFieldName,
-                                  float fVal1, float fVal2, float fVal3, float fVal4);
+extern void CGE_SetNodeFieldValue_SFFloat(const char *szNodeName, const char *szFieldName, float value);
+extern void CGE_SetNodeFieldValue_SFDouble(const char *szNodeName, const char *szFieldName, double value);
+extern void CGE_SetNodeFieldValue_SFInt32(const char *szNodeName, const char *szFieldName, int value);
+extern void CGE_SetNodeFieldValue_SFBool(const char *szNodeName, const char *szFieldName, bool value);
+extern void CGE_SetNodeFieldValue_SFVec2f(const char *szNodeName, const char *szFieldName, float val1, float val2);
+extern void CGE_SetNodeFieldValue_SFVec3f(const char *szNodeName, const char *szFieldName, float val1, float val2, float val3);
+extern void CGE_SetNodeFieldValue_SFVec4f(const char *szNodeName, const char *szFieldName, float val1, float val2, float val3, float val4);
+extern void CGE_SetNodeFieldValue_SFVec2d(const char *szNodeName, const char *szFieldName, double val1, double val2);
+extern void CGE_SetNodeFieldValue_SFVec3d(const char *szNodeName, const char *szFieldName, double val1, double val2, double val3);
+extern void CGE_SetNodeFieldValue_SFVec4d(const char *szNodeName, const char *szFieldName, double val1, double val2, double val3, double val4);
+extern void CGE_SetNodeFieldValue_SFRotation(const char *szNodeName, const char *szFieldName, float axisX, float axisY, float axisZ, float rotation);
+extern void CGE_SetNodeFieldValue_SFString(const char *szNodeName, const char *szFieldName, const char *value);
+extern void CGE_SetNodeFieldValue_MFFloat(const char *szNodeName, const char *szFieldName, int iCount, float *values);
+extern void CGE_SetNodeFieldValue_MFDouble(const char *szNodeName, const char *szFieldName, int iCount, double *values);
+extern void CGE_SetNodeFieldValue_MFInt32(const char *szNodeName, const char *szFieldName, int iCount, int *values);
+extern void CGE_SetNodeFieldValue_MFBool(const char *szNodeName, const char *szFieldName, int iCount, bool *values);
+extern void CGE_SetNodeFieldValue_MFVec2f(const char *szNodeName, const char *szFieldName, int iCount, float *values);  // we expect "2 * iCount" floats in the array "values"
+extern void CGE_SetNodeFieldValue_MFVec3f(const char *szNodeName, const char *szFieldName, int iCount, float *values);  // we expect "3 * iCount" floats in the array "values"
+extern void CGE_SetNodeFieldValue_MFVec4f(const char *szNodeName, const char *szFieldName, int iCount, float *values);  // we expect "4 * iCount" floats in the array "values"
+extern void CGE_SetNodeFieldValue_MFVec2d(const char *szNodeName, const char *szFieldName, int iCount, double *values);  // we expect "2 * iCount" doubles in the array "values"
+extern void CGE_SetNodeFieldValue_MFVec3d(const char *szNodeName, const char *szFieldName, int iCount, double *values);  // we expect "3 * iCount" doubles in the array "values"
+extern void CGE_SetNodeFieldValue_MFVec4d(const char *szNodeName, const char *szFieldName, int iCount, double *values);  // we expect "4 * iCount" doubles in the array "values"
+extern void CGE_SetNodeFieldValue_MFRotation(const char *szNodeName, const char *szFieldName, int iCount, float *values);  // we expect "4 * iCount" floats in the array "values"
+extern void CGE_SetNodeFieldValue_MFString(const char *szNodeName, const char *szFieldName, int iCount, const char **values);  // We expect array of "iCount" char* pointers to null-terminated UTF-8 strings
 
 extern void CGE_IncreaseSceneTime(float fTimeS);    // set time in the scene, useful when viewport paused
 

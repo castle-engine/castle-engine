@@ -90,6 +90,8 @@ procedure MaxVar(var a: Extended; const b: Extended); overload; {$ifdef SUPPORTS
 { @groupEnd }
 
 type
+  { Index of axis in 2D. }
+  T2DAxis = 0..1;
   { Index of axis in 3D. }
   T3DAxis = 0..2;
 
@@ -289,8 +291,9 @@ function AngleRadPointToPoint(x1, y1, x2, y2: Single): Single;
 function NatNatPower(Base, Exponent: Cardinal): Cardinal;
 
 {$ifdef FPC}
-{ }
-function ArcCot(x: Float): Float;
+{ Calculate arc cotangent (inverse cotangent) of x, in radians.
+  Defined only for FPC, as Delphi features it in Math unit. }
+function ArcCot(const x: Float): Float;
 {$endif FPC}
 
 { Trivial factorial with Int64 result. Beware, the results very quickly
@@ -930,7 +933,7 @@ begin
 end;
 
 {$ifdef FPC}
-function ArcCot(x: Float): Float;
+function ArcCot(const x: Float): Float;
 begin
  result := ArcTan(1/x);
 end;

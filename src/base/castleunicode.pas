@@ -28,14 +28,15 @@ uses CastleUtils, CastleStringUtils;
 type
   TUnicodeChar = Cardinal;
 
-  TUnicodeCharList = class(TCardinalList)
+  { Manage a set (without duplicates) of Unicode character codes. }
+  TUnicodeCharSet = class(TCardinalList)
   public
     { Add a single Unicode character.
       Doesn't add duplicates (contrary to ancestor Add). }
     procedure Add(const C: TUnicodeChar); reintroduce; overload;
 
     { Add all characters from SampleText.
-      Useful to fill TUnicodeCharList
+      Useful to fill TUnicodeCharSet
       when you have a sample text of international letters.
       Doesn't add duplicates. }
     procedure Add(const SampleText: string); overload;
@@ -44,7 +45,7 @@ type
       Doesn't add duplicates. }
     procedure Add(const Characters: TSetOfChars); overload;
 
-    { Express all characters inside as one string.
+    { Express all characters inside the set as one string.
 
       The resulting String follows the encoding conventions used throughout CGE,
       which means it will be UTF-8 with FPC (AnsiString)
@@ -52,6 +53,8 @@ type
       See https://castle-engine.io/coding_conventions#strings_unicode . }
     function ToString: String; override;
   end;
+
+  TUnicodeCharList = TUnicodeCharSet deprecated 'use TUnicodeCharSet instead';
 
 { Length of the string, in Unicode characters.
 
@@ -74,15 +77,21 @@ function StringLength(const S: String): Integer;
   StartIndex is 1-based, i.e. the first Unicode character in String has index 1,
   last Unicode character has index StringLength(S).
 
-  In case CountToCopy, it is guaranteed to only copy the maximum possible
-  characters, without causing any memory overruns.
+  In case the parameters indicate that we would copy more characters than there
+  exist, this routine guarantees to only copy the maximum possible
+  characters (without causing any issues like memory overruns).
+  For example, @code(StringCopy('foobar', 4, 100)) will return @code('bar').
 
-  Note that it doesn't try to deal with strings that may end abruptly
-  in the middle of a Unicode character (that may span multiple Pascal Char
+  The result is undefined when the string ends abruptly
+  in the middle of a Unicode character (that spans multiple Pascal Char
   (AnsiChar or WideChar) values, possible both in case
   of UTF-8 in AnsiString and UTF-16 in UnicodeString).
-  The results of such abrupt ending are undefined: this routine may copy the partial
-  (unfinished) Unicode character, or it may reject the unfinished partial character altogether.
+  The input string is considered incorrect in this case, and results are undefined:
+  maybe we will copy the partial (unfinished) Unicode character
+  (thus making also the output incorrect),
+  maybe we will reject the unfinished partial character.
+  However, we guarantee that we will not cause any memory overruns (thus, potential
+  crashes or security issues) in this case.
 
   This works taking into account that:
   @unorderedList(
@@ -216,15 +225,15 @@ implementation
 
 uses SysUtils{$ifndef FPC}, Character{$endif}, CastleLog;
 
-{ TUnicodeCharList ----------------------------------------------------------- }
+{ TUnicodeCharSet ----------------------------------------------------------- }
 
-procedure TUnicodeCharList.Add(const C: TUnicodeChar);
+procedure TUnicodeCharSet.Add(const C: TUnicodeChar);
 begin
   if IndexOf(C) = -1 then
     inherited Add(C);
 end;
 
-procedure TUnicodeCharList.Add(const SampleText: string);
+procedure TUnicodeCharSet.Add(const SampleText: string);
 var
   Iter: TCastleStringIterator;
 begin
@@ -233,7 +242,7 @@ begin
     Add(Iter.Current);
 end;
 
-procedure TUnicodeCharList.Add(const Characters: TSetOfChars);
+procedure TUnicodeCharSet.Add(const Characters: TSetOfChars);
 var
   C: char;
 begin
@@ -241,7 +250,7 @@ begin
     Add(Ord(C));
 end;
 
-function TUnicodeCharList.ToString: String;
+function TUnicodeCharSet.ToString: String;
 var
   C: TUnicodeChar;
 begin

@@ -142,9 +142,9 @@ end;
 
 function TCastlePlane.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'SizePersistent') or
-     (PropertyName = 'Axis') or
-     (PropertyName = 'DoubleSided') then
+  if ArrayContainsString(PropertyName, [
+       'SizePersistent', 'Axis', 'DoubleSided'
+     ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);

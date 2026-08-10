@@ -126,8 +126,9 @@ end;
 
 function TCastleDirectionalLight.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'ColorPersistent') or
-     (PropertyName = 'Intensity') then
+  if ArrayContainsString(PropertyName, [
+      'ColorPersistent', 'Intensity'
+     ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);

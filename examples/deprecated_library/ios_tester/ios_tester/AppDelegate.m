@@ -1,5 +1,5 @@
 /*
-  Copyright 2013-2014 Jan Adamec, Michalis Kamburelis.
+  Copyright 2013-2025 Jan Adamec, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -21,23 +21,18 @@
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
-    
-    EAGLContext * context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
-    GLKView *view = [[GLKView alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
-    view.context = context;
-    view.drawableStencilFormat = GLKViewDrawableStencilFormat8;
-    view.drawableDepthFormat = GLKViewDrawableDepthFormat24;
-    
+
     OpenGLController * viewController = [[OpenGLController alloc] initWithNibName:nil bundle:nil];
-    viewController.view = view;
-    viewController.preferredFramesPerSecond = 60;
-    
+
     UINavigationController *navCtl = [[UINavigationController alloc] initWithRootViewController:viewController];
+    navCtl.navigationBar.translucent = NO;
+    navCtl.navigationBar.barStyle = UIBarStyleBlackOpaque;
+    navCtl.toolbar.translucent = NO;
+    navCtl.toolbar.barStyle = UIBarStyleBlackOpaque;
+        
     self.window.rootViewController = navCtl;
     
-    [viewController viewDidLoad];
-
-    self.window.backgroundColor = [UIColor whiteColor];
+    //self.window.backgroundColor = [UIColor whiteColor];
     [self.window makeKeyAndVisible];
     return YES;
 }

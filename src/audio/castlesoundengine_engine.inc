@@ -19,7 +19,7 @@
 //type // allow type declaration to continue
 
   { Sound engine, responsible for loading and playing sounds.
-    See @url(https://castle-engine.io/manual_sound.php
+    See @url(https://castle-engine.io/sound
     manual about sound in Castle Game Engine) for an overview of sound support.
 
     There should always be only one instance of this class,
@@ -51,6 +51,8 @@
     procedure ReinitializeJavaActivity(Sender: TObject);
     procedure ApplicationPause(Sender: TObject);
     procedure ApplicationResume(Sender: TObject);
+    procedure ApplicationUserInteraction(Sender: TObject);
+
     { Pause the sound engine, useful when Android activity gets inactive.
       When paused, sound backend is for sure inactive, and it cannot be activated
       (calling ContextOpen, or playing a sound, will @bold(not) activate it). }
@@ -188,7 +190,8 @@
 
       Do not change or access this yourself.
       You can change this only by calling procedure like UseFMODSoundBackend
-      from CastleFMODSoundBackend unit. }
+      from CastleFMODSoundBackend unit.
+      @exclude }
     property InternalBackend: TSoundEngineBackend read Backend write SetInternalBackend;
 
     { Did we attempt to initialize sound rendering context.
@@ -376,6 +379,8 @@ begin
     {$ifdef FPC}@{$endif} ApplicationPause);
   ApplicationProperties.OnResume.Add(
     {$ifdef FPC}@{$endif} ApplicationResume);
+  ApplicationProperties.OnUserInteraction.Add(
+    {$ifdef FPC}@{$endif} ApplicationUserInteraction);
 end;
 
 destructor TSoundEngine.Destroy;
@@ -388,6 +393,8 @@ begin
       {$ifdef FPC}@{$endif} ApplicationPause);
     ApplicationProperties(false).OnResume.Remove(
       {$ifdef FPC}@{$endif} ApplicationResume);
+    ApplicationProperties(false).OnUserInteraction.Remove(
+      {$ifdef FPC}@{$endif} ApplicationUserInteraction);
   end;
 
   ContextClose;
@@ -575,7 +582,6 @@ begin
       Result.MinGain := Parameters.MinGain;
       Result.MaxGain := Parameters.MaxGain;
       {$warnings on}
-      Result.Offset  := Parameters.Offset;
       Result.Spatial := Parameters.Spatial;
 
       Result.Position := Parameters.Position; // will be ignored when Spatial = false, which is OK
@@ -583,7 +589,7 @@ begin
       Result.ReferenceDistance := Parameters.ReferenceDistance; // will be ignored when Spatial = false, which is OK
       Result.MaxDistance       := Parameters.MaxDistance; // will be ignored when Spatial = false, which is OK
 
-      Result.Backend.Play(true);
+      Result.Backend.Play(true, Parameters.InitialOffset);
     end;
   end;
 end;
@@ -653,7 +659,7 @@ begin
     Params.MinGain    := ASound.MinGain;
     Params.MaxGain    := ASound.MaxGain;
     {$warnings on}
-    Params.Offset     := PlayingSound.InitialOffset;
+    Params.InitialOffset     := PlayingSound.InitialOffset;
     Params.ReferenceDistance := ASound.ReferenceDistance; // will be ignored when Spatial = false, which is OK
     Params.MaxDistance       := ASound.MaxDistance; // will be ignored when Spatial = false, which is OK
 
@@ -697,8 +703,7 @@ begin
       Exit;
     end;
 
-  Result := TInternalSoundBuffer.Create(Backend, SoundLoading);
-  Result.FUrl := FullUrl;
+  Result := TInternalSoundBuffer.Create(Backend, SoundLoading, FullUrl);
   Result.References := 1;
   LoadedBuffers.Add(Result);
 
@@ -839,8 +844,8 @@ function TSoundEngine.ParseParametersHelp: string;
 
 begin
   Result :=
-    '  --audio-device DEVICE-NAME' +nl+
-    '                        Choose sound output device.' +nl+
+    '  --audio-device DEVICE-NAME' + NL +
+    '                        Choose sound output device.' + NL +
     DevicesHelp +
     '  --no-sound            Turn off sound.';
 end;
@@ -881,6 +886,12 @@ begin
   Paused := false;
 end;
 
+procedure TSoundEngine.ApplicationUserInteraction(Sender: TObject);
+begin
+  if IsContextOpenSuccess then
+    Backend.UserInteraction;
+end;
+
 procedure TSoundEngine.SetPaused(const Value: boolean);
 begin
   if FPaused <> Value then
@@ -902,6 +913,7 @@ procedure TSoundEngine.SetInternalBackend(const Value: TSoundEngineBackend);
 begin
   ContextClose;
   FreeAndNil(Backend);
+  FreeAndNil(FDevices); // reinitialize devices after changing backend
   Backend := Value;
 end;
 

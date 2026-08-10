@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2024 Michalis Kamburelis.
+  Copyright 2015-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -90,6 +90,7 @@ begin
 
   FFdLinetype := TSFInt32.Create(Self, True, 'linetype', 1);
    FdLinetype.ChangeAlways := chVisibleNonGeometry;
+   FdLinetype.MustBeNonnegative := true;
   AddField(FFdLinetype);
 
   FFdLinewidthScaleFactor := TSFFloat.Create(Self, True, 'linewidthScaleFactor', 0);

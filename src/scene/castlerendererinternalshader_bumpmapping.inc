@@ -19,7 +19,8 @@
 {$ifdef read_interface}
 
 //type
-  { Generating shader code for bump mapping. }
+  { Generating shader code for bump mapping.
+    Follows castlerendererinternalshader_feature_api.md API conventions. }
   TBumpMappingShader = record
   strict private
     { Set by GenerateCode, so can be used by SetUniformsOnce,

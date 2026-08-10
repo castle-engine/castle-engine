@@ -19,12 +19,14 @@ unit ToolIOS;
 interface
 
 uses Classes,
-  CastleUtils, CastleStringUtils,
-  ToolUtils, ToolArchitectures, ToolCompile, ToolProject, ToolPackageFormat,
+  CastleUtils, CastleStringUtils, CastleInternalArchitectures,
+  ToolUtils, ToolCompile, ToolProject, ToolPackageFormat,
   ToolManifest;
 
 var
   IosSimulatorSupport: Boolean = false;
+  { armv7 target was removed in Xcode 14, is no longer supported }
+  IosArm32Support: Boolean = false;
 
 type
   TIosArchiveType = (
@@ -64,8 +66,9 @@ implementation
 
 uses SysUtils, DOM,
   CastleImages, CastleUriUtils, CastleLog, CastleFilesUtils, CastleXmlUtils,
+  CastleInternalProcess,
   ToolEmbeddedImages, ToolIosPbxGeneration, ToolServices, ToolCommonUtils,
-  ToolServicesOperations;
+  ToolServicesOperations, ToolProcessRun;
 
 const
   IOSPartialLibraryName = 'lib_cge_project.a';
@@ -109,7 +112,7 @@ procedure CompileIOS(const Compiler: TCompiler;
 
     DeleteFile(LinkRes); // delete it, to allow later FindLinkRes to work
 
-    RunCommandSimple('libtool', ['-static', '-o', OutputLibrary, '-filelist',
+    ExecuteCommandSimple('libtool', ['-static', '-o', OutputLibrary, '-filelist',
       CompilationOutput + 'lib_cge_project_object_files.txt']);
     if not RegularFileExists(OutputLibrary) then
       raise Exception.CreateFmt('Creating library "%s" failed', [OutputLibrary]);
@@ -128,7 +131,8 @@ begin
     //CompileLibrary(iphonesim, i386);
     CompileLibrary(iphonesim, x86_64);
   end;
-  CompileLibrary(iOS, arm);
+  if IosArm32Support then
+     CompileLibrary(iOS, arm);
   CompileLibrary(iOS, aarch64);
 end;
 
@@ -136,6 +140,13 @@ procedure LinkIOSLibrary(const Compiler: TCompiler; const CompilationWorkingDire
 var
   Options: TCastleStringList;
 begin
+  if (not IosSimulatorSupport) and (not IosArm32Support) then
+  begin
+    { the only remaining target is aarch64, not need to connect, just copy to output }
+    CheckCopyFile(CompilationOutputPath(Compiler, iOS, aarch64, CompilationWorkingDirectory) + IOSPartialLibraryName, OutputFile);
+    exit;
+  end;
+
   Options := TCastleStringList.Create;
   try
     Options.Add('-static');
@@ -149,9 +160,10 @@ begin
       //Options.Add(CompilationOutputPath(Compiler, iphonesim, i386   , CompilationWorkingDirectory) + IOSPartialLibraryName);
       Options.Add(CompilationOutputPath(Compiler, iphonesim, x86_64 , CompilationWorkingDirectory) + IOSPartialLibraryName);
     end;
-    Options.Add(CompilationOutputPath(Compiler, iOS   , arm    , CompilationWorkingDirectory) + IOSPartialLibraryName);
+    if IosArm32Support then
+       Options.Add(CompilationOutputPath(Compiler, iOS   , arm    , CompilationWorkingDirectory) + IOSPartialLibraryName);
     Options.Add(CompilationOutputPath(Compiler, iOS   , aarch64, CompilationWorkingDirectory) + IOSPartialLibraryName);
-    RunCommandSimple('libtool', Options.ToArray);
+    ExecuteCommandSimple('libtool', Options.ToArray)
   finally FreeAndNil(Options) end;
 end;
 
@@ -227,17 +239,26 @@ var
     end;
 
   begin
-    Icon := Project.Icons.FindReadable;
-    if Icon = nil then
+    // get icon from <ios override_icon=...> if specified
+    if Project.IOSOverrideIconFullUrl <> '' then
     begin
-      WritelnWarning('Icon', 'No icon in a format readable by our engine (for example, png or jpg) is specified in CastleEngineManifest.xml. Using default icon.');
-      { Use DefaultIconSquare, not DefaultIcon for iOS, since we cannot have
-        transparency on iOS icon (it's replaced by an ugly blackness).
-        See
-        https://stackoverflow.com/questions/959864/is-is-possible-to-use-transparency-in-an-iphone-app-icon
-        https://stackoverflow.com/questions/22858501/ios-app-icon-with-transparent-background-showing-black-background-on-device }
-      Icon := DefaultIconSquare;
+      Icon := LoadImage(Project.IOSOverrideIconFullUrl)
+    end else
+    // otherwise get icon from <icons>, fallback on CGE default
+    begin
+      Icon := Project.Icons.FindReadable;
+      if Icon = nil then
+      begin
+        WritelnWarning('Icon', 'No icon in a format readable by our engine (for example, png or jpg) is specified in CastleEngineManifest.xml. Using default icon.');
+        { Use DefaultIconSquare, not DefaultIcon for iOS, since we cannot have
+          transparency on iOS icon (it's replaced by an ugly blackness).
+          See
+          https://stackoverflow.com/questions/959864/is-is-possible-to-use-transparency-in-an-iphone-app-icon
+          https://stackoverflow.com/questions/22858501/ios-app-icon-with-transparent-background-showing-black-background-on-device }
+        Icon := DefaultIconSquare;
+      end;
     end;
+
     try
       SaveResized(57);
       SaveResized(72);
@@ -426,9 +447,9 @@ var
       { If current binary architecture is x86_64, use CocoaPods native binaries
         also with x86_64 architecture. }
       if DefaultCPU = x86_64 then
-        RunCommandSimple(XcodeProject, 'arch', ['-x86_64', 'pod', 'install'])
+        ExecuteCommandSimple(XcodeProject, 'arch', ['-x86_64', 'pod', 'install'])
       else
-        RunCommandSimple(XcodeProject, 'pod', ['install']);
+        ExecuteCommandSimple(XcodeProject, 'pod', ['install']);
     end;
   end;
 
@@ -515,7 +536,7 @@ begin
   if XcodeSelectExe = '' then
     raise Exception.Create('Cannot find "xcode-select". Make sure that Xcode with command-line utilities is installed.');
 
-  MyRunCommandIndir(XcodeProject, XcodeSelectExe, ['--print-path'], OutputString, ExitStatus);
+  ExecuteCommandCapture(XcodeProject, XcodeSelectExe, ['--print-path'], OutputString, ExitStatus);
 
   if ExitStatus <> 0 then
     raise Exception.CreateFmt('Running "xcode-select" failed, exit status %d, output "%s".', [
@@ -548,7 +569,7 @@ begin
     RemoveNonEmptyDir(ExportPath);
   CheckForceDirectories(ExportPath);
 
-  RunCommandSimple(XcodeProject, XcodeBuildExe, [
+  ExecuteCommandSimple(XcodeProject, XcodeBuildExe, [
     '-allowProvisioningUpdates',
     '-workspace', Project.Name + '.xcworkspace',
     '-scheme', Project.Caption,
@@ -557,7 +578,7 @@ begin
     '-archivePath', ArchivePath,
     'archive'
   ]);
-  RunCommandSimple(XcodeProject, XcodeBuildExe, [
+  ExecuteCommandSimple(XcodeProject, XcodeBuildExe, [
     '-allowProvisioningUpdates',
     '-archivePath', ArchivePath,
     '-exportOptionsPlist', XcodeProject + 'export_options.plist',
@@ -590,7 +611,7 @@ const
     '%s* serviceInstance;' + NL +
     'serviceInstance = [[%0:s alloc] init];' + NL +
     'serviceInstance.mainController = viewController;' + NL +
-    'serviceInstance.window = self.window;' + NL +
+    'serviceInstance.window = sceneWindow;' + NL +
     '[services addObject: serviceInstance];' + NL +
     '}';
 

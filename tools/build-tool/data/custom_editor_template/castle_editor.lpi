@@ -29,13 +29,13 @@
     </RunParams>
     <RequiredPackages Count="5">
       <Item1>
-        <PackageName Value="castle_editor_components"/>
+        <PackageName Value="castle_engine_editor_components"/>
       </Item1>
       <Item2>
         <PackageName Value="AnchorDocking"/>
       </Item2>
       <Item3>
-        <PackageName Value="castle_components"/>
+        <PackageName Value="castle_engine_lcl"/>
       </Item3>
       <Item4>
         <PackageName Value="LCL"/>

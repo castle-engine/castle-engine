@@ -65,7 +65,7 @@ type
 
     constructor Create(const Url: String;
       const ASize: Cardinal; const AnAntiAliased: Boolean;
-      const ACharacters: TUnicodeCharList = nil); reintroduce; overload; deprecated 'use Create(Owner: TComponent), then assign properties to load font: OptimalSize, LoadCharacters, AntiAliased, Url';
+      const ACharacters: TUnicodeCharSet = nil); reintroduce; overload; deprecated 'use Create(Owner: TComponent), then assign properties to load font: OptimalSize, LoadCharacters, AntiAliased, Url';
     constructor Create(const Url: String;
       const ASize: Cardinal; const AnAntiAliased: Boolean;
       const ACharacters: TSetOfChars); reintroduce; overload; deprecated 'use Create(Owner: TComponent), then assign properties to load font: OptimalSize, LoadCharacters, AntiAliased, Url';
@@ -81,7 +81,7 @@ type
       (optimal to render) font data size. }
     procedure Load(const Url: String;
       const ASize: Cardinal; const AnAntiAliased: Boolean;
-      const ACharacters: TUnicodeCharList = nil;
+      const ACharacters: TUnicodeCharSet = nil;
       const AdjustProperties: Boolean = true); overload; deprecated 'assign properties to load font: OptimalSize, LoadCharacters, AntiAliased, Url';
 
     { Load from a ready TTextureFontData instance.
@@ -249,7 +249,7 @@ end;
 
 constructor TCastleFont.Create(const Url: String;
   const ASize: Cardinal; const AnAntiAliased: Boolean;
-  const ACharacters: TUnicodeCharList);
+  const ACharacters: TUnicodeCharSet);
 begin
   Create(nil);
   {$warnings off} // calling deprecated from deprecated
@@ -259,7 +259,7 @@ end;
 
 procedure TCastleFont.Load(const Url: String;
   const ASize: Cardinal; const AnAntiAliased: Boolean;
-  const ACharacters: TUnicodeCharList = nil;
+  const ACharacters: TUnicodeCharSet = nil;
   const AdjustProperties: Boolean = true);
 var
   NewFontData: TTextureFontData;
@@ -272,8 +272,17 @@ begin
     Unload
   else
   begin
-    NewFontData := TTextureFontData.Create(Url, ASize, AnAntiAliased, ACharacters, FDistanceField);
-    Load(NewFontData, true, AdjustProperties);
+    NewFontData := GetEmbeddedFont(Url);
+    if NewFontData <> nil then
+    begin
+      { Pass OwnsData = false in this case. }
+      Load(NewFontData, false, AdjustProperties);
+    end else
+    begin
+      NewFontData := TTextureFontData.Create(Url, ASize, AnAntiAliased,
+        ACharacters, FDistanceField);
+      Load(NewFontData, true, AdjustProperties);
+    end;
   end;
 end;
 
@@ -281,10 +290,10 @@ constructor TCastleFont.Create(const Url: String;
   const ASize: Cardinal; const AnAntiAliased: Boolean;
   const ACharacters: TSetOfChars);
 var
-  Chars: TUnicodeCharList;
+  Chars: TUnicodeCharSet;
   C: Char;
 begin
-  Chars := TUnicodeCharList.Create;
+  Chars := TUnicodeCharSet.Create;
   try
     for C in ACharacters do
       Chars.Add(Ord(C));
@@ -331,12 +340,10 @@ end;
 
 function TCastleFont.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'Url') or
-     (PropertyName = 'OptimalSize') or
-     (PropertyName = 'AntiAliased') or
-     (PropertyName = 'LoadCharacters') or
-     (PropertyName = 'DistanceField') or
-     (PropertyName = 'LoadBasicCharacters') then
+  if ArrayContainsString(PropertyName, [
+      'Url', 'OptimalSize', 'AntiAliased', 'LoadCharacters', 'DistanceField',
+      'LoadBasicCharacters'
+     ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
@@ -692,17 +699,17 @@ end;
 
 procedure TCastleFont.Reload;
 
-  function GetCharactersList: TUnicodeCharList;
+  function GetCharactersList: TUnicodeCharSet;
   begin
     if (LoadCharacters = '') and LoadBasicCharacters then
     begin
       { Default, and fast case. TTextureFontData.Create interprets characters list = nil
         just like that: load only SimpleAsciiCharacters.
-        No need to create TUnicodeCharList instance to express it explicitly. }
+        No need to create TUnicodeCharSet instance to express it explicitly. }
       Result := nil;
     end else
     begin
-      Result := TUnicodeCharList.Create;
+      Result := TUnicodeCharSet.Create;
       if LoadBasicCharacters then
         Result.Add(SimpleAsciiCharacters);
       Result.Add(LoadCharacters);
@@ -712,7 +719,7 @@ procedure TCastleFont.Reload;
   // Load, without catching any exceptions
   procedure LoadCore;
   var
-    CharactersList: TUnicodeCharList;
+    CharactersList: TUnicodeCharSet;
   begin
     CharactersList := GetCharactersList;
     try

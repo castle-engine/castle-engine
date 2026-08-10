@@ -9,47 +9,72 @@ X3DLightNode : X3DChildNode {
     range: [0,1]
   SFBool  [in,out] on               TRUE
 
+  SFBool   [in,out]   shadows         FALSE
+    change: chShadowMaps
+    doc: Control @url(https://castle-engine.io/shadow_maps shadow maps) generation for this light.
+
+  SFFloat  [in,out]  shadowIntensity  1
+    range: [0,1]
+    change: chNone
+    doc: """
+    How much light is obscured by shapes that cast shadows, relevant only if @link(Shadows) is @true. Ranges from 0 (light not obscured, no visible shadows) to 1 (light completely obscured, full-intensity shadows).
+
+    TODO: Not implemented yet in Castle Game Engine.
+    """
+
   # CASTLE GAME ENGINE EXTENSIONS:
   MFNode     []            effects               []
     range: Effect
     change: chEverything
+    is-extension: true
+
   SFBool     [in,out]      shadowVolumes         FALSE
     change: chLightForShadowVolumes
+    is-extension: true
 }
 
 X3DPunctualLightNode : X3DLightNode {
   # CASTLE GAME ENGINE EXTENSIONS:
-  SFBool     []            shadows               FALSE
-    change: chShadowMaps
   SFBool     [in,out]      shadowVolumesMain     FALSE
     doc: Does this light determine shadows (when using shadow volumes). Ignored if not @link(ShadowVolumes).
     change: chLightForShadowVolumes
+    is-extension: true
+
   SFBool     [in,out]      showProxyGeometry     FALSE
     doc: InstantReality extension, see [http://instant-reality.com/documentation/nodetype/Light/].
+    is-extension: true
+
   SFFloat    [in,out]      projectionNear        0
     range: > 0
-    doc: Projection near, for shadow maps. See https://castle-engine.io/x3d_extensions_shadow_maps.php#section_light_parameters . }
+    doc: Projection near, for shadow maps. See https://castle-engine.io/shadow_maps .
     # We want to set UpdateNeeded := true for all GeneratedShadowMap using
     # this light. For now, simply send chVisibleGeometry that will
     # force updating all GeneratedShadowMaps.
     change: chVisibleGeometry
+    is-extension: true
+
   SFFloat    [in,out]      projectionFar         0
     range: anything > projectionNear
-    doc: Projection far, for shadow maps. See https://castle-engine.io/x3d_extensions_shadow_maps.php#section_light_parameters . }
+    doc: Projection far, for shadow maps. See https://castle-engine.io/shadow_maps .
     # We want to set UpdateNeeded := true for all GeneratedShadowMap using
     # this light. For now, simply send chVisibleGeometry that will
     # force updating all GeneratedShadowMaps.
     change: chVisibleGeometry
+    is-extension: true
+
   SFVec3f    [in,out]      up                    0 0 0
-    doc: View up vector, for shadow maps. See https://castle-engine.io/x3d_extensions_shadow_maps.php#section_light_parameters . }
+    doc: View up vector, for shadow maps. See https://castle-engine.io/shadow_maps .
     # We want to set UpdateNeeded := true for all GeneratedShadowMap using
     # this light. For now, simply send chVisibleGeometry that will
     # force updating all GeneratedShadowMaps.
     change: chVisibleGeometry
+    is-extension: true
+
   SFNode     []            defaultShadowMap      NULL
     range: GeneratedShadowMap
-    doc: Shadow map used by this light source. See https://castle-engine.io/x3d_extensions_shadow_maps.php#section_light_parameters . }
+    doc: Shadow map used by this light source. See https://castle-engine.io/shadow_maps .
     change: chEverything
+    is-extension: true
 }
 
 # We add abstract X3DDirectionalLight, not present in X3D spec.
@@ -68,11 +93,14 @@ X3DDirectionalLightNode : X3DPunctualLightNode {
     # this light. For now, simply send chVisibleGeometry that will
     # force updating all GeneratedShadowMaps.
     change: chVisibleGeometry
+    is-extension: true
+
   SFVec3f    [in,out]      projectionLocation    0 0 0
     # We want to set UpdateNeeded := true for all GeneratedShadowMap using
     # this light. For now, simply send chVisibleGeometry that will
     # force updating all GeneratedShadowMaps.
     change: chVisibleGeometry
+    is-extension: true
 }
 
 # We add abstract X3DPositionalLightNode, not present in X3D spec.
@@ -117,6 +145,7 @@ SpotLight : X3DPositionalLightNode {
     # force updating all GeneratedShadowMaps.
     change: chVisibleGeometry
     angle
+    is-extension: true
 }
 
 EnvironmentLight : X3DLightNode {

@@ -24,6 +24,7 @@ uses
 
 type
   TPreferencesForm = class(TForm)
+    ButtonOpenCgePath: TButton;
     ButtonRegisterLazarusPackages: TButton;
     ButtonPanel1: TButtonPanel;
     CheckBoxMuteOnRun: TCheckBox;
@@ -87,6 +88,7 @@ type
     RadioCompilerFpc: TRadioButton;
     RadioCodeEditorVSCode: TRadioButton;
     TrackVolume: TTrackBar;
+    procedure ButtonOpenCgePathClick(Sender: TObject);
     procedure ButtonRegisterLazarusPackagesClick(Sender: TObject);
     procedure DirectoryEditAndroidHomeAcceptDirectory(Sender: TObject;
       var Value: String);
@@ -122,7 +124,9 @@ implementation
 
 uses CastleOpenDocument, CastleUtils, CastleLog, CastleSoundEngine,
   CastleStringUtils, CastleFilesUtils, CastleUriUtils,
+  CastleInternalProcess,
   ToolCompilerInfo, ToolFpcVersion, ToolCommonUtils, ToolManifest,
+  ToolProcessRun,
   EditorUtils, ProjectUtils;
 
 {$R *.lfm}
@@ -172,6 +176,10 @@ begin
   CgePathStatus(CastleEnginePath, CgePathStatusText);
   LabelCgePathAutoDetected.Caption := CgePathAutodetectedLine + CgePathStatusText;
 
+  ButtonOpenCgePath.Enabled :=
+    (CastleEnginePath <> '') or
+    (CastleEngineOverridePath <> '');
+
   FpcExe := '';
   try
     FpcExe := FindExeFpcCompiler;
@@ -202,6 +210,22 @@ begin
       WritelnLog('Cannot determine Lazarus executable, error: ' + ExceptMessage(E));
       LabelLazarusAutoDetected.Caption :=
         'Cannot determine Lazarus executable.' + NL +
+        'Make sure Lazarus is installed, and available on $PATH or configured above.';
+    end;
+
+    on E: EWindowsSmartAppControlProtection do
+    begin
+      WritelnLog('Cannot determine Lazarus version, error: ' + ExceptMessage(E));
+      LabelLazarusAutoDetected.Caption :=
+        'Cannot determine Lazarus version, Smart App Control blocked us.' + NL +
+        'Turn it temporarily off using "Windows Security -> App and browser control -> Smart App Control".';
+    end;
+
+    on E: Exception do
+    begin
+      WritelnLog('Cannot determine Lazarus version, error: ' + ExceptMessage(E));
+      LabelLazarusAutoDetected.Caption :=
+        'Cannot determine Lazarus version.' + NL +
         'Make sure Lazarus is installed, and available on $PATH or configured above.';
     end;
   end;
@@ -311,7 +335,7 @@ procedure TPreferencesForm.FormClose(Sender: TObject;
   { When CastleEngineOverridePath changed, we need to recalculate stuff based on it. }
   procedure CastleEngineOverridePathChanged;
   var
-    OldApplicationDataOverride: String;
+    EditorApplicationData: TEditorApplicationData;
   begin
     { Recalculate InternalCastleDesignData that depends on detected CGE path.
       This way changes to CGE path in "Preferences" update also
@@ -321,19 +345,22 @@ procedure TPreferencesForm.FormClose(Sender: TObject;
       - test with castle-editor in bin/ subdirectory of CGE
         (like in binary distribution; this means that ExeName will not be enough
         to guess editor data location)
-      - set CastleEngineOverridePath to something invalid but non-empty (i.e. to non-existing dir)
-      - restart editor (TChooseProjectForm.FormCreate will set InternalCastleDesignData to '',
-        because CastleEnginePath is invalid and CastleEnginePath + tools/castle-editor/data doesn't exist)
+      - set CastleEngineOverridePath to something invalid but non-empty
+        (i.e. to non-existing dir)
+      - restart editor (TChooseProjectForm.FormCreate will set
+        InternalCastleDesignData to '',
+        because CastleEnginePath is invalid and
+        CastleEnginePath + tools/castle-editor/data doesn't exist)
       - open some project, open some design with viewport.
         It will fail, and it's kind of OK -- engine path was invalid.
       - go to Preferences and change CastleEngineOverridePath to empty
       - reopen the project (or reopen design within it)
       - now it should open OK.
     }
-    OldApplicationDataOverride := ApplicationDataOverride;
-    UseEditorApplicationData;
-    InternalCastleDesignData := ResolveCastleDataUrl('castle-data:/');
-    ApplicationDataOverride := OldApplicationDataOverride;
+    EditorApplicationData := TEditorApplicationData.Create;
+    try
+      InternalCastleDesignData := ResolveCastleDataUrl('castle-data:/');
+    finally FreeAndNil(EditorApplicationData) end;
   end;
 
 begin
@@ -434,14 +461,16 @@ procedure TPreferencesForm.ButtonRegisterLazarusPackagesClick(Sender: TObject);
     PackageFileName := CastleEnginePath + LpkFileName;
 
     WritelnLog('Executing: lazbuild --add-package-link "' + PackageFileName + '"');
-    MyRunCommandIndir(
-      GetCurrentDir { no better directory, but also should not matter },
+    ExecuteCommandCapture('' { no better directory, but also should not matter },
       LazbuildExe, [
         '--add-package-link',
         PackageFileName
       ], LazbuildOutput, LazbuildExitStatus);
 
-    WritelnLog('Execution finished: lazbuild status %d, output:' + NL + '%s', [LazbuildExitStatus, LazbuildOutput]);
+    WritelnLog('Execution finished: lazbuild status %d, output:' + NL + '%s', [
+      LazbuildExitStatus,
+      LazbuildOutput
+    ]);
 
     if (LazbuildExitStatus <> 0) or
        (Pos('Invalid option', LazbuildOutput) <> 0) { lazbuild has exit status 0 in this case } then
@@ -450,18 +479,29 @@ procedure TPreferencesForm.ButtonRegisterLazarusPackagesClick(Sender: TObject);
 
 begin
   try
-    RegisterPackage('packages/castle_base.lpk');
-    RegisterPackage('packages/castle_window.lpk');
-    RegisterPackage('packages/castle_components.lpk');
-    RegisterPackage('packages/castle_editor_components.lpk');
-    RegisterPackage('packages/alternative_castle_window_based_on_lcl.lpk');
-    RegisterPackage('packages/castle_indy.lpk');
+    RegisterPackage('packages/lazarus/castle_engine_base.lpk');
+    RegisterPackage('packages/lazarus/castle_engine_window.lpk');
+    RegisterPackage('packages/lazarus/castle_engine_lcl.lpk');
+    RegisterPackage('packages/lazarus/castle_engine_editor_components.lpk');
+    RegisterPackage('packages/lazarus/alternative_castle_engine_window_based_on_lcl.lpk');
+    RegisterPackage('packages/lazarus/castle_engine_indy.lpk');
 
     ShowMessage('Lazarus packages registered successfully.');
   except
     on E: Exception do
       ErrorBox(E.Message);
   end;
+end;
+
+procedure TPreferencesForm.ButtonOpenCgePathClick(Sender: TObject);
+begin
+  if (CastleEngineOverridePath <> '') and DirectoryExists(CastleEngineOverridePath) then
+    OpenDocument(CastleEngineOverridePath)
+  else
+  if (CastleEnginePath <> '') and DirectoryExists(CastleEnginePath) then
+    OpenDocument(CastleEnginePath)
+  else
+    ErrorBox('No valid engine path detected.');
 end;
 
 procedure TPreferencesForm.DirectoryEditAndroidHomeAcceptDirectory(

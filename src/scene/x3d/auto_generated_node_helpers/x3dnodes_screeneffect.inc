@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2024 Michalis Kamburelis.
+  Copyright 2015-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -50,6 +50,7 @@
     public property FdShaders: TMFNode read FFdShaders;
     {  }
     procedure SetShaders(const Value: array of TAbstractShaderNode);
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -109,6 +110,12 @@ begin
   FFdShaders := TMFNode.Create(Self, True, 'shaders', [TAbstractShaderNode]);
    FdShaders.ChangeAlways := chEverything;
   AddField(FFdShaders);
+end;
+
+procedure TScreenEffectNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+  ExtensionNames.Add(X3DType);
 end;
 
 {$endif read_implementation}

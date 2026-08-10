@@ -30,6 +30,11 @@
 
 { TCastleWindow ------------------------------------------------------------------ }
 
+function TCastleWindow.CreateContainer: TCastleContainer;
+begin
+  Result := TWindowContainer.Create(Self);
+end;
+
 procedure TCastleWindow.CreateBackend;
 begin
   { TODO (initialize backend-specific per-window stuff; may do nothing) }
@@ -294,6 +299,11 @@ function TCastleApplication.BackendName: String;
 begin
   { TODO }
   Result := 'My CastleWindow Backend';
+end;
+
+function TCastleApplication.MultipleWindowsPossible: Boolean;
+begin
+  Result := true; // TODO
 end;
 
 { TWindowContainer ----------------------------------------------------------- }

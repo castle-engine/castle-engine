@@ -167,9 +167,7 @@ type
       Note that you can always override it for a particular creature
       instance. You can use a special creature placeholder with
       a specific starting life value
-      (see TLevel.Load for placeholders docs,
-      and see https://castle-engine.io/manual_high_level_3d_classes.php
-      about the creature placeholders).
+      (see TLevel.Load for placeholders docs).
       Or you can use CreateCreature overloaded version that takes extra MaxLife
       parameter.
 
@@ -1742,7 +1740,7 @@ begin
         cause InternalMiddleForceBoxValue change after each SetState to the box
         from previous state, and we'll be in a similar trouble
         (but with box values always from previous state).
-        Trouble (without this safeguard) is reproducible on fps_game
+        Trouble (without this safeguard) is reproducible on fps_game_old_ai
         with knight flying.
 
       - Don't set to "forced" when switching between other states than idle/walk,

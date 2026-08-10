@@ -5,7 +5,7 @@
 ;
 ; For debug purposes you can run it from InnoSetup GUI, just uncomment and adjust MyAppSrcDir .
 ; But for production it should always be used from command-line by calling
-; "./pack_release.sh windows_installer".
+; "./pack_release.sh innosetup win64 x86_64".
 ; The pack_release.sh will prepare directory for this to work (MyAppSrcDir),
 ; and configure output dir and filename.
 
@@ -57,6 +57,19 @@ Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
 
+; Signing: pack_release.sh defines CastleSigning (and the CastleSignTool
+; command via /S) only when signing is desired.
+;
+; Note: Do not add double quotes below, like $q$f$q, as InnoSetup will add
+; double quotes around automatically. And having two double quotes -> means
+; they collapse into an empty string and don't protect anything,
+; and then backslashes inside the path disappear, and CastleSignTool
+; gets invalid filenames like "D:acastle-enginecastle-engineuninst.e32.tmp".
+;
+#ifdef CastleSigning
+SignTool=CastleSignTool $f
+#endif
+
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "armenian"; MessagesFile: "compiler:Languages\Armenian.isl"
@@ -71,7 +84,6 @@ Name: "finnish"; MessagesFile: "compiler:Languages\Finnish.isl"
 Name: "french"; MessagesFile: "compiler:Languages\French.isl"
 Name: "german"; MessagesFile: "compiler:Languages\German.isl"
 Name: "hebrew"; MessagesFile: "compiler:Languages\Hebrew.isl"
-Name: "icelandic"; MessagesFile: "compiler:Languages\Icelandic.isl"
 Name: "italian"; MessagesFile: "compiler:Languages\Italian.isl"
 Name: "japanese"; MessagesFile: "compiler:Languages\Japanese.isl"
 Name: "norwegian"; MessagesFile: "compiler:Languages\Norwegian.isl"

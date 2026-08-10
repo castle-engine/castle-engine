@@ -65,8 +65,8 @@ type
 implementation
 
 uses SysUtils,
-  CastleClassUtils, CastleInternalShapeOctree,
-  CastleUtils;
+  CastleClassUtils, CastleInternalShapeOctree, CastleInternalGLUtils,
+  CastleUtils, CastleTimeUtils, CastleLog;
 
 { TOcclusionCullingUtilsRenderer ------------------------------------------------- }
 
@@ -194,13 +194,42 @@ procedure TOcclusionCullingRenderer.Render(const CollectedShape: TCollectedShape
 
   { Read OpenGL(ES) occlusion query result, return if hit > 0 samples
     (was visible). }
-  function OcclusionQueryHit(const OcclusionQueryId: TGLint): Boolean;
+  function OcclusionQueryHit(const OcclusionQueryId: TGLQuery): Boolean;
   var
     SampleCount: TGLuint;
   begin
-    glGetQueryObjectuiv(OcclusionQueryId, GL_QUERY_RESULT,
-      @SampleCount);
+    {$ifdef CASTLE_WEBGL}
+    SampleCount := glGetQueryParameter(OcclusionQueryId, GL_QUERY_RESULT);
+    {$else}
+    glGetQueryObjectuiv(OcclusionQueryId, GL_QUERY_RESULT, @SampleCount);
+    {$endif}
     Result := SampleCount > 0;
+  end;
+
+  function OcclusionQueryResultAvailable(const OcclusionQueryId: TGLQuery): Boolean;
+  begin
+    {$ifdef CASTLE_WEBGL}
+    { Is the occlusion query result available.
+
+      On the web, asking for GL_QUERY_RESULT is like asking for
+      GL_QUERY_RESULT_NO_WAIT on desktop.
+      This means that if the result isn't ready, we get 0.
+
+      And it is *never* ready in the same frame. We must wait some more
+      (and not issue a new query) until it is ready.
+
+      See
+      - web:
+        https://www.realtimerendering.com/blog/webgl-2-new-features/
+        https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext/getQueryParameter
+      - desktop: https://registry.khronos.org/OpenGL-Refpages/gl4/html/glGetQueryObject.xhtml
+    }
+    Result := glGetQueryParameter(OcclusionQueryId, GL_QUERY_RESULT_AVAILABLE);
+    {$else}
+    { On non-web (OpenGL, OpenGLES), behave as if GL_QUERY_RESULT_AVAILABLE is true,
+      because we ask using GL_QUERY_RESULT which waits for result. }
+    Result := true;
+    {$endif}
   end;
 
   { We cannot trust the occlusion query results if the parent scene,
@@ -219,34 +248,57 @@ procedure TOcclusionCullingRenderer.Render(const CollectedShape: TCollectedShape
       (CollectedShape.Shape.ParentScene.InternalWorldReferences > 1);
   end;
 
+const
+  { On WebGL, we sometimes get occlusion query results after many frames
+    since asking. Ignore them in such case. }
+  MaxOcclusionQueryResultAge = 1; // frames
 var
   Shape: TGLShape;
   WasVisible: Boolean;
+  QueryResultAvailable, OcclusionQueryAsk: Boolean;
+  QueryResultAge: Int64;
 begin
   Shape := CollectedShape.Shape;
 
   { Get occlusion query result from previous render. }
   if Shape.OcclusionQueryAsked and
-     (Shape.OcclusionQueryId <> 0) then
+     (Shape.OcclusionQueryId <> GLObjectNone) then
   begin
-    WasVisible := OcclusionQueryHit(Shape.OcclusionQueryId);
+    QueryResultAvailable := OcclusionQueryResultAvailable(Shape.OcclusionQueryId);
+    if not QueryResultAvailable then
+      WasVisible := true // assume is visible
+    else
+    begin
+      QueryResultAge := TFramesPerSecond.RenderFrameId - Shape.OcclusionQueryAskedFrameId;
+      if QueryResultAge > MaxOcclusionQueryResultAge then
+        WasVisible := true // assume is visible, query result is too old to trust it
+      else
+        WasVisible := OcclusionQueryHit(Shape.OcclusionQueryId);
+    end;
   end else
+  begin
     WasVisible := true; // assume is visible
+    QueryResultAvailable := true; // allow issuing a new query below
+  end;
 
   { Render shape, or shape box, possibly making new occlusion query. }
-  Shape.OcclusionQueryAsked :=
+  OcclusionQueryAsk :=
     { Do not do occlusion query (although still use results from previous
       query) if we're within stencil test. This would incorrectly mark some shapes
       as non-visible (just because they don't pass stencil test on any pixel),
       while in fact they should be visible in the very next
       render pass. }
     (not PassParams.InsideStencilTest) and
-    (not SceneMultipleInstances);
+    (not SceneMultipleInstances) and
+    { only issue a new query if the previous one has resolved }
+    QueryResultAvailable;
 
-  if Shape.OcclusionQueryAsked then
+  Shape.OcclusionQueryAsked := Shape.OcclusionQueryAsked or OcclusionQueryAsk;
+
+  if OcclusionQueryAsk then
   begin
-    if Shape.OcclusionQueryId = 0 then
-      glGenQueries(1, @Shape.OcclusionQueryId);
+    if Shape.OcclusionQueryId = GLObjectNone then
+      Shape.OcclusionQueryId := glCreateQuery();
 
     glBeginQuery(QueryTarget, Shape.OcclusionQueryId);
 
@@ -267,6 +319,8 @@ begin
     end;
 
     glEndQuery(QueryTarget);
+
+    Shape.OcclusionQueryAskedFrameId := TFramesPerSecond.RenderFrameId;
   end else
   begin
     if WasVisible then

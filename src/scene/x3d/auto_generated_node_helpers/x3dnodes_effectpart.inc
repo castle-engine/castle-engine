@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2024 Michalis Kamburelis.
+  Copyright 2015-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -44,6 +44,7 @@
     public property FdType: TSFStringEnum read FFdType;
     {  }
     property ShaderType: TShaderType read GetShaderType write SetShaderType;
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -89,6 +90,12 @@ begin
   AddField(FFdType);
 
   DefaultContainerField := 'parts';
+end;
+
+procedure TEffectPartNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+  ExtensionNames.Add(X3DType);
 end;
 
 {$endif read_implementation}

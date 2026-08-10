@@ -7,15 +7,11 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 
 <project name="castle-tester"
   standalone_source="castle_tester_standalone.dpr"
-  game_units="GameInitialize"
+  game_units="GameInitialize, TestCases"
   qualified_name="io.castleengine.castletester"
   caption="Castle Tester"
 >
   <compiler_options detect_memory_leaks="true">
-    <defines>
-      <!-- nothing necessary now -->
-      <!--define>....</define-->
-    </defines>
     <search_paths>
       <path value="code/" />
       <path value="code/testcases/" />
@@ -32,5 +28,8 @@ See https://castle-engine.io/project_manifest for documentation of this file.
       <option>-vm5074</option> <!-- Unit "$1" is deprecated -->
       <option>-vm5075</option> <!-- Unit "$1" is deprecated: "$2" -->
     </custom_options>
+    <defines>
+      <define>CASTLE_STRICT</define>
+    </defines>
   </compiler_options>
 </project>

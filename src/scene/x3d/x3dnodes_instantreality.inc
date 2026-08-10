@@ -43,7 +43,6 @@
   public
     constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     class function ForVRMLVersion(const Version: TX3DVersion): boolean; override;
-    function TransformationChange: TNodeTransformationChange; override;
   {$I auto_generated_node_helpers/x3dnodes_matrixtransform.inc}
   end;
   TMatrixTransformNode_2 = TMatrixTransformNode;
@@ -138,7 +137,11 @@
   end;
 
   { Advanced material that can be heavily configured using textures
-    (specular maps, normal maps and much more). }
+    (specular maps, normal maps and much more).
+
+    @deprecated Use TMaterialNode that has been extended in X3D 4.0 to cover
+    all the features of TComposedShaderNode.
+    See https://github.com/michaliskambi/x3d-tests/wiki/X3D-version-4%3A-New-features-of-materials%2C-lights-and-textures . }
   TCommonSurfaceShaderNode = class(TAbstractShaderNode)
   strict private
     type
@@ -152,6 +155,8 @@
         procedure SetSpecularColor(const Value: TVector3); override;
         function GetEmissiveColor: TVector3; override;
         procedure SetEmissiveColor(const Value: TVector3); override;
+        function GetTransparency: Single; override;
+        procedure SetTransparency(const Value: Single); override;
       public
         constructor Create(ANode: TCommonSurfaceShaderNode);
 
@@ -159,10 +164,21 @@
         function Shininess: Single; override;
         function ReflectionColor: TVector3; override;
         function TransmissionColor: TVector3; override;
-        function Transparency: Single; override;
+
+        function MainTexture(
+          const Appearance: TAppearanceNode;
+          const VRML1State: TVRML1State): TAbstractTextureNode; overload; override;
+        function MainTexture(
+          const Appearance: TAppearanceNode;
+          const VRML1State: TVRML1State;
+          const GeometryForTexCoord: TAbstractGeometryNode;
+          out TexCoordIndex: Integer): TAbstractTextureNode; overload; override;
       end;
     var
       FMaterialInfo: TMaterialInfo;
+
+    function GetTransparency: Single;
+    procedure SetTransparency(const Value: Single);
   public
     destructor Destroy; override;
 
@@ -172,7 +188,7 @@
 
     { Transparency determined by the AlphaFactor.
       This is just 1 - @link(AlphaFactor). }
-    function Transparency: Single;
+    property Transparency: Single read GetTransparency write SetTransparency;
 
     { Material information based on this node.
       It is automatically updated when properties of this material change.
@@ -255,11 +271,6 @@ begin
     Result := Func(Self, FdChildren[I]);
     if Result <> nil then Exit;
   end;
-end;
-
-function TMatrixTransformNode.TransformationChange: TNodeTransformationChange;
-begin
-  Result := ntcTransform;
 end;
 
 constructor TTeapotNode.Create(const AX3DName: string = ''; const ABaseUrl: String = '');
@@ -604,9 +615,47 @@ begin
   Result := FNode.TransmissionFactor;
 end;
 
-function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.Transparency: Single;
+function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.GetTransparency: Single;
 begin
   Result := FNode.Transparency;
+end;
+
+procedure TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.SetTransparency(const Value: Single);
+begin
+  FNode.Transparency := Value;
+end;
+
+function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.MainTexture(
+  const Appearance: TAppearanceNode;
+  const VRML1State: TVRML1State): TAbstractTextureNode;
+begin
+  if FNode.MultiDiffuseAlphaTexture <> nil then
+    Exit(FNode.MultiDiffuseAlphaTexture);
+  if FNode.DiffuseTexture <> nil then
+    Exit(FNode.DiffuseTexture);
+  // fallback result
+  Result := nil;
+end;
+
+function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.MainTexture(
+  const Appearance: TAppearanceNode;
+  const VRML1State: TVRML1State;
+  const GeometryForTexCoord: TAbstractGeometryNode;
+  out TexCoordIndex: Integer): TAbstractTextureNode;
+begin
+  if FNode.MultiDiffuseAlphaTexture <> nil then
+  begin
+    TexCoordIndex := FNode.DiffuseTextureCoordinatesId; // TODO: is this what X3DOM/InstantReality are doing? test.
+    Exit(FNode.MultiDiffuseAlphaTexture);
+  end;
+  if FNode.DiffuseTexture <> nil then
+  begin
+    TexCoordIndex := FNode.DiffuseTextureCoordinatesId;
+    Exit(FNode.DiffuseTexture);
+  end;
+  // fallback result
+  Result := nil;
+  TexCoordIndex := -1;
 end;
 
 { TCommonSurfaceShaderNode ----------------------------------------------------- }
@@ -622,9 +671,14 @@ begin
   Result := Clamped(FdShininessFactor.Value * 128.0, 0.0, 128.0);
 end;
 
-function TCommonSurfaceShaderNode.Transparency: Single;
+function TCommonSurfaceShaderNode.GetTransparency: Single;
 begin
   Result := 1 - FdAlphaFactor.Value;
+end;
+
+procedure TCommonSurfaceShaderNode.SetTransparency(const Value: Single);
+begin
+  FdAlphaFactor.Send(1 - Value);
 end;
 
 function TCommonSurfaceShaderNode.MaterialInfo: TMaterialInfo;

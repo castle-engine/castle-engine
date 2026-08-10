@@ -1,7 +1,7 @@
 // -*- compile-command: "./test_single_testcase.sh TTestCastleUIControls" -*-
 
 {
-  Copyright 2018-2023 Michalis Kamburelis.
+  Copyright 2018-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -18,6 +18,8 @@
 { Test of CastleUIControls unit. }
 unit TestCastleUIControls;
 
+{$I castle-tests-conf.inc}
+
 interface
 
 uses
@@ -25,22 +27,45 @@ uses
   CastleTester, CastleUIControls;
 
 type
+  { Which event should cause stopping of the view.
+    This allows to reuse TTestStopFromEventView for a few variations of the test. }
+  TViewSwitchActivator = (
+    vsNothing,
+    vsPress,
+    vsMyButton,
+    vsMyTimer,
+    vsButtonCreatedExplicitly,
+    vsTimerCreatedExplicitly,
+    vsButtonCreatedExplicitly2,
+    vsTimerCreatedExplicitly2
+  );
+
   TTestCastleUIControls = class(TCastleTestCase)
+  strict private
+    procedure CoreTestStopViewFromEvent(const ViewSwitchActivator: TViewSwitchActivator);
   published
     procedure TestRectEffective;
     procedure TestRecursiveSize;
     procedure TestForIn;
     procedure TestDetachParent;
+    procedure TestExistsInRoot;
     procedure TestContainerSettingsNoWindow;
     procedure TestContainerSettingsClosedWindow;
     procedure TestContainerSettingsOpenWindow;
     procedure TestControlsParentDoesNotOwn;
     procedure TestMoveToFront;
+    procedure TestViewsLifecycle;
+    procedure TestStopViewFromEvent;
+    procedure TestViewChangePending;
+    procedure TestFocus;
+    procedure TestFocusCapturedControl;
   end;
 
 implementation
 
-uses CastleRectangles, CastleVectors, CastleUtils, CastleWindow;
+uses CastleRectangles, CastleVectors, CastleUtils, CastleWindow, CastleControls,
+  CastleKeysMouse, CastleLog, CastleStringUtils, CastleTimeUtils,
+  CastleViewport, CastleCameras;
 
 { TTestContainer ------------------------------------------------------------- }
 
@@ -49,9 +74,15 @@ type
     just for testing. }
   TTestContainer = class(TCastleContainer)
   public
+    constructor Create(AOwner: TComponent); override;
     function PixelsWidth: Integer; override;
     function PixelsHeight: Integer; override;
   end;
+
+constructor TTestContainer.Create(AOwner: TComponent);
+begin
+  inherited;
+end;
 
 function TTestContainer.PixelsWidth: Integer;
 begin
@@ -238,6 +269,76 @@ begin
   end;
 end;
 
+procedure TTestCastleUIControls.TestExistsInRoot;
+var
+  Container: TTestContainer;
+  Alone, U1, U2, U3: TCastleUserInterface;
+begin
+  Container := nil;
+  Alone := nil;
+  U1 := nil;
+  U2 := nil;
+  U3 := nil;
+  try
+    Container := TTestContainer.Create(nil);
+    Alone := TCastleUserInterface.Create(nil);
+    U1 := TCastleUserInterface.Create(nil);
+    U2 := TCastleUserInterface.Create(nil);
+    U3 := TCastleUserInterface.Create(nil);
+
+    { ExistsInRoot doesn't care about Container, only about Exists of self and parents. }
+    AssertTrue('Alone, not in any container', Alone.ExistsInRoot);
+    Alone.Exists := false;
+    AssertFalse('Alone, not existing', Alone.ExistsInRoot);
+    Alone.Exists := true;
+
+    { U1 -> U2 -> U3 hierarchy, U1 inside Container. }
+    Container.Controls.InsertFront(U1);
+    U1.InsertFront(U2);
+    U2.InsertFront(U3);
+    AssertTrue(U1.Parent = nil); // parent of top-level control in container is nil
+    AssertTrue(U2.Parent = U1);
+    AssertTrue(U3.Parent = U2);
+
+    AssertTrue('U1 initially', U1.ExistsInRoot);
+    AssertTrue('U2 initially', U2.ExistsInRoot);
+    AssertTrue('U3 initially', U3.ExistsInRoot);
+
+    { Non-existing leaf affects only itself. }
+    U3.Exists := false;
+    AssertTrue('U1, when U3 doesn''t exist', U1.ExistsInRoot);
+    AssertTrue('U2, when U3 doesn''t exist', U2.ExistsInRoot);
+    AssertFalse('U3, when U3 doesn''t exist', U3.ExistsInRoot);
+    U3.Exists := true;
+
+    { Non-existing middle affects itself and children. }
+    U2.Exists := false;
+    AssertTrue('U1, when U2 doesn''t exist', U1.ExistsInRoot);
+    AssertFalse('U2, when U2 doesn''t exist', U2.ExistsInRoot);
+    AssertFalse('U3, when U2 doesn''t exist', U3.ExistsInRoot);
+
+    { Non-existing root affects everything, regardless of children Exists. }
+    U1.Exists := false;
+    U2.Exists := true;
+    AssertFalse('U1, when U1 doesn''t exist', U1.ExistsInRoot);
+    AssertFalse('U2, when U1 doesn''t exist', U2.ExistsInRoot);
+    AssertFalse('U3, when U1 doesn''t exist', U3.ExistsInRoot);
+
+    { Detaching from a non-existing parent makes the subtree exist again. }
+    U1.RemoveControl(U2);
+    AssertTrue(U2.Parent = nil);
+    AssertFalse('U1, after detaching U2', U1.ExistsInRoot);
+    AssertTrue('U2, after detaching U2', U2.ExistsInRoot);
+    AssertTrue('U3, after detaching U2', U3.ExistsInRoot);
+  finally
+    FreeAndNil(Container);
+    FreeAndNil(Alone);
+    FreeAndNil(U1);
+    FreeAndNil(U2);
+    FreeAndNil(U3);
+  end;
+end;
+
 procedure TTestCastleUIControls.TestContainerSettingsNoWindow;
 var
   Container: TCastleContainer;
@@ -256,7 +357,10 @@ var
   Container: TCastleContainer;
 begin
   if not CanCreateWindowForTest then
+  begin
+    AbortTest;
     Exit;
+  end;
 
   Window := CreateWindowForTest;
   try
@@ -273,7 +377,10 @@ var
   Container: TCastleContainer;
 begin
   if not CanCreateWindowForTest then
+  begin
+    AbortTest;
     Exit;
+  end;
 
   Window := CreateWindowForTest;
   try
@@ -416,6 +523,731 @@ begin
     FreeAndNil(U2);
     FreeAndNil(UTest);
     FreeAndNil(Container);
+  end;
+end;
+
+type
+  TLoggingView = class(TCastleView)
+  public
+    EventLog: TStringList;
+    procedure Start; override;
+    procedure Stop; override;
+    procedure Pause; override;
+    procedure Resume; override;
+  end;
+
+procedure TLoggingView.Start;
+begin
+  inherited;
+  EventLog.Add(ClassName + '.Start');
+end;
+
+procedure TLoggingView.Stop;
+begin
+  inherited;
+  EventLog.Add(ClassName + '.Stop');
+end;
+
+procedure TLoggingView.Pause;
+begin
+  inherited;
+  EventLog.Add(ClassName + '.Pause');
+end;
+
+procedure TLoggingView.Resume;
+begin
+  inherited;
+  EventLog.Add(ClassName + '.Resume');
+end;
+
+type
+  TView1 = class(TLoggingView)
+  end;
+
+  TView2 = class(TLoggingView)
+  end;
+
+  TView3 = class(TLoggingView)
+  end;
+
+procedure TTestCastleUIControls.TestViewsLifecycle;
+var
+  Container: TTestContainer;
+  V1, V2, V3: TLoggingView;
+  EventLog: TStringList;
+begin
+  V1 := nil;
+  V2 := nil;
+  V3 := nil;
+  Container := nil;
+  EventLog := nil;
+  try
+    Container := TTestContainer.Create(nil);
+
+    // we will collect all view lifecycle events in EventLog
+    EventLog := TStringList.Create;
+    EventLog.Delimiter := ',';
+
+    V1 := TView1.Create(nil);
+    V1.EventLog := EventLog;
+    V2 := TView2.Create(nil);
+    V2.EventLog := EventLog;
+    V3 := TView3.Create(nil);
+    V3.EventLog := EventLog;
+
+    AssertEquals('', EventLog.DelimitedText);
+
+    Container.View := V1;
+    AssertEquals('TView1.Start,TView1.Resume', EventLog.DelimitedText);
+    Container.View := V2;
+    AssertEquals('TView1.Start,TView1.Resume,TView1.Pause,TView1.Stop,TView2.Start,TView2.Resume', EventLog.DelimitedText);
+    Container.PushView(V3);
+    AssertEquals('TView1.Start,TView1.Resume,TView1.Pause,TView1.Stop,TView2.Start,TView2.Resume,TView2.Pause,TView3.Start,TView3.Resume', EventLog.DelimitedText);
+    Container.PopView(V3);
+    AssertEquals('TView1.Start,TView1.Resume,TView1.Pause,TView1.Stop,TView2.Start,TView2.Resume,TView2.Pause,TView3.Start,TView3.Resume,TView3.Pause,TView3.Stop,TView2.Resume', EventLog.DelimitedText);
+    Container.View := nil;
+    AssertEquals('TView1.Start,TView1.Resume,TView1.Pause,TView1.Stop,TView2.Start,TView2.Resume,TView2.Pause,TView3.Start,TView3.Resume,TView3.Pause,TView3.Stop,TView2.Resume,TView2.Pause,TView2.Stop', EventLog.DelimitedText);
+    EventLog.Clear;
+
+    Container.View := V1;
+    AssertEquals('TView1.Start,TView1.Resume', EventLog.DelimitedText);
+    Container.PushView(V2);
+    AssertEquals('TView1.Start,TView1.Resume,TView1.Pause,TView2.Start,TView2.Resume', EventLog.DelimitedText);
+    Container.View := V3;
+    { Note that this should stop V1, without doing Resume+Pause on it.
+      See https://forum.castle-engine.io/t/bug-i-dont-expect-resume-of-views-in-stack-when-i-assign-container-view/2061/4 }
+    AssertEquals('TView1.Start,TView1.Resume,TView1.Pause,TView2.Start,TView2.Resume,TView2.Pause,TView2.Stop,TView1.Stop,TView3.Start,TView3.Resume', EventLog.DelimitedText);
+    Container.View := nil;
+    AssertEquals('TView1.Start,TView1.Resume,TView1.Pause,TView2.Start,TView2.Resume,TView2.Pause,TView2.Stop,TView1.Stop,TView3.Start,TView3.Resume,TView3.Pause,TView3.Stop', EventLog.DelimitedText);
+    EventLog.Clear;
+
+    Container.View := V1;
+    AssertEquals('TView1.Start,TView1.Resume', EventLog.DelimitedText);
+    Container.PushView(V2);
+    AssertEquals('TView1.Start,TView1.Resume,TView1.Pause,TView2.Start,TView2.Resume', EventLog.DelimitedText);
+    Container.View := nil;
+    { Note that this should stop V1, without doing Resume+Pause on it.
+      See https://forum.castle-engine.io/t/bug-i-dont-expect-resume-of-views-in-stack-when-i-assign-container-view/2061/4 }
+    AssertEquals('TView1.Start,TView1.Resume,TView1.Pause,TView2.Start,TView2.Resume,TView2.Pause,TView2.Stop,TView1.Stop', EventLog.DelimitedText);
+    EventLog.Clear;
+  finally
+    FreeAndNil(V1);
+    FreeAndNil(V2);
+    FreeAndNil(V3);
+    FreeAndNil(EventLog);
+    FreeAndNil(Container);
+  end;
+end;
+
+{ Helpers for TestStopViewFromEvent ------------------------------------------ }
+
+type
+  TCastleButtonTestDestroy = class(TCastleButton)
+  public
+    WithinOnClick: Cardinal;
+    ClicksCount: Cardinal;
+    procedure DoClick; override;
+    destructor Destroy; override;
+  end;
+
+procedure TCastleButtonTestDestroy.DoClick;
+begin
+  Inc(ClicksCount);
+  Inc(WithinOnClick);
+  try
+    inherited;
+  finally Dec(WithinOnClick) end;
+end;
+
+destructor TCastleButtonTestDestroy.Destroy;
+begin
+  if WithinOnClick <> 0 then
+    raise Exception.Create('Button is freed in the middle of its OnClick event, this can lead to undefined behavior');
+  inherited;
+end;
+
+type
+  TCastleTimerTestDestroy = class(TCastleTimer)
+  public
+    WithinOnTimer: Cardinal;
+    TimersCount: Cardinal;
+    procedure DoTimer; override;
+    destructor Destroy; override;
+  end;
+
+procedure TCastleTimerTestDestroy.DoTimer;
+begin
+  Inc(TimersCount);
+  Inc(WithinOnTimer);
+  try
+    inherited;
+  finally Dec(WithinOnTimer) end;
+end;
+
+destructor TCastleTimerTestDestroy.Destroy;
+begin
+  if WithinOnTimer <> 0 then
+    raise Exception.Create('Timer is freed in the middle of its OnTimer event, this can lead to undefined behavior');
+  inherited;
+end;
+
+type
+  { View helping to perform test TTestCastleUIControls.TestStopViewFromEvent. }
+  TTestStopFromEventView = class(TCastleView)
+  published
+    MyButton: TCastleButton;
+    MyTimer: TCastleTimer;
+  strict private
+    procedure MyTimerTimer(Sender: TObject);
+    procedure MyClick(Sender: TObject);
+  public
+    ButtonCreatedExplicitly, ButtonCreatedExplicitly2: TCastleButtonTestDestroy;
+    TimerCreatedExplicitly, TimerCreatedExplicitly2: TCastleTimerTestDestroy;
+    { When not vsNothing, then clicking button / or timer occurence/
+      or press of Enter key -> will stop this view.
+      Set before Start, it also determines what gets created in Start. }
+    ViewSwitchActivator: TViewSwitchActivator;
+    constructor Create(AOwner: TComponent); override;
+    procedure Start; override;
+    procedure Stop; override;
+    function Press(const Event: TInputPressRelease): Boolean; override;
+    //procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
+  end;
+
+constructor TTestStopFromEventView.Create(AOwner: TComponent);
+begin
+  inherited;
+  DesignUrl := 'castle-data:/designs/test_stop_view_from_event.castle-user-interface';
+end;
+
+procedure TTestStopFromEventView.Start;
+begin
+  inherited;
+
+  if ViewSwitchActivator = vsMyTimer then
+    MyTimer.OnTimer := {$ifdef FPC}@{$endif} MyTimerTimer;
+
+  if ViewSwitchActivator = vsMyButton then
+    MyButton.OnClick := {$ifdef FPC}@{$endif} MyClick;
+
+  if ViewSwitchActivator = vsButtonCreatedExplicitly then
+  begin
+    ButtonCreatedExplicitly := TCastleButtonTestDestroy.Create(FreeAtStop);
+    ButtonCreatedExplicitly.OnClick := {$ifdef FPC}@{$endif} MyClick;
+    ButtonCreatedExplicitly.FullSize := true;
+    InsertFront(ButtonCreatedExplicitly);
+  end;
+
+  if ViewSwitchActivator = vsTimerCreatedExplicitly then
+  begin
+    TimerCreatedExplicitly := TCastleTimerTestDestroy.Create(FreeAtStop);
+    TimerCreatedExplicitly.OnTimer := {$ifdef FPC}@{$endif} MyTimerTimer;
+    InsertFront(TimerCreatedExplicitly);
+  end;
+
+  if ViewSwitchActivator = vsButtonCreatedExplicitly2 then
+  begin
+    ButtonCreatedExplicitly2 := TCastleButtonTestDestroy.Create(nil);
+    ButtonCreatedExplicitly2.OnClick := {$ifdef FPC}@{$endif} MyClick;
+    ButtonCreatedExplicitly2.FullSize := true;
+    InsertFront(ButtonCreatedExplicitly2);
+  end;
+
+  if ViewSwitchActivator = vsTimerCreatedExplicitly2 then
+  begin
+    TimerCreatedExplicitly2 := TCastleTimerTestDestroy.Create(nil);
+    TimerCreatedExplicitly2.OnTimer := {$ifdef FPC}@{$endif} MyTimerTimer;
+    InsertFront(TimerCreatedExplicitly2);
+  end;
+end;
+
+procedure TTestStopFromEventView.Stop;
+begin
+  FreeAndNil(ButtonCreatedExplicitly2);
+  FreeAndNil(TimerCreatedExplicitly2);
+  inherited;
+end;
+
+procedure TTestStopFromEventView.MyClick(Sender: TObject);
+begin
+  Container.View := nil;
+end;
+
+procedure TTestStopFromEventView.MyTimerTimer(Sender: TObject);
+begin
+  Container.View := nil;
+end;
+
+function TTestStopFromEventView.Press(const Event: TInputPressRelease): Boolean;
+begin
+  Result := inherited;
+  if Event.IsKey(keyEnter) then
+  begin
+    if ViewSwitchActivator = vsPress then
+      Container.View := nil;
+    Exit(true);
+  end;
+end;
+
+{$ifdef WASI}
+{ WebAssembly will crash when we call standard Sleep.
+  So we implement our own sleep below in a stupid way: just "busy waiting"
+  until the time passes.
+
+  DO NOT USE THIS IN YOUR OWN APPLICATIONS.
+
+  See user_interface/zombie_fighter/code/gameviewloading.pas
+  for more comments on this Sleep.
+  This is used in this example just to fake that time passes. }
+procedure Sleep(const Milliseconds: Cardinal);
+var
+  TimerStart: TTimerResult;
+begin
+  TimerStart := Timer;
+  while TimerStart.ElapsedTime < Milliseconds / 1000 do
+    { nothing };
+end;
+{$endif}
+
+procedure TTestCastleUIControls.CoreTestStopViewFromEvent(const ViewSwitchActivator: TViewSwitchActivator);
+
+{ Testcase for
+  https://forum.castle-engine.io/t/android-crash-issue-resolved-but-investigation-of-timer-behavior-could-be-important/2139/4
+  bug and fix.
+  During handling of component's events (like button's OnClick or timer's OnTimer),
+  we cannot free this component (which was happening before, when immediate view
+  stop was done -> causing also freeing of all designed components,
+  all components owned by FreeAtStop, and calling Stop). }
+
+var
+  Container: TTestContainer;
+  V: TTestStopFromEventView;
+  ActivatorButtonIfAny: TCastleButtonTestDestroy;
+  ActivatorTimerIfAny: TCastleTimerTestDestroy;
+
+  procedure FakeButtonPress(const ExpectChangeView: Boolean);
+  begin
+    if ActivatorButtonIfAny <> nil then
+      AssertEquals(0, ActivatorButtonIfAny.ClicksCount);
+    Container.EventPress(InputMouseButton(
+      Vector2(
+        Container.PixelsWidth / 2,
+        Container.PixelsHeight / 2
+      ), buttonLeft, 0, []));
+    Container.EventRelease(InputMouseButton(
+      Vector2(
+        Container.PixelsWidth / 2,
+        Container.PixelsHeight / 2
+      ), buttonLeft, 0, []));
+    // ActivatorButtonIfAny is freed now, at the end of Container.EventRelease in ProcessViewChanges
+    // if ActivatorButtonIfAny <> nil then
+    //   AssertEquals(1, ActivatorButtonIfAny.ClicksCount);
+
+    if ExpectChangeView then
+      AssertTrue(Container.View = nil)
+    else
+      AssertTrue(Container.View = V);
+  end;
+
+  procedure FakeTimer(const ExpectChangeView: Boolean);
+  begin
+    if ActivatorTimerIfAny <> nil then
+      AssertEquals(0, ActivatorTimerIfAny.TimersCount);
+    AssertTrue(Container.View = V);
+
+    Container.EventUpdate;
+    { Sometimes (depends on computer speed) timer fired already from above
+      EventUpdate, even without the need for Sleep below. }
+    Sleep(100);
+    Container.EventUpdate;
+
+    // ActivatorTimerIfAny is freed now, at the end of Container.EventUpdate in ProcessViewChanges
+    // if ActivatorTimerIfAny <> nil then
+    //   AssertEquals(1, ActivatorTimerIfAny.TimersCount);
+
+    if ExpectChangeView then
+      AssertTrue(Container.View = nil)
+    else
+      AssertTrue(Container.View = V);
+  end;
+
+  procedure FakePressEnter(const ExpectChangeView: Boolean);
+  begin
+    Container.EventPress(InputKey(Vector2(
+        Container.PixelsWidth / 2,
+        Container.PixelsHeight / 2
+      ), keyEnter, CharEnter, []));
+
+    if ExpectChangeView then
+      AssertTrue(Container.View = nil)
+    else
+      AssertTrue(Container.View = V);
+  end;
+
+begin
+  V := nil;
+  Container := nil;
+  try
+    Container := TTestContainer.Create(nil);
+    V := TTestStopFromEventView.Create(nil);
+    V.ViewSwitchActivator := ViewSwitchActivator;
+    Container.View := V;
+
+    // set ActivatorButtonIfAny, ActivatorTimerIfAny
+    ActivatorButtonIfAny := nil;
+    ActivatorTimerIfAny := nil;
+    case ViewSwitchActivator of
+      vsButtonCreatedExplicitly: ActivatorButtonIfAny := V.ButtonCreatedExplicitly as TCastleButtonTestDestroy;
+      vsTimerCreatedExplicitly: ActivatorTimerIfAny := V.TimerCreatedExplicitly as TCastleTimerTestDestroy;
+      vsButtonCreatedExplicitly2: ActivatorButtonIfAny := V.ButtonCreatedExplicitly2 as TCastleButtonTestDestroy;
+      vsTimerCreatedExplicitly2: ActivatorTimerIfAny := V.TimerCreatedExplicitly2 as TCastleTimerTestDestroy;
+    end;
+
+    case ViewSwitchActivator of
+      vsNothing:
+        begin
+          // do all operations, expect no view change
+          FakeButtonPress(false);
+          FakeTimer(false);
+          FakePressEnter(false);
+        end;
+      vsPress:
+        begin
+          // press Enter, expect view change
+          FakePressEnter(true);
+        end;
+      vsMyButton, vsButtonCreatedExplicitly, vsButtonCreatedExplicitly2:
+        begin
+          // click button, expect view change
+          FakeButtonPress(true);
+        end;
+      vsMyTimer, vsTimerCreatedExplicitly, vsTimerCreatedExplicitly2:
+        begin
+          // wait for timer, expect view change
+          FakeTimer(true);
+        end;
+      else raise EInternalError.Create('Unknown ViewSwitchActivator value');
+    end;
+
+  finally
+    FreeAndNil(V);
+    FreeAndNil(Container);
+  end;
+end;
+
+procedure TTestCastleUIControls.TestStopViewFromEvent;
+const
+  ViewSwitchActivatorNames: array[TViewSwitchActivator] of string = (
+    'Nothing',
+    'Press',
+    'MyButton',
+    'MyTimer',
+    'ButtonCreatedExplicitly',
+    'TimerCreatedExplicitly',
+    'ButtonCreatedExplicitly2',
+    'TimerCreatedExplicitly2'
+  );
+var
+  I: TViewSwitchActivator;
+begin
+  for I := Low(TViewSwitchActivator) to High(TViewSwitchActivator) do
+  begin
+    WritelnLog('TestStopViewFromEvent with activator ' + ViewSwitchActivatorNames[I]);
+    CoreTestStopViewFromEvent(I);
+  end;
+end;
+
+procedure TTestCastleUIControls.TestViewChangePending;
+var
+  Container: TTestContainer;
+  V1, V2, V3: TCastleView;
+begin
+  V1 := nil;
+  V2 := nil;
+  V3 := nil;
+  Container := nil;
+  try
+    Container := TTestContainer.Create(nil);
+    { This test assumes changes are delayed }
+    Container.InternalForceViewChangeDelayed := true;
+    V1 := TCastleView.Create(nil);
+    V2 := TCastleView.Create(nil);
+    V3 := TCastleView.Create(nil);
+
+    AssertEquals(0, Container.CurrentViewStackCount);
+
+    Container.View := V1;
+    AssertEquals(0, Container.CurrentViewStackCount);
+    AssertEquals(1, Container.PendingViewStackCount);
+    AssertTrue(Container.PendingViewStack[0] = V1);
+
+    // provoke applying of pending view changes
+    Container.EventUpdate;
+    AssertEquals(1, Container.CurrentViewStackCount);
+    AssertTrue(Container.CurrentViewStack[0] = V1);
+    AssertEquals(1, Container.PendingViewStackCount);
+    AssertTrue(Container.PendingViewStack[0] = V1);
+
+    Container.PushView(V2);
+
+    // the above PushView is only pending, not applied yet
+    AssertEquals(1, Container.CurrentViewStackCount);
+    AssertTrue(Container.CurrentViewStack[0] = V1);
+    AssertTrue(Container.FrontView = V1);
+    AssertTrue(Container.CurrentFrontView = V1);
+    AssertEquals(2, Container.PendingViewStackCount);
+    AssertTrue(Container.PendingViewStack[0] = V1);
+    AssertTrue(Container.PendingViewStack[1] = V2);
+    AssertTrue(Container.PendingFrontView = V2);
+
+    Container.View := V3;
+    Container.PushView(V1);
+    Container.PushView(V2);
+    Container.PopView(V2);
+    Container.PushView(V2);
+
+    // above operations are still pending
+    AssertEquals(1, Container.CurrentViewStackCount);
+    AssertTrue(Container.CurrentViewStack[0] = V1);
+    AssertTrue(Container.FrontView = V1);
+    AssertTrue(Container.PendingFrontView = V2);
+    AssertEquals(3, Container.PendingViewStackCount);
+    AssertTrue(Container.PendingViewStack[0] = V3);
+    AssertTrue(Container.PendingViewStack[1] = V1);
+    AssertTrue(Container.PendingViewStack[2] = V2);
+
+    // provoke applying of pending view changes
+    Container.EventUpdate;
+    AssertEquals(3, Container.CurrentViewStackCount);
+    AssertTrue(Container.CurrentViewStack[0] = V3);
+    AssertTrue(Container.CurrentViewStack[1] = V1);
+    AssertTrue(Container.CurrentViewStack[2] = V2);
+    AssertEquals(3, Container.PendingViewStackCount);
+    AssertTrue(Container.PendingViewStack[0] = V3);
+    AssertTrue(Container.PendingViewStack[1] = V1);
+    AssertTrue(Container.PendingViewStack[2] = V2);
+  finally
+    FreeAndNil(V1);
+    FreeAndNil(V2);
+    FreeAndNil(V3);
+    FreeAndNil(Container);
+  end;
+end;
+
+type
+  { TCastleWalkNavigation that records how it received Update events, to test
+    that TCastleContainer dispatches Update correctly (order, HandleInput,
+    and exactly once per frame). }
+  TTestWalkNavigation = class(TCastleWalkNavigation)
+  public
+    UpdateCount: Integer;
+    LastHandleInput: Boolean;
+    procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
+  end;
+
+  { UI control that records Update events and optionally handles Press
+    (to become the input-capturing control). }
+  TTestUpdateRecorder = class(TCastleUserInterface)
+  public
+    UpdateCount: Integer;
+    LastHandleInput: Boolean;
+    HandlePress: Boolean;
+    function Press(const Event: TInputPressRelease): Boolean; override;
+    procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
+  end;
+
+procedure TTestWalkNavigation.Update(const SecondsPassed: Single; var HandleInput: Boolean);
+begin
+  Inc(UpdateCount);
+  // set LastHandleInput before inherited, to make sure we record the initial value
+  LastHandleInput := HandleInput;
+  inherited;
+end;
+
+function TTestUpdateRecorder.Press(const Event: TInputPressRelease): Boolean;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  if HandlePress then
+    Result := true;
+end;
+
+procedure TTestUpdateRecorder.Update(const SecondsPassed: Single; var HandleInput: Boolean);
+begin
+  Inc(UpdateCount);
+  // set LastHandleInput before inherited, to make sure we record the initial value
+  LastHandleInput := HandleInput;
+  inherited;
+end;
+
+procedure TTestCastleUIControls.TestFocus;
+var
+  Container: TTestContainer;
+  Owner: TComponent;
+  Viewport: TCastleViewport;
+  Button1, Button2: TCastleButton;
+  Nav: TTestWalkNavigation;
+begin
+  Owner := TComponent.Create(nil);
+  try
+    Container := TTestContainer.Create(Owner);
+
+    Viewport := TCastleViewport.Create(Owner);
+    Viewport.FullSize := true;
+
+    Button1 := TCastleButton.Create(Owner);
+    Button1.AutoSize := false;
+    Button1.AnchorDelta := Vector2(10, 10);
+    Button1.Width := 30;
+    Button1.Height := 20;
+
+    Button2 := TCastleButton.Create(Owner);
+    Button2.AutoSize := false;
+    Button2.AnchorDelta := Vector2(60, 60);
+    Button2.Width := 30;
+    Button2.Height := 20;
+
+    { Viewport is added first, so it is back-most; buttons are on top of it. }
+    Container.Controls.InsertFront(Viewport);
+    Container.Controls.InsertFront(Button1);
+    Container.Controls.InsertFront(Button2);
+
+    { Mouse over Button1 (which sits over the FullSize viewport). }
+    Container.MousePosition := Vector2(20, 20);
+    Container.UpdateFocusAndMouseCursor;
+
+    AssertEquals(2, Container.Focus.Count);
+    AssertTrue('Viewport focused (under mouse)', Container.Focus[0] = Viewport);
+    AssertTrue('Button1 focused (under mouse)', Container.Focus[1] = Button1);
+    AssertTrue('FocusFront is Button1 (front-most under mouse)', Container.FocusFront = Button1);
+
+    { Add navigation to the viewport. It is under the mouse (FullSize
+      inside FullSize viewport), so it is focused, but not front-most:
+      Button1 is still on top. }
+    Nav := TTestWalkNavigation.Create(Owner);
+    Viewport.Navigation := Nav;
+    AssertTrue('Nav parent is Viewport', Nav.Parent = Viewport);
+    AssertTrue('Nav container is Container', Nav.Container = Container);
+    Container.UpdateFocusAndMouseCursor;
+
+    AssertEquals(3, Container.Focus.Count);
+    AssertTrue('Viewport focused (under mouse)', Container.Focus[0] = Viewport);
+    AssertTrue('Nav focused (under mouse)', Container.Focus[1] = Nav);
+    AssertTrue('Button1 focused (under mouse)', Container.Focus[2] = Button1);
+    AssertTrue('FocusFront still Button1 (nav not forced yet)',
+      Container.FocusFront = Button1);
+
+    { Make the navigation as ForceCaptureInput. Now it is forced front-most,
+      and it appears exactly once on the Focus list (not twice,
+      even though it is both under the mouse and forced). }
+    Container.ForceCaptureInput := Nav;
+    Container.UpdateFocusAndMouseCursor;
+
+    AssertEquals(3, Container.Focus.Count);
+    AssertTrue('Viewport focused (under mouse)', Container.Focus[0] = Viewport);
+    AssertTrue('Button1 focused (under mouse)', Container.Focus[1] = Button1);
+    AssertTrue('Nav focused and forced (under mouse)', Container.Focus[2] = Nav);
+
+    { Update working: Nav (as ForceCaptureInput) is updated with HandleInput=true,
+      and exactly once. The "exactly once" is meaningful because Nav is also
+      under the mouse, hence also reachable by the recursive Update pass.
+      We have special code (FUpdateCalledFrameId) to avoid a double Update call. }
+    Nav.UpdateCount := 0;
+    Container.EventUpdate;
+    AssertEquals('Nav updated exactly once per frame', 1, Nav.UpdateCount);
+    AssertTrue('Nav received HandleInput=true (ForceCaptureInput)',
+      Nav.LastHandleInput);
+
+    { Viewport is no longer FullSize and is moved away from the mouse.
+      Nav is still ForceCaptureInput, so it remains front-most focused and
+      still receives Update with HandleInput=true, even though it is no longer
+      under the mouse. }
+    Viewport.FullSize := false;
+    Viewport.AnchorDelta := Vector2(50, 50);
+    Viewport.Width := 40;
+    Viewport.Height := 40;
+    { Mouse stays at (20,20): inside Button1, outside Viewport (and Nav). }
+    Container.UpdateFocusAndMouseCursor;
+
+    AssertEquals(2, Container.Focus.Count);
+    AssertTrue('Button1 focused (under mouse)', Container.Focus[0] = Button1);
+    AssertTrue('Nav still focused once (forced, off-mouse)', Container.Focus[1] = Nav);
+    AssertTrue('FocusFront still Nav (forced)', Container.FocusFront = Nav);
+
+    Nav.UpdateCount := 0;
+    Container.EventUpdate;
+    AssertEquals('Nav updated exactly once (forced, off-mouse)', 1, Nav.UpdateCount);
+    AssertTrue('Nav received HandleInput=true (forced, off-mouse)',
+      Nav.LastHandleInput);
+
+    { Nav is no longer ForceCaptureInput. As it is not under the mouse,
+      it drops off the Focus list, is no longer FocusFront, and receives
+      Update only with HandleInput=false. }
+    Container.ForceCaptureInput := nil;
+    Container.UpdateFocusAndMouseCursor;
+
+    AssertEquals(1, Container.Focus.Count);
+    AssertTrue('FocusFront is Button1 again', Container.FocusFront = Button1);
+
+    Nav.UpdateCount := 0;
+    Container.EventUpdate;
+    AssertEquals('Nav still updated once (recursively)', 1, Nav.UpdateCount);
+    AssertFalse('Nav received HandleInput=false (not under mouse, not forced)',
+      Nav.LastHandleInput);
+  finally
+    FreeAndNil(Owner);
+  end;
+end;
+
+procedure TTestCastleUIControls.TestFocusCapturedControl;
+var
+  Container: TTestContainer;
+  Owner: TComponent;
+  Capturing: TTestUpdateRecorder;
+begin
+  Container := nil;
+  Owner := nil;
+  try
+    Container := TTestContainer.Create(nil);
+    Owner := TComponent.Create(nil);
+
+    { A control occupying the left-bottom [0,40] x [0,40] area, that handles
+      Press (and thus starts capturing the input). }
+    Capturing := TTestUpdateRecorder.Create(Owner);
+    Capturing.HandlePress := true;
+    Capturing.AnchorDelta := Vector2(0, 0);
+    Capturing.Width := 40;
+    Capturing.Height := 40;
+    Container.Controls.InsertFront(Capturing);
+
+    { Press over the control -> it handles Press -> it becomes the capturing
+      control (present in Container's FCaptureInput). }
+    Container.EventPress(InputMouseButton(Vector2(20, 20), buttonLeft, 0, []));
+
+    { Move the mouse off the control. Since it is capturing input, it should
+      still be front-most focused, and still receive Update with
+      HandleInput=true -- and exactly once per frame (not twice, even though
+      the recursive Update pass also descends to it). }
+    Container.MousePosition := Vector2(95, 95);
+    Container.UpdateFocusAndMouseCursor;
+
+    AssertEquals('Capturing control is the only one focused (holds capture)',
+      1, Container.Focus.Count);
+    AssertTrue('Capturing control is focused (holds capture)',
+      Container.Focus[0] = Capturing);
+    AssertTrue('Capturing control is front-most focused',
+      Container.FocusFront = Capturing);
+
+    Capturing.UpdateCount := 0;
+    Container.EventUpdate;
+    AssertEquals('Capturing control updated exactly once per frame',
+      1, Capturing.UpdateCount);
+    AssertTrue('Capturing control received HandleInput=true (holds capture)',
+      Capturing.LastHandleInput);
+  finally
+    FreeAndNil(Container);
+    FreeAndNil(Owner);
   end;
 end;
 

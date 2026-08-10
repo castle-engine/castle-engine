@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2019 Michalis Kamburelis.
+  Copyright 2003-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -24,17 +24,51 @@ uses SysUtils, Classes,
   CastleUtils, CastleTimeUtils, CastleSoundBase, CastleInternalVorbisFile;
 
 type
-  ESoundFormatNotSupportedByOpenAL = class(ESoundFileError)
-  end deprecated 'do not use, this is not raised by anything anymore';
-
   ESoundFormatAlreadyRegistered = class(Exception);
 
+  { Sound format. This describes the uncompressed sound data format,
+    used by our @link(TSoundFile.SampleFormat) and @link(TStreamedSoundFile.SampleFormat).
+
+    This is @italic(not) an exhaustive list of all sound formats supported,
+    as with some sound backends (like FMOD) some sound
+    formats are supported (decompressed + played) without Castle Game Engine
+    ever seeing their uncompressed data.
+
+    This format describes the uncompressed sound data, independently
+    of the number of channels (like mono, stereo and more).
+    Non-mono data is expressed as interleaved
+    (left channel sample followed by the right channel sample).
+
+    This is similar to @url(https://www.fmod.com/docs/2.03/api/core-api-sound.html#fmod_sound_format
+    FMOD_SOUND_FORMAT). }
+  TSoundSampleFormat = (
+    { 8-bit, unsigned.
+
+      Each sample is as an unsigned value in the range [0 .. 255],
+      128 being an audio output level of zero.
+
+      Matches format in OpenAL AL_FORMAT_MONO8,
+      AL_FORMAT_STEREO8 and 8-bit WAV files. }
+    sfPcm8,
+
+    { 16-bit, signed.
+
+      Each sample is as a signed value in the range [-32768 .. 32767],
+      0 being an audio output level of zero.
+
+      Matches OpenAL AL_FORMAT_MONO16,
+      AL_FORMAT_STEREO16 and 16-bit WAV files. }
+    sfPcm16
+  );
+
+  { Sound file data, loaded in memory completely (not streaming). }
   TSoundFile = class
   strict private
     FUrl: String;
     DataStream: TMemoryStream;
-    FDataFormat: TSoundDataFormat;
-    FFrequency: Cardinal;
+    FSampleFormat: TSoundSampleFormat;
+    FChannels: Cardinal;
+    FFrequency: TSoundFrequency;
     FDuration: TFloatTime;
   public
     { Load a sound data from a given URL.
@@ -55,28 +89,41 @@ type
     { URL from which we loaded this sound file. }
     property Url: String read FUrl;
 
-    { Sound data, according to DataFormat.
-      Contents of Data are readonly. }
+    { Sound data, to be interpreted according to @link(SampleFormat) and @link(Channels).
+      Contents of this are readonly. }
     function Data: Pointer;
+
     { Bytes allocated for @link(Data). }
     function DataSize: Cardinal;
-    property DataFormat: TSoundDataFormat read FDataFormat;
-    property Frequency: Cardinal read FFrequency;
+
+    { Format of sound sample in @link(Data). }
+    property SampleFormat: TSoundSampleFormat read FSampleFormat;
+
+    { Number of channels (1 = mono, 2 = stereo and so on). }
+    property Channels: Cardinal read FChannels;
+
+    { Sound frequency (number of samples to play per second). }
+    property Frequency: TSoundFrequency read FFrequency;
 
     { Duration in seconds. Returns -1 if not known. }
     property Duration: TFloatTime read FDuration;
 
-    { Convert sound data to ensure it is 16bit (DataFormat is sfMono16 or sfStereo16,
-      not sfMono8 or sfStereo8). }
+    { Convert sound data to ensure it is 16bit (SampleFormat is sfPcm16). }
     procedure ConvertTo16bit;
   end;
 
+  { Sound file data, that can be read in parts (streamed) using @link(Read)
+    and rewound using @link(Rewind).
+    This is an alternative to @link(TSoundFile) for long sound files,
+    where reading them to memory completely is not desirable (would
+    take a while, would consume too much memory). }
   TStreamedSoundFile = class
   strict private
     FUrl: String;
     CompressedStream, DecompressedStream: TStream;
-    FDataFormat: TSoundDataFormat;
-    FFrequency: Cardinal;
+    FSampleFormat: TSoundSampleFormat;
+    FChannels: Cardinal;
+    FFrequency: TSoundFrequency;
     FDuration: TFloatTime;
   public
     { Load a sound from a given URL.
@@ -87,7 +134,7 @@ type
         or the OggVorbis stream is invalid.)
 
         Also when reading from the underlying stream failed
-        (e.g. strean ended prematurely).
+        (e.g. stream ended prematurely).
       )
     }
     constructor Create(const AUrl: String);
@@ -96,12 +143,21 @@ type
     { URL from which we loaded this sound file. }
     property Url: String read FUrl;
 
-    property DataFormat: TSoundDataFormat read FDataFormat;
-    property Frequency: Cardinal read FFrequency;
+    { Format of sound samples returned by @link(Read). }
+    property SampleFormat: TSoundSampleFormat read FSampleFormat;
+
+    { Number of channels (1 = mono, 2 = stereo and so on). }
+    property Channels: Cardinal read FChannels;
+
+    { Sound frequency (number of samples to play per second). }
+    property Frequency: TSoundFrequency read FFrequency;
+
+    { Duration in seconds. }
     property Duration: TFloatTime read FDuration;
 
     { Returns read size. }
     function Read(var Buffer; const BufferSize: LongInt): LongInt;
+
     { Rewind streamed sound file, this is necessary for looping. }
     procedure Rewind;
   end;
@@ -112,11 +168,11 @@ var
 
 type
   { Read (decompress) a sound file from given Stream.
-    Returns a stream with uncompressed sound data in format described
-    by DataFormat. }
+    Returns a stream with uncompressed sound data, in a format described
+    by SampleFormat and Channels. }
   TSoundReadEvent = function (
     const Url: String; const Stream: TStream;
-    out DataFormat: TSoundDataFormat; out Frequency: Cardinal;
+    out SampleFormat: TSoundSampleFormat; out Channels: Cardinal; out Frequency: TSoundFrequency;
     out Duration: TFloatTime): TStream
     of object;
 
@@ -131,7 +187,8 @@ uses Generics.Collections,
   CastleLog, CastleDownload, CastleUriUtils, CastleClassUtils;
 
 const
-  SampleSize: array [TSoundDataFormat] of Cardinal = (1, 2, 2, 4);
+  SampleSize: array [TSoundSampleFormat] of Cardinal = (1, 2);
+  SampleFormatToStr: array [TSoundSampleFormat] of String = ('PCM 8-bit', 'PCM 16-bit');
 
 { Registering sound formats - declare interface ------------------------------ }
 
@@ -166,7 +223,7 @@ constructor TSoundFile.Create(const AUrl: String);
   var
     DecodingStream: TStream;
   begin
-    DecodingStream := ReadEvent(AUrl, CompressedStream, FDataFormat, FFrequency, FDuration);
+    DecodingStream := ReadEvent(AUrl, CompressedStream, FSampleFormat, FChannels, FFrequency, FDuration);
     if DecodingStream is TMemoryStream then
       DataStream := TMemoryStream(DecodingStream)
     else
@@ -178,11 +235,12 @@ constructor TSoundFile.Create(const AUrl: String);
 
   procedure CheckCorrectness;
   begin
-    if DataSize mod SampleSize[DataFormat] <> 0 then
-      raise ESoundFileError.CreateFmt('Invalid size for the sound file "%s": %d is not a multiple of sample size (%d)', [
+    if DataSize mod (SampleSize[FSampleFormat] * Channels) <> 0 then
+      raise ESoundFileError.CreateFmt('Invalid size for the sound file "%s": %d is not a multiple of sample size * channels (%d * %d)', [
         UriDisplay(Url),
         DataSize,
-        SampleSize[DataFormat]
+        SampleSize[FSampleFormat],
+        Channels
       ]);
     if DataSize = 0 then
       raise ESoundFileError.CreateFmt('Invalid size for the sound file "%s": size cannot be zero', [
@@ -221,10 +279,11 @@ begin
 
       if LogSoundLoading then
       begin
-        WritelnLog('Sound', 'Loaded "%s": %s, %s, size: %d, frequency: %d, duration: %f', [
+        WritelnLog('Sound', 'Loaded "%s": %s, %s, channels: %d, size: %d, frequency: %f, duration: %f', [
           UriDisplay(AUrl),
           MimeType,
-          DataFormatToStr(DataFormat),
+          SampleFormatToStr[FSampleFormat],
+          Channels,
           DataSize,
           Frequency,
           Duration
@@ -274,13 +333,13 @@ var
   PDest: PSmallInt;
   NewDataStream: TMemoryStream;
 begin
-  if DataFormat in [sfMono8, sfStereo8] then
+  if SampleFormat = sfPcm8 then
   begin
     WritelnWarning('Sound', 'Converting to 16-bit "%s".', [UriDisplay(Url)]);
 
     { create NewDataStream with 16-bit samples }
     NewDataStream := TMemoryStream.Create;
-    NewDataStream.Size  := DataSize * 2;
+    NewDataStream.Size := DataSize * 2;
     PSource := Data;
     PDest := NewDataStream.Memory;
     while PtrUInt(PSource) < PtrUInt(Data) + DataSize do
@@ -296,11 +355,7 @@ begin
     { update fields }
     FreeAndNil(DataStream);
     DataStream := NewDataStream;
-    case DataFormat of
-      sfMono8  : FDataFormat := sfMono16;
-      sfStereo8: FDataFormat := sfStereo16;
-      else ;
-    end;
+    FSampleFormat := sfPcm16;
   end;
 end;
 
@@ -328,16 +383,17 @@ begin
           UriDisplay(AUrl)
         ]);
 
-      DecompressedStream := F.ReadEvent(AUrl, CompressedStream, FDataFormat, FFrequency, FDuration);
+      DecompressedStream := F.ReadEvent(AUrl, CompressedStream, FSampleFormat, FChannels, FFrequency, FDuration);
 
       if LogSoundLoading then
       begin
-        WritelnLog('Sound', 'Loaded "%s": %s, %s, frequency: %d, duration: %f', [
+        WritelnLog('Sound', 'Loaded "%s": %s, %s, channels: %d, frequency: %f, duration: %f', [
           UriDisplay(AUrl),
           MimeType,
-          DataFormatToStr(DataFormat),
-          Frequency,
-          Duration
+          SampleFormatToStr[FSampleFormat],
+          FChannels,
+          FFrequency,
+          FDuration
         ]);
       end;
     except
@@ -383,12 +439,12 @@ type
 
   TWAVReader = class
     class function Read(const Url: String; const Stream: TStream;
-      out DataFormat: TSoundDataFormat; out Frequency: Cardinal;
+      out SampleFormat: TSoundSampleFormat; out Channels: Cardinal; out Frequency: TSoundFrequency;
       out Duration: TFloatTime): TStream;
   end;
 
 class function TWAVReader.Read(const Url: String; const Stream: TStream;
-  out DataFormat: TSoundDataFormat; out Frequency: Cardinal;
+  out SampleFormat: TSoundSampleFormat; out Channels: Cardinal; out Frequency: TSoundFrequency;
   out Duration: TFloatTime): TStream;
 
 { WAV file reader. Written mostly based on
@@ -438,8 +494,10 @@ type
 
 var
   Riff: TWavRiffChunk;
-  Format: TWavFormatChunk;
+  WavFormat: TWavFormatChunk;
   Header: TWavChunkHeader;
+  FrequencyInt: UInt32;
+  HasWavFormat: Boolean;
 begin
   Stream.ReadBuffer(Riff, SizeOf(Riff));
   if not (IdCompare(Riff.Header.ID, 'RIFF') and IdCompare(Riff.wID, 'WAVE')) then
@@ -461,81 +519,93 @@ begin
   end;
 
   Result := nil;
+  FrequencyInt := 0;
+  HasWavFormat := false;
 
-  while Stream.Position < Int64(Riff.Header.Len + SizeOf(TWavChunkHeader)) do
-  begin
-    Stream.ReadBuffer(Header, SizeOf(Header));
-
- {
-    Writeln('Got chunk "',
-      SReadableForm(Header.ID[0] + Header.ID[1] + Header.ID[2] + Header.ID[3]) +
-      '", length ', Header.Len,
-      ', remaining stream size ', Stream.Size - Stream.Position);
- }
-
-    if IdCompare(Header.ID, 'fmt ') then
+  try
+    while Stream.Position < Int64(Riff.Header.Len + SizeOf(TWavChunkHeader)) do
     begin
-      Stream.ReadBuffer(Format, SizeOf(Format));
-      if Format.FormatTag <> 1 then
-        raise EWavLoadError.CreateFmt('Not supported format of "%s". Only uncompressed (PCM) WAV files are supported. Convert WAV files to uncompressed e.g. using Audacity or Sox.', [
-          UriDisplay(Url)
-        ]);
-      { calculate DataFormat }
-      case Format.Channels of
-        1:case Format.BitsPerSample of
-            8 : DataFormat := sfMono8;
-            16: DataFormat := sfMono16;
-            else raise EWavLoadError.CreateFmt('Invalid WAV file %s: Only 8 or 16-bit encodings are supported', [Url]);
-          end;
-        2:case Format.BitsPerSample of
-            8 : DataFormat := sfStereo8;
-            16: DataFormat := sfStereo16;
-            else raise EWavLoadError.CreateFmt('Invalid WAV file %s: Only 8 or 16-bit encodings are supported', [Url]);
-          end;
-        else raise EWavLoadError.CreateFmt('Invalid WAV file %s: Only 1 or 2 channels are supported', [Url]);
+      Stream.ReadBuffer(Header, SizeOf(Header));
+
+  {
+      Writeln('Got chunk "',
+        SReadableForm(Header.ID[0] + Header.ID[1] + Header.ID[2] + Header.ID[3]) +
+        '", length ', Header.Len,
+        ', remaining stream size ', Stream.Size - Stream.Position);
+  }
+
+      if IdCompare(Header.ID, 'fmt ') then
+      begin
+        Stream.ReadBuffer(WavFormat, SizeOf(WavFormat));
+        if WavFormat.FormatTag <> 1 then
+          raise EWavLoadError.CreateFmt('Not supported format of "%s". Only uncompressed (PCM) WAV files are supported. Convert WAV files to uncompressed e.g. using Audacity or Sox.', [
+            UriDisplay(Url)
+          ]);
+        Channels := WavFormat.Channels;
+        if Channels = 0 then
+          raise EWavLoadError.CreateFmt('Zero channels in WAV file "%s"', [
+            UriDisplay(Url)
+          ]);
+        { calculate SampleFormat }
+        case WavFormat.BitsPerSample of
+          8 : SampleFormat := sfPcm8;
+          16: SampleFormat := sfPcm16;
+          else raise EWavLoadError.CreateFmt('Unsupported WAV file "%s": Only 8 or 16-bit encodings are supported', [
+            UriDisplay(Url)
+          ]);
+        end;
+        { calculate Frequency (and FrequencyInt -- WAV format allows
+          only integer frequencies, so we can preserve precision more) }
+        FrequencyInt := WavFormat.SamplesPerSec;
+        Frequency := FrequencyInt;
+        { There may be some additional stuff here in format chunk.
+          The meaning depends on FormatTag value.
+          http://www.sonicspot.com/guide/wavefiles.html
+          says they can only happen for compressed WAV data, but I have examples
+          of files created (probably) by Windows 95 wav recorder that
+          are uncompressed and still have some data here
+          (szklane_lasy/sounds/cantDoIt.wav). So be prepared always for some data here. }
+        Stream.Seek(Header.Len - SizeOf(WavFormat), soFromCurrent);
+        HasWavFormat := true;
+      end else
+
+      if IdCompare(Header.ID, 'data') then
+      begin
+        { calculate Result }
+        if Result <> nil then
+          raise EWavLoadError.Create('WAV file must not contain multiple data chunks');
+        Result := TMemoryStream.Create;
+        Result.Size := Header.Len;
+        Stream.ReadBuffer(TMemoryStream(Result).Memory^, Header.Len);
+      end else
+
+      begin
+        { skip any unknown chunks }
+        Stream.Seek(Header.Len, soFromCurrent);
       end;
-      { calculate Frequency }
-      Frequency := Format.SamplesPerSec;
-      { There may be some additional stuff here in format chunk.
-        The meaning depends on FormatTag value.
-        http://www.sonicspot.com/guide/wavefiles.html
-        says they can only happen for compressed WAV data, but I have examples
-        of files created (probably) by Windows 95 wav recorder that
-        are uncompressed and still have some data here
-        (szklane_lasy/sounds/cantDoIt.wav). So be prepared always for some data here. }
-      Stream.Seek(Header.Len - SizeOf(Format), soFromCurrent);
-    end else
 
-    if IdCompare(Header.ID, 'data') then
-    begin
-      { calculate Result }
-      if Result <> nil then
-        raise EWavLoadError.Create('WAV file must not contain multiple data chunks');
-      Result := TMemoryStream.Create;
-      Result.Size := Header.Len;
-      Stream.ReadBuffer(TMemoryStream(Result).Memory^, Header.Len);
-    end else
-
-    begin
-      { skip any unknown chunks }
-      Stream.Seek(Header.Len, soFromCurrent);
+      { all RIFF chunks are 2-byte-aligned, and DataSize doesn't include this padding,
+        according to http://www.sonicspot.com/guide/wavefiles.html
+        We have to account for it, and skip this padding (otherwise we would get
+        nonsense header next, that is cut off by eof and/or has wild Header.Len).
+        Testcase with szklane_lasy/sounds/cantDoIt.wav. }
+      if Odd(Header.Len) then
+        Stream.Seek(1, soFromCurrent);
     end;
 
-    { all RIFF chunks are 2-byte-aligned, and DataSize doesn't include this padding,
-      according to http://www.sonicspot.com/guide/wavefiles.html
-      We have to account for it, and skip this padding (otherwise we would get
-      nonsense header next, that is cut off by eof and/or has wild Header.Len).
-      Testcase with szklane_lasy/sounds/cantDoIt.wav. }
-    if Odd(Header.Len) then
-      Stream.Seek(1, soFromCurrent);
+    // perform correctness checks
+    if not HasWavFormat then
+      raise EWavLoadError.Create('WAV file has no "format" chunk');
+    if Result = nil then
+      raise EWavLoadError.Create('WAV file has no "data" chunk');
+    if (FrequencyInt = 0) or (Result.Size = 0) then
+      raise EWavLoadError.Create('WAV file has "Frequency" or "DataSize" equal zero');
+
+    Duration := Result.Size / (Int64(FrequencyInt) * SampleSize[SampleFormat] * Channels);
+  except
+    FreeAndNil(Result);
+    raise;
   end;
-
-  if Result = nil then
-    raise EWavLoadError.Create('WAV file has no data chunk');
-
-  if (Frequency = 0) or (Result.Size = 0) then
-    raise EWavLoadError.Create('WAV file has Frequency or DataSize equal zero');
-  Duration := Result.Size / (Frequency * SampleSize[DataFormat]);
 end;
 
 { Registering sound formats -------------------------------------------------- }
@@ -587,8 +657,7 @@ begin
   RegisteredSoundFormats.Add(MimeType, SoundReader);
 end;
 
-{$ifndef FPC}initialization{$endif}
-
+initialization
 finalization
   FreeAndNil(FRegisteredSoundFormats);
 end.

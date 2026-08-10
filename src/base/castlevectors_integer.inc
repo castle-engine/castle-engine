@@ -67,8 +67,10 @@ type
   { Vector of 3 Integer values. }
   TVector3Integer = packed record
   public
+    const
+      Count = 3;
     type
-      TIndex = 0..2;
+      TIndex = 0..Count - 1;
   strict private
     function GetItems(const Index: TIndex): Integer; inline;
     procedure SetItems(const Index: TIndex; const Value: Integer); inline;

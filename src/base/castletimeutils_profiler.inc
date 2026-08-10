@@ -1,6 +1,6 @@
 {%MainUnit castletimeutils.pas}
 {
-  Copyright 2018-2022 Michalis Kamburelis.
+  Copyright 2018-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -88,7 +88,7 @@ type
 
     Contrary to profilers like Valgrind or Gprof
     (see
-    https://castle-engine.io/manual_optimization.php#section_profiling ,
+    https://castle-engine.io/optimization#_profile_measure_speed_and_memory_usage ,
     https://castle-engine.io/profiling_using_valgrind ),
     this profiler does not automatically gather everything.
     On the other hand, this profiler works on all platforms supported by CGE,
@@ -96,9 +96,6 @@ type
   }
   TCastleProfiler = class
   private
-    {$ifndef PASDOC}
-    // TODO: for PasDoc: Something here confuses PasDoc, although it generally can handle nested classes.
-
     type
       // TTimes = class; // such forward declaration confuses C++ Builder
 
@@ -108,27 +105,29 @@ type
         Finished: Boolean;
         Children: TObject; // nil if empty; always TTimes, but declaring it as such confuses C++ Builder
         destructor Destroy; override;
-        function Summary(const Indent: String): String;
+        function Summary(const Indent: String; const AFloatPrecision: Cardinal): String;
       end;
 
       TTimeList = {$ifdef FPC}specialize{$endif} TObjectList<TTime>;
 
       TTimes = class(TTimeList)
         procedure Sort;
-        function Summary(const Indent: String): String;
+        function Summary(const Indent: String; const AFloatPrecision: Cardinal): String;
       end;
 
     var
       FEnabled: boolean;
+      FFloatPrecision: Cardinal;
 
       { Collected times tree. }
       Times: TTimes;
 
       { The currently started (but not stopped) TTime structures. }
       CurrentStack: TTimeList;
-
-    {$endif}
   public
+    const
+      DefaultFloatPrecision = 2;
+
     constructor Create;
     destructor Destroy; override;
 
@@ -200,6 +199,11 @@ type
     procedure Stop(const TimeStart: TCastleProfilerTime;
       const LogSummary: Boolean = false;
       const LogSummaryOnlyIfNonTrivial: Boolean = false);
+
+    { How many decimal digits to show when displaying floats (fraction of a second)
+      in the profiler summary. }
+    property FloatPrecision: Cardinal read FFloatPrecision write FFloatPrecision
+      default DefaultFloatPrecision;
   end;
 
 { Single instance of TCastleProfiler that you can use for all profiling.
@@ -237,14 +241,21 @@ end;
 
 { TCastleProfiler.TTime ------------------------------------------------------ }
 
-function TCastleProfiler.TTime.Summary(const Indent: String): String;
+function TCastleProfiler.TTime.Summary(const Indent: String; const AFloatPrecision: Cardinal): String;
+var
+  FloatFormat: String;
 begin
   if not Finished then
     Result := Indent + Format('UNFINISHED - %s', [Description]) + NL
   else
-    Result := Indent + Format('%f [%f] - %s', [Time, ProcessTime, Description]) + NL;
+  begin
+    FloatFormat := '%.' + IntToStr(AFloatPrecision) + 'f';
+    Result := Indent + FormatDot(FloatFormat + ' [' + FloatFormat + '] - %s',
+      [Time, ProcessTime, Description]) + NL;
+  end;
+
   if Children <> nil then
-    Result := Result + TTimes(Children).Summary(Indent + '> ');
+    Result := Result + TTimes(Children).Summary(Indent + '> ', AFloatPrecision);
 end;
 
 destructor TCastleProfiler.TTime.Destroy;
@@ -268,14 +279,14 @@ begin
   inherited Sort(TTimeComparer.Construct({$ifdef FPC}@{$endif} TimeSort));
 end;
 
-function TCastleProfiler.TTimes.Summary(const Indent: String): String;
+function TCastleProfiler.TTimes.Summary(const Indent: String; const AFloatPrecision: Cardinal): String;
 var
   I: Integer;
 begin
   Sort;
   Result := '';
   for I := 0 to Count - 1 do
-    Result := Result + Items[I].Summary(Indent);
+    Result := Result + Items[I].Summary(Indent, AFloatPrecision);
 end;
 
 { TCastleProfiler ------------------------------------------------------------------ }
@@ -295,6 +306,7 @@ begin
   inherited;
   Times := TTimes.Create(true);
   CurrentStack := TTimeList.Create(false);
+  FFloatPrecision := DefaultFloatPrecision;
 end;
 
 destructor TCastleProfiler.Destroy;
@@ -306,7 +318,7 @@ end;
 
 function TCastleProfiler.Summary: string;
 begin
-  Result := SProfileSummary + Times.Summary('');
+  Result := SProfileSummary + Times.Summary('', FloatPrecision);
 end;
 
 function TCastleProfiler.Start(const Description: String): TCastleProfilerTime;
@@ -362,7 +374,7 @@ begin
   // Call this before CurrentStack.Delete, which may free the T instance
   if LogSummary and
      ( (not LogSummaryOnlyIfNonTrivial) or (T.Time > 0.01) ) then
-    WritelnLogMultiline(T.Description, T.Summary(''));
+    WritelnLogMultiline(T.Description, T.Summary('', FloatPrecision));
 
   if (CurrentStack.Count <> 0) and
      (CurrentStack.Last = T) then

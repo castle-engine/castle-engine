@@ -84,7 +84,7 @@ type
   clong                  = Integer;            pclong                 = ^clong;
   cslong                 = Integer;            pcslong                = ^cslong;
   culong                 = cardinal;           pculong                = ^culong;
-{$ifend}
+{$endif}
 
   csigned                = cint;               pcsigned               = ^csigned;
   cunsigned              = cuint;              pcunsigned             = ^cunsigned;
@@ -108,11 +108,11 @@ type
 
 {$if defined(linux) and (defined(cpupowerpc) or defined(cpuarm))}
   {$define longdouble_is_double}
-{$ifend}
+{$endif}
 
 {$if defined(darwin) and defined(cpuaarch64)}
   {$define longdouble_is_double}
-{$ifend}
+{$endif}
 
 {$ifndef FPUNONE}
 {$if defined(longdouble_is_double) or not defined(FPC_HAS_CEXTENDED)}
@@ -123,8 +123,8 @@ type
   {$else}
   {$define longdouble_assignment_overload_real128}
   clongdouble = packed array [0..15] of byte;
-  {$ifend}
-{$ifend}
+  {$endif}
+{$endif}
   Pclongdouble=^clongdouble;
 
 {$ifdef longdouble_assignment_overload_real128}

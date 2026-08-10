@@ -30,43 +30,17 @@ Windows,
 
 function OpenUrl(AUrl: String): Boolean;
 var
-{$IFDEF WinCE}
-  Info: SHELLEXECUTEINFO;
-{$ELSE}
   ws: WideString;
-  ans: AnsiString;
-{$ENDIF}
 begin
   Result := False;
   if AUrl = '' then Exit;
 
-  {$IFDEF WinCE}
-  FillChar(Info, SizeOf(Info), 0);
-  Info.cbSize := SizeOf(Info);
-  Info.fMask := SEE_MASK_FLAG_NO_UI;
-  Info.lpVerb := 'open';
-  Info.lpFile := PWideChar(UTF8Decode(AUrl));
-  Result := ShellExecuteEx(@Info);
-  {$ELSE}
-  if Win32Platform = VER_PLATFORM_WIN32_NT then
-  begin
-    {$ifdef FPC}
-    ws := UTF8Decode(AUrl);
-    {$else}
-    ws := AUrl;
-    {$endif}
-    Result := ShellExecuteW(0, 'open', PWideChar(ws), nil, nil, SW_SHOWNORMAL) > 32;
-  end
-  else
-  begin
-    {$ifdef FPC}
-    ans := Utf8ToAnsi(AUrl); // utf8 must be converted to Windows Ansi-codepage
-    {$else}
-    ans := AnsiString(AUrl);
-    {$endif}
-    Result := ShellExecuteA(0, 'open', PAnsiChar(ans), nil, nil, SW_SHOWNORMAL) > 32;
-  end;
-  {$ENDIF}
+  {$ifdef FPC}
+  ws := UTF8Decode(AUrl);
+  {$else}
+  ws := AUrl;
+  {$endif}
+  Result := ShellExecuteW(0, 'open', PWideChar(ws), nil, nil, SW_SHOWNORMAL) > 32;
 end;
 
 // Open a document with the default application associated with it in the system

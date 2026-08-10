@@ -39,7 +39,7 @@
   var
     AllocatedTextures: TAllocatedTextures;
     FEnabled: boolean;
-    function FindTextureId(const TextureId: Integer): Integer;
+    function FindTextureId(const TextureId: TGLTexture): Integer;
     procedure CheckLeaks;
   public
     constructor Create;
@@ -197,7 +197,7 @@ begin
   if (AllocatedTextures.Count <> 0) and
      ((AllocatedTextures.Count <> 1) or
       { texture id 0 may be allocated, but never released }
-      (AllocatedTextures[0].TextureId = 0)) then
+      (AllocatedTextures[0].TextureId = GLObjectNone)) then
   begin
     WritelnWarning('Textures', Format('TextureMemoryProfiler contains some textures when closing the rendering context. Possibly we have texture memory leak (textures will be freed anyway when closing rendering context, but possibly we could free them earlier).'+' Or TextureMemoryProfiler was only enabled for part of program''s code. We have %d textures, 1st one is "%s"',
       [AllocatedTextures.Count,
@@ -205,7 +205,7 @@ begin
   end;
 end;
 
-function TTextureMemoryProfiler.FindTextureId(const TextureId: Integer): Integer;
+function TTextureMemoryProfiler.FindTextureId(const TextureId: TGLTexture): Integer;
 var
   I: Integer;
 begin

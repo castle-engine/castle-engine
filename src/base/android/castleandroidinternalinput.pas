@@ -408,7 +408,7 @@ function AMotionEvent_getEventTime(motion_event: PAInputEvent): cint64; cdecl; e
 
 function AMotionEvent_getXOffset(motion_event: PAInputEvent): cfloat; cdecl; external;
 
-(* Get the precision of the Y coordinates being reported.
+(* Get the Y coordinate offset.
  * For touch events on the screen, this is the delta that was added to the raw
  * screen coordinates to adjust for the absolute position of the containing windows
  * and views.  *)
@@ -446,7 +446,7 @@ function AMotionEvent_getPointerId(motion_event: PAInputEvent; pointer_index: cs
 
 function AMotionEvent_getRawX(motion_event: PAInputEvent; pointer_index: csize_t): cfloat; cdecl; external;
 
-(* Get the original raw X coordinate of this event.
+(* Get the original raw Y coordinate of this event.
  * For touch events on the screen, this is the original location of the event
  * on the screen, before it had been adjusted for the containing window
  * and views.  *)

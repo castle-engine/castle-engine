@@ -120,6 +120,12 @@ procedure TTestCastleControls.TestRecursiveDesign;
 var
   Owner: TComponent;
 begin
+  if not CanCatchExceptions then
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   try
     Owner := TComponent.Create(nil);
     try

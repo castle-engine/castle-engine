@@ -61,6 +61,8 @@ procedure TCarBehavior.Update(const SecondsPassed: Single; var RemoveMe: TRemove
 var
   T: TVector3;
 begin
+  inherited;
+
   T := Parent.Translation;
   { Thanks to multiplying by SecondsPassed, it is a time-based operation,
     and will always move 40 units / per second along the +Z axis. }
@@ -195,8 +197,10 @@ begin
     Exit(true);
   end;
 
-  { capture a screenshot }
-  if Event.IsKey(keyF5) then
+  { Screenshot.
+    "P" is better on the web where F5 is used to refresh the page,
+    remember it as "PrintScreen/Photo". }
+  if Event.IsKey(keyF5) or Event.IsKey(keyP) then
   begin
     Container.SaveScreenToDefaultFile;
     Exit(true);

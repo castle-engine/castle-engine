@@ -390,11 +390,9 @@ end;
 
 function TCastleBitmapFont.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'ImageUrl') or
-     (PropertyName = 'ImageColumns') or
-     (PropertyName = 'ImageRows') or
-     (PropertyName = 'ImageMargin') or
-     (PropertyName = 'DisplayMargin') then
+  if ArrayContainsString(PropertyName, [
+      'ImageUrl', 'ImageColumns', 'ImageRows', 'ImageMargin', 'DisplayMargin'
+     ]) then
       Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);

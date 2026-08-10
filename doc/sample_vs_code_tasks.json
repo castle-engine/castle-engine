@@ -3,7 +3,7 @@
   Castle Game Engine projects in VS Code.
 
   You can use this file for .vscode/tasks.json file in a workspace,
-  or as "User level tasks" (indepedent of workspace).
+  or as "User level tasks" (independent of workspace).
 
   This tasks file allows to compile /run / compile+run the CGE project
   associated with the currently open file.

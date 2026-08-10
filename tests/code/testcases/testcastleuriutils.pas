@@ -1,6 +1,6 @@
 ﻿// -*- compile-command: "./test_single_testcase.sh TTestUriUtils" -*-
 {
-  Copyright 2013-2024 Michalis Kamburelis.
+  Copyright 2013-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -16,6 +16,8 @@
 
 { Test CastleUriUtils unit. }
 unit TestCastleUriUtils;
+
+{$I ../../../src/common_includes/castleconf.inc}
 
 interface
 
@@ -40,12 +42,23 @@ type
     procedure TestMimeTypeHttpQuery;
     procedure TestUriMimeType;
     procedure TestRelativeFilenameToUriSafe;
+    procedure TestMemoryFileSystem;
+    { Test TCastleMemoryFileSystem.FindFilesUrlEvent,
+      it internally has additional logic to return each subdir only once
+      (because it remembers only Files), make sure it works. }
+    procedure TestMemoryFileSystemFindFilesSubdirs;
+    procedure TestFilenameToUriSafeEmpty;
+    procedure TestGetCurrentDir;
+    procedure TestExtractUriNamePercentEncoding;
+    procedure TestUrlQueryParameters;
+    procedure TestUrlEncodeForm;
   end;
 
 implementation
 
 uses Base64, UriParser,
-  CastleUriUtils, CastleUtils, CastleClassUtils;
+  CastleUriUtils, CastleUtils, CastleClassUtils, CastleFilesUtils,
+  CastleFindFiles, CastleStringUtils;
 
 procedure TTestUriUtils.TestUriProtocol;
 var
@@ -95,9 +108,13 @@ begin
   AssertEquals('file:///foo.txt', AbsoluteUri('/foo.txt'));
   {$endif}
 
-  AssertFilenamesEqual(FilenameToUriSafe(InclPathDelim(GetCurrentDir) + 'foo.txt'), AbsoluteUri('foo.txt'));
+  if CanUseFileSystem then
+  begin
+    AssertFilenamesEqual(FilenameToUriSafe(InclPathDelim(GetCurrentDir) + 'foo.txt'), AbsoluteUri('foo.txt'));
+    AssertFilenamesEqual(FilenameToUriSafe(InclPathDelim(GetCurrentDir)), AbsoluteUri(''));
+  end;
+
   AssertEquals('http://foo', AbsoluteUri('http://foo'));
-  AssertFilenamesEqual(FilenameToUriSafe(InclPathDelim(GetCurrentDir)), AbsoluteUri(''));
 end;
 
 procedure TTestUriUtils.TestUriToFilenameSafe;
@@ -158,9 +175,9 @@ begin
   AssertEquals(Filename, FilenameFromUri);
 
   FilenamePart := 'C:/Users/cge/AppData/Local/test_local_filename_chars/config with Polish chars ćma źrebak żmija wąż królik.txt';
-  FilenamePartPercent := InternalUriEscape(FilenamePart);
+  FilenamePartPercent := UrlEncode(FilenamePart);
   AssertEquals('C:/Users/cge/AppData/Local/test_local_filename_chars/config%20with%20Polish%20chars%20%C4%87ma%20%C5%BArebak%20%C5%BCmija%20w%C4%85%C5%BC%20kr%C3%B3lik.txt', FilenamePartPercent);
-  FilenamePartUnescaped := InternalUriUnescape(FilenamePartPercent);
+  FilenamePartUnescaped := UrlDecode(FilenamePartPercent);
   AssertEquals(FilenamePart, FilenamePartUnescaped);
   {$endif}
 end;
@@ -187,8 +204,8 @@ procedure TTestUriUtils.TestUriDisplay;
 const
   DataUriX3D =
     'data:model/x3d+xml,<?xml version="1.0" encoding="UTF-8"?>' + LineEnding +
-    '<!DOCTYPE X3D PUBLIC "ISO//Web3D//DTD X3D 3.0//EN" "http://www.web3d.org/specifications/x3d-3.0.dtd">' + LineEnding +
-    '<X3D version="3.0" profile="Immersive" xmlns:xsd="http://www.w3.org/2001/XMLSchema-instance" xsd:noNamespaceSchemaLocation="http://www.web3d.org/specifications/x3d-3.0.xsd">' + LineEnding +
+    '<!DOCTYPE X3D PUBLIC "ISO//Web3D//DTD X3D 3.0//EN" "https://www.web3d.org/specifications/x3d-3.0.dtd">' + LineEnding +
+    '<X3D version="3.0" profile="Immersive" xmlns:xsd="http://www.w3.org/2001/XMLSchema-instance" xsd:noNamespaceSchemaLocation="https://www.web3d.org/specifications/x3d-3.0.xsd">' + LineEnding +
     '<head>' + LineEnding +
     '</head>' + LineEnding +
     '<Scene>' + LineEnding +
@@ -236,7 +253,7 @@ end;
 procedure TTestUriUtils.TestUriExists;
 begin
   AssertTrue(ueUnknown = UriExists('http:/whatever'));
-  AssertTrue(ueUnknown = UriExists('unknown-protocol:/whatecer'));
+  AssertTrue(ueNotExists = UriExists('unknown-protocol:/whatecer'));
 
   AssertTrue(ueNotExists = UriExists('castle-data:/not_existing'));
   AssertTrue(ueFile = UriExists('castle-data:/game/level.xml'));
@@ -257,6 +274,9 @@ begin
     '    geometry Text { string "VRML 2.0 model inlined using data URI" }' + NL +
     '  }' + NL +
     '}'));
+
+  AssertTrue(ueNotExists = UriExists(''));
+  AssertFalse(UriFileExists(''));
 end;
 
 procedure TTestUriUtils.TestRelativeToCastleDataURL;
@@ -429,11 +449,18 @@ begin
 end;
 
 procedure TTestUriUtils.TestUriMimeType;
+var
+  Gzipped: Boolean;
 begin
   AssertEquals('image/png', UriMimeType('aaa.png'));
   AssertEquals('image/png', UriMimeType('aaa.png#some-anchor'));
   AssertEquals('image/png', UriMimeType('castle-data:/aaa.png'));
   AssertEquals('image/png', UriMimeType('castle-data:/aaa.png#some-anchor'));
+
+  { we practically invented the Gzipped logic to handle VRML/X3D
+    files like .x3dv.gz, but it should work for all files. }
+  AssertEquals('image/png', UriMimeType('aaa.png.gz', Gzipped));
+  AssertTrue(Gzipped);
 
   AssertEquals('image/png', UriMimeType('%23/aaa.png'));
   AssertEquals('image/png', UriMimeType('%23/aaa.png#some-anchor'));
@@ -449,6 +476,29 @@ begin
   AssertEquals('application/json', UriMimeType('dragon.json#skin:dark'));
   AssertEquals('application/json', UriMimeType('castle-data:/dragon.json'));
   AssertEquals('application/json', UriMimeType('castle-data:/dragon.json#skin:dark'));
+
+  AssertEquals('model/vrml', UriMimeType('foo.wrl', Gzipped));
+  AssertFalse(Gzipped);
+  AssertEquals('model/vrml', UriMimeType('foo.wrl.gz', Gzipped));
+  AssertTrue(Gzipped);
+  AssertEquals('model/vrml', UriMimeType('foo.wrz', Gzipped));
+  AssertTrue(Gzipped);
+
+  // test also with uppercase
+  AssertEquals('model/vrml', UriMimeType('FOO.WRL', Gzipped));
+  AssertFalse(Gzipped);
+  AssertEquals('model/vrml', UriMimeType('FOO.WRL.GZ', Gzipped));
+  AssertTrue(Gzipped);
+  AssertEquals('model/vrml', UriMimeType('FOO.WRZ', Gzipped));
+  AssertTrue(Gzipped);
+
+  AssertEquals('application/gzip', UriMimeType('something.gz', Gzipped));
+  AssertTrue(Gzipped);
+  AssertEquals('application/gzip', UriMimeType('something.unrecognized.gz', Gzipped));
+  AssertTrue(Gzipped);
+
+  AssertEquals('text/plain', UriMimeType('.gitignore', Gzipped));
+  AssertFalse(Gzipped);
 end;
 
 procedure TTestUriUtils.TestRelativeFilenameToUriSafe;
@@ -457,6 +507,277 @@ begin
   AssertEquals('foo/bar.txt', RelativeFilenameToUriSafe('foo\bar.txt'));
   AssertEquals('', RelativeFilenameToUriSafe(''));
   AssertEquals('foo/bar%20xyz.txt', RelativeFilenameToUriSafe('foo/bar xyz.txt'));
+end;
+
+procedure TTestUriUtils.TestMemoryFileSystem;
+var
+  Fs: TCastleMemoryFileSystem;
+  FoundList: TFileInfoList;
+begin
+  Fs := TCastleMemoryFileSystem.Create;
+  try
+    AssertTrue(UriExists('my-fs:/') = ueNotExists);
+    Fs.RegisterUrlProtocol('my-fs');
+
+    FoundList := FindFilesList('my-fs:/', '*', true, [ffRecursive]);
+    try
+      AssertEquals(0, FoundList.Count);
+    finally
+      FreeAndNil(FoundList);
+    end;
+
+    AssertTrue(UriExists('my-fs:/') = ueDirectory);
+    AssertTrue(UriExists('my-fs:/foo.txt') = ueNotExists);
+    AssertTrue(UriExists('my-fs:/bar/') = ueNotExists);
+    AssertTrue(UriExists('my-fs:/bar/baz.txt') = ueNotExists);
+
+    StringToFile('my-fs:/foo.txt', 'Hello world');
+    StringToFile('my-fs:/bar/baz.txt', 'Hello world 2');
+
+    AssertTrue(UriExists('my-fs:/') = ueDirectory);
+    AssertTrue(UriExists('my-fs:/foo.txt') = ueFile);
+    AssertTrue(UriExists('my-fs:/bar/') = ueDirectory);
+    AssertTrue(UriExists('my-fs:/bar/baz.txt') = ueFile);
+
+    AssertEquals('Hello world', FileToString('my-fs:/foo.txt'));
+    AssertEquals('Hello world 2', FileToString('my-fs:/bar/baz.txt'));
+
+    FoundList := FindFilesList('my-fs:/', '*', true, []);
+    try
+      AssertEquals(2, FoundList.Count);
+
+      AssertEquals('foo.txt', FoundList[0].Name);
+      AssertEquals('', FoundList[0].AbsoluteName); // this is not a filename, so AbsoluteName is empty
+      AssertEquals('my-fs:/foo.txt', FoundList[0].Url);
+      AssertEquals(Length('Hello world'), FoundList[0].Size);
+      AssertFalse(FoundList[0].Directory);
+      AssertFalse(FoundList[0].Symlink);
+
+      AssertEquals('bar', FoundList[1].Name);
+      AssertEquals('', FoundList[1].AbsoluteName); // this is not a filename, so AbsoluteName is empty
+      AssertEquals('my-fs:/bar', FoundList[1].Url);
+      AssertEquals(0, FoundList[1].Size);
+      AssertTrue(FoundList[1].Directory);
+      AssertFalse(FoundList[1].Symlink);
+    finally
+      FreeAndNil(FoundList);
+    end;
+
+    FoundList := FindFilesList('my-fs:/', '*', true, [ffRecursive]);
+    try
+      AssertEquals(3, FoundList.Count);
+
+      AssertEquals('foo.txt', FoundList[0].Name);
+      AssertEquals('', FoundList[0].AbsoluteName); // this is not a filename, so AbsoluteName is empty
+      AssertEquals('my-fs:/foo.txt', FoundList[0].Url);
+      AssertEquals(Length('Hello world'), FoundList[0].Size);
+      AssertFalse(FoundList[0].Directory);
+      AssertFalse(FoundList[0].Symlink);
+
+      AssertEquals('bar', FoundList[1].Name);
+      AssertEquals('', FoundList[1].AbsoluteName); // this is not a filename, so AbsoluteName is empty
+      AssertEquals('my-fs:/bar', FoundList[1].Url);
+      AssertEquals(0, FoundList[1].Size);
+      AssertTrue(FoundList[1].Directory);
+      AssertFalse(FoundList[1].Symlink);
+
+      AssertEquals('baz.txt', FoundList[2].Name);
+      AssertEquals('', FoundList[2].AbsoluteName); // this is not a filename, so AbsoluteName is empty
+      AssertEquals('my-fs:/bar/baz.txt', FoundList[2].Url);
+      AssertEquals(Length('Hello world 2'), FoundList[2].Size);
+      AssertFalse(FoundList[2].Directory);
+      AssertFalse(FoundList[2].Symlink);
+    finally
+      FreeAndNil(FoundList);
+    end;
+
+    FoundList := FindFilesList('my-fs:/', '*.txt', true, [ffRecursive]);
+    try
+      AssertEquals(2, FoundList.Count);
+
+      AssertEquals('foo.txt', FoundList[0].Name);
+      AssertEquals('', FoundList[0].AbsoluteName); // this is not a filename, so AbsoluteName is empty
+      AssertEquals('my-fs:/foo.txt', FoundList[0].Url);
+      AssertEquals(Length('Hello world'), FoundList[0].Size);
+      AssertFalse(FoundList[0].Directory);
+      AssertFalse(FoundList[0].Symlink);
+
+      AssertEquals('baz.txt', FoundList[1].Name);
+      AssertEquals('', FoundList[1].AbsoluteName); // this is not a filename, so AbsoluteName is empty
+      AssertEquals('my-fs:/bar/baz.txt', FoundList[1].Url);
+      AssertEquals(Length('Hello world 2'), FoundList[1].Size);
+      AssertFalse(FoundList[1].Directory);
+      AssertFalse(FoundList[1].Symlink);
+    finally
+      FreeAndNil(FoundList);
+    end;
+  finally
+    FreeAndNil(Fs);
+  end;
+
+  AssertTrue(UriExists('my-fs:/') = ueNotExists);
+end;
+
+procedure TTestUriUtils.TestMemoryFileSystemFindFilesSubdirs;
+var
+  Fs: TCastleMemoryFileSystem;
+  FoundList: TFileInfoList;
+begin
+  Fs := TCastleMemoryFileSystem.Create;
+  try
+    Fs.RegisterUrlProtocol('my-fs');
+    StringToFile('my-fs:/subdir/1.txt', 'Hello world 1');
+    StringToFile('my-fs:/subdir/2.txt', 'Hello world 2');
+    StringToFile('my-fs:/subdir/3.txt', 'Hello world 3');
+    StringToFile('my-fs:/subdir2/4.txt', 'Hello world 4');
+    StringToFile('my-fs:/5.txt', 'Hello world 5');
+
+    FoundList := FindFilesList('my-fs:/', '*', true, []);
+    try
+      AssertEquals(3, FoundList.Count);
+
+      AssertEquals('subdir', FoundList[0].Name);
+      AssertEquals('', FoundList[0].AbsoluteName); // this is not a filename, so AbsoluteName is empty
+      AssertEquals('my-fs:/subdir', FoundList[0].Url);
+      AssertTrue(FoundList[0].Directory);
+      AssertFalse(FoundList[0].Symlink);
+
+      AssertEquals('subdir2', FoundList[1].Name);
+      AssertEquals('', FoundList[1].AbsoluteName); // this is not a filename, so AbsoluteName is empty
+      AssertEquals('my-fs:/subdir2', FoundList[1].Url);
+      AssertTrue(FoundList[1].Directory);
+      AssertFalse(FoundList[1].Symlink);
+
+      AssertEquals('5.txt', FoundList[2].Name);
+      AssertEquals('', FoundList[2].AbsoluteName); // this is not a filename, so AbsoluteName is empty
+      AssertEquals('my-fs:/5.txt', FoundList[2].Url);
+      AssertEquals(Length('Hello world 5'), FoundList[2].Size);
+      AssertFalse(FoundList[2].Directory);
+      AssertFalse(FoundList[2].Symlink);
+    finally
+      FreeAndNil(FoundList);
+    end;
+  finally
+    FreeAndNil(Fs);
+  end;
+end;
+
+procedure TTestUriUtils.TestFilenameToUriSafeEmpty;
+begin
+  { For '', FilenameToUriSafe tries to return current dir,
+    but it's impossible on WASI }
+  {$ifdef WASI}
+  AssertEquals('', FilenameToUriSafe(''));
+  {$else}
+  AssertEquals(FilenameToUriSafe(InclPathDelim(GetCurrentDir)), FilenameToUriSafe(''));
+  {$endif}
+
+  {$ifdef WASI}
+  AssertEquals('', AbsoluteUri(''));
+  {$else}
+  AssertEquals(FilenameToUriSafe(InclPathDelim(GetCurrentDir)), AbsoluteUri(''));
+  {$endif}
+end;
+
+procedure TTestUriUtils.TestGetCurrentDir;
+begin
+  // On WebAssembly, GetCurrentDir raises an exception "EInOutError: Invalid drive specified"
+  {$ifndef WASI}
+  AssertTrue(GetCurrentDir <> '');
+  {$endif}
+end;
+
+procedure TTestUriUtils.TestExtractUriNamePercentEncoding;
+begin
+  // Test cases for URI decomposition with percent-encoding
+
+  AssertEquals('foo%20bar.txt', ExtractUriName('http://example.org/foo%20bar.txt'));
+  AssertEquals('', ExtractUriName('http://example.org/foo%20bar/'));
+  AssertEquals('foo%20bar', ExtractUriName('http://example.org/foo%20bar'));
+
+  AssertEquals('http://example.org/foo%20bar/', ExtractUriPath('http://example.org/foo%20bar/'));
+  AssertEquals('http://example.org/foo%20bar/', ExtractUriPath('http://example.org/foo%20bar/file.txt'));
+
+  AssertEquals('foo%20bar.txt', ExtractUriName('castle-data:/foo%20bar.txt'));
+  AssertEquals('', ExtractUriName('castle-data:/foo%20bar/'));
+  AssertEquals('foo%20bar', ExtractUriName('castle-data:/foo%20bar'));
+
+  AssertEquals('castle-data:/foo%20bar/', ExtractUriPath('castle-data:/foo%20bar/'));
+  AssertEquals('castle-data:/foo%20bar/', ExtractUriPath('castle-data:/foo%20bar/file.txt'));
+
+  AssertEquals('foo bar.txt', UrlDecode('foo%20bar.txt'));
+  AssertEquals('foo bar', UrlDecode('foo%20bar'));
+end;
+
+procedure TTestUriUtils.TestUrlQueryParameters;
+var
+  Params: TStringStringMap;
+begin
+  Params := UrlQueryParameters('');
+  try
+    AssertEquals(0, Params.Count);
+  finally FreeAndNil(Params) end;
+
+  Params := UrlQueryParameters('?');
+  try
+    AssertEquals(0, Params.Count);
+  finally FreeAndNil(Params) end;
+
+  Params := UrlQueryParameters('?abc=def');
+  try
+    AssertEquals(1, Params.Count);
+    AssertEquals('def', Params['abc']);
+  finally FreeAndNil(Params) end;
+
+  Params := UrlQueryParameters('?abc=def&xyz=123');
+  try
+    AssertEquals(2, Params.Count);
+    AssertEquals('def', Params['abc']);
+    AssertEquals('123', Params['xyz']);
+  finally FreeAndNil(Params) end;
+
+  Params := UrlQueryParameters('?abc=def&abc=secondtry&xyz=123');
+  try
+    AssertEquals(2, Params.Count);
+    AssertEquals('def', Params['abc']);
+    AssertEquals('123', Params['xyz']);
+  finally FreeAndNil(Params) end;
+
+  Params := UrlQueryParameters('?abc=def&&still_ok_double_ampersand=123');
+  try
+    AssertEquals(2, Params.Count);
+    AssertEquals('def', Params['abc']);
+    AssertEquals('123', Params['still_ok_double_ampersand']);
+  finally FreeAndNil(Params) end;
+
+  Params := UrlQueryParameters('?abc=def&keyboard%20value=%20with%20spaces%20and%20%25percent%25signs');
+  try
+    AssertEquals(2, Params.Count);
+    AssertEquals('def', Params['abc']);
+    AssertEquals(' with spaces and %percent%signs', Params['keyboard value']);
+  finally FreeAndNil(Params) end;
+
+  Params := UrlQueryParameters('?abc=def&no_value&empty_value=');
+  try
+    AssertEquals(3, Params.Count);
+    AssertEquals('def', Params['abc']);
+    AssertEquals('', Params['no_value']);
+    AssertEquals('', Params['empty_value']);
+  finally FreeAndNil(Params) end;
+
+  Params := UrlQueryParameters('?model=spaces+by+plus+signs.gltf');
+  try
+    AssertEquals(1, Params.Count);
+    AssertEquals('spaces by plus signs.gltf', Params['model']);
+  finally FreeAndNil(Params) end;
+end;
+
+procedure TTestUriUtils.TestUrlEncodeForm;
+begin
+  AssertEquals('simplest', InternalUrlEncodeForm('simplest'));
+  AssertEquals('simple+test', InternalUrlEncodeForm('simple test'));
+  AssertEquals('with%25percent%25signs', InternalUrlEncodeForm('with%percent%signs'));
+  AssertEquals('spaces+and%2Bplus%2Bsigns', InternalUrlEncodeForm('spaces and+plus+signs'));
 end;
 
 initialization

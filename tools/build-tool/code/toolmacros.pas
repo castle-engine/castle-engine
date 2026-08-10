@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2019 Michalis Kamburelis.
+  Copyright 2014-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -17,6 +17,9 @@
 unit ToolMacros;
 
 {$I castleconf.inc}
+
+// Uncomment to debug ${if xxx} and related expressions in macros.
+{.$define DEBUG_MACROS}
 
 interface
 

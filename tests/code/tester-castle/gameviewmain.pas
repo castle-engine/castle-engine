@@ -1,5 +1,5 @@
 ﻿{
-  Copyright 2022-2023 Andrzej Kilijański, Dean Zobec, Michael Van Canneyt, Michalis Kamburelis.
+  Copyright 2022-2025 Andrzej Kilijański, Dean Zobec, Michael Van Canneyt, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -32,12 +32,12 @@ type
     LabelCurrentTest: TCastleLabel;
     LabelTestPassed: TCastleLabel;
     LabelTestFailed: TCastleLabel;
+    LabelTestAborted: TCastleLabel;
     LabelFailedTests: TCastleLabel;
     LabelTestsCount: TCastleLabel;
     CheckboxStopOnFail: TCastleCheckbox;
     ButtonStartTests: TCastleButton;
     ButtonStopTests: TCastleButton;
-    ButtonSelectTests: TCastleButton;
   private
     Tester: TCastleTester;
     RunTests: Boolean;
@@ -69,7 +69,8 @@ var
 implementation
 
 uses SysUtils,
-  CastleColors, CastleUtils, CastleTesterParameters, CastleLog;
+  CastleColors, CastleUtils, CastleTesterParameters, CastleLog,
+  CastleApplicationProperties, CastleStringUtils;
 
 { TViewMain ----------------------------------------------------------------- }
 
@@ -106,10 +107,8 @@ end;
 
 procedure TViewMain.LogFailure(const AMessage: String);
 begin
-  if LabelFailedTests.Caption = '' then
-    LabelFailedTests.Caption :=  AMessage
-  else
-    LabelFailedTests.Caption := LabelFailedTests.Caption + NL + AMessage;
+  WritelnWarning('Test failed: ' + AMessage);
+  LabelFailedTests.Caption := SAppendPart(LabelFailedTests.Caption, NL, AMessage);
 end;
 
 procedure TViewMain.Start;
@@ -121,8 +120,10 @@ begin
   ButtonStopTests.OnClick := {$ifdef FPC}@{$endif}ClickStopTests;
   ButtonStopTests.Enabled := false;
 
-  ButtonSelectTests.Enabled := true;
-  ButtonSelectTests.Exists := false; // TODO: ButtonSelectTests functionality not implemented yet
+  { Since we cannot catch exceptions in WebAssembly,
+    it always behaves as if StopOnFail=true.
+    So hide the CheckboxStopOnFail in this case, to not confuse the user. }
+  CheckboxStopOnFail.Exists := ApplicationProperties.CanCatchExceptions;
 
   { Make sure the tests are not running }
   RunTests := false;
@@ -146,7 +147,6 @@ begin
   Tester.Scan;
   if ParamFilter <> '' then
     Tester.EnableFilter(ParamFilter);
-  { First prepare to count acctualy selected tests }
   Tester.PrepareTestListToRun;
 end;
 
@@ -157,7 +157,6 @@ begin
   LabelMessage.Color := HexToColor('00CE00');
   ButtonStartTests.Enabled := false;
   ButtonStopTests.Enabled := true;
-  ButtonSelectTests.Enabled := false;
 end;
 
 procedure TViewMain.StopTesting(const AMessage: String; const Exception: Boolean = false);
@@ -177,7 +176,6 @@ begin
 
   ButtonStartTests.Enabled := true;
   ButtonStopTests.Enabled := false;
-  ButtonSelectTests.Enabled := true;
 end;
 
 procedure TViewMain.TestExecuted(const AName: String);
@@ -194,6 +192,9 @@ end;
 procedure TViewMain.TestPassedCountChanged(const TestCount: Integer);
 begin
   LabelTestPassed.Caption := IntToStr(TestCount);
+
+  // right now, the NotifyTestPassedChanged also notifies after AbortedTestCount changed
+  LabelTestAborted.Caption := IntToStr(Tester.TestAbortedCount);
 end;
 
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);

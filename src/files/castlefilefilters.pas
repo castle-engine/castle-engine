@@ -203,6 +203,20 @@ begin
 end;
 
 function TFileFilterList.Matches(const Url: String): Boolean;
+const
+  { We used to have this as "not FileNameCaseSensitive".
+
+    But it means that on Unix, we would do case-sensitive matching,
+    and e.g. image.PNG would not be detected as an image
+    (so e.g. castle-editor would not run "Castle Image Viewer"
+    for it, would not show image preview).
+    See https://github.com/castle-engine/castle-engine/issues/611 .
+    File managers and image viewers on Unix in generally ignore case,
+    and image.PNG is detected an image OK, so we should do the same.
+
+    Ignoring case, always, is also consistent with our own TUrlFile.MimeType
+    that also ignores case on all platforms. }
+  IgnoreCase = true;
 var
   UrlName, Pattern: String;
   Filter: TFileFilter;
@@ -212,7 +226,7 @@ begin
     for Pattern in Filter.Patterns do
       if (Pattern <> '*') and
          (Pattern <> '*.*') and
-         IsWild(UrlName, Pattern, { IgnoreCase} not FileNameCaseSensitive) then
+         IsWild(UrlName, Pattern, IgnoreCase) then
         Exit(true);
   Result := false;
 end;

@@ -1,6 +1,6 @@
 {%MainUnit x3dnodes.pas}
 {
-  Copyright 2008-2023 Michalis Kamburelis.
+  Copyright 2008-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -62,7 +62,6 @@
   public
     constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     destructor Destroy; override;
-    function TransformationChange: TNodeTransformationChange; override;
 
     { Change the skin (in skinCoord), to follow the animation of joints.
       Joints that changed are assumed to be already traversed by TX3DNode.Traverse
@@ -72,8 +71,33 @@
 
       Returns changed X3D coordinates field (or @nil if there is no skin).
       You should call TX3DField.Changed on it (unless you use it from some
-      TCastleSceneCore initialization, when there's no point in notifying about this). }
-    function AnimateSkin: TMFVec3f;
+      TCastleSceneCore initialization, when there's no point in notifying about this).
+      @exclude }
+    procedure InternalUpdateSkin;
+
+    { Fill the FdJoints array, if it is empty.
+
+      It is a common mistake to leave @link(FdJoints HAnimHumanoid.Joints) empty,
+      which means that we would not animate humanoid at all (as Castle Game Engine
+      requires on the "joints" list being present, as required by the X3D spec).
+
+      Using this method, you can fix this problem in certain models.
+      If only the proper THAnimJointNode are inside the THAnimHumanoidNode
+      (like in @link(FdSkeleton)), we will find them and populate the @link(FdJoints)
+      list.
+
+      This is automatically done when parsing X3D content.
+      You only need to manually call this if you build X3D graph in some other
+      way, e.g. loading other 3D model formats. }
+    procedure FixJoints;
+
+    { Calculate some thigns neeeded for animation later,
+      assuming the @italic(current state) is the rest position.
+
+      This is automatically done when parsing X3D content.
+      You only need to manually call this if you build X3D graph in some other
+      way, e.g. loading other 3D model formats. }
+    procedure ApplyRestPose;
 
   {$I auto_generated_node_helpers/x3dnodes_hanimhumanoid.inc}
   end;
@@ -89,12 +113,15 @@
       public
         constructor Create(const AParent: THAnimJointNode);
         property Parent: THAnimJointNode read FParent;
-        procedure ApplyTransform(const State: TX3DGraphTraverseState); override;
+        procedure ApplyTransform(var Transformation: TTransformation); override;
       end;
     var
       FTransformFunctionality: THAnimJointNodeTransformFunctionality;
+      FHumanoidRoot: THAnimHumanoidNode;
       AnimateSkinTransform: TMatrix4;
       RestCenter: TVector3;
+      DoneWarningHumanoidTransformCount0: Boolean;
+      DoneWarningHumanoidTransformCountTooMany: Boolean;
   private
     WarningSkinCoordReferences: Boolean;
 
@@ -115,10 +142,26 @@
     function AnimateSkinPoint(const Point: TVector3): TVector3;
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
+    procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
     procedure ParseAfter(Reader: TX3DReaderNames); override;
   public
     constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
-    function TransformationChange: TNodeTransformationChange; override;
+
+    { Calculate some thigns neeeded for animation later,
+      assuming the @italic(current state) is the rest position.
+
+      This is automatically done when parsing X3D content.
+      You only need to manually call this if you build X3D graph in some other
+      way, e.g. loading other 3D model formats. }
+    procedure ApplyRestPose;
+
+    { Root THAnimHumanoidNode that contains this joint.
+      Updated at node traverse time, which happens when loading nodes
+      in TCastleSceneCore.
+
+      @nil if not found, which may happen if THAnimJointNode is not
+      inside THAnimHumanoidNode -- which indicates invalid model. }
+    property Humanoid: THAnimHumanoidNode read FHumanoidRoot;
 
   {$I auto_generated_node_helpers/x3dnodes_hanimjoint.inc}
   end;
@@ -142,8 +185,6 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
-    function TransformationChange: TNodeTransformationChange; override;
-
   {$I auto_generated_node_helpers/x3dnodes_hanimsegment.inc}
   end;
 
@@ -180,8 +221,6 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
-    function TransformationChange: TNodeTransformationChange; override;
-
   {$I auto_generated_node_helpers/x3dnodes_hanimsite.inc}
   end;
 
@@ -274,14 +313,11 @@ procedure THAnimHumanoidNode.BeforeTraverse(StateStack: TX3DGraphTraverseStateSt
 begin
   inherited;
   StateStack.Push;
-
   StateStack.Top.Humanoid := Self;
-  StateStack.Top.HumanoidTransformation.Init;
-
   FTransformFunctionality.ApplyTransform(StateStack.Top.Transformation);
 end;
 
-function THAnimHumanoidNode.AnimateSkin: TMFVec3f;
+procedure THAnimHumanoidNode.InternalUpdateSkin;
 
   function UpdateVertex(const VJ: TVertexJoints): TVector3;
   var
@@ -305,24 +341,28 @@ function THAnimHumanoidNode.AnimateSkin: TMFVec3f;
 
 var
   I: Integer;
+  SkinField: TMFVec3f;
   SkinCoord: TVector3List;
 begin
   if not (
     (FdSkinCoord.Value <> nil) and
     (FdSkinCoord.Value is TCoordinateNode) and
-    (VertexJoints <> nil)) then Exit(nil);
+    (VertexJoints <> nil)) then
+    Exit;
 
-  Result := TCoordinateNode(FdSkinCoord.Value).FdPoint;
-  SkinCoord := Result.Items;
-  if SkinCoord.Count <> VertexJoints.Count then Exit(nil);
+  SkinField := TCoordinateNode(FdSkinCoord.Value).FdPoint;
+  SkinCoord := SkinField.Items;
+  if SkinCoord.Count <> VertexJoints.Count then Exit;
 
   for I := 0 to VertexJoints.Count - 1 do
     SkinCoord.L[I] := UpdateVertex(VertexJoints.L[I]);
+
+  SkinField.Changed;
 end;
 
 procedure THAnimHumanoidNode.AfterTraverse(StateStack: TX3DGraphTraverseStateStack);
 begin
-  AnimateSkin;
+  InternalUpdateSkin;
   StateStack.Pop;
   inherited;
 end;
@@ -332,134 +372,167 @@ begin
   FdJoints.Add(Node);
 end;
 
-procedure THAnimHumanoidNode.ParseAfter(Reader: TX3DReaderNames);
-
-  { It is a common mistake to leave HAnimHumanoid.joints empty,
-    which means that CGE would not animate humanoid at all (contrary to other
-    X3D browsers that don't rely on "joints").
-    So we fix the HAnimHumanoid.joints list. }
-  procedure CalculateJoints;
-  begin
-    if FdJoints.Count = 0 then
-    begin
-      EnumerateNodes(THAnimJointNode, {$ifdef FPC}@{$endif} AddJoint, false);
-      if FdJoints.Count <> 0 then
-        WritelnWarning('HAnimHumanoid.joints list was empty, fixed to list all %d joints', [
-          FdJoints.Count
-        ]);
-    end;
-  end;
-
-  procedure CalculateVertexJoints;
-  var
-    SkinCoord: TVector3List;
-    I, J: Integer;
-    SkinCoordIndex: TInt32List;
-    CoordIndex: Integer;
-    Weight: Single;
-    Joint: THAnimJointNode;
-  begin
-    FreeAndNil(VertexJoints);
-    if (FdSkinCoord.Value <> nil) and
-       (FdSkinCoord.Value is TCoordinateNode) then
-    begin
-      SkinCoord := TCoordinateNode(FdSkinCoord.Value).FdPoint.Items;
-      VertexJoints := TVertexJointsList.Create;
-      VertexJoints.Count := SkinCoord.Count;
-
-      for I := 0 to SkinCoord.Count - 1 do
-      begin
-        VertexJoints.L[I].RestPosition := SkinCoord.L[I];
-        VertexJoints.L[I].Count := 0; { initially }
-      end;
-
-      for I := 0 to FdJoints.Count - 1 do
-        if FdJoints[I] is THAnimJointNode then
-        begin
-          Joint := THAnimJointNode(FdJoints[I]);
-          SkinCoordIndex := Joint.FdSkinCoordIndex.Items;
-          for J := 0 to SkinCoordIndex.Count - 1 do
-          begin
-            CoordIndex := SkinCoordIndex.Items[J];
-            if (CoordIndex < 0) or
-               (CoordIndex >= SkinCoord.Count) then
-            begin
-              if not Joint.WarningSkinCoordReferences then
-              begin
-                WritelnWarning('X3D', Format('"%s": skinCoord refers to not existing coordinate index %d (while we have only %d skin coordinates in HAnimHumanoid.skin)', [
-                  Joint.NiceName,
-                  CoordIndex,
-                  SkinCoord.Count
-                ]));
-                Joint.WarningSkinCoordReferences := true;
-              end;
-              Continue;
-            end;
-
-            if J < Joint.FdSkinCoordWeight.Items.Count then
-              Weight := Joint.FdSkinCoordWeight.Items[J] else
-              Weight := 1;
-
-            VertexJoints.L[CoordIndex].Add(Joint, Weight);
-          end;
-        end;
-    end;
-  end;
-
+procedure THAnimHumanoidNode.FixJoints;
 begin
-  inherited;
-  CalculateJoints;
-  CalculateVertexJoints;
+  if FdJoints.Count = 0 then
+  begin
+    EnumerateNodes(THAnimJointNode, {$ifdef FPC}@{$endif} AddJoint, false);
+    if FdJoints.Count <> 0 then
+      WritelnWarning('HAnimHumanoid.joints list was empty, fixed to list all %d joints', [
+        FdJoints.Count
+      ]);
+  end;
 end;
 
-function THAnimHumanoidNode.TransformationChange: TNodeTransformationChange;
+procedure THAnimHumanoidNode.ApplyRestPose;
+var
+  SkinCoord: TVector3List;
+  I, J: Integer;
+  SkinCoordIndex: TInt32List;
+  CoordIndex: Integer;
+  Weight: Single;
+  Joint: THAnimJointNode;
 begin
-  Result := ntcTransform;
+  FreeAndNil(VertexJoints);
+  if (FdSkinCoord.Value <> nil) and
+     (FdSkinCoord.Value is TCoordinateNode) then
+  begin
+    SkinCoord := TCoordinateNode(FdSkinCoord.Value).FdPoint.Items;
+    VertexJoints := TVertexJointsList.Create;
+    VertexJoints.Count := SkinCoord.Count;
+
+    for I := 0 to SkinCoord.Count - 1 do
+    begin
+      VertexJoints.L[I].RestPosition := SkinCoord.L[I];
+      VertexJoints.L[I].Count := 0; { initially }
+    end;
+
+    for I := 0 to FdJoints.Count - 1 do
+      if FdJoints[I] is THAnimJointNode then
+      begin
+        Joint := THAnimJointNode(FdJoints[I]);
+        SkinCoordIndex := Joint.FdSkinCoordIndex.Items;
+        for J := 0 to SkinCoordIndex.Count - 1 do
+        begin
+          CoordIndex := SkinCoordIndex.Items[J];
+          if (CoordIndex < 0) or
+             (CoordIndex >= SkinCoord.Count) then
+          begin
+            if not Joint.WarningSkinCoordReferences then
+            begin
+              WritelnWarning('X3D', Format('"%s": skinCoord refers to not existing coordinate index %d (while we have only %d skin coordinates in HAnimHumanoid.skin)', [
+                Joint.NiceName,
+                CoordIndex,
+                SkinCoord.Count
+              ]));
+              Joint.WarningSkinCoordReferences := true;
+            end;
+            Continue;
+          end;
+
+          if J < Joint.FdSkinCoordWeight.Items.Count then
+            Weight := Joint.FdSkinCoordWeight.Items[J]
+          else
+            Weight := 1;
+
+          VertexJoints.L[CoordIndex].Add(Joint, Weight);
+        end;
+      end;
+  end;
+end;
+
+procedure THAnimHumanoidNode.ParseAfter(Reader: TX3DReaderNames);
+begin
+  inherited;
+  FixJoints;
+  ApplyRestPose;
 end;
 
 { THAnimJointNode.THAnimJointNodeTransformFunctionality -------------------------- }
 
-constructor THAnimJointNode.THAnimJointNodeTransformFunctionality.Create(const AParent: THAnimJointNode);
+constructor THAnimJointNode.THAnimJointNodeTransformFunctionality.Create(
+  const AParent: THAnimJointNode);
 begin
   inherited Create(AParent);
   FParent := AParent;
 end;
 
-procedure THAnimJointNode.THAnimJointNodeTransformFunctionality.ApplyTransform(const State: TX3DGraphTraverseState);
+procedure THAnimJointNode.BeforeTraverse(StateStack: TX3DGraphTraverseStateStack);
+begin
+  inherited;
+  FHumanoidRoot := StateStack.Top.Humanoid;
+end;
+
+procedure THAnimJointNode.THAnimJointNodeTransformFunctionality.ApplyTransform(
+  var Transformation: TTransformation);
+
+  { Given THAnimHumanoidNode, get it's TTransformation currently. }
+  function GetTransformationHumanoidRoot(const Humanoid: THAnimHumanoidNode): PTransformation;
+  var
+    ShapeTransform: TShapeTreeTransform;
+    C: Integer;
+  begin
+    C := TShapeTree.AssociatedShapesCount(Humanoid);
+
+    // check C is valid
+    if C = 0 then
+    begin
+      WritelnWarningOnce(Parent.DoneWarningHumanoidTransformCount0,
+        'HAnimHumanoid %s is not present in the scene, cannot determine transformation', [
+        Humanoid.X3DName
+      ]);
+      Exit(@IdentityTransformation);
+    end;
+    if C > 1 then
+    begin
+      WritelnWarningOnce(Parent.DoneWarningHumanoidTransformCountTooMany,
+        'HAnimHumanoid %s is present in the scene more than once, using random transformation', [
+        Humanoid.X3DName
+      ]);
+    end;
+
+    ShapeTransform := TShapeTree.AssociatedShape(Humanoid, 0) as TShapeTreeTransform;
+    Result := @ShapeTransform.TransformState.Transformation;
+  end;
+
 var
   I: Integer;
   ChildJoint: THAnimJointNode;
   LocalCenter, NewChildCenter: TVector3;
   TempToSend: TSFVec3f;
+  HumanoidRootTransformation: PTransformation;
 begin
   inherited;
+
+  if Parent.FHumanoidRoot = nil then Exit;
+  HumanoidRootTransformation := GetTransformationHumanoidRoot(Parent.FHumanoidRoot);
 
   { Spec says center / scale / scaleOrientation / translation
     are relative to humanoid root, but rotations are accumulated.
     http://h-anim.org/Specifications/H-Anim200x/ISO_IEC_FCD_19774/ObjectInterfaces.html
     So rotations are affected by center/etc. of joints above,
     which means that I have to apply here LocalCenter, LocalScale and such?
-    But how? TODO: for now, we only apply LocalCenter.
+    But how? TODO: for now, we only apply LocalCenter. }
 
-    Fortunately, normal State isn't really used for skinned animation. }
+  { Parent.Center is in humanoid root coordinates, convert it to LocalCenter
+    in local joint coordinates. }
+  LocalCenter :=
+    Transformation.InverseTransform.MultPoint(
+      HumanoidRootTransformation^.Transform.MultPoint(
+        Parent.Center
+      ));
 
-  LocalCenter := State.HumanoidTransformation.InverseTransform.MultPoint(Parent.Center);
-  State.Transformation.Multiply(
+  Transformation.Multiply(
     LocalCenter,
     Parent.Rotation,
     Parent.Scale,
     Parent.ScaleOrientation,
     Parent.Translation);
 
-  { update State.HumanoidTransformation for child joints. }
-  State.HumanoidTransformation.Multiply(
-    LocalCenter,
-    Parent.Rotation,
-    Parent.Scale,
-    Parent.ScaleOrientation,
-    Parent.Translation);
-
-  Parent.AnimateSkinTransform := State.HumanoidTransformation.Transform;
+  { Calculate matrix to convert from local joint to humanoid root coordinates. }
+  Parent.AnimateSkinTransform :=
+    HumanoidRootTransformation^.InverseTransform *
+      Transformation.Transform;
 
   { animate centers of children joints }
   for I := 0 to Parent.FdChildren.Count - 1 do
@@ -491,7 +564,7 @@ begin
         end;
 
         { Note that Send() above will use Scene.NextEventTime
-          which with increase time by a "tick".
+          which will increase time by a "tick".
           This is good --- if you'll next want to traverse a parent joint,
           this center will again be changed, and should be send (otherwise
           routes e.g. in Humanoid Visualization in castle-model-viewer will not work).
@@ -523,15 +596,15 @@ begin
   Result := AnimateSkinTransform.MultPoint(Point);
 end;
 
-procedure THAnimJointNode.ParseAfter(Reader: TX3DReaderNames);
+procedure THAnimJointNode.ApplyRestPose;
 begin
-  inherited;
   RestCenter := FdCenter.Value;
 end;
 
-function THAnimJointNode.TransformationChange: TNodeTransformationChange;
+procedure THAnimJointNode.ParseAfter(Reader: TX3DReaderNames);
 begin
-  Result := ntcTransform;
+  inherited;
+  ApplyRestPose;
 end;
 
 { THAnimMotionNode ----------------------------------------------------------- }
@@ -577,11 +650,6 @@ begin
   if Result <> nil then Exit;
 end;
 
-function THAnimSegmentNode.TransformationChange: TNodeTransformationChange;
-begin
-  Result := ntcTransform;
-end;
-
 { THAnimSiteNode.THAnimSiteNodeTransformFunctionality ---------------------------------------- }
 
 constructor THAnimSiteNode.THAnimSiteNodeTransformFunctionality.Create(const AParent: THAnimSiteNode);
@@ -614,11 +682,6 @@ function THAnimSiteNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction):
 begin
   Result := FdChildren.Enumerate(Func);
   if Result <> nil then Exit;
-end;
-
-function THAnimSiteNode.TransformationChange: TNodeTransformationChange;
-begin
-  Result := ntcTransform;
 end;
 
 procedure RegisterHAnimNodes;

@@ -76,7 +76,10 @@ var
   EventControl: TEventControl;
 begin
   if not CanCreateWindowForTest then
+  begin
+    AbortTest;
     Exit;
+  end;
 
   Window := CreateWindowForTest;
   try
@@ -146,7 +149,10 @@ procedure TTestCastleWindowOpen.TestLoadLevelFromOpen;
 
 begin
   if not CanCreateWindowForTest then
+  begin
+    AbortTest;
     Exit;
+  end;
 
   Levels.LoadFromFiles('castle-data:/game/level_without_loading_image');
   DoTest(false);

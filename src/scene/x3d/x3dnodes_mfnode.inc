@@ -216,6 +216,9 @@
     function IndexOfName(const AName: String): Integer;
     { Find index of a node , -1 if not found. }
     function IndexOf(const ANode: TX3DNode): Integer;
+
+    { Is given ANode one of the values on the list. }
+    function Contains(const ANode: TX3DNode): Boolean;
   end;
 
 {$endif read_interface}
@@ -766,6 +769,10 @@ begin
   Result := FItems.IndexOf(ANode);
 end;
 
+function TMFNode.Contains(const ANode: TX3DNode): Boolean;
+begin
+  Result := IndexOf(ANode) <> -1;
+end;
 
 // Not needed now
 // procedure TMFNode.Send(const AValue: TX3DNodeList);

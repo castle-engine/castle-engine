@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2024 Michalis Kamburelis.
+  Copyright 2003-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -55,6 +55,12 @@ const
   Fuchsia: TCastleColor = (X: 1.0; Y: 0.0; Z: 1.0; W: 1.0);
   White  : TCastleColor = (X: 1.0; Y: 1.0; Z: 1.0; W: 1.0);
   Lime   : TCastleColor = (X: 0.0; Y: 1.0; Z: 0.0; W: 1.0);
+  { Opaque green, equal to (0,1,0) in RGB.
+
+    Note that this constant definition is inconsistent with CSS green
+    constant (which is (0,0.5,0)). Moreover this constant is just equal to Lime.
+    But we consider below "Green" definition more obvious to developers
+    -- people expect "green" to have max value in the green channel. }
   Green  : TCastleColor = (X: 0.0; Y: 1.0; Z: 0.0; W: 1.0);
   Navy   : TCastleColor = (X: 0.0; Y: 0.0; Z: 0.5; W: 1.0);
   Blue   : TCastleColor = (X: 0.0; Y: 0.0; Z: 1.0; W: 1.0);
@@ -184,13 +190,19 @@ function FadeDarkColor(const Color: TCastleColor;
 function FadeColor(const Color: TCastleColor;
   const FadeIntensity: Single): TCastleColor;
 
+{ Convert Opacity (alpha) to transparency.
+  This returns just a trivial @code(1 - Opacity) in normal cases,
+  but it adds check / warning in case of invalid values (opacity > 1
+  which would result in transparency < 0). }
+function OpacityToTransparency(Opacity: Single): Single;
+
 {$define read_interface}
 {$I castlecolors_persistent.inc}
 {$undef read_interface}
 
 implementation
 
-uses SysUtils, CastleUtils, CastleStringUtils;
+uses SysUtils, CastleUtils, CastleStringUtils, CastleLog;
 
 {$define read_implementation}
 {$I castlecolors_persistent.inc}
@@ -558,6 +570,41 @@ begin
     Result.W := Intensity;
   end else
     Result := TVector4.Zero;
+end;
+
+var
+  WarningDoneOpacity0: Boolean;
+  WarningDoneOpacity1: Boolean;
+
+function OpacityToTransparency(Opacity: Single): Single;
+const
+  EpsilonForWarning = 0.001;
+begin
+  if Opacity < 0 then
+  begin
+    if Opacity < -EpsilonForWarning then // no warning when invalid only slightly
+      WritelnWarningOnce(WarningDoneOpacity0, 'Opacity %f is < 0.0, which is invalid. Clamping to 0.0 and not emitting further warnings about this.', [
+        Opacity
+      ]);
+    Opacity := 0;
+  end;
+
+  Result := 1 - Opacity;
+
+  if Result < 0 then
+  begin
+    { We make a dedicated warning about opacity/alpha > 1,
+      otherwise setting transparency to < 0 would make confusing warning.
+      E.g. setting opacity/alpha to 10 on TCastlePlane.Color would complain
+      "Setting float field PhysicalMaterial.transparency to value < 0
+      (given: -9.00) is invalid" -> it's not immediately obvious that
+      the Opacity/Alpha := 10 is the cause of this. }
+    if Result < -EpsilonForWarning then // no warning when invalid only slightly
+      WritelnWarningOnce(WarningDoneOpacity1, 'Opacity %f is > 1.0, which is invalid. Clamping to 1.0 and not emitting further warnings about this.', [
+        Opacity
+      ]);
+    Result := 0;
+  end;
 end;
 
 end.

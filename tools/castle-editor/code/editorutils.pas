@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2024 Michalis Kamburelis.
+  Copyright 2018-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -20,10 +20,11 @@ unit EditorUtils;
 
 interface
 
-uses Classes, Types, Controls, StdCtrls, Process, Menus, Generics.Collections,
-  Dialogs, Contnrs,
-  CastleStringUtils, CastleInternalTools,
-  ToolArchitectures, ToolManifest, ToolProcess;
+uses Classes, Types, Controls, StdCtrls, Menus, Generics.Collections,
+  Dialogs, Contnrs, ActnList,
+  CastleStringUtils, CastleInternalTools, CastleInternalArchitectures,
+  CastleInternalProcess,
+  ToolManifest, ToolProcess;
 
 type
   TMenuItemHelper = class helper for TMenuItem
@@ -70,7 +71,7 @@ type
     sending output to TOutputList. }
   TAsynchronousProcess = class
   strict private
-    Process: TProcess;
+    Process: TCastleProcess;
     { Text read from Process output, but not passed to OutputList yet. }
     PendingLines: String;
     FRunning: Boolean;
@@ -141,8 +142,20 @@ type
   end;
 
   TPlatformInfo = class
+    { Do not pass --target, --cpu, --os to the build tool,
+      let build tool determine default platform.
+
+      This by default implies targetCustom, DefaultOS, DefaultCPU,
+      but may be customized if project has
+      @url(https://castle-engine.io/web#platform_default
+      CastleProjectLocalSettings.json file). }
+    UseDefault: Boolean;
+
+    { Target. Meaningful only if UseDefault = @false. }
     Target: TTarget;
+    { OS. Meaningful only if UseDefault = @false and Target = targetCustom. }
     OS: TOS;
+    { CPU. Meaningful only if UseDefault = @false and Target = targetCustom. }
     CPU: TCPU;
   end;
   TPlatformInfoList = specialize TObjectList<TPlatformInfo>;
@@ -154,7 +167,8 @@ function YesNoBox(const Message: String): Boolean;
 function YesNoBox(const Caption, Message: String): Boolean;
 
 { Set both C.Enabled and C.Exists. }
-procedure SetEnabledVisible(const C: TControl; const Value: Boolean);
+procedure SetEnabledVisible(const C: TControl; const Value: Boolean); overload;
+procedure SetEnabledVisible(const Action: TAction; const Value: Boolean); overload;
 
 const
   FpcRtlApiReferenceUrl = 'https://www.freepascal.org/docs-html/rtl/';
@@ -269,9 +283,6 @@ type
     class function Equals(const A, B: TSavedSelection): Boolean; static;
   end;
 
-{ Show last file modification time as nice string. }
-function FileDateTimeStr(const FileName: String): String;
-
 type
   TComponentListEnumerator = record
   strict private
@@ -300,7 +311,7 @@ uses
   CastleUtils, CastleLog, CastleSoundEngine, CastleFilesUtils, CastleLclUtils,
   CastleComponentSerialize, CastleUiControls, CastleCameras, CastleTransform,
   CastleColors, CastleTimeUtils, CastleUriUtils,
-  ToolCompilerInfo, ToolCommonUtils;
+  ToolCompilerInfo, ToolCommonUtils, ToolProcessRun;
 
 procedure TMenuItemHelper.SetEnabledVisible(const Value: Boolean);
 begin
@@ -465,7 +476,7 @@ begin
     Environment.Values['JAVA_HOME'] := JavaHome;
 
   { create Process and call Process.Execute }
-  Process := TProcess.Create(nil);
+  Process := TCastleProcess.Create(nil);
   Process.Executable := ExeName;
   if CurrentDirectory <> '' then
     Process.CurrentDirectory := CurrentDirectory;
@@ -847,6 +858,12 @@ procedure SetEnabledVisible(const C: TControl; const Value: Boolean);
 begin
   C.Enabled := Value;
   C.Visible := Value;
+end;
+
+procedure SetEnabledVisible(const Action: TAction; const Value: Boolean);
+begin
+  Action.Enabled := Value;
+  Action.Visible := Value;
 end;
 
 function ApiReferenceUrl: String;
@@ -1249,42 +1266,6 @@ begin
     (A.CurrentViewport = B.CurrentViewport) and
     (A.ItemIndex = B.ItemIndex) and
     (A.TabIndex = B.TabIndex);
-end;
-
-function FileDateTimeStr(const FileName: String): String;
-
-  function RoundUp(const Val: Double): Int64;
-  begin
-    Result := Trunc(Val);
-    if Frac(Val) > 0 then
-      Inc(Result);
-  end;
-
-var
-  FileDateTime: TDateTime;
-  Secs, Mins: Int64;
-begin
-  if FileAge(FileName, FileDateTime) then
-  begin
-    Secs := RoundUp(SecondSpan(Now, FileDateTime));
-    if Secs < 60 then
-      FileDateTimeStr := Format('%d second%s ago', [
-        Secs,
-        Iff(Secs > 0, 's', '')
-      ])
-    else
-    begin
-      Mins := RoundUp(MinuteSpan(Now, FileDateTime));
-      if Mins < 60 then
-        FileDateTimeStr := Format('%d minute%s ago', [
-          Mins,
-          Iff(Mins > 0, 's', '')
-        ])
-      else
-        FileDateTimeStr := DateTimeToAtStr(FileDateTime);
-    end;
-  end else
-    Result := 'Unknown';
 end;
 
 { TComponentListEnumerator ------------------------------------------------- }

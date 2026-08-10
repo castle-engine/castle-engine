@@ -77,17 +77,13 @@ end;
 procedure TViewMain.Start;
 var
   T: TCastleTransform;
-  RBody: TCastleRigidBody;
 begin
   inherited;
 
   RigidBodies := TCastleRigidBodyList.Create;
   for T in DynamicBodies do
-  begin
-    RBody := T.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
-    if RBody <> nil then
-      RigidBodies.Add(RBody);
-  end;
+    if T.RigidBody <> nil then
+      RigidBodies.Add(T.RigidBody);
 
   CreateVisualizeVelocitiesNodes;
   CheckboxVisualizeVelocities.OnChange := {$ifdef FPC}@{$endif} ChangeVisualizeVelocities;

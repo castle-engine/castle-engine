@@ -32,7 +32,7 @@ If you got the source code straight from our [GitHub repository](https://github.
 
 Usage in short:
 
-- Our [editor](https://castle-engine.io/manual_editor.php) is used to design and build your applications.
+- Our [editor](https://castle-engine.io/editor) is used to design and build your applications.
 
 - Our [build tool](https://castle-engine.io/build_tool) is used to build your applications from the command-line.
 
@@ -48,7 +48,7 @@ Usage in short:
 
     Make sure to [register in Lazarus our packages](https://castle-engine.io/lazarus). It's easiest to do this using the button _"Register Lazarus Packages"_ in CGE editor _"Preferences -> FPC and Lazarus"_.
 
-    You can install the `castle_components.lpk` package in Lazarus, to have LCL component `TCastleControl` (see https://castle-engine.io/control_on_form ).
+    You can install the `castle_engine_lcl.lpk` package in Lazarus, to have LCL component `TCastleControl` (see https://castle-engine.io/control_on_form ).
 
     You can build the most important CGE packages and tools (editor, build tool) using Lazarus [project group](https://wiki.freepascal.org/Project_Groups) called `most_important_lazarus_packages_and_tools.lpg`.
 
@@ -59,7 +59,7 @@ Usage in short:
 Documentation
 -------
 
-- [Manual](https://castle-engine.io/manual_intro.php) is the most recommended way to learn the engine.
+- [Manual](https://castle-engine.io/manual) is the most recommended way to learn the engine.
 
 - [API reference](https://castle-engine.io/apidoc/html/index.html).
 

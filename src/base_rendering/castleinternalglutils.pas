@@ -32,6 +32,7 @@ uses
 
 {$I castleinternalglutils_errors.inc}
 {$I castleinternalglutils_helpers.inc}
+{$I castleinternalglutils_create_delete.inc}
 {$I castleinternalglutils_mipmaps.inc}
 
 {$undef read_interface}
@@ -41,11 +42,13 @@ implementation
 {$define read_implementation}
 
 uses
+  {$ifdef WASI} Variants, Job.Js, {$endif}
   CastleFilesUtils, CastleStringUtils, CastleGLVersion,
   CastleLog, CastleApplicationProperties, CastleRenderContext;
 
 {$I castleinternalglutils_errors.inc}
 {$I castleinternalglutils_helpers.inc}
+{$I castleinternalglutils_create_delete.inc}
 {$I castleinternalglutils_mipmaps.inc}
 
 end.

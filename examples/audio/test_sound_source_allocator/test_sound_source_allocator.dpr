@@ -5,7 +5,7 @@ program test_sound_source_allocator;
 uses
   Interfaces, // this includes the LCL widgetset
   Forms
-  { add your units here }, mainf, castle_components;
+  { add your units here }, mainf, castle_engine_lcl;
 
 begin
   Application.Initialize;

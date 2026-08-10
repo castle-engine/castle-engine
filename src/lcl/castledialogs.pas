@@ -208,7 +208,7 @@ end;
 
 function CleanupFileName(const FileName: String): String;
 begin
-  { Using GTK 2 file open dialog under Ubuntu Mate,
+  { Using GTK file open dialog under Ubuntu Mate,
     you can get filenames with // .
     They are mostly harmless (opening such filenames with various
     routines work) but they make MaybeUseDataProtocol less often possible

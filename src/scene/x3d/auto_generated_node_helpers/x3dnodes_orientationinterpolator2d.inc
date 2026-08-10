@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2024 Michalis Kamburelis.
+  Copyright 2015-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -48,6 +48,7 @@
     strict private FEventValue_changed: TSFRotationEvent;
     {  }
     public property EventValue_changed: TSFRotationEvent read FEventValue_changed;
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -94,6 +95,12 @@ begin
 
   FEventValue_changed := TSFRotationEvent.Create(Self, 'value_changed', false);
   AddEvent(FEventValue_changed);
+end;
+
+procedure TOrientationInterpolator2DNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+  ExtensionNames.Add(X3DType);
 end;
 
 {$endif read_implementation}

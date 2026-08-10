@@ -1,6 +1,6 @@
 {%MainUnit x3dnodes.pas}
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -58,11 +58,19 @@
     function InvertedTransform: TMatrix4; deprecated 'use Transformation.InverseTransform';
 
   public
-    { Current texture transformation. Usable only for VRML 1.0, in VRML 2.0
-      texture transformations don't accumulate like modelview transformations. }
-    TextureTransform: TMatrix4;
+    { VRML 1.0 accumulated texture transformation.
+      Usable only for VRML 1.0, as in X3D / VRML 2.0
+      texture transformations don't accumulate. }
+    Vrml1TextureTransform: TMatrix4;
 
+    { Parent shape node in the current state. }
     ShapeNode: TAbstractShapeNode;
+
+    { TAppearanceNode associated with the shape (only if ShapeNode<>nil)
+      in the current state.
+      This is always synchronized with ShapeNode.Appearance,
+      if ShapeNode<>nil (and when ShapeNode=nil, then Appearance is also nil). }
+    Appearance: TAppearanceNode;
 
     constructor CreateCopy(Source: TX3DGraphTraverseState);
 
@@ -86,13 +94,49 @@
       (it means that renderer is absolutely sure that different transformation
       of geometry doesn't affect the generated arrays). }
     function Equals(SecondValue: TX3DGraphTraverseState;
-      const IgnoreTransform: boolean): boolean; {$ifdef TOBJECT_HAS_EQUALS} reintroduce; {$endif}
+      const IgnoreTransform: boolean): boolean; reintroduce;
 
-    { Primary texture that determines RGB color and opacity.
-      See @link(TAppearanceNode.MainTexture) for definition. }
+    { Texture that determines the primary RGB color and transparency (opacity).
+
+      When rendering using Gouraud shading
+      (following the X3D 4 specification advise), this is the texture that
+      should be used. For Phong shading, follow instead the full lighting
+      equation and use all textures specified in the material
+      (this "main texture" is just one of them).
+
+      This takes into account every possibility:
+
+      @unorderedList(
+        @item(TMaterialNode.DiffuseTexture)
+        @item(TUnlitMaterialNode.EmissiveTexture)
+        @item(TPhysicalMaterialNode.BaseTexture)
+
+        @item(If material node is not specified, then TAppearanceNode.Texture)
+
+        @item(TCommonSurfaceShaderNode textures, if TCommonSurfaceShaderNode
+          is used)
+
+        @item(VRML 1.0 texture, if VRML 1.0 is used)
+      )
+
+      The overloaded version with TexCoordIndex parameter also specifies which
+      texture coordinates / transformations should be used for this texture.
+      It returns -1 when we should use standard MultiTexture specification for this,
+      which also covers the case when MainTexture is a MultiTexture node,
+      and should use appropriate texture coordinates for MultiTexture children.
+
+      The version without extra parameters always returns the same thing
+      (same texture node) as the other overloaded version,
+      it just doesn't return extra parameters GeometryForTexCoord,
+      TexCoordIndex (and may be a bit faster).
+
+      Returns @nil if none.
+
+      @groupBegin }
     function MainTexture: TAbstractTextureNode; overload;
     function MainTexture(const GeometryForTexCoord: TAbstractGeometryNode;
       out TexCoordIndex: Integer): TAbstractTextureNode; overload;
+    { @groupEnd }
 
     { Returns BlendMode for this state, or @nil if not present. }
     function BlendMode: TBlendModeNode;
@@ -160,10 +204,10 @@
       grouping node, they all work.) }
     PointingDeviceSensors: TPointingDeviceSensorList;
 
-    { For Humanoid skeleton, these contain cummulated joint transformation. }
-    HumanoidTransformation: TTransformation;
     { Humanoid node containing us, or @nil if none. }
     Humanoid: THAnimHumanoidNode;
+    { Skin node containing us, or @nil if none. }
+    Skin: TSkinNode;
 
     { ClipPlanes affecting nodes within this state.
 
@@ -197,6 +241,12 @@
       Material or CommonSurfaceShader node exists.
       Do not free it yourself, it will be automatically freed. }
     function MaterialInfo: TMaterialInfo;
+
+    { Is current shape animated using skinned animation by being inside
+      @link(TSkinNode.FdShapes).
+      Shapes that are rigid children of joints, in @link(TSkinNode.FdSkeleton),
+      are not considered skinned animated by this method. }
+    function SkinnedAnimatedShape: Boolean;
   end;
 
   { Stack of TX3DGraphTraverseState.
@@ -284,18 +334,8 @@ end;
 constructor TX3DGraphTraverseState.Create;
 begin
   CommonCreate;
-
   Transformation.Init;
-
-  { THAnimHumanoidNode.BeforeTraverse will initialize it anyway.
-    But set it also here, just in case we have Joint without surrounding
-    Humanoid node. (Otherwise Matrix.MultPoint may raise errors in
-    THAnimJointNode.ApplyTransform, when multiplying points with 0 matrix,
-    testcase is
-    castle-model-viewer ~/3dmodels/vrmlx3d/hanim/tecfa.unige.ch/vrml/objects/avatars/blaxxun/kambi_hanim_10_test.wrl.) }
-  HumanoidTransformation.Init;
-
-  TextureTransform := TMatrix4.Identity;
+  Vrml1TextureTransform := TMatrix4.Identity;
   FVRML1State.Assign(VRML1DefaultState);
 end;
 
@@ -312,11 +352,10 @@ end;
 procedure TX3DGraphTraverseState.Clear;
 begin
   Transformation.Init;
-  HumanoidTransformation.Init;
-
-  TextureTransform := TMatrix4.Identity;
+  Vrml1TextureTransform := TMatrix4.Identity;
   FVRML1State.Assign(VRML1DefaultState);
   ShapeNode := nil;
+  Appearance := nil;
   InsideInline := 0;
   InsidePrototype := 0;
   InsideIgnoreCollision := 0;
@@ -347,14 +386,16 @@ procedure TX3DGraphTraverseState.Assign(Source: TX3DGraphTraverseState);
 begin
   AssignTransform(Source);
 
-  TextureTransform := Source.TextureTransform;
+  Vrml1TextureTransform := Source.Vrml1TextureTransform;
   FVRML1State.Assign(Source.FVRML1State);
   ShapeNode := Source.ShapeNode;
+  Appearance := Source.Appearance;
   InsideInline := Source.InsideInline;
   InsidePrototype := Source.InsidePrototype;
   InsideIgnoreCollision := Source.InsideIgnoreCollision;
   InsideInvisible := Source.InsideInvisible;
   Humanoid := Source.Humanoid;
+  Skin := Source.Skin;
   LocalFog := Source.LocalFog;
 
   PointingDeviceSensors.Assign(Source.PointingDeviceSensors);
@@ -372,7 +413,6 @@ procedure TX3DGraphTraverseState.AssignTransform(
   Source: TX3DGraphTraverseState);
 begin
   Transformation := Source.Transformation;
-  HumanoidTransformation := Source.HumanoidTransformation;
 
   if PointingDeviceSensors.Count <> 0 then
     PointingDeviceSensors.Transformation := Source.PointingDeviceSensors.Transformation;
@@ -417,7 +457,7 @@ begin
     (IgnoreTransform or TMatrix4.PerfectlyEquals(
       Transformation.Transform,
       SecondValue.Transformation.Transform)) and
-    TMatrix4.PerfectlyEquals(TextureTransform, SecondValue.TextureTransform) and
+    TMatrix4.PerfectlyEquals(Vrml1TextureTransform, SecondValue.Vrml1TextureTransform) and
     (ShapeNode = SecondValue.ShapeNode) and
     (LocalFog = SecondValue.LocalFog);
 
@@ -430,42 +470,39 @@ begin
 end;
 
 function TX3DGraphTraverseState.MainTexture: TAbstractTextureNode;
+var
+  Mi: TMaterialInfo;
 begin
-  Result := nil;
-  if ShapeNode = nil then
-    Result := VRML1State.Texture2
+  Mi := MaterialInfo;
+  if Mi <> nil then
+    Result := Mi.MainTexture(Appearance, VRML1State)
   else
-  if ShapeNode.Appearance <> nil then
-    Result := ShapeNode.Appearance.MainTexture;
+    Result := nil;
 end;
 
-function TX3DGraphTraverseState.MainTexture(const GeometryForTexCoord: TAbstractGeometryNode;
+function TX3DGraphTraverseState.MainTexture(
+  const GeometryForTexCoord: TAbstractGeometryNode;
   out TexCoordIndex: Integer): TAbstractTextureNode;
+var
+  Mi: TMaterialInfo;
 begin
-  Result := nil;
-  TexCoordIndex := -1;
-  if ShapeNode = nil then
-    Result := VRML1State.Texture2
+  Mi := MaterialInfo;
+  if Mi <> nil then
+    Result := Mi.MainTexture(Appearance, VRML1State,
+      GeometryForTexCoord, TexCoordIndex)
   else
-  if ShapeNode.Appearance <> nil then
-    Result := ShapeNode.Appearance.MainTexture(GeometryForTexCoord, TexCoordIndex);
+  begin
+    Result := nil;
+    TexCoordIndex := -1; // make it defined -1 in this case
+  end;
 end;
 
 function TX3DGraphTraverseState.BlendMode: TBlendModeNode;
-var
-  Node: TX3DNode;
 begin
-  Result := nil;
-  if ShapeNode <> nil then
-  begin
-    Node := ShapeNode.FdAppearance.Value;
-    if (Node <> nil) and (Node is TAppearanceNode) then
-    begin
-      Node := TAppearanceNode(Node).FdBlendMode.Value;
-      if (Node <> nil) and (Node is TBlendModeNode) then
-        Result := TBlendModeNode(Node);
-    end;
-  end;
+  if Appearance <> nil then
+    Result := Appearance.BlendMode
+  else
+    Result := nil;
 end;
 
 function TX3DGraphTraverseState.MaterialInfo: TMaterialInfo;
@@ -476,24 +513,33 @@ begin
   Result := nil;
   if ShapeNode <> nil then
   begin
-    if ShapeNode.Appearance <> nil then
+    if Appearance <> nil then
     begin
-      {$warnings off} // using deprecated to keep backward compatibility
-      SurfaceShader := ShapeNode.Appearance.CommonSurfaceShader;
-      {$warnings on}
+      SurfaceShader := Appearance.InternalCommonSurfaceShader;
       if SurfaceShader <> nil then
         Result := SurfaceShader.MaterialInfo
       else
       begin
-        Mat := ShapeNode.Appearance.Material;
+        Mat := Appearance.Material;
         if Mat <> nil then
           Result := Mat.MaterialInfo
         else
-          Result := nil;
+          Result := Appearance.InternalFallbackMaterialInfo;
       end;
     end;
+    { Note: When ShapeNode <> nil but Appearance = nil
+      -> then we're in X3D (or VRML 2.0) and Shape.apperance is not specified.
+      So return nil, not VRML1 info. }
   end else
     Result := VRML1State.Material.MaterialInfo;
+end;
+
+function TX3DGraphTraverseState.SkinnedAnimatedShape: Boolean;
+begin
+  Result :=
+    (Skin <> nil) and
+    (ShapeNode <> nil) and
+    Skin.FdShapes.Contains(ShapeNode);
 end;
 
 { TX3DGraphTraverseStateStack --------------------------------------------- }

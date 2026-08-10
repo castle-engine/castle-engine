@@ -62,7 +62,8 @@ type
     function Load: TX3DRootNode;
   end;
 
-function LoadImageAsNode(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
+function LoadImageAsNode(const Stream: TStream; const BaseUrl: String;
+  const LoadOptions: TCastleSceneLoadOptions): TX3DRootNode;
 var
   ImageLoader: TImageAsX3DModelLoader;
   MimeType: String;

@@ -6,17 +6,17 @@ set -eux
 # Runs in particular project.
 # ----------------------------------------------------------------------------
 
-if ls *.lfm > /dev/null 2>&1; then
-  echo `pwd`": LCL project"
+if ls -- *.lfm > /dev/null 2>&1; then
+  echo "$(pwd): LCL project"
   exit 0
 fi
 
 if ! ls README.md > /dev/null 2>&1; then
-  echo `pwd`": WARNING: No README.md"
+  echo "$(pwd): WARNING: No README.md"
   exit 0
 fi
 
-PROJECT_PASCAL_NAME="`castle-engine output pascal-name`"
+PROJECT_PASCAL_NAME="$(castle-engine output pascal-name)"
 
 # Note: Escape regexp special characters like [] below.
 # These are used with both grep and sed, we have to escape them.
@@ -43,9 +43,9 @@ function escape_regexp ()
 }
 
 if grep --fixed-strings -- "${EXISTING_TEXT}" README.md; then
-  echo `pwd`": README.md contains expected text"
+  echo "$(pwd): README.md contains expected text"
   if grep --fixed-strings -- "${NEW_TEXT}" README.md; then
-    echo `pwd`": README.md already contains new text"
+    echo "$(pwd): README.md already contains new text"
     exit 0
   fi
 
@@ -60,5 +60,5 @@ if grep --fixed-strings -- "${EXISTING_TEXT}" README.md; then
   EXISTING_TEXT_ESCAPED=$(escape_regexp "${EXISTING_TEXT}")
   sed --in-place --expression="s|${EXISTING_TEXT_ESCAPED}|${NEW_TEXT_ESCAPED}|" README.md
 else
-  echo `pwd`": WARNING: README.md does not contain expected text"
+  echo "$(pwd): WARNING: README.md does not contain expected text"
 fi

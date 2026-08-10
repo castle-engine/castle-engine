@@ -1,5 +1,5 @@
 {
-  Copyright 2004-2023 Michalis Kamburelis.
+  Copyright 2004-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -62,27 +62,26 @@ initialization
   Window := TCastleWindow.Create(Application);
   Application.MainWindow := Window;
 
+  { Test Window.Min/Max Width/ Height
+    (must be set before Window is opened, so ApplicationInitialize would be too late). }
+  // Window.MinWidth := 400;
+  // Window.MinHeight := 400;
+  // Window.MaxWidth := 800;
+  // Window.MaxHeight := 800;
+
+  { Test Window.ResizeAllowed
+    (must be set before Window is opened, so ApplicationInitialize would be too late). }
+  // Window.ResizeAllowed := raNotAllowed;
+
+  { Test Window.Left/Top/Width/Height
+    (must be set before Window is opened, so ApplicationInitialize would be too late). }
+  // Window.Left := 200;
+  // Window.Top := 400;
+  // Window.Width := 800;
+  // Window.Height := 400;
+
   { Optionally, adjust window fullscreen state and size at this point.
-    Examples:
-
-    Run fullscreen:
-
-      Window.FullScreen := true;
-
-    Run in a 600x400 window:
-
-      Window.FullScreen := false; // default
-      Window.Width := 600;
-      Window.Height := 400;
-
-    Run in a window taking 2/3 of screen (width and height):
-
-      Window.FullScreen := false; // default
-      Window.Width := Application.ScreenWidth * 2 div 3;
-      Window.Height := Application.ScreenHeight * 2 div 3;
-
-    Note that some platforms (like mobile) ignore these window sizes.
-  }
+    See https://castle-engine.io/window_size . }
 
   { Handle command-line parameters like --fullscreen and --window.
     By doing this last, you let user to override your fullscreen / mode setup. }

@@ -179,7 +179,7 @@
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent"
                 },
-                "Url" : "castle-data:/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/scene.gltf"
+                "Url" : "castle-data:/sketchfab/halloween-pumpkin/scene.gltf"
               }
             ]
           },

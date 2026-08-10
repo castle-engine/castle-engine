@@ -138,11 +138,45 @@ end;
 
 procedure TCustomCursor.InternalSetContainer(const Value: TCastleContainer);
 begin
+  { If we change Container, unassociate from Container.ForceCaptureInput.
+    This reverts the Container.ForceCaptureInput := Self done below.
+
+    Notes:
+    - We do this before calling "inherited", sp Container now is
+      the *old* value.
+    - We check "Container.ForceCaptureInput = Self", just in case
+      something else changed ForceCaptureInput in the meantime
+      (which generally should not happen, we want to keep using
+      Container.ForceCaptureInput for our own purpose as documented below;
+      but in case it happened, behave nicely). }
+  if (Container <> Value) and
+     (Container <> nil) and
+     (Container.ForceCaptureInput = Self) then
+    Container.ForceCaptureInput := nil;
+
   inherited;
+
   if Value <> nil then
   begin
     // show cursor at proper place before even it is moved
     UpdateCursorPosition(Value.MousePosition);
+
+    { TCastleContainer has a "capturing" mechanism.
+      If you start dragging over anything that accepts presses
+      (returns true from TCastleUserInterface.Press) then it
+      will receive mouse events first, and can say they are "handled".
+      For example, after pressing on TCastleButton,
+      the button receives all motions in TCastleButton.Motion,
+      and says they are handled.
+
+      This would prevent TCustomCursor from receiving events about
+      mouse movement if we start dragging over TCastleButton .
+      To see the issue, just press a left mouse button over TCastleButton
+      in this example, and move it (keeping it pressed).
+
+      We need ForceCaptureInput to keep being informed about the
+      mouse motion. }
+    Value.ForceCaptureInput := Self;
   end;
 end;
 

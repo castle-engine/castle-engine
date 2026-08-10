@@ -22,7 +22,7 @@ uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
   ApplicationProperties.ApplicationName := 'image_compare';
-  ApplicationProperties.Caption := 'image_compare';
+  ApplicationProperties.Caption := 'Compare Images';
   ApplicationProperties.Version := '0.1';
 
   if not IsLibrary then

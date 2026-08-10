@@ -16,6 +16,10 @@ Demo that you can use
 
 - They will also be correctly displayed using `TCastleTransformReference`.
 
+    Note that `TCastleTransformReference.ReferenceTransformation` should be `rtIgnoreTranslation` or `rtDoNotIgnore`.
+
+    TODO: The default `TCastleTransformReference.ReferenceTransformation` = `rtIgnoreTransform` does not work correctly, as each frame the reference transformation changes (because of the billboard), but it's not reliably inverted _before_ rendering by `TCastleTransformReference`.
+
 - They will also be correctly displayed when `TCastleViewport.DynamicBatching` is in effect.
 
 See [API reference](https://castle-engine.io/apidoc/html/) of

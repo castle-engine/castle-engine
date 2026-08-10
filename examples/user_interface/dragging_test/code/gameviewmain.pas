@@ -1,5 +1,5 @@
 {
-  Copyright 2019-2023 Michalis Kamburelis.
+  Copyright 2019-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -29,16 +29,19 @@ type
   private
     Buttons: TCastleVerticalGroup;
     ButtonDragSimple: TCastleButton;
-    ButtonDragMouseLook: TCastleButton;
-    Dragging, MouseLook: Boolean;
+    ButtonDragPointerLock: TCastleButton;
+    DraggingSimple: Boolean;
+    { State of buttons ButtonDragSimple and ButtonDragPointerLock:
+      does user want to drag in a simple way (without pointer lock)
+      or with pointer lock? }
+    WantsDraggingPointerLock: Boolean;
     DraggedRect: TCastleRectangleControl;
     Status: TCastleLabel;
     procedure ClickDragSimple(Sender: TObject);
-    procedure ClickDragMouseLook(Sender: TObject);
+    procedure ClickDragPointerLock(Sender: TObject);
     procedure RefreshButtonsPressed;
   public
     procedure Start; override;
-    procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
     function Press(const Event: TInputPressRelease): Boolean; override;
     function Release(const Event: TInputPressRelease): Boolean; override;
     function Motion(const Event: TInputMotion): Boolean; override;
@@ -77,32 +80,25 @@ begin
   InsertFront(Buttons);
 
   ButtonDragSimple := TCastleButton.Create(FreeAtStop);
-  ButtonDragSimple.Caption := 'Drag by tracking Motion events';
+  ButtonDragSimple.Caption := 'Drag by simple Motion events';
   ButtonDragSimple.OnClick := {$ifdef FPC}@{$endif}ClickDragSimple;
   ButtonDragSimple.Toggle := true;
   Buttons.InsertFront(ButtonDragSimple);
 
-  ButtonDragMouseLook := TCastleButton.Create(FreeAtStop);
-  ButtonDragMouseLook.Caption := 'Drag by MouseLook logic (hide mouse, pretend drag area is unbounded)';
-  ButtonDragMouseLook.OnClick := {$ifdef FPC}@{$endif}ClickDragMouseLook;
-  ButtonDragMouseLook.Toggle := true;
-  Buttons.InsertFront(ButtonDragMouseLook);
+  ButtonDragPointerLock := TCastleButton.Create(FreeAtStop);
+  ButtonDragPointerLock.Caption := 'Drag by Pointer Lock logic (hide mouse, pretend drag area is unbounded)';
+  ButtonDragPointerLock.OnClick := {$ifdef FPC}@{$endif}ClickDragPointerLock;
+  ButtonDragPointerLock.Toggle := true;
+  Buttons.InsertFront(ButtonDragPointerLock);
 
-  MouseLook := false;
+  WantsDraggingPointerLock := false;
   RefreshButtonsPressed;
 end;
 
 procedure TViewMain.RefreshButtonsPressed;
 begin
-  ButtonDragSimple.Pressed := not MouseLook;
-  ButtonDragMouseLook.Pressed := MouseLook;
-end;
-
-procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: boolean);
-begin
-  inherited;
-  if Dragging and MouseLook then
-    Container.MouseLookUpdate;
+  ButtonDragSimple.Pressed := not WantsDraggingPointerLock;
+  ButtonDragPointerLock.Pressed := WantsDraggingPointerLock;
 end;
 
 function TViewMain.Press(const Event: TInputPressRelease): Boolean;
@@ -112,12 +108,10 @@ begin
 
   if Event.IsMouseButton(buttonLeft) then
   begin
-    Dragging := true;
-    if MouseLook then
-    begin
-      Cursor := mcForceNone;
-      Container.MouseLookPress;
-    end;
+    if WantsDraggingPointerLock then
+      Container.PointerLock.Active := true
+    else
+      DraggingSimple := true;
     Exit(true);
   end;
 end;
@@ -129,41 +123,44 @@ begin
 
   if Event.IsMouseButton(buttonLeft) then
   begin
-    Dragging := false;
-    if MouseLook then
-      Cursor := mcDefault;
+    DraggingSimple := false;
+    Container.PointerLock.Active := false;
     Exit(true);
   end;
 end;
 
 function TViewMain.Motion(const Event: TInputMotion): Boolean;
-var
-  Delta: TVector2;
+
+  procedure Drag(const Delta: TVector2);
+  begin
+    DraggedRect.Translation := DraggedRect.Translation + Delta / UIScale;
+    Status.Caption := Format('Dragged rect position: %s', [DraggedRect.Translation.ToString]);
+  end;
+
 begin
   Result := inherited;
   if Result then Exit;
 
-  if Dragging then
+  if DraggingSimple or Container.PointerLock.Active then
   begin
-    if MouseLook then
-      Delta := Container.MouseLookDelta(Event, RenderRect)
-    else
-      Delta := Event.Position - Event.OldPosition;
-    DraggedRect.Translation := DraggedRect.Translation + Delta / UIScale;
-    Status.Caption := Format('Dragged rect position: %s', [DraggedRect.Translation.ToString]);
+    { In both cases (DraggingSimple and PointerLock.Active) the Event.Delta
+      is exactly what we need.
+      - When DraggingSimple, Event.Delta = just Event.Position - Event.OldPosition.
+      - When PointerLock.Active, it's more complicated internally. }
+    Drag(Event.Delta);
     Exit(true);
   end;
 end;
 
 procedure TViewMain.ClickDragSimple(Sender: TObject);
 begin
-  MouseLook := false;
+  WantsDraggingPointerLock := false;
   RefreshButtonsPressed;
 end;
 
-procedure TViewMain.ClickDragMouseLook(Sender: TObject);
+procedure TViewMain.ClickDragPointerLock(Sender: TObject);
 begin
-  MouseLook := true;
+  WantsDraggingPointerLock := true;
   RefreshButtonsPressed;
 end;
 

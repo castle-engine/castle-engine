@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2024 Michalis Kamburelis.
+  Copyright 2003-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -28,7 +28,7 @@ uses SysUtils, Classes, Generics.Collections,
   CastleVectors, CastleTransform, CastleBoxes, X3DNodes, CastleClassUtils,
   CastleUtils, CastleInternalTriangleOctree, CastleFrustum, CastleInternalOctree,
   CastleInternalBaseTriangleOctree, X3DFields, CastleInternalGeometryArrays,
-  CastleTriangles, CastleImages, CastleInternalMaterialProperties,
+  CastleTriangles, CastleImages,
   CastleShapeInternalShadowVolumes, CastleRenderOptions, CastleTimeUtils;
 
 const
@@ -58,7 +58,7 @@ type
   TShape = class;
   TShapeList = class;
 
-  TShapeTraverseFunc = procedure (const  Shape: TShape) of object;
+  TShapeTraverseFunc = procedure (const Shape: TShape) of object;
 
   TEnumerateShapeTexturesFunction = function (Shape: TShape;
     Texture: TAbstractTextureNode): Pointer of object;
@@ -138,9 +138,11 @@ type
       This is a shortcut for @link(Shape).State. }
     function State: TX3DGraphTraverseState;
 
-    { Use State.Transform to update triangle @link(TTriangle.World) geometry
-      from triangle @link(TTriangle.Local) geometry. }
-    procedure UpdateWorld;
+    { Use State.Transform to update @link(TTriangle.SceneSpace) geometry
+      from @link(TTriangle.Local) geometry. }
+    procedure UpdateSceneSpace;
+
+    procedure UpdateWorld; deprecated 'use UpdateSceneSpace';
 
     { X3D shape node of this triangle. May be @nil in case of VRML 1.0. }
     function ShapeNode: TAbstractShapeNode;
@@ -167,15 +169,6 @@ type
       (with Material.Transparency > 0) and non-shadow-casting triangles
       (with Appearance.shadowCaster = FALSE). }
     function IgnoreForShadowRays: boolean;
-
-    {$ifndef CONSERVE_TRIANGLE_MEMORY}
-    { For a given position (in world coordinates), return the smooth
-      normal vector at this point, with the resulting normal vector
-      in world coordinates.
-
-      @seealso TTriangle.INormal }
-    function INormalWorldSpace(const Point: TVector3): TVector3;
-    {$endif}
   end;
 
   { Tree of shapes.
@@ -206,14 +199,47 @@ type
       { OnlyCollidable } Boolean ] of TShapesHash;
     { Automatically set when adding item to TShapeTreeGroup. }
     FParent: TShapeTree;
-    function MaxShapesCountCore: Integer; virtual; abstract;
+    FDepth: Cardinal;
+
+    { Upper bound on the number of TShape instances within this tree.
+
+      Descendants: Implementation in this class assumes this is empty
+      (returns 0). Descendants should override in they are a group
+      or anything else that can contain shapes.
+
+      Calling inherited is not necessary. }
+    function MaxShapesCountCore: Integer; virtual;
+
     procedure InvalidateMaxShapesCount;
+
+    { Enumerate all TShape instances within this tree.
+
+      Descendants: Implementation in this class does nothing.
+      Descendants should override in they are a group
+      or anything else that can contain shapes.
+
+      Calling inherited is not necessary. }
     procedure TraverseCore(const Func: TShapeTraverseFunc;
       const OnlyActive: boolean;
       const OnlyVisible: boolean;
-      const OnlyCollidable: boolean); virtual; abstract;
-    procedure FastTransformUpdateCore(var AnythingChanged: Boolean;
-      const ParentTransformation: TTransformation); virtual; abstract;
+      const OnlyCollidable: boolean); virtual;
+
+    { Apply transformation change to this tree.
+      This is called from @link(FastTransformUpdate).
+
+      Descendants: Implementation in this class does nothing.
+      Descendants should override in they want to react to transformation change.
+
+      Calling inherited is not necessary.
+
+      @param(VisibleChange Set to @true if something visual changed,
+        like transformation of a shape / light / fog
+        since they change how shape / light / fog is rendered.
+
+        Not set to @true when we changed TTransformNode that doesn't contain
+        anything visible.) }
+    procedure FastTransformUpdateCore(var VisibleChange: Boolean;
+      const ParentTransformation: TTransformation); virtual;
   public
     constructor Create(const AParentScene: TX3DEventsEngine);
     destructor Destroy; override;
@@ -272,16 +298,23 @@ type
     function FindShapeWithParentNamed(const ParentNodeName: string;
       OnlyActive: boolean = false): TShape;
 
-    { Enumerate all single texture nodes (possibly) used by the shapes.
+    { Enumerate all single texture nodes (possibly) used by the shapes (TShape)
+      in this tree.
       This looks into all shapes (not only active, so e.g. it looks into all
       Switch/LOD children, not only the chosen one).
       This checks all possible ways how a texture may be used by a shape,
       so it looks at material fields,
       shaders (ComposedShader, CommonSurfaceShader) and more.
 
-      If Enumerate callbacks returns non-nil for some texture, returns it immediately,
-      and stops further processing. }
-    function EnumerateTextures(const Enumerate: TEnumerateShapeTexturesFunction): Pointer; virtual; abstract;
+      If Enumerate callbacks returns non-nil for some texture, it should return
+      the given value immediately, and stop further processing.
+
+      Descendants: Implementation in this class does nothing, assuming this
+      tree doesn't have any TShape that use any texture.
+      Override it in descendants that contain TShape.
+
+      Calling inherited is not necessary. }
+    function EnumerateTextures(const Enumerate: TEnumerateShapeTexturesFunction): Pointer; virtual;
 
     { Describe the shapes tree, recursively (with children),
       multi-line (ends with newline too). }
@@ -327,7 +360,10 @@ type
     class function AssociatedShape(const Node: TX3DNode; const Index: Integer): TShapeTree; static;
     class function AssociatedShapesCount(const Node: TX3DNode): Integer; static;
 
-    procedure FastTransformUpdate(var AnythingChanged: Boolean); virtual;
+    { Depth in the shapes tree.
+      Root at TCastleSceneCore.Shapes starts with Depth = 0.
+      Automatically set when you insert this TShapeTree as child of another. }
+    property Depth: Cardinal read FDepth;
   end;
 
   { Shape is a geometry node @link(Geometry) instance and it's
@@ -378,9 +414,6 @@ type
 
     FLocalGeometryChangedCount: Cardinal;
     FDynamicGeometry: Boolean;
-
-    IsCachedMaterialProperty: boolean;
-    CachedMaterialProperty: TMaterialProperty;
 
     FShadowVolumes: TShapeShadowVolumes;
 
@@ -455,7 +488,7 @@ type
       const OnlyActive: boolean;
       const OnlyVisible: boolean = false;
       const OnlyCollidable: boolean = false); override;
-    procedure FastTransformUpdateCore(var AnythingChanged: Boolean;
+    procedure FastTransformUpdateCore(var VisibleChange: Boolean;
       const ParentTransformation: TTransformation); override;
   public
     { List of TGeneratedShadowMap instances that should affect this shape.
@@ -601,7 +634,8 @@ type
 
       Parent TCastleSceneCore will also take care of actually using
       this octree: TCastleSceneCore.OctreeCollisions methods actually use the
-      octrees of specific shapes at the bottom. }
+      octrees of specific shapes at the bottom.
+      @exclude }
     function InternalOctreeTriangles: TTriangleOctree;
 
     { Which spatial structrues (octrees, for now) should be created and managed.
@@ -609,7 +643,8 @@ type
       octrees within this TShape.
 
       Parent TCastleSceneCore will take care to keep this value updated,
-      you should only set TCastleSceneCore.Spatial from the outside. }
+      you should only set TCastleSceneCore.Spatial from the outside.
+      @exclude }
     property InternalSpatial: TShapeSpatialStructures read FSpatial write SetSpatial;
 
     { Properties of created triangle octrees.
@@ -619,7 +654,8 @@ type
 
       They are used only when the octree is created, so usually you
       want to set them right before changing @link(InternalSpatial) from []
-      to something else. }
+      to something else.
+      @exclude }
     function InternalTriangleOctreeLimits: POctreeLimits;
 
     { How should the alpha of the resulting calculation be used.
@@ -790,13 +826,9 @@ type
     property GeometryGrandGrandParentNode: TX3DNode read FGeometryGrandGrandParentNode;
     { @groupEnd }
 
-    function GeometryParentNodeName: String; deprecated 'use GeometryParentNode.X3DName';
-    function GeometryGrandParentNodeName: String; deprecated 'use GeometryGrandParentNode.X3DName';
-    function GeometryGrandGrandParentNodeName: String; deprecated 'use GeometryGrandGrandParentNode.X3DName';
-
-    { Material property associated with this shape's material/texture. }
-    function InternalMaterialProperty: TMaterialProperty;
-    function MaterialProperty: TMaterialProperty; deprecated 'use InternalMaterialProperty, or (better) do not use it at all -- this is internal';
+    function GeometryParentNodeName: String; deprecated 'use GeometryParentNode.X3DName, if GeometryParentNode <> nil';
+    function GeometryGrandParentNodeName: String; deprecated 'use GeometryGrandParentNode.X3DName, if GeometryGrandParentNode <> nil';
+    function GeometryGrandGrandParentNodeName: String; deprecated 'use GeometryGrandGrandParentNode.X3DName, if GeometryGrandGrandParentNode <> nil';
 
     { @exclude }
     property InternalShadowVolumes: TShapeShadowVolumes read FShadowVolumes;
@@ -824,27 +856,47 @@ type
     This class owns it's children TShapeTree.
     Since TShapeTree is a simple tree structure, there are no duplicates
     possible, that is given TShapeTree instance may be within only
-    one parent TShapeTree. (VRML node's parenting mechanism is more
+    one parent TShapeTree. (X3D node's parenting mechanism is more
     complicated than this, because of DEF/USE mechanism.) }
   TShapeTreeGroup = class(TShapeTree)
   strict private
     FChildren: TShapeTreeList;
+    FBoundedFunctionality: TBoundedNodeFunctionality;
     procedure ChildrenChanged(Sender: TObject;
       {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} Item: TShapeTree;
       Action: TCollectionNotification);
   private
     function MaxShapesCountCore: Integer; override;
+
+    { Overrides TraverseCore to call it recursively on all the children
+      (or a subset of them, see @link(TraverseGroupLimitChildren)).
+
+      @italic(Descendants should not override this method.
+      Instead override TraverseGroupLimitChildren, to only limit
+      the children.) }
     procedure TraverseCore(const Func: TShapeTraverseFunc;
       const OnlyActive: boolean;
       const OnlyVisible: boolean = false;
       const OnlyCollidable: boolean = false); override;
-    procedure FastTransformUpdateCore(var AnythingChanged: Boolean;
+
+    { Override in descendants to limit the children that are traversed. }
+    procedure TraverseGroupLimitChildren(
+      const OnlyActive, OnlyVisible, OnlyCollidable: Boolean;
+      var ChildIndexBegin, ChildIndexEnd: Integer); virtual;
+
+    procedure FastTransformUpdateCore(var VisibleChange: Boolean;
       const ParentTransformation: TTransformation); override;
   public
     constructor Create(const AParentScene: TX3DEventsEngine);
     destructor Destroy; override;
 
     property Children: TShapeTreeList read FChildren;
+
+    { TBoundedNodeFunctionality instance, if any (may be @nil)
+      representing this group. The @link(TBoundedNodeFunctionality.Visible)
+      is honored, so you can hide the group. }
+    property BoundedFunctionality: TBoundedNodeFunctionality
+      read FBoundedFunctionality write FBoundedFunctionality;
 
     function EnumerateTextures(const Enumerate: TEnumerateShapeTexturesFunction): Pointer; override;
 
@@ -877,10 +929,9 @@ type
   strict private
     FSwitchNode: TSwitchNode;
   private
-    procedure TraverseCore(const Func: TShapeTraverseFunc;
-      const OnlyActive: boolean;
-      const OnlyVisible: boolean = false;
-      const OnlyCollidable: boolean = false); override;
+    procedure TraverseGroupLimitChildren(
+      const OnlyActive, OnlyVisible, OnlyCollidable: Boolean;
+      var ChildIndexBegin, ChildIndexEnd: Integer); override;
   public
     property SwitchNode: TSwitchNode read FSwitchNode write FSwitchNode;
 
@@ -893,22 +944,57 @@ type
   end;
 
   { Node of the TShapeTree transforming it's children.
-
-    It's ideal for handling VRML 2.0 / X3D Transform node,
-    and similar nodes (MatrixTransform and some H-Anim nodes also act
-    as a transformation node and also may be handled by this). }
+    Use this to handle X3D TTransformNode and similar nodes
+    (which define TTransformFunctionality). }
   TShapeTreeTransform = class(TShapeTreeGroup)
   strict private
     FTransformFunctionality: TTransformFunctionality;
     FTransformState: TX3DGraphTraverseState;
     procedure SetTransformFunctionality(const Value: TTransformFunctionality);
   private
-    procedure FastTransformUpdateCore(var AnythingChanged: Boolean;
+    procedure FastTransformUpdateCore(var VisibleChange: Boolean;
       const ParentTransformation: TTransformation); override;
   public
+    { Do we need call to FastTransformUpdateCore to recalculate our
+      transformation (in TransformState.Transformation). }
+    TransformNeedsUpdate: Boolean;
+
     constructor Create(const AParentScene: TX3DEventsEngine);
     destructor Destroy; override;
-    procedure FastTransformUpdate(var AnythingChanged: Boolean); override;
+
+    { Process transformation changes here and in child,
+      if only TransformNeedsUpdate = true.
+
+      This calls FastTransformUpdateCore if update is really necessary,
+      which in turn will make real update,
+      call FastTransformUpdateCore on all children,
+      and set TransformNeedsUpdate = false.
+
+      In effect, calling this may set TransformNeedsUpdate to false
+      both on this instance, and on some children.
+
+      This makes updating transformation hierarchy, from the instances
+      with smallest Depth, and looking only at shapes with possibly
+      TransformNeedsUpdate=true (stored in TransformationDirty by TCastleSceneCore)
+      optimal:
+
+      - We only enter subtrees with TransformNeedsUpdate=true, no need to
+        process whole Shapes tree (esp. important if only a small subset
+        of the transformations changed, e.g. we changed TTransformNode of
+        one object in a model with 10000 objects).
+
+      - We do not process the same subtree multiple times.
+        This is especially important for typical skeletons (glTF Skin, H-Anim
+        HAnimHumanoid, a regular Transform hierarchy with rigid objects,
+        Spine JSON skeletons...) where usually every frame, many joints
+        change transformation. In this case, FastTransformUpdate on smallest
+        depth will do the actual work -- it will be the skeleton root.
+        FastTransformUpdate on other depths will be usually ignored (if you
+        only have this one skeleton in entire model), because they've been
+        already updated.
+    }
+    procedure FastTransformUpdate(var VisibleChange: Boolean); virtual;
+
     function DebugInfoWithoutChildren: String; override;
 
     property TransformFunctionality: TTransformFunctionality
@@ -918,59 +1004,63 @@ type
 
     { State right before traversing the TransformNode.
       Owned by this TShapeTreeTransform instance. You should assign
-      to it when you set TransformNode. }
+      to it when you set TransformNode.
+
+      The TransformState.Transformation contains the @bold(parent transformation),
+      before the effect of the node in @link(TransformNode) is applied. }
     property TransformState: TX3DGraphTraverseState read FTransformState;
   end;
 
-  { Node of the TShapeTree representing the LOD (level of detail) alternative.
-    It chooses one child from it's children list as active.
-    Represents the VRML >= 2.0 LOD node
-    (not possible for VRML 1.0 LOD node, as it may affect also other
-    nodes after LOD).
+  TShapeTreeTransformList = {$ifdef FPC}specialize{$endif} TObjectList<TShapeTreeTransform>;
+  TShapeTreeTransformListPerDepth = {$ifdef FPC}specialize{$endif} TObjectList<TShapeTreeTransformList>;
 
-    To choose which child is active we need to know the LOD node,
-    with it's transformation in VRML graph.
-    This information is in LODNode and LODInverseTransform properties.
+  { LOD (level of detail) alternative in the TShapeTree.
+    At most one child (from it's children list) is active at a given time.
 
-    Also, we need to know the current camera position.
-    This is passed as CameraPosition to CalculateLevel.
-    Note that this class doesn't call CalculateLevel by itself, never.
-    You have to call CalculateLevel, and use it to set Level property,
-    from parent scene to make this LOD work. (Reasoning behind this decision:
-    parent scene has CameraPosition and such, and parent scene
-    knows whether to initiate level_changes event sending.) }
+    Corresponds to X3D (or VRML 2.0) TLodNode.
+
+    ( Note for VRML 1.0: This doesn't correspond to VRML 1.0 LOD node
+    in TLODNode_1, which is more difficult to handle, as it may affect
+    also other nodes after LOD. )
+
+    The scene code must call @link(UpdateLevel) whenever the camera
+    (in scene coordinates) potentially changed. }
   TShapeTreeLOD = class(TShapeTreeGroup)
   strict private
-    FLODNode: TLODNode;
-    FLODInverseTransform: TMatrix4;
+    FNode: TLODNode;
     FLevel: Cardinal;
     FWasLevel_ChangedSend: boolean;
   private
-    procedure TraverseCore(const Func: TShapeTraverseFunc;
-      const OnlyActive: boolean;
-      const OnlyVisible: boolean = false;
-      const OnlyCollidable: boolean = false); override;
+    procedure TraverseGroupLimitChildren(
+      const OnlyActive, OnlyVisible, OnlyCollidable: Boolean;
+      var ChildIndexBegin, ChildIndexEnd: Integer); override;
+    procedure FastTransformUpdateCore(var VisibleChange: Boolean;
+      const ParentTransformation: TTransformation); override;
   public
-    property LODNode: TLODNode read FLODNode write FLODNode;
-    function LODInverseTransform: PMatrix4;
+    InverseTransform: TMatrix4;
+    property Node: TLODNode read FNode write FNode;
 
-    { Calculate @link(Level). This only calculates level, doesn't
-      assign @link(Level) property or send level_changed event. }
-    function CalculateLevel(const CameraPosition: TVector3): Cardinal;
+    { Calculate and set new value for @link(Level), thus changing which
+      child is the active one.
+
+      Also, if ProcessEvents, send X3D output event Node.EventLevel_Changed
+      (whenever it should be send).
+
+      Looks at LOD node in @link(Node) and transformation in
+      @link(InverseTransform) to choose the current level.
+
+      @returns Whether the level changed. }
+    function UpdateLevel(const CameraLocalPosition: TVector3;
+      const ProcessEvents: Boolean): Boolean;
 
     { Current level, that is index of the active child of this LOD node.
       This is always < Children.Count, unless there are no children.
       In this case it's 0.
 
-      Should be calculated by CalculateLevel. By default
-      we simply use the first (highest-detail) LOD as active.
-      So if you never assign this (e.g. because TCastleSceneCore.CameraViewKnown
-      = @false, that is user position is never known) we'll always
-      use the highest-detail children. }
-    property Level: Cardinal read FLevel write FLevel default 0;
+      Should be modified @link(UpdateLevel).
 
-    property WasLevel_ChangedSend: boolean
-      read FWasLevel_ChangedSend write FWasLevel_ChangedSend default false;
+      By default we use the first (highest-detail) LOD as active. }
+    property Level: Cardinal read FLevel default 0;
 
     {$ifdef SHAPE_ITERATOR_SOPHISTICATED}
     function IterateBeginIndex(OnlyActive: boolean): Integer; override;
@@ -979,48 +1069,74 @@ type
     function DebugInfoWithoutChildren: String; override;
   end;
 
+  { Represents TProximitySensorInstance in a Scene.Shapes (TShapeTree). }
   TProximitySensorInstance = class(TShapeTree)
   strict private
     FNode: TProximitySensorNode;
   private
-    function MaxShapesCountCore: Integer; override;
-    procedure TraverseCore(const Func: TShapeTraverseFunc;
-      const OnlyActive: boolean;
-      const OnlyVisible: boolean = false;
-      const OnlyCollidable: boolean = false); override;
-    procedure FastTransformUpdateCore(var AnythingChanged: Boolean;
+    procedure FastTransformUpdateCore(var VisibleChange: Boolean;
       const ParentTransformation: TTransformation); override;
   public
     InverseTransform: TMatrix4;
     IsActive: boolean;
-
     property Node: TProximitySensorNode read FNode write FNode;
-
-    function EnumerateTextures(const Enumerate: TEnumerateShapeTexturesFunction): Pointer; override;
     function DebugInfoWithoutChildren: String; override;
   end;
 
+  { Represents TVisibilitySensorNode in a Scene.Shapes (TShapeTree). }
   TVisibilitySensorInstance = class(TShapeTree)
   strict private
     FNode: TVisibilitySensorNode;
   private
-    function MaxShapesCountCore: Integer; override;
-    procedure TraverseCore(const Func: TShapeTraverseFunc;
-      const OnlyActive: boolean;
-      const OnlyVisible: boolean = false;
-      const OnlyCollidable: boolean = false); override;
-    procedure FastTransformUpdateCore(var AnythingChanged: Boolean;
+    procedure FastTransformUpdateCore(var VisibleChange: Boolean;
       const ParentTransformation: TTransformation); override;
   public
     { Bounding box of this visibility sensor instance,
-      already transformed to global VRML/X3D scene coordinates.
-      That is, transformed by parent Transform and similar nodes. }
+      already transformed to scene coordinates.
+      That is, this is transformed by parent TShapeTreeTransform . }
     Box: TBox3D;
     Transform: TMatrix4;
-
     property Node: TVisibilitySensorNode read FNode write FNode;
+    function DebugInfoWithoutChildren: String; override;
+  end;
 
-    function EnumerateTextures(const Enumerate: TEnumerateShapeTexturesFunction): Pointer; override;
+  { Represents TAbstractLightNode in a Scene.Shapes (TShapeTree).
+
+    TODO: This should be combined with TLightInstance.
+    Ideally we should remove TLightInstance record, and only use this thing,
+    and rename this to TLightInstance. }
+  TLightShapeTreeInstance = class(TShapeTree)
+  strict private
+    FNode: TAbstractLightNode;
+    //DoneWarningLightTransformChanged: Boolean;
+  private
+    procedure FastTransformUpdateCore(var VisibleChange: Boolean;
+      const ParentTransformation: TTransformation); override;
+  public
+    property Node: TAbstractLightNode read FNode write FNode;
+    function DebugInfoWithoutChildren: String; override;
+  end;
+
+  { Represents TAbstractBindableNode in a Scene.Shapes (TShapeTree). }
+  TBindableInstance = class(TShapeTree)
+  strict private
+    FNode: TAbstractBindableNode;
+  private
+    procedure FastTransformUpdateCore(var VisibleChange: Boolean;
+      const ParentTransformation: TTransformation); override;
+  public
+    property Node: TAbstractBindableNode read FNode write FNode;
+    function DebugInfoWithoutChildren: String; override;
+  end;
+
+  { Represents TViewpointNode in a Scene.Shapes (TShapeTree).
+    Descends from TBindableInstance, just like TViewpointNode descends
+    from TAbstractBindableNode. }
+  TViewpointInstance = class(TBindableInstance)
+  private
+    procedure FastTransformUpdateCore(var VisibleChange: Boolean;
+      const ParentTransformation: TTransformation); override;
+  public
     function DebugInfoWithoutChildren: String; override;
   end;
 
@@ -1048,7 +1164,7 @@ type
     property Current: TShape read FCurrent;
   end deprecated{ 'use Tree.TraverseList(...)'};
 
-  TShapeList = class({$ifdef FPC}specialize{$endif} TObjectList<TShape>)
+  TShapeList = class({$ifdef FPC}specialize{$endif} TCastleFastList<TShape>)
   private
     { Like regular Add, but parameter is "const" to satisfy TShapeTraverseFunc signature. }
     procedure AddConst(const S: TShape);
@@ -1146,13 +1262,18 @@ begin
   Result := TShape(InternalShape).State;
 end;
 
+procedure TTriangleHelper.UpdateSceneSpace;
+begin
+  SceneSpace.Triangle := Local.Triangle.Transform(State.Transformation.Transform);
+  {$ifndef CONSERVE_TRIANGLE_MEMORY_MORE}
+  SceneSpace.Plane := SceneSpace.Triangle.NormalizedPlane;
+  SceneSpace.Area := SceneSpace.Triangle.Area;
+  {$endif}
+end;
+
 procedure TTriangleHelper.UpdateWorld;
 begin
-  World.Triangle := Local.Triangle.Transform(State.Transformation.Transform);
-  {$ifndef CONSERVE_TRIANGLE_MEMORY_MORE}
-  World.Plane := World.Triangle.NormalizedPlane;
-  World.Area := World.Triangle.Area;
-  {$endif}
+  UpdateSceneSpace;
 end;
 
 function TTriangleHelper.ShapeNode: TAbstractShapeNode;
@@ -1198,13 +1319,6 @@ begin
   Result := ({ IsTransparent } Transparency > SingleEpsilon) or
     NonShadowCaster(State);
 end;
-
-{$ifndef CONSERVE_TRIANGLE_MEMORY}
-function TTriangleHelper.INormalWorldSpace(const Point: TVector3): TVector3;
-begin
-  Result := State.Transformation.Transform.MultDirection(INormalCore(Point)).Normalize;
-end;
-{$endif not CONSERVE_TRIANGLE_MEMORY}
 
 { TShapeTree ------------------------------------------------------------ }
 
@@ -1328,7 +1442,14 @@ begin
       Exit;
     end;
 
+    { Trying to compile this with Delphi 13, win32, release mode, fails
+      with "F2084 Internal Error: G16451".
+      Worked OK with Delphi 12, works OK with FPC.
+      See https://github.com/castle-engine/castle-engine/issues/699 }
+    {$if not (defined(DELPHI) and defined(RELEASE))}
     Assert(Node.InternalSceneShape is TShapeTreeList);
+    {$endif}
+
     if TShapeTreeList(Node.InternalSceneShape).Count = 1 then
     begin
       Assert(TShapeTreeList(Node.InternalSceneShape)[0] = Self);
@@ -1379,7 +1500,7 @@ var
       Note that we use MaxShapesCount instead of ShapesCount,
       since MaxShapesCount is usually instant, while ShapesCount...
       now ShapesCount depends on TraverseList, so it would cause infinite loop. }
-    Result.Capacity := MaxShapesCount;
+    Result.AllocateAtLeast(MaxShapesCount);
     TraverseCore({$ifdef FPC}@{$endif} Result.AddConst, OnlyActive, OnlyVisible, OnlyCollidable);
     CachedChildrenListHash[OnlyActive, OnlyVisible, OnlyCollidable] := CurrentShapesHash;
     CachedChildrenList[OnlyActive, OnlyVisible, OnlyCollidable] := Result;
@@ -1422,14 +1543,6 @@ begin
   Result := TraverseList(OnlyActive, OnlyVisible, OnlyCollidable).Count;
 end;
 
-procedure TShapeTree.FastTransformUpdate(var AnythingChanged: Boolean);
-var
-  T: TTransformation;
-begin
-  T.Init;
-  FastTransformUpdateCore(AnythingChanged, T);
-end;
-
 function TShapeTree.DebugInfo(const Indent: String): String;
 begin
   Result := Indent + DebugInfoWithoutChildren + NL;
@@ -1438,6 +1551,26 @@ end;
 function TShapeTree.DebugInfoWithoutChildren: String;
 begin
   Result := ClassName;
+end;
+
+procedure TShapeTree.TraverseCore(const Func: TShapeTraverseFunc;
+  const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
+begin
+end;
+
+function TShapeTree.MaxShapesCountCore: Integer;
+begin
+  Result := 0;
+end;
+
+procedure TShapeTree.FastTransformUpdateCore(var VisibleChange: Boolean;
+  const ParentTransformation: TTransformation);
+begin
+end;
+
+function TShapeTree.EnumerateTextures(const Enumerate: TEnumerateShapeTexturesFunction): Pointer;
+begin
+  Result := nil;
 end;
 
 { TShape -------------------------------------------------------------- }
@@ -1565,6 +1698,9 @@ begin
     if AState.ShapeNode <> nil then
     begin
       AssociateNode(AState.ShapeNode);
+      { TODO: replacing here and in unassociate the State.ShapeNode.Appearance
+        ->State.Appearance causes crashes in auto-tests.
+        Investigate, explain, possibly improve State.Appearance? }
       if AState.ShapeNode.Appearance <> nil then
       begin
         AssociateNode(AState.ShapeNode.Appearance);
@@ -1798,13 +1934,10 @@ var
 
     { we need at least 1 texture coordinate if some special texture
       (not necessarily diffuse texture) is used }
-    if (S.ShapeNode <> nil) and
-       (S.ShapeNode.Appearance <> nil) then
+    if S.Appearance <> nil then
     begin
       // CommonSurfaceShader can only be non-nil if Appearance is non-nil
-      {$warnings off} // using deprecated to keep backward compatibility
-      SurfaceShader := S.ShapeNode.CommonSurfaceShader;
-      {$warnings on}
+      SurfaceShader := S.Appearance.InternalCommonSurfaceShader;
       if SurfaceShader <> nil then
       begin
         if SurfaceShader.MultiDiffuseAlphaTexture <> nil then
@@ -1821,19 +1954,19 @@ var
           MaxVar(Result, SurfaceShader.ShininessTextureCoordinatesId + 1);
       end else
       begin
-        if S.ShapeNode.Appearance.NormalMap <> nil then
+        if S.Appearance.NormalMap <> nil then
           MaxVar(Result, 1);
-        if S.ShapeNode.Appearance.Material is TAbstractOneSidedMaterialNode then
+        if S.Appearance.Material is TAbstractOneSidedMaterialNode then
         begin
-          MatOne := TAbstractOneSidedMaterialNode(S.ShapeNode.Appearance.Material);
+          MatOne := TAbstractOneSidedMaterialNode(S.Appearance.Material);
           if MatOne.EmissiveTexture <> nil then
             TexCoordsNeededForMapping(Result, MatOne.EmissiveTextureMapping);
           if MatOne.NormalTexture <> nil then
             TexCoordsNeededForMapping(Result, MatOne.NormalTextureMapping);
         end;
-        if S.ShapeNode.Appearance.Material is TMaterialNode then
+        if S.Appearance.Material is TMaterialNode then
         begin
-          MatPhong := TMaterialNode(S.ShapeNode.Appearance.Material);
+          MatPhong := TMaterialNode(S.Appearance.Material);
           if MatPhong.AmbientTexture <> nil then
             TexCoordsNeededForMapping(Result, MatPhong.AmbientTextureMapping);
           if MatPhong.DiffuseTexture <> nil then
@@ -1845,9 +1978,9 @@ var
           if MatPhong.OcclusionTexture <> nil then
             TexCoordsNeededForMapping(Result, MatPhong.OcclusionTextureMapping);
         end;
-        if S.ShapeNode.Appearance.Material is TPhysicalMaterialNode then
+        if S.Appearance.Material is TPhysicalMaterialNode then
         begin
-          MatPhysical := TPhysicalMaterialNode(S.ShapeNode.Appearance.Material);
+          MatPhysical := TPhysicalMaterialNode(S.Appearance.Material);
           if MatPhysical.BaseTexture <> nil then
             TexCoordsNeededForMapping(Result, MatPhysical.BaseTextureMapping);
           if MatPhysical.MetallicRoughnessTexture <> nil then
@@ -2002,9 +2135,9 @@ procedure TShape.Changed(const InactiveOnly: boolean;
     if ParentScene <> nil then
     begin
       if ChangedOnlyCoord then
-        TCastleSceneCore(ParentScene).DoGeometryChanged(gcLocalGeometryChangedCoord, Self)
+        TCastleSceneCore(ParentScene).InternalGeometryChanged([gcLocalGeometryChangedCoord], Self)
       else
-        TCastleSceneCore(ParentScene).DoGeometryChanged(gcLocalGeometryChanged, Self);
+        TCastleSceneCore(ParentScene).InternalGeometryChanged([gcLocalGeometryChanged], Self);
     end;
   end;
 
@@ -2179,21 +2312,47 @@ function TShape.CreateTriangleOctree(
     Assert(Result.TreeRoot.IsLeaf);
   end;
 
+  procedure SetOctreeToBoundingBox;
+  begin
+    { Add 12 triangles for 6 cube (LocalBoundingBox) sides. }
+    Result.Triangles.Capacity := 12;
+    LocalTriangulateBox(LocalBoundingBox);
+  end;
+
+  function ParentSceneName: String;
+  begin
+    if ParentScene <> nil then
+      Result := ParentScene.Name
+    else
+      Result := '(unset ParentScene)';
+  end;
+
 begin
   Result := TTriangleOctree.Create(ALimits, LocalBoundingBox);
   try
     if (Node <> nil) and (Node.Collision in [scBox, scNone]) then
     begin
-      { Add 12 triangles for 6 cube (LocalBoundingBox) sides. }
-      Result.Triangles.Capacity := 12;
-      LocalTriangulateBox(LocalBoundingBox);
+      SetOctreeToBoundingBox;
     end else
     begin
       Result.Triangles.Capacity := TrianglesCount;
-      LocalTriangulate({$ifdef FPC}@{$endif}Result.AddItemTriangle,
-        { FrontFaceAlwaysCcw should not matter } false);
+      try
+        LocalTriangulate({$ifdef FPC}@{$endif}Result.AddItemTriangle,
+          { FrontFaceAlwaysCcw should not matter } false);
+      except
+        on E: EOctreeMaxDuplicationError do
+        begin
+          WritelnWarning('Octree for scene %s falling back to resolving collisions with a bounding box. Reason:' + NL + '%s', [
+            ParentSceneName,
+            E.Message
+          ]);
+          FreeAndNil(Result);
+          Result := TTriangleOctree.Create(ALimits, LocalBoundingBox);
+          SetOctreeToBoundingBox;
+        end;
+      end;
     end;
-  except Result.Free; raise end;
+  except FreeAndNil(Result); raise end;
 
   { $define CASTLE_DEBUG_OCTREE_DUPLICATION}
   {$ifdef CASTLE_DEBUG_OCTREE_DUPLICATION}
@@ -2360,19 +2519,20 @@ const
     { amMask -> } acTest,
     { amBlend -> } acBlending
   );
+var
+  App: TAppearanceNode;
 begin
   { Check whether Appearance.alphaMode or alphaChannel field is set to something <> "AUTO".
     This is the simplest option, in which we don't need to run our "auto detection"
     below. }
-  if (State.ShapeNode <> nil) and
-     (State.ShapeNode.Appearance <> nil) and
-     (State.ShapeNode.Appearance.AlphaMode <> amAuto) then
-    Exit(AlphaModeToChannel[State.ShapeNode.Appearance.AlphaMode]);
-
-  if (State.ShapeNode <> nil) and
-     (State.ShapeNode.Appearance <> nil) and
-     (State.ShapeNode.Appearance.AlphaChannel <> acAuto) then
-    Exit(State.ShapeNode.Appearance.AlphaChannel);
+  App := State.Appearance;
+  if App <> nil then
+  begin
+    if App.AlphaMode <> amAuto then
+      Exit(AlphaModeToChannel[App.AlphaMode]);
+    if App.AlphaChannel <> acAuto then
+      Exit(App.AlphaChannel);
+  end;
 
   if DetectAlphaBlending then
     Exit(acBlending)
@@ -2391,7 +2551,7 @@ begin
     Func(Self);
 end;
 
-procedure TShape.FastTransformUpdateCore(var AnythingChanged: Boolean;
+procedure TShape.FastTransformUpdateCore(var VisibleChange: Boolean;
   const ParentTransformation: TTransformation);
 begin
   State.Transformation := ParentTransformation;
@@ -2400,7 +2560,7 @@ begin
   // a bit faster:
   Validities := Validities - [svBBox, svBoundingSphere];
 
-  AnythingChanged := true;
+  VisibleChange := true;
 end;
 
 function TShape.MaxShapesCountCore: Integer;
@@ -2784,11 +2944,9 @@ begin
   Result := HandleTextureNode(State.VRML1State.Texture2);
   if Result <> nil then Exit;
 
-  if (State.ShapeNode <> nil) and
-     (State.ShapeNode.Appearance <> nil) then
+  App := State.Appearance;
+  if App <> nil then
   begin
-    App := State.ShapeNode.Appearance;
-
     if App.FdMaterial.Value is TAbstractOneSidedMaterialNode then
     begin
       Result := HandleOneSidedMaterial(TAbstractOneSidedMaterialNode(App.FdMaterial.Value));
@@ -2816,10 +2974,7 @@ begin
     HandleIDecls(App.FdShaders);
     HandleIDecls(App.FdEffects);
 
-    { CommonSurfaceShader can be non-nil only when App is non-nil }
-    {$warnings off} // using deprecated to keep backward compatibility
-    SurfaceShader := State.ShapeNode.CommonSurfaceShader;
-    {$warnings on}
+    SurfaceShader := App.InternalCommonSurfaceShader;
     if SurfaceShader <> nil then
     begin
       HandleCommonSurfaceShader(SurfaceShader);
@@ -2853,6 +3008,13 @@ begin
       Result := HandleTextureNode(InternalShadowMaps[I] as TGeneratedShadowMapNode);
       if Result <> nil then Exit;
     end;
+
+  if (State.Skin <> nil) and
+     (State.Skin.InternalJointTexture <> nil) then
+  begin
+    Result := HandleTextureNode(State.Skin.InternalJointTexture);
+    if Result <> nil then Exit;
+  end;
 end;
 
 type
@@ -3141,11 +3303,6 @@ begin
   Result := State.ShapeNode;
 end;
 
-function TShape.MaterialProperty: TMaterialProperty;
-begin
-  Result := InternalMaterialProperty;
-end;
-
 procedure TShape.InternalBeforeChange;
 begin
   FreeProxy;
@@ -3157,33 +3314,6 @@ procedure TShape.InternalAfterChange;
 begin
   AssociateGeometryState(FOriginalGeometry, FOriginalState);
   AssociateGeometryStateNeverProxied(FOriginalGeometry, FOriginalState);
-end;
-
-function TShape.InternalMaterialProperty: TMaterialProperty;
-var
-  TextureUrl: String;
-begin
-  if IsCachedMaterialProperty then
-    Exit(CachedMaterialProperty);
-
-  Result := nil;
-
-  if Node <> nil then
-  begin
-    { VRML 2.0/X3D version: refer to TAppearanceNode.MaterialProperty }
-    if Node.Appearance <> nil then
-      Result := Node.Appearance.InternalMaterialProperty;
-  end else
-  begin
-    { VRML 1.0 version: calculate it directly here }
-    TextureUrl := State.VRML1State.Texture2.FdFileName.Value;
-    if TextureUrl <> '' then
-      Result := MaterialProperties.FindTextureBaseName(
-        DeleteURIExt(ExtractURIName(TextureUrl)));
-  end;
-
-  IsCachedMaterialProperty := true;
-  CachedMaterialProperty := Result;
 end;
 
 { TShapeTreeGroup -------------------------------------------------------- }
@@ -3206,7 +3336,10 @@ procedure TShapeTreeGroup.ChildrenChanged(Sender: TObject;
   Action: TCollectionNotification);
 begin
   if Action = cnAdded then
+  begin
     Item.FParent := Self;
+    Item.FDepth := Depth + 1;
+  end;
   if Action in [cnExtracted, cnRemoved] then
     Item.FParent := nil;
   InvalidateMaxShapesCount;
@@ -3217,19 +3350,38 @@ end;
 procedure TShapeTreeGroup.TraverseCore(const Func: TShapeTraverseFunc;
   const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
 var
-  I: Integer;
+  I, ChildIndexBegin, ChildIndexEnd: Integer;
 begin
-  for I := 0 to FChildren.Count - 1 do
+  // honor TBoundedNodeFunctionality.Visible
+  if OnlyVisible and
+     (BoundedFunctionality <> nil) and
+     (not BoundedFunctionality.Visible) then
+    Exit;
+
+  ChildIndexBegin := 0;
+  ChildIndexEnd := FChildren.Count - 1;
+
+  TraverseGroupLimitChildren(
+    OnlyActive, OnlyVisible, OnlyCollidable,
+    ChildIndexBegin, ChildIndexEnd);
+
+  for I := ChildIndexBegin to ChildIndexEnd do
     FChildren.Items[I].Traverse(Func, OnlyActive, OnlyVisible, OnlyCollidable);
 end;
 
-procedure TShapeTreeGroup.FastTransformUpdateCore(var AnythingChanged: Boolean;
+procedure TShapeTreeGroup.TraverseGroupLimitChildren(
+  const OnlyActive, OnlyVisible, OnlyCollidable: boolean;
+  var ChildIndexBegin, ChildIndexEnd: Integer);
+begin
+end;
+
+procedure TShapeTreeGroup.FastTransformUpdateCore(var VisibleChange: Boolean;
   const ParentTransformation: TTransformation);
 var
   I: Integer;
 begin
   for I := 0 to FChildren.Count - 1 do
-    FChildren.Items[I].FastTransformUpdateCore(AnythingChanged, ParentTransformation);
+    FChildren.Items[I].FastTransformUpdateCore(VisibleChange, ParentTransformation);
 end;
 
 function TShapeTreeGroup.MaxShapesCountCore: Integer;
@@ -3276,19 +3428,27 @@ end;
 
 { TShapeTreeSwitch ------------------------------------------------------- }
 
-procedure TShapeTreeSwitch.TraverseCore(const Func: TShapeTraverseFunc;
-  const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
+procedure TShapeTreeSwitch.TraverseGroupLimitChildren(
+  const OnlyActive, OnlyVisible, OnlyCollidable: Boolean;
+  var ChildIndexBegin, ChildIndexEnd: Integer);
 var
   WhichChoice: Integer;
 begin
+  inherited;
   if OnlyActive then
   begin
     WhichChoice := SwitchNode.FdWhichChoice.Value;
     if (WhichChoice >= 0) and
        (WhichChoice < Children.Count) then
-      Children.Items[WhichChoice].Traverse(Func, OnlyActive, OnlyVisible, OnlyCollidable);
-  end else
-    inherited;
+    begin
+      ChildIndexBegin := WhichChoice;
+      ChildIndexEnd := WhichChoice;
+    end else
+    begin
+      ChildIndexBegin := 0;
+      ChildIndexEnd := -1;
+    end;
+  end;
 end;
 
 {$ifdef SHAPE_ITERATOR_SOPHISTICATED}
@@ -3357,12 +3517,27 @@ begin
   end;
 end;
 
-procedure TShapeTreeTransform.FastTransformUpdate(var AnythingChanged: Boolean);
+procedure TShapeTreeTransform.FastTransformUpdate(var VisibleChange: Boolean);
 begin
-  FastTransformUpdateCore(AnythingChanged, FTransformState.Transformation);
+  if TransformNeedsUpdate then
+  begin
+    if LogChanges then
+      WritelnLog('X3D changes', 'Processing transform changes within %s at depth %d', [
+        TransformNode.NiceName,
+        Depth
+      ]);
+    FastTransformUpdateCore(VisibleChange, FTransformState.Transformation);
+  end else
+  begin
+    if LogChanges then
+      WritelnLog('X3D changes', 'Avoided processing transform changes within %s at depth %d', [
+        TransformNode.NiceName,
+        Depth
+      ]);
+  end;
 end;
 
-procedure TShapeTreeTransform.FastTransformUpdateCore(var AnythingChanged: Boolean;
+procedure TShapeTreeTransform.FastTransformUpdateCore(var VisibleChange: Boolean;
   const ParentTransformation: TTransformation);
 var
   NewTransformation: TTransformation;
@@ -3370,16 +3545,19 @@ begin
   NewTransformation := ParentTransformation;
 
   { Keep FTransformState up-to-date.
-    This is not necessary when OptimizeExtensiveTransformations = true,
-    so we don't do it to conserve speed. }
-  if not OptimizeExtensiveTransformations then
-  begin
-    FTransformState.Transformation := ParentTransformation;
-  end;
+    We need to maintain it for every TShapeTreeTransform:
+    - to be able to start updating, using FastTransformUpdate,
+      from any point of the tree,
+    - because Skin node processing relies on it, for every joint,
+    - because HAnimJoint processing relies on it (for humanoid root). }
+  FTransformState.Transformation := ParentTransformation;
 
   TransformFunctionality.ApplyTransform(NewTransformation);
 
-  inherited FastTransformUpdateCore(AnythingChanged, NewTransformation);
+  TransformNeedsUpdate := false;
+
+  // call inherited to update children of TShapeTreeGroup
+  inherited FastTransformUpdateCore(VisibleChange, NewTransformation);
 end;
 
 function TShapeTreeTransform.TransformNode: TX3DNode;
@@ -3400,54 +3578,81 @@ end;
 
 { TShapeTreeLOD ------------------------------------------------------- }
 
-function TShapeTreeLOD.LODInverseTransform: PMatrix4;
-begin
-  Result := @FLODInverseTransform;
-end;
+function TShapeTreeLOD.UpdateLevel(const CameraLocalPosition: TVector3;
+  const ProcessEvents: Boolean): Boolean;
 
-function TShapeTreeLOD.CalculateLevel(const CameraPosition: TVector3): Cardinal;
-var
-  Camera: TVector3;
-  Dummy: Single;
-begin
-  if (Children.Count = 0) or
-     (LODNode.FdRange.Count = 0) then
-    Result := 0 else
+  { Calculate @link(Level). This only calculates level, doesn't
+    assign @link(Level) property or send level_changed event. }
+  function CalculateLevel(const CameraPosition: TVector3): Cardinal;
+  var
+    Camera: TVector3;
+    Dummy: Single;
   begin
-    try
-      Camera := LODInverseTransform^.MultPoint(CameraPosition);
-      Result := KeyRange(LODNode.FdRange.Items,
-        PointsDistance(Camera, LODNode.FdCenter.Value), Dummy);
-      { Now we know Result is between 0..LODNode.FdRange.Count.
-        Following X3D spec "Specifying too few levels will result in
-        the last level being used repeatedly for the lowest levels of detail",
-        so just clamp to last children. }
-      MinVar(Result, Children.Count - 1);
-    except
-      on E: ETransformedResultInvalid do
-      begin
-        WritelnWarning('VRML/X3D', Format('Cannot transform camera position %s to LOD node local coordinate space, transformation results in direction (not point): %s',
-          [ CameraPosition.ToRawString, E.Message ]));
-        Result := 0;
+    if (Children.Count = 0) or
+       (Node.FdRange.Count = 0) then
+      Result := 0 else
+    begin
+      try
+        Camera := InverseTransform.MultPoint(CameraPosition);
+        Result := KeyRange(Node.FdRange.Items,
+          PointsDistance(Camera, Node.FdCenter.Value), Dummy);
+        { Now we know Result is between 0..Node.FdRange.Count.
+          Following X3D spec "Specifying too few levels will result in
+          the last level being used repeatedly for the lowest levels of detail",
+          so just clamp to last children. }
+        MinVar(Result, Children.Count - 1);
+      except
+        on E: ETransformedResultInvalid do
+        begin
+          WritelnWarning('VRML/X3D', Format('Cannot transform camera position %s to LOD node local coordinate space, transformation results in direction (not point): %s',
+            [ CameraPosition.ToRawString, E.Message ]));
+          Result := 0;
+        end;
       end;
     end;
+
+    Assert(
+      ( (Children.Count = 0) and (Result = 0) ) or
+      ( (Children.Count > 0) and (Result < Cardinal(Children.Count)) ) );
   end;
 
-  Assert(
-    ( (Children.Count = 0) and (Result = 0) ) or
-    ( (Children.Count > 0) and (Result < Cardinal(Children.Count)) ) );
+var
+  OldLevel, NewLevel: Cardinal;
+begin
+  OldLevel := Level;
+  NewLevel := CalculateLevel(CameraLocalPosition);
+  FLevel := NewLevel;
+
+  Result := OldLevel <> NewLevel;
+
+  if ProcessEvents and
+     (Result {(OldLevel <> NewLevel)} or (not FWasLevel_ChangedSend)) and
+     { If Children.Count = 0, then Level = 0, but we don't
+       want to send Level_Changed since the children 0 doesn't really exist. }
+     (Children.Count <> 0) then
+  begin
+    FWasLevel_ChangedSend := true;
+    Node.EventLevel_Changed.Send(Integer(NewLevel));
+  end;
 end;
 
-procedure TShapeTreeLOD.TraverseCore(const Func: TShapeTraverseFunc;
-  const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
+procedure TShapeTreeLOD.TraverseGroupLimitChildren(
+  const OnlyActive, OnlyVisible, OnlyCollidable: Boolean;
+  var ChildIndexBegin, ChildIndexEnd: Integer);
 begin
-  if Children.Count > 0 then
+  inherited;
+  if OnlyActive then
   begin
-    if OnlyActive then
-      { Now we know that Level < Children.Count, no need to check it. }
-      Children.Items[Level].Traverse(Func, OnlyActive, OnlyVisible, OnlyCollidable)
-    else
-      inherited;
+    if {(Level >= 0) and} // Level is unsigned, so always >= 0
+       (Level < Children.Count) then
+    begin
+      ChildIndexBegin := Level;
+      ChildIndexEnd := Level;
+    end else
+    begin
+      ChildIndexBegin := 0;
+      ChildIndexEnd := -1;
+    end;
   end;
 end;
 
@@ -3469,72 +3674,242 @@ end;
 
 function TShapeTreeLOD.DebugInfoWithoutChildren: String;
 begin
-  Result := 'LOD (' + LODNode.X3DName + ')';
+  Result := 'LOD (' + Node.X3DName + ')';
+end;
+
+procedure TShapeTreeLOD.FastTransformUpdateCore(var VisibleChange: Boolean;
+  const ParentTransformation: TTransformation);
+
+{ Update LOD when parent Transform changes.
+  Testcase (will not work if this method is empty):
+  demo-models/navigation/lod_test.x3dv (when animating movement of LOD) }
+
+begin
+  inherited;
+  InverseTransform := ParentTransformation.InverseTransform;
+  VisibleChange := true; // redraw, to take into account InverseTransform in BeforeRender
 end;
 
 { TProximitySensorInstance ---------------------------------------------- }
-
-procedure TProximitySensorInstance.TraverseCore(const Func: TShapeTraverseFunc;
-  const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
-begin
-  { Nothing to do: no geometry shapes, no children here }
-end;
-
-function TProximitySensorInstance.MaxShapesCountCore: Integer;
-begin
-  { This is not a TShape instance, and has no TShape children. }
-  Result := 0;
-end;
-
-procedure TProximitySensorInstance.FastTransformUpdateCore(var AnythingChanged: Boolean;
-  const ParentTransformation: TTransformation);
-begin
-  { Nothing to do: This is not a TShape instance, and has no TShape children. }
-end;
-
-function TProximitySensorInstance.EnumerateTextures(const Enumerate: TEnumerateShapeTexturesFunction): Pointer;
-begin
-  { Nothing to do: no geometry shapes, no children here }
-  Result := nil;
-end;
 
 function TProximitySensorInstance.DebugInfoWithoutChildren: String;
 begin
   Result := 'ProximitySensor (' + Node.X3DName + ')';
 end;
 
-{ TVisibilitySensorInstance ---------------------------------------------- }
-
-procedure TVisibilitySensorInstance.TraverseCore(const Func: TShapeTraverseFunc;
-  const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
-begin
-  { Nothing to do: no geometry shapes, no children here }
-end;
-
-procedure TVisibilitySensorInstance.FastTransformUpdateCore(var AnythingChanged: Boolean;
+procedure TProximitySensorInstance.FastTransformUpdateCore(var VisibleChange: Boolean;
   const ParentTransformation: TTransformation);
+
+{ Update ProximitySensor when parent Transform changes.
+  Testcase (will not work if this method is empty):
+  demo-models/sensors_environmental/proximity_sensor_transformed.x3dv }
+
 begin
-  { Nothing to do: This is not a TShape instance, and has no TShape children. }
+  InverseTransform := ParentTransformation.InverseTransform;
+
+  { We only care about ProximitySensor in active graph parts.
+
+    Note that we make ProximitySensor events also when ProximitySensor
+    is in an inactive graph part. We have no knowledge, right now,
+    if we're in active or inactive graph part. }
+
+  { Call ProximitySensorUpdate, since the sensor's box is transformed,
+    so possibly it should be activated/deactivated,
+    position/orientation_changed called etc. }
+  TCastleSceneCore(ParentScene).InternalProximitySensorUpdate(Self);
 end;
 
-function TVisibilitySensorInstance.MaxShapesCountCore: Integer;
-begin
-  { This is not a TShape instance, and has no TShape children. }
-  Result := 0;
-end;
-
-function TVisibilitySensorInstance.EnumerateTextures(const Enumerate: TEnumerateShapeTexturesFunction): Pointer;
-begin
-  { Nothing to do: no geometry shapes, no children here }
-  Result := nil;
-end;
+{ TVisibilitySensorInstance ---------------------------------------------- }
 
 function TVisibilitySensorInstance.DebugInfoWithoutChildren: String;
 begin
   Result := 'VisibilitySensor (' + Node.X3DName + ')';
 end;
 
-{ TShapeTreeIterator ----------------------------------------------------- }
+procedure TVisibilitySensorInstance.FastTransformUpdateCore(var VisibleChange: Boolean;
+  const ParentTransformation: TTransformation);
+
+{ Handle the transformation of VisibilitySensor change.
+  Testcase (will not work if this method is empty):
+  demo-models/sensors_environmental/visibility_sensor.x3dv
+  (observe from special viewpoint, the visibility should flip-flop
+  as the box animates). }
+
+begin
+  Transform := ParentTransformation.Transform;
+  Box := Node.Box.Transform(Transform);
+
+  VisibleChange := true;
+end;
+
+{ TLightShapeTreeInstance ------------------------------------------------ }
+
+function TLightShapeTreeInstance.DebugInfoWithoutChildren: String;
+begin
+  Result := 'Light (' + Node.NiceName + ')';
+end;
+
+procedure TLightShapeTreeInstance.FastTransformUpdateCore(var VisibleChange: Boolean;
+  const ParentTransformation: TTransformation);
+
+{ When the transformation of light node changes, we should update every
+  TLightInstance record of this light in every shape.
+  Testcase (will not work if this method is empty):
+  demo-models/lights_materials/light_transform_animated.x3dv .
+
+  TODO:
+
+  - Code below is very unoptimal. It checks all lights, in all shapes.
+
+    At the very least, we should use TShapeTree.AssociatedShape,
+    to list "shapes that use this light" quickly.
+
+    Even better, if state of shapes would just refer to TLightShapeTreeInstance.
+
+  - If the light was instantiated many times then only some occurrences
+    should be updated, while this code updates all.
+    This is likely responsible for the bug in
+    https://github.com/castle-engine/demo-models/tree/master/gltf/multiple_animated_lights
+    where, once we animate, the 64 lights glue into one.
+
+  - For global lights, limited by radius field,
+    we should also add / remove this light from some
+    TX3DGraphTraverseState.Lights. }
+
+  procedure HandleLightsList(List: TLightInstancesList);
+  var
+    I: Integer;
+  begin
+    if List <> nil then
+      for I := 0 to List.Count - 1 do
+        if List.L[I].Node = Node then
+          Node.UpdateLightInstanceTransformation(List.L[I], ParentTransformation);
+  end;
+
+var
+  ShapeList: TShapeList;
+  Shape: TShape;
+begin
+  Node.InternalTransformation := ParentTransformation;
+
+  // TODO: Optimize using TShapeTree.AssociatedShape
+
+  ShapeList := TCastleSceneCore(ParentScene).Shapes.TraverseList(false);
+  for Shape in ShapeList do
+  begin
+    HandleLightsList(Shape.OriginalState.Lights);
+    if Shape.State <> Shape.OriginalState then
+      HandleLightsList(Shape.State.Lights);
+  end;
+
+  { Update also light state on GlobalLights list, in case other scenes
+    depend on this light. Testcase: planets-demo. }
+  HandleLightsList(TCastleSceneCore(ParentScene).InternalGlobalLights);
+
+  { force update of GeneratedShadowMap textures that used this light }
+  TCastleSceneCore(ParentScene).InternalGeneratedTextures.UpdateShadowMaps(Node);
+
+  { TODO: This is valid warning, but "also buggy" may be too scary
+    (it is not obvious when is it actually buggy),
+    and user doesn't have any simpler fix. }
+
+  // WritelnWarningOnce(DoneWarningLightTransformChanged,
+  //   'Light %s transformation changed. This works, but is unoptimal and also buggy (in case of multiple light instances) in CGE.', [
+  //   Node.NiceName
+  // ]);
+
+  VisibleChange := true;
+end;
+
+{ TBindableInstance ---------------------------------------------- }
+
+function TBindableInstance.DebugInfoWithoutChildren: String;
+begin
+  Result := 'Bindable (' + Node.NiceName + ')';
+end;
+
+procedure TBindableInstance.FastTransformUpdateCore(var VisibleChange: Boolean;
+  const ParentTransformation: TTransformation);
+
+{ Handle the transformation of a TAbstractBindableNode,
+  which is something visible (Fog, Background) but not geometry.
+
+  Testcases (will not work if this method is empty):
+  - Transform with Background:
+    demo-models/background/background_animate_rotation.wrl
+    demo-models/background/background_animate_colors.wrl
+  - Transform with Fog:
+    demo-models/fog/fog_animate_transform.x3dv
+}
+
+begin
+  if Node.InternalUpdateTransformation(ParentTransformation) then
+    VisibleChange := true;
+end;
+
+{ TViewpointInstance --------------------------------------------------------- }
+
+function TViewpointInstance.DebugInfoWithoutChildren: String;
+begin
+  Result := 'Viewpoint (' + Node.NiceName + ')';
+end;
+
+procedure TViewpointInstance.FastTransformUpdateCore(var VisibleChange: Boolean;
+  const ParentTransformation: TTransformation);
+
+{ Handle the transformation of a TViewpointNode.
+  Testcase (will not work if this method is empty):
+  demo-models/navigation/viewpoint_transform.x3dv
+}
+
+begin
+  { Do not call inherited, we will call InternalUpdateTransformation here,
+    to know the result. }
+  // inherited;
+
+  if Node.InternalUpdateTransformation(ParentTransformation) then
+  begin
+    VisibleChange := true;
+
+    { Calling DoBoundViewpointVectorsChanged only when something
+      actually changed (when Node.InternalUpdateTransformation returns @true)
+      is extremely important:
+
+      Otherwise every frame we potentially change viewpoint,
+      we would call DoBoundViewpointVectorsChanged.
+      And such "every frame" may happen often, if we use
+      OptimizedExtensiveTransformations = true, and model has running animation
+      and TViewpointNode inside.
+
+      Testcase: cat in castle-model-viewer-mobile,
+      if DoBoundViewpointVectorsChanged would be called always
+      (regardless of Node.InternalUpdateTransformation result) then
+      - it would be impossible to rotate the cat model,
+      - it would be impossible to zoom it,
+      - and every viewpoint switch would be instant.
+
+      For this to happen, we need:
+      - some animation in the model playing that changes transformation each frame
+        (e.g. skeleton animation of the cat)
+      - OptimizedExtensiveTransformations = true (to process all nodes each time
+        some transformation changes)
+      - AutoCamera = true used (otherwise DoBoundViewpointVectorsChanged doesn't
+        really cause anything)
+    }
+
+    if Node = TCastleSceneCore(ParentScene).ViewpointStack.Top then
+      TCastleSceneCore(ParentScene).DoBoundViewpointVectorsChanged;
+
+    { TODO: Transformation of viewpoint should also affect NavigationInfo,
+      according to spec: "The speed, avatarSize and visibilityLimit values
+      are all scaled by the transformation being applied to
+      the currently bound X3DViewpointNode node."
+      When this will be implemented, then also when transformation
+      of viewpoint changes here we'll have to do something. }
+  end;
+end;
+
+{ TShapeTreeIterator --------------------------------------------------------- }
 
 { When SHAPE_ITERATOR_SOPHISTICATED is defined, we use a complicated
   implementation that has a nice O(1) speed for constructor and all
@@ -3733,18 +4108,18 @@ end;
 
 constructor TShapeList.Create;
 begin
-  inherited Create(false);
+  inherited Create;
 end;
 
 constructor TShapeList.Create(const Tree: TShapeTree;
   const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
 begin
   Create;
-  { Set Capacity, to make following operations faster.
+  { Allocate some Capacity, to make following operations faster.
     Note that we use MaxShapesCount instead of ShapesCount,
     since MaxShapesCount is usually instant.
     Testcase of speedup: e.g. profiling animate_3d_model_by_code_2. }
-  Capacity := Tree.MaxShapesCount;
+  AllocateAtLeast(Tree.MaxShapesCount);
   { This method uses Tree.Traverse that uses Tree.TraverseList that creates a list,
     iterates over it, and here we add results to another list...
     This is clearly a waste of time. That's why this method is deprecated. }

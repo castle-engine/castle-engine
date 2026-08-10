@@ -8,5 +8,6 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 <project name="anisotropic_filtering"
   standalone_source="anisotropic_filtering.dpr"
   qualified_name="io.castleengine.anisotropic.filtering"
+  caption="Anisotropic Filtering"
 >
 </project>

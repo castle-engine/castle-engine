@@ -89,7 +89,7 @@
 
       Getting this automatically loads the shader code pointed by the URL field
       of this node. The shader code may be specified in an external file,
-      or inline using "data URI", see https://castle-engine.io/manual_network.php .
+      or inline using "data URI", see https://castle-engine.io/url .
       The shader code may also be specified using the XML "CDATA" in X3D XML encoding.
       Returns '' of no valid URLs are present
       (loading errors are reported to WritelnWarning).

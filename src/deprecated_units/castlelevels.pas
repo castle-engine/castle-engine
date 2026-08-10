@@ -267,7 +267,7 @@ type
       directory.
       Overloaded version without parameter just looks inside 'castle-data:/'.
       For the specification of level.xml format see
-      [https://castle-engine.io/creating_data_levels.php] .
+      https://github.com/castle-engine/cge-www/blob/master/htdocs/doc/obsolete/deprecated_3d_game_utilities/creating_data_levels.php .
 
       This should be called after resources (creatures and items) are known,
       as they may be referenced by level.xml files.
@@ -287,7 +287,7 @@ type
     { Add a single level information from the XML file at given location.
       The given XML file must have <level> root element and be written
       according to
-      https://castle-engine.io/creating_data_levels.php .  }
+      https://github.com/castle-engine/cge-www/blob/master/htdocs/doc/obsolete/deprecated_3d_game_utilities/creating_data_levels.php .  }
     procedure AddFromFile(const Url: String);
 
     { Sort by @link(TLevelInfo.Number).

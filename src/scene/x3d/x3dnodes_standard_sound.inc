@@ -217,7 +217,7 @@ begin
       { if not playing, try to start playing }
       BufferLoaded := true;
       UpdatePlayingSoundProperties(SoundNode);
-      // TODO: we could set here Parameters.Offset to not always start playing from start
+      // TODO: we could set here PlayingSound.InitialOffset to not always start playing from start
       SoundNode.SoundSource.Play(PlayingSound);
     end else
     begin

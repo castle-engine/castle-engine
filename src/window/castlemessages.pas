@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2023 Michalis Kamburelis.
+  Copyright 2001-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,8 +13,17 @@
   ----------------------------------------------------------------------------
 }
 
-(* Dialog windows (asking user for confirmation, question,
+(*Dialog windows (asking user for confirmation, question,
   simple text input and such) displayed within an OpenGL context (TCastleWindow).
+
+  These routines are comfortable to use, as they return only when
+  the user actually confirmed / made a decision.
+  So you can write code like this:
+
+  @longCode(#
+  if MessageYesNo(Window, 'Are you sure you want to delete this file?') then
+    DeleteFile(...);
+  #)
 
   Features:
 
@@ -79,8 +88,15 @@
       @link(TCastleApplicationProperties.OnUpdate ApplicationProperties.OnUpdate) callbacks,
       at least not without checking whether we're not inside a dialog box.)
   )
-*)
 
+  @italic(Warning): Most routines from this unit cannot work on iOS and web
+  platforms, as they don't support
+  @link(TCastleApplication.ProcessMessage Application.ProcessMessage).
+  There is a workaround for @link(MessageOK) (see @link(MessageOKPushesView)
+  variable), but it doesn't work for other routines like @link(MessageYesNo),
+  so ultimately we advise to just not use this unit at all on iOS and web,
+  and instead use TCastleView-based dialogs from @link(CastleDialogViews) unit.
+*)
 unit CastleMessages;
 
 {$I castleconf.inc}
@@ -298,7 +314,10 @@ function MessageInputQuery(Window: TCastleWindow; const Title: string;
   const ValueAsString: string = '';
   const Alignment: THorizontalPosition = DefaultAlign;
   const Html: boolean = false): boolean; overload;
-{$ifndef EXTENDED_EQUALS_DOUBLE}
+{ MessageInputQuery version on Double (also TFloatTime) define only
+  - for Delphi (where Extended sometimes = Double but it still wants separate overload)
+  - for FPC, if Extended <> Double }
+{$if (not defined(FPC)) or (not defined(EXTENDED_EQUALS_DOUBLE))}
 function MessageInputQuery(Window: TCastleWindow; const Title: string;
   var Value: Double;
   const ValueAsString: string = '';
@@ -320,36 +339,67 @@ function MessageInputQueryVector4(
   const Html: boolean = false): boolean;
 
 var
-  { Change MessageOK behavior to create @link(TViewDialogOK)
-    and push it (using @link(TCastleContainer.PushView))
-    and immediately return, without waiting for user confirmation.
+  { When @true, the @link(MessageOK) call creates @link(TViewDialogOK),
+    pushes it (using @link(TCastleContainer.PushView)),
+    and immediately returns, without waiting for user confirmation.
 
-    Why you may want to use this (or not to use this)?
+    When @false (default), the @link(MessageOK) call returns
+    only when user confirms the dialog (pressing "OK").
+    In this case we also use a bit internal way
+    to "intercept" user input while the dialog box is shown,
+    that is not based on TCastleView, so it doesn't mess with user views.
+
+    Practically speaking, calling @code(MessageOK) when this is @true, is equivalent to doing:
+
+    @longCode(#
+    var
+      Dlg: TViewDialogOK;
+    begin
+      Dlg := TViewDialogOK.Create(Self);
+      Dlg.Text := 'My text';
+      Container.PushView(Dlg);
+    end;
+    #)
+
+    When to set this to @true:
 
     @unorderedList(
       @item(
-        This is the only way to make MessageOK working on iOS
-        (where Application.ProcessMessages is not available).)
+        This is the only way to make MessageOK work on platforms
+        that don't support @link(TCastleApplication Application.ProcessMessages).
+        This includes @url(https://castle-engine.io/ios iOS) and
+        @url(https://castle-engine.io/web Web) now.
+
+        Note that MessageYesNo and other MessageXxx functions that wait for user input
+        will just fail on these platforms.
+        For this reason, we actually advise to not use this unit (CastleMessages)
+        at all on iOS and Web, and instead use TCastleView-based dialogs in
+        the @link(CastleDialogViews) unit.
+      )
 
       @item(
         This looks a little better in case user may resize the window while
         the MessageOK is running, or when something animates under MessageOK.
         When this is @true, the view underneath redraws properly, so it can adjust
         to window size and animate. Otherwise, all MessageXxx methods in this unit
-        only show a static screenshot underneath, that is scaled if needed.)
+        only show a static screenshot underneath, that is scaled if needed.
+      )
 
       @item(
-        On the other hand, the notification about unhandled exceptions
-        (done by CastleWindow automatically, using MessageOK) is a little safer
-        when this is @false. When this is @false, there's a greater chance that
-        the problematic code (e.g. the update method of some other TCastleView)
-        it disabled during the display of the error messsage.)
+        Note that using this, means that dialog box is a regular @link(TCastleView)
+        running on top of your other views.
+        Your views must be prepared for it (e.g. pause the game when
+        the dialog is shown, and unpause it when the dialog is closed,
+        by overriding @link(TCastleView.Pause) and @link(TCastleView.Resume).)
+      )
     )
 
     If you turn this on, then you should organize your whole application
     into views using TCastleView. You can even pause the running game
     in overridden @link(TCastleView.Pause), to make game paused when
     the message dialog is displayed.
+
+    See @url(https://castle-engine.io/views documentation how to use views).
 
     Note that this feature doesn't change other routines in CastleMessages.
     For example @link(MessageYesNo) is still a modal function (it waits
@@ -444,7 +494,7 @@ var
 begin
   TextList := TStringList.Create;
   try
-    AddStrArrayToStrings(SArray, TextList);
+    TextList.AddStrings(SArray);
     MessageOK(Window, TextList, Alignment, Html);
   finally TextList.Free end;
 end;
@@ -457,7 +507,7 @@ var
 begin
   TextList := TStringList.Create;
   try
-    Strings_SetText(TextList, s);
+    TextList.Text := S;
     MessageOK(Window, TextList, Alignment, Html);
   finally TextList.free end;
 end;
@@ -495,7 +545,7 @@ var
 begin
   TextList := TStringList.Create;
   try
-    Strings_SetText(TextList, s);
+    TextList.Text := S;
     result := MessageInput(Window, TextList, answerDefault,
       MinLength, MaxLength, AllowedChars, Alignment, Html);
   finally TextList.free end;
@@ -537,7 +587,7 @@ var
 begin
   TextList := TStringList.Create;
   try
-    Strings_SetText(TextList, s);
+    TextList.Text := S;
     result := MessageInputQuery(Window, TextList, answer, MinLength,
       MaxLength, AllowedChars, Alignment, Html);
   finally TextList.free end;
@@ -582,7 +632,7 @@ var
 begin
   TextList := TStringList.Create;
   try
-    Strings_SetText(TextList, s);
+    TextList.Text := S;
     Result := MessageChoice(Window, TextList, ButtonCaptions, ButtonChars, Alignment, Html, AllowCancel);
   finally TextList.free end;
 end;
@@ -597,7 +647,7 @@ var
 begin
   TextList := TStringList.Create;
   try
-    AddStrArrayToStrings(SArray, TextList);
+    TextList.AddStrings(SArray);
     Result := MessageChoice(Window, TextList, ButtonCaptions, ButtonChars, Alignment, Html, AllowCancel);
   finally TextList.Free end;
 end;
@@ -639,7 +689,7 @@ var
 begin
   TextList := TStringList.Create;
   try
-    Strings_SetText(TextList, S);
+    TextList.Text := S;
     Result := MessageKey(Window, TextList, Alignment, Html);
   finally TextList.free end;
 end;
@@ -652,7 +702,7 @@ var
 begin
   TextList := TStringList.Create;
   try
-    AddStrArrayToStrings(SArray, TextList);
+    TextList.AddStrings(SArray);
     Result := MessageKey(Window, TextList, Alignment, Html);
   finally TextList.Free end;
 end;
@@ -682,7 +732,7 @@ var
 begin
   TextList := TStringList.Create;
   try
-    Strings_SetText(TextList, S);
+    TextList.Text := S;
     Result := MessageKeyMouse(Window, TextList, Alignment, Html);
   finally TextList.Free end;
 end;
@@ -726,7 +776,7 @@ var
 begin
   TextList := TStringList.Create;
   try
-    Strings_SetText(TextList, S);
+    TextList.Text := S;
     Result := MessageYesNo(Window, TextList, Alignment, Html);
   finally TextList.free end;
 end;
@@ -739,7 +789,7 @@ var
 begin
   TextList := TStringList.Create;
   try
-    AddStrArrayToStrings(SArray, TextList);
+    TextList.AddStrings(SArray);
     Result := MessageYesNo(Window, TextList, Alignment, Html);
   finally TextList.Free end;
 end;
@@ -843,7 +893,7 @@ begin
     Value := ValueExtended;
 end;
 
-{$ifndef EXTENDED_EQUALS_DOUBLE}
+{$if (not defined(FPC)) or (not defined(EXTENDED_EQUALS_DOUBLE))}
 function MessageInputQuery(Window: TCastleWindow; const Title: string;
   var Value: Double; const ValueAsString: string;
   const Alignment: THorizontalPosition;

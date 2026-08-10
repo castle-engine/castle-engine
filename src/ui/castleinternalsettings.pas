@@ -232,7 +232,7 @@ type
     NewFontAntiAliased: Boolean;
     AllSizesAtLoadStr: String;
     AllSizesAtLoad: TDynIntegerArray;
-    UnicodeCharList: TUnicodeCharList;
+    UnicodeCharList: TUnicodeCharSet;
     RawString: String;
     S: String;
     StringList: TCastleStringList;
@@ -244,7 +244,7 @@ type
       NewFontAntiAliased := FontElement.AttributeBooleanDef('anti_aliased', true);
 
       { Load additional character list for the font }
-      UnicodeCharList := TUnicodeCharList.Create;
+      UnicodeCharList := TUnicodeCharSet.Create;
       { providing only_sample_text="true" will force loading only characters
         explicitly specified, e.g. by sample_text="..." field or other means }
       if not FontElement.AttributeBooleanDef('only_sample_text', false) then

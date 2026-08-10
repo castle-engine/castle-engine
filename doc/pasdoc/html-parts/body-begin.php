@@ -6,7 +6,7 @@ require_once 'cge-www-configure.php';
    we're the page 'reference' under 'documentation'. */
 global $page_basename;
 $page_basename = 'reference';
-echo_castle_header_suffix(array('documentation', $page_basename), false);
+echo_shared_body_begin(array('documentation', $page_basename), false);
 ?>
 
 <div class="pasdoc-container">

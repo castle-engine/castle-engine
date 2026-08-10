@@ -20,7 +20,12 @@ interface
 
 uses Classes,
   CastleUtils, CastleStringUtils,
-  ToolProject;
+  ToolCompile, ToolManifest, ToolProject;
+
+{ Compile macOS universal binary with x86_84 and aarch64 platforms). }
+procedure CompileMacOS(const Compiler: TCompiler;
+  const WorkingDirectory, CompileFile: string;
+  const CompilerOptions: TCompilerOptions);
 
 { Create AppBundle to run the project in castle-engine-output.
   This is the only reliable way to run GUI applications on macOS.
@@ -46,11 +51,94 @@ procedure CreateMacAppBundle(const Project: TCastleProject; const BundleParenPat
   be like 'foo.zip'). }
 procedure ZipMacAppBundle(const Project: TCastleProject; const BundleParenPath, PackageFileName: String);
 
+{$ifdef DARWIN}
+
+{ Query for macOS SDK path (xcrun --show-sdk-path).
+  Empty if failed. }
+function MacOsSdkPath: String;
+
+{ Query for Xcode path (xcode-select --print-path).
+  Empty if failed. }
+function MacOsXcodePath: String;
+
+{ Query for macOS SDK version (xcrun --show-sdk-version).
+  Returns @false is failed. }
+function MacOsSdkVersion(out Major, Minor: Cardinal): Boolean;
+
+{$endif}
+
 implementation
 
 uses {$ifdef UNIX} BaseUnix, {$endif} SysUtils,
   CastleFilesUtils, CastleLog, CastleImages, CastleFindFiles,
-  ToolArchitectures, ToolCommonUtils, ToolUtils, ToolEmbeddedImages;
+  CastleInternalArchitectures, CastleInternalProcess,
+  ToolCommonUtils, ToolUtils, ToolEmbeddedImages, ToolProcessRun;
+
+procedure CompileMacOS(const Compiler: TCompiler;
+  const WorkingDirectory, CompileFile: string;
+  const CompilerOptions: TCompilerOptions);
+var
+  LinkRes, ArchIntelBinary, ArchArmBinary, OutputBinary: string;
+begin
+  { We need to set the env.variable MACOSX_DEPLOYMENT_TARGET for x86_64 platform
+    for FPC to at least 10.9 in order to pass Apple Notarization. }
+  //{$ifdef UNIX}SetEnvironmentVariable('MACOSX_DEPLOYMENT_TARGET', '10.9.0');{$endif}
+  CompilerOptions.OverrideEnvironmentName := 'MACOSX_DEPLOYMENT_TARGET';
+  CompilerOptions.OverrideEnvironmentValue := '10.9.0';
+
+  try
+    CompilerOptions.CPU := x86_64;
+    Compile(Compiler, WorkingDirectory, CompileFile, CompilerOptions);
+  except
+    { Enhance the exception message and reraise, we cannot make universal binary
+      with all CPU architectures if x86_64 slice fails. }
+    on E: Exception do
+    begin
+      E.Message := 'Fatal error when compiling x86_64 slice: ' + E.Message;
+      raise;
+    end;
+  end;
+
+  CompilerOptions.OverrideEnvironmentName := '';
+  CompilerOptions.OverrideEnvironmentValue := '';
+
+  // Get the output binary, rename it to include architecture.
+  //WriteLn('OutputBinary = ' + CompilerOptions.OutputBinary);
+  LinkRes := CompilerOptions.LinkerOutputFile;
+  if LinkRes = '' then
+    raise Exception.Create('Error extracting linker output binary name for x86_64 slice.');
+  OutputBinary := LinkRes;
+  ArchIntelBinary := LinkRes + '.x86_64';
+  CheckRenameFile(LinkRes, ArchIntelBinary);
+
+  //--------------
+  // Same for aarch64, not need to change the environment variables here.
+  try
+    CompilerOptions.CPU := aarch64;
+    Compile(Compiler, WorkingDirectory, CompileFile, CompilerOptions);
+  except
+    { Enhance the exception message and reraise, we cannot make universal binary
+      with all CPU architectures if aarch64 slice fails. }
+    on E: Exception do
+    begin
+      E.Message := 'Fatal error when compiling aarch64 slice: ' + E.Message;
+      raise;
+    end;
+  end;
+
+  LinkRes := CompilerOptions.LinkerOutputFile;
+  if LinkRes = '' then
+    raise Exception.Create('Error extracting linker output binary name for arm64 slice.');
+  ArchArmBinary := LinkRes + '.aarch64';
+  CheckRenameFile(LinkRes, ArchArmBinary);
+
+  //--------------
+  // Glue both slices together and delete compiled binaries for each architecture
+  ExecuteCommandSimple('lipo', [ArchIntelBinary, ArchArmBinary, '-output', OutputBinary, '-create']);
+
+  CheckDeleteFile(ArchIntelBinary);
+  CheckDeleteFile(ArchArmBinary);
+end;
 
 procedure SaveResized(const Image: TCastleImage; const Size: Integer; const OutputFileName: string);
 var
@@ -96,7 +184,7 @@ begin
   SaveResized(Image,  512, IconsetDir + PathDelim + 'icon_512x512.png');
   SaveResized(Image, 1024, IconsetDir + PathDelim + 'icon_512x512@2x.png');
 
-  RunCommandSimple(TempPath, 'iconutil', ['-c', 'icns', Project.Name + '.iconset']);
+  ExecuteCommandSimple(TempPath, 'iconutil', ['-c', 'icns', Project.Name + '.iconset']);
 
   Result := TempPath + Project.Name + '.icns';
 end;
@@ -183,7 +271,7 @@ begin
   { Check Info.plist correctness, following https://wiki.freepascal.org/macOS_property_list_files.
     See https://www.unix.com/man-page/osx/1/plutil/ for command-line options:
     -s means "Don't print anything on success." }
-  RunCommandSimple('plutil', ['-s', OutputBundlePath + 'Contents' + PathDelim + 'Info.plist']);
+  ExecuteCommandSimple('plutil', ['-s', OutputBundlePath + 'Contents' + PathDelim + 'Info.plist']);
 
   OutputBundleExePath := OutputBundlePath +
     'Contents' + PathDelim + 'MacOS' + PathDelim;
@@ -205,11 +293,21 @@ begin
       CopyOrSymlinkFileAlongsideExe(DynLibInfo.Name, OutputBundleExePath);
   finally FreeAndNil(DynLibs) end;
 
-  { Necessary to test applications with Steam integration on macOS.
+  (*Necessary to test applications with Steam integration on macOS.
     TODO: This should not be hardcoded in the build tool, we need a way to
-    specify this in the project file. }
-  if FileExists(Project.Path + 'steam_appid.txt') then
-    CopyOrSymlinkFileAlongsideExe('steam_appid.txt', OutputBundleExePath);
+    specify this in the project file.
+    TODO: Temporarily commented out, we cannot place the txt file alongside
+    the exe, as then signing app bundle with
+
+      codesign -s "$APPLE_IDENTITY" --timestamp -o runtime "${BUNDLE}"
+
+    fails with
+
+      .../castle-editor.app: code object is not signed at all
+      In subcomponent: .../castle-editor.app/Contents/MacOS/steam_appid.txt
+  *)
+  // if FileExists(Project.Path + 'steam_appid.txt') then
+  //   CopyOrSymlinkFileAlongsideExe('steam_appid.txt', OutputBundleExePath);
 
   IconIcns := Project.Icons.FindExtension(['.icns']);
   if IconIcns <> '' then
@@ -251,13 +349,131 @@ end;
 
 procedure ZipMacAppBundle(const Project: TCastleProject; const BundleParenPath, PackageFileName: String);
 begin
-  //RunCommandSimple(BundleParenPath, 'zip', ['-q', '-r', PackageFileName, Project.Caption + '.app']);
+  //ExecuteCommandSimple(BundleParenPath, 'zip', ['-q', '-r', PackageFileName, Project.Caption + '.app']);
   // Better use internal zip, that doesn't require any tool installed:
-  ZipDirectory(
+  ZipDirectoryTool(
     CombinePaths(BundleParenPath, PackageFileName),
     CombinePaths(BundleParenPath, Project.Caption + '.app'));
 
   Writeln(Format('Packed to "%s"', [PackageFileName]));
 end;
+
+{$ifdef DARWIN}
+
+function MacOsSdkPath: String;
+var
+  ToolExe: String;
+  ExitStatus: Integer;
+begin
+  ToolExe := FindExe('xcrun');
+  if ToolExe = '' then
+  begin
+    WritelnWarning('Cannot run "xcrun" to query macOS SDK path. Is Xcode with command-line utilities installed?');
+    Exit('');
+  end;
+
+  ExecuteCommandCapture(GetCurrentDir, ToolExe, ['--show-sdk-path'], Result, ExitStatus);
+  if ExitStatus <> 0 then
+  begin
+    WritelnWarning('Running "xcrun --show-sdk-path" failed, exit status %d.', [
+      ExitStatus
+    ]);
+    Exit('');
+  end;
+
+  Result := Trim(Result);
+end;
+
+function MacOsXcodePath: String;
+var
+  ToolExe: String;
+  ExitStatus: Integer;
+begin
+  ToolExe := FindExe('xcode-select');
+  if ToolExe = '' then
+  begin
+    WritelnWarning('Cannot run "xcode-select" to query Xcode path. Is Xcode with command-line utilities installed?');
+    Exit('');
+  end;
+
+  ExecuteCommandCapture(GetCurrentDir, ToolExe, ['--print-path'], Result, ExitStatus);
+  if ExitStatus <> 0 then
+  begin
+    WritelnWarning('Running "xcode-select --print-path" failed, exit status %d.', [
+      ExitStatus
+    ]);
+    Exit('');
+  end;
+
+  Result := Trim(Result);
+end;
+
+function MacOsSdkVersion(out Major, Minor: Cardinal): Boolean;
+
+  procedure ParseVersion(const S: String; out Major, Minor, Release: Cardinal);
+  var
+    Token: String;
+    SeekPos: Integer;
+  begin
+    SeekPos := 1;
+
+    Token := NextToken(S, SeekPos, ['.']);
+    if Token = '' then
+      raise Exception.CreateFmt('Failed to query version from "xcrun --show-sdk-version" output: no major number in "%s"', [S]);
+    Major := StrToInt(Token);
+
+    Token := NextToken(S, SeekPos, ['.']);
+    if Token = '' then
+      raise Exception.CreateFmt('Failed to query version from "xcrun --show-sdk-version" output: no minor number in "%s"', [S]);
+    Minor := StrToInt(Token);
+
+    Token := NextToken(S, SeekPos, ['.']);
+    if Token = '' then
+    begin
+      // Do not warn about this, right now macOS SDK version numbers don't have release number.
+      Release := 0;
+    end else
+      Release := StrToInt(Token);
+  end;
+
+var
+  ToolExe: String;
+  ExitStatus: Integer;
+  VersionStr: String;
+  // for now, we ignore the release number from ParseVersion,
+  // macOS SDK version numbers don't have release number.
+  IgnoredRelease: Cardinal;
+begin
+  ToolExe := FindExe('xcrun');
+  if ToolExe = '' then
+  begin
+    WritelnWarning('Cannot run "xcrun" to query macOS SDK version. Is Xcode with command-line utilities installed?');
+    Exit(false);
+  end;
+  ExecuteCommandCapture(GetCurrentDir, ToolExe, ['--show-sdk-version'], VersionStr, ExitStatus);
+
+  if ExitStatus <> 0 then
+  begin
+    WritelnWarning('Running "xcrun --show-sdk-version" failed, exit status %d.', [
+      ExitStatus
+    ]);
+    Exit(false);
+  end;
+
+  try
+    ParseVersion(Trim(VersionStr), Major, Minor, IgnoredRelease);
+    Result := true;
+  except
+    on E: Exception do
+    begin
+      WritelnWarning('Failed to query macOS SDK version from "xcrun --show-sdk-version" output: %s', [
+        ExceptMessage(E)
+      ]);
+      Result := false;
+    end;
+  end;
+end;
+
+{$endif DARWIN}
 
 end.

@@ -30,6 +30,8 @@ type
   published
     procedure TestUiFreesAllWhenUrlsChanged;
     procedure TestTransformFreesAllWhenUrlsChanged;
+    procedure TestUiDesignRoot;
+    procedure TestTransformDesignRoot;
   end;
 
 implementation
@@ -125,6 +127,46 @@ begin
 
     AssertVectorEquals(Vector4(0, 0, 1, 1), Cone.Color);
   finally FreeAndNil(Own) end;
+end;
+
+procedure TTestCastleDesignComponents.TestUiDesignRoot;
+var
+  UiDesign: TCastleDesign;
+begin
+  UiDesign := TCastleDesign.Create(nil);
+  try
+    AssertTrue(UiDesign.DesignRoot = nil);
+    UiDesign.Url := 'castle-data:/designs/group_with_buttons.castle-user-interface';
+    // Note about <> check:
+    // "is" below also checks that it's not nil,
+    // but additional check allows for easier diagnosis what happened in case it fails
+    AssertTrue(UiDesign.DesignRoot <> nil);
+    AssertTrue(UiDesign.DesignRoot is TCastleVerticalGroup);
+    AssertTrue(UiDesign.DesignedComponent('VerticalGroup1') = UiDesign.DesignRoot);
+    AssertTrue(UiDesign.DesignRoot.ControlsCount = 5);
+    UiDesign.Url := '';
+    AssertTrue(UiDesign.DesignRoot = nil);
+  finally FreeAndNil(UiDesign) end;
+end;
+
+procedure TTestCastleDesignComponents.TestTransformDesignRoot;
+var
+  TransformDesign: TCastleTransformDesign;
+begin
+  TransformDesign := TCastleTransformDesign.Create(nil);
+  try
+    AssertTrue(TransformDesign.DesignRoot = nil);
+    TransformDesign.Url := 'castle-data:/designs/box_with_physics.castle-transform';
+    // Note about <> check:
+    // "is" below also checks that it's not nil,
+    // but additional check allows for easier diagnosis what happened in case it fails
+    AssertTrue(TransformDesign.DesignRoot <> nil);
+    AssertTrue(TransformDesign.DesignRoot is TCastleBox);
+    AssertTrue(TransformDesign.DesignedComponent('Box1') = TransformDesign.DesignRoot);
+    AssertTrue(TransformDesign.DesignRoot.Collider is TCastleBoxCollider);
+    TransformDesign.Url := '';
+    AssertTrue(TransformDesign.DesignRoot = nil);
+  finally FreeAndNil(TransformDesign) end;
 end;
 
 initialization

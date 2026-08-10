@@ -2,7 +2,7 @@
 #
 # Uses file_to_pascal_string, which is part of PasDoc. See:
 # - PasDoc main webpage:
-#   https://github.com/pasdoc/pasdoc/wiki
+#   https://pasdoc.github.io/
 # - file_to_pascal_string trivial source code (you can just get this one file and compile it yourself):
 #   https://github.com/pasdoc/pasdoc/blob/master/source/tools/file_to_pascal_string.dpr
 #
@@ -31,8 +31,9 @@ ALL_OUTPUT := $(addsuffix .inc, \
   $(subst lighting_model_phong/,lighting_model_phong_, \
   $(subst lighting_model_physical/,lighting_model_physical_, \
   $(subst lighting_model_unlit/,lighting_model_unlit_, \
+  $(subst shader_libraries/,shader_libraries_, \
   $(subst source/,generated-pascal/, \
-  $(ALL_SOURCES))))))
+  $(ALL_SOURCES)))))))
 
 .PHONY: all
 all: $(ALL_OUTPUT)
@@ -44,6 +45,8 @@ generated-pascal/lighting_model_phong_%.inc: source/lighting_model_phong/%
 generated-pascal/lighting_model_physical_%.inc: source/lighting_model_physical/%
 	file_to_pascal_string $< $@
 generated-pascal/lighting_model_unlit_%.inc: source/lighting_model_unlit/%
+	file_to_pascal_string $< $@
+generated-pascal/shader_libraries_%.inc: source/shader_libraries/%
 	file_to_pascal_string $< $@
 
 .PHONY: clean

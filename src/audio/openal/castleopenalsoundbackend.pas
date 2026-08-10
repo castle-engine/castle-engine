@@ -1,5 +1,5 @@
 ﻿{
-  Copyright 2010-2022 Michalis Kamburelis.
+  Copyright 2010-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -46,6 +46,7 @@ type
   {$endif}
   TOpenALSoundSourceBackend = class;
   TOpenALStreamBufferBackend = class;
+  TOpenALSoundEngineBackend = class;
 
   TOpenALSoundBufferBackend = class(TSoundBufferBackendFromSoundFile)
   private
@@ -65,6 +66,10 @@ type
       HelperBufferSize = 1024 * 32; // 32kB should be enough
     var
       Buffer: TOpenALStreamBufferBackend;
+      { Available OpenAL buffers.
+        We always have StreamBuffersCount buffers created by alCreateBuffers,
+        although not all of them may be "enqueued" (see NecessaryBuffers in
+        Create) if the sound is shorter. }
       ALBuffers: array [0..StreamBuffersCount - 1] of TALuint;
       StreamedFile: TStreamedSoundFile;
       {$ifdef CASTLE_SUPPORTS_THREADING}
@@ -77,6 +82,13 @@ type
       HelperBufferPtr: Pointer;
   private
     Source: TOpenALSoundSourceBackend;
+
+    { Fill given OpenAL buffer with data.
+
+      Can only be used with ALBuffer = one of buffers enqueued to Source
+      by this instance.
+      Internally: It means that ALBuffer must be one of
+      ALBuffers[0..StreamBuffersCount - 1]. }
     function FillBuffer(const ALBuffer: TALuint): Integer;
   public
     constructor Create(const ASoundSurce: TOpenALSoundSourceBackend;
@@ -104,21 +116,63 @@ type
     FSpatial: Boolean; //< by default true, as this is OpenAL default
     FPosition, FVelocity: TVector3;
     FReferenceDistance, FMaxDistance: Single;
+
+    { When did we start playing, assuming that we play from InitialOffset = 0
+      and with Pitch = 1. That is, if we actually play from different offset
+      and with different pitch, then this is not the "real" time when
+      we started playing, it is adjusted to suit the needs of GetOffset
+      implementation that assumes current offset is
+      "(SoundEngine.CurrentTime - FPlayStartTime) * FPitch".
+
+      Used to know GetOffset on a streaming sound.
+
+      Without this, implementing GetOffset for streaming sound is much harder:
+      "alGetSource1f(ALSource, AL_SEC_OFFSET)" returns offset but only relative
+      to the current buffer.
+
+      We considered adding, to each buffer managed by TOpenALStreaming,
+      "OffsetByte" information,
+      and tracking which buffer is currently playing -- but actually
+      "tracking which buffer is currently playing" is not trivial:
+
+      TOpenALStreamFeedThread.Execute only checks
+      alGetSourcei(ALSource, AL_BUFFERS_PROCESSED, @ALBuffersProcessed)
+      from time to time. To know with certainty which buffer is currently playing,
+      we would need to check it every time we call GetOffset,
+      making GetOffset call potentially more expensive (not knowing how
+      AL_BUFFERS_PROCESSED is implemented). Moreover, we would need to synchronize
+      with thread TOpenALStreamFeedThread to avoid race conditions when working
+      on the buffer variables of TOpenALStreaming.
+
+      All in all, it's simpler to just track FPlayStartTime.
+      The WebAudio backend in CastleInternalWebAudioBackend does the same logic,
+      so we need to have this properly figured out anyway. }
+    FPlayStartTime: TFloatTime;
+
+    FPitch: Single; //< Last value set by SetPitch
+    FDoneWarningOffsetStreaming: Boolean;
+    FDoneWarningSetOffsetAL10: Boolean;
+
     function ALVersion11: Boolean;
   private
     FBuffer: TSoundBufferBackend;
     ALSource: TALuint;
     FLoop: Boolean;
 
-    { When buffer is stremed, OpenAL source looping need to be off,
+    { When buffer is streamed, OpenAL source looping need to be off,
       otherwise, one buffer will be looped. This procedure cares about that. }
     procedure AdjustALLooping;
+
+    { Obscure inherited SoundEngine, returns the same thing but typecasted
+      to TOpenALSoundEngineBackend. }
+    function SoundEngine: TOpenALSoundEngineBackend;
   public
     constructor Create(const ASoundEngine: TSoundEngineBackend);
     procedure ContextOpen; override;
     procedure ContextClose; override;
     function PlayingOrPaused: boolean; override;
-    procedure Play(const BufferChangedRecently: Boolean); override;
+    procedure Play(const BufferChangedRecently: Boolean;
+      const InitialOffset: TFloatTime); override;
     procedure Stop; override;
     procedure SetPosition(const Value: TVector3); override;
     procedure SetVelocity(const Value: TVector3); override;
@@ -145,6 +199,7 @@ type
     { ContextOpen was already called once with result @true. }
     WasAlreadyOpen: Boolean;
     WasAlreadyOpenDevice: String;
+    TimeContextOpen: TTimerResult;
 
     { Check ALC errors. Requires valid ALDevice. }
     procedure CheckALC(const Situation: string);
@@ -153,6 +208,16 @@ type
     function GetContextString(const Enum: TALCenum): String;
   private
     ALVersion11: Boolean;
+
+    { Time since this backend started working.
+
+      Since the backend isn't used at all when sound engine is paused
+      (@link(TSoundEngine.Paused)), this is "time tracked when not paused"
+      effectively, which is exactly what we need.
+
+      This is quite equivalent to WebAudio GetAudioContext.CurrentTime,
+      and used for similar purposes. }
+    function CurrentTime: TFloatTime;
   public
     procedure DetectDevices(const Devices: TSoundDeviceList); override;
     function ContextOpen(const ADevice: String; out Information, InformationSummary: String): Boolean; override;
@@ -178,11 +243,9 @@ type
   end;
 
 const
-  ALDataFormat: array [TSoundDataFormat] of TALuint = (
-    AL_FORMAT_MONO8,
-    AL_FORMAT_MONO16,
-    AL_FORMAT_STEREO8,
-    AL_FORMAT_STEREO16
+  ALDataFormat: array [{ channels } 1..2, TSoundSampleFormat] of TALuint = (
+    (AL_FORMAT_MONO8, AL_FORMAT_MONO16),
+    (AL_FORMAT_STEREO8, AL_FORMAT_STEREO16)
   );
 
 { Check and report (as warnings) OpenAL errors as often as possible.
@@ -313,18 +376,30 @@ begin
 end;
 
 function TOpenALStreaming.FillBuffer(const ALBuffer: TALuint): Integer;
-begin
-  Result := StreamedFile.Read(HelperBufferPtr^, HelperBufferSize);
-  if Result > 0 then
+
+  { Do StreamedFile.Read and use the result to fill the buffer ALBuffer.
+    If StreamedFile.Read returns 0, then this returns 0 too. }
+  function FillBufferWithoutRewind: Integer;
   begin
-    alBufferData(ALBuffer, ALDataFormat[StreamedFile.DataFormat],
-      HelperBufferPtr, Result, StreamedFile.Frequency);
-    {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alBufferData ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
-  end else
-  if Source.FLoop then
+    Result := StreamedFile.Read(HelperBufferPtr^, HelperBufferSize);
+    if Result > 0 then
+    begin
+      if not Between(StreamedFile.Channels, 1, 2) then
+        raise ESoundFileError.CreateFmt('OpenAL backend supports only 1 or 2 channels (got %d)', [
+          StreamedFile.Channels
+        ]);
+      alBufferData(ALBuffer, ALDataFormat[StreamedFile.Channels, StreamedFile.SampleFormat],
+        HelperBufferPtr, Result, Round(StreamedFile.Frequency));
+      {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alBufferData ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
+    end;
+  end;
+
+begin
+  Result := FillBufferWithoutRewind;
+  if (Result = 0) and Source.FLoop then
   begin
     StreamedFile.Rewind;
-    Result := FillBuffer(ALBuffer);
+    Result := FillBufferWithoutRewind;
   end;
 end;
 
@@ -390,8 +465,12 @@ begin
   alCreateBuffers(1, @ALBuffer);
   {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alCreateBuffers ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
   try
-    alBufferData(ALBuffer, ALDataFormat[SoundFile.DataFormat],
-      SoundFile.Data, SoundFile.DataSize, SoundFile.Frequency);
+    if not Between(SoundFile.Channels, 1, 2) then
+      raise ESoundFileError.CreateFmt('OpenAL backend supports only 1 or 2 channels (got %d)', [
+        SoundFile.Channels
+      ]);
+    alBufferData(ALBuffer, ALDataFormat[SoundFile.Channels, SoundFile.SampleFormat],
+      SoundFile.Data, SoundFile.DataSize, Round(SoundFile.Frequency));
     {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alBufferData ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
   except
     alFreeBuffer(ALBuffer);
@@ -416,11 +495,17 @@ begin
   // correspond to OpenAL defaults, https://www.openal.org/documentation/openal-1.1-specification.pdf
   FReferenceDistance := 1;
   FMaxDistance := MaxSingle;
+  FPitch := 1;
+end;
+
+function TOpenALSoundSourceBackend.SoundEngine: TOpenALSoundEngineBackend;
+begin
+  Result := (inherited SoundEngine) as TOpenALSoundEngineBackend;
 end;
 
 function TOpenALSoundSourceBackend.ALVersion11: Boolean;
 begin
-  Result := (SoundEngine as TOpenALSoundEngineBackend).ALVersion11;
+  Result := SoundEngine.ALVersion11;
 end;
 
 procedure TOpenALSoundSourceBackend.AdjustALLooping;
@@ -467,16 +552,20 @@ begin
   Result := (SourceState = AL_PLAYING) or (SourceState = AL_PAUSED);
 end;
 
-procedure TOpenALSoundSourceBackend.Play(const BufferChangedRecently: Boolean);
+procedure TOpenALSoundSourceBackend.Play(const BufferChangedRecently: Boolean;
+  const InitialOffset: TFloatTime);
 var
   CompleteBuffer: TOpenALSoundBufferBackend;
+  EffectiveInitialOffset: TFloatTime;
 begin
   // make a clear warning when trying to play stereo sound as spatial
   if FSpatial and
-     (FBuffer.DataFormat in [sfStereo8, sfStereo16]) then
+     (FBuffer.Channels > 1) then
     WritelnWarning('Stereo sound files are *never* played as spatial by OpenAL. Convert sound file "%s" to mono (e.g. by Audacity or SOX).', [
       UriDisplay(FBuffer.Url)
     ]);
+
+  EffectiveInitialOffset := 0;
 
   if FBuffer is TOpenALStreamBufferBackend then
   begin
@@ -486,6 +575,11 @@ begin
     // start feed buffers thread
     Assert(Streaming <> nil);
     Streaming.FeedBuffers;
+
+    if InitialOffset > 0 then
+      WritelnWarningOnce(FDoneWarningOffsetStreaming, 'Starting streaming sound with non-zero offset is not supported by OpenAL backend. Sound "%s" will be played from the beginning.', [
+        UriDisplay(FBuffer.Url)
+      ]);
   end else
 
   if FBuffer is TOpenALSoundBufferBackend then
@@ -530,6 +624,12 @@ begin
         Sleep(10);
     end;
 
+    if InitialOffset > 0 then
+    begin
+      EffectiveInitialOffset := InitialOffset;
+      SetOffset(InitialOffset);
+    end;
+
     alSourcePlay(ALSource);
     {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcePlay ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
   end else
@@ -537,6 +637,8 @@ begin
   // ignore FBuffer = nil which may mean that streaming sound failed to load
   if FBuffer <> nil then
     raise EInternalError.CreateFmt('Cannot play buffer class type %s', [FBuffer.ClassName]);
+
+  FPlayStartTime := SoundEngine.CurrentTime - EffectiveInitialOffset / Max(FPitch, 0.001);
 end;
 
 procedure TOpenALSoundSourceBackend.Stop;
@@ -706,8 +808,29 @@ begin
 end;
 
 procedure TOpenALSoundSourceBackend.SetPitch(const Value: Single);
+var
+  CurrentOffset, NewValue: Single;
 begin
-  alSourcef(ALSource, AL_PITCH, Value);
+  if Value <= 0 then
+    WritelnWarning('Invalid pitch value %f, should be > 0', [Value]);
+  NewValue := Max(Value, 0.001);
+
+  { Save CurrentOffset and later change FPlayStartTime because:
+
+    Our GetOffset implementation calculates offset based on elapsed time
+    and current pitch.
+    Changing pitch during playback, without updating FPlayStartTime,
+    would cause GetOffset to be wrong.
+
+    This is similar to WebAudio implementation,
+    see TCastleWebAudioSoundSourceBackend.SetPitch. }
+  CurrentOffset := GetOffset;
+
+  FPitch := NewValue;
+
+  FPlayStartTime := SoundEngine.CurrentTime - CurrentOffset / NewValue;
+
+  alSourcef(ALSource, AL_PITCH, NewValue);
   {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcef(.., AL_PITCH, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 end;
 
@@ -748,18 +871,46 @@ end;
 
 function TOpenALSoundSourceBackend.GetOffset: Single;
 begin
-  if ALVersion11 then
+  if FBuffer = nil then
+  begin
+    Result := 0;
+    WritelnWarning('TOpenALSoundSourceBackend.GetOffset called with FBuffer = nil, should not happpen');
+  end else
+  if ALVersion11 and not (FBuffer is TOpenALStreamBufferBackend) then
   begin
     Result := alGetSource1f(ALSource, AL_SEC_OFFSET);
     {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alGetSource1f(.., AL_SEC_OFFSET) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
   end else
+  if PlayingOrPaused then
+  begin
+    { Fallback, for streaming sounds and OpenAL implementations
+      without AL_SEC_OFFSET support. }
+    Result := (SoundEngine.CurrentTime - FPlayStartTime) * FPitch;
+    if FBuffer.Duration <> 0 then // secure in case sound has unknown duration
+      Result := FloatModulo(Result, FBuffer.Duration);
+  end else
+  begin
+    // streaming sound (or OpenAL < 1.1) that stopped playing
     Result := 0;
+  end;
 end;
 
 procedure TOpenALSoundSourceBackend.SetOffset(const Value: Single);
 var
   ErrorCode: TALenum;
 begin
+  { For streaming sounds, do not set AL_SEC_OFFSET as it would not
+    have a reasonable effect (would only set offset within current buffer).
+
+    Note that this should only be called on a playing sound,
+    so FBuffer should be <> nil now. }
+
+  if FBuffer is TOpenALStreamBufferBackend then // also checks FBuffer <> nil
+  begin
+    WritelnWarningOnce(FDoneWarningOffsetStreaming, 'TOpenALSoundSourceBackend.SetOffset is not supported for streaming sounds');
+    Exit;
+  end;
+
   if ALVersion11 then
   begin
     { We have to check alGetError now, because we need to catch
@@ -779,7 +930,8 @@ begin
     if ErrorCode <> AL_NO_ERROR then
       raise EALError.Create(ErrorCode,
         'OpenAL error AL_xxx at setting sound offset : ' + alGetString(ErrorCode));
-  end;
+  end else
+    WritelnWarningOnce(FDoneWarningSetOffsetAL10, 'TOpenALSoundSourceBackend.SetOffset is not supported for OpenAL < 1.1');
 end;
 
 { TOpenALSoundEngineBackend -------------------------------------------------- }
@@ -976,6 +1128,7 @@ begin
     InformationSummary := '';
     FALMajorVersion := 0;
     FALMinorVersion := 0;
+    TimeContextOpen := Timer;
 
     if not ALLibraryAvailable then
       raise EOpenALInitError.Create('OpenAL library is not available');
@@ -1068,11 +1221,11 @@ begin
   if ALDevice <> nil then
   begin
     alcCloseDevice(ALDevice);
-    { w/g specyfikacji OpenAL generuje teraz error ALC_INVALID_DEVICE jesli
-      device bylo nieprawidlowe; ale niby jak mam sprawdzic ten blad ?
-      Przeciez zeby sprawdzic alcGetError potrzebuje miec valid device w reku,
-      a po wywolaniu alcCloseDevice(device) device jest invalid (bez wzgledu
-      na czy przed wywolaniem alcCloseDevice bylo valid) }
+    { according to OpenAL specification, error ALC_INVALID_DEVICE is generated
+      if device was invalid; but how am I supposed to check this error?
+      After all, to check alcGetError I need to have valid device in hand,
+      and after calling alcCloseDevice(device) device is invalid (regardless
+      of whether before calling alcCloseDevice it was valid) }
     ALDevice := nil;
   end;
 end;
@@ -1168,6 +1321,11 @@ end;
 function TOpenALSoundEngineBackend.CreateSource: TSoundSourceBackend;
 begin
   Result := TOpenALSoundSourceBackend.Create(Self);
+end;
+
+function TOpenALSoundEngineBackend.CurrentTime: TFloatTime;
+begin
+  Result := TimeContextOpen.ElapsedTime;
 end;
 
 { globals -------------------------------------------------------------------- }

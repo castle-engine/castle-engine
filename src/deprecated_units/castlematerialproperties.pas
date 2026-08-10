@@ -13,8 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ Material and texture properties from external files (TMaterialProperty,
-  global MaterialProperties collection). }
+{ Material and texture properties from external files,
+  global MaterialProperties collection. }
 unit CastleMaterialProperties deprecated 'use CastleTextureImage unit for TextureLoadingScale, everything else from this unit was internal';
 
 interface

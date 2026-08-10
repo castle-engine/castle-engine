@@ -508,7 +508,7 @@ constructor TObject3DOBJ.Create(const Stream: TStream; const BaseUrl: String);
     end;
 
   var
-    F: TTextReader;
+    F: TCastleTextReader;
     LineTok, LineAfterMarker: string;
   begin
     { Specification doesn't say what to do when multiple matlib directives
@@ -520,7 +520,7 @@ constructor TObject3DOBJ.Create(const Stream: TStream; const BaseUrl: String);
     IsMaterial := false;
 
     try
-      F := TTextReader.Create(CombineURI(BaseUrl, URLSuffix));
+      F := TCastleTextReader.Create(CombineURI(BaseUrl, URLSuffix));
     except
       on E: Exception do
       begin
@@ -666,7 +666,7 @@ constructor TObject3DOBJ.Create(const Stream: TStream; const BaseUrl: String);
   end;
 
 var
-  F: TTextReader;
+  F: TCastleTextReader;
   LineTok, LineAfterMarker: string;
   //GroupName: string;
   UsedMaterial: TWavefrontMaterial;
@@ -678,7 +678,7 @@ begin
 
   UsedMaterial := nil;
 
-  F := TTextReader.Create(Stream, false);
+  F := TCastleTextReader.Create(Stream, false);
   try
     Coord := TCoordinateNode.Create('ObjCoordinates');
     TexCoord := TTextureCoordinateNode.Create('ObjTextureCoordinates');
@@ -731,7 +731,8 @@ end;
 
 { LoadWavefrontOBJ ----------------------------------------------------------- }
 
-function LoadWavefrontOBJ(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
+function LoadWavefrontOBJ(const Stream: TStream; const BaseUrl: String;
+  const LoadOptions: TCastleSceneLoadOptions): TX3DRootNode;
 const
   { When constructing large index arrays, we use larger Capacity
     to make them faster.
@@ -760,7 +761,7 @@ const
         Material.AmbientColor, Material.DiffuseColor);
       MatPhong.DiffuseColor := Material.DiffuseColor;
       MatPhong.SpecularColor := Material.SpecularColor;
-      MatPhong.Transparency := 1 - Material.Opacity;
+      MatPhong.Transparency := OpacityToTransparency(Material.Opacity);
       MatPhong.Shininess := Material.SpecularExponent / 128.0;
 
       MatPhong.DiffuseTexture := Material.DiffuseTexture.CreateNode(BaseUrl);
@@ -772,7 +773,7 @@ const
       MatPhysical := TPhysicalMaterialNode.Create;
       Result.Material := MatPhysical;
       MatPhysical.BaseColor := Material.DiffuseColor;
-      MatPhysical.Transparency := 1 - Material.Opacity;
+      MatPhysical.Transparency := OpacityToTransparency(Material.Opacity);
 
       MatPhysical.BaseTexture := Material.DiffuseTexture.CreateNode(BaseUrl);
       MatPhysical.NormalTexture := Material.NormalTexture.CreateNode(BaseUrl);

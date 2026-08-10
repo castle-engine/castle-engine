@@ -105,7 +105,7 @@ begin
   end;
 
   Result := TInternalReusedPixelTextureNode.Create;
-  Result.KeepExistingBegin; // never free it using ref-counting
+  Result.WaitForRelease; // never free it using ref-counting
   { although repeat=TRUE seems counter-intuitive, in fact:
     - We *can* use it, since CastleTextureFontData surrounds each glyph from
       the right and top with GlyphPadding, so we will not accidentally pick
@@ -167,11 +167,11 @@ begin
           be a child of another node in X3D graph.
           (Being a TTextNode.FontTextureNode value doesn't make it a normal child,
           i.e. TX3DNode internal child-parent references are not set.)
-          But for safety we use "nice way" with KeepExistingEnd + FreeIfUnusedAndNil. }
-        C.FontTexture.KeepExistingEnd;
-        { Note that freeing C.FontTexture will also do
+          But for safety we use "nice way" with NodeRelease.
+
+          Note that freeing C.FontTexture will also do
           C.FontTexture.InternalRendererResourceFree, and that's good. }
-        FreeIfUnusedAndNil(C.FontTexture);
+        NodeRelease(C.FontTexture);
 
         CachedFontTextures.Delete(I);
         CheckEmpty;

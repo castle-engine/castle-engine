@@ -5,6 +5,6 @@ license: https://github.com/KhronosGroup/KTX-Software/blob/master/LICENSE.md (Ap
   rgb-mipmap-reference.ktx
   rgb-reference.ktx
 
-This is produced by AMD compressonator, with max mipmaps, from texture in examples/fps_game/ :
+This is produced by AMD compressonator, with max mipmaps, from texture in fps_game_old_ai:
 
   large-stone-wall.png.ktx

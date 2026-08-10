@@ -12,6 +12,8 @@
 </array>
 <key>FacebookAppID</key>
 <string>${IOS.FACEBOOK.APP_ID}</string>
+<key>FacebookClientToken</key>
+<string>${IOS.FACEBOOK.CLIENT_TOKEN}</string>
 <key>FacebookDisplayName</key>
 <string>${IOS.FACEBOOK.APP_TITLE}</string>
 <key>LSApplicationQueriesSchemes</key>

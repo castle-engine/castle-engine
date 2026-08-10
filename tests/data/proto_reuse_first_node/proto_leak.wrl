@@ -1,0 +1,13 @@
+#VRML V2.0 utf8
+
+PROTO SomeProto [ ] {
+  DEF ils Group {
+  }
+
+  Script {
+    field SFNode ils USE ils
+  }
+}
+
+SomeProto {
+}

@@ -81,7 +81,6 @@
    <addaction name="actionPrevView"/>
    <addaction name="actionNextView"/>
   </widget>
-  <widget class="QStatusBar" name="statusBar"/>
   <action name="actionClose">
    <property name="text">
     <string>Quit</string>

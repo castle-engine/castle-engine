@@ -8,6 +8,7 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 <project name="simplest_manifest_test"
   game_units="GameInitialize"
   qualified_name="io.castleengine.simplest.manifest.test"
+  caption="Test Auto-Generation of DPR"
 >
   <compiler_options>
     <search_paths>

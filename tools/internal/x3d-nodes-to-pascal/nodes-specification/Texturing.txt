@@ -21,18 +21,21 @@ X3DSingleTextureNode : X3DTextureNode {
   MFNode     []   effects          []
     range: Effect
     change: chEverything
+    is-extension: true
 
   # X3DOM EXTENSIONS (https://doc.x3dom.org/author/Texturing/X3DTextureNode.html):
   # (note: X3DOM spec doesn't say if it's inputOutput or initializeOnly, below is just a guess)
   SFString   []   crossOrigin  ""
     not-slim
     change: chNone
+    is-extension: true
     doc: X3DOM extension, not implemented in CGE.
 
   SFString   []   alphaChannel     "AUTO"
     range: ["AUTO"|"NONE"|"TEST"|"BLENDING"]
     enumerated-type: TAutoAlphaChannel AlphaToString acAuto
     change: chVisibleVRML1State
+    is-extension: true
 }
 
 X3DSingleTextureTransformNode : X3DTextureTransformNode {
@@ -59,8 +62,13 @@ ImageTexture : X3DTexture2DNode, X3DUrlObject {
   MFString [in,out] url               []
     range: [URI]
     change: chTextureImage
+
   SFBool   []       flipVertically    FALSE
     change: chTextureImage
+    is-extension: true
+    doc: """
+      Flip the texture contents vertically. Allows to use unchanged WebGL/glTF texture coordinates, where (0,0) is top-left, with this texture. See @url(https://castle-engine.io/x3d_implementation_texturing_extensions.php#section_flip_vertically flipVertically docs) for more details.
+    """
 }
 
 MovieTexture : X3DTexture2DNode, X3DSoundSourceNode, X3DUrlObject {
@@ -82,8 +90,14 @@ MovieTexture : X3DTexture2DNode, X3DSoundSourceNode, X3DUrlObject {
   MFString [in,out] url               []
     range: [URI]
     change: chTextureImage
+
   SFBool   []       flipVertically    FALSE
     change: chTextureImage
+    is-extension: true
+    doc: """
+      Flip the texture contents vertically. Allows to use unchanged WebGL/glTF texture coordinates, where (0,0) is top-left, with this texture. See @url(https://castle-engine.io/x3d_implementation_texturing_extensions.php#section_flip_vertically flipVertically docs) for more details.
+    """
+
   SFTime   [out]    duration_changed
   SFTime   [out]    elapsedTime
   SFBool   [out]    isActive
@@ -97,6 +111,15 @@ MultiTexture : X3DTextureNode {
   SFColor  [in,out] color    1 1 1
     range: [0,1]
     change: chTextureRendererProperties
+    before-public-interface: """
+      { Avoid Delphi warning that this hides ancestor Color.
+        We don't care about it now -- because ancestor's Color
+        method is not very useful on TMultiTextureNode anyway. }
+      {$warnings off}
+    """
+    after-public-interface: """
+      {$warnings on}
+    """
   MFString [in,out] function []
     change: chTextureRendererProperties
   MFString [in,out] mode     []
@@ -191,6 +214,7 @@ TextureProperties : X3DNode {
   # CASTLE GAME ENGINE EXTENSIONS:
   SFBool     []            guiTexture  FALSE
     change: chTexturePropertiesNode
+    is-extension: true
 }
 
 TextureTransform : X3DSingleTextureTransformNode {

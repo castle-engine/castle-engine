@@ -8,5 +8,6 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 <project name="simple_video_editor"
   standalone_source="simple_video_editor.dpr"
   qualified_name="io.castleengine.simple.video.editor"
+  caption="Simple Video Editor"
 >
 </project>

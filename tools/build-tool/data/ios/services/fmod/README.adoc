@@ -26,6 +26,6 @@ The `library_path` parameter is the location of the FMOD for iOS library. You ne
 
 Use `CastleFMODSoundBackend` unit and call `UseFMODSoundBackend`.
 
-That's it, now all our sound API (see https://castle-engine.io/manual_sound.php[manual about sound]) uses FMOD under the hood.
+That's it, now all our sound API (see https://castle-engine.io/sound[manual about sound]) uses FMOD under the hood.
 
 See https://castle-engine.io/fmod[FMOD docs] for more details.

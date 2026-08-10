@@ -1,5 +1,5 @@
 {
-  Copyright 1999-2023 Michalis Kamburelis.
+  Copyright 1999-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -75,8 +75,9 @@ interface
 uses
   {$ifdef MSWINDOWS} Windows, {$ifndef FPC} ShlObj, {$endif} {$endif}
   {$ifdef UNIX} {$ifdef FPC} BaseUnix, Unix, Dl, {$else} Posix.Unistd, {$endif} {$endif}
-  {$ifndef FPC} Classes, {$endif}
-  Variants, SysUtils, Math, Generics.Collections;
+  Classes,
+  Variants, SysUtils, Math,
+  Generics.Collections, Generics.Defaults;
 
 {$define read_interface}
 
@@ -86,8 +87,11 @@ uses
 {$I castleutils_delphi_compatibility.inc}
 {$I castleutils_platform.inc}
 {$I castleutils_miscella.inc}
+{$I castleutils_fast_list.inc}
 {$I castleutils_struct_list.inc}
+{$I castleutils_method_list.inc}
 {$I castleutils_primitive_lists.inc}
+{$I castleutils_naive_dictionary.inc}
 {$I castleutils_program_exit.inc}
 {$ifdef UNIX}      {$I castleutils_os_specific_unix.inc}    {$endif}
 {$ifdef MSWINDOWS} {$I castleutils_os_specific_windows.inc} {$endif}
@@ -106,8 +110,11 @@ implementation
 {$I castleutils_delphi_compatibility.inc}
 {$I castleutils_platform.inc}
 {$I castleutils_miscella.inc}
+{$I castleutils_fast_list.inc}
 {$I castleutils_struct_list.inc}
+{$I castleutils_method_list.inc}
 {$I castleutils_primitive_lists.inc}
+{$I castleutils_naive_dictionary.inc}
 {$I castleutils_program_exit.inc}
 {$I castleutils_math.inc}
 {$I castleutils_filenames.inc}
@@ -120,6 +127,7 @@ implementation
   see ../packages/README. }
 {$ifdef UNIX}      {$I castleutils_os_specific_unix.inc}    {$endif}
 {$ifdef MSWINDOWS} {$I castleutils_os_specific_windows.inc} {$endif}
+{$ifdef WASI}      {$I castleutils_os_specific_wasi.inc}    {$endif}
 
 {$I castleutils_pointers.inc}
 {$I castleutils_read_write.inc}

@@ -207,9 +207,13 @@
     constructor Create;
     destructor Destroy; override;
     property X3DName: String read FX3DName write FX3DName;
-    {$ifdef FPC}
-    property Name: String read FX3DName write FX3DName; deprecated 'use X3DName';
-    {$endif}
+
+    { List of interface declarations that are like "public API"
+      of this prototype. They are used to initialize fields of prototype
+      instances.
+      The TX3DInterfaceDeclaration instances on this list
+      have @link(TX3DInterfaceDeclaration.ParentNode) = @nil,
+      because they are not directly contained in any node.}
     property InterfaceDeclarations: TX3DInterfaceDeclarationList
       read FInterfaceDeclarations;
 
@@ -224,6 +228,8 @@
       For now, used by EXTERNPROTO urls.
       See TX3DNode.BaseUrl for more comments. }
     property BaseUrl: String read FBaseUrl write FBaseUrl;
+
+    function DeepCopy(const CopyState: TX3DNodeDeepCopyState): TX3DPrototypeBase; virtual; abstract;
   end;
 
   TX3DPrototypeBaseList = class({$ifdef FPC}specialize{$endif} TObjectList<TX3DPrototypeBase>);
@@ -238,6 +244,7 @@
     procedure Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames); override;
     procedure ParseXML(Element: TDOMElement; Reader: TX3DReaderNames); override;
     procedure SaveToStream(Writer: TX3DWriter); override;
+    function DeepCopy(const CopyState: TX3DNodeDeepCopyState): TX3DPrototypeBase; override;
 
     { Prototype contents: all nodes, prototypes, routes defined inside. }
     property Node: TX3DRootNode read FNode;
@@ -268,6 +275,7 @@
     procedure Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames); override;
     procedure ParseXML(Element: TDOMElement; Reader: TX3DReaderNames); override;
     procedure SaveToStream(Writer: TX3DWriter); override;
+    function DeepCopy(const CopyState: TX3DNodeDeepCopyState): TX3DPrototypeBase; override;
 
     property ReferencedPrototype: TX3DPrototype read FReferencedPrototype;
     property ReferencedClass: TX3DNodeClass read FReferencedClass;
@@ -639,6 +647,88 @@ begin
   end;
 end;
 
+{ This is an (attempt! doesn't work!) at cleaner solution for
+  the problems we have when
+
+  - the 1st node of ProtoBody
+    (which is Result in TX3DPrototypeNode.Instantiate,
+    passed as TargetOfWeakLink now)
+
+  - ... is referenced another time (by DEF/USE) in the subsequent nodes
+    (which are NewPrototypeInstanceHelpers in TX3DPrototypeNode.Instantiate,
+    passed as ScanNodes now).
+
+  This creates:
+
+  - Loop during enumeration because we would set PrototypeInstanceHelpers <> nil
+    to some subsequent node.
+    We already have code to break these loops, grep WithinDirectEnumerateAll.
+    If the solution below would work, we would remove WithinDirectEnumerateAll
+    hack.
+
+  - Also loop in reference counting of nodes, so we will memory leaks.
+    This cannot be solved by the WithinDirectEnumerateAll hack.
+    This is reproducible by TTestX3DNodes.TestProtoReuseFirstNode .
+
+  This attempts to solve this by setting appropriate links to be "weak".
+  At least SFNodes refering to the TargetOfWeakLink.
+
+  TODO:
+
+  - This would still not be a complete solution - MFNode would also need
+    something like "WeakLink" (independent for all possible items)
+    to also mark all referenced to TargetOfWeakLink with weak link.
+
+  - But testing shows this does not work for SFNode anyway.
+    It should at least solve memory leaks in
+    proto_reuse_first_node/proto_leak.wrl , but it does not. }
+{.$define CASTLE_PROTO_WEAK_LINKER}
+{$ifdef CASTLE_PROTO_WEAK_LINKER}
+type
+  TMakeReferencesWeakUtility = class
+    TargetOfWeakLink: TX3DNode;
+    function EnumNodes(Node, Child: TX3DNode): Pointer;
+  end;
+
+function TMakeReferencesWeakUtility.EnumNodes(Node, Child: TX3DNode): Pointer;
+var
+  I: Integer;
+  SF: TSFNode;
+begin
+  Result := nil;
+  if Child.FFieldsSFNode <> nil then
+    for I := 0 to Child.FFieldsSFNode.Count - 1 do
+    begin
+      SF := TSFNode(Child.FFieldsSFNode[I]);
+      if SF.Value = TargetOfWeakLink then
+      begin
+        TargetOfWeakLink.KeepExistingBegin;
+        { Set SF.WeakLink to true.
+          To do this, we need to temporarily make SF.Value = nil.
+          To do this in turn, we need to make sure we don't free TargetOfWeakLink
+          by accident. }
+        SF.Value := nil;
+        SF.WeakLink := true;
+        SF.Value := TargetOfWeakLink;
+        TargetOfWeakLink.KeepExistingEnd;
+      end;
+    end;
+end;
+
+{ Make all TSFNode links inside ScanNodes to TargetOfWeakLink have
+  WeakLink = @true. }
+procedure MakeReferencesWeak(const ScanNodes, TargetOfWeakLink: TX3DNode);
+var
+  Utility: TMakeReferencesWeakUtility;
+begin
+  Utility := TMakeReferencesWeakUtility.Create;
+  try
+    Utility.TargetOfWeakLink := TargetOfWeakLink;
+    ScanNodes.DirectEnumerateAll({$ifdef FPC}@{$endif} Utility.EnumNodes);
+  finally FreeAndNil(Utility) end;
+end;
+{$endif}
+
 function TX3DPrototypeNode.Instantiate: TX3DNode;
 
   procedure InstantiateNonExternalPrototype(Proto: TX3DPrototype);
@@ -696,6 +786,10 @@ function TX3DPrototypeNode.Instantiate: TX3DNode;
     { NewPrototypeInstanceHelpers is used to keep the rest of
       NodeCopy.FdChildren[1...] that should accompany this node. }
     NewPrototypeInstanceHelpers := NodeCopy;
+
+    {$ifdef CASTLE_PROTO_WEAK_LINKER}
+    MakeReferencesWeak(NewPrototypeInstanceHelpers, Result);
+    {$endif}
 
     Result.X3DName := X3DName;
 
@@ -939,6 +1033,9 @@ begin
   try
     Reader.Prototypes.Assign(OldReader.Prototypes);
     FNode := ParseStatements(E, false, nil, Reader);
+    { Uncomment this to debug some issues, so that TX3DRootNode instances
+      created by PROTO expansion have useful names. }
+    // FNode.X3DName := 'ProtoBody_from_PROTO_' + NewName;
   finally
     FreeAndNil(Reader);
     Reader := OldReader;
@@ -1011,6 +1108,29 @@ begin
     Writer.DecIndent;
     Writer.WritelnIndent('</ProtoDeclare>');
   end;
+end;
+
+function TX3DPrototype.DeepCopy(const CopyState: TX3DNodeDeepCopyState): TX3DPrototypeBase;
+var
+  NewCopy: TX3DPrototype;
+  I: Integer;
+  IDecl: TX3DInterfaceDeclaration;
+begin
+  NewCopy := TX3DPrototype.Create;
+  Result := NewCopy;
+  Result.FX3DName := FX3DName;
+  Result.FBaseUrl := FBaseUrl;
+
+  if InterfaceDeclarations <> nil then
+  begin
+    for I := 0 to InterfaceDeclarations.Count - 1 do
+    begin
+      IDecl := InterfaceDeclarations[I].DeepCopy(nil, CopyState);
+      Result.InterfaceDeclarations.Add(IDecl);
+    end;
+  end;
+
+  NewCopy.FNode := CopyState.DeepCopy(FNode) as TX3DRootNode;
 end;
 
 { TX3DExternalPrototype ----------------------------------------------------- }
@@ -1098,6 +1218,30 @@ begin
     else raise EInternalError.Create('TX3DExternalPrototype.SaveToStream Encoding?');
     {$endif}
   end;
+end;
+
+function TX3DExternalPrototype.DeepCopy(const CopyState: TX3DNodeDeepCopyState): TX3DPrototypeBase;
+var
+  NewCopy: TX3DExternalPrototype;
+  I: Integer;
+  IDecl: TX3DInterfaceDeclaration;
+begin
+  NewCopy := TX3DExternalPrototype.Create;
+  Result := NewCopy;
+  Result.FX3DName:= FX3DName;
+  Result.FBaseUrl:= FBaseUrl;
+
+  if InterfaceDeclarations <> nil then
+  begin
+    for I := 0 to InterfaceDeclarations.Count - 1 do
+    begin
+      IDecl := InterfaceDeclarations[I].DeepCopy(nil, CopyState);
+      Result.InterfaceDeclarations.Add(IDecl);
+    end;
+  end;
+
+  { Note: This calls TMFString.SetItems which copies the list contents. }
+  NewCopy.FUrlList.Items := FUrlList.Items;
 end;
 
 procedure TX3DExternalPrototype.LoadReferenced(const Version: TX3DVersion);

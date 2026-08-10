@@ -27,7 +27,6 @@
     function PositionField: TSFVec3f; virtual; abstract;
   public
     constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
-    function TransformationChange: TNodeTransformationChange; override;
 
     { Position of the viewpoint. }
     property Position: TVector3 read GetPosition write SetPosition;
@@ -107,7 +106,6 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
-    function TransformationChange: TNodeTransformationChange; override;
 
     { Change transformation to reflect current camera. @exclude }
     procedure InternalCameraChanged(const ACameraVectors: TViewVectors);
@@ -158,7 +156,6 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
-    function TransformationChange: TNodeTransformationChange; override;
   {$I auto_generated_node_helpers/x3dnodes_lod.inc}
   end;
 
@@ -169,7 +166,6 @@
       const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
   public
     constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
-
   {$I auto_generated_node_helpers/x3dnodes_navigationinfo.inc}
   end;
 
@@ -221,7 +217,8 @@
     { Calculate final field of view value, taking into account aspect ratio.
       The idea is that OrthoViewpoint.fieldOfView specifies the minimal
       extents. Depending on your window aspect ratio, you may need to make
-      one extent (vertical or horizontal) larger to adjust. }
+      one extent (vertical or horizontal) larger to adjust.
+      @exclude }
     class function InternalFieldOfView(
       const AFieldOfView: TFloatRectangle;
       const ViewportWidth, ViewportHeight: Single): TFloatRectangle;
@@ -243,7 +240,8 @@
 
       In particular when FieldOfViewAxis = faSmallest then we perform
       the calculation requested by X3D specification about
-      ViewpointNode fieldOfView behavior. }
+      ViewpointNode fieldOfView behavior.
+      @exclude }
     class function InternalFieldOfView(FieldOfView: Single;
       const FieldOfViewAxis: TFieldOfViewAxis;
       const ViewportWidth, ViewportHeight: Single): TVector2;
@@ -354,11 +352,6 @@ procedure TAbstractViewpointNode.EventSet_BindReceive(
 begin
   if Scene <> nil then
     Scene.GetViewpointStack.Set_Bind(Self, (Value as TSFBool).Value);
-end;
-
-function TAbstractViewpointNode.TransformationChange: TNodeTransformationChange;
-begin
-  Result := ntcViewpoint;
 end;
 
 function TAbstractViewpointNode.SmartDescription: string;
@@ -507,11 +500,6 @@ begin
   FCameraVectors := ACameraVectors;
 end;
 
-function TBillboardNode.TransformationChange: TNodeTransformationChange;
-begin
-  Result := ntcTransform;
-end;
-
 { TCollisionNode ------------------------------------------------------------- }
 
 constructor TCollisionNode.Create(const AX3DName, ABaseUrl: String);
@@ -626,11 +614,6 @@ begin
     Result := Func(Self, FdChildren[0]);
     if Result <> nil then Exit;
   end;
-end;
-
-function TLODNode.TransformationChange: TNodeTransformationChange;
-begin
-  Result := ntcLOD;
 end;
 
 { TNavigationInfoNode -------------------------------------------------------- }

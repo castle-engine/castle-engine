@@ -114,6 +114,13 @@ begin
 end;
 
 procedure TRecentFiles.Add(const Url: String);
+
+  procedure Strings_Trim(Strings: TStrings; MaxCount: Cardinal);
+  begin
+    while Strings.Count > MaxCount do
+      Strings.Delete(Strings.Count - 1);
+  end;
+
 var
   F: string;
   Index: Integer;

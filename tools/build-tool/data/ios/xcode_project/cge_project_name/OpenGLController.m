@@ -1,5 +1,5 @@
 /*
-  Copyright 2013-2017 Jan Adamec, Michalis Kamburelis.
+  Copyright 2013-2024 Jan Adamec, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -29,10 +29,12 @@ typedef struct TouchInfo {
 
 @interface OpenGLController ()
 {
+    bool m_bInitialized;
     CGFloat m_fScale;
     TouchInfo m_touches[MAX_TOUCHES];
     int m_currentViewWidth;
     int m_currentViewHeight;
+    UIEdgeInsets m_currentSafeAreaBorders;
 }
 
 @property (strong, nonatomic) EAGLContext *context;
@@ -46,28 +48,14 @@ typedef struct TouchInfo {
 {
     [super viewDidLoad];
 
+    m_bInitialized = false;
+
     // Try to initialize OpenGLES 3, fallback on version 2
     // (following https://developer.apple.com/library/archive/documentation/3DDrawing/Conceptual/OpenGLES_ProgrammingGuide/WorkingwithOpenGLESContexts/WorkingwithOpenGLESContexts.html )
-    /*
     EAGLContext *context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3];
     if (context == nil) {
         context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
     }
-    */
-    /* TODO: OpenGLES 3 commented out for now.
-       It breaks Unholy rendering of "evil plane".
-       Looks like on iOS, something in OpenGLES3 is subtly broken compared to OpenGLES2,
-       maybe related to ScreenFbo which is already weird (non-zero) in OpenGLES2,
-       see
-       src/images/opengl/castleglimages_rendertotexture.inc
-       https://stackoverflow.com/questions/11617013/why-would-glbindframebuffergl-framebuffer-0-result-in-blank-screen-in-cocos2d)
-
-       Ideally we should just fix it, and work flawlessly in both OpenGLES2 and OpenGLES3 on iOS.
-
-       Eventually we can add a flag, like IOS_ENABLE_ES3, to make it optional decision
-       per-application.
-    */
-    EAGLContext *context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
 
     self.context = context;
 
@@ -107,6 +95,14 @@ typedef struct TouchInfo {
     } else {
         view.drawableMultisample = GLKViewDrawableMultisample4X;
     }
+    self.preferredFramesPerSecond = 60;
+
+    /*
+     We call view.display to reflect the changes in drawable format properties above (buffer format gets changed after next draw, not now).
+     Without this, CGE reads DEPTH_BITS as 32 during initialization, while depth is 24 in normal Draw function.
+     Also fixes error with framebuffer incomplete.
+     */
+    [view display];
 
     // initialize input
 
@@ -117,6 +113,7 @@ typedef struct TouchInfo {
     }
 
     [self setupGL];
+    m_bInitialized = true;
 }
 
 //-----------------------------------------------------------------
@@ -149,10 +146,25 @@ typedef struct TouchInfo {
 }
 
 //-----------------------------------------------------------------
-- (int)statusBarHeight
+- (UIEdgeInsets)safeAreaBorders
 {
-    CGSize statusBarSize = [[UIApplication sharedApplication] statusBarFrame].size;
-    return MIN(statusBarSize.width, statusBarSize.height) * m_fScale;
+    UIEdgeInsets insets;
+    if (@available(iOS 11, *))
+    {
+        insets = self.view.safeAreaInsets;
+        insets.top *= m_fScale;
+        insets.right *= m_fScale;
+        insets.bottom *= m_fScale;
+        insets.left *= m_fScale;
+    }
+    else
+    {
+        CGSize statusBarSize = [[UIApplication sharedApplication] statusBarFrame].size;
+        CGFloat fStatusBarHeight = MIN(statusBarSize.width, statusBarSize.height) * m_fScale;
+        insets.top = fStatusBarHeight;
+        insets.right = insets.bottom = insets.left = 0;
+    }
+    return insets;
 }
 
 //-----------------------------------------------------------------
@@ -194,6 +206,7 @@ typedef struct TouchInfo {
 
     m_currentViewWidth  = self.view.bounds.size.width  * m_fScale;
     m_currentViewHeight = self.view.bounds.size.height * m_fScale;
+    m_currentSafeAreaBorders = [self safeAreaBorders];
 
     // Get a directory where we can write files,
     // see http://stackoverflow.com/questions/1567134/how-can-i-get-a-writable-path-on-the-iphone/1567147#1567147
@@ -201,7 +214,7 @@ typedef struct TouchInfo {
     NSString *libraryDirectory = [paths objectAtIndex:0];
 
     CGEApp_Initialize([libraryDirectory fileSystemRepresentation]);
-    CGEApp_Open(m_currentViewWidth, m_currentViewHeight, [self statusBarHeight], (unsigned)(dpi * m_fScale));
+    CGEApp_Open(m_currentViewWidth, m_currentViewHeight, (unsigned)m_currentSafeAreaBorders.top, (unsigned)m_currentSafeAreaBorders.right, (unsigned)m_currentSafeAreaBorders.bottom, (unsigned)m_currentSafeAreaBorders.left, (unsigned)(dpi * m_fScale));
 
     [self update];
 }
@@ -222,12 +235,20 @@ typedef struct TouchInfo {
     // update the viewport size, if changed
     int newViewWidth  = self.view.bounds.size.width  * m_fScale;
     int newViewHeight = self.view.bounds.size.height * m_fScale;
+    UIEdgeInsets newSafeAreaBorders = [self safeAreaBorders];
+
     if (m_currentViewWidth  != newViewWidth ||
-        m_currentViewHeight != newViewHeight)
+        m_currentViewHeight != newViewHeight ||
+        m_currentSafeAreaBorders.top != newSafeAreaBorders.top ||
+        m_currentSafeAreaBorders.right != newSafeAreaBorders.right ||
+        m_currentSafeAreaBorders.bottom != newSafeAreaBorders.bottom ||
+        m_currentSafeAreaBorders.left != newSafeAreaBorders.left)
     {
         m_currentViewWidth  = newViewWidth;
         m_currentViewHeight = newViewHeight;
-        CGEApp_Resize(newViewWidth, newViewHeight, [self statusBarHeight]);
+        m_currentSafeAreaBorders = newSafeAreaBorders;
+
+        CGEApp_Resize(newViewWidth, newViewHeight, (unsigned)newSafeAreaBorders.top, (unsigned)newSafeAreaBorders.right, (unsigned)newSafeAreaBorders.bottom, (unsigned)newSafeAreaBorders.left);
     }
 
     // send accumulated motion events (sending them right away can jam the engine)
@@ -248,6 +269,8 @@ typedef struct TouchInfo {
 //-----------------------------------------------------------------
 - (void)glkView:(GLKView *)view drawInRect:(CGRect)rect
 {
+    if (!m_bInitialized)
+        return;
     CGEApp_Render();
 }
 
@@ -311,7 +334,7 @@ typedef struct TouchInfo {
 
         CGPoint pt = [touch locationInView:self.view];
         [self RecalcTouchPosForCGE:&pt];
-        CGEApp_MouseUp(pt.x, pt.y, true, (int)nFingerIdx, false);
+        CGEApp_MouseUp(pt.x, pt.y, true, (int)nFingerIdx);
     }
 }
 

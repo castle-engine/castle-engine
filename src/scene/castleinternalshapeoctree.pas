@@ -208,11 +208,6 @@ type
       const TriangleToIgnore: PTriangle;
       const IgnoreMarginAtStart: boolean;
       const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean; override;
-
-  public
-    { For Hierarchical Occlusion Culling }
-    LastVisitedFrameId: Cardinal;
-    Visible: boolean;
   end;
 
   TShapeOctree = class(TBaseTrianglesOctree)
@@ -343,7 +338,7 @@ begin
   Result := LocalSphereCollision(Pos, Radius, TriangleToIgnore,
     TrianglesToIgnoreFunc);
   if Result <> nil then
-    Result^.UpdateWorld;
+    Result^.UpdateSceneSpace;
 end;
 
 function TShapeOctreeNode.IsSphereCollision(const Pos: TVector3;
@@ -397,7 +392,7 @@ begin
   Result := LocalSphereCollision2D(Pos, Radius, TriangleToIgnore,
     TrianglesToIgnoreFunc);
   if Result <> nil then
-    Result^.UpdateWorld;
+    Result^.UpdateSceneSpace;
 end;
 
 function TShapeOctreeNode.IsSphereCollision2D(const Pos: TVector2;
@@ -446,7 +441,7 @@ begin
   Result := LocalPointCollision2D(Point, TriangleToIgnore,
     TrianglesToIgnoreFunc);
   if Result <> nil then
-    Result^.UpdateWorld;
+    Result^.UpdateSceneSpace;
 end;
 
 function TShapeOctreeNode.IsPointCollision2D(const Point: TVector2;
@@ -496,7 +491,7 @@ begin
   Result := LocalBoxCollision(ABox, TriangleToIgnore,
     TrianglesToIgnoreFunc);
   if Result <> nil then
-    Result^.UpdateWorld;
+    Result^.UpdateSceneSpace;
 end;
 
 function TShapeOctreeNode.IsBoxCollision(const ABox: TBox3D;
@@ -624,7 +619,7 @@ begin
     Box3DContainsTolerant(Intersection, SubNode.Box) test.
     So Intersection must be transformed back already in CommonSegmentLeaf. }
   if Result <> nil then
-    Result^.UpdateWorld;
+    Result^.UpdateSceneSpace;
 end;
 
 function TShapeOctreeNode.IsSegmentCollision(
@@ -763,7 +758,7 @@ begin
     Box3DContainsTolerant(Intersection, SubNode.Box) test.
     So Intersection must be transformed back already in CommonSegmentLeaf. }
   if Result <> nil then
-    Result^.UpdateWorld;
+    Result^.UpdateSceneSpace;
 end;
 
 function TShapeOctreeNode.IsRayCollision(
@@ -791,7 +786,7 @@ constructor TShapeOctree.Create(const ALimits: TOctreeLimits;
 begin
   inherited Create(ALimits, ARootBox, TShapeOctreeNode, true);
 
-  FShapesList := TShapeList.Create(false);
+  FShapesList := TShapeList.Create;
   FShapesList.AddRange(AShapesList);
   FOwnsShapesList := true; // for now always true
 end;
@@ -833,7 +828,7 @@ var
   I: Integer;
 begin
   for I := 0 to ShapesList.Count - 1 do
-    ShapesList.Items[I].InternalOctreeTriangles.EnumerateTrianglesUpdateWorld(
+    ShapesList.Items[I].InternalOctreeTriangles.EnumerateTrianglesUpdateSceneSpace(
       EnumerateTriangleFunc);
 end;
 

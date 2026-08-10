@@ -61,10 +61,8 @@ uses SysUtils, Math, CastleVectors, CTypes;
   {$linklib pthread}
 {$endif}
 
-{$ifndef PASDOC}
 {$I castleinternalopenal_al.inc}
 {$I castleinternalopenal_alc.inc}
-{$endif}
 
 { ----------------------------------------------------------------------------
   Types to make this unit cooperate nicely with CastleVectors.
@@ -176,6 +174,11 @@ begin
   { Be sure to start with a "clean" state. }
   OpenALFinalization;
 
+  // TODO: web: OpenAL is not available on WebAssembly,
+  // no backend to play sound for now.
+  // Planned: using WebAudio (see also https://castle-engine.io/x3d_implementation_sound.php#section_x3d4 )
+
+  {$ifndef WASI}
   ALLibrary := TDynLib.Load(
     {$ifdef UNIX}
       {$ifdef DARWIN}
@@ -189,6 +192,7 @@ begin
     {$endif}
     {$ifdef MSWINDOWS} 'OpenAL32.dll' {$endif}
     , false);
+  {$endif}
 
   {$ifdef UNIX}
   if ALLibrary = nil then

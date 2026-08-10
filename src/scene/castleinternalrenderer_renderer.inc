@@ -140,6 +140,9 @@
     procedure RenderShapeLineProperties(const Shape: TX3DRendererShape;
       const RenderOptions: TCastleRenderOptions;
       const Shader: TShader);
+    procedure RenderShapePointProperties(const Shape: TX3DRendererShape;
+      const RenderOptions: TCastleRenderOptions;
+      const Shader: TShader);
     procedure RenderShapeMaterials(const Shape: TX3DRendererShape;
       const RenderOptions: TCastleRenderOptions;
       const Shader: TShader);
@@ -238,10 +241,14 @@
         i.e. the transformation that should be multiplied by the Shape
         transformation (in @code(Shape.State.Transformation.Transform))
         to get the final transformation to world.)
+
+      @param(SceneTransformDynamic
+        See @link(TCollectedShape.SceneTransformDynamic).)
     }
     procedure RenderShape(const Shape: TX3DRendererShape;
       const RenderOptions: TCastleRenderOptions;
       const SceneTransform: TMatrix4;
+      const SceneTransformDynamic: Boolean;
       const DepthRange: TDepthRange);
 
     { Wireframe pass, to avoid recreating shaders when often switching
@@ -421,7 +428,7 @@ var
 begin
   { Restore defaults, for other rendering code outside of TRenderer.
 
-    These RenderContext properties are always set before rendering every shape,
+    These RenderContext properties are always set before rendering any shape,
     so ClassRenderBegin doesn't care to set them to any value,
     and we just reset them in ClassRenderEnd. }
   RenderContext.CullFace := false;
@@ -433,8 +440,11 @@ begin
 
   { Restore defaults, for other rendering code outside of TRenderer.
 
-    These RenderContext properties are always set in InitializeFromRenderOptions,
-    so they are constant for each shape.
+    These RenderContext properties are always set before rendering any shape, in
+    - InitializeFromRenderOptions,
+    - RenderShapeLineProperties,
+    - RenderShapePointProperties
+    and later they remain constant during shape rendering.
     So ClassRenderBegin doesn't care to set them to any value,
     and we just reset them in ClassRenderEnd. }
   RenderContext.PointSize := 1;
@@ -539,7 +549,7 @@ end;
 
 procedure TRenderer.RenderShape(const Shape: TX3DRendererShape;
   const RenderOptions: TCastleRenderOptions;
-  const SceneTransform: TMatrix4;
+  const SceneTransform: TMatrix4; const SceneTransformDynamic: Boolean;
   const DepthRange: TDepthRange);
 
   procedure InitializeFromRenderOptions;
@@ -590,10 +600,9 @@ procedure TRenderer.RenderShape(const Shape: TX3DRendererShape;
       I: Integer;
     begin
       Result := false;
-      if (Shape.Node <> nil) and
-        (Shape.Node.Appearance <> nil) then
+      if Shape.State.Appearance <> nil then
       begin
-        Tex := Shape.Node.Appearance.Texture;
+        Tex := Shape.State.Appearance.Texture;
 
         if Tex is TGeneratedShadowMapNode then
           Exit(true);
@@ -613,9 +622,8 @@ procedure TRenderer.RenderShape(const Shape: TX3DRendererShape;
     function ShapeMaterialRequiresPhongShading(const Shape: TX3DRendererShape): boolean;
     begin
       Result :=
-        (Shape.Node <> nil) and
-        (Shape.Node.Appearance <> nil) and
-        (Shape.Node.Appearance.Material is TPhysicalMaterialNode);
+        (Shape.State.Appearance <> nil) and
+        (Shape.State.Appearance.Material is TPhysicalMaterialNode);
     end;
 
   var
@@ -650,6 +658,7 @@ procedure TRenderer.RenderShape(const Shape: TX3DRendererShape;
 
     Result.ShapeBoundingBoxInSceneEvent := {$ifdef FPC}@{$endif} Shape.BoundingBox;
     Result.SceneTransform := SceneTransform;
+    Result.SceneTransformDynamic := SceneTransformDynamic;
     Result.SceneModelView := RenderingCamera.CurrentMatrix * SceneTransform;
     Result.ShadowSampling := RenderOptions.ShadowSampling;
   end;
@@ -697,9 +706,8 @@ procedure TRenderer.RenderShapeLineProperties(const Shape: TX3DRendererShape;
 var
   LP: TLinePropertiesNode;
 begin
-  if (Shape.Node <> nil) and { Shape.Node is nil for VRML <= 1.0 }
-     (Shape.Node.Appearance <> nil) then
-    LP := Shape.Node.Appearance.LineProperties
+  if Shape.State.Appearance <> nil then
+    LP := Shape.State.Appearance.LineProperties
   else
     LP := nil;
 
@@ -712,6 +720,35 @@ begin
     RenderContext.LineWidth := RenderOptions.LineWidth;
     RenderContext.LineType := ltSolid;
   end;
+
+  RenderShapePointProperties(Shape, RenderOptions, Shader);
+end;
+
+procedure TRenderer.RenderShapePointProperties(const Shape: TX3DRendererShape;
+  const RenderOptions: TCastleRenderOptions;
+  const Shader: TShader);
+var
+  PP: TPointPropertiesNode;
+  PointSize: Single;
+begin
+  if Shape.State.Appearance <> nil then
+    PP := Shape.State.Appearance.PointProperties
+  else
+    PP := nil;
+
+  // calculate PointSize
+  PointSize := RenderOptions.PointSize;
+  if PP <> nil then
+    PointSize := PointSize * Clamped(
+      PP.FdPointSizeScaleFactor.Value,
+      PP.FdPointSizeMinValue.Value,
+      PP.FdPointSizeMaxValue.Value);
+
+  { set RenderContext.PointSize.
+    Do this once PointSize is fully calculated, as this changes GL state
+    (if RenderContext.PointSize changes) so avoid changing RenderContext.PointSize
+    multiple times. }
+  RenderContext.PointSize := PointSize;
 
   RenderShapeMaterials(Shape, RenderOptions, Shader);
 end;
@@ -866,9 +903,8 @@ begin
   State := Shape.State;
 
   if (State.ShapeNode = nil { VRML 1.0, always some texture transform }) or
-     ( (State.ShapeNode <> nil) and
-       (State.ShapeNode.Appearance <> nil) and
-       (State.ShapeNode.Appearance.TextureTransform <> nil { VRML 2.0 with tex transform })
+     ( (State.Appearance <> nil) and
+       (State.Appearance.TextureTransform <> nil { VRML 2.0 with tex transform })
      ) then
   begin
     {$ifndef OpenGLES}
@@ -912,18 +948,18 @@ begin
           {$ifndef OpenGLES}
           ActiveTexture(FirstTexUnit);
           glPushMatrix;
-          glMultMatrix(State.TextureTransform);
+          glMultMatrix(State.Vrml1TextureTransform);
           {$endif}
         end;
-        Shader.EnableTextureTransform(FirstTexUnit, State.TextureTransform);
+        Shader.EnableTextureTransform(FirstTexUnit, State.Vrml1TextureTransform);
       end;
     end else
     begin
       // conditions above should have already checked this, we have some texture transform
       Assert(State.ShapeNode <> nil);
-      Assert(State.ShapeNode.Appearance <> nil);
-      Assert(State.ShapeNode.Appearance.TextureTransform <> nil);
-      TextureTransform := State.ShapeNode.Appearance.TextureTransform;
+      Assert(State.Appearance <> nil);
+      Assert(State.Appearance.TextureTransform <> nil);
+      TextureTransform := State.Appearance.TextureTransform;
       if TextureTransform <> nil then
       begin
         if TextureTransform is TMultiTextureTransformNode then
@@ -1047,6 +1083,49 @@ var
     at the end). }
   ClipPlanesEnabled: Cardinal;
 
+  { Does EffectNodes contain enabled Effect node with geometry shader?
+    We check enabled, as TShaderCodeHash.AddEffects also checks it. }
+  function HasGeometryShaderEffects(const EffectNodes: TX3DNodeList): Boolean;
+  var
+    I, J: Integer;
+    Effect: TEffectNode;
+    Part: TEffectPartNode;
+  begin
+    for I := 0 to EffectNodes.Count - 1 do
+    begin
+      if EffectNodes[I] is TEffectNode then
+      begin
+        Effect := TEffectNode(EffectNodes[I]);
+        if Effect.FdEnabled.Value then
+        begin
+          for J := 0 to Effect.FdParts.Count - 1 do
+            if Effect.FdParts[J] is TEffectPartNode then
+            begin
+              Part := TEffectPartNode(Effect.FdParts[J]);
+              if Part.ShaderType = stGeometry then
+                Exit(true);
+            end;
+        end;
+      end;
+    end;
+    Result := false;
+  end;
+
+  { Does Shape have enabled Effect node with geometry shader?
+    This reflects usage of
+    - TShader.EnableAppearanceEffects
+    - TShader.EnableGroupEffects }
+  function GetGeometryShaderEffectsPossible: Boolean;
+  begin
+    if Shape.State.Appearance <> nil then
+      if HasGeometryShaderEffects(Shape.State.Appearance.FdEffects.InternalItems) then
+        Exit(true);
+    if Shape.State.Effects <> nil then
+      if HasGeometryShaderEffects(Shape.State.Effects) then
+        Exit(true);
+    Result := false;
+  end;
+
   { Initialize OpenGL clip planes, looking at ClipPlanes list.
     We know we're inside GL_MODELVIEW mode,
     and we know all clip planes are currently disabled. }
@@ -1054,11 +1133,17 @@ var
   var
     I: Integer;
     ClipPlane: PClipPlane;
+    GeometryShaderEffectsPossible: Boolean;
   begin
     ClipPlanesEnabled := 0;
     { GLMaxClipPlanes should be >= 6 with every conforming OpenGL,
       but still better check. }
-    if (GLFeatures.MaxClipPlanes > 0) and (ClipPlanes <> nil) then
+    if (GLFeatures.MaxClipPlanes > 0) and
+       (ClipPlanes <> nil) and
+       (ClipPlanes.Count <> 0) then
+    begin
+      GeometryShaderEffectsPossible := GetGeometryShaderEffectsPossible;
+
       for I := 0 to ClipPlanes.Count - 1 do
       begin
         ClipPlane := PClipPlane(ClipPlanes.Ptr(I));
@@ -1066,7 +1151,8 @@ var
         begin
           Assert(ClipPlanesEnabled < GLFeatures.MaxClipPlanes);
           Shader.EnableClipPlane(ClipPlanesEnabled,
-            PlaneTransform(ClipPlane^.Node.FdPlane.Value, ClipPlane^.Transform));
+            PlaneTransform(ClipPlane^.Node.FdPlane.Value, ClipPlane^.Transform),
+            GeometryShaderEffectsPossible);
           Inc(ClipPlanesEnabled);
 
           { No more clip planes possible, regardless if there are any more
@@ -1074,6 +1160,7 @@ var
           if ClipPlanesEnabled = GLFeatures.MaxClipPlanes then Break;
         end;
       end;
+    end;
   end;
 
   { Disable OpenGL clip planes previously initialized by ClipPlanesBegin. }
@@ -1233,9 +1320,8 @@ begin
 
   UsedGLSLTexCoordsNeeded := 0;
 
-  if (Shape.Node <> nil) and
-     (Shape.Node.Appearance <> nil) and
-     Shader.EnableCustomShaderCode(Shape.Node.Appearance.FdShaders, UsedShaderNode) then
+  if (Shape.State.Appearance <> nil) and
+     Shader.EnableCustomShaderCode(Shape.State.Appearance.FdShaders, UsedShaderNode) then
   begin
     UsedGLSLTexCoordsNeeded := TextureUnitsDefined(UsedShaderNode);
 
@@ -1307,11 +1393,49 @@ procedure TRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
     end;
   end;
 
+  procedure EnableSkinJointTexture(var ABoundTextureUnits: Cardinal; const Shader: TShader);
+  var
+    JointTextureNode: TPixelTextureNode;
+    Res: TTextureResource;
+    Skin: TSkinNode;
+  begin
+    Skin := Shape.State.Skin;
+    if (Skin <> nil) and
+       (Skin.InternalMeshCalculation = mcGpuTexture) and
+       { Checking Skin.InternalJointMatrix makes sure that
+         TSkinNode.Update has actually run, so we started some skinned animation,
+         and we should have InternalJointMatrix and InternalJointTexture valid. }
+       (Skin.InternalJointMatrix <> nil) and
+       (Skin.InternalJointMatrix.Count = Skin.FdJoints.Count) then
+    begin
+      JointTextureNode := Skin.InternalJointTexture;
+      if JointTextureNode = nil then
+      begin
+        WritelnWarning('Skin', 'Skin "%s" has InternalMeshCalculation = mcGpuTexture but InternalJointTexture = nil, so we do not have texture to use', [
+          Shape.State.Skin.NiceName
+        ]);
+        Exit;
+      end;
+
+      Res := TTextureResources.Get(JointTextureNode);
+      if Res = nil then
+      begin
+        WritelnWarning('Skin', 'Skin "%s" has no renderer texture resource for joint texture, cannot use it', [
+          Skin.NiceName
+        ]);
+        Exit;
+      end;
+
+      Shader.SkinJointTextureUnit := ABoundTextureUnits;
+      Res.Bind(ABoundTextureUnits);
+      Inc(ABoundTextureUnits);
+    end;
+  end;
+
   function GetAlphaCutoff(const Shape: TShape): Single;
   begin
-    if (Shape.Node <> nil) and
-       (Shape.Node.Appearance <> nil) then
-      Result := Shape.Node.Appearance.AlphaCutoff
+    if Shape.State.Appearance <> nil then
+      Result := Shape.State.Appearance.AlphaCutoff
     else
       Result := DefaultAlphaCutoff;
   end;
@@ -1345,6 +1469,10 @@ procedure TRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
     { assert we never have non-nil TextureRes and nil TextureNode }
     Assert((TextureRes = nil) or (TextureNode <> nil));
 
+    // MainTextureMapping cannot be < -1
+    //Check(MainTextureMapping >= -1); // check even in -dRELEASE
+    Assert(MainTextureMapping >= -1);
+
     Shader.MainTextureMapping := MainTextureMapping;
 
     FontTextureNode := Shape.OriginalGeometry.FontTextureNode;
@@ -1375,6 +1503,7 @@ procedure TRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
 
       if Shape.InternalShadowMaps <> nil then
         EnableShadowMaps(Shape.InternalShadowMaps, BoundTextureUnits, Shader);
+      EnableSkinJointTexture(BoundTextureUnits, Shader);
 
       { If there is special texture like a normalmap, enable it. }
       BumpMappingEnable(Shape, RenderOptions, BoundTextureUnits, TexCoordsNeeded, Shader);
@@ -1429,6 +1558,11 @@ procedure TRenderer.RenderShapeInside(const Shape: TX3DRendererShape;
     case RenderingCamera.Target of
       rtVarianceShadowMap:
         begin
+          { TODO: If we enable plugs in shadow_map_generate, then we could
+            make shadow maps shader cooperate with skinned animation on shaders,
+            and thus be optimal and also correct with Variance Shadow Maps. }
+          if Shader.NeedsSkinWeightsJoints then
+            WritelnWarning('TODO: rtVarianceShadowMap is not correct togetehr with skinned animation on shaders');
           if VarianceShadowMapsShaders = nil then
             VarianceShadowMapsShaders := TCustomShaders.Create(
               '#define VARIANCE_SHADOW_MAPS' + NL + {$I shadow_map_generate.vs.inc},
@@ -1437,11 +1571,29 @@ procedure TRenderer.RenderShapeInside(const Shape: TX3DRendererShape;
         end;
       rtShadowMap:
         begin
-          if ShadowMapsShaders = nil then
-            ShadowMapsShaders := TCustomShaders.Create(
-              {$I shadow_map_generate.vs.inc},
-              {$I shadow_map_generate.fs.inc});
-          MeshRenderer.CustomShaders := ShadowMapsShaders;
+          { Do not assign MeshRenderer.CustomShaders when we make skinned animation.
+            We need to do full shader then, to apply skinned animation on GPU,
+            and thus render animated mesh to a shadow map.
+            Test below is a subset of tests before doing Shader.EnableSkinnedAnimation
+            in TSkinnedRenderer.RenderCoordinateBegin .
+            Testcase that this is necessary:
+            https://forum.castle-engine.io/t/shadow-map-not-updating-from-an-animated-tcastlescene/2062/4 .
+
+            TODO: This could be more optimal, if we enable shadow_map_generate.vs
+            to have plugs and expose PLUG_vertex_object_space_change .
+            Then we could still have special minimal shader,
+            but doing skinned animation on GPU. }
+          if not (
+            Shape.State.SkinnedAnimatedShape and
+            (Shape.State.Skin.InternalMeshCalculation <> mcCpu)
+          ) then
+          begin
+            if ShadowMapsShaders = nil then
+              ShadowMapsShaders := TCustomShaders.Create(
+                {$I shadow_map_generate.vs.inc},
+                {$I shadow_map_generate.fs.inc});
+            MeshRenderer.CustomShaders := ShadowMapsShaders;
+          end;
         end;
       else
         begin
@@ -1496,7 +1648,7 @@ begin
     begin
       { Shape.Arrays contents are already loaded,
         so Vbo contents are already loaded too }
-      Assert(Shape.Cache.Vbo[vtCoordinate] <> 0);
+      Assert(Shape.Cache.Vbo[vtCoordinate] <> GLObjectNone);
       CoordinateRenderer.Vbo := Shape.Cache.Vbo;
       CoordinateRenderer.Vao := Shape.Cache.Vao;
     end;
@@ -1517,8 +1669,8 @@ begin
     { unbind arrays, to have a clean state on exit.
       TODO: this should not be needed, instead move to RenderEnd.
       Check does occlusion query work Ok when some vbo is bound. }
-    RenderContext.BindBuffer[btArray] := 0;
-    RenderContext.BindBuffer[btElementArray] := 0;
+    RenderContext.BindBuffer[btArray] := GLObjectNone;
+    RenderContext.BindBuffer[btElementArray] := GLObjectNone;
   end;
 end;
 

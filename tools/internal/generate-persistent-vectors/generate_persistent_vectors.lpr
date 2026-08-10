@@ -150,7 +150,7 @@ end;
 
 var
   AutoGenerateClasses: TAutoGenerateClasses;
-  InputFile: TTextReader;
+  InputFile: TCastleTextReader;
   Line, Path, OutputClassName: String;
   LineSplit: TCastleStringList;
   Prop: TAutoGenerateProperty;
@@ -158,7 +158,7 @@ var
 begin
   AutoGenerateClasses := TAutoGenerateClasses.Create([doOwnsValues]);
   try
-    InputFile := TTextReader.Create('persistent_vectors_input.txt');
+    InputFile := TCastleTextReader.Create('persistent_vectors_input.txt');
     try
       while not InputFile.Eof do
       begin

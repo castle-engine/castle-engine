@@ -22,7 +22,7 @@ uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
   ApplicationProperties.ApplicationName := 'view_3d_model_basic';
-  ApplicationProperties.Caption := 'view_3d_model_basic';
+  ApplicationProperties.Caption := 'View 3D Model: Basic Version';
   ApplicationProperties.Version := '0.1';
 
   if not IsLibrary then

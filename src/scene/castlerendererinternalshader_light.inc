@@ -71,7 +71,8 @@
     ldHasBeamWidth,
     ldHasSpotExponent);
 
-  { Generating shader code to handle a single light. }
+  { Generating shader code to handle a single light.
+    Follows castlerendererinternalshader_feature_api.md API conventions. }
   TLightShader = class
   private
     Number: Cardinal;
@@ -244,7 +245,7 @@ begin
     FCode[LightingStage].Add(DefinesStr + LightShader);
 
     if Node <> nil then
-      Shader.EnableEffects(Node.FdEffects, FCode);
+      Shader.EffectsGenerateCode(Node.FdEffects, FCode);
   end;
 
   Result := FCode;

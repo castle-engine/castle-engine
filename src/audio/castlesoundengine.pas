@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2022 Michalis Kamburelis.
+  Copyright 2010-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -21,8 +21,16 @@ unit CastleSoundEngine;
 {$ifdef CASTLE_NINTENDO_SWITCH}
   // Nintendo Switch has different default backend
 {$else}
-  { Full-featured backend using OpenAL. }
-  {$define CASTLE_SOUND_BACKEND_DEFAULT_OPENAL}
+  {$ifdef WASI}
+    { Backend using Web Audio API for WebAssembly target. }
+    {$define CASTLE_SOUND_BACKEND_DEFAULT_WEBAUDIO}
+  {$else}
+    { Full-featured backend using OpenAL. }
+    {$define CASTLE_SOUND_BACKEND_DEFAULT_OPENAL}
+
+    { Dummy backend using "sox" command-line. Only for testing, not for production use. }
+    {.$define CASTLE_SOUND_BACKEND_DEFAULT_SOX}
+  {$endif}
 {$endif}
 
 {$ifdef CASTLE_STRICT_CLI}
@@ -40,9 +48,9 @@ unit CastleSoundEngine;
 interface
 
 uses SysUtils, Classes, Math, Generics.Collections, DOM,
-  CastleVectors, CastleTimeUtils, CastleClassUtils, CastleStringUtils,
-  CastleSoundBase, CastleInternalSoundFile, CastleInternalAbstractSoundBackend,
-  CastleXMLConfig;
+  CastleUtils, CastleVectors, CastleTimeUtils, CastleClassUtils,
+  CastleStringUtils, CastleSoundBase, CastleInternalSoundFile,
+  CastleInternalAbstractSoundBackend, CastleXMLConfig;
 
 {$define read_interface}
 type
@@ -62,10 +70,12 @@ type
 implementation
 
 uses XMLRead, StrUtils, Generics.Defaults,
-  CastleUtils, CastleLog, CastleInternalVorbisFile, CastleInternalDataURI,
+  CastleLog, CastleInternalVorbisFile, CastleInternalDataURI,
   CastleParameters, CastleXmlUtils, CastleFilesUtils, CastleConfig,
   CastleUriUtils, CastleDownload, CastleMessaging, CastleApplicationProperties
-  {$ifdef CASTLE_SOUND_BACKEND_DEFAULT_OPENAL}, CastleOpenALSoundBackend{$endif}
+  {$ifdef CASTLE_SOUND_BACKEND_DEFAULT_SOX}, CastleInternalSoxSoundBackend {$endif}
+  {$ifdef CASTLE_SOUND_BACKEND_DEFAULT_OPENAL}, CastleOpenALSoundBackend {$endif}
+  {$ifdef CASTLE_SOUND_BACKEND_DEFAULT_WEBAUDIO}, CastleInternalWebAudioBackend {$endif}
   , CastleComponentSerialize;
 
 {$define read_implementation}

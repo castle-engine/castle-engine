@@ -360,6 +360,11 @@ end;
 
 { TCastleWindow ------------------------------------------------------------------ }
 
+function TCastleWindow.CreateContainer: TCastleContainer;
+begin
+  Result := TWindowContainer.Create(Self);
+end;
+
 procedure TCastleWindow.CreateBackend;
 begin
 end;
@@ -713,7 +718,7 @@ procedure TCastleWindow.OpenBackend;
     InitialMousePos := OpenGLControl.AbsoluteToLocal(InitialMousePos);
     //WritelnLog('Initial mouse position (OpenGL control coordinates): %f %f', [InitialMousePos.X, InitialMousePos.Y]);
     {$endif}
-    Container.InitializeMousePosition(MousePosToCastle(InitialMousePos.X, InitialMousePos.Y));
+    (Container as TWindowContainer).InitializeMousePosition(MousePosToCastle(InitialMousePos.X, InitialMousePos.Y));
     //WritelnLog('Initial mouse position (CGE coordinates): %s', [Container.MousePosition.ToString]);
   end;
 
@@ -1713,6 +1718,11 @@ end;
 function TCastleApplication.BackendName: string;
 begin
   Result := 'Form';
+end;
+
+function TCastleApplication.MultipleWindowsPossible: Boolean;
+begin
+  Result := true;
 end;
 
 { TWindowContainer ----------------------------------------------------------- }

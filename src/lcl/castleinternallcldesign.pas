@@ -15,7 +15,7 @@
 
 { Lazarus IDE integration with Castle Game Engine.
 
-  It's actually compiled-in with castle_components now always,
+  It's actually compiled-in with castle_engine_lcl now always,
   though in principle we only need this when we're inside Lazarus IDE
   (at design-time for Lazarus IDE).
 

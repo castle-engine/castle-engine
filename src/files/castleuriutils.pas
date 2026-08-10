@@ -1,5 +1,5 @@
 {
-  Copyright 2007-2024 Michalis Kamburelis.
+  Copyright 2007-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -20,8 +20,8 @@ unit CastleUriUtils;
 
 interface
 
-uses SysUtils, Classes,
-  CastleStringUtils;
+uses SysUtils, Classes, Generics.Collections,
+  CastleStringUtils, CastleFindFiles;
 
 { Extracts #anchor from URI. On input, URI contains full URI.
   On output, Anchor is removed from URI and saved in Anchor.
@@ -45,7 +45,7 @@ procedure UriGetSettingsFromAnchor(const Uri: String;
   const SettingsFromAnchor: TStringStringMap);
 
 { Return URI with anchor (if was any) stripped. }
-function UriDeleteAnchor(const Uri: String): string;
+function UriDeleteAnchor(const Uri: String): String;
 
 { Replace all sequences like %xx with their actual 8-bit characters.
 
@@ -70,7 +70,7 @@ function UriDeleteAnchor(const Uri: String): string;
       In this case we also simply keep "%xx" in resulting string.)
   )
 }
-function RawUriDecode(const S: string): string;
+function RawUriDecode(const S: String): String;
 
 { Get protocol from given URI.
 
@@ -105,7 +105,7 @@ function RawUriDecode(const S: string): string;
       (see http://tools.ietf.org/html/rfc3986#section-3.1).)
   )
 }
-function UriProtocol(const Uri: String): string;
+function UriProtocol(const Uri: String): String;
 
 { Check does URI contain given Protocol.
   This is equivalent to checking UriProtocol(S) = Protocol, ignoring case,
@@ -114,7 +114,7 @@ function UriProtocol(const Uri: String): string;
 function UriProtocolIs(const S: string; const Protocol: string; out Colon: Integer): boolean;
 
 { Remove the protocol part from URI. }
-function UriDeleteProtocol(const S: string): string;
+function UriDeleteProtocol(const S: String): String;
   deprecated 'use ParseUri to extract Uri.Path + Uri.Document, instead of this routine that doesn''t do decoding';
 
 { Is the S a valid protocol scheme.
@@ -148,14 +148,27 @@ function UriValidProtocol(const P: String): Boolean;
   as a filename (so it's not percent-escaped, it uses PathDelim
   specific to OS --- slash or backslash etc.).
   This routine, on the other hand, treats Relative string always as an
-  URI (when it doesn't include protocol, it just means it's relative to Base). }
-function CombineUri(const Base, Relative: string): string;
+  URI (when it doesn't include protocol, it just means it's relative to Base).
+
+  Note that this is a bit different than @link(CombinePaths).
+  @link(CombinePaths) does a similar job, but for filenames (not URIs).
+  Also, @link(CombinePaths) assumes that the first argument is always a directory,
+  so its last component is not removed, regardless of whether
+  it ends with PathDelim or not, e.g. these are equivalent
+  @code(CombinePaths('mydir', 'myfile.txt')) and
+  @code(CombinePaths('mydir/', 'myfile.txt')).
+  This routine, in contrast, assumes that the first argument is Base
+  URL, and the last component will be removed if it looks like a file
+  (does not end with slash). So these are not equivalent:
+  @code(CombineUri('https://example.com/mydir', 'myfile.txt')) and
+  @code(CombineUri('https://example.com/mydir/', 'myfile.txt')). }
+function CombineUri(const Base, Relative: String): String;
 
 { Make sure that the URI is absolute (always has a protocol).
   This function treats an URI without a protocol as a simple filename
   (absolute or relative to the current directory).
   This includes treating empty string as equivalent to current directory. }
-function AbsoluteUri(const Uri: String): string;
+function AbsoluteUri(const Uri: String): String;
 
 { Does URI contain only an absolute filename.
   Useful to detect unwanted paths in data files,
@@ -176,7 +189,7 @@ function AbsoluteFileUri(const Uri: String): boolean;
   For example, @code(%4d) in URI will turn into letter @code(M) in result.
 
   It also handles our castle-data: protocol.}
-function UriToFilenameSafe(const Uri: String): string;
+function UriToFilenameSafe(const Uri: String): String;
 
 { Convert filename to URI.
 
@@ -189,7 +202,7 @@ function UriToFilenameSafe(const Uri: String): string;
   It also makes sure the filename is absolute (it uses ExpandFileName,
   so if the FileName is relative --- it will be expanded, treating it
   as relative to the current directory). }
-function FilenameToUriSafe(FileName: string): string;
+function FilenameToUriSafe(FileName: String): String;
 
 { Convert filename to URI,
   if the filename is relative -- the URI will also be relative.
@@ -201,10 +214,13 @@ function FilenameToUriSafe(FileName: string): string;
   The FileName = '' is also considered relative, and returns ''. }
 function RelativeFilenameToUriSafe(const FileName: String): String;
 
-{ Tries change URI to use castle-data: protocol.
-  It's used in our editor to change absolute paths to relative to castle-data
-  directory. }
+{ Try to change URL to use castle-data:/ protocol,
+  if the URL is resolved to a file inside the castle-data directory. }
 function MaybeUseDataProtocol(const Url: String): String;
+
+{ Try to change URL to use castle-config:/ protocol,
+  if the URL is resolved to a file inside the castle-config directory. }
+function MaybeUseCastleConfigProtocol(const Url: String): String;
 
 { Get MIME type for content of the URI @italic(without downloading the file).
   For local and remote files (file, http, and similar protocols)
@@ -226,7 +242,7 @@ function MaybeUseDataProtocol(const Url: String): String;
   mappings to the @link(UriMimeExtensions).
 
   @groupBegin }
-function UriMimeType(const Uri: String): string; overload;
+function UriMimeType(const Uri: String): String; overload;
 function UriMimeType(const Uri: String; out Gzipped: boolean): string; overload;
 { @groupEnd }
 
@@ -265,19 +281,27 @@ function UriDisplay(const Uri: String; const Short: boolean = false): string;
 
   See UriDisplay documentation for details.
   This calls UriDisplay with Short = @true. }
-function UriCaption(const Uri: String): string;
+function UriCaption(const Uri: String): String;
 
 { Change extension of the URL. }
-function ChangeUriExt(const Url, Extension: string): string;
+function ChangeUriExt(const Url, Extension: String): String;
 
 { Delete extension of the URL. }
-function DeleteUriExt(const Url: String): string;
+function DeleteUriExt(const Url: String): String;
 
-{ Extract filename (last part after slash) from URL. }
-function ExtractUriName(const Url: String): string;
+{ Extract filename (last part after slash) from URL.
 
-{ Extract path (everything before last part), including final slash, from URL. }
-function ExtractUriPath(const Url: String): string;
+  Note that the resulting string is still percent-encoded, it is not decoded.
+  For example, for "http://example.org/foo%20bar.txt" it returns "foo%20bar.txt",
+  not "foo bar.txt". Use @link(UrlDecode) to decode it if you want. }
+function ExtractUriName(const Url: String): String;
+
+{ Extract path (everything before last part), including final slash, from URL.
+
+  Note that the resulting string is still percent-encoded.
+  For example, for "http://example.org/foo%20bar/file.txt" it returns
+  "http://example.org/foo%20bar/". }
+function ExtractUriPath(const Url: String): String;
 
 { Ensure URL ends with slash.
 
@@ -390,13 +414,36 @@ function ResolveCastleDataUrl(const Url: String): String;
   If the URL does not point to a file in data, it is returned untouched. }
 function RelativeToCastleDataUrl(const Url: String; out WasInsideData: Boolean): String;
 
-{ Encode string by using percent encoding (https://en.wikipedia.org/wiki/Percent-encoding)
-  @exclude }
-function InternalUriEscape(const S: String): String;
+{ If the given URL uses "castle-config:..." protocol, resolve it,
+  returning a URL that does not use "castle-config:..." protocol any more.
+  See @url(https://castle-engine.io/url#castle-config castle-config protocol
+  documentation).
 
-{ Decode string encoded by percent encoding (https://en.wikipedia.org/wiki/Percent-encoding )
+  If the URL has a different protocol, it is returned unchanged. }
+function ResolveCastleConfigUrl(const Url: String): String;
+
+{ Encode String using @url(https://en.wikipedia.org/wiki/Percent-encoding percent encoding),
+  for example space is converted to @code(%20). }
+function UrlEncode(const S: String): String;
+
+{ Decode string using @url(https://en.wikipedia.org/wiki/Percent-encoding percent encoding),
+  for example @code(%20)is converted to space. }
+function UrlDecode(const S: String): String;
+
+{ Encode a single form value for application/x-www-form-urlencoded encoding.
+  This is similar to UrlEncode, but it also replaces space with plus,
+  and it allows fewer characters unescaped.
   @exclude }
-function InternalUriUnescape(const S: String): String;
+function InternalUrlEncodeForm(const S: String): String;
+
+{ Extract query parameters from URL ending like @code(?model=foo&texture=bar).
+  The query parameters are returned as a map from parameter name to
+  parameter value.
+  If the URL does not contain query parameters, the returned map is empty.
+
+  Query provided should be the URL ending (not the whole URL), for example
+  @code(?model=foo&texture=bar). Leading '?' is optional. }
+function UrlQueryParameters(Query: String): TStringStringMap;
 
 var
   { On systems where filesystems are usually case-sensitive
@@ -409,19 +456,31 @@ var
     data files, but in many cases it is acceptable. }
   CastleDataIgnoreCase: Boolean = false;
 
+{$define read_interface}
+{$I castleuriutils_memoryfilesystem.inc}
+{$undef read_interface}
+
 implementation
 
-uses UriParser,
+uses UriParser, StrUtils,
+  {$ifdef CASTLE_WEB_DECRYPT_DATA}
+  BlowFish,
+  {$endif}
   CastleUtils, CastleInternalDataUri, CastleLog, CastleFilesUtils,
-  CastleInternalDirectoryInformation, CastleFindFiles, CastleDownload
-  {$ifdef CASTLE_NINTENDO_SWITCH}, CastleInternalNxBase {$endif}
+  CastleDownload, CastleZip, CastleApplicationProperties, CastleClassUtils,
+  CastleStreamUtils
+  {$ifdef WASI}, Job.Js, CastleInternalJobWeb {$endif}
   {$ifndef FPC}, Character{$endif};
+
+{$define read_implementation}
+{$I castleuriutils_memoryfilesystem.inc}
+{$undef read_implementation}
 
 { Escape and Unescape --------------------------------------------------------
   Copied from UriParser and fixed for Delphi, as they are internal there.
 }
 
-function InternalUriUnescape(const S: String): String;
+function UrlDecode(const S: String): String;
 
   function HexValue(C: Char): Integer;
   begin
@@ -505,11 +564,13 @@ begin
   {$endif}
 end;
 
-function InternalUriEscapeCore(const S: String; const Allowed: TSysCharSet): String;
+function InternalUriEscapeCore(const S: String; const Allowed: TSysCharSet;
+  const SpaceToPlus: Boolean = false): String;
 var
   i, L: Integer;
   {$ifdef FPC}
   P: PChar;
+  AnyEscaping: Boolean;
   {$else}
   J: Integer;
   Utf16Char: String; // String here becouse somtimes UTF-16 char can be two wide chars
@@ -517,30 +578,52 @@ var
   {$endif}
 begin
   L := Length(s);
+
   {$ifdef FPC}
+  AnyEscaping := false;
+
+  // First pass to calculate length of the result string (L).
+  // By the way, calculate AnyEscaping, to possibly to early exit in easy case.
   for i := 1 to Length(s) do
-    if not CharInSet(s[i], Allowed) then Inc(L,2);
-  if L = Length(s) then
+  begin
+    if not CharInSet(s[i], Allowed) then
+    begin
+      AnyEscaping := true;
+      if not (SpaceToPlus and (s[i] = ' ')) then
+        Inc(L, 2); // replaced to %xx, so it becomes longer by 2 chars
+    end;
+  end;
+
+  // utilize AnyEscaping to avoid unnecessary work when there is nothing to escape
+  if not AnyEscaping then
   begin
     Result := s;
     Exit;
   end;
 
+  // some escaping necessary, do it in one pass
   SetLength(Result, L);
   P := @Result[1];
   for i := 1 to Length(s) do
   begin
     if not CharInSet(s[i], Allowed) then
     begin
-      P^ := '%'; Inc(P);
-      StrFmt(P, '%.2x', [ord(s[i])]); Inc(P);
+      if SpaceToPlus and (s[i] = ' ') then
+      begin
+        P^ := '+';
+      end else
+      begin
+        P^ := '%'; Inc(P);
+        StrFmt(P, '%.2x', [ord(s[i])]); Inc(P);
+      end;
     end else
       P^ := s[i];
     Inc(P);
   end;
   {$else}
+  Result := ''; // rest of code will append to this string
   if L = 0 then
-    Exit('');
+    Exit;
 
   I := 1;
   while I <= L do
@@ -563,10 +646,16 @@ begin
       if not CharInSet(s[i], Allowed) then
       begin
         // Not surrogate but also not allowed
-        UTF8Char := UTF8String(S[I]);
-        for J := 1 to Length(UTF8Char) do
+        if SpaceToPlus and (s[i] = ' ') then
         begin
-          Result := Result + '%' + Format('%.2x', [ord(UTF8Char[J])]);
+          Result := Result + '+';
+        end else
+        begin
+          UTF8Char := UTF8String(S[I]);
+          for J := 1 to Length(UTF8Char) do
+          begin
+            Result := Result + '%' + Format('%.2x', [ord(UTF8Char[J])]);
+          end;
         end;
       end else
       begin
@@ -579,7 +668,7 @@ begin
   {$endif FPC}
 end;
 
-function InternalUriEscape(const S: String): String;
+function UrlEncode(const S: String): String;
 const
   SubDelims = ['!', '$', '&', '''', '(', ')', '*', '+', ',', ';', '='];
   ALPHA = ['A'..'Z', 'a'..'z'];
@@ -588,6 +677,13 @@ const
   ValidPathChars = Unreserved + SubDelims + ['@', ':', '/'];
 begin
   Result := InternalUriEscapeCore(S, ValidPathChars);
+end;
+
+function InternalUrlEncodeForm(const S: String): String;
+const
+  Valid = ['A'..'Z', 'a'..'z', '0'..'9', '-', '_', '.', '*'];
+begin
+  Result := InternalUriEscapeCore(S, Valid, true);
 end;
 
 { other routines ------------------------------------------------------------- }
@@ -670,7 +766,7 @@ begin
   until false;
 end;
 
-function UriDeleteAnchor(const Uri: String): string;
+function UriDeleteAnchor(const Uri: String): String;
 var
   Anchor: string;
 begin
@@ -678,7 +774,7 @@ begin
   UriExtractAnchor(Result, Anchor);
 end;
 
-function RawUriDecode(const S: string): string;
+function RawUriDecode(const S: String): String;
 
   { Assume Position <= Length(S).
     Check is S[Positon] is a start of %xx sequence:
@@ -818,7 +914,7 @@ begin
   end;
 end;
 
-function UriProtocol(const Uri: String): string;
+function UriProtocol(const Uri: String): String;
 var
   FirstCharacter, Colon: Integer;
 begin
@@ -842,7 +938,7 @@ begin
   end;
 end;
 
-function UriDeleteProtocol(const S: string): string;
+function UriDeleteProtocol(const S: String): String;
 var
   FirstCharacter, Colon: Integer;
 begin
@@ -852,7 +948,7 @@ begin
     Result := S;
 end;
 
-function CombineUri(const Base, Relative: string): string;
+function CombineUri(const Base, Relative: String): String;
 // var
 //   RelativeProtocol: string;
 begin
@@ -903,10 +999,11 @@ begin
   end;
 end;
 
-function AbsoluteUri(const Uri: String): string;
+function AbsoluteUri(const Uri: String): String;
 begin
   if UriProtocol(Uri) = '' then
-    Result := FilenameToUriSafe(Uri) else
+    Result := FilenameToUriSafe(Uri)
+  else
     Result := Uri;
 end;
 
@@ -915,7 +1012,7 @@ begin
   Result := (UriProtocol(Uri) = '') and IsPathAbsoluteOnDrive(Uri);
 end;
 
-function UriToFilenameSafe(const Uri: String): string;
+function UriToFilenameSafe(const Uri: String): String;
 var
   P, CastleDataResolved: string;
 begin
@@ -950,10 +1047,19 @@ begin
       ]);
     Result := UriToFilenameSafe(CastleDataResolved);
   end else
+  if P = 'castle-config' then
+  begin
+    CastleDataResolved := ResolveCastleConfigUrl(Uri);
+    if UriProtocol(CastleDataResolved) = 'castle-config' then
+      raise EInternalError.CreateFmt('ResolveCastleConfigUrl cannot return URL with castle-config protocol. This probably indicates that ApplicationConfigOverride (%s) contains castle-config protocol, which it should not.', [
+        ApplicationConfigOverride
+      ]);
+    Result := UriToFilenameSafe(CastleDataResolved);
+  end else
     Result := '';
 end;
 
-function FilenameToUriSafe(FileName: string): string;
+function FilenameToUriSafe(FileName: String): String;
 
 { Code adjusted from FPC FilenameToUri (same license as our engine,
   so it's Ok to share code). Adjusted to call Escape on FileName.
@@ -987,6 +1093,15 @@ var
   I: Integer;
   FilenamePart: String;
 begin
+  {$ifdef WASI}
+  { Without this condition, our routine FilenameToUriSafe
+    (called also from AbsoluteUri with possibly '' as argument)
+    would call GetCurrentDir, which on WebAssembly raises an exception
+    "EInOutError: Invalid drive specified". }
+  if FileName = '' then
+    Exit('');
+  {$endif}
+
   FileName := ExpandFileNameFixed(FileName);
 
   Result := 'file:';
@@ -1010,7 +1125,7 @@ begin
     end;
   end;
   {$warnings on}
-  FilenamePart := InternalUriEscape(FilenamePart);
+  FilenamePart := UrlEncode(FilenamePart);
 
   Result := Result + FilenamePart;
 end;
@@ -1023,7 +1138,7 @@ begin
   begin
     { This simple implementation is enough to handle relative filenames->URLs.
       It accounts for Windows backslashes and encodes URL. }
-    Result := InternalUriEscape(SReplaceChars(FileName, '\', '/'));
+    Result := UrlEncode(SReplaceChars(FileName, '\', '/'));
   end;
 end;
 
@@ -1031,9 +1146,174 @@ var
   FUriMimeExtensions: TStringStringMap;
 
 function UriMimeExtensions: TStringStringMap;
+
+  { Fill FUriMimeExtensions with initial useful content. }
+  procedure AddDefaultMimeExtensions;
+  begin
+    { Parts of this list were based on LCL code
+      lcl/interfaces/customdrawn/customdrawnobject_android.inc
+      (license is LGPL with static linking exception, just like our engine).
+
+      See also various resources linked from
+      "Function to get the mimetype from a file extension" thread on Lazarus
+      mailing list:
+      http://comments.gmane.org/gmane.comp.ide.lazarus.general/62738
+
+      We somewhat cleaned it up (e.g. "postscript" and "mpeg" lowercase),
+      fixed categorization, and fixed/added many types looking at
+      /etc/mime.types and
+      /usr/share/mime/packages/freedesktop.org.xml on Debian.
+
+      For description of MIME content types see also
+      https://en.wikipedia.org/wiki/Internet_media_type
+      http://en.wikipedia.org/wiki/MIME
+      http://tools.ietf.org/html/rfc4288
+
+      Later, this list was extended to support all 3D and 2D model formats
+      and other files used in our engine. Internally, we communicate
+      "file types" as a string with MIME type, so all supported resource types
+      must be expressed as MIME types.
+    }
+
+    // 3D models (see also castle-model-viewer MIME specification in castle-model-viewer/desktop/castle-model-viewer.xml)
+    FUriMimeExtensions.Add('.wrl', 'model/vrml');
+    FUriMimeExtensions.Add('.wrz', 'model/vrml');
+    FUriMimeExtensions.Add('.x3dv', 'model/x3d+vrml');
+    FUriMimeExtensions.Add('.x3dvz', 'model/x3d+vrml');
+    FUriMimeExtensions.Add('.x3d', 'model/x3d+xml');
+    FUriMimeExtensions.Add('.x3dz', 'model/x3d+xml');
+    FUriMimeExtensions.Add('.x3db', 'model/x3d+binary');
+    FUriMimeExtensions.Add('.dae', 'model/vnd.collada+xml');
+    { See http://en.wikipedia.org/wiki/.3ds about 3ds mime type.
+      application/x-3ds is better (3DS is hardly an "image"),
+      but Debian /usr/share/mime/packages/freedesktop.org.xml also uses
+      image/x-3ds, so I guess image/x-3ds is more popular. }
+    FUriMimeExtensions.Add('.3ds', 'image/x-3ds');
+    FUriMimeExtensions.Add('.max', 'image/x-3ds');
+    FUriMimeExtensions.Add('.iv', 'application/x-inventor');
+    FUriMimeExtensions.Add('.md3', 'application/x-md3');
+    FUriMimeExtensions.Add('.obj', 'application/x-wavefront-obj');
+    FUriMimeExtensions.Add('.geo', 'application/x-geo');
+    FUriMimeExtensions.Add('.kanim', 'application/x-castle-anim-frames');
+    FUriMimeExtensions.Add('.castle-anim-frames', 'application/x-castle-anim-frames');
+    FUriMimeExtensions.Add('.json', 'application/json');
+    { Note that https://en.wikipedia.org/wiki/PLY_(file_format)
+      says PLY is text/plain, but we need specific MIME type to distinguish it.
+      X_ITE uses model/ply, so let's follow it.
+      https://create3000.github.io/x_ite/#supported-file-formats }
+    FUriMimeExtensions.Add('.ply', 'model/ply');
+    { Various sites propose various MIME types for STL:
+      https://gist.github.com/allysonsouza/1bf9d4a0295a14373979cd23d15df0a9
+        application/wavefront-stl
+        application/vnd.ms-pki.stl
+      We used application/x-stl in the past.
+      Let's follow https://en.wikipedia.org/wiki/STL_(file_format) . }
+    FUriMimeExtensions.Add('.stl', 'model/stl');
+    FUriMimeExtensions.Add('.glb', 'model/gltf-binary');
+    FUriMimeExtensions.Add('.gltf', 'model/gltf+json');
+    // Images.
+    { Only images that we *cannot* handle in CastleImages unit are listed below.
+      For images we can handle -> their extensions and mime types are added
+      to UriMimeExtensions by CastleImages.RegisterMimeTypes. }
+    FUriMimeExtensions.Add('.svg', 'image/svg+xml');
+    FUriMimeExtensions.Add('.ico', 'image/x-icon');
+    FUriMimeExtensions.Add('.icns', 'image/icns');
+    FUriMimeExtensions.Add('.castle-sprite-sheet', 'application/x-castle-sprite-sheet');
+    { I didn't found real MIME type for Starling Texture Atlas.
+      Created as image type based on
+      https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types }
+    FUriMimeExtensions.Add('.starling-xml', 'application/x-starling-sprite-sheet');
+    FUriMimeExtensions.Add('.cocos2d-plist', 'application/x-cocos2d-sprite-sheet');
+    FUriMimeExtensions.Add('.plist', 'application/x-plist');
+
+    // HTML
+    FUriMimeExtensions.Add('.htm', 'text/html');
+    FUriMimeExtensions.Add('.html', 'text/html');
+    FUriMimeExtensions.Add('.shtml', 'text/html');
+    FUriMimeExtensions.Add('.css', 'text/css');
+    FUriMimeExtensions.Add('.php', 'text/php');
+
+    // Plain text
+    FUriMimeExtensions.Add('.txt', 'text/plain');
+    FUriMimeExtensions.Add('.pas', 'text/plain');
+    FUriMimeExtensions.Add('.pp', 'text/plain');
+    FUriMimeExtensions.Add('.inc', 'text/plain');
+    FUriMimeExtensions.Add('.c', 'text/plain');
+    FUriMimeExtensions.Add('.cpp', 'text/plain');
+    FUriMimeExtensions.Add('.java', 'text/plain');
+    FUriMimeExtensions.Add('.log', 'text/plain');
+    FUriMimeExtensions.Add('.md', 'text/plain');
+
+    // Videos
+    FUriMimeExtensions.Add('.mp4', 'video/mp4');
+    FUriMimeExtensions.Add('.avi', 'video/x-msvideo');
+    FUriMimeExtensions.Add('.mpeg', 'video/mpeg');
+    FUriMimeExtensions.Add('.mpg', 'video/mpeg');
+    FUriMimeExtensions.Add('.mpe', 'video/mpeg');
+    FUriMimeExtensions.Add('.ogv', 'video/ogg');
+    FUriMimeExtensions.Add('.mov', 'video/quicktime');
+    FUriMimeExtensions.Add('.flv', 'video/x-flv');
+    FUriMimeExtensions.Add('.swf', 'application/x-shockwave-flash');
+    FUriMimeExtensions.Add('.swfl', 'application/x-shockwave-flash');
+
+    // Sounds
+    FUriMimeExtensions.Add('.mp3', 'audio/mpeg'); // see https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/MIME_types/Common_types
+    FUriMimeExtensions.Add('.ogg', 'audio/ogg');
+    FUriMimeExtensions.Add('.oga', 'audio/ogg');
+    FUriMimeExtensions.Add('.wav', 'audio/wav');
+    FUriMimeExtensions.Add('.mid', 'audio/midi');
+    FUriMimeExtensions.Add('.midi', 'audio/midi');
+    FUriMimeExtensions.Add('.au', 'audio/basic');
+    FUriMimeExtensions.Add('.snd', 'audio/basic');
+    FUriMimeExtensions.Add('.mp2', 'audio/mpeg');
+    FUriMimeExtensions.Add('.flac', 'audio/flac'); // see https://en.wikipedia.org/wiki/FLAC , https://mimetype.io/audio/flac , https://mimetype.io/audio/x-flac
+
+    // Documents
+    FUriMimeExtensions.Add('.rtf', 'text/rtf');
+    FUriMimeExtensions.Add('.eps', 'application/postscript');
+    FUriMimeExtensions.Add('.ps', 'application/postscript');
+    FUriMimeExtensions.Add('.pdf', 'application/pdf');
+    FUriMimeExtensions.Add('.csv', 'application/csv');
+    // Documents - old MS Office
+    FUriMimeExtensions.Add('.xls', 'application/vnd.ms-excel');
+    FUriMimeExtensions.Add('.doc', 'application/msword');
+    FUriMimeExtensions.Add('.ppt', 'application/vnd.ms-powerpoint');
+    // Documents - open standards
+    FUriMimeExtensions.Add('.odt', 'application/vnd.oasis.opendocument.text');
+    FUriMimeExtensions.Add('.ods', 'application/vnd.oasis.opendocument.spreadsheet');
+    FUriMimeExtensions.Add('.odp', 'application/vnd.oasis.opendocument.presentation');
+    FUriMimeExtensions.Add('.odg', 'application/vnd.oasis.opendocument.graphics');
+    FUriMimeExtensions.Add('.odc', 'application/vnd.oasis.opendocument.chart');
+    FUriMimeExtensions.Add('.odf', 'application/vnd.oasis.opendocument.formula');
+    FUriMimeExtensions.Add('.odi', 'application/vnd.oasis.opendocument.image');
+    // Documents - new MS Office
+    FUriMimeExtensions.Add('.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    FUriMimeExtensions.Add('.pptx', 'application/vnd.openxmlformats-officedocument.presentationml.presentation');
+    FUriMimeExtensions.Add('.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+
+    // Compressed archives
+    FUriMimeExtensions.Add('.zip', 'application/zip');
+    FUriMimeExtensions.Add('.tar', 'application/x-tar');
+    FUriMimeExtensions.Add('.rar', 'application/x-rar-compressed');
+    FUriMimeExtensions.Add('.gz', 'application/gzip');
+
+    // Various
+    FUriMimeExtensions.Add('.xml', 'application/xml');
+    FUriMimeExtensions.Add('.castlescript', 'text/x-castlescript');
+    FUriMimeExtensions.Add('.kscript', 'text/x-castlescript');
+    FUriMimeExtensions.Add('.js', 'application/javascript');
+    FUriMimeExtensions.Add('.castle-user-interface', 'text/x-castle-user-interface');
+    FUriMimeExtensions.Add('.castle-transform', 'text/x-castle-transform');
+    FUriMimeExtensions.Add('.castle-component', 'text/x-castle-component');
+    FUriMimeExtensions.Add('.tmx', 'application/x-tiled-map');
+  end;
+
 begin
   if FUriMimeExtensions = nil then
+  begin
     FUriMimeExtensions := TStringStringMap.Create;
+    AddDefaultMimeExtensions;
+  end;
   Result := FUriMimeExtensions;
 end;
 
@@ -1042,7 +1322,7 @@ begin
   Result := InternalUriMimeType(Uri, Gzipped);
 end;
 
-function UriMimeType(const Uri: String): string;
+function UriMimeType(const Uri: String): String;
 var
   Gzipped: boolean;
 begin
@@ -1058,6 +1338,19 @@ begin
   DataPath := ResolveCastleDataUrl('castle-data:/');
   if IsPrefix(DataPath, Url, not FileNameCaseSensitive) then
     Result := 'castle-data:/' + PrefixRemove(DataPath, Url, not FileNameCaseSensitive)
+  else
+    Result := Url;
+end;
+
+function MaybeUseCastleConfigProtocol(const Url: String): String;
+var
+  ConfigPath: String;
+begin
+  { Use below ResolveCastleConfigUrl, to get real location of Config,
+    e.g. resolved to file:// on normal desktop. }
+  ConfigPath := ResolveCastleConfigUrl('castle-config:/');
+  if IsPrefix(ConfigPath, Url, not FileNameCaseSensitive) then
+    Result := 'castle-config:/' + PrefixRemove(ConfigPath, Url, not FileNameCaseSensitive)
   else
     Result := Url;
 end;
@@ -1108,7 +1401,7 @@ begin
   end;
 end;
 
-function UriCaption(const Uri: String): string;
+function UriCaption(const Uri: String): String;
 begin
   if Uri = '' then
     Result := ''
@@ -1116,7 +1409,7 @@ begin
     Result := UriDisplay(AbsoluteUri(Uri), true);
 end;
 
-function ChangeUriExt(const Url, Extension: string): string;
+function ChangeUriExt(const Url, Extension: String): String;
 
   {$ifndef FPC}
   { Mask default Delphi ChangeFileExt that behaves badly for filenames
@@ -1159,12 +1452,12 @@ begin
     Result := Result + '#' + Anchor;
 end;
 
-function DeleteUriExt(const Url: String): string;
+function DeleteUriExt(const Url: String): String;
 begin
   Result := ChangeUriExt(Url, '');
 end;
 
-function ExtractUriName(const Url: String): string;
+function ExtractUriName(const Url: String): String;
 var
   UrlWithoutAnchor: String;
   {$ifndef FPC} I: Integer; {$endif}
@@ -1185,7 +1478,7 @@ begin
   {$endif}
 end;
 
-function ExtractUriPath(const Url: String): string;
+function ExtractUriPath(const Url: String): String;
 var
   UrlWithoutAnchor: String;
   {$ifndef FPC} I: Integer; {$endif}
@@ -1243,89 +1536,35 @@ begin
 end;
 
 function UriExists(Url: String): TUriExists;
-
-  // Detect existence of castle-data:/xxx URL using DataDirectoryInformation.
-  function UseDataDirectoryInformation(const Url: String): TUriExists;
-  var
-    U: TUri;
-    UrlPath: String;
-    PathEntry: TDirectoryInformation.TEntry;
-  begin
-    U := ParseUri(Url);
-    UrlPath := PrefixRemove('/', U.Path + U.Document, false);
-    PathEntry := DataDirectoryInformation.FindEntry(UrlPath);
-    if PathEntry = nil then
-      Exit(ueNotExists)
-    else
-    if PathEntry is TDirectoryInformation.TDirectory then
-      Exit(ueDirectory)
-    else
-      Exit(ueFile);
-  end;
-
-  {$ifdef CASTLE_NINTENDO_SWITCH}
-  // Detect existence of castle-nx-contents or castle-nx-save URL using NX-specific function.
-  function UseNXExists(const Url: String): TUriExists;
-  begin
-    Result := NXFileExists(Url);
-  end;
-  {$endif CASTLE_NINTENDO_SWITCH}
-
-  // Detect existence of a filename using FileExists, DirectoryExists.
-  function UseFileDirectoryExists(const FileName: String): TUriExists;
-  var
-    F, D: Boolean;
-  begin
-    F := FileExists(FileName);
-    D := DirectoryExists(FileName);
-
-    { FileExists behaves inconsistently for directories.
-      On non-Windows, returns true.
-      On Windows, returns false.
-      See http://www.freepascal.org/docs-html/rtl/sysutils/fileexists.html
-      http://free-pascal-general.1045716.n5.nabble.com/FileExists-inconsistency-td2813433.html
-      So check both, and if DirectoryExists then assume it's a directory
-      (regardless of FileExists result). }
-    if D then
-      Exit(ueDirectory)
-    else
-    if F then
-      Exit(ueFile)
-    else
-      Exit(ueNotExists);
-  end;
-
 var
   P: String;
+  R: TRegisteredProtocol;
 begin
-  { data: URI is like a file, since you can call Download() on it }
-  if TDataUri.IsDataUri(Url) then
-    Exit(ueFile);
+  { What should be return for ''?
+
+    1. For paths (filenames), '' sometimes means "current working directory",
+      so one can argue that it could also be ueDirectory.
+      And in many places in CGE API, we try to tolerate filenames when given
+      as URLs.
+
+    2. But '' as an URL is just invalid URL.
+
+    AD 2 seems more expected than AD 1. }
+  if Url = '' then
+    Exit(ueNotExists);
 
   P := UriProtocol(Url);
-
-  if (P = 'castle-data') and
-     (DisableDataDirectoryInformation = 0) and
-     (DataDirectoryInformation <> nil) then
-    Exit(UseDataDirectoryInformation(Url));
-
-  { Resolve castle-data:/xxx now.
-    This way we can work in case we have castle-data:/xxx URL that resolves
-    to something handled below (like file:/xxx) but wasn't handled above
-    (e.g. because DataDirectoryInformation = nil). }
-  Url := ResolveCastleDataUrl(Url);
-  P := UriProtocol(Url);
-
-  {$ifdef CASTLE_NINTENDO_SWITCH}
-  if (P = 'castle-nx-contents') or
-     (P = 'castle-nx-save') then
-    Exit(UseNXExists(Url));
-  {$endif CASTLE_NINTENDO_SWITCH}
-
-  if (P = '') or (P = 'file') then
-    Exit(UseFileDirectoryExists(UriToFilenameSafe(Url)));
-
-  Result := ueUnknown;
+  R := FindRegisteredUrlProtocol(P);
+  if R <> nil then
+  begin
+    if Assigned(R.ExistsEvent) then
+      Result := R.ExistsEvent(Url)
+    else
+      // Protocol known, but no ExistsEvent -> so don't know if this exists
+      Result := ueUnknown;
+  end else
+    // Protocol not known -> doesn't exist, as far as our Download and UrlSaveStream are concerned
+    Result := ueNotExists;
 end;
 
 function UriCurrentPath: string;
@@ -1417,11 +1656,44 @@ end;
 
 var
   ApplicationDataIsCache: Boolean = false;
-  ApplicationDataCache: string;
+  { URL prefix with which to resolve future ApplicationDataCore calls. }
+  ApplicationDataCache: String;
+  DataPacked: TCastleZip;
 
-function ApplicationDataCore(const Path: string): string;
+{ Resolve Path inside castle-data.
+  Given Path is a relative path, not URL-encoded (so it is directly
+  useful e.g. as part of filename but use UrlEncode to put it back
+  inside some URL). }
+function ApplicationDataCore(const Path: String): String;
 
-  {$ifndef ANDROID}
+  { For some platfors, we have special data reading algorithm that
+    doesn't perform detection using GetApplicationDataPath. }
+  {$if not (defined(CASTLE_NINTENDO_SWITCH) or defined(ANDROID) or defined(WASI))}
+    {$define CASTLE_DETECT_DATA_PATH}
+  {$endif}
+
+  { Detect data path using GetApplicationDataPath. }
+  {$ifdef CASTLE_DETECT_DATA_PATH}
+
+  { Open archive (for now, only zip) with application data
+    in the given directory.
+    ParentDirectory may but doesn't have to end with PathDelim.
+    Returns '' if not possible. }
+  function OpenDataPacked(const ParentDirectory: String): String;
+  var
+    ZipFileName: String;
+  begin
+    ZipFileName := CombinePaths(ParentDirectory, ApplicationName + '_data.zip');
+    if RegularFileExists(ZipFileName) then
+    begin
+      DataPacked := TCastleZip.Create;
+      DataPacked.Open(FilenameToUriSafe(ZipFileName));
+      DataPacked.RegisterUrlProtocol('castle-internal-data-packed');
+      Result := 'castle-internal-data-packed:/';
+    end else
+      Result := '';
+  end;
+
   function GetApplicationDataPath: string;
   {$ifdef MSWINDOWS}
   var
@@ -1432,30 +1704,51 @@ function ApplicationDataCore(const Path: string): string;
     ExePath := ExtractFilePath(ExeName);
     {$warnings on}
 
+    // data subdirectory alongside exe
     Result := ExePath + 'data' + PathDelim;
     if DirectoryExists(Result) then Exit;
 
+    // data zip alongside exe
+    Result := OpenDataPacked(ExePath);
+    if Result <> '' then Exit;
+
+    { Same as above, but look in ../../, in case exe is inside
+      <platform>/<config>/ as common when building with Delphi. }
     if StripExePathFromPlatformConfig(ExePath, StrippedExePath) then
     begin
       Result := StrippedExePath + 'data' + PathDelim;
       if DirectoryExists(Result) then Exit;
+
+      Result := OpenDataPacked(StrippedExePath);
+      if Result <> '' then Exit;
     end;
 
     Result := ExePath;
   {$endif MSWINDOWS}
+
   {$ifdef UNIX}
   var
-    CurPath: string;
+    CurPath: String;
+    {$ifdef DARWIN}
+    BundleDataParentPath: String;
+    {$endif}
   begin
     {$ifdef DARWIN}
     if BundlePath <> '' then
     begin
       {$ifdef CASTLE_IOS}
-      Result := BundlePath + 'data/';
+      BundleDataParentPath := BundlePath;
       {$else}
-      Result := BundlePath + 'Contents/Resources/data/';
+      BundleDataParentPath := BundlePath + 'Contents/Resources/';
       {$endif}
+
+      // data subdirectory in the macOS application bundle or iOS data
+      Result := BundleDataParentPath + 'data/';
       if DirectoryExists(Result) then Exit;
+
+      // data zip in the macOS application bundle or iOS data
+      Result := OpenDataPacked(BundleDataParentPath);
+      if Result <> '' then Exit;
 
       {$ifndef IOS}
       Result := BundlePath + '../data/';
@@ -1482,17 +1775,141 @@ function ApplicationDataCore(const Path: string): string;
 
     CurPath := InclPathDelim(GetCurrentDir);
 
+    // data subdirectory of current path (we don't depend on ExePath on non-Windows)
     Result := CurPath + 'data/';
     if DirectoryExists(Result) then Exit;
+
+    // data zip in current path (we don't depend on ExePath on non-Windows)
+    Result := OpenDataPacked(CurPath);
+    if Result <> '' then Exit;
 
     Result := CurPath;
   {$endif UNIX}
   end;
-  {$endif not ANDROID}
+
+  {$endif CASTLE_DETECT_DATA_PATH}
+
+  {$ifdef WASI}
+
+  {$ifdef CASTLE_WEB_DECRYPT_DATA}
+  (*Demo how you can encrypt / decrypt data stored on web server.
+    This is where you decrypt data.
+    During build, encrypt the zip with application like this:
+
+    @longCode(#
+      uses SysUtils, Classes, BlowFish,
+        CastleClassUtils, CastleStreamUtils;
+      const
+        BlowFishKeyPhrase = 'sample secret password, make it random';
+        // and maybe spread out in code from multiple constants
+        DataToEncrypt = 'castle-engine-output/web/dist/viewer_3d_data.zip';
+      var
+        FileStreamIn, FileStreamOut: TFileStream;
+        EncryptStream: TBlowFishEncryptStream;
+        InputSize: Int64;
+      begin
+        FileStreamOut := TFileStream.Create(DataToEncrypt + '.encrypted', fmCreate);
+        try
+          EncryptStream := TBlowFishEncryptStream.Create(BlowFishKeyPhrase, FileStreamOut);
+          try
+            FileStreamIn := TFileStream.Create(DataToEncrypt, fmOpenRead);
+            try
+              { Encrypting + decrypting using BlowFish adds a padding of zeroes at
+                the end (to multiple of 4, it seems).
+                So record correct size of input data at the beginning,
+                so that we can later read it back. }
+              InputSize := FileStreamIn.Size;
+              FileStreamOut.WriteLE(InputSize);
+
+              ReadGrowingStream(FileStreamIn, EncryptStream, false);
+            finally FreeAndNil(FileStreamin) end;
+          finally FreeAndNil(EncryptStream) end;
+        finally FreeAndNil(FileStreamOut) end;
+      end.
+    #)
+  *)
+
+  { Replace ZipContents with TMemoryStream representing decrypted ZIP.
+    The Position of the resulting stream is set to 0. }
+  procedure DecryptZip(var ZipContents: TMemoryStream);
+  const
+    BlowFishKeyPhrase = 'sample secret password, make it random';
+  var
+    StreamOut: TMemoryStream;
+    DecryptStream: TBlowFishDecryptStream;
+    CorrectDecryptedSize: Int64;
+  begin
+    { Encrypting + decrypting using BlowFish adds a padding of zeroes at
+      the end (to multiple of 4, it seems).
+      So we have recorded correct size of input data at the beginning,
+      so that we can later read it back. }
+    ZipContents.ReadLE(CorrectDecryptedSize);
+
+    StreamOut := TMemoryStream.Create;
+    try
+      DecryptStream := TBlowFishDecryptStream.Create(BlowFishKeyPhrase, ZipContents);
+      try
+        ReadGrowingStream(DecryptStream, StreamOut, true);
+
+        WritelnLog('Cutting trailing zeros from decrypted ZIP: %d', [
+          StreamOut.Size - CorrectDecryptedSize
+        ]);
+        StreamOut.Size := CorrectDecryptedSize;
+
+        // log, and show sizes to debug things
+        WritelnLog('Decrypting ZIP using BlowFish, input size %d, output size %d', [
+          ZipContents.Size,
+          StreamOut.Size
+        ]);
+
+        { Only if all good, change ZipContents to StreamOut.
+          This is one way to ensure proper memory management even when exceptions occur. }
+        FreeAndNil(ZipContents);
+        ZipContents := StreamOut;
+        StreamOut := nil;
+      finally FreeAndNil(DecryptStream) end;
+    finally FreeAndNil(StreamOut) end;
+  end;
+  {$endif CASTLE_WEB_DECRYPT_DATA}
+
+  { Get ZIP data that was downloaded by pas2js,
+    open it using TCastleZip in WASM,
+    return new URL protocol to access files inside. }
+  function WebGetApplicationDataPath: String;
+  var
+    WebDataContents: IJSArrayBuffer;
+    ZipContents: TMemoryStream;
+  begin
+    WebDataContents := JSDocument.ReadJSPropertyObject('CastleApplicationData',
+      TJSArrayBuffer) as IJSArrayBuffer;
+
+    if WebDataContents = nil then
+      raise Exception.Create('JS did not define application data');
+    WritelnLog('WebAssembly received data ZIP (size %d)', [WebDataContents.ByteLength]);
+
+    ZipContents := TMemoryStream.Create;
+    ZipContents.Size := WebDataContents.ByteLength;
+    WebDataContents.CopyToMemory(ZipContents.Memory, ZipContents.Size);
+
+    {$ifdef CASTLE_WEB_DECRYPT_DATA}
+    DecryptZip(ZipContents);
+    {$endif CASTLE_WEB_DECRYPT_DATA}
+
+    DataPacked := TCastleZip.Create;
+    DataPacked.Open(ZipContents, true);
+    DataPacked.RegisterUrlProtocol('castle-internal-web-data-packed');
+    Result := 'castle-internal-web-data-packed:/';
+  end;
+  {$endif WASI}
+
+  {$ifdef CASTLE_NINTENDO_SWITCH}
+
+  end;
+  {$endif WASI}
 
 begin
   if ApplicationDataOverride <> '' then
-    Exit(ApplicationDataOverride + Path);
+    Exit(ApplicationDataOverride + UrlEncode(Path));
 
   if Pos('\', Path) <> 0 then
     WritelnWarning('ResolveCastleDataUrl', 'Do not use backslashes (or a PathDelim constant) in the ApplicationDataCore parameter. The ApplicationDataCore parameter should be a relative URL, with components separated by slash ("/"), regardless of the OS. Path given was: ' + Path);
@@ -1512,6 +1929,8 @@ begin
         'castle-nx-contents:/'
       {$elseif defined(ANDROID)}
         'castle-android-assets:/'
+      {$elseif defined(WASI)}
+        WebGetApplicationDataPath
       {$else}
         FilenameToUriSafe(GetApplicationDataPath)
       {$endif}
@@ -1520,7 +1939,7 @@ begin
     ApplicationDataIsCache := true;
   end;
 
-  Result := ApplicationDataCache + Path;
+  Result := ApplicationDataCache + UrlEncode(Path);
 end;
 
 function ResolveCastleDataUrl(const Url: String): String;
@@ -1538,7 +1957,7 @@ function ResolveCastleDataUrl(const Url: String): String;
 
     H := TFixCaseHandler.Create;
     try
-      Parts := SplitString(InternalUriUnescape(RelativeToData), '/');
+      Parts := CastleStringUtils.SplitString(UrlDecode(RelativeToData), '/');
       try
         for I := 0 to Parts.Count - 1 do
         begin
@@ -1569,9 +1988,7 @@ begin
   begin
     U := ParseUri(Url);
     RelativeToData := PrefixRemove('/', U.Path + U.Document, false);
-    {$warnings off} // don't warn that CastleDataIgnoreCase is experimental
     if CastleDataIgnoreCase and FileNameCaseSensitive then
-    {$warnings on}
       RelativeToData := FixCase(RelativeToData);
     Result := ApplicationDataCore(RelativeToData);
   end else
@@ -1591,7 +2008,123 @@ begin
     Result := Url;
 end;
 
+var
+  WebTemporaryConfig: TCastleMemoryFileSystem;
+
+function ResolveCastleConfigUrl(const Url: String): String;
+
+  { TODO: Initializes a temporary filesystem now. }
+  function WebGetApplicationConfigPath: String;
+  begin
+    if WebTemporaryConfig = nil then
+    begin
+      WebTemporaryConfig := TCastleMemoryFileSystem.Create;
+      WebTemporaryConfig.RegisterUrlProtocol('castle-internal-web-config');
+    end;
+    Result := 'castle-internal-web-config:/';
+  end;
+
+  { Resolve the Path inside castle-config to final URL.
+    Path is a relative path, not URL-encoded (so it is directly
+    useful e.g. as part of filename but use UrlEncode to put it back
+    inside some URL). }
+  function ApplicationConfigCore(const Path: string): string;
+  var
+    ConfigDir: string;
+  begin
+    if ApplicationConfigOverride <> '' then
+      Exit(ApplicationConfigOverride + UrlEncode(Path));
+
+    { ApplicationConfig relies that ApplicationConfigOverride is set
+      (on iOS, it's not set before CGEApp_Initialize called;
+      on Android, it's not set before AndroidMainImplementation called). }
+    if not ApplicationProperties._FileAccessSafe then
+      WritelnWarning('Using castle-config with path "%s" before the Application.OnInitialize was called. ' +
+        'This is not reliable on mobile platforms (Android, iOS). ' +
+        'This usually happens if you open a file from the "initialization" section of a unit. ' +
+        'You should do it in Application.OnInitialize instead.',
+        [Path]);
+
+    {$ifdef WASI}
+    // use WebAssembly specific implementation
+    Result := WebGetApplicationConfigPath + UrlEncode(Path);
+    {$else}
+    // use GetAppConfigDir
+    ConfigDir := InclPathDelim(GetAppConfigDir(false));
+    Result := FilenameToUriSafe(ConfigDir + Path);
+    {$endif}
+  end;
+
+var
+  U: TUri;
+  RelativeToData: String;
+begin
+  if UriProtocol(Url) = 'castle-config' then
+  begin
+    U := ParseUri(Url);
+    RelativeToData := PrefixRemove('/', U.Path + U.Document, false);
+    Result := ApplicationConfigCore(RelativeToData);
+    //WritelnLog('castle-config', Format('Resolved "%s" to "%s"', [Url, Result]));
+  end else
+    Result := Url;
+end;
+
+function UrlQueryParameters(Query: String): TStringStringMap;
+
+  { Decode URL query parameters. In addition to UrlDecode,
+    this also handles + for space. }
+  function UrlDecodeForm(const S: String): String;
+  begin
+    { URL query parameters are encoded using application/x-www-form-urlencoded encoding,
+      see https://url.spec.whatwg.org/#application/x-www-form-urlencoded . }
+    Result := S;
+    Result := SReplaceChars(Result, '+', ' ');
+    Result := UrlDecode(Result);
+  end;
+
+var
+  ParamName, ParamValue, NameValue: String;
+  NameValues: TCastleStringList;
+  EqPos: Integer;
+begin
+  Result := TStringStringMap.Create;
+
+  if SCharIs(Query, 1, '?') then
+    Query := SEnding(Query, 2);
+
+  NameValues := CastleStringUtils.SplitString(Query, '&');
+  try
+    for NameValue in NameValues do
+    begin
+      EqPos := Pos('=', NameValue);
+      if EqPos > 0 then
+      begin
+        ParamName := UrlDecodeForm(Copy(NameValue, 1, EqPos - 1));
+        ParamValue := UrlDecodeForm(SEnding(NameValue, EqPos + 1));
+      end else
+      begin
+        ParamName := UrlDecodeForm(NameValue);
+        ParamValue := '';
+      end;
+
+      { Ignore empty parameter names, like in ...?x=1&&y=2 (double &)
+        or in ?=1 (no key name). }
+      if ParamName = '' then
+        Continue;
+
+      if Result.ContainsKey(ParamName) then
+        WritelnWarning('Duplicate page URL parameter "%s", ignoring all but first occurrence', [
+          ParamName
+        ])
+      else
+        Result.Add(ParamName, ParamValue);
+    end;
+  finally FreeAndNil(NameValues) end;
+end;
+
 initialization
 finalization
   FreeAndNil(FUriMimeExtensions);
+  FreeAndNil(DataPacked);
+  FreeAndNil(WebTemporaryConfig);
 end.

@@ -21,7 +21,7 @@ unit CastleDownload;
 interface
 
 uses SysUtils, Classes,
-  CastleVectors;
+  CastleVectors, CastleUriUtils, CastleFindFiles;
 
 {$define read_interface}
 {$I castledownload_register.inc}
@@ -64,13 +64,15 @@ uses URIParser, Math, Generics.Collections,
   {$I castledownload_url_http_fphttpclient.inc}
   {$I castledownload_url_http_delphi_net.inc}
   {$I castledownload_url_http_indy.inc}
+  {$I castledownload_url_http_web.inc}
   {$undef read_implementation_uses}
   {$if defined(VER3_2) and defined(DARWIN) and not defined(CASTLE_IOS)}
     { for ESocketError } SSockets,
   {$endif}
-  CastleUriUtils, CastleUtils, CastleLog, CastleInternalZStream,
+  CastleUtils, CastleLog, CastleInternalZStream,
   CastleClassUtils, CastleInternalDataUri, CastleStringUtils,
-  CastleApplicationProperties, CastleFilesUtils;
+  CastleInternalDirectoryInformation, CastleApplicationProperties,
+  CastleFilesUtils;
 
 {$define read_implementation}
 {$I castledownload_internal_utils.inc}
@@ -79,6 +81,8 @@ uses URIParser, Math, Generics.Collections,
 {$I castledownload_url_castleandroidassets.inc}
 {$I castledownload_url_castlescript.inc}
 {$I castledownload_url_compiled.inc}
+{$I castledownload_url_castledata.inc}
+{$I castledownload_url_castleconfig.inc}
 {$I castledownload_url_data.inc}
 {$I castledownload_url_ecmascript.inc}
 {$I castledownload_url_file.inc}
@@ -86,6 +90,7 @@ uses URIParser, Math, Generics.Collections,
 {$I castledownload_url_http_fphttpclient.inc}
 {$I castledownload_url_http_delphi_net.inc}
 {$I castledownload_url_http_indy.inc}
+{$I castledownload_url_http_web.inc}
 
 {$I castledownload_register.inc}
 {$I castledownload_synchronous.inc}

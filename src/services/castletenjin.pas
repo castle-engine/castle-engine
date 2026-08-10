@@ -24,7 +24,7 @@ uses Classes;
 
 type
   { Tenjin ( https://www.tenjin.com/ ) integration.
-    On Android ( https://github.com/castle-engine/castle-engine/blob/master/tools/build-tool/data/android/integrated-services/tenjin/README.md )
+    On Android ( https://github.com/castle-engine/castle-engine/blob/master/tools/build-tool/data/android/services/tenjin/README.md )
     and on iOS ( https://github.com/castle-engine/castle-engine/blob/master/tools/build-tool/data/ios/services/tenjin/README.md ).
 
     Usage:

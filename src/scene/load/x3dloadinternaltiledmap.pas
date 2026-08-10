@@ -1,5 +1,5 @@
 {
-  Copyright 2020-2024 Matthias J. Molski, Michalis Kamburelis, Freedomax.
+  Copyright 2020-2026 Matthias J. Molski, Michalis Kamburelis, Freedomax.
 
   This file is part of "Castle Game Engine".
 
@@ -40,7 +40,8 @@ uses
 
   Underneath, this loads Tiled map using TCastleTiledMapData,
   then uses internal conversion class to generate X3D node from it. }
-function LoadTiledMap2d(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
+function LoadTiledMap2d(const Stream: TStream; const BaseUrl: String;
+  const LoadOptions: TCastleSceneLoadOptions): TX3DRootNode;
 
 type
   { Convert Tiled map into X3D node. }
@@ -112,6 +113,8 @@ type
       TLayers = set of TLayerIndex;
     const
       AllLayers = [Low(TLayerIndex)..High(TLayerIndex)];
+      // Matches TCastleTiledMap default
+      DefaultLayersZDistance = 10.0;
     var
       { Workaround rendering artifacts for tilesets without alpha bleeding.
         Set before @link(ConvertMap). }
@@ -120,8 +123,11 @@ type
       { See @link(TCastleTiledMap.ForceTilesetSpacing). }
       ForceTilesetSpacing : Boolean;
 
-      { Layers to load.  }
+      { Layers to load. By default "all layers". }
       Layers: TLayers;
+
+      { Distance between layers in Z. By default @link(DefaultLayersZDistance). }
+      LayersZDistance: Single;
 
     constructor Create(const ATiledMap: TCastleTiledMapData);
     destructor Destroy; override;
@@ -361,27 +367,6 @@ var
   LayerNode: TTransformNode;
   LayerZ: Single;
   SwitchNode: TSwitchNode;
-const
-  { Distance between Tiled layers in Z. Layers are rendered as 3D objects
-    and need some distance to avoid Z-fighting.
-
-    This could be avoided when using RenderContext.DepthFunc := dfAlways,
-    we even tried it at one point (TCastleTiledMap.AssumePerfectRenderingOrder),
-    but it had with it's own disadvantages:
-    Rendering with RenderContext.DepthFunc = dfAlways
-    assumes that really *everything*, including other things
-    that could be behind / in front of this Tiled map, are arranged in the TCastleViewport.Items
-    tree in the correct order. That is, things behind the Tiled map must be earlier than
-    the TCastleTiledMap component in the transformation tree. And things in front of Tiled map must
-    be after the TCastleTiledMap component in the transformation tree.
-    And this assumption must be preserved by blending sorting done
-    by @link(TCastleViewport.BlendingSort), if any.
-
-    So we don't use RenderContext.DepthFunc = dfAlways anymore.
-    Instead we apply layer Z distance.
-
-    Note: 1 is too small for examples/tiled/map_viewer/data/maps/desert_with_objects.tmx }
-  LayerZDistanceIncrease: Single = 10;
 begin
   LayerZ := 0;
 
@@ -418,7 +403,7 @@ begin
 
     // flip -Layer.OffsetY, as Tiled Y goes down
     LayerNode.Translation := Vector3(Layer.OffsetX, -Layer.OffsetY, LayerZ);
-    LayerZ := LayerZ + LayerZDistanceIncrease;
+    LayerZ := LayerZ + LayersZDistance;
   end;
 end;
 
@@ -809,7 +794,9 @@ var
 
       if not ValidTileId(Frame) then
       begin
-        WritelnWarning('Invalid TileId:%d TilePosition:' + TilePosition.ToString, [Frame]);
+        WritelnWarning('Invalid tile index %d requested to be shown at map position (%s). This may happen if your ".tsx" file has incorrect (outdated, too small) "tilecount".', [
+          Frame, TilePosition.ToString
+        ]);
         Exit;
       end;
 
@@ -854,6 +841,7 @@ begin
   inherited Create;
 
   Layers := AllLayers;
+  LayersZDistance := DefaultLayersZDistance;
 
   Map := ATiledMap;
 
@@ -877,7 +865,8 @@ begin
   Result := ConvY(Vector2(X, Y));
 end;
 
-function LoadTiledMap2d(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
+function LoadTiledMap2d(const Stream: TStream; const BaseUrl: String;
+  const LoadOptions: TCastleSceneLoadOptions): TX3DRootNode;
 var
   TiledMapFromStream: TCastleTiledMapData;
   TiledMapConverter: TCastleTiledMapConverter;

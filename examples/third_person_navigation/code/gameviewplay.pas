@@ -153,7 +153,7 @@ begin
   { Configure ThirdPersonNavigation keys (for now, we don't expose doing this in CGE editor). }
   ThirdPersonNavigation.Input_LeftStrafe.Assign(keyQ);
   ThirdPersonNavigation.Input_RightStrafe.Assign(keyE);
-  ThirdPersonNavigation.MouseLook := true; // TODO: assigning it from editor doesn't make mouse hidden in mouse look
+  ThirdPersonNavigation.MouseLook := true; // this could also be set at design-time
   ThirdPersonNavigation.Init;
 end;
 
@@ -191,7 +191,7 @@ function TViewPlay.Press(const Event: TInputPressRelease): Boolean;
 
   function AvatarRayCast: TCastleTransform;
   var
-    RayCastResult: TPhysicsRayCastResult;
+    RayCastResult: TRayCastResult;
   begin
     RayCastResult := AvatarRigidBody.PhysicsRayCast(
       SceneAvatar.Middle,
@@ -275,7 +275,10 @@ begin
     Exit(true);
   end;
 
-  if Event.IsKey(keyF5) then
+  { Screenshot.
+    "P" is better on the web where F5 is used to refresh the page,
+    remember it as "PrintScreen/Photo". }
+  if Event.IsKey(keyF5) or Event.IsKey(keyP) then
   begin
     Container.SaveScreenToDefaultFile;
     Exit(true);

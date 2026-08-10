@@ -1,5 +1,5 @@
 {
-  Copyright 2023-2023 Michalis Kamburelis.
+  Copyright 2023-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,10 +25,14 @@ uses CastleWindow;
 var
   Window1, Window2: TCastleWindow;
 
+  { Set to @true to use second window.
+    Otherwise we only test a single window with 2 viewports. }
+  Window2Use: Boolean = true;
+
 implementation
 
 uses SysUtils,
-  CastleLog, CastleUIControls, CastleViewport
+  CastleLog, CastleUIControls, CastleViewport, CastleScene, CastleTransform
   {$region 'Castle Initialization Uses'}
   // The content here may be automatically updated by CGE editor.
   , GameViewMain
@@ -39,30 +43,50 @@ procedure ApplicationInitialize;
 
   { Adjust ViewportToChange.Items, changing also camera parent.
     See https://castle-engine.io/multiple_viewports_to_display_one_world }
-  procedure ShareWorld(const TargetViewport, ViewportToChange: TCastleViewport);
+  procedure ShareWorld(const TargetViewport, ViewportToChange: TCastleViewport;
+    const CameraViewName: String);
+  var
+    Camera: TCastleCamera;
+    Text: TCastleText;
   begin
-    ViewportToChange.Items.Remove(ViewportToChange.Camera);
+    Camera := ViewportToChange.Camera;
+
+    { Move Camera from ViewportToChange to TargetViewport.
+      This way both viewports will show the same world. }
+    ViewportToChange.Items.Remove(Camera);
     ViewportToChange.Items := TargetViewport.Items;
-    ViewportToChange.Items.Add(ViewportToChange.Camera);
+    TargetViewport.Items.Add(Camera);
+
+    { Every camera has 1 child, TCastleText.
+      Find it and make it show view name + camera name, so that all cameras
+      are marked in the 3D world. }
+    Text := Camera[0] as TCastleText;
+    Text.Caption := Format('%s (%s)', [Camera.Name, CameraViewName]);
   end;
 
 begin
   { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
   Window1.Container.LoadSettings('castle-data:/CastleSettings.xml');
-  Window2.Container.LoadSettings('castle-data:/CastleSettings.xml');
+  if Window2Use then
+    Window2.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
   { Create views (see https://castle-engine.io/views ). }
   ViewMainInWindow1 := TViewMain.Create(Application);
-  ViewMainInWindow2 := TViewMain.Create(Application);
+  if Window2Use then
+    ViewMainInWindow2 := TViewMain.Create(Application);
 
   Window1.Container.View := ViewMainInWindow1;
-  Window2.Container.View := ViewMainInWindow2;
+  if Window2Use then
+    Window2.Container.View := ViewMainInWindow2;
 
   { Make all 4 viewports refer to one world,
     from ViewMainInWindow1.ViewportTop.Items }
-  ShareWorld(ViewMainInWindow1.ViewportTop, ViewMainInWindow1.ViewportBottom);
-  ShareWorld(ViewMainInWindow1.ViewportTop, ViewMainInWindow2.ViewportTop);
-  ShareWorld(ViewMainInWindow1.ViewportTop, ViewMainInWindow2.ViewportBottom);
+  ShareWorld(ViewMainInWindow1.ViewportTop, ViewMainInWindow1.ViewportBottom, 'View1');
+  if Window2Use then
+  begin
+    ShareWorld(ViewMainInWindow1.ViewportTop, ViewMainInWindow2.ViewportTop, 'View2');
+    ShareWorld(ViewMainInWindow1.ViewportTop, ViewMainInWindow2.ViewportBottom, 'View2');
+  end;
 end;
 
 initialization
@@ -75,37 +99,49 @@ initialization
     Most of your actual application initialization (in particular, any file reading)
     should happen inside ApplicationInitialize. }
 
+  Window2Use := Application.MultipleWindowsPossible;
+
   Application.OnInitialize := @ApplicationInitialize;
 
   Window1 := TCastleWindow.Create(Application);
-  Window2 := TCastleWindow.Create(Application);
+  if Window2Use then
+    Window2 := TCastleWindow.Create(Application);
   Application.MainWindow := Window1;
 
   Window1.Left := Application.ScreenWidth div 9;
   Window1.Width := Application.ScreenWidth div 3;
 
-  Window2.Left := Application.ScreenWidth - Application.ScreenWidth div 9 - Application.ScreenWidth div 3;
-  Window2.Width := Application.ScreenWidth div 3;
+  if Window2Use then
+  begin
+    Window2.Left := Application.ScreenWidth - Application.ScreenWidth div 9 - Application.ScreenWidth div 3;
+    Window2.Width := Application.ScreenWidth div 3;
 
-  { Open Window2 now. Window1 will be open by main application file.
-    This way of opening many windows is nice to keep auto-generated
-    main application file (DPR).
-    You can also easily ifdef-out the creation of Window2
-    on systems that don't support multiple windows,
-    so on Android or iOS will have only Window1.
+    { Open Window2 now. Window1 will be open by main application file
+      (../multiple_windows_and_viewports_standalone.dpr).
+      This way of implementing "opening many windows" allows to keep
+      using auto-generated main application file (DPR).
+      You can also easily set Window2Use=false to disable the creation
+      of Window2 when you want. This very example does (see few lines above):
 
-    Alternative approach would be to modify DPR to open all windows
-    in a desired order, like
+        Window2Use := Application.MultipleWindowsPossible;
 
-      Window1.Open;
-      Window2.Open;
-      Application.Run;
+      to disable creation of Window2 on platforms that don't support
+      multiple windows (Android, iOS, Web, Nintendo Switch, ...).
 
-    instead of Window1.OpenAndRun.
-    This would be more explicit, and it makes sense if you really
-    target only desktops (where multiple windows are supported).
-  }
-  Window2.Open;
+      Alternative approach would be to modify DPR to open all windows
+      in a desired order, like
+
+        Window1.Open;
+        Window2.Open;
+        Application.Run;
+
+      instead of Window1.OpenAndRun.
+      This would be more explicit, and it would make sense if you really
+      target only desktops and want to just assume that
+      Application.MultipleWindowsPossible = true.
+    }
+    Window2.Open;
+  end;
 
   { Handle command-line parameters like --fullscreen and --window.
     By doing this last, you let user to override your fullscreen / mode setup. }

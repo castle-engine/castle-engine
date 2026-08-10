@@ -34,7 +34,7 @@
   TCastleSoundChangeEvent = procedure (const Sender: TCastleSound; const Change: TSoundChange) of object;
 
   { @exclude Used with TCastleSound notifications (TCastleSound.InternalAddChangeNotification). }
-  TCastleSoundChangeEventList = class({$ifdef FPC}specialize{$endif} TList<TCastleSoundChangeEvent>)
+  TCastleSoundChangeEventList = class({$ifdef FPC}specialize{$endif} TMethodList<TCastleSoundChangeEvent>)
   public
     procedure ExecuteAll(const Sender: TCastleSound; const Change: TSoundChange);
   end;
@@ -130,15 +130,15 @@
       The sound is loaded once you set @link(Url) and don't get any loading exceptions. }
     function Duration: Single;
 
-    { Sound data format (disregarding compression on top of it), for informational purposes.
-      Undefined if not loaded yet.
+    { Number of channels (1 for mono, 2 for stereo, etc).
+      0 if not loaded yet.
       The sound is loaded once you set @link(Url) and don't get any loading exceptions. }
-    function DataFormat: TSoundDataFormat;
+    function Channels: Cardinal;
 
     { Frequency (sample rate) of the loaded sound file.
       0 if not loaded yet.
       The sound is loaded once you set @link(Url) and don't get any loading exceptions. }
-    function Frequency: Cardinal;
+    function Frequency: TSoundFrequency;
   published
     { URL of the sound file.
       Set this to load a new sound buffer, you can set to '' to clear the sound buffer.
@@ -157,7 +157,13 @@
 
       If you plan to change @link(Stream), note that it is best to do it before
       setting @link(Url). Changing @link(Stream) while @link(Url) is already set
-      means that the sound is reloaded. }
+      means that the sound is reloaded.
+
+      TODO: Changing sound offset during playback, by writing to
+      @link(TCastlePlayingSound.Offset), is not yet implemented for streaming
+      sounds for some sound backends (like OpenAL).
+      Consider to disable streaming if you need to modify
+      @link(TCastlePlayingSound.Offset) for your sound. }
     property Stream: Boolean read FStream write SetStream default false;
 
     { Volume (how loud the sound is).
@@ -286,13 +292,9 @@ end;
 
 function TCastleSound.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'Url') or
-     (PropertyName = 'Stream') or
-     (PropertyName = 'Volume') or
-     (PropertyName = 'Pitch') or
-     (PropertyName = 'Priority') or
-     (PropertyName = 'ReferenceDistance') or
-     (PropertyName = 'MaxDistance') then
+  if ArrayContainsString(PropertyName, [
+       'Url', 'Stream', 'Volume', 'Pitch', 'Priority', 'ReferenceDistance', 'MaxDistance'
+     ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
@@ -449,15 +451,15 @@ begin
     Result := -1;
 end;
 
-function TCastleSound.DataFormat: TSoundDataFormat;
+function TCastleSound.Channels: Cardinal;
 begin
   if FBuffer <> nil then
-    Result := FBuffer.DataFormat
+    Result := FBuffer.Channels
   else
-    Result := Default(TSoundDataFormat); // whatever, just not memory garbage
+    Result := 0;
 end;
 
-function TCastleSound.Frequency: Cardinal;
+function TCastleSound.Frequency: TSoundFrequency;
 begin
   if FBuffer <> nil then
     Result := FBuffer.Frequency

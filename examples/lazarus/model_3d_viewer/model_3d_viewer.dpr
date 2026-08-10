@@ -8,8 +8,8 @@ uses
   {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
   Forms
-  { add your units here }, mainf, LazOpenGLContext, castle_base,
-  castle_components, OpenGLInformation, consolef;
+  { add your units here }, mainf, LazOpenGLContext, castle_engine_base,
+  castle_engine_lcl, OpenGLInformation, consolef;
 
 begin
   Application.Title := 'Castle Game Engine - Lazarus Model Viewer';

@@ -66,12 +66,12 @@ type
 function ParseFloatExpression(const S: string;
   const Variables: array of TCasScriptValue): TCasScriptExpression;
 
-{ Parse a CastleScript expression that should be calculated to a float value.
+{ Parse a CastleScript expression that should be calculated to an integer value.
   The easiest way to evaluate such expression
   is to call @link(TCasScriptExpression.AsInt) method.
 
   See @link(ParseFloatExpression) for more details, this procedure is equivalent
-  but it operates on floats. }
+  but it operates on integers. }
 function ParseIntExpression(const S: string;
   const Variables: array of TCasScriptValue): TCasScriptExpression;
 

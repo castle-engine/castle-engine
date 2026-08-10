@@ -66,6 +66,12 @@ procedure TTestFPImage.TestJPEG;
   end;
 
 begin
+  if not CanUseFileSystem then
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   { Reading this image fails with FPImage under FPC <= 2.4.0 }
   DoIt(UriToFilenameSafe('castle-data:/images/f023ours.jpg'), 512, 512);
 end;

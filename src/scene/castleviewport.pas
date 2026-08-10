@@ -1,5 +1,5 @@
 {
-  Copyright 2009-2024 Michalis Kamburelis.
+  Copyright 2009-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -190,6 +190,7 @@ type
     procedure SetInternalDesignNavigationType(const Value: TInternalDesignNavigationType);
     procedure SetInternalGridAxis(const Value: Boolean);
     function GetMouseRayHit: TRayCollision;
+    function GetBackgroundRenderer: TBackgroundRenderer;
 
     { Callbacks when MainCamera is notified that MainScene changes camera/navigation }
     procedure MainSceneAndCamera_BoundViewpointChanged(Sender: TObject);
@@ -225,7 +226,6 @@ type
       Given parameters are in world coordinates. }
     function CameraRayCollision(const RayOrigin, RayDirection: TVector3): TRayCollision;
 
-    procedure SetSceneManager(const Value: TCastleSceneManager);
     { Get current Container.MousePosition.
       Secured in case Container not assigned (returns @false)
       or when Navigation uses MouseLook (in which case, returns the middle of our area,
@@ -271,8 +271,6 @@ type
   private
     var
       FProjection: TProjection;
-      FSceneManager: TCastleSceneManager;
-      ItemsNodesFreeOccurred: Boolean;
 
     { Make sure to call AssignDefaultCamera, if needed because of AutoCamera. }
     procedure EnsureCameraDetected;
@@ -496,8 +494,8 @@ type
     destructor Destroy; override;
 
     function AllowSuspendForInput: boolean; override;
-    function Press(const Event: TInputPressRelease): boolean; override;
-    function Release(const Event: TInputPressRelease): boolean; override;
+    function PreviewPress(const Event: TInputPressRelease): boolean; override;
+    function PreviewRelease(const Event: TInputPressRelease): boolean; override;
     function Motion(const Event: TInputMotion): boolean; override;
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
@@ -551,21 +549,22 @@ type
 
     function GetMainScene: TCastleScene; deprecated 'use Items.MainScene';
 
-    {$ifdef FPC}
     { Current projection parameters,
       calculated by last @link(CalculateProjection) call,
       adjusted by @link(OnProjection).
       @bold(This is read only). To change the projection parameters,
       override @link(CalculateProjection) or handle event @link(OnProjection). }
     property Projection: TProjection read FProjection;
+      {$ifdef FPC}
       deprecated 'in most cases, you can instead read Camera parameters, like Camera.Orthographic.EffectiveWidth, Camera.Orthographic.EffectiveHeight';
-    {$endif}
+      {$endif}
 
     { Set current camera vectors and projection,
-      to best reflect current @link(MainScene) or current @link(Items)
-      bounding box.
+      to best reflect current @link(TCastleRootTransform.MainScene Items.MainScene)
+      or current @link(Items) bounding box.
 
-      If @link(MainScene) is set and it has a preferred camera (TViewpointNode,
+      If @link(TCastleRootTransform.MainScene Items.MainScene)
+      is set and it has a preferred camera (TViewpointNode,
       which can be specified in X3D, glTF, Collada files) then it will be used.
       Otherwise we calculate camera using CameraViewpointForWholeScne
       to see the whole world.
@@ -956,9 +955,12 @@ type
 
       Similar to @link(TransformUnderMouse), this method returns the first
       TCastleTransform hit by the ray.
+
+      If the MaxDistance is non-zero, it doesn't return collisions further
+      than MaxDistance from the camera position.
     }
     function TransformHit(const Position: TVector2;
-      const ContainerCoordinates: Boolean): TCastleTransform;
+      const ContainerCoordinates: Boolean; const MaxDistance: Single = 0): TCastleTransform;
 
     { Do not collide with this object when moving by @link(Navigation).
       It makes sense to put here player avatar (in 3rd person view)
@@ -972,9 +974,6 @@ type
     { See @link(TCastleAbstractRootTransform.Paused). }
     property Paused: boolean read GetPaused write SetPaused default false;
       deprecated 'use Items.Paused';
-
-    property SceneManager: TCastleSceneManager read FSceneManager write SetSceneManager;
-      deprecated 'assign Items from one TCastleViewport to another to view the same world from multiple viewports';
     {$endif}
 
     { Create new camera and make it used by this viewport.
@@ -1052,8 +1051,10 @@ type
 
         @item(See TCastleTransform.InternalBuildNode for more explanation.
           including why it's an internal method.)
-      ) }
-    function InternalBuildNode(const SaveBaseUrl: String): TX3DRootNode;
+      )
+      @exclude }
+    function InternalBuildNode(
+      const SaveBaseUrl: String; const UrlProcessing: TUrlProcessing): TX3DRootNode;
   published
     { Transformations and scenes visible in this viewport.
       You should add here your @link(TCastleTransform) and @link(TCastleScene)
@@ -1206,7 +1207,7 @@ type
       from MainScene to shine on all objects. }
     property UseGlobalFog: boolean
       read FUseGlobalFog write FUseGlobalFog default DefaultUseGlobalFog;
-      {$ifdef FPC} deprecated 'configure fog by assigning to TCastleViewport.Fog component; leave deprecated TCastleViewport.MainScene nil'; {$endif}
+      {$ifdef FPC} deprecated 'configure fog by assigning to TCastleViewport.Fog component; leave deprecated MyViewport.Items.MainScene = nil'; {$endif}
 
     { Help user to activate pointing device sensors and pick items.
       Every time you press Input_Interact (by default
@@ -1708,12 +1709,6 @@ end;
 
 destructor TCastleViewport.Destroy;
 begin
-  {$ifdef FPC}
-  {$warnings off} // only to keep deprecated feature working
-  SceneManager := nil; { remove Self from SceneManager.Viewports }
-  {$warnings on}
-  {$endif}
-
   { unregister free notification from these objects }
   ClearMouseRayHit;
   AvoidNavigationCollisions := nil;
@@ -1898,11 +1893,11 @@ begin
       Name
     ]);
   if UseGlobalFog <> DefaultUseGlobalFog then
-    WritelnWarning('UseGlobalFog is deprecated (on TCastleViewport named "%s"). Instead: Assign TCastleViewport.Fog to use fog, and leave deprecated TCastleViewport.MainScene = nil', [
+    WritelnWarning('UseGlobalFog is deprecated (on TCastleViewport named "%s"). Instead: Assign TCastleViewport.Fog to use fog, and leave deprecated MyViewport.Items.MainScene = nil', [
       Name
     ]);
   if UseGlobalLights <> DefaultUseGlobalLights then
-    WritelnWarning('UseGlobalLights is deprecated (on TCastleViewport named "%s"). Instead: If you need to tweak lighting, then use regular TCastleScene and set CastGlobalLights as needed; leave deprecated TCastleViewport.MainScene = nil', [
+    WritelnWarning('UseGlobalLights is deprecated (on TCastleViewport named "%s"). Instead: If you need to tweak lighting, then use regular TCastleScene and set CastGlobalLights as needed; leave deprecated MyViewport.Items.MainScene = nil', [
       Name
     ]);
   {$warnings on}
@@ -1997,12 +1992,23 @@ begin
   end;
 end;
 
-function TCastleViewport.Press(const Event: TInputPressRelease): boolean;
+function TCastleViewport.PreviewPress(const Event: TInputPressRelease): boolean;
 var
   I: Integer;
 begin
   Result := inherited;
   if Result or Items.Paused then Exit;
+
+  { Note: We do this in PreviewPress, not Press,
+    because the TCastleTransform stuff inside viewport
+    (like TCastleScene processing touch events,
+    like touch_sensor_tests.x3dv in demo-models) must receive events
+    before viewport UI children (like TCastleWalkNavigation that
+    also wants to capture clicks, to start mouse dragging when niMouseDragging).
+
+    Testcases:
+    - touch_sensor_tests.x3dv in model viewer, click on TouchSensors
+    - zombie_fighter, click on enemies to invoke dialog }
 
   { Call UpdateMouseRayHit at nearest moment.
     As our PointingDevicePress (called below) uses it.
@@ -2027,7 +2033,7 @@ begin
   end;
 end;
 
-function TCastleViewport.Release(const Event: TInputPressRelease): boolean;
+function TCastleViewport.PreviewRelease(const Event: TInputPressRelease): boolean;
 var
   I: Integer;
 begin
@@ -2182,7 +2188,7 @@ begin
 end;
 
 function TCastleViewport.TransformHit(const Position: TVector2;
-  const ContainerCoordinates: Boolean): TCastleTransform;
+  const ContainerCoordinates: Boolean; const MaxDistance: Single = 0): TCastleTransform;
 var
   RayOrigin, RayDirection: TVector3;
   RayHit: TRayCollision;
@@ -2193,6 +2199,9 @@ begin
   begin
     try
       Result := RayHit.Transform;
+      // check MaxDistance, if non-zero
+      if (MaxDistance > 0) and (RayHit.Distance > MaxDistance) then
+        Result := nil;
     finally FreeAndNil(RayHit) end;
   end else
     Result := nil;
@@ -2216,10 +2225,6 @@ begin
       Our Items.OnXxx do not link to viewport then, and should not be relied upon.
   }
   ClearMouseRayHit;
-
-  { Signal to PointingDevicePressCore to not process further collision list.
-    TODO: why is this necessary? But anchor_test on castle-model-viewer otherwise crashes. }
-  ItemsNodesFreeOccurred := true;
 end;
 
 function TCastleViewport.TriangleHit: PTriangle;
@@ -2252,7 +2257,11 @@ var
         mark keys/mouse as handled". }
 
       Items.Update(SecondsPassedScaled, RemoveItem);
-      { we ignore RemoveItem --- main Items list cannot be removed }
+
+      { we ignore RemoveItem --- main Items list cannot be removed.
+        Actually, TCastleAbstractRootTransform.Update never changes it,
+        and TCastleAbstractRootTransform.UpdateIncreaseTime ignores the
+        "inherited Update" logic for it. }
     end;
   end;
 
@@ -2292,6 +2301,15 @@ var
     Items.InternalProjectionFar := FProjection.ProjectionFar;
   end;
 
+  procedure BackgroundUpdate;
+  var
+    BgRenderer: TBackgroundRenderer;
+  begin
+    BgRenderer := GetBackgroundRenderer;
+    if BgRenderer <> nil then
+      BgRenderer.Update(SecondsPassedScaled);
+  end;
+
 begin
   inherited;
 
@@ -2315,6 +2333,7 @@ begin
   ItemsUpdate;
   UpdateVisibleChange;
   WatchMainSceneChange;
+  BackgroundUpdate;
 end;
 
 function TCastleViewport.AllowSuspendForInput: boolean;
@@ -2721,9 +2740,9 @@ procedure TCastleViewport.RenderFromView3D(const Params: TRenderParams);
   begin
     { We must first render all non-transparent objects,
       then all transparent objects. Otherwise transparent objects
-      (that must be rendered without updating depth buffer) could get brutally
-      covered by non-transparent objects (that are in fact further away from
-      the camera). }
+      (that must be rendered without updating depth buffer) could get
+      obscured by non-transparent objects (that would happen to be further away
+      from the camera, but also be drawn after the transparent object). }
 
     PassParams.Init;
     PassParams.UsingBlending := false;
@@ -2768,19 +2787,37 @@ begin
   { Calculate contents of AllShapesCollector.
     This way Items.Render, with all transformation calcuations,
     frustum tests etc. is done only once, no matter how many times we need to
-    call RenderOnPass. }
+    call RenderOnePass. }
   AllShapesCollector.Clear;
   Assert(Params.Collector = AllShapesCollector);
   Params.Frustum := @Params.RenderingCamera.Frustum;
+  Params.UsingShadowVolumes :=
+    GLFeatures.ShadowVolumesPossible and
+    ShadowVolumes and
+    MainLightForShadowVolumes(MainLightPosition);
   Items.Render(Params);
 
   // call RenderOnePass multiple times, filtering AllShapesCollector in different ways
-  if GLFeatures.ShadowVolumesPossible and
-     ShadowVolumes and
-     MainLightForShadowVolumes(MainLightPosition) then
+  if Params.UsingShadowVolumes then
     RenderWithShadowVolumes(MainLightPosition)
   else
     RenderNoShadowVolumes;
+end;
+
+function TCastleViewport.GetBackgroundRenderer: TBackgroundRenderer;
+begin
+  if Transparent then
+    Result := nil
+  else
+  if Background <> nil then
+    Result := Background.InternalBackgroundRenderer
+  else
+  {$warnings off} // using deprecated MainScene to keep it working
+  if Items.MainScene <> nil then
+    Result := Items.MainScene.InternalBackgroundRenderer
+  else
+  {$warnings on}
+    Result := nil;
 end;
 
 procedure TCastleViewport.RenderFromViewEverything(const RenderingCamera: TRenderingCamera);
@@ -2838,19 +2875,11 @@ procedure TCastleViewport.RenderFromViewEverything(const RenderingCamera: TRende
   var
     BackgroundRenderer: TBackgroundRenderer;
   begin
-    if Transparent then
-      Exit;
+    BackgroundRenderer := GetBackgroundRenderer;
 
-    if Background <> nil then
-      BackgroundRenderer := Background.InternalBackgroundRenderer
-    else
-    {$warnings off} // using deprecated MainScene to keep it working
-    if Items.MainScene <> nil then
-      BackgroundRenderer := Items.MainScene.InternalBackgroundRenderer
-    else
-    {$warnings on}
-      BackgroundRenderer := nil;
-
+    { BackgroundRenderer is nil in various cases:
+      if Transparent,
+      or Background not set and MainScene not set or doesn't define background. }
     if BackgroundRenderer <> nil then
     begin
       if GLFeatures.EnableFixedFunction then
@@ -3668,6 +3697,8 @@ begin
 end;
 
 procedure TCastleViewport.BeforeRender;
+var
+  TimeStart: TCastleProfilerTime;
 begin
   inherited;
 
@@ -3676,7 +3707,12 @@ begin
     the TCastleScene are already prepared). }
   if not PrepareResourcesDone then
   begin
-    PrepareResources;
+    { This is often eating non-trivial time, e.g. loading textures.
+      So display it by default. }
+    TimeStart := Profiler.Start(Format('TCastleViewport(%s).PrepareResources', [Name]));
+    try
+      PrepareResources;
+    finally Profiler.Stop(TimeStart, true, true) end;
     PrepareResourcesDone := true;
   end;
 end;
@@ -3761,10 +3797,23 @@ function TCastleViewport.PointingDevicePress: Boolean;
     if RayHit <> nil then
       for I := 0 to RayHit.Count - 1 do
       begin
-        ItemsNodesFreeOccurred := false;
         Result := CallPress(RayHit[I], Distance);
-        if ItemsNodesFreeOccurred then
-          Break;
+
+        { In case CallPress caused some ClearMouseRayHit call,
+          we may have FMouseRayHit (and thus RayHit) invalidated in the middle
+          of iterating over it.
+          Check it, and abort iteration then.
+          Testcase: anchor_test on castle-model-viewer (crashes without this check).
+          See TCastleViewport.ItemsNodesFree for detailed description of this testcase. }
+        if (not FMouseRayHitValid) or (I >= RayHit.Count) then
+        begin
+          {.$define CASTLE_DEBUG_MouseRayHitValid_Check}
+          {$ifdef CASTLE_DEBUG_MouseRayHitValid_Check}
+          WritelnWarning('MouseRayHit changed during PointingDevicePress iteration (even though TCastleTransform handler answered "false"), aborting iteration');
+          {$endif CASTLE_DEBUG_MouseRayHitValid_Check}
+          Exit;
+        end;
+
         if Result then
         begin
           { This check avoids assigning to CapturePointingDevice something
@@ -3872,12 +3921,27 @@ function TCastleViewport.PointingDeviceRelease: Boolean;
     // call TCastleTransform.PointingDeviceRelease on remaining items on RayHit
     if RayHit <> nil then
       for I := 0 to RayHit.Count - 1 do
+      begin
         if (CapturePointingDevice = nil) or
            (CapturePointingDevice <> RayHit[I].Item) then
         begin
           Result := CallRelease(RayHit[I], Distance);
           if Result then Exit;
         end;
+
+        { In case CallRelease caused some ClearMouseRayHit call,
+          we may have FMouseRayHit (and thus RayHit) invalidated in the middle
+          of iterating over it.
+          Check it, and abort iteration then.
+          This is consistent with PointingDevicePress, Move. }
+        if not FMouseRayHitValid then
+        begin
+          {$ifdef CASTLE_DEBUG_MouseRayHitValid_Check}
+          WritelnWarning('MouseRayHit changed during PointingDeviceRelease iteration (even though TCastleTransform handler answered "false"), aborting iteration');
+          {$endif CASTLE_DEBUG_MouseRayHitValid_Check}
+          Exit;
+        end
+      end;
   end;
 
 begin
@@ -3921,17 +3985,41 @@ function TCastleViewport.PointingDeviceMove: boolean;
       else
         Result := CallMove(FakeRayCollisionNode(RayOrigin, RayDirection, CapturePointingDevice), Distance);
       if Result then Exit;
+
+      if not FMouseRayHitValid then
+      begin
+        {$ifdef CASTLE_DEBUG_MouseRayHitValid_Check}
+        WritelnWarning('MouseRayHit changed during CapturePointingDevice.PointingDeviceMove processing (even though TCastleTransform handler answered "false"), aborting iteration');
+        {$endif CASTLE_DEBUG_MouseRayHitValid_Check}
+        Exit;
+      end;
     end;
 
     // call TCastleTransform.PointingDeviceMove on remaining items on RayHit
     if RayHit <> nil then
       for I := 0 to RayHit.Count - 1 do
+      begin
         if (CapturePointingDevice = nil) or
            (CapturePointingDevice <> RayHit[I].Item) then
         begin
           Result := CallMove(RayHit[I], Distance);
           if Result then Exit;
         end;
+
+        { In case CallMove caused some ClearMouseRayHit call,
+          we may have FMouseRayHit (and thus RayHit) invalidated in the middle
+          of iterating over it.
+          Check it, and abort iteration then.
+          Testcase: examples/ifc/,  drag column in columns.ifcjson,
+          without this fix -> would cause range check error. }
+        if not FMouseRayHitValid then
+        begin
+          {$ifdef CASTLE_DEBUG_MouseRayHitValid_Check}
+          WritelnWarning('MouseRayHit changed during PointingDeviceMove iteration (even though TCastleTransform handler answered "false"), aborting iteration');
+          {$endif CASTLE_DEBUG_MouseRayHitValid_Check}
+          Exit;
+        end;
+      end;
 
     // call MainScene.PointingDeviceMove, to allow to update X3D sensors "isOver"
     {$warnings off} // using deprecated MainScene to keep it working
@@ -4220,22 +4308,6 @@ begin
   Background := NewBackground;
 end;
 
-procedure TCastleViewport.SetSceneManager(const Value: TCastleSceneManager);
-begin
-  {$ifdef FPC}
-  {$warnings off} // only to keep deprecated feature working
-  if Value <> FSceneManager then
-  begin
-    if SceneManager <> nil then
-      SceneManager.Viewports.Remove(Self);
-    FSceneManager := Value;
-    if SceneManager <> nil then
-      SceneManager.Viewports.Add(Self);
-  end;
-  {$warnings on}
-  {$endif}
-end;
-
 function TCastleViewport.PropertySections(const PropertyName: String): TPropertySections;
 begin
   if ArrayContainsString(PropertyName, [
@@ -4355,72 +4427,8 @@ begin
   end;
 end;
 
-type
-  { Helper for InternalBuildNode. }
-  TInternalBuildNodeHelper = class
-  strict private
-    { Adjust URL present at some node to be relative to BaseUrl. }
-    function AdjustUrl(const Url: String): String;
-  public
-    BaseUrl: String;
-    procedure ProcessNode(Node: TX3DNode);
-  end;
-
-function TInternalBuildNodeHelper.AdjustUrl(const Url: String): String;
-var
-  TargetUrl, BaseFileName, TargetFileName, ResultFileName: String;
-begin
-  TargetUrl := ResolveCastleDataUrl(Url);
-  TargetFileName := UriToFilenameSafe(TargetUrl);
-  BaseFileName := UriToFilenameSafe(BaseUrl);
-  if (BaseFileName <> '') and (TargetFileName <> '') then
-  begin
-    ResultFileName := ExtractRelativePath(BaseFileName, TargetFileName);
-    Result := RelativeFilenameToUriSafe(ResultFileName);
-  end else
-    // use original URL then, maybe with castle-data:/, maybe other protocol
-    Result := Url;
-end;
-
-procedure TInternalBuildNodeHelper.ProcessNode(Node: TX3DNode);
-
-  procedure ProcessUrlField(const Field: TMFString);
-  var
-    I: Integer;
-  begin
-    for I := 0 to Field.Items.Count - 1 do
-      Field.Items[I] := AdjustUrl(Field.Items[I]);
-  end;
-
-begin
-  { Set Node.BaseUrl, to allow opening the URLs relative to BaseUrl
-    (which will also be present because of AdjustUrl).
-
-    This is important if some code will require to load URLs from the exported
-    graph, which happens e.g. for TInlineNode URLs when saving as STL:
-    we need to load inline contents then.
-    So, without this, saving to STL from "Export Viewport to X3D, STL..."
-    in editor would fail for TCastleScene in viewport. }
-  Node.BaseUrl := BaseUrl;
-
-  if Node is TInlineNode then
-    ProcessUrlField(TInlineNode(Node).FdUrl)
-  else
-  if Node is TImageTextureNode then
-    ProcessUrlField(TImageTextureNode(Node).FdUrl)
-  else
-  if Node is TBackgroundNode then
-  begin
-    ProcessUrlField(TBackgroundNode(Node).FdBackUrl);
-    ProcessUrlField(TBackgroundNode(Node).FdBottomUrl);
-    ProcessUrlField(TBackgroundNode(Node).FdFrontUrl);
-    ProcessUrlField(TBackgroundNode(Node).FdLeftUrl);
-    ProcessUrlField(TBackgroundNode(Node).FdRightUrl);
-    ProcessUrlField(TBackgroundNode(Node).FdTopUrl);
-  end;
-end;
-
-function TCastleViewport.InternalBuildNode(const SaveBaseUrl: String): TX3DRootNode;
+function TCastleViewport.InternalBuildNode(
+  const SaveBaseUrl: String; const UrlProcessing: TUrlProcessing): TX3DRootNode;
 
   { Find current TCastleNavigation that exists and is not internal
     (used at editor design-time). Returns undefined if multiple such
@@ -4484,7 +4492,6 @@ function TCastleViewport.InternalBuildNode(const SaveBaseUrl: String): TX3DRootN
 
 var
   ExportedItems: TAbstractChildNode;
-  Helper: TInternalBuildNodeHelper;
   Nav: TCastleNavigation;
 begin
   Result := TX3DRootNode.Create;
@@ -4502,30 +4509,23 @@ begin
     if Nav <> nil then
       Result.AddChildren(NavigationBuildNode(Nav));
 
-    Helper := TInternalBuildNodeHelper.Create;
-    try
-      Helper.BaseUrl := SaveBaseUrl;
+    { Process all nodes to fix the URLs inside.
+      Doing it here (not e.g. for particular nodes/fields inside
+      implementations of overrides of InternalBuildNodeInside)
+      means:
 
-      { Process all nodes to fix the URLs inside.
-        Doing it here (not e.g. for particular nodes/fields inside
-        implementations of overrides of InternalBuildNodeInside)
-        means:
+      - We fix all nodes, even the ones not explicitly processed by the
+        InternalBuildNodeInside implementations. E.g. TCastleTerrain
+        produces copies of some TImageTextureNode because it used some textures.
 
-        - We fix all nodes, even the ones not explicitly processed by the
-          InternalBuildNodeInside implementations. E.g. TCastleTerrain
-          produces copies of some TImageTextureNode because it used some textures.
+      - The code to do it is centralized in ProcessUrls.
 
-        - The code to do it is centralized here,
-          no need to pass around some class like TInternalBuildNodeUtils.
-          So the code is simpler.
-
-        - Less chance that some node will "slip out" from processing.
-          Once we handled some node type in our TInternalBuildNodeHelper.ProcessNode,
-          the implementations ofInternalBuildNodeInside don't need to worry
-          about it.
-      }
-      Result.EnumerateNodes(TX3DNode, {$ifdef FPC}@{$endif} Helper.ProcessNode, false);
-    finally FreeAndNil(Helper) end;
+      - Less chance that some node will "slip out" from processing.
+        Once we handled some node type in our ProcessUrls,
+        the implementations of InternalBuildNodeInside methods don't need to worry
+        about it.
+    }
+    ProcessUrls(Result, SaveBaseUrl, UrlProcessing)
   except FreeAndNil(Result); raise end;
 end;
 

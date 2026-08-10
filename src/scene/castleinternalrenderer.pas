@@ -166,6 +166,8 @@ unit CastleInternalRenderer;
 interface
 
 uses Classes, SysUtils, Generics.Collections,
+  // Note that this redefines TInt32List, so keep these FPC web units before CGE units.
+  {$ifdef WASI} Job.Js, CastleInternalJobWeb, {$endif}
   {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleUtils, CastleVectors, X3DFields, X3DNodes, CastleColors,
   CastleInternalX3DLexer, CastleImages, CastleGLUtils, CastleRendererInternalLights,
@@ -199,7 +201,7 @@ uses Math,
   CastleStringUtils, CastleGLVersion, CastleLog, CastleInternalGLCubeMaps,
   X3DCameraUtils, CastleProjection, CastleRectangles, CastleTriangles,
   CastleCameras, CastleSceneInternalShape, CastleApplicationProperties,
-  CastleRenderContext, CastleInternalGLUtils, CastleTimeUtils;
+  CastleRenderContext, CastleInternalGLUtils, CastleTimeUtils, CastleUriUtils;
 
 {$define read_implementation}
 

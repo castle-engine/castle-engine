@@ -1,0 +1,1 @@
+Distilled testcase from https://github.com/castle-engine/castle-engine/issues/664

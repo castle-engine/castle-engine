@@ -58,7 +58,7 @@ function ImageGLType(const Img: TCastleImage): TGLenum;
 
 {$ifdef read_interface_type}
 //type - don't add type Delphi can't parse that correctly
-  TGLTextureId = TGLuint;
+  TGLTextureId = TGLTexture;
 
   ETextureLoadError = class(Exception);
   EImageClassNotSupportedForOpenGL = class(ETextureLoadError);
@@ -67,13 +67,13 @@ function ImageGLType(const Img: TCastleImage): TGLenum;
 {$endif read_interface_type}
 
 {$ifdef read_interface_func}
-{ If Tex <> 0 then it does glDeleteTextures on Tex and sets Tex to 0.
-  In other words, this is a simple wrapper over glDeleteTextures that
-  @orderedList(
-    @item checks if Tex really should be deleted
-    @item sets Tex to 0 to not free it once again
-  ) }
-procedure glFreeTexture(var Tex: TGLTextureId);
+
+{ Delete texture object and set it to GLObjectNone.
+
+  - Before doing anything, checks is it GLObjectNone.
+  - After freeing, sets it to GLObjectNone.
+  - Also takes care to call TextureMemoryProfiler.Deallocate . }
+procedure FreeTexture(var Tex: TGLTextureId);
 
 { Call glTexParameterf to set GL_TEXTURE_MAX_ANISOTROPY_EXT on given texture
   target.
@@ -124,6 +124,63 @@ const
     anymore.
 }
 
+{$ifdef CASTLE_WEBGL}
+{ TODO: web: WebGL does not support swizzle, http://www.g-truc.net/post-0734.html
+  Below are dummy values (takes from CastleGL, but they don't really matter,
+  should not be used by anything) just to make this code compile. }
+const
+  GL_GREEN = $1904;
+  GL_BLUE = $1905;
+{$endif}
+
+  function IsFloatImage(const Image: TEncodedImage): Boolean;
+  begin
+    Result :=
+      (Image is TGrayscaleFloatImage) or
+      (Image is TGrayscaleAlphaFloatImage) or
+      (Image is TRGBFloatImage) or
+      (Image is TRGBAlphaFloatImage);
+  end;
+
+  function ModernFormatEnums: Boolean;
+  begin
+    Result := GLFeatures.TextureModernFormatsAndSwizzle
+
+      { - For WebGL:
+
+          WebGL 2 (which always has TextureFloat) doesn't have texture swizzle,
+          but ImageInternalFormat should be GL_*32F for float textures.
+
+          Testcase: animate_bones_by_code, using float textures for joints,
+          Firefox and Vivaldi make warnings in console if we use GL_RGBA
+          instead of GL_RGBA32F for ImageInternalFormat for TRGBAlphaFloatImage.
+
+          Seems all textures should use modern enums with WebGL 2:
+          https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/texImage2D
+
+          Note: It would seem the same should apply to non-float textures...
+          but then our font rendering is broken.
+          Looks like we need old enums for non-float textures?
+
+        - For OpenGLES:
+
+          Same thing applies to OpenGLES, which may (but doesn't have to)
+          support texture swizzle, but regardless of it:
+          we need to use modern enums for float textures.
+
+          Testcase: run example with skinned animation,
+          like walking_adventure, on mobile device with float textures.
+          Without this fix, we will get error, details:
+
+            glTexImage2D called from CastleTexImage2D, ImageFormat=GL_RGBA ImageInternalFormat=GL_RGBA
+            OpenGLES: glTexImage2D target=GL_TEXTURE_2D level=0 internalformat=GL_RGBA width=1 height=1 border=0 format=GL_RGBA type=GL_FLOAT
+            OpenGLES: glTexImage2D error: GL_INVALID_OPERATION
+      }
+      {$if defined(CASTLE_WEBGL) or defined(OpenGLES)}
+      or (IsFloatImage(Img) and GLFeatures.TextureFloat)
+      {$endif};
+  end;
+
 begin
   { ImageSwizzle passing depends on it. }
   Assert(SizeOf(Integer) = SizeOf(TGLint));
@@ -131,7 +188,7 @@ begin
   if Img is TRGBImage then
   begin
     ImageSwizzle := Vector4Integer(GL_RED, GL_GREEN, GL_BLUE, GL_ONE);
-    if GLFeatures.TextureModernFormatsAndSwizzle then
+    if ModernFormatEnums then
     begin
       ImageFormat := GL_RGB;
       ImageInternalFormat := GL_RGB8;
@@ -147,7 +204,7 @@ begin
   if Img is TRGBAlphaImage then
   begin
     ImageSwizzle := Vector4Integer(GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA);
-    if GLFeatures.TextureModernFormatsAndSwizzle then
+    if ModernFormatEnums then
     begin
       ImageFormat := GL_RGBA;
       ImageInternalFormat := GL_RGBA8;
@@ -167,7 +224,7 @@ begin
       ImageSwizzle := Vector4Integer(GL_ONE, GL_ONE, GL_ONE, GL_RED)
     else
       ImageSwizzle := Vector4Integer(GL_RED, GL_RED, GL_RED, GL_ONE);
-    if GLFeatures.TextureModernFormatsAndSwizzle then
+    if ModernFormatEnums then
     begin
       ImageFormat := GL_RED;
       ImageInternalFormat := GL_R8;
@@ -186,7 +243,7 @@ begin
       - 1st channel (red) -> RBG
       - 2nd channel (green) -> alpha }
     ImageSwizzle := Vector4Integer(GL_RED, GL_RED, GL_RED, GL_GREEN);
-    if GLFeatures.TextureModernFormatsAndSwizzle then
+    if ModernFormatEnums then
     begin
       ImageFormat := GL_RG;
       ImageInternalFormat := GL_RG8;
@@ -202,7 +259,7 @@ begin
   if Img is TGrayscaleFloatImage then
   begin
     ImageSwizzle := Vector4Integer(GL_RED, GL_RED, GL_RED, GL_ONE);
-    if GLFeatures.TextureModernFormatsAndSwizzle then
+    if ModernFormatEnums then
     begin
       ImageFormat := GL_RED;
       ImageInternalFormat := GL_R32F;
@@ -221,7 +278,7 @@ begin
       - 1st channel (red) -> RBG
       - 2nd channel (green) -> alpha }
     ImageSwizzle := Vector4Integer(GL_RED, GL_RED, GL_RED, GL_GREEN);
-    if GLFeatures.TextureModernFormatsAndSwizzle then
+    if ModernFormatEnums then
     begin
       ImageFormat := GL_RG;
       ImageInternalFormat := GL_RG32F;
@@ -237,7 +294,7 @@ begin
   if Img is TRGBFloatImage then
   begin
     ImageSwizzle := Vector4Integer(GL_RED, GL_GREEN, GL_BLUE, GL_ONE);
-    if GLFeatures.TextureModernFormatsAndSwizzle then
+    if ModernFormatEnums then
     begin
       ImageFormat := GL_RGB;
       ImageInternalFormat := GL_RGB32F;
@@ -253,7 +310,7 @@ begin
   if Img is TRGBAlphaFloatImage then
   begin
     ImageSwizzle := Vector4Integer(GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA);
-    if GLFeatures.TextureModernFormatsAndSwizzle then
+    if ModernFormatEnums then
     begin
       ImageFormat := GL_RGBA;
       ImageInternalFormat := GL_RGBA32F;
@@ -278,7 +335,6 @@ begin
 end;
 
 function ImageGLInternalFormat(const Img: TEncodedImage): TGLenum;
-{$I gl_texture_compression_constants.inc}
 var
   IgnoredImageFormat: TGLenum;
   IgnoredImageSwizzle: TVector4Integer;
@@ -289,58 +345,7 @@ begin
   end else
   if Img is TGPUCompressedImage then
   begin
-    case TGPUCompressedImage(Img).Compression of
-      tcDxt1_RGB        : Result := GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
-      tcDxt1_RGBA       : Result := GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
-      tcDxt3            : Result := GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
-      tcDxt5            : Result := GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
-
-      tcPvrtc1_4bpp_RGB : Result := GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG;
-      tcPvrtc1_2bpp_RGB : Result := GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG;
-      tcPvrtc1_4bpp_RGBA: Result := GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG;
-      tcPvrtc1_2bpp_RGBA: Result := GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG;
-      tcPvrtc2_4bpp     : Result := GL_COMPRESSED_RGBA_PVRTC_4BPPV2_IMG;
-      tcPvrtc2_2bpp     : Result := GL_COMPRESSED_RGBA_PVRTC_2BPPV2_IMG;
-
-      tcATITC_RGB                   : Result := GL_ATC_RGB_AMD;
-      tcATITC_RGBA_InterpolatedAlpha: Result := GL_ATC_RGBA_INTERPOLATED_ALPHA_AMD;
-      tcATITC_RGBA_ExplicitAlpha    : Result := GL_ATC_RGBA_EXPLICIT_ALPHA_AMD;
-
-      tcETC1            : Result := GL_ETC1_RGB8_OES;
-
-      tcASTC_4x4_RGBA           : Result := GL_COMPRESSED_RGBA_ASTC_4x4_KHR;
-      tcASTC_5x4_RGBA           : Result := GL_COMPRESSED_RGBA_ASTC_5x4_KHR;
-      tcASTC_5x5_RGBA           : Result := GL_COMPRESSED_RGBA_ASTC_5x5_KHR;
-      tcASTC_6x5_RGBA           : Result := GL_COMPRESSED_RGBA_ASTC_6x5_KHR;
-      tcASTC_6x6_RGBA           : Result := GL_COMPRESSED_RGBA_ASTC_6x6_KHR;
-      tcASTC_8x5_RGBA           : Result := GL_COMPRESSED_RGBA_ASTC_8x5_KHR;
-      tcASTC_8x6_RGBA           : Result := GL_COMPRESSED_RGBA_ASTC_8x6_KHR;
-      tcASTC_8x8_RGBA           : Result := GL_COMPRESSED_RGBA_ASTC_8x8_KHR;
-      tcASTC_10x5_RGBA          : Result := GL_COMPRESSED_RGBA_ASTC_10x5_KHR;
-      tcASTC_10x6_RGBA          : Result := GL_COMPRESSED_RGBA_ASTC_10x6_KHR;
-      tcASTC_10x8_RGBA          : Result := GL_COMPRESSED_RGBA_ASTC_10x8_KHR;
-      tcASTC_10x10_RGBA         : Result := GL_COMPRESSED_RGBA_ASTC_10x10_KHR;
-      tcASTC_12x10_RGBA         : Result := GL_COMPRESSED_RGBA_ASTC_12x10_KHR;
-      tcASTC_12x12_RGBA         : Result := GL_COMPRESSED_RGBA_ASTC_12x12_KHR;
-      tcASTC_4x4_SRGB8_ALPHA8   : Result := GL_COMPRESSED_SRGB8_ALPHA8_ASTC_4x4_KHR;
-      tcASTC_5x4_SRGB8_ALPHA8   : Result := GL_COMPRESSED_SRGB8_ALPHA8_ASTC_5x4_KHR;
-      tcASTC_5x5_SRGB8_ALPHA8   : Result := GL_COMPRESSED_SRGB8_ALPHA8_ASTC_5x5_KHR;
-      tcASTC_6x5_SRGB8_ALPHA8   : Result := GL_COMPRESSED_SRGB8_ALPHA8_ASTC_6x5_KHR;
-      tcASTC_6x6_SRGB8_ALPHA8   : Result := GL_COMPRESSED_SRGB8_ALPHA8_ASTC_6x6_KHR;
-      tcASTC_8x5_SRGB8_ALPHA8   : Result := GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x5_KHR;
-      tcASTC_8x6_SRGB8_ALPHA8   : Result := GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x6_KHR;
-      tcASTC_8x8_SRGB8_ALPHA8   : Result := GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x8_KHR;
-      tcASTC_10x5_SRGB8_ALPHA8  : Result := GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x5_KHR;
-      tcASTC_10x6_SRGB8_ALPHA8  : Result := GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x6_KHR;
-      tcASTC_10x8_SRGB8_ALPHA8  : Result := GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x8_KHR;
-      tcASTC_10x10_SRGB8_ALPHA8 : Result := GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x10_KHR;
-      tcASTC_12x10_SRGB8_ALPHA8 : Result := GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x10_KHR;
-      tcASTC_12x12_SRGB8_ALPHA8 : Result := GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x12_KHR;
-
-      {$ifndef COMPILER_CASE_ANALYSIS}
-      else raise EImageClassNotSupportedForOpenGL.Create('TGPUCompressedImage.Compression not supported by OpenGL');
-      {$endif}
-    end;
+    Result := TextureCompressionToOpenGL(TGPUCompressedImage(Img).Compression);
   end else
     raise EImageClassNotSupportedForOpenGL.CreateFmt('Image class %s cannot be loaded to OpenGL',
       [Img.ClassName]);
@@ -364,13 +369,88 @@ begin
       [Img.ClassName]);
 end;
 
-procedure glFreeTexture(var Tex: TGLTextureId);
+function ImageGLData(const Img: TEncodedImage): {$ifdef CASTLE_WEBGL} IJSTypedArray {$else} Pointer {$endif};
+{$ifdef CASTLE_WEBGL}
+var
+  I: TCastleImage;
+  X, Y, Z, C, ImageDataCount: Integer;
+  ResultUInt8: IJSUint8Array;
+  ResultFloat32: IJSFloat32Array;
 begin
-  if Tex <> 0 then
+  if Img is TCastleImage then
+  begin
+    I := TCastleImage(Img);
+    ImageDataCount := Img.Width * Img.Height * Img.Depth * I.ColorComponentsCount;
+    case ImageGLType(I) of
+      GL_UNSIGNED_BYTE:
+        begin
+          ResultUInt8 := TJSUInt8Array.Create(ImageDataCount);
+
+          { Unoptimized version, for reference. Copies one-by-one and
+            enables to change the order of any dimension / color component,
+            to match WebGL expectations.
+            Not necessary right now in the end. }
+          {
+          for Z := 0 to Img.Depth - 1 do
+            for Y := 0 to Img.Height - 1 do
+              for X := 0 to Img.Width - 1 do
+                for C := 0 to I.ColorComponentsCount - 1 do
+                  ResultUInt8[
+                    Z * Img.Width * Img.Height * I.ColorComponentsCount +
+                    Y * Img.Width * I.ColorComponentsCount +
+                    X * I.ColorComponentsCount +
+                    C] :=
+                  PByte(I.PixelPtr(X, Y, Z))[C];
+          }
+          ResultUInt8.CopyFromMemory(Img.RawPixels, ImageDataCount);
+
+          Result := ResultUInt8;
+        end;
+      GL_FLOAT:
+        begin
+          ResultFloat32 := TJSFloat32Array.Create(ImageDataCount);
+
+          { Unoptimized version, for reference.
+            See above.
+          }
+          {
+          for Z := 0 to Img.Depth - 1 do
+            for Y := 0 to Img.Height - 1 do
+              for X := 0 to Img.Width - 1 do
+                for C := 0 to I.ColorComponentsCount - 1 do
+                  ResultFloat32[
+                    Z * Img.Width * Img.Height * I.ColorComponentsCount +
+                    Y * Img.Width * I.ColorComponentsCount +
+                    X * I.ColorComponentsCount +
+                    C] :=
+                  PSingle(I.PixelPtr(X, Y, Z))[C];
+          }
+          ResultFloat32.CopyFromMemory(Img.RawPixels, ImageDataCount * SizeOf(Single));
+
+          Result := ResultFloat32;
+        end;
+      else
+        raise EImageClassNotSupportedForOpenGL.CreateFmt('Image class %s cannot be loaded to WebGL', [
+          Img.ClassName
+        ]);
+    end;
+  end else
+    raise EImageClassNotSupportedForOpenGL.CreateFmt('Image class %s cannot be loaded to WebGL', [
+      Img.ClassName
+    ]);
+{$else}
+begin
+  Result := Img.RawPixels;
+{$endif}
+end;
+
+procedure FreeTexture(var Tex: TGLTextureId);
+begin
+  if Tex <> GLObjectNone then
   begin
     TextureMemoryProfiler.Deallocate(Tex);
-    glDeleteTextures(1, @Tex);
-    Tex := 0;
+    glDeleteTexture(Tex);
+    Tex := GLObjectNone;
   end;
 end;
 

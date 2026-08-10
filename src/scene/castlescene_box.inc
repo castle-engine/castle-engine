@@ -77,8 +77,7 @@ end;
 
 function TCastleBox.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'SizePersistent') or
-     (PropertyName = 'DoubleSided') then
+  if ArrayContainsString(PropertyName, ['SizePersistent', 'DoubleSided']) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);

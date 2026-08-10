@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestCastleVectors" -*-
 {
-  Copyright 2004-2023 Michalis Kamburelis.
+  Copyright 2004-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -18,6 +18,8 @@
 unit TestCastleVectors;
 
 { $define VECTOR_MATH_SPEED_TESTS}
+
+{$I ../../../src/common_includes/castleconf.inc}
 
 interface
 
@@ -357,24 +359,28 @@ end;
 procedure TTestCastleVectors.TestVectorStr;
 
   procedure OneTestVectorFromStr;
-  var v, v2: TVector3;
-      s: string;
+  var
+    v, v2: TVector3;
+    s: string;
   begin
-   v := RandomVector;
-   s := v.ToRawString;
-   v2 := Vector3FromStr(s);
-   AssertVectorEquals(v2, v, 0.001); // larger epsilon for ppc64
+    v := RandomVector;
+    s := v.ToRawString;
+    v2 := Vector3FromStr(s);
+    AssertVectorEquals(v2, v, 0.001); // larger epsilon for ppc64
   end;
 
+  {$ifndef CASTLE_DEFORMAT_BUGGY}
   procedure OneTestByDeformat;
-  var v, v2: TVector3;
-      s: string;
+  var
+    v, v2: TVector3;
+    s: string;
   begin
-   v := RandomVector;
-   s := v.ToRawString;
-   DeFormat(s, '%.single. %.single. %.single.', [@v2.X, @v2.Y, @v2.Z]);
-   AssertVectorEquals(v2, v, 0.001); // larger epsilon for ppc64
+    v := RandomVector;
+    s := v.ToRawString;
+    DeFormat(s, '%.single. %.single. %.single.', [@v2.X, @v2.Y, @v2.Z]);
+    AssertVectorEquals(v2, v, 0.001); // larger epsilon for ppc64
   end;
+  {$endif}
 
 const
   CYCLES = SPEED_TEST_3_CYCLES;
@@ -383,28 +389,33 @@ var
   i: integer;
   StartTime: TProcessTimerResult;
 begin
- WritelnSpeedTest('SPEED TEST VectorFromStr ------------------------------------------');
- StartTime := ProcessTimer;
- for i := 1 to CYCLES do ;
- Time0 := ProcessTimerSeconds(ProcessTimer, StartTime);
- WritelnSpeedTest(Format('Empty loop = %f',[Time0]));
+  WritelnSpeedTest('SPEED TEST VectorFromStr ------------------------------------------');
+  StartTime := ProcessTimer;
+  for i := 1 to CYCLES do ;
+  Time0 := ProcessTimerSeconds(ProcessTimer, StartTime);
+  WritelnSpeedTest(Format('Empty loop = %f',[Time0]));
 
- StartTime := ProcessTimer;
- for i := 1 to CYCLES do OneTestVectorFromStr;
- Time1 := ProcessTimerSeconds(ProcessTimer, StartTime);
- WritelnSpeedTest(Format('VectorFromStr = %f',[Time1]));
+  StartTime := ProcessTimer;
+  for i := 1 to CYCLES do OneTestVectorFromStr;
+  Time1 := ProcessTimerSeconds(ProcessTimer, StartTime);
+  WritelnSpeedTest(Format('VectorFromStr = %f',[Time1]));
 
- StartTime := ProcessTimer;
- for i := 1 to CYCLES do OneTestByDeFormat;
- Time2 := ProcessTimerSeconds(ProcessTimer, StartTime);
- WritelnSpeedTest(Format('DeFormat = %f',[Time2]));
+  {$ifdef CASTLE_DEFORMAT_BUGGY}
+  AbortTest;
+  Exit;
+  {$else}
+  StartTime := ProcessTimer;
+  for i := 1 to CYCLES do OneTestByDeFormat;
+  Time2 := ProcessTimerSeconds(ProcessTimer, StartTime);
+  WritelnSpeedTest(Format('DeFormat = %f',[Time2]));
+  {$endif}
 
- {$ifdef VECTOR_MATH_SPEED_TESTS}
- { nie uzywam tutaj WritelnSpeedTest. Jesli VECTOR_MATH_SPEED_TESTS
-   not defined to stale SPEED_TEST_x_CYCLES sa tak male ze nie moge
-   wykonac dzielenia przez Time1-Time0 bo Time1-Time0 = 0. }
- Writeln(Format('VectorFromStr is faster by %f', [(Time2-Time0)/(Time1-Time0)]));
- {$endif}
+  {$ifdef VECTOR_MATH_SPEED_TESTS}
+  { nie uzywam tutaj WritelnSpeedTest. Jesli VECTOR_MATH_SPEED_TESTS
+    not defined to stale SPEED_TEST_x_CYCLES sa tak male ze nie moge
+    wykonac dzielenia przez Time1-Time0 bo Time1-Time0 = 0. }
+  Writeln(Format('VectorFromStr is faster by %f', [(Time2-Time0)/(Time1-Time0)]));
+  {$endif}
 end;
 
 procedure TTestCastleVectors.TestMatrixInverse;
@@ -610,6 +621,12 @@ procedure TTestCastleVectors.TestVector3FromStr;
 var
   V: TVector3;
 begin
+  if not CanCatchExceptions then
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   try
     V := Vector3FromStr('1 2 abc');
     Fail('Above should fail with EConvertError');
@@ -640,6 +657,12 @@ procedure TTestCastleVectors.TestVector4FromStr;
 var
   V: TVector4;
 begin
+  if not CanCatchExceptions then
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   try
     V := Vector4FromStr('1 2 3 abc');
     Fail('Above should fail with EConvertError');
@@ -785,6 +808,13 @@ begin
   AssertSameValue(Sqr(3) + Sqr(10), PointsDistance2DSqr(P1, P2, 0), 0.01);
   AssertSameValue(Sqr(1) + Sqr(10), PointsDistance2DSqr(P1, P2, 1), 0.01);
   AssertSameValue(Sqr(1) + Sqr(3), PointsDistance2DSqr(P1, P2, 2), 0.01);
+
+  if not CanCatchExceptions then
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   try
     PointsDistance2DSqr(P1, P2, 3);
     Fail('Above PointsDistance2DSqr with IgnoreIndex = 3 should raise exception');
@@ -1265,13 +1295,22 @@ var
   M4: TMatrix4;
 begin
   V2 := Vector2(0, 123.456);
-  AssertEquals('0 123.46', V2.ToString);
+  AssertEquals('0 123.456', V2.ToString);
+
+  V2 := Vector2(0, 123.12345678);
+  AssertEquals('0 123.12346', V2.ToString); // 5 digits after dot are kept now
 
   V3 := Vector3(0, 123.456, 78.9);
-  AssertEquals('0 123.46 78.9', V3.ToString);
+  AssertEquals('0 123.456 78.9', V3.ToString);
+
+  V3 := Vector3(0, 123.12345678, 78.9);
+  AssertEquals('0 123.12346 78.9', V3.ToString);
 
   V4 := Vector4(0, 123.456, 78.9, 99.99);
-  AssertEquals('0 123.46 78.9 99.99', V4.ToString);
+  AssertEquals('0 123.456 78.9 99.99', V4.ToString);
+
+  V4 := Vector4(0, 123.12345678, 78.9, 99.99);
+  AssertEquals('0 123.12346 78.9 99.99', V4.ToString);
 
   M2.Rows[0] := Vector2(1, 2);
   M2.Rows[1] := Vector2(3, 4);

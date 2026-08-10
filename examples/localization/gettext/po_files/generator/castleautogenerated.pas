@@ -22,7 +22,7 @@ uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
   ApplicationProperties.ApplicationName := 'po_generator';
-  ApplicationProperties.Caption := 'po_generator';
+  ApplicationProperties.Caption := 'Generate POT (base for localization) for UI';
   ApplicationProperties.Version := '0.1';
 
   if not IsLibrary then

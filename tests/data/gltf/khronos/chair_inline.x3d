@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE X3D PUBLIC "ISO//Web3D//DTD X3D 4.0//EN" "http://www.web3d.org/specifications/x3d-4.0.dtd">
+<X3D profile="Immersive" version="4.0" xmlns:xsd="http://www.w3.org/2001/XMLSchema-instance" xsd:noNamespaceSchemaLocation="http://www.web3d.org/specifications/x3d-4.0.xsd">
+<!--
+  Testcase from https://github.com/castle-engine/castle-engine/issues/708
+  The gltf contains some unused material nodes.
+-->
+<Scene>
+<Inline DEF="SHEENCHAIR" url='"SheenChair.glb"' />
+</Scene>
+</X3D>

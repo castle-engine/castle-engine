@@ -22,10 +22,6 @@ unit CastleInternalSoxSoundBackend;
 
 {$I castleconf.inc}
 
-{$ifndef FPC}
-  {$message fatal 'This internal unit is only for FPC, not Delphi.'}
-{$endif}
-
 interface
 
 { Use this to set sound engine backend to SOX. }
@@ -33,11 +29,12 @@ procedure UseSOXSoundBackend;
 
 implementation
 
-uses SysUtils, Classes, Math, Process, StrUtils,
+uses SysUtils, Classes, Math, StrUtils,
   CastleVectors, CastleTimeUtils, CastleXMLConfig,
   CastleClassUtils, CastleStringUtils, CastleInternalSoundFile,
   CastleInternalAbstractSoundBackend, CastleSoundBase, CastleSoundEngine,
-  CastleLog, CastleUtils, CastleUriUtils, CastleFilesUtils;
+  CastleLog, CastleUtils, CastleUriUtils, CastleFilesUtils,
+  CastleInternalProcess;
 
 { sound backend classes interface -------------------------------------------- }
 
@@ -54,12 +51,13 @@ type
     FBuffer: TSoxSoundBufferBackend;
     FPlayStart: TTimerResult;
     FPlayStarted: Boolean;
-    FPlayProcess: TProcess;
+    FPlayProcess: TCastleProcess;
   public
     procedure ContextOpen; override;
     procedure ContextClose; override;
     function PlayingOrPaused: boolean; override;
-    procedure Play(const BufferChangedRecently: Boolean); override;
+    procedure Play(const BufferChangedRecently: Boolean;
+      const InitialOffset: TFloatTime); override;
     procedure Stop; override;
     procedure SetPosition(const Value: TVector3); override;
     procedure SetVelocity(const Value: TVector3); override;
@@ -102,14 +100,14 @@ begin
     However we need TSoundFile to know the Duration of the sound correctly,
     which we will later use for PlayingOrPaused implementation. }
 
-  FileName := UriToFilenameSafe(SoundFile.URL);
+  FileName := UriToFilenameSafe(SoundFile.Url);
   { Workaround sox on Windows being unable to process filenames with backslashes. }
   {$ifdef MSWINDOWS}
   FileName := SReplaceChars(FileName, '\', '/');
   {$endif}
   if FileName = '' then
     raise ESoundFileError.CreateFmt('URL "%s" does not translate to a filename, and SOX can only play local files',
-      [SoundFile.URL]);
+      [SoundFile.Url]);
 end;
 
 { TSoxSoundSourceBackend -------------------------------------------------- }
@@ -128,11 +126,12 @@ begin
   Result := (FBuffer <> nil) and FPlayStarted and (FPlayStart.ElapsedTime < FBuffer.Duration);
 end;
 
-procedure TSoxSoundSourceBackend.Play(const BufferChangedRecently: Boolean);
+procedure TSoxSoundSourceBackend.Play(const BufferChangedRecently: Boolean;
+  const InitialOffset: TFloatTime);
 begin
   Stop;
 
-  FPlayProcess := TProcess.Create(nil);
+  FPlayProcess := TCastleProcess.Create(nil);
   { We invoke "sox xxx.wav --default-device" instead of "play xxx.wav",
     because on Windows (Cygwin) the "play" is only a symbolic link,
     so we would have to execute it through bash, making the code more complicated. }
@@ -155,6 +154,7 @@ begin
     FPlayProcess.Terminate(0);
     FreeAndNil(FPlayProcess);
   end;
+  FPlayStarted := false;
 end;
 
 procedure TSoxSoundSourceBackend.SetPosition(const Value: TVector3);
@@ -221,6 +221,9 @@ function TSoxSoundEngineBackend.ContextOpen(const ADevice: String;
   out Information, InformationSummary: String): Boolean;
 var
   SoxVersion: String;
+  {$ifdef FPC}
+  SoxStatus: Integer;
+  {$endif}
 begin
   SoxCommand := FindExe('sox');
   if SoxCommand = '' then
@@ -229,7 +232,13 @@ begin
     InformationSummary := Information;
     Exit(false);
   end;
-  if not RunCommand(SoxCommand, ['--version'], SoxVersion) then
+
+  SoxVersion := '';
+  {$ifdef FPC}
+  { ExecuteCommandCapture is only available with FPC.
+    With Delphi we just leave SoxVersion empty. }
+  ExecuteCommandCapture('', SoxCommand, ['--version'], SoxVersion, SoxStatus);
+  if SoxStatus <> 0 then
   begin
     Information := 'Failed to execute SOX executable with --version';
     InformationSummary := Information;
@@ -237,6 +246,7 @@ begin
   end;
 
   SoxVersion := Trim(SoxVersion); // remove final newline
+  {$endif}
 
   Result := true;
   Information := 'SOX command found:' + NL +

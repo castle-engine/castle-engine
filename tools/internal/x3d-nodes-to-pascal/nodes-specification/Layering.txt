@@ -1,8 +1,11 @@
 X3DLayerNode : X3DNode {
   default-container-field: layers
-  SFBool [in,out] isPickable TRUE
+  MFString [in,out] objectType  ["ALL"]
+  SFBool [in,out] pickable TRUE
+    alternative-name: isPickable 0
   SFNode [in,out] viewport NULL
     range: X3DViewportNode
+  SFBool [in,out] visible     TRUE
 }
 
 X3DViewportNode : X3DGroupingNode {

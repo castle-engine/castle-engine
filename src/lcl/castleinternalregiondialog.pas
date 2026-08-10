@@ -1,5 +1,5 @@
 {
-  Copyright 2023 Freedomax.
+  Copyright 2023-2025 Freedomax, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -23,8 +23,8 @@ uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs,
   ButtonPanel, StdCtrls, ExtCtrls, ComCtrls, CastleVectors, CastleControl,
   CastleGLImages,
-  castletransform, CastleKeysMouse,
-  castlecontrols, CastleRectangles, CastleLCLUtils, CastleGLUtils, CastleColors;
+  CastleTransform, CastleKeysMouse, CastleUiControls,
+  CastleControls, CastleRectangles, CastleLCLUtils, CastleGLUtils, CastleColors;
 
 type
   TDesignMode = (dmRegion, dmBorder);
@@ -34,47 +34,58 @@ type
     CastleControl1: TCastleControl;
     ColorDialog1: TColorDialog;
     StatusBar1: TStatusBar;
-
-    procedure CastleControl1Motion(Sender: TObject; const Event: TInputMotion);
-    procedure CastleControl1Press(Sender: TObject; const Event: TInputPressRelease);
-    procedure CastleControl1Release(Sender: TObject;
-      const Event: TInputPressRelease);
-    procedure CastleControl1Render(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure HelpButtonClick(Sender: TObject);
+  private
+    function CastleControl1Motion(const Event: TInputMotion): Boolean;
+    function CastleControl1Press(const Event: TInputPressRelease): Boolean;
+    function CastleControl1Release(const Event: TInputPressRelease): Boolean;
+    procedure CastleControl1Render;
   strict private
-    FBorder: TBorder;
-  type
-    TArrayScreenPoints = array[0..1] of TVector2;
-    TArrayImagePoints = array[0..1] of TVector2Integer;
+    type
+      { Pass calls to render/handle events on TCastleControl into
+        CastleControl1Xxx methods of this class. }
+      TCastleControl1View = class(TCastleView)
+      public
+        Form: TRegionDesignDialog;
+        procedure Render; override;
+        function Press(const Event: TInputPressRelease): Boolean; override;
+        function Release(const Event: TInputPressRelease): Boolean; override;
+        function Motion(const Event: TInputMotion): Boolean; override;
+      end;
 
-    TDirectionEnable = (EnableX, EnableY);
-    TDirectionEnables = set of TDirectionEnable;
+      TArrayScreenPoints = array[0..1] of TVector2;
+      TArrayImagePoints = array[0..1] of TVector2Integer;
 
-    TMovingRec = record
-      Moving: boolean;
-      StartTranslation: TVector2;
-      StartMousePoint: TVector2;
-    end;
+      TDirectionEnable = (EnableX, EnableY);
+      TDirectionEnables = set of TDirectionEnable;
 
-    TControlPointRec = record
-      Adjusting: boolean;
-      Index: integer;
-      DirectionEnables: TDirectionEnables;
-      Points: TArrayImagePoints;
-      function AdditionalPoints(const byX: boolean = True): TArrayImagePoints;
-    end;
+      TMovingRec = record
+        Moving: boolean;
+        StartTranslation: TVector2;
+        StartMousePoint: TVector2;
+      end;
 
-  const
-    CircleRads = 8;
-  var
-    FImage: TDrawableImage;
-    FRegion, FSourceRegion: TFloatRectangle;
-    FScale: single;
-    FTranslation: TVector2;
-    FDesignMode: TDesignMode;
-    FMovingImageRec: TMovingRec;
-    FControlPointRec: TControlPointRec;
+      TControlPointRec = record
+        Adjusting: boolean;
+        Index: integer;
+        DirectionEnables: TDirectionEnables;
+        Points: TArrayImagePoints;
+        function AdditionalPoints(const byX: boolean = True): TArrayImagePoints;
+      end;
+
+    const
+      CircleRads = 8;
+    var
+      ControlView: TCastleControl1View;
+      FBorder: TBorder;
+      FImage: TDrawableImage;
+      FRegion, FSourceRegion: TFloatRectangle;
+      FScale: single;
+      FTranslation: TVector2;
+      FDesignMode: TDesignMode;
+      FMovingImageRec: TMovingRec;
+      FControlPointRec: TControlPointRec;
     procedure InitControlPoints;
     function ScreenRegionRectangle: TFloatRectangle;
     function ScreenImageFullRectangle: TFloatRectangle;
@@ -129,7 +140,32 @@ uses Math, CastleRenderOptions, CastleUtils;
 
 {$R *.lfm}
 
-{ TRegionDesignDialog.TControlPointRec }
+{ TRegionDesignDialog.TCastleControl1View ------------------------------------ }
+
+procedure TRegionDesignDialog.TCastleControl1View.Render;
+begin
+  Form.CastleControl1Render;
+end;
+
+function TRegionDesignDialog.TCastleControl1View.Press(
+  const Event: TInputPressRelease): Boolean;
+begin
+  Result := Form.CastleControl1Press(Event);
+end;
+
+function TRegionDesignDialog.TCastleControl1View.Release(
+  const Event: TInputPressRelease): Boolean;
+begin
+  Result := Form.CastleControl1Release(Event);
+end;
+
+function TRegionDesignDialog.TCastleControl1View.Motion(
+  const Event: TInputMotion): Boolean;
+begin
+  Result := Form.CastleControl1Motion(Event);
+end;
+
+{ TRegionDesignDialog.TControlPointRec --------------------------------------- }
 
 function TRegionDesignDialog.TControlPointRec.AdditionalPoints(
   const byX: boolean = True): TArrayImagePoints;
@@ -146,7 +182,7 @@ begin
   end;
 end;
 
-{ TRegionDesignDialog }
+{ TRegionDesignDialog -------------------------------------------------------- }
 
 constructor TRegionDesignDialog.Create(AOwner: TComponent);
 begin
@@ -157,6 +193,9 @@ begin
   FRegion := TFloatRectangle.Empty;
   FImage := TDrawableImage.Create(nil, False, False);
 
+  ControlView := TCastleControl1View.Create(Self);
+  ControlView.Form := Self;
+  CastleControl1.Container.View := ControlView;
 end;
 
 destructor TRegionDesignDialog.Destroy;
@@ -264,7 +303,7 @@ begin
   Result.Height := ABS(FControlPointRec.Points[0].Y - FControlPointRec.Points[1].Y);
 end;
 
-procedure TRegionDesignDialog.CastleControl1Render(Sender: TObject);
+procedure TRegionDesignDialog.CastleControl1Render;
 
   function ScreenRect: TFloatRectangle;
   begin
@@ -420,8 +459,8 @@ begin
     Result := Result + HitTest(Point, MousePoint);
 end;
 
-procedure TRegionDesignDialog.CastleControl1Press(Sender: TObject;
-  const Event: TInputPressRelease);
+function TRegionDesignDialog.CastleControl1Press(
+  const Event: TInputPressRelease): Boolean;
 
   procedure GrowScale(const beIncrease: boolean; const ScreenPoint: TVector2);
   const
@@ -480,6 +519,8 @@ var
   i, vIndex: integer;
   AllDirectionEnables, DirectionEnables: TDirectionEnables;
 begin
+  Result := false;
+
   { LeftMouseButton Pressed. }
 
   if Event.IsMouseButton(TCastleMouseButton.buttonLeft) and
@@ -537,6 +578,7 @@ begin
 
     FControlPointRec.Adjusting := True;
     Changed;
+    Result := true;
   end;
 
   { RightMouseButton pressed. }
@@ -547,6 +589,7 @@ begin
     FMovingImageRec.StartMousePoint := Event.Position;
     FMovingImageRec.StartTranslation := FTranslation;
     FMovingImageRec.Moving := True;
+    Result := true;
   end;
 
   { Mouse wheel. }
@@ -555,6 +598,7 @@ begin
   begin
     GrowScale(Event.MouseWheelScroll > 0, Event.Position);
     UpdateCursorPosInfo(Event.Position);
+    Result := true;
   end;
 
   UpdateCursorShape(Event.Position);
@@ -587,8 +631,8 @@ begin
     CastleControl1.Cursor := crDefault;
 end;
 
-procedure TRegionDesignDialog.CastleControl1Motion(Sender: TObject;
-  const Event: TInputMotion);
+function TRegionDesignDialog.CastleControl1Motion(
+  const Event: TInputMotion): Boolean;
 var
   Point: TVector2Integer;
 begin
@@ -612,6 +656,8 @@ begin
 
   UpdateCursorShape(Event.Position);
   UpdateCursorPosInfo(Event.Position);
+
+  Result := true;
 end;
 
 procedure TRegionDesignDialog.FixControlPoints;
@@ -626,12 +672,17 @@ begin
   end;
 end;
 
-procedure TRegionDesignDialog.CastleControl1Release(Sender: TObject;
-  const Event: TInputPressRelease);
+function TRegionDesignDialog.CastleControl1Release(
+  const Event: TInputPressRelease): Boolean;
 begin
+  Result := false;
+
   if Event.IsMouseButton(TCastleMouseButton.buttonRight) and
     FMovingImageRec.Moving then
+  begin
     FMovingImageRec.Moving := False;
+    Result := true;
+  end;
 
   if Event.IsMouseButton(TCastleMouseButton.buttonLeft) and
     FControlPointRec.Adjusting then
@@ -640,6 +691,7 @@ begin
     FixControlPoints;
     UpdateCursorShape(Event.Position);
     Changed;
+    Result := true;
   end;
 end;
 

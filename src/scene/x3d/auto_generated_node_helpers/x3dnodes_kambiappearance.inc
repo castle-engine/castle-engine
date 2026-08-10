@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2024 Michalis Kamburelis.
+  Copyright 2015-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -27,6 +27,7 @@
     { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: String; override;
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -42,6 +43,12 @@ end;
 procedure TKambiAppearanceNode.CreateNode;
 begin
   inherited;
+end;
+
+procedure TKambiAppearanceNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+  ExtensionNames.Add(X3DType);
 end;
 
 {$endif read_implementation}

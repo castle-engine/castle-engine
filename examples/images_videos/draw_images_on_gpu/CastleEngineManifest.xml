@@ -8,5 +8,6 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 <project name="draw_images_on_gpu"
   standalone_source="draw_images_on_gpu.dpr"
   qualified_name="io.castleengine.draw.images.on.gpu"
+  caption="Draw Images On GPU (using TDrawableImage)"
 >
 </project>

@@ -543,7 +543,7 @@ begin
       ntFly:       TouchInterface := tiFlyWalk;
       ntExamine:   TouchInterface := FAutoExamineTouchInterface;
       ntTurntable: TouchInterface := FAutoExamineTouchInterface;
-      // nt2D: TODO
+      nt2D:        TouchInterface := tiNone; // like ntNone, don't show any touch controls
       {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('TCastleTouchNavigation.UpdateAutoTouchInterface not implemented for this NavigationType value');
       {$endif}

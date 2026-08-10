@@ -9,7 +9,7 @@ See https://castle-engine.io/project_manifest for documentation of this file.
   standalone_source="ui_batching_standalone.dpr"
   game_units="GameInitialize"
   qualified_name="io.castleengine.ui.batching"
-  caption="My New Project"
+  caption="User Interface Batching"
 >
   <compiler_options>
     <search_paths>

@@ -1,28 +1,33 @@
+# Early thoughts about URL support in Castle Game Engine
+
+## Note: These are old thoughts
+
 The information below contains early thoughts and decisions about URL support
 throughout Castle Game Engine.
 It is still true, but probably goes into too much details to be much useful.
-See https://castle-engine.io/manual_network.php for more up-to-date documentation
+See https://castle-engine.io/url for more up-to-date documentation
 of our URL support.
 
-------------------------------------------------------------------------------
+## Decision
 
 Castle Game Engine allows you to use filenames everywhere where URLs are
 expected.
 
 Gains:
+
 - This is for backward compatibility with engine < 4.1.0.
 
 - This is also for comfort, both for users and for developers.
 
   For developers, e.g. you can use TOpenDialog.FileName value
-  with Load3D, or TCastleScene.FileName (which is really just an alias
-  for TCastleScene.URL).
+  with LoadNode, or TCastleScene.Url .
 
   For users, e.g. you can pass both filenames and URLs
   as command-line parameters to castle-model-viewer. No need to explicitly
   mark what is a filename and what is an URL.
 
----------------
+## Q & A
+
 Q: Should I upgrade my code to just use URLs everywhere, that is:
    to always pass an absolute URL to the engine routines that take URL parameter?
    Even though the above statement says that I don't have to
@@ -57,7 +62,6 @@ A: The short answer is "yes".
      filename conventions? What if we use some single-letter protocol
      name in the future?
 
----------------
 Q: How does it work?
 
 A: URIProtocol is the judge.

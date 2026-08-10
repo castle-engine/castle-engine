@@ -1,6 +1,6 @@
 {%MainUnit castledownload.pas}
 {
-  Copyright 2013-2022 Michalis Kamburelis.
+  Copyright 2013-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -105,7 +105,7 @@ type
     FOwnsContents: Boolean;
     FOptions: TStreamOptions;
     FTotalBytes, FDownloadedBytes: Int64;
-    FMimeType: String;
+    FMimeType, FMimeTypeFromExtension: String;
     Reader: TUrlAsynchronousReader; //< non-nil when asynchronous reading is in-progress
     UpdateInitialized: Boolean;
     FHttpPostData: TStringList;
@@ -113,6 +113,7 @@ type
     FHttpRequestBody: TMemoryStream;
     FHttpResponseCode: Integer;
     FHttpResponseHeaders: TStrings;
+    FWarningDoneOverrideOctetStream: Boolean;
     procedure SetUrl(const Value: String);
     procedure SetHttpMethod(const Value: THttpMethod);
     procedure SetOnFinish(const Value: TDownloadFinishedEvent);
@@ -142,7 +143,7 @@ type
     { URL to read or write.
       Supports all protocols, like @code(file), @code(http), @code(https),
       @code(castle-data) and other documented on
-      https://castle-engine.io/manual_network.php .
+      https://castle-engine.io/url .
 
       Can only change when there is no download in progress
       (@link(Status) is dsNotStarted or dsSuccess). }
@@ -404,6 +405,21 @@ procedure TCastleDownload.Start;
     FStatus := dsDownloading;
   end;
 
+  { Warn if UriExists claims the file does not exist.
+    This helps with debugging issues, but it doesn't really change any logic,
+    we only make a warning and continue if UriExists claims the file doesn't exist. }
+  procedure WarnIfDoesNotExist(const RealUrl: String);
+  var
+    FileExists: TUriExists;
+  begin
+    FileExists := UriExists(RealUrl);
+    case FileExists of
+      ueNotExists: WritelnWarning('Trying to open URL "%s" which UriExists claims does not exist', [UriDisplay(RealUrl)]);
+      ueDirectory: WritelnWarning('Trying to open URL "%s" which UriExists claims is a directory', [UriDisplay(RealUrl)]);
+      else ;
+    end;
+  end;
+
   { Read synchronously.
     This calls DoFinish at end, and may free us. }
   procedure SynchronousRead(const ReadEvent: TUrlReadEvent; const RealUrl: String);
@@ -460,7 +476,6 @@ var
 begin
   ClearPreviousDownload;
 
-  P := URIProtocol(Url);
 
   if not UpdateInitialized then
   begin
@@ -468,21 +483,41 @@ begin
     UpdateInitialized := true;
   end;
 
-  { Handle early castle-data:, protocol to access application data,
-    https://castle-engine.io/data . }
+  // calculate P (protocol) and FFinalUrl
+  P := URIProtocol(Url);
+  FFinalUrl := Url;
+  { Redirect castle-data: and castle-config: to other procotols.
+    Note the order: castle-data may resolve to castle-config
+    (normal in case of castle-editor-portable new projects),
+    we account for this. }
   if P = 'castle-data' then
   begin
-    FFinalUrl := ResolveCastleDataURL(Url);
+    FFinalUrl := ResolveCastleDataUrl(FFinalUrl);
     P := URIProtocol(FFinalUrl);
-  end else
-    FFinalUrl := Url;
+  end;
+  if P = 'castle-config' then
+  begin
+    FFinalUrl := ResolveCastleConfigUrl(FFinalUrl);
+    P := URIProtocol(FFinalUrl);
+  end;
 
   if LogAllLoading then
-    WritelnLog('Loading', 'Loading "%s"', [UriDisplay(FFinalUrl)]);
+    WritelnLog('Loading', '"%s"', [UriDisplay(FFinalUrl)]);
+
+  // Extra check to debug WebAssembly
+  {$ifdef WASI}
+  WarnIfDoesNotExist(FFinalUrl);
+  {$endif}
 
   RegisteredProtocol := RegisteredProtocols.Find(P);
   if RegisteredProtocol <> nil then
   begin
+    { calculate FMimeTypeFromExtension }
+    if RegisteredProtocol.DetectMimeTypeFromExtension then
+      FMimeTypeFromExtension := UriMimeType(FFinalUrl)
+    else
+      FMimeTypeFromExtension := '';
+
     if RegisteredProtocol.AsynchronousReader <> nil then
     begin
       Reader := RegisteredProtocol.AsynchronousReader.Create;
@@ -504,12 +539,16 @@ begin
     end else
     begin
       FStatus := dsError;
-      raise EDownloadError.CreateFmt('Cannot read URLs with protocol "%s"', [P]);
+      FErrorMessage := Format('Cannot read URLs with protocol "%s"', [P]);
+      if ApplicationProperties.CanCatchExceptions then
+        raise EDownloadError.Create(FErrorMessage);
     end;
   end else
   begin
     FStatus := dsError;
-    raise EDownloadError.CreateFmt('Downloading from protocol "%s" is not supported', [P]);
+    FErrorMessage := Format('Downloading from protocol "%s" is not supported', [P]);
+    if ApplicationProperties.CanCatchExceptions then
+      raise EDownloadError.Create(FErrorMessage);
   end;
 end;
 
@@ -517,12 +556,39 @@ procedure TCastleDownload.WaitForFinish;
 begin
   while Status = dsDownloading do
   begin
+    Assert(Reader <> nil);
+    Reader.UpdateOnlySynchronous;
     Update(nil);
     Sleep(10);
   end;
 end;
 
 procedure TCastleDownload.Update(Sender: TObject);
+
+  { When HTTP server reports the MIME type as
+    @code(application/octet-stream), we ignore it and determine the MIME type
+    from the URL extension instead. This is useful because many HTTP servers
+    report @code(application/octet-stream) for files they don't recognize
+    (like 3D models), which is essentially useless. The MIME type guessed
+    from the URL extension is almost always more useful in this case. }
+  procedure OverrideMimeTypeOctetStream;
+  const
+    OctetStream = 'application/octet-stream';
+  begin
+    if (FMimeType = OctetStream) and
+       (FMimeTypeFromExtension <> '') then
+    begin
+      WritelnWarningOnce(FWarningDoneOverrideOctetStream,
+        'Server reports generic MIME type "%s" for URL "%s", using instead MIME type "%s" from the URL extension',
+        [
+          OctetStream,
+          UriDisplay(FFinalUrl),
+          FMimeTypeFromExtension
+        ]);
+      FMimeType := FMimeTypeFromExtension;
+    end;
+  end;
+
 begin
   if Status = dsDownloading then
   begin
@@ -535,6 +601,7 @@ begin
     FDownloadedBytes := Reader.DownloadedBytes;
     FTotalBytes := Reader.TotalBytes;
     FMimeType := Reader.MimeType;
+    OverrideMimeTypeOctetStream;
 
     if FStatus in [dsError, dsSuccess] then
     begin

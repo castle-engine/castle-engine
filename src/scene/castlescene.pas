@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2024 Michalis Kamburelis.
+  Copyright 2003-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -37,7 +37,8 @@ uses SysUtils, Classes, Generics.Collections,
   CastleRectangles, CastleCameras, CastleRendererInternalShader, CastleColors,
   CastleSceneInternalShape, CastleInternalFileMonitor,
   CastleRenderOptions, CastleTimeUtils, CastleImages,
-  CastleBehaviors, CastleInternalShapesRenderer, CastleSceneInternalBlending;
+  CastleBehaviors, CastleInternalShapesRenderer, CastleSceneInternalBlending,
+  CastleInternalPrimitiveMaterial;
 
 {$define read_interface}
 
@@ -58,6 +59,64 @@ type
 
   TPrepareResourcesOption = CastleTransform.TPrepareResourcesOption;
   TPrepareResourcesOptions = CastleTransform.TPrepareResourcesOptions;
+
+  { Possible values for @link(TCastleScene.TransformOptimization). }
+  TTransformOptimization = (
+    { Automatically decide whether the transformation of this scene
+      changes often enough to prefer optimizations for toStatic or toDynamic
+      case.
+
+      Right now, this behaves like toDynamic when the scene is present multiple
+      times in the @link(TCastleAbstractRootTransform) hierarchy, for example
+      when using @link(TCastleTransformReference) to render the same scene many times.
+      Otherwise this behaves like toStatic.
+
+      This automatic detection may make unoptimal decision,
+      which is why you can set @link(TCastleScene.TransformOptimization) explicitly
+      to toStatic or toDynamic if you "know better". Examples when it makes
+      sense to manually select optimization:
+
+      @unorderedList(
+        @item(When the scene is present multiple times in the
+          @link(TCastleAbstractRootTransform) hierarchy (e.g. when using
+          @link(TCastleTransformReference)) but all these occurrences are
+          very close to each other, thus are within radiuses of the same lights.
+
+          In this case, automatic detection makes unoptimal decision
+          to behave like toDynamic, which means shaders calculate more light
+          sources. Setting @link(TCastleScene.TransformOptimization)
+          to toStatic in this case is better.
+        )
+
+        @item(When the scene is present only once in the
+          @link(TCastleAbstractRootTransform) hierarchy, but you know that
+          you will change the scene translation very often (e.g. almost every frame)
+          and the translation change will be large enough to make the scene
+          affected by different light sources. Or maybe you know you will
+          change the light's positions or radiuses very often by large values.
+
+          In this case, automatic detection makes unoptimal decision
+          to behave like toStatic, which means that shaders will be often recreated
+          when the scene (or light sources) move.
+          Setting @link(TCastleScene.TransformOptimization) to toDynamic
+          in this case is better,
+          it means that shaders for this shape will not change.
+        )
+      )
+    }
+    toAutomatic,
+
+    { Choose optimizations that are beneficial for TCastleScene instances
+      whose world transformation (translation, rotation, scale of this
+      and all parents) never changes, or rarely changes, or changes only by
+      a very small amount. }
+    toStatic,
+
+    { Choose optimizations that are beneficial for TCastleScene instances
+      whose world transformation (translation, rotation, scale of this
+      and all parents) changes often and by large values. }
+    toDynamic
+  );
 
   { Complete loading, processing and rendering of a scene.
     This is a descendant of @link(TCastleSceneCore) that adds efficient rendering. }
@@ -89,9 +148,14 @@ type
 
       FReceiveShadowVolumes: Boolean;
       FTempPrepareParams: TPrepareParams;
+
       { Camera position, in local scene coordinates, known during
         the LocalRender or LocalRenderShadowVolume calls. }
       RenderCameraPosition: TVector3;
+      { Copy of TRenderParams.UsingShadowVolumes, known during
+        the LocalRender or LocalRenderShadowVolume calls. }
+      RenderUsingShadowVolumes: Boolean;
+
       FCastGlobalLights: Boolean;
       FWasVisibleFrameId: TFrameId;
 
@@ -104,6 +168,7 @@ type
 
       FShapeFrustumCulling, FSceneFrustumCulling: Boolean;
       FRenderOptions: TCastleRenderOptions;
+      FTransformOptimization: TTransformOptimization;
 
       { These fields are valid only during LocalRenderInside and CollectShape_ methods. }
       Render_Params: TRenderParams;
@@ -168,12 +233,115 @@ type
     procedure RenderWithOctree_CheckShapeCulling(
       ShapeIndex: Integer; CollidesForSure: boolean);
     procedure SetCastGlobalLights(const Value: Boolean);
+
+    { Treating the scene as "whole scene 2-manifold", because of
+      InternalDetectedWholeSceneManifold or RenderOptions.WholeSceneManifold.
+      Calling this may have a cost: on-demand calculation of
+      InternalDetectedWholeSceneManifold, so use this only when a light source
+      casting shadow volumes is present. }
+    function EffectiveWholeSceneManifold: Boolean;
+
+    { Can this be shadow caster for shadow volumes.
+      This is not concerned whether we have light using shadow volumes,
+      and this is not concerned whether the scene or shapes are 2-manifold. }
+    function EffectiveCastShadowVolumes: Boolean;
   private
     PreparedShapesResources, PreparedRender: Boolean;
   protected
+    (*Override TCastleRenderOptions passed to TShapesCollector when rendering
+      these shapes. May be tweaked during rendering,
+      to render the same shape/scene with multiple render options.
+
+      Sample usage:
+
+      @longCode(#
+      procedure TCastleSceneChromaticAberration.LocalRender(const Params: TRenderParams);
+
+        { Like MultMatricesTranslation, but the translation is applied by multiplying
+          from the other side. }
+        procedure GlobalMultMatricesTranslation(var M, MInvert: TMatrix4;
+          const Transl: TVector3);
+        begin
+          MultMatricesTranslation(MInvert, M, Transl);
+        end;
+
+      var
+        // Saved Params.Xxx before applying our transformation
+        SavedTransformationPtr: PTransformation;
+        SavedFrustumPtr: PFrustum;
+        // Values after applying our transformation
+        NewTransformation: TTransformation;
+        NewFrustum: TFrustum;
+
+        { Shift and render (based on TCastleTransform.Render). }
+        procedure RenderShiftedBegin(const Shift: TVector3);
+        begin
+          SavedTransformationPtr := Params.Transformation;
+          SavedFrustumPtr        := Params.Frustum;
+          Assert(SavedFrustumPtr <> nil);
+
+          NewTransformation := SavedTransformationPtr^;
+          NewFrustum        := SavedFrustumPtr^;
+
+          Params.Transformation := @NewTransformation;
+          Params.Frustum        := @NewFrustum;
+
+          GlobalMultMatricesTranslation(
+            NewTransformation.Transform, NewTransformation.InverseTransform, Shift);
+          // Use old frustum, as shifting it is not so easy
+          //NewFrustumValue.MoveVar(-Shift);
+        end;
+
+        procedure RenderShiftedEnd;
+        begin
+          { Restore SavedXxxPtr values.
+            They can be restored fast, thanks to restoring pointers, not content. }
+          Params.Transformation := SavedTransformationPtr;
+          Params.Frustum        := SavedFrustumPtr;
+        end;
+
+      var
+        SavedChannels: TColorChannels;
+      begin
+        if FChromaticAberrationStrength > 0 then
+        begin
+          { Create another instance of TCastleRenderOptions,
+            because engine ShapesCollector will only store references to TCastleRenderOptions,
+            and we need to pass 2 copies of the scene with 2 different render options. }
+          if AltRenderOptions = nil then
+            AltRenderOptions := TCastleRenderOptions.Create(Self);
+
+          // red-green not shifted
+          AltRenderOptions.InternalColorChannels := [0..1, 3];
+          InternalOverrideRenderOptions := AltRenderOptions;
+          inherited;
+          InternalOverrideRenderOptions := nil;
+
+          // blue shifted
+          RenderOptions.InternalColorChannels := [2, 3];
+          RenderShiftedBegin(FChromaticAberrationShift);
+          // Note: we avoid calling "inherited" in a nested procedure, this seems broken with FPC 3.0.4.
+          inherited LocalRender(Params);
+          RenderShiftedEnd;
+        end else
+        begin
+          RenderOptions.InternalColorChannels := [0..3];
+          inherited;
+        end;
+      end;
+      #)
+
+      @exclude
+    *)
+    InternalOverrideRenderOptions: TCastleRenderOptions;
+
+    function EffectiveRenderOptions: TCastleRenderOptions; override;
+
     function CreateShape(const AGeometry: TAbstractGeometryNode;
       const AState: TX3DGraphTraverseState;
       const ParentInfo: PTraversingInfo): TShape; override;
+
+    { @exclude }
     procedure InternalInvalidateBackgroundRenderer; override;
 
     procedure LocalRender(const Params: TRenderParams); override;
@@ -262,10 +430,18 @@ type
     FBackgroundRendererValid: boolean;
     procedure PrepareBackground;
   public
-    { Internal override test visibility. }
+    { Internal override test visibility.
+      @exclude }
     InternalVisibilityTest: TTestShapeVisibility;
 
     procedure FreeResources(Resources: TSceneFreeResources); override;
+
+    { Are we really using shadow volumes right now (that is, have light
+      source casting shadows with shadow volumes), see
+      TRenderParams.UsingShadowVolumes?
+      And scene casts shadows?
+      @exclude }
+    function InternalCastingShadowVolumesNow: Boolean; override;
 
     { TBackgroundRenderer instance to render the background defined in this scene.
       Current background is the top node on the BackgroundStack of this scene,
@@ -293,8 +469,10 @@ type
       @exclude }
     function InternalBackgroundRenderer: TBackgroundRenderer;
 
+    { @exclude }
     function Attributes: TCastleRenderOptions; deprecated 'use RenderOptions';
 
+    { @exclude }
     procedure InternalCameraChanged; override;
 
     { Screen effects information, used by TCastleViewport.ScreenEffects.
@@ -302,8 +480,8 @@ type
       @exclude
       @groupBegin }
     function InternalScreenEffects(Index: Integer): TGLSLProgram;
-    function InternalScreenEffectsCount: Integer;
-    function InternalScreenEffectsNeedDepth: boolean;
+    function InternalScreenEffectsCount: Integer; //< @exclude
+    function InternalScreenEffectsNeedDepth: boolean; //< @exclude
     { @groupEnd }
 
     { Make TGLShape.PrepareResources call on all shapes before next render.
@@ -365,6 +543,11 @@ type
       TODO: For now, occlusion culling doesn't affect this, i.e. if the scene
       is not visible because occlusion culling. }
     function WasVisible: Boolean;
+
+    { Add shader effects to configure how is the component rendered.
+      See https://castle-engine.io/shaders for documentation
+      how shader effects work in Castle Game Engine. }
+    procedure SetEffects(const Value: array of TEffectNode);
   published
     { Improve performance of rendering by checking for each shape whether
       it is inside frustum (camera pyramid of view) before rendering.
@@ -404,6 +587,41 @@ type
     { Lights defines by given scene shine on everything in the viewport, including all other TCastleScene. }
     property CastGlobalLights: Boolean
       read FCastGlobalLights write SetCastGlobalLights default false;
+
+    { Optimization hint, determines which optimizations to use for this scene.
+      Some optimizations are beneficial for scenes whose world transformation
+      (translation, rotation, scale of this and all parents) never changes,
+      or rarely changes, or changes only by a small amount.
+      Some optimizations are the reverse: they make sense for scenes whose
+      world transformation changes often and by large values.
+
+      See @link(TTransformOptimization) for possible values and more information.
+
+      The default value is @link(toAutomatic), which means that we auto-detect
+      the optimal approach.
+
+      For now, this only determines whether generated shaders...
+
+      @unorderedList(
+        @item(...include code to calculate all the light sources.
+
+          This is more optimal for dynamic transformations,
+          avoids the need to recreate shaders when transformation changes.)
+
+        @item(...include code only for light sources whose radius includes the
+          particular shape in the scene.
+
+          This is more optimal for static transformations, makes shader code
+          smaller, no point recalculating light sources whose influence is zero.)
+      )
+
+      An unofficial way (we don't guarantee it will always be exposed this way)
+      to test how often shaders are recreated is by setting
+      @code(LogRendererCache := true) from unit @code(CastleInternalRenderer).
+      Observe the log output to see how often shaders are recreated.
+      If you tweak this property, be sure to check whether this is improved. }
+    property TransformOptimization: TTransformOptimization
+      read FTransformOptimization write FTransformOptimization default toAutomatic;
   end;
 
   TCastleSceneClass = class of TCastleScene;
@@ -669,7 +887,35 @@ begin
     Result := GlobalFog.Functionality(TFogFunctionality) as TFogFunctionality;
 end;
 
+function TCastleScene.EffectiveRenderOptions: TCastleRenderOptions;
+begin
+  if InternalOverrideRenderOptions <> nil then
+    Result := InternalOverrideRenderOptions
+  else
+    Result := RenderOptions;
+end;
+
 procedure TCastleScene.CollectShape_NoTests(const Shape: TGLShape);
+
+  function SceneTransformDynamic: Boolean;
+  begin
+    case TransformOptimization of
+      { Determine TCollectedShape.SceneTransformDynamic by considering
+        is this TCastleScene present multiple times in TAbstactRootTransform.
+
+        This means we have SceneTransformDynamic = true for TCastleTransformReference,
+        and don't recreate shaders each frame when the scene is inside/outside
+        the light radius, see
+        https://github.com/castle-engine/castle-engine/issues/664 }
+      toAutomatic: Result := InternalWorldReferences > 1;
+      toStatic   : Result := false;
+      toDynamic  : Result := true;
+      {$ifndef COMPILER_CASE_ANALYSIS}
+      else raise EInternalError.Create('TransformOptimization?');
+      {$endif}
+    end;
+  end;
+
 begin
   { Whether the Shape is rendered directly or through batching,
     mark it "was visible this frame".
@@ -681,9 +927,9 @@ begin
 
   Shape.Fog := ShapeFog(Shape, Render_Params.GlobalFog as TFogNode);
 
-  Render_Collector.Add(Shape, RenderOptions,
-    Render_Params.Transformation^.Transform, Render_Params.DepthRange,
-    ReceiveShadowVolumes);
+  Render_Collector.Add(Shape, EffectiveRenderOptions,
+    Render_Params.Transformation^.Transform, SceneTransformDynamic,
+    Render_Params.DepthRange, ReceiveShadowVolumes);
   IsVisibleNow := true;
 end;
 
@@ -838,7 +1084,7 @@ var
             so matrix should be sensible for homegeneous coordinate transformation
             (so identity is OK, zero is not OK). }
           TMatrix4.Identity,
-          drFull);
+          false, drFull);
       end;
 
       Renderer.RenderEnd;
@@ -854,6 +1100,20 @@ var
 begin
   inherited;
 
+  { Use InternalDirty to prevent trying to render this scene while it has
+    some resources not ready.
+
+    Right now, there's actually nothing that could cause such rendering.
+    In the past, we experimented with initializing+updating progress bar
+    inside the PrepareResources (e.g. when preparing a shape requires
+    prepararing a texture, but the texture URL is online so we need
+    to display download progress of the texture).
+    The progress started by taking a screenshot of the current window,
+    so it caused rendering.
+
+    This is not relevant now. No callback is caused now by preparing
+    and rendering, so nothing should cause a render in the middle of preparation.
+    But let the check InternalDirty remain, for future security. }
   if InternalDirty <> 0 then Exit;
 
   if not ApplicationProperties.IsGLContextOpen then
@@ -863,25 +1123,6 @@ begin
     ]);
     Exit;
   end;
-
-  { When preparing resources, files (like textures) may get loaded,
-    causing progress bar (for example from CastleDownload).
-    Right now we're not ready to display the (partially loaded) scene
-    during this time, so we use InternalDirty to prevent it.
-
-    Test http://svn.code.sf.net/p/castle-engine/code/trunk/demo_models/navigation/transition_multiple_viewpoints.x3dv
-    Most probably problems are caused because shapes are initially
-    without a texture, so their arrays (including VBOs) are generated
-    without texture coordinates, and we do not mark them to be prepared
-    correctly later. Correct fix is unsure:
-    - Marking relevant shapes to be prepared again seems easiest,
-      but this means that potentially everything is prepared 2 times
-      --- once before resources (like textures) are ready, 2nd time with.
-    - It would be best to pas texture coordinates even when no texture is loaded?
-      Ideally, the renderer operations should be the same regardless if texture
-      is loaded or not.
-      It remains to carefully see whether it's possible in all cases.
-  }
 
   Inc(InternalDirty);
   try
@@ -1028,6 +1269,58 @@ end;
 
 { Shadow volumes ------------------------------------------------------------- }
 
+function TCastleScene.EffectiveCastShadowVolumes: Boolean;
+begin
+  Result :=
+    CheckVisible and
+    CastShadows and
+    { Do not render shadow volumes when rendering wireframe.
+      Shadow volumes assume that object is closed (2-manifold),
+      otherwise weird artifacts are visible. }
+    (RenderOptions.WireframeEffect <> weWireframeOnly);
+end;
+
+function TCastleScene.InternalCastingShadowVolumesNow: Boolean;
+begin
+  Result := RenderUsingShadowVolumes and EffectiveCastShadowVolumes;
+end;
+
+function TCastleScene.EffectiveWholeSceneManifold: Boolean;
+begin
+  { Test RenderOptions.WholeSceneManifold first, as it's instant
+    (if marked by user), while InternalDetectedWholeSceneManifold may trigger
+    on-demand analysis of borders. }
+
+  Result := RenderOptions.WholeSceneManifold or InternalDetectedWholeSceneManifold;
+
+  { Remove the warning, as it would trigger often, in cases when it's acceptable.
+    Assume that "user knows what (s)he's doing" when toggling manually
+    RenderOptions.WholeSceneManifold.
+
+    Testcases where InternalDetectedWholeSceneManifold=false but
+    RenderOptions.WholeSceneManifold=true works OK:
+
+    - examples/physics/physics_throw_chickens
+    - examples/animations/split_long_animation
+    - examples/creature_behaviors
+    - examples/cpp_builder/window
+    - examples/3d_games/walking_adventure
+  }
+
+  {
+  if RenderOptions.WholeSceneManifold and not InternalDetectedWholeSceneManifold then
+  begin
+    WritelnWarningOnce(DoneWarningWholeSceneManifold,
+      'Rendering shadow volumes for shadow caster "%s" because forced by RenderOptions.WholeSceneManifold=true. ' +
+      'But our detection showed that this scene is not really 2-manifold. ' +
+      'Shadows artifacts are possible in this case. ' +
+      'We advise to fix the 3D model to be really 2-manifold.', [
+      Name
+    ]);
+  end;
+  }
+end;
+
 procedure TCastleScene.LocalRenderShadowVolume(const Params: TRenderParams;
   const ShadowVolumeRenderer: TBaseShadowVolumeRenderer);
 
@@ -1051,24 +1344,22 @@ begin
   { Call inherited to render shadow quads of children,
     in case one TCastleScene is a child of another.
     See https://forum.castle-engine.io/t/shadow-ignors-distanceculling/670/14 for testcase.
-    Note that inherited also checks "CheckVisible and CastShadows",
-    so they work recursively. }
+
+    Note that inherited also checks our own "CheckVisible and CastShadows",
+    so they work recursively.
+    Below EffectiveCastShadowVolumes also checks our own
+    "CheckVisible and CastShadows". }
   inherited;
 
-  if CheckVisible and
-     CastShadows and
-     { Do not render shadow volumes when rendering wireframe.
-       Shadow volumes assume that object is closed (2-manifold),
-       otherwise weird artifacts are visible. }
-     (RenderOptions.WireframeEffect <> weWireframeOnly) then
+  if EffectiveCastShadowVolumes then
   begin
     SVRenderer := ShadowVolumeRenderer as TGLShadowVolumeRenderer;
 
     ForceOpaque := not (RenderOptions.Blending and (RenderOptions.Mode = rmFull));
 
     // DistanceCullingCheck* uses this value, and it may be called here
-    RenderCameraPosition := Params.Transformation^.InverseTransform.MultPoint(
-      Params.RenderingCamera.View.Translation);
+    RenderCameraPosition := Params.LocalCameraPosition;
+    RenderUsingShadowVolumes := Params.UsingShadowVolumes;
 
     { calculate and check SceneBox }
     SceneBox := LocalBoundingBox.Transform(Params.Transformation^.Transform);
@@ -1091,10 +1382,10 @@ begin
           Shadow volumes *assume* that shadow caster is also rendered (shadow quads
           are closed) if that shadow caster is visible in frustum.
 
-          This is done per-shape when WholeSceneManifold=false.
-          When WholeSceneManifold=true, we cannot do per-shape check:
+          This is done per-shape when EffectiveWholeSceneManifold=false.
+          When EffectiveWholeSceneManifold=true, we cannot do per-shape check:
           the whole scene should be rendered. }
-        if not RenderOptions.WholeSceneManifold then
+        if not EffectiveWholeSceneManifold then
         begin
           if (DistanceCulling > 0) and (not DistanceCullingCheckShape(Shape)) then
             Continue;
@@ -1103,13 +1394,13 @@ begin
         { Do not render shadows when frustum+light check says it is definitely
           not visible.
 
-          This is done per-shape when WholeSceneManifold=false.
+          This is done per-shape when EffectiveWholeSceneManifold=false.
 
-          When WholeSceneManifold=true, we render all shapes here.
+          When EffectiveWholeSceneManifold=true, we render all shapes here.
           The per-scene check already passed above. }
         ShapeBox := Shape.BoundingBox.Transform(Params.Transformation^.Transform);
         SVRenderer.InitCaster(ShapeBox);
-        if RenderOptions.WholeSceneManifold or
+        if EffectiveWholeSceneManifold or
            SVRenderer.CasterShadowPossiblyVisible then
         begin
           ShapeWorldTransform := Params.Transformation^.Transform *
@@ -1122,7 +1413,7 @@ begin
             SVRenderer.ZFailAndLightCap,
             SVRenderer.ZFail,
             ForceOpaque,
-            RenderOptions.WholeSceneManifold);
+            EffectiveWholeSceneManifold);
         end;
       end;
     end;
@@ -1170,13 +1461,29 @@ end;
 
 function TCastleScene.DistanceCullingCheckShape(const Shape: TShape): boolean;
 begin
-  { When WholeSceneManifold, we have to render whole scene, or nothing.
+  { When this is shadow caster for shadow volumes and this has
+    EffectiveWholeSceneManifold, we have to render whole scene, or nothing.
 
     Shadow volumes work correctly only if shadow caster (at least the part of it
     in frustum, that affects the screen) is also rendered.
 
-    So distance culling cannot eliminate particular shapes. }
-  if RenderOptions.WholeSceneManifold then
+    So distance culling cannot eliminate particular shapes.
+
+    Testcase that this check is necessary: Open
+    examples/viewport_and_scenes/shadows_distance_culling/ (in editor is OK),
+    look at one of the houses with multiple materials, get closer/further from it.
+    Without this check, if *part* of shapes (but not all) would be eliminated
+    by distance culling, weird shadow artifacts would be rendered.
+
+    We take care to only do this (exit early, eliminating per-shape
+    DistanceCulling check)
+    when really necessary, so only when actually using shadow volumes light source
+    (RenderUsingShadowVolumes). And we check EffectiveWholeSceneManifold
+    at the end, as it potentially causes CalculateDetectedWholeSceneManifold,
+    which may on-demand do some calculation. }
+  if RenderUsingShadowVolumes and
+     EffectiveCastShadowVolumes and
+     EffectiveWholeSceneManifold then
     Exit(true);
 
   // This should be only called when DistanceCulling indicates this check is necessary
@@ -1457,11 +1764,11 @@ begin
     end;
 
     // RenderCameraPosition is used by DistanceCullingCheck* below
-    RenderCameraPosition := Params.Transformation^.InverseTransform.MultPoint(
-      Params.RenderingCamera.View.Translation);
+    RenderCameraPosition := Params.LocalCameraPosition;
+    RenderUsingShadowVolumes := Params.UsingShadowVolumes;
 
     { Do distance culling for whole scene.
-      When WholeSceneManifold=true, this is the only place where
+      When EffectiveWholeSceneManifold=true, this is the only place where
       we check distance culling, we cannot do per-shape distance culling then. }
     if (DistanceCulling > 0) and (not DistanceCullingCheckScene) then
     begin
@@ -1703,6 +2010,99 @@ begin
   PreparedShapesResources := false;
 end;
 
+procedure TCastleScene.SetEffects(const Value: array of TEffectNode);
+
+  { Check if RootNode.FdChildren, limited to TEffectNode instances,
+    match the Value array. }
+  function EffectsAlreadySet: Boolean;
+  var
+    I: Integer;
+    IndexOfValue: Integer;
+  begin
+    IndexOfValue := 0; // looking for Value[IndexOfValue] now
+    for I := 0 to RootNode.FdChildren.Count - 1 do
+      if RootNode.FdChildren[I] is TEffectNode then
+      begin
+        if IndexOfValue >= Length(Value) then
+          Exit(false); // we have more effect nodes than in Value
+
+        if RootNode.FdChildren[I] <> Value[IndexOfValue] then
+          Exit(false); // effect node does not match
+
+        Inc(IndexOfValue);
+      end;
+    Result := IndexOfValue = Length(Value);
+  end;
+
+  { Insert Value array at the beginning of RootNode.FdChildren. }
+  procedure AddEffects(out IndexBeyondAdded: Integer);
+  var
+    I: Integer;
+  begin
+    IndexBeyondAdded := Length(Value);
+    if IndexBeyondAdded = 0 then Exit; // nothing to add
+
+    for I := 0 to IndexBeyondAdded - 1 do
+      RootNode.FdChildren.Add(I, Value[I]);
+  end;
+
+  { Remove all TEffectNode instances from RootNode.FdChildren,
+    except those that are in Value array. }
+  procedure RemoveUnwantedEffects(const IndexBeyondAdded: Integer; out RemovedSomething: Boolean);
+  var
+    I: Integer;
+  begin
+    RemovedSomething := false;
+    I := IndexBeyondAdded;
+    while I < RootNode.FdChildren.Count do
+      if RootNode.FdChildren[I] is TEffectNode then
+      begin
+        { This effect node is not in the Value array, so remove it. }
+        RootNode.FdChildren.Delete(I);
+        RemovedSomething := true;
+      end else
+      begin
+        { This is not an effect node, so just skip it. }
+        Inc(I);
+      end;
+  end;
+
+var
+  IndexBeyondAdded: Integer;
+  RemovedSomething: Boolean;
+begin
+  if RootNode = nil then
+    raise Exception.Create('Adding effects requires RootNode to be set, which means you should load the scene model, setting TCastleScene.Url or calling TCastleScene.Load');
+
+  { We want to modify RootNode.FdChildren such that it contains only
+    the TEffectNode instances from Value (and only in the specified order,
+    because the order matters for rendering).
+
+    First we check do we need to do anything, and if yes -- first we just
+    add all nodes, then remove the rest (this makes sure we will not free
+    some effect node in the middle of work due to refcount dropping to 0). }
+
+  if not EffectsAlreadySet then
+  begin
+    AddEffects(IndexBeyondAdded);
+    RemoveUnwantedEffects(IndexBeyondAdded, RemovedSomething);
+
+    { Call the most optimal (none, if possible!) InternalChangedField variant. }
+    if (IndexBeyondAdded <> 0) or // added something
+       RemovedSomething then
+    begin
+      // WritelnLog('SetEffects modified the scene, adding %d effect nodes, removing old: %s', [
+      //   IndexBeyondAdded,
+      //   BoolToStr(RemovedSomething, true)
+      // ]);
+      if RemovedSomething then
+        InternalChangedField(RootNode.FdChildren)
+      else
+        InternalChangedField(RootNode.FdChildren, chGroupChildrenAdd);
+    end;
+  end;
+end;
+
 { TBasicRenderParams --------------------------------------------------------- }
 
 constructor TBasicRenderParams.Create;
@@ -1722,7 +2122,19 @@ begin
   Result := FGlobalLights;
 end;
 
+procedure InitializeSkinInShaders;
+begin
+  TSkinNode.InternalFeatures.Shaders := GLFeatures.Shaders;
+  TSkinNode.InternalFeatures.MaxVertexUniformComponents := GLFeatures.MaxVertexUniformComponents;
+  TSkinNode.InternalFeatures.MaxSkinJointsInUniforms := GLFeatures.MaxSkinJointsInUniforms;
+  TSkinNode.InternalFeatures.MaxTextureSize := GLFeatures.MaxTextureSize;
+  TSkinNode.InternalFeatures.TextureFloat := GLFeatures.TextureFloat;
+end;
+
 initialization
+  ApplicationProperties.OnGLContextEarlyOpen.Add(
+    {$ifdef FPC}@{$endif} InitializeSkinInShaders);
+
   RegisterSerializableComponent(TCastleScene, 'Scene');
   RegisterSerializableComponent(TCastleBox, 'Box');
   RegisterSerializableComponent(TCastleSphere, 'Sphere');

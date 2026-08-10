@@ -17,6 +17,10 @@
 
 unit CastleAndroidNativeAppGlue;
 
+{$ifndef FPC}
+  {$message error 'This unit is only available for FPC. With Delphi, use equivalent built-in unit Androidapi.AppGlue.'}
+{$endif}
+
 {$I castleconf.inc}
 
 interface
@@ -545,6 +549,12 @@ begin
   try
     AndroidLog(alInfo, 'NativeAppGlue: TAndroidAppThread.Execute');
 
+    { Set MainThreadID, to enable calling CheckSynchronize in this thread.
+      Otherwise CheckSynchronize, called from TCastleApplicationProperties._Update
+      and necessary to make TThread.Synchronize work,
+      will raise an exception EThread. }
+    MainThreadID := GetCurrentThreadID;
+
     android_app^.config := AConfiguration_new();
     AConfiguration_fromAssetManager(android_app^.config, android_app^.activity^.assetManager);
 
@@ -616,7 +626,11 @@ begin
     end;
 
     if FpPipe(msgpipe) <> 0 then
+    begin
         AndroidLog(alError, 'NativeAppGlue: Could not create pipe');
+        { There isn't any way to continue application in this case. }
+        Exit(nil);
+    end;
 
     android_app^.msgread := msgpipe[0];
     android_app^.msgwrite := msgpipe[1];

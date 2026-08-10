@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2024 Michalis Kamburelis.
+  Copyright 2015-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -32,6 +32,8 @@
     function GetFogCoord: TFogCoordinateNode;
     procedure SetFogCoord(const Value: TFogCoordinateNode);
 {$endif not CASTLE_SLIM_NODES}
+    function GetNormal: TAbstractNormalNode;
+    procedure SetNormal(const Value: TAbstractNormalNode);
     function GetColorPerVertex: Boolean;
     procedure SetColorPerVertex(const Value: Boolean);
     function GetMode: TLineMode;
@@ -81,6 +83,12 @@
     property FogCoord: TFogCoordinateNode read GetFogCoord write SetFogCoord;
 {$endif not CASTLE_SLIM_NODES}
 
+    strict private FFdNormal: TSFNode;
+    { Internal wrapper for property @code(Normal). This wrapper API may change, we advise to access simpler @code(Normal) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdNormal: TSFNode read FFdNormal;
+    { Normal vectors on a line set allow lines to react to lighting. }
+    property Normal: TAbstractNormalNode read GetNormal write SetNormal;
+
     strict private FFdColorIndex: TMFInt32;
     { Internal wrapper for property @code(ColorIndex). This wrapper API may change, we advise to access simpler @code(ColorIndex) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdColorIndex: TMFInt32 read FFdColorIndex;
@@ -108,6 +116,23 @@
     public property FdMode: TSFStringEnum read FFdMode;
     { How to interpret the vertexes: as a set of strips (connected line segments), loops (connected line segments with additional segment to form a loop), or just pairs of vertexes (each pair defines a line segment). See possible @link(TLineMode) values for details. }
     property Mode: TLineMode read GetMode write SetMode;
+
+    strict private FFdSkinWeights0: TMFVec4f;
+    { Internal wrapper for property @code(SkinWeights0). This wrapper API may change, we advise to access simpler @code(SkinWeights0) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdSkinWeights0: TMFVec4f read FFdSkinWeights0;
+    { Weights for the skinned animation. See @link(TAbstractComposedGeometryNode.SetSkinWeights0) for details. }
+    procedure SetSkinWeights0(const Value: array of TVector4); overload;
+    { Weights for the skinned animation. See @link(TAbstractComposedGeometryNode.SetSkinWeights0) for details. }
+    procedure SetSkinWeights0(const Value: TVector4List); overload;
+
+    strict private FFdSkinJoints0: TMFInt32;
+    { Internal wrapper for property @code(SkinJoints0). This wrapper API may change, we advise to access simpler @code(SkinJoints0) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdSkinJoints0: TMFInt32 read FFdSkinJoints0;
+    { Joints for the skinned animation. See @link(TAbstractComposedGeometryNode.SetSkinJoints0) for details. }
+    procedure SetSkinJoints0(const Value: array of Int32); overload;
+    { Joints for the skinned animation. See @link(TAbstractComposedGeometryNode.SetSkinJoints0) for details. }
+    procedure SetSkinJoints0(const Value: TInt32List); overload;
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -170,6 +195,19 @@ begin
 end;
 
 {$endif not CASTLE_SLIM_NODES}
+function TIndexedLineSetNode.GetNormal: TAbstractNormalNode;
+begin
+  if FdNormal.Value is TAbstractNormalNode then
+    Result := TAbstractNormalNode(FdNormal.Value)
+  else
+    Result := nil;
+end;
+
+procedure TIndexedLineSetNode.SetNormal(const Value: TAbstractNormalNode);
+begin
+  FdNormal.Send(Value);
+end;
+
 procedure TIndexedLineSetNode.SetColorIndex(const Value: array of Int32);
 begin
   FdColorIndex.Send(Value);
@@ -210,6 +248,26 @@ begin
   FdMode.SendEnumValue(Ord(Value));
 end;
 
+procedure TIndexedLineSetNode.SetSkinWeights0(const Value: array of TVector4);
+begin
+  FdSkinWeights0.Send(Value);
+end;
+
+procedure TIndexedLineSetNode.SetSkinWeights0(const Value: TVector4List);
+begin
+  FdSkinWeights0.Send(Value);
+end;
+
+procedure TIndexedLineSetNode.SetSkinJoints0(const Value: array of Int32);
+begin
+  FdSkinJoints0.Send(Value);
+end;
+
+procedure TIndexedLineSetNode.SetSkinJoints0(const Value: TInt32List);
+begin
+  FdSkinJoints0.Send(Value);
+end;
+
 class function TIndexedLineSetNode.ClassX3DType: String;
 begin
   Result := 'IndexedLineSet';
@@ -247,6 +305,10 @@ begin
   AddField(FFdFogCoord);
 {$endif not CASTLE_SLIM_NODES}
 
+  FFdNormal := TSFNode.Create(Self, True, 'normal', [TAbstractNormalNode]);
+   FdNormal.ChangeAlways := chGeometry;
+  AddField(FFdNormal);
+
   FFdColorIndex := TMFInt32.Create(Self, False, 'colorIndex', []);
    FdColorIndex.ChangeAlways := chGeometry;
   AddField(FFdColorIndex);
@@ -262,6 +324,23 @@ begin
   FFdMode := TSFStringEnum.Create(Self, False, 'mode', @LineModeNames, Ord(High(LineModeNames)) + 1, Ord(lmStrip));
    FdMode.ChangeAlways := chGeometry;
   AddField(FFdMode);
+
+  FFdSkinWeights0 := TMFVec4f.Create(Self, True, 'skinWeights0', []);
+   FdSkinWeights0.ChangeAlways := chGeometry;
+  AddField(FFdSkinWeights0);
+
+  FFdSkinJoints0 := TMFInt32.Create(Self, True, 'skinJoints0', []);
+   FdSkinJoints0.ChangeAlways := chGeometry;
+  AddField(FFdSkinJoints0);
+end;
+
+procedure TIndexedLineSetNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+  if not FdSkinWeights0.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdSkinWeights0.X3DName);
+  if not FdSkinJoints0.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdSkinJoints0.X3DName);
 end;
 
 {$endif read_implementation}

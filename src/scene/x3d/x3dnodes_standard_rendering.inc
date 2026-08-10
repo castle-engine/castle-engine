@@ -1,6 +1,6 @@
 {%MainUnit x3dnodes.pas}
 {
-  Copyright 2002-2023 Michalis Kamburelis.
+  Copyright 2002-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -60,15 +60,22 @@
 
       Returns @true if this is available. In this case, RangeCount must
       be set to something <> nil, and the rest of returned variables
-      are mainly to generate proper warnings by MakeCoordRanges. }
+      are mainly to generate proper warnings by MakeCoordRanges.
+      @exclude }
     function InternalCoordRangesCounts(out RangeCount: TInt32List;
       out SRanges, SRangeName: string;
       out RangeMinimumCount: Cardinal): boolean; virtual;
   public
-    { Used only for reading glTF now, in the future will be used for skin animation on GPU. @exclude }
-    InternalSkinJoints: TVector4IntegerList;
-    { Used only for reading glTF now, in the future will be used for skin animation on GPU. @exclude }
-    InternalSkinWeights: TVector4List;
+    { When this geometry node is used by TSkinNode.InternalUpdateSkin,
+      thenwe store here the original (before aniamtion)
+      coordinates, normals and tangents.
+      This is used to recalculate skin when joints are animated.
+      @exclude
+      @groupBegin }
+    InternalOriginalCoords: TVector3List;
+    InternalOriginalNormals: TVector3List;
+    InternalOriginalTangents: TVector4List;
+    { @groupEnd }
 
     constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     destructor Destroy; override;
@@ -217,8 +224,7 @@
       is not coordinate-based) this raises ENotCoordinateBasedNode.
 
       @raises(ENotCoordinateBasedNode If node is not coordinate-based,
-        that is @link(InternalCoord) returns false.)
-    }
+        that is @link(InternalCoord) returns false.) }
     function InternalCoordinates(State: TX3DGraphTraverseState): TMFVec3f;
 
     { Node's "coord" field where you can place TCoordinateNode, or @nil if not available.
@@ -229,6 +235,38 @@
       information, but no "coord" field). }
     function CoordField: TSFNode; virtual;
 
+    { Weights and joints for the skinned animation.
+
+      If skinned animation is possible on this node, returns @true
+      and sets Weights and Joints to the appropriate lists:
+
+      @unorderedList(
+        @item(Weights: 4D vector for each vertex, with 4 weight for the
+          4 most important joints that affect this vertex.)
+        @item(Joints: 4 indexes for each vertex, determine the 4 most important
+          joints that affect this vertex.)
+      )
+
+      Read or modify them freely. Keep the counts correct:
+
+      @unorderedList(
+        @item(Either both lists are empty.)
+        @item(Or include information about all the coordinates in
+          @link(CoordField). This means that
+
+          - Weights.Count equals the coordinate count,
+
+          - and Joints.Count is always divisible by 4,
+
+          - and Joints.Count / 4 equals the coordinate count.)
+      )
+
+      If skinned animation is not possible on this node, returns @false,
+      and Weights and Joints are set to @nil.
+    }
+    function SkinWeightsJoints(
+      out Weights: TVector4List; out Joints: TInt32List): Boolean; virtual;
+
     { Node's "normal" field where you can place TNormalNode, or @nil if not available. }
     function NormalField: TSFNode; virtual;
 
@@ -238,12 +276,14 @@
     { Returns normal vectors that are specified explicitly.
       The vectors are taken from the Normal node inside our FdNormal field.
       In case of problems (no Normal node specified, invalid node specified etc.)
-      returns @nil. }
+      returns @nil.
+      @exclude }
     function InternalNormal: TVector3List;
 
     { Returns tangent vectors that are specified explicitly, see @link(TAbstractComposedGeometryNode.Tangent).
-      Returns @nil if not specified. }
-    function InternalTangent: TVector3List;
+      Returns @nil if not specified.
+      @exclude }
+    function InternalTangent: TVector4List;
 
     { Node's list of coordinate indexes.
 
@@ -260,8 +300,14 @@
       Otherwise (when CoordIndex = @nil), InternalCoordRangesCounts must
       return @true and we will use RangeCount to split coordinates.
 
+      The CoordRangeHandler can safely assume it only gets non-empty
+      and correct ranges, that is: EndIndex > BeginIndex for TCoordRangeHandler
+      call, and all indexes between BeginIndex and EndIndex-1 are >= 0
+      (when CoordIndex is assigned).
+
       Call this only for nodes with coordinates, that is only when
-      @link(InternalCoord) returns @true. }
+      @link(InternalCoord) returns @true.
+      @exclude }
     procedure InternalMakeCoordRanges(
       State: TX3DGraphTraverseState;
       CoordRangeHandler: TCoordRangeHandler);
@@ -276,7 +322,8 @@
       In this class this does nothing. Some, but not all, coordinate-based
       nodes (the ones when @link(InternalCoord) returns @true) override this.
       So currently, whether this is implemented is coordinated with
-      CastleInternalNormals and such internal needs. }
+      CastleInternalNormals and such internal needs.
+      @exclude }
     procedure InternalCoordPolygons(
       State: TX3DGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); virtual;
@@ -357,12 +404,16 @@
       Note that only one of Color and ColorRGBA may return non-nil,
       since "color" field may contain only one of them.
 
-      @groupBegin }
+      @groupBegin
+      @exclude }
     function InternalColor: TMFVec3f;
+    // @exclude
     function InternalColorRGBA: TMFColorRGBA;
+    // @exclude
     function InternalColorNode: TAbstractColorNode;
     { @groupEnd }
 
+    { @exclude }
     function InternalFogCoord: TMFFloat; virtual;
     function AttribField: TMFNode; virtual;
 
@@ -388,8 +439,6 @@
       @false. Override it for primitives that have no texture coordinates
       to return @true. }
     function AutoGenerate3DTexCoords: boolean; virtual;
-
-    function TransformationChange: TNodeTransformationChange; override;
 
     { Calculate texture S, T coordinates for BOUNDS2D texture mapping.
       This mapping is like the default IndexedFaceSet texture mapping,
@@ -495,10 +544,12 @@
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
-    { Access the coordinate node, and inside this node access it's points list. }
+    { Access the coordinate node, and inside this node access it's points list.
+      @exclude }
     function InternalCoord(State: TX3DGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
     function CoordField: TSFNode; override;
+    function SkinWeightsJoints(out Weights: TVector4List; out Joints: TInt32List): Boolean; override;
     function TexCoordField: TSFNode; override;
     function ColorField: TSFNode; override;
     function SolidField: TSFBool; override;
@@ -600,9 +651,11 @@
       out ACoord: TMFVec3f): boolean; override;
     function CoordIndexField: TMFLong; override;
     function CoordField: TSFNode; override;
+    function SkinWeightsJoints(out Weights: TVector4List; out Joints: TInt32List): Boolean; override;
     function ColorField: TSFNode; override;
     function InternalFogCoord: TMFFloat; override;
     function AttribField: TMFNode; override;
+    function NormalField: TSFNode; override;
 
   {$I auto_generated_node_helpers/x3dnodes_indexedlineset.inc}
   end;
@@ -676,12 +729,14 @@
     function InternalCoord(State: TX3DGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
     function CoordField: TSFNode; override;
+    function SkinWeightsJoints(out Weights: TVector4List; out Joints: TInt32List): Boolean; override;
     function ColorField: TSFNode; override;
     function InternalFogCoord: TMFFloat; override;
     function AttribField: TMFNode; override;
     function TrianglesCount(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function Lit(State: TX3DGraphTraverseState): boolean; override;
+    function NormalField: TSFNode; override;
 
   {$I auto_generated_node_helpers/x3dnodes_lineset.inc}
   end;
@@ -692,21 +747,19 @@
   end;
 
   { Tangent vectors information, for bump mapping.
-    The "vector" field should contain normalized tangent vectors,
-    in right-handed coordinate system.
 
-    The ordering of the tangent vectors is exactly the same as ordering
-    of normal vectors would be,
-    so e.g. @link(TAbstractComposedGeometryNode.NormalPerVertex) affects
-    the interpretation of tangent vectors as well. }
+    If your materials use @link(TAbstractOneSidedMaterialNode.NormalTexture)
+    then tangent vectors are used to determine the tangent space
+    in which the normal map is applied.
+    While the engine can automatically generate tangent vectors,
+    it is recommended to provide tangent vectors explicitly to achieve the
+    perfect look of the lighting, matching the software used to create normalmaps.
+
+    See @url(https://github.com/michaliskambi/x3d-tests/wiki/Tangent-node-in-X3D
+    Tangent node in X3D) for more details what this node specifies and why
+    is it useful. }
   TTangentNode = class(TAbstractGeometricPropertyNode)
-    {$I auto_generated_node_helpers/x3dnodes_tangent.inc}
-  public
-    { Set tangent vectors from a list of 4D vectors following glTF specification.
-      https://github.com/KhronosGroup/glTF/tree/master/specification/2.0 says
-      "XYZW vertex tangents where the w component is a sign value
-      (-1 or +1) indicating handedness of the tangent basis". }
-    procedure SetVector4D(const List: TVector4List);
+  {$I auto_generated_node_helpers/x3dnodes_tangent.inc}
   end;
 
   { Points. }
@@ -722,9 +775,11 @@
     function InternalCoord(State: TX3DGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
     function CoordField: TSFNode; override;
+    function SkinWeightsJoints(out Weights: TVector4List; out Joints: TInt32List): Boolean; override;
     function ColorField: TSFNode; override;
     function InternalFogCoord: TMFFloat; override;
     function AttribField: TMFNode; override;
+    function NormalField: TSFNode; override;
 
   {$I auto_generated_node_helpers/x3dnodes_pointset.inc}
   end;
@@ -808,8 +863,9 @@ end;
 
 destructor TAbstractGeometryNode.Destroy;
 begin
-  FreeAndNil(InternalSkinJoints);
-  FreeAndNil(InternalSkinWeights);
+  FreeAndNil(InternalOriginalCoords);
+  FreeAndNil(InternalOriginalNormals);
+  FreeAndNil(InternalOriginalTangents);
   inherited;
 end;
 
@@ -848,6 +904,14 @@ end;
 function TAbstractGeometryNode.CoordField: TSFNode;
 begin
   Result := nil;
+end;
+
+function TAbstractGeometryNode.SkinWeightsJoints(
+  out Weights: TVector4List; out Joints: TInt32List): Boolean;
+begin
+  Result := false;
+  Weights := nil;
+  Joints := nil;
 end;
 
 function TAbstractGeometryNode.CoordIndexField: TMFLong;
@@ -889,8 +953,14 @@ begin
       while (EndIndex < CoordIndexField.Count) and
             (CoordIndexField.Items.Items[EndIndex] >= 0) do
         Inc(EndIndex);
-      CoordRangeHandler(RangeNumber, BeginIndex, EndIndex);
-      Inc(RangeNumber);
+      { Do not call CoordRangeHandler (or increase RangeNumber)
+        for empty ranges, when -1 is at the start
+        of the indexes, or we have multiple consecutive -1 in indexes. }
+      if EndIndex > BeginIndex then
+      begin
+        CoordRangeHandler(RangeNumber, BeginIndex, EndIndex);
+        Inc(RangeNumber);
+      end;
       BeginIndex := EndIndex + 1;
     end;
   end else
@@ -1023,11 +1093,6 @@ end;
 function TAbstractGeometryNode.AutoGenerate3DTexCoords: boolean;
 begin
   Result := false;
-end;
-
-function TAbstractGeometryNode.TransformationChange: TNodeTransformationChange;
-begin
-  Result := ntcGeometry;
 end;
 
 procedure TAbstractGeometryNode.GetTextureBounds2DST(const LocalBoxSizes: TVector3;
@@ -1178,7 +1243,7 @@ begin
     Result := nil;
 end;
 
-function TAbstractGeometryNode.InternalTangent: TVector3List;
+function TAbstractGeometryNode.InternalTangent: TVector4List;
 begin
   if (TangentField <> nil) and
      (TangentField.Value is TTangentNode) then
@@ -1192,6 +1257,14 @@ end;
 function TAbstractComposedGeometryNode.CoordField: TSFNode;
 begin
   Result := FdCoord;
+end;
+
+function TAbstractComposedGeometryNode.SkinWeightsJoints(
+  out Weights: TVector4List; out Joints: TInt32List): Boolean;
+begin
+  Weights := FdSkinWeights0.Items;
+  Joints := FdSkinJoints0.Items;
+  Result := true;
 end;
 
 function TAbstractComposedGeometryNode.InternalCoord(State: TX3DGraphTraverseState;
@@ -1311,6 +1384,14 @@ begin
   Result := FdCoord;
 end;
 
+function TIndexedLineSetNode.SkinWeightsJoints(
+  out Weights: TVector4List; out Joints: TInt32List): Boolean;
+begin
+  Weights := FdSkinWeights0.Items;
+  Joints := FdSkinJoints0.Items;
+  Result := true;
+end;
+
 function TIndexedLineSetNode.InternalCoord(State: TX3DGraphTraverseState;
   out ACoord: TMFVec3f): boolean;
 begin
@@ -1361,10 +1442,15 @@ begin
   FdCoordIndex.Changed;
 end;
 
+function TIndexedLineSetNode.NormalField: TSFNode;
+begin
+  Result := FdNormal;
+end;
+
 function TIndexedLineSetNode.Lit(State: TX3DGraphTraverseState): boolean;
 begin
-  { VRML 2.0 specification says that IndexedLineSet should always be unlit }
-  Result := false;
+  // always unlit if no normals
+  Result := FdNormal.Value <> nil;
 end;
 
 { TIndexedTriangleFanSetNode ------------------------------------------------- }
@@ -1456,6 +1542,19 @@ end;
 function TLineSetNode.CoordField: TSFNode;
 begin
   Result := FdCoord;
+end;
+
+function TLineSetNode.NormalField: TSFNode;
+begin
+  Result := FdNormal;
+end;
+
+function TLineSetNode.SkinWeightsJoints(
+  out Weights: TVector4List; out Joints: TInt32List): Boolean;
+begin
+  Weights := FdSkinWeights0.Items;
+  Joints := FdSkinJoints0.Items;
+  Result := true;
 end;
 
 function TLineSetNode.InternalCoord(State: TX3DGraphTraverseState;
@@ -1550,37 +1649,11 @@ end;
 
 function TLineSetNode.Lit(State: TX3DGraphTraverseState): boolean;
 begin
-  { X3D specification says that LineSet should always be unlit }
-  Result := false;
+  // always unlit if no normals
+  Result := FdNormal.Value <> nil;
 end;
 
-{ TTangentNode --------------------------------------------------------------- }
-
-procedure TTangentNode.SetVector4D(const List: TVector4List);
-var
-  I, Len: Integer;
-  Source: PVector4;
-  Dest: PVector3;
-  W: Single;
-begin
-  Len := List.Count;
-  FdVector.Items.Count := Len;
-  if Len = 0 then Exit;
-
-  Source := PVector4(List.L);
-  Dest := PVector3(FdVector.Items.L);
-  for I := 0 to Len - 1 do
-  begin
-    // convert tangents to right-handed
-    // slower: Dest^ := Source^.XYZ * Source^.W;
-    W := Source^.W;
-    Dest^.X := Source^.X * W;
-    Dest^.Y := Source^.Y * W;
-    Dest^.Z := Source^.Z * W;
-    Inc(Source);
-    Inc(Dest);
-  end;
-end;
+{ TPointSetNode -------------------------------------------------------------- }
 
 class function TPointSetNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
@@ -1590,6 +1663,14 @@ end;
 function TPointSetNode.CoordField: TSFNode;
 begin
   Result := FdCoord;
+end;
+
+function TPointSetNode.SkinWeightsJoints(
+  out Weights: TVector4List; out Joints: TInt32List): Boolean;
+begin
+  Weights := FdSkinWeights0.Items;
+  Joints := FdSkinJoints0.Items;
+  Result := true;
 end;
 
 function TPointSetNode.InternalCoord(State: TX3DGraphTraverseState;
@@ -1642,9 +1723,15 @@ begin
   {$endif}
 end;
 
+function TPointSetNode.NormalField: TSFNode;
+begin
+  Result := FdNormal;
+end;
+
 function TPointSetNode.Lit(State: TX3DGraphTraverseState): boolean;
 begin
-  Result := false;
+  // always unlit if no normals
+  Result := FdNormal.Value <> nil;
 end;
 
 { TTriangleFanSetNode -------------------------------------------------------- }

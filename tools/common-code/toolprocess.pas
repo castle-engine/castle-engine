@@ -1,5 +1,5 @@
 {
-  Copyright 2021-2024 Michalis Kamburelis.
+  Copyright 2021-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -18,19 +18,7 @@ unit ToolProcess;
 
 interface
 
-type
-  { Type wide enough to contain process id on all platforms.
-    Not defined with $ifdef,
-    because we pass it through command-line and thus want to easily convert string<->integer,
-    so it's not opaque anyway, we just need to explicitly decide on integer type
-    that can fit everything.
-
-    On Windows this is DWORD ( https://docs.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-getcurrentprocessid ).
-
-    On Unix this is pid_t ( https://man7.org/linux/man-pages/man3/pid_t.3.html )
-    which should be signed and no greater than CLong. In practice it is 32 or 64 bit signed
-    integer. }
-  TProcessId = Int64;
+uses CastleInternalProcess;
 
 { Get system-wide process identifier, that another process could use with WaitForProcessExit. }
 function CurrentProcessId: TProcessId;

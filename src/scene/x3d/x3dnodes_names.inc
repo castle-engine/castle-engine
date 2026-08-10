@@ -79,16 +79,27 @@
     function DeepCopy(const CopyState: TX3DNodeDeepCopyState): TX3DNodeNames;
   end;
 
-  TX3DPrototypeNames = class(TStringListCaseSens)
+  { List of prototype names, mapping to TX3DPrototypeBase instances.
+    Case-sensitive, just like X3D prototype names are. }
+  TX3DPrototypeNames = class(TStringList)
   public
+    constructor Create;
+
+    { Bind prototype to its name.
+      If the name was already bound to some old prototype,
+      it is overridden to refer only to the new prototype.
+      Otherwise we add a new String with object Proto. }
     procedure Bind(const Proto: TX3DPrototypeBase);
 
     { Find proto bound to given name. @nil if none. }
     function Bound(const Name: string): TX3DPrototypeBase;
   end;
 
-  TX3DImportableNames = class(TStringListCaseSens)
+  { List of names that can be IMPORTed in X3D.
+    Case-sensitive, just like X3D names are. }
+  TX3DImportableNames = class(TStringList)
   public
+    constructor Create;
     destructor Destroy; override;
 
     { Bind Exported names to given Inline node name.
@@ -238,6 +249,12 @@ end;
 
 { TX3DPrototypeNames -------------------------------------------------------- }
 
+constructor TX3DPrototypeNames.Create;
+begin
+  inherited Create;
+  CaseSensitive := true;
+end;
+
 procedure TX3DPrototypeNames.Bind(const Proto: TX3DPrototypeBase);
 var
   I: Integer;
@@ -259,6 +276,12 @@ begin
 end;
 
 { TX3DImportableNames ------------------------------------------------------- }
+
+constructor TX3DImportableNames.Create;
+begin
+  inherited Create;
+  CaseSensitive := true;
+end;
 
 destructor TX3DImportableNames.Destroy;
 var

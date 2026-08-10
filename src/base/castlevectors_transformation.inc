@@ -120,6 +120,47 @@ type
   TTransformationList = class({$ifdef FPC}specialize{$endif} TStructList<TTransformation>)
   end;
 
+const
+  IdentityTransformation: TTransformation = (
+    Transform: (Data: (
+      (1, 0, 0, 0),
+      (0, 1, 0, 0),
+      (0, 0, 1, 0),
+      (0, 0, 0, 1)
+    ));
+    InverseTransform: (Data: (
+      (1, 0, 0, 0),
+      (0, 1, 0, 0),
+      (0, 0, 1, 0),
+      (0, 0, 0, 1)
+    ));
+    Scale: 1;
+    UniformScale: true
+  );
+
+type
+  { Simplified version of TTransformation, that does not store InverseTransform
+    and Scale. This is just a wrapper over TMatrix4 that exposes similar API
+    to TTransformation. }
+  TTransformationSimple = record
+    { Transformation from local to outside coordinate space. }
+    Transform: TMatrix4;
+
+    { Make no transformation (identity matrix, scale 1). }
+    procedure Init;
+
+    { Modify transformation by an additional translation, rotation, scaling. }
+    procedure Multiply(
+      const Center: TVector3;
+      const Rotation: TVector4;
+      const ScaleVector: TVector3;
+      const ScaleOrientation: TVector4;
+      const Translation: TVector3);
+
+    { Modify transformation by an additional translation. }
+    procedure Translate(const Translation: TVector3);
+  end;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -287,6 +328,66 @@ begin
   MatrixDecompose(Transform, Translation, Rotation, ScaleVec);
   Init;
   Multiply(Rotation, NoScale, Translation);
+end;
+
+{ TTransformationSimple ---------------------------------------------------- }
+
+procedure TTransformationSimple.Init;
+begin
+  Transform := TMatrix4.Identity;
+end;
+
+procedure TTransformationSimple.Multiply(
+  const Center: TVector3;
+  const Rotation: TVector4;
+  const ScaleVector: TVector3;
+  const ScaleOrientation: TVector4;
+  const Translation: TVector3);
+var
+  M: TMatrix4;
+  MRotateScaleOrient, IMRotateScaleOrient: TMatrix4;
+begin
+  MultMatrixTranslation(Transform, Translation + Center);
+
+  { We avoid using RotationMatricesRad when angle = 0, since this
+    is often the case, and it makes TransformState much faster
+    (which is important --- TransformState is important for traversing state). }
+  if Rotation.W <> 0 then
+  begin
+    { Note that even rotation Axis = zero is OK, M will be
+      identity in this case. }
+    M := RotationMatrix(Rotation);
+    Transform := Transform * M;
+  end;
+
+  if (ScaleVector.X <> 1) or
+     (ScaleVector.Y <> 1) or
+     (ScaleVector.Z <> 1) then
+  begin
+    if ScaleOrientation.W <> 0 then
+    begin
+      RotationMatricesRad(ScaleOrientation, MRotateScaleOrient, IMRotateScaleOrient);
+      Transform := Transform * MRotateScaleOrient;
+    end;
+
+    M := ScalingMatrix(ScaleVector);
+    Transform := Transform * M;
+
+    if ScaleOrientation.W <> 0 then
+    begin
+      { That's right, we reuse MRotateScaleOrient and IMRotateScaleOrient
+        matrices below. Since we want to reverse them now, so normal
+        Transform is multiplied by IMRotateScaleOrient. }
+      Transform := Transform * IMRotateScaleOrient;
+    end;
+  end;
+
+  MultMatrixTranslation(Transform, -Center);
+end;
+
+procedure TTransformationSimple.Translate(const Translation: TVector3);
+begin
+  MultMatrixTranslation(Transform, Translation);
 end;
 
 {$endif read_implementation}

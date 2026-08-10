@@ -2,7 +2,7 @@
 
 Demo how to use localization (translate your game into multiple languages) with Castle Game Engine.
 
-We use `CastleLocalizationGetText` unit, which in turn uses FPC `GetText` unit. See CGE [manual about text and localization](https://castle-engine.io/manual_text.php).
+We use `CastleLocalizationGetText` unit, which in turn uses FPC `GetText` unit. See engine manual about [localization](https://castle-engine.io/localization).
 
 ![screenshot](screenshot.png)
 
@@ -20,31 +20,33 @@ We use `CastleLocalizationGetText` unit, which in turn uses FPC `GetText` unit. 
 
         * Compile the game (`castle-engine compile`).
 
-        * Use `rstconv` (distributed with FPC) like this: `rstconv -i castle-engine-output/compilation/x86_64-linux/game.rsj -o po_files/game.pot`
+        * Use `rstconv` (distributed with FPC) like this: `rstconv -i castle-engine-output/compilation/x86_64-linux/gameviewmain.rsj -o po_files/game.pot`
 
-        * Note that FPC will create one `xxx.rsj` file for each unit. But this should not limit you. It's normal to put all the strings from the *complete* application into a single `xxx.pot` file. In general, the format of the `.pot` and .po` files (they are the same) is trivial, they are simple text files that can be concatenated together etc.
+        * Note that FPC will create one `xxx.rsj` file for each unit. But this should not limit you. It's normal to put all the strings from the *complete* application into a single `xxx.pot` file. In general, the format of the `.pot` and `.po` files (they are the same) is trivial, they are simple text files that can be concatenated together, edited in a any text editor etc..
 
 2. To translate user interface:
 
-    1. Design it using the CGE editor, and write as `xxx.castle-user-interface` files. (More complex scenarios can also be handled using CastleLocalizationGetText utilities, like TranslateDesign.)
+    1. Design it using the CGE editor, and write as `xxx.castle-user-interface` files.
 
-    2. Generate the `user_interface.pot` file using `GenerateGetTextPo`. See the trivial utility inside `po_files/generator/po_generator.lpr` in this example.
+        _Note_: More complex scenarios can also be handled using `CastleLocalizationGetText` utilities, like `TranslateDesign`. But you should not need them in a simple cases.
 
-3. Then translate the PO files.
+    2. Generate the `user_interface.pot` file using `GenerateGetTextPo`. See the trivial utility inside [po_files/generator/po_generator.dpr](po_files/generator/po_generator.dpr) in this example, just copy this utility and adjust to your needs.
 
-    * For each `xxxx.pot`, you create a file like `xxxx.ll.po` inserting the 2-latter character code indicating a language.
+3. Then translate the PO files, for each language.
 
-        You can create the `.po` file from `.pot` just by copying it -- it's the same file format, the `.pot` (PO Template) extension is just a way to indicate _"this is a basis for translation"_.
+    * For each `xxxx.pot`, you create a translation file like `xxxx.ll.po` inserting the 2-latter character code indicating a language.
+
+        You can create the `.po` file from `.pot` just by copying it -- it's the same file format, the `.pot` (PO Template) extension is just a convention to indicate _"this is a template for translation"_.
 
         Or you can create the `.po` by calling `msginit --locale=pl --input=game.pot --no-translator --output-file=game.pl.po`. This creates `game.pl.po`, with the initial translated strings having contents from `game.pot`. This makes sense if `game.pot` contains English text, and it's a good starting point for a new translation.
 
-    * E.g. you copy `game.pot` to `game.pl.po` to translate to Polish the resourcestrings, and you copy `user_interface.pot` to `user_interface.pl.po` to translate to Polish the user interface designed using the CGE Editor. `pl` stands for a Polish translation, `de` for German, `en` for English etc.
+    * E.g. you copy `game.pot` to `game.pl.po` to translate to Polish the `resourcestrings`, and you copy `user_interface.pot` to `user_interface.pl.po` to translate to Polish the user interface designed using the CGE Editor. `pl` stands for a Polish translation, `de` for German, `en` for English etc.
 
-    * Edit the `game.pl.po` using a normal text editor. Or use a specialized editor like https://poedit.net/
+    * Edit the `game.pl.po` using a normal text editor. Or use a specialized editor like [Poedit](https://poedit.net/).
 
-    * Note: You cannot force something to be empty by translating it to an empty string. `GetText` treats `msgstr ""` as indicating "not translated", and the `msgfmt` will not even place this mapping in MO file. In turn, the text will be left in the original (English) version. See https://github.com/grosser/gettext_i18n_rails/issues/81 and links from it to other similar issues. To make something empty, for now it's simplest to translate it to a space character.
+    * _Warning_: You cannot force something to be empty by translating it to an empty string. `GetText` treats `msgstr ""` as indicating "not translated", and the `msgfmt` will not even place this mapping in MO file. In turn, the text will be left in the original (English) version. See https://github.com/grosser/gettext_i18n_rails/issues/81 and links from it to other similar issues. To make something empty, for now it's simplest to translate it to a space character.
 
-4. Generate .mo file: `msgfmt po_files/game.pl.po --output-file=data/locale/game.pl.mo`. We have a trivial script here `update_translations.sh` doing that. You need to rerun it after every modification to `po_files`.
+4. Generate .mo file: `msgfmt po_files/game.pl.po --output-file=data/locale/game.pl.mo`. We have a trivial script here [update_translations.sh](update_translations.sh) doing that. You need to rerun it after every modification to `po_files`.
 
 ## Using translations from Pascal code
 
@@ -72,11 +74,13 @@ end.
 
 Note that we also adjust font in this application.
 We load a font with additional German, Polish, Russian and Ukrainian characters.
-See the [manual about text and fonts](https://castle-engine.io/manual_text.php).
+See the [manual about text and fonts](https://castle-engine.io/text).
 
-This is no longer strictly necessary with latest engine [that includes most common Unicode characters in the default font](https://wp.me/p9IgYW-1bL).
+This is no longer really necessary with the latest engine [that includes most common Unicode characters in the default font](https://castle-engine.io/wp/2023/11/30/font-improvements-default-font-includes-international-characters-less-embedded-font-data-by-default-fixes-for-font-rendering-on-ancient-machines/).
 
-## Lazarus references
+But it is necessary for languages like _Chinese_ that typically need specialized fonts.
+
+## Lazarus documentation about localization
 
 While we don't use Lazarus LCL code in CGE, but this mechanism is consistent with how Lazarus application can be localized. So a lot of Lazarus documentation apply also to us:
 
@@ -102,3 +106,5 @@ Compile by:
 - Or use [CGE command-line build tool](https://castle-engine.io/build_tool). Run `castle-engine compile` in this directory.
 
 - Or use [Lazarus](https://www.lazarus-ide.org/). Open in Lazarus `localization_test.lpi` file and compile / run from Lazarus. Make sure to first register [CGE Lazarus packages](https://castle-engine.io/lazarus).
+
+- Or use [Delphi](https://www.embarcadero.com/products/Delphi). Open in Delphi `localization_test.dproj` file and compile / run from Delphi. See [CGE and Delphi](https://castle-engine.io/delphi) documentation for details.

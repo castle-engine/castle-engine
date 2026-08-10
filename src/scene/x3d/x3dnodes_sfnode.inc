@@ -346,7 +346,8 @@ begin
      (Value <> nil) and
      (Value.VRML1ParentsCount = 0) and
      (Value.FParentFields.Count = 0) and
-     (Value.KeepExisting = 0) and
+     (Value.FKeepExisting = 0) and
+     (not Value.FWaitsForRelease) and
      (not Reader.Nodes.NodeDuringReading(Value)) then
   begin
     FValue.FreeIfUnused; // we know it will be freed now
@@ -526,6 +527,14 @@ var
 begin
   Assert(Source is TSFNode);
   GoodCopyState := CopyState as TX3DNodeDeepCopyState;
+
+  { Copy also WeakLink state from Source, to not create cycles in
+    DirectEnumerateAll that have been broken by WeakLink=true in the original.
+    Also set Value to nil before changing WeakLink, this is required by
+    TSFNode.SetWeakLink.
+    Testcase: tests/data/proto_reuse_first_node/full_connectors.x3d }
+  Value := nil;
+  WeakLink := TSFNode(Source).WeakLink;
 
   { Similar to TSFNode.Assign }
   Value              := DeepCopyNode(TSFNode(Source).Value);

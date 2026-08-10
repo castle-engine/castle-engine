@@ -51,7 +51,10 @@
           "Text" : [
             "Tests: 123 / 456"
           ],
-          "VerticalAnchorDelta" : -3.4000000000000000E+001,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -3.4000000000000000E+001
+          },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
         },
@@ -70,7 +73,10 @@
           "Text" : [
             " "
           ],
-          "VerticalAnchorDelta" : -6.8000000000000000E+001,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -6.8000000000000000E+001
+          },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
         },
@@ -87,7 +93,10 @@
           "Name" : "LabelCurrentTest",
           "Text" : [
           ],
-          "VerticalAnchorDelta" : -1.0200000000000000E+002,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -1.0200000000000000E+002
+          },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
         },
@@ -97,32 +106,13 @@
           "HorizontalAnchorSelf" : "hpMiddle",
           "Name" : "HorizontalGroupButtons",
           "Spacing" : 5.0000000000000000E+001,
-          "VerticalAnchorDelta" : -1.1400000000000000E+002,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -1.1400000000000000E+002
+          },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
           "$Children" : [
-            {
-              "$$ClassName" : "TCastleButton",
-              "Caption" : "Select tests",
-              "CustomBackgroundDisabled" : {
-                "$$ClassName" : "TCastleImagePersistent"
-              },
-              "CustomBackgroundFocused" : {
-                "$$ClassName" : "TCastleImagePersistent"
-              },
-              "CustomBackgroundNormal" : {
-                "$$ClassName" : "TCastleImagePersistent"
-              },
-              "CustomBackgroundPressed" : {
-                "$$ClassName" : "TCastleImagePersistent"
-              },
-              "Image" : {
-                "$$ClassName" : "TCastleImagePersistent"
-              },
-              "Name" : "ButtonSelectTests",
-              "VerticalAnchorParent" : "vpMiddle",
-              "VerticalAnchorSelf" : "vpMiddle"
-            },
             {
               "$$ClassName" : "TCastleButton",
               "Caption" : "Start",
@@ -138,7 +128,6 @@
               "CustomBackgroundPressed" : {
                 "$$ClassName" : "TCastleImagePersistent"
               },
-              "HorizontalAnchorDelta" : 1.8600000000000000E+002,
               "Image" : {
                 "$$ClassName" : "TCastleImagePersistent"
               },
@@ -161,11 +150,14 @@
               "CustomBackgroundPressed" : {
                 "$$ClassName" : "TCastleImagePersistent"
               },
-              "HorizontalAnchorDelta" : 3.0500000000000000E+002,
               "Image" : {
                 "$$ClassName" : "TCastleImagePersistent"
               },
               "Name" : "ButtonStopTests",
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "X" : 1.1899999237060547E+002
+              },
               "VerticalAnchorParent" : "vpMiddle",
               "VerticalAnchorSelf" : "vpMiddle"
             },
@@ -178,13 +170,16 @@
                 "Green" : 1.0000000000000000E+000,
                 "Red" : 1.0000000000000000E+000
               },
-              "HorizontalAnchorDelta" : 4.2100000000000000E+002,
               "Name" : "CheckboxStopOnFail",
               "TextColorPersistent" : {
                 "$$ClassName" : "TCastleColorPersistent",
                 "Blue" : 1.0000000000000000E+000,
                 "Green" : 1.0000000000000000E+000,
                 "Red" : 1.0000000000000000E+000
+              },
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "X" : 2.3500000000000000E+002
               },
               "VerticalAnchorParent" : "vpMiddle",
               "VerticalAnchorSelf" : "vpMiddle"
@@ -197,7 +192,10 @@
           "HorizontalAnchorSelf" : "hpMiddle",
           "Name" : "HorizontalGroupButtons1",
           "Spacing" : 5.0000000000000000E+001,
-          "VerticalAnchorDelta" : -1.6500000000000000E+002,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -1.6500000000000000E+002
+          },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
           "$Children" : [
@@ -211,6 +209,27 @@
               "Text" : [
                 "0"
               ],
+              "Tooltip" : "Passed",
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle"
+            },
+            {
+              "$$ClassName" : "TCastleLabel",
+              "ColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Blue" : 9.4901961088180542E-001,
+                "Green" : 9.4901961088180542E-001,
+                "Red" : 9.4901961088180542E-001
+              },
+              "Name" : "LabelTestAborted",
+              "Text" : [
+                "0"
+              ],
+              "Tooltip" : "Aborted (also included in Passed, now)",
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "X" : 6.3000000000000000E+001
+              },
               "VerticalAnchorParent" : "vpMiddle",
               "VerticalAnchorSelf" : "vpMiddle"
             },
@@ -222,11 +241,15 @@
                 "Green" : 5.0980392843484879E-002,
                 "Red" : 7.7647060155868530E-001
               },
-              "HorizontalAnchorDelta" : 6.3000000000000000E+001,
               "Name" : "LabelTestFailed",
               "Text" : [
                 "0"
               ],
+              "Tooltip" : "Failed",
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "X" : 1.2600000000000000E+002
+              },
               "VerticalAnchorParent" : "vpMiddle",
               "VerticalAnchorSelf" : "vpMiddle"
             }
@@ -239,9 +262,7 @@
           "HorizontalAnchorSelf" : "hpMiddle",
           "Name" : "ScrollView1",
           "ScrollArea" : {
-            "$$ClassName" : "TInternalCastleScrollArea",
-            "AutoSizeToChildren" : true,
-            "Name" : "ScrollArea",
+            "$$ClassName" : "TCastleScrollArea",
             "$Children" : [
               {
                 "$$ClassName" : "TCastleLabel",
@@ -257,41 +278,19 @@
               }
             ]
           },
-          "VerticalAnchorDelta" : -1.9900000000000000E+002,
+          "ScrollbarFrame" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "ScrollbarSlider" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -1.9900000000000000E+002
+          },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
           "Width" : 1.2000000000000000E+003
-        },
-        {
-          "$$ClassName" : "TCastleViewport",
-          "Camera" : {
-            "$$ClassName" : "TCastleCamera",
-            "Name" : "Camera",
-            "Orthographic" : {
-              "$$ClassName" : "TCastleOrthographic",
-              "Name" : "Orthographic"
-            },
-            "Perspective" : {
-              "$$ClassName" : "TCastlePerspective",
-              "Name" : "Perspective"
-            }
-          },
-          "Height" : 3.5000000000000000E+002,
-          "HorizontalAnchorParent" : "hpMiddle",
-          "HorizontalAnchorSelf" : "hpMiddle",
-          "Items" : {
-            "$$ClassName" : "TCastleRootTransform",
-            "Name" : "Items",
-            "PhysicsProperties" : {
-              "$$ClassName" : "TPhysicsProperties",
-              "Name" : "PhysicsProperties"
-            }
-          },
-          "Name" : "TestViewport",
-          "VerticalAnchorDelta" : -4.6100000000000000E+002,
-          "VerticalAnchorParent" : "vpTop",
-          "VerticalAnchorSelf" : "vpTop",
-          "Width" : 7.0000000000000000E+002
         }
       ]
     }

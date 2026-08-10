@@ -572,14 +572,14 @@ function TExtrusionNode.LocalBoundingBox(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
 var
   I, J: Integer;
-  E: TVRMLExtrusion;
+  E: TExtrusionUtility;
   LastY, LastZ: TVector3;
   Transform: TMatrix4;
   Point2d: PVector2;
 begin
   Result := TBox3D.Empty;
 
-  E := TVRMLExtrusion.Create;
+  E := TExtrusionUtility.Create;
   try
     E.Node := Self;
     for I := 0 to E.High do
@@ -599,14 +599,14 @@ function TExtrusionNode.BoundingBox(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
 var
   I, J: Integer;
-  E: TVRMLExtrusion;
+  E: TExtrusionUtility;
   LastY, LastZ: TVector3;
   Transform: TMatrix4;
   Point2d: PVector2;
 begin
   Result := TBox3D.Empty;
 
-  E := TVRMLExtrusion.Create;
+  E := TExtrusionUtility.Create;
   try
     E.Node := Self;
     for I := 0 to E.High do

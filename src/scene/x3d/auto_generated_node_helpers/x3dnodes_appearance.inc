@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2024 Michalis Kamburelis.
+  Copyright 2015-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -32,10 +32,14 @@
     procedure SetLineProperties(const Value: TLinePropertiesNode);
     function GetMaterial: TAbstractMaterialNode;
     procedure SetMaterial(const Value: TAbstractMaterialNode);
+    function GetPointProperties: TPointPropertiesNode;
+    procedure SetPointProperties(const Value: TPointPropertiesNode);
     function GetTexture: TAbstractTextureNode;
     procedure SetTexture(const Value: TAbstractTextureNode);
     function GetTextureTransform: TAbstractTextureTransformNode;
     procedure SetTextureTransform(const Value: TAbstractTextureTransformNode);
+    function GetAcousticProperties: TAcousticPropertiesNode;
+    procedure SetAcousticProperties(const Value: TAcousticPropertiesNode);
     function GetBackMaterial: TAbstractOneSidedMaterialNode;
     procedure SetBackMaterial(const Value: TAbstractOneSidedMaterialNode);
     function GetAlphaMode: TAlphaMode;
@@ -83,6 +87,12 @@
     { Material determines how the shape looks, and how it interacts with lighting. }
     property Material: TAbstractMaterialNode read GetMaterial write SetMaterial;
 
+    strict private FFdPointProperties: TSFNode;
+    { Internal wrapper for property @code(PointProperties). This wrapper API may change, we advise to access simpler @code(PointProperties) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdPointProperties: TSFNode read FFdPointProperties;
+    { Properties how to display point geometry (point size and such). }
+    property PointProperties: TPointPropertiesNode read GetPointProperties write SetPointProperties;
+
     strict private FFdShaders: TMFNode;
     { Internal wrapper for property @code(Shaders). This wrapper API may change, we advise to access simpler @code(Shaders) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdShaders: TMFNode read FFdShaders;
@@ -100,6 +110,12 @@
     public property FdTextureTransform: TSFNode read FFdTextureTransform;
     { Texture transformation. }
     property TextureTransform: TAbstractTextureTransformNode read GetTextureTransform write SetTextureTransform;
+
+    strict private FFdAcousticProperties: TSFNode;
+    { Internal wrapper for property @code(AcousticProperties). This wrapper API may change, we advise to access simpler @code(AcousticProperties) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdAcousticProperties: TSFNode read FFdAcousticProperties;
+    {  }
+    property AcousticProperties: TAcousticPropertiesNode read GetAcousticProperties write SetAcousticProperties;
 
     strict private FFdBackMaterial: TSFNode;
     { Internal wrapper for property @code(BackMaterial). This wrapper API may change, we advise to access simpler @code(BackMaterial) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -162,7 +178,7 @@
     strict private FFdEffects: TMFNode;
     { Internal wrapper for property @code(Effects). This wrapper API may change, we advise to access simpler @code(Effects) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdEffects: TMFNode read FFdEffects;
-    { Additional shader code for rendering this shape. See https://castle-engine.io/compositing_shaders.php . The shader effects they are easy to use, cooperate with CGE built-in rendering features, and one code is more portable to both mobile and desktop. }
+    { Additional shader code for rendering this shape. See https://castle-engine.io/shaders . The shader effects they are easy to use, cooperate with CGE built-in rendering features, and one code is more portable to both mobile and desktop. }
     procedure SetEffects(const Value: array of TEffectNode);
 
     strict private FFdAlphaChannel: TSFStringEnum;
@@ -170,6 +186,7 @@
     public property FdAlphaChannel: TSFStringEnum read FFdAlphaChannel;
     {  }
     property AlphaChannel: TAutoAlphaChannel read GetAlphaChannel write SetAlphaChannel;
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -218,6 +235,19 @@ begin
   FdMaterial.Send(Value);
 end;
 
+function TAppearanceNode.GetPointProperties: TPointPropertiesNode;
+begin
+  if FdPointProperties.Value is TPointPropertiesNode then
+    Result := TPointPropertiesNode(FdPointProperties.Value)
+  else
+    Result := nil;
+end;
+
+procedure TAppearanceNode.SetPointProperties(const Value: TPointPropertiesNode);
+begin
+  FdPointProperties.Send(Value);
+end;
+
 procedure TAppearanceNode.SetShaders(const Value: array of TAbstractShaderNode);
 var
   L: Integer;
@@ -254,6 +284,19 @@ end;
 procedure TAppearanceNode.SetTextureTransform(const Value: TAbstractTextureTransformNode);
 begin
   FdTextureTransform.Send(Value);
+end;
+
+function TAppearanceNode.GetAcousticProperties: TAcousticPropertiesNode;
+begin
+  if FdAcousticProperties.Value is TAcousticPropertiesNode then
+    Result := TAcousticPropertiesNode(FdAcousticProperties.Value)
+  else
+    Result := nil;
+end;
+
+procedure TAppearanceNode.SetAcousticProperties(const Value: TAcousticPropertiesNode);
+begin
+  FdAcousticProperties.Send(Value);
 end;
 
 function TAppearanceNode.GetBackMaterial: TAbstractOneSidedMaterialNode;
@@ -408,6 +451,10 @@ begin
    FdMaterial.OnBeforeValueChange := {$ifdef FPC}@{$endif}MoveShapeAssociations;
   AddField(FFdMaterial);
 
+  FFdPointProperties := TSFNode.Create(Self, True, 'pointProperties', [TPointPropertiesNode]);
+   FdPointProperties.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdPointProperties);
+
   FFdShaders := TMFNode.Create(Self, True, 'shaders', [TAbstractShaderNode]);
    FdShaders.ChangeAlways := chEverything;
   AddField(FFdShaders);
@@ -419,6 +466,10 @@ begin
   FFdTextureTransform := TSFNode.Create(Self, True, 'textureTransform', [TAbstractTextureTransformNode]);
    FdTextureTransform.ChangeAlways := chEverything;
   AddField(FFdTextureTransform);
+
+  FFdAcousticProperties := TSFNode.Create(Self, True, 'acousticProperties', [TAcousticPropertiesNode]);
+   FdAcousticProperties.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdAcousticProperties);
 
   FFdBackMaterial := TSFNode.Create(Self, True, 'backMaterial', [TAbstractOneSidedMaterialNode]);
    FdBackMaterial.ChangeAlways := chNone;
@@ -468,6 +519,29 @@ begin
   AddField(FFdAlphaChannel);
 
   DefaultContainerField := 'appearance';
+end;
+
+procedure TAppearanceNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+  if not FdReceiveShadows.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdReceiveShadows.X3DName);
+  if not FdShadowCaster.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdShadowCaster.X3DName);
+  if not FdNormalMap.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdNormalMap.X3DName);
+{$ifndef CASTLE_SLIM_NODES}
+  if not FdHeightMap.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdHeightMap.X3DName);
+{$endif not CASTLE_SLIM_NODES}
+  if not FdHeightMapScale.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdHeightMapScale.X3DName);
+  if not FdBlendMode.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdBlendMode.X3DName);
+  if not FdEffects.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdEffects.X3DName);
+  if not FdAlphaChannel.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdAlphaChannel.X3DName);
 end;
 
 {$endif read_implementation}

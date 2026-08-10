@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2024 Michalis Kamburelis.
+  Copyright 2014-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -21,8 +21,8 @@ unit ToolAndroid;
 interface
 
 uses Classes,
-  CastleUtils, CastleStringUtils,
-  ToolArchitectures, ToolCompile, ToolPackageFormat, ToolProject,
+  CastleUtils, CastleStringUtils, CastleInternalArchitectures,
+  ToolCompile, ToolPackageFormat, ToolProject,
   ToolManifest;
 
 { Compile (for all possible Android CPUs) Android unit or library.
@@ -51,7 +51,13 @@ procedure InstallAndroid(const Project: TCastleProject;
   const PackageMode: TCompilationMode;
   const PackageFormat: TPackageFormatNoDefault; const PackageNameIncludeVersion: Boolean);
 
+procedure UnInstallAndroid(const Project: TCastleProject);
+
 procedure RunAndroid(const Project: TCastleProject);
+
+{ Output list of Android devices, like "adb devices" does.
+  This detects adb executable and runs it. }
+procedure WritelnAndroidDevices;
 
 implementation
 
@@ -59,7 +65,7 @@ uses SysUtils, DOM, XMLWrite,
   CastleUriUtils, CastleXmlUtils, CastleLog, CastleFilesUtils, CastleImages,
   CastleInternalTools,
   ToolEmbeddedImages, ToolFPCVersion, ToolCommonUtils, ToolUtils,
-  ToolServicesOperations;
+  ToolServicesOperations, ToolProcessRun;
 
 var
   DetectAndroidCPUSCached: TCPUS;
@@ -263,7 +269,7 @@ var
     var
       TemplatePath: string;
     begin
-      TemplatePath := 'android/integrated-services/' + ServiceName;
+      TemplatePath := 'android/services/' + ServiceName;
       Project.ExtractTemplate(TemplatePath, AndroidProjectPath);
     end;
 
@@ -536,31 +542,53 @@ var
       end;
 
       {$ifdef MSWINDOWS}
-      RunCommandSimple(AndroidProjectPath, AndroidProjectPath + 'gradlew.bat', Args.ToArray);
+      ExecuteCommandSimple(AndroidProjectPath, AndroidProjectPath + 'gradlew.bat', Args.ToArray);
       {$else}
       if RegularFileExists(AndroidProjectPath + 'gradlew') then
       begin
         Args.Insert(0, './gradlew');
-        RunCommandSimple(AndroidProjectPath, 'bash', Args.ToArray);
+        ExecuteCommandSimple(AndroidProjectPath, 'bash', Args.ToArray);
       end else
       begin
         Writeln('Local Gradle wrapper ("gradlew") not found, so we will call the Gradle on $PATH.');
         Writeln('Make sure you have installed Gradle (e.g. from the Debian "gradle" package), in a version compatible with the Android Gradle plugin (see https://developer.android.com/studio/releases/gradle-plugin.html#updating-gradle ).');
-        RunCommandSimple(AndroidProjectPath, 'gradle', Args.ToArray);
+        ExecuteCommandSimple(AndroidProjectPath, 'gradle', Args.ToArray);
       end;
       {$endif}
     finally FreeAndNil(Args) end;
   end;
 
 var
-  PackageName: string;
+  PackageName: String;
   PackageMode: TCompilationMode;
+  AndroidProjectPathNoDelim, RandomAndroidProjectPath: String;
 begin
   { calculate clean AndroidProjectPath }
-  AndroidProjectPath := TempOutputPath(Project.Path) +
-    'android' + PathDelim + 'project' + PathDelim;
+  AndroidProjectPathNoDelim := TempOutputPath(Project.Path) +
+    'android' + PathDelim + 'project';
+  AndroidProjectPath := AndroidProjectPathNoDelim + PathDelim;
   if DirectoryExists(AndroidProjectPath) then
+  try
     RemoveNonEmptyDir(AndroidProjectPath);
+  except
+    on E: ERemoveFailed do
+    begin
+      RandomAndroidProjectPath := AndroidProjectPathNoDelim + '-old-' + IntToStr(Random(1000000));
+      WritelnWarning('Removing "%s" failed with error: %s. As a workaround we will try to rename the directory to new random name "%s".', [
+        AndroidProjectPath,
+        E.Message,
+        RandomAndroidProjectPath
+      ]);
+      if not RenameFile(
+        AndroidProjectPathNoDelim,
+        RandomAndroidProjectPath) then
+      begin
+        raise ERemoveFailed.CreateFmt('Cannot remove or rename the directory "%s". Some application has "locked" it -- try to kill processes, like Android tools and Gradle daemon, that possibly keep this directory open. Then remove this directory manually and retry.', [
+          AndroidProjectPathNoDelim
+        ]);
+      end;
+    end;
+  end;
 
   PackageMode := SuggestedPackageMode;
 
@@ -569,7 +597,7 @@ begin
   GenerateFromTemplates;
   GenerateServicesFromTemplates;
   PackageServices(Project, Project.AndroidServices,
-    'castle-data:/android/integrated-services/', AndroidProjectPath);
+    'castle-data:/android/services/', AndroidProjectPath);
   GenerateIcons;
   GenerateAssets;
   GenerateLocalization;
@@ -597,7 +625,6 @@ begin
           PackageModeToName[PackageMode] + PathDelim +
           'app-' + PackageModeToName[PackageMode] + '.aab',
           Project.OutputPath + PackageName);
-        DoMakeExecutable(Project.OutputPath + PackageName);
       end;
     else
       raise Exception.Create('Unexpected PackageFormat in PackageAndroid: ' + PackageFormatToString(PackageFormat));
@@ -621,10 +648,17 @@ begin
     to avoid failures because apk signed with different keys (debug vs release). }
 
   Writeln('Reinstalling application identified as "' + Project.QualifiedName + '".');
-  Writeln('If this fails, an often cause is that a previous development version of the application, signed with a different key, remains on the device. In this case uninstall it first (note that it will clear your UserConfig data, unless you use -k) by "adb uninstall ' + Project.QualifiedName + '"');
+  Writeln('If this fails, an often cause is that a previous development version of the application, signed with a different key, remains on the device. In this case uninstall it first by "castle-engine uninstall --target=android" or "adb uninstall ' + Project.QualifiedName + '". Note that it will clear your UserConfig data, unless you pass -k to "adb".');
   Flush(Output); // don't mix output with adb output
-  RunCommandSimple(AdbExe, ['install', '-r', PackageName]);
+  ExecuteCommandSimple(AdbExe, ['install', '-r', PackageName]);
   Writeln('Install successful.');
+end;
+
+procedure UnInstallAndroid(const Project: TCastleProject);
+begin
+  Writeln('Uninstalling Android application identified as "' + Project.QualifiedName + '".');
+  ExecuteCommandSimple(AdbExe, ['uninstall', Project.QualifiedName]);
+  Writeln('Uninstall successful.');
 end;
 
 procedure RunAndroid(const Project: TCastleProject);
@@ -632,7 +666,7 @@ var
   ActivityName, LogTag: string;
 begin
   ActivityName := 'io.castleengine.MainActivity';
-  RunCommandSimple(AdbExe, ['shell', 'am', 'start',
+  ExecuteCommandSimple(AdbExe, ['shell', 'am', 'start',
     '-a', 'android.intent.action.MAIN',
     '-n', Project.QualifiedName + '/' + ActivityName ]);
   Writeln('Android application successfully started.');
@@ -646,7 +680,7 @@ begin
     because we don't want to capture output,
     we want to immediately pass it to user.
 
-    Later implementation relies on RunCommandSimple, this way
+    Later implementation relies on ExecuteCommandSimple, this way
     we pass new ChildProcessId to EditorUtils, since it writelns the magic string
     'Castle Game Engine Internal: ProcessID: ...' . And passing this
     ChildProcessId to EditorUtils allows better behavior when using "Stop"
@@ -662,7 +696,13 @@ begin
       but it would not solve issue AD 1 above.
   }
   //ExecuteProcess(AdbExe, ['logcat', '-s', LogTag + ':V']);
-  RunCommandSimple(AdbExe, ['logcat', '-s', LogTag + ':V']);
+  ExecuteCommandSimple(AdbExe, ['logcat', '-s', LogTag + ':V']);
+end;
+
+procedure WritelnAndroidDevices;
+begin
+  Writeln('Detecting Android devices:');
+  ExecuteCommandSimple(AdbExe, ['devices']);
 end;
 
 end.

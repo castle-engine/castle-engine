@@ -59,7 +59,7 @@ begin
   if not FTarget.ExistsInRoot then
     Exit;
 
-  RigidBody := FTarget.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+  RigidBody := FTarget.RigidBody;
   if (RigidBody <> nil) and (RigidBody.ExistsInRoot) then
   begin
     { TODO: Parent.LocalToWorld(Parent.Translation) is wrong -

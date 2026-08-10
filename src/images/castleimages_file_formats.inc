@@ -1,6 +1,6 @@
 {%MainUnit castleimages.pas}
 {
-  Copyright 2001-2024 Michalis Kamburelis.
+  Copyright 2001-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -185,6 +185,7 @@ procedure SavePNM(const Img: TEncodedImage; const Stream: TStream); forward;
 procedure SaveJPEG(const Img: TEncodedImage; const Stream: TStream); forward;
 procedure SaveRGBE(const Img: TEncodedImage; const Stream: TStream); forward;
 procedure SaveDDS(const Img: TEncodedImage; const Stream: TStream); forward;
+procedure SaveKTX(const Img: TEncodedImage; const Stream: TStream); forward;
 {$ifdef CASTLE_ENABLE_PLATFORM_SPECIFIC_IMAGE_FORMATS}
 procedure SaveTIFF(const Img: TEncodedImage; const Stream: TStream); forward;
 procedure SaveJP2(const Img: TEncodedImage; const Stream: TStream); forward;
@@ -519,7 +520,7 @@ const
       MimeTypes: ('image/ktx', '', '', '', '', '', '');
       ExtsCount: 1; Exts: ('ktx', '', '', '');
       Load: {$ifdef FPC}@{$endif}LoadKTX;
-      Save: nil;
+      Save: {$ifdef FPC}@{$endif}SaveKTX;
       DetectClass: nil;
     ),
     { ASTC } { }
@@ -829,5 +830,22 @@ begin
       AddImageFormat(LoadImage_FileFilters, ImageFormatInfos[Format]);
     if Assigned(ImageFormatInfos[Format].Save) then
       AddImageFormat(SaveImage_FileFilters, ImageFormatInfos[Format]);
+  end;
+end;
+
+{ Raise EImageLoadError on most platforms.
+  If ApplicationProperties.CanCatchExceptions = @false,
+  make warning and return a dummy 1x1 image -- this is a simple way
+  to not crash on these platforms. }
+function ImageLoadError(const Message: String): TEncodedImage;
+begin
+  if ApplicationProperties.CanCatchExceptions then
+    raise EImageLoadError.Create(Message)
+  else
+  begin
+    WritelnWarning(Message);
+    Result := TRGBImage.Create(1, 1);
+    // color signalling error, just like in src/scene/glsl/source/fallback.fs
+    TRGBImage(Result).Colors[0, 0, 0] := Vector4(1.0, 0.0, 1.0, 1.0);
   end;
 end;

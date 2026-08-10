@@ -150,7 +150,18 @@ type
     procedure RenderCoordinateEnd; override;
   end;
 
-  TShaderCoordinateRenderer = class(TColorPerVertexCoordinateRenderer)
+  TSkinnedRenderer = class(TColorPerVertexCoordinateRenderer)
+  protected
+    procedure RenderCoordinateBegin; override;
+  end;
+
+  { In RenderCoordinateBegin,
+    this calculates @link(CurrentMeshShader) and sets RenderContext.CurrentProgram,
+    possibly linking the shader configured in @link(Shader).
+
+    So everything that needs to be done before linking @link(Shader),
+    everything that can change shader code, shader hash... has to be done earlier. }
+  TShaderCoordinateRenderer = class(TSkinnedRenderer)
   protected
     procedure RenderCoordinateBegin; override;
   end;
@@ -366,7 +377,7 @@ begin
     if not PrepareRenderShape then
     begin
       { Initialize vertex arrays that we we will use with indexed nodes. }
-      if Vbo[vtCoordinate] <> 0 then
+      if Vbo[vtCoordinate] <> GLObjectNone then
         RenderContext.BindBuffer[btArray] := Vbo[vtCoordinate];
 
       {$ifdef OpenGLES}
@@ -398,7 +409,7 @@ begin
 
         if Arrays.HasTangent then
         begin
-          CurrentMeshShader.AttributeCastle_Tangent.EnableArrayVector3(Vao, Arrays.CoordinateSize, PtrUInt(Arrays.Tangent));
+          CurrentMeshShader.AttributeCastle_Tangent.EnableArrayVector4(Vao, Arrays.CoordinateSize, PtrUInt(Arrays.Tangent));
           Attribs.Add(CurrentMeshShader.AttributeCastle_Tangent);
         end;
       end else
@@ -416,7 +427,7 @@ begin
         {$endif not OpenGLES}
       end;
 
-      if Vbo[vtAttribute] <> 0 then
+      if Vbo[vtAttribute] <> GLObjectNone then
         RenderContext.BindBuffer[btArray] := Vbo[vtAttribute];
 
       if CurrentMeshShader <> nil then
@@ -436,6 +447,19 @@ begin
         begin
           CurrentMeshShader.AttributeCastle_FogCoord.EnableArraySingle(Vao, Arrays.AttributeSize, PtrUInt(Arrays.FogCoord));
           Attribs.Add(CurrentMeshShader.AttributeCastle_FogCoord);
+        end;
+
+        if Shader.NeedsSkinWeightsJoints then
+        begin
+          { We should only has Shader.NeedsSkinWeightsJoints if
+            Shape.Geometry.SkinWeightsJoints returned true in
+            TSkinnedRenderer.RenderCoordinateBegin. }
+          Assert(Arrays.HasSkinWeights0);
+          Assert(Arrays.HasSkinJoints0);
+          CurrentMeshShader.AttributeCastle_SkinWeights0.EnableArrayVector4(Vao, Arrays.AttributeSize, PtrUInt(Arrays.SkinWeights0));
+          CurrentMeshShader.AttributeCastle_SkinJoints0.EnableArrayVector4(Vao, Arrays.AttributeSize, PtrUInt(Arrays.SkinJoints0));
+          Attribs.Add(CurrentMeshShader.AttributeCastle_SkinWeights0);
+          Attribs.Add(CurrentMeshShader.AttributeCastle_SkinJoints0);
         end;
 
         for I := 0 to Arrays.TexCoords.Count - 1 do
@@ -508,7 +532,7 @@ begin
       First := 0;
       if Arrays.HasIndexes then
       begin
-        if Vbo[vtIndex] <> 0 then
+        if Vbo[vtIndex] <> GLObjectNone then
         begin
           RenderContext.CurrentVao := Vao;
           RenderContext.BindBuffer[btElementArray] := Vbo[vtIndex];
@@ -979,6 +1003,25 @@ begin
   inherited;
 end;
 
+{ TSkinnedRenderer --------------------------------------------------- }
+
+procedure TSkinnedRenderer.RenderCoordinateBegin;
+var
+  Weights0: TVector4List;
+  Joints0: TInt32List;
+begin
+  inherited;
+
+  if State.SkinnedAnimatedShape and
+     (State.Skin.InternalMeshCalculation <> mcCpu) and
+     { Checking State.Skin.InternalJointMatrix makes sure that
+       TSkinNode.Update has actually run, so we started some skinned animation. }
+     (State.Skin.InternalJointMatrix <> nil) and
+     (State.Skin.InternalJointMatrix.Count = State.Skin.FdJoints.Count) and
+     (Geometry.SkinWeightsJoints(Weights0, Joints0)) then
+    Shader.EnableSkinnedAnimation(State.Skin.InternalJointMatrix);
+end;
+
 { TShaderCoordinateRenderer -------------------------------------------------- }
 
 procedure TShaderCoordinateRenderer.RenderCoordinateBegin;
@@ -1027,9 +1070,8 @@ begin
   end else
   begin
     { Finalize Shader settings, before calculating Shader.CodeHash }
-    if (Shape.Node <> nil) and
-       (Shape.Node.Appearance <> nil) then
-      Shader.EnableAppearanceEffects(Shape.Node.Appearance.FdEffects);
+    if Shape.State.Appearance <> nil then
+      Shader.EnableAppearanceEffects(Shape.State.Appearance.FdEffects);
     if Shape.State.Effects <> nil then
       Shader.EnableGroupEffects(Shape.State.Effects);
     (*
@@ -1081,8 +1123,8 @@ begin
       CurrentMeshShader := nil;
   end;
 
+  RenderContext.CurrentProgram := CurrentMeshShader; // enable the CurrentMeshShader for OpenGL
+
   if CurrentMeshShader <> nil then
     CurrentMeshShader.SetupUniforms(BoundTextureUnits);
-
-  RenderContext.CurrentProgram := CurrentMeshShader; // enable the CurrentMeshShader for OpenGL
 end;

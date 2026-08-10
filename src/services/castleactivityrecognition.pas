@@ -54,7 +54,7 @@ type
     @orderedList(
       @item(Include the necessary integration code in your Android / iOS project.
 
-        For iOS, add the "activity_regonition" service inside CastleEngineManifest.xml.
+        For iOS, add the "activity_recognition" service inside CastleEngineManifest.xml.
         See https://castle-engine.io/ios-Services
         and https://github.com/castle-engine/castle-engine/blob/master/tools/build-tool/data/ios/services/activity_recognition/README.md .
 

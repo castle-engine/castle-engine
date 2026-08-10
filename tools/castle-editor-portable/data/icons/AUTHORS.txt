@@ -1,0 +1,13 @@
+heart-solid.svg
+
+  from https://fontawesome.com/
+  License: https://fontawesome.com/license/free
+
+  Note: heart modified (Patreon color of FieryCoal).
+
+settings.svg
+x
+check
+
+  from https://feathericons.com/
+  Licence: MIT License (https://github.com/feathericons/feather/blob/master/LICENSE)

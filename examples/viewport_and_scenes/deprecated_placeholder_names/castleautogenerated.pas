@@ -22,7 +22,7 @@ uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
   ApplicationProperties.ApplicationName := 'placeholder_names';
-  ApplicationProperties.Caption := 'placeholder_names';
+  ApplicationProperties.Caption := 'Deprecated: Tool to detect placeholder names in models';
   ApplicationProperties.Version := '0.1';
 
   if not IsLibrary then

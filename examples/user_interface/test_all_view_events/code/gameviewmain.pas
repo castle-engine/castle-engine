@@ -1,5 +1,5 @@
 {
-  Copyright 2004-2023 Michalis Kamburelis.
+  Copyright 2004-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -55,7 +55,8 @@ var
 implementation
 
 uses SysUtils,
-  CastleWindow, CastleVectors, CastleColors, CastleStringUtils;
+  CastleWindow, CastleVectors, CastleColors, CastleStringUtils,
+  CastleLog;
 
 { TViewMain ----------------------------------------------------------------- }
 
@@ -154,18 +155,24 @@ begin
 end;
 
 procedure TViewMain.Resize;
+var
+  ResizeLog: String;
 begin
   inherited; // allow the ancestor to handle event
 
   Assert(Container.UnscaledWidth = RootGroup.EffectiveWidth);
   Assert(Container.UnscaledHeight = RootGroup.EffectiveHeight);
 
-  Notifications.Show(Format('Resize: new size (in real device pixels) %d %d, new size with UI scaling: %f %f', [
+  ResizeLog := Format('Resize: new size (in real device pixels) %d %d, new size with UI scaling: %f %f', [
     Container.PixelsWidth,
     Container.PixelsHeight,
     Container.UnscaledWidth,
     Container.UnscaledHeight
-  ]));
+  ]);
+  Notifications.Show(ResizeLog);
+  { To test resize events at very small window sizes, it may make sense
+    to also send this to log. }
+  WritelnLog(ResizeLog);
 end;
 
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
@@ -215,6 +222,11 @@ begin
   // Just a test that checking for keys, and using MessageOk, works from Update
   if Container.Pressed[keyF12] then
     Application.MainWindow.MessageOk('F12 key pressed. This is just a test that MessageOk works.', mtInfo);
+  if Container.Pressed[keyF9] then
+    if Application.MainWindow.MessageYesNo('F9 key pressed. This is just a test that MessageYesNo works. Do you like it?', mtInfo) then
+      Application.MainWindow.MessageOk('You answered yes.', mtInfo)
+    else
+      Application.MainWindow.MessageOk('You answered no.', mtInfo);
 end;
 
 procedure TViewMain.DoTimer(Sender: TObject);

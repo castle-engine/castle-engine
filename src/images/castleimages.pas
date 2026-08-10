@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2024 Michalis Kamburelis.
+  Copyright 2001-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -569,13 +569,22 @@ type
     procedure InvertColors; virtual;
 
     { Get or set the color of the pixel.
+      The given value TCastleColor is a 4D vector representing the color
+      RGB and "alpha" (opacity).
 
-      In case of descendants without alpha, we may drop this information.
+      When setting the TCastleColor value on image descendants that don't store
+      alpha information, we ignore the provided alpha value.
+      For example, if you do @code(MyImage.Colors[0, 0, 0] := Vector4(1, 1, 0, 0.5))
+      (setting color to half-transparent yellow) but @code(MyImage) is @link(TRGBImage),
+      then the alpha value 0.5 will be ignored. We will only set the RGB channels,
+      to (1,1,0), in the above example.
 
-      In case of grayscale descendants, when getting or setting we convert
-      the color to/from grayscale as necessary. This means that setting
-      RGB color on a grayscale image may lose information -- we will convert
-      your color to grayscale.
+      When reading the color for image descendants that store only grayscale color,
+      we just replicate the grayscale value to all three RGB channels.
+
+      When setting the color for image descendants that store only grayscale color,
+      we calculate the weighted average (see GrayscaleValue) of RGB channels
+      provided.
 
       Caller is responsible for checking the correctness of given
       X, Y, Z coordinates. For speed, we may not check them inside (so nasty
@@ -647,7 +656,7 @@ type
     function MakeResized(ResizeWidth, ResizeHeight: Cardinal;
       const Interpolation: TResizeInterpolation = riBilinear): TCastleImage;
 
-    { Mirror image horizotally (that is right edge is swapped with left edge). }
+    { Mirror image horizontally (that is, the right edge is swapped with the left edge). }
     procedure FlipHorizontal;
 
     { Mirror image vertically. }
@@ -967,16 +976,22 @@ type
       @groupBegin }
     procedure FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
       const aColor: TCastleColor); virtual;
+      deprecated 'do not use TCastleImage drawing; use other libraries (like FpImage or Vampyre Imaging or BGRABitmap) or our TDrawableImage (use RenderToImageBegin/End, and DrawCircle/DrawCircleOutline to draw ellipses using GPU)';
     procedure Ellipse(const x, y: single; const aRadiusX, aRadiusY: single;
       const aWidth: single; const aColor: TCastleColor); virtual;
+      deprecated 'do not use TCastleImage drawing; use other libraries (like FpImage or Vampyre Imaging or BGRABitmap) or our TDrawableImage (use RenderToImageBegin/End, and DrawCircle/DrawCircleOutline to draw ellipses using GPU)';
     procedure FillRectangle(const x1, y1, x2, y2: single;
       const aColor: TCastleColor); virtual;
+      deprecated 'do not use TCastleImage drawing; use other libraries (like FpImage or Vampyre Imaging or BGRABitmap) or our TDrawableImage (use RenderToImageBegin/End, and DrawRectangle/DrawRectangleOutline to draw rectangles using GPU)';
     procedure Rectangle(const x1, y1, x2, y2: single;
       const aWidth: single; const aColor: TCastleColor); virtual;
+      deprecated 'do not use TCastleImage drawing; use other libraries (like FpImage or Vampyre Imaging or BGRABitmap) or our TDrawableImage (use RenderToImageBegin/End, and DrawRectangle/DrawRectangleOutline to draw rectangles using GPU)';
     procedure Line(const x1, y1, x2, y2: single;
       const aWidth: single; const aColor: TCastleColor); virtual;
+      deprecated 'do not use TCastleImage drawing; use other libraries (like FpImage or Vampyre Imaging or BGRABitmap) or our TDrawableImage (use RenderToImageBegin/End, and DrawPrimitive2D to draw lines using GPU)';
     procedure FloodFill(const x, y: integer; const aColor: TCastleColor;
       const aThreshold: single = 0);
+      deprecated 'do not use TCastleImage drawing; use other libraries (like FpImage or Vampyre Imaging or BGRABitmap) for drawing on images';
     { @groupEnd }
   end;
 
@@ -984,104 +999,8 @@ type
 
   TEncodedImageList = {$ifdef FPC}specialize{$endif} TObjectList<TEncodedImage>;
 
-  { Possible compression of textures for GPU.
-    The compressed texture formats may be automatically created for you by CGE,
-    see https://castle-engine.io/creating_data_auto_generated_textures.php . }
-  TTextureCompression = (
-    { S3TC DXT1 compression, @bold(for opaque RGB images (no alpha channel)).
-      This compression format is often supported by desktop OpenGL implementations.
-      See http://en.wikipedia.org/wiki/S3_Texture_Compression about S3TC.
-      It is also supported by a small number of Android devices.
-
-      Note that the tcDxt1_RGB and tcDxt1_RGBA are the same compression method.
-      Their behavior only differs when rendering:
-      in case of tcDxt1_RGB, the alpha information is not used,
-      while in case of tcDxt1_RGBA, the renderer is using alpha-testing. }
-    tcDxt1_RGB,
-
-    { S3TC DXT1 compression, @bold(for RGBA images with simple yes/no alpha channel).
-      The renderer will use alpha-testing when rendering such images.
-      See above tcDxt1_RGB description for details. }
-    tcDxt1_RGBA,
-
-    { S3TC DXT3 compression, @bold(for RGBA images with full alpha channel),
-      best for images with sharp alpha transitions.
-      This compression format is often supported by desktop OpenGL implementations.
-      See http://en.wikipedia.org/wiki/S3_Texture_Compression about S3TC. }
-    tcDxt3,
-
-    { S3TC DXT5 compression, @bold(for RGBA images with full alpha channel),
-      best for images with smooth alpha transitions.
-      This compression format is often supported by desktop OpenGL implementations.
-      See http://en.wikipedia.org/wiki/S3_Texture_Compression about S3TC. }
-    tcDxt5,
-
-    { PowerVR texture compression (PVRTC) format.
-      Supported by some Android and iOS devices,
-      using PowerVR GPU by Imagination Technologies.
-      See http://en.wikipedia.org/wiki/PVRTC . }
-    tcPvrtc1_4bpp_RGB,
-    tcPvrtc1_2bpp_RGB,
-    tcPvrtc1_4bpp_RGBA,
-    tcPvrtc1_2bpp_RGBA,
-    tcPvrtc2_4bpp,
-    tcPvrtc2_2bpp,
-
-    { ATI texture compression format, @bold(for RGB images without alpha).
-      Supported by some Android devices (Adreno GPU from Qualcomm). }
-    tcATITC_RGB,
-
-    { ATI texture compression format, @bold(with sharp alpha).
-      Supported by some Android devices (Adreno GPU from Qualcomm). }
-    tcATITC_RGBA_ExplicitAlpha,
-
-    { ATI texture compression format, @bold(with smooth alpha).
-      Supported by some Android devices (Adreno GPU from Qualcomm). }
-    tcATITC_RGBA_InterpolatedAlpha,
-
-    { ETC texture compression, @bold(without alpha).
-      See http://en.wikipedia.org/wiki/Ericsson_Texture_Compression .
-      Available on almost all Android OpenGLES 2.0 devices,
-      unfortunately it doesn't support alpha channel. }
-    tcETC1,
-
-    { ASTC compression with alpha - should be available on all modern mobile GPU.
-      See https://www.khronos.org/registry/OpenGL/extensions/KHR/KHR_texture_compression_astc_hdr.txt}
-    tcASTC_4x4_RGBA,
-    tcASTC_5x4_RGBA,
-    tcASTC_5x5_RGBA,
-    tcASTC_6x5_RGBA,
-    tcASTC_6x6_RGBA,
-    tcASTC_8x5_RGBA,
-    tcASTC_8x6_RGBA,
-    tcASTC_8x8_RGBA,
-    tcASTC_10x5_RGBA,
-    tcASTC_10x6_RGBA,
-    tcASTC_10x8_RGBA,
-    tcASTC_10x10_RGBA,
-    tcASTC_12x10_RGBA,
-    tcASTC_12x12_RGBA,
-    tcASTC_4x4_SRGB8_ALPHA8,
-    tcASTC_5x4_SRGB8_ALPHA8,
-    tcASTC_5x5_SRGB8_ALPHA8,
-    tcASTC_6x5_SRGB8_ALPHA8,
-    tcASTC_6x6_SRGB8_ALPHA8,
-    tcASTC_8x5_SRGB8_ALPHA8,
-    tcASTC_8x6_SRGB8_ALPHA8,
-    tcASTC_8x8_SRGB8_ALPHA8,
-    tcASTC_10x5_SRGB8_ALPHA8,
-    tcASTC_10x6_SRGB8_ALPHA8,
-    tcASTC_10x8_SRGB8_ALPHA8,
-    tcASTC_10x10_SRGB8_ALPHA8,
-    tcASTC_12x10_SRGB8_ALPHA8,
-    tcASTC_12x12_SRGB8_ALPHA8
-  );
-  TTextureCompressions = set of TTextureCompression;
-
+  {$I castleimages_texture_compression.inc}
   {$I castleimages_class_gpu_compressed.inc}
-
-  { Deprecated alias for TGPUCompressedImage }
-  TS3TCImage = TGPUCompressedImage deprecated;
 
   ECannotDecompressTexture = class(Exception);
 
@@ -1422,110 +1341,8 @@ const
   ('AUTO', 'NONE', 'TEST', 'BLENDING');
 
 type
-  TTextureCompressionInfo = {$ifdef FPC} object {$else} record {$endif}
-    Name: string;
-    RequiresPowerOf2: boolean;
-    AlphaChannel: TAlphaChannel;
-
-    { When generating to DDS (that has reverted row order with respect to OpenGL),
-      most of the compressed textures should be stored as flipped.
-      When reading, we expect them to be already flipped.
-      When loading to OpenGL, they will effectively be flipped again
-      (since OpenGL expects bottom-to-top order, while we load it
-      image in top-to-bottom order), thus making the image correct.
-
-      The exceptions are DXT* formats, that we can read correctly (unflipped)
-      from DDS.
-
-      This is only a limitation of the DDS format.
-
-      For KTX, we can generate KTX images using PowerVR Texture Tools
-      that already have a correct (bottom-to-top) orientation.
-      So we can have textures compressed to PVRTC1_4bpp_RGB
-      with correct orientation.
-
-      This field is ignored if FileExtension is not .dds. }
-    DDSFlipped: boolean;
-
-    { File extension/format the engine expects when try load GPU compressed
-      version of texture. }
-    FileExtension: String;
-  end;
-
-const
-  TextureCompressionInfo: array [TTextureCompression] of TTextureCompressionInfo =
-  ( (Name: 'DXT1_RGB'                    ; RequiresPowerOf2: false; AlphaChannel: acNone    ; DDSFlipped: false; FileExtension: '.dds'),
-    (Name: 'DXT1_RGBA'                   ; RequiresPowerOf2: false; AlphaChannel: acTest    ; DDSFlipped: false; FileExtension: '.dds'),
-    (Name: 'DXT3'                        ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: false; FileExtension: '.dds'),
-    (Name: 'DXT5'                        ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: false; FileExtension: '.dds'),
-    { See http://community.imgtec.com/files/pvrtc-texture-compression-user-guide/
-      "PVRTC2 vs PVRTC1" section --- PVRTC1 require power-of-two. } { }
-    (Name: 'PVRTC1_4bpp_RGB'             ; RequiresPowerOf2: true ; AlphaChannel: acNone    ; DDSFlipped: true; FileExtension: '.dds'),
-    (Name: 'PVRTC1_2bpp_RGB'             ; RequiresPowerOf2: true ; AlphaChannel: acNone    ; DDSFlipped: true; FileExtension: '.dds'),
-    (Name: 'PVRTC1_4bpp_RGBA'            ; RequiresPowerOf2: true ; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.dds'),
-    (Name: 'PVRTC1_2bpp_RGBA'            ; RequiresPowerOf2: true ; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.dds'),
-    (Name: 'PVRTC2_4bpp'                 ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.dds'),
-    (Name: 'PVRTC2_2bpp'                 ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.dds'),
-    { Tests show that ATITC does not need power-of-two sizes. }
-    (Name: 'ATITC_RGB'                   ; RequiresPowerOf2: false; AlphaChannel: acNone    ; DDSFlipped: true; FileExtension: '.dds'),
-    (Name: 'ATITC_RGBA_ExplicitAlpha'    ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.dds'),
-    (Name: 'ATITC_RGBA_InterpolatedAlpha'; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.dds'),
-    { TODO: unconfirmed RequiresPowerOf2 for ETC1. } { }
-    (Name: 'ETC1'                        ; RequiresPowerOf2: true ; AlphaChannel: acNone    ; DDSFlipped: true; FileExtension: '.ktx'),
-
-    (Name: 'ASTC_4x4_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
-    (Name: 'ASTC_5x4_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
-    (Name: 'ASTC_5x5_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
-    (Name: 'ASTC_6x5_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
-    (Name: 'ASTC_6x6_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
-    (Name: 'ASTC_8x5_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
-    (Name: 'ASTC_8x6_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
-    (Name: 'ASTC_8x8_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
-    (Name: 'ASTC_10x5_RGBA'              ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
-    (Name: 'ASTC_10x6_RGBA'              ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
-    (Name: 'ASTC_10x8_RGBA'              ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
-    (Name: 'ASTC_10x10_RGBA'             ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
-    (Name: 'ASTC_12x10_RGBA'             ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
-    (Name: 'ASTC_12x12_RGBA'             ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
-    (Name: 'ASTC_4x4_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
-    (Name: 'ASTC_5x4_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
-    (Name: 'ASTC_5x5_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
-    (Name: 'ASTC_6x5_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
-    (Name: 'ASTC_6x6_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
-    (Name: 'ASTC_8x5_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
-    (Name: 'ASTC_8x6_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
-    (Name: 'ASTC_8x8_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
-    (Name: 'ASTC_10x5_SRGB8_ALPHA8'      ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
-    (Name: 'ASTC_10x6_SRGB8_ALPHA8'      ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
-    (Name: 'ASTC_10x8_SRGB8_ALPHA8'      ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
-    (Name: 'ASTC_10x10_SRGB8_ALPHA8'     ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
-    (Name: 'ASTC_12x10_SRGB8_ALPHA8'     ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif}),
-    (Name: 'ASTC_12x12_SRGB8_ALPHA8'     ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: {$ifdef USE_ASTCENC} '.atcs' {$else} '.ktx' {$endif})
-  );
-
-{ Convert TTextureCompression enum to string. }
-function TextureCompressionToString(const TextureCompression: TTextureCompression): string;
-
-{ Convert string to TTextureCompression enum. Possible values correspond
-  to names listed in TextureCompressionInfo array, they are also equal
-  to enum Pascal names without leading "tc".
-  Compares given strig ignoring the case.
-  @raises(Exception If the string value does not name any
-    TTextureCompression value.) }
-function StringToTextureCompression(const S: string): TTextureCompression;
-
-type
   { Listener type for @link(AddLoadImageListener). }
   TLoadImageEvent = procedure (var ImageUrl: String) of object;
-
-var
-  { Is the value of @link(SupportedTextureCompression) determined
-    by the renderer (like OpenGL context) parameters. }
-  SupportedTextureCompressionKnown: boolean;
-
-  { Which texture compression values are supported by
-    the renderer (like OpenGL context). }
-  SupportedTextureCompression: TTextureCompressions;
 
 (*All image URLs are processed by this event before loading.
   This allows to globally modify / observe your images paths,
@@ -1586,6 +1403,10 @@ function InternalDetectClassPNG(const Stream: TStream): TEncodedImageClass;
 
 {$undef read_interface}
 
+{$define read_interface_ending}
+{$I castleimages_texture_compression.inc}
+{$undef read_interface_ending}
+
 implementation
 
 uses {$ifdef FPC} ExtInterpolation, FPCanvas, FPImgCanv, {$endif}
@@ -1598,7 +1419,7 @@ uses {$ifdef FPC} ExtInterpolation, FPCanvas, FPImgCanv, {$endif}
   {$endif}
   CastleInternalZLib, CastleStringUtils, CastleFilesUtils, CastleLog, CastleDynLib,
   CastleInternalCompositeImage, CastleDownload, CastleUriUtils, CastleTimeUtils,
-  CastleStreamUtils, CastleInternalDataCompression;
+  CastleStreamUtils, CastleInternalDataCompression, CastleApplicationProperties;
 
 { Like GrayscaleValue, but also convert input Byte to output Single
   (converting 0..255 to 0..1). }
@@ -1623,6 +1444,7 @@ function GrayscaleValueFromByteToSingle(const V: TVector4Byte): Single; overload
 {$I castleimages_png.inc} // must be included after castleimages_libpng.inc and castleimages_fpimage.inc
 {$I castleimages_composite.inc}
 {$I castleimages_assign.inc}
+{$I castleimages_texture_compression.inc}
 
 {$I castleimages_class_gpu_compressed.inc}
 
@@ -2166,6 +1988,7 @@ begin
   RowSize := PixelSize * Width;
   TmpRow := GetMem(RowSize);
   try
+    if Height <= 1 then Exit; // Height 0 or 1: nothing to flip (and avoids Height div 2 - 1 underflow)
     for Y := 0 to Height div 2 - 1 do
     begin
       Row1 := RowPtr(Y);
@@ -2771,7 +2594,7 @@ end;
 
 type
   { List of TLoadImageEvent methods. }
-  TLoadImageEventList = class({$ifdef FPC}specialize{$endif} TList<TLoadImageEvent>)
+  TLoadImageEventList = class({$ifdef FPC}specialize{$endif} TMethodList<TLoadImageEvent>)
     procedure Execute(var Url: String);
   end;
 
@@ -2794,7 +2617,7 @@ function LoadEncodedImage(Stream: TStream; const StreamFormat: TImageFormat;
 
   procedure FixImageClass;
 
-    { ClassAllowed is only a shortcut to global utility. }
+    { ClassAllowed is only a shortcut to the global utility. }
     function ClassAllowed(ImageClass: TEncodedImageClass): boolean;
     begin
       Result := CastleImages.ClassAllowed(ImageClass, AllowedImageClasses);
@@ -2932,12 +2755,13 @@ begin
 
       { Fix the loaded image class.
         Although loaders should also attempt to do it inside (with better speed),
-        but it is not required, e.g. Load_VampyreImaging ignores AllowedImageClasses value.
+        but it is not required, e.g. Load_VampyreImaging ignores
+        AllowedImageClasses value.
         And we want code like
 
           LoadImage('a.png', [TRGBImage]) as TRGBImage
 
-        to always work, testcase: examples/fps_game.
+        to always work, i.e. return TRGBImage regardless of a.png contents.
       }
       FixImageClass;
     end else
@@ -3165,22 +2989,6 @@ begin
     WarningDone := true;
   end;
   Result := acAuto;
-end;
-
-function TextureCompressionToString(const TextureCompression: TTextureCompression): string;
-begin
-  Result := TextureCompressionInfo[TextureCompression].Name;
-end;
-
-function StringToTextureCompression(const S: string): TTextureCompression;
-var
-  SLower: string;
-begin
-  SLower := LowerCase(S);
-  for Result := Low(Result) to High(Result) do
-    if SLower = LowerCase(TextureCompressionInfo[Result].Name) then
-      Exit;
-  raise Exception.CreateFmt('Invalid texture compression name "%s"', [S]);
 end;
 
 procedure AddLoadImageListener(const Event: TLoadImageEvent);

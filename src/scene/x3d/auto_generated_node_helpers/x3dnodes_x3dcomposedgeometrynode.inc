@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2024 Michalis Kamburelis.
+  Copyright 2015-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -90,7 +90,15 @@
     strict private FFdTangent: TSFNode;
     { Internal wrapper for property @code(Tangent). This wrapper API may change, we advise to access simpler @code(Tangent) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTangent: TSFNode read FFdTangent;
-    { Tangent vectors describe the tangent coordinate-space, used by the bump mapping algorithm. If specified, the ordering of tangents should be the same as normals, i.e. they should follow the NormalPerVertex and such properties. }
+    { Tangent vectors determine the tangent coordinate-space, used by the bump mapping algorithms.
+
+    If the materials applied on this geometry may use normal maps (by providing @link(TAbstractOneSidedMaterialNode.NormalTexture)), we recommend to provide tangent vectors calculated in the same manner as the software you used to bake the normal maps. If you don't provide tangent vectors, we will automatically calculate them.
+
+    If specified, the ordering of tangents should be the same as normals, e.g. they should follow the @link(NormalPerVertex) property.
+
+    The XYZ component of each tangent vector should be a normalized tangent direction.
+
+    The W component is a sign value (-1 or +1) indicating handedness of the tangent basis. See the X3D 4.1 and glTF specifications for details. }
     property Tangent: TTangentNode read GetTangent write SetTangent;
 
     strict private FFdTexCoord: TSFNode;
@@ -134,6 +142,75 @@
     {  }
     procedure SetRadianceTransfer(const Value: TVector3List); overload;
 {$endif not CASTLE_SLIM_NODES}
+
+    strict private FFdSkinWeights0: TMFVec4f;
+    { Internal wrapper for property @code(SkinWeights0). This wrapper API may change, we advise to access simpler @code(SkinWeights0) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdSkinWeights0: TMFVec4f read FFdSkinWeights0;
+    { Weights for the skinned animation.
+
+    For each vertex, this array specifies a 4D vector, which determines the 4 weights for the "most important" joints that affect this vertex. The "most important" joints are determined by the @link(FdSkinJoints0).
+
+    If non-empty, the count of this array should be:
+
+    @unorderedList(
+      @item(Equal to the count of coordinates in @link(Coord),)
+      @item(Equal to @link(FdSkinJoints0) count divided by 4.)
+    )
+
+    This corresponds to the WEIGHTS_0 attribute in glTF.
+
+    It is possible we will introduce in the future @code(FdSkinWeights1), @code(FdSkinJoints1)  and more, to allow vertexes to be influenced by more than 4 joints at the same time. For now, in practice, 4 joints for each vertex is enough. }
+    procedure SetSkinWeights0(const Value: array of TVector4); overload;
+    { Weights for the skinned animation.
+
+    For each vertex, this array specifies a 4D vector, which determines the 4 weights for the "most important" joints that affect this vertex. The "most important" joints are determined by the @link(FdSkinJoints0).
+
+    If non-empty, the count of this array should be:
+
+    @unorderedList(
+      @item(Equal to the count of coordinates in @link(Coord),)
+      @item(Equal to @link(FdSkinJoints0) count divided by 4.)
+    )
+
+    This corresponds to the WEIGHTS_0 attribute in glTF.
+
+    It is possible we will introduce in the future @code(FdSkinWeights1), @code(FdSkinJoints1)  and more, to allow vertexes to be influenced by more than 4 joints at the same time. For now, in practice, 4 joints for each vertex is enough. }
+    procedure SetSkinWeights0(const Value: TVector4List); overload;
+
+    strict private FFdSkinJoints0: TMFInt32;
+    { Internal wrapper for property @code(SkinJoints0). This wrapper API may change, we advise to access simpler @code(SkinJoints0) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdSkinJoints0: TMFInt32 read FFdSkinJoints0;
+    { Joints for the skinned animation.
+
+    For each vertex, this array specifies indexes of the 4 "most important" joints that affect this vertex. The weights for these joints are specified by @link(FdSkinWeights0). If you have less than 4 "most important" joints, just specify any (but valid) joint index and give it a zero weight using @link(FdSkinWeights0).
+
+    Note: In the perfect world, we'd like to express this as an array of 4D integer vectors, like @link(TVector4IntegerList) in Castle Game Engine, or "VEC4 of unsigned byte or unsigned short" in glTF. However, X3D doesn't have a field type that allows to express this in natural way. So we express this using TMFInt32, with a constraint that each 4 consecutive values form a 4D vector.
+
+    The count of this array must be divisible by 4.
+
+    If not empty, the count of this array divided by 4 should be:
+
+    @unorderedList(
+      @item(Equal to the count of coordinates in @link(Coord),)
+      @item(Equal to @link(FdSkinWeights0) count.)
+    ) }
+    procedure SetSkinJoints0(const Value: array of Int32); overload;
+    { Joints for the skinned animation.
+
+    For each vertex, this array specifies indexes of the 4 "most important" joints that affect this vertex. The weights for these joints are specified by @link(FdSkinWeights0). If you have less than 4 "most important" joints, just specify any (but valid) joint index and give it a zero weight using @link(FdSkinWeights0).
+
+    Note: In the perfect world, we'd like to express this as an array of 4D integer vectors, like @link(TVector4IntegerList) in Castle Game Engine, or "VEC4 of unsigned byte or unsigned short" in glTF. However, X3D doesn't have a field type that allows to express this in natural way. So we express this using TMFInt32, with a constraint that each 4 consecutive values form a 4D vector.
+
+    The count of this array must be divisible by 4.
+
+    If not empty, the count of this array divided by 4 should be:
+
+    @unorderedList(
+      @item(Equal to the count of coordinates in @link(Coord),)
+      @item(Equal to @link(FdSkinWeights0) count.)
+    ) }
+    procedure SetSkinJoints0(const Value: TInt32List); overload;
+    procedure GetExtensions(const ExtensionNames: TStrings); override;
 
 {$endif read_interface}
 
@@ -279,6 +356,26 @@ begin
 end;
 
 {$endif not CASTLE_SLIM_NODES}
+procedure TAbstractComposedGeometryNode.SetSkinWeights0(const Value: array of TVector4);
+begin
+  FdSkinWeights0.Send(Value);
+end;
+
+procedure TAbstractComposedGeometryNode.SetSkinWeights0(const Value: TVector4List);
+begin
+  FdSkinWeights0.Send(Value);
+end;
+
+procedure TAbstractComposedGeometryNode.SetSkinJoints0(const Value: array of Int32);
+begin
+  FdSkinJoints0.Send(Value);
+end;
+
+procedure TAbstractComposedGeometryNode.SetSkinJoints0(const Value: TInt32List);
+begin
+  FdSkinJoints0.Send(Value);
+end;
+
 class function TAbstractComposedGeometryNode.ClassX3DType: String;
 begin
   Result := 'X3DComposedGeometryNode';
@@ -346,6 +443,27 @@ begin
    FdRadianceTransfer.ChangeAlways := chGeometry;
   AddField(FFdRadianceTransfer);
 {$endif not CASTLE_SLIM_NODES}
+
+  FFdSkinWeights0 := TMFVec4f.Create(Self, True, 'skinWeights0', []);
+   FdSkinWeights0.ChangeAlways := chGeometry;
+  AddField(FFdSkinWeights0);
+
+  FFdSkinJoints0 := TMFInt32.Create(Self, True, 'skinJoints0', []);
+   FdSkinJoints0.ChangeAlways := chGeometry;
+  AddField(FFdSkinJoints0);
+end;
+
+procedure TAbstractComposedGeometryNode.GetExtensions(const ExtensionNames: TStrings);
+begin
+  inherited;
+{$ifndef CASTLE_SLIM_NODES}
+  if not FdRadianceTransfer.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdRadianceTransfer.X3DName);
+{$endif not CASTLE_SLIM_NODES}
+  if not FdSkinWeights0.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdSkinWeights0.X3DName);
+  if not FdSkinJoints0.EqualsDefaultValue then
+    ExtensionNames.Add(X3DType + '.' + FdSkinJoints0.X3DName);
 end;
 
 {$endif read_implementation}

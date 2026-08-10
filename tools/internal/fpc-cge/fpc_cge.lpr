@@ -1,5 +1,5 @@
 {
-  Copyright 2022-2022 Michalis Kamburelis.
+  Copyright 2022-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -16,20 +16,41 @@
 { Proxy program to call the real FPC with proper command-line options.
   Passes own command-line options to FPC,
   adds options to set standard units path.
+  In particular, it adds -Fu so that FPC can find standard units.
+  This is critical, as FPC bundled with Castle Game Engine doesn't have fpc.cfg
+  (because then we'd have to maintain/update this fpc.cfg when engine
+  is moved, leading to other issues).
 
-  This assumes the simple layout of FPC bundled with Castle Game Engine.
+  This program assumes the simple layout of FPC bundled with Castle Game Engine.
   It assumes that fpc-cge executable is exactly alongside the fpc executable,
   in bin/ subdurectory, and ../units/$fpctarget/* are the standard RTL units.
 
-  It is used for now only when this FPC needs to be executed by CodeTools
-  (used in turn by the LSP server, see https://castle-engine.io/vscode ).
-  In other cases, CGE editor executes real FPC and calculates and passes
-  the appropriate parameters from the outside -- which is a bit more reliable,
-  as it doesn't rely on ExeName (and ExeName is only guaranteed on Windows
-  and Linux).
-  In case of FPC for LSP it may acceptable, we always pass full FPC path,
-  so even fallback ExeName implementation ("ParamStr(0)") should work OK
-  in this case.
+  In general, we have various tools in CGE that need to know / call FPC:
+  like Lazarus CodeTools (used by our pasls, LSP server, which is in turn
+  used by VS Code extension https://castle-engine.io/vscode )
+  or our build-tool (castle-engine executable, https://castle-engine.io/build_tool ,
+  called in turn by our CGE editor).
+
+  There are 2 ways to call "bundled FPC" from various tools:
+
+  1. Calling using this executable, `fpc-cge`.
+
+      Note that this application relies on ExeName working.
+      Which is reliable on Windows and Linux (using /proc/xxx/exe),
+      it is only guessed (usually using ParamStr(0), which can in theory
+      contain anything, though our CGE tools always try to pass full
+      exe filename) on other platforms.
+
+  2. Calling the regular 'fpc' (or 'fpc.exe' on Windows).
+
+      In this case you must also pass proper -Fu to let this FPC find
+      the standard units. If using the FindExeFpcCompiler function in CGE,
+      it returns additional "out FpcStandardUnitsPath: String" that you
+      should use for this purpose.
+
+  Failure to do this will result in our bundled FPC not working correctly,
+  it will fail to compile any program because it will not be able to find
+  standard FPC units.
 }
 
 uses SysUtils, CastleUtils, CastleFilesUtils;

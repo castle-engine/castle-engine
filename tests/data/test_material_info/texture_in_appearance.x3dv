@@ -1,0 +1,10 @@
+#X3D V4.0 utf8
+PROFILE Interchange
+
+Shape {
+  appearance Appearance {
+    material Material { diffuseColor 1 1 0 }
+    texture ImageTexture { url "test_texture.png" }
+  }
+  geometry Sphere { }
+}

@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestImages" -*-
 {
-  Copyright 2004-2024 Michalis Kamburelis.
+  Copyright 2004-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -17,9 +17,8 @@
 { Test CastleImages. }
 unit TestCastleImages;
 
-{$ifndef FPC}
-  {$pointermath on}
-{$endif}
+// For USE_VAMPYRE_IMAGING, CASTLE_PROCESS_AVAILABLE, $pointermath on
+{$I ../../../src/common_includes/castleconf.inc}
 
 interface
 
@@ -44,13 +43,16 @@ type
     procedure TestUInt16SinglePrecision;
     procedure TestPngFloat;
     procedure TestKtxFloat;
+    procedure TestPixel1x1;
+    procedure TestDecompressAndFlipVertical;
+    procedure TestFlipVertical;
   end;
 
 implementation
 
 uses SysUtils, Classes,
   CastleVectors, CastleImages, CastleFilesUtils, CastleDownload, CastleUriUtils,
-  CastleInternalPng, CastleLog;
+  CastleInternalPng, CastleLog, CastleColors, CastleWindow, CastleInternalProcess;
 
 procedure TTestImages.TestBasicImageLoad;
 var
@@ -65,13 +67,13 @@ end;
 
 procedure TTestImages.TestLoadImage;
 
-  procedure DoTest(const fname: string;
+  procedure DoTest(const FileName: string;
     const AllowedImageClasses: array of TEncodedImageClass;
     DestClass: TCastleImageClass);
   var
     Img: TCastleImage;
   begin
-    Img := LoadImage('castle-data:/images/' + fname, AllowedImageClasses);
+    Img := LoadImage('castle-data:/images/' + FileName, AllowedImageClasses);
     try
       if not (Img is DestClass) then
         Fail(Format('We expect %s class but have %s', [
@@ -82,12 +84,12 @@ procedure TTestImages.TestLoadImage;
   end;
 
 { Unused:
-  procedure DoFailTest(const fname: string;
+  procedure DoFailTest(const FileName: string;
     const AllowedImageClasses: array of TEncodedImageClass);
   var Img: TCastleImage;
   begin
    try
-    Img := LoadImage('castle-data:/' + fname, AllowedImageClasses);
+    Img := LoadImage('castle-data:/' + FileName, AllowedImageClasses);
    except on E: EUnableToLoadImage do Exit end;
    try
     raise Exception.Create('Fail test passed - Er, I mean, failed.');
@@ -95,36 +97,38 @@ procedure TTestImages.TestLoadImage;
   end;
 }
 
-  procedure TestsImageInRGBFormat(const fname: string);
+  procedure TestsImageInRGBFormat(const FileName: string);
   begin
-   { zaladuj obrazek w formacie rgb. Dopoki TRGBImage jest w AllowedImageClasses
-     wszystko powinno zawsze isc OK i wynik powinien miec typ TRGBImage. }
-   DoTest('rgb.ppm', [TRGBImage], TRGBImage);
-   DoTest('rgb.ppm', [TRGBImage, TRGBAlphaImage, TRGBFloatImage], TRGBImage);
+    { load image in rgb format.
+      As long as TRGBImage is in AllowedImageClasses,
+      all should be OK and result should be TRGBImage. }
+    DoTest(FileName, [TRGBImage], TRGBImage);
+    DoTest(FileName, [TRGBImage, TRGBAlphaImage, TRGBFloatImage], TRGBImage);
   end;
 
 begin
- TestsImageInRGBFormat('rgb.ppm');
- { png jest obslugiwane inaczej niz typowe formaty rgb, wiec lepiej sprawdzic
-   je osobno. }
- TestsImageInRGBFormat('no_alpha.png');
+  TestsImageInRGBFormat('rgb.ppm');
 
- { zaladuj obrazek z alpha }
- DoTest('alpha.png', [TRGBImage], TRGBImage);
- DoTest('alpha.png', [TRGBImage, TRGBAlphaImage, TRGBFloatImage], TRGBAlphaImage);
- DoTest('alpha.png', [TRGBFloatImage], TRGBFloatImage);
+  TestsImageInRGBFormat('no_alpha.png');
 
- { zaladuj obrazek z rgbe }
- DoTest('rgbe.rgbe', [TRGBImage], TRGBImage);
- DoTest('rgbe.rgbe', [TRGBImage, TRGBAlphaImage], TRGBImage);
- DoTest('rgbe.rgbe', [TRGBImage, TRGBAlphaImage, TRGBFloatImage], TRGBFloatImage);
- DoTest('rgbe.rgbe', [TRGBAlphaImage], TRGBAlphaImage);
+  { load image with alpha }
+  DoTest('alpha.png', [TRGBImage], TRGBImage);
+  DoTest('alpha.png', [TRGBImage, TRGBAlphaImage, TRGBFloatImage], TRGBAlphaImage);
+  DoTest('alpha.png', [TRGBFloatImage], TRGBFloatImage);
 
- { zaladuj obrazek z grayscale }
- DoTest('alpha_grayscale.png', [], TGrayscaleAlphaImage);
- DoTest('alpha_grayscale.png', [TGrayscaleImage], TGrayscaleImage);
- DoTest('alpha_grayscale.png', [TRGBImage], TRGBImage);
- DoTest('alpha_grayscale.png', [TRGBAlphaImage], TRGBAlphaImage);
+  {$ifdef USE_VAMPYRE_IMAGING} // we need Vampyre for RGBE file format support
+  { load image from RGBE file format }
+  DoTest('rgbe.rgbe', [TRGBImage], TRGBImage);
+  DoTest('rgbe.rgbe', [TRGBImage, TRGBAlphaImage], TRGBImage);
+  DoTest('rgbe.rgbe', [TRGBImage, TRGBAlphaImage, TRGBFloatImage], TRGBFloatImage);
+  DoTest('rgbe.rgbe', [TRGBAlphaImage], TRGBAlphaImage);
+  {$endif}
+
+  { load image in grayscale format }
+  DoTest('alpha_grayscale.png', [], TGrayscaleAlphaImage);
+  DoTest('alpha_grayscale.png', [TGrayscaleImage], TGrayscaleImage);
+  DoTest('alpha_grayscale.png', [TRGBImage], TRGBImage);
+  DoTest('alpha_grayscale.png', [TRGBAlphaImage], TRGBAlphaImage);
 end;
 
 procedure TTestImages.TestImageClassBestForSavingToFormat;
@@ -184,26 +188,26 @@ procedure TTestImages.TestRGBEToRGBTranslating;
     rgb, newrgb: TVector3;
     i: Integer;
   begin
-   for i := 1 to 1000 do
-   begin
-    rgb.X := Random*UpperValue;
-    rgb.Y := Random*UpperValue;
-    rgb.Z := Random*UpperValue;
+    for i := 1 to 1000 do
+    begin
+      rgb.X := Random*UpperValue;
+      rgb.Y := Random*UpperValue;
+      rgb.Z := Random*UpperValue;
 
-    rgbe := Vector3ToRGBE(rgb);
-    newrgb := VectorRGBETo3Single(rgbe);
-    if not TVector3.Equals(rgb, newrgb, UpperValue/256) then
-     raise Exception.Create('Error -'+
-       ' rgb '+rgb.ToString+
-       ' rgbe '+rgbe.ToString+
-       ' newrgb '+newrgb.ToString );
-   end;
+      rgbe := Vector3ToRGBE(rgb);
+      newrgb := VectorRGBETo3Single(rgbe);
+      if not TVector3.Equals(rgb, newrgb, UpperValue/256) then
+      raise Exception.Create('Error -'+
+        ' rgb '+rgb.ToString+
+        ' rgbe '+rgbe.ToString+
+        ' newrgb '+newrgb.ToString );
+    end;
   end;
 
 begin
- CheckRGBEToRGBTranslating(1.0);
- CheckRGBEToRGBTranslating(10.0);
- CheckRGBEToRGBTranslating(10000.0);
+  CheckRGBEToRGBTranslating(1.0);
+  CheckRGBEToRGBTranslating(10.0);
+  CheckRGBEToRGBTranslating(10000.0);
 end;
 
 procedure TTestImages.TestResize;
@@ -323,6 +327,12 @@ procedure TTestImages.TestLoadSavePreserveAlpha;
   end;
 
 begin
+  if not CanUseFileSystem then // for GetTempFileNamePrefix
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   TestImage('castle-data:/images/load-save-alpha-test/1.png');
   TestImage('castle-data:/images/load-save-alpha-test/2.png');
   TestImage('castle-data:/images/load-save-alpha-test/3.png');
@@ -524,6 +534,12 @@ procedure TTestImages.TestPngFloat;
 var
   Img: TCastleImage;
 begin
+  // TODO: no support for 16-bit PNGs without Vampyre
+  {$ifdef WASI}
+  AbortTest;
+  Exit;
+  {$endif}
+
   Img := LoadImage('castle-data:/png/basi0g16.png');
   try
     AssertEquals(32, Img.Width);
@@ -585,6 +601,273 @@ begin
     AssertEquals(16, Img.Height);
     AssertTrue(Img is TRGBAlphaFloatImage);
   finally FreeAndNil(Img) end;
+end;
+
+procedure TTestImages.TestPixel1x1;
+var
+  Img: TCastleImage;
+  Color: TCastleColor;
+begin
+  Img := LoadImage('castle-data:/pixel1x1.png');
+  try
+    AssertEquals(1, Img.Width);
+    AssertEquals(1, Img.Height);
+    AssertEquals(1, Img.Depth);
+    Color := Img.Colors[0, 0, 0];
+    Img.FlipVertical;
+    AssertVectorEquals(Color, Img.Colors[0, 0, 0]);
+  finally FreeAndNil(Img) end;
+end;
+
+procedure TTestImages.TestDecompressAndFlipVertical;
+{$ifdef CASTLE_PROCESS_AVAILABLE}
+var
+  CompressonatorExe: String;
+
+  { Find CompressonatorCLI executable just like
+    tools/build-tool/code/tooltexturegeneration.pas .
+    Returns '' if not found. }
+  function FindCompressonator: String;
+  begin
+    Result := FindExe('CompressonatorCLI');
+    if Result = '' then
+      // on Linux, new released on https://github.com/GPUOpen-Tools/Compressonator/releases have it lowercase
+      Result := FindExe('compressonatorcli');
+  end;
+
+  {$ifdef UNIX}
+  { Execute Exe as a bash script. }
+  procedure ExecuteProcessBashScript(const Exe: String; const Args: array of String);
+  var
+    NewArgs: array of String;
+    I: Integer;
+  begin
+    SetLength(NewArgs, Length(Args) + 1);
+    NewArgs[0] := Exe;
+    for I := 0 to Length(Args) - 1 do
+      NewArgs[I + 1] := Args[I];
+    //Result := ExecuteProcess('/bin/bash', NewArgs);
+    ExecuteCommandCheckStatus('', '/bin/bash', NewArgs);
+  end;
+  {$endif}
+
+  { Run CompressonatorCLI with given arguments. }
+  procedure RunCompressonator(const Args: array of String);
+  begin
+    AssertTrue('CompressonatorCLI executable not found, cannot run Compressonator',
+      CompressonatorExe <> '');
+
+    {$ifdef UNIX}
+    // CompressonatorCLI is just a bash script on Unix
+    ExecuteProcessBashScript(CompressonatorExe, Args);
+    {$else}
+    ExecuteCommandCheckStatus('', CompressonatorExe, Args);
+    {$endif}
+  end;
+
+  { Test on image sized Width x Height. }
+  procedure TestCore(const Width, Height: Integer;
+    const Compression: TTextureCompression;
+    const CompressionNameForCompressonator: String;
+    const CompareEpsilon: Single = 0.1);
+  var
+    InitialImage: TRGBImage;
+    CompressedImage: TGPUCompressedImage;
+    DecompressedImage: TCastleImage;
+    InitialImageFileName, CompressedImageFileName: String;
+    X, Y: Integer;
+    Col: TCastleColor;
+  begin
+    InitialImageFileName := GetTempFileNamePrefix + 'TestDecompressAndFlipVertical.png';
+    CompressedImageFileName := ExtractFilePath(InitialImageFileName) + 'TestDecompressAndFlipVertical.ktx';
+
+    // create temp image with given size
+    InitialImage := TRGBImage.Create(Width, Height);
+    try
+      for X := 0 to Width - 1 do
+        for Y := 0 to Height - 1 do
+          InitialImage.Colors[X, Y, 0] := Vector4(1, Y/Height, 0.5, 1.0);
+      SaveImage(InitialImage, InitialImageFileName);
+    finally FreeAndNil(InitialImage) end;
+
+    // convert it to KTX encoded with S3TC compression
+    RunCompressonator(['-nomipmap', '-fd', CompressionNameForCompressonator,
+      InitialImageFileName, CompressedImageFileName]);
+
+    CompressedImage := LoadEncodedImage(CompressedImageFileName) as TGPUCompressedImage;
+    try
+      {.$define TestDecompressAndFlipVertical_Verbose}
+      {$ifdef TestDecompressAndFlipVertical_Verbose}
+      WritelnLog('Compressed image has size %d x %d, compression %s', [
+        CompressedImage.Width,
+        CompressedImage.Height,
+        TextureCompressionToString(CompressedImage.Compression)
+      ]);
+      {$endif}
+      AssertEquals(Width, CompressedImage.Width);
+      AssertEquals(Height, CompressedImage.Height);
+      AssertTrue(CompressedImage.Compression = Compression);
+
+      DecompressedImage := DecompressTexture(CompressedImage);
+      try
+        for X := 0 to Width - 1 do
+          for Y := 0 to Height - 1 do
+          begin
+            Col := DecompressedImage.Colors[X, Y, 0];
+            {$ifdef TestDecompressAndFlipVertical_Verbose}
+            WritelnLog('Pixel %d x %d has color %s', [
+              X,
+              Y,
+              Col.ToString
+            ]);
+            {$endif}
+            AssertSameValue(1.0, Col[0], CompareEpsilon);
+            AssertSameValue(1-Y/Height, Col[1], CompareEpsilon);
+            AssertSameValue(0.5, Col[2], CompareEpsilon);
+            AssertSameValue(1.0, Col[3], CompareEpsilon);
+          end;
+      finally FreeAndNil(DecompressedImage) end;
+
+      { Now test CompressedImage.FlipVertical, and that
+        DecompressTexture(CompressedImage) gives the same result as before, but flipped vertically. }
+      CompressedImage.FlipVertical;
+      DecompressedImage := DecompressTexture(CompressedImage);
+      try
+        for X := 0 to Width - 1 do
+          for Y := 0 to Height - 1 do
+          begin
+            Col := DecompressedImage.Colors[X, Y, 0];
+            {$ifdef TestDecompressAndFlipVertical_Verbose}
+            WritelnLog('Pixel %d x %d has color %s', [
+              X,
+              Y,
+              Col.ToString
+            ]);
+            {$endif}
+            AssertSameValue(1.0, Col[0], CompareEpsilon);
+            AssertSameValue(Y/Height, Col[1], CompareEpsilon);
+            AssertSameValue(0.5, Col[2], CompareEpsilon);
+            AssertSameValue(1.0, Col[3], CompareEpsilon);
+          end;
+      finally FreeAndNil(DecompressedImage) end;
+    finally FreeAndNil(CompressedImage) end;
+
+    CheckDeleteFile(InitialImageFileName, true);
+    CheckDeleteFile(CompressedImageFileName, true);
+  end;
+
+var
+  CreatedWindow: Boolean;
+  Window: TCastleWindow;
+begin
+  if not CanUseFileSystem then // for GetTempFileNamePrefix
+  begin
+    AbortTest;
+    Exit;
+  end;
+
+  CompressonatorExe := FindCompressonator;
+  if CompressonatorExe = '' then
+  begin
+    WritelnLog('CompressonatorCLI executable not found, skipping TestDecompressAndFlipVertical');
+    AbortTest;
+    Exit;
+  end;
+
+  { We need DecompressTexture, either because we have a rendering context
+    (because of GUI run) or because we can create a window+context for testing
+    (when we run with --console on desktops). }
+  if not Assigned(DecompressTexture) then
+  begin
+    if not CanCreateWindowForTest then
+    begin
+      WritelnLog('DecompressTexture function not assigned, and cannot create window for test, skipping TestDecompressAndFlipVertical');
+      AbortTest;
+      Exit;
+    end;
+
+    CreatedWindow := true;
+    Window := CreateWindowForTest;
+    Window.Open;
+    AssertTrue('DecompressTexture function not assigned, even after creating window',
+      Assigned(DecompressTexture));
+  end else
+    CreatedWindow := false;
+
+  { Note that
+      TestCore(1, 12);
+    will not work as well, compression by Compressonator goes to bad quality
+    when the block is not full 4x4. }
+
+  // Note: Compressonator with -fd DXT1 gives tcDxt1_RGBA, never tcDxt1_RGB
+
+  // DXT1
+  TestCore(4, 12, tcDxt1_RGBA, 'DXT1');
+  TestCore(8, 8, tcDxt1_RGBA, 'DXT1', 0.2);
+  TestCore(12, 4, tcDxt1_RGBA, 'DXT1', 0.3);
+  TestCore(16, 16, tcDxt1_RGBA, 'DXT1');
+
+  // DXT3
+  TestCore(4, 12, tcDxt3, 'DXT3');
+  TestCore(8, 8, tcDxt3, 'DXT3', 0.2);
+  TestCore(12, 4, tcDxt3, 'DXT3', 0.3);
+  TestCore(16, 16, tcDxt3, 'DXT3');
+
+  // DXT5
+  TestCore(4, 12, tcDxt5, 'DXT5');
+  TestCore(8, 8, tcDxt5, 'DXT5', 0.2);
+  TestCore(12, 4, tcDxt5, 'DXT5', 0.3);
+  TestCore(16, 16, tcDxt5, 'DXT5');
+
+  if CreatedWindow then
+    DestroyWindowForTest(Window);
+end;
+{$else}
+begin
+  WritelnLog('ExecuteProcess not available, skipping TestDecompressAndFlipVertical');
+  AbortTest;
+end;
+{$endif}
+
+procedure TTestImages.TestFlipVertical;
+
+  { Value stored in pixel (X, Y). Unique per (X, Y) for our small test sizes,
+    so we can detect whether (and how) rows got reordered. }
+  function PixelValue(const X, Y: Integer): Byte;
+  begin
+    Result := Y * 16 + X;
+  end;
+
+const
+  W = 3;
+var
+  Img: TGrayscaleImage;
+  H, X, Y: Integer;
+begin
+  { Test FlipVertical on all heights from 0 to 10. }
+  for H := 0 to 10 do
+  begin
+    Img := TGrayscaleImage.Create(W, H);
+    try
+      AssertEquals(W, Img.Width);
+      AssertEquals(H, Img.Height);
+
+      { Fill each pixel with a value encoding its row and column. }
+      for Y := 0 to H - 1 do
+        for X := 0 to W - 1 do
+          Img.PixelPtr(X, Y)^ := PixelValue(X, Y);
+
+      Img.FlipVertical;
+
+      { After flipping, pixel (X, Y) must hold what was originally at (X, H - 1 - Y). }
+      for Y := 0 to H - 1 do
+        for X := 0 to W - 1 do
+          AssertEquals(
+            Format('FlipVertical with Height=%d, at pixel (%d, %d)', [H, X, Y]),
+            PixelValue(X, H - 1 - Y),
+            Img.PixelPtr(X, Y)^);
+    finally FreeAndNil(Img) end;
+  end;
 end;
 
 initialization

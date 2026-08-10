@@ -23,9 +23,13 @@
 # to declare KambiAppearance by EXTERNPROTO and fallback on standard
 # Appearance.
 KambiAppearance : Appearance {
+  node-is-extension: true
 }
 
+# See https://castle-engine.io/shadow_maps
 GeneratedShadowMap : X3DSingleTextureNode {
+  node-is-extension: true
+
   SFString   [in,out]      update           "NONE"
     range: ["NONE"|"NEXT_FRAME_ONLY"|"ALWAYS"]
     enumerated-type: TTextureUpdate TextureUpdateNames upNone
@@ -53,13 +57,19 @@ GeneratedShadowMap : X3DSingleTextureNode {
     doc: @deprecated This is ignored now. It was unportable and complicated to maintain.
 }
 
+# See https://castle-engine.io/x3d_extensions#_deprecated_3d_text_node_text3d
 Text3D : Text {
+  node-is-extension: true
+
   SFFloat    [in,out]      depth       0.1
     range: >= 0
     change: chGeometry
 }
 
+# See https://castle-engine.io/x3d_extensions#_automatic_processing_of_inlined_content_node_kambiinline
 KambiInline : Inline {
+  node-is-extension: true
+
   MFString   [in,out]      replaceNames  []
     change: chEverything
   MFNode     [in,out]      replaceNodes  []
@@ -68,9 +78,13 @@ KambiInline : Inline {
 }
 
 KambiNavigationInfo : NavigationInfo {
+  node-is-extension: true
 }
 
+# See https://castle-engine.io/x3d_extensions#_teapot_primitive_teapot_node
 Teapot : X3DGeometryNode {
+  node-is-extension: true
+
   SFVec3f    []            size        3 3 3
   SFBool     []            solid       TRUE
   SFBool     []            manifold    FALSE
@@ -78,7 +92,10 @@ Teapot : X3DGeometryNode {
     range: TextureCoordinateGenerator, ProjectedTextureCoordinate, MultiGeneratedTextureCoordinate
 }
 
+# See https://castle-engine.io/x3d_implementation_texturing_extensions.php
 RenderedTexture : X3DSingleTextureNode {
+  node-is-extension: true
+
   SFNode     [in,out]      background       NULL
     range: X3DBackgroundNode
     change: chGeneratedTextureUpdateNeeded
@@ -132,7 +149,10 @@ RenderedTexture : X3DSingleTextureNode {
   SFBool     [out]         rendering
 }
 
+# See https://castle-engine.io/x3d_extensions#_events_logger_logger_node
 Logger : X3DChildNode {
+  node-is-extension: true
+
   SFInt32    [in,out]      level       1
   SFString   []            logFile     ""
   SFBool     [in,out]      enabled     TRUE
@@ -150,17 +170,23 @@ Logger : X3DChildNode {
 # MultiGeneratedTextureCoordinate now descends from MultiTextureCoordinate.
 # See TMultiGeneratedTextureCoordinateNode comments for reasons.
 MultiGeneratedTextureCoordinate : MultiTextureCoordinate {
+  node-is-extension: true
 }
 
+# See https://castle-engine.io/shadow_maps
 ProjectedTextureCoordinate : X3DSingleTextureCoordinateNode {
+  node-is-extension: true
+
   SFNode     [in,out]      projector   NULL
     range: SpotLight, DirectionalLight, X3DViewpointNode, TSpotLightNode_1, TDirectionalLightNode_1
     change: chTextureCoordinate
     doc: Viewpoint or light that determine how is the texture projected.
 }
 
-# See https://castle-engine.io/x3d_extensions_screen_effects.php
+# See https://castle-engine.io/screen_effects
 ScreenEffect : X3DChildNode {
+  node-is-extension: true
+
   SFBool     [in,out]      enabled     TRUE
     change: chScreenEffectEnabled
   SFBool     [in,out]      needsDepth  FALSE
@@ -170,8 +196,9 @@ ScreenEffect : X3DChildNode {
     change: chEverything
 }
 
-# See https://castle-engine.io/compositing_shaders.php
+# See https://castle-engine.io/shaders
 Effect : X3DChildNode {
+  node-is-extension: true
 
   SFString   []            language    ""
     range: ["CG"|"GLSL"|"HLSL"|...]
@@ -188,11 +215,31 @@ Effect : X3DChildNode {
     enumerated-type: TUniformMissing UniformMissingNames umWarning
     change: chEverything
     doc: Should we report a missing uniform value. Setting this to umWarning (default) is useful to spot simple mistakes in naming uniforms. On the other hand, OpenGL aggressively removes unused uniforms from code, and it may cause spurious messages that some uniform is missing -- even though the shader is correct, is just doesn't use some uniform value e.g. because no lights are present on the current scene.
+  MFString [] shaderLibraries []
+    change: chEverything
+    doc: """
+    Additional libraries of shader code to link with this effect.
+
+    Each "shader library" defines a shader code, just like an additional EffectNode. This code can define new GLSL functions to use in your effect code, e.g. @code(position_world_to_eye_space). This code can also use PLUGs just like other effects, so it can influence the rendering and other computations. The engine has (right now hardcoded) logic to provide necessary uniform values for every shader library, so you don't need to do anything additional to make the added code functional.
+
+    Right now, only one shader library is allowed: 'castle-shader:/EyeWorldSpace.glsl'. This is linked with both vertex and fragment stages, and exposes new GLSL functions you can use:
+
+    @preformatted(
+      vec4 position_world_to_eye_space(vec4 position_world);
+      vec4 position_eye_to_world_space(vec4 position_eye);
+
+      vec3 direction_world_to_eye_space(vec3 direction_world);
+      vec3 direction_eye_to_world_space(vec3 direction_eye);
+    )
+
+    See examples/shaders/shader_effects_on_background/ for a demo.
+    """
 }
 
-# See https://castle-engine.io/compositing_shaders.php
+# See https://castle-engine.io/shaders
 EffectPart : X3DNode, X3DUrlObject {
   default-container-field: parts
+  node-is-extension: true
 
   MFString [in,out] url      []
     change: chEverything
@@ -202,8 +249,10 @@ EffectPart : X3DNode, X3DUrlObject {
     change: chEverything
 }
 
-# See https://castle-engine.io/compositing_shaders.php
+# See https://castle-engine.io/shaders
 ShaderTexture : X3DSingleTextureNode {
+  node-is-extension: true
+
   SFString []       defaultTexCoord "BOUNDS2D"
     #range: ["BOUNDS2D"|"BOUNDS3D"]
     change: chEverything
@@ -213,6 +262,8 @@ ShaderTexture : X3DSingleTextureNode {
 # See https://castle-engine.io/x3d_extensions.php#section_ext_blending
 BlendMode {
   default-container-field: blendMode
+  node-is-extension: true
+
   SFString   [in,out]      srcFactor   "src_alpha"
     range: ["zero", ..., "one_minus_constant_alpha"]
     enumerated-type: TBlendingSourceFactor BlendingSourceFactorNames bsSrcAlpha
@@ -223,14 +274,69 @@ BlendMode {
   SFFloat    [in,out]      colorTransparency  0
 }
 
+# See https://castle-engine.io/mirror_plane
 ViewpointMirror {
   default-container-field: viewpoint
+  node-is-extension: true
+
   SFFloat   [in,out]      distanceFromShape 0.01
 }
 
+# See https://castle-engine.io/x3d_implementation_interpolation_extensions.php#section_orientation_interpolator_2d
 OrientationInterpolator2D : X3DInterpolatorNode {
+  node-is-extension: true
+
   MFFloat    [in,out] keyValue      []
     change: chNone
   SFVec3f    [in,out] axis          0 0 1
   SFRotation [out]    value_changed
+}
+
+# See https://castle-engine.io/skin
+Skin : X3DChildNode {
+  node-is-extension: true
+
+  MFNode [in,out] joints []
+    range: Transform
+    change: chEverything
+    doc: """
+    When the joints are transformed (moved, rotated, scaled), the skin (meshes listed in @link(FdShapes)) is updated accordingly.
+    """
+
+  MFMatrix4f [in,out] inverseBindMatrices []
+    change: chEverything
+    doc: """
+    For each joint, an "inverse bind matrix" may be specified, which transforms the mesh into the local space of the joint.
+
+    The precise mathematical meaning of this follows the @url(https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html glTF 2.0 specification). The @url(https://www.khronos.org/files/gltf20-reference-guide.pdf glTF 2.0 API Reference Guide) also contains a great explanation of how this is used.
+
+    Either this array must be empty (equivalent to all values being identity matrix) or the count of this array must be equal to the count of @link(FdJoints).
+    """
+
+  MFNode [in,out] shapes []
+    change: chEverything
+    range: X3DShapeNode
+    doc: """
+    Shapes whose geometries are affected by the skinned animation, that is: their vertexes move to follow the joints that are associated with them.
+
+    Only shapes with geometries that have @code(SkinWeights0) and @code(SkinJoints0) fields are allowed here. This means these geometry nodes: @link(TAbstractComposedGeometryNode) (with its numerous descendants, all "meshes" that are composed of triangles, quads, faces...), @link(TIndexedLineSetNode), @link(TLineSetNode) and @link(TPointSetNode).
+
+    The geometries within these shapes are affected by this skinned animation.
+    Their @code(SkinJoints0) indexes refer to our @link(FdJoints).
+
+    Note that you can place here only shape nodes, not groups or hierarchies of them (e.g. @link(TGroupNode) or @link(TTransformNode)). This is a deliberate constraint to make working of this node obvious.
+
+    This also matches the glTF usage, where the meshes affected by one skin are always within one and the same transformation. glTF specification says @italic("Only the joint transforms are applied to the skinned mesh; the transform of the skinned mesh node MUST be ignored.") which in practice forces treating all skinned shapes as if they were direct children alongside the skeleton root.
+
+    We make it more explicit in our design: the @link(FdShapes) are explicitly direct children of the @link(TSkinNode). So the shapes are affected by the transformations of the @link(TSkinNode). Any further transformation of shapes has to happen through the skinned animation (joints affecting shapes vertexes according to weights).
+
+    Note that you can also place @link(TShapeNode) instances within the @link(Skeleton) hierarchy. Such shapes are not affected by the skinned animation, they are just rigid 3D shapes attached to the joints (like a sword may be attached to the avatar's hand).
+    """
+
+  SFNode [in,out] skeleton NULL
+    range: X3DGroupingNode
+    change: chEverything
+    doc: """
+    Common root of the joints hierarchy.
+    """
 }

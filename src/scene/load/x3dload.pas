@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2024 Michalis Kamburelis.
+  Copyright 2003-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,57 +13,155 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(Loading and saving nodes.)
-
-  Almost every format is handled by converting it into VRML / X3D nodes graph.
+{ Loading and saving model formats.
+  All model formats are loaded into a graph of X3D nodes.
   This allows to use nodes throughout the engine, for all rendering and processing.
 
-  Basic guide for adding a new format:
-
-  @unorderedList(
-    @item(
-      Particular formats are implemented inside various X3DLoadInternalXxx units.
-      Implementation of this unit calls them. In the future,
-      a mechanism that allows you to "register" an importer, without modifying
-      this unit's implementation, may be done --- report if needed.)
-
-    @item(Scene formats are also listed in the file filters constants:
-      see LoadScene_FileFilters .
-      Each format has a file filter to specifically choose this format,
-      and also is added to the "All Scenes" filter.)
-
-    @item(Enable castle-model-viewer to associate with this file format on freedesktops
-      (GNOME, and other following freedesktop.org specs). For this,
-
-      1. Update castle-model-viewer MIME database.
-      Simply add appopriate element to ../../../castle-model-viewer/freedesktop/castle-model-viewer.xml.
-      Format of that MIME xml file is self-explanatory.
-      It's good idea to google first
-      to search for standard MIME type for your model format (e.g. wikipedia
-      shows mime types for formats).
-      If none is found, just use application/x-???, where ??? is some short
-      name for your format.
-
-      2. After adding to MIME database, you want to also add format to
-      ../../../castle-model-viewer/freedesktop/castle-model-viewer.desktop, to indicate that
-      castle-model-viewer handles this MIME type.
-
-      3. Finally, also add this to ../../../castle-model-viewer/freedesktop/install_thumbnailer.sh,
-      so that GNOME nautilus thumbnailers for this MIME types can be installed.)
-
-    @item(You probably also want to extend documentation.
-      At least https://castle-engine.io/creating_data_model_formats.php ,
-      it lists all supported scene formats.)
-  )
-}
+  To add a new model format handled throughout the engine,
+  register it using @link(RegisterModelFormat).
+  Our @link(LoadNode), @link(SaveNode), @link(TCastleScene),
+  @link(LoadScene_FileFilters) and other API will automatically account
+  for the new format. }
 unit X3DLoad;
 
 {$I castleconf.inc}
 
+{ Model formats support.
+  You can use conditional defines to disable support for some model formats
+  to make the exe smaller.
+
+  Note: Don't define these symbols by editing engine sources,
+  like this unit or castleconf.inc.
+  This would mean you need to maintain your CGE modification,
+  and it affects all projects (including CGE examples that may rely on specific
+  formats).
+
+  Rather, define these symbols in your project, e.g. using <defines> in the
+  CastleEngineManifest.xml.
+  See https://castle-engine.io/project_manifest#_compiler_options_and_paths .
+  Like:
+
+  <compiler_options>
+    <defines>
+      <define>CASTLE_COLLADA_SUPPORT_DISABLE</define>
+      <define>CASTLE_IFC_SUPPORT_DISABLE</define>
+    </defines>
+  </compiler_options>
+}
+
+{ IFC unit is known to cause building errors with FPC on Win64/AArch64,
+
+  $ cd play_animation
+  $ castle-engine --os=win64 --cpu=aarch64 compile
+  ...
+  Linking play_animation_standalone.exe
+  Error: Failed reading coff file, invalid section index while reading /home/michalis/sources/castle-engine/castle-engine/examples/animations/play_animation/castle-engine-output/compilation/aarch64-win64/castleifc.o
+  Error: Compilation raised exception internally
+  An unhandled exception occurred at $0000000000781E21:
+  EAccessViolation: Access violation
+}
+{$if defined(WIN64) and defined(CPUAARCH64)}
+  {$define CASTLE_IFC_SUPPORT_DISABLE}
+{$endif}
+
+{$ifdef CASTLE_GEO_SUPPORT_DISABLE}{$INFO 'GEO support disabled'}{$endif}
+{$ifdef CASTLE_OBJ_SUPPORT_DISABLE}{$INFO 'OBJ support disabled'}{$endif}
+{$ifdef CASTLE_COLLADA_SUPPORT_DISABLE}{$INFO 'COLLADA support disabled'}{$endif}
+{$ifdef CASTLE_SPINE_SUPPORT_DISABLE}{$INFO 'SPINE support disabled'}{$endif}
+{$ifdef CASTLE_STL_SUPPORT_DISABLE}{$INFO 'STL support disabled'}{$endif}
+{$ifdef CASTLE_MD3_SUPPORT_DISABLE}{$INFO 'MD3 support disabled'}{$endif}
+{$ifdef CASTLE_GLTF_SUPPORT_DISABLE}{$INFO 'GLTF support disabled'}{$endif}
+{$ifdef CASTLE_IMAGE_SUPPORT_DISABLE}{$INFO 'IMAGE support disabled'}{$endif}
+{$ifdef CASTLE_COCOS2D_SUPPORT_DISABLE}{$INFO 'COCOS2D support disabled'}{$endif}
+{$ifdef CASTLE_SPRITESHEET_SUPPORT_DISABLE}{$INFO 'SPRITESHEET support disabled'}{$endif}
+{$ifdef CASTLE_TILED_MAP_SUPPORT_DISABLE}{$INFO 'TILED_MAP support disabled'}{$endif}
+{$ifdef CASTLE_IFC_SUPPORT_DISABLE}{$INFO 'IFC support disabled'}{$endif}
+{$ifdef CASTLE_3DS_SUPPORT_DISABLE}{$INFO '3DS support disabled'}{$endif}
+{$ifdef CASTLE_PLY_SUPPORT_DISABLE}{$INFO 'PLY support disabled'}{$endif}
+
 interface
 
-uses SysUtils, Classes,
-  CastleUtils, CastleVectors, X3DNodes, CastleStringUtils;
+uses SysUtils, Classes, Generics.Collections,
+  CastleUtils, CastleVectors, X3DNodes, CastleStringUtils, CastleClassUtils;
+
+type
+  { Optional model load options. Models are typically loaded using @link(LoadNode)
+    or by setting @link(TCastleSceneCore.Url).
+
+    An instance of this class can be provided to @link(LoadNode)
+    or set as @link(TCastleScene.LoadOptions).
+    It will then be passed to the model loader event @link(TModelFormat.OnLoad).
+
+    @italic(Future notes): In the future this may be more extensible,
+    as we will move all format-specific flags (like glTF specific)
+    to a separate format-specific class (e.g. TGltfLoadOptions
+    defined only in unit like CastleLoadGltf).
+    This class @name should then be a collection of such options (like glTF options,
+    Spine options, etc.), e.g. map MimeType -> descendant of TModelLoadFormatOptions
+    or just a list of TModelLoadFormatOptions (since their class already determines
+    the format to which they apply).
+    This way: caller @link(LoadNode) should not need to choose between
+    format-specific options on its own (for simplicity) and also we need to
+    allow exposing @name in the editor as a component.
+    For now, we just put all format-specific options in one large class,
+    as this is the simplest. }
+  TCastleSceneLoadOptions = class(TCastleComponent)
+  strict private
+    FGltfPhongMaterials: Boolean;
+  published
+    { Makes model loaded from glTF use Phong materials (TMaterialNode) instead of
+      Physically-Based Rendering materials (TPhysicalMaterialNode).
+
+      Phong is a worse lighting model in general (less realistic, and most authoring
+      tools now expose parameters closer to PBR, like Blender).
+      However Phong lighting model is cheaper to compute, and it allows both
+      Gouraud and Phong shading. And Phong lighting model combined with Gouraud
+      shading is very cheap to render, which in effect means that your models
+      render fast.
+
+      If this is @true we just interpret glTF pbrMetallicRoughness parameter
+      "baseColor" (RGB part) as Phong "diffuseColor". }
+    property GltfPhongMaterials: Boolean
+      read FGltfPhongMaterials write FGltfPhongMaterials default false;
+  end;
+
+  { Optional model save options. Models are typically saved using @link(SaveNode).
+
+    An instance of this class can be provided to @link(SaveNode).
+    It will then be passed to the model loader event @link(TModelFormat.OnSave). }
+  TCastleSceneSaveOptions = class(TCastleComponent)
+  strict private
+    FGenerator: String;
+    FSource: String;
+    FGltfJsonFormatted: Boolean;
+  published
+    { Optional name, or short description, of the application
+      generating this file. This value is not interpreted in any way,
+      it is simply a "metadata" information we may store in the resulting file. }
+    property Generator: String read FGenerator write FGenerator;
+
+    { Optional name of the original file, if this file is a result of some
+      conversion or transformation. This value is not interpreted in any way,
+      it is simply a "metadata" information we may store in the resulting file. }
+    property Source: String read FSource write FSource;
+
+    { When saving to glTF, make JSON part nicely formatted
+      (indented, human-readable). }
+    property GltfJsonFormatted: Boolean
+      read FGltfJsonFormatted write FGltfJsonFormatted default false;
+
+    { When saving to glTF in JSON format (not binary GLB),
+      we will create a separate binary file with all the mesh data,
+      and reference it from the main .gltf JSON file.
+
+      TODO: Not yet implemented.
+
+      OnSave callbacks would need to get Url (path and filename)
+      of the saved glTF file, to place bin in the same directory
+      with the same basename. }
+    // property GltfJsonSeparateBin: Boolean
+    //   read FGltfJsonSeparateBin write FGltfJsonSeparateBin default false;
+  end;
 
 { Load a scene as X3D node. Guesses scene format based on the URL extension.
   We load a large number of formats, see https://castle-engine.io/creating_data_model_formats.php .
@@ -72,7 +170,7 @@ uses SysUtils, Classes,
 
   URL is downloaded using the CastleDownload unit,
   so it supports files, http resources and more.
-  See https://castle-engine.io/manual_network.php
+  See https://castle-engine.io/url
   about supported URL schemes.
   If you all you care about is loading normal files, then just pass
   a normal filename (absolute or relative to the current directory)
@@ -112,7 +210,8 @@ end;
   so you would actually use @code('castle-data:/my_model.x3d') URL instead
   of @code('my_model.x3d').
 }
-function LoadNode(const Url: String): TX3DRootNode; overload;
+function LoadNode(const Url: String;
+  const LoadOptions: TCastleSceneLoadOptions = nil): TX3DRootNode; overload;
 
 { Load a scene as X3D node from TStream.
 
@@ -141,7 +240,8 @@ function LoadNode(const Url: String): TX3DRootNode; overload;
   The overloaded LoadNode without explicit TStream accounts for gzip-compressed streams
   in some cases.
 }
-function LoadNode(const Stream: TStream; BaseUrl: String; const MimeType: String): TX3DRootNode; overload;
+function LoadNode(const Stream: TStream; BaseUrl: String; const MimeType: String;
+  const LoadOptions: TCastleSceneLoadOptions = nil): TX3DRootNode; overload;
 
 const
   DefaultBakedAnimationSmoothness = 1;
@@ -159,27 +259,26 @@ var
 
   If you provide explicit URL, it determines the output format.
   If you provide a Stream and MimeType, then MimeType determines the output format.
-  E.g. use MimeType = 'model/x3d+vrml' to X3D classic encoding,
-  or MimeType = 'model/x3d+xml' to X3D XML encoding.
-
-  @param(Generator Optional name, or short description, of the application
-    generating this file. This value is not interpreted in any way,
-    it is simply a "metadata" information we may store in the resulting file.
-  )
-
-  @param(Source Optional name of the original file, if this file is a result of some
-    conversion or transformation. This value is not interpreted in any way,
-    it is simply a "metadata" information we may store in the resulting file.
-  )
-}
+  Example MIME types:
+  @unorderedList(
+    @itemSpacing Compact
+    @item glTF JSON: 'model/gltf+json'
+    @item glTF Binary: 'model/gltf-binary'
+    @item X3D Classic Encoding: 'model/x3d+vrml'
+    @item X3D XML Encoding: 'model/x3d+xml'
+  ) }
 procedure SaveNode(const Node: TX3DRootNode;
   const Url: String;
-  const Generator: String = '';
-  const Source: String = ''); overload;
+  const SaveOptions: TCastleSceneSaveOptions = nil); overload;
 procedure SaveNode(const Node: TX3DRootNode;
   const Stream: TStream; const MimeType: String;
-  const Generator: String = '';
-  const Source: String = ''); overload;
+  const SaveOptions: TCastleSceneSaveOptions = nil); overload;
+procedure SaveNode(const Node: TX3DRootNode;
+  const Url: String;
+  const Generator: String; const Source: String = ''); overload; deprecated 'Use SaveNode overload with TCastleSceneSaveOptions instead, or omit the Generator and Source parameters entirely';
+procedure SaveNode(const Node: TX3DRootNode;
+  const Stream: TStream; const MimeType: String;
+  const Generator: String; const Source: String = ''); overload; deprecated 'Use SaveNode overload with TCastleSceneSaveOptions instead, or omit the Generator and Source parameters entirely';
 
 { File filters for files loaded by @link(TCastleSceneCore.Load) and @link(LoadNode).
   Suitable for TFileFilterList.AddFiltersFromString and TCastleWindow.FileDialog. }
@@ -190,10 +289,16 @@ function LoadScene_FileFilters: String;
 function SaveNode_FileFilters: String;
 
 type
-  TModelLoadEvent = function (const Stream: TStream; const BaseUrl: String):
+  { Load model from given Stream, that represents given URL.
+    @param LoadOptions Optional (may be @nil) loading options. }
+  TModelLoadEvent = function (const Stream: TStream; const BaseUrl: String;
+    const LoadOptions: TCastleSceneLoadOptions):
     TX3DRootNode;
+
+  { Save model to given Stream.
+    @param SaveOptions Optional (may be @nil) saving options. }
   TModelSaveEvent = procedure (const Node: TX3DRootNode; const Stream: TStream;
-    const Generator: String; const Source: String);
+    const SaveOptions: TCastleSceneSaveOptions);
 
   { Information about a model format, used with @link(RegisterModelFormat). }
   TModelFormat = class
@@ -257,7 +362,8 @@ type
   as it ensures that the format is registered for any future use in the application.
 
   @longCode(#
-  function LoadUSD(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
+  function LoadUSD(const Stream: TStream; const BaseUrl: String;
+    const LoadOptions: TCastleSceneLoadOptions): TX3DRootNode;
   begin
     Result := TX3DRootNode.Create;
     // TODO: Load USD here
@@ -285,33 +391,63 @@ type
   #) *)
 procedure RegisterModelFormat(const ModelFormat: TModelFormat);
 
-implementation
-
-uses Generics.Collections,
-  CastleClassUtils, CastleImages, CastleUriUtils,
-  X3DLoadInternalGEO, X3DLoadInternal3DS, X3DLoadInternalOBJ,
-  X3DLoadInternalCollada, X3DLoadInternalSpine, X3DLoadInternalSTL,
-  X3DLoadInternalMD3, X3DLoadInternalGLTF, X3DLoadInternalImage,
-  X3DLoadInternalCocos2d, CastleInternalNodeInterpolator,
-  CastleInternalSpritesheet, CastleDownload, X3DLoadInternalTiledMap,
-  CastleInternalLoadSaveIfc;
-
-{ declare FRegisteredModelFormats early ------------------------------------- }
-
+{ Used by castle-model-viewer/utils/output_document_types/ }
+{$ifdef CASTLE_INTERNAL_EXPOSE_MODEL_FORMATS}
 type
+  // @exclude
   TModelFormatList = class({$ifdef FPC}specialize{$endif} TObjectList<TModelFormat>)
     function FindMimeType(const MimeType: string): TModelFormat;
   end;
 
+// @exclude
+function InternalRegisteredModelFormats: TModelFormatList;
+{$endif CASTLE_INTERNAL_EXPOSE_MODEL_FORMATS}
+
+implementation
+
+uses
+  CastleImages, CastleUriUtils, CastleInternalNodeInterpolator, CastleDownload
+  {$IFNDEF CASTLE_GEO_SUPPORT_DISABLE}, X3DLoadInternalGEO {$ENDIF}
+  {$IFNDEF CASTLE_3DS_SUPPORT_DISABLE}, X3DLoadInternal3DS {$ENDIF}
+  {$IFNDEF CASTLE_OBJ_SUPPORT_DISABLE}, X3DLoadInternalOBJ {$ENDIF}
+  {$IFNDEF CASTLE_COLLADA_SUPPORT_DISABLE}, X3DLoadInternalCollada {$ENDIF}
+  {$IFNDEF CASTLE_SPINE_SUPPORT_DISABLE}, X3DLoadInternalSpine {$ENDIF}
+  {$IFNDEF CASTLE_STL_SUPPORT_DISABLE}, X3DLoadInternalSTL {$ENDIF}
+  {$IFNDEF CASTLE_PLY_SUPPORT_DISABLE}, X3DLoadInternalPLY {$ENDIF}
+  {$IFNDEF CASTLE_MD3_SUPPORT_DISABLE}, X3DLoadInternalMD3 {$ENDIF}
+  {$IFNDEF CASTLE_GLTF_SUPPORT_DISABLE}, X3DLoadInternalGLTF {$ENDIF}
+  {$IFNDEF CASTLE_IMAGE_SUPPORT_DISABLE}, X3DLoadInternalImage {$ENDIF}
+  {$IFNDEF CASTLE_COCOS2D_SUPPORT_DISABLE}, X3DLoadInternalCocos2d {$ENDIF}
+  {$IFNDEF CASTLE_SPRITESHEET_SUPPORT_DISABLE}, CastleInternalSpritesheet {$ENDIF}
+  {$IFNDEF CASTLE_TILED_MAP_SUPPORT_DISABLE}, X3DLoadInternalTiledMap {$ENDIF}
+  {$IFNDEF CASTLE_IFC_SUPPORT_DISABLE}, CastleIfc {$ENDIF};
+
+{ declare FRegisteredModelFormats early ------------------------------------- }
+
+{$ifndef CASTLE_INTERNAL_EXPOSE_MODEL_FORMATS}
+type
+  TModelFormatList = class({$ifdef FPC}specialize{$endif} TObjectList<TModelFormat>)
+    function FindMimeType(const MimeType: string): TModelFormat;
+  end;
+{$endif not CASTLE_INTERNAL_EXPOSE_MODEL_FORMATS}
+
 var
   FRegisteredModelFormats: TModelFormatList;
+
+{$ifdef CASTLE_INTERNAL_EXPOSE_MODEL_FORMATS}
+function InternalRegisteredModelFormats: TModelFormatList;
+begin
+  Result := FRegisteredModelFormats;
+end;
+{$endif CASTLE_INTERNAL_EXPOSE_MODEL_FORMATS}
 
 { loading -------------------------------------------------------------------- }
 
 { Load a sequence of nodes to an animation suitable for TNodeInterpolator.
   Allows to read sequence of static models as an animation,
   e.g. Blender can export Wavefront OBJ like that. }
-function LoadSequenceUsingCounter(const Url: String): TX3DRootNode;
+function LoadSequenceUsingCounter(const Url: String;
+  const LoadOptions: TCastleSceneLoadOptions): TX3DRootNode;
 
   function LoadAnimationUsingCounter(const Url: String): TNodeInterpolator.TAnimationList;
   const
@@ -347,7 +483,7 @@ function LoadSequenceUsingCounter(const Url: String): TX3DRootNode;
       FirstFrameIndex := FrameIndex;
 
       repeat
-        Animation.KeyNodes.Add(LoadNode(FrameUrl));
+        Animation.KeyNodes.Add(LoadNode(FrameUrl, LoadOptions));
         Animation.KeyTimes.Add((FrameIndex - FirstFrameIndex) / FramesPerSecond);
         Inc(FrameIndex);
         FrameUrl := FormatNameCounter(Url, FrameIndex, false);
@@ -368,7 +504,7 @@ begin
   finally FreeAndNil(Animations) end;
 end;
 
-function LoadNode(const Url: String): TX3DRootNode;
+function LoadNode(const Url: String; const LoadOptions: TCastleSceneLoadOptions): TX3DRootNode;
 var
   MimeType, UrlWithoutAnchor: string;
 
@@ -402,7 +538,7 @@ var
 
     Stream := Download(UrlWithoutAnchor, DownloadOptions);
     try
-      Result := LoadNode(Stream, Url, MimeType);
+      Result := LoadNode(Stream, Url, MimeType, LoadOptions);
     finally FreeAndNil(Stream) end;
   end;
 
@@ -416,7 +552,7 @@ begin
 
   if HasNameCounter(Url, false) then
   begin
-    Result := LoadSequenceUsingCounter(Url)
+    Result := LoadSequenceUsingCounter(Url, LoadOptions)
   end else
   begin
     MimeType := UriMimeType(Url, Gzipped);
@@ -454,7 +590,8 @@ begin
 end;
 
 function LoadNode(const Stream: TStream;
-  BaseUrl: String; const MimeType: String): TX3DRootNode;
+  BaseUrl: String; const MimeType: String;
+  const LoadOptions: TCastleSceneLoadOptions): TX3DRootNode;
 var
   ModelFormat: TModelFormat;
 begin
@@ -486,7 +623,7 @@ begin
   if not Assigned(ModelFormat.OnLoad) then
     raise Exception.CreateFmt('Cannot load model format "%s"', [MimeType]);
 
-  Result := ModelFormat.OnLoad(Stream, BaseUrl);
+  Result := ModelFormat.OnLoad(Stream, BaseUrl, LoadOptions);
 
   Assert(Result <> nil);
 
@@ -500,23 +637,31 @@ end;
 
 { saving -------------------------------------------------------------------- }
 
-procedure SaveNode(const Node: TX3DRootNode;
-  const Url: String;
-  const Generator: String;
-  const Source: String);
+procedure SaveNode(const Node: TX3DRootNode; const Url: String;
+  const SaveOptions: TCastleSceneSaveOptions);
 var
   Stream: TStream;
+  SaveStreamOptions: TSaveStreamOptions;
+  Gzipped: Boolean;
+  MimeType: String;
 begin
-  Stream := UrlSaveStream(Url);
+  { If the extension indicates that content is gzipped, like .x3d.gz or .x3dvz,
+    then save it gzipped. This is performed by passing ssoGzip to UrlSaveStream. }
+  MimeType := UriMimeType(Url, Gzipped);
+  if Gzipped then
+    SaveStreamOptions := [ssoGzip]
+  else
+    SaveStreamOptions := [];
+
+  Stream := UrlSaveStream(Url, SaveStreamOptions);
   try
-    SaveNode(Node, Stream, UriMimeType(Url), Generator, Source);
+    SaveNode(Node, Stream, MimeType, SaveOptions);
   finally FreeAndNil(Stream) end;
 end;
 
 procedure SaveNode(const Node: TX3DRootNode;
   const Stream: TStream; const MimeType: String;
-  const Generator: String;
-  const Source: String);
+  const SaveOptions: TCastleSceneSaveOptions);
 var
   ModelFormat: TModelFormat;
 begin
@@ -532,7 +677,33 @@ begin
   if not Assigned(ModelFormat.OnSave) then
     raise Exception.CreateFmt('Cannot save model format "%s"', [MimeType]);
 
-  ModelFormat.OnSave(Node, Stream, Generator, Source);
+  ModelFormat.OnSave(Node, Stream, SaveOptions);
+end;
+
+procedure SaveNode(const Node: TX3DRootNode; const Url: String;
+  const Generator: String; const Source: String = '');
+var
+  SaveOptions: TCastleSceneSaveOptions;
+begin
+  SaveOptions := TCastleSceneSaveOptions.Create(nil);
+  try
+    SaveOptions.Generator := Generator;
+    SaveOptions.Source := Source;
+    SaveNode(Node, Url, SaveOptions);
+  finally FreeAndNil(SaveOptions) end;
+end;
+
+procedure SaveNode(const Node: TX3DRootNode; const Stream: TStream;
+  const MimeType: String; const Generator: String; const Source: String = '');
+var
+  SaveOptions: TCastleSceneSaveOptions;
+begin
+  SaveOptions := TCastleSceneSaveOptions.Create(nil);
+  try
+    SaveOptions.Generator := Generator;
+    SaveOptions.Source := Source;
+    SaveNode(Node, Stream, MimeType, SaveOptions);
+  finally FreeAndNil(SaveOptions) end;
 end;
 
 { file filters -------------------------------------------------------------- }
@@ -547,8 +718,23 @@ function SaveLoad_FileFilters(const Load: boolean): String;
   begin
     Result := '';
     for ModelFormat in FRegisteredModelFormats do
+    begin
+      // Exclude ModelFormat that cannot be loaded / saved?
+      // Or not, display in "All Scenes" really all.
+
+      // if Load then
+      // begin
+      //   if not Assigned(ModelFormat.OnLoad) then
+      //     Continue;
+      // end else
+      // begin
+      //   if not Assigned(ModelFormat.OnSave) then
+      //     Continue;
+      // end;
+
       for Ext in ModelFormat.Extensions do
         Result := SAppendPart(Result, ';', '*' + Ext);
+    end;
   end;
 
   function FormatExtensions(const ModelFormat: TModelFormat): String;
@@ -562,18 +748,14 @@ function SaveLoad_FileFilters(const Load: boolean): String;
 
 var
   ModelFormat: TModelFormat;
-  DefaultMark: String;
 begin
   if FRegisteredModelFormats = nil then
     raise Exception.Create('No model formats registered, you try to build filters list too early, before initialization of Castle Game Engine units that register model formats');
 
   Result := 'All Files|*';
 
-  if Load then
-  begin
-    { When loading, "All Scenes" is the default filter. }
-    Result := Result + '|*All Scenes|' + AllExtensions;
-  end;
+  { "All Scenes" is the default filter for both loading and saving now. }
+  Result := Result + '|*All Scenes|' + AllExtensions;
 
   for ModelFormat in FRegisteredModelFormats do
   begin
@@ -588,11 +770,7 @@ begin
         Continue;
     end;
 
-    { When saving, the default filter is X3D XML. }
-    DefaultMark := Iff((not Load) and (ModelFormat.MimeTypes[0] = 'model/x3d+xml'), '*', '');
-
     Result := Result + '|' +
-      DefaultMark +
       ModelFormat.FileFilterName + '|' + FormatExtensions(ModelFormat);
   end;
 end;

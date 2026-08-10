@@ -16,7 +16,8 @@
 
 {$ifdef read_interface}
 
-//type
+// type section started in CastleTransform.pas
+
   { Group and transform (move, rotate, scale) children objects.
 
     Add and remove children using the @link(Add), @link(Remove) and similar methods.
@@ -280,38 +281,20 @@
     { Ability to add a callback (object of procedure have to be TComponent)
       to be informed when a behavior is added to this CastleTransform. }
     procedure AddNotificationOnBehaviorAdded(const AEvent: TComponentEvent); overload;
-    { Ability to add a callback (object of procedure have to be TComponent)
-      to be informed when a behavior is added to this CastleTransform with
-      object class filtering. }
-    procedure AddNotificationOnBehaviorAdded(const AEvent: TComponentEvent;
-      const ClassFilter: TComponentClass); overload;
-    { Calls all behavior add callbacks with ABehavior as parameter value. }
+    { Calls all behavior add callbacks with ABehavior as the parameter value. }
     procedure NotifyBehaviorAdded(const ABehavior: TCastleBehavior);
     { Remove all occurrences of callback (object of procedure have to be TComponent)
       from "OnBehaviorAdded" list. }
     procedure RemoveNotificationOnBehaviorAdded(const AEvent: TComponentEvent); overload;
-    { Remove a callback (object of procedure have to be TComponent)
-      from "OnBehaviorAdded" calbacks list with object class filtering. }
-    procedure RemoveNotificationOnBehaviorAdded(const AEvent: TComponentEvent;
-      const ClassFilter: TComponentClass); overload;
 
     { Ability to add a callback (object of procedure have to be TComponent)
       to be informed when a behavior is added to this CastleTransform }
     procedure AddNotificationBeforeBehaviorRemove(const AEvent: TComponentEvent); overload;
-    { Ability to add a callback (object of procedure have to be TComponent)
-      to be informed when a behevior is added to this CastleTransform with
-      object class filtering. }
-    procedure AddNotificationBeforeBehaviorRemove(const AEvent: TComponentEvent;
-      const ClassFilter: TComponentClass); overload;
-    { Calls all behavior remove callbacks with ABehavior as parameter value. }
+    { Calls all behavior remove callbacks with ABehavior as the parameter value. }
     procedure NotifyBeforeBehaviorRemove(const ABehavior: TCastleBehavior);
     { Remove all occurrences of callback (object of procedure have to be TComponent)
       from "BeforeBehaviorRemove" list. }
     procedure RemoveNotificationBeforeBehaviorRemove(const AEvent: TComponentEvent); overload;
-    { Remove a callback (object of procedure have to be TComponent)
-      from "BeforeBehaviorRemove" calbacks list with object class filtering. }
-    procedure RemoveNotificationBeforeBehaviorRemove(const AEvent: TComponentEvent;
-      const ClassFilter: TComponentClass); overload;
 
     { Call ParentBeforeDetach and WorldBeforeDetach on a behavior that will soon be freed. }
     procedure BeforeBehaviorDestroy(const Behavior: TCastleBehavior);
@@ -618,7 +601,8 @@
     procedure ExistsInRootChanged; virtual;
 
     { Helper for InternalBuildNode.
-      Result must be TAbstractChildNode or @nil. }
+      Result must be TAbstractChildNode or @nil.
+      @exclude }
     function InternalBuildNodeInside: TObject; virtual;
   public
     const
@@ -1123,8 +1107,12 @@
       and react when they change. }
     procedure VisibleChangeHere(const Changes: TVisibleChanges); virtual;
 
-    { Root transformation (TCastleAbstractRootTransform) containing us.
-      @nil if we are not (yet) part of some hierarchy rooted in TCastleAbstractRootTransform. }
+    { Reference to the root transformation (typically matching the
+      @link(TCastleViewport.Items) value) containing us.
+
+      May be @nil if we are not (yet) part of some hierarchy rooted in
+      TCastleAbstractRootTransform. In simple words, it means that
+      TCastleTransform is not added to the viewport yet. }
     property World: TCastleAbstractRootTransform read FWorld;
 
     { Called when rendering context is destroyed.
@@ -1651,16 +1639,17 @@
       and the last component is the rotation angle @italic(in radians).
 
       Note: the Rotation axis (first 3 components) must not be a zero vector,
-      however as a special case the rotation value @code(TVector4.Zero) (so all components,
-      axis and angle, are zero) is also allowed.
+      however as a special case the rotation value @code(TVector4.Zero)
+      (so all the components, axis and angle, are zero) is also allowed.
 
-      Rotation is done around @link(Center).
+      Rotation is done around @link(Center) (which is by default zero, so it doesn't matter).
 
-      Set it like this:
+      Set the rotation like this:
 
       @longCode(#
-        Scene.Rotation := Vector4(0, 0, 1, Pi / 10);
-        Scene.Rotation := Scene.Rotation + Vector4(0, 0, 0, Pi / 10);
+        Scene.Rotation := Vector4(0, 0, 1, Pi / 2);
+        Scene.Rotation := Vector4(0, 0, 1, Deg(90)); // Deg is a useful shortcut for DegToRad
+        Scene.Rotation := Scene.Rotation + Vector4(0, 0, 0, Pi / 2);
       #)
 
       To combine multiple rotations, you can use @italic(quaternion multiplication).
@@ -1671,15 +1660,15 @@
       var
         Q, Q1, Q2: TQuaternion;
       begin
-        Q1 := QuatFromAxisAngle(Vector3(0, 1, 0), 0.123);
-        Q2 := QuatFromAxisAngle(Vector3(0, 0, 1), 0.456);
+        Q1 := QuatFromAxisAngle(Vector3(0, 1, 0), Deg(30));
+        Q2 := QuatFromAxisAngle(Vector3(0, 0, 1), Deg(45));
         Q := Q1 * Q2;
         MyTransform.Rotation := Q.ToAxisAngle;
       end;
       #)
 
-      Combining rotations this way is very flexible. You can combine
-      as many as you want, and it is clear (you define it yourself)
+      Combining rotations using quaternions is very flexible. You can combine
+      as many rotations as you want, and it is clear (you define it yourself)
       in which order each rotation is applied.
       Note that you can also just nest one TCastleTransform within
       another TCastleTransform, and set different rotations on each of them,
@@ -1749,7 +1738,7 @@
     property ScaleOrientation: TVector4 read FScaleOrientation write SetScaleOrientation;
 
     { Make the transform do nothing --- zero @link(Translation), zero @link(Rotation),
-      @link(Scale) to one. Also resets @link(ScaleOrientation). }
+      @link(Scale) to one. Also resets @link(ScaleOrientation) and @link(Center). }
     procedure Identity;
 
     { Current TCastleRigidBody behavior that determines do we
@@ -1999,23 +1988,31 @@
       In effect, the virtual methods of TCastleBehavior, like @link(TCastleBehavior.Update),
       will be automatically called.
       Also the @link(TCastleBehavior.Parent) gets assigned.
-      If the TCastleBehavior was part of another TCastleTransform, it is removed from it.
+
+      If the given Behavior was part of another TCastleTransform,
+      it is removed from it.
+      If the given Behavior was already part of this TCastleTransform,
+      nothing happens (note: we do not move the behavior to the end of the list).
 
       @seealso FindBehavior
       @seealso BehaviorsEnumerate }
     procedure AddBehavior(const Behavior: TCastleBehavior);
 
-    { Insert a TCastleBehavior to this TCastleTransform at specified index
+    { Insert a TCastleBehavior to this TCastleTransform at a specified index.
       In effect, the virtual methods of TCastleBehavior, like @link(TCastleBehavior.Update),
       will be automatically called.
       Also the @link(TCastleBehavior.Parent) gets assigned.
-      If the TCastleBehavior was part of another TCastleTransform, it is removed from it.
+
+      If the given Behavior was part of another TCastleTransform,
+      it is removed from it.
+      If the given Behavior was already part of this TCastleTransform,
+      nothing happens (note: we do not move the behavior to the new index).
 
       @seealso FindBehavior
       @seealso BehaviorsEnumerate }
-    //procedure InsertBehavior(const Index: Integer; const Behavior: TCastleBehavior);
+    procedure InsertBehavior(const Index: Integer; const Behavior: TCastleBehavior);
 
-    { Returns behavior index, -1 means not found. }
+    { Returns the behavior index, -1 means not found. }
     function BehaviorIndex(const Behavior: TCastleBehavior): Integer;
 
     { Remove TCastleBehavior from this TCastleTransform.
@@ -2137,8 +2134,10 @@
 
       It exports content for all nodes, even csTransient,
       and thus it is never @nil.
-      Caller should avoid check for @code(csTransient in Transform.ComponentState)
-      if you want to avoid this. }
+      Caller should make a check before calling this,
+      like @code(if not (csTransient in Transform.ComponentState) then...)
+      if it wants to avoid storing csTransient.
+      @exclude }
     function InternalBuildNode: TObject;
   published
     { Is this object (and all children) visible and colliding.
@@ -2359,7 +2358,7 @@ begin
   PendingRemovals;
 
   { Before we start destroying the transform we need to remove all behaviors from
-    it, because destroying behavior calls on it events like BeforeParentDetach,
+    it, because destroying behavior calls on it events like ParentBeforeDetach,
     ParentChanged.
 
     And we want Parent (this TCastleTransform) state to be valid
@@ -2367,7 +2366,7 @@ begin
 
     In case of descendants, like TCastleScene, also their state has to be valid
     in case behavior's implementation accesses them, e.g. doing
-    "(Parent as TCastleScene).StopAnimation" from BeforeParentDetach implementation.
+    "(Parent as TCastleScene).StopAnimation" from ParentBeforeDetach implementation.
     That's why we do this from BeforeDestruction, before e.g. TCastleScene.Destroy starts
     destroying the instance. }
 
@@ -2797,6 +2796,43 @@ begin
   List.Exchange(Index1, Index2);
 end;
 
+{ Testcase that this helps:
+  https://github.com/michaliskambi/many-cubes/ .
+  It is possible it will not be a relevant optimization at some point in the future. }
+{$define CASTLE_OPTIMIZE_LocalBoundingBox}
+{$ifdef CASTLE_OPTIMIZE_LocalBoundingBox}
+
+function TCastleTransform.LocalBoundingBox: TBox3D;
+var
+  I: Integer;
+  Child: TCastleTransform;
+begin
+  if Exists and (List.Count <> 0) then
+  begin
+    Child := List[0];
+    if not (Child.InternalExcludeFromParentBoundingVolume and
+            (InternalGizmoBoundingBox = 0)) then
+      Result := Child.BoundingBox
+    else
+      Result := TBox3D.Empty;
+
+    for I := 1 to List.Count - 1 do
+    begin
+      Child := List[I];
+      { Ignoring InternalExcludeFromParentBoundingVolume when
+        InternalGizmoBoundingBox <> 0 is a hack,
+        so that when TCastleViewport.ItemsWithGizmosBoundingBox is called,
+        then all gizmos are taken into account. }
+      if not (Child.InternalExcludeFromParentBoundingVolume and
+              (InternalGizmoBoundingBox = 0)) then
+        Result.Include(Child.BoundingBox);
+    end;
+  end else
+    Result := TBox3D.Empty;
+end;
+
+{$else}
+
 function TCastleTransform.LocalBoundingBox: TBox3D;
 var
   I: Integer;
@@ -2814,6 +2850,8 @@ begin
         Result.Include(List[I].BoundingBox);
   end;
 end;
+
+{$endif}
 
 function TCastleTransform.GetRenderList(const Params: TRenderParams): TCastleTransformList;
 begin
@@ -3135,25 +3173,18 @@ begin
   end;
 end;
 
-procedure TCastleTransform.AddNotificationOnBehaviorAdded(const AEvent: TComponentEvent);
-begin
-  AddNotificationOnBehaviorAdded(AEvent, TCastleComponent);
-end;
-
 procedure TCastleTransform.AddNotificationOnBehaviorAdded(
-  const AEvent: TComponentEvent; const ClassFilter: TComponentClass);
+  const AEvent: TComponentEvent);
 begin
   if FOnAddedBehaviorNotification = nil then
     FOnAddedBehaviorNotification := TCastleComponentNotification.Create(Self);
-
-  FOnAddedBehaviorNotification.AddNotification(AEvent, ClassFilter);
+  FOnAddedBehaviorNotification.AddNotification(AEvent);
 end;
 
 procedure TCastleTransform.NotifyBehaviorAdded(const ABehavior: TCastleBehavior);
 begin
   if FOnAddedBehaviorNotification = nil then
     Exit;
-
   FOnAddedBehaviorNotification.Notify(ABehavior);
 end;
 
@@ -3162,32 +3193,15 @@ procedure TCastleTransform.RemoveNotificationOnBehaviorAdded(
 begin
   if FOnAddedBehaviorNotification = nil then
     Exit;
-
   FOnAddedBehaviorNotification.RemoveNotification(AEvent);
-end;
-
-procedure TCastleTransform.RemoveNotificationOnBehaviorAdded(
-  const AEvent: TComponentEvent; const ClassFilter: TComponentClass);
-begin
-  if FOnAddedBehaviorNotification = nil then
-    Exit;
-
-  FOnAddedBehaviorNotification.RemoveNotification(AEvent, ClassFilter);
 end;
 
 procedure TCastleTransform.AddNotificationBeforeBehaviorRemove(
   const AEvent: TComponentEvent);
 begin
-  AddNotificationBeforeBehaviorRemove(AEvent, TCastleComponent);
-end;
-
-procedure TCastleTransform.AddNotificationBeforeBehaviorRemove(
-  const AEvent: TComponentEvent; const ClassFilter: TComponentClass);
-begin
   if FBeforeRemoveBehaviorNotification = nil then
     FBeforeRemoveBehaviorNotification := TCastleComponentNotification.Create(Self);
-
-  FBeforeRemoveBehaviorNotification.AddNotification(AEvent, ClassFilter);
+  FBeforeRemoveBehaviorNotification.AddNotification(AEvent);
 end;
 
 procedure TCastleTransform.NotifyBeforeBehaviorRemove(
@@ -3195,7 +3209,6 @@ procedure TCastleTransform.NotifyBeforeBehaviorRemove(
 begin
   if FBeforeRemoveBehaviorNotification = nil then
     Exit;
-
   FBeforeRemoveBehaviorNotification.Notify(ABehavior);
 end;
 
@@ -3204,17 +3217,7 @@ procedure TCastleTransform.RemoveNotificationBeforeBehaviorRemove(
 begin
   if FBeforeRemoveBehaviorNotification = nil then
     Exit;
-
   FBeforeRemoveBehaviorNotification.RemoveNotification(AEvent);
-end;
-
-procedure TCastleTransform.RemoveNotificationBeforeBehaviorRemove(
-  const AEvent: TComponentEvent; const ClassFilter: TComponentClass);
-begin
-  if FBeforeRemoveBehaviorNotification = nil then
-    Exit;
-
-  FBeforeRemoveBehaviorNotification.RemoveNotification(AEvent, ClassFilter);
 end;
 
 procedure TCastleTransform.BeforeBehaviorDestroy(const Behavior: TCastleBehavior);
@@ -4360,7 +4363,8 @@ begin
     ParentsHaveRigidBody(Self);
 end;
 
-procedure TCastleTransform.AddBehavior(const Behavior: TCastleBehavior);
+procedure TCastleTransform.InsertBehavior(const Index: Integer;
+  const Behavior: TCastleBehavior);
 var
   ReasonWhyCannot: String;
 begin
@@ -4383,67 +4387,24 @@ begin
     Assert(Behavior.FParent = nil);
 
     { Add to new parent }
-
-    FBehaviors.Add(Behavior);
-    Behavior.FParent := Self;
-    Behavior.ParentAfterAttach;
-    {$warnings off}
-    Behavior.ParentChanged; // call at end, when state is consistent
-    {$warnings on}
-
-    { Call WorldAfterAttach }
-    if Behavior.ListenWorldChange then
-    begin
-      AddWorldChangeNotification(Behavior);
-      if FWorld <> nil then
-        Behavior.WorldAfterAttach;
-    end;
-    NotifyBehaviorAdded(Behavior);
-
-    UpdateBehaviorsNeedBeforeRender;
-    UpdateCachedBehaviors;
-  end;
-end;
-
-(*
-This is only for unused MoveBehaviorBeforeAfterAnotherBehavior now.
-TODO: Cannot be implemented like this, as copy-paste of AddBehavior -- to easy
-to introduce mistakes when maintaining (it already happened at merge).
-Should be implemented by adjusting AddBehavior, and then
-AddBehavior should jus call InsertBehavior.
-
-procedure TCastleTransform.InsertBehavior(const Index: Integer;
-  const Behavior: TCastleBehavior);
-var
-  ReasonWhyCannot: String;
-begin
-  // TODO: A lot of code copied form AddBehavior()
-  // TODO: What to do when Behavior.FParent = Self only move on list or? remove and insert?
-  // TODO:  maybe should be Internal
-  if Behavior.FParent <> Self then
-  begin
-    if not Behavior.CanAttachToParent(Self, ReasonWhyCannot) then
-      raise Exception.CreateFmt('Cannot add behavior %s (%s) to %s (%s) because: %s', [
-        Behavior.Name,
-        Behavior.ClassName,
-        Name,
-        ClassName,
-        ReasonWhyCannot
-      ]);
-
-    { As a first action (after the check CanAttachToParent has passed) remove
-      from previous parent. This will also cause necessary virtual method calls,
-      like ParentBeforeDetach, WorldBeforeDetach. }
-    if Behavior.FParent <> nil then
-      Behavior.FParent.RemoveBehavior(Behavior);
-    Assert(Behavior.FParent = nil);
-
-    { Inseert to new parent }
     FBehaviors.Insert(Index, Behavior);
     Behavior.FParent := Self;
+
+    { Call this as soon as possible after adding when we have consistent state
+      (so FBehaviors.Insert was done, and Behavior.FParent is valid).
+      This makes sure that FCachedRigidBody and FCachedCollider are up-to-date.
+      This way implementations of ParentAfterAttach can rely that they are correct,
+      e.g. TCastleRigidBody.InitializeCollider can use Parent.Collider.
+
+      Testcase: adding rigid body / colliders at run-time, see
+      https://github.com/castle-engine/bad-chess/issues/3 . }
+    UpdateCachedBehaviors;
+
+    { Call virtual methods and notifications at the end, when state is consistent }
+
     Behavior.ParentAfterAttach;
     {$warnings off}
-    Behavior.ParentChanged; // call at end, when state is consistent
+    Behavior.ParentChanged;
     {$warnings on}
 
     { Call WorldAfterAttach }
@@ -4456,13 +4417,15 @@ begin
     NotifyBehaviorAdded(Behavior);
 
     UpdateBehaviorsNeedBeforeRender;
-    UpdateCachedBehaviors;
   end;
 end;
-*)
 
-function TCastleTransform.BehaviorIndex(const Behavior: TCastleBehavior
-  ): Integer;
+procedure TCastleTransform.AddBehavior(const Behavior: TCastleBehavior);
+begin
+  InsertBehavior(FBehaviors.Count, Behavior);
+end;
+
+function TCastleTransform.BehaviorIndex(const Behavior: TCastleBehavior): Integer;
 begin
   Result := FBehaviors.IndexOf(Behavior);
 end;
@@ -4483,13 +4446,21 @@ begin
 
   Beh.FParent := nil;
   FBehaviors.Delete(BehaviorIndex);
+
+  { Call this as soon as possible after removing when we have consistent state
+    (so FBehaviors.Delete was done, and Behavior.FParent is valid = nil).
+    This makes sure that FCachedRigidBody and FCachedCollider are up-to-date.
+    This way implementations of ParentChanged can rely that they are correct. }
+  UpdateCachedBehaviors;
+
+  { Call virtual methods and notifications at the end, when state is consistent }
+
   {$warnings off}
-  Beh.ParentChanged; // call at end, when state is consistent
+  Beh.ParentChanged;
   {$warnings on}
   RemoveWorldChangeNotification(Beh);
 
   UpdateBehaviorsNeedBeforeRender;
-  UpdateCachedBehaviors;
 end;
 
 procedure TCastleTransform.RemoveBehavior(const Behavior: TCastleBehavior);
@@ -4765,7 +4736,8 @@ function TCastleTransform.InternalBuildNode: TObject;
     - Default = (0,0,0,0) in CGE (as a special exception, we allow zero axis).
       This is a nice default value for rotations, consistent with many other
       defaults that are "equal to memory filled with zero" when possible,
-      and it doesn't suggest any rotation axis (for 2D, Z axis is not useful).
+      and it doesn't suggest any rotation axis (for 2D, rotating around Z
+      is most common; for 3D, rotating around Y is most common).
 
     - And they have default = (0,0,1,0) in X3D.
 
@@ -4774,7 +4746,7 @@ function TCastleTransform.InternalBuildNode: TObject;
   function RotationHasZDefault(const Rot: TVector4): TVector4;
   begin
     if Rot.IsPerfectlyZero then
-      Result := Vector4(0, 0, 1, 0)
+      Result := CastleVectors.Vector4(0, 0, 1, 0)
     else
       Result := Rot;
   end;

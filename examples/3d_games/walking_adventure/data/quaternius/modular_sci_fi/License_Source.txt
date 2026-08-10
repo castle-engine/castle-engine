@@ -1,0 +1,24 @@
+Thanks for buying the Source version of the Modular SciFi MegaKit!
+All textures can be found inside the Blends folder.
+
+The SOURCE version of the Modular SciFi MegaKit, contains 
+all of the models and project files in Unity(URP), Unreal Engine and Godot projects
+with the custom shaders already setup.
+
+Versions used for the SOURCE version projects (anything above these work)
+ Godot_v4.3 | Unity (URP) 2022.3.4 | Unreal Engine 4.27.2
+-------------------------------------------------------
+License:
+CC0 1.0 Universal (CC0 1.0) 
+Public Domain Dedication
+https://creativecommons.org/publicdomain/zero/1.0/
+
+------------------------------------------------------
+Models by @Quaternius
+Consider supporting me on Patreon!
+
+https://www.patreon.com/quaternius
+
+-------------------------------------------------------
+Join the Discord Server:
+https://discord.gg/vJqnRUYRfT

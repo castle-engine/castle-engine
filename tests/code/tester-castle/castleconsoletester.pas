@@ -1,5 +1,5 @@
 ﻿{
-  Copyright 2022-2022 Andrzej Kilijański, Michalis Kamburelis.
+  Copyright 2022-2025 Andrzej Kilijański, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Running tests using CastleTester with console output (just using CGE WritelnLog). }
+{ Running tests using CastleTester with console output (just using CastleLog). }
 unit CastleConsoleTester;
 
 interface
@@ -26,8 +26,6 @@ type
     FTester: TCastleTester;
     procedure TestExecuted(const AName: String);
     procedure TestFailed(const TestName, Msg: String);
-
-    procedure Log(const AMessage: String);
   public
     constructor Create;
     destructor Destroy; override;
@@ -42,7 +40,7 @@ uses CastleLog, CastleTesterParameters, CastleUtils, CastleStringUtils;
 
 procedure TCastleConsoleTester.TestFailed(const TestName, Msg: String);
 begin
-  Log(TestName + ': Failed: ' + Msg);
+  WritelnLog(TestName, 'Failed: ' + Msg);
 end;
 
 constructor TCastleConsoleTester.Create;
@@ -59,36 +57,34 @@ begin
   inherited;
 end;
 
-procedure TCastleConsoleTester.Log(const AMessage: String);
-begin
-  WritelnLog(AMessage);
-end;
-
 procedure TCastleConsoleTester.Run(const ATestCaseToRun: String);
 begin
   FTester.AddRegisteredTestCases;
-  Log('Scaning tests...');
+  WritelnLog('Scaning tests...');
   FTester.Scan;
-  Log('Found ' + IntToStr(FTester.EnabledTestCount) + ' tests.');
+  WritelnLog('Found ' + IntToStr(FTester.EnabledTestCount) + ' tests.');
   if ParamFilter <> '' then
   begin
     FTester.EnableFilter(ParamFilter);
-    Log('Applying filter: Enabled ' + IntToStr(FTester.EnabledTestCount) + ' tests.');
+    WritelnLog('Applying filter: Enabled ' + IntToStr(FTester.EnabledTestCount) + ' tests.');
   end;
-  Log('Preparing tests...');
+  WritelnLog('Preparing tests...');
   FTester.PrepareTestListToRun(ATestCaseToRun);
-  Log('Running tests...');
+  WritelnLog('Running tests...');
   FTester.Run;
   if FTester.TestFailedCount = 0 then
-    Log('All tests passed.');
+    WritelnLog('All %d tests passed (included in this: %d aborted).', [
+      FTester.TestPassedCount,
+      FTester.TestAbortedCount
+    ]);
 
-  //Log('Press <enter> to quit...');
+  //WritelnLog('Press <enter> to quit...');
   //Readln;
 end;
 
 procedure TCastleConsoleTester.TestExecuted(const AName: String);
 begin
-  Log('Processing: ' + AName);
+  WritelnLog('Processing: ' + AName);
 end;
 
 end.

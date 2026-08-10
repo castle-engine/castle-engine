@@ -297,6 +297,15 @@ var
     LocationInWorld: TVector3;
   begin
     Result := true;
+
+    { When ShapeBoundingBoxInWorldDynamic: Don't try to optimize shader
+      by not accounting for lights whose radius doesn't reach shape bounding box,
+      because lights for which this is true may change very often, causing
+      unnecessary shader regeneration.
+      See https://github.com/castle-engine/castle-engine/issues/664 }
+    if Shader.ShapeBoundingBoxInWorldDynamic then
+      Exit;
+
     if Light.Node is TAbstractPositionalLightNode then
     begin
       LightPosNode := TAbstractPositionalLightNode(Light.Node);

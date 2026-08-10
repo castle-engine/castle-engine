@@ -35,6 +35,12 @@
     it added / removed from the TInternalChildrenControls automatically. }
   TInternalChildrenControls = class
   strict private
+    { TODO: merge this with TCastleUserInterfaceList?
+      The differences betwen this class and TCastleUserInterfaceList:
+      - We rely on TComponent.Notification.
+      - We expose less list methods, as we don't descend from any standard
+        list class. }
+
     FParent: TCastleUserInterface;
     FContainer: TCastleContainer;
 
