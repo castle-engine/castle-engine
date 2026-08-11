@@ -1758,7 +1758,40 @@ type
     { OpenAndRun stuff --------------------------------------------------------- }
 
     { Do @link(Open) (initialize rendering context, show the window)
-      followed by @link(TCastleApplication.Run Application.Run) (run the event loop). }
+      followed by @link(TCastleApplication.Run Application.Run) (run
+      the event loop).
+
+      On most compilers and platforms, this is equivalent to these 2 calls:
+
+      @longCode(
+        Window.Open;
+        Application.Run;
+      )
+
+      But on some compilers and platforms (this exception applies only to
+      Delphi/Android now) it does something more complicated,
+      to achieve a similar effect:
+
+      @unorderedList(
+        @link(It calls FMX @code(Application.Run),
+          but it does almost nothing on Delphi/Android. FMX is prepared that
+          @code(Application.Run) happens inside main program "begin...end.",
+          which is done (in case of Android)
+          in onCreate of Java activity, and it should not really do much.)
+
+        @link(It schedules @link(Open) for when FMX will do
+          @code(Application.RealCreateForms).)
+
+        @link(Once the main program "begin...end." finishes,
+          then actual message loop will be performed (driven by Java activity
+          on Android). It will call at start @code(Application.RealCreateForms)
+          which will allocate our resources.
+
+          So we depend that after calling this method, your
+          main program "begin...end." soon ends.
+        )
+      )
+    }
     procedure OpenAndRun;
 
     { Parsing parameters ------------------------------------------------------- }
@@ -3534,11 +3567,13 @@ end;
 
 { OpenAndRun ----------------------------------------------------------------- }
 
+{$ifndef BACKEND_OVERRIDES_OpenAndRun}
 procedure TCastleWindow.OpenAndRun;
 begin
   Open;
   Application.Run;
 end;
+{$endif}
 
 { TCastleWindow ParseParameters -------------------------------------------------- }
 

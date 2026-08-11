@@ -2322,18 +2322,21 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
   }
   function DelphiDprojDeployFiles: String;
   const
-    AllDelphiPlatformNames: array [0..2] of String = (
-      { For now, commented out platforms that we don't use.
-        These platforms make DPROJ extra large
+    AllDelphiPlatformNames: array [0..8] of String = (
+      { In the past: we commented out platforms that we don't use.
+        These platforms made DPROJ extra large
         ( see https://forum.castle-engine.io/t/there-is-a-problem-with-generating-files-for-testing-new-features/1264/6 )
-        so for now, at least make it smaller but commenting out platforms that we don't use. }
-      // 'Android',
-      // 'Android64',
-      // 'iOSDevice64',
-      // 'iOSSimARM64',
+        In the past, we could make it smaller but commenting out platforms
+        that we don't use.
+        TODO: Now, we need a new solution, likely we should deploy zip
+        for non-Windows platforms with Delphi? }
+      'Android',
+      'Android64',
+      'iOSDevice64',
+      'iOSSimARM64',
       'Linux64',
-      // 'OSX64',
-      // 'OSXARM64',
+      'OSX64',
+      'OSXARM64',
       'Win32',
       'Win64'
     );
@@ -2345,6 +2348,7 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
     ConfigName, PlatformName, FileRelativeName: String;
     Files: TStringList;
     ResultBuilder: TStringBuilder;
+    RemoteDirBase, RemoteDir, RemoteName: String;
   begin
     ResultBuilder := TStringBuilder.Create;
     try
@@ -2385,17 +2389,34 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
                 ConfigName
               ]));
             for PlatformName in AllDelphiPlatformNames do
+            begin
+              { calculate RemoteDir and RemoteDirBase }
+              if ArrayContainsString(PlatformName, ['Android', 'Android64']) then
+                { We need assets/ prefix, since Delphi puts this in any
+                  chosen subdirectory of Android project, and we specifically
+                  want to later access it using CastleAndroidInternalAssetStream . }
+                RemoteDirBase := './assets'
+              else
+                RemoteDirBase := './' + TCastleManifest.DataName;
+              RemoteDir := ExtractFilePath(FileRelativeName);
+              { For consistency, use / in RemoteDir, even on Windows. }
+              if PathDelim <> '/' then
+                RemoteDir := SReplaceChars(RemoteDir, PathDelim, '/');
+              RemoteDir := RemoteDirBase + '/' + RemoteDir;
+
+              RemoteName := ExtractFileName(FileRelativeName);
+
               ResultBuilder.Append(Format(
                 ' <Platform Name="%s">' + NL +
-                '  <RemoteDir>./%s/%s</RemoteDir>' + NL +
+                '  <RemoteDir>%s</RemoteDir>' + NL +
                 '  <RemoteName>%s</RemoteName>' + NL +
                 '  <Overwrite>true</Overwrite>' + NL +
                 ' </Platform>' + NL, [
                   PlatformName,
-                  TCastleManifest.DataName,
-                  ExtractFilePath(FileRelativeName),
-                  ExtractFileName(FileRelativeName)
+                  RemoteDir,
+                  RemoteName
                 ]));
+            end;
             ResultBuilder.Append(
               '</DeployFile>' + NL);
           end;

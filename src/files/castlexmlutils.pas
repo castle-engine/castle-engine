@@ -1420,6 +1420,13 @@ begin
   if Gzipped then
     Include(StreamOptions, soGzip);
 
+  {$ifdef DELPHI}
+  { Stream must be seekable for Delphi XML reading,
+    and it may not be automatically seekable (e.g. when downloading
+    Android assets). }
+  Include(StreamOptions, soForceMemoryStream);
+  {$endif}
+
   Stream := Download(Url, StreamOptions);
   try
     try

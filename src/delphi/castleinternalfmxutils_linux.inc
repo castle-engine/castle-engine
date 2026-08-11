@@ -1,6 +1,6 @@
 {%MainUnit castleinternalfmxutils.pas}
 {
-  Copyright 2022-2023 Michalis Kamburelis.
+  Copyright 2022-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -17,6 +17,16 @@
 { Implementation of CastleInternalFmxUtils (initialize OpenGL context in FMX,
   code shared between FMX TOpenGLControl and FMX TCastleControl)
   for Linux. }
+
+{$ifdef read_TFmxOpenGLUtility_interface}
+strict private
+  GLAreaInitialized: Boolean;
+  GLAreaGtk: Pointer;
+  GLAreaRect: TVector4Integer; //< x, y, width, height
+  DrawingAreaParent: Pointer;
+{$endif read_TFmxOpenGLUtility_interface}
+
+{$ifdef read_implementation}
 
 uses
   SysUtils,
@@ -351,3 +361,5 @@ begin
   end else
     Result := 1;
 end;
+
+{$endif read_implementation}

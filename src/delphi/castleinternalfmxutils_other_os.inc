@@ -18,6 +18,13 @@
   code shared between FMX TOpenGLControl and FMX TCastleControl)
   for other OSes (with no OS-specific implementation). }
 
+{$ifdef read_TFmxOpenGLUtility_interface}
+strict private
+  HandleInitialized: Boolean;
+{$endif read_TFmxOpenGLUtility_interface}
+
+{$ifdef read_implementation}
+
 { TFmxOpenGLUtility --------------------------------------------------------- }
 
 procedure TFmxOpenGLUtility.ContextAdjustEarly(const PlatformContext: TGLContext);
@@ -26,10 +33,28 @@ end;
 
 procedure TFmxOpenGLUtility.HandleNeeded;
 begin
+  { We track HandleInitialized merely to call OnHandleAfterCreateEvent.
+    There's no need to actually *do* any handle allocation here,
+    this is used together with CastleInternalContextExistingEgl.
+    But we need to call OnHandleAfterCreateEvent,
+    as Fmx.CastleInternalGLControl depends on it,
+    to call FPlatformContext.Initialize to mark context as initialized. }
+  if not HandleInitialized then
+  begin
+    HandleInitialized := true;
+    if Assigned(OnHandleAfterCreateEvent) then
+      OnHandleAfterCreateEvent();
+  end;
 end;
 
 procedure TFmxOpenGLUtility.HandleRelease;
 begin
+  if HandleInitialized then
+  begin
+    HandleInitialized := false;
+    if Assigned(OnHandleBeforeDestroyEvent) then
+      OnHandleBeforeDestroyEvent();
+  end;
 end;
 
 procedure TFmxOpenGLUtility.Update;
@@ -40,3 +65,5 @@ function TFmxOpenGLUtility.Scale: Single;
 begin
   Result := 1;
 end;
+
+{$endif read_implementation}

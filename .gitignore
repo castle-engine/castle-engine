@@ -26,6 +26,36 @@ packagefiles.xml
 __recovery
 *.deployproj
 *.delphilsp.json
+*.idsig
+
+# lots of Android output by Delphi (TODO: minimize this by some options?)
+Android64/
+res/
+FM_Adaptive_Icon*
+debug/
+*.Artwork/
+*.dex
+assets/
+CompiledResources/
+ic_launcher*
+styles*.xml
+strings.xml
+splash_image_def*.xml
+ResourcePackagePropertyList.txt
+ResourceCompilePropertyList.txt
+PackagedResources.zip
+ManifestMergePropertyList.txt
+ManifestGenerationPropertyList.txt
+DexList.txt
+DexPropertyList.txt
+CompiledResourcesList.txt
+colors.xml
+colors-night*.xml
+*.stamp
+AndroidLibraryManifestList.txt
+AndroidManifest-merged.xml
+AndroidManifest.template.xml
+/examples/**/AndroidManifest.xml
 
 # Other backups
 *.blend1

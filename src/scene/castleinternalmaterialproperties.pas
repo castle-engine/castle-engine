@@ -1,5 +1,5 @@
 {
-  Copyright 2007-2023 Michalis Kamburelis.
+  Copyright 2007-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -635,7 +635,26 @@ begin
 
   if Url = '' then Exit;
 
-  Stream := Download(Url);
+  {$ifdef CASTLE_ASSUME_READ_ERROR_MEANS_MISSING_FILE}
+  try
+  {$endif CASTLE_ASSUME_READ_ERROR_MEANS_MISSING_FILE}
+
+    Stream := Download(Url);
+
+  {$ifdef CASTLE_ASSUME_READ_ERROR_MEANS_MISSING_FILE}
+  except
+    on E: Exception do
+    begin
+      WritelnWarning('Error reading "%s", assuming the file does not exist. The exception was "%s": %s', [
+        Url,
+        E.ClassName,
+        E.Message
+      ]);
+      Exit;
+    end;
+  end;
+  {$endif CASTLE_ASSUME_READ_ERROR_MEANS_MISSING_FILE}
+
   try
     ReadXMLFile(Config, Stream, Url);
   finally FreeAndNil(Stream) end;

@@ -1,6 +1,6 @@
 {%MainUnit castlewindow.pas}
 {
-  Copyright 2013-2024 Michalis Kamburelis.
+  Copyright 2013-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,14 +25,18 @@
   there are platform-specific edge cases.
   We still try to support all LCL and FMX widgetsets here, *but*
   we focus our testing on platforms where we actually use this backend by default.
-  This means right now only:
+  This means right now:
 
-  - Delphi/Linux with FMX
+  - Delphi/Linux,
+    Delphi/Android,
+    TODO: likely we will use it too for Delphi/iOS,
+    TODO: likely we will use it too for Delphi/macOS
+
+    They all use FireMonkey (FMX).
 
   Historically, it was useful also with some LCL backends (e.g. we depended on
   this for FPC/macOS for a long time, before we implemented castlewindow_cocoa.inc).
-  And it may be useful with more platforms in the future, both LCL and FMX
-  (e.g. Delphi/macOS will likely depend on this too).
+  And it may be useful with more platforms in the future, both LCL and FMX.
 
   - LCL TODO: Mouse look still stutters awfully on both Carbon and GTK2.
     ProcessTasks helps (without it, mouse look would not work at all)
@@ -125,6 +129,24 @@
   {$define USE_TIMER}
 {$endif}
 
+{$if defined(DELPHI) and defined(ANDROID)}
+  { This symbol is used by CastleWindow implementation.
+    It will then not implement TCastleWindow.OpenAndRun,
+    we have to define it in backend code. }
+  {$define BACKEND_OVERRIDES_OpenAndRun}
+
+  { Our OpenAndRun must
+
+    - do Fmx.Forms.Application.CreateForm
+      (this doesn't create form immediately, see
+      https://docwiki.embarcadero.com/Libraries/Sydney/en/FMX.Forms.TApplication.RealCreateForms )
+
+    - register on FMX TFormsCreatedMessage event,
+      to call TCastleWindow.Open later,
+      not directly from OpenAndRun. }
+  {$define SUBSCRIBE_FormsCreatedMessage}
+{$endif}
+
 {$ifdef read_interface_uses}
   {$ifdef FPC}
     // LCL
@@ -137,6 +159,7 @@
     {$ifdef LINUX} FMX.Platform.Linux, {$endif}
     FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs,
     FMX.StdCtrls, FMX.Menus, FMX.Platform,
+    {$ifdef SUBSCRIBE_FormsCreatedMessage} System.Messaging, {$endif}
     // CGE
     Fmx.CastleInternalGLControl, CastleInternalDelphiUtils, CastleFmxUtils,
   {$endif}
@@ -255,6 +278,12 @@ private
     var Handled: Boolean);
   function MousePosToCastle(
     const X, Y: {$ifdef FPC} Integer {$else} Single {$endif}): TVector2;
+
+  {$ifdef SUBSCRIBE_FormsCreatedMessage}
+  strict private
+    procedure FormsCreatedHandler(const Sender: TObject;
+      const M: System.Messaging.TMessage);
+  {$endif}
 {$endif read_window_interface}
 
 {$ifdef read_application_interface}
@@ -769,16 +798,14 @@ begin
 
   FormApplication.CreateForm(TForm, Form);
   {$else}
-  { In FMX, we cannot use
-      FormApplication.CreateForm
-    as it doesn't create form immediately.
-    We'd have to follow with RealCreateForms,
-    https://docwiki.embarcadero.com/Libraries/Sydney/en/FMX.Forms.TApplication.RealCreateForms
-
-    But it is simpler to just use TForm.CreateNew.
-    We can assign MainForm later. }
-
   Form := TForm.CreateNew(FormApplication);
+
+  if not FormApplication.IsRealCreateFormsCalled then
+    WritelnWarning('FMX IsRealCreateFormsCalled is false, we cannot reliably create forms now');
+  { TODO: Turn this into assertion once confirmed we are OK on all platforms: }
+  // Assert(FormApplication.IsRealCreateFormsCalled,
+  //   'FormApplication.IsRealCreateFormsCalled must be true, we expect forms can be created now');
+
   FormApplication.MainForm := Form;
   {$endif}
 
@@ -1469,6 +1496,45 @@ begin
     Y * OpenGLControl.MousePosScale);
 end;
 
+{$ifdef SUBSCRIBE_FormsCreatedMessage}
+procedure TCastleWindow.OpenAndRun;
+begin
+  { Perform typical FireMonkey work done in main program file.
+
+    This means we call FormApplication.CreateForm and *not*
+    TForm.CreateNew (which is done by our OpenBackend)
+    from TCastleWindow.OpenAndRun.
+    Which is important: TForm.CreateNew now would crash on Android,
+    this is too early for FMX to really create forms.
+
+    This also means we are prepared that
+    FormApplication.Run does almost nothing (the actual message loop
+    will be done after main program file "begin .. end." finishes).
+    On Android, the whole program "begin .. end." happens
+    in activity's onCreate, and the message loop is done by Android after that. }
+
+  FormApplication.Initialize;
+  // No need to create any form here, OpenBackend will do form creation
+  //FormApplication.CreateForm(TForm, Form);
+  FormApplication.Run;
+
+  // Note: We don't call our Application.Run, as it expects some window to be open.
+  // We also don't need to call it, Java on Android will drive message loop.
+
+  TMessageManager.DefaultManager.SubscribeToMessage(
+    TFormsCreatedMessage, FormsCreatedHandler);
+
+  WritelnLog('FMX Application.Run finished. This is expected, it does almost nothing on Delphi/Android, actual message loop will happen after program "end.".');
+end;
+
+procedure TCastleWindow.FormsCreatedHandler(const Sender: TObject;
+  const M: System.Messaging.TMessage);
+begin
+  { Only now is it safe to construct an FMX form on Android. }
+  Open;
+end;
+{$endif SUBSCRIBE_FormsCreatedMessage}
+
 { TFormsClipboard ----------------------------------------------------------- }
 
 type
@@ -1649,7 +1715,7 @@ procedure TCastleApplication.Run;
 begin
   if OpenWindowsCount = 0 then Exit;
 
-  {$ifdef USE_TIMER}
+  {$if defined(USE_TIMER)}
   { LCL Cocoa really must call here FormApplication.Run.
 
     It cannot just call our ProcessMessage
@@ -1672,6 +1738,13 @@ begin
     may benefit from having FormApplication.Run call instead of loop
     over ProcessMessage.
   }
+  FormApplication.Run;
+  {$elseif defined(SUBSCRIBE_FormsCreatedMessage)}
+  WritelnWarning('TCastleApplication.Run should not be used on this platform, with Delphi and CASTLE_WINDOW_FORM. Use TCastleWindow.OpenAndRun instead.');
+  { We will try to do FormApplication.Run, but this is undefined.
+    On Android, we have to register TFormsCreatedMessage and exit from
+    "begin..end." to let event loop run, running "FormApplication.Run"
+    does (almost?) nothing on Android. }
   FormApplication.Run;
   {$else}
   while ProcessMessage(false, false) do ;

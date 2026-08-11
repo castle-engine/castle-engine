@@ -394,10 +394,29 @@ begin
   { If the file does not exist yet,
     then we have no information about auto-generated resources
     (all last processed Hash is ''), which is OK. }
-  if not URIFileExists(Url) then
+  if not UriFileExists(Url) then
     Exit;
 
-  Doc := URLReadXML(Url);
+  {$ifdef CASTLE_ASSUME_READ_ERROR_MEANS_MISSING_FILE}
+  try
+  {$endif CASTLE_ASSUME_READ_ERROR_MEANS_MISSING_FILE}
+
+    Doc := URLReadXML(Url);
+
+  {$ifdef CASTLE_ASSUME_READ_ERROR_MEANS_MISSING_FILE}
+  except
+    on E: Exception do
+    begin
+      WritelnWarning('Error reading "%s", assuming the file does not exist. The exception was "%s": %s', [
+        Url,
+        E.ClassName,
+        E.Message
+      ]);
+      Exit;
+    end;
+  end;
+  {$endif CASTLE_ASSUME_READ_ERROR_MEANS_MISSING_FILE}
+
   try
     I := Doc.DocumentElement.Child('textures').ChildrenIterator('texture');
     try

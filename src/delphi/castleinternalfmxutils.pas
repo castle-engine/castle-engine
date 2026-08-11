@@ -50,13 +50,17 @@ type
     a separate class that is just created and used by both
     FMX TOpenGLControl and FMX TCastleControl. }
   TFmxOpenGLUtility = class
-  {$ifdef LINUX}
-  private
-    GLAreaInitialized: Boolean;
-    GLAreaGtk: Pointer;
-    GLAreaRect: TVector4Integer; //< x, y, width, height
-    DrawingAreaParent: Pointer;
-  {$endif}
+
+  {$define read_TFmxOpenGLUtility_interface}
+    {$if defined(MSWINDOWS)}
+      {$I castleinternalfmxutils_windows.inc}
+    {$elseif defined(LINUX)}
+      {$I castleinternalfmxutils_linux.inc}
+    {$else}
+      {$I castleinternalfmxutils_other_os.inc}
+    {$endif}
+  {$undef read_TFmxOpenGLUtility_interface}
+
   public
     { Set before calling HandleNeeded.
       Cannot change during lifetime of this instance, for now. }
@@ -68,15 +72,22 @@ type
 
       @bold(This is called only on platforms where
       FMX Presentation is not available.)
-      This also implies it is called only on platforms
-      where our code creates the native handle we need,
-      e.g. Gtk handle on Linux.
+      This means platforms where
 
-      In practice this means this is called now only on Delphi/Linux.
+      - our code creates the native handle (in general:
+        any system-specific resources) we need.
+        E.g. Gtk handle on Linux, created by Delphi/Linux.
 
-      On Delphi/Windows, use FMX Presentation features
-      instead of register notifications when handle is created/
-      destroyed. }
+      - or when there's no need to create anything..E.g. FMX on Android just
+        uses the existing context, so we don't need to create anything more.
+        So this applies to Delphi/Android.
+
+      TODO: Delphi/iOS, Delphi/macOS: to be figured out, where they lie.
+
+      In contrast, on platforms where FMX Presentation is available
+      (like Delphi on Windows), we use FMX Presentation features,
+      and we don't need extra notifications from this class when handle
+      is created/destroyed. }
     OnHandleAfterCreateEvent: THandleEvent;
     OnHandleBeforeDestroyEvent: THandleEvent;
 
@@ -143,6 +154,7 @@ type
 
 implementation
 
+{$define read_implementation}
 {$if defined(MSWINDOWS)}
   {$I castleinternalfmxutils_windows.inc}
 {$elseif defined(LINUX)}

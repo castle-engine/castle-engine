@@ -714,6 +714,26 @@
   {$define CASTLE_PROCESS_AVAILABLE}
 {$endif}
 
+{ CASTLE_ASSUME_READ_ERROR_MEANS_MISSING_FILE ------------------------------------------------ }
+
+{ On Delphi/Android, we don't package CastleDataInformation.xml now
+  (because we have no moment now when to generate it,
+  before
+  1. adding it to PAServer to deploy list in DPROJ and then
+  2. let PAServer actually deploy it
+  ).
+
+  This makes UriFileExists a non-functional to detect missing files,
+  as native Android API has no query "does this file exist",
+  we depended on CastleDataInformation.xml for FPC/Android to resolve it.
+
+  In turn, we need to gracefully handle the case when UriFileExists
+  says "yes" (because UriExists said "maybe") but opening the file actually
+  fails. }
+{$if defined(ANDROID) and defined(DELPHI)}
+  {$define CASTLE_ASSUME_READ_ERROR_MEANS_MISSING_FILE}
+{$endif}
+
 // -----------------------------------------------------------------------------
 // keep this line at the end of the file
 {$endif not CASTLE_CONF_INCLUDED}
