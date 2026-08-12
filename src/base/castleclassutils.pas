@@ -111,15 +111,15 @@ type
   Versions without Stream parameter write to StdOutStream.
 
   Note: When compiled with Delphi, overloaded versions that take
-  Delphi 16-bit String convert it to 8-bit AnsiString,
+  Delphi 16-bit String convert it to 8-bit Utf8String,
   and still write 8-bit. So the output stream contents are the same,
   in both FPC and Delphi.
 
   @groupBegin }
-procedure WriteStr(const Stream: TStream; const S: AnsiString); overload;
-procedure WritelnStr(const Stream: TStream; const S: AnsiString); overload;
-procedure WriteStr(const S: AnsiString); overload;
-procedure WritelnStr(const S: AnsiString); overload;
+procedure WriteStr(const Stream: TStream; const S: Utf8String); overload;
+procedure WritelnStr(const Stream: TStream; const S: Utf8String); overload;
+procedure WriteStr(const S: Utf8String); overload;
+procedure WritelnStr(const S: Utf8String); overload;
 
 {$ifndef FPC}
 procedure WriteStr(const Stream: TStream; const S: String); overload;
@@ -197,8 +197,14 @@ procedure ReadGrowingStream(const GrowingStream, DestStream: TStream;
   A "growing stream" is a stream that we can only read
   sequentially, no seeks allowed, and size is unknown until we hit the end.
 
-  Works on 8-bit strings, i.e. AnsiStrings. }
-function ReadGrowingStreamToString(const GrowingStream: TStream): AnsiString;
+  Returns 8-bit string (Utf8String) and assumes the stream contains UTF-8,
+  which is the encoding we assume for all text files in Castle Game Engine.
+  The resulting @code(Utf8String) can be assigned to a @code(String)
+  (or any other string type) and the encoding will be correct.
+  See @url(https://castle-engine.io/coding_conventions#strings_unicode String encoding in Castle Game Engine)
+  and @url(https://github.com/castle-engine/castle-engine/blob/master/doc/miscellaneous_notes/ansistring_encoding.md AnsiString encoding)
+  for details what happens. }
+function ReadGrowingStreamToString(const GrowingStream: TStream): Utf8String;
 
 { Read a growing stream, and returns it's contents as a string.
   A "growing stream" is a stream that we can only read
@@ -222,26 +228,46 @@ function StreamReadString(const Stream: TStream): AnsiString;
   Use @link(ReadGrowingStreamToString) if you want to read a stream where
   setting Position / reading Size are not reliable.
 
-  Works on 8-bit strings, i.e. AnsiStrings. }
-function StreamToString(const Stream: TStream): AnsiString;
+  Returns 8-bit string (Utf8String) and assumes the stream contains UTF-8,
+  which is the encoding we assume for all text files in Castle Game Engine.
+  The resulting @code(Utf8String) can be assigned to a @code(String)
+  (or any other string type) and the encoding will be correct.
+  See @url(https://castle-engine.io/coding_conventions#strings_unicode String encoding in Castle Game Engine)
+  and @url(https://github.com/castle-engine/castle-engine/blob/master/doc/miscellaneous_notes/ansistring_encoding.md AnsiString encoding)
+  for details what happens. }
+function StreamToString(const Stream: TStream): Utf8String;
 
 { Set contents of TMemoryStream to given string, in UTF-8 encoding.
   If Rewind then the position is reset to the beginning,
   otherwise it stays at the end.
 
-  Works on 8-bit strings, i.e. AnsiStrings. }
+  Takes 8-bit string (Utf8String) and makes the stream contain UTF-8,
+  which is the encoding we assume for all text files in Castle Game Engine.
+  The @code(Utf8String) can be assigned from / to a @code(String)
+  (or any other string type) and the encoding will be correct.
+  See @url(https://castle-engine.io/coding_conventions#strings_unicode String encoding in Castle Game Engine)
+  and @url(https://github.com/castle-engine/castle-engine/blob/master/doc/miscellaneous_notes/ansistring_encoding.md AnsiString encoding)
+  for details what happens. }
 procedure MemoryStreamLoadFromString(const Stream: TMemoryStream;
-  const S: AnsiString; const Rewind: boolean = true); overload;
+  const S: Utf8String; const Rewind: boolean = true); overload;
 function MemoryStreamLoadFromString(
-  const S: AnsiString; const Rewind: boolean = true): TMemoryStream; overload;
+  const S: Utf8String; const Rewind: boolean = true): TMemoryStream; overload;
 
 { Set contents of TMemoryStream to given string,
   in UTF-8 or UTF-16 (matching default String) encoding.
   If Rewind then the position is reset to the beginning,
   otherwise it stays at the end.
 
-  On FPC, works with 8-bit strings (AnsiStrings) and is equivalent to MemoryStreamLoadFromString8.
-  On Delphi, works with 16-bit strings (UnicodeString), so the resulting stream size is 2x larger. }
+  On FPC (without DelphiUnicode),
+  this works with 8-bit strings (AnsiStrings) and is equivalent to
+  @link(MemoryStreamLoadFromString).
+  ( Note: If one day CASTLE_DONT_CHANGE_STRING_ENCODING is supported with
+  FPC (without DelphiUnicode),
+  this will still take native encoding while @link(MemoryStreamLoadFromString)
+  will always take UTF-8 encoding. So it will not be equivalent anymore. )
+
+  On Delphi, this works with 16-bit strings (UnicodeString), so the resulting
+  stream size is 2x larger. }
 procedure MemoryStreamLoadFromDefaultString(const Stream: TMemoryStream;
   const S: String; const Rewind: boolean = true); overload;
 function MemoryStreamLoadFromDefaultString(
@@ -1270,23 +1296,23 @@ begin
 end;
 }
 
-procedure WriteStr(const Stream: TStream; const S: AnsiString);
+procedure WriteStr(const Stream: TStream; const S: Utf8String);
 begin
   Stream.WriteBuffer(Pointer(S)^, Length(S));
 end;
 
-procedure WritelnStr(const Stream: TStream; const S: AnsiString);
+procedure WritelnStr(const Stream: TStream; const S: Utf8String);
 begin
   WriteStr(Stream, S);
   WriteStr(Stream, nl);
 end;
 
-procedure WriteStr(const S: AnsiString);
+procedure WriteStr(const S: Utf8String);
 begin
   WriteStr(StdOutStream, S);
 end;
 
-procedure WritelnStr(const S: AnsiString);
+procedure WritelnStr(const S: Utf8String);
 begin
   WritelnStr(StdOutStream, S);
 end;
@@ -1296,22 +1322,22 @@ end;
 
 procedure WriteStr(const Stream: TStream; const S: String);
 begin
-  WriteStr(Stream, AnsiString(S));
+  WriteStr(Stream, Utf8String(S));
 end;
 
 procedure WritelnStr(const Stream: TStream; const S: String);
 begin
-  WritelnStr(Stream, AnsiString(S));
+  WritelnStr(Stream, Utf8String(S));
 end;
 
 procedure WriteStr(const S: String);
 begin
-  WriteStr(AnsiString(S));
+  WriteStr(Utf8String(S));
 end;
 
 procedure WritelnStr(const S: String);
 begin
-  WritelnStr(AnsiString(S));
+  WritelnStr(Utf8String(S));
 end;
 
 {$warnings on}
@@ -1471,7 +1497,7 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function ReadGrowingStreamToString(const GrowingStream: TStream): AnsiString;
+function ReadGrowingStreamToString(const GrowingStream: TStream): Utf8String;
 var
   Memory: TMemoryStream;
 begin
@@ -1523,7 +1549,7 @@ begin
   if L > 0 then Stream.ReadBuffer(Result[1], L);
 end;
 
-function StreamToString(const Stream: TStream): AnsiString;
+function StreamToString(const Stream: TStream): Utf8String;
 begin
   SetLength(Result, Stream.Size);
   Stream.Position := 0;
@@ -1531,7 +1557,7 @@ begin
 end;
 
 procedure MemoryStreamLoadFromString(const Stream: TMemoryStream;
-  const S: AnsiString; const Rewind: boolean);
+  const S: Utf8String; const Rewind: boolean);
 begin
   Stream.Size := Length(S);
   if S <> '' then
@@ -1541,7 +1567,7 @@ begin
   end;
 end;
 
-function MemoryStreamLoadFromString(const S: AnsiString; const Rewind: boolean): TMemoryStream;
+function MemoryStreamLoadFromString(const S: Utf8String; const Rewind: boolean): TMemoryStream;
 begin
   Result := TMemoryStream.Create;
   try

@@ -29,6 +29,7 @@ type
   TTestDownload = class(TCastleTestCase)
   published
     procedure TestLocalCharsCastleData;
+    procedure TestLocalCharsContents;
     procedure TestLocalCharsCastleConfig;
     procedure TestCastleTextReader;
     procedure TestRegisteredProtocolNotCaseSensitive;
@@ -81,11 +82,6 @@ procedure TTestDownload.TestLocalCharsCastleData;
   end;
 
 begin
-  {$ifdef CASTLE_DONT_CHANGE_STRING_ENCODING}
-  AbortTest;
-  Exit;
-  {$endif}
-
   TestReading('castle-data:/local_chars/ascii_name.txt');
   TestReading('castle-data:/local_chars/' + UrlEncode('name with Polish chars ćma źrebak żmija wąż królik.txt'));
   TestReading('castle-data:/local_chars/' + UrlEncode('name with Chinese chars 样例中文文本.txt'));
@@ -113,6 +109,57 @@ begin
 
   // Not really correct URLs, as space should be encoded as %20 etc., but we handle them too
   TestReadingFont('castle-data:/local_chars/DejaVuSans name with Russian chars образец русского текста.ttf');
+end;
+
+procedure TTestDownload.TestLocalCharsContents;
+
+{ Test that reading and writing file contents with non-ASCII characters works.
+
+  This is not about non-ASCII characters in file names (see
+  TestLocalCharsCastleData and TestLocalCharsCastleConfig for this)
+  but about non-ASCII characters inside the file.
+
+  We assume UTF-8 in all text files, so the routines that read / write
+  file contents as 8-bit strings (FileToString, StreamToString,
+  MemoryStreamLoadFromString) use Utf8String, not AnsiString.
+  So they work correctly also when AnsiString has some other, system-specific,
+  encoding, which happens when CASTLE_DONT_CHANGE_STRING_ENCODING is defined. }
+
+const
+  ChineseUrl = 'castle-data:/local_chars/name with Chinese chars 样例中文文本.txt';
+  ChineseText = 'Some text with Chinese chars 样例中文文本.';
+var
+  Stream: TStream;
+  ReferenceUrl: String;
+begin
+  // test FileToString
+  AssertEquals(ChineseUrl, Trim(FileToString(
+    'castle-data:/local_chars/reference to file with Chinese chars.txt')));
+
+  // test Download + StreamToString
+  Stream := Download('castle-data:/local_chars/reference to file with Chinese chars.txt');
+  try
+    AssertEquals(ChineseUrl, Trim(StreamToString(Stream)));
+  finally FreeAndNil(Stream) end;
+
+  // test MemoryStreamLoadFromString, a symmetric counterpart of StreamToString
+  Stream := MemoryStreamLoadFromString(ChineseText);
+  try
+    // 29 ASCII + 6 Chinese chars (3 bytes each in UTF-8) + 1 = 48 bytes
+    AssertEquals(29 + 6 * 3 + 1, Stream.Size);
+    AssertEquals(ChineseText, StreamToString(Stream));
+  finally FreeAndNil(Stream) end;
+
+  if not CanUseCastleConfig then
+  begin
+    AbortTest;
+    Exit;
+  end;
+
+  // test StringToFile
+  ReferenceUrl := 'castle-config:/' + UrlEncode('reference with Chinese chars.txt');
+  StringToFile(ReferenceUrl, ChineseText);
+  AssertEquals(ChineseText, FileToString(ReferenceUrl));
 end;
 
 procedure TTestDownload.TestLocalCharsCastleConfig;

@@ -73,6 +73,34 @@ When `CASTLE_DONT_CHANGE_STRING_ENCODING` is defined, and your codebase uses `An
 
 - `AnsiString` and `Utf8String`. Note that there are some quirks in how this works, and FPC 3.2.2 is not perfectly compatible with Delphi. See the tests in `TTestCompiler.TestAnsiStringUtf8Conversion` for details.
 
+### File names
+
+Throughout the engine, we use URLs, typed as just `String`.
+
+The Unicode characters inside URLs are percent-encoded, following the URL standard. ( Underneath, they always encode UTF-8 bytes, this is following URL standard and independent from compiler / `String` meaning, but you should not be concerned about this. ) See `CastleUriUtils` for various operations, including encoding and decoding.
+
+We also accept regular filenames in most engine routines, and automatically convert them to URLs underneath. Unicode characters in filenames are converted correctly just like in any other `String` usage.
+
+We recommend you also adopt URLs everywhere, as they can just express more things (see https://castle-engine.io/url ) and we support every useful operation on them (see `CastleUriUtils`). But this is not forced.
+
+### Text files contents
+
+Routines that read / write text file contents as 8-bit strings use `Utf8String`, not `AnsiString` to represent these contents:
+
+- `FileToString`, `StringToFile` (in `CastleFilesUtils`)
+- `StreamToString`, `ReadGrowingStreamToString`, `MemoryStreamLoadFromString`, `WriteStr/WritelnStr` (in `CastleClassUtils`)
+- TODO: `TCastleTextReader` and `TCastleTextWriter` (in `CastleDownload`) should also be changed to use `Utf8String` instead of `AnsiString`.
+
+This way, we assume UTF-8 in all text files, and `Utf8String` makes this explicit. Assigning `Utf8String` to `String` (or passing a `String` to these routines) will do the right thing, in all supported situations. Here is what happens:
+
+- When `String` is 16-bit (`UnicodeString`) (in Delphi or FPC with _DelphiUnicode_ mode), then UTF-8 <-> UTF-16 conversion is done automatically,
+
+- When `String` is 8-bit (`AnsiString`) (in FPC without _DelphiUnicode_ mode), without `CASTLE_DONT_CHANGE_STRING_ENCODING`, then UTF-8 <-> UTF-8 does nothing,
+
+- _Does not work, because of FPC bug, so we don't support this combination_: When `String` is 8-bit (`AnsiString`) (in FPC without _DelphiUnicode_ mode), with `CASTLE_DONT_CHANGE_STRING_ENCODING`, then UTF-8 <-> platform encoding conversion in `AnsiString` is _not_ done automatically by FPC. See `TTestCompiler.TestAnsiStringUtf8Conversion_AnsiDefault`, testing `AnsiString` to/from `Utf8String`: FPC fails doing implicit conversions, only Delphi does them correctly. Use explicit `Utf8ToAnsi` / `AnsiToUtf8` to make it work with both FPC and Delphi.
+
+Testcases in `TTestDownload` check various combinations with various compilers.
+
 ## Recommendations and what Lazarus does
 
 In the bigger scheme of things, we recommend you adjust your code to CGE and Lazarus approaches: if you use FPC with `AnsiString`, assume `AnsiString` has UTF-8. Lazarus RTL assumes and does exactly the same thing as Castle Game Engine. See Lazarus sources, in `components/lazutils/fpcadds.pas`, it does:
@@ -88,7 +116,7 @@ initialization
 
 ## TODO
 
-- Eliminate in CGE code all `AnsiString` in favor of `Utf8String` when we mean "8-bit, UTF-8 encoded". Use `AnsiString` only when we really mean "8-bit, possible system-specific encoding". Document this, updating https://castle-engine.io/coding_conventions#strings_unicode:
+- Eliminate in CGE code the remaining `AnsiString` in favor of `Utf8String` when we mean "8-bit, UTF-8 encoded". Use `AnsiString` only when we really mean "8-bit, possible system-specific encoding". This is done for the routines reading / writing text file contents (see "Automatic encoding conversions" above), but other places may remain. Document this, updating https://castle-engine.io/coding_conventions#strings_unicode:
 
   - We use `Utf8String` when we mean "string with 8-bit characters with UTF-8 encoding".
 
@@ -99,7 +127,6 @@ initialization
 - Make it also default for Delphi packages. So we don't do `SetMultiByteConversionCodePage(CP_UTF8)` when being installed in Delphi IDE.
 
 - Fix auto-tests.
-    - Right now `CASTLE_DONT_CHANGE_STRING_ENCODING` + Delphi has one failure remaining, with reading filename with Chinese characters: `TTestDownload.TestLocalCharsCastleData`.
     - delphi_12 test: without `CASTLE_DONT_CHANGE_STRING_ENCODING`: (check auto-tests win64):
       ```
       Processing: TTestCompiler.TestAnsiStringUtf8Conversion_Ansi1250
@@ -110,3 +137,6 @@ initialization
 
 - Test and fix CGE for FPC DelphiUnicode mode.
 
+- `WriteStr/WritelnStr` autotest. `TCastleTextWriter.Write/Writeln` (`castledownload_text.inc`) should also now be good, add autotest. Expect UTF-8, add auto-tests for round-trip with other CGE routines.
+
+- `castledownload_text.inc` — `TCastleTextReader.ReadBuf: AnsiString`, and `Readln/Read` return string. Fix, expect UTF-8, add auto-tests for round-trip with other CGE routines.

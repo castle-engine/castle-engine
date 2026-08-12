@@ -416,12 +416,29 @@ function BundlePath: string;
 {$endif}
 
 { Read file or URL contents to a string.
-  MimeType is returned, calculated just like the @link(Download) function. }
-function FileToString(const Url: String;
-  out MimeType: string): AnsiString; overload;
-function FileToString(const Url: String): AnsiString; overload;
+  MimeType is returned, calculated just like the @link(Download) function.
 
-procedure StringToFile(const Url: String; const Contents: AnsiString);
+  Returns 8-bit string (Utf8String) and assumes the file contains UTF-8,
+  which is the encoding we assume for all text files in Castle Game Engine.
+  The resulting @code(Utf8String) can be assigned to a @code(String)
+  (or any other string type) and the encoding will be correct.
+  See @url(https://castle-engine.io/coding_conventions#strings_unicode String encoding in Castle Game Engine)
+  and @url(https://github.com/castle-engine/castle-engine/blob/master/doc/miscellaneous_notes/ansistring_encoding.md AnsiString encoding)
+  for details what happens. }
+function FileToString(const Url: String;
+  out MimeType: string): Utf8String; overload;
+function FileToString(const Url: String): Utf8String; overload;
+
+{ Save string to a file or URL.
+
+  Takes 8-bit string (Utf8String) and makes the file contain UTF-8,
+  which is the encoding we assume for all text files in Castle Game Engine.
+  The @code(Utf8String) can be assigned from / to a @code(String)
+  (or any other string type) and the encoding will be correct.
+  See @url(https://castle-engine.io/coding_conventions#strings_unicode String encoding in Castle Game Engine)
+  and @url(https://github.com/castle-engine/castle-engine/blob/master/doc/miscellaneous_notes/ansistring_encoding.md AnsiString encoding)
+  for details what happens. }
+procedure StringToFile(const Url: String; const Contents: Utf8String);
 
 { Recommended path where to put screenshots on the current platform.
   Always ends with PathDelim and returns a directory that exists.
@@ -1091,7 +1108,7 @@ end;
 {$endif DARWIN}
 
 function FileToString(const Url: String;
-  out MimeType: string): AnsiString;
+  out MimeType: string): Utf8String;
 var
   F: TStream;
 begin
@@ -1109,14 +1126,14 @@ begin
   finally FreeAndNil(F) end;
 end;
 
-function FileToString(const Url: String): AnsiString;
+function FileToString(const Url: String): Utf8String;
 var
   MimeType: string;
 begin
   Result := FileToString(Url, MimeType { ignored });
 end;
 
-procedure StringToFile(const Url: String; const Contents: AnsiString);
+procedure StringToFile(const Url: String; const Contents: Utf8String);
 var
   F: TStream;
 begin
