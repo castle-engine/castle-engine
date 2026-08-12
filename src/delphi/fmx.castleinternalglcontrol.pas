@@ -220,6 +220,13 @@ begin
     which always calls HandleNeeded manually after creation anyway. }
   HandleNeeded;
 
+  { Flush the FMX canvas BEFORE calling any raw GL.
+    FMX batches draw calls; if we call glDrawArrays while FMX still has
+    pending batched commands the interleaving causes visual corruption.
+    Testcase: run on Android, using Delphi, e.g. platformer (or any other demo)
+    -- without this, it looks like our rendering is ignored. }
+  Canvas.Flush;
+
   if Assigned(OnPaint) then
     OnPaint(Self);
 
