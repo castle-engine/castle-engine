@@ -129,7 +129,8 @@
   {$define USE_TIMER}
 {$endif}
 
-{$if defined(DELPHI) and defined(ANDROID)}
+{$if defined(DELPHI) and (defined(ANDROID) or defined(IOS))}
+
   { This symbol is used by CastleWindow implementation.
     It will then not implement TCastleWindow.OpenAndRun,
     we have to define it in backend code. }
@@ -1499,32 +1500,37 @@ end;
 {$ifdef SUBSCRIBE_FormsCreatedMessage}
 procedure TCastleWindow.OpenAndRun;
 begin
+  TMessageManager.DefaultManager.SubscribeToMessage(
+    TFormsCreatedMessage, FormsCreatedHandler);
+
   { Perform typical FireMonkey work done in main program file.
 
     This means we call FormApplication.CreateForm and *not*
     TForm.CreateNew (which is done by our OpenBackend)
     from TCastleWindow.OpenAndRun.
-    Which is important: TForm.CreateNew now would crash on Android,
-    this is too early for FMX to really create forms.
+    Which is important: TForm.CreateNew now would be wrong on Delphi/Android
+    and Delphi/iOS, this is too early for FMX to really create forms.
 
-    This also means we are prepared that
-    FormApplication.Run does almost nothing (the actual message loop
-    will be done after main program file "begin .. end." finishes).
-    On Android, the whole program "begin .. end." happens
-    in activity's onCreate, and the message loop is done by Android after that. }
+    This also means we are prepared that FormApplication.Run
+
+    - does almost nothing on Android (the actual message loop
+      will be done after main program file "begin .. end." finishes).
+      On Android, the whole program "begin .. end." happens
+      in activity's onCreate, and the message loop is done by Android after that.
+
+    - never returns on iOS (it calls UIApplicationMain, which never returns). }
 
   FormApplication.Initialize;
   // No need to create any form here, OpenBackend will do form creation
   //FormApplication.CreateForm(TForm, Form);
   FormApplication.Run;
 
-  // Note: We don't call our Application.Run, as it expects some window to be open.
-  // We also don't need to call it, Java on Android will drive message loop.
+  { Note: We don't call our Application.Run (TCastleApplication.Run),
+    as it expects some window to be open.
+    We also don't need to call it, other things (activity on Android,
+    UIApplicationMain on iOS) will drive message loop. }
 
-  TMessageManager.DefaultManager.SubscribeToMessage(
-    TFormsCreatedMessage, FormsCreatedHandler);
-
-  WritelnLog('FMX Application.Run finished. This is expected, it does almost nothing on Delphi/Android, actual message loop will happen after program "end.".');
+  WritelnLog('FMX Application.Run finished. This is normal on Delphi/Android, actual message loop will happen after program "end.".');
 end;
 
 procedure TCastleWindow.FormsCreatedHandler(const Sender: TObject;
