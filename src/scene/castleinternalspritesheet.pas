@@ -1786,7 +1786,9 @@ var
 begin
   URLWithoutAnchor := UriDeleteAnchor(URL);
 
-  Stream := Download(URLWithoutAnchor);
+  Stream := Download(URLWithoutAnchor
+    {$ifdef XML_READ_REQUIRES_SEEKABLE_STREAM} , [soForceMemoryStream] {$endif}
+  );
   try
     Load(Stream, URL);
   finally FreeAndNil(Stream) end;
@@ -2494,6 +2496,9 @@ initialization
   ModelFormat.MimeTypes.Add('application/x-castle-sprite-sheet');
   ModelFormat.FileFilterName := 'Castle Sprite Sheet (*.castle-sprite-sheet)';
   ModelFormat.Extensions.Add('.castle-sprite-sheet');
+  {$ifdef XML_READ_REQUIRES_SEEKABLE_STREAM}
+  ModelFormat.OnLoadForceMemoryStream := true;
+  {$endif}
   RegisterModelFormat(ModelFormat);
 
   { Starling sprite sheets are actually loaded exactly the same way as CGE
@@ -2504,5 +2509,8 @@ initialization
   ModelFormat.MimeTypes.Add('application/x-starling-sprite-sheet');
   ModelFormat.FileFilterName := 'Starling Sprite Sheet (*.starling-xml)';
   ModelFormat.Extensions.Add('.starling-xml');
+  {$ifdef XML_READ_REQUIRES_SEEKABLE_STREAM}
+  ModelFormat.OnLoadForceMemoryStream := true;
+  {$endif}
   RegisterModelFormat(ModelFormat);
 end.

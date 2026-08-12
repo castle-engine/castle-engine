@@ -1157,5 +1157,8 @@ initialization
   ModelFormat.FileFilterName := 'Cocos2d Sprite Sheet (*.cocos2d-plist, *.plist)';
   ModelFormat.Extensions.Add('.cocos2d-plist');
   ModelFormat.Extensions.Add('.plist');
+  {$ifdef XML_READ_REQUIRES_SEEKABLE_STREAM}
+  ModelFormat.OnLoadForceMemoryStream := true;
+  {$endif}
   RegisterModelFormat(ModelFormat);
 end.
