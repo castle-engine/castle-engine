@@ -13,23 +13,21 @@
   ----------------------------------------------------------------------------
 }
 
-{ Check that we already have a working context using EGL API.
-  Useful when the context is initialized by something else
-  (like FireMonkey on Android), and we just want to use it. }
-unit CastleInternalContextExistingEgl;
+{ Check that we already have a working rendering context. }
+unit CastleInternalContextExisting;
 
 {$i castleconf.inc}
 
 interface
 
 uses SysUtils, Classes,
-  CastleInternalContextBase, CastleInternalEgl;
+  CastleInternalContextBase;
 
 type
-  { Check that we already have a working context using EGL API.
+  { Check that we already have a working rendering context.
     Useful when the context is initialized by something else
-    (like FireMonkey on Android), and we just want to use it. }
-  TGLContextExistingEgl = class(TGLContext)
+    (like FireMonkey on Delphi/Android or Delphi/iOS), and we just want to use it. }
+  TGLContextExisting = class(TGLContext)
   strict private
     class var
       FLoadLibrariesDone: Boolean;
@@ -43,24 +41,35 @@ type
 
 implementation
 
+{$if defined(ANDROID)} {$define USE_EGL} {$endif ANDROID}
+
 uses Math,
+  // for EGL API
+  {$if defined(USE_EGL)} CastleInternalEgl, {$endif}
   // for TCustomAndroidContext.SharedDisplay
-  {$ifdef ANDROID} FMX.Context.GLES.Android, {$endif}
+  {$if defined(DELPHI) and defined(ANDROID)} FMX.Context.GLES.Android, {$endif}
+  // for TCustomContextIOS.SharedContext
+  {$if defined(DELPHI) and defined(IOS)} FMX.Context.GLES.iOS, {$endif}
   CastleLog, CastleUtils, CastleGLUtils, CastleGLES;
 
-class function TGLContextExistingEgl.CheckRenderingContextAvailable: Boolean;
+class function TGLContextExisting.CheckRenderingContextAvailable: Boolean;
 
   procedure LoadLibraries;
   begin
+    {$if defined(USE_EGL)}
     LoadEgl;
+    {$endif USE_EGL}
+
     GLESInitialization;
   end;
 
+{$if defined(USE_EGL)}
 var
   EglVersion: PAnsiChar;
   Display: EGLDisplay;
   Surface: EGLSurface;
   Context: EGLContext;
+{$endif}
 begin
   Result := false;
 
@@ -71,13 +80,7 @@ begin
     LoadLibraries;
   end;
 
-  if not EglAvailable then
-  begin
-    WritelnWarning('EGL library not available'); // Cannot render using Castle Game Engine on Delphi/Android.');
-    Exit;
-  end;
-
-  {$ifdef ANDROID}
+  {$if defined(DELPHI) and defined(ANDROID)}
   { Display is necessary for most EGL commands, evet to get EGL version.
     Get the same one as FMX uses (it's just initialized to
     eglGetDisplay(EGL_DEFAULT_DISPLAY) by FMX now). }
@@ -86,7 +89,22 @@ begin
     WritelnWarning('EGL display not yet initialized by FMX');
     Exit;
   end;
-  {$endif ANDROID}
+  {$endif}
+
+  {$if defined(DELPHI) and defined(IOS)}
+  if TCustomContextIOS.SharedContext = nil then
+  begin
+    WritelnWarning('Rendering context not yet initialized by FMX');
+    Exit;
+  end;
+  {$endif}
+
+  {$if defined(USE_EGL)}
+  if not EglAvailable then
+  begin
+    WritelnWarning('EGL library not available'); // Cannot render using Castle Game Engine on Delphi/Android.');
+    Exit;
+  end;
 
   EglVersion := eglQueryString(TCustomAndroidContext.SharedDisplay, EGL_VERSION);
   WritelnLog('EGL library available, version %s', [EglVersion]);
@@ -117,34 +135,31 @@ begin
     WritelnWarning('EGL has no current context');
     Exit;
   end;
+  {$endif}
 
-  WritelnLog('EGL current display, surface, and context are valid');
+  WritelnLog('Existing rendering context created by FireMonkey looks valid, we will use it for Castle Game Engine');
   Result := true;
 end;
 
-procedure TGLContextExistingEgl.InitializeCore(const Requirements: TGLContextRequirements);
+procedure TGLContextExisting.InitializeCore(const Requirements: TGLContextRequirements);
 begin
   if not CheckRenderingContextAvailable then
-    raise Exception.Create('Cannot use existing EGL context: it is not available or not valid');
+    raise Exception.Create('Cannot use existing rendering context: not available or not valid');
 end;
 
-procedure TGLContextExistingEgl.FinalizeCore;
+procedure TGLContextExisting.FinalizeCore;
 begin
   // Nothing to do, we don't own the context.
 end;
 
-procedure TGLContextExistingEgl.MakeCurrentCore;
+procedure TGLContextExisting.MakeCurrentCore;
 begin
   // No need to do anything, FMX will do this for us
-  // if eglMakeCurrent(Display, Surface, Surface, Context) = EGL_FALSE then
-  //   WritelnWarning('EGL', 'Cannot make context current: ' + EGLError);
 end;
 
-procedure TGLContextExistingEgl.SwapBuffersCore;
+procedure TGLContextExisting.SwapBuffersCore;
 begin
   // No need to do anything, FMX will do this for us
-  // if eglSwapBuffers(Display, Surface) = EGL_FALSE then
-  //   WritelnWarning('EGL', 'Cannot swap buffers (this is normal if app is no longer active): ' + EGLError);
 end;
 
 end.

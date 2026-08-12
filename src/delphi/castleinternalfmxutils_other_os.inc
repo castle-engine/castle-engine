@@ -35,7 +35,7 @@ procedure TFmxOpenGLUtility.HandleNeeded;
 begin
   { We track HandleInitialized merely to call OnHandleAfterCreateEvent.
     There's no need to actually *do* any handle allocation here,
-    this is used together with CastleInternalContextExistingEgl.
+    this is used together with CastleInternalContextExisting.
     But we need to call OnHandleAfterCreateEvent,
     as Fmx.CastleInternalGLControl depends on it,
     to call FPlatformContext.Initialize to mark context as initialized. }
