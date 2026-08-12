@@ -76,6 +76,7 @@ uses
   {$ifdef MSWINDOWS} Windows, {$ifndef FPC} ShlObj, {$endif} {$endif}
   {$ifdef UNIX} {$ifdef FPC} BaseUnix, Unix, Dl, {$else} Posix.Unistd, {$endif} {$endif}
   Classes,
+  {$if defined(DELPHI) and defined(ANDROID)} System.IOUtils, {$endif}
   Variants, SysUtils, Math,
   Generics.Collections, Generics.Defaults;
 

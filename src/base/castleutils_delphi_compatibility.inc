@@ -191,9 +191,12 @@ begin
 end;
 {$endif}
 
-{ Copied from FPC RTL (same license as Castle Game Engine) }
 function GetAppConfigDir(Global : Boolean) : String;
-{$ifdef MSWINDOWS}
+
+{$if defined(MSWINDOWS)}
+
+  { On Windows, use GetWindowsSpecialDir.
+    Copied from FPC RTL (same license as Castle Game Engine). }
 
   function DGetAppConfigDir(Global : Boolean) : String;
   begin
@@ -213,18 +216,29 @@ begin
     end
   else
     Result:=IncludeTrailingPathDelimiter(DGetAppConfigDir(Global));
-{$endif}
 
-{$ifdef UNIX}
+{$elseif defined(ANDROID)}
+
 begin
-  // TODO: simplest implementation hardcoded now, look how FPC implements it
+  Result := System.IOUtils.TPath.GetHomePath;
+
+{$elseif defined(UNIX)}
+
+begin
+  { On typical Unix, use /etc/ or ~/.config/ .
+    Copied from FPC RTL (same license as Castle Game Engine). }
+
   if Global then
     Result := '/etc/' + ApplicationName + PathDelim
   else
     Result := IncludeTrailingPathDelimiter(GetEnvironmentVariable('HOME')) +
       '.config' + PathDelim +
       ApplicationName + PathDelim;
+
+{$else}
+  {$message fatal 'GetAppConfigDir not implemented for this platform and Delphi'}
 {$endif}
+
 end;
 
 function StringsReplace(const S: string; OldPattern, NewPattern: array of string;  Flags: TReplaceFlags): string;
