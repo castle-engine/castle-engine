@@ -217,7 +217,12 @@ begin
   else
     Result:=IncludeTrailingPathDelimiter(DGetAppConfigDir(Global));
 
-{$elseif defined(ANDROID)}
+{$elseif defined(ANDROID) or defined(IOS)}
+
+  { See Delphi docs:
+    https://docwiki.embarcadero.com/RADStudio/Athens/en/Standard_RTL_Path_Functions_across_the_Supported_Target_Platforms
+    https://docwiki.embarcadero.com/Libraries/Alexandria/en/System.IOUtils.TPath.GetHomePath
+  }
 
 begin
   Result := System.IOUtils.TPath.GetHomePath;
