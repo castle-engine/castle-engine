@@ -13,7 +13,10 @@
   ----------------------------------------------------------------------------
 }
 
-{ Check that we already have a working rendering context. }
+{ Check that we already have a working rendering context.
+  On Delphi/iOS, this also sets
+  @url(https://docwiki.embarcadero.com/Libraries/Sydney/en/FMX.Types.GlobalUseMetal GlobalUseMetal := false),
+  so that we have OpenGL ES instead of Metal. }
 unit CastleInternalContextExisting;
 
 {$i castleconf.inc}
@@ -48,8 +51,12 @@ uses Math,
   {$if defined(USE_EGL)} CastleInternalEgl, {$endif}
   // for TCustomAndroidContext.SharedDisplay
   {$if defined(DELPHI) and defined(ANDROID)} FMX.Context.GLES.Android, {$endif}
-  // for TCustomContextIOS.SharedContext
-  {$if defined(DELPHI) and defined(IOS)} FMX.Context.GLES.iOS, {$endif}
+  {$if defined(DELPHI) and defined(IOS)}
+    // for GlobalUseMetal
+    FMX.Types,
+    // for TCustomContextIOS.SharedContext
+    FMX.Context.GLES.iOS,
+  {$endif}
   CastleLog, CastleUtils, CastleGLUtils, CastleGLES;
 
 class function TGLContextExisting.CheckRenderingContextAvailable: Boolean;
@@ -162,4 +169,6 @@ begin
   // No need to do anything, FMX will do this for us
 end;
 
+initialization
+  GlobalUseMetal := false;
 end.
