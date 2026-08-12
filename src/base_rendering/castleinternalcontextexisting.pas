@@ -170,5 +170,7 @@ begin
 end;
 
 initialization
+  {$if defined(DELPHI) and defined(IOS)}
   GlobalUseMetal := false;
+  {$endif}
 end.
