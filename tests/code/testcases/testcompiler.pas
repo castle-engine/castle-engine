@@ -344,11 +344,11 @@ begin
   {$endif}
   *)
 
-  {$if (not defined(CASTLE_DONT_CHANGE_STRING_ENCODING)) and defined(FPC)}
+  {$if not defined(CASTLE_DONT_CHANGE_STRING_ENCODING)}
   { If SetMultiByteConversionCodePage(CP_UTF8) was done in CastleUtils
     initialization:
     - FPC 3.2.2 will assign UTF-8 codepage to AnsiPolish in this case.
-    - Delphi will keep it as 1250.
+    - Delphi 12: also, it seems, it will assign UTF-8 codepage to AnsiPolish in this case.
     Abort this test on FPC + not defined CASTLE_DONT_CHANGE_STRING_ENCODING.
   }
   AbortTest;
