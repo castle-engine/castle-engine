@@ -32,9 +32,12 @@ uses
 type
   TTestCompiler = class(TCastleTestCase)
   strict private
-    procedure CheckAnsiPolish(const AnsiPolish: AnsiString);
-    procedure CheckUtf8Polish(const Utf8Polish: Utf8String; const AnsiPolish: AnsiString);
-    procedure CheckBackToAnsi(const AnsiPolish, BackToAnsi: AnsiString);
+    { Check encoding, in various ways.
+      Declare parameters as RawByteString, not AnsiString or Utf8String,
+      to avoid any implicit conversion when passing parameters. }
+    procedure CheckAnsiPolish(const AnsiPolish: RawByteString);
+    procedure CheckUtf8Polish(const Utf8Polish: RawByteString; const AnsiPolish: RawByteString);
+    procedure CheckBackToAnsi(const AnsiPolish, BackToAnsi: RawByteString);
   published
     procedure TestIs;
     procedure TestSinglePrecision;
@@ -260,14 +263,14 @@ const
   );
 
 { AnsiPolish looks good. }
-procedure TTestCompiler.CheckAnsiPolish(const AnsiPolish: AnsiString);
+procedure TTestCompiler.CheckAnsiPolish(const AnsiPolish: RawByteString);
 begin
   AssertEquals(1250, StringCodePage(AnsiPolish));
   AssertEquals($B9, Ord(AnsiPolish[2]));
 end;
 
 { Utf8Polish looks good. }
-procedure TTestCompiler.CheckUtf8Polish(const Utf8Polish: Utf8String; const AnsiPolish: AnsiString);
+procedure TTestCompiler.CheckUtf8Polish(const Utf8Polish: RawByteString; const AnsiPolish: RawByteString);
 var
   I: Integer;
 begin
@@ -288,7 +291,7 @@ begin
 end;
 
 { BackToAnsi looks good and equal to AnsiPolish. }
-procedure TTestCompiler.CheckBackToAnsi(const AnsiPolish, BackToAnsi: AnsiString);
+procedure TTestCompiler.CheckBackToAnsi(const AnsiPolish, BackToAnsi: RawByteString);
 var
   I: Integer;
 begin
