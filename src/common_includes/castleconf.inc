@@ -732,7 +732,10 @@
   you may still have AnsiString containing UTF-8 if you use LCL.
 *)
 {.$define CASTLE_DONT_CHANGE_STRING_ENCODING}
-{$if defined(FPC) and defined(CASTLE_DONT_CHANGE_STRING_ENCODING) and not defined(FPC_DELPHIUNICODE)}
+{$if defined(FPC) and
+     defined(CASTLE_DONT_CHANGE_STRING_ENCODING) and
+     (not defined(FPC_DELPHIUNICODE)) and
+     (not defined(I_UNDERSTAND_THAT_NON_ASCII_CHARACTERS_ARE_BROKEN))}
   {$message fatal 'CASTLE_DONT_CHANGE_STRING_ENCODING is only supported with Delphi (or FPC DelphiUnicode mode).'}
 {$endif}
 
