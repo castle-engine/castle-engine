@@ -30,6 +30,18 @@ See https://castle-engine.io/project_manifest for documentation of this file.
     </custom_options>
     <defines>
       <define>CASTLE_STRICT</define>
+
+      <!--
+        See ../doc/miscellaneous_notes/ansistring_encoding.md
+        about the 2 symbols below.
+
+        The scary symbol I_UNDERSTAND_THAT_NON_ASCII_CHARACTERS_ARE_BROKEN
+        is needed to make CASTLE_DONT_CHANGE_STRING_ENCODING compile with FPC,
+        and yes, in effect non-ASCII characters are broken in some cases.
+        See above mentioned document for details.
+      -->
+      <!--define>CASTLE_DONT_CHANGE_STRING_ENCODING</define-->
+      <!--define>I_UNDERSTAND_THAT_NON_ASCII_CHARACTERS_ARE_BROKEN</define-->
     </defines>
   </compiler_options>
 </project>
