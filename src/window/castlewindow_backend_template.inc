@@ -30,6 +30,11 @@
 
 { TCastleWindow ------------------------------------------------------------------ }
 
+function TCastleWindow.CreateContainer: TCastleContainer;
+begin
+  Result := TWindowContainer.Create(Self);
+end;
+
 procedure TCastleWindow.CreateBackend;
 begin
   { TODO (initialize backend-specific per-window stuff; may do nothing) }

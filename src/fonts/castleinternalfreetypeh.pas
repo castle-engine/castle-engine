@@ -322,7 +322,7 @@ type
 
   TFT_Size = record
     face : PFT_Face;
-    generic : FT_Generic;
+    &generic : FT_Generic;
     metrics : FT_Size_Metrics;
     //internal : FT_Size_Internal;
   end;
@@ -335,7 +335,7 @@ type
     face : PFT_Face;
     next : PFT_GlyphSlot;
     flags : FT_UInt;
-    generic : FT_Generic;
+    &generic : FT_Generic;
     metrics : FT_Glyph_Metrics;
     linearHoriAdvance : FT_Fixed;
     linearVertAdvance : FT_Fixed;
@@ -364,7 +364,7 @@ type
     available_sizes : PFT_Bitmap_Size;     // is array
     num_charmaps : FT_Int;
     charmaps : PPFT_CharMap;               // is array
-    generic : FT_Generic;
+    &generic : FT_Generic;
     bbox : FT_BBox;
     units_per_EM : FT_UShort;
     ascender : FT_Short;

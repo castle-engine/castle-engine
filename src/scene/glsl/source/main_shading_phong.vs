@@ -19,7 +19,9 @@ attribute vec3 castle_Normal;
 
 /* PLUG-DECLARATIONS */
 
+/* VARYING-PASSTHROUGH-GEOMETRY-SHADERS */
 varying vec4 castle_vertex_eye;
+/* VARYING-PASSTHROUGH-GEOMETRY-SHADERS */
 varying vec3 castle_normal_eye;
 
 #if defined(COLOR_PER_VERTEX_RGB)

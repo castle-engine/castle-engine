@@ -2659,14 +2659,6 @@ begin
   inherited;
 end;
 
-function TCastleWindow.CreateContainer: TCastleContainer;
-begin
-  Result :=
-    {$ifdef CASTLE_WINDOW_WEBASSEMBLY} TWindowWebContainer
-    {$else} TWindowContainer
-    {$endif}.Create(Self);
-end;
-
 procedure TCastleWindow.OpenCore;
 {$ifndef OpenGLES}
 const
@@ -2730,6 +2722,12 @@ const
   { Do the job of OpenCore, do not protect from possible exceptions raised inside. }
   procedure OpenUnprotected;
   begin
+    if (not Application.MultipleWindowsPossible) and
+       (Application.OpenWindowsCount > 0) then
+      raise Exception.CreateFmt('TCastleWindow on "%s" supports only a single window. In your code, check "Application.MultipleWindowsPossible" and if it is "false" -> avoid opening multiple windows.', [
+        Application.BackendName
+      ]);
+
     { Once context is initialized, then Android activity is initialized,
       or iOS called CGEApp_Initialize -> so it's safe to access files. }
     ApplicationProperties._FileAccessSafe := true;

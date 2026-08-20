@@ -139,8 +139,23 @@ private
 
 {$ifdef read_implementation}
 
+{ If not TrueValue then make a warning, using GetLastError to get the error message. }
+procedure OSCheckWarning(const TrueValue: Boolean; const Place: String);
+begin
+  if not TrueValue then
+    WritelnWarning('WinAPI error', Place + ': ' + SysErrorMessage(GetLastError));
+end;
+
 {$I castlewindow_winapi_menu.inc}
 {$I castlewindow_winapi_sendinput.inc}
+{$I castlewindow_winapi_pointer_lock.inc}
+
+type
+  { TWindowContainer descendant for Windows, to use TCastleWindowsPointerLock. }
+  TWindowWindowsContainer = class(TWindowContainer)
+  protected
+    function CreatePointerLock: TCastleAbstractPointerLock; override;
+  end;
 
 { Describe ChangeDisplaySettings result. }
 function DispChangeToStr(L: LongInt): String;
@@ -825,6 +840,7 @@ begin
           take care of requesting window redraw after window resize. }
         if (wParm = SIZE_MAXIMIZED) or (wParm = SIZE_RESTORED) then
           DoResize(TWinParam(lParm).LoWord, TWinParam(lParm).HiWord, false);
+        (Container.PointerLock as TCastleWindowsPointerLock).UpdateClipCursor;
         Exit;
       end;
     WM_MOVE:
@@ -870,6 +886,8 @@ begin
           Maybe we should just call only glViewport,
           using current RenderContext.Viewport? }
         DoResize(fRealWidth, fRealHeight, false);
+
+        (Container.PointerLock as TCastleWindowsPointerLock).UpdateClipCursor;
         Exit;
       end;
     WM_SIZING:
@@ -1285,6 +1303,8 @@ begin
 
   Check(h_Wnd <> 0, 'Creating window (CreateWindowExW) failed');
 
+  (Container.PointerLock as TCastleWindowsPointerLock).WindowHandle := h_Wnd;
+
   { calculate correct Left and Top, required e.g. by SetCursorPos }
   if FullScreen then
   begin
@@ -1417,12 +1437,19 @@ begin
   try
     ContextDestroy;
 
-    if (h_Dc <> 0) and (ReleaseDC(h_Wnd, h_Dc) = 0) then
-      WritelnWarning('WinAPI', 'Releasing device context (ReleaseDC) failed.');
-    h_Dc := 0;
-    if (h_Wnd <> 0) and (not DestroyWindow(h_Wnd))then
-      WritelnWarning('WinAPI', 'Destroying window (DestroyWindow) failed.');
-    h_Wnd := 0;
+    if h_Dc <> 0 then
+    begin
+      OSCheckWarning(ReleaseDC(h_Wnd, h_Dc) <> 0, 'ReleaseDC');
+      h_Dc := 0;
+    end;
+
+    if h_Wnd <> 0 then
+    begin
+      OSCheckWarning(DestroyWindow(h_Wnd), 'DestroyWindow');
+      h_Wnd := 0;
+    end;
+
+    (Container.PointerLock as TCastleWindowsPointerLock).WindowClosing;
   finally InCloseBackend := false; end;
 end;
 
@@ -1433,6 +1460,11 @@ begin
   begin
     SetWindowTextW(h_Wnd, PWideChar(StringToUtf16(GetWholeCaption)));
   end;
+end;
+
+function TCastleWindow.CreateContainer: TCastleContainer;
+begin
+  Result := TWindowWindowsContainer.Create(Self);
 end;
 
 procedure TCastleWindow.CreateBackend;
@@ -2135,6 +2167,13 @@ begin
   { Confirmed using window_events example that it is "true" for GTK
     (press "5", OnMotion is generated). }
   Result := true;
+end;
+
+{ TWindowWindowsContainer -------------------------------------------------------- }
+
+function TWindowWindowsContainer.CreatePointerLock: TCastleAbstractPointerLock;
+begin
+  Result := TCastleWindowsPointerLock.Create(Self);
 end;
 
 {$endif read_implementation}

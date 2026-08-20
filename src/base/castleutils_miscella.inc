@@ -126,8 +126,8 @@ function SCastleEngineProgramHelpSuffix(const AppName, AppVersion: String; const
   deprecated 'use ApplicationProperties.Description';
 
 { If not TrueValue then RaiseLastOSError. }
-procedure OSCheck(TrueValue: boolean); overload;
-procedure OSCheck(TrueValue: boolean; const Place: string); overload;
+procedure OSCheck(const TrueValue: Boolean); overload;
+procedure OSCheck(const TrueValue: Boolean; const Place: String); overload;
 
 type
   { Descend from this to hide a parameterless constructor.
@@ -386,12 +386,13 @@ begin
     'Platform: ' + SPlatformDescription + '.';
 end;
 
-procedure OSCheck(TrueValue: boolean);
+procedure OSCheck(const TrueValue: Boolean);
 begin
-  if not TrueValue then RaiseLastOSError;
+  if not TrueValue then
+    RaiseLastOSError;
 end;
 
-procedure OSCheck(TrueValue: boolean; const Place: string);
+procedure OSCheck(const TrueValue: Boolean; const Place: String);
 begin
   if not TrueValue then
   try

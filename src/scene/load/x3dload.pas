@@ -77,6 +77,7 @@ unit X3DLoad;
 {$ifdef CASTLE_TILED_MAP_SUPPORT_DISABLE}{$INFO 'TILED_MAP support disabled'}{$endif}
 {$ifdef CASTLE_IFC_SUPPORT_DISABLE}{$INFO 'IFC support disabled'}{$endif}
 {$ifdef CASTLE_3DS_SUPPORT_DISABLE}{$INFO '3DS support disabled'}{$endif}
+{$ifdef CASTLE_PLY_SUPPORT_DISABLE}{$INFO 'PLY support disabled'}{$endif}
 
 interface
 

@@ -1548,13 +1548,13 @@ begin
     SaveNode(Node, TempStream, 'model/x3d+xml');
     FreeAndNil(Node);
 
-    { check that loading it back results in X3D (4.0 now)
+    { check that loading it back results in X3D (4.1 now, whatever is global X3DVersion)
       (conversion was done, since this is XML) }
     TempStream.Position := 0;
     Node := LoadX3DXmlStream(TempStream);
     AssertTrue(Node.HasForceVersion = true);
-    AssertEquals(4, Node.ForceVersion.Major);
-    AssertEquals(0, Node.ForceVersion.Minor);
+    AssertEquals(X3DVersion.Major, Node.ForceVersion.Major);
+    AssertEquals(X3DVersion.Minor, Node.ForceVersion.Minor);
     FreeAndNil(Node);
 
     { load VRML 2.0 }
@@ -1591,13 +1591,13 @@ begin
     SaveNode(Node, TempStream, 'model/x3d+vrml');
     FreeAndNil(Node);
 
-    { check that loading it back results in X3D (4.0 now)
+    { check that loading it back results in X3D (4.1 now, whatever is global X3DVersion)
       (conversion done, since MIME indicated X3D) }
     TempStream.Position := 0;
     Node := LoadX3DClassicStream(TempStream);
     AssertTrue(Node.HasForceVersion = true);
-    AssertTrue(Node.ForceVersion.Major = 4);
-    AssertTrue(Node.ForceVersion.Minor = 0);
+    AssertTrue(Node.ForceVersion.Major = X3DVersion.Major);
+    AssertTrue(Node.ForceVersion.Minor = X3DVersion.Minor);
     FreeAndNil(Node);
   finally
     FreeAndNil(Node);
@@ -2577,7 +2577,13 @@ procedure TTestX3DNodes.TestConversionDot;
     //AssertEquals(ExpectedOutputStr, OutputStr);
     { Since floats have different precision on different platforms (even between Linux x86_64 and Windows x86_64),
       compare them using regular expressions, that account for possible floating-point output differences. }
-    AssertTrue(StringMatchesRegexp(OutputStr, ExpectedOutputStr));
+    if not StringMatchesRegexp(OutputStr, ExpectedOutputStr) then
+      Fail('Output does not match expected output (using regexp).' + NL +
+        '---------------------------------------------------- Output' + NL +
+        OutputStr + NL +
+        '---------------------------------------------------- Expected output' + NL +
+        ExpectedOutputStr + NL +
+        '---------------------------------------------------- End of output' + NL);
   end;
 
 var

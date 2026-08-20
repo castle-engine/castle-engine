@@ -6,53 +6,24 @@
 '   to be extended by user (and internal) effects.' + LineEnding +
 '' + LineEnding +
 '   It does not define the main() entry point for geometry shaders.' + LineEnding +
-'   User will have to provide it (in ComposedShader or Effect),' + LineEnding +
-'   or we will discard partial geometry shader code. */' + LineEnding +
+'   User will have to provide it (in ComposedShader or Effect). */' + LineEnding +
 '' + LineEnding +
-'/* Our implementation supports only geometry shaders for GLSL >= 1.50. */' + LineEnding +
-'#version 150' + LineEnding +
+'/* SHADER-MOVE-TO-LAST */' + LineEnding +
 '' + LineEnding +
 '/* PLUG-DECLARATIONS */' + LineEnding +
 '' + LineEnding +
-'/* Standard varying, always used by our shaders */' + LineEnding +
-'in vec4 castle_vertex_eye[CASTLE_GEOMETRY_INPUT_SIZE];' + LineEnding +
-'out vec4 castle_vertex_eye_geoshader;' + LineEnding +
-'in vec3 castle_normal_eye[CASTLE_GEOMETRY_INPUT_SIZE];' + LineEnding +
-'out vec3 castle_normal_eye_geoshader;' + LineEnding +
-'// TODO: this geometry shader automatic-passing right now only works in Gouraud shading' + LineEnding +
-'#define CASTLE_GOURAUD' + LineEnding +
-'#ifdef CASTLE_GOURAUD' + LineEnding +
-'in vec4 castle_Color[CASTLE_GEOMETRY_INPUT_SIZE];' + LineEnding +
-'out vec4 castle_Color_geoshader;' + LineEnding +
-'#endif' + LineEnding +
-'' + LineEnding +
 'void geometryVertexSet(const int index)' + LineEnding +
 '{' + LineEnding +
-'  castle_vertex_eye_geoshader = castle_vertex_eye[index];' + LineEnding +
-'  castle_normal_eye_geoshader = castle_normal_eye[index];' + LineEnding +
-'  #ifdef CASTLE_GOURAUD' + LineEnding +
-'  castle_Color_geoshader      = castle_Color     [index];' + LineEnding +
-'  #endif' + LineEnding +
 '  /* PLUG: geometry_vertex_set (index) */' + LineEnding +
 '}' + LineEnding +
 '' + LineEnding +
 'void geometryVertexZero()' + LineEnding +
 '{' + LineEnding +
-'  castle_vertex_eye_geoshader = vec4(0.0);' + LineEnding +
-'  castle_normal_eye_geoshader = vec3(0.0);' + LineEnding +
-'  #ifdef CASTLE_GOURAUD' + LineEnding +
-'  castle_Color_geoshader      = vec4(0.0);' + LineEnding +
-'  #endif' + LineEnding +
 '  /* PLUG: geometry_vertex_zero () */' + LineEnding +
 '}' + LineEnding +
 '' + LineEnding +
 'void geometryVertexAdd(const int index, const float scale)' + LineEnding +
 '{' + LineEnding +
-'  castle_vertex_eye_geoshader += castle_vertex_eye[index] * scale;' + LineEnding +
-'  castle_normal_eye_geoshader += castle_normal_eye[index] * scale;' + LineEnding +
-'  #ifdef CASTLE_GOURAUD' + LineEnding +
-'  castle_Color_geoshader      += castle_Color     [index] * scale;' + LineEnding +
-'  #endif' + LineEnding +
 '  /* PLUG: geometry_vertex_add (index, scale) */' + LineEnding +
 '}' + LineEnding +
 ''

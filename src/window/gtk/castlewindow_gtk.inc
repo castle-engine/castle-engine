@@ -1396,6 +1396,11 @@ begin
   end;
 end;
 
+function TCastleWindow.CreateContainer: TCastleContainer;
+begin
+  Result := TWindowContainer.Create(Self);
+end;
+
 procedure TCastleWindow.CreateBackend;
 begin
   { We don't do here anything, and thus it doesn't require calling
