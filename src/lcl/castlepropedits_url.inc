@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -201,11 +201,11 @@ var
 begin
   Dialog := TCastleOpenDialog.Create(nil);
   try
-    Dialog.Filter := 
+    Dialog.Filter :=
       'CGE Design (*.castle-user-interface, *.castle-transform, *.castle-component)|*.castle-user-interface;*.castle-transform;*.castle-component|' +
-      'CGE User Interface Design (*.castle-user-interface)|*.castle-user-interface|' + 
+      'CGE User Interface Design (*.castle-user-interface)|*.castle-user-interface|' +
       'CGE Transform Design (*.castle-transform)|*.castle-transform|' +
-      'CGE Non-Visual Design (*.castle-component)|*.castle-component|' +      
+      'CGE Non-Visual Design (*.castle-component)|*.castle-component|' +
       'All Files|*';
     Dialog.AdviceDataDirectory := PropertyEditorsAdviceDataDirectory;
     if (GetStrValue = '') and PropertyEditorsAdviceDataDirectory then

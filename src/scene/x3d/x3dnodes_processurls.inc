@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -110,8 +110,8 @@ begin
   Result := ExtractRelativePath(Base, Target);
   if IsPathAbsolute(Result) then
     WritelnWarning('ExtractRelativePath("%s","%s") produced absolute path: "%s". This may happen on Windows when source and target are on different drives. There is no way to make it relative, so using absolute path.', [
-      Base, 
-      Target, 
+      Base,
+      Target,
       Result
     ]);
 end;

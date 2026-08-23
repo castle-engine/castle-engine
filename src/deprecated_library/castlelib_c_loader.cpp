@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -112,7 +112,7 @@ typedef void (CDECL *PFNRD_CGE_SetNodeFieldValue_MFVec3d)(const char *szNodeName
 typedef void (CDECL *PFNRD_CGE_SetNodeFieldValue_MFVec4d)(const char *szNodeName, const char *szFieldName, int iCount, double *values);
 typedef void (CDECL *PFNRD_CGE_SetNodeFieldValue_MFRotation)(const char *szNodeName, const char *szFieldName, int iCount, float *values);
 typedef void (CDECL *PFNRD_CGE_SetNodeFieldValue_MFString)(const char *szNodeName, const char *szFieldName, int iCount, const char **values);
-                                        
+
 typedef void (CDECL *PFNRD_CGE_IncreaseSceneTime)(float fTimeS);
 
 PFNRD_CGE_Initialize pfrd_CGE_Initialize = NULL;

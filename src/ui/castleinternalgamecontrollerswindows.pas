@@ -8,7 +8,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
   This file is based on ZenGL, with "zlib" license
   ( http://www.zengl.org/license.html ) which is fully compatible with
