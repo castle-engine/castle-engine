@@ -8,7 +8,7 @@
   included in this distribution, for details about the copyright.
   Parts of this file are based on Lazarus LCL code, which has
   exactly the same license as our "Castle Game Engine":
-  LGPL with static linking exception, see COPYING.txt for details.
+  LGPL with static linking exception, see COPYING.md for details.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of

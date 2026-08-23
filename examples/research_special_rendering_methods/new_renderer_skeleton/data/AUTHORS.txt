@@ -5,5 +5,5 @@ and associated textures/car*.png:
     From Cat-astrophe Games http://cat-astrophe-games.com/ .
 
     Shared on the same terms as the rest of Castle Game Engine
-    (GPL >= 2 or LGPL >= 2 with static linking exception, see COPYING.txt).
+    (GPL >= 2 or LGPL >= 2 with static linking exception, see COPYING.md).
     Thanks!
