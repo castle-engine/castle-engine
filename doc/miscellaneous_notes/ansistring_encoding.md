@@ -144,3 +144,5 @@ initialization
 - `WriteStr/WritelnStr` autotest. `TCastleTextWriter.Write/Writeln` (`castledownload_text.inc`) should also now be good, add autotest. Expect UTF-8, add auto-tests for round-trip with other CGE routines.
 
 - `castledownload_text.inc` — `TCastleTextReader.ReadBuf: AnsiString`, and `Readln/Read` return string. Fix, expect UTF-8, add auto-tests for round-trip with other CGE routines.
+
+- is it possible to work with fpc 3.3.1? does it support doing macro `String:=Utf8String` and then automatic utf-8/non-utf-8 conversions (like Delphi does)?
