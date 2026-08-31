@@ -26,7 +26,7 @@
 {$endif}
 
 {$ifdef read_interface_uses}
-Xlib, CastleInternalXlib, XUtil, X, KeySym, CursorFont,
+Xlib, CastleInternalXlib, XUtil, X, XAtom, KeySym, CursorFont,
 {$endif}
 
 {$ifdef read_window_interface}
@@ -36,6 +36,11 @@ private
   {$ifndef USE_EGL}
   Colormap: TColormap;
   {$endif}
+
+  { Did OpenBackend grab the keyboard and pointer (which happens only for
+    the legacy way to do fullscreen, using override_redirect, see OpenBackend).
+    CloseBackend must release the grabs then. }
+  FGrabbedInput: Boolean;
 
   function HandleXEvent(const Event: TXEvent): boolean;
   procedure UpdateCursor;
@@ -55,10 +60,32 @@ private
 
   { Used to capture "quit window" message. Initialized in InitializeXDisplay. }
   WMDeleteWindow: TAtom;
+
   { Arrays for fast conversion between X keysyms (cut off to least significant
     byte) to our TKey values. The most significant byte of X keysym determines
     which array to use. }
   KeySym0ToKey, KeySymFFToKey: TKeysBytes;
+
+  { Extended Window Manager Hints
+    ( https://specifications.freedesktop.org/wm-spec/latest/ ) atoms,
+    used to ask the window manager for fullscreen.
+    Initialized in InitializeXDisplay. }
+  NetSupported, NetWmState, NetWmStateFullScreen: TAtom;
+
+  { Does the window manager support making our window fullscreen,
+    by the EWMH _NET_WM_STATE_FULLSCREEN state?
+
+    This is the only working way to be fullscreen on modern desktops.
+    In particular under Wayland (where our windows run through Xwayland)
+    the alternative -- an override_redirect window with grabbed keyboard --
+    doesn't work: window with override_redirect, grabbing the keyboard,
+    will not receive any keyboard input under Wayland.
+
+    Determined by looking at _NET_SUPPORTED on the root window,
+    so it accounts for the window manager running right now
+    (and answers @false when there's no window manager at all). }
+  function NetWmFullScreenSupported: Boolean;
+
   { KeySymToKey; zamienia ksym na TKey, zwraca keyNone jezeli
     nie dalo sie skonwertowac (bo moze ten keysym nie ma odpowiednika
     w naszym malym TKey ? a moze ksym byl = NoSymbol ?) }
@@ -119,6 +146,19 @@ procedure TCastleWindow.OpenBackend;
     Container.Dpi := NewDpi;
   end;
 
+  { Ask the window manager to make our window fullscreen,
+    by setting the EWMH _NET_WM_STATE_FULLSCREEN state.
+    Must be done before the window is mapped. }
+  procedure SetNetWmStateFullScreen;
+  var
+    StateAtom: TAtom;
+  begin
+    StateAtom := Application.NetWmStateFullScreen;
+    XChangeProperty(Application.XDisplay, WindowXID,
+      Application.NetWmState, XA_ATOM, 32, PropModeReplace,
+      @StateAtom, 1);
+  end;
+
 var
   AttrValueMask: Cardinal;
   Attr: TXSetWindowAttributes;
@@ -128,11 +168,18 @@ var
   ClassHint: TXClassHint;
   WMHints: TXWMHints;
   PWindTitle: PChar;
+  { Make the window fullscreen without override_redirect (the modern way):
+    using the _NET_WM_STATE_FULLSCREEN state.
+    @true for fullscreen windows, except with ancient / absent
+    window managers that don't support EWMH. }
+  NetWmFullScreen: Boolean;
 const
   AllPointerEventsMask = ButtonPressMask or ButtonReleaseMask or
     EnterWindowMask or LeaveWindowMask or PointerMotionMask;
 begin
   Application.InitializeXDisplay;
+
+  NetWmFullScreen := FullScreen and Application.NetWmFullScreenSupported;
 
   Attr.event_mask := AcceptedEventsMask;
   Attr.border_pixel := 0;
@@ -154,8 +201,41 @@ begin
 
   if FullScreen then
   begin
-    Attr.override_redirect := XBool_true;
-    AttrValueMask := AttrValueMask or CWOverrideRedirect;
+    if not NetWmFullScreen then
+    begin
+      { Legacy fullscreen: bypass the window manager completely. }
+      Attr.override_redirect := XBool_true;
+      AttrValueMask := AttrValueMask or CWOverrideRedirect;
+    end;
+
+    { Cover the whole X screen.
+
+      For the legacy fullscreen, this is simply the final geometry.
+
+      For NetWmFullScreen, this is only our guess: the window manager decides
+      the final geometry, and tells us later by ConfigureNotify.
+      But we must guess *something* reasonable already now, because the window
+      (and thus the OpenGL drawable) has this size until the window manager
+      answers, and we render the "Loading" background (see
+      TCastleWindow.RenderLoadingBackground) before that happens.
+      Creating the window with the windowed size instead would make
+      the "Loading" text appear off-center in full-screen windows.
+
+      TODO: With multiple monitors, Application.ScreenWidth / ScreenHeight are
+      the size of the whole X screen, i.e. the bounding box of all monitors,
+      so this guess is too large and the "Loading" text is centered on the whole
+      desktop instead of one monitor. It also leaves it undefined which monitor
+      the window manager should make us fullscreen on, since our window spans
+      them all.
+
+      To fix: ask Xinerama (XineramaQueryScreens) or RandR for the monitor
+      containing the window position, and use that monitor's rectangle here.
+      That removes the guessing entirely: the size would be correct before
+      the first rendering, and the window manager's later ConfigureNotify would
+      just confirm it. It would also let us finally answer "size of the monitor
+      we are on", which the current ScreenWidth / ScreenHeight cannot express.
+      Note that FPC's xinerama unit links to libXinerama unconditionally
+      ("external 'Xinerama'"), so we would want to load it dynamically. }
     CorrectLeft := 0;
     CorrectTop := 0;
     CorrectWidth := Application.ScreenWidth;
@@ -175,37 +255,53 @@ begin
     {$ifndef USE_EGL} XVisual^.visual {$else} PVisual(CopyFromParent) {$endif},
     AttrValueMask, @Attr);
 
-  if FullScreen and Visible then
+  if FullScreen and (not NetWmFullScreen) and Visible then
   begin
-    { XMapWindow must be called before doing all the "grab" operations.
+    { Legacy fullscreen, for window managers without EWMH support
+      (and for no window manager at all). The window is override_redirect,
+      so the WM will not focus it -- we have to grab the input ourselves.
+
+      XMapWindow must be called before doing all the "grab" operations.
       This also means that this whole piece of code cannot be done
       when Visible = @false. }
     XMapWindow(Application.XDisplay, windowXID);
-    check( XGrabKeyboard(Application.XDisplay, windowXID, XBool_True, GrabModeAsync, GrabModeAsync,
-       CurrentTime) = GrabSuccess, 'cannot grab the keyboard');
-    check( XGrabPointer(Application.XDisplay, windowXID, XBool_True,
-       AcceptedEventsMask and AllPointerEventsMask,
-       GrabModeAsync, GrabModeAsync, windowXID, None, CurrentTime) = GrabSuccess,
-       'cannot grab the pointer');
 
-    { In FullScreen we don't use SizeHints.
-      We don't need them anyway, as in fullscreen the window can never by resized.
+    { Failing to grab is not fatal: the window is still usable, it just doesn't
+      have exclusive input. E.g. AlreadyGrabbed happens routinely when we are
+      started from a window manager shortcut, while the WM still holds its grab. }
+    if XGrabKeyboard(Application.XDisplay, windowXID, XBool_True,
+         GrabModeAsync, GrabModeAsync, CurrentTime) = GrabSuccess then
+    begin
+      FGrabbedInput := true;
+      if XGrabPointer(Application.XDisplay, windowXID, XBool_True,
+           AcceptedEventsMask and AllPointerEventsMask,
+           GrabModeAsync, GrabModeAsync, windowXID, None, CurrentTime) <> GrabSuccess then
+        WritelnWarning('X11', 'Cannot grab the pointer for a fullscreen window');
+    end else
+      WritelnWarning('X11', 'Cannot grab the keyboard for a fullscreen window, keys may not reach the application');
 
-      Also, in FullScreen we do not use WMDeleteWindow that allows to implement
-      OnCloseQuery. But in FullScreen (with override_redirect) user cannot
-      tell the window manager "I want to close this window",
-      there are no window decorations and all keys (including Alt+F4) are grabbed.
-      So we don't need WMDeleteWindow anyway.
+    { In this fullscreen mode (with override_redirect) we don't use SizeHints.
+      We don't need them anyway, as in fullscreen the window can never be resized.
 
-      TODO:
-      - Implement FullScreen without grabbing the keys and override_redirect.
-      - When this is done, WMDeleteWindow should be used with fullscreen too. }
+      Also, we do not use WMDeleteWindow that allows to implement OnCloseQuery.
+      With override_redirect, the user cannot tell the window manager
+      "I want to close this window": there are no window decorations
+      and all keys (including Alt+F4) are grabbed.
+      So we don't need WMDeleteWindow here. }
 
-    { Don't rely on WM-dependent delivery of FocusIn in this case. }
-    SetFocused(true);
+    { Don't rely on WM-dependent delivery of FocusIn in this case:
+      an override_redirect window never gets the focus from the window manager,
+      so the grab is the only thing that makes us focused.
+      Which also means: if the grab failed, we are honestly not focused,
+      and nothing will ever correct this later. }
+    SetFocused(FGrabbedInput);
   end else
   begin
-    { only set window title and handle wm_delete_events if in windowed mode }
+    { A regular window, managed by the window manager.
+      This is also the path for fullscreen when NetWmFullScreen:
+      then it is a regular window, only with the _NET_WM_STATE_FULLSCREEN state.
+      So it gets the keyboard focus, "alt + tab" and "alt + F4" work as usual,
+      and OnCloseQuery works too. }
     XSetWMProtocols(Application.XDisplay, windowXID, @Application.WMDeleteWindow, 1);
 
     { ready sizeHints structure }
@@ -214,20 +310,28 @@ begin
     sizeHints.width := CorrectWidth;
     sizeHints.height := CorrectHeight;
     sizeHints.flags := USSize or USPosition;
-    if ResizeAllowed = raAllowed then
+    { Constrain the size only when not fullscreen. When fullscreen,
+      the window manager has to be free to resize us to the monitor size --
+      min/max hints equal to our initial guess could prevent that,
+      and ResizeAllowed (which talks about the user resizing the window)
+      should not stop us from being fullscreen. }
+    if not NetWmFullScreen then
     begin
-      sizeHints.min_width := minWidth;
-      sizeHints.min_height := minHeight;
-      sizeHints.max_width := maxWidth;
-      sizeHints.max_height := maxHeight;
-    end else
-    begin
-      sizeHints.min_width := CorrectWidth;
-      sizeHints.min_height := CorrectHeight;
-      sizeHints.max_width := CorrectWidth;
-      sizeHints.max_height := CorrectHeight;
+      if ResizeAllowed = raAllowed then
+      begin
+        sizeHints.min_width := minWidth;
+        sizeHints.min_height := minHeight;
+        sizeHints.max_width := maxWidth;
+        sizeHints.max_height := maxHeight;
+      end else
+      begin
+        sizeHints.min_width := CorrectWidth;
+        sizeHints.min_height := CorrectHeight;
+        sizeHints.max_width := CorrectWidth;
+        sizeHints.max_height := CorrectHeight;
+      end;
+      sizeHints.flags := sizeHints.flags or PMinSize or PMaxSize;
     end;
-    sizeHints.flags := sizeHints.flags or PMinSize or PMaxSize;
 
     { ready WMHints, ClassHints }
     WMHints.flags := InputHint;
@@ -249,6 +353,11 @@ begin
     StrDispose(ClassHint.res_name);
     StrDispose(ClassHint.res_class);
 
+    { Must be done before XMapWindow: the window manager reads the initial
+      _NET_WM_STATE when it starts managing the window. }
+    if NetWmFullScreen then
+      SetNetWmStateFullScreen;
+
     if Visible then
       XMapWindow(Application.XDisplay, windowXID);
   end;
@@ -258,7 +367,19 @@ begin
   ContextCreate(windowXID);
   {$endif}
 
-  { applying FullScreen changes to the Left / Top / Width / Height }
+  { applying FullScreen changes to the Left / Top / Width / Height.
+
+    With NetWmFullScreen this is, just like the window geometry above,
+    only a guess -- the window manager will correct us by ConfigureNotify ->
+    X_ConfigureNotify -> DoResize. We have to make it, because the code right
+    after OpenBackend (TCastleWindow.RenderLoadingBackground) already uses
+    our Width / Height.
+
+    TODO: This guess also has a downside: with ResizeAllowed = raOnlyAtOpen,
+    it is accounted as the size change at open (see the comments in
+    TCastleWindow.DoResize), and the real size that the window manager
+    tells us later is then ignored. Fixing the TODO above (knowing the monitor
+    rectangle upfront) fixes this as well. }
   if FullScreen then
   begin
     FLeft := 0;
@@ -280,10 +401,11 @@ var
 begin
   ContextDestroy;
 
-  if FFullScreenBackend and Visible then
+  if FGrabbedInput then
   begin
     XUnGrabPointer(Application.XDisplay, CurrentTime);
     XUnGrabKeyboard(Application.XDisplay, CurrentTime);
+    FGrabbedInput := false;
   end;
 
   { czyscimy kolejke komunikatow dla tego okienka.
@@ -739,9 +861,74 @@ begin
 
     // TODO: Is it OK for a plugin to just get XDefaultScreen below?
     FXScreen := XDefaultScreen(XDisplay);
-    WMDeleteWindow := XInternAtom(XDisplay, 'WM_DELETE_WINDOW', XBool_True);
+    { Note: create the atoms if they don't exist yet (only_if_exists = false).
+      Otherwise we could get None (0) here, e.g. when no window manager has
+      started yet, and then compare / set properties using an invalid atom. }
+    WMDeleteWindow := XInternAtom(XDisplay, 'WM_DELETE_WINDOW', XBool_False);
+    NetSupported := XInternAtom(XDisplay, '_NET_SUPPORTED', XBool_False);
+    NetWmState := XInternAtom(XDisplay, '_NET_WM_STATE', XBool_False);
+    NetWmStateFullScreen := XInternAtom(XDisplay, '_NET_WM_STATE_FULLSCREEN', XBool_False);
     InitializeXDisplayDone := true;
   end;
+end;
+
+function TCastleApplication.NetWmFullScreenSupported: Boolean;
+type
+  TAtomArray = array [0 .. High(Word)] of TAtom;
+  PAtomArray = ^TAtomArray;
+var
+  ReturnedType: TAtom;
+  ReturnedFormat: cint;
+  ItemsCount, BytesAfter: culong;
+  Items: Pcuchar;
+  SupportedAtoms: PAtomArray;
+  I: culong;
+begin
+  Result := false;
+
+  InitializeXDisplay;
+
+  { This should never happen, since XInternAtom with only_if_exists = false
+    should always return a valid atom. }
+  if (NetSupported = X.None) or
+     (NetWmState = X.None) or
+     (NetWmStateFullScreen = X.None) then
+  begin
+    WritelnWarning('X11', 'EWMH atoms not available, but XInternAtom was called with only_if_exists = false. This should never happen.');
+    Exit;
+  end;
+
+  Items := nil;
+  { Read the whole _NET_SUPPORTED list. The length limit is expressed in
+    32-bit quantities; 1024 atoms is far more than any window manager
+    advertises, and asking for too much is harmless.
+    So we deliberately ignore BytesAfter (which would say how much we didn't
+    read) -- if a window manager ever advertised > 1024 atoms, looking at
+    the first 1024 of them is good enough. }
+  if XGetWindowProperty(XDisplay, XRootWindow(XDisplay, XScreen),
+       NetSupported, 0, 1024, XBool_False, XA_ATOM,
+       @ReturnedType, @ReturnedFormat, @ItemsCount, @BytesAfter,
+       @Items) <> Success then
+    Exit;
+
+  if Items = nil then
+    Exit;
+
+  try
+    { No window manager, or one that doesn't support EWMH at all. }
+    if (ReturnedType <> XA_ATOM) or (ReturnedFormat <> 32) then
+      Exit;
+
+    { Guard for ItemsCount = 0: ItemsCount is unsigned,
+      so "ItemsCount - 1" would underflow to a huge value. }
+    if ItemsCount > 0 then
+    begin
+      SupportedAtoms := PAtomArray(Items);
+      for I := 0 to ItemsCount - 1 do
+        if SupportedAtoms^[I] = NetWmStateFullScreen then
+          Exit(true);
+    end;
+  finally XFree(Items) end;
 end;
 
 procedure TCastleApplication.CreateBackend;
