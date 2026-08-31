@@ -67,10 +67,12 @@ type
     var
       Buffer: TOpenALStreamBufferBackend;
       { Available OpenAL buffers.
-        We always have StreamBuffersCount buffers created by alCreateBuffers,
+        If only ALBuffersCreated, then we have StreamBuffersCount buffers
+        created by alCreateBuffers,
         although not all of them may be "enqueued" (see NecessaryBuffers in
         Create) if the sound is shorter. }
       ALBuffers: array [0..StreamBuffersCount - 1] of TALuint;
+      ALBuffersCreated: Boolean;
       StreamedFile: TStreamedSoundFile;
       {$ifdef CASTLE_SUPPORTS_THREADING}
       FeedThread: TOpenALStreamFeedThread;
@@ -291,6 +293,7 @@ begin
 
   alCreateBuffers(StreamBuffersCount, @ALBuffers[Low(ALBuffers)]);
   {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alCreateBuffers ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
+  ALBuffersCreated := true;
 
   try
     NecessaryBuffers := 0;
@@ -346,8 +349,15 @@ begin
     alSourceUnqueueBuffers(Source.ALSource, 1, @ALBuffer);
   {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourceUnqueueBuffers ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 
-  alDeleteBuffers(StreamBuffersCount, @ALBuffers[Low(ALBuffers)]);
-  {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alDeleteBuffers ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
+  { Checking this is useful in edge-cases, if TOpenALStreaming.Create exited
+    in the middle with exception, before it did alCreateBuffers.
+    We don't want then to cause OpenAL error by doing alDeleteBuffers on
+    invalid value. }
+  if ALBuffersCreated then
+  begin
+    alDeleteBuffers(StreamBuffersCount, @ALBuffers[Low(ALBuffers)]);
+    {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alDeleteBuffers ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
+  end;
 
   FreeAndNil(StreamedFile);
 
