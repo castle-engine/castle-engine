@@ -108,7 +108,7 @@ CGRemoteOperation, CGGeometry,
 
 {$ifdef read_window_interface}
 private
-  ref: NSWindow;
+  Ref: NSWindow;
   GLcontext: NSOpenGLContext;
   FMenuForcefullyDisabled: Boolean;
   procedure FullScreenBegin;
@@ -364,7 +364,9 @@ type
   { Extend TBorderlessWindow to be connected with TCastleWindow. }
   TCocoaWindow = objcclass (TBorderlessWindow)
   private
-    ref: TCastleWindow;
+    { Be prepared that this can be nil, as TCocoaWindow can survive
+      TCastleWindow lifetime. }
+    Ref: TCastleWindow;
     WithinCloseBackend: Cardinal;
     ScaleFactor: Single;
   public
@@ -376,8 +378,8 @@ type
 
 procedure TCocoaWindow.close;
 begin
-  if WithinCloseBackend = 0 then
-    ref.DoCloseQuery;
+  if (WithinCloseBackend = 0) and (Ref <> nil) then
+    Ref.DoCloseQuery;
   inherited;
 end;
 
@@ -389,13 +391,15 @@ end;
 procedure TCocoaWindow.becomeKeyWindow;
 begin
   inherited;
-  // ref.FKeyWindow := true; // we don't track such property now
+  if Ref <> nil then
+    Ref.SetFocused(true);
 end;
 
 procedure TCocoaWindow.resignKeyWindow;
 begin
   inherited;
-  // ref.FKeyWindow := false;
+  if Ref <> nil then
+    Ref.SetFocused(false);
 end;
 
 { TCocoaApp ------------------------------------------------------------------ }
@@ -624,7 +628,6 @@ type
     procedure mouseEntered(theEvent: NSEvent); override;
     procedure mouseExited(theEvent: NSEvent); override;
     procedure doCommandBySelector(aSelector: SEL); override;
-    procedure updateTrackingAreas; override;
     procedure keyDown(theEvent: NSEvent); override;
     procedure drawRect(dirtyRect: NSRect); override;
     procedure setFrameSize(newSize: NSSize); override;
@@ -635,7 +638,6 @@ type
     function draggingEntered(sender: NSDraggingInfoProtocol): NSDragOperation; override;
   private
     openGLContext: NSOpenGLContext;
-    trackingArea: NSTrackingArea;
 
     function defaultPixelFormat: NSOpenGLPixelFormat; message 'defaultPixelFormat';
     function windowRef: TCastleWindow; message 'windowRef';
@@ -654,14 +656,6 @@ begin
   result := TCocoaWindow(window).ref;
 end;
 
-procedure TOpenGLView.updateTrackingAreas;
-begin
-  if trackingArea <> nil then
-    removeTrackingArea(trackingArea);
-  trackingArea := NSTrackingArea.alloc.initWithRect_options_owner_userInfo(bounds, NSTrackingMouseEnteredAndExited + NSTrackingActiveAlways, self, nil).autorelease;
-  addTrackingArea(trackingArea);
-end;
-
 procedure TOpenGLView.keyDown(theEvent: NSEvent);
 begin
   // do nothing to prevent beeping
@@ -674,12 +668,12 @@ end;
 
 procedure TOpenGLView.mouseEntered(theEvent: NSEvent);
 begin
-  windowRef.FFocused := true;
+  // nothing necessary to be done now
 end;
 
 procedure TOpenGLView.mouseExited(theEvent: NSEvent);
 begin
-  windowRef.FFocused := false;
+  // nothing necessary to be done now
 end;
 
 procedure TOpenGLView.viewDidMoveToWindow;
@@ -1061,6 +1055,10 @@ begin
 
   Application.OpenWindowsAdd(Self);
 
+  // TODO: Cocoa backend ignores Visible for now.
+  //if Visible then
+  SetFocused(true);
+
   // TODO
   // GetInitialCursorPos;
   // UpdateCursor;
@@ -1070,13 +1068,14 @@ procedure TCastleWindow.CloseBackend;
 var
   CocoaWindow: TCocoaWindow;
 begin
-  if ref <> nil then
+  if Ref <> nil then
   begin
-    CocoaWindow := TCocoaWindow(ref);
+    CocoaWindow := TCocoaWindow(Ref);
     Inc(CocoaWindow.WithinCloseBackend); // avoids infinite loop at closing
     CocoaWindow.close;
     Dec(CocoaWindow.WithinCloseBackend);
-    ref := nil;
+    CocoaWindow.Ref := nil;
+    Ref := nil;
   end;
 end;
 

@@ -513,6 +513,9 @@ type
     { EventOpenCalled = has OnOpen been called from Open? }
     EventOpenCalled: boolean;
 
+    { Are we are currently inside OpenBackend or CloseBackend calls. }
+    FInOpenBackend, FInCloseBackend: Boolean;
+
     MenuUpdateInside: Cardinal;
     MenuUpdateNeedsInitialize: boolean;
     MenuInitialized: boolean;
@@ -918,6 +921,9 @@ type
 
     { Update FRequirements to reflect current window properties. }
     procedure UpdateRequirements;
+
+    { Sets Focused (and thus, indirectly, Container.Focused) to Value. }
+    procedure SetFocused(const Value: Boolean);
   protected
     procedure DoUpdate; virtual;
   public
@@ -1571,7 +1577,28 @@ type
     function MousePressed: TCastleMouseButtons;
 
     { Is the window focused now, which means that keys/mouse events
-      are directed to this window. }
+      are directed to this window.
+
+      This tracks exactly this window being active on the desktop. This means
+      that e.g.:
+
+      @unorderedList(
+        @item(Window may not be focused right when it is open.
+          It may be focused with delay on some backends,
+          to reflect the actual focus state.
+          On other backends, where we don't reliably handle "first focused message"
+          (yet), this property may be immediately @true on open.
+        )
+        @item(When a dialog box appears, this window is not focused anymore temporarily.)
+        @item(Window with @link(Visible) = @false is not focused.
+
+          Note that some backends (like Cocoa) ignore @link(Visible) for now
+          (window is always visible),
+          in which case this property may be @true even when @link(Visible) =
+          @false. This is TODO, ideally all backends should respect @link(Visible).
+        )
+      )
+    }
     property Focused: boolean read FFocused;
 
     { Place for your pointer, for any purposes.
@@ -2630,7 +2657,7 @@ begin
   SwapFullScreen_Key := keyNone;
   FpsShowOnCaption := false;
   FFpsCaptionUpdateDelay := DefaultFpsCaptionUpdateDelay;
-  FFocused := true;
+
   FRequirements := TGLContextRequirements.Create(nil);
 
   CreateBackend;
@@ -2784,7 +2811,10 @@ const
 
     { Call OpenBackend. Note that OpenBackend can call DoResize,
       it will still be correctly understood. }
-    OpenBackend;
+    FInOpenBackend := true;
+    try
+      OpenBackend;
+    finally FInOpenBackend := false end;
 
     { Do MakeCurrent before setting RenderContext.Viewport and EventOpen. }
     MakeCurrent;
@@ -2940,10 +2970,15 @@ begin
       Container.EventClose(Application.OpenWindowsCount);
     end;
   finally
-    CloseBackend;
 
+    { call CloseBackend, controlling FInCloseBackend around }
+    FInCloseBackend := true;
+    try
+      CloseBackend;
+    finally FInCloseBackend := false end;
+
+    FFocused := false;
     FClosed := true;
-
     Application.Current := nil;
 
     { Note: it is important here that OpenWindowsRemove will not raise any error
@@ -3998,6 +4033,57 @@ function TCastleWindow.CastleToLeftTopInt(const V: TVector2): TVector2Integer;
 begin
   Result.X := Floor(V.X);
   Result.Y := FRealHeight - 1 - Floor(V.Y);
+end;
+
+procedure TCastleWindow.SetFocused(const Value: Boolean);
+{$ifdef CASTLE_WINDOW_WINAPI}
+var
+  PtrLock: TCastleWindowsPointerLock;
+{$endif CASTLE_WINDOW_WINAPI}
+begin
+  if FFocused <> Value then
+  begin
+    // WritelnLog('TCastleWindow', 'Window focused: %s', [BoolToStr(Value, true)]);
+    FFocused := Value;
+
+    { right after changing Focused, it's safest to consider mouse position
+      not suitable for mouse look }
+    Container.PointerLock.InternalIgnoreNextMotion;
+
+    {$ifdef CASTLE_WINDOW_WINAPI}
+    PtrLock := Container.PointerLock as TCastleWindowsPointerLock;
+    { Redo ClipCursor if pointer lock active. }
+    PtrLock.UpdateClipCursor;
+    { Redo SetCapture / ReleaseCapture if pointer lock active. }
+    PtrLock.UpdateMouseCapture;
+    {$endif CASTLE_WINDOW_WINAPI}
+
+    { We want to execute some additional things when focused changes,
+      but not when it changes during OpenBackend / CloseBackend.
+
+      Reason: We don't want to cause unexpected processing during them
+      (e.g. ReleaseAllKeysAndMouse causes some DoKeyUp/DoMouseUp
+      (and these even cause BackendMakeCurrent),
+      which is not allowed when window is closing and releasing it's resources).
+      We also don't expect these things are necessary when window is
+      opening or closing:
+      - FileMonitor.CheckChanges should be unnecessary (we likely already
+        have the latest file state at this moment loaded)
+      - ReleaseAllKeysAndMouse should be unnecessary (keys state doesn't matter
+        when window is closing)
+    }
+    if (not FInOpenBackend) and (not FInCloseBackend) then
+    begin
+      if Value then
+        FileMonitor.CheckChanges;
+
+      { When user switches to another program, fake that we release all keys/mouse.
+        Otherwise we could miss some key up / mouse up, when user releases it over
+        another program/window. }
+      if not Value then
+        ReleaseAllKeysAndMouse;
+    end;
+  end;
 end;
 
 { TWindowList ------------------------------------------------------------ }

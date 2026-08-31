@@ -664,6 +664,7 @@ end;
 
 procedure TCastleWindow.OpenBackend;
 begin
+  SetFocused(true);
   ContextCreate(NativeWindow);
   Application.OpenWindowsAdd(Self);
 end;

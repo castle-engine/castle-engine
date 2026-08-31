@@ -736,9 +736,8 @@ function signal_window_focus_out_event(AWindowGtk: PGtkWindow;
   Event: PGdkEventfocus; data: gpointer): gboolean; cdecl;
 { This is called when user switches to another window. }
 SIGNAL_WINDOW_BEGIN
-  ReleaseAllKeysAndMouse;
+  SetFocused(false);
   { for the sake of gtk, I can't tell that I "handled" this in any way }
-  FFocused := false;
   Result := gfalse;
 SIGNAL_WINDOW_END;
 
@@ -746,13 +745,12 @@ function signal_window_focus_in_event(AWindowGtk: PGtkWindow;
   Event: PGdkEventfocus; data: gpointer): gboolean; cdecl;
 SIGNAL_WINDOW_BEGIN
   { Reset Container.MousePosition, since mouse position is unknown now,
-    and do not activate mouse look at next frame.
+    and do not activate mouse look at next frame (this is done now
+    by Container.PointerLock.InternalIgnoreNextMotion inside SetFocused).
     Note: resetting to some hardcoded Container.MousePosition, like Vector2(-1, -1),
     is not enough, testcase: wrong 1st movement in Unholy after alt+tab to fight. }
   GetInitialCursorPos;
-  Container.PointerLock.InternalIgnoreNextMotion;
-  FileMonitor.CheckChanges;
-  FFocused := true;
+  SetFocused(true);
   Result := gfalse;
 SIGNAL_WINDOW_END;
 

@@ -85,9 +85,6 @@ CastleInternalFileMonitor,
 private
   h_Dc: HDC;
   h_Wnd: HWND;
-  { InCloseBackend = true means we are currently inside CloseBackend call.
-    Useful -- see at WM_ACTIVATE. }
-  InCloseBackend: boolean;
 
   VK_LeftBracket_Exists,
   VK_RightBracket_Exists,
@@ -134,6 +131,8 @@ private
 
   fappActive: boolean;
   procedure SetAppActive(value: boolean);
+  { Whether application is active according to Windows.
+    This follows WM_ACTIVATEAPP messages. }
   property appActive: boolean read fappActive write SetAppActive;
 {$endif read_application_interface}
 
@@ -376,7 +375,7 @@ end;
 function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRESULT;
 
 { Note: the following Windows events may be called from CloseBackend
-  (so they probably should check InCloseBackend):
+  (so they probably should check FInCloseBackend):
      WM_WINDOWPOSCHANGING
      WM_WINDOWPOSCHANGED
      WM_NCACTIVATE
@@ -391,15 +390,26 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
        or glplotter --fullscreen-custom 640x480)
 }
 
-  procedure MaybeCapture;
-  { mouse down occurred; so capture the mouse if it's not captured already }
+  { Mouse down occurred.
+    So capture the mouse if it's not captured already.
+    Ignored when pointer lock is active, then pointer lock should control
+    the capture. }
+  procedure MouseCaptureOnDown;
   begin
+    if Container.PointerLock.Active then
+      Exit;
+
     if GetCapture <> H_Wnd then SetCapture(H_Wnd);
   end;
 
-  procedure MaybeRelease;
-  { mouse up occurred; release capture if all mouse buttons are now up }
+  { Mouse up occurred. Release capture if all mouse buttons are now up.
+    Ignored when pointer lock is active, then pointer lock should control
+    the capture. }
+  procedure MouseReleaseOnUp;
   begin
+    if Container.PointerLock.Active then
+      Exit;
+
     if (Container.MousePressed = []) and
        (GetCapture = H_Wnd) then
       ReleaseCapture;
@@ -720,7 +730,7 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
 
   procedure HandleMouseDown(const Button: TCastleMouseButton);
   begin
-    MaybeCapture;
+    MouseCaptureOnDown;
     DoMouseDown(LeftTopToCastle(
       TWinParam(lParm).LoSmallint,
       TWinParam(lParm).HiSmallint), Button, 0);
@@ -731,7 +741,7 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
     DoMouseUp(LeftTopToCastle(
       TWinParam(lParm).LoSmallint,
       TWinParam(lParm).HiSmallint), Button, 0);
-    MaybeRelease;
+    MouseReleaseOnUp;
   end;
 
   procedure HandleMouseMove;
@@ -800,21 +810,13 @@ begin
 
   case uMsg of
     WM_ACTIVATE:
-      if not InCloseBackend then
-        if TWinParam(wParm).LoWord = WA_INACTIVE then
-          { When user switches to another program, fake that we release all keys/mouse.
-            Otherwise we could miss some key up / mouse up, when user releases it over
-            another program/window.
-            Do not do this when InCloseBackend, as ReleaseAllKeysAndMouse causes
-            some DoKeyUp/DoMouseUp (and these even cause BackendMakeCurrent), and no DoXxx
-            should be done when the window is closing and releasing it's resources. }
-          ReleaseAllKeysAndMouse;
-      { Don't Exit, let control flow to DefWindowProcW. }
+      begin
+        SetFocused(TWinParam(wParm).LoWord <> WA_INACTIVE);
+        { Don't Exit, let control flow to DefWindowProcW. }
+      end;
     WM_ACTIVATEAPP:
       begin
         Application.appActive := longbool(wParm);
-        if Application.appActive then
-          FileMonitor.CheckChanges;
         {exit; <- allow DefWindowProcW handle WM_ACTIVETAPP too,
          since you can't say "we surely handled everything that should be done in
          reaction for this message"}
@@ -834,7 +836,7 @@ begin
     WM_UNICHAR: begin Handle_WM_UNICHAR; Exit(1); end;
 
     WM_SIZE:
-      if not InCloseBackend then
+      if not FInCloseBackend then
       begin
         { Note: Window class has (VREDRAW or HREDRAW), so Windows will automatically
           take care of requesting window redraw after window resize. }
@@ -1433,24 +1435,21 @@ end;
 
 procedure TCastleWindow.CloseBackend;
 begin
-  InCloseBackend := true;
-  try
-    ContextDestroy;
+  ContextDestroy;
 
-    if h_Dc <> 0 then
-    begin
-      OSCheckWarning(ReleaseDC(h_Wnd, h_Dc) <> 0, 'ReleaseDC');
-      h_Dc := 0;
-    end;
+  if h_Dc <> 0 then
+  begin
+    OSCheckWarning(ReleaseDC(h_Wnd, h_Dc) <> 0, 'ReleaseDC');
+    h_Dc := 0;
+  end;
 
-    if h_Wnd <> 0 then
-    begin
-      OSCheckWarning(DestroyWindow(h_Wnd), 'DestroyWindow');
-      h_Wnd := 0;
-    end;
+  if h_Wnd <> 0 then
+  begin
+    OSCheckWarning(DestroyWindow(h_Wnd), 'DestroyWindow');
+    h_Wnd := 0;
+  end;
 
-    (Container.PointerLock as TCastleWindowsPointerLock).WindowClosing;
-  finally InCloseBackend := false; end;
+  (Container.PointerLock as TCastleWindowsPointerLock).WindowClosing;
 end;
 
 procedure TCastleWindow.SetCaption(const Part: TCaptionPart; const Value: String);
@@ -2125,15 +2124,6 @@ begin
     ChangeDisplaySettings({$ifdef FPC}nil{$else}TDeviceMode(nil^){$endif} , 0);
 
   fappActive := value;
-
-  { in this simple case, this can just control Container.Focused }
-  if OpenWindowsCount = 1 then
-  begin
-    OpenWindows[0].FFocused := Value;
-    { right after changing Focused, it's safest to consider mouse position
-      not suitable for mouse look }
-    OpenWindows[0].Container.PointerLock.InternalIgnoreNextMotion;
-  end;
 end;
 
 function TCastleApplication.ScreenWidth: integer;

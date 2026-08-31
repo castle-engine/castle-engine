@@ -124,6 +124,17 @@ begin
 
   Application.OpenWindowsAdd(Self);
 
+  if Visible then
+  begin
+    // TODO: Make window actually appear
+
+    { Call SetFocused(true) now, *unless* your backend will reliably inform
+      us when window is initially focused (like WinAPI, GTK, Xlib do).
+      If you will get reliable message about this, then no need to set
+      Focused to true explicitly here. }
+    SetFocused(true);
+  end;
+
   // TODO
   // GetInitialCursorPos;
   // UpdateCursor;

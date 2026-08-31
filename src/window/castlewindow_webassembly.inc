@@ -158,7 +158,7 @@ type
       (FUnadjustedMovementUnsupported) that this browser rejects it. }
     procedure RequestPointerLockNow;
   protected
-    procedure ActiveChanged(const NewValue: Boolean); override;
+    procedure ActiveChanged; override;
     function Delta(const Event: TInputMotion): TVector2; override;
   public
     destructor Destroy; override;
@@ -322,6 +322,7 @@ begin
   DebugLog;
 
   Application.OpenWindowsAdd(Self);
+  SetFocused(true);
 
   Canvas.addEventListener('pointerdown', @PointerDown);
   Canvas.addEventListener('pointerup', @PointerUp);
@@ -689,6 +690,8 @@ end;
 
 function TCastleWindow.Blur(BaseEvent: IJSEvent): Boolean;
 begin
+  // TODO: It would be nicer to just do SetFocused(false) here,
+  // but then make sure you handle some message to do SetFocused(true) reliably.
   ReleaseAllKeysAndMouse;
   Result := false;
 end;
@@ -1217,9 +1220,9 @@ begin
   end;
 end;
 
-procedure TCastleWebPointerLock.ActiveChanged(const NewValue: Boolean);
+procedure TCastleWebPointerLock.ActiveChanged;
 begin
-  if NewValue then
+  if Active then
   begin
     { Note: We considered a mechanism to "schedule" pointer lock request
       in case this is called outside of user gesture (like

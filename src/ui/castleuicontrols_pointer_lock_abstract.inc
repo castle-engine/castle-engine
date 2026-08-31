@@ -147,8 +147,9 @@
     procedure SetController(const Value: TCastleUserInterface);
     procedure ControllerFreeNotification(const Sender: TFreeNotificationObserver);
   protected
-    { Start or stop mouse look. }
-    procedure ActiveChanged(const NewValue: Boolean); virtual; abstract;
+    { Start or stop mouse look.
+      Check @link(Active) to see what is the new state. }
+    procedure ActiveChanged; virtual; abstract;
 
     { Container performing this pointer lock logic. }
     property Container: TCastleContainer read FContainer;
@@ -279,7 +280,7 @@ begin
     if not (csDestroying in Container.ComponentState) then
       Container.FlushCollectedMotion;
     FActive := Value;
-    ActiveChanged(Value);
+    ActiveChanged;
   end;
 end;
 

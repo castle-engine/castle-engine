@@ -130,6 +130,7 @@ end;
 
 procedure TCastleWindow.OpenBackend;
 begin
+  SetFocused(true);
   { We just assume that we already have OpenGL context initialized.
     Nothing to do. }
   Application.OpenWindowsAdd(Self);

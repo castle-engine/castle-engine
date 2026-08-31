@@ -30,7 +30,7 @@
     FWaitingForMiddle: Boolean;
     FMotionToSubtract: TVector2;
   protected
-    procedure ActiveChanged(const NewValue: Boolean); override;
+    procedure ActiveChanged; override;
     function Delta(const Event: TInputMotion): TVector2; override;
   public
     procedure InternalIgnoreNextMotion; override;
@@ -40,9 +40,9 @@
 
 {$ifdef read_implementation}
 
-procedure TCastleDesktopPointerLock.ActiveChanged(const NewValue: Boolean);
+procedure TCastleDesktopPointerLock.ActiveChanged;
 begin
-  if NewValue then
+  if Active then
   begin
     FIgnoreNextMotion := false;
     FWaitingForMiddle := false;
@@ -143,7 +143,7 @@ var
   Middle: TVector2;
 begin
   Result := TVector2.Zero;
-  if not Active then Exit;
+  if (not Active) or (not Container.Focused) then Exit;
 
   ControlRect := FloatRectangle(Container.PixelsRect);
   Middle := ControlRect.Center;

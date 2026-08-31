@@ -866,6 +866,9 @@ begin
       true
     {$endif};
 
+  if Visible then
+    SetFocused(true);
+
   if FullScreen then
   begin
     FLeft := 0;

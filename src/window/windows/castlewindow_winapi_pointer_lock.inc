@@ -21,26 +21,36 @@ type
     adding additional robustness using Windows API.
 
     The caller (@link(TCastleWindow) on WinAPI) must keep
-    the WindowHandle valid and call UpdateClipCursor. }
+    the WindowHandle valid and call newly introduced public methods of this class. }
   TCastleWindowsPointerLock = class(TCastleDesktopPointerLock)
-  strict private
-    UpdatingClipCursor: Boolean;
   protected
-    procedure ActiveChanged(const NewValue: Boolean); override;
+    procedure ActiveChanged; override;
   public
     WindowHandle: HWND;
 
     { If we are updating ClipCursor, do it now.
       You need to call this whenever size or position of the window
-      on the screen changes. }
+      on the screen changes.
+
+      Does nothing when @link(Active) is @false.
+      Assumes Container.Focused is set to a valid value now, it decides
+      whether we start or stop clipping the cursor. }
     procedure UpdateClipCursor;
+
+    { If we are updating mouse capture, do it now.
+
+      Similar to UpdateClipCursor:
+      Does nothing when @link(Active) is @false.
+      Assumes Container.Focused is set to a valid value now, it decides
+      whether we grab or release the mouse. }
+    procedure UpdateMouseCapture;
 
     { Called when the window is closing (TCastleWindow.CloseBackend).
       Clear our state (WindowHandle) and release any pending WinAPI stuff. }
     procedure WindowClosing;
   end;
 
-procedure TCastleWindowsPointerLock.ActiveChanged(const NewValue: Boolean);
+procedure TCastleWindowsPointerLock.ActiveChanged;
 begin
   inherited;
 
@@ -77,17 +87,13 @@ begin
     to ClipCursor done here.
   *)
 
-  if NewValue then
+  if Active then
   begin
-    SetCapture(WindowHandle);
-
-    UpdatingClipCursor := true;
+    UpdateMouseCapture;
     UpdateClipCursor;
   end else
   begin
-    UpdatingClipCursor := false;
     OSCheckWarning(ClipCursor(nil), 'ClipCursor(nil)');
-
     OSCheckWarning(ReleaseCapture(), 'ReleaseCapture');
   end;
 end;
@@ -97,7 +103,24 @@ var
   ClipRect: Windows.TRect;
 begin
   { Do nothing if called while we don't have pointer lock active. }
-  if not UpdatingClipCursor then Exit;
+  if not Active then Exit;
+
+  { Do not clip when window not active.
+
+    Following https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-clipcursor
+    """The cursor is a shared resource. If an application confines the cursor,
+    it must release the cursor by using ClipCursor before relinquishing control to another application.
+    """
+    This doesn't seem necessary on Windows 11 with modern GPUs, but it seems
+    necessary on Windows 10 with older GPUs,
+    see https://github.com/castle-engine/castle-engine/issues/724 .
+  }
+  if not Container.Focused then
+  begin
+    //WritelnLog('WinAPI', 'Not clipping cursor because window is not active');
+    OSCheckWarning(ClipCursor(nil), 'ClipCursor(nil) because window is not active');
+    Exit;
+  end;
 
   { Note: GetWindowRect is not good, because it returns position and size
     of the whole window, including title bar and borders. We want to clip
@@ -154,12 +177,20 @@ begin
     ]));
 end;
 
+procedure TCastleWindowsPointerLock.UpdateMouseCapture;
+begin
+  { Do nothing if called while we don't have pointer lock active. }
+  if not Active then Exit;
+
+  if Container.Focused then
+    SetCapture(WindowHandle)
+  else
+    OSCheckWarning(ReleaseCapture(), 'ReleaseCapture because window is not active');
+end;
+
 procedure TCastleWindowsPointerLock.WindowClosing;
 begin
-  if UpdatingClipCursor then
-  begin
-    UpdatingClipCursor := false;
+  if Active then
     OSCheckWarning(ClipCursor(nil), 'ClipCursor(nil) because window is closing');
-  end;
   WindowHandle := 0;
 end;

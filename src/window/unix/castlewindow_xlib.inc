@@ -200,6 +200,9 @@ begin
       TODO:
       - Implement FullScreen without grabbing the keys and override_redirect.
       - When this is done, WMDeleteWindow should be used with fullscreen too. }
+
+    { Don't rely on WM-dependent delivery of FocusIn in this case. }
+    SetFocused(true);
   end else
   begin
     { only set window title and handle wm_delete_events if in windowed mode }
@@ -602,13 +605,51 @@ function TCastleWindow.HandleXEvent(const Event: TXEvent): boolean;
       Container.MousePressed, 0));
   end;
 
+  { Is this FocusIn / FocusOut event caused only by a grab,
+    and not by a real focus change.
+
+    X11 sends FocusOut with mode = NotifyGrab (and, later, FocusIn with
+    mode = NotifyUngrab) also when the keyboard focus is only temporarily
+    redirected because some grab became active. This happens e.g.
+
+    @unorderedList(
+      @item(when we grab the keyboard and pointer ourselves, to go FullScreen,
+        see the XGrabKeyboard and XGrabPointer calls in OpenBackend,)
+      @item(when the window manager grabs the keyboard, e.g. to display
+        the "alt + tab" window switcher.)
+    )
+
+    At least in the 1st case, user definitely did not switch to another window,
+    so we must not change Focused because of them (which would, during pointer lock,
+    disable it since we look at Container.Focused in TCastleDesktopPointerLock.Delta).
+
+    Note that we deliberately do not ignore mode = NotifyWhileGrabbed.
+    That one indicates a real focus change, that merely happened while some
+    grab was active.
+
+    Similarly, detail = NotifyPointer, NotifyPointerRoot, NotifyDetailNone
+    describe focus following the pointer, not our window really gaining
+    or losing the keyboard focus. }
+  function FocusEventOnlyFromGrab(const xEvent: TXFocusChangeEvent): Boolean;
+  begin
+    Result :=
+      (xEvent.mode = NotifyGrab) or
+      (xEvent.mode = NotifyUngrab) or
+      (xEvent.detail = NotifyPointer) or
+      (xEvent.detail = NotifyPointerRoot) or
+      (xEvent.detail = NotifyDetailNone);
+  end;
+
+  procedure X_FocusIn(const xEvent: TXFocusInEvent);
+  begin
+    if FocusEventOnlyFromGrab(xEvent) then Exit;
+    SetFocused(true);
+  end;
+
   procedure X_FocusOut(const xEvent: TXFocusOutEvent);
   begin
-    { Clear KeysDown and MousePressed information.
-      Otherwise, we could miss the keyup or mouseup event, if user pressed
-      the key/mouse with our window in focus, then (holding the key/mouse)
-      switched to other window. }
-    ReleaseAllKeysAndMouse;
+    if FocusEventOnlyFromGrab(xEvent) then Exit;
+    SetFocused(false);
   end;
 
 begin
@@ -627,6 +668,7 @@ begin
       if (event.xclient.data.l[0] = Integer(Application.WMDeleteWindow)) then
        DoCloseQuery;
     ReparentNotify : parentwinXID := Event.xreparent.parent;
+    FocusIn: X_FocusIn(Event.xfocus);
     FocusOut: X_FocusOut(Event.xfocus);
     else Result := false;
   end;
