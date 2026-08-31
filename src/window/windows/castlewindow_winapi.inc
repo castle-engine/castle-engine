@@ -78,7 +78,6 @@ Imm, Windows, CommDlg,
 {$ifdef read_implementation_uses}
 {$ifdef CASTLE_DEBUG_WINAPI_MESSAGES} StrUtils, {$endif}
 CastleInternalWindowModes, CastleMessages, CastleGameControllers, CastleUnicode,
-CastleInternalFileMonitor,
 {$endif}
 
 {$ifdef read_window_interface}

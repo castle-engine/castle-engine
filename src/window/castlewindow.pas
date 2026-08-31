@@ -2609,7 +2609,7 @@ implementation
 
 uses
   CastleLog, CastleGLVersion, CastleUriUtils, CastleControls, CastleMessaging,
-  CastleRenderContext, CastleInternalGLUtils,
+  CastleRenderContext, CastleInternalGLUtils, CastleInternalFileMonitor,
   {$define read_implementation_uses}
   {$I castlewindow_backend.inc}
   {$undef read_implementation_uses}

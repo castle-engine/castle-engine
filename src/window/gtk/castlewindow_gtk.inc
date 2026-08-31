@@ -68,7 +68,7 @@
 {$endif}
 
 {$ifdef read_implementation_uses}
-CastleInternalWindowModes, CastleFindFiles, CastleInternalFileMonitor,
+CastleInternalWindowModes, CastleFindFiles,
 {$endif}
 
 {$ifdef read_interface_types}
