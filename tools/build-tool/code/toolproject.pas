@@ -183,6 +183,8 @@ type
     function Version: TProjectVersion;
     function ManifestCompiler: TCompiler;
     function QualifiedName: string;
+    { QualifiedName for iOS: either qualified_name, or ios.override_qualified_name. }
+    function IOSQualifiedName: string;
     function Dependencies: TDependencies;
     function Name: string;
     { Project path. Always ends with path delimiter, like a slash or backslash. }
@@ -1798,6 +1800,7 @@ begin
       end;
     'pascal-name': Writeln(NamePascal);
     'qualified-name': Writeln(QualifiedName);
+    'qualified-name-ios': Writeln(IOSQualifiedName);
     'search-paths': Writeln(Manifest.SearchPaths.Text);
     'version-code': Writeln(Manifest.Version.Code);
     'version': Writeln(Manifest.Version.DisplayValue);
@@ -1982,15 +1985,6 @@ const
     #9#9#9#9#9#9#9'com.apple.%s = {' + NL +
     #9#9#9#9#9#9#9#9'enabled = 1;' + NL +
     #9#9#9#9#9#9#9'};' + NL;
-
-  { QualifiedName for iOS: either qualified_name, or ios.override_qualified_name. }
-  function IOSQualifiedName: string;
-  begin
-    if Manifest.IOSOverrideQualifiedName <> '' then
-      Result := Manifest.IOSOverrideQualifiedName
-    else
-      Result := QualifiedName;
-  end;
 
   procedure LaunchImageStoryboardInitialize;
   var
@@ -2886,6 +2880,14 @@ end;
 function TCastleProject.QualifiedName: string;
 begin
   Result := Manifest.QualifiedName;
+end;
+
+function TCastleProject.IOSQualifiedName: string;
+begin
+  if Manifest.IOSOverrideQualifiedName <> '' then
+    Result := Manifest.IOSOverrideQualifiedName
+  else
+    Result := QualifiedName;
 end;
 
 function TCastleProject.Dependencies: TDependencies;
