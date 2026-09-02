@@ -230,6 +230,10 @@ const
   VK_OEM_8 = $DF;
   VK_OEM_102 = $E2;
 
+  { Mask for lParam of WM_SYSKEYDOWN message to determine is Alt pressed.
+    See https://learn.microsoft.com/en-us/windows/win32/inputdev/wm-syskeydown }
+  KeyMessageAltDown = 1 shl 29;
+
 { convert virtual key code (VK_xxx) to TKey. Returns keyNone if no conversion
   available. }
 function TCastleWindow.VirtualKeyToKey(VirtualKey: Byte): TKey;
@@ -429,6 +433,8 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
 
   function InterceptedSystemKey(key: integer): boolean;
   begin
+    { Note: If you add here Alt, make sure to adjust our Alt+F4 handling
+      during mouse look, it must capture the proper message. }
     Result := { TODO-alt: (key = VK_Alt) or }(key = VK_F10)
   end;
 
@@ -821,6 +827,24 @@ begin
          reaction for this message"}
       end;
     WM_CLOSE: begin DoCloseQuery; Exit end;
+
+    { Handle Alt+F4 ourselves when pointer lock is active.
+
+      Reason: SetCapture ( https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setcapture )
+      WinAPI docs say explicitly that:
+      """When the mouse is captured, menu hotkeys and other keyboard accelerators do not work."""
+
+      Hack below follows what Godot Engine does too:
+      https://github.com/godotengine/godot/blob/6220ead4fa06611918e371e6f51d7b9a3aefe53c/platform/windows/display_server_windows.cpp#L6893 .
+    }
+    WM_SYSKEYDOWN:
+      if (wParm = VK_F4) and
+         ((lParm and KeyMessageAltDown) <> 0) and
+         Container.PointerLock.Active then
+      begin
+        DoCloseQuery;
+        Exit;
+      end;
 
     WM_KEYDOWN: begin Handle_WM_KEYDOWN; Exit end;
     WM_KEYUP: begin Handle_WM_KEYUP; Exit end;
