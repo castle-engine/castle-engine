@@ -121,12 +121,14 @@ begin
     if (JsonObjType = 'IfcLabel') or
        (JsonObjType = 'IfcText') or
        (JsonObjType = 'IfcIdentifier') or
+       (JsonObjType = 'IfcPresentableText') or
+       (JsonObjType = 'IfcBoxAlignment') or
        // hack to read IfcValue from TIfcPropertySingleValue.NominalValue into String
        (DebugJsonKey = 'IfcPropertySingleValue.nominalValue') then
       Result := JsonObj.Get('value', '')
     else
     begin
-      WritelnWarning('IFC', 'IFC field "%s" is a JSON object, but not of type "IfcLabel" or "IfcText" or "IfcIdentifier", ignoring', [
+      WritelnWarning('IFC', 'IFC field "%s" is a JSON object, but not of a type we recognize as a string (like "IfcLabel" or "IfcText"), ignoring', [
         DebugJsonKey
       ]);
       Result := '';

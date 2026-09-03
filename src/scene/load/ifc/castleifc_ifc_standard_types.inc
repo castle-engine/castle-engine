@@ -269,6 +269,25 @@
     https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcIdentifier.htm }
   TIfcIdentifier = String;
 
+  { Text that is meant to be displayed (as opposed to TIfcText, that is
+    meant to be read as a description).
+
+    https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPresentableText.htm }
+  TIfcPresentableText = String;
+
+  { Alignment of a text within the text box.
+    Has to be one of the strings:
+    'top-left', 'top-middle', 'top-right',
+    'middle-left', 'center', 'middle-right',
+    'bottom-left', 'bottom-middle', 'bottom-right'.
+
+    TODO: Due to using -, we cannot express this as a simple enumerated type.
+    Maybe make it enumerated anyway, with nice names like TopLeft,
+    TopMiddle, etc. and just handle in special way when reading/writing.
+
+    https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcBoxAlignment.htm }
+  TIfcBoxAlignment = String;
+
   { Indication of date and time by measuring the number of seconds
     which have elapsed since 1 January 1970, 00:00:00 UTC.
 
@@ -2029,6 +2048,74 @@
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcAxis2Placement.htm }
   TIfcAxis2Placement = TIfcPlacement;
+
+  { Writing direction of the text.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcTextPath.htm }
+  TIfcTextPath = (Left, Right, Up, Down);
+
+  { Planar extent, in 2 dimensions: sizes along the X and Y axes.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPlanarExtent.htm }
+  TIfcPlanarExtent = class(TIfcGeometricRepresentationItem)
+  strict private
+    FSizeInX: TIfcLengthMeasure;
+    FSizeInY: TIfcLengthMeasure;
+  published
+    { The extent in the direction of the X axis. }
+    property SizeInX: TIfcLengthMeasure read FSizeInX write FSizeInX;
+
+    { The extent in the direction of the Y axis. }
+    property SizeInY: TIfcLengthMeasure read FSizeInY write FSizeInY;
+  end;
+
+  { Text to be displayed, in 2D and 3D views.
+    This is the IFC counterpart of the X3D @link(TTextNode).
+
+    Authoring applications like
+    @url(https://bonsaibim.org/ BonsaiBIM) and @url(https://www.freecad.org/ FreeCAD)
+    use this too. Usually as the descendant @link(TIfcTextLiteralWithExtent)
+    inside a @link(TIfcAnnotation) product, in a representation with
+    @code(RepresentationIdentifier = 'Annotation').
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcTextLiteral.htm }
+  TIfcTextLiteral = class(TIfcGeometricRepresentationItem)
+  strict private
+    FLiteral: TIfcPresentableText;
+    FPlacement: TIfcAxis2Placement;
+    FPath: TIfcTextPath;
+  public
+    function BuildNode(const Mapping: TCastleIfcMapping;
+      const ParentProduct: TIfcProduct;
+      const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode; override;
+  published
+    { The text to display. }
+    property Literal: TIfcPresentableText read FLiteral write FLiteral;
+
+    { Placement (position and orientation) of the text. }
+    property Placement: TIfcAxis2Placement read FPlacement write FPlacement;
+
+    { Writing direction of the text.
+      Note: We don't use this for display for now. }
+    property Path: TIfcTextPath read FPath write FPath;
+  end;
+
+  { Text to be displayed, with a defined extent (box) and alignment within it.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcTextLiteralWithExtent.htm }
+  TIfcTextLiteralWithExtent = class(TIfcTextLiteral)
+  strict private
+    FExtent: TIfcPlanarExtent;
+    FBoxAlignment: TIfcBoxAlignment;
+  published
+    { Extent (size of the box) in which the text is displayed.
+      Note: We don't use this for display for now. }
+    property Extent: TIfcPlanarExtent read FExtent write FExtent;
+
+    { Alignment of the text within the box defined by @link(Extent).
+      Note: We don't use this for display for now. }
+    property BoxAlignment: TIfcBoxAlignment read FBoxAlignment write FBoxAlignment;
+  end;
 
   { Parameterized planar curve.
 
@@ -8373,6 +8460,9 @@ function IfcClasses: TIfcPersistentClassList;
     FIfcClasses.Add(TIfcBuildingElementProxyType);
     FIfcClasses.Add(TIfcRectangleProfileDef);
     FIfcClasses.Add(TIfcBoundingBox);
+    FIfcClasses.Add(TIfcPlanarExtent);
+    FIfcClasses.Add(TIfcTextLiteral);
+    FIfcClasses.Add(TIfcTextLiteralWithExtent);
     FIfcClasses.Add(TIfcTrimmedCurve);
     FIfcClasses.Add(TIfcEllipse);
     FIfcClasses.Add(TIfcMappedItem);

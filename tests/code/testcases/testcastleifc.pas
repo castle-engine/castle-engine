@@ -20,21 +20,26 @@ interface
 
 uses
   Classes, SysUtils,
-  CastleTester;
+  CastleTester, CastleStringUtils, X3DNodes;
 
 type
   TTestCastleIfc = class(TCastleTestCase)
+  strict private
+    { Used by TestTextLiteral to gather X3D TTextNode contents. }
+    FoundTexts: TCastleStringList;
+    procedure GatherTextNode(Node: TX3DNode);
   published
     procedure TestIfcClasses;
     procedure TestIfcClassesNoDuplicates;
     procedure TestAxis2Placement2D;
     procedure TestAxis2Placement3D;
+    procedure TestTextLiteral;
   end;
 
 implementation
 
-uses TypInfo,
-  CastleStringUtils, CastleIfc, CastleInternalRttiUtils, CastleVectors;
+uses TypInfo, FpJson,
+  CastleIfc, CastleInternalRttiUtils, CastleVectors;
 
 { Simple hack to detect does given object is a TObjectList<xxx> specialization
   and is a list of IFC classes.
@@ -177,6 +182,107 @@ begin
     Z := Vector3(0, 0, 1);
     AssertVectorEquals(Z, Axis2Placement3D.P(2), 0.01);
   finally FreeAndNil(Axis2Placement3D) end;
+end;
+
+procedure TTestCastleIfc.GatherTextNode(Node: TX3DNode);
+var
+  TextNode: TTextNode;
+  S: String;
+begin
+  TextNode := Node as TTextNode;
+  S := GlueStrings(TextNode.FdString.Items, '|');
+  FoundTexts.Add(S);
+end;
+
+{ Test loading, saving and displaying IfcTextLiteral and IfcTextLiteralWithExtent.
+  The testcase file is a copy of demo-models/ifc/text_literal/text_literal.ifcjson . }
+procedure TTestCastleIfc.TestTextLiteral;
+
+  { Check the IFC classes were loaded with correct properties. }
+  procedure CheckIfcContents(const IfcFile: TIfcFile);
+  var
+    I: Integer;
+    Component: TComponent;
+    TextLiteral: TIfcTextLiteral;
+    LiteralsCount, WithExtentCount: Cardinal;
+    Literals: TCastleStringList;
+  begin
+    LiteralsCount := 0;
+    WithExtentCount := 0;
+    Literals := TCastleStringList.Create;
+    try
+      for I := 0 to IfcFile.ComponentCount - 1 do
+      begin
+        Component := IfcFile.Components[I];
+        if Component is TIfcTextLiteral then
+        begin
+          TextLiteral := TIfcTextLiteral(Component);
+          Inc(LiteralsCount);
+          Literals.Add(TextLiteral.Literal);
+          { All our texts have a placement, even if it is an identity placement. }
+          AssertTrue(TextLiteral.Placement <> nil);
+
+          { Check that the enumerated Path is read (and written) correctly. }
+          if TextLiteral.Literal = 'B: object placement' then
+            AssertTrue(TextLiteral.Path = TIfcTextPath.Left)
+          else
+            AssertTrue(TextLiteral.Path = TIfcTextPath.Right);
+
+          if TextLiteral is TIfcTextLiteralWithExtent then
+          begin
+            Inc(WithExtentCount);
+            AssertEquals('bottom-left', TIfcTextLiteralWithExtent(TextLiteral).BoxAlignment);
+            AssertTrue(TIfcTextLiteralWithExtent(TextLiteral).Extent <> nil);
+            AssertSameValue(6, TIfcTextLiteralWithExtent(TextLiteral).Extent.SizeInX);
+            AssertSameValue(1, TIfcTextLiteralWithExtent(TextLiteral).Extent.SizeInY);
+          end;
+        end;
+      end;
+
+      AssertEquals(4, LiteralsCount);
+      AssertEquals(1, WithExtentCount);
+      AssertTrue(Literals.IndexOf('A: literal placement') <> -1);
+      AssertTrue(Literals.IndexOf('B: object placement') <> -1);
+      AssertTrue(Literals.IndexOf('C: with extent') <> -1);
+      AssertTrue(Literals.IndexOf('D: rotated' + #10 + 'and multi-line') <> -1);
+    finally FreeAndNil(Literals) end;
+  end;
+
+var
+  IfcFile, IfcFileFromSaved: TIfcFile;
+  Json: TJsonObject;
+  RootNode: TX3DRootNode;
+begin
+  IfcFile := IfcJsonLoad('castle-data:/ifc/text_literal.ifcjson');
+  try
+    CheckIfcContents(IfcFile);
+
+    { Test that saving preserves everything: save to JSON, load it back. }
+    Json := IfcJsonSave(IfcFile);
+    try
+      IfcFileFromSaved := IfcJsonLoad(Json);
+      try
+        CheckIfcContents(IfcFileFromSaved);
+      finally FreeAndNil(IfcFileFromSaved) end;
+    finally FreeAndNil(Json) end;
+
+    { Test that the conversion to X3D creates TTextNode with proper contents. }
+    FoundTexts := TCastleStringList.Create;
+    try
+      RootNode := IfcToX3D(IfcFile, '');
+      try
+        RootNode.EnumerateNodes(TTextNode,
+          {$ifdef FPC}@{$endif} GatherTextNode, false);
+      finally FreeAndNil(RootNode) end;
+
+      AssertEquals(4, FoundTexts.Count);
+      AssertTrue(FoundTexts.IndexOf('A: literal placement') <> -1);
+      AssertTrue(FoundTexts.IndexOf('B: object placement') <> -1);
+      AssertTrue(FoundTexts.IndexOf('C: with extent') <> -1);
+      { The multi-line literal must be split into 2 X3D strings. }
+      AssertTrue(FoundTexts.IndexOf('D: rotated|and multi-line') <> -1);
+    finally FreeAndNil(FoundTexts) end;
+  finally FreeAndNil(IfcFile) end;
 end;
 
 initialization

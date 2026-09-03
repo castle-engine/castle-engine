@@ -1621,6 +1621,53 @@ begin
   Result := Transform;
 end;
 
+function TIfcTextLiteral.BuildNode(const Mapping: TCastleIfcMapping;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
+var
+  TextNode: TTextNode;
+  Shape: TShapeNode;
+  Transform: TTransformNode;
+  Lines: TCastleStringList;
+  Translation: TVector3;
+  Rotation: TVector4;
+begin
+  TextNode := TTextNode.Create('', Mapping.BaseUrl);
+
+  { The IFC specification doesn't define any way to have a multi-line text.
+    But the authoring applications just place newlines inside the literal,
+    so honor them. }
+  Lines := TCastleStringList.Create;
+  try
+    Lines.Text := Literal;
+    TextNode.SetText(Lines);
+  finally FreeAndNil(Lines) end;
+
+  TextNode.Solid := false;
+
+  Shape := TShapeNode.Create('', Mapping.BaseUrl);
+  Shape.Geometry := TextNode;
+  Shape.Appearance := LitAppearance;
+  SetMetadata(Shape, 'IFC_ClassName', ClassName);
+
+  Mapping.ConnectShapeAndProduct(Shape, ParentProduct);
+
+  { Note: Authoring applications like BonsaiBIM and FreeCAD
+    leave Placement as identity, and instead move the containing
+    TIfcAnnotation using TIfcProduct.ObjectPlacement.
+    Both approaches are valid, and we support both. }
+  Transform := TTransformNode.Create('', Mapping.BaseUrl);
+  if Placement <> nil then
+  begin
+    Placement.GetTransform(Translation, Rotation);
+    Transform.Translation := Translation;
+    Transform.Rotation := Rotation;
+  end;
+  Transform.AddChildren(Shape);
+
+  Result := Transform;
+end;
+
 function TIfcMappedItem.BuildNode(const Mapping: TCastleIfcMapping;
   const ParentProduct: TIfcProduct;
   const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
