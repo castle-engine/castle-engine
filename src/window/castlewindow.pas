@@ -1768,9 +1768,12 @@ type
         Application.Run;
       )
 
-      But on some compilers and platforms (this exception applies only to
-      Delphi/Android and Delphi/iOS now) it does something more complicated,
-      to achieve a similar effect:
+      But on some compilers and platforms it does something more complicated,
+      to achieve an equivalent effect.
+      Below we describe what happens with Delphi/Android and Delphi/iOS,
+      that use Delphi FMX underneath, and require special treatment
+      due to the specifics of FMX and how Delphi implements
+      program "begin...end." block on these platforms.
 
       @unorderedList(
         @link(It schedules @link(Open) for when FMX will do
@@ -1785,8 +1788,8 @@ type
           in onCreate of Java activity, and it should not really do much.
 
           On Delphi/iOS, it will do UIApplicationMain and never returns,
-          that's how @url(https://developer.apple.com/documentation/uikit/uiapplicationmain(_:_:_:_:)-1yub7
-          UIApplicationMain works (Apple docs say "this function never returns").
+          that's how @url(https://developer.apple.com/documentation/uikit/uiapplicationmain%28_:_:_:_:%29-1yub7
+          UIApplicationMain) works (Apple docs say "this function never returns").
         )
 
         @link(On Delphi/Android:
