@@ -214,6 +214,7 @@ begin
             '      package-name' + NL +
             '      pascal-name' + NL +
             '      qualified-name' + NL +
+            '      qualified-name-ios' + NL +
             '      search-paths' + NL +
             '      version-code' + NL +
             '      version' + NL +
