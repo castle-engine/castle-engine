@@ -1,4 +1,6 @@
 # Use "make" to regenerate exported/ contents.
+# Afterwards do "cd process_icons && castle-engine compile-run"
+# to make exported_dark_*/ contents.
 
 # ----------------------------------------------------------------------------
 # Extend this section when adding new icons
