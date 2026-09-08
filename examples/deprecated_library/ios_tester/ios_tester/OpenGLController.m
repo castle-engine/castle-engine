@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -119,7 +119,7 @@
         m_btnViewpointPopup = [[UIBarButtonItem alloc] initWithTitle:@"Viewpoint" style:UIBarButtonItemStylePlain target:self action:@selector(OnBtnViewpointPopup:)];
         m_btnOptions = [[UIBarButtonItem alloc] initWithTitle:@"Options" style:UIBarButtonItemStylePlain target:self action:@selector(OnBtnOptions:)];
     }
-    
+
     UIButton *btnInfo = [UIButton buttonWithType:UIButtonTypeInfoLight];
     [btnInfo addTarget:self action:@selector(OnBtnInfo:) forControlEvents:UIControlEventTouchUpInside];
     UIBarButtonItem *btnBarInfo =[[UIBarButtonItem alloc] initWithCustomView:btnInfo];
@@ -460,7 +460,7 @@
 {
     m_btnViewpointPrev.enabled = (m_nCurrentViewpoint > 0);
     m_btnViewpointNext.enabled = (m_nCurrentViewpoint < m_nViewpointCount-1);
-    
+
     if (@available(iOS 14,*))
     {
         [m_btnViewpointPopup setMenu:[self createViewpointsMenu]];
@@ -581,7 +581,7 @@
 - (UIMenu*)createFileOpenMenu API_AVAILABLE(ios(14.0))
 {
     NSMutableArray *arrayFiles = [[NSMutableArray alloc] init];
-    
+
     // documents folder
     NSFileManager *fm = [NSFileManager defaultManager];
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
@@ -595,7 +595,7 @@
             || [sFileExt isEqualToString:@"x3d"])
             [arrayFiles addObject:[sFolder stringByAppendingPathComponent:item]];
     }
-    
+
     // sampledata folder
     NSString *sBundlePath = [[NSBundle mainBundle] bundlePath];
     sFolder = [sBundlePath stringByAppendingPathComponent:@"sampledata"];
@@ -608,7 +608,7 @@
             || [sFileExt isEqualToString:@"x3d"])
             [arrayFiles addObject:[sFolder stringByAppendingPathComponent:item]];
     }
-    
+
     __unsafe_unretained OpenGLController *weakSelf = self;   // retaining self makes dealloc never called
     NSMutableArray *arrMenuActions = [[NSMutableArray alloc] initWithCapacity:m_nViewpointCount];
     for (NSString* sFile in arrayFiles)
@@ -675,7 +675,7 @@
 {
     __unsafe_unretained OpenGLController *weakSelf = self;   // retaining self makes dealloc never called
     NSMutableArray *arrOptActions = [[NSMutableArray alloc] initWithCapacity:m_nViewpointCount];
-    
+
     __unsafe_unretained Options *opt = [Options sharedOptions];
     //---
     UIAction *actWalkCtl = [UIAction actionWithTitle:@"Two Touch Controls" image:NULL identifier:NULL handler:^(__kindof UIAction * _Nonnull action) {
@@ -694,7 +694,7 @@
     }];
     actWalkCtl.state = (opt.walkTwoControls ? UIMenuElementStateOn : UIMenuElementStateOff);
     [arrOptActions addObject:actWalkCtl];
-    
+
     //---
     UIAction *actHeadBobbing = [UIAction actionWithTitle:@"Walk Head Bobbing" image:NULL identifier:NULL handler:^(__kindof UIAction * _Nonnull action) {
         opt.walkHeadBobbing = !opt.walkHeadBobbing;
@@ -703,7 +703,7 @@
     }];
     actHeadBobbing.state = (opt.walkHeadBobbing ? UIMenuElementStateOn : UIMenuElementStateOff);
     [arrOptActions addObject:actHeadBobbing];
-    
+
     //---
     UIAction *actSSAO = [UIAction actionWithTitle:@"SSAO" image:NULL identifier:NULL handler:^(__kindof UIAction * _Nonnull action) {
         opt.ssao = !opt.ssao;

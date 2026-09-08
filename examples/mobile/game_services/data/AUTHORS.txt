@@ -3,7 +3,7 @@ did all the fantastic graphic work for this demo!
 Thank you!
 
 Shared on the same terms as the rest of Castle Game Engine
-(GPL >= 2 or LGPL >= 2 with static linking exception, see COPYING.txt).
+(GPL >= 2 or LGPL >= 2 with static linking exception, see COPYING.md).
 
 The sources for `dragon` (in Spine) and `background` (in Blender)
 are available in the `data-source/` subdirectory.

@@ -12,11 +12,6 @@
   strict private
   end;
 
-  { IFC class @url(https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPlanarExtent.htm IfcPlanarExtent). }
-  TIfcPlanarExtent = class(TIfcGeometricRepresentationItem)
-  strict private
-  end;
-
   { IFC class @url(https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPcurve.htm IfcPcurve). }
   TIfcPcurve = class(TIfcCurve)
   strict private
@@ -619,11 +614,6 @@
 
   { IFC class @url(https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcTendonType.htm IfcTendonType). }
   TIfcTendonType = class(TIfcReinforcingElementType)
-  strict private
-  end;
-
-  { IFC class @url(https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcTextLiteral.htm IfcTextLiteral). }
-  TIfcTextLiteral = class(TIfcGeometricRepresentationItem)
   strict private
   end;
 
@@ -1997,11 +1987,6 @@
   strict private
   end;
 
-  { IFC class @url(https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcTextLiteralWithExtent.htm IfcTextLiteralWithExtent). }
-  TIfcTextLiteralWithExtent = class(TIfcTextLiteral)
-  strict private
-  end;
-
   { IFC class @url(https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcAsset.htm IfcAsset). }
   TIfcAsset = class(TIfcGroup)
   strict private
@@ -3281,7 +3266,6 @@
 {$ifdef read_add_classes}
   FIfcClasses.Add(TIfcPhysicalQuantity);
   FIfcClasses.Add(TIfcPixelTexture);
-  FIfcClasses.Add(TIfcPlanarExtent);
   FIfcClasses.Add(TIfcPcurve);
   FIfcClasses.Add(TIfcPath);
   FIfcClasses.Add(TIfcPavement);
@@ -3403,7 +3387,6 @@
   FIfcClasses.Add(TIfcTextStyle);
   FIfcClasses.Add(TIfcTendonConduitType);
   FIfcClasses.Add(TIfcTendonType);
-  FIfcClasses.Add(TIfcTextLiteral);
   FIfcClasses.Add(TIfcTimeSeries);
   FIfcClasses.Add(TIfcTimeSeriesValue);
   FIfcClasses.Add(TIfcTopologyRepresentation);
@@ -3678,7 +3661,6 @@
   FIfcClasses.Add(TIfcBlock);
   FIfcClasses.Add(TIfcBoundaryFaceCondition);
   FIfcClasses.Add(TIfcBoundaryEdgeCondition);
-  FIfcClasses.Add(TIfcTextLiteralWithExtent);
   FIfcClasses.Add(TIfcAsset);
   FIfcClasses.Add(TIfcTransportElement);
   FIfcClasses.Add(TIfcBSplineCurveWithKnots);

@@ -1,9 +1,9 @@
 {
-  Copyright 2014-2025 Michalis Kamburelis.
+  Copyright 2014-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -25,7 +25,7 @@
 
 uses SysUtils,
   ToolDisableDynamicLibraries, //< use this unit early, before any other CGE unit
-  CastleUtils, CastleParameters, CastleFindFiles, CastleLog,
+  CastleUtils, CastleParameters, CastleFindFiles, CastleLog, CastleClassUtils,
   CastleFilesUtils, CastleUriUtils, CastleStringUtils,
   CastleApplicationProperties, CastleInternalProjectLocalSettings,
   CastleInternalArchitectures, CastleInternalProcess,
@@ -328,7 +328,16 @@ begin
           CPU := StringToCPU(Argument);
           PlatformFromCommandLine := true;
         end;
-    5 : Verbose := true;
+    5 : begin
+          Verbose := true;
+          { Log of e.g. CastleInternalProcess, with full commmands,
+            is done using WritelnLog.
+            TODO: This is not ideal, because in effect both Writeln
+            (some guarded by "if Verbose", some not) and WritelnLog
+            go to stdout, and the content may be interleaved, depending
+            on who does flushing when. }
+          InitializeLog(StdOutStream);
+        end;
     6 : Mode := StringToMode(Argument);
     7 : AssumeCompiled := true;
     8 : Fast := true;

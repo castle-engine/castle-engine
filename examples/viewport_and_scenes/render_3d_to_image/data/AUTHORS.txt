@@ -7,7 +7,7 @@ and associated textures/car*.png:
     from our new game "Sad Sam" --- watch out for it at the beginning of 2017!
 
     Shared on the same terms as the rest of Castle Game Engine
-    (GPL >= 2 or LGPL >= 2 with static linking exception, see COPYING.txt).
+    (GPL >= 2 or LGPL >= 2 with static linking exception, see COPYING.md).
     Thanks!
 
 tunnel_road.jpg

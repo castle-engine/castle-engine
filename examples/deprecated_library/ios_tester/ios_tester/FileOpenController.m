@@ -1,15 +1,15 @@
 /*
  Copyright 2013-2017 Jan Adamec, Michalis Kamburelis.
- 
+
  This file is part of "Castle Game Engine".
- 
- "Castle Game Engine" is free software; see the file COPYING.txt,
+
+ "Castle Game Engine" is free software; see the file COPYING.md,
  included in this distribution, for details about the copyright.
- 
+
  "Castle Game Engine" is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- 
+
  ----------------------------------------------------------------------------
 */
 
@@ -27,11 +27,11 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    
+
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(OnBtnCancel:)];
-    
+
     m_arrayFiles = [[NSMutableArray alloc] init];
-    
+
     // documnets folder
     NSFileManager *fm = [NSFileManager defaultManager];
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
@@ -45,7 +45,7 @@
             || [sFileExt isEqualToString:@"x3d"])
             [m_arrayFiles addObject:[sFolder stringByAppendingPathComponent:item]];
     }
-    
+
     // sampledata folder
     NSString *sBundlePath = [[NSBundle mainBundle] bundlePath];
     sFolder = [sBundlePath stringByAppendingPathComponent:@"sampledata"];

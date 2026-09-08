@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -15,25 +15,25 @@
 }
 
 { Small helpful utilities for CastleWindow implementations that are based
-  on a system where left shift and right shift keys (or Alt, or Ctrl keys) 
+  on a system where left shift and right shift keys (or Alt, or Ctrl keys)
   are given as different keys. This situation requires some special care
   because in our TKey type (and so in TCastleWindow.KeysDown table)
   we do not differentiate between right and left Shift key (or Alt, or Ctrl).
-  
+
   Currently this concerns GTK and Xlib implementations.
-  
+
   If you want to use this file in some CastleWindow implementation,
   define CASTLE_WINDOW_USE_PRIVATE_MODIFIERS_DOWN when compiling that implementation.
   It is important to define CASTLE_WINDOW_USE_PRIVATE_MODIFIERS_DOWN
   instead of simply including this file in CastleWindow-implementation-specific
   file, because this allows ReleaseAllKeysAndMouse to use some
   special code when CASTLE_WINDOW_USE_PRIVATE_MODIFIERS_DOWN.
-  
+
   Then you have to call SetPrivateModifiersDown with
   appropriate arguments at appropriate times. And that's all.
   SetPrivateModifiersDown will take care of calling DoKeyDown(k) and DoKeyUp(k)
   for you for k = keyShift, keyCtrl, keyAlt. }
-  
+
 {$ifdef read_window_interface}
 private
   { We keep here internally state of left shift key
@@ -55,19 +55,19 @@ private
 
     That's what PrivateModifiersDown is for. }
   PrivateModifiersDown:array[TModifierKey, boolean] of boolean;
-  
+
   { Set PrivateModifiersDown[Key, IsRight] := Value.
     Assume that k = ModifierKeyToKey[ModKey].
       If Value then it can call DoKeyDown(k), if state of k should change.
       If not Value then it can call DoKeyUp(k), if state of k should change. }
-  procedure SetPrivateModifiersDown(ModKey:TModifierKey; IsRight:boolean; 
+  procedure SetPrivateModifiersDown(ModKey:TModifierKey; IsRight:boolean;
     Value:boolean);
-    
+
 {$endif read_window_interface}
-  
+
 {$ifdef read_implementation}
 
-procedure TCastleWindow.SetPrivateModifiersDown(ModKey:TModifierKey; IsRight:boolean; 
+procedure TCastleWindow.SetPrivateModifiersDown(ModKey:TModifierKey; IsRight:boolean;
   Value:boolean);
 var OldState, NewState:boolean;
 begin
@@ -75,8 +75,8 @@ begin
  OldState:=PrivateModifiersDown[ModKey, true] or PrivateModifiersDown[ModKey, false];
  PrivateModifiersDown[ModKey, IsRight]:=Value;
  NewState:=PrivateModifiersDown[ModKey, true] or PrivateModifiersDown[ModKey, false];
- 
- if OldState and (not NewState) then 
+
+ if OldState and (not NewState) then
   DoKeyUp(ModifierKeyToKey[ModKey]) else
  if (not OldState) and NewState then
   DoKeyDown(ModifierKeyToKey[ModKey], '');
