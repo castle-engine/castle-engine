@@ -6499,6 +6499,36 @@ begin
 end;
 
 procedure TDesignFrame.ChangeMode(const NewMode: TMode);
+
+  { For dark theme: change button colors, and also make them depending on
+    active/inactive/disabled states.
+    Note: the disabled state is never used now in practice,
+    as these buttons are never disabled (for now). }
+  procedure AdjustToolbarButtonsTheme;
+
+    { Change Button.Images to use an image suitable for dark theme. }
+    procedure UpdateButtonForDarkTheme(const Button: TSpeedButton);
+    begin
+      if not Button.Enabled then
+        Button.Images := Icons.ToolbarIconsDarkDisabled
+      else
+      if Button.Down then
+        Button.Images := Icons.ToolbarIconsDarkActive
+      else
+        Button.Images := Icons.ToolbarIconsDarkInactive;
+    end;
+
+  begin
+    if UseIconsAndColorsForDarkTheme then
+    begin
+      UpdateButtonForDarkTheme(ButtonInteractMode);
+      UpdateButtonForDarkTheme(ButtonSelectMode);
+      UpdateButtonForDarkTheme(ButtonTranslateMode);
+      UpdateButtonForDarkTheme(ButtonRotateMode);
+      UpdateButtonForDarkTheme(ButtonScaleMode);
+    end;
+  end;
+
 begin
   Mode := NewMode;
 
@@ -6507,6 +6537,8 @@ begin
   ButtonTranslateMode.Down := Mode = moTranslate;
   ButtonRotateMode.Down := Mode = moRotate;
   ButtonScaleMode.Down := Mode = moScale;
+
+  AdjustToolbarButtonsTheme;
 
   case Mode of
     moTranslate: TransformManipulate.Mode := mmTranslate;
