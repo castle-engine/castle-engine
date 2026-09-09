@@ -49,12 +49,16 @@ const
   ExportedDarkDisabledPath = '../exported_dark_disabled/';
 
   IconsToProcessPath = '../exported/';
-  IconsToProcessNames: array [0..4] of String = (
+  IconsToProcessNames: array [0..8] of String = (
     'tool-interact',
     'tool-rotate',
     'tool-scale',
     'tool-select',
-    'tool-translate'
+    'tool-translate',
+    'stop-solid',
+    'play-solid',
+    'info-solid',
+    'file-plus'
   );
   IconsToProcessSizes: array [0..4] of String = (
     '16x16',
