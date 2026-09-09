@@ -1723,6 +1723,31 @@ begin
 
   FindActive := false;
   SetEnabledVisible(EditFindInHierarchy, FindActive);
+
+  { TODO: This is unoptimal, we switch all actions buttons to "inactive".
+    We don't really have a place to switch to "active" and "disabled",
+    ActionListDesign has one property for images.
+
+    We should instead pack all images into one long TImageList and set
+    TSpeedButtons index properties accordingly.
+
+    But to make this work, without going insane:), we need to manage TImageList
+    contents by code (not by GUI in Lazarus IDE),
+    and assign the indexes in TSpeedButtons by code.
+    Otherwise (using GUI in Lazarus IDE to manage TImageList contents)
+    this is unmaintainable, we'll constantly need to update
+    indexes for other buttons (or we will have chaos in image list order)
+    esp. with 3 versions for "dark" and possible future changes like
+    variations for "light" as well.
+
+    It also sucks we need all images prepared and loaded, instead of just
+    tweaking the image color at display, like we can with TCastleButton
+    in castle-editor-portable. }
+
+  { TODO: This doesn't seem to work at all at runtime.
+  if UseIconsAndColorsForDarkTheme then
+    ActionListDesign.Images := Icons.ToolbarIconsDarkInactive;
+  }
 end;
 
 destructor TDesignFrame.Destroy;
