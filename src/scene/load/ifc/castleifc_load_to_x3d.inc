@@ -1621,6 +1621,211 @@ begin
   Result := Transform;
 end;
 
+{ Create TFontStyleNode expressing the IFC text writing direction
+  (TIfcTextLiteral.Path) and text alignment
+  (TIfcTextLiteralWithExtent.BoxAlignment). }
+function TextLiteralFontStyle(const BaseUrl: String; const Path: TIfcTextPath;
+  const BoxAlignment: TIfcBoxAlignment): TFontStyleNode;
+type
+  { Which edge of the text, along one axis, lies at the placement origin.
+    Min is the
+    - left edge (for the horizontal axis)
+    - or the bottom edge (for the vertical axis).
+
+    Unspecified means we have no alignment information: this is a plain
+    TIfcTextLiteral (not TIfcTextLiteralWithExtent, so there's no
+    BoxAlignment at all) or the BoxAlignment value is invalid.
+    We follow then the X3D defaults, which mean: the text begins
+    at the placement, with the baseline of the 1st line at the placement.
+
+    This is also what the other applications effectively do:
+
+    - BonsaiBIM, when BoxAlignment is absent, falls back to 'bottom-left':
+      https://github.com/IfcOpenShell/IfcOpenShell/blob/v0.9.0/src/bonsai/bonsai/tool/drawing.py#L1284-L1293
+      And 'bottom' means there the text *baseline*, not the bottom of the text
+      bounding box: it positions the text using Blender blf (which places
+      the baseline)
+      https://github.com/IfcOpenShell/IfcOpenShell/blob/v0.9.0/src/bonsai/bonsai/bim/module/drawing/decoration.py#L427-L451
+      and it writes SVG with "dominant-baseline: baseline"
+      https://github.com/IfcOpenShell/IfcOpenShell/blob/v0.9.0/src/bonsai/bonsai/bim/module/drawing/svgwriter.py#L930-L966
+      So BonsaiBIM's default is exactly the X3D fjBegin + fjFirst.
+
+    - FreeCAD never uses BoxAlignment at all. It always writes a plain
+      IfcTextLiteral
+      https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/BIM/importers/exportIFC.py#L2766
+      and when reading it just creates a Draft Text at the literal placement,
+      with the default (left) justification
+      https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/BIM/importers/importIFCHelper.py#L935
+
+    Note that we deliberately do *not* map Unspecified to Min, even though
+    BonsaiBIM's fallback is spelled 'bottom-left'. Our Min (vertical) is
+    the bottom of the text bounding box (X3D fjEnd), not the baseline,
+    because that is what the IFC box model means: the text lies inside
+    the extent box, so the descenders are inside the box too. This also
+    keeps multi-line texts correct: with fjEnd the extra lines extend
+    *upwards* from a 'bottom-...' placement, as the IfcBoxAlignment spec
+    figure requires, while with the baseline (fjFirst) they would extend
+    downwards (which is indeed what BonsaiBIM does, deviating from the spec). }
+  TAlignEdge = (Unspecified, Min, Middle, Max);
+  TAlignEdges = record
+    Horizontal, Vertical: TAlignEdge;
+  end;
+
+  { Parse the IFC box alignment, like 'bottom-left'. }
+  function ParseBoxAlignment(S: String): TAlignEdges;
+  var
+    Dash: Integer;
+    VerticalStr, HorizontalStr: String;
+  begin
+    { Defaults, used when there's no alignment information
+      or when the parsing fails. }
+    Result.Horizontal := TAlignEdge.Unspecified;
+    Result.Vertical := TAlignEdge.Unspecified;
+
+    S := LowerCase(Trim(S));
+
+    if S = '' then
+      Exit; // no information, follow default alignment
+
+    { 'center' is the IFC spelling of what would be 'middle-middle',
+      it is the only valid IfcBoxAlignment value without a dash. }
+    if S = 'center' then
+    begin
+      Result.Horizontal := TAlignEdge.Middle;
+      Result.Vertical := TAlignEdge.Middle;
+      Exit;
+    end;
+
+    Dash := Pos('-', S);
+    if Dash = 0 then
+    begin
+      WritelnWarning('IFC', 'Invalid IfcBoxAlignment for TIfcTextLiteralWithExtent: "%s" (it is neither "center" nor "<vertical>-<horizontal>")',
+        [S]);
+      Exit;
+    end;
+    VerticalStr := Copy(S, 1, Dash - 1);
+    HorizontalStr := SEnding(S, Dash + 1);
+
+    if VerticalStr = 'top' then
+      Result.Vertical := TAlignEdge.Max
+    else
+    if VerticalStr = 'middle' then
+      Result.Vertical := TAlignEdge.Middle
+    else
+    if VerticalStr = 'bottom' then
+      Result.Vertical := TAlignEdge.Min
+    else
+      WritelnWarning('IFC', 'Invalid vertical alignment for TIfcTextLiteralWithExtent: %s',
+        [VerticalStr]);
+
+    if HorizontalStr = 'left' then
+      Result.Horizontal := TAlignEdge.Min
+    else
+    if HorizontalStr = 'middle' then
+      Result.Horizontal := TAlignEdge.Middle
+    else
+    if HorizontalStr = 'right' then
+      Result.Horizontal := TAlignEdge.Max
+    else
+      WritelnWarning('IFC', 'Invalid horizontal alignment for TIfcTextLiteralWithExtent: %s',
+        [HorizontalStr]);
+  end;
+
+  { Convert the edge, that lies at the placement origin, to the X3D justify.
+
+    BeginAtMin says whether the text along this axis starts at the minimum
+    coordinate, which is true for the left-to-right text (horizontal axis)
+    and for the bottom-to-top text (vertical axis).
+
+    UnspecifiedJustify is used when we have no alignment information,
+    pass the X3D default justify of this axis, see TAlignEdge.Unspecified. }
+  function EdgeToJustify(const Edge: TAlignEdge; const BeginAtMin: Boolean;
+    const UnspecifiedJustify: TX3DFontJustify): TX3DFontJustify;
+  begin
+    case Edge of
+      TAlignEdge.Unspecified:
+        Result := UnspecifiedJustify;
+      TAlignEdge.Min:
+        if BeginAtMin then
+          Result := fjBegin
+        else
+          Result := fjEnd;
+      TAlignEdge.Middle:
+        Result := fjMiddle;
+      TAlignEdge.Max:
+        if BeginAtMin then
+          Result := fjEnd
+        else
+          Result := fjBegin;
+      {$ifndef COMPILER_CASE_ANALYSIS}
+      else raise EInternalError.Create('EdgeToJustify: Invalid TAlignEdge value');
+      {$endif}
+    end;
+  end;
+
+var
+  AlignEdges: TAlignEdges;
+begin
+  Result := TFontStyleNode.Create('', BaseUrl);
+
+  { Express the IFC Path (writing direction).
+
+    Note: Our renderer ignores horizontal, leftToRight, topToBottom for now,
+    it always renders horizontal left-to-right text. But we set these fields
+    anyway, to have correct X3D data and be ready for future X3D renderer. }
+  case Path of
+    { Unknown is not a valid IFC value, it only exists to always write out
+      Path (see TIfcTextPath). Should it ever be set, treat it
+      like the usual Right. }
+    TIfcTextPath.Unknown,
+    TIfcTextPath.Right:
+      begin
+        Result.Horizontal := true;
+        Result.LeftToRight := true;
+        Result.TopToBottom := true;
+      end;
+    TIfcTextPath.Left:
+      begin
+        Result.Horizontal := true;
+        Result.LeftToRight := false;
+        Result.TopToBottom := true;
+      end;
+    TIfcTextPath.Down:
+      begin
+        Result.Horizontal := false;
+        Result.LeftToRight := true;
+        Result.TopToBottom := true;
+      end;
+    TIfcTextPath.Up:
+      begin
+        Result.Horizontal := false;
+        Result.LeftToRight := true;
+        Result.TopToBottom := false;
+      end;
+    {$ifndef COMPILER_CASE_ANALYSIS}
+    else raise EInternalError.Create('TextLiteralFontStyle: Invalid TIfcTextPath value');
+    {$endif}
+  end;
+
+  AlignEdges := ParseBoxAlignment(BoxAlignment);
+
+  if Result.Horizontal then
+  begin
+    Result.Justify := EdgeToJustify(AlignEdges.Horizontal, Result.LeftToRight,
+      TFontStyleNode.DefaultJustify);
+    Result.JustifyMinor := EdgeToJustify(AlignEdges.Vertical, not Result.TopToBottom,
+      TFontStyleNode.DefaultJustifyMinor);
+  end else
+  begin
+    { For vertical text (IFC Path is UP or DOWN) the X3D major direction
+      is the vertical one, and the minor direction is the horizontal one. }
+    Result.Justify := EdgeToJustify(AlignEdges.Vertical, not Result.TopToBottom,
+      TFontStyleNode.DefaultJustify);
+    Result.JustifyMinor := EdgeToJustify(AlignEdges.Horizontal, Result.LeftToRight,
+      TFontStyleNode.DefaultJustifyMinor);
+  end;
+end;
+
 function TIfcTextLiteral.BuildNode(const Mapping: TCastleIfcMapping;
   const ParentProduct: TIfcProduct;
   const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
@@ -1644,6 +1849,7 @@ begin
   finally FreeAndNil(Lines) end;
 
   TextNode.Solid := false;
+  TextNode.FontStyle := TextLiteralFontStyle(Mapping.BaseUrl, Path, GetBoxAlignment);
 
   Shape := TShapeNode.Create('', Mapping.BaseUrl);
   Shape.Geometry := TextNode;
