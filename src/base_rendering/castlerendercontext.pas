@@ -340,6 +340,14 @@ type
       Without it, TDrawableImage does a lot of redundant glBindBuffer calls. }
     property BindBuffer[const Target: TBufferTarget]: TGLBuffer
       read GetBoundBuffer write SetBoundBuffer;
+
+    { Let this class know that current state is unknown.
+      This method has to query current state (glGet..., we use this for scissor
+      now) or just assume it is unknown, and override at next set.
+
+      This is useful if you mix engine rendering with some other library,
+      like FMX, doing direct OpenGL(ES) calls. }
+    procedure UnknownState;
   end;
 
 var
@@ -917,6 +925,11 @@ begin
   }
 
   glBindBuffer(BufferTargetGL[Target], Value);
+end;
+
+procedure TRenderContext.UnknownState;
+begin
+  // TODO
 end;
 
 { TRenderContext.TScissorList ------------------------------------------------------------------- }
