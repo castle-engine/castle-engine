@@ -3,6 +3,14 @@ This service enables the AdMob banner, interstitial and rewarded advertisements.
 
 ### Requires
 * Using this service requires using also `google_play_services`.
+* `min_sdk_version` of at least 23, because the Google Mobile Ads SDK requires it since its version 24. Declare it in `CastleEngineManifest.xml`:
+
+[source,xml]
+----
+<android min_sdk_version="23">
+  ...
+</android>
+----
 
 ### App ID
 
@@ -66,8 +74,22 @@ Statuses used by the admob service:
 | Java application was killed, but native code survived, while waiting for ad to finish.
 |===
 
+### User consent (GDPR)
+
+Google requires a consent management platform for the users in the European Economic Area and the UK, and requires that your application does not request any ad before such user has answered. This service integrates Google's own https://developers.google.com/admob/android/privacy[User Messaging Platform] for this.
+
+To use it, initialize the ads with https://castle-engine.io/apidoc/html/CastleAds.TAds.html[TAds.InitializeAdMobWithConsent] instead of `TAds.InitializeAdMob`. The consent form is then displayed when it is required, and the ads SDK is initialized only once the answer allows requesting ads. Where no consent is required, e.g. outside of Europe, nothing is displayed to the user and the ads are initialized immediately.
+
+Note two things that are your application's job, not the engine's:
+
+* Create the consent messages in your AdMob account first, see https://support.google.com/admob/answer/10113005[Add the Google User Messaging Platform SDK to your app]. Without them, the consent cannot be gathered and (for a user in the EEA) no ad will be shown.
+
+* When `TAds.PrivacyOptionsRequired` is `true`, your application has to show an entry point -- like a button in your settings screen -- that calls `TAds.ShowConsentPrivacyOptions`, so that the user can change or withdraw the consent later. Use the `TAds.OnConsentGathered` event to know when this is decided.
+
+To test the form outside of Europe, pass `DebugForceEea` = `true` and the hash of your device to `TAds.InitializeAdMobWithConsent`. The hash is printed by the UMP SDK to the log (visible in `adb logcat`) when the consent is gathered on that device for the first time. `TAds.ResetConsent` forgets the answer, so that the next run asks again.
+
 ### Debug
 
 If you have any problems with the admob service or want more logs, change the value of the `ServiceAdMob.debug` from `false` to `true`.
 Service source file is located in:
-`tools/build-tool/data/android/integrated-services/admob/app/src/main/java/io/castleengine/ServiceAdMob.java`
+`tools/build-tool/data/android/services/admob/app/src/main/java/io/castleengine/ServiceAdMob.java`

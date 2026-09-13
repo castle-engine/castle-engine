@@ -21,6 +21,7 @@ import android.view.View;
 
 // needed for @NotNull
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.ads.initialization.InitializationStatus;
@@ -42,6 +43,14 @@ import com.google.android.gms.ads.AdView;
 // interstitial ads
 import com.google.android.gms.ads.interstitial.InterstitialAd;
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
+
+// user consent (GDPR / EEA, UK), see https://developers.google.com/admob/android/privacy
+import com.google.android.ump.ConsentDebugSettings;
+import com.google.android.ump.ConsentForm;
+import com.google.android.ump.ConsentInformation;
+import com.google.android.ump.ConsentRequestParameters;
+import com.google.android.ump.FormError;
+import com.google.android.ump.UserMessagingPlatform;
 
 // rewarded ads
 import com.google.android.gms.ads.rewarded.RewardedAd;
@@ -81,6 +90,17 @@ public class ServiceAdMob extends ServiceAbstract
 
     private String[] testDeviceIds;
 
+    /* Consent (UMP) state.
+
+       consentGathering is set when the Pascal code asked us to gather the
+       consent, which means we must not touch the ads SDK until the user has
+       answered. mobileAdsInitialized guards the ads SDK initialization,
+       which now happens either immediately (when the consent is not gathered
+       by us) or once the consent allows requesting ads. */
+    private ConsentInformation consentInformation = null;
+    private boolean consentGathering = false;
+    private boolean mobileAdsInitialized = false;
+
     public ServiceAdMob(MainActivity activity)
     {
         super(activity);
@@ -103,6 +123,34 @@ public class ServiceAdMob extends ServiceAbstract
         mRewardedUnitId = rewardedUnitId;
         testDeviceIds = aTestDeviceIds;
 
+        initializeMobileAdsIfAllowed();
+    }
+
+    /* Initialize the ads SDK, unless we are still waiting for the user consent.
+
+       When we gather the consent (see consentRequest), Google requires that
+       nothing requests an ad before the user has answered the form, see
+       https://developers.google.com/admob/android/privacy .
+       That is why everything that touches the ads SDK -- including loading
+       the first interstitial and rewarded ad -- waits here for
+       ConsentInformation.canRequestAds().
+
+       Safe to call many times, it does the work only once.
+       Called both when the ads are initialized (by the Pascal code) and when
+       the consent is gathered, as these two can happen in any order. */
+    private void initializeMobileAdsIfAllowed()
+    {
+        if (!initialized || mobileAdsInitialized) {
+            return;
+        }
+        if (consentGathering &&
+            (consentInformation == null || !consentInformation.canRequestAds())) {
+            logInfo(CATEGORY, "AdMob initialization waits for the user consent");
+            return;
+        }
+
+        mobileAdsInitialized = true;
+
         // MobileAds initialize - should be done before loading of any ad:
         MobileAds.initialize(getActivity(), new OnInitializationCompleteListener() {
             @Override
@@ -115,6 +163,115 @@ public class ServiceAdMob extends ServiceAbstract
         interstitialInitialize();
         rewardedInitialize();
         logInfo(CATEGORY, "AdMob initialized");
+    }
+
+    /* Gather the user consent using Google's User Messaging Platform.
+
+       Must happen before the ads are initialized, which the Pascal side
+       guarantees by sending the messages in this order.
+
+       debugForceEea and debugDeviceHashes make the form appear as if the
+       device was in the EEA. This is the only way to see the form outside of
+       Europe, and it works only on a device listed in debugDeviceHashes --
+       the hash is printed by the UMP SDK to the log on the first run. */
+    private void consentRequest(boolean debugForceEea, String[] debugDeviceHashes)
+    {
+        consentGathering = true;
+
+        ConsentRequestParameters.Builder parameters = new ConsentRequestParameters.Builder();
+        if (debugForceEea || debugDeviceHashes.length != 0) {
+            ConsentDebugSettings.Builder debugSettings =
+                new ConsentDebugSettings.Builder(getActivity());
+            if (debugForceEea) {
+                debugSettings.setDebugGeography(
+                    ConsentDebugSettings.DebugGeography.DEBUG_GEOGRAPHY_EEA);
+            }
+            for (String deviceHash : debugDeviceHashes) {
+                if (!deviceHash.equals("")) {
+                    debugSettings.addTestDeviceHashedId(deviceHash);
+                }
+            }
+            parameters.setConsentDebugSettings(debugSettings.build());
+        }
+
+        consentInformation = UserMessagingPlatform.getConsentInformation(getActivity());
+        consentInformation.requestConsentInfoUpdate(getActivity(), parameters.build(),
+            new ConsentInformation.OnConsentInfoUpdateSuccessListener() {
+                @Override
+                public void onConsentInfoUpdateSuccess() {
+                    /* Shows the form only when it is required, and calls back
+                       immediately (with formError == null) when it is not,
+                       e.g. outside of the EEA. */
+                    UserMessagingPlatform.loadAndShowConsentFormIfRequired(getActivity(),
+                        new ConsentForm.OnConsentFormDismissedListener() {
+                            @Override
+                            public void onConsentFormDismissed(@Nullable FormError formError) {
+                                consentGathered(formError);
+                            }
+                        });
+                }
+            },
+            new ConsentInformation.OnConsentInfoUpdateFailureListener() {
+                @Override
+                public void onConsentInfoUpdateFailure(FormError formError) {
+                    /* Failed, e.g. no Internet connection. canRequestAds may
+                       still be true, from the consent stored on a previous run. */
+                    consentGathered(formError);
+                }
+            });
+    }
+
+    /* Called when the consent flow finished, successfully or not. */
+    private void consentGathered(@Nullable FormError formError)
+    {
+        int errorCode = NO_ERROR;
+        if (formError != null) {
+            errorCode = formError.getErrorCode();
+            logWarning(CATEGORY, "Consent error " + errorCode + ": " + formError.getMessage());
+        }
+
+        boolean canRequestAds = consentInformation != null &&
+            consentInformation.canRequestAds();
+        /* Does the CMP require us to show an entry point to the privacy
+           options, so that the user can change or withdraw the consent later? */
+        boolean privacyOptionsRequired = consentInformation != null &&
+            consentInformation.getPrivacyOptionsRequirementStatus() ==
+            ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED;
+
+        /* Only the error code is sent, not formError.getMessage(),
+           as an arbitrary message could contain our message delimiter. */
+        messageSend(new String[]{"ads-admob-consent-gathered",
+            booleanToString(canRequestAds),
+            booleanToString(privacyOptionsRequired),
+            Integer.toString(errorCode) });
+
+        initializeMobileAdsIfAllowed();
+    }
+
+    /* Show the privacy options form, to change or withdraw the consent.
+       Makes sense only when the last gathered consent said that the privacy
+       options are required. */
+    private void consentShowPrivacyOptions()
+    {
+        if (consentInformation == null) {
+            logWarning(CATEGORY, "Cannot show privacy options, the consent was not gathered");
+            return;
+        }
+        UserMessagingPlatform.showPrivacyOptionsForm(getActivity(),
+            new ConsentForm.OnConsentFormDismissedListener() {
+                @Override
+                public void onConsentFormDismissed(@Nullable FormError formError) {
+                    consentGathered(formError);
+                }
+            });
+    }
+
+    /* Forget the gathered consent, to test the flow again. Testing only. */
+    private void consentReset()
+    {
+        if (consentInformation != null) {
+            consentInformation.reset();
+        }
     }
 
     private void fullScreenAdClosed(TAdWatchStatus watchedStatus)
@@ -369,7 +526,9 @@ public class ServiceAdMob extends ServiceAbstract
 
     private void bannerShow(int gravity)
     {
-        if (!initialized) {
+        /* mobileAdsInitialized, not initialized: loading a banner is already
+           requesting an ad, so it has to wait for the consent as well. */
+        if (!mobileAdsInitialized) {
             return;
         }
 
@@ -429,7 +588,7 @@ public class ServiceAdMob extends ServiceAbstract
      */
     private void interstitialDisplay(boolean waitUntilLoaded)
     {
-        if (initialized && !mInterstitialUnitId.equals("")) {
+        if (mobileAdsInitialized && !mInterstitialUnitId.equals("")) {
             if (waitUntilLoaded || interstitial != null) {
                 if (waitUntilLoaded && interstitial == null) {
                     // calling show() when ad is not loaded do nothing, so we show ad when it will be available
@@ -472,7 +631,7 @@ public class ServiceAdMob extends ServiceAbstract
     private void rewardedDisplay(boolean waitUntilLoaded)
     {
         rewardedWatched = false;
-        if (initialized && !mRewardedUnitId.equals("")) {
+        if (mobileAdsInitialized && !mRewardedUnitId.equals("")) {
             if (waitUntilLoaded || rewarded != null) {
                 if (waitUntilLoaded && rewarded == null ) {
                     logInfo(CATEGORY, "Requested showing reward ad with waitUntilLoaded, and ad not ready yet. Will wait until ad is ready.");
@@ -516,6 +675,18 @@ public class ServiceAdMob extends ServiceAbstract
     {
         if (parts.length == 5 && parts[0].equals("ads-admob-initialize")) {
             initialize(parts[1], parts[2], parts[3], parts[4].split(","));
+            return true;
+        } else
+        if (parts.length == 3 && parts[0].equals("ads-admob-consent-request")) {
+            consentRequest(stringToBoolean(parts[1]), parts[2].split(","));
+            return true;
+        } else
+        if (parts.length == 1 && parts[0].equals("ads-admob-consent-show-privacy-options")) {
+            consentShowPrivacyOptions();
+            return true;
+        } else
+        if (parts.length == 1 && parts[0].equals("ads-admob-consent-reset")) {
+            consentReset();
             return true;
         } else
         if (parts.length == 2 && parts[0].equals("ads-admob-banner-show")) {
