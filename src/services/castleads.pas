@@ -354,6 +354,9 @@ begin
   if (Received.Count = 2) and
      (Received[0] = 'ads-' + Name + '-full-screen-ad-closed') then
   begin
+    { Note: We don't use TMessaging.MessageToBoolean below, because
+      (for historical reasons) this accepts 'true', 'false',
+      or an integer representing the ad watch status. }
     if Received[1] = 'true' then
       WatchStatus := wsWatched
     else
@@ -377,8 +380,8 @@ begin
     Result := true;
     try
       Parent.ConsentGathered(
-        Received[1] = 'true',
-        Received[2] = 'true',
+        TMessaging.MessageToBoolean(Received[1]),
+        TMessaging.MessageToBoolean(Received[2]),
         StrToInt(Received[3]));
     except
       on EConvertError do
