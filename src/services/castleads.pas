@@ -123,9 +123,12 @@ type
 
       TAdMobHandler = class(TAdNetworkHandler)
       strict private
-        FBannerUnitId, FInterstitialUnitId, FRewardedUnitId, FTestDeviceIdsGlued: string;
+        FBannerUnitId, FInterstitialUnitId, FRewardedUnitId: String;
+        { List of test device ids, glued by Chr(2). }
+        FTestDeviceIdsGlued: String;
         FGatherConsent, FConsentDebugForceEea: Boolean;
-        FConsentDebugDeviceHashesGlued: string;
+        { List of device hashes where we force seeing consent form, glued by Chr(2). }
+        FConsentDebugDeviceHashesGlued: String;
       strict protected
         procedure ReinitializeJavaActivity(Sender: TObject); override;
       public
@@ -454,13 +457,13 @@ constructor TAds.TAdMobHandler.Create(const AParent: TAds;
   const ConsentDebugDeviceHashes: array of string);
 begin
   inherited Create(AParent);
-  FTestDeviceIdsGlued := GlueStrings(TestDeviceIds, ',');
+  FTestDeviceIdsGlued := GlueStrings(TestDeviceIds, Chr(2));
   FBannerUnitId := ABannerUnitId;
   FInterstitialUnitId := AInterstitialUnitId;
   FRewardedUnitId := ARewardedUnitId;
   FGatherConsent := AGatherConsent;
   FConsentDebugForceEea := AConsentDebugForceEea;
-  FConsentDebugDeviceHashesGlued := GlueStrings(ConsentDebugDeviceHashes, ',');
+  FConsentDebugDeviceHashesGlued := GlueStrings(ConsentDebugDeviceHashes, Chr(2));
   ReinitializeJavaActivity(nil);
 end;
 

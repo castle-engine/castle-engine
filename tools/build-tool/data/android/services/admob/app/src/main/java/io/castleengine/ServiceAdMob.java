@@ -187,7 +187,9 @@ public class ServiceAdMob extends ServiceAbstract
                     ConsentDebugSettings.DebugGeography.DEBUG_GEOGRAPHY_EEA);
             }
             for (String deviceHash : debugDeviceHashes) {
-                if (!deviceHash.equals("")) {
+                if (deviceHash.equals("")) {
+                    logWarning(CATEGORY, "Empty device hash provided to consentRequest, ignoring it");
+                } else {
                     debugSettings.addTestDeviceHashedId(deviceHash);
                 }
             }
@@ -674,11 +676,11 @@ public class ServiceAdMob extends ServiceAbstract
     public boolean messageReceived(String[] parts)
     {
         if (parts.length == 5 && parts[0].equals("ads-admob-initialize")) {
-            initialize(parts[1], parts[2], parts[3], parts[4].split(","));
+            initialize(parts[1], parts[2], parts[3], splitString(parts[4], 2, true));
             return true;
         } else
         if (parts.length == 3 && parts[0].equals("ads-admob-consent-request")) {
-            consentRequest(stringToBoolean(parts[1]), parts[2].split(","));
+            consentRequest(stringToBoolean(parts[1]), splitString(parts[2], 2, true));
             return true;
         } else
         if (parts.length == 1 && parts[0].equals("ads-admob-consent-show-privacy-options")) {
