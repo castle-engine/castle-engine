@@ -135,7 +135,8 @@ public class ServiceAdMob extends ServiceAbstract
        the first interstitial and rewarded ad -- waits here for
        ConsentInformation.canRequestAds().
 
-       Safe to call many times, it does the work only once.
+       Safe to call many times, it does the work only once
+       (this is guarded by mobileAdsInitialized).
        Called both when the ads are initialized (by the Pascal code) and when
        the consent is gathered, as these two can happen in any order. */
     private void initializeMobileAdsIfAllowed()
@@ -167,8 +168,15 @@ public class ServiceAdMob extends ServiceAbstract
 
     /* Gather the user consent using Google's User Messaging Platform.
 
-       Must happen before the ads are initialized, which the Pascal side
-       guarantees by sending the messages in this order.
+       Once this method is called, we will block actual ad initialization,
+       by setting consentGathering=true.
+       This prevents initializeMobileAdsIfAllowed from doing real initialization
+       (MobileAds.initialize) before we get consent.
+
+       After some delay, this will call consentGathered
+       (which will in turn call initializeMobileAdsIfAllowed,
+       which should proceed with the actual ad initialization if consent was
+       obtained OK).
 
        debugForceEea and debugDeviceHashes make the form appear as if the
        device was in the EEA. This is the only way to see the form outside of
@@ -223,7 +231,10 @@ public class ServiceAdMob extends ServiceAbstract
             });
     }
 
-    /* Called when the consent flow finished, successfully or not. */
+    /* Called when the consent flow finished, successfully or not.
+
+       Send Pascal message ads-admob-consent-gathered, and calls
+       initializeMobileAdsIfAllowed */
     private void consentGathered(@Nullable FormError formError)
     {
         int errorCode = NO_ERROR;

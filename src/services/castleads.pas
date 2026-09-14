@@ -190,15 +190,18 @@ type
     { Initialize AdMob ads. You need to create the unit ids on AdMob website
       (or use TestAdMobBannerUnitId, TestAdMobInterstitialUnitId for testing).
 
-      TestDeviceIds may be empty, or it may contain a list of devices
-      where you always want to see test ads --- even with real (non-test) ad units.
-      This is useful when you test ads in your application (with real ad units,
-      on a real phone). Paste here the list of your devices
-      (see https://developers.google.com/mobile-ads-sdk/docs/admob/android/quick-start ,
-      you can see your device ids in "adb logcat" output) in order to avoid
-      getting banned for clicking on your own ads.
+      This is usually called from @link(TCastleApplication.OnInitialize).
 
-      Usually called from @link(TCastleApplication.OnInitialize). }
+      @param(TestDeviceIds
+        List of devices where you always want to see "test ads" ---
+        even if you use real (non-test) ad units.
+
+        This is useful when you test ads in your application (with real ad units,
+        on a real phone). Paste here the list of your devices
+        (see https://developers.google.com/mobile-ads-sdk/docs/admob/android/quick-start ,
+        you can see your device ids in "adb logcat" output) in order to avoid
+        getting banned for clicking on your own ads.
+      ) }
     procedure InitializeAdMob(const BannerUnitId, InterstitialUnitId, RewardedUnitId: string;
       const TestDeviceIds: array of string); overload;
 
@@ -469,10 +472,14 @@ end;
 
 procedure TAds.TAdMobHandler.ReinitializeJavaActivity(Sender: TObject);
 begin
-  { The consent has to be gathered before the ads SDK is initialized,
-    so this message has to be sent before the initialize message.
-    The consent is gathered again after the Java activity was recreated,
+  { The consent has to be gathered before the ads SDK is initialized.
+    So we must send ads-...-consent-request first, as it will set in Java
+    consentGathering=true, which will in turn prevent ads-...-initialize
+    from doing real initialization before we get consent.
+
+    Everything here must be done again after the Java activity was recreated,
     as the Java side state is gone then. }
+
   if FGatherConsent then
     Messaging.Send(['ads-' + Name + '-consent-request',
       TMessaging.BoolToStr(FConsentDebugForceEea),
