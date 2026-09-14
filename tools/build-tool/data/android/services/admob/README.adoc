@@ -3,14 +3,7 @@ This service enables the AdMob banner, interstitial and rewarded advertisements.
 
 ### Requires
 * Using this service requires using also `google_play_services`.
-* `min_sdk_version` of at least 23, because the Google Mobile Ads SDK requires it since its version 24. Declare it in `CastleEngineManifest.xml`:
-
-[source,xml]
-----
-<android min_sdk_version="23">
-  ...
-</android>
-----
+* Android min SDK version of at least 23, because the Google Mobile Ads SDK requires it since its version 24. The build tool raises the project's `min_sdk_version` to 23 automatically when this service is used, so you don't have to do anything.
 
 ### App ID
 
