@@ -469,7 +469,7 @@ begin
     as the Java side state is gone then. }
   if FGatherConsent then
     Messaging.Send(['ads-' + Name + '-consent-request',
-      IfThen(FConsentDebugForceEea, 'true', 'false'),
+      TMessaging.BoolToStr(FConsentDebugForceEea),
       FConsentDebugDeviceHashesGlued]);
   Messaging.Send(['ads-' + Name + '-initialize', FBannerUnitId, FInterstitialUnitId, FRewardedUnitId, FTestDeviceIdsGlued]);
   inherited;
