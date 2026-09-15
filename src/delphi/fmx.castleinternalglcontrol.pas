@@ -347,7 +347,7 @@ begin
   try
     if Assigned(OnPaint) then
     begin
-      RenderContext.UnknownState;
+      RenderContext.SynchronizeState;
       OnPaint(Self);
     end;
   finally

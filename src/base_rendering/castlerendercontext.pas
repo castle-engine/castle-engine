@@ -39,8 +39,9 @@ type
     and then disable the scissor within the same OnRender event. }
   TScissor = class
   strict private
-    FEnabled: boolean;
     procedure SetEnabled(const Value: boolean);
+  private
+    FEnabled: boolean;
   public
     { Rectangle to which we clip rendering. Empty by default (will clip everything,
       if you don't assign this!). Do not change this when scissor is enabled. }
@@ -158,6 +159,30 @@ type
     procedure SetPolygonOffset(const Value: TPolygonOffset);
     function GetBoundBuffer(const Target: TBufferTarget): TGLBuffer;
     procedure SetBoundBuffer(const Target: TBufferTarget; const Value: TGLBuffer);
+
+    { Update OpenGL(ES) state to match the fields of this class.
+      Used by SetXxx methods and by SynchronizeState. }
+    procedure UpdateClearColor;
+    procedure UpdateLineWidth;
+    procedure UpdatePointSize;
+    procedure UpdateGlobalAmbient;
+    procedure UpdateProjectionMatrix;
+    procedure UpdateDepthRange;
+    procedure UpdateCullFace;
+    procedure UpdateFrontFace;
+    procedure UpdateDepthTest;
+    procedure UpdateDepthFunc;
+    procedure UpdateColorChannels;
+    procedure UpdateDepthBufferUpdate;
+    procedure UpdateCurrentProgram;
+    procedure UpdateCurrentVao;
+    procedure UpdateBlendingEnabled;
+    procedure UpdateBlendingFunction;
+    procedure UpdateFixedFunctionAlphaTest;
+    procedure UpdateFixedFunctionAlphaCutoff;
+    procedure UpdateFixedFunctionLighting;
+    procedure UpdateLineType;
+    procedure UpdatePolygonOffset;
   private
     FEnabledScissors: TScissorList;
   public
@@ -341,13 +366,11 @@ type
     property BindBuffer[const Target: TBufferTarget]: TGLBuffer
       read GetBoundBuffer write SetBoundBuffer;
 
-    { Let this class know that current state is unknown.
-      This method has to query current state (glGet..., we use this for scissor
-      now) or just assume it is unknown, and override at next set.
-
-      This is useful if you mix engine rendering with some other library,
-      like FMX, doing direct OpenGL(ES) calls. }
-    procedure UnknownState;
+    { Make sure the current OpenGL(ES) state corresponds to what this class
+      expects. Use this after some code, like FMX, did OpenGL(ES)
+      calls that possibly changed the OpenGL(ES) state without going
+      through this class. }
+    procedure SynchronizeState;
   end;
 
 var
@@ -450,13 +473,18 @@ begin
      not TVector4.PerfectlyEquals(FClearColor, ClearColor) then
   begin
     FClearColor := ClearColor;
-    glClearColor(FClearColor.X, FClearColor.Y, FClearColor.Z, FClearColor.W);
+    UpdateClearColor;
   end;
   Mask := 0;
   for B in Buffers do
     Mask := Mask or ClearBufferMask[B];
   if Mask <> 0 then
     glClear(Mask);
+end;
+
+procedure TRenderContext.UpdateClearColor;
+begin
+  glClearColor(FClearColor.X, FClearColor.Y, FClearColor.Z, FClearColor.W);
 end;
 
 procedure TRenderContext.SetLineWidth(const Value: Single);
@@ -467,11 +495,16 @@ begin
   if FLineWidth <> Value then
   begin
     FLineWidth := Value;
-    {$if (not defined(DARWIN)) or defined(OpenGLES)}
-    // on desktop macOS, glLineWidth raise GL_INVALID_VALUE for parameters <> 1.0
-    glLineWidth(Value);
-    {$endif}
+    UpdateLineWidth;
   end;
+end;
+
+procedure TRenderContext.UpdateLineWidth;
+begin
+  {$if (not defined(DARWIN)) or defined(OpenGLES)}
+  // on desktop macOS, glLineWidth raise GL_INVALID_VALUE for parameters <> 1.0
+  glLineWidth(FLineWidth);
+  {$endif}
 end;
 
 procedure TRenderContext.SetPointSize(const Value: Single);
@@ -482,16 +515,20 @@ begin
   if FPointSize <> Value then
   begin
     FPointSize := Value;
-
-    { Not possible with OpenGL ES.
-      See http://stackoverflow.com/questions/9381562/using-gl-points-in-glkit-ios-5
-      http://www.idevgames.com/forums/thread-3.html :
-      "You must write gl_PointSize in the vertex shader, per point." }
-
-    {$ifndef OpenGLES}
-    glPointSize(Value);
-    {$endif}
+    UpdatePointSize;
   end;
+end;
+
+procedure TRenderContext.UpdatePointSize;
+begin
+  { Not possible with OpenGL ES.
+    See http://stackoverflow.com/questions/9381562/using-gl-points-in-glkit-ios-5
+    http://www.idevgames.com/forums/thread-3.html :
+    "You must write gl_PointSize in the vertex shader, per point." }
+
+  {$ifndef OpenGLES}
+  glPointSize(FPointSize);
+  {$endif}
 end;
 
 procedure TRenderContext.SetGlobalAmbient(const Value: TCastleColorRGB);
@@ -502,16 +539,20 @@ begin
   if not TVector3.PerfectlyEquals(FGlobalAmbient, Value) then
   begin
     FGlobalAmbient := Value;
+    UpdateGlobalAmbient;
+  end;
+end;
 
-    if GLFeatures.EnableFixedFunction then
-    begin
-      {$ifndef OpenGLES}
-      { We always set "1" as global ambient alpha.
-        This alpha does not have any useful interpretation, it seems,
-        so don't let it change. }
-      glLightModelv(GL_LIGHT_MODEL_AMBIENT, Vector4(FGlobalAmbient, 1));
-      {$endif}
-    end;
+procedure TRenderContext.UpdateGlobalAmbient;
+begin
+  if GLFeatures.EnableFixedFunction then
+  begin
+    {$ifndef OpenGLES}
+    { We always set "1" as global ambient alpha.
+      This alpha does not have any useful interpretation, it seems,
+      so don't let it change. }
+    glLightModelv(GL_LIGHT_MODEL_AMBIENT, Vector4(FGlobalAmbient, 1));
+    {$endif}
   end;
 end;
 
@@ -521,7 +562,8 @@ begin
     WarnContextNotCurrent;
 
   if FGlobalScissor = nil then
-    FGlobalScissor := TScissor.Create else
+    FGlobalScissor := TScissor.Create
+  else
     FGlobalScissor.Enabled := false; // disable previously enabled scissor, if any
   FGlobalScissor.Rect := Rect;
   FGlobalScissor.Enabled := true;
@@ -542,21 +584,36 @@ begin
     WarnContextNotCurrent;
 
   FProjectionMatrix := Value;
+  UpdateProjectionMatrix;
+end;
 
+procedure TRenderContext.UpdateProjectionMatrix;
+begin
   if GLFeatures.EnableFixedFunction then
   begin
     {$ifndef OpenGLES}
     glMatrixMode(GL_PROJECTION);
     {$warnings off}
-    glLoadMatrix(Value); // consciously using deprecated stuff; this should be internal in this unit
+    glLoadMatrix(FProjectionMatrix); // consciously using deprecated stuff; this should be internal in this unit
     {$warnings on}
     glMatrixMode(GL_MODELVIEW);
     {$endif}
   end;
 end;
 
-
 procedure TRenderContext.SetDepthRange(const Value: TDepthRange);
+begin
+  if Self <> RenderContext then
+    WarnContextNotCurrent;
+
+  if FDepthRange <> Value then
+  begin
+    FDepthRange := Value;
+    UpdateDepthRange;
+  end;
+end;
+
+procedure TRenderContext.UpdateDepthRange;
 
   {$if defined(OpenGLES) and not defined(CASTLE_WEBGL)}
   // Define glDepthRange (not existing in OpenGLES) as alias to glDepthRangef
@@ -567,17 +624,10 @@ procedure TRenderContext.SetDepthRange(const Value: TDepthRange);
   {$endif}
 
 begin
-  if Self <> RenderContext then
-    WarnContextNotCurrent;
-
-  if FDepthRange <> Value then
-  begin
-    FDepthRange := Value;
-    case Value of
-      drFull: glDepthRange(0  , 1);
-      drNear: glDepthRange(0  , 0.1);
-      drFar : glDepthRange(0.1, 1);
-    end;
+  case FDepthRange of
+    drFull: glDepthRange(0  , 1);
+    drNear: glDepthRange(0  , 0.1);
+    drFar : glDepthRange(0.1, 1);
   end;
 end;
 
@@ -589,8 +639,13 @@ begin
   if FCullFace <> Value then
   begin
     FCullFace := Value;
-    GLSetEnabled(GL_CULL_FACE, FCullFace);
+    UpdateCullFace;
   end;
+end;
+
+procedure TRenderContext.UpdateCullFace;
+begin
+  GLSetEnabled(GL_CULL_FACE, FCullFace);
 end;
 
 procedure TRenderContext.SetFrontFaceCcw(const Value: boolean);
@@ -601,11 +656,16 @@ begin
   if FFrontFaceCcw <> Value then
   begin
     FFrontFaceCcw := Value;
-    if Value then
-      glFrontFace(GL_CCW)
-    else
-      glFrontFace(GL_CW);
+    UpdateFrontFace;
   end;
+end;
+
+procedure TRenderContext.UpdateFrontFace;
+begin
+  if FFrontFaceCcw then
+    glFrontFace(GL_CCW)
+  else
+    glFrontFace(GL_CW);
 end;
 
 procedure TRenderContext.SetDepthTest(const Value: Boolean);
@@ -616,8 +676,13 @@ begin
   if FDepthTest <> Value then
   begin
     FDepthTest := Value;
-    GLSetEnabled(GL_DEPTH_TEST, FDepthTest);
+    UpdateDepthTest;
   end;
+end;
+
+procedure TRenderContext.UpdateDepthTest;
+begin
+  GLSetEnabled(GL_DEPTH_TEST, FDepthTest);
 end;
 
 procedure TRenderContext.SetDepthFunc(const Value: TDepthFunction);
@@ -628,8 +693,13 @@ begin
   if FDepthFunc <> Value then
   begin
     FDepthFunc := Value;
-    glDepthFunc(Ord(FDepthFunc));
+    UpdateDepthFunc;
   end;
+end;
+
+procedure TRenderContext.UpdateDepthFunc;
+begin
+  glDepthFunc(Ord(FDepthFunc));
 end;
 
 function TRenderContext.GetColorMask: boolean;
@@ -653,13 +723,18 @@ begin
   if FColorChannels <> Value then
   begin
     FColorChannels := Value;
-    glColorMask(
-      BoolToGL(0 in FColorChannels),
-      BoolToGL(1 in FColorChannels),
-      BoolToGL(2 in FColorChannels),
-      BoolToGL(3 in FColorChannels)
-    );
+    UpdateColorChannels;
   end;
+end;
+
+procedure TRenderContext.UpdateColorChannels;
+begin
+  glColorMask(
+    BoolToGL(0 in FColorChannels),
+    BoolToGL(1 in FColorChannels),
+    BoolToGL(2 in FColorChannels),
+    BoolToGL(3 in FColorChannels)
+  );
 end;
 
 procedure TRenderContext.SetDepthBufferUpdate(const Value: boolean);
@@ -670,8 +745,13 @@ begin
   if FDepthBufferUpdate <> Value then
   begin
     FDepthBufferUpdate := Value;
-    glDepthMask(BoolToGL(Value));
+    UpdateDepthBufferUpdate;
   end;
+end;
+
+procedure TRenderContext.UpdateDepthBufferUpdate;
+begin
+  glDepthMask(BoolToGL(FDepthBufferUpdate));
 end;
 
 procedure TRenderContext.UpdateViewport;
@@ -736,8 +816,13 @@ begin
   if FCurrentProgram <> Value then
   begin
     FCurrentProgram := Value;
-    InternalSetCurrentProgram(Value);
+    UpdateCurrentProgram;
   end;
+end;
+
+procedure TRenderContext.UpdateCurrentProgram;
+begin
+  InternalSetCurrentProgram(FCurrentProgram);
 end;
 
 procedure TRenderContext.SetCurrentVao(const Value: TVertexArrayObject);
@@ -745,13 +830,18 @@ begin
   if FCurrentVao <> Value then
   begin
     FCurrentVao := Value;
-    if GLFeatures.VertexArrayObject then
-    begin
-      if Value <> nil then
-        glBindVertexArray(Value.InternalHandle(Self))
-      else
-        glBindVertexArray(GLObjectNone);
-    end;
+    UpdateCurrentVao;
+  end;
+end;
+
+procedure TRenderContext.UpdateCurrentVao;
+begin
+  if GLFeatures.VertexArrayObject then
+  begin
+    if FCurrentVao <> nil then
+      glBindVertexArray(FCurrentVao.InternalHandle(Self))
+    else
+      glBindVertexArray(GLObjectNone);
   end;
 end;
 
@@ -767,7 +857,7 @@ begin
   if not FBlendingEnabled then
   begin
     FBlendingEnabled := true;
-    glEnable(GL_BLEND);
+    UpdateBlendingEnabled;
   end;
 
   if (FBlendingSourceFactor <> SourceFactor) or
@@ -775,9 +865,7 @@ begin
   begin
     FBlendingSourceFactor := SourceFactor;
     FBlendingDestinationFactor := DestinationFactor;
-    {$warnings off} // using deprecated routine that should be internal here
-    GLBlendFunction(SourceFactor, DestinationFactor);
-    {$warnings on}
+    UpdateBlendingFunction;
   end;
 end;
 
@@ -786,8 +874,20 @@ begin
   if FBlendingEnabled then
   begin
     FBlendingEnabled := false;
-    glDisable(GL_BLEND);
+    UpdateBlendingEnabled;
   end;
+end;
+
+procedure TRenderContext.UpdateBlendingEnabled;
+begin
+  GLSetEnabled(GL_BLEND, FBlendingEnabled);
+end;
+
+procedure TRenderContext.UpdateBlendingFunction;
+begin
+  {$warnings off} // using deprecated routine that should be internal here
+  GLBlendFunction(FBlendingSourceFactor, FBlendingDestinationFactor);
+  {$warnings on}
 end;
 
 procedure TRenderContext.FixedFunctionAlphaTestEnable(const AlphaCutoff: Single = 0.5);
@@ -797,17 +897,13 @@ begin
     if not FFixedFunctionAlphaTest then
     begin
       FFixedFunctionAlphaTest := true;
-      {$ifndef OpenGLES}
-      glEnable(GL_ALPHA_TEST);
-      {$endif}
+      UpdateFixedFunctionAlphaTest;
     end;
 
     if FFixedFunctionAlphaCutoff <> AlphaCutoff then
     begin
       FFixedFunctionAlphaCutoff := AlphaCutoff;
-      {$ifndef OpenGLES}
-      glAlphaFunc(GL_GEQUAL, AlphaCutoff);
-      {$endif}
+      UpdateFixedFunctionAlphaCutoff;
     end;
   end;
 end;
@@ -819,11 +915,25 @@ begin
     if FFixedFunctionAlphaTest then
     begin
       FFixedFunctionAlphaTest := false;
-      {$ifndef OpenGLES}
-      glDisable(GL_ALPHA_TEST);
-      {$endif}
+      UpdateFixedFunctionAlphaTest;
     end;
   end;
+end;
+
+procedure TRenderContext.UpdateFixedFunctionAlphaTest;
+begin
+  {$ifndef OpenGLES}
+  if GLFeatures.EnableFixedFunction then
+    GLSetEnabled(GL_ALPHA_TEST, FFixedFunctionAlphaTest);
+  {$endif}
+end;
+
+procedure TRenderContext.UpdateFixedFunctionAlphaCutoff;
+begin
+  {$ifndef OpenGLES}
+  if GLFeatures.EnableFixedFunction then
+    glAlphaFunc(GL_GEQUAL, FFixedFunctionAlphaCutoff);
+  {$endif}
 end;
 
 procedure TRenderContext.SetFixedFunctionLighting(const Value: boolean);
@@ -831,11 +941,16 @@ begin
   if FFixedFunctionLighting <> Value then
   begin
     FFixedFunctionLighting := Value;
-    {$ifndef OpenGLES}
-    if GLFeatures.EnableFixedFunction then
-      GLSetEnabled(GL_LIGHTING, Value);
-    {$endif}
+    UpdateFixedFunctionLighting;
   end;
+end;
+
+procedure TRenderContext.UpdateFixedFunctionLighting;
+begin
+  {$ifndef OpenGLES}
+  if GLFeatures.EnableFixedFunction then
+    GLSetEnabled(GL_LIGHTING, FFixedFunctionLighting);
+  {$endif}
 end;
 
 procedure TRenderContext.SetLineType(const Value: TLineType);
@@ -843,19 +958,24 @@ begin
   if FLineType <> Value then
   begin
     FLineType := Value;
-    {$ifndef OpenGLES}
-    case LineType of
-      ltSolid: glDisable(GL_LINE_STIPPLE);
-      ltDashed      : begin glLineStipple(1, $00FF); glEnable(GL_LINE_STIPPLE); end;
-      ltDotted      : begin glLineStipple(1, $CCCC); glEnable(GL_LINE_STIPPLE); end;
-      ltDashedDotted: begin glLineStipple(1, $FFCC); glEnable(GL_LINE_STIPPLE); end;
-      ltDashDotDot  : begin glLineStipple(1, $FCCC); glEnable(GL_LINE_STIPPLE); end;
-      {$ifndef COMPILER_CASE_ANALYSIS}
-      else raise EInternalError.Create('LineType?');
-      {$endif}
-    end;
+    UpdateLineType;
+  end;
+end;
+
+procedure TRenderContext.UpdateLineType;
+begin
+  {$ifndef OpenGLES}
+  case FLineType of
+    ltSolid: glDisable(GL_LINE_STIPPLE);
+    ltDashed      : begin glLineStipple(1, $00FF); glEnable(GL_LINE_STIPPLE); end;
+    ltDotted      : begin glLineStipple(1, $CCCC); glEnable(GL_LINE_STIPPLE); end;
+    ltDashedDotted: begin glLineStipple(1, $FFCC); glEnable(GL_LINE_STIPPLE); end;
+    ltDashDotDot  : begin glLineStipple(1, $FCCC); glEnable(GL_LINE_STIPPLE); end;
+    {$ifndef COMPILER_CASE_ANALYSIS}
+    else raise EInternalError.Create('LineType?');
     {$endif}
   end;
+  {$endif}
 end;
 
 procedure TRenderContext.SetPolygonOffset(const Value: TPolygonOffset);
@@ -865,22 +985,27 @@ begin
      (FPolygonOffset.Bias <> Value.Bias) then
   begin
     FPolygonOffset := Value;
-    if Value.Enabled then
-    begin
-      glEnable(GL_POLYGON_OFFSET_FILL);
-      {$ifndef OpenGLES} // These do not exist on OpenGLES
-      glEnable(GL_POLYGON_OFFSET_LINE);
-      glEnable(GL_POLYGON_OFFSET_POINT);
-      {$endif}
-      glPolygonOffset(Value.Scale, Value.Bias);
-    end else
-    begin
-      glDisable(GL_POLYGON_OFFSET_FILL);
-      {$ifndef OpenGLES} // These do not exist on OpenGLES
-      glDisable(GL_POLYGON_OFFSET_LINE);
-      glDisable(GL_POLYGON_OFFSET_POINT);
-      {$endif}
-    end;
+    UpdatePolygonOffset;
+  end;
+end;
+
+procedure TRenderContext.UpdatePolygonOffset;
+begin
+  if FPolygonOffset.Enabled then
+  begin
+    glEnable(GL_POLYGON_OFFSET_FILL);
+    {$ifndef OpenGLES} // These do not exist on OpenGLES
+    glEnable(GL_POLYGON_OFFSET_LINE);
+    glEnable(GL_POLYGON_OFFSET_POINT);
+    {$endif}
+    glPolygonOffset(FPolygonOffset.Scale, FPolygonOffset.Bias);
+  end else
+  begin
+    glDisable(GL_POLYGON_OFFSET_FILL);
+    {$ifndef OpenGLES} // These do not exist on OpenGLES
+    glDisable(GL_POLYGON_OFFSET_LINE);
+    glDisable(GL_POLYGON_OFFSET_POINT);
+    {$endif}
   end;
 end;
 
@@ -927,9 +1052,40 @@ begin
   glBindBuffer(BufferTargetGL[Target], Value);
 end;
 
-procedure TRenderContext.UnknownState;
+procedure TRenderContext.SynchronizeState;
+var
+  S: TScissor;
 begin
-  // TODO
+  // mark all scissors as disabled (in our memory, and in OpenGL(ES) state)
+  for S in FEnabledScissors do
+    S.FEnabled := false; // set using internal field
+  FEnabledScissors.Clear; // FEnabledScissors should only contain instances with FEnabled=true
+  FEnabledScissors.Update; // will call glDisable(GL_SCISSOR_TEST)
+
+  UpdateClearColor;
+  UpdateLineWidth;
+  UpdatePointSize;
+  UpdateGlobalAmbient;
+  UpdateProjectionMatrix;
+  UpdateDepthRange;
+  UpdateCullFace;
+  UpdateFrontFace;
+  UpdateDepthTest;
+  UpdateDepthFunc;
+  UpdateColorChannels;
+  UpdateDepthBufferUpdate;
+  UpdateViewport; // accounts for both FViewport and FViewportDelta
+  UpdateCurrentProgram;
+  UpdateCurrentVao;
+  UpdateBlendingEnabled;
+  UpdateBlendingFunction;
+  UpdateFixedFunctionAlphaTest;
+  UpdateFixedFunctionAlphaCutoff;
+  UpdateFixedFunctionLighting;
+  UpdateLineType;
+  UpdatePolygonOffset;
+  { BindBuffer doesn't need synchronization:
+    SetBoundBuffer always calls glBindBuffer, not relying on FBoundBuffer. }
 end;
 
 { TRenderContext.TScissorList ------------------------------------------------------------------- }
