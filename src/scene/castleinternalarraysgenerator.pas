@@ -40,8 +40,8 @@ type
     { Generalized version of AssignAttribute, AssignCoordinate. }
     procedure AssignAttributeOrCoordinate(
       const AttributeName: String;
-      const TargetPtr: Pointer; const TargetItemSize: SizeInt;
-      const SourcePtr: Pointer; const SourceItemSize, SourceCount: SizeInt;
+      const TargetPtr: Pointer; const TargetItemSize: SizeUInt;
+      const SourcePtr: Pointer; const SourceItemSize, SourceCount: SizeUInt;
       const TrivialIndex: Boolean);
   protected
     { Indexes, only when Arrays.Indexes = nil but original node was indexed
@@ -320,11 +320,21 @@ type
   require initialization / finalization. Otherwise target memory data
   will not be properly referenced.
 
-  @raises EAssignInterleavedRangeError When Count < CopyCount. }
+  @raises EAssignInterleavedRangeError When Count < CopyCount.
+
+  Note: It's important to declare sizes and counts parameters here as SizeUInt,
+  not SizeInt! Otherwise, additions inside like
+
+    PtrUInt(Source) := PtrUInt(Source) + SourceItemSize
+
+  can make range check errors, in case PtrUInt(Source) is beyond
+  (signed) Int64 range, and compiler (reproduced with Delphi 13
+  for Android/Aarch64) decides to resolve the + by treating both
+  parts as Int64. }
 procedure AssignToInterleaved(
   const AttributeName: String;
-  Target: Pointer; const TargetItemSize, CopyCount: SizeInt;
-  Source: Pointer; const SourceItemSize, SourceCount: SizeInt);
+  Target: Pointer; const TargetItemSize, CopyCount: SizeUInt;
+  Source: Pointer; const SourceItemSize, SourceCount: SizeUInt);
 var
   I: Integer;
 begin
@@ -957,8 +967,8 @@ end;
 
 procedure TArraysGenerator.AssignAttributeOrCoordinate(
   const AttributeName: String;
-  const TargetPtr: Pointer; const TargetItemSize: SizeInt;
-  const SourcePtr: Pointer; const SourceItemSize, SourceCount: SizeInt;
+  const TargetPtr: Pointer; const TargetItemSize: SizeUInt;
+  const SourcePtr: Pointer; const SourceItemSize, SourceCount: SizeUInt;
   const TrivialIndex: Boolean);
 begin
   { Following TArraysGenerator.GenerateArrays logic, there are various cases:
