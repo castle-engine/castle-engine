@@ -41,6 +41,11 @@ implementation
   - Define CASTLE_DELPHI_NET_HTTP_CLIENT to use System.Net.HttpClient
     and TNetHTTPClient with Delphi.
 
+    Tested that it works on
+    - Windows
+    - Linux
+    - iOS
+
     Doesn't require any external DLLs on Windows.
 
     But it is very slow to download larger files on Windows.
@@ -48,13 +53,17 @@ implementation
   - Do not define CASTLE_DELPHI_NET_HTTP_CLIENT to use IdHttp, Indy.
     Requires OpenSSL DLLs.
 
+    Tested that it works on
+    - Windows
+    - Linux
+
     Has a big problem on Linux:
     It seems Indy requires really old OpenSSL library version (1.0 ?),
     not available in latest Ubuntu. And it's not even 1.1,
     so https://gist.github.com/joulgs/c8a85bb462f48ffc2044dd878ecaa786 will not help.
     The PR to support newer OpenSSL was never merged https://github.com/IndySockets/Indy/pull/299 .
 }
-{$if defined(DELPHI) and defined(LINUX)}
+{$if defined(DELPHI) and not defined(MSWINDOWS)}
   {$define CASTLE_DELPHI_NET_HTTP_CLIENT}
 {$endif}
 
