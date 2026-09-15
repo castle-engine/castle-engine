@@ -63,7 +63,12 @@ end;
 
 function TFmxOpenGLUtility.Scale: Single;
 begin
-  Result := 1;
+  { Use Control.Scene.GetSceneScale to apply scaling to get real coordinates
+    on (at least) Android and iOS with FMX. }
+  if (Control <> nil) and (Control.Scene <> nil) then
+    Result := Control.Scene.GetSceneScale
+  else
+    Result := 1;
 end;
 
 {$endif read_implementation}
