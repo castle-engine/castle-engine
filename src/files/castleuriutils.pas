@@ -1742,7 +1742,19 @@ function ApplicationDataCore(const Path: String): String;
       BundleDataParentPath := BundlePath + 'Contents/Resources/';
       {$endif}
 
-      // data subdirectory in the macOS application bundle or iOS data
+      { Use data/ subdirectory in the macOS application bundle or iOS data.
+
+        Delphi-specific notes:
+
+        - Relying on data/ subdirectory inside bundle
+          matches the "deployment" of files we put in DPROJ.
+
+        - Note that we look in the bundle, and do not rely on
+          Delphi System.StartUpCopy mechanism.
+          This way you don't need to use Delphi's System.StartUpCopy
+          approach (which would make application data copy at start,
+          wasting time and storage and causing bugs due to stale files not
+          being updated). }
       Result := BundleDataParentPath + 'data/';
       if DirectoryExists(Result) then Exit;
 
