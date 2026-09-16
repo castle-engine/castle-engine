@@ -434,22 +434,9 @@ begin
     On both Windows and Linux.
     See https://github.com/michaliskambi/delphi-http-download test.
 
-    TODO: How are the callbacks called, from where,
-    since we don't necessarily execute the Delphi VCL / FMX event loop?
-    E.g. with TCastleWindow (WinAPI backend) we execute own loop,
-    and we don't call VCL / FMX Application.ProcessMessages.
-    But the callbacks still happen, even in console application.
-    It seems that at least for Windows, with TCastleWindow,
-    Delphi somehow hooked to the Windows event loop to make them happen?
-    I haven't found how are they done on Linux.
-
-    Note: The work of TNetHttpClient is done in a thread, so it makes sense
-    that it *does processing (downloads new bytes)* without
-    Application.ProcessMessages.
-    The above question is how does Delphi Synchronize work in
-    Linux console application
-    that doesn't call VCL / FMX Application.ProcessMessages?
-  }
+    See also TCastleApplicationProperties._Update for comments how
+    is CheckSynchronize called, so that we get information in our thread
+    about the progress of the download. }
 end;
 
 {$endif read_implementation}
