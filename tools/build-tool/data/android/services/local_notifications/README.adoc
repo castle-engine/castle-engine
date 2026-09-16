@@ -1,0 +1,40 @@
+## local_notifications
+
+Show a notification at a chosen time, even when the application is no longer running. Use the https://castle-engine.io/apidoc/html/CastleLocalNotifications.TLocalNotifications.html[TLocalNotifications] class from the https://castle-engine.io/apidoc/html/CastleLocalNotifications.html[CastleLocalNotifications] unit to schedule and cancel them from your Object Pascal code:
+
+[source,pascal]
+----
+TLocalNotifications.Schedule('merchant', 60 * 30, 'The merchant is here', 'He leaves in an hour.');
+...
+TLocalNotifications.Cancel('merchant');
+----
+
+This is for telling the player about something that happens in your game while they are not looking: a building that is finished, a daily reward that is ready. Tapping the notification opens the application.
+
+These are _local_ notifications: the application schedules them itself, nothing is sent over the network. Push notifications (sent from your own server) are a different mechanism, not implemented by this service.
+
+### Details
+
+* Scheduling again with the same id replaces the notification scheduled before.
+
+* The system may show the notification somewhat later than requested. We use `AlarmManager.setAndAllowWhileIdle`, which wakes a dozing device but is allowed to be a few minutes late, and which (unlike exact alarms) requires no additional permission.
+
+* Pending notifications are scheduled again after a device reboot. One whose time passed while the device was off is dropped, not shown late.
+
+* Since Android 13, showing a notification requires the `POST_NOTIFICATIONS` permission. This service asks for it when your application schedules its first notification. If the user refuses, notifications are silently not shown -- nothing fails and nothing crashes.
+
+* The small icon in the status bar is drawn by Android as a silhouette, so it cannot be the colorful application icon. This service provides a simple bell (`res/drawable/ic_castle_notification.xml`). Provide a drawable with the same name in your own project to override it.
+
+### Messages
+
+This service is used through the `CastleLocalNotifications` unit, you do not need to send these messages yourself. They are documented for completeness, in the format of https://castle-engine.io/apidoc/html/CastleMessaging.html[CastleMessaging]:
+
+|===
+|Message |Parameters
+
+|`local-notification-schedule`
+|id, delay in seconds, title, text
+
+|`local-notification-cancel`
+|id
+|===

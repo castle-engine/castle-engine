@@ -134,6 +134,7 @@ contains
   castlegameservice in '..\..\src\services\castlegameservice.pas',
   castlehelpshift in '..\..\src\services\castlehelpshift.pas',
   castleinapppurchases in '..\..\src\services\castleinapppurchases.pas',
+  castlelocalnotifications in '..\..\src\services\castlelocalnotifications.pas',
   castleopendocument in '..\..\src\services\castleopendocument.pas',
   castlephotoservice in '..\..\src\services\castlephotoservice.pas',
   castletenjin in '..\..\src\services\castletenjin.pas',
