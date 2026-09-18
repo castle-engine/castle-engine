@@ -462,18 +462,33 @@ end;
 
 procedure TTestCompiler.TestAddingIncompleteUtf8;
 
-{ With both FPC and Delphi,
-  and any CASTLE_DONT_CHANGE_STRING_ENCODING,
-  adding AnsiChar with an incomplete UTF-8 sequence to a Utf8String
-  should be OK.
-  This makes operations like "function ReadLine: String;" with "S := S + C"
-  always safe.
+{ Testing:
+  - both FPC and Delphi,
+  - CASTLE_DONT_CHANGE_STRING_ENCODING defined or not,
+  - how to add AnsiChar with an incomplete UTF-8 sequence such
+    that a resulting Utf8String is OK?
 
-  This is "trivially will pass" when CASTLE_DONT_CHANGE_STRING_ENCODING
-  is not defined, since then everything is easily UTF-8.
+  Not valid: using "S := S + C", (always with
+    S: Utf8String;
+    C: AnsiChar;
+  ). Both with and without CASTLE_DONT_CHANGE_STRING_ENCODING defined,
+  so both with and without SetMultiByteConversionCodePage(CP_UTF8) call,
+  this fails with Delphi 10.2.
 
-  This is really interesting with CASTLE_DONT_CHANGE_STRING_ENCODING
-  defined.
+  - With SetMultiByteConversionCodePage(CP_UTF8):
+    after additions, Length(S) is 36.
+
+      Each byte from original got mistakenly
+      added as 3 bytes. Delphi likely replaced it by U+FFFD
+      (3 bytes in UTF-8), as it converted each AnsiChar alone, and a lone byte
+      of a multi-byte sequence is invalid UTF-8.
+
+  - Without SetMultiByteConversionCodePage(CP_UTF8) (Polish Windows)
+    after additions, Length(S) is 28. (Each byte was converted to
+    cp1250 character, and encoded as 2 or 3 bytes.)
+
+  Neither is correct: we wanted Length(S) to be 12,
+  as we add AnsiChar 12 times.
 }
 
 const
@@ -485,12 +500,25 @@ var
 begin
   S := '';
   AssertEquals(4 * 3, Length(AddWord));
+
+  // This is invalid with Delphi 10.2, see comments above.
+  {
   for I := 1 to Length(AddWord) do
   begin
     C := AddWord[I];
     S := S + C;
     AssertEquals(CP_UTF8, StringCodePage(S));
   end;
+  }
+
+  for I := 1 to Length(AddWord) do
+  begin
+    C := AddWord[I];
+    SetLength(S, Length(S) + 1);
+    S[Length(S)] := C; // directly set the last character instead of concatenating
+    AssertEquals(CP_UTF8, StringCodePage(S));
+  end;
+
   AssertEquals(4 * 3, Length(S));
   AssertEquals(AddWord, S);
   AssertEquals(4, StringLength(AddWord));

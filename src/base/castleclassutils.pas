@@ -1690,6 +1690,8 @@ begin
       AnsiChar(...)". The latter would make the compiler convert the AnsiChar
       (which has the default 8-bit encoding) to UTF-8 string, potentially
       mangling multibyte UTF-8 characters.
+      See TTestCompiler.TestAddingIncompleteUtf8 test and comments
+      for proof that this is necessary.
       We want to just copy the raw bytes from the stream, as we assume
       the stream already contains UTF-8. }
     Inc(ResultLength);
