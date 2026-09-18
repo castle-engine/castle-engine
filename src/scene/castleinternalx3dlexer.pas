@@ -551,7 +551,9 @@ const
   end;
 
 var
-  FirstLine: AnsiString;
+  { Keep FirstLine as 8-bit string, not (potentially 16-bit) String,
+    as we check later the first bytes to detect gzip. }
+  FirstLine: Utf8String;
   Line: String;
 begin
   CreateCommonBegin(AStream, AOwnsStream);

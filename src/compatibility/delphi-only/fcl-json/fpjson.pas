@@ -780,8 +780,14 @@ Type
 Function SetJSONInstanceType(AType : TJSONInstanceType; AClass : TJSONDataClass) : TJSONDataClass;
 Function GetJSONInstanceType(AType : TJSONInstanceType) : TJSONDataClass;
 
+{ CGE note:
+  We removed JSONStringToString (from FPC's FpJson), as the implementation of it
+  assumed 8-bit TJSONStringType, and we change TJSONStringType to be String
+  (16-bit with Delphi), see JSON_STRING_TYPE_IS_UNICODE .
+  We could fix JSONStringToString, but since it's not used -> easier to just
+  not maintain it. }
+
 Function StringToJSONString(const S : TJSONStringType; Strict : Boolean = False) : TJSONStringType;
-Function JSONStringToString(const S : TJSONStringType) : TJSONStringType;
 Function JSONTypeName(JSONType : TJSONType) : String;
 
 // These functions create JSONData structures, taking into account the instance types
@@ -932,126 +938,6 @@ begin
     end;
   Result:=Result+Copy(S,J,I-1);
 end;
-
-function JSONStringToString(const S: TJSONStringType): TJSONStringType;
-
-{$IFDEF PAS2JS}
-Var
-  J : JSValue;
-  OK : Boolean;
-begin
-  OK:=False;
-  try
-    J:=TJSJSON.parse('"'+S+'"');
-    if isString(J) then
-      begin
-      Result:=String(J);
-      OK:=True;
-      end;
-  except
-    OK:=False;
-  end;
-  if not OK then
-    Raise EConvertError.Create('Invalid JSON String:'+S);
-end;
-{$ELSE}
-
-    function BufferHexToInt(P : PAnsiChar): integer;
-    var
-      N, i: integer;
-      ch: Ansichar;
-    begin
-      Result:= 0;
-      for i:= 1 to 4 do
-      begin
-        ch:= p^;
-        case ch of
-          '0'..'9':
-            N:= Ord(ch)-Ord('0');
-          'a'..'f':
-            N:= Ord(ch)-(Ord('a')-10);
-          'A'..'F':
-            N:= Ord(ch)-(Ord('A')-10);
-          else
-            exit(-1);
-        end;
-        Inc(P);
-        Result:= Result*16+N;
-      end;
-    end;
-
-Var
-
-  I,J,L,U1,U2 : Integer;
-  App : String;
-
-  Procedure MaybeAppendUnicode;
-
-  Var
-    U : String;
-
-  begin
-    if (U1<>0) then
-      begin
-      U:={$IFDEF FPC_HAS_CPSTRING}UTF8Encode(WideChar(U1)){$ELSE}widechar(U1){$ENDIF};
-      Result:=Result+U;
-      U1:=0;
-      end;
-  end;
-
-begin
-  I:=1;
-  J:=1;
-  L:=Length(S);
-  Result:='';
-  U1:=0;
-  While (I<=L) do
-    begin
-    if (S[I]='\') then
-      begin
-      Result:=Result+Copy(S,J,I-J);
-      If I<L then
-        begin
-        Inc(I);
-        App:='';
-        Case S[I] of
-          '\','"','/'
-              : App:=S[I];
-          'b' : App:=#8;
-          't' : App:=#9;
-          'n' : App:=#10;
-          'f' : App:=#12;
-          'r' : App:=#13;
-          'u' : begin
-                U2:=BufferHexToInt(PAnsiChar(@S[I+1]));
-                if U2=-1 then
-                   Raise EJSON.Create('Invalid unicode hex code: '+Copy(S,I+1,4));
-                Inc(I,4);
-                if (U1<>0) then
-                  begin
-                  App:={$IFDEF FPC_HAS_CPSTRING}UTF8Encode({$ENDIF}WideChar(U1)+WideChar(U2){$IFDEF FPC_HAS_CPSTRING}){$ENDIF};
-                  U2:=0;
-                  end
-                else
-                  U1:=U2;
-                end;
-        end;
-        if App<>'' then
-          begin
-          MaybeAppendUnicode;
-          Result:=Result+App;
-          end;
-        end;
-      J:=I+1;
-      end
-    else
-      MaybeAppendUnicode;
-    Inc(I);
-    end;
-  MaybeAppendUnicode;
-  Result:=Result+Copy(S,J,I-J+1);
-end;
-{$ENDIF}
 
 function JSONTypeName(JSONType: TJSONType): String;
 begin

@@ -35,6 +35,7 @@ type
     function BufferedReadStreamFromStream(Stream: TStream): TPeekCharStream;
     procedure TestIndirectReadStream(StreamFromStreamFunc: TStreamFromStreamFunc);
     procedure TestLineColumnStreamCore(StreamFromStreamFunc: TStreamFromStreamFunc);
+    procedure TestReadUptoUtf8Core(StreamFromStreamFunc: TStreamFromStreamFunc);
     procedure DummyCallback;
     procedure DummyCallback2;
   published
@@ -44,6 +45,9 @@ type
     procedure TestNotifyEventArray;
     procedure TestLineColumn_SimplePeekCharStream;
     procedure TestLineColumn_BufferedReadStream;
+    procedure TestReadUptoUtf8_SimplePeekCharStream;
+    procedure TestReadUptoUtf8_BufferedReadStream;
+    procedure TestWriteStrUtf8;
     procedure TestForIn;
     procedure TestSimpleNotifyEventListPack;
     procedure TestSimpleNotifyEventListUnassign;
@@ -65,7 +69,49 @@ type
 implementation
 
 uses Generics.Defaults,
-  CastleStringUtils, CastleLog;
+  CastleStringUtils, CastleLog, CastleUnicode;
+
+{ Test data for the UTF-8 tests below.
+
+  Note that we deliberately do @italic(not) use non-ASCII string literals here,
+  as their meaning depends on the compiler and the encoding of this source file.
+  Instead we spell out both
+
+  - the exact UTF-8 bytes,
+  - and the exact Unicode code points
+
+  of the tested text, and build the tested strings from them at runtime. }
+
+const
+  { UTF-8 bytes of "zolc" with Polish diacritics, i.e. the Polish word
+    "bile" written using 4 non-ASCII letters. }
+  PolishUtf8Bytes: array [0..7] of Byte = (
+    $C5, $BC, // U+017C LATIN SMALL LETTER Z WITH DOT ABOVE
+    $C3, $B3, // U+00F3 LATIN SMALL LETTER O WITH ACUTE
+    $C5, $82, // U+0142 LATIN SMALL LETTER L WITH STROKE
+    $C4, $87  // U+0107 LATIN SMALL LETTER C WITH ACUTE
+  );
+
+  { Unicode code points of the same 4 characters. }
+  PolishCodePoints: array [0..3] of TUnicodeChar = ($17C, $F3, $142, $107);
+
+{ The tested text as 8-bit string with UTF-8 encoding. }
+function PolishUtf8: Utf8String;
+begin
+  SetLength(Result, Length(PolishUtf8Bytes));
+  Move(PolishUtf8Bytes[0], Result[1], Length(PolishUtf8Bytes));
+end;
+
+{ The tested text as the default String
+  (UTF-8 with FPC, UTF-16 with Delphi). }
+function PolishString: String;
+var
+  I: Integer;
+begin
+  Result := '';
+  for I := 0 to High(PolishCodePoints) do
+    Result := Result + UnicodeCharToString(PolishCodePoints[I]);
+end;
 
 { TFoo, TFoosList ------------------------------------------------------------ }
 
@@ -322,6 +368,149 @@ begin
   TestLineColumnStreamCore({$ifdef FPC}@{$endif}BufferedReadStreamFromStream);
   BufferSize := 1; // assign before using BufferedReadStreamFromStream
   TestLineColumnStreamCore({$ifdef FPC}@{$endif}BufferedReadStreamFromStream);
+end;
+
+procedure TTestCastleClassUtils.TestReadUptoUtf8Core(
+  StreamFromStreamFunc: TStreamFromStreamFunc);
+
+{ Test that TPeekCharStream.ReadUpto returns the raw 8-bit UTF-8 bytes
+  from the stream, and that assigning them to a String decodes them correctly.
+
+  This matters when AnsiString has some platform-specific encoding, which
+  happens when CASTLE_DONT_CHANGE_STRING_ENCODING is defined. That's why
+  ReadUpto returns Utf8String, not AnsiString.
+  See ../../../doc/miscellaneous_notes/ansistring_encoding.md . }
+
+var
+  SourceStream: TMemoryStream;
+  ReaderStream: TPeekCharStream;
+  ReadUtf8: Utf8String;
+  ReadStr: String;
+  I: Integer;
+  SeparatorByte: Byte;
+begin
+  SourceStream := TMemoryStream.Create;
+  try
+    { Stream contents: <Polish UTF-8 bytes> '|' <Polish UTF-8 bytes> }
+    SourceStream.WriteBuffer(PolishUtf8Bytes[0], Length(PolishUtf8Bytes));
+    SeparatorByte := Ord('|');
+    SourceStream.WriteBuffer(SeparatorByte, 1);
+    SourceStream.WriteBuffer(PolishUtf8Bytes[0], Length(PolishUtf8Bytes));
+    SourceStream.Position := 0;
+
+    ReaderStream := StreamFromStreamFunc(SourceStream);
+    try
+      ReadUtf8 := ReaderStream.ReadUpto(['|']);
+
+      { The raw bytes are preserved, no encoding conversion happened. }
+      AssertEquals(Length(PolishUtf8Bytes), Length(ReadUtf8));
+      for I := 0 to High(PolishUtf8Bytes) do
+        AssertEquals(Integer(PolishUtf8Bytes[I]), Ord(ReadUtf8[I + 1]));
+
+      { And converting the result to String decodes UTF-8 correctly. }
+      ReadStr := ReadUtf8;
+      AssertEquals(PolishString, ReadStr);
+      AssertEquals(Length(PolishCodePoints), StringLength(ReadStr));
+
+      AssertEquals(Ord('|'), ReaderStream.ReadChar);
+
+      { Once more, this time the reading ends because of the end of stream.
+        Also test the implicit Utf8String -> String conversion at assignment. }
+      ReadStr := ReaderStream.ReadUpto(['|']);
+      AssertEquals(PolishString, ReadStr);
+      AssertEquals(Length(PolishCodePoints), StringLength(ReadStr));
+
+      AssertEquals(-1, ReaderStream.ReadChar);
+    finally FreeAndNil(ReaderStream) end;
+  finally FreeAndNil(SourceStream) end;
+end;
+
+procedure TTestCastleClassUtils.TestReadUptoUtf8_SimplePeekCharStream;
+begin
+  TestReadUptoUtf8Core({$ifdef FPC}@{$endif}SimplePeekCharFromStream);
+end;
+
+procedure TTestCastleClassUtils.TestReadUptoUtf8_BufferedReadStream;
+begin
+  BufferSize := DefaultReadBufferSize; // assign before using BufferedReadStreamFromStream
+  TestReadUptoUtf8Core({$ifdef FPC}@{$endif}BufferedReadStreamFromStream);
+  { Buffer smaller than the read text, to exercise also the code path
+    that has to enlarge the result while reading. }
+  BufferSize := 1; // assign before using BufferedReadStreamFromStream
+  TestReadUptoUtf8Core({$ifdef FPC}@{$endif}BufferedReadStreamFromStream);
+end;
+
+procedure TTestCastleClassUtils.TestWriteStrUtf8;
+
+{ Test that WriteStr, WritelnStr, MemoryStreamLoadFromString put UTF-8
+  into the stream, and StreamToString reads UTF-8 back, regardless of
+  what encoding AnsiString happens to have.
+  See ../../../doc/miscellaneous_notes/ansistring_encoding.md . }
+
+  { Check that Stream contents are exactly the UTF-8 bytes of our test text,
+    optionally followed by the newline. }
+  procedure CheckStreamContents(const Stream: TMemoryStream;
+    const ExpectNewLine: Boolean);
+  var
+    Buf: array of Byte;
+    I, ExpectedSize: Integer;
+  begin
+    ExpectedSize := Length(PolishUtf8Bytes);
+    if ExpectNewLine then
+      ExpectedSize := ExpectedSize + Length(NL);
+    AssertEquals(ExpectedSize, Stream.Size);
+
+    SetLength(Buf, Stream.Size);
+    Stream.Position := 0;
+    Stream.ReadBuffer(Buf[0], Length(Buf));
+    for I := 0 to High(PolishUtf8Bytes) do
+      AssertEquals(Integer(PolishUtf8Bytes[I]), Integer(Buf[I]));
+
+    { Reading the stream contents back as a string decodes UTF-8 correctly. }
+    AssertEquals(PolishString, Trim(StreamToString(Stream)));
+    AssertEquals(Length(PolishCodePoints), StringLength(Trim(StreamToString(Stream))));
+  end;
+
+var
+  Stream: TMemoryStream;
+begin
+  { WriteStr with default String (16-bit with Delphi) converts it to UTF-8. }
+  Stream := TMemoryStream.Create;
+  try
+    WriteStr(Stream, PolishString);
+    CheckStreamContents(Stream, false);
+  finally FreeAndNil(Stream) end;
+
+  { WriteStr with explicit Utf8String writes the bytes as-is. }
+  Stream := TMemoryStream.Create;
+  try
+    WriteStr(Stream, PolishUtf8);
+    CheckStreamContents(Stream, false);
+  finally FreeAndNil(Stream) end;
+
+  { WritelnStr adds the newline, otherwise it behaves the same. }
+  Stream := TMemoryStream.Create;
+  try
+    WritelnStr(Stream, PolishString);
+    CheckStreamContents(Stream, true);
+  finally FreeAndNil(Stream) end;
+
+  Stream := TMemoryStream.Create;
+  try
+    WritelnStr(Stream, PolishUtf8);
+    CheckStreamContents(Stream, true);
+  finally FreeAndNil(Stream) end;
+
+  { MemoryStreamLoadFromString is the symmetric counterpart of StreamToString. }
+  Stream := MemoryStreamLoadFromString(PolishString);
+  try
+    CheckStreamContents(Stream, false);
+  finally FreeAndNil(Stream) end;
+
+  Stream := MemoryStreamLoadFromString(PolishUtf8);
+  try
+    CheckStreamContents(Stream, false);
+  finally FreeAndNil(Stream) end;
 end;
 
 procedure TTestCastleClassUtils.TestForIn;

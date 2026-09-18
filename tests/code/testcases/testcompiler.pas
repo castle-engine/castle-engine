@@ -306,17 +306,20 @@ end;
 
 procedure TTestCompiler.TestAnsiStringUtf8Conversion_Ansi1250;
 
-{ Test that, regardless of CASTLE_DONT_CHANGE_STRING_ENCODING,
+{ Test compiler / RTL behavior of AnsiString(1250) <-> Utf8String conversions.
+
+  This tests that, with CASTLE_DONT_CHANGE_STRING_ENCODING,
   Utf8String will contain UTF-8 encoded data even if regular AnsiString
   has platform-specific encoding (like Windows-1250 on Polish Windows).
 
   This test uses explicit declaration "type AnsiString(1250)" and thus
   should work on any system, regardless of current system codepage.
 
-  This test will pass with CASTLE_DONT_CHANGE_STRING_ENCODING and FPC
-  (String=AnsiString) defined, we made sure of it.
-  Even though we don't support CASTLE_DONT_CHANGE_STRING_ENCODING and FPC
-  (other tests will fail, see castleconf.inc notes), but the basics here are OK.
+  As an exception, this testcase will *pass* on (otherwise unsupported)
+  combination of FPC
+  - with CASTLE_DONT_CHANGE_STRING_ENCODING defined
+  - with I_UNDERSTAND_THAT_NON_ASCII_CHARACTERS_ARE_BROKEN defined
+  - (but not with FPC 3.2.2 on non-Windows, it seems).
 }
 
 type
@@ -394,7 +397,9 @@ end;
 
 procedure TTestCompiler.TestAnsiStringUtf8Conversion_AnsiDefault;
 
-{ Test that, regardless of CASTLE_DONT_CHANGE_STRING_ENCODING,
+{ Test compiler / RTL behavior of AnsiString <-> Utf8String conversions.
+
+  Test that, regardless of CASTLE_DONT_CHANGE_STRING_ENCODING,
   Utf8String will contain UTF-8 encoded data even if regular AnsiString
   has platform-specific encoding (like Windows-1250 on Polish Windows).
 
@@ -403,10 +408,10 @@ procedure TTestCompiler.TestAnsiStringUtf8Conversion_AnsiDefault;
   as we hardcode some test values to Polish Windows codepage 1250.
   It will be skipped on other systems.
 
-  This test will pass with CASTLE_DONT_CHANGE_STRING_ENCODING and FPC
-  (String=AnsiString) defined, we made sure of it.
-  Even though we don't support CASTLE_DONT_CHANGE_STRING_ENCODING and FPC
-  (other tests will fail, see castleconf.inc notes), but the basics here are OK.
+  As an exception, this testcase will *pass* on (otherwise unsupported)
+  combination of FPC
+  - with CASTLE_DONT_CHANGE_STRING_ENCODING defined
+  - with I_UNDERSTAND_THAT_NON_ASCII_CHARACTERS_ARE_BROKEN defined.
 }
 
 var

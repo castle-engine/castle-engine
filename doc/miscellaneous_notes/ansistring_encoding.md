@@ -93,7 +93,7 @@ Routines that read / write text file contents as 8-bit strings use `Utf8String`,
 
 - `FileToString`, `StringToFile` (in `CastleFilesUtils`)
 - `StreamToString`, `ReadGrowingStreamToString`, `MemoryStreamLoadFromString`, `WriteStr/WritelnStr` (in `CastleClassUtils`)
-- TODO: `TCastleTextReader` and `TCastleTextWriter` (in `CastleDownload`) should also be changed to use `Utf8String` instead of `AnsiString`.
+- `StreamReadZeroEndString`, `StreamReadUpto_NotEOS`, `StreamReadUpto_EOS`, `TPeekCharStream.ReadUpto` (in `CastleClassUtils`)
 
 This way, we assume UTF-8 in all text files, and `Utf8String` makes this explicit. Assigning `Utf8String` to `String` (or passing a `String` to these routines) will do the right thing, in all supported situations. Here is what happens:
 
@@ -102,6 +102,10 @@ This way, we assume UTF-8 in all text files, and `Utf8String` makes this explici
 - When `String` is 8-bit (`AnsiString`) (in FPC without _DelphiUnicode_ mode), without `CASTLE_DONT_CHANGE_STRING_ENCODING`, then UTF-8 <-> UTF-8 does nothing,
 
 - _Does not work, because of FPC bug, so we don't support this combination_: When `String` is 8-bit (`AnsiString`) (in FPC without _DelphiUnicode_ mode), with `CASTLE_DONT_CHANGE_STRING_ENCODING`, then UTF-8 <-> platform encoding conversion in `AnsiString` is _not_ done automatically by FPC. See `TTestCompiler.TestAnsiStringUtf8Conversion_AnsiDefault`, testing `AnsiString` to/from `Utf8String`: FPC fails doing implicit conversions, only Delphi does them correctly. Use explicit `Utf8ToAnsi` / `AnsiToUtf8` to make it work with both FPC and Delphi.
+
+Also, some higher-level routines for reading and writing text files have API exposing just `String`:
+
+- `TCastleTextReader` and `TCastleTextWriter` (in `CastleDownload`)
 
 Testcases in `TTestDownload` check various combinations with various compilers.
 
@@ -120,7 +124,7 @@ initialization
 
 ## TODO
 
-- Eliminate in CGE code the remaining `AnsiString` in favor of `Utf8String` when we mean "8-bit, UTF-8 encoded". Use `AnsiString` only when we really mean "8-bit, possible system-specific encoding". This is done for the routines reading / writing text file contents (see "Automatic encoding conversions" above), but other places may remain. Document this, updating https://castle-engine.io/coding_conventions#strings_unicode:
+- Eliminate in CGE code the remaining `AnsiString` in favor of `Utf8String` when we mean "8-bit, UTF-8 encoded". Use `AnsiString` only when we really mean "8-bit, possible system-specific encoding". This is done for the routines reading / writing text file contents and for the stream reading routines (see "Automatic encoding conversions" above), but other places may remain (TODO find all). Document this, updating https://castle-engine.io/coding_conventions#strings_unicode:
 
   - We use `Utf8String` when we mean "string with 8-bit characters with UTF-8 encoding".
 
@@ -130,19 +134,6 @@ initialization
 
 - Make it also default for Delphi packages. So we don't do `SetMultiByteConversionCodePage(CP_UTF8)` when being installed in Delphi IDE.
 
-- Fix auto-tests.
-    - delphi_12 test: without `CASTLE_DONT_CHANGE_STRING_ENCODING`: (check auto-tests win64):
-      ```
-      Processing: TTestCompiler.TestAnsiStringUtf8Conversion_Ansi1250
-      TTestCompiler.TestAnsiStringUtf8Conversion_Ansi1250: Failed: EAssertionFailedError: AssertEquals: Expected Integer 1250, actual 65001
-      Exception EAssertionFailedError in module castle-tester.exe at 00000000013003C4.
-      AssertEquals: Expected Integer 1250, actual 65001.
-      ```
-
 - Test and fix CGE for FPC DelphiUnicode mode.
-
-- `WriteStr/WritelnStr` autotest. `TCastleTextWriter.Write/Writeln` (`castledownload_text.inc`) should also now be good, add autotest. Expect UTF-8, add auto-tests for round-trip with other CGE routines.
-
-- `castledownload_text.inc` — `TCastleTextReader.ReadBuf: AnsiString`, and `Readln/Read` return string. Fix, expect UTF-8, add auto-tests for round-trip with other CGE routines.
 
 - is it possible to work with fpc 3.3.1? does it support doing macro `String:=Utf8String` and then automatic utf-8/non-utf-8 conversions (like Delphi does)?

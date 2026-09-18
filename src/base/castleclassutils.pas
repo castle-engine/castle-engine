@@ -133,10 +133,16 @@ procedure WritelnStr(const S: String); overload;
   @raises EReadError If end of stream. }
 function StreamReadChar(Stream: TStream): AnsiChar;
 
-function StreamReadZeroEndString(Stream: TStream): AnsiString;
+{ Read characters until a zero byte is encountered, treat as UTF-8 string. }
+function StreamReadZeroEndString(Stream: TStream): Utf8String;
 
 { Read stream, until you find some character in EndingChars.
   Returns read contents, without final character (the one in EndingChars set).
+
+  Returns 8-bit string (Utf8String) and assumes the stream contains UTF-8,
+  which is the encoding we assume for all text files throughout Castle Game Engine.
+  The resulting @code(Utf8String) can be assigned to a @code(String)
+  (or any other string type) and the encoding will be correct.
 
   If you use a version with BackEndingChar parameter and pass
   BackEndingChar = @true, then the ending character will be returned back to
@@ -152,12 +158,12 @@ function StreamReadZeroEndString(Stream: TStream): AnsiString;
   @raises EReadError If the stream will end before encountering one of EndingChars.
   @groupBegin }
 function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars;
-  backEndingChar: boolean; out endingChar: AnsiChar): AnsiString; overload;
+  backEndingChar: boolean; out endingChar: AnsiChar): Utf8String; overload;
 function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars;
-  backEndingChar: boolean): AnsiString; overload;
+  backEndingChar: boolean): Utf8String; overload;
 function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars;
-  out endingChar: AnsiChar): AnsiString; overload;
-function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars): AnsiString; overload;
+  out endingChar: AnsiChar): Utf8String; overload;
+function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars): Utf8String; overload;
 { @groupEnd }
 
 { Read stream, until you find some character in EndingChars, or end of stream.
@@ -170,12 +176,12 @@ function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars):
   Everything else works like with StreamReadUpto_NotEOS.
   @groupBegin }
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars;
-  backEndingChar: boolean; out endingChar: integer): AnsiString; overload;
+  backEndingChar: boolean; out endingChar: integer): Utf8String; overload;
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars;
-  backEndingChar: boolean): AnsiString; overload;
+  backEndingChar: boolean): Utf8String; overload;
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars;
-  out endingChar: integer): AnsiString; overload;
-function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars): AnsiString; overload;
+  out endingChar: integer): Utf8String; overload;
+function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars): Utf8String; overload;
 { @groupEnd }
 
 { Read a growing stream, and append it to another destination stream.
@@ -215,10 +221,10 @@ function ReadGrowingStreamToDefaultString(const GrowingStream: TStream): String;
 
 { Encode / decode a string in a binary stream. Records string length (4 bytes),
   then the string contents (Length(S) bytes).
-  Works on 8-bit strings, i.e. AnsiStrings.
+  Works on 8-bit strings, assuming they are UTF-8 encoded in stream.
   @groupBegin }
-procedure StreamWriteString(const Stream: TStream; const S: AnsiString);
-function StreamReadString(const Stream: TStream): AnsiString;
+procedure StreamWriteString(const Stream: TStream; const S: Utf8String);
+function StreamReadString(const Stream: TStream): Utf8String;
 { @groupEnd }
 
 { Convert whole Stream to a string.
@@ -365,8 +371,13 @@ type
 
     { Read characters, until one of EndingChars (or end of stream) is found.
       The ending character is not "consumed" from the stream.
-      The Result is guaranteed to not contain any char from EndingChars. }
-    function ReadUpto(const EndingChars: TSetOfChars): AnsiString; virtual;
+      The Result is guaranteed to not contain any char from EndingChars.
+
+      Returns 8-bit string (Utf8String) and assumes the stream contains UTF-8,
+      which is the encoding we assume for all text files in Castle Game Engine.
+      The resulting @code(Utf8String) can be assigned to a @code(String)
+      (or any other string type) and the encoding will be correct. }
+    function ReadUpto(const EndingChars: TSetOfChars): Utf8String; virtual;
 
     {$ifndef FPC}
     property Position: Int64 read GetPosition;
@@ -440,7 +451,7 @@ type
     function Read(var LocalBuffer; Count: Longint): Longint; override;
     function PeekChar: Integer; override;
     function ReadChar: Integer; override;
-    function ReadUpto(const EndingChars: TSetOfChars): AnsiString; override;
+    function ReadUpto(const EndingChars: TSetOfChars): Utf8String; override;
 
     property BufferSize: Cardinal read FBufferSize;
   end;
@@ -1348,13 +1359,13 @@ begin
   Stream.ReadBuffer(result, SizeOf(result));
 end;
 
-function StreamReadZeroEndString(Stream: TStream): AnsiString;
+function StreamReadZeroEndString(Stream: TStream): Utf8String;
 begin
   result := StreamReadUpto_NotEOS(Stream, [#0], false);
 end;
 
 function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars;
-  backEndingChar: boolean; out endingChar: AnsiChar): AnsiString; overload;
+  backEndingChar: boolean; out endingChar: AnsiChar): Utf8String; overload;
 var
   readLen: integer; { how many characters read }
   ch: AnsiChar;
@@ -1382,7 +1393,7 @@ begin
 end;
 
 function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars;
-  backEndingChar: boolean):AnsiString; overload;
+  backEndingChar: boolean): Utf8String; overload;
 var
   dummy: AnsiChar;
 begin
@@ -1390,18 +1401,18 @@ begin
 end;
 
 function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars;
-  out endingChar: AnsiChar): AnsiString;
+  out endingChar: AnsiChar): Utf8String;
 begin
   result := StreamReadUpto_NotEOS(Stream, endingChars, false, endingChar);
 end;
 
-function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars): AnsiString;
+function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars): Utf8String;
 begin
   result := StreamReadUpto_NotEOS(Stream, endingChars, false);
 end;
 
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars;
-  backEndingChar: boolean; out endingChar: integer): AnsiString; overload;
+  backEndingChar: boolean; out endingChar: integer): Utf8String; overload;
 var readLen: integer; { how many characters read }
     ch: AnsiChar;
 begin
@@ -1433,7 +1444,7 @@ begin
 end;
 
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars;
-  backEndingChar: boolean): AnsiString; overload;
+  backEndingChar: boolean): Utf8String; overload;
 var
   dummy: integer;
 begin
@@ -1441,12 +1452,12 @@ begin
 end;
 
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars;
-  out endingChar: integer): AnsiString;
+  out endingChar: integer): Utf8String;
 begin
   result := StreamReadUpto_EOS(Stream, endingChars, false, endingChar);
 end;
 
-function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars): AnsiString;
+function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars): Utf8String;
 begin
   result := StreamReadUpto_EOS(Stream, endingChars, false);
 end;
@@ -1529,7 +1540,7 @@ begin
   finally FreeAndNil(Memory) end;
 end;
 
-procedure StreamWriteString(const Stream: TStream; const S: AnsiString);
+procedure StreamWriteString(const Stream: TStream; const S: Utf8String);
 var
   L: Integer;
 begin
@@ -1539,7 +1550,7 @@ begin
   if L > 0 then Stream.WriteBuffer(S[1], L);
 end;
 
-function StreamReadString(const Stream: TStream): AnsiString;
+function StreamReadString(const Stream: TStream): Utf8String;
 var
   L: Integer;
 begin
@@ -1660,18 +1671,38 @@ begin
     UpdateLineColumn(PAnsiChar(@Buffer)[I]);
 end;
 
-function TPeekCharStream.ReadUpto(const EndingChars: TSetOfChars): AnsiString;
+function TPeekCharStream.ReadUpto(const EndingChars: TSetOfChars): Utf8String;
 var
-  Peeked: Integer;
+  Peeked, ResultLength: Integer;
 begin
   Result := '';
+  ResultLength := 0;
   while true do
   begin
     Peeked := PeekChar;
     if (Peeked = -1) or (AnsiChar(Peeked) in EndingChars) then
+    begin
+      SetLength(Result, ResultLength);
       Exit;
+    end;
+
+    { Append the char by SetLength + writing a byte, not by "Result := Result +
+      AnsiChar(...)". The latter would make the compiler convert the AnsiChar
+      (which has the default 8-bit encoding) to UTF-8 string, potentially
+      mangling multibyte UTF-8 characters.
+      We want to just copy the raw bytes from the stream, as we assume
+      the stream already contains UTF-8. }
+    Inc(ResultLength);
+
+    { Since we track ResultLength anyway (see above, to add characters in valid
+      way) -> let's also use this for optimization.
+      We grow Result length in blocks, to not waste time on many small
+      reallocations. }
+    if ResultLength > Length(Result) then
+      SetLength(Result, ResultLength + 100);
+
     { ReadChar will return the same thing as Peeked now. }
-    Result := Result + AnsiChar(ReadChar);
+    Result[ResultLength] := AnsiChar(ReadChar);
   end;
 end;
 
@@ -1860,7 +1891,7 @@ begin
     UpdateLineColumn(AnsiChar(Result));
 end;
 
-function TBufferedReadStream.ReadUpto(const EndingChars: TSetOfChars): AnsiString;
+function TBufferedReadStream.ReadUpto(const EndingChars: TSetOfChars): Utf8String;
 var
   Peeked: Integer;
   BufferBeginPos, OldResultLength, ReadCount: Cardinal;
