@@ -46,12 +46,13 @@ type
     procedure TestPackedOpenArray;
     procedure TestAnsiStringUtf8Conversion_Ansi1250;
     procedure TestAnsiStringUtf8Conversion_AnsiDefault;
+    procedure TestAddingIncompleteUtf8;
   end;
 
 implementation
 
 uses CTypes,
-  CastleUtils, CastleVectors, CastleLog;
+  CastleUtils, CastleVectors, CastleLog, CastleUnicode;
 
 type
   TFruit = class
@@ -357,6 +358,7 @@ begin
     - Delphi 12: also, it seems, it will assign UTF-8 codepage to AnsiPolish in this case.
     Abort this test on FPC + not defined CASTLE_DONT_CHANGE_STRING_ENCODING.
   }
+  WritelnLog('Aborting TestAnsiStringUtf8Conversion_Ansi1250: due to CASTLE_DONT_CHANGE_STRING_ENCODING not defined');
   AbortTest;
   Exit;
   {$endif}
@@ -371,7 +373,7 @@ begin
   {$ifdef FPC}
   if StringCodePage(AnsiPolish) = 0 then
   begin
-    WritelnLog('StringCodePage(AnsiPolish) = 0, possible with FPC on Linux without locale configured (like in typical Docker or CI environments), skipping test');
+    WritelnLog('Aborting TestAnsiStringUtf8Conversion_Ansi1250: StringCodePage(AnsiPolish) = 0, possible with FPC on Linux without locale configured (like in typical Docker or CI environments), skipping test');
     AbortTest;
     Exit;
   end;
@@ -424,7 +426,7 @@ begin
     and not 1250, for both FPC and Delphi. }
   if DefaultSystemCodePage <> 1250 then
   begin
-    WritelnLog('DefaultSystemCodePage = %d, not Polish Windows (or CASTLE_DONT_CHANGE_STRING_ENCODING not defined, so system is UTF-8), skipping test', [DefaultSystemCodePage]);
+    WritelnLog('Aborting TestAnsiStringUtf8Conversion_AnsiDefault: DefaultSystemCodePage = %d, not Polish Windows (or CASTLE_DONT_CHANGE_STRING_ENCODING not defined, so system is UTF-8), skipping test', [DefaultSystemCodePage]);
     AbortTest;
     Exit;
   end;
@@ -456,6 +458,43 @@ begin
   BackToAnsi := Utf8Polish;
   CheckBackToAnsi(AnsiPolish, BackToAnsi);
   {$endif}
+end;
+
+procedure TTestCompiler.TestAddingIncompleteUtf8;
+
+{ With both FPC and Delphi,
+  and any CASTLE_DONT_CHANGE_STRING_ENCODING,
+  adding AnsiChar with an incomplete UTF-8 sequence to a Utf8String
+  should be OK.
+  This makes operations like "function ReadLine: String;" with "S := S + C"
+  always safe.
+
+  This is "trivially will pass" when CASTLE_DONT_CHANGE_STRING_ENCODING
+  is not defined, since then everything is easily UTF-8.
+
+  This is really interesting with CASTLE_DONT_CHANGE_STRING_ENCODING
+  defined.
+}
+
+const
+  AddWord: Utf8String = '中文文本';
+var
+  S: Utf8String;
+  C: AnsiChar;
+  I: Integer;
+begin
+  S := '';
+  AssertEquals(4 * 3, Length(AddWord));
+  for I := 1 to Length(AddWord) do
+  begin
+    C := AddWord[I];
+    S := S + C;
+    AssertEquals(CP_UTF8, StringCodePage(S));
+  end;
+  AssertEquals(4 * 3, Length(S));
+  AssertEquals(AddWord, S);
+  AssertEquals(4, StringLength(AddWord));
+  AssertEquals(4, StringLength(S));
 end;
 
 initialization

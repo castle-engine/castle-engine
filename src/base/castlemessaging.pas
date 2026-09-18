@@ -358,10 +358,13 @@ end;
 
 procedure CGEApp_SendMessageToPascal(Message: PCChar); cdecl;
 begin
-  { For consistent behavior with Android, do not receive and process messages synchronously. }
-  // Messaging.ReceiveStr(AnsiString(PChar(Message)));
+  { For consistent behavior with Android, do not receive and process messages
+    synchronously. So we add to Messaging.ToPascal, instead of calling
+    Messaging.ReceiveStr directly. }
 
-  Messaging.ToPascal.Add(AnsiString(PChar(Message)));
+  // Messaging.ReceiveStr(Utf8String(PChar(Message)));
+
+  Messaging.ToPascal.Add(Utf8String(PChar(Message)));
 end;
 {$endif CASTLE_IOS}
 
@@ -395,7 +398,7 @@ var
   MessageToPascalStr: PAnsiChar;
   Dummy: JBoolean;
   Stream: TObject;
-  MessageFromPascalAnsi: AnsiString;
+  MessageFromPascalAnsi: Utf8String;
 begin
   { As this may be called from different thread, secure from being called
     in weird state. }
@@ -426,7 +429,7 @@ begin
         MessageToPascalStr := Env^^.GetStringUTFChars(Env, MessageToPascal,
           {$ifdef VER2} Dummy {$else} @Dummy {$endif});
         try
-          FMessaging.ToPascal.AddObject(AnsiString(MessageToPascalStr), Stream); // will copy characters
+          FMessaging.ToPascal.AddObject(Utf8String(MessageToPascalStr), Stream); // will copy characters
         finally Env^^.ReleaseStringUTFChars(Env, MessageToPascal, MessageToPascalStr) end;
       end;
     finally FMessaging.JavaCommunicationCS.Release end;

@@ -43,7 +43,7 @@
   @unorderedList(
     @item(Makes AnsiString have UTF-8 encoding when compiled with FPC.
 
-      See @url(https://castle-engine.io/coding_conventions#_most_code_should_use_just_string_and_be_prepared_that_it_is_8_bit_on_fpc_and_16_bit_on_delphi_only_if_writing_to_stream_explicitly_use_8_bit_ansistring_in_usual_case_when_you_write_utf_8
+      See @url(https://castle-engine.io/coding_conventions#strings_unicode
       more docs about our approach to String handling in CGE, for both FPC and Delphi).
       Basically:
 
@@ -53,14 +53,17 @@
         @item With Delphi, we follow Delphi convention, and String = UnicodeString (16-bit) = contains UTF-16.
       )
 
+      See also doc/miscellaneous_notes/ansistring_encoding.md .
+
       This way you can just use String throughout your code, and everything will just work.
 
       This way your applications will behave the same, whether they use Delphi,
       or FPC with LCL (which happens if you use TCastleControl on Lazarus form),
       or FPC without LCL (which happens if you use TCastleWindow with FPC).
 
-      Some code in CGE has to assume that String is encoded like this -- e.g. TCastleAbstractFont
-      iterates over Unicode characters in a String, so it assumes that the encoding is as above,
+      Some code in CGE has to assume that String is encoded like this --
+      e.g. TCastleAbstractFont iterates over Unicode characters in a String,
+      so it assumes that the encoding is as above,
       for FPC and Delphi.
     )
   )

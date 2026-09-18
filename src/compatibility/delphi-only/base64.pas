@@ -30,11 +30,16 @@ type
 
     Note: in Delphi, AMode is ignored.
 
-    The base64 string of characters (input) is assumed to be String,
-    i.e. Delphi UTF-16 string.
+    The @bold(input (base64 string of characters) is assumed to be a String),
+    whatever "String" means for this compiler.
+    With Delphi, it means it is UTF-16 string, as String=UnicodeString.
 
-    The output is just binary data, what it is depends on what was
-    encoded. It may be UTF-8 characters in AnsiString. }
+    The @bold(output is just binary data). What it is (and what encoding it has)
+    depends solely on what was encoded.
+    So it may be UTF-8 characters or UTF-16 characters or something
+    else -- this does not depend on whether this is compiled with Delphi
+    (String=UnicodeString, UTF-16) or FPC (String=AnsiString, UTF-8,
+    at least without DelphiUnicode mode)). }
   TBase64DecodingStream = class(TMemoryStream)
   strict private
     FSource: TStream;
@@ -51,12 +56,13 @@ type
     Note: Underneath, in Delphi, the whole encoding (so, writing to Destination)
     is done at destructor.
 
-    The base64 string of characters (output) is assumed to be String,
-    i.e. Delphi UTF-16 string.
+    The @bold(output (base64 string of characters) is a String),
+    whatever "String" means for this compiler.
+    With Delphi, it means it is UTF-16 string, as String=UnicodeString.
 
-    The input is just binary data, whatever you want to encode.
-    encoded. It may be UTF-8 characters in AnsiString, e.g. you can write
-    them using CastleClassUtils.WriteStr. }
+    The @bold(input is just binary data, whatever you want to encode).
+    It may be UTF-8 characters in Utf8String, e.g. you can write
+    them using @link(CastleClassUtils.WriteStr). }
   TBase64EncodingStream = class(TMemoryStream)
   strict private
     FDestination: TStream;

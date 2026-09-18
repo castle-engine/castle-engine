@@ -328,7 +328,7 @@ procedure TPlyReader.ReadHeader;
   function ReadLine: String;
   var
     C: AnsiChar;
-    S: AnsiString;
+    S: Utf8String;
   begin
     S := '';
     while Stream.Read(C, SizeOf(C)) <> 0 do

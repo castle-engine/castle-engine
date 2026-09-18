@@ -244,7 +244,7 @@ function TJSONScanner.FetchToken: TJSONToken;
 //      Len:=FEOL-FTokenStr;
 //      FTokenStr:=FCurPos;
       end
-    else             
+    else
       begin
       FCurLine:=Nil;
       FTokenStr:=nil;
@@ -487,7 +487,7 @@ begin
       begin
         Inc(FTokenStr);
         Result := tkCurlyBraceClose;
-      end;  
+      end;
     '[':
       begin
         Inc(FTokenStr);

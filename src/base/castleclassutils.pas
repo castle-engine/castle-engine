@@ -264,7 +264,7 @@ function MemoryStreamLoadFromString(
   If Rewind then the position is reset to the beginning,
   otherwise it stays at the end.
 
-  On FPC (without DelphiUnicode),
+  On FPC (without DelphiUnicode mode),
   this works with 8-bit strings (AnsiStrings) and is equivalent to
   @link(MemoryStreamLoadFromString).
   ( Note: If one day CASTLE_DONT_CHANGE_STRING_ENCODING is supported with

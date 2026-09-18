@@ -38,8 +38,16 @@ uses SysUtils, Classes, Generics.Collections,
 type
   EInvalidMD3 = class(Exception);
 
+  TMd3Ident = array [0..3] of AnsiChar;
+
+procedure CheckMd3Ident(const Ident: TMd3Ident);
 const
-  GoodIdent: AnsiString = 'IDP3';
+  GoodIdent: RawByteString = 'IDP3';
+begin
+  if not CompareMem(@Ident[0], @GoodIdent[1], Length(GoodIdent)) then
+    raise EInvalidMD3.CreateFmt('Identifier of MD3 file/surface must be "%s"',
+      [GoodIdent]);
+end;
 
 {$I x3dloadinternalmd3_structs.inc}
 {$I x3dloadinternalmd3_surface.inc}
