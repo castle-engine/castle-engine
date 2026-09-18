@@ -154,8 +154,10 @@ begin
           { Fallback to read everything through TRGBAlphaImage,
             which has most usual information (8-bit, RGBA).
 
-            Testcase: vampyre_imaginglib/src/Demos/Data/Tigers.tga
-            Testcase: vampyre_imaginglib/src/Demos/Data/Tigers.tif }
+            Testcases:
+            - src/Demos/Data/Tigers.tga
+            - src/Demos/Data/Tigers.tif
+            Find them in upstream repository: https://github.com/galfar/imaginglib }
           ChangeVampyreFormat(ifA8R8G8B8);
           Result := TRGBAlphaImage.Create(Img.Width, Img.Height);
           SwapChannels(Img.ImageDataPointer^, ChannelRed, ChannelBlue);
