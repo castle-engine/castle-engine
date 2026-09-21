@@ -46,6 +46,7 @@ type
     FLaunchImageStoryboardInitialized: Boolean;
     FLaunchImageStoryboardWidth, FLaunchImageStoryboardHeight: Integer;
     FGuidFromName: Boolean;
+    FAndroidMinSdkVersionFromServices: Cardinal;
 
     procedure DeleteFoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
     function PackageName(const Target: TTarget; const OS: TOS; const CPU: TCPU;
@@ -199,6 +200,9 @@ type
     function FullscreenImmersive: boolean;
     function ScreenOrientation: TScreenOrientation;
     function AndroidCompileSdkVersion: Cardinal;
+    { Android min SDK version.
+      This is the maximum of min_sdk_version from CastleEngineManifest.xml
+      and AndroidMinSdkVersionFromServices. }
     function AndroidMinSdkVersion: Cardinal;
     function AndroidTargetSdkVersion: Cardinal;
     function Icons: TImageFileNames;
@@ -209,6 +213,12 @@ type
     function AssociateDocumentTypes: TAssociatedDocTypeList;
     function LocalizedAppNames: TLocalizedAppNameList;
     function LaunchImageStoryboard: TLaunchImageStoryboard;
+
+    { Minimum Android min SDK version required by the used services
+      (min_min_sdk_version in their CastleEngineService.xml), 0 if none.
+      Set by ApplyServicesAndroidMinSdkVersion when packaging for Android. }
+    property AndroidMinSdkVersionFromServices: Cardinal
+      read FAndroidMinSdkVersionFromServices write FAndroidMinSdkVersionFromServices;
 
     function ReplaceMacros(const Source: string): string;
 
@@ -2948,6 +2958,8 @@ end;
 function TCastleProject.AndroidMinSdkVersion: Cardinal;
 begin
   Result := Manifest.AndroidMinSdkVersion;
+  if Result < AndroidMinSdkVersionFromServices then
+    Result := AndroidMinSdkVersionFromServices;
 end;
 
 function TCastleProject.AndroidTargetSdkVersion: Cardinal;

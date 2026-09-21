@@ -454,7 +454,7 @@ function CreateTokens(const s: string;
       )
     )
 
-    @item(f the Delimiter occurs at the very end of the source string,
+    @item(If the Delimiter occurs at the very end of the source string,
       then the very last part of the resulting list will be an empty string.
 
       @unorderedList(

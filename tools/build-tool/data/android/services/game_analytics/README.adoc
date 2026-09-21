@@ -8,7 +8,7 @@ Enable the http://www.gameanalytics.com/[Game Analytics] analytics of your apps.
 
 * The core of this service is a closed-source library distributed by GameAnalytics. It will be automatically downloaded using the _Gradle_ build system on the first build, so you don't have to do anything.
 
-* This service requires that you increase the `min_sdk_version` to 26 or higher in your link:pass:[CastleEngineManifest.xml examples][CastleEngineManifest.xml] file. The `min_sdk_version` is specified at the `<android>` element.
+* This service requires Android min SDK version 26 or higher. The build tool raises the project's `min_sdk_version` (at the `<android>` element in link:pass:[CastleEngineManifest.xml examples][CastleEngineManifest.xml]) to 26 automatically when this service is used, so you don't have to do anything.
 
 Minimal sample manifest that uses this service:
 
@@ -19,8 +19,7 @@ Minimal sample manifest that uses this service:
   game_units="GameInitialize"
   caption="My Project"
 >
-  <!-- min_sdk_version="26" required by GameAnalytics -->
-  <android min_sdk_version="26">
+  <android>
     <services>
       <service name="google_play_services" />
       <service name="game_analytics" />

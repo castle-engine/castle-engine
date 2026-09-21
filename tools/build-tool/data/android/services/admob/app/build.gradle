@@ -2,7 +2,16 @@
 <build_gradle_merge>
   <dependencies>
     <!-- See https://developers.google.com/android/guides/setup#split
-      and https://developers.google.com/admob/android/quick-start#import_the_mobile_ads_sdk -->
-    <dependency>implementation 'com.google.android.gms:play-services-ads:22.1.0'</dependency>
+      and https://developers.google.com/admob/android/quick-start#import_the_mobile_ads_sdk
+
+      Note: version 24 and later of play-services-ads require minSdkVersion 23,
+      so a project using this service must declare
+      <android min_sdk_version="23" /> in CastleEngineManifest.xml.
+      See https://developers.google.com/admob/android/rel-notes . -->
+    <dependency>implementation 'com.google.android.gms:play-services-ads:25.4.0'</dependency>
+    <!-- User Messaging Platform: gathers the user consent (GDPR/EEA, UK)
+      required before serving personalized ads.
+      See https://developers.google.com/admob/android/privacy . -->
+    <dependency>implementation 'com.google.android.ump:user-messaging-platform:4.0.0'</dependency>
   </dependencies>
 </build_gradle_merge>

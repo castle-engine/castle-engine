@@ -111,7 +111,8 @@ type
     class function TimeToStr(const Value: TFloatTime): string;
 
     { Convert string to a boolean, assuming the string was send by the external service.
-      The counterpart of this in Android is ServiceAbstract.booleanToString . }
+      The counterpart of this in Android is ServiceAbstract.booleanToString .
+      @raises EConvertError When the string cannot be converted to a boolean. }
     class function MessageToBoolean(const Value: String): Boolean;
   end;
 
@@ -322,7 +323,7 @@ begin
   if Value = 'false' then
     Result := false
   else
-    raise EInternalError.CreateFmt('Invalid boolean value in message: %s', [Value]);
+    raise EConvertError.CreateFmt('Invalid boolean value in message: %s', [Value]);
 end;
 
 { globals -------------------------------------------------------------------- }

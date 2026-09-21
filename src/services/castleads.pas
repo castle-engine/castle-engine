@@ -58,6 +58,21 @@ type
 
   TAdClosedEvent = procedure (const Sender: TObject; const WatchedStatus: TAdWatchStatus) of object;
 
+  { Announces that the user consent (see @link(TAds.InitializeAdMobWithConsent))
+    has been gathered.
+
+    @param(CanRequestAds Whether we may request ads now.
+      It is @false when the user refused the consent, and also when the
+      consent could not be gathered at all, e.g. without an Internet
+      connection on the first run.)
+
+    @param(PrivacyOptionsRequired Whether your application must show an entry
+      point (e.g. a button in the settings) that calls
+      @link(TAds.ShowConsentPrivacyOptions), to let the user change or
+      withdraw the consent later.) }
+  TConsentGatheredEvent = procedure (const Sender: TObject;
+    const CanRequestAds, PrivacyOptionsRequired: Boolean) of object;
+
   { Advertisements in game.
     Right now only on Android (does nothing on other platforms,
     as CastleMessaging does nothing on non-Android platforms).
@@ -108,15 +123,24 @@ type
 
       TAdMobHandler = class(TAdNetworkHandler)
       strict private
-        FBannerUnitId, FInterstitialUnitId, FRewardedUnitId, FTestDeviceIdsGlued: string;
+        FBannerUnitId, FInterstitialUnitId, FRewardedUnitId: String;
+        { List of test device ids, glued by Chr(2). }
+        FTestDeviceIdsGlued: String;
+        FGatherConsent, FConsentDebugForceEea: Boolean;
+        { List of device hashes where we force seeing consent form, glued by Chr(2). }
+        FConsentDebugDeviceHashesGlued: String;
       strict protected
         procedure ReinitializeJavaActivity(Sender: TObject); override;
       public
         constructor Create(const AParent: TAds;
           const ABannerUnitId, AInterstitialUnitId, ARewardedUnitId: string;
-          const TestDeviceIds: array of string);
+          const TestDeviceIds: array of string;
+          const AGatherConsent, AConsentDebugForceEea: Boolean;
+          const ConsentDebugDeviceHashes: array of string);
 
         class function Name: string; override;
+        procedure ShowConsentPrivacyOptions;
+        procedure ResetConsent;
         procedure ShowBanner(const Gravity: Integer); override;
         procedure HideBanner; override;
         procedure ShowFullScreenAd(const AdType: TFullScreenAdType;
@@ -152,8 +176,13 @@ type
       FBannerSize: TRectangle;
       FNetworks: array [TAdNetwork] of TAdNetworkHandler;
       FOnFullScreenAdClosed: TAdClosedEvent;
+      FOnConsentGathered: TConsentGatheredEvent;
+      FCanRequestAds, FPrivacyOptionsRequired: Boolean;
   protected
     procedure FullScreenAdClosed(const WatchedStatus: TAdWatchStatus); virtual;
+    { Called when the user consent was gathered, see TConsentGatheredEvent. }
+    procedure ConsentGathered(const ACanRequestAds, APrivacyOptionsRequired: Boolean;
+      const ErrorCode: Integer); virtual;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -161,20 +190,77 @@ type
     { Initialize AdMob ads. You need to create the unit ids on AdMob website
       (or use TestAdMobBannerUnitId, TestAdMobInterstitialUnitId for testing).
 
-      TestDeviceIds may be empty, or it may contain a list of devices
-      where you always want to see test ads --- even with real (non-test) ad units.
-      This is useful when you test ads in your application (with real ad units,
-      on a real phone). Paste here the list of your devices
-      (see https://developers.google.com/mobile-ads-sdk/docs/admob/android/quick-start ,
-      you can see your device ids in "adb logcat" output) in order to avoid
-      getting banned for clicking on your own ads.
+      This is usually called from @link(TCastleApplication.OnInitialize).
 
-      Usually called from @link(TCastleApplication.OnInitialize). }
+      @param(TestDeviceIds
+        List of devices where you always want to see "test ads" ---
+        even if you use real (non-test) ad units.
+
+        This is useful when you test ads in your application (with real ad units,
+        on a real phone). Paste here the list of your devices
+        (see https://developers.google.com/mobile-ads-sdk/docs/admob/android/quick-start ,
+        you can see your device ids in "adb logcat" output) in order to avoid
+        getting banned for clicking on your own ads.
+      ) }
     procedure InitializeAdMob(const BannerUnitId, InterstitialUnitId, RewardedUnitId: string;
       const TestDeviceIds: array of string); overload;
 
     procedure InitializeAdMob(const BannerUnitId, InterstitialUnitId: string;
       const TestDeviceIds: array of string); overload;
+
+    { Initialize AdMob ads, gathering the user consent first, using the
+      Google User Messaging Platform (UMP).
+
+      Google requires a consent management platform for the users in the
+      European Economic Area and the UK, and requires that no ad is requested
+      before such user has answered the consent form. This method does exactly
+      that: the consent form is shown when it is required, and the ads SDK is
+      initialized only once the answer allows requesting ads. Where no consent
+      is required, e.g. outside of Europe, nothing is shown to the user and
+      the ads are initialized right away.
+
+      The consent messages have to be configured in your AdMob account first,
+      see https://support.google.com/admob/answer/10113005 .
+
+      When the consent has been gathered, @link(OnConsentGathered) is called
+      and @link(CanRequestAds), @link(PrivacyOptionsRequired) are updated.
+
+      Note that this does not make your application compliant by itself.
+      In particular, when @link(PrivacyOptionsRequired) is @true, you have to
+      show your own entry point (e.g. a button in the settings) that calls
+      @link(ShowConsentPrivacyOptions).
+
+      @param(DebugForceEea Pretend that the device is in the European Economic
+        Area, to see the consent form outside of it. Testing only, and it
+        works only on the devices listed in DebugDeviceHashes.)
+
+      @param(DebugDeviceHashes Devices where DebugForceEea works. The hash of
+        a device is printed by the UMP SDK to the log, visible in "adb logcat",
+        when the consent is gathered on it for the first time.)
+
+      Usually called from @link(TCastleApplication.OnInitialize),
+      instead of @link(InitializeAdMob). }
+    procedure InitializeAdMobWithConsent(
+      const BannerUnitId, InterstitialUnitId, RewardedUnitId: string;
+      const TestDeviceIds: array of string;
+      const DebugForceEea: Boolean;
+      const DebugDeviceHashes: array of string); overload;
+
+    { Initialize AdMob ads, gathering the user consent first,
+      without the testing parameters. }
+    procedure InitializeAdMobWithConsent(
+      const BannerUnitId, InterstitialUnitId, RewardedUnitId: string;
+      const TestDeviceIds: array of string); overload;
+
+    { Show the form that lets the user change or withdraw the consent given
+      earlier. Show it from your own entry point (e.g. a button in the
+      settings) whenever @link(PrivacyOptionsRequired) is @true.
+      Does nothing when the consent was not gathered. }
+    procedure ShowConsentPrivacyOptions;
+
+    { Forget the gathered consent, so that the next application run asks
+      again. Testing only. }
+    procedure ResetConsent;
 
     { Initialize StartApp ads.
       You need to register your game on http://startapp.com/ to get app id.
@@ -221,6 +307,21 @@ type
     property OnFullScreenAdClosed: TAdClosedEvent
       read FOnFullScreenAdClosed write FOnFullScreenAdClosed;
 
+    { Called when the user consent was gathered,
+      see @link(InitializeAdMobWithConsent). }
+    property OnConsentGathered: TConsentGatheredEvent
+      read FOnConsentGathered write FOnConsentGathered;
+
+    { Whether we may request ads. It is @true unless the consent was gathered
+      (see @link(InitializeAdMobWithConsent)) and the answer does not allow
+      requesting ads. }
+    property CanRequestAds: Boolean read FCanRequestAds;
+
+    { Whether your application has to show an entry point calling
+      @link(ShowConsentPrivacyOptions). Meaningful only after the consent was
+      gathered, see @link(InitializeAdMobWithConsent). }
+    property PrivacyOptionsRequired: Boolean read FPrivacyOptionsRequired;
+
     property BannerSize: TRectangle read FBannerSize;
   end;
 
@@ -259,6 +360,9 @@ begin
   if (Received.Count = 2) and
      (Received[0] = 'ads-' + Name + '-full-screen-ad-closed') then
   begin
+    { Note: We don't use TMessaging.MessageToBoolean below, because
+      (for historical reasons) this accepts 'true', 'false',
+      or an integer representing the ad watch status. }
     if Received[1] = 'true' then
       WatchStatus := wsWatched
     else
@@ -274,6 +378,21 @@ begin
     end;
     FullScreenAdClosed(WatchStatus);
     Result := true;
+  end else
+
+  if (Received.Count = 4) and
+     (Received[0] = 'ads-' + Name + '-consent-gathered') then
+  begin
+    Result := true;
+    try
+      Parent.ConsentGathered(
+        TMessaging.MessageToBoolean(Received[1]),
+        TMessaging.MessageToBoolean(Received[2]),
+        StrToInt(Received[3]));
+    except
+      on EConvertError do
+        WritelnWarning('Ads', 'Cannot process consent result from ' + GlueStrings(Received, NL));
+    end;
   end else
 
   if (Received.Count = 5) and
@@ -336,20 +455,47 @@ end;
 
 constructor TAds.TAdMobHandler.Create(const AParent: TAds;
   const ABannerUnitId, AInterstitialUnitId, ARewardedUnitId: string;
-  const TestDeviceIds: array of string);
+  const TestDeviceIds: array of string;
+  const AGatherConsent, AConsentDebugForceEea: Boolean;
+  const ConsentDebugDeviceHashes: array of string);
 begin
   inherited Create(AParent);
-  FTestDeviceIdsGlued := GlueStrings(TestDeviceIds, ',');
+  FTestDeviceIdsGlued := GlueStrings(TestDeviceIds, Chr(2));
   FBannerUnitId := ABannerUnitId;
   FInterstitialUnitId := AInterstitialUnitId;
   FRewardedUnitId := ARewardedUnitId;
+  FGatherConsent := AGatherConsent;
+  FConsentDebugForceEea := AConsentDebugForceEea;
+  FConsentDebugDeviceHashesGlued := GlueStrings(ConsentDebugDeviceHashes, Chr(2));
   ReinitializeJavaActivity(nil);
 end;
 
 procedure TAds.TAdMobHandler.ReinitializeJavaActivity(Sender: TObject);
 begin
+  { The consent has to be gathered before the ads SDK is initialized.
+    So we must send ads-...-consent-request first, as it will set in Java
+    consentGathering=true, which will in turn prevent ads-...-initialize
+    from doing real initialization before we get consent.
+
+    Everything here must be done again after the Java activity was recreated,
+    as the Java side state is gone then. }
+
+  if FGatherConsent then
+    Messaging.Send(['ads-' + Name + '-consent-request',
+      TMessaging.BoolToStr(FConsentDebugForceEea),
+      FConsentDebugDeviceHashesGlued]);
   Messaging.Send(['ads-' + Name + '-initialize', FBannerUnitId, FInterstitialUnitId, FRewardedUnitId, FTestDeviceIdsGlued]);
   inherited;
+end;
+
+procedure TAds.TAdMobHandler.ShowConsentPrivacyOptions;
+begin
+  Messaging.Send(['ads-' + Name + '-consent-show-privacy-options']);
+end;
+
+procedure TAds.TAdMobHandler.ResetConsent;
+begin
+  Messaging.Send(['ads-' + Name + '-consent-reset']);
 end;
 
 class function TAds.TAdMobHandler.Name: string;
@@ -444,6 +590,9 @@ constructor TAds.Create(AOwner: TComponent);
 begin
   inherited;
   FBannerSize := TRectangle.Empty;
+  { True until the gathered consent says otherwise -- an application that does
+    not gather the consent at all requests ads immediately, as it always did. }
+  FCanRequestAds := true;
 end;
 
 destructor TAds.Destroy;
@@ -461,13 +610,65 @@ begin
   if FNetworks[anAdMob] <> nil then
     FreeAndNil(FNetworks[anAdMob]);
   FNetworks[anAdMob] := TAdMobHandler.Create(Self,
-    BannerUnitId, InterstitialUnitId, RewardedUnitId, TestDeviceIds);
+    BannerUnitId, InterstitialUnitId, RewardedUnitId, TestDeviceIds,
+    false, false, []);
 end;
 
 procedure TAds.InitializeAdMob(const BannerUnitId, InterstitialUnitId: string;
   const TestDeviceIds: array of string);
 begin
   InitializeAdMob(BannerUnitId, InterstitialUnitId, '', TestDeviceIds);
+end;
+
+procedure TAds.InitializeAdMobWithConsent(
+  const BannerUnitId, InterstitialUnitId, RewardedUnitId: string;
+  const TestDeviceIds: array of string;
+  const DebugForceEea: Boolean;
+  const DebugDeviceHashes: array of string);
+begin
+  if FNetworks[anAdMob] <> nil then
+    FreeAndNil(FNetworks[anAdMob]);
+  { Not known yet -- decided by the consent we are just about to gather. }
+  FCanRequestAds := false;
+  FPrivacyOptionsRequired := false;
+  FNetworks[anAdMob] := TAdMobHandler.Create(Self,
+    BannerUnitId, InterstitialUnitId, RewardedUnitId, TestDeviceIds,
+    true, DebugForceEea, DebugDeviceHashes);
+end;
+
+procedure TAds.InitializeAdMobWithConsent(
+  const BannerUnitId, InterstitialUnitId, RewardedUnitId: string;
+  const TestDeviceIds: array of string);
+begin
+  InitializeAdMobWithConsent(BannerUnitId, InterstitialUnitId, RewardedUnitId,
+    TestDeviceIds, false, []);
+end;
+
+procedure TAds.ShowConsentPrivacyOptions;
+begin
+  if FNetworks[anAdMob] <> nil then
+    TAdMobHandler(FNetworks[anAdMob]).ShowConsentPrivacyOptions
+  else
+    WritelnWarning('Ads', 'Cannot show the consent privacy options, AdMob is not initialized');
+end;
+
+procedure TAds.ResetConsent;
+begin
+  if FNetworks[anAdMob] <> nil then
+    TAdMobHandler(FNetworks[anAdMob]).ResetConsent
+  else
+    WritelnWarning('Ads', 'Cannot reset the consent, AdMob is not initialized');
+end;
+
+procedure TAds.ConsentGathered(const ACanRequestAds, APrivacyOptionsRequired: Boolean;
+  const ErrorCode: Integer);
+begin
+  FCanRequestAds := ACanRequestAds;
+  FPrivacyOptionsRequired := APrivacyOptionsRequired;
+  if ErrorCode <> -1 then
+    WritelnWarning('Ads', 'Gathering the user consent failed with error code %d, ads may not be requested', [ErrorCode]);
+  if Assigned(FOnConsentGathered) then
+    FOnConsentGathered(Self, ACanRequestAds, APrivacyOptionsRequired);
 end;
 
 procedure TAds.InitializeStartapp(const AppId: string);
