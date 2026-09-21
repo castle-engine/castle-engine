@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -22,7 +22,7 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    
+
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(OnBtnDone:)];
 
     // regiser to set content size as compact as possible
@@ -58,9 +58,9 @@
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"OptionsCell"];
-    
+
     Options *opt = [Options sharedOptions];
-    
+
     NSString *sText;
     bool bSwitchOn = false;
     switch (indexPath.row)
@@ -74,12 +74,12 @@
         case 2: sText = @"SSAO";
             bSwitchOn = opt.ssao;
             break;
-            
+
         default:
             break;
     }
     cell.textLabel.text = sText;
-    
+
     UISwitch *chkSwitch = [[UISwitch alloc] init];
     chkSwitch.tag = indexPath.row;
     chkSwitch.on = bSwitchOn;
@@ -112,7 +112,7 @@
             break;
         case 1: opt.walkHeadBobbing = bOn; CGE_SetVariableInt(ecgevarWalkHeadBobbing, bOn ? 1 : 0); break;
         case 2: opt.ssao = bOn; CGE_SetVariableInt(ecgevarEffectSSAO, bOn ? 1 : 0); break;
-            
+
         default:
             break;
     }

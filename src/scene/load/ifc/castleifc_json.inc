@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -121,12 +121,14 @@ begin
     if (JsonObjType = 'IfcLabel') or
        (JsonObjType = 'IfcText') or
        (JsonObjType = 'IfcIdentifier') or
+       (JsonObjType = 'IfcPresentableText') or
+       (JsonObjType = 'IfcBoxAlignment') or
        // hack to read IfcValue from TIfcPropertySingleValue.NominalValue into String
        (DebugJsonKey = 'IfcPropertySingleValue.nominalValue') then
       Result := JsonObj.Get('value', '')
     else
     begin
-      WritelnWarning('IFC', 'IFC field "%s" is a JSON object, but not of type "IfcLabel" or "IfcText" or "IfcIdentifier", ignoring', [
+      WritelnWarning('IFC', 'IFC field "%s" is a JSON object, but not of a type we recognize as a string (like "IfcLabel" or "IfcText"), ignoring', [
         DebugJsonKey
       ]);
       Result := '';

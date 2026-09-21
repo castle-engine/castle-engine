@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -20,21 +20,32 @@ interface
 
 uses
   Classes, SysUtils,
-  CastleTester;
+  CastleTester, CastleStringUtils, X3DNodes;
 
 type
   TTestCastleIfc = class(TCastleTestCase)
+  strict private
+    { Used by TestTextLiteral to gather X3D TTextNode contents. }
+    FoundTexts: TCastleStringList;
+    { Used by TestTextLiteral and TestTextLiteralAlignment to gather
+      the X3D font style of each TTextNode, by text contents.
+      Each item is "text=font style description", see FontStyleDescription. }
+    FoundFontStyles: TStringList;
+    procedure GatherTextNode(Node: TX3DNode);
+    procedure GatherTextNodeFontStyle(Node: TX3DNode);
   published
     procedure TestIfcClasses;
     procedure TestIfcClassesNoDuplicates;
     procedure TestAxis2Placement2D;
     procedure TestAxis2Placement3D;
+    procedure TestTextLiteral;
+    procedure TestTextLiteralAlignment;
   end;
 
 implementation
 
-uses TypInfo,
-  CastleStringUtils, CastleIfc, CastleInternalRttiUtils, CastleVectors;
+uses TypInfo, FpJson,
+  CastleIfc, CastleInternalRttiUtils, CastleVectors, CastleUtils;
 
 { Simple hack to detect does given object is a TObjectList<xxx> specialization
   and is a list of IFC classes.
@@ -177,6 +188,267 @@ begin
     Z := Vector3(0, 0, 1);
     AssertVectorEquals(Z, Axis2Placement3D.P(2), 0.01);
   finally FreeAndNil(Axis2Placement3D) end;
+end;
+
+procedure TTestCastleIfc.GatherTextNode(Node: TX3DNode);
+var
+  TextNode: TTextNode;
+  S: String;
+begin
+  TextNode := Node as TTextNode;
+  S := GlueStrings(TextNode.FdString.Items, '|');
+  FoundTexts.Add(S);
+end;
+
+const
+  JustifyToString: array[TX3DFontJustify] of string =
+  ('FIRST', 'BEGIN', 'MIDDLE', 'END');
+
+{ Describe the X3D font style, to compare it easily in tests.
+  The description is
+  "<justify> <justifyMinor> horizontal=false/true leftToRight=false/true topToBottom=false/true". }
+function FontStyleDescription(const FontStyle: TFontStyleNode): String;
+begin
+  Result :=
+    JustifyToString[FontStyle.Justify] + ' ' +
+    JustifyToString[FontStyle.JustifyMinor] + ' ' +
+    'horizontal=' + BoolToStr(FontStyle.Horizontal, True) + ' ' +
+    'leftToRight=' + BoolToStr(FontStyle.LeftToRight, True) + ' ' +
+    'topToBottom=' + BoolToStr(FontStyle.TopToBottom, True);
+end;
+
+const
+  { The part of FontStyleDescription that expresses the usual IFC writing
+    direction, Path = RIGHT. Most of our texts use it. }
+  FontStylePathRight = ' horizontal=True leftToRight=True topToBottom=True';
+
+procedure TTestCastleIfc.GatherTextNodeFontStyle(Node: TX3DNode);
+var
+  TextNode: TTextNode;
+begin
+  TextNode := Node as TTextNode;
+  { All texts from IFC must have a font style, as we always use it
+    to express the IFC Path and BoxAlignment. }
+  AssertTrue(TextNode.FontStyle is TFontStyleNode);
+  FoundFontStyles.Add(
+    GlueStrings(TextNode.FdString.Items, '|') + '=' +
+    FontStyleDescription(TFontStyleNode(TextNode.FontStyle)));
+end;
+
+{ Test loading, saving and displaying IfcTextLiteral and IfcTextLiteralWithExtent.
+  The testcase file is a copy of demo-models/ifc/text_literal/text_literal.ifcjson . }
+procedure TTestCastleIfc.TestTextLiteral;
+
+  { Check the IFC classes were loaded with correct properties. }
+  procedure CheckIfcContents(const IfcFile: TIfcFile);
+  var
+    I: Integer;
+    Component: TComponent;
+    TextLiteral: TIfcTextLiteral;
+    LiteralsCount, WithExtentCount: Cardinal;
+    Literals: TCastleStringList;
+  begin
+    LiteralsCount := 0;
+    WithExtentCount := 0;
+    Literals := TCastleStringList.Create;
+    try
+      for I := 0 to IfcFile.ComponentCount - 1 do
+      begin
+        Component := IfcFile.Components[I];
+        if Component is TIfcTextLiteral then
+        begin
+          TextLiteral := TIfcTextLiteral(Component);
+          Inc(LiteralsCount);
+          Literals.Add(TextLiteral.Literal);
+          { All our texts have a placement, even if it is an identity placement. }
+          AssertTrue(TextLiteral.Placement <> nil);
+
+          { Check that the enumerated Path is read (and written) correctly.
+            All texts in this testcase file use the usual RIGHT,
+            the other IfcTextPath values are tested
+            by TestTextLiteralAlignment. }
+          AssertTrue(TextLiteral.Path = TIfcTextPath.Right);
+
+          if TextLiteral is TIfcTextLiteralWithExtent then
+          begin
+            Inc(WithExtentCount);
+            AssertEquals('bottom-left', TIfcTextLiteralWithExtent(TextLiteral).BoxAlignment);
+            AssertTrue(TIfcTextLiteralWithExtent(TextLiteral).Extent <> nil);
+            AssertSameValue(6, TIfcTextLiteralWithExtent(TextLiteral).Extent.SizeInX);
+            AssertSameValue(1, TIfcTextLiteralWithExtent(TextLiteral).Extent.SizeInY);
+          end;
+        end;
+      end;
+
+      AssertEquals(4, LiteralsCount);
+      AssertEquals(1, WithExtentCount);
+      AssertTrue(Literals.IndexOf('A: literal placement') <> -1);
+      AssertTrue(Literals.IndexOf('B: object placement') <> -1);
+      AssertTrue(Literals.IndexOf('C: with extent') <> -1);
+      AssertTrue(Literals.IndexOf('D: rotated' + #10 + 'and multi-line') <> -1);
+    finally FreeAndNil(Literals) end;
+  end;
+
+var
+  IfcFile, IfcFileFromSaved: TIfcFile;
+  Json: TJsonObject;
+  RootNode: TX3DRootNode;
+begin
+  IfcFile := IfcJsonLoad('castle-data:/ifc/text_literal.ifcjson');
+  try
+    CheckIfcContents(IfcFile);
+
+    { Test that saving preserves everything: save to JSON, load it back. }
+    Json := IfcJsonSave(IfcFile);
+    try
+      { Path is a mandatory IFC attribute, so we must write it out,
+        even though all our texts have the usual value RIGHT.
+        This is the only purpose of the TIfcTextPath.Unknown value. }
+      AssertTrue(Pos('"path"', Json.AsJson) <> 0);
+
+      IfcFileFromSaved := IfcJsonLoad(Json);
+      try
+        CheckIfcContents(IfcFileFromSaved);
+      finally FreeAndNil(IfcFileFromSaved) end;
+    finally FreeAndNil(Json) end;
+
+    { Test that the conversion to X3D creates TTextNode with proper contents. }
+    FoundTexts := TCastleStringList.Create;
+    FoundFontStyles := TStringList.Create;
+    try
+      RootNode := IfcToX3D(IfcFile, '');
+      try
+        RootNode.EnumerateNodes(TTextNode,
+          {$ifdef FPC}@{$endif} GatherTextNode, false);
+        RootNode.EnumerateNodes(TTextNode,
+          {$ifdef FPC}@{$endif} GatherTextNodeFontStyle, false);
+      finally FreeAndNil(RootNode) end;
+
+      AssertEquals(4, FoundTexts.Count);
+      AssertTrue(FoundTexts.IndexOf('A: literal placement') <> -1);
+      AssertTrue(FoundTexts.IndexOf('B: object placement') <> -1);
+      AssertTrue(FoundTexts.IndexOf('C: with extent') <> -1);
+      { The multi-line literal must be split into 2 X3D strings. }
+      AssertTrue(FoundTexts.IndexOf('D: rotated|and multi-line') <> -1);
+
+      { Texts A, B, D are plain IfcTextLiteral, without BoxAlignment,
+        so they keep the X3D justify defaults: the text begins
+        at the placement, with the baseline of the 1st line at the placement. }
+      AssertEquals('BEGIN FIRST' + FontStylePathRight,
+        FoundFontStyles.Values['A: literal placement']);
+      AssertEquals('BEGIN FIRST' + FontStylePathRight,
+        FoundFontStyles.Values['B: object placement']);
+      AssertEquals('BEGIN FIRST' + FontStylePathRight,
+        FoundFontStyles.Values['D: rotated|and multi-line']);
+
+      { Text C is IfcTextLiteralWithExtent with BoxAlignment = 'bottom-left',
+        which means: left edge and bottom edge of the text at the placement. }
+      AssertEquals('BEGIN END' + FontStylePathRight,
+        FoundFontStyles.Values['C: with extent']);
+    finally
+      FreeAndNil(FoundTexts);
+      FreeAndNil(FoundFontStyles);
+    end;
+  finally FreeAndNil(IfcFile) end;
+end;
+
+{ Test that all 9 IfcBoxAlignment values, and all 4 IfcTextPath values,
+  are converted to the proper X3D font justification.
+  The testcase file is a copy of
+  demo-models/ifc/text_literal/text_literal_alignment.ifcjson . }
+procedure TTestCastleIfc.TestTextLiteralAlignment;
+
+  { Check the X3D font style of the text with given contents.
+    The text contents are also the IFC literal, our testcase file
+    makes each literal describe itself. }
+  procedure CheckFontStyle(const Text, ExpectedFontStyle: String);
+  begin
+    AssertTrue('No text "' + Text + '" found in the model',
+      FoundFontStyles.IndexOfName(Text) <> -1);
+    AssertEquals('Invalid font style of the text "' + Text + '"',
+      ExpectedFontStyle, FoundFontStyles.Values[Text]);
+  end;
+
+  { Convert the IFC file to X3D, gather the font style of every text
+    into FoundFontStyles, and check them all. }
+  procedure CheckFontStyles(const IfcFile: TIfcFile);
+  var
+    RootNode: TX3DRootNode;
+  begin
+    FoundFontStyles.Clear;
+    RootNode := IfcToX3D(IfcFile, '');
+    try
+      RootNode.EnumerateNodes(TTextNode,
+        {$ifdef FPC}@{$endif} GatherTextNodeFontStyle, false);
+    finally FreeAndNil(RootNode) end;
+
+    { 9 alignments + 3 multi-line texts + 4 writing directions. }
+    AssertEquals(16, FoundFontStyles.Count);
+
+    { All 9 IfcBoxAlignment values.
+
+      The IFC value names the corner of the text (and of the extent box)
+      that lies at the placement. With the default writing direction
+      (Path = RIGHT) this maps to the X3D justify directly:
+
+      - horizontal: left -> BEGIN, middle -> MIDDLE, right -> END,
+      - vertical: top -> BEGIN, middle -> MIDDLE, bottom -> END }
+    CheckFontStyle('top-left'     , 'BEGIN BEGIN'   + FontStylePathRight);
+    CheckFontStyle('top-middle'   , 'MIDDLE BEGIN'  + FontStylePathRight);
+    CheckFontStyle('top-right'    , 'END BEGIN'     + FontStylePathRight);
+    CheckFontStyle('middle-left'  , 'BEGIN MIDDLE'  + FontStylePathRight);
+    CheckFontStyle('center'       , 'MIDDLE MIDDLE' + FontStylePathRight);
+    CheckFontStyle('middle-right' , 'END MIDDLE'    + FontStylePathRight);
+    CheckFontStyle('bottom-left'  , 'BEGIN END'     + FontStylePathRight);
+    CheckFontStyle('bottom-middle', 'MIDDLE END'    + FontStylePathRight);
+    CheckFontStyle('bottom-right' , 'END END'       + FontStylePathRight);
+
+    { Multi-line texts use the same alignment, which also determines
+      in which direction the text grows when lines are added. }
+    CheckFontStyle('multi-line|top-left|grows this way',
+      'BEGIN BEGIN' + FontStylePathRight);
+    CheckFontStyle('multi-line|center|grows this way',
+      'MIDDLE MIDDLE' + FontStylePathRight);
+    CheckFontStyle('multi-line|bottom-left|grows this way',
+      'BEGIN END' + FontStylePathRight);
+
+    { All 4 IfcTextPath values, all with BoxAlignment = 'bottom-left'.
+
+      The X3D justify is relative to the writing direction, so the same
+      IFC alignment means different X3D justify values for each path.
+      For the vertical paths (UP, DOWN) the X3D major direction
+      is the vertical one, so the justify values are also swapped. }
+    CheckFontStyle('path RIGHT',
+      'BEGIN END horizontal=True leftToRight=True topToBottom=True');
+    CheckFontStyle('path LEFT',
+      'END END horizontal=True leftToRight=False topToBottom=True');
+    CheckFontStyle('path UP',
+      'BEGIN BEGIN horizontal=False leftToRight=True topToBottom=False');
+    CheckFontStyle('path DOWN',
+      'END BEGIN horizontal=False leftToRight=True topToBottom=True');
+  end;
+
+var
+  IfcFile, IfcFileFromSaved: TIfcFile;
+  Json: TJsonObject;
+begin
+  IfcFile := IfcJsonLoad('castle-data:/ifc/text_literal_alignment.ifcjson');
+  try
+    FoundFontStyles := TStringList.Create;
+    try
+      CheckFontStyles(IfcFile);
+
+      { Test that saving preserves the alignment and writing direction:
+        save to JSON, load it back, check the same things. }
+      Json := IfcJsonSave(IfcFile);
+      try
+        IfcFileFromSaved := IfcJsonLoad(Json);
+        try
+          CheckFontStyles(IfcFileFromSaved);
+        finally FreeAndNil(IfcFileFromSaved) end;
+      finally FreeAndNil(Json) end;
+    finally FreeAndNil(FoundFontStyles) end;
+  finally FreeAndNil(IfcFile) end;
 end;
 
 initialization

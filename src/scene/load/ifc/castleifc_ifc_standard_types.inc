@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -268,6 +268,25 @@
 
     https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcIdentifier.htm }
   TIfcIdentifier = String;
+
+  { Text that is meant to be displayed (as opposed to TIfcText, that is
+    meant to be read as a description).
+
+    https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPresentableText.htm }
+  TIfcPresentableText = String;
+
+  { Alignment of a text within the text box.
+    Has to be one of the strings:
+    'top-left', 'top-middle', 'top-right',
+    'middle-left', 'center', 'middle-right',
+    'bottom-left', 'bottom-middle', 'bottom-right'.
+
+    TODO: Due to using -, we cannot express this as a simple enumerated type.
+    Maybe make it enumerated anyway, with nice names like TopLeft,
+    TopMiddle, etc. and just handle in special way when reading/writing.
+
+    https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcBoxAlignment.htm }
+  TIfcBoxAlignment = String;
 
   { Indication of date and time by measuring the number of seconds
     which have elapsed since 1 January 1970, 00:00:00 UTC.
@@ -2029,6 +2048,110 @@
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcAxis2Placement.htm }
   TIfcAxis2Placement = TIfcPlacement;
+
+  { Writing direction of the text.
+
+    The @code(Unknown) value is not defined by the IFC specification.
+    We add it as the 1st value, and declare it as the "default" of
+    @link(TIfcTextLiteral.Path), only to force writing out all the values
+    that the specification does define, including @code(Right).
+    Reason: our IFC JSON writer omits the properties that have their default
+    value, and Path is a mandatory IFC attribute, so it should always
+    be written.
+
+    The other values follow the order in the specification (alphabetical).
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcTextPath.htm }
+  TIfcTextPath = (Unknown, Down, Left, Right, Up);
+
+  { Planar extent, in 2 dimensions: sizes along the X and Y axes.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPlanarExtent.htm }
+  TIfcPlanarExtent = class(TIfcGeometricRepresentationItem)
+  strict private
+    FSizeInX: TIfcLengthMeasure;
+    FSizeInY: TIfcLengthMeasure;
+  published
+    { The extent in the direction of the X axis. }
+    property SizeInX: TIfcLengthMeasure read FSizeInX write FSizeInX;
+
+    { The extent in the direction of the Y axis. }
+    property SizeInY: TIfcLengthMeasure read FSizeInY write FSizeInY;
+  end;
+
+  { Text to be displayed, in 2D and 3D views.
+    This is the IFC counterpart of the X3D @link(TTextNode).
+
+    Authoring applications like
+    @url(https://bonsaibim.org/ BonsaiBIM) and @url(https://www.freecad.org/ FreeCAD)
+    use this too. Usually as the descendant @link(TIfcTextLiteralWithExtent)
+    inside a @link(TIfcAnnotation) product, in a representation with
+    @code(RepresentationIdentifier = 'Annotation').
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcTextLiteral.htm }
+  TIfcTextLiteral = class(TIfcGeometricRepresentationItem)
+  strict private
+    FLiteral: TIfcPresentableText;
+    FPlacement: TIfcAxis2Placement;
+    FPath: TIfcTextPath;
+  protected
+    { Current BoxAlignment. Returns @link(TIfcTextLiteralWithExtent.BoxAlignment)
+      or empty string, if this is not TIfcTextLiteralWithExtent. }
+    function GetBoxAlignment: TIfcBoxAlignment; virtual;
+  public
+    constructor Create(AOwner: TComponent); override;
+    function BuildNode(const Mapping: TCastleIfcMapping;
+      const ParentProduct: TIfcProduct;
+      const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode; override;
+  published
+    { The text to display. }
+    property Literal: TIfcPresentableText read FLiteral write FLiteral;
+
+    { Placement (position and orientation) of the text. }
+    property Placement: TIfcAxis2Placement read FPlacement write FPlacement;
+
+    { Writing direction of the text. The value after creation is
+      @code(Right), see the constructor.
+
+      Note: The @italic(declared) default below is deliberately different,
+      @code(Unknown), i.e. a value that never occurs in practice in IFC files
+      and that constructor does not set.
+      Normally the "default" should say what the constructor sets,
+      but here we deliberately break this convention: the "default" is used
+      by our IFC JSON writer to @italic(omit) the property, and Path
+      is a mandatory IFC attribute that we always want to write.
+      See @link(TIfcTextPath). }
+    property Path: TIfcTextPath read FPath write FPath default TIfcTextPath.Unknown;
+  end;
+
+  { Text to be displayed, with a defined extent (box) and alignment within it.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcTextLiteralWithExtent.htm }
+  TIfcTextLiteralWithExtent = class(TIfcTextLiteral)
+  strict private
+    FExtent: TIfcPlanarExtent;
+    FBoxAlignment: TIfcBoxAlignment;
+  protected
+    function GetBoxAlignment: TIfcBoxAlignment; override;
+  published
+    { Extent (size of the box) in which the text is displayed.
+
+      Note: We ignore this for now. We don't need it to honor @link(BoxAlignment):
+      from what I understand, both the box defined by this,
+      and the text, place the corner at @link(BoxAlignment).
+
+      This value would only matter to wrap or clip the text to the box, and to
+      honor the alignment of the text within the box, given by
+      IfcTextStyleTextModel.TextAlign . Then, the box size does shift
+      the text, e.g. BoxAlignment = 'bottom-right' with TextAlign = 'left'
+      means the text starts SizeInX to the left of the placement. }
+    property Extent: TIfcPlanarExtent read FExtent write FExtent;
+
+    { Alignment of the text (and of the box defined by @link(Extent)).
+      One of the 9 values allowed
+      by @link(TIfcBoxAlignment), like @code('bottom-left'). }
+    property BoxAlignment: TIfcBoxAlignment read FBoxAlignment write FBoxAlignment;
+  end;
 
   { Parameterized planar curve.
 
@@ -8211,6 +8334,32 @@ begin
   inherited;
 end;
 
+{ TIfcTextLiteral ------------------------------------------------------------ }
+
+constructor TIfcTextLiteral.Create(AOwner: TComponent);
+begin
+  inherited;
+  { The IFC specification defines no default for Path (the attribute is not
+    optional). But we have to assume something when the file omits it,
+    or when constructing this with Pascal code.
+    The 1st enum value (Unknown, which is not even in the specification,
+    see @link(TIfcTextPath)) would be non-standard,
+    so explicitly make this default to Right. }
+  FPath := TIfcTextPath.Right;
+end;
+
+function TIfcTextLiteral.GetBoxAlignment: TIfcBoxAlignment;
+begin
+  Result := '';
+end;
+
+{ TIfcTextLiteralWithExtent -------------------------------------------------- }
+
+function TIfcTextLiteralWithExtent.GetBoxAlignment: TIfcBoxAlignment;
+begin
+  Result := FBoxAlignment;
+end;
+
 { initialization, finalization ----------------------------------------------- }
 
 var
@@ -8373,6 +8522,9 @@ function IfcClasses: TIfcPersistentClassList;
     FIfcClasses.Add(TIfcBuildingElementProxyType);
     FIfcClasses.Add(TIfcRectangleProfileDef);
     FIfcClasses.Add(TIfcBoundingBox);
+    FIfcClasses.Add(TIfcPlanarExtent);
+    FIfcClasses.Add(TIfcTextLiteral);
+    FIfcClasses.Add(TIfcTextLiteralWithExtent);
     FIfcClasses.Add(TIfcTrimmedCurve);
     FIfcClasses.Add(TIfcEllipse);
     FIfcClasses.Add(TIfcMappedItem);

@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -865,6 +865,9 @@ begin
         "Widget does not have GDK handle initialized yet". }
       true
     {$endif};
+
+  if Visible then
+    SetFocused(true);
 
   if FullScreen then
   begin

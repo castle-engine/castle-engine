@@ -2,7 +2,7 @@
 
 You can use it to develop commercial (including proprietary) games and applications.
 
-The exact legal terms are specified in https://castle-engine.io/license . Here's a short version:
+The exact legal terms are specified in https://castle-engine.io/license and inside [doc/licenses/README.md](doc/licenses/README.md) in this repository. Here's a short version:
 
 - Engine core: permissive LGPL with static linking exception
 

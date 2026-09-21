@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -172,6 +172,7 @@ procedure PackageIOS(const Project: TCastleProject;
 var
   XcodeProject: string;
   UsesCocoaPods: boolean;
+  ServiceManifests: TServiceManifestList;
 
   { Generate files for iOS project from templates. }
   procedure GenerateFromTemplates;
@@ -472,8 +473,10 @@ begin
 
     GenerateFromTemplates;
     GenerateServicesFromTemplates;
-    PackageServices(Project, Project.IOSServices,
-      'castle-data:/ios/services/', XcodeProject);
+    ServiceManifests := LoadServices(Project.IOSServices, 'castle-data:/ios/services/');
+    try
+      PackageServices(Project, ServiceManifests, XcodeProject);
+    finally FreeAndNil(ServiceManifests) end;
     GenerateLaunchImageStoryboard;
     FixPbxProjectFile; // must be done *after* all files that have to be in PBX are in place, so after PackageServices and GenerateLaunchImageStoryboard
     GenerateIcons;

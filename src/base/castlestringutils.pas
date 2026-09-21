@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -454,7 +454,7 @@ function CreateTokens(const s: string;
       )
     )
 
-    @item(f the Delimiter occurs at the very end of the source string,
+    @item(If the Delimiter occurs at the very end of the source string,
       then the very last part of the resulting list will be an empty string.
 
       @unorderedList(

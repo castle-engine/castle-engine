@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -1551,7 +1551,7 @@ begin
     '' + NL +
     '  This file is part of "Castle Game Engine".' + NL +
     '' + NL +
-    '  "Castle Game Engine" is free software; see the file COPYING.txt,' + NL +
+    '  "Castle Game Engine" is free software; see the file COPYING.md,' + NL +
     '  included in this distribution, for details about the copyright.' + NL +
     '' + NL +
     '  "Castle Game Engine" is distributed in the hope that it will be useful,' + NL +

@@ -4,7 +4,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -1204,8 +1204,12 @@
       that the player can "consume" by colliding with it.
 
       Triggers report collisions through the same events as other rigid bodies:
-      (@link(TCastleRigidBody.OnCollisionEnter), @link(TCastleRigidBody.OnCollisionStay),
-      @link(TCastleRigidBody.OnCollisionExit)). }
+      @unorderedList(
+        @item @link(TCastleRigidBody.OnCollisionEnter),
+        @item @link(TCastleRigidBody.OnCollisionStay),
+        @item @link(TCastleRigidBody.OnCollisionExit).
+      )
+    }
     property Trigger: Boolean read FTrigger write SetTrigger default false;
 
     { Sets CollisionDetectionMode in rigid body to Discrete or ContinuousSweep. }

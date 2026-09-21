@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -46,6 +46,7 @@ type
     FLaunchImageStoryboardInitialized: Boolean;
     FLaunchImageStoryboardWidth, FLaunchImageStoryboardHeight: Integer;
     FGuidFromName: Boolean;
+    FAndroidMinSdkVersionFromServices: Cardinal;
 
     procedure DeleteFoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
     function PackageName(const Target: TTarget; const OS: TOS; const CPU: TCPU;
@@ -183,6 +184,8 @@ type
     function Version: TProjectVersion;
     function ManifestCompiler: TCompiler;
     function QualifiedName: string;
+    { QualifiedName for iOS: either qualified_name, or ios.override_qualified_name. }
+    function IOSQualifiedName: string;
     function Dependencies: TDependencies;
     function Name: string;
     { Project path. Always ends with path delimiter, like a slash or backslash. }
@@ -197,6 +200,9 @@ type
     function FullscreenImmersive: boolean;
     function ScreenOrientation: TScreenOrientation;
     function AndroidCompileSdkVersion: Cardinal;
+    { Android min SDK version.
+      This is the maximum of min_sdk_version from CastleEngineManifest.xml
+      and AndroidMinSdkVersionFromServices. }
     function AndroidMinSdkVersion: Cardinal;
     function AndroidTargetSdkVersion: Cardinal;
     function Icons: TImageFileNames;
@@ -207,6 +213,12 @@ type
     function AssociateDocumentTypes: TAssociatedDocTypeList;
     function LocalizedAppNames: TLocalizedAppNameList;
     function LaunchImageStoryboard: TLaunchImageStoryboard;
+
+    { Minimum Android min SDK version required by the used services
+      (min_min_sdk_version in their CastleEngineService.xml), 0 if none.
+      Set by ApplyServicesAndroidMinSdkVersion when packaging for Android. }
+    property AndroidMinSdkVersionFromServices: Cardinal
+      read FAndroidMinSdkVersionFromServices write FAndroidMinSdkVersionFromServices;
 
     function ReplaceMacros(const Source: string): string;
 
@@ -1798,6 +1810,7 @@ begin
       end;
     'pascal-name': Writeln(NamePascal);
     'qualified-name': Writeln(QualifiedName);
+    'qualified-name-ios': Writeln(IOSQualifiedName);
     'search-paths': Writeln(Manifest.SearchPaths.Text);
     'version-code': Writeln(Manifest.Version.Code);
     'version': Writeln(Manifest.Version.DisplayValue);
@@ -1982,15 +1995,6 @@ const
     #9#9#9#9#9#9#9'com.apple.%s = {' + NL +
     #9#9#9#9#9#9#9#9'enabled = 1;' + NL +
     #9#9#9#9#9#9#9'};' + NL;
-
-  { QualifiedName for iOS: either qualified_name, or ios.override_qualified_name. }
-  function IOSQualifiedName: string;
-  begin
-    if Manifest.IOSOverrideQualifiedName <> '' then
-      Result := Manifest.IOSOverrideQualifiedName
-    else
-      Result := QualifiedName;
-  end;
 
   procedure LaunchImageStoryboardInitialize;
   var
@@ -2888,6 +2892,14 @@ begin
   Result := Manifest.QualifiedName;
 end;
 
+function TCastleProject.IOSQualifiedName: string;
+begin
+  if Manifest.IOSOverrideQualifiedName <> '' then
+    Result := Manifest.IOSOverrideQualifiedName
+  else
+    Result := QualifiedName;
+end;
+
 function TCastleProject.Dependencies: TDependencies;
 begin
   Result := Manifest.Dependencies;
@@ -2946,6 +2958,8 @@ end;
 function TCastleProject.AndroidMinSdkVersion: Cardinal;
 begin
   Result := Manifest.AndroidMinSdkVersion;
+  if Result < AndroidMinSdkVersionFromServices then
+    Result := AndroidMinSdkVersionFromServices;
 end;
 
 function TCastleProject.AndroidTargetSdkVersion: Cardinal;

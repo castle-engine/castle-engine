@@ -3,7 +3,7 @@
 
   This file is part of "Castle Game Engine".
 
-  "Castle Game Engine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.md,
   included in this distribution, for details about the copyright.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -169,7 +169,7 @@ type
     const
       { Android SDK versions.
         See https://castle-engine.io/project_manifest#_android_information . }
-      DefaultAndroidCompileSdkVersion = 35;
+      DefaultAndroidCompileSdkVersion = 36;
       DefaultAndroidTargetSdkVersion = DefaultAndroidCompileSdkVersion;
       { See https://castle-engine.io/android_faq
         for reasons behind this minimal version. }
