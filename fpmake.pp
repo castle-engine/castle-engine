@@ -238,6 +238,7 @@ begin
     P.Targets.AddUnit('castlesoundbase.pas');
     P.Targets.AddUnit('castleinternalabstractsoundbackend.pas');
     P.Targets.AddUnit('castleinternalsoxsoundbackend.pas');
+    P.Targets.AddUnit('castleinternalmediaplayersoundbackend.pas');
     if TargetWeb then
       P.Targets.AddUnit('castleinternalwebaudiobackend.pas');
 
