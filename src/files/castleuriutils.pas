@@ -291,10 +291,32 @@ function DeleteUriExt(const Url: String): String;
 
 { Extract filename (last part after slash) from URL.
 
+  Strips the anchor (#xxx) or query (?xxx) at the end of the URL.
+  So note that ExtractUriPath(Url) + ExtractUriName(Url) will not give you
+  the full URL back: they may miss the anchor or query.
+
   Note that the resulting string is still percent-encoded, it is not decoded.
   For example, for "http://example.org/foo%20bar.txt" it returns "foo%20bar.txt",
   not "foo bar.txt". Use @link(UrlDecode) to decode it if you want. }
 function ExtractUriName(const Url: String): String;
+
+{ Extract extension (including the dot) from URL, if any.
+
+  In case of multiple extensions, returns only the last one,
+  e.g. @code(https://example.org/file.tar.gz) returns @code(.gz).
+  This is consistent with standard @code(ExtractFileExt).
+
+  Note: To detect content type, it's better to use MIME type, see
+  @link(UriMimeType). Even better: rely on MIME type reported when
+  downloading given file (e.g. by the @link(TCastleDownload)), so that
+  in case of http or https URLs, you get the MIME type reported by the server.
+
+  If you use this function to detect content type based on the file extension,
+  you sidestep MIME types idea.
+
+  Just like @link(ExtractUriName), note that
+  the resulting string is still percent-encoded, it is not decoded. }
+function ExtractUriExt(const Url: String): String;
 
 { Extract path (everything before last part), including final slash, from URL.
 
@@ -306,7 +328,7 @@ function ExtractUriPath(const Url: String): String;
 { Ensure URL ends with slash.
 
   For an empty URL, returns empty string (so it does not turn "" into "/").
-  For an URL ending with bashslash (which usually means you passed Windows
+  For an URL ending with backslash (which usually means you passed Windows
   path name), it removes the backslash before adding slash.
 
   This should be used instead of InclPathDelim or IncludeTrailingPathDelimiter,
@@ -1410,46 +1432,24 @@ begin
 end;
 
 function ChangeUriExt(const Url, Extension: String): String;
-
-  {$ifndef FPC}
-  { Mask default Delphi ChangeFileExt that behaves badly for filenames
-    like '.hidden'.}
-  function ChangeFileExt(const FileName, NewExtension: String): String;
-  var
-    I: Integer;
-    ExtDotPos: Integer;
-  begin
-    ExtDotPos := 0;
-    for I := Length(FileName) downto 1 do
-      if FileName[I] in AllowDirectorySeparators then
-      begin
-        // no extension, leave ExtDotPos = 0
-        Break;
-      end else
-      if (FileName[I] = '.') and
-         (I > 1) and
-         (not (FileName[I - 1] in AllowDirectorySeparators)) then
-      begin
-        // dot, but not at the beginning of the name -> valid ExtDotPos
-        ExtDotPos := I;
-        Break;
-      end;
-
-    if ExtDotPos <> 0 then
-      Result := Copy(FileName, 1, ExtDotPos - 1) + NewExtension
-    else
-      Result := FileName + NewExtension;
-  end;
-  {$endif}
-
 var
-  UrlWithoutAnchor, Anchor: String;
+  U: TURI;
 begin
-  UrlWithoutAnchor := Url;
-  UriExtractAnchor(UrlWithoutAnchor, Anchor);
-  Result := ChangeFileExt(UrlWithoutAnchor, Extension);
-  if Anchor <> '' then
-    Result := Result + '#' + Anchor;
+  { Use ParseUri to deconstruct the URL.
+    Note: We don't use AbsoluteUri, to avoid turning relative
+    URL/filename into absolute. }
+  U := ParseUri(Url);
+
+  { Delphi (but not FPC) behaves not OK for hidden Unix filenames, like ".hidden".
+    It considers the ".hidden" an extension, and replaces it.
+    So we avoid using standard ChangeFileExt, if the document starts with a dot
+    (and has no other extension). }
+  if BackPos('.', U.Document) <> 1 then
+    U.Document := ChangeFileExt(U.Document, Extension)
+  else
+    U.Document := U.Document + Extension;
+
+  Result := EncodeURI(U);
 end;
 
 function DeleteUriExt(const Url: String): String;
@@ -1457,51 +1457,49 @@ begin
   Result := ChangeUriExt(Url, '');
 end;
 
+function ExtractUriExt(const Url: String): String;
+var
+  UrlName: String;
+begin
+  { Use ExtractUriName first, that strips #xxx anchor, ?xxx query .
+    This way we use ExtractFileExt to search for . only inside the last part. }
+  UrlName := ExtractUriName(Url);
+
+  { Delphi (but not FPC) behaves not OK for hidden Unix filenames, like ".hidden".
+    It considers the ".hidden" an extension. }
+  if BackPos('.', UrlName) = 1 then
+    Exit('');
+
+  Result := ExtractFileExt(UrlName);
+end;
+
 function ExtractUriName(const Url: String): String;
 var
-  UrlWithoutAnchor: String;
-  {$ifndef FPC} I: Integer; {$endif}
+  U: TURI;
 begin
-  UrlWithoutAnchor := UriDeleteAnchor(Url);
-  {$ifdef FPC}
-  Result := ExtractFileName(UrlWithoutAnchor);
-  {$else}
-  { In Delphi, / separator in paths is not recognized, so we cannot use ExtractFilePath.
-    TODO: our own solution should be just used for both compilers.
-    Need autotests to confirm it behaves the same, on both platforms. }
+  { Deconstruct URL using ParseUri.
+    This strips (from end):
+    - HTTP query part "?xxx"
+    - Anchor part "#xxx"
+    We process with AbsoluteUri to tolerate simple filenames.
+  }
+  U := ParseUri(AbsoluteUri(Url));
 
-  I := BackCharsPos(['/'], UrlWithoutAnchor);
-  if I <> 0 then
-    Result := SEnding(UrlWithoutAnchor, I + 1)
-  else
-    Result := UrlWithoutAnchor;
-  {$endif}
+  { API promises that this is percent-encoded, so encode again. }
+  Result := UrlEncode(U.Document);
 end;
 
 function ExtractUriPath(const Url: String): String;
 var
-  UrlWithoutAnchor: String;
-  {$ifndef FPC} I: Integer; {$endif}
+  U: TURI;
 begin
-  { While on non-Windows ExtractFilePath would work on full URL as well,
-    but on Windows the ":" inside anchor (like
-    "castle-data:/starling/character_zombie_atlas.starling-xml#fps:8,anim-naming:strict-underscore")
-    would cause trouble: it would be considered a drive letter separator,
-    and change the result. }
-  UrlWithoutAnchor := UriDeleteAnchor(Url);
-  {$ifdef FPC}
-  Result := ExtractFilePath(UrlWithoutAnchor);
-  {$else}
-  { In Delphi, / separator in paths is not recognized, so we cannot use ExtractFilePath.
-    TODO: our own solution should be just used for both compilers.
-    Need autotests to confirm it behaves the same, on both platforms. }
-
-  I := BackCharsPos(['/'], UrlWithoutAnchor);
-  if I <> 0 then
-    Result := Copy(UrlWithoutAnchor, 1, I)
-  else
-    Result := UrlWithoutAnchor;
-  {$endif}
+  { Use AbsoluteUri + ParseUri to deconstruct the URL.
+    Consistent with ExtractUriName. }
+  U := ParseUri(AbsoluteUri(Url));
+  U.Document := '';
+  U.Params := '';
+  U.Bookmark := '';
+  Result := EncodeURI(U);
 end;
 
 function UriIncludeSlash(const Url: String): String;

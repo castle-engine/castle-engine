@@ -52,6 +52,11 @@ type
     procedure TestExtractUriNamePercentEncoding;
     procedure TestUrlQueryParameters;
     procedure TestUrlEncodeForm;
+    procedure TestParseUri;
+    procedure TestExtractUriName;
+    procedure TestExtractUriExt;
+    procedure TestExtractUriPath;
+    procedure TestChangeDeleteUriExt;
   end;
 
 implementation
@@ -778,6 +783,105 @@ begin
   AssertEquals('simple+test', InternalUrlEncodeForm('simple test'));
   AssertEquals('with%25percent%25signs', InternalUrlEncodeForm('with%percent%signs'));
   AssertEquals('spaces+and%2Bplus%2Bsigns', InternalUrlEncodeForm('spaces and+plus+signs'));
+end;
+
+procedure TTestUriUtils.TestParseUri;
+var
+  U: TURI;
+begin
+  U := ParseUri('http://example.org/foo/bar?abc=def#bookmark');
+  AssertEquals('http', U.Protocol);
+  AssertEquals('example.org', U.Host);
+  AssertEquals('/foo/', U.Path);
+  AssertEquals('bar', U.Document);
+  AssertEquals('abc=def', U.Params);
+  AssertEquals('bookmark', U.Bookmark);
+end;
+
+procedure TTestUriUtils.TestExtractUriName;
+begin
+  AssertEquals('bar', ExtractUriName('http://example.org/foo/bar?abc=def#bookmark'));
+  AssertEquals('image.png', ExtractUriName('file:///C:/path/to/image.png'));
+
+  // keeps percent encoding
+  AssertEquals('image%20.png', ExtractUriName('file:///C:/path/to/image%20.png'));
+
+  // Passing filenames as input should be tolerated
+  {$ifdef MSWINDOWS}
+  AssertEquals('image.png', ExtractUriName('C:\path\to\image.png'));
+  AssertEquals('image.png', ExtractUriName('C:/path/to/image.png'));
+  { Mixed backslashes and slashes }
+  AssertEquals('image.png', ExtractUriName('C:/path\to\image.png'));
+  {$endif}
+  {$ifdef UNIX}
+  AssertEquals('image.png', ExtractUriName('/path/to/image.png'));
+  // Below is actually undefined... You pass filename, with ?, which may be confused as query part.
+  // That's why we recommend to use URLs throughout.
+  //AssertEquals('image.png', ExtractUriName('/path/to/image.png?query=123#anchor'));
+  {$endif}
+end;
+
+procedure TTestUriUtils.TestExtractUriExt;
+begin
+  AssertEquals('.txt', ExtractUriExt('http://example.org/foo%20bar.txt'));
+  AssertEquals('.png', ExtractUriExt('file:///C:/path/to/image.png'));
+
+  // ExtractUriExt keeps percent encoding
+  AssertEquals('.p%20ng', ExtractUriExt('file:///C:/path/to/image.p%20ng'));
+
+  // when no extension
+  AssertEquals('', ExtractUriExt('http://example.org/no_extension'));
+  AssertEquals('', ExtractUriExt('http://example.org/aaa.png/no_extension'));
+
+  // when only dot at end
+  AssertEquals('.', ExtractUriExt('http://example.org/just_dot.'));
+
+  // hidden file on Unix
+  AssertEquals('', ExtractUriExt('http://example.org/.hidden'));
+
+  // two extensions
+  AssertEquals('.gz', ExtractUriExt('http://example.org/archive.tar.gz'));
+
+  // strips #xxx and ?xxx
+  AssertEquals('.txt', ExtractUriExt('http://example.org/foo%20bar.txt#bookmark'));
+  AssertEquals('.txt', ExtractUriExt('http://example.org/foo%20bar.txt?query=123'));
+  AssertEquals('.txt', ExtractUriExt('http://example.org/foo%20bar.txt?query=123#bookmark'));
+end;
+
+procedure TTestUriUtils.TestExtractUriPath;
+begin
+  AssertEquals('castle-data:/starling/', ExtractUriPath('castle-data:/starling/character_zombie_atlas.starling-xml#fps:8,anim-naming:strict-underscore'));
+  AssertEquals('castle-data:/', ExtractUriPath('castle-data:/character_zombie_atlas.starling-xml#fps:8,anim-naming:strict-underscore'));
+
+  // Passing filenames as input to ExtractUriPath should be tolerated.
+  // Using AssertFilenamesEqual, to ignore case differences on Windows.
+  {$ifdef MSWINDOWS}
+  AssertFilenamesEqual('file:///C:/path/to/', ExtractUriPath('c:/path/to/image.png'));
+  {$endif}
+  {$ifdef UNIX}
+  AssertFilenamesEqual('file:///home/user/path/to/', ExtractUriPath('/home/user/path/to/image.png'));
+  {$endif}
+
+  // This will rightfully not pass: "character_zombie_atlas.starling-xml#fps:" looks like schema part of the URL.
+  // AssertEquals('', ExtractUriPath('character_zombie_atlas.starling-xml#fps:8,anim-naming:strict-underscore'));
+end;
+
+procedure TTestUriUtils.TestChangeDeleteUriExt;
+begin
+  AssertEquals('http://example.org/foo.bar', ChangeUriExt('http://example.org/foo.txt', '.bar'));
+  AssertEquals('http://example.org/foo', ChangeUriExt('http://example.org/foo.txt', ''));
+  AssertEquals('http://example.org/foo', DeleteUriExt('http://example.org/foo.txt'));
+
+  // relative filenames or URLs remain relative
+  AssertEquals('foo.bar', ChangeUriExt('foo.txt', '.bar'));
+  AssertEquals('foo', ChangeUriExt('foo.txt', ''));
+  AssertEquals('foo', DeleteUriExt('foo.txt'));
+
+  // when dot is first, don't treat it as an extension, but as hidden Unix file
+  AssertEquals('http://example.org/.hidden', DeleteUriExt('http://example.org/.hidden'));
+  AssertEquals('http://example.org/.hidden.bar', ChangeUriExt('http://example.org/.hidden', '.bar'));
+  AssertEquals('.hidden', DeleteUriExt('.hidden'));
+  AssertEquals('.hidden.bar', ChangeUriExt('.hidden', '.bar'));
 end;
 
 initialization

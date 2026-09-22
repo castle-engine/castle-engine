@@ -134,7 +134,7 @@ type
     just assume that PathAndMask contain concatenated Path + Mask,
     separated by any valid path delimiter.
 
-    This is an URL, so it expected to be percent-encoded,
+    This is an URL, so it is expected to be percent-encoded,
     and it may also have a protocol. Like "castle-data:/foo/bar/" or
     "file:///home/user/dir/".)
 
@@ -216,6 +216,18 @@ function FindFirstFile(const Path, Mask: string;
 function FindFirstFileIgnoreCase(const Path, Mask: string;
   const FindDirectories: boolean; const Options: TFindFilesOptions;
   out FileInfo: TFileInfo): boolean;
+
+{ Assuming that PathAndMask is a string containing URL prefix and a
+  filename with wildcard characters * and ?, split into Path and Mask.
+
+  It is guaranteed that Path+Mask equal exactly PathAndMask.
+  ( This also implies we do no percent-decoding here. )
+
+  Note that this doesn't really treat PathAndMask as a full URL:
+  in a real URL, we would treat ? as part of the "query".
+  And ExtractUriName would even strip it.
+  Here we assume ? is part of mask. }
+procedure SplitPathAndMask(const PathAndMask: String; out Path, Mask: String);
 
 implementation
 
@@ -798,13 +810,40 @@ begin
   end;
 end;
 
+procedure SplitPathAndMask(const PathAndMask: String; out Path, Mask: String);
+var
+  I: Integer;
+begin
+  { We cannot split PathAndMask naively into
+    - ExtractUriPath(PathAndMask)
+    - UrlDecode(ExtractUriName(PathAndMask))
+
+    This would lose the #xxx and ?xxx parts of the URI.
+    And ? is actually a valid wildcard character for this, so it cannot be stripped.
+
+    Instead, we split PathAndMask using a trivial last directory separator
+    search. This makes sure we preserve everything. }
+
+  I := BackCharsPos(AllowDirectorySeparators, PathAndMask);
+  if I > 0 then
+  begin
+    Path := Copy(PathAndMask, 1, I);
+    Mask := SEnding(PathAndMask, I + 1);
+  end else
+  begin
+    Path := '';
+    Mask := PathAndMask;
+  end;
+end;
+
 function FindFiles(const PathAndMask: string; const FindDirectories: boolean;
   const FileProc: TFoundFileProc; const FileProcData: Pointer;
   const Options: TFindFilesOptions): Cardinal;
+var
+  Path, Mask: string;
 begin
-  Result := FindFiles(
-    ExtractUriPath(PathAndMask),
-    UrlDecode(ExtractUriName(PathAndMask)),
+  SplitPathAndMask(PathAndMask, Path, Mask);
+  Result := FindFiles(Path, UrlDecode(Mask),
     FindDirectories, FileProc, FileProcData, Options);
 end;
 
@@ -839,10 +878,11 @@ end;
 
 function FindFiles(const PathAndMask: string; const FindDirectories: boolean;
   const FileMethod: TFoundFileMethod; const Options: TFindFilesOptions): Cardinal;
+var
+  Path, Mask: string;
 begin
-  Result := FindFiles(
-    ExtractUriPath(PathAndMask),
-    UrlDecode(ExtractUriName(PathAndMask)),
+  SplitPathAndMask(PathAndMask, Path, Mask);
+  Result := FindFiles(Path, UrlDecode(Mask),
     FindDirectories, FileMethod, Options);
 end;
 

@@ -108,9 +108,7 @@ begin
   UriPathDocument := U.Path + U.Document;
 
   { We're consciously using here ExtractFileExt on URIs,
-    although they should be used for filenames.
-    Note that this unit does not define public functions like ExtractURIExt
-    or ExtractURIDoubleExt: *everything* should operate on MIME types instead. }
+    although they should be used for filenames. }
   Ext := LowerCase(ExtractFileExt(UriPathDocument));
 
   URIName := LowerCase(ExtractURIName(UriPathDocument));

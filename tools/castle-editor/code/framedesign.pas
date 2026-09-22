@@ -2086,7 +2086,7 @@ begin
       NewDesignRoot := ComponentLoad(NewDesignUrl, NewDesignOwner)
     else
       raise Exception.CreateFmt('Unrecognized file extension %s (MIME type %s)',
-        [ExtractFileExt(NewDesignUrl), Mime]);
+        [ExtractUriExt(NewDesignUrl), Mime]);
   except
     { Testcase: try to load using UserInterfaceLoad a file
       that has TCastleTransform inside. UserInterfaceLoad makes EInvalidCast. }
