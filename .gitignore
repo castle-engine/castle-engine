@@ -58,6 +58,13 @@ AndroidManifest.template.xml
 /examples/**/AndroidManifest.xml
 /examples/**/lib*.so
 
+# iOS output by Delphi (TODO: minimize this by some options?)
+*.entitlements
+*.info.plist
+*.ipa
+*.TemplateiOS.xml
+LaunchScreen.storyboard
+
 # Other backups
 *.blend1
 *.blend2
