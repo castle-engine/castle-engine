@@ -295,6 +295,14 @@ public class ServiceAdMob extends ServiceAbstract
         messageSend(new String[]{"ads-admob-full-screen-ad-closed", Integer.toString(watchedStatus.ordinal()) });
     }
 
+    /* Tell Pascal whether a rewarded ad is loaded and could be shown right now.
+       This lets a game offer a reward (like "watch a video to get a bonus")
+       only when the ad can actually be delivered. */
+    private void rewardedReadySend(boolean ready)
+    {
+        messageSend(new String[]{"ads-admob-reward-ready", booleanToString(ready)});
+    }
+
     private void fullScreenAdClosedWithError(int errorCode)
     {
         switch(errorCode) {
@@ -347,6 +355,9 @@ public class ServiceAdMob extends ServiceAbstract
             }
             interstitial = null;
             loadInterstitial(); // load next ad
+            /* Report that the ad is closed, otherwise the Pascal code waits
+               for OnFullScreenAdClosed forever. */
+            fullScreenAdClosed(TAdWatchStatus.wsUnknownError);
         }
 
         @Override
@@ -442,6 +453,7 @@ public class ServiceAdMob extends ServiceAbstract
             }
             // Set the ad reference to null so you don't show the ad a second time.
             rewarded = null;
+            rewardedReadySend(false);
             loadRewarded();
             if (rewardedWatched)
                 fullScreenAdClosed(TAdWatchStatus.wsWatched);
@@ -457,8 +469,12 @@ public class ServiceAdMob extends ServiceAbstract
                 logInfo(CATEGORY, "rewarded - onAdFailedToShowFullScreenContent");
             }
             rewarded = null;
+            rewardedReadySend(false);
             loadRewarded();
             rewardedWatched = false;
+            /* Report that the ad is closed, otherwise the Pascal code waits
+               for OnFullScreenAdClosed forever. */
+            fullScreenAdClosed(TAdWatchStatus.wsUnknownError);
         }
 
         @Override
@@ -510,6 +526,7 @@ public class ServiceAdMob extends ServiceAbstract
 
                 logInfo(CATEGORY, loadAdError.toString());
                 rewarded = null;
+                rewardedReadySend(false);
             }
 
             @Override
@@ -520,6 +537,8 @@ public class ServiceAdMob extends ServiceAbstract
                 rewardedIsLoading = false;
                 rewarded = ad;
                 rewarded.setFullScreenContentCallback(rewardedFullScreenContentCallback);
+                // Ready, unless it is shown right now because someone waited for it.
+                rewardedReadySend(!rewardedOpenWhenLoaded);
                 if (rewardedOpenWhenLoaded) {
                     rewardedOpenWhenLoaded = false;
                     logInfo(CATEGORY, "Show ad after waiting for ad.");
@@ -654,6 +673,7 @@ public class ServiceAdMob extends ServiceAbstract
                     return;
                 }
                 else if (rewarded != null) {
+                    rewardedReadySend(false);
                     rewarded.show(getActivity(), new OnUserEarnedRewardListener() {
                         @Override
                         public void onUserEarnedReward(@NonNull RewardItem rewardItem) {

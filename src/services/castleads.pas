@@ -178,6 +178,7 @@ type
       FOnFullScreenAdClosed: TAdClosedEvent;
       FOnConsentGathered: TConsentGatheredEvent;
       FCanRequestAds, FPrivacyOptionsRequired: Boolean;
+      FRewardedReady: Boolean;
   protected
     procedure FullScreenAdClosed(const WatchedStatus: TAdWatchStatus); virtual;
     { Called when the user consent was gathered, see TConsentGatheredEvent. }
@@ -322,6 +323,16 @@ type
       gathered, see @link(InitializeAdMobWithConsent). }
     property PrivacyOptionsRequired: Boolean read FPrivacyOptionsRequired;
 
+    { Whether a rewarded ad is loaded and can be shown right now.
+
+      Use this to offer a reward (like "watch a video to get a bonus")
+      only when the ad can actually be delivered, instead of showing
+      a button that then has to say "no ad available".
+
+      Only AdMob reports this now. It is always @false for other ad networks,
+      and on platforms without ads. }
+    property RewardedReady: Boolean read FRewardedReady;
+
     property BannerSize: TRectangle read FBannerSize;
   end;
 
@@ -378,6 +389,18 @@ begin
     end;
     FullScreenAdClosed(WatchStatus);
     Result := true;
+  end else
+
+  if (Received.Count = 2) and
+     (Received[0] = 'ads-' + Name + '-reward-ready') then
+  begin
+    Result := true;
+    try
+      Parent.FRewardedReady := TMessaging.MessageToBoolean(Received[1]);
+    except
+      on EConvertError do
+        WritelnWarning('Ads', 'Cannot process rewarded ad readiness from ' + GlueStrings(Received, NL));
+    end;
   end else
 
   if (Received.Count = 4) and
@@ -479,6 +502,9 @@ begin
 
     Everything here must be done again after the Java activity was recreated,
     as the Java side state is gone then. }
+
+  { Java will tell us again when a rewarded ad is loaded. }
+  Parent.FRewardedReady := false;
 
   if FGatherConsent then
     Messaging.Send(['ads-' + Name + '-consent-request',
