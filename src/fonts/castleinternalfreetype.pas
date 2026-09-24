@@ -137,7 +137,6 @@ type
     private
       FTLib : PFT_Library;
       FList : TList;
-      FPaths : TStringList;
       CurFont : TMgrFont;
       CurSize : PMgrSize;
       CurRenderMode : FT_Render_Mode;
@@ -145,7 +144,6 @@ type
     protected
       function GetFontId (afilename:string; anindex:integer) : integer;
       function CreateFont (afilename:string; anindex:integer) : integer;
-      //function SearchFont (afilename:string) : string;
       function GetFont (FontID:integer) : TMgrFont;
       procedure GetSize (aSize : integer);
       function CreateSize (aSize : integer) : PMgrSize;
@@ -169,7 +167,6 @@ type
 
 const
   sErrErrorsInCleanup : string = '%d errors detected while freeing a Font Manager object';
-  sErrFontFileNotFound : string = 'Font file "%s" not found';
   sErrFreeType : string = 'Error %d while %s';
   sInitializing : string = 'initializing font engine';
   sDestroying : string = 'destroying font engine';
@@ -264,16 +261,15 @@ begin
   LastSize := nil;
 
   Try
-    { Old code:
-    FTCheck(FT_New_Face (aMgr.FTLib, PAnsiChar(AnsiString(afilename)), anindex, font),format (sErrLoadFont,[anindex,afilename]));
+    { We never open the font by filename (FreeType's FT_New_Face).
+      Instead we always use CGE Download() to open the URL
+      (afilename can be any URL), and pass the memory chunk to FreeType
+      using FT_New_Memory_Face.
 
-      This mostly worked OK, except on Windows where it fails reading
-      a filename with non-ASCII characters.
-      Also it required a temporary file when accessing non-file URLs.
-      So now we make it simpler: just use CGE Download() to open the URL
-      (afilename can be any URL), and pass memory chunk to FreeType using
-      FT_New_Memory_Face.
-    }
+      Reasons: opening by filename failed on Windows for filenames with
+      non-ASCII characters (as it is unclear in what encoding FreeType
+      expects the filename), and it required a temporary file to access
+      non-file URLs. }
 
     MemoryStream := Download(afilename, [soForceMemoryStream]) as TCustomMemoryStream;
     FTCheck(FT_New_Memory_Face(aMgr.FTLib, MemoryStream.Memory, MemoryStream.Size, anindex, font),
@@ -336,7 +332,6 @@ var r : integer;
 begin
   inherited create;
   FList := Tlist.Create;
-  FPaths := TStringList.Create;
 
   if not FreeTypeLibraryInitialized then
     raise EFreeTypeLibraryNotFound.Create('Cannot load FreeType library, loading font files not possible');
@@ -368,7 +363,6 @@ destructor TFontManager.Destroy;
 begin
   FreeFontObjects;
   FList.Free;
-  FPaths.Free;
   try
     if assigned(FTLib) then
       FreeLibrary;
