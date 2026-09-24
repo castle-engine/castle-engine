@@ -47,6 +47,7 @@ type
     procedure TestAnsiStringUtf8Conversion_Ansi1250;
     procedure TestAnsiStringUtf8Conversion_AnsiDefault;
     procedure TestAddingIncompleteUtf8;
+    procedure TestUtf8StringInArrayOfConst;
   end;
 
 implementation
@@ -523,6 +524,41 @@ begin
   AssertEquals(AddWord, S);
   AssertEquals(4, StringLength(AddWord));
   AssertEquals(4, StringLength(S));
+end;
+
+procedure TTestCompiler.TestUtf8StringInArrayOfConst;
+
+{ Test passing Utf8String through "array of const", i.e. to Format.
+
+  Like TestAddingIncompleteUtf8, this is really interesting only with
+  CASTLE_DONT_CHANGE_STRING_ENCODING defined, as otherwise the default
+  8-bit encoding is UTF-8 anyway. }
+
+const
+  Utf8Word: Utf8String = '中文文本';
+  { Unicode code points of the same 4 characters.
+    We construct the expected String from them, to not rely on the very
+    conversion that we test here. }
+  WordCodePoints: array [0..3] of TUnicodeChar = ($4E2D, $6587, $6587, $672C);
+var
+  ExpectedStr, FormattedFromUtf8, FormattedFromStr: String;
+  I: Integer;
+begin
+  ExpectedStr := '';
+  for I := 0 to High(WordCodePoints) do
+    ExpectedStr := ExpectedStr + UnicodeCharToString(WordCodePoints[I]);
+  AssertEquals(4, StringLength(ExpectedStr));
+  AssertEquals(4 * 3, Length(Utf8Word));
+
+  { The actual test: Utf8String passed through "array of const". }
+  FormattedFromUtf8 := Format('%s', [Utf8Word]);
+  AssertEquals(ExpectedStr, FormattedFromUtf8);
+  AssertEquals(4, StringLength(FormattedFromUtf8));
+
+  { Also, String passed through "array of const". }
+  FormattedFromStr := Format('%s', [ExpectedStr]);
+  AssertEquals(ExpectedStr, FormattedFromStr);
+  AssertEquals(4, StringLength(FormattedFromStr));
 end;
 
 initialization
