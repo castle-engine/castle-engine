@@ -295,6 +295,7 @@
         <DCCReference Include="..\..\src\services\castlegameservice.pas"/>
         <DCCReference Include="..\..\src\services\castlehelpshift.pas"/>
         <DCCReference Include="..\..\src\services\castleinapppurchases.pas"/>
+        <DCCReference Include="..\..\src\services\castlelocalnotifications.pas"/>
         <DCCReference Include="..\..\src\services\castleopendocument.pas"/>
         <DCCReference Include="..\..\src\services\castlephotoservice.pas"/>
         <DCCReference Include="..\..\src\services\castletenjin.pas"/>
