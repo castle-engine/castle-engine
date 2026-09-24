@@ -31,6 +31,16 @@ resourcestring
   SErrOpenString = 'string exceeds end of line %d';
 
 type
+  { JsonScanner and JsonReader use Utf8String for all strings in
+    our (Castle Game Engine) fork of fcl-json (used with Delphi).
+    This makes conversions to / from String (16-bit with Delphi) correct
+    and the logic is simpler:
+    - doesn't depend on current locale,
+      which also means:
+      doesn't depend on default AnsiString encoding
+      (which depends on CASTLE_DONT_CHANGE_STRING_ENCODING).
+    - also joUTF8 is meaningless. }
+  TJsonScannerString = Utf8String;
 
   TJSONToken = (
     tkEOF,
@@ -66,11 +76,11 @@ Type
 
   TJSONScanner = class
   private
-    FSource: RawByteString;
+    FSource: TJsonScannerString;
     FCurPos : PAnsiChar; // Position inside total string
     FCurRow: Integer;
     FCurToken: TJSONToken;
-    FCurTokenString: RawByteString; // TODO string
+    FCurTokenString: TJsonScannerString;
     FCurLine: PAnsiChar;
     FTokenStr:  PAnsiChar; // position inside FCurLine
     FEOL : PAnsiChar; // EOL
@@ -86,8 +96,8 @@ Type
   public
     constructor Create(Source : TStream; AUseUTF8 : Boolean = True); overload; deprecated 'use options form instead';
     constructor Create(Source: TStream; AOptions: TJSONOptions); overload;
-    constructor Create(const aSource : RawByteString; AUseUTF8 : Boolean = True); overload; deprecated  'use options form instead';
-    constructor Create(const aSource: RawByteString; AOptions: TJSONOptions); overload;
+    constructor Create(const aSource : TJsonScannerString; AUseUTF8 : Boolean = True); overload; deprecated  'use options form instead';
+    constructor Create(const aSource: TJsonScannerString; AOptions: TJSONOptions); overload;
 
     function FetchToken: TJSONToken;
 
@@ -96,11 +106,20 @@ Type
     property CurColumn: Integer read GetCurColumn;
 
     property CurToken: TJSONToken read FCurToken;
-    property CurTokenString: RawByteString read FCurTokenString;
+    property CurTokenString: TJsonScannerString read FCurTokenString;
     // Use strict JSON: " for strings, object members are strings, not identifiers
     Property Strict : Boolean Index joStrict Read GetO Write SetO ; ///deprecated 'use options instead';
-    // if set to TRUE, then strings will be converted to UTF8 ansistrings, not system codepage ansistrings.
+
+    { CGE: This option is meaningless in this (Delphi-only) fcl-json copy.
+      We always treat the JSON as UTF-8, and always return the strings
+      as UTF-8 (TJsonScannerString = Utf8String), as this is what
+      Castle Game Engine assumes for all text files.
+
+      So joUTF8 is effectively "always on" here.
+      ( Note: With FPC we still use the regular FPC fcl-json, where this option
+      still matters. ) }
     Property UseUTF8 : Boolean index joUTF8 Read GetO Write SetO; /// deprecated 'Use options instead';
+
     // Parsing options
     Property Options : TJSONOptions Read FOptions Write FOptions;
   end;
@@ -159,8 +178,8 @@ constructor TJSONScanner.Create(Source: TStream; AOptions: TJSONOptions);
 
 
 Var
-  S : RawByteString;
-
+  { We read raw bytes from the stream below, and we assume they are UTF-8. }
+  S : TJsonScannerString;
 begin
   if (joBOMCheck in aOptions) then
     SkipStreamBom;
@@ -171,7 +190,7 @@ begin
   Create(S,AOptions)
 end;
 
-constructor TJSONScanner.Create(const aSource : RawByteString; AUseUTF8 : Boolean = True);
+constructor TJSONScanner.Create(const aSource : TJsonScannerString; AUseUTF8 : Boolean = True);
 Var
   O : TJSONOptions;
 
@@ -184,7 +203,7 @@ begin
   Create(aSource,O);
 end;
 
-constructor TJSONScanner.Create(const aSource: RawByteString; AOptions: TJSONOptions);
+constructor TJSONScanner.Create(const aSource: TJsonScannerString; AOptions: TJSONOptions);
 begin
   FSource:=aSource;
   FCurPos:=PAnsiChar(FSource);
@@ -257,23 +276,29 @@ var
   I : Integer;
   OldLength, SectionLength,  tstart,tcol, u1,u2: Integer;
   C , c2: AnsiChar;
-  S : String[4];
-  Line : String;
+  { Note: TJsonScannerString, not ShortString:
+    we put here UTF-8 bytes of the \uXXXX escape
+    sequence, and ShortString would be converted using the system codepage. }
+  S : TJsonScannerString;
+  { Note: TJsonScannerString, not String:
+    we put here raw bytes read from the JSON (a piece of a multi-line comment),
+    and String (16-bit with Delphi) would be converted
+    using the system codepage. }
+  Line : TJsonScannerString;
   IsStar,EOC: Boolean;
 
   Procedure MaybeAppendUnicode;
 
   Var
-    u : UTF8String;
+    u : TJsonScannerString;
 
   begin
   // if there is a leftover \u, append
   if (u1<>0) then
     begin
-    if (joUTF8 in Options) or (DefaultSystemCodePage=CP_UTF8) then
-      U:=Utf8Encode(WideString(WideChar(u1))) // ToDo: use faster function
-    else
-      U:=String(WideChar(u1)); // WideChar converts the encoding. Should it warn on loss?
+    { CGE: Always encode as UTF-8, regardless of joUTF8 or DefaultSystemCodePage,
+      as FCurTokenString is Utf8String. }
+    U:=Utf8Encode(WideString(WideChar(u1))); // ToDo: use faster function
     FCurTokenString:=FCurTokenString+U;
     OldLength:=Length(FCurTokenString);
     u1:=0;
@@ -359,10 +384,8 @@ begin
                     // ToDo: 4-bytes UTF16
                     if u1<>0 then
                       begin
-                      if (joUTF8 in Options) or (DefaultSystemCodePage=CP_UTF8) then
-                        S:=Utf8Encode(WideString(WideChar(u1)+WideChar(u2))) // ToDo: use faster function
-                      else
-                        S:=String(WideChar(u1)+WideChar(u2)); // WideChar converts the encoding. Should it warn on loss?
+                      { CGE: Always encode as UTF-8, see comments at MaybeAppendUnicode. }
+                      S:=Utf8Encode(WideString(WideChar(u1)+WideChar(u2))); // ToDo: use faster function
                       u1:=0;
                       end
                     else
@@ -596,13 +619,21 @@ begin
 end;}
 
 function TJSONScanner.GetCurLine: string;
+var
+  { Note: TJsonScannerString, not String:
+    FEOL - FCurLine is a number of bytes, and we copy bytes below.
+    With String (16-bit with Delphi) the length and the copied size
+    would mean different things, and the bytes would be interpreted
+    as UTF-16 instead of UTF-8. }
+  Line : TJsonScannerString;
 begin
   Result:='';
   if FCurLine<>Nil then
     begin
-    SetLength(Result,FEOL-FCurLine);
-    if Length(Result)>0 then
-      Move(FCurLine^,Result[1],Length(Result));
+    SetLength(Line,FEOL-FCurLine);
+    if Length(Line)>0 then
+      Move(FCurLine^,Line[1],Length(Line));
+    Result:=Line;
     end;
 end;
 

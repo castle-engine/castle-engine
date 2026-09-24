@@ -52,9 +52,9 @@ Type
   Public
     function Parse: TJSONData;
   end;
-  
+
   EJSONParser = jsonReader.EJSONParser;
-  
+
 implementation
 
 Resourcestring
@@ -94,7 +94,6 @@ begin
   AOptions:=[];
   if AUseUTF8 then
     Include(AOptions,joUTF8);
-  {$warn IMPLICIT_STRING_CAST_LOSS off}
   P:=TJSONParser.Create(S,AOptions);
   try
     Data:=P.Parse;
