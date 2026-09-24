@@ -1011,15 +1011,22 @@ end;
 
 { Get temporary FileName, also creating this file.
   There seems to be no cross-platform function for this in Delphi. }
-function GetTempFileNameDelphi(const Prefix: AnsiString): AnsiString;
+function GetTempFileNameDelphi(const Prefix: String): String;
 {$ifdef MSWINDOWS}
 var
-  MyPath, MyFileName: array [0..MAX_PATH] of AnsiChar;
+  MyPath, MyFileName: array [0..MAX_PATH] of WideChar;
 begin
-  FillChar(MyPath, MAX_PATH, 0);
-  FillChar(MyFileName, MAX_PATH, 0);
-  OSCheck(GetTempPathA(SizeOf(MyPath), MyPath) <> 0);
-  OSCheck(GetTempFileNameA(MyPath, PAnsiChar(Prefix), 0, MyFileName) <> 0);
+  { Use the "wide" (UTF-16) WinAPI versions, and String, to work with any
+    characters in the temporary path.
+    Using the "ansi" versions (GetTempPathA, GetTempFileNameA) would return
+    the path in the system codepage, which is not what AnsiString holds
+    when we call SetMultiByteConversionCodePage(CP_UTF8)
+    (which may be done, depending on CASTLE_DONT_CHANGE_STRING_ENCODING). }
+  FillChar(MyPath, SizeOf(MyPath), 0);
+  FillChar(MyFileName, SizeOf(MyFileName), 0);
+  { Note: GetTempPathW size is in characters (not bytes). }
+  OSCheck(GetTempPathW(Length(MyPath), MyPath) <> 0);
+  OSCheck(GetTempFileNameW(MyPath, PWideChar(Prefix), 0, MyFileName) <> 0);
   Result := MyFileName;
 {$endif}
 {$ifdef UNIX}
