@@ -27,7 +27,11 @@ uses
   {$ENDIF}
   SysUtils,
   classes,
-  contnrs, CastleUtils, Generics.Collections, FPHashCompatibility;
+  contnrs,
+  Generics.Collections,
+  { After Generics.Collections in uses clause,
+    in case CASTLE_WORKAROUND_DICTIONARY_FIND matters for current compiler/platform. }
+  CastleUtils;
 
 type
   TJSONtype = (jtUnknown, jtNumber, jtString, jtBoolean, jtNull, jtArray, jtObject);
@@ -609,6 +613,71 @@ Type
 
   TJSONObjectIterator = procedure(Const AName : TJSONStringType; Item: TJSONData; Data: TObject; var Continue: Boolean) of object;
 
+  TJSONStringTypeList = {$ifdef FPC}specialize{$endif} TList<TJSONStringType>;
+  TJSONDataList = {$ifdef FPC}specialize{$endif} TList<TJSONData>;
+  TJSONNameToIndex = {$ifdef FPC}specialize{$endif} TDictionary<TJSONStringType, Integer>;
+
+  { Members (name -> value pairs) of a TJSONObject.
+
+    CGE fork notes:
+    This structure replaces TFPHashObjectList that the original FPC fcl-json
+    used. Using this simple structure is simpler than maintaining a copy
+    of TFPHashObjectList, and also it avo ids TFPHashObjectList issues with
+    strings:
+
+    @unorderedList(
+      @item(TFPHashObjectList uses ShortString for names. So the names
+        were converted to / from ShortString, using the system codepage
+        (when CASTLE_DONT_CHANGE_STRING_ENCODING).
+        With Delphi this loses non-ASCII characters
+        (e.g. Polish "Kształt" became "Ksztalt"), unless the system codepage
+        happens to be UTF-8.
+
+        Structure below just stores names as TJSONStringType,
+        so they are correct regardless of CASTLE_DONT_CHANGE_STRING_ENCODING
+        and system codepage.)
+
+      @item(TFPHashObjectList also limited the names to 255 characters.)
+    )
+
+    We keep the order of the members (as JSON files, and our tests comparing
+    saved JSON files, depend on it) and we keep the lookup by name fast
+    (using a dictionary from a name to an index). }
+  TJSONObjectMembers = class
+  strict private
+    FNames: TJSONStringTypeList;
+    FItems: TJSONDataList;
+    { Maps name -> index, to index (in both FNames and FItems). }
+    FIndexes: TJSONNameToIndex;
+    FOwnsObjects: Boolean;
+    function GetItem(const Index: Integer): TJSONData;
+    procedure SetItem(const Index: Integer; const AValue: TJSONData);
+    { Remove the given index from all our lists, without freeing the object. }
+    procedure RemoveIndex(const Index: Integer);
+  public
+    constructor Create(const AOwnsObjects: Boolean);
+    destructor Destroy; override;
+    function Count: Integer;
+    property Items[const Index: Integer]: TJSONData read GetItem write SetItem; default;
+    function NameOfIndex(const Index: Integer): TJSONStringType;
+    { Index of the given name, -1 if not found. }
+    function FindIndexOf(const AName: TJSONStringType): Integer;
+    { Value with the given name, @nil if not found. }
+    function Find(const AName: TJSONStringType): TJSONData;
+    { Index of the given value, -1 if not found. }
+    function IndexOf(const Item: TJSONData): Integer;
+    { Add new name -> value. Returns the index of the new member.
+      The name must not exist yet (callers check this). }
+    function Add(const AName: TJSONStringType; const AValue: TJSONData): Integer;
+    { Remove the member, freeing the value if we own the objects. }
+    procedure Delete(const Index: Integer);
+    { Remove the member with this value, freeing it if we own the objects. }
+    procedure Remove(const Item: TJSONData);
+    { Remove the member with this value, never freeing it. }
+    procedure Extract(const Item: TJSONData);
+    procedure Clear;
+  end;
+
   { TJSONObject }
 
   TJSONObject = class(TJSONData)
@@ -629,7 +698,7 @@ Type
     FHash: TJSObject;
     FNames: TStringDynArray;
     {$else}
-    FHash: TFPHashObjectList; // Careful : Names limited to 255 chars.
+    FHash: TJSONObjectMembers;
     {$ENDIF}
     function GetArrays(const AName : String): TJSONArray;
     function GetBooleans(const AName : String): Boolean;
@@ -1057,23 +1126,23 @@ end;
 Function SetJSONStringParserHandler(AHandler : TJSONStringParserHandler) : TJSONStringParserHandler;
 begin
   Result:=JPSH;
-  @JPSH:=@AHandler;
+  JPSH:=AHandler;
 end;
 
 function SetJSONParserHandler(AHandler: TJSONParserHandler): TJSONParserHandler;
 begin
   Result:=JPH;
-  @JPH:=@AHandler;
+  JPH:=AHandler;
 end;
 
 function GetJSONParserHandler: TJSONParserHandler;
 begin
-  Result:=@JPH;
+  Result:=JPH;
 end;
 
 function GetJSONStringParserHandler: TJSONStringParserHandler;
 begin
-  Result:=@JPSH;
+  Result:=JPSH;
 end;
 {$ENDIF}
 
@@ -3401,12 +3470,149 @@ begin
   {$ENDIF}
 end;
 
+{ TJSONObjectMembers --------------------------------------------------------- }
+
+constructor TJSONObjectMembers.Create(const AOwnsObjects: Boolean);
+begin
+  inherited Create;
+  FOwnsObjects := AOwnsObjects;
+  FNames := TJSONStringTypeList.Create;
+  FItems := TJSONDataList.Create;
+  FIndexes := TJSONNameToIndex.Create;
+end;
+
+destructor TJSONObjectMembers.Destroy;
+begin
+  { Free the owned values (Clear accounts for a half-initialized state). }
+  Clear;
+  FreeAndNil(FNames);
+  FreeAndNil(FItems);
+  FreeAndNil(FIndexes);
+  inherited;
+end;
+
+function TJSONObjectMembers.Count: Integer;
+begin
+  Result := FNames.Count;
+end;
+
+function TJSONObjectMembers.GetItem(const Index: Integer): TJSONData;
+begin
+  Result := FItems[Index];
+end;
+
+procedure TJSONObjectMembers.SetItem(const Index: Integer; const AValue: TJSONData);
+begin
+  if FItems[Index] <> AValue then
+  begin
+    if FOwnsObjects then
+      FItems[Index].Free;
+    FItems[Index] := AValue;
+  end;
+end;
+
+function TJSONObjectMembers.NameOfIndex(const Index: Integer): TJSONStringType;
+begin
+  Result := FNames[Index];
+end;
+
+function TJSONObjectMembers.FindIndexOf(const AName: TJSONStringType): Integer;
+begin
+  if not FIndexes.TryGetValue(AName, Result) then
+    Result := -1;
+end;
+
+function TJSONObjectMembers.Find(const AName: TJSONStringType): TJSONData;
+var
+  Index: Integer;
+begin
+  Index := FindIndexOf(AName);
+  if Index <> -1 then
+    Result := FItems[Index]
+  else
+    Result := nil;
+end;
+
+function TJSONObjectMembers.IndexOf(const Item: TJSONData): Integer;
+begin
+  Result := FItems.IndexOf(Item);
+end;
+
+function TJSONObjectMembers.Add(const AName: TJSONStringType; const AValue: TJSONData): Integer;
+begin
+  Result := FNames.Count;
+  FNames.Add(AName);
+  FItems.Add(AValue);
+  FIndexes.Add(AName, Result);
+end;
+
+procedure TJSONObjectMembers.RemoveIndex(const Index: Integer);
+var
+  I: Integer;
+begin
+  FIndexes.Remove(FNames[Index]);
+  FNames.Delete(Index);
+  FItems.Delete(Index);
+  { Indexes of the members after Index changed, update them. }
+  for I := Index to FNames.Count - 1 do
+    FIndexes.AddOrSetValue(FNames[I], I);
+end;
+
+procedure TJSONObjectMembers.Delete(const Index: Integer);
+var
+  Item: TJSONData;
+begin
+  Item := FItems[Index];
+  RemoveIndex(Index);
+  if FOwnsObjects then
+    Item.Free;
+end;
+
+procedure TJSONObjectMembers.Remove(const Item: TJSONData);
+var
+  Index: Integer;
+begin
+  Index := IndexOf(Item);
+  if Index <> -1 then
+    Delete(Index);
+end;
+
+procedure TJSONObjectMembers.Extract(const Item: TJSONData);
+var
+  Index: Integer;
+begin
+  Index := IndexOf(Item);
+  if Index <> -1 then
+    RemoveIndex(Index);
+end;
+
+procedure TJSONObjectMembers.Clear;
+var
+  I: Integer;
+begin
+  { Checks <> nil, because this is used from destructor so must account
+    for half-initialized state. }
+  if FItems <> nil then
+  begin
+    if FOwnsObjects then
+      for I := 0 to FItems.Count - 1 do
+        FItems[I].Free;
+    FItems.Clear;
+  end;
+  if FNames <> nil then
+    FNames.Clear;
+  if FIndexes <> nil then
+    FIndexes.Clear;
+end;
+
+{ TJSONObject ---------------------------------------------------------------- }
+
 constructor TJSONObject.Create;
 begin
   {$IFDEF PAS2JS}
   FHash:=TJSObject.new;
   {$else}
-  FHash:=TFPHashObjectList.Create(True);
+  FHash:=TJSONObjectMembers.Create(True);
   {$ENDIF}
 end;
 

@@ -250,18 +250,32 @@ end;
 
 
 procedure InitJSONHandler;
+var
+  Handler: TJSONParserHandler;
+  StringHandler: TJSONStringParserHandler;
 begin
-  if @(GetJSONParserHandler) = nil then
-    SetJSONParserHandler(DefJSONParserHandler);
-  if @(GetJSONStringParserHandler) = nil then
-    SetJSONStringParserHandler(DefJSONStringParserHandler);
+  Handler := GetJSONParserHandler();
+  if not Assigned(Handler) then
+    SetJSONParserHandler({$ifdef FPC}@{$endif} DefJSONParserHandler);
+
+  StringHandler := GetJSONStringParserHandler();
+  if not Assigned(StringHandler) then
+    SetJSONStringParserHandler({$ifdef FPC}@{$endif} DefJSONStringParserHandler);
 end;
 
 procedure DoneJSONHandler;
+var
+  Handler, DefaultHandler: TJSONParserHandler;
+  StringHandler, DefaultStringHandler: TJSONStringParserHandler;
 begin
-  if @(GetJSONParserHandler) = @DefJSONParserHandler then
+  Handler := GetJSONParserHandler();
+  DefaultHandler := {$ifdef FPC}@{$endif} DefJSONParserHandler;
+  if Pointer(Handler) = Pointer(DefaultHandler) then
     SetJSONParserHandler(nil);
-  if @(GetJSONStringParserHandler) = @DefJSONStringParserHandler then
+
+  StringHandler := GetJSONStringParserHandler();
+  DefaultStringHandler := {$ifdef FPC}@{$endif} DefJSONStringParserHandler;
+  if Pointer(StringHandler) = Pointer(DefaultStringHandler) then
     SetJSONStringParserHandler(nil);
 end;
 
