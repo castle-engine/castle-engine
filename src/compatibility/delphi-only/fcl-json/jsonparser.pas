@@ -12,9 +12,10 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-///{$mode objfpc}
-{$h+}
+
 unit jsonparser;
+
+{$I fcl-json.inc}
 
 interface
 
@@ -270,12 +271,14 @@ var
 begin
   Handler := GetJSONParserHandler();
   DefaultHandler := {$ifdef FPC}@{$endif} DefJSONParserHandler;
-  if Pointer(Handler) = Pointer(DefaultHandler) then
+  if {$ifndef FPC}@{$endif} Handler =
+     {$ifndef FPC}@{$endif} DefaultHandler then
     SetJSONParserHandler(nil);
 
   StringHandler := GetJSONStringParserHandler();
   DefaultStringHandler := {$ifdef FPC}@{$endif} DefJSONStringParserHandler;
-  if Pointer(StringHandler) = Pointer(DefaultStringHandler) then
+  if {$ifndef FPC}@{$endif} StringHandler =
+     {$ifndef FPC}@{$endif} DefaultStringHandler then
     SetJSONStringParserHandler(nil);
 end;
 

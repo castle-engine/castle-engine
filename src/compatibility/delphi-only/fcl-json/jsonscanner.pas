@@ -13,13 +13,9 @@
 
  **********************************************************************}
 
-{$I castleconf.inc} // hide useless Delphi hints/warnings
-
-/// {$mode objfpc}
-{$h+}
-{ $INLINE ON}
-
 unit jsonscanner;
+
+{$I fcl-json.inc}
 
 interface
 
