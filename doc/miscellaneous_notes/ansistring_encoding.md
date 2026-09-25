@@ -130,9 +130,9 @@ Testcases in `TTestDownload` check various combinations with various compilers.
 
 ## Standard RTL usage
 
-### Use TEncoding.UTF8 with TStringStream.Create
+### Use `TEncoding.UTF8` with `TStringStream.Create`
 
-When using standard `TStringStream`, be sure to pass UTF-8 encoding, otherwise Delphi will use system-specific ANSI encoding.
+When using standard `TStringStream`, be sure to pass UTF-8 encoding (`TEncoding.UTF8`), otherwise Delphi will use system-specific ANSI encoding.
 
 ```delphi
 MyStringStream := TStringStream.Create('foo', TEncoding.UTF8);
@@ -140,7 +140,7 @@ MyStringStream := TStringStream.Create('foo', TEncoding.UTF8);
 
 For Delphi, this seems necessary with both `CASTLE_ANSISTRING_FORCE_UTF8` and with `CASTLE_ANSISTRING_UNCHANGED`. The default system-specific ANSI encoding is queried early internally and cached (so it is not affected by whether we do `SetMultiByteConversionCodePage(CP_UTF8)`) and it is used as default, if no encoding is explicitly specified.
 
-### Do not use Utf8Decode with String parameter
+### Do not use `Utf8Decode` with `String` parameter
 
 Beware of calling `Utf8Decode` with a `String` parameter.
 
@@ -148,11 +148,11 @@ Reason on Delphi: As `Utf8Decode` takes 8-bit string, such call will convert 16-
 
 Use our `StringToUtf16` and `Utf16ToString` to convert between `String` and UTF-16 (`UnicodeString`) safely.
 
-### Use StringToUtf16 and Utf16ToString
+### Use `StringToUtf16` and `Utf16ToString`
 
 You should not "just assign" a `String` to a `UnicodeString` or vice versa.
 
-With FPC (where `String=AnsiString`) this would depend on WideStringManager being installed, and on Unix (without `CWString` unit) it would map characters >= 256 to "?". Our `StringToUtf16` and `Utf16ToString` explicitly handle UTF-8 conversions.
+With FPC (where `String=AnsiString`) this would depend on WideStringManager being installed, and on Unix (without `CWString` unit) it would map characters >= 256 to "?" (when going from UTF-16 to `String=AnsiString`). Our `StringToUtf16` and `Utf16ToString` explicitly handle UTF-8 conversions.
 
 ### Use (at least) `joUTF8` with `TJSONParser.Create`
 
