@@ -727,22 +727,23 @@
   {$message fatal 'Cannot define both CASTLE_ANSISTRING_FORCE_UTF8 and CASTLE_ANSISTRING_UNCHANGED. Define only one of them, or none (to use default).'}
 {$endif}
 
-// Set default, if none defined
+// Set default, if none defined.
+//
+// We define 1 of the 2 symbols always, so the rest of the code
+// can just test for CASTLE_ANSISTRING_UNCHANGED
+// or CASTLE_ANSISTRING_FORCE_UTF8, whichever is more natural.
 {$if (not defined(CASTLE_ANSISTRING_FORCE_UTF8)) and (not defined(CASTLE_ANSISTRING_UNCHANGED))}
   {$if defined(FPC)}
     {$define CASTLE_ANSISTRING_FORCE_UTF8}
+  {$else}
+    {$define CASTLE_ANSISTRING_UNCHANGED}
   {$endif}
-{$endif}
-
-// define CASTLE_FPC_UNICODE_RTL if using FPC with Unicode RTL (String = UnicodeString)
-{$if defined(FPC) and (SizeOf(Char)=2)}
-  {$define CASTLE_FPC_UNICODE_RTL}
 {$endif}
 
 // Error if CASTLE_ANSISTRING_UNCHANGED used with (non-Unicode) FPC
 {$if defined(FPC) and
      defined(CASTLE_ANSISTRING_UNCHANGED) and
-     (not defined(CASTLE_FPC_UNICODE_RTL)) and
+     (not defined(FPC_UNICODESTRINGS)) and
      (not defined(I_UNDERSTAND_THAT_NON_ASCII_CHARACTERS_ARE_BROKEN))}
   {$message fatal 'CASTLE_ANSISTRING_UNCHANGED is only supported with Delphi (or FPC Unicode RTL).'}
 {$endif}

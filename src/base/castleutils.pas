@@ -169,7 +169,7 @@ initialization
   {$endif}
   {$endif}
 
-  {$ifndef CASTLE_ANSISTRING_FORCE_UTF8}
+  {$ifdef CASTLE_ANSISTRING_FORCE_UTF8}
   { Set UTF-8 in AnsiStrings, just like Lazarus.
     See doc/miscellaneous_notes/ansistring_encoding.md }
 

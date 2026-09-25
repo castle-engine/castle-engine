@@ -80,9 +80,9 @@ If you insist, and force engine to use `CASTLE_ANSISTRING_UNCHANGED` with FPC by
 
 ## TODO: FPC Unicode RTL support
 
-FPC has an option to use [Unicode RTL](https://wiki.freepascal.org/FPC_Unicode_RTL) in which case `String` = `UnicodeString` and things are similar to modern Delphi.
+FPC has an option to use [Unicode RTL](https://wiki.freepascal.org/FPC_Unicode_RTL) in which case `String` = `UnicodeString` and things are similar to modern Delphi. It seems there's both `{$modeswitch unicodestrings}` and (doing more things) `{$mode delphiunicode}`.
 
-We don't support yet building engine in this mode. We need to fix some assumptions to make it work. At this point, some pieces of engine assume that FPC -> implies we have 8-bit `String` equal to `AnsiString`. To support FPC Unicode RTL, these conditions should change (from checking FPC/Delphi to checking `SizeOf(Char) = 2`).
+We don't support yet building engine in this mode. We need to fix some assumptions to make it work. At this point, some pieces of engine assume that FPC -> implies we have 8-bit `String` equal to `AnsiString`. To support FPC Unicode RTL, these conditions should change (check `FPC_UNICODESTRINGS`; you can also check `if SizeOf(Char) = 2`, but not before `interface` of units it seems, as `Char` is unknown then).
 
 If you need this, please contact us and we will finish it sooner:)
 
