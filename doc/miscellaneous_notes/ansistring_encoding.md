@@ -1,3 +1,5 @@
+# CASTLE_ANSISTRING_xxx symbols, AnsiString vs Utf8String in Castle Game Engine
+
 ## Summary
 
 - When `CASTLE_ANSISTRING_FORCE_UTF8` is defined, our engine does `SetMultiByteConversionCodePage(CP_UTF8)` at initialization, which tells that all `AnsiString` are to be interpreted as UTF-8.
