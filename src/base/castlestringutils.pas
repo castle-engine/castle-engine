@@ -990,7 +990,15 @@ function SizeToStr(const Value: Int64): String;
   On Delphi (more generally: on compilers where String is already UnicodeString,
   which is UTF-16), this does nothing.
   On FPC (more generally: on compilers where String is AnsiString
-  with UTF-8 encoding), this converts UTF-8 into UTF-16 UnicodeString. }
+  with UTF-8 encoding), this converts UTF-8 into UTF-16 UnicodeString.
+
+  Note: Use this routine instead of @code(MyUnicodeString := Utf8Decode(MyString)).
+  Reason: With Delphi, MyString is already a UnicodeString, and using
+  @url(https://docwiki.embarcadero.com/Libraries/Florence/en/System.UTF8Decode
+  UTF8Decode) would forcefully convert it to 8-bit String (UTF8Decode takes
+  RawByteString). With CASTLE_ANSISTRING_UNCHANGED, this means converting to
+  system-specific encoding that may not be even able to express all Unicode
+  characters. Then UTF8Decode would convert this, assuming input is UTF-8. }
 function StringToUtf16(const Src: String): UnicodeString; inline;
 
 { Convert UTF-16 (UnicodeString) to String.

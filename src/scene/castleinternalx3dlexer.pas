@@ -641,7 +641,7 @@ constructor TX3DLexer.CreateForPartialStream(const S: string;
 var
   StringStream: TStringStream;
 begin
-  StringStream := TStringStream.Create(S);
+  StringStream := TStringStream.Create(S, TEncoding.UTF8);
   CreateForPartialStream(
     TBufferedReadStream.Create(StringStream, true), true, AVersion);
 end;

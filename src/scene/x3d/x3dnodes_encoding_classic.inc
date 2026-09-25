@@ -633,7 +633,7 @@ function LoadX3DClassicFromString(const VRMLContents: String;
 var
   Stream: TStringStream;
 begin
-  Stream := TStringStream.Create(VRMLContents);
+  Stream := TStringStream.Create(VRMLContents, TEncoding.UTF8);
   try
     Result := LoadX3DClassicInternal(Stream, BaseUrl, nil);
   finally FreeAndNil(Stream) end;

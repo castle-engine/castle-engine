@@ -128,6 +128,24 @@ Also, some higher-level routines for reading and writing text files have API exp
 
 Testcases in `TTestDownload` check various combinations with various compilers.
 
+## Standard RTL usage
+
+### TStringStream
+
+When using standard `TStringStream`, be sure to pass UTF-8 encoding, otherwise Delphi will use system-specific ANSI encoding.
+
+```delphi
+MyStringStream := TStringStream.Create('foo', TEncoding.UTF8);
+```
+
+For Delphi, this seems necessary with both `CASTLE_ANSISTRING_FORCE_UTF8` and with `CASTLE_ANSISTRING_UNCHANGED`. The default system-specific ANSI encoding is queried early internally and cached (so it is not affected by whether we do `SetMultiByteConversionCodePage(CP_UTF8)`) and it is used as default, if no encoding is explicitly specified.
+
+### Utf8Decode
+
+Beware of calling `Utf8Decode` with a `String` parameter. As `Utf8Decode` takes 8-bit string, such call will convert `String` to `RawByteString` first, which may be lossy. See `StringToUtf16` documentation.
+
+Use our `StringToUtf16` and `Utf16ToString` to convert between `String` and UTF-16 (`UnicodeString`) safely.
+
 ## Recommendations and what Lazarus does
 
 In the bigger scheme of things, we recommend you adjust your code to CGE and Lazarus approaches: if you use FPC with `AnsiString`, assume `AnsiString` has UTF-8. Lazarus RTL assumes and does exactly the same thing as Castle Game Engine. See Lazarus sources, in `components/lazutils/fpcadds.pas`, it does:

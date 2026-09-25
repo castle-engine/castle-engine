@@ -307,10 +307,10 @@ begin
           tkVariant:
             Value := GetVariantProp(PropObject, PropInfo);
           tkWChar:
-            Value := UTF8Encode(WideChar(GetOrdProp(PropObject, PropInfo)));
+            Value := Utf16ToString(WideChar(GetOrdProp(PropObject, PropInfo)));
           {$ifdef FPC}
           tkUChar:
-            Value := UTF8Encode(UnicodeChar(GetOrdProp(PropObject, PropInfo)));
+            Value := Utf16ToString(UnicodeChar(GetOrdProp(PropObject, PropInfo)));
           {$endif}
           // TODO: These are unhandled now:
           // tkSet:
