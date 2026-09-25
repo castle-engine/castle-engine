@@ -1,5 +1,5 @@
 {
-  Copyright 2021-2024 Michalis Kamburelis.
+  Copyright 2021-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -573,10 +573,15 @@ begin
     tkString, tkLString:
       Result := GetAnsiStrProp(PropObject, PropInfo);
 {$endif}
+    { Note: Do not use UTF8Encode here. The result is a String, and assigning
+      a 16-bit string (WideString or UnicodeString) to String already does
+      the correct conversion:
+      - nothing with Delphi (String is 16-bit too),
+      - or UTF-16 -> UTF-8 with FPC (when CASTLE_ANSISTRING_FORCE_UTF8). }
     tkWString:
-      Result := UTF8Encode(GetWideStrProp(PropObject, PropInfo));
+      Result := GetWideStrProp(PropObject, PropInfo);
     tkUString:
-      Result := UTF8Encode(GetUnicodeStrProp(PropObject, PropInfo));
+      Result := GetUnicodeStrProp(PropObject, PropInfo);
     else
       raise EInternalError.CreateFmt('PropertyGetString called for non-string property "%s"', [
         PropInfo^.Name
@@ -595,10 +600,12 @@ begin
     tkString, tkLString:
       SetAnsiStrProp(PropObject, PropInfo, Value);
 {$endif}
+    { Note: Do not use UTF8Decode here. Value is a String, and passing it
+      to a 16-bit string parameter already does the correct conversion. }
     tkWString:
-      SetWideStrProp(PropObject, PropInfo, UTF8Decode(Value));
+      SetWideStrProp(PropObject, PropInfo, Value);
     tkUString:
-      SetUnicodeStrProp(PropObject, PropInfo, UTF8Decode(Value));
+      SetUnicodeStrProp(PropObject, PropInfo, Value);
     else
       raise EInternalError.CreateFmt('PropertySetString called for non-string property "%s"', [
         PropInfo^.Name
