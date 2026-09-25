@@ -165,15 +165,20 @@ begin
 
   TextureLoader := CreateTextureLoader(CustomAtlasName);
   try
-    { Should we add joUTF8?
-      - Long time ago, it failed to work on
-        tests/data/escape_from_the_universe_boss/boss.json
-        with FPC 3.1.1-r36683 [2017/07/08] for Linux x86_64.
-      - TODO: Needs retest.
-        It may have been some error on our side?
-        Later note reported joUTF8 is OK with FPC 3.0.2. }
+    { We pass joUTF8, to say explicitly that the JSON is UTF-8.
 
-    P := TJSONParser.Create(Stream, [joComments]);
+      This doesn't matter for Delphi: our fcl-json fork for Delphi always
+      assumes UTF-8.
+
+      This matters only for FPC, and only when DefaultSystemCodePage <> CP_UTF8,
+      so only when CASTLE_DONT_CHANGE_STRING_ENCODING
+      and I_UNDERSTAND_THAT_NON_ASCII_CHARACTERS_ARE_BROKEN are defined.
+      That's because FPC fcl-json tests for "(joUTF8 in Options) or
+      (DefaultSystemCodePage = CP_UTF8)". Since CastleUtils initialization
+      calls SetMultiByteConversionCodePage(CP_UTF8), usually "joUTF8 in Options"
+      doesn't matter, as our DefaultSystemCodePage is UTF-8. }
+
+    P := TJSONParser.Create(Stream, [joComments, joUTF8]);
     try
       Json := P.Parse;
       try
