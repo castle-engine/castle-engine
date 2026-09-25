@@ -169,13 +169,12 @@ initialization
   {$endif}
   {$endif}
 
-  {$ifndef CASTLE_DONT_CHANGE_STRING_ENCODING}
+  {$ifndef CASTLE_ANSISTRING_FORCE_UTF8}
+  { Set UTF-8 in AnsiStrings, just like Lazarus.
+    See doc/miscellaneous_notes/ansistring_encoding.md }
 
-  { Set UTF-8 in AnsiStrings, just like Lazarus
-    (see initialization of lazarus/components/lazutils/fpcadds.pas in Lazarus sources) }
   SetMultiByteConversionCodePage(CP_UTF8);
   // SetMultiByteFileSystemCodePage(CP_UTF8); not needed, this is the default under Windows
-
   {$ifdef FPC}
   SetMultiByteRTLFileSystemCodePage(CP_UTF8);
   {$endif}

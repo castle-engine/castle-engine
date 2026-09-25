@@ -310,7 +310,7 @@ procedure TTestCompiler.TestAnsiStringUtf8Conversion_Ansi1250;
 
 { Test compiler / RTL behavior of AnsiString(1250) <-> Utf8String conversions.
 
-  This tests that, with CASTLE_DONT_CHANGE_STRING_ENCODING,
+  This tests that, with CASTLE_ANSISTRING_UNCHANGED,
   Utf8String will contain UTF-8 encoded data even if regular AnsiString
   has platform-specific encoding (like Windows-1250 on Polish Windows).
 
@@ -319,7 +319,7 @@ procedure TTestCompiler.TestAnsiStringUtf8Conversion_Ansi1250;
 
   As an exception, this testcase will *pass* on (otherwise unsupported)
   combination of FPC
-  - with CASTLE_DONT_CHANGE_STRING_ENCODING defined
+  - with CASTLE_ANSISTRING_UNCHANGED defined
   - with I_UNDERSTAND_THAT_NON_ASCII_CHARACTERS_ARE_BROKEN defined
   - (but not with FPC 3.2.2 on non-Windows, it seems).
 }
@@ -343,23 +343,14 @@ begin
   WritelnLog('DefaultSystemCodePage = 1250, Polish Windows, proceeding with test');
   *)
 
-  (*No hacking of SetMultiByteConversionCodePage should be necessary for this
-    test, as we declare TAnsiStringPolish with codepage 1250.
-
-  {$ifndef CASTLE_DONT_CHANGE_STRING_ENCODING}
-  // revert work done by CastleUtils initialization
-  SetMultiByteConversionCodePage(1250);
-  {$endif}
-  *)
-
-  {$if not defined(CASTLE_DONT_CHANGE_STRING_ENCODING)}
+  {$if not defined(CASTLE_ANSISTRING_UNCHANGED)}
   { If SetMultiByteConversionCodePage(CP_UTF8) was done in CastleUtils
     initialization:
     - FPC 3.2.2 will assign UTF-8 codepage to AnsiPolish in this case.
     - Delphi 12: also, it seems, it will assign UTF-8 codepage to AnsiPolish in this case.
-    Abort this test on FPC + not defined CASTLE_DONT_CHANGE_STRING_ENCODING.
+    Abort this test in this case.
   }
-  WritelnLog('Aborting TestAnsiStringUtf8Conversion_Ansi1250: due to CASTLE_DONT_CHANGE_STRING_ENCODING not defined');
+  WritelnLog('Aborting TestAnsiStringUtf8Conversion_Ansi1250: due to CASTLE_ANSISTRING_UNCHANGED not defined');
   AbortTest;
   Exit;
   {$endif}
@@ -402,7 +393,7 @@ procedure TTestCompiler.TestAnsiStringUtf8Conversion_AnsiDefault;
 
 { Test compiler / RTL behavior of AnsiString <-> Utf8String conversions.
 
-  Test that, regardless of CASTLE_DONT_CHANGE_STRING_ENCODING,
+  Test that, regardless of CASTLE_ANSISTRING_UNCHANGED,
   Utf8String will contain UTF-8 encoded data even if regular AnsiString
   has platform-specific encoding (like Windows-1250 on Polish Windows).
 
@@ -413,7 +404,7 @@ procedure TTestCompiler.TestAnsiStringUtf8Conversion_AnsiDefault;
 
   As an exception, this testcase will *pass* on (otherwise unsupported)
   combination of FPC
-  - with CASTLE_DONT_CHANGE_STRING_ENCODING defined
+  - with CASTLE_ANSISTRING_UNCHANGED defined
   - with I_UNDERSTAND_THAT_NON_ASCII_CHARACTERS_ARE_BROKEN defined.
 }
 
@@ -422,16 +413,16 @@ var
   Utf8Polish: System.UTF8String;
 begin
   { This test only makes sense if current system default is 1250.
-    Note: When not defined CASTLE_DONT_CHANGE_STRING_ENCODING,
+    Note: When not defined CASTLE_ANSISTRING_UNCHANGED,
     this will be aborted, as DefaultSystemCodePage is then 65001 (UTF-8)
     and not 1250, for both FPC and Delphi. }
   if DefaultSystemCodePage <> 1250 then
   begin
-    WritelnLog('Aborting TestAnsiStringUtf8Conversion_AnsiDefault: DefaultSystemCodePage = %d, not Polish Windows (or CASTLE_DONT_CHANGE_STRING_ENCODING not defined, so system is UTF-8), skipping test', [DefaultSystemCodePage]);
+    WritelnLog('Aborting TestAnsiStringUtf8Conversion_AnsiDefault: DefaultSystemCodePage = %d, not Polish Windows (or CASTLE_ANSISTRING_UNCHANGED not defined, so system is UTF-8), skipping test', [DefaultSystemCodePage]);
     AbortTest;
     Exit;
   end;
-  WritelnLog('DefaultSystemCodePage = 1250, Polish Windows (with CASTLE_DONT_CHANGE_STRING_ENCODING defined), proceeding with test');
+  WritelnLog('DefaultSystemCodePage = 1250, Polish Windows (with CASTLE_ANSISTRING_UNCHANGED defined), proceeding with test');
 
   { Manually set bytes following Polish Windows codepage 1250,
     to be sure we are testing what we want.
@@ -465,14 +456,14 @@ procedure TTestCompiler.TestAddingIncompleteUtf8;
 
 { Testing:
   - both FPC and Delphi,
-  - CASTLE_DONT_CHANGE_STRING_ENCODING defined or not,
+  - CASTLE_ANSISTRING_UNCHANGED defined or not,
   - how to add AnsiChar with an incomplete UTF-8 sequence such
     that a resulting Utf8String is OK?
 
   Not valid: using "S := S + C", (always with
     S: Utf8String;
     C: AnsiChar;
-  ). Both with and without CASTLE_DONT_CHANGE_STRING_ENCODING defined,
+  ). Both with and without CASTLE_ANSISTRING_UNCHANGED defined,
   so both with and without SetMultiByteConversionCodePage(CP_UTF8) call,
   this fails with Delphi 10.2.
 
@@ -531,7 +522,7 @@ procedure TTestCompiler.TestUtf8StringInArrayOfConst;
 { Test passing Utf8String through "array of const", i.e. to Format.
 
   Like TestAddingIncompleteUtf8, this is really interesting only with
-  CASTLE_DONT_CHANGE_STRING_ENCODING defined, as otherwise the default
+  CASTLE_ANSISTRING_UNCHANGED defined, as otherwise the default
   8-bit encoding is UTF-8 anyway. }
 
 const

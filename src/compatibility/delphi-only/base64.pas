@@ -39,7 +39,7 @@ type
     So it may be UTF-8 characters or UTF-16 characters or something
     else -- this does not depend on whether this is compiled with Delphi
     (String=UnicodeString, UTF-16) or FPC (String=AnsiString, UTF-8,
-    at least without DelphiUnicode mode)). }
+    at least without Unicode RTL)). }
   TBase64DecodingStream = class(TMemoryStream)
   strict private
     FSource: TStream;

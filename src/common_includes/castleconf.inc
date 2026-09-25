@@ -716,27 +716,35 @@
 
 { Encoding ------------------------------------------------------------------- }
 
-(*Define symbol CASTLE_DONT_CHANGE_STRING_ENCODING when compiling
-  the engine to *not* force all AnsiString to contain UTF-8.
+{ Check symbols
+  CASTLE_ANSISTRING_FORCE_UTF8 and
+  CASTLE_ANSISTRING_UNCHANGED.
+  See doc/miscellaneous_notes/ansistring_encoding.md for documentation
+  what they do. }
 
-  When this is defined, we do not call
+// Error if both ar defined
+{$if defined(CASTLE_ANSISTRING_FORCE_UTF8) and defined(CASTLE_ANSISTRING_UNCHANGED)}
+  {$message fatal 'Cannot define both CASTLE_ANSISTRING_FORCE_UTF8 and CASTLE_ANSISTRING_UNCHANGED. Define only one of them, or none (to use default).'}
+{$endif}
 
-    SetMultiByteConversionCodePage(CP_UTF8);
-    SetMultiByteRTLFileSystemCodePage(CP_UTF8); // only FPC
+// Set default, if none defined
+{$if (not defined(CASTLE_ANSISTRING_FORCE_UTF8)) and (not defined(CASTLE_ANSISTRING_UNCHANGED))}
+  {$if defined(FPC)}
+    {$define CASTLE_ANSISTRING_FORCE_UTF8}
+  {$endif}
+{$endif}
 
-  in the initialization of CastleUtils (used by most engine units)
-  to make sure that AnsiString contains UTF-8.
+// define CASTLE_FPC_UNICODE_RTL if using FPC with Unicode RTL (String = UnicodeString)
+{$if defined(FPC) and (SizeOf(Char)=2)}
+  {$define CASTLE_FPC_UNICODE_RTL}
+{$endif}
 
-  Note that Lazarus LCL does something similar in its initialization,
-  so even if you define CASTLE_DONT_CHANGE_STRING_ENCODING,
-  you may still have AnsiString containing UTF-8 if you use LCL.
-*)
-{.$define CASTLE_DONT_CHANGE_STRING_ENCODING}
+// Error if CASTLE_ANSISTRING_UNCHANGED used with (non-Unicode) FPC
 {$if defined(FPC) and
-     defined(CASTLE_DONT_CHANGE_STRING_ENCODING) and
-     (not defined(FPC_DELPHIUNICODE)) and
+     defined(CASTLE_ANSISTRING_UNCHANGED) and
+     (not defined(CASTLE_FPC_UNICODE_RTL)) and
      (not defined(I_UNDERSTAND_THAT_NON_ASCII_CHARACTERS_ARE_BROKEN))}
-  {$message fatal 'CASTLE_DONT_CHANGE_STRING_ENCODING is only supported with Delphi (or FPC DelphiUnicode mode).'}
+  {$message fatal 'CASTLE_ANSISTRING_UNCHANGED is only supported with Delphi (or FPC Unicode RTL).'}
 {$endif}
 
 // -----------------------------------------------------------------------------

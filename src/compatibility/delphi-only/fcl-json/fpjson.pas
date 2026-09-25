@@ -58,7 +58,8 @@ type
       { With Delphi, let TJSONStringType be UnicodeString
         (equal to TJSONUnicodeStringType) to map to default "String" in all cases.
         This makes tricky Spine JSONs in our testcases work both with
-        and without CASTLE_DONT_CHANGE_STRING_ENCODING. }
+        - CASTLE_ANSISTRING_FORCE_UTF8 and with
+        - CASTLE_ANSISTRING_UNCHANGED . }
       {$define JSON_STRING_TYPE_IS_UNICODE}
       UnicodeString
     {$ENDIF};
@@ -628,13 +629,13 @@ Type
     @unorderedList(
       @item(TFPHashObjectList uses ShortString for names. So the names
         were converted to / from ShortString, using the system codepage
-        (when CASTLE_DONT_CHANGE_STRING_ENCODING).
+        (when CASTLE_ANSISTRING_UNCHANGED).
         With Delphi this loses non-ASCII characters
         (e.g. Polish "Kształt" became "Ksztalt"), unless the system codepage
         happens to be UTF-8.
 
         Structure below just stores names as TJSONStringType,
-        so they are correct regardless of CASTLE_DONT_CHANGE_STRING_ENCODING
+        so they are correct regardless of CASTLE_ANSISTRING_UNCHANGED
         and system codepage.)
 
       @item(TFPHashObjectList also limited the names to 255 characters.)

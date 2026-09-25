@@ -126,7 +126,7 @@ procedure TTestDownload.TestLocalCharsContents;
   file contents as 8-bit strings (FileToString, StreamToString,
   MemoryStreamLoadFromString) use Utf8String, not AnsiString.
   So they work correctly also when AnsiString has some other, system-specific,
-  encoding, which happens when CASTLE_DONT_CHANGE_STRING_ENCODING is defined. }
+  encoding, which happens when CASTLE_ANSISTRING_UNCHANGED is defined. }
 
 const
   ChineseUrl = 'castle-data:/local_chars/name with Chinese chars 样例中文文本.txt';
@@ -288,7 +288,7 @@ procedure TTestDownload.TestCastleTextReaderWriterUtf8;
 { Test that TCastleTextWriter writes UTF-8, and TCastleTextReader reads UTF-8,
   regardless of what encoding AnsiString happens to have.
 
-  This matters when CASTLE_DONT_CHANGE_STRING_ENCODING is defined, when
+  This matters when CASTLE_ANSISTRING_UNCHANGED is defined, when
   AnsiString has platform-specific encoding. That's why TCastleTextReader
   buffers the read data in Utf8String, not AnsiString.
   See ../../../doc/miscellaneous_notes/ansistring_encoding.md .

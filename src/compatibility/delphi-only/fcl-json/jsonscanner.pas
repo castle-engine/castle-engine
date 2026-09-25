@@ -34,7 +34,7 @@ type
     - doesn't depend on current locale,
       which also means:
       doesn't depend on default AnsiString encoding
-      (which depends on CASTLE_DONT_CHANGE_STRING_ENCODING).
+      (which depends on CASTLE_ANSISTRING_UNCHANGED / CASTLE_ANSISTRING_FORCE_UTF8).
     - also joUTF8 is meaningless. }
   TJsonScannerString = Utf8String;
 

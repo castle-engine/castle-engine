@@ -171,7 +171,7 @@ begin
       assumes UTF-8.
 
       This matters only for FPC, and only when DefaultSystemCodePage <> CP_UTF8,
-      so only when CASTLE_DONT_CHANGE_STRING_ENCODING
+      so only when CASTLE_ANSISTRING_UNCHANGED
       and I_UNDERSTAND_THAT_NON_ASCII_CHARACTERS_ARE_BROKEN are defined.
       That's because FPC fcl-json tests for "(joUTF8 in Options) or
       (DefaultSystemCodePage = CP_UTF8)". Since CastleUtils initialization

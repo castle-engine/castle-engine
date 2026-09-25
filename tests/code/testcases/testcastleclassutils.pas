@@ -377,7 +377,7 @@ procedure TTestCastleClassUtils.TestReadUptoUtf8Core(
   from the stream, and that assigning them to a String decodes them correctly.
 
   This matters when AnsiString has some platform-specific encoding, which
-  happens when CASTLE_DONT_CHANGE_STRING_ENCODING is defined. That's why
+  happens when CASTLE_ANSISTRING_UNCHANGED is defined. That's why
   ReadUpto returns Utf8String, not AnsiString.
   See ../../../doc/miscellaneous_notes/ansistring_encoding.md . }
 

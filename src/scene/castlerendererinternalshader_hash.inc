@@ -58,7 +58,7 @@ var
   I, ByteCount: Integer;
 begin
   { Note: Count bytes, not characters. They differ when String is 16-bit
-    (UnicodeString, with Delphi or FPC in DelphiUnicode mode).
+    (UnicodeString, with Delphi or FPC Unicode RTL).
     We just hash the raw bytes of the string, whatever its encoding is. }
   ByteCount := Length(S) * SizeOf(Char);
 

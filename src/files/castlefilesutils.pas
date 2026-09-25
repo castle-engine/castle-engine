@@ -1021,7 +1021,8 @@ begin
     Using the "ansi" versions (GetTempPathA, GetTempFileNameA) would return
     the path in the system codepage, which is not what AnsiString holds
     when we call SetMultiByteConversionCodePage(CP_UTF8)
-    (which may be done, depending on CASTLE_DONT_CHANGE_STRING_ENCODING). }
+    (which may be done, depending on
+    CASTLE_ANSISTRING_UNCHANGED / CASTLE_ANSISTRING_FORCE_UTF8). }
   FillChar(MyPath, SizeOf(MyPath), 0);
   FillChar(MyFileName, SizeOf(MyFileName), 0);
   { Note: GetTempPathW size is in characters (not bytes). }
