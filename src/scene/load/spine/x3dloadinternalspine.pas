@@ -165,19 +165,8 @@ begin
 
   TextureLoader := CreateTextureLoader(CustomAtlasName);
   try
-    { We pass joUTF8, to say explicitly that the JSON is UTF-8.
-
-      This doesn't matter for Delphi: our fcl-json fork for Delphi always
-      assumes UTF-8.
-
-      This matters only for FPC, and only when DefaultSystemCodePage <> CP_UTF8,
-      so only when CASTLE_ANSISTRING_UNCHANGED
-      and I_UNDERSTAND_THAT_NON_ASCII_CHARACTERS_ARE_BROKEN are defined.
-      That's because FPC fcl-json tests for "(joUTF8 in Options) or
-      (DefaultSystemCodePage = CP_UTF8)". Since CastleUtils initialization
-      calls SetMultiByteConversionCodePage(CP_UTF8), usually "joUTF8 in Options"
-      doesn't matter, as our DefaultSystemCodePage is UTF-8. }
-
+    { See doc/miscellaneous_notes/ansistring_encoding.md about the joUTF8
+      option with TJSONParser. }
     P := TJSONParser.Create(Stream, [joComments, joUTF8]);
     try
       Json := P.Parse;

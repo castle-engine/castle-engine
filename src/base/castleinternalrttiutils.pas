@@ -573,15 +573,10 @@ begin
     tkString, tkLString:
       Result := GetAnsiStrProp(PropObject, PropInfo);
 {$endif}
-    { Note: Do not use UTF8Encode here. The result is a String, and assigning
-      a 16-bit string (WideString or UnicodeString) to String already does
-      the correct conversion:
-      - nothing with Delphi (String is 16-bit too),
-      - or UTF-16 -> UTF-8 with FPC (when CASTLE_ANSISTRING_FORCE_UTF8). }
     tkWString:
-      Result := GetWideStrProp(PropObject, PropInfo);
+      Result := Utf16ToString(GetWideStrProp(PropObject, PropInfo));
     tkUString:
-      Result := GetUnicodeStrProp(PropObject, PropInfo);
+      Result := Utf16ToString(GetUnicodeStrProp(PropObject, PropInfo));
     else
       raise EInternalError.CreateFmt('PropertyGetString called for non-string property "%s"', [
         PropInfo^.Name
@@ -600,12 +595,10 @@ begin
     tkString, tkLString:
       SetAnsiStrProp(PropObject, PropInfo, Value);
 {$endif}
-    { Note: Do not use UTF8Decode here. Value is a String, and passing it
-      to a 16-bit string parameter already does the correct conversion. }
     tkWString:
-      SetWideStrProp(PropObject, PropInfo, Value);
+      SetWideStrProp(PropObject, PropInfo, StringToUtf16(Value));
     tkUString:
-      SetUnicodeStrProp(PropObject, PropInfo, Value);
+      SetUnicodeStrProp(PropObject, PropInfo, StringToUtf16(Value));
     else
       raise EInternalError.CreateFmt('PropertySetString called for non-string property "%s"', [
         PropInfo^.Name

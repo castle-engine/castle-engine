@@ -36,7 +36,7 @@ type
 implementation
 
 uses DOM, CastleXmlUtils, CastleFilesUtils, CastleDownload, CastleColors,
-  CastleXmlConfig, X3DNodes, X3DLoad, X3DFields, CastleUnicode, CastleTestUtils;
+  CastleUtils, CastleXmlConfig, X3DNodes, X3DLoad, X3DFields, CastleTestUtils;
 
 procedure TTestCastleXmlUtils.TestReadResult;
 var
@@ -230,20 +230,20 @@ procedure TTestCastleXmlUtils.TestUtf8StringStreams;
   treat the text as UTF-8 correctly.
   See doc/miscellaneous_notes/ansistring_encoding.md . }
 
-const
-  ConfigXml =
-    '<?xml version="1.0" encoding="utf-8"?>' + LineEnding +
-    '<CONFIG><test value="%s" /></CONFIG>';
 var
   Config: TCastleConfig;
-  ConfigSaved, X3DContents: String;
+  ConfigXml, ConfigSaved, X3DContents: String;
   Node: TX3DRootNode;
   WorldInfo: TWorldInfoNode;
 begin
+  ConfigXml :=
+    '<?xml version="1.0" encoding="utf-8"?>' + LineEnding +
+    '<CONFIG><test value="' + SampleText + '" /></CONFIG>';
+
   { TCastleConfig.LoadFromString and SaveToString. }
   Config := TCastleConfig.Create(nil);
   try
-    Config.LoadFromString(Format(ConfigXml, [SampleText]), '');
+    Config.LoadFromString(ConfigXml, '');
     AssertEquals(SampleText, Config.GetValue('test/value', ''));
 
     { Also test that saving and loading again preserves the characters. }

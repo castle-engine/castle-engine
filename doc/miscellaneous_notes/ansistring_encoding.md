@@ -130,7 +130,7 @@ Testcases in `TTestDownload` check various combinations with various compilers.
 
 ## Standard RTL usage
 
-### TStringStream
+### Use TEncoding.UTF8 with TStringStream.Create
 
 When using standard `TStringStream`, be sure to pass UTF-8 encoding, otherwise Delphi will use system-specific ANSI encoding.
 
@@ -140,11 +140,42 @@ MyStringStream := TStringStream.Create('foo', TEncoding.UTF8);
 
 For Delphi, this seems necessary with both `CASTLE_ANSISTRING_FORCE_UTF8` and with `CASTLE_ANSISTRING_UNCHANGED`. The default system-specific ANSI encoding is queried early internally and cached (so it is not affected by whether we do `SetMultiByteConversionCodePage(CP_UTF8)`) and it is used as default, if no encoding is explicitly specified.
 
-### Utf8Decode
+### Do not use Utf8Decode with String parameter
 
-Beware of calling `Utf8Decode` with a `String` parameter. As `Utf8Decode` takes 8-bit string, such call will convert `String` to `RawByteString` first, which may be lossy. See `StringToUtf16` documentation.
+Beware of calling `Utf8Decode` with a `String` parameter.
+
+Reason on Delphi: As `Utf8Decode` takes 8-bit string, such call will convert 16-bit `String=UnicodeString` to `RawByteString` first, which may be lossy. See `StringToUtf16` documentation.
 
 Use our `StringToUtf16` and `Utf16ToString` to convert between `String` and UTF-16 (`UnicodeString`) safely.
+
+### Use StringToUtf16 and Utf16ToString
+
+You should not "just assign" a `String` to a `UnicodeString` or vice versa.
+
+With FPC (where `String=AnsiString`) this would depend on WideStringManager being installed, and on Unix (without `CWString` unit) it would map characters >= 256 to "?". Our `StringToUtf16` and `Utf16ToString` explicitly handle UTF-8 conversions.
+
+### Use (at least) `joUTF8` with `TJSONParser.Create`
+
+Create JSON parser (from `FpJson` and friends) like this:
+
+```delphi
+P := TJSONParser.Create(Stream, [joComments, joUTF8]);
+```
+
+Passing `joUTF8` explicitly says that the JSON is UTF-8.
+
+This doesn't matter for Delphi: our `fcl-json` fork for Delphi always assumes UTF-8.
+
+This matters only for FPC, and only when `DefaultSystemCodePage` <> CP_UTF8,
+so only when `CASTLE_ANSISTRING_UNCHANGED`
+and `I_UNDERSTAND_THAT_NON_ASCII_CHARACTERS_ARE_BROKEN` are defined.
+That's because FPC fcl-json tests for
+
+```
+(joUTF8 in Options) or (DefaultSystemCodePage = CP_UTF8)
+```
+
+With `CASTLE_ANSISTRING_UNCHANGED`, we need `joUTF8` to get correct UTF-8 parsing in FPC fcl-json. While this combination is not officially supported (hence `I_UNDERSTAND_THAT_NON_ASCII_CHARACTERS_ARE_BROKEN`), this bit works OK.
 
 ## Recommendations and what Lazarus does
 
