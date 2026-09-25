@@ -26,7 +26,10 @@
   strict private
     Sum, XorValue: UInt32;
   public
-    procedure AddString(const S: AnsiString; const Multiplier: UInt32);
+    { Adds the string contents (as raw bytes, whatever the String encoding is)
+      to the hash.
+      Commented out, as unused now. }
+    //procedure AddString(const S: String; const Multiplier: UInt32);
     procedure AddInteger(const I: Integer);
     procedure AddFloat(const F: Single; const UniquePrimeNumber: Cardinal);
     procedure AddPointer(Ptr: Pointer);
@@ -47,29 +50,35 @@
 
 {$include norqcheckbegin.inc}
 
-procedure TShaderCodeHash.AddString(const S: AnsiString; const Multiplier: UInt32);
+(*
+procedure TShaderCodeHash.AddString(const S: String; const Multiplier: UInt32);
 var
   PS: PUInt32;
   Last: UInt32;
-  I: Integer;
+  I, ByteCount: Integer;
 begin
-  PS := PUInt32(S);
+  { Note: Count bytes, not characters. They differ when String is 16-bit
+    (UnicodeString, with Delphi or FPC in DelphiUnicode mode).
+    We just hash the raw bytes of the string, whatever its encoding is. }
+  ByteCount := Length(S) * SizeOf(Char);
 
-  for I := 1 to Length(S) div 4 do
+  PS := PUInt32(Pointer(S));
+  for I := 1 to ByteCount div 4 do
   begin
     Sum := Sum + PS^ * Multiplier;
     XorValue := XorValue xor PS^;
     Inc(PS);
   end;
 
-  if Length(S) mod 4 <> 0 then
+  if ByteCount mod 4 <> 0 then
   begin
     Last := 0;
-    Move(S[(Length(S) div 4) * 4 + 1], Last, Length(S) mod 4);
+    Move(PS^, Last, ByteCount mod 4);
     Sum := Sum + Last * Multiplier;
     XorValue := XorValue xor Last;
   end;
 end;
+*)
 
 procedure TShaderCodeHash.AddPointer(Ptr: Pointer);
 begin
