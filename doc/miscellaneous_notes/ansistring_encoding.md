@@ -1,5 +1,9 @@
 # CASTLE_ANSISTRING_xxx symbols, AnsiString vs Utf8String in Castle Game Engine
 
+## Read before
+
+To understand this page, it may be helpful to first read the [Castle Game Engine coding conventions on strings](https://castle-engine.io/coding_conventions#strings_unicode). This document goes into some details, that are outlined in a friendlier way in the coding conventions:)
+
 ## Summary
 
 - When `CASTLE_ANSISTRING_FORCE_UTF8` is defined, our engine does `SetMultiByteConversionCodePage(CP_UTF8)` at initialization, which tells that all `AnsiString` are to be interpreted as UTF-8.
@@ -179,7 +183,9 @@ With `CASTLE_ANSISTRING_UNCHANGED`, we need `joUTF8` to get correct UTF-8 parsin
 
 ## Recommendations and what Lazarus does
 
-In the bigger scheme of things, we recommend you adjust your code to CGE and Lazarus approaches: if you use FPC with `AnsiString`, assume `AnsiString` has UTF-8. Lazarus RTL assumes and does exactly the same thing as Castle Game Engine. See Lazarus sources, in `components/lazutils/fpcadds.pas`, it does:
+If you use FPC (without Unicode RTL), we recommend you adjust your code to what CGE and Lazarus do: assume `String` (which is `AnsiString`, without Unicode RTL) has UTF-8. Don't complicate your life dealing with "`AnsiString` may have different encodings depending on current locale" issues.
+
+Lazarus RTL assumes and does exactly the same thing as Castle Game Engine does (when `CASTLE_ANSISTRING_FORCE_UTF8`). See Lazarus sources, in `components/lazutils/fpcadds.pas`, it does:
 
 ```
 {$ifdef UTF8_RTL}
