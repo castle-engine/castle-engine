@@ -1,5 +1,5 @@
 {
-  Copyright 2023-2023 Michalis Kamburelis.
+  Copyright 2023-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -15,6 +15,8 @@
 
 { Useful utilities for tests. }
 unit CastleTestUtils;
+
+{$I ../../../src/common_includes/castleconf.inc}
 
 interface
 
