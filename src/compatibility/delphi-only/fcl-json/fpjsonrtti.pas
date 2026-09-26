@@ -1,9 +1,6 @@
 unit fpjsonrtti;
 
-{$I castleconf.inc} // avoid useless Delphi warnings
-{$warn USE_BEFORE_DEF off}
-
-/// {$mode objfpc}
+{$I fcl-json.inc}
 
 interface
 
@@ -438,7 +435,7 @@ Var
   TI : PTypeInfo;
 begin
   PI:=PropInfo;
-  TI:=PropInfo^.PropType^;
+  TI:=PropInfo^.PropType{$ifndef FPC}^{$endif};
   case TI^.Kind of
     tkUnknown :
       Error(SErrUnknownPropertyKind,[PI^.Name]);
@@ -446,18 +443,23 @@ begin
     tkEnumeration,
     tkSet,
     tkChar,
+    { CGE: tkBool exists only in FPC. With Delphi, a Boolean property
+      has kind tkEnumeration. }
+    {$ifdef FPC}tkBool,{$endif}
     tkWChar:
       SetOrdProp(AObject,PI,0);
-    ///tkBool,
     ///tkQWord,
     ///tkUChar,
     tkInt64 :
       SetInt64Prop(AObject,PI,0);
     tkFloat :
       SetFloatProp(AObject,PI,0.0);
+    { CGE: tkAString (AnsiString) exists only in FPC.
+      With Delphi, an AnsiString property has kind tkLString. }
     tkString,
+    {$ifdef FPC}tkAString,{$endif}
     tkLString:
-      SetAnsiStrProp(AObject,PI,'');
+      {$ifdef FPC}SetStrProp{$else}SetAnsiStrProp{$endif}(AObject,PI,'');
     tkWString :
       SetWideStrProp(AObject,PI,'');
     tkVariant:
@@ -490,7 +492,7 @@ Var
   JS : TJSONStringType;
 begin
   PI:=PropInfo;
-  TI:=PropInfo^.PropType^;
+  TI:=PropInfo^.PropType{$ifndef FPC}^{$endif};
   case TI^.Kind of
     tkUnknown :
       Error(SErrUnknownPropertyKind,[PI^.Name]);
@@ -523,7 +525,7 @@ begin
       else if (PropData.JSONType=jtArray) then
         begin
         A:=PropData as TJSONArray;
-        TI:=GetTypeData(TI)^.CompType^;
+        TI:=GetTypeData(TI)^.CompType{$ifndef FPC}^{$endif};
         S:=0;
         For I:=0 to A.Count-1 do
           begin
@@ -541,7 +543,10 @@ begin
       If (JS<>'') then
         SetOrdProp(AObject,PI,Ord(JS[1]));
       end;
+    { CGE: tkAString (AnsiString) exists only in FPC.
+      With Delphi, an AnsiString property has kind tkLString. }
     tkString,
+    {$ifdef FPC}tkAString,{$endif}
     tkLString:
       SetStrProp(AObject,PI,PropData.AsString);
     tkWString :
@@ -556,8 +561,11 @@ begin
       If (JS<>'') then
         SetOrdProp(AObject,PI,Ord(JS[1]));
       end;
-///    tkBool :
-///      SetOrdProp(AObject,PI,Ord(PropData.AsBoolean));
+    { CGE: tkBool exists only in FPC, see comments above. }
+    {$ifdef FPC}
+    tkBool :
+      SetOrdProp(AObject,PI,Ord(PropData.AsBoolean));
+    {$endif}
 ///    tkQWord :
 ///      SetOrdProp(AObject,PI,Trunc(PropData.AsFloat));
 ///    tkObject,
@@ -697,7 +705,7 @@ begin
     FOnGetObject(Self,AInstance,PropInfo,D,APropName,Result);
   If (Result=Nil) and (AInstance is TComponent) and Assigned(PropInfo) then
      begin
-     C:=GetTypeData(Propinfo^.PropType^)^.ClassType;
+     C:=GetTypeData(Propinfo^.PropType{$ifndef FPC}^{$endif})^.ClassType;
      If C.InheritsFrom(TComponent) then
        Result:=TComponentClass(C).Create(TComponent(AInstance));
      end;
@@ -767,7 +775,7 @@ begin
   Result:=TJSONArray.Create;
   try
     FChildren:=Result;
-    THackComponent(AComponent).GetChildren(StreamChild, AComponent);
+    THackComponent(AComponent).GetChildren({$ifdef FPC}@{$endif}StreamChild, AComponent);
   except
     FreeAndNil(Result);
     Raise;
@@ -1138,7 +1146,7 @@ Var
 begin
   Result:=Nil;
   PI:=PropertyInfo;
-  PT:=PI^.PropType^;
+  PT:=PI^.PropType{$ifndef FPC}^{$endif};
   Case PT^.Kind of
     tkUnknown :
       Error(SErrUnknownPropertyKind,[PI^.Name]);
@@ -1159,7 +1167,7 @@ begin
         Result:=TJSONString.Create(GetSetProp(AObject,PI,jsoSetBrackets in Options))
       else
         begin
-        PT:=GetTypeData(PT)^.CompType^;
+        PT:=GetTypeData(PT)^.CompType{$ifndef FPC}^{$endif};
         S:=GetOrdProp(AObject,PI);
         Result:=TJSONArray.Create;
         try
@@ -1176,9 +1184,11 @@ begin
         end;
     tkChar:
       Result:=TJSONString.Create(Char(GetOrdProp(AObject,PI)));
+    { CGE: tkAString (AnsiString) exists only in FPC.
+      With Delphi, an AnsiString property has kind tkLString. }
     tkString,
+    {$ifdef FPC}tkAString,{$endif}
     tkLString:
-///    tkAString:
       Result:=TJSONString.Create(GetStrProp(AObject,PI));
     tkWString :
       Result:=TJSONString.Create(GetWideStrProp(AObject,PI));
@@ -1188,8 +1198,11 @@ begin
       Result:=StreamClassProperty(GetObjectProp(AObject,PI));
     tkWChar :
       Result:=TJSONString.Create(WideChar(GetOrdProp(AObject,PI)));
-///    tkBool :
-///      Result:=TJSONBoolean.Create(GetOrdProp(AObject,PropertyInfo)<>0);
+    { CGE: tkBool exists only in FPC, see comments above. }
+    {$ifdef FPC}
+    tkBool :
+      Result:=TJSONBoolean.Create(GetOrdProp(AObject,PropertyInfo)<>0);
+    {$endif}
     tkInt64 :
       { Note: using GetOrdProp will result in non-sense values on Delphi.
         And serializing e.g. "TComponent.Tag" on 64-bit systems relies on this. }

@@ -373,7 +373,7 @@ procedure TLoggerNode.EventWriteReceive(
     Writer: TX3DWriterNames;
     StringStream: TStringStream;
   begin
-    StringStream := TStringStream.Create('');
+    StringStream := TStringStream.Create('', TEncoding.UTF8);
     try
       Writer := TX3DWriterNames.Create(StringStream, X3DVersion, xeClassic);
       try

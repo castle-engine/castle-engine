@@ -36,7 +36,7 @@ begin
   if AUrl = '' then Exit;
 
   {$ifdef FPC}
-  ws := UTF8Decode(AUrl);
+  ws := StringToUtf16(AUrl);
   {$else}
   ws := AUrl;
   {$endif}

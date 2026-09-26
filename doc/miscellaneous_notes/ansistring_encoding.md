@@ -1,0 +1,201 @@
+# CASTLE_ANSISTRING_xxx symbols, AnsiString vs Utf8String in Castle Game Engine
+
+## Read before
+
+To understand this page, it may be helpful to first read the [Castle Game Engine coding conventions on strings](https://castle-engine.io/coding_conventions#strings_unicode). This document goes into some details, that are outlined in a friendlier way in the coding conventions:)
+
+## Summary
+
+- When `CASTLE_ANSISTRING_FORCE_UTF8` is defined, our engine does `SetMultiByteConversionCodePage(CP_UTF8)` at initialization, which tells that all `AnsiString` are to be interpreted as UTF-8.
+
+- In contrast, when `CASTLE_ANSISTRING_UNCHANGED` is defined, `SetMultiByteConversionCodePage(CP_UTF8)` is not done, and `AnsiString` will use the system-specific encoding (like Windows-1252 on Windows).
+
+If neither symbol is defined:
+
+- With FPC, we default to `CASTLE_ANSISTRING_FORCE_UTF8` . Note that this is also what Lazarus LCL is doing. This is standard _Castle Game Engine_ behavior for years.
+
+- With Delphi, we default to `CASTLE_ANSISTRING_UNCHANGED`, since September 2026. Note that with Delphi, default `String` is `UnicodeString` anyway, so the impact of this is small anyway (as most code, in our engine and likely your games too, uses `String` rather than `AnsiString` or `Utf8String`).
+
+## What is CASTLE_ANSISTRING_FORCE_UTF8 exactly doing
+
+When `CASTLE_ANSISTRING_FORCE_UTF8` is defined then _Castle Game Engine_ (just like _Lazarus LCL_) assumes that `AnsiString` contains UTF-8. In `initialization` of CastleUtils, we call:
+
+- `SetMultiByteConversionCodePage(CP_UTF8)` (for both FPC and Delphi)
+- `SetMultiByteRTLFileSystemCodePage(CP_UTF8)` (for FPC only, since Delphi RTL uses 16-bit UnicodeString)
+
+This gives us nice guarantee that `String` is equal to either
+
+- `AnsiString`, and it holds UTF-8
+
+- `UnicodeString` (Delphi or FPC with [Unicode RTL](https://wiki.freepascal.org/FPC_Unicode_RTL)), and it holds UTF-16.
+
+See https://castle-engine.io/coding_conventions#strings_unicode . We happily process strings in a uniform way using `CastleUnicode` routines, and in most cases just using regular Pascal RTL routines for strings.
+
+In contrast, when `CASTLE_ANSISTRING_UNCHANGED` is defined, we don't do the above calls. In this case we have to be prepared that we have:
+
+- `AnsiString`, with potentially system-specific encoding (like Windows-1252 on Windows),
+
+- `Utf8String` must be used to hold UTF-8,
+
+- and we have `UnicodeString` (Delphi or FPC with [Unicode RTL](https://wiki.freepascal.org/FPC_Unicode_RTL)), and it holds UTF-16.
+
+You can define either symbol e.g.
+- by adding `<define>` in [CastleEngineManifest.xml](https://castle-engine.io/project_manifest#_compiler_options_and_paths) if you compile using CGE engine,
+- or adding a compilation symbol in Delphi project options if you compile using Delphi IDE,
+- or any other place you can define a compilation symbol that affects compilation of Castle Game Engine units.
+
+## CASTLE_ANSISTRING_UNCHANGED is supported only for Delphi, unless you REALLY know what you're doing:)
+
+The `CASTLE_ANSISTRING_UNCHANGED` option is only supported (and is even default) with Delphi.
+
+We made sure everything works in this case, automated tests pass (and they exercise some funny edge-cases, like Spine JSON files with non-ASCII slot names, non-ASCII characters in filenames, in ZIP entries etc.). `AnsiString` can contain any platform-specific encoding. 90% of the engine just uses `String` anyway (which equals `UnicodeString` in Delphi). In rare cases where we needed _"8-bit string with UTF-8, not any other, encoding"_, we used `Utf8String` and we have extensive automatic tests (see e.g. `TTestCompiler.TestAnsiStringUtf8Conversion`) to make sure it all rocks.
+
+The `CASTLE_ANSISTRING_UNCHANGED` option may also be supported with FPC _Unicode RTL_ in the future.
+
+But `CASTLE_ANSISTRING_UNCHANGED` option is **not supported** and **is known to cause bugs** when used with FPC (without _Unicode RTL_).
+
+We initially hoped to support it also for FPC (even without _Unicode RTL_), in situations where `String` = `AnsiString`, like our default, matching Lazarus default, `{$mode objfpc}{$H+}`). You can test it by defining both symbols `CASTLE_ANSISTRING_UNCHANGED`, and `I_UNDERSTAND_THAT_NON_ASCII_CHARACTERS_ARE_BROKEN`. But then some things are known to be broken.
+
+1. See automated tests, `TTestCompiler.TestAnsiStringUtf8Conversion_AnsiDefault`. FPC doesn't do automatic conversion between `Utf8String` and non-UTF-8 `AnsiString` (unlike Delphi). So we cannot support this configuration. Realistically, it may work, as long as you only exchange ASCII text with our engine.
+
+2. We also cannot easily tell FPC "all our 8-bit strings are UTF-8". We would have to define own string type, like
+
+    ```delphi
+    { Preferred String type throughout Castle Game Engine codebase.
+      This string type has data encoded as either:
+
+      @unorderedList(
+        @item(UTF-8. With compilers that default to String=AnsiString,
+          which means FPC (without Unicode RTL).)
+        @item(or UTF-16. With compilers that default to String=UnicodeString,
+          which means Delphi or FPC with Unicode RTL.)
+      ) }
+    CastleString =
+      {$if defined(CASTLE_ANSISTRING_UNCHANGED) and defined(FPC)}
+        Utf8String
+      {$else}
+        String
+      {$endif};
+    ```
+
+    and use it *everywhere* throughout the engine. This would make a big complication to contributing to the engine, every newcomer would need to read _"what is `CastleString` type"_. But we want simpler philosophy: _"Castle Game Engine just uses your default `String`, and you don't need to worry about it"_.
+
+    We tried using FPC macro `{$define String:=Utf8String}` in `castleconf.inc` to solve this, but this is also impossible, as FPC macros cannot redefine keywords.
+
+If you insist, and force engine to use `CASTLE_ANSISTRING_UNCHANGED` with FPC by also adding `I_UNDERSTAND_THAT_NON_ASCII_CHARACTERS_ARE_BROKEN`, be aware that subtle things will break. Our engine assumes UTF-8 when using routines like JSON, XML processing, font display, file opening/saving. We do not guarantee in such case what happens if you try to use non-ASCII characters with our engine.
+
+## TODO: FPC Unicode RTL support
+
+FPC has an option to use [Unicode RTL](https://wiki.freepascal.org/FPC_Unicode_RTL) in which case `String` = `UnicodeString` and things are similar to modern Delphi. It seems there's both `{$modeswitch unicodestrings}` and (doing more things) `{$mode delphiunicode}`.
+
+We don't support yet building engine in this mode. We need to fix some assumptions to make it work. At this point, some pieces of engine assume that FPC -> implies we have 8-bit `String` equal to `AnsiString`. To support FPC Unicode RTL, these conditions should change (check `FPC_UNICODESTRINGS`; you can also check `if SizeOf(Char) = 2`, but not before `interface` of units it seems, as `Char` is unknown then).
+
+If you need this, please contact us and we will finish it sooner:)
+
+## Automatic encoding conversions
+
+When `CASTLE_ANSISTRING_UNCHANGED` is defined, and your codebase uses `AnsiString` with native platform encoding, you rely on automatic encoding conversions between
+
+- `AnsiString` and `UnicodeString`
+
+- `AnsiString` and `Utf8String`. Note that there are some quirks in how this works, and FPC 3.2.2 is not perfectly compatible with Delphi. See the tests in `TTestCompiler.TestAnsiStringUtf8Conversion` for details.
+
+### File names
+
+Throughout the engine, we use URLs, typed as just `String`.
+
+The Unicode characters inside URLs are percent-encoded, following the URL standard. ( Underneath, they always encode UTF-8 bytes, this is following URL standard and independent from compiler / `String` meaning, but you should not be concerned about this. ) See `CastleUriUtils` for various operations, including encoding and decoding.
+
+We also accept regular filenames in most engine routines, and automatically convert them to URLs underneath. Unicode characters in filenames are converted correctly just like in any other `String` usage.
+
+We recommend you also adopt URLs everywhere, as they can just express more things (see https://castle-engine.io/url ) and we support every useful operation on them (see `CastleUriUtils`). But this is not forced.
+
+### Text files contents
+
+Routines that read / write text file contents as 8-bit strings use `Utf8String`, not `AnsiString` to represent these contents:
+
+- `FileToString`, `StringToFile` (in `CastleFilesUtils`)
+- `StreamToString`, `ReadGrowingStreamToString`, `MemoryStreamLoadFromString`, `WriteStr/WritelnStr` (in `CastleClassUtils`)
+- `StreamReadZeroEndString`, `StreamReadUpto_NotEOS`, `StreamReadUpto_EOS`, `TPeekCharStream.ReadUpto` (in `CastleClassUtils`)
+
+This way, we assume UTF-8 in all text files, and `Utf8String` makes this explicit. Assigning `Utf8String` to `String` (or passing a `String` to these routines) will do the right thing, in all supported situations. Here is what happens:
+
+- When `String` is 16-bit (`UnicodeString`) (in Delphi or FPC Unicode RTL), then UTF-8 <-> UTF-16 conversion is done automatically,
+
+- When `String` is 8-bit (`AnsiString`) (in FPC without Unicode RTL), when `CASTLE_ANSISTRING_FORCE_UTF8`, then UTF-8 <-> UTF-8 does nothing,
+
+- _Does not work, because of FPC bug, so we don't support this combination_: When `String` is 8-bit (`AnsiString`) (in FPC without Unicode RTL), with `CASTLE_ANSISTRING_UNCHANGED`, then UTF-8 <-> platform encoding conversion in `AnsiString` is _not_ done automatically by FPC. See `TTestCompiler.TestAnsiStringUtf8Conversion_AnsiDefault`, testing `AnsiString` to/from `Utf8String`: FPC fails doing implicit conversions, only Delphi does them correctly. Use explicit `Utf8ToAnsi` / `AnsiToUtf8` to make it work with both FPC and Delphi.
+
+Also, some higher-level routines for reading and writing text files have API exposing just `String`:
+
+- `TCastleTextReader` and `TCastleTextWriter` (in `CastleDownload`)
+
+Testcases in `TTestDownload` check various combinations with various compilers.
+
+## Standard RTL usage
+
+### Use `TEncoding.UTF8` with `TStringStream.Create`
+
+When using standard `TStringStream`, be sure to pass UTF-8 encoding (`TEncoding.UTF8`), otherwise Delphi will use system-specific ANSI encoding.
+
+```delphi
+MyStringStream := TStringStream.Create('foo', TEncoding.UTF8);
+```
+
+For Delphi, this seems necessary with both `CASTLE_ANSISTRING_FORCE_UTF8` and with `CASTLE_ANSISTRING_UNCHANGED`. The default system-specific ANSI encoding is queried early internally and cached (so it is not affected by whether we do `SetMultiByteConversionCodePage(CP_UTF8)`) and it is used as default, if no encoding is explicitly specified.
+
+### Do not use `Utf8Decode` with `String` parameter
+
+Beware of calling `Utf8Decode` with a `String` parameter.
+
+Reason on Delphi: As `Utf8Decode` takes 8-bit string, such call will convert 16-bit `String=UnicodeString` to `RawByteString` first, which may be lossy. See `StringToUtf16` documentation.
+
+Use our `StringToUtf16` and `Utf16ToString` to convert between `String` and UTF-16 (`UnicodeString`) safely.
+
+### Use `StringToUtf16` and `Utf16ToString`
+
+You should not "just assign" a `String` to a `UnicodeString` or vice versa.
+
+With FPC (where `String=AnsiString`) this would depend on WideStringManager being installed, and on Unix (without `CWString` unit) it would map characters >= 256 to "?" (when going from UTF-16 to `String=AnsiString`). Our `StringToUtf16` and `Utf16ToString` explicitly handle UTF-8 conversions.
+
+### Use (at least) `joUTF8` with `TJSONParser.Create`
+
+Create JSON parser (from `FpJson` and friends) like this:
+
+```delphi
+P := TJSONParser.Create(Stream, [joComments, joUTF8]);
+```
+
+Passing `joUTF8` explicitly says that the JSON is UTF-8.
+
+This doesn't matter for Delphi: our `fcl-json` fork for Delphi always assumes UTF-8.
+
+This matters only for FPC, and only when `DefaultSystemCodePage` <> CP_UTF8,
+so only when `CASTLE_ANSISTRING_UNCHANGED`
+and `I_UNDERSTAND_THAT_NON_ASCII_CHARACTERS_ARE_BROKEN` are defined.
+That's because FPC fcl-json tests for
+
+```
+(joUTF8 in Options) or (DefaultSystemCodePage = CP_UTF8)
+```
+
+With `CASTLE_ANSISTRING_UNCHANGED`, we need `joUTF8` to get correct UTF-8 parsing in FPC fcl-json. While this combination is not officially supported (hence `I_UNDERSTAND_THAT_NON_ASCII_CHARACTERS_ARE_BROKEN`), this bit works OK.
+
+## Recommendations and what Lazarus does
+
+If you use FPC (without Unicode RTL), we recommend you adjust your code to what CGE and Lazarus do: assume `String` (which is `AnsiString`, without Unicode RTL) has UTF-8. Don't complicate your life dealing with "`AnsiString` may have different encodings depending on current locale" issues.
+
+Lazarus RTL assumes and does exactly the same thing as Castle Game Engine does (when `CASTLE_ANSISTRING_FORCE_UTF8`). See Lazarus sources, in `components/lazutils/fpcadds.pas`, it does:
+
+```
+{$ifdef UTF8_RTL}
+initialization
+  SetMultiByteConversionCodePage(CP_UTF8);
+  // SetMultiByteFileSystemCodePage(CP_UTF8); not needed, this is the default under Windows
+  SetMultiByteRTLFileSystemCodePage(CP_UTF8);
+{$IFEND}
+```
+
+## TODO
+
+- Is it possible to support `CASTLE_ANSISTRING_UNCHANGED` with fpc 3.3.1? Maybe it supports doing macro `String:=Utf8String` and then automatic utf-8/non-utf-8 conversions (like Delphi does)? Tests so far focused on stable FPC 3.2.2.

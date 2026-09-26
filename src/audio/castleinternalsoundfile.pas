@@ -456,7 +456,11 @@ class function TWAVReader.Read(const Url: String; const Stream: TStream;
 type
   TID = array [0..3] of AnsiChar;
 
-  function IdCompare(const id: TID; const s: AnsiString): boolean;
+  { Compare ID matches given string.
+    Note: This is used with ASCII-only data in practice,
+    so S can be any 8-bit string type. Using RawByteString to make it clear
+    that we want no conversions. }
+  function IdCompare(const id: TID; const s: RawByteString): boolean;
   begin
     Result := (Length(s) = 4) and (id[0] = s[1]) and (id[1] = s[2])
                               and (id[2] = s[3]) and (id[3] = s[4]);

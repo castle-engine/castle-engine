@@ -819,7 +819,7 @@ const
   var
     SStream: TStringStream;
   begin
-    SStream := TStringStream.Create(Contents);
+    SStream := TStringStream.Create(Contents, TEncoding.UTF8);
     try
       Result := LoadNode(SStream, BaseUrl, GltfJsonMimeType);
     finally FreeAndNil(SStream) end;

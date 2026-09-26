@@ -327,18 +327,13 @@ procedure TPlyReader.ReadHeader;
     may switch to binary in the middle. }
   function ReadLine: String;
   var
-    C: AnsiChar;
-    S: AnsiString;
+    S: Utf8String;
   begin
-    S := '';
-    while Stream.Read(C, SizeOf(C)) <> 0 do
-    begin
-      // support LF or CRLF line endings
-      if C = #10 then
-        Break;
-      if C <> #13 then // just skip #13, assuming it's part of CRLF
-        S := S + C;
-    end;
+    // support LF or CRLF line endings
+    S := StreamReadUpto_NotEOS(Stream, [#10]);
+    // Strip #13, in case line ending was CRLF
+    if (Length(S) > 0) and (S[Length(S)] = #13) then
+      SetLength(S, Length(S) - 1);
     Result := S;
   end;
 

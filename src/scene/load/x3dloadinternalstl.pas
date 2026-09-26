@@ -319,7 +319,7 @@ end;
 procedure SaveSTL(const Node: TX3DRootNode; const Stream: TStream;
   const SaveOptions: TCastleSceneSaveOptions);
 var
-  HeaderStr: AnsiString;
+  HeaderStr: Utf8String; // we only use ASCII characters in this string anyway
   TriangleCount: UInt32;
   Helper: TSaveStlHelper;
   Scene: TCastleSceneCore;

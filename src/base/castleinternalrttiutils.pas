@@ -1,5 +1,5 @@
 {
-  Copyright 2021-2024 Michalis Kamburelis.
+  Copyright 2021-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -307,10 +307,10 @@ begin
           tkVariant:
             Value := GetVariantProp(PropObject, PropInfo);
           tkWChar:
-            Value := UTF8Encode(WideChar(GetOrdProp(PropObject, PropInfo)));
+            Value := Utf16ToString(WideChar(GetOrdProp(PropObject, PropInfo)));
           {$ifdef FPC}
           tkUChar:
-            Value := UTF8Encode(UnicodeChar(GetOrdProp(PropObject, PropInfo)));
+            Value := Utf16ToString(UnicodeChar(GetOrdProp(PropObject, PropInfo)));
           {$endif}
           // TODO: These are unhandled now:
           // tkSet:
@@ -574,9 +574,9 @@ begin
       Result := GetAnsiStrProp(PropObject, PropInfo);
 {$endif}
     tkWString:
-      Result := UTF8Encode(GetWideStrProp(PropObject, PropInfo));
+      Result := Utf16ToString(GetWideStrProp(PropObject, PropInfo));
     tkUString:
-      Result := UTF8Encode(GetUnicodeStrProp(PropObject, PropInfo));
+      Result := Utf16ToString(GetUnicodeStrProp(PropObject, PropInfo));
     else
       raise EInternalError.CreateFmt('PropertyGetString called for non-string property "%s"', [
         PropInfo^.Name
@@ -596,9 +596,9 @@ begin
       SetAnsiStrProp(PropObject, PropInfo, Value);
 {$endif}
     tkWString:
-      SetWideStrProp(PropObject, PropInfo, UTF8Decode(Value));
+      SetWideStrProp(PropObject, PropInfo, StringToUtf16(Value));
     tkUString:
-      SetUnicodeStrProp(PropObject, PropInfo, UTF8Decode(Value));
+      SetUnicodeStrProp(PropObject, PropInfo, StringToUtf16(Value));
     else
       raise EInternalError.CreateFmt('PropertySetString called for non-string property "%s"', [
         PropInfo^.Name
