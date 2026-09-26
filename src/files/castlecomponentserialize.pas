@@ -1308,18 +1308,22 @@ function InternalStringToComponent(const Contents: String;
   const LoadInfo: TInternalComponentLoadInfo): TComponent;
 var
   Factory: TCastleComponentFactory;
-  ContentsStringStream: TStringStream;
+  ContentsStream: TMemoryStream;
   ComponentMap: TComponentMap;
 begin
-  ContentsStringStream := TStringStream.Create(Contents);
+  { Use MemoryStreamLoadFromString, not TStringStream.Create(Contents),
+    to be sure the stream contains UTF-8 (regardless if Contents are
+    UnicodeString or AnsiString, regardless of what is default TStringStream
+    behavior -- it has overloads with TEncoding). }
+  ContentsStream := MemoryStreamLoadFromString(Contents);
   try
     Factory := TCastleComponentFactory.Create(nil);
     try
-      Factory.LoadFromStream(ContentsStringStream, '');
+      Factory.LoadFromStream(ContentsStream, '');
       Result := Factory.InternalComponentLoad(Owner, ComponentMap, LoadInfo);
       FreeAndNil(ComponentMap);
     finally FreeAndNil(Factory) end;
-  finally FreeAndNil(ContentsStringStream) end;
+  finally FreeAndNil(ContentsStream) end;
 end;
 
 function ComponentLoad(const Url: String; const Owner: TComponent): TComponent;

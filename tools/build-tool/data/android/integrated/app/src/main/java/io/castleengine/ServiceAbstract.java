@@ -130,14 +130,37 @@ public abstract class ServiceAbstract
     /**
      * Split the string by char code.
      *
-     * The splitting is done "strictly", which means that we always return exactly
-     * one more part than the occurrences of delimiter in the source string.
+     * allowEmptyList determines how to treat input equal to "", and if
+     * on return we can ever get an empty list.
      *
-     * This is an equivalent of Object Pascal SplitString function in CastleStringUtils,
-     * and the reverse of Object Pascal GlueStrings function in CastleStringUtils.
+     * When allowEmptyList = false (default):
+     * - The splitting is done "strictly", which means that we always return exactly
+     *   one more part than the occurrences of delimiter in the source string.
+     * - This is an equivalent of Object Pascal SplitString function in CastleStringUtils,
+     *   and the reverse of Object Pascal GlueStrings function in CastleStringUtils.
+     * - This in particular means that when input is "", we return a list with one
+     *   element "".
+     * - This means you can never get an empty list when allowEmptyList is false.
+     *   If the Pascal code (typically using CastleMessaging to send us message)
+     *   started with an empty list, so it did "GlueStrings([], ...)", then
+     *   processing on Java side, with "splitString(..., .., false)" will result
+     *   in non-empty list.
+     *
+     * When allowEmptyList = true:
+     * - The splitting will result in an empty list if the input is empty.
+     * - So when Pascal code does "GlueStrings([], ...)", Java correctly
+     *   receives an empty list as well.
+     * - In turn, if Pascal code does "GlueStrings([''], ...)", then
+     *   this will be lost: Java code processing this with "splitString(..., ..., true)"
+     *   will not preserve the empty string, it will have an empty list.
      */
-    protected static String[] splitString(String input, int delimiterCharCode)
+    protected static String[] splitString(String input, int delimiterCharCode,
+        boolean allowEmptyList)
     {
+        if (allowEmptyList && input.isEmpty()) {
+            return new String[0];
+        }
+
         String delimiter = Character.toString((char) delimiterCharCode);
 
         /* Use -1 to avoid cutting off empty trailing strings.
@@ -152,6 +175,11 @@ public abstract class ServiceAbstract
         Pattern p = Pattern.compile(delimiter, Pattern.LITERAL);
         return p.split(input, -1);
         //return input.split(delimiter, -1);
+    }
+
+    protected static String[] splitString(String input, int delimiterCharCode)
+    {
+        return splitString(input, delimiterCharCode, false);
     }
 
     /**

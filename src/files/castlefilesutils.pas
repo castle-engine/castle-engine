@@ -416,12 +416,29 @@ function BundlePath: string;
 {$endif}
 
 { Read file or URL contents to a string.
-  MimeType is returned, calculated just like the @link(Download) function. }
-function FileToString(const Url: String;
-  out MimeType: string): AnsiString; overload;
-function FileToString(const Url: String): AnsiString; overload;
+  MimeType is returned, calculated just like the @link(Download) function.
 
-procedure StringToFile(const Url: String; const Contents: AnsiString);
+  Returns 8-bit string (Utf8String) and assumes the file contains UTF-8,
+  which is the encoding we assume for all text files in Castle Game Engine.
+  The resulting @code(Utf8String) can be assigned to a @code(String)
+  (or any other string type) and the encoding will be correct.
+  See @url(https://castle-engine.io/coding_conventions#strings_unicode String encoding in Castle Game Engine)
+  and @url(https://github.com/castle-engine/castle-engine/blob/master/doc/miscellaneous_notes/ansistring_encoding.md AnsiString encoding)
+  for details what happens. }
+function FileToString(const Url: String;
+  out MimeType: string): Utf8String; overload;
+function FileToString(const Url: String): Utf8String; overload;
+
+{ Save string to a file or URL.
+
+  Takes 8-bit string (Utf8String) and makes the file contain UTF-8,
+  which is the encoding we assume for all text files in Castle Game Engine.
+  The @code(Utf8String) can be assigned from / to a @code(String)
+  (or any other string type) and the encoding will be correct.
+  See @url(https://castle-engine.io/coding_conventions#strings_unicode String encoding in Castle Game Engine)
+  and @url(https://github.com/castle-engine/castle-engine/blob/master/doc/miscellaneous_notes/ansistring_encoding.md AnsiString encoding)
+  for details what happens. }
+procedure StringToFile(const Url: String; const Contents: Utf8String);
 
 { Recommended path where to put screenshots on the current platform.
   Always ends with PathDelim and returns a directory that exists.
@@ -998,15 +1015,23 @@ end;
 
 { Get temporary FileName, also creating this file.
   There seems to be no cross-platform function for this in Delphi. }
-function GetTempFileNameDelphi(const Prefix: AnsiString): AnsiString;
+function GetTempFileNameDelphi(const Prefix: String): String;
 {$ifdef MSWINDOWS}
 var
-  MyPath, MyFileName: array [0..MAX_PATH] of AnsiChar;
+  MyPath, MyFileName: array [0..MAX_PATH] of WideChar;
 begin
-  FillChar(MyPath, MAX_PATH, 0);
-  FillChar(MyFileName, MAX_PATH, 0);
-  OSCheck(GetTempPathA(SizeOf(MyPath), MyPath) <> 0);
-  OSCheck(GetTempFileNameA(MyPath, PAnsiChar(Prefix), 0, MyFileName) <> 0);
+  { Use the "wide" (UTF-16) WinAPI versions, and String, to work with any
+    characters in the temporary path.
+    Using the "ansi" versions (GetTempPathA, GetTempFileNameA) would return
+    the path in the system codepage, which is not what AnsiString holds
+    when we call SetMultiByteConversionCodePage(CP_UTF8)
+    (which may be done, depending on
+    CASTLE_ANSISTRING_UNCHANGED / CASTLE_ANSISTRING_FORCE_UTF8). }
+  FillChar(MyPath, SizeOf(MyPath), 0);
+  FillChar(MyFileName, SizeOf(MyFileName), 0);
+  { Note: GetTempPathW size is in characters (not bytes). }
+  OSCheck(GetTempPathW(Length(MyPath), MyPath) <> 0);
+  OSCheck(GetTempFileNameW(MyPath, PWideChar(Prefix), 0, MyFileName) <> 0);
   Result := MyFileName;
 {$endif}
 {$ifdef UNIX}
@@ -1112,7 +1137,7 @@ end;
 {$endif DARWIN}
 
 function FileToString(const Url: String;
-  out MimeType: string): AnsiString;
+  out MimeType: string): Utf8String;
 var
   F: TStream;
 begin
@@ -1130,14 +1155,14 @@ begin
   finally FreeAndNil(F) end;
 end;
 
-function FileToString(const Url: String): AnsiString;
+function FileToString(const Url: String): Utf8String;
 var
   MimeType: string;
 begin
   Result := FileToString(Url, MimeType { ignored });
 end;
 
-procedure StringToFile(const Url: String; const Contents: AnsiString);
+procedure StringToFile(const Url: String; const Contents: Utf8String);
 var
   F: TStream;
 begin

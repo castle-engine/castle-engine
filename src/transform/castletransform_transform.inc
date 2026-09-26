@@ -545,7 +545,7 @@
       TODO: The names LocalRender, TRenderParams are now confusing.
       LocalRender is not a method where one should "render" anymore.
       It's a "collection phase". Think of it as
-      "TCastleTranssform.CollectThingsToRender(const Params: ...)"
+      "TCastleTransform.CollectThingsToRender(const Params: ...)"
       and bear with us as we figure out a non-confusing naming around this. }
     procedure LocalRender(const Params: TRenderParams); virtual;
 

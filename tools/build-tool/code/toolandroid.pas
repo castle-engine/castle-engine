@@ -562,6 +562,7 @@ var
   PackageName: String;
   PackageMode: TCompilationMode;
   AndroidProjectPathNoDelim, RandomAndroidProjectPath: String;
+  ServiceManifests: TServiceManifestList;
 begin
   { calculate clean AndroidProjectPath }
   AndroidProjectPathNoDelim := TempOutputPath(Project.Path) +
@@ -594,10 +595,15 @@ begin
 
   CalculateSigningProperties(PackageMode);
 
-  GenerateFromTemplates;
-  GenerateServicesFromTemplates;
-  PackageServices(Project, Project.AndroidServices,
-    'castle-data:/android/services/', AndroidProjectPath);
+  ServiceManifests := LoadServices(Project.AndroidServices, 'castle-data:/android/services/');
+  try
+    { Services may raise the min SDK version, this must be known before
+      GenerateFromTemplates expands ANDROID_MIN_SDK_VERSION. }
+    ApplyServicesAndroidMinSdkVersion(Project, ServiceManifests);
+    GenerateFromTemplates;
+    GenerateServicesFromTemplates;
+    PackageServices(Project, ServiceManifests, AndroidProjectPath);
+  finally FreeAndNil(ServiceManifests) end;
   GenerateIcons;
   GenerateAssets;
   GenerateLocalization;

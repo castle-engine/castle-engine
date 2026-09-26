@@ -1204,8 +1204,12 @@
       that the player can "consume" by colliding with it.
 
       Triggers report collisions through the same events as other rigid bodies:
-      (@link(TCastleRigidBody.OnCollisionEnter), @link(TCastleRigidBody.OnCollisionStay),
-      @link(TCastleRigidBody.OnCollisionExit)). }
+      @unorderedList(
+        @item @link(TCastleRigidBody.OnCollisionEnter),
+        @item @link(TCastleRigidBody.OnCollisionStay),
+        @item @link(TCastleRigidBody.OnCollisionExit).
+      )
+    }
     property Trigger: Boolean read FTrigger write SetTrigger default false;
 
     { Sets CollisionDetectionMode in rigid body to Discrete or ContinuousSweep. }

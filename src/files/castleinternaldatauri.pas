@@ -252,9 +252,9 @@ begin
       end else
       begin
         { In case of Delphi, using MemoryStreamLoadFromString below
-          converts now this 16-bit String into a 8-bit String.
+          converts now this 16-bit String into a 8-bit String (with UTF-8).
           This is necessary, as FileToString and ReadGrowingStreamToString
-          then treat the contents of stream as 8-bit String.
+          then treat the contents of stream as 8-bit String (with UTF-8).
           It may be converted back to 16-bit String later, when
           e.g. ShaderLoadContents loads a data URI that is a shader source.
 

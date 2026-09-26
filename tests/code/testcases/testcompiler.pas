@@ -1,6 +1,9 @@
-// -*- compile-command: "./test_single_testcase.sh TTestCompiler" -*-
+﻿{ Note: This file must have UTF-8 BOM! This makes sure FPC and Delphi
+  interpret CorrectPolishUtf8 literal to contain UTF-8.
+}
+
 {
-  Copyright 2017-2023 Michalis Kamburelis.
+  Copyright 2017-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,7 +17,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ Test some Pascal compiler (FPC, Delphi) stuff. These tests are independent from CGE. }
+{ Test some Pascal compiler (FPC, Delphi) stuff.
+  These tests are independent from CGE. }
 unit TestCompiler;
 
 { Needed to define EXTENDED_EQUALS_DOUBLE on some platforms/compilers. }
@@ -27,16 +31,29 @@ uses
 
 type
   TTestCompiler = class(TCastleTestCase)
+  strict private
+    { Check encoding, in various ways.
+      Declare parameters as RawByteString, not AnsiString or Utf8String,
+      to avoid any implicit conversion when passing parameters. }
+    procedure CheckAnsiPolish(const AnsiPolish: RawByteString);
+    procedure CheckUtf8Polish(const Utf8Polish: RawByteString; const AnsiPolish: RawByteString);
+    procedure CheckBackToAnsi(const AnsiPolish, BackToAnsi: RawByteString);
+  published
     procedure TestIs;
     procedure TestSinglePrecision;
     procedure TestCTypesSizes;
     procedure TestSizes;
     procedure TestPackedOpenArray;
+    procedure TestAnsiStringUtf8Conversion_Ansi1250;
+    procedure TestAnsiStringUtf8Conversion_AnsiDefault;
+    procedure TestAddingIncompleteUtf8;
+    procedure TestUtf8StringInArrayOfConst;
   end;
 
 implementation
 
-uses CTypes, CastleUtils, CastleVectors;
+uses CTypes,
+  CastleUtils, CastleVectors, CastleLog, CastleUnicode;
 
 type
   TFruit = class
@@ -178,6 +195,361 @@ begin
       Vector4(4, 4.2, 4.3, 4.4)
     ], true);
   finally FreeAndNil(Mesh) end;
+end;
+
+{ Common utilities for TestAnsiStringUtf8Conversion_* }
+
+const
+  { This means 'snake moth foal SNAKE MOTH FOAL' in Polish.
+    It happens to use a few special characters from the Polish alphabet.
+    Most Polish words can be written using only ASCII characters,
+    so we deliberately choose a few words that use special Polish letters,
+    to test UTF-8 <-> ANSI conversions.
+
+    Note: This must be declared as Utf8String, otherwise
+    neither FPC nor Delphi give us useful information to compare.
+    If ": Utf8String" is omitted, then FPC and Delphi both report
+    Length(CorrectPolishUtf8) = 29, likely indicating:
+    - FPC: converted it to AnsiString with ANSI encoding
+    - Delphi: converted it to UnicodeString with UTF-16 encoding
+
+    IOW, in neither case do we get UTF-8 by default.
+  }
+  CorrectPolishUtf8: Utf8String = 'wąż ćma źrebię WĄŻ ĆMA ŹREBIĘ';
+
+  { We define contents on AnsiString this way, as assignment like
+
+    AnsiPolish :=
+      'w' +
+      #$B9 + // ą
+      #$BF + // ż
+      ...
+
+    results in wrong characters being assigned.
+    The interpretation may depend on current system codepage,
+    and be overridden by the current file being UTF-8 BOM.
+    Avoid all this: we want to literally specify the bytes in AnsiString,
+    so we use array of Byte,
+    which we will later copy to AnsiString. }
+  AnsiPolishContents: array [1..29] of Byte = (
+    Ord('w'),
+    $B9, // ą
+    $BF, // ż
+    Ord(' '),
+    $E6, // ć
+    Ord('m'),
+    Ord('a'),
+    Ord(' '),
+    $9F, // ź
+    Ord('r'),
+    Ord('e'),
+    Ord('b'),
+    Ord('i'),
+    $EA, // ę
+    Ord(' '),
+
+    Ord('W'),
+    $A5, // Ą
+    $AF, // Ż
+    Ord(' '),
+    $C6, // Ć
+    Ord('M'),
+    Ord('A'),
+    Ord(' '),
+    $8F, // Ź
+    Ord('R'),
+    Ord('E'),
+    Ord('B'),
+    Ord('I'),
+    $CA // Ę
+  );
+
+{ AnsiPolish looks good. }
+procedure TTestCompiler.CheckAnsiPolish(const AnsiPolish: RawByteString);
+begin
+  AssertEquals(1250, StringCodePage(AnsiPolish));
+  AssertEquals($B9, Ord(AnsiPolish[2]));
+end;
+
+{ Utf8Polish looks good. }
+procedure TTestCompiler.CheckUtf8Polish(const Utf8Polish: RawByteString; const AnsiPolish: RawByteString);
+var
+  I: Integer;
+begin
+  AssertEquals(CP_UTF8, StringCodePage(Utf8Polish));
+
+  // UTF-8 uses more bytes than 1-byte for some chars
+  WritelnLog('CheckUtf8Polish: AnsiPolish length = %d, Utf8Polish length = %d', [
+    Length(AnsiPolish),
+    Length(Utf8Polish)
+  ]);
+  AssertTrue(Length(Utf8Polish) > Length(AnsiPolish));
+
+  { Analyze that the bytes in Utf8Polish are indeed UTF-8 encoding of the Polish letters. }
+  AssertEquals(CorrectPolishUtf8, Utf8Polish);
+  AssertEquals(Length(CorrectPolishUtf8), Length(Utf8Polish));
+  for I := 1 to Length(CorrectPolishUtf8) do
+    AssertEquals(Ord(CorrectPolishUtf8[I]), Ord(Utf8Polish[I]));
+end;
+
+{ BackToAnsi looks good and equal to AnsiPolish. }
+procedure TTestCompiler.CheckBackToAnsi(const AnsiPolish, BackToAnsi: RawByteString);
+var
+  I: Integer;
+begin
+  AssertEquals(1250, StringCodePage(BackToAnsi));
+  AssertEquals($B9, Ord(BackToAnsi[2]));
+
+  AssertEquals(AnsiPolish, BackToAnsi);
+  AssertEquals(Length(AnsiPolish), Length(BackToAnsi));
+  for I := 1 to Length(AnsiPolish) do
+    AssertEquals(Ord(AnsiPolish[I]), Ord(BackToAnsi[I]));
+end;
+
+procedure TTestCompiler.TestAnsiStringUtf8Conversion_Ansi1250;
+
+{ Test compiler / RTL behavior of AnsiString(1250) <-> Utf8String conversions.
+
+  This tests that, with CASTLE_ANSISTRING_UNCHANGED,
+  Utf8String will contain UTF-8 encoded data even if regular AnsiString
+  has platform-specific encoding (like Windows-1250 on Polish Windows).
+
+  This test uses explicit declaration "type AnsiString(1250)" and thus
+  should work on any system, regardless of current system codepage.
+
+  As an exception, this testcase will *pass* on (otherwise unsupported)
+  combination of FPC
+  - with CASTLE_ANSISTRING_UNCHANGED defined
+  - with I_UNDERSTAND_THAT_NON_ASCII_CHARACTERS_ARE_BROKEN defined
+  - (but not with FPC 3.2.2 on non-Windows, it seems).
+}
+
+type
+  TAnsiStringPolish = type AnsiString(1250); // Windows-1250, Polish codepage
+var
+  AnsiPolish, BackToAnsi: TAnsiStringPolish;
+  Utf8Polish: System.UTF8String;
+begin
+  (*This check should not be necessary, as we declare TAnsiStringPolish
+    with codepage 1250, so the test should work regardless of current
+    system codepage.
+
+  if DefaultSystemCodePage <> 1250 then
+  begin
+    WritelnLog('DefaultSystemCodePage = %d, not Polish Windows, skipping test', [DefaultSystemCodePage]);
+    AbortTest;
+    Exit;
+  end;
+  WritelnLog('DefaultSystemCodePage = 1250, Polish Windows, proceeding with test');
+  *)
+
+  {$if not defined(CASTLE_ANSISTRING_UNCHANGED)}
+  { If SetMultiByteConversionCodePage(CP_UTF8) was done in CastleUtils
+    initialization:
+    - FPC 3.2.2 will assign UTF-8 codepage to AnsiPolish in this case.
+    - Delphi 12: also, it seems, it will assign UTF-8 codepage to AnsiPolish in this case.
+    Abort this test in this case.
+  }
+  WritelnLog('Aborting TestAnsiStringUtf8Conversion_Ansi1250: due to CASTLE_ANSISTRING_UNCHANGED not defined');
+  AbortTest;
+  Exit;
+  {$endif}
+
+  { This test only makes sense if current system default is 1250. }
+
+  { Manually set bytes following Polish Windows codepage 1250,
+    to be sure we are testing what we want.
+    See https://en.wikipedia.org/wiki/Windows-1250 }
+  SetLength(AnsiPolish, Length(AnsiPolishContents));
+  Move(AnsiPolishContents[1], AnsiPolish[1], Length(AnsiPolishContents));
+  {$ifdef FPC}
+  if StringCodePage(AnsiPolish) = 0 then
+  begin
+    WritelnLog('Aborting TestAnsiStringUtf8Conversion_Ansi1250: StringCodePage(AnsiPolish) = 0, possible with FPC on Linux without locale configured (like in typical Docker or CI environments), skipping test');
+    AbortTest;
+    Exit;
+  end;
+  {$endif}
+  CheckAnsiPolish(AnsiPolish);
+
+  { Both explicit (with AnsiToUtf8 or Utf8ToAnsi) or implicit conversions
+    will work with both FPC and Delphi,
+    as we declared TAnsiStringPolish with codepage 1250. }
+
+  Utf8Polish := AnsiToUtf8(AnsiPolish);
+  CheckUtf8Polish(Utf8Polish, AnsiPolish);
+
+  Utf8Polish := AnsiPolish;
+  CheckUtf8Polish(Utf8Polish, AnsiPolish);
+
+  BackToAnsi := Utf8ToAnsi(Utf8Polish);
+  CheckBackToAnsi(AnsiPolish, BackToAnsi);
+
+  BackToAnsi := Utf8Polish;
+  CheckBackToAnsi(AnsiPolish, BackToAnsi);
+end;
+
+procedure TTestCompiler.TestAnsiStringUtf8Conversion_AnsiDefault;
+
+{ Test compiler / RTL behavior of AnsiString <-> Utf8String conversions.
+
+  Test that, regardless of CASTLE_ANSISTRING_UNCHANGED,
+  Utf8String will contain UTF-8 encoded data even if regular AnsiString
+  has platform-specific encoding (like Windows-1250 on Polish Windows).
+
+  This test uses declaration "AnsiString" and will only make sense
+  if the current system codepage is 1250 (Polish Windows),
+  as we hardcode some test values to Polish Windows codepage 1250.
+  It will be skipped on other systems.
+
+  As an exception, this testcase will *pass* on (otherwise unsupported)
+  combination of FPC
+  - with CASTLE_ANSISTRING_UNCHANGED defined
+  - with I_UNDERSTAND_THAT_NON_ASCII_CHARACTERS_ARE_BROKEN defined.
+}
+
+var
+  AnsiPolish, BackToAnsi: AnsiString;
+  Utf8Polish: System.UTF8String;
+begin
+  { This test only makes sense if current system default is 1250.
+    Note: When not defined CASTLE_ANSISTRING_UNCHANGED,
+    this will be aborted, as DefaultSystemCodePage is then 65001 (UTF-8)
+    and not 1250, for both FPC and Delphi. }
+  if DefaultSystemCodePage <> 1250 then
+  begin
+    WritelnLog('Aborting TestAnsiStringUtf8Conversion_AnsiDefault: DefaultSystemCodePage = %d, not Polish Windows (or CASTLE_ANSISTRING_UNCHANGED not defined, so system is UTF-8), skipping test', [DefaultSystemCodePage]);
+    AbortTest;
+    Exit;
+  end;
+  WritelnLog('DefaultSystemCodePage = 1250, Polish Windows (with CASTLE_ANSISTRING_UNCHANGED defined), proceeding with test');
+
+  { Manually set bytes following Polish Windows codepage 1250,
+    to be sure we are testing what we want.
+    See https://en.wikipedia.org/wiki/Windows-1250 }
+  SetLength(AnsiPolish, Length(AnsiPolishContents));
+  Move(AnsiPolishContents[1], AnsiPolish[1], Length(AnsiPolishContents));
+  CheckAnsiPolish(AnsiPolish);
+
+  { Explicit conversion makes this work with FPC and Delphi.
+    Delphi would work also with implicit conversion "Utf8Polish := AnsiPolish",
+    as this is Polish Windows, but FPC 3.2.2 would not (it will assign codebase
+    1250 to Utf8String, which is not correct).}
+  Utf8Polish := AnsiToUtf8(AnsiPolish);
+  CheckUtf8Polish(Utf8Polish, AnsiPolish);
+
+  {$ifndef FPC}
+  Utf8Polish := AnsiPolish;
+  CheckUtf8Polish(Utf8Polish, AnsiPolish);
+  {$endif}
+
+  BackToAnsi := Utf8ToAnsi(Utf8Polish);
+  CheckBackToAnsi(AnsiPolish, BackToAnsi);
+
+  {$ifndef FPC}
+  BackToAnsi := Utf8Polish;
+  CheckBackToAnsi(AnsiPolish, BackToAnsi);
+  {$endif}
+end;
+
+procedure TTestCompiler.TestAddingIncompleteUtf8;
+
+{ Testing:
+  - both FPC and Delphi,
+  - CASTLE_ANSISTRING_UNCHANGED defined or not,
+  - how to add AnsiChar with an incomplete UTF-8 sequence such
+    that a resulting Utf8String is OK?
+
+  Not valid: using "S := S + C", (always with
+    S: Utf8String;
+    C: AnsiChar;
+  ). Both with and without CASTLE_ANSISTRING_UNCHANGED defined,
+  so both with and without SetMultiByteConversionCodePage(CP_UTF8) call,
+  this fails with Delphi 10.2.
+
+  - With SetMultiByteConversionCodePage(CP_UTF8):
+    after additions, Length(S) is 36.
+
+      Each byte from original got mistakenly
+      added as 3 bytes. Delphi likely replaced it by U+FFFD
+      (3 bytes in UTF-8), as it converted each AnsiChar alone, and a lone byte
+      of a multi-byte sequence is invalid UTF-8.
+
+  - Without SetMultiByteConversionCodePage(CP_UTF8) (Polish Windows)
+    after additions, Length(S) is 28. (Each byte was converted to
+    cp1250 character, and encoded as 2 or 3 bytes.)
+
+  Neither is correct: we wanted Length(S) to be 12,
+  as we add AnsiChar 12 times.
+}
+
+const
+  AddWord: Utf8String = '中文文本';
+var
+  S: Utf8String;
+  C: AnsiChar;
+  I: Integer;
+begin
+  S := '';
+  AssertEquals(4 * 3, Length(AddWord));
+
+  // This is invalid with Delphi 10.2, see comments above.
+  {
+  for I := 1 to Length(AddWord) do
+  begin
+    C := AddWord[I];
+    S := S + C;
+    AssertEquals(CP_UTF8, StringCodePage(S));
+  end;
+  }
+
+  for I := 1 to Length(AddWord) do
+  begin
+    C := AddWord[I];
+    SetLength(S, Length(S) + 1);
+    S[Length(S)] := C; // directly set the last character instead of concatenating
+    AssertEquals(CP_UTF8, StringCodePage(S));
+  end;
+
+  AssertEquals(4 * 3, Length(S));
+  AssertEquals(AddWord, S);
+  AssertEquals(4, StringLength(AddWord));
+  AssertEquals(4, StringLength(S));
+end;
+
+procedure TTestCompiler.TestUtf8StringInArrayOfConst;
+
+{ Test passing Utf8String through "array of const", i.e. to Format.
+
+  Like TestAddingIncompleteUtf8, this is really interesting only with
+  CASTLE_ANSISTRING_UNCHANGED defined, as otherwise the default
+  8-bit encoding is UTF-8 anyway. }
+
+const
+  Utf8Word: Utf8String = '中文文本';
+  { Unicode code points of the same 4 characters.
+    We construct the expected String from them, to not rely on the very
+    conversion that we test here. }
+  WordCodePoints: array [0..3] of TUnicodeChar = ($4E2D, $6587, $6587, $672C);
+var
+  ExpectedStr, FormattedFromUtf8, FormattedFromStr: String;
+  I: Integer;
+begin
+  ExpectedStr := '';
+  for I := 0 to High(WordCodePoints) do
+    ExpectedStr := ExpectedStr + UnicodeCharToString(WordCodePoints[I]);
+  AssertEquals(4, StringLength(ExpectedStr));
+  AssertEquals(4 * 3, Length(Utf8Word));
+
+  { The actual test: Utf8String passed through "array of const". }
+  FormattedFromUtf8 := Format('%s', [Utf8Word]);
+  AssertEquals(ExpectedStr, FormattedFromUtf8);
+  AssertEquals(4, StringLength(FormattedFromUtf8));
+
+  { Also, String passed through "array of const". }
+  FormattedFromStr := Format('%s', [ExpectedStr]);
+  AssertEquals(ExpectedStr, FormattedFromStr);
+  AssertEquals(4, StringLength(FormattedFromStr));
 end;
 
 initialization

@@ -46,8 +46,16 @@ to get here latest Vampyre source code here.
 
 ## Original Vampyre Lazarus packages (LPK) are not used by CGE
 
-The original Vampyre LPK packages (`VampyreImagingPackage.lpk`, `VampyreImagingPackageExt.lpk`) are not used by _Castle Game Engine_. These packages are in [src/vampyre_imaginglib/src/Packages/](https://github.com/galfar/imaginglib/tree/master/Packages) but we remove them from this local copy, during `./sync.sh`.
+The original Vampyre LPK packages (`VampyreImagingPackage.lpk`, `VampyreImagingPackageExt.lpk`) are not used by _Castle Game Engine_. These packages are in [src/vampyre_imaginglib/src/Packages/](https://github.com/galfar/imaginglib/tree/master/Packages) but we remove them from this local copy, during `./sync.sh`, to not confuse people.
 
 This keeps things simple for people who [install CGE from sources](https://castle-engine.io/compiling_from_source.php). The CGE package `castle_engine_base.lpk` just uses Vampyre units directly.
 
 See [this news](https://castle-engine.io/wp/2023/04/22/simpler-castle_base-lazarus-package-no-longer-depends-on-vampyre-lpk/) for more info.
+
+## Support Vampyre Imaging authors
+
+Please support the authors of Vampyre Imaging Library.
+
+- See "Sponsor this project" links from https://github.com/galfar/imaginglib
+
+- Donate via PayPal: https://paypal.me/marekmauder , https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=T5XRJKZWVMPMN&item_name=Donation+to+Vampyre+Imaging+Library&currency_code=USD

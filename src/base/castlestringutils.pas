@@ -1,5 +1,5 @@
 {
-  Copyright 2000-2024 Michalis Kamburelis.
+  Copyright 2000-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -454,7 +454,7 @@ function CreateTokens(const s: string;
       )
     )
 
-    @item(f the Delimiter occurs at the very end of the source string,
+    @item(If the Delimiter occurs at the very end of the source string,
       then the very last part of the resulting list will be an empty string.
 
       @unorderedList(
@@ -569,10 +569,10 @@ type
       @code(%d), but they specify appropriate variable type in Args.)
 
     @item(@code(%s) in Format means a string (will end on the first whitespace)
-      in Data. Args should contain a pointer to an AnsiString
-      on the appropriate position. Note that I mean it --- a pointer
-      to an AnsiString, not just a string typecasted into a pointer.
-      I.e., if S is AnsiString, Args should contain @@S, not Pointer(S).
+      in Data. Args should contain a @italic(pointer) to a String
+      on the appropriate position. Take care: we really mean a pointer
+      to a String, @italic(not a string typecasted into a pointer).
+      I.e., if S is String, Args should contain @@S, not Pointer(S).
 
       Note that a string may be empty in some cases, e.g. Format = '%d %s'
       and Data = '123 ' will result in the empty string as second Args.)
@@ -958,7 +958,7 @@ function PWideCharOrNil(const s: WideString): PWideChar;
 { PAnsiCharOrNil simply returns a Pointer(S), you can think of it as a NO-OP.
   If string is empty, this returns @nil, otherwise it works just like
   PAnsiChar(S): returns a Pointer(S) with appropriate type cast. }
-function PAnsiCharOrNil(const s: AnsiString): PAnsiChar;
+function PAnsiCharOrNil(const s: RawByteString): PAnsiChar;
 
 { Replace any number of consecutive whitespace (including newlines)
   with a single whitespace. This is nice when you have a string
@@ -987,17 +987,26 @@ function TrimEndingNewline(const S: String): String;
 function SizeToStr(const Value: Int64): String;
 
 { Convert String to UTF-16 (UnicodeString).
-  On Delphi (more generally: on compilers where String is already UnicodeString, which is UTF-16),
-  this does nothing.
-  On FPC (more generally: on compilers where String is AnsiString with UTF-8 encoding),
-  this converts UTF-8 into UTF-16 UnicodeString. }
+  On Delphi (more generally: on compilers where String is already UnicodeString,
+  which is UTF-16), this does nothing.
+  On FPC (more generally: on compilers where String is AnsiString
+  with UTF-8 encoding), this converts UTF-8 into UTF-16 UnicodeString.
+
+  Note: Use this routine instead of @code(MyUnicodeString := Utf8Decode(MyString)).
+
+  Reason: With Delphi, MyString is already a UnicodeString, and using
+  @url(https://docwiki.embarcadero.com/Libraries/Florence/en/System.UTF8Decode
+  UTF8Decode) would forcefully convert it to 8-bit String (UTF8Decode takes
+  RawByteString). With CASTLE_ANSISTRING_UNCHANGED, this means converting to
+  system-specific encoding that may not be even able to express all Unicode
+  characters. Then UTF8Decode would convert this, assuming input is UTF-8. }
 function StringToUtf16(const Src: String): UnicodeString; inline;
 
 { Convert UTF-16 (UnicodeString) to String.
-  On Delphi (more generally: on compilers where String is already UnicodeString, which is UTF-16),
-  this does nothing.
-  On FPC (more generally: on compilers where String is AnsiString with UTF-8 encoding),
-  this converts UTF-16 into UTF-8. }
+  On Delphi (more generally: on compilers where String is already UnicodeString,
+  which is UTF-16), this does nothing.
+  On FPC (more generally: on compilers where String is AnsiString with UTF-8
+  encoding), this converts UTF-16 into UTF-8. }
 function Utf16ToString(const Src: UnicodeString): String; inline;
 
 const
@@ -2586,7 +2595,7 @@ begin if s = '' then result := nil else result := PChar(s); end;
 function PWideCharOrNil(const s: WideString): PWideChar;
 begin if s = '' then result := nil else result := PWideChar(s); end;
 
-function PAnsiCharOrNil(const s: AnsiString): PAnsiChar;
+function PAnsiCharOrNil(const s: RawByteString): PAnsiChar;
 begin if s = '' then result := nil else result := PAnsiChar(s); end;
 
 function SCompressWhiteSpace(const S: string): string;
