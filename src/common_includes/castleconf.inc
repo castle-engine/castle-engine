@@ -722,7 +722,7 @@
   See doc/miscellaneous_notes/ansistring_encoding.md for documentation
   what they do. }
 
-// Error if both ar defined
+// Error if both are defined
 {$if defined(CASTLE_ANSISTRING_FORCE_UTF8) and defined(CASTLE_ANSISTRING_UNCHANGED)}
   {$message fatal 'Cannot define both CASTLE_ANSISTRING_FORCE_UTF8 and CASTLE_ANSISTRING_UNCHANGED. Define only one of them, or none (to use default).'}
 {$endif}
