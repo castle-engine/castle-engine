@@ -1,9 +1,3 @@
-{$ifdef CASTLE_DELPHI_PACKAGE}
-  {$if not (defined(ANDROID) or defined(IOS))}
-    {$message fatal 'This unit should not be included in CGE Delphi package, which for now is only for Windows OpenGL.'}
-  {$endif}
-{$endif}
-
 { OpenGL ES 2 and 3 headers for Castle Game Engine.
 
   Origin and copyrights:
@@ -2038,7 +2032,9 @@ begin
 end;
 
 initialization
-  {$ifdef ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION}
+  // when CASTLE_DELPHI_PACKAGE (inside Delphi IDE):
+  // don't needlessly initialize OpenGLES
+  {$if defined(ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION) and (not defined(CASTLE_DELPHI_PACKAGE))}
   GLESInitialization;
   {$endif}
 finalization
