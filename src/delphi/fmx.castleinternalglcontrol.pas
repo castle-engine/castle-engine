@@ -1,5 +1,5 @@
 {
-  Copyright 2022-2023 Michalis Kamburelis.
+  Copyright 2022-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -347,7 +347,9 @@ begin
   try
     if Assigned(OnPaint) then
     begin
+      {$ifdef CASTLE_DELPHI_MOBILE_FMX}
       RenderContext.SynchronizeState;
+      {$endif}
       OnPaint(Self);
     end;
   finally
