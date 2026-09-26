@@ -359,7 +359,8 @@ procedure SaveSchemeToFile(const Scheme: TEmulationSettings; const Filename: str
 implementation
 
 uses
-   IniFiles, Math;
+   IniFiles, Math,
+   CastleStringUtils;
 
 const
   {$EXTERNALSYM MOUSEEVENTF_HWHEEL}
@@ -586,7 +587,7 @@ end;
 ------------------------------------------------------------------------------*}
 procedure T3DConnexionDevice.GetKeyboardKeyInfos(const List: TStrings);
 var iKey: integer;
-    s: widestring;
+    s: String;
 begin
    if not Assigned(FDevice)
     then Exit;
@@ -594,11 +595,11 @@ begin
     then Exit;
    for iKey := 1 to FKeyboard.Keys do begin
       try
-         s := FKeyboard.GetKeyLabel(iKey) + '=' + FKeyboard.GetKeyName(iKey);
+         s := Utf16ToString(FKeyboard.GetKeyLabel(iKey) + '=' + FKeyboard.GetKeyName(iKey));
       except
-         on E: Exception do s := UTF8Decode(E.Message);
+         on E: Exception do s := E.Message;
       end;
-      List.Add(UTF8Encode(s));
+      List.Add(s);
    end;
 end;
 
@@ -609,7 +610,7 @@ end;
 ------------------------------------------------------------------------------*}
 procedure T3DConnexionDevice.GetKeyboardKeyLabels(const List: TStrings);
 var iKey: integer;
-    s: widestring;
+    s: String;
 begin
    if not Assigned(FDevice)
     then Exit;
@@ -617,11 +618,11 @@ begin
     then Exit;
    for iKey := 1 to FKeyboard.Keys do begin
       try
-         s := FKeyboard.GetKeyLabel(iKey);
+         s := Utf16ToString(FKeyboard.GetKeyLabel(iKey));
       except
-         on E: Exception do s := UTF8Decode('FKeyboard.GetKeyLabel: ' + E.Message);
+         on E: Exception do s := 'FKeyboard.GetKeyLabel: ' + E.Message;
       end;
-      List.Add(UTF8Encode(s));
+      List.Add(s);
    end;
 end;
 
@@ -632,7 +633,7 @@ end;
 ------------------------------------------------------------------------------*}
 procedure T3DConnexionDevice.GetKeyboardKeyNames(const List: TStrings);
 var iKey: integer;
-    s: widestring;
+    s: String;
 begin
    if not Assigned(FDevice)
     then Exit;
@@ -640,11 +641,11 @@ begin
     then Exit;
    for iKey := 1 to FKeyboard.Keys do begin
       try
-         s := FKeyboard.GetKeyName(iKey);
+         s := Utf16ToString(FKeyboard.GetKeyName(iKey));
       except
-         on E: Exception do s := UTF8Decode('FKeyboard.GetKeyLabel: ' + E.Message);
+         on E: Exception do s := 'FKeyboard.GetKeyName: ' + E.Message;
       end;
-      List.Add(UTF8Encode(s));
+      List.Add(s);
    end;
 end;
 
