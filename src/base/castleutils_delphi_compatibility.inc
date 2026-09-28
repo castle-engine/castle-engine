@@ -217,15 +217,62 @@ begin
   else
     Result:=IncludeTrailingPathDelimiter(DGetAppConfigDir(Global));
 
-{$elseif defined(ANDROID) or defined(IOS)}
+{$elseif defined(IOS)}
 
-  { See Delphi docs:
+  { On iOS, use <sandbox>/Library/Application Support/ .
+
+    See Delphi docs:
     https://docwiki.embarcadero.com/RADStudio/Athens/en/Standard_RTL_Path_Functions_across_the_Supported_Target_Platforms
     https://docwiki.embarcadero.com/Libraries/Alexandria/en/System.IOUtils.TPath.GetHomePath
-  }
+
+    Apple docs (File System Basics, "Where You Should Put Your App's Files"):
+    https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/FileSystemProgrammingGuide/FileSystemOverview/FileSystemOverview.html
+    "Put app-created support files in the Library/Application support/ directory.
+    In general, this directory includes files that the app uses to run
+    but that should remain hidden from the user. This directory can also include
+    data files, configuration files, templates (...)".
+
+    Note that other TPath methods would not be good:
+
+    - TPath.GetHomePath is the sandbox container root ($HOME), it is not writeable
+      (on new iOS?).
+
+    - TPath.GetDocumentsPath is meant for user-visible documents.
+      Apple: "this directory should only contain files that you may wish to expose
+      to the user".
+
+    - Note that TPath.GetLibraryPath on Android returns
+      ApplicationInfo.nativeLibraryDir, which is read-only.
+      So we cannot use the same code, or even GetLibraryPath itself,
+      for both Android and iOS.
+
+    We deliberately don't add ApplicationName subdirectory here
+    (unlike the Windows and Unix branches above): the iOS sandbox container
+    is already private to this application. Same as the Android branch below.
+
+    "Application Support" is a fixed filesystem name, never localized,
+    so it's safe to just concatenate it. It may not exist yet, it will be
+    created when we write the first file there (our writing routines
+    do ForceDirectories). }
 
 begin
-  Result := System.IOUtils.TPath.GetHomePath;
+  Result := IncludeTrailingPathDelimiter(
+    IncludeTrailingPathDelimiter(System.IOUtils.TPath.GetLibraryPath) +
+    'Application Support');
+
+{$elseif defined(ANDROID)}
+
+  { On Android, use <app internal storage>/files/ , i.e. Context.getFilesDir().
+    This is the app-private internal storage, and matches what our FPC Android
+    backend uses (GetInternalDataPath in castlewindow_android.inc).
+
+    Note that TPath.GetHomePath would be exactly the same thing here
+    (in Delphi RTL, both TPath.GetHomePath and TPath.GetDocumentsPath
+    are implemented as Androidapi.IOUtils.GetFilesDir on Android),
+    but we use GetDocumentsPath to be explicit. }
+
+begin
+  Result := IncludeTrailingPathDelimiter(System.IOUtils.TPath.GetDocumentsPath);
 
 {$elseif defined(UNIX)}
 

@@ -208,12 +208,43 @@ typedef struct TouchInfo {
     m_currentViewHeight = self.view.bounds.size.height * m_fScale;
     m_currentSafeAreaBorders = [self safeAreaBorders];
 
-    // Get a directory where we can write files,
-    // see http://stackoverflow.com/questions/1567134/how-can-i-get-a-writable-path-on-the-iphone/1567147#1567147
-    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES);
-    NSString *libraryDirectory = [paths objectAtIndex:0];
+    // Get a directory where we can write application configuration and savegames.
 
-    CGEApp_Initialize([libraryDirectory fileSystemRepresentation]);
+    #ifdef BACKWARD_COMPATIBLE_IOS_CONFIG
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES);
+    #else
+    /*
+      We use <sandbox>/Library/Application Support/ , as recommended by Apple,
+      see "Where You Should Put Your App's Files" in
+      https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/FileSystemProgrammingGuide/FileSystemOverview/FileSystemOverview.html
+      "Put app-created support files in the Library/Application support/ directory.
+      In general, this directory includes files that the app uses to run
+      but that should remain hidden from the user. This directory can also include
+      data files, configuration files, templates (...)".
+
+      Rejected:
+      - not NSDocumentDirectory, as that is for user-visible documents, exposed to the
+        user by file sharing.
+
+      - Not the sandbox root (NSHomeDirectory): not writeable (on new iOS at least).
+
+      - Previously we used just NSLibraryDirectory (<sandbox>/Library/),
+        for this, but "Application Support" better follows recommendations.
+
+      This should stay in sync with
+      - GetAppConfigDir for Delphi, see
+        castle_game_engine/src/base/castleutils_delphi_compatibility.inc
+      - Library sample in
+        examples/deprecated_library/ios_tester/ios_tester/OpenGLController.m
+
+      The directory may not exist yet, it is created when we write the first file
+      there (our writing routines do ForceDirectories).
+    */
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES);
+    #endif
+    NSString *configDirectory = [paths objectAtIndex:0];
+
+    CGEApp_Initialize([configDirectory fileSystemRepresentation]);
     CGEApp_Open(m_currentViewWidth, m_currentViewHeight, (unsigned)m_currentSafeAreaBorders.top, (unsigned)m_currentSafeAreaBorders.right, (unsigned)m_currentSafeAreaBorders.bottom, (unsigned)m_currentSafeAreaBorders.left, (unsigned)(dpi * m_fScale));
 
     [self update];

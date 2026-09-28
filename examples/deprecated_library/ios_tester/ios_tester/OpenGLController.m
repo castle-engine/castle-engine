@@ -206,12 +206,18 @@
     m_oldViewWidth  = self.view.bounds.size.width;
     m_oldViewHeight = self.view.bounds.size.height;
 
-    // Get a directory where we can write files,
-    // see http://stackoverflow.com/questions/1567134/how-can-i-get-a-writable-path-on-the-iphone/1567147#1567147
-    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES);
-    NSString *libraryDirectory = [paths objectAtIndex:0];
+    // Get a directory where we can write application configuration and savegames.
 
-    CGE_Initialize([libraryDirectory fileSystemRepresentation]);
+    #ifdef BACKWARD_COMPATIBLE_IOS_CONFIG
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES);
+    #else
+    // <sandbox>/Library/Application Support/ , as recommended by Apple, see the longer
+    // comment in tools/build-tool/data/ios/xcode_project/cge_project_name/OpenGLController.m .
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES);
+    #endif
+    NSString *configDirectory = [paths objectAtIndex:0];
+
+    CGE_Initialize([configDirectory fileSystemRepresentation]);
     CGE_Open(ecgeofLog, m_oldViewWidth * m_fScale, m_oldViewHeight * m_fScale, (unsigned)(dpi * m_fScale));
     CGE_SetAutoTouchInterface(true);
 
