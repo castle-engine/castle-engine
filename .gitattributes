@@ -37,6 +37,8 @@ Makefile text eol=auto
 *.h text eol=auto
 *.cpp text eol=auto
 *.dproj text eol=auto
+*.m text eol=auto
+*.plist text eol=auto
 
 # do not convert line endings (binary)
 *.gltf binary
