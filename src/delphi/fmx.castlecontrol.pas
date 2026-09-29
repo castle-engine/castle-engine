@@ -140,11 +140,7 @@ type
       @exclude }
     procedure InternalHandleNeeded;
 
-    { This control must always have "native style", which means
-      it has ControlType = Platform. See FMX docs about native controls:
-      https://docwiki.embarcadero.com/RADStudio/Sydney/en/FireMonkey_Native_Windows_Controls
-      Native controls are always on top of non-native controls. }
-    property ControlType default TControlType.Platform;
+    property ControlType default DefaultControlType;
 
     { On some platforms (Linux now) if you call Application.ProcessMessages,
       make sure to also call this method. E.g.
@@ -368,7 +364,7 @@ begin
       https://docwiki.embarcadero.com/RADStudio/Alexandria/en/FireMonkey_Native_Windows_Controls#Visual_Changes_to_Native_Windows_Controls
   }
   if not (csDesigning in ComponentState) then
-    ControlType := TControlType.Platform;
+    ControlType := DefaultControlType;
 end;
 
 destructor TCastleControl.Destroy;

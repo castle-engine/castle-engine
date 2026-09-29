@@ -83,11 +83,7 @@ type
     { Call this continuosly. }
     procedure Update;
 
-    { This control must always have "native style", which means
-      it has ControlType = Platform. See FMX docs about native controls:
-      https://docwiki.embarcadero.com/RADStudio/Sydney/en/FireMonkey_Native_Windows_Controls
-      Native controls are always on top of non-native controls. }
-    property ControlType default TControlType.Platform;
+    property ControlType default DefaultControlType;
 
     { Size in pixels, not scaled by anything.
       Such size can be passed e.g. to OpenGL viewport. }
@@ -194,7 +190,7 @@ begin
   TabStop := true;
   CanFocus := True;
   Assert(not (csDesigning in ComponentState)); // this is not ready for design-time
-  ControlType := TControlType.Platform;
+  ControlType := DefaultControlType;
 end;
 
 destructor TOpenGLControl.Destroy;

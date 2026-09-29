@@ -152,6 +152,23 @@ type
     function Scale: Single;
   end;
 
+const
+  { On some platforms (Windows), the engine control must always have "native style",
+    which means it has ControlType = Platform. See FMX docs about native controls:
+    https://docwiki.embarcadero.com/RADStudio/Sydney/en/FireMonkey_Native_Windows_Controls
+    Native controls are always on top of non-native controls.
+
+    On other platforms (Android and iOS), it must be Styled
+    (which is also default for FMX controls).
+    TControlType.Platform for mobile would cause creation of "native view"
+    that intercepts touches, making OnTouch not work properly. }
+  DefaultControlType =
+    {$if (not defined(ANDROID)) and (not defined(IOS))}
+      TControlType.Platform
+    {$else}
+      TControlType.Styled
+    {$endif};
+
 implementation
 
 {$define read_implementation}

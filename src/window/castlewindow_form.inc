@@ -148,6 +148,30 @@
   {$define SUBSCRIBE_FormsCreatedMessage}
 {$endif}
 
+{ Handle FMX touch (TCustomForm.OnTouch) to detect touches with finger indexes
+  on mobile platforms. }
+{$if defined(DELPHI) and (defined(ANDROID) or defined(IOS))}
+  {$define HANDLE_FMX_TOUCH}
+
+  { Don't handle mouse events, if we handle FMX OnTouch.
+    This is a necessity now (HANDLE_FMX_TOUCH must imply this),
+    although we wish it wouldn't be.
+
+    Defining this avoids receiving duplicate mouse/touch events when user connects a
+    physical mouse to an Android mobile device: FMX then (this is based only on
+    source code, not tested) sends them to MouseDown/MouseUp/MouseMove events
+    (without ssTouch in Shift, which makes sense),
+    while also generating FMX OnTouch events.
+    And there's no way for us to detect that the OnTouch events are duplicates.
+
+    Note that the other direction is not a problem:
+    when user is using the touch screen, FMX generates OnTouch events
+    *and* MouseDown/MouseUp/MouseMove events,
+    but in this case we can easily ignore duplicates by rejecting
+    MouseDown/MouseUp/MouseMove events with ssTouch in Shift. }
+  {$define DISABLE_MOUSE_EVENTS}
+{$endif}
+
 {$ifdef read_interface_uses}
   {$ifdef FPC}
     // LCL
@@ -266,6 +290,8 @@ private
   procedure OpenGLControlKeyUp(Sender: TObject; var Key: Word;
     {$ifndef FPC} var KeyChar: WideChar; {$endif}
     Shift: TShiftState);
+
+  {$ifndef DISABLE_MOUSE_EVENTS}
   procedure OpenGLControlMouseDown(Sender: TObject; Button: TMouseButton;
     Shift: TShiftState;
     X, Y: {$ifdef FPC} Integer {$else} Single {$endif});
@@ -274,11 +300,22 @@ private
     X, Y: {$ifdef FPC} Integer {$else} Single {$endif});
   procedure OpenGLControlMouseMove(Sender: TObject; Shift: TShiftState;
     X, Y: {$ifdef FPC} Integer {$else} Single {$endif});
+  {$endif DISABLE_MOUSE_EVENTS}
+
   procedure OpenGLControlMouseWheel(Sender: TObject; Shift: TShiftState;
     WheelDelta: Integer; {$ifdef FPC} MousePos: TPoint; {$endif}
     var Handled: Boolean);
   function MousePosToCastle(
     const X, Y: {$ifdef FPC} Integer {$else} Single {$endif}): TVector2;
+
+  {$ifdef HANDLE_FMX_TOUCH}
+  strict private
+    FTouchDispatcher: TFmxTouchDispatcher;
+    procedure TouchDown(const FingerIndex: TFingerIndex; const Position: TVector2);
+    procedure TouchUp(const FingerIndex: TFingerIndex; const Position: TVector2);
+    procedure TouchMotion(const FingerIndex: TFingerIndex;
+      const OldPosition, NewPosition: TVector2);
+  {$endif HANDLE_FMX_TOUCH}
 
   {$ifdef SUBSCRIBE_FormsCreatedMessage}
   strict private
@@ -857,8 +894,18 @@ begin
   OpenGLControl.Constraints.MinHeight := MinHeight;
   OpenGLControl.Constraints.MaxWidth := MaxWidth;
   OpenGLControl.Constraints.MaxHeight := MaxHeight;
-  {$endif}
+  {$endif FPC}
   OpenGLControl.TabStop := true;
+
+  {$ifdef HANDLE_FMX_TOUCH}
+  FTouchDispatcher := TFmxTouchDispatcher.Create;
+  FTouchDispatcher.PositionsInControl := OpenGLControl;
+  FTouchDispatcher.AttachToForm(Form);
+  FTouchDispatcher.OnDown := {$ifdef FPC}@{$endif} TouchDown;
+  FTouchDispatcher.OnUp := {$ifdef FPC}@{$endif} TouchUp;
+  FTouchDispatcher.OnMotion := {$ifdef FPC}@{$endif} TouchMotion;
+  Form.OnTouch := FTouchDispatcher.FormTouch;
+  {$endif HANDLE_FMX_TOUCH}
 
   {$ifdef FPC}
     OpenGLControl.DoubleBuffered := DoubleBuffer;
@@ -923,9 +970,11 @@ begin
   OpenGLControl.OnUTF8KeyPress := {$ifdef FPC}@{$endif} OpenGLControlUTF8KeyPress;
   {$endif}
   OpenGLControl.OnKeyUp := {$ifdef FPC}@{$endif} OpenGLControlKeyUp;
+  {$ifndef DISABLE_MOUSE_EVENTS}
   OpenGLControl.OnMouseDown := {$ifdef FPC}@{$endif} OpenGLControlMouseDown;
   OpenGLControl.OnMouseUp := {$ifdef FPC}@{$endif} OpenGLControlMouseUp;
   OpenGLControl.OnMouseMove := {$ifdef FPC}@{$endif} OpenGLControlMouseMove;
+  {$endif not DISABLE_MOUSE_EVENTS}
   OpenGLControl.OnMouseWheel := {$ifdef FPC}@{$endif} OpenGLControlMouseWheel;
 
   { Make sure we have OpenGL context created now, and send initial Invalidate
@@ -1000,6 +1049,10 @@ begin
     freeing Form will also free OpenGLControl - at least on FMX Linux. }
   if OpenGLControl <> nil then
     OpenGLControl.Parent := nil;
+
+  {$ifdef HANDLE_FMX_TOUCH}
+  FreeAndNil(FTouchDispatcher);
+  {$endif}
 
   {$if not (defined(LCLCarbon) or defined(LCLCocoa))}
   FreeAndNil(Form);
@@ -1289,12 +1342,19 @@ begin
     DoKeyUp(CastleKey);
 end;
 
+{$ifndef DISABLE_MOUSE_EVENTS}
+
 procedure TCastleWindow.OpenGLControlMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState;
   X, Y: {$ifdef FPC} Integer {$else} Single {$endif});
 var
   CastleButton: TCastleMouseButton;
 begin
+  {$ifdef HANDLE_FMX_TOUCH}
+  if ssTouch in Shift then
+    Exit; // Ignore events that will be processed by OnTouch; unused now
+  {$endif}
+
   if MouseButtonToCastle(Button, CastleButton) then
     DoMouseDown(MousePosToCastle(X, Y), CastleButton, 0);
 end;
@@ -1305,8 +1365,51 @@ procedure TCastleWindow.OpenGLControlMouseUp(Sender: TObject;
 var
   CastleButton: TCastleMouseButton;
 begin
+  {$ifdef HANDLE_FMX_TOUCH}
+  if ssTouch in Shift then
+    Exit; // Ignore events that will be processed by OnTouch; unused now
+  {$endif}
+
   if MouseButtonToCastle(Button, CastleButton) then
     DoMouseUp(MousePosToCastle(X, Y), CastleButton, 0);
+end;
+
+procedure TCastleWindow.OpenGLControlMouseMove(Sender: TObject;
+  Shift: TShiftState;
+  X, Y: {$ifdef FPC} Integer {$else} Single {$endif});
+begin
+  {$ifdef HANDLE_FMX_TOUCH}
+  if ssTouch in Shift then
+    Exit; // Ignore events that will be processed by OnTouch; unused now
+  {$endif}
+
+  DoMotion(InputMotion(Container.MousePosition, MousePosToCastle(X, Y),
+    Container.MousePressed, 0));
+
+  {$ifdef FPC}
+  { On LCL, we need to call ProcessTasks often,
+    as Forms.Application.ProcessMessages in LCL may process ~100 OS events in one call.
+    This means that LCL Forms.Application.ProcessMessages is quite blocked
+    when user moves mouse a lot (e.g. doing mouse look in games).
+    We ensure processing by manually calling ProcessTasks often.
+
+    With Delphi FMX, we don't need to do this, and actually we shouldn't
+    -- it was causing perceived FPS drops when we were moving the mouse.
+    Testcase:
+    - moving with mouse Examine mode in play_animation
+    - rotating around in fps_game }
+  ProcessTasks;
+  {$endif}
+end;
+
+{$endif not DISABLE_MOUSE_EVENTS}
+
+procedure TCastleWindow.OpenGLControlMouseWheel(Sender: TObject;
+  Shift: TShiftState; WheelDelta: Integer;
+  {$ifdef FPC} MousePos: TPoint; {$endif}
+  var Handled: Boolean);
+begin
+  DoMouseWheel(WheelDelta/120, true);
 end;
 
 procedure TCastleWindow.ProcessTasks;
@@ -1369,36 +1472,38 @@ begin
     OpenGLControl.Invalidate;
 end;
 
-procedure TCastleWindow.OpenGLControlMouseMove(Sender: TObject;
-  Shift: TShiftState;
-  X, Y: {$ifdef FPC} Integer {$else} Single {$endif});
+{$ifdef HANDLE_FMX_TOUCH}
+
+procedure TCastleWindow.TouchDown(const FingerIndex: TFingerIndex; const Position: TVector2);
 begin
-  DoMotion(InputMotion(Container.MousePosition, MousePosToCastle(X, Y),
-    Container.MousePressed, 0));
-
-  {$ifdef FPC}
-  { On LCL, we need to call ProcessTasks often,
-    as Forms.Application.ProcessMessages in LCL may process ~100 OS events in one call.
-    This means that LCL Forms.Application.ProcessMessages is quite blocked
-    when user moves mouse a lot (e.g. doing mouse look in games).
-    We ensure processing by manually calling ProcessTasks often.
-
-    With Delphi FMX, we don't need to do this, and actually we shouldn't
-    -- it was causing perceived FPS drops when we were moving the mouse.
-    Testcase:
-    - moving with mouse Examine mode in play_animation
-    - rotating around in fps_game }
-  ProcessTasks;
-  {$endif}
+  DoMouseDown(MousePosToCastle(Position.X, Position.Y), buttonLeft, FingerIndex);
 end;
 
-procedure TCastleWindow.OpenGLControlMouseWheel(Sender: TObject;
-  Shift: TShiftState; WheelDelta: Integer;
-  {$ifdef FPC} MousePos: TPoint; {$endif}
-  var Handled: Boolean);
+procedure TCastleWindow.TouchUp(const FingerIndex: TFingerIndex; const Position: TVector2);
 begin
-  DoMouseWheel(WheelDelta/120, true);
+  DoMouseUp(MousePosToCastle(Position.X, Position.Y), buttonLeft, FingerIndex);
 end;
+
+procedure TCastleWindow.TouchMotion(const FingerIndex: TFingerIndex;
+  const OldPosition, NewPosition: TVector2);
+begin
+  DoMotion(InputMotion(
+    MousePosToCastle(OldPosition.X, OldPosition.Y),
+    MousePosToCastle(NewPosition.X, NewPosition.Y),
+
+    { Just like castlewindow_android.inc, pass here always at least [buttonLeft],
+      pretending it is pressed. Regardless of which/how many fingers
+      are pressed, we consider buttonLeft pressed if you press any finger
+      on touch device.
+
+      TODO: The above assumption ("we consider buttonLeft pressed if you press
+      any finger on touch device") should actually be reflected in
+      Container.MousePressed value, not hacked here. }
+    Container.MousePressed + [buttonLeft]
+    , FingerIndex));
+end;
+
+{$endif HANDLE_FMX_TOUCH}
 
 { TCastleWindow dialogs ---------------------------------------------------------- }
 
