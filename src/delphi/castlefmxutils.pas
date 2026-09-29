@@ -412,15 +412,26 @@ procedure TFmxTouchDispatcher.FormTouch(
   begin
     Id := Touches[TouchIndex].Id;
 
+    { Ignore if this finger is already pressed.
+      This happens in practice on iOS, testcase: any CGE application really,
+      like platformer.
+
+      Reason (based on reading Delphi code): FMX reports all touches of the UIEvent
+      (UIEvent.allTouches) in each touchesBegan / touchesMoved call.
+      So when UIKit calls touchesBegan (for new finger) and touchesMoved
+      (for other finger) with the same UIEvent, the new finger is reported
+      2 times (2 calls to SendTouches).
+
+      And (this seems FMX bug) it is reported 2 times with Action=Down.
+      I.e. the Touches[..].Action = Down, and the Action parameter is also
+      = Down (FMX changes it from Move to Down,
+      see TFMXViewBase.SendTouches). }
+    if FingerIndexes.ContainsKey(Id) then
+      Exit;
+
     // calculate FingerIndex from Id, update FingerIndexes
-    if FingerIndexes.TryGetValue(Id, FingerIndex) then
-    begin
-      WritelnWarning('TFmxTouchDispatcher', 'Finger with id %d was already pressed', [Id]);
-    end else
-    begin
-      FingerIndex := NewFingerIndex;
-      FingerIndexes.Add(Id, FingerIndex);
-    end;
+    FingerIndex := NewFingerIndex;
+    FingerIndexes.Add(Id, FingerIndex);
 
     Position := PositionToLocal(Touches[TouchIndex].Location);
     FingerPositions.AddOrSetValue(FingerIndex, Position);
