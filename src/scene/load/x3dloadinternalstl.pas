@@ -116,20 +116,12 @@ const
 
 procedure LittleEndianToNative(var V: TVector3);
 begin
-  {$ifdef ENDIAN_BIG}
-  SwapEndian(V.X);
-  SwapEndian(V.Y);
-  SwapEndian(V.Z);
-  {$endif ENDIAN_BIG}
+  V := LEtoN(V);
 end;
 
 procedure NativeToLittleEndian(var V: TVector3);
 begin
-  {$ifdef ENDIAN_BIG}
-  SwapEndian(V.X);
-  SwapEndian(V.Y);
-  SwapEndian(V.Z);
-  {$endif ENDIAN_BIG}
+  V := NtoLE(V);
 end;
 
 { Load STL binary variation. }

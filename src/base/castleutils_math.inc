@@ -1,6 +1,6 @@
 {%MainUnit castleutils.pas}
 {
-  Copyright 2001-2023 Michalis Kamburelis.
+  Copyright 2001-2026 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -21,25 +21,34 @@
 { Swap variables values.
   @groupBegin }
 procedure SwapValues(var a, b: UInt8   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-procedure SwapValues(var a, b: Int64   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-procedure SwapValues(var a, b: UInt64  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-procedure SwapValues(var a, b: Int32   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure SwapValues(var a, b: UInt16  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure SwapValues(var a, b: UInt32  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure SwapValues(var a, b: UInt64  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure SwapValues(var a, b: Int8    ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure SwapValues(var a, b: Int16   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure SwapValues(var a, b: Int32   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure SwapValues(var a, b: Int64   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure SwapValues(var a, b: Single  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure SwapValues(var a, b: Double  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$ifdef EXTENDED_OVERLOADS}
 procedure SwapValues(var a, b: Extended); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$endif}
-procedure SwapValues(var a, b: char    ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure SwapValues(var a, b: AnsiChar); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure SwapValues(var a, b: WideChar); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure SwapValues(var a, b: Pointer ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 { @groupEnd }
 
 { Make sure the Smaller value is <= than the Larger value,
   by eventually swapping them.
   @groupBegin }
-procedure OrderUp(var Smaller, Larger: Int64   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-procedure OrderUp(var Smaller, Larger: Int32   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure OrderUp(var Smaller, Larger: UInt8   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure OrderUp(var Smaller, Larger: UInt16  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure OrderUp(var Smaller, Larger: UInt32  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure OrderUp(var Smaller, Larger: UInt64  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure OrderUp(var Smaller, Larger: Int8    ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure OrderUp(var Smaller, Larger: Int16   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure OrderUp(var Smaller, Larger: Int32   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure OrderUp(var Smaller, Larger: Int64   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure OrderUp(var Smaller, Larger: Single  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure OrderUp(var Smaller, Larger: Double  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$ifdef EXTENDED_OVERLOADS}
@@ -50,8 +59,14 @@ procedure OrderUp(var Smaller, Larger: Extended); overload; {$ifdef SUPPORTS_INL
 { Assign the smaller value from X, Y to Smaller variable, the other one
   to Larger variable.
   @groupBegin }
-procedure OrderUp(x, y: Int32 ; var Smaller, Larger: Int32   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure OrderUp(x, y: UInt8 ; var Smaller, Larger: UInt8   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure OrderUp(x, y: UInt16; var Smaller, Larger: UInt16  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure OrderUp(x, y: UInt32; var Smaller, Larger: UInt32  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure OrderUp(x, y: UInt64; var Smaller, Larger: UInt64  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure OrderUp(x, y: Int8  ; var Smaller, Larger: Int8    ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure OrderUp(x, y: Int16 ; var Smaller, Larger: Int16   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure OrderUp(x, y: Int32 ; var Smaller, Larger: Int32   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure OrderUp(x, y: Int64 ; var Smaller, Larger: Int64   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure OrderUp(x, y: Single; var Smaller, Larger: Single  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure OrderUp(x, y: Double; var Smaller, Larger: Double  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$ifdef EXTENDED_OVERLOADS}
@@ -63,10 +78,14 @@ procedure OrderUp(x, y: Extended; var Smaller, Larger: Extended); overload; {$if
   Works like @code(A := Min(A, B)), but is marginally faster,
   since you don't have to do anything when A is already smaller.
   @groupBegin }
+procedure MinVar(var a: UInt8   ; const b: UInt8   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure MinVar(var a: UInt16  ; const b: UInt16  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-procedure MinVar(var a: Int64   ; const b: Int64   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-procedure MinVar(var a: Int32   ; const b: Int32   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure MinVar(var a: UInt32  ; const b: UInt32  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure MinVar(var a: UInt64  ; const b: UInt64  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure MinVar(var a: Int8    ; const b: Int8    ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure MinVar(var a: Int16   ; const b: Int16   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure MinVar(var a: Int32   ; const b: Int32   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure MinVar(var a: Int64   ; const b: Int64   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure MinVar(var a: Single  ; const b: Single  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure MinVar(var a: Double  ; const b: Double  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$ifdef EXTENDED_OVERLOADS}
@@ -78,10 +97,14 @@ procedure MinVar(var a: Extended; const b: Extended); overload; {$ifdef SUPPORTS
   Works like @code(A := Max(A, B)), but is marginally faster,
   since you don't have to do anything when A is already larger.
   @groupBegin }
+procedure MaxVar(var a: UInt8   ; const b: UInt8   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure MaxVar(var a: UInt16  ; const b: UInt16  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-procedure MaxVar(var a: Int64   ; const b: Int64   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-procedure MaxVar(var a: Int32   ; const b: Int32   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure MaxVar(var a: UInt32  ; const b: UInt32  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure MaxVar(var a: UInt64  ; const b: UInt64  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure MaxVar(var a: Int8    ; const b: Int8    ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure MaxVar(var a: Int16   ; const b: Int16   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure MaxVar(var a: Int32   ; const b: Int32   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure MaxVar(var a: Int64   ; const b: Int64   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure MaxVar(var a: Single  ; const b: Single  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure MaxVar(var a: Double  ; const b: Double  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$ifdef EXTENDED_OVERLOADS}
@@ -97,41 +120,64 @@ type
 
 { Index (0, 1 or 2) of maximum / minimum of 3 numbers.
   @groupBegin }
-function IndexMax(const a0, a1, a2: Double): T3DAxis; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function IndexMin(const a0, a1, a2: Double): T3DAxis; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function IndexMax(const a0, a1, a2: Double): T3DAxis; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function IndexMin(const a0, a1, a2: Double): T3DAxis; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 { @groupEnd }
 
-function Between(const a, vBegin, vEnd: Int64   ): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function Between(const a, vBegin, vEnd: Int32   ): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Between(const a, vBegin, vEnd: UInt8   ): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Between(const a, vBegin, vEnd: UInt16  ): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 function Between(const a, vBegin, vEnd: UInt32  ): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function Between(const a, vBegin, vEnd: Float   ): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function Between(const a, vBegin, vEnd: Char    ): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Between(const a, vBegin, vEnd: UInt64  ): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Between(const a, vBegin, vEnd: Int8    ): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Between(const a, vBegin, vEnd: Int16   ): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Between(const a, vBegin, vEnd: Int32   ): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Between(const a, vBegin, vEnd: Int64   ): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Between(const a, vBegin, vEnd: Single  ): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Between(const a, vBegin, vEnd: Double  ): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+{$ifdef EXTENDED_OVERLOADS}
+function Between(const a, vBegin, vEnd: Extended): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+{$endif}
+function Between(const a, vBegin, vEnd: AnsiChar): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Between(const a, vBegin, vEnd: WideChar): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 
 function RoundClamp255(const A: Single): Byte; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 
-function Clamped(const a, vBegin, vEnd: Int64   ): Int64   ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function Clamped(const a, vBegin, vEnd: UInt64  ): UInt64  ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function Clamped(const a, vBegin, vEnd: Int32   ): Int32   ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Clamped(const a, vBegin, vEnd: UInt8   ): UInt8   ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Clamped(const a, vBegin, vEnd: UInt16  ): UInt16  ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 function Clamped(const a, vBegin, vEnd: UInt32  ): UInt32  ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Clamped(const a, vBegin, vEnd: UInt64  ): UInt64  ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Clamped(const a, vBegin, vEnd: Int8    ): Int8    ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Clamped(const a, vBegin, vEnd: Int16   ): Int16   ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Clamped(const a, vBegin, vEnd: Int32   ): Int32   ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Clamped(const a, vBegin, vEnd: Int64   ): Int64   ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 function Clamped(const a, vBegin, vEnd: Single  ): Single  ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 function Clamped(const a, vBegin, vEnd: Double  ): Double  ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$ifdef EXTENDED_OVERLOADS}
 function Clamped(const a, vBegin, vEnd: Extended): Extended; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$endif}
 
-procedure ClampVar(var a: Int64   ; const vBegin, vEnd: Int64   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-procedure ClampVar(var a: UInt64  ; const vBegin, vEnd: UInt64  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-procedure ClampVar(var a: Int32   ; const vBegin, vEnd: Int32   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure ClampVar(var a: UInt8   ; const vBegin, vEnd: UInt8   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure ClampVar(var a: UInt16  ; const vBegin, vEnd: UInt16  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure ClampVar(var a: UInt32  ; const vBegin, vEnd: UInt32  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure ClampVar(var a: UInt64  ; const vBegin, vEnd: UInt64  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure ClampVar(var a: Int8    ; const vBegin, vEnd: Int8    ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure ClampVar(var a: Int16   ; const vBegin, vEnd: Int16   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure ClampVar(var a: Int32   ; const vBegin, vEnd: Int32   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure ClampVar(var a: Int64   ; const vBegin, vEnd: Int64   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure ClampVar(var a: Single  ; const vBegin, vEnd: Single  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure ClampVar(var a: Double  ; const vBegin, vEnd: Double  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$ifdef EXTENDED_OVERLOADS}
 procedure ClampVar(var a: Extended; const vBegin, vEnd: Extended); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$endif}
 
-procedure Clamp(var a: Int64   ; const vBegin, vEnd: Int64   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} deprecated 'Use ClampVar';
-procedure Clamp(var a: Int32   ; const vBegin, vEnd: Int32   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} deprecated 'Use ClampVar';
+procedure Clamp(var a: UInt8   ; const vBegin, vEnd: UInt8   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} deprecated 'Use ClampVar';
+procedure Clamp(var a: UInt16  ; const vBegin, vEnd: UInt16  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} deprecated 'Use ClampVar';
 procedure Clamp(var a: UInt32  ; const vBegin, vEnd: UInt32  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} deprecated 'Use ClampVar';
+procedure Clamp(var a: UInt64  ; const vBegin, vEnd: UInt64  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} deprecated 'Use ClampVar';
+procedure Clamp(var a: Int8    ; const vBegin, vEnd: Int8    ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} deprecated 'Use ClampVar';
+procedure Clamp(var a: Int16   ; const vBegin, vEnd: Int16   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} deprecated 'Use ClampVar';
+procedure Clamp(var a: Int32   ; const vBegin, vEnd: Int32   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} deprecated 'Use ClampVar';
+procedure Clamp(var a: Int64   ; const vBegin, vEnd: Int64   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} deprecated 'Use ClampVar';
 procedure Clamp(var a: Single  ; const vBegin, vEnd: Single  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} deprecated 'Use ClampVar';
 procedure Clamp(var a: Double  ; const vBegin, vEnd: Double  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} deprecated 'Use ClampVar';
 {$ifdef EXTENDED_OVERLOADS}
@@ -363,54 +409,88 @@ function IntSqrt(const Value: Cardinal): Cardinal;
   http://www.khronos.org/opengles/sdk/docs/manglsl/xhtml/smoothstep.xml }
 function SmoothStep(const Edge0, Edge1, X: Single): Single;
 
-{ Utility functions to control the endianess.
+{ Utility functions to swap the endianess.
+
+  Note that we prefer for these routines explicit names,
+  and not multiple overloads with one name and different types,
+  to avoid easy mistakes (when some overload would be missing).
+
   Note: Floating-point versions support Single and Double, but not Extended
   (which means different things on different platforms/compilers,
   see https://castle-engine.io/coding_conventions#no_extended ,
-  and in practice binary files don't contain numbers >= Double).
+  and in practice binary files don't contain numbers larger than Double).
 
   @groupBegin }
-function Swap32(Value: UInt32): UInt32;
-function Swap64(Value: UInt64): UInt64;
-function SwapEndian(const Value: Single): Single; overload;
-function SwapEndian(const Value: Double): Double; overload;
+function Swap16(const Value: UInt16): UInt16;
+function Swap32(const Value: UInt32): UInt32;
+function Swap64(const Value: UInt64): UInt64;
+function SwapSigned16(const Value: Int16): Int16;
+function SwapSigned32(const Value: Int32): Int32;
+function SwapSigned64(const Value: Int64): Int64;
+function SwapSingle(const Value: Single): Single;
+function SwapDouble(const Value: Double): Double;
+{ @groupEnd }
 
+{ Native to Little Endian (least significant byte first, endianess e.g. on x86) conversion.
+  Note: FPC System unit already contains 6 overloads of this for integers.
+  We define these only for Delphi.
+  @groupBegin }
 {$ifndef FPC}
 function NtoLE(const Value: UInt16): UInt16; overload;
 function NtoLE(const Value: UInt32): UInt32; overload;
 function NtoLE(const Value: UInt64): UInt64; overload;
+function NtoLE(const Value: Int16): Int16; overload;
+function NtoLE(const Value: Int32): Int32; overload;
 function NtoLE(const Value: Int64): Int64; overload;
-{$endif}
-
+{$endif FPC}
 function NtoLE(const Value: Single): Single; overload;
 function NtoLE(const Value: Double): Double; overload;
+{ @groupEnd }
 
+{ Native to Big Endian (most significant byte first, endianess e.g. of network protocols) conversion.
+  Note: FPC System unit already contains 6 overloads of this for integers.
+  We define these only for Delphi.
+  @groupBegin }
 {$ifndef FPC}
 function NtoBE(const Value: UInt16): UInt16; overload;
 function NtoBE(const Value: UInt32): UInt32; overload;
 function NtoBE(const Value: UInt64): UInt64; overload;
+function NtoBE(const Value: Int16): Int16; overload;
+function NtoBE(const Value: Int32): Int32; overload;
 function NtoBE(const Value: Int64): Int64; overload;
-{$endif}
-
+{$endif FPC}
 function NtoBE(const Value: Single): Single; overload;
 function NtoBE(const Value: Double): Double; overload;
+{ @groupEnd }
 
+{ Little Endian (least significant byte first, endianess e.g. on x86) to native conversion.
+  Note: FPC System unit already contains 6 overloads of this for integers.
+  We define these only for Delphi.
+  @groupBegin }
 {$ifndef FPC}
 function LEtoN(const Value: UInt16): UInt16; overload;
 function LEtoN(const Value: UInt32): UInt32; overload;
 function LEtoN(const Value: UInt64): UInt64; overload;
+function LEtoN(const Value: Int16): Int16; overload;
+function LEtoN(const Value: Int32): Int32; overload;
 function LEtoN(const Value: Int64): Int64; overload;
-{$endif}
-
+{$endif FPC}
 function LEtoN(const Value: Single): Single; overload;
 function LEtoN(const Value: Double): Double; overload;
+{ @groupEnd }
 
+{ Big Endian (most significant byte first, endianess e.g. of network protocols) to native conversion.
+  Note: FPC System unit already contains 6 overloads of this for integers.
+  We define these only for Delphi.
+  @groupBegin }
 {$ifndef FPC}
 function BEtoN(const Value: UInt16): UInt16; overload;
 function BEtoN(const Value: UInt32): UInt32; overload;
 function BEtoN(const Value: UInt64): UInt64; overload;
+function BEtoN(const Value: Int16): Int16; overload;
+function BEtoN(const Value: Int32): Int32; overload;
 function BEtoN(const Value: Int64): Int64; overload;
-{$endif}
+{$endif FPC}
 function BEtoN(const Value: Single): Single; overload;
 function BEtoN(const Value: Double): Double; overload;
 { @groupEnd }
@@ -429,49 +509,72 @@ type
 {$ifdef read_implementation}
 
 procedure SwapValues(var a, b: UInt8);  var Tmp: UInt8;  begin Tmp := A; A := B; B := Tmp; end;
-procedure SwapValues(var a, b: Int64);  var Tmp: Int64;  begin Tmp := A; A := B; B := Tmp; end;
-procedure SwapValues(var a, b: UInt64); var Tmp: UInt64; begin Tmp := A; A := B; B := Tmp; end;
-procedure SwapValues(var a, b: Int32);  var Tmp: Int32;  begin Tmp := A; A := B; B := Tmp; end;
+procedure SwapValues(var a, b: UInt16); var Tmp: UInt16; begin Tmp := A; A := B; B := Tmp; end;
 procedure SwapValues(var a, b: UInt32); var Tmp: UInt32; begin Tmp := A; A := B; B := Tmp; end;
+procedure SwapValues(var a, b: UInt64); var Tmp: UInt64; begin Tmp := A; A := B; B := Tmp; end;
+procedure SwapValues(var a, b: Int8);   var Tmp: Int8;   begin Tmp := A; A := B; B := Tmp; end;
+procedure SwapValues(var a, b: Int16);  var Tmp: Int16;  begin Tmp := A; A := B; B := Tmp; end;
+procedure SwapValues(var a, b: Int32);  var Tmp: Int32;  begin Tmp := A; A := B; B := Tmp; end;
+procedure SwapValues(var a, b: Int64);  var Tmp: Int64;  begin Tmp := A; A := B; B := Tmp; end;
 procedure SwapValues(var a, b: Single); var Tmp: Single; begin Tmp := A; A := B; B := Tmp; end;
 procedure SwapValues(var a, b: Double); var Tmp: Double; begin Tmp := A; A := B; B := Tmp; end;
 {$ifdef EXTENDED_OVERLOADS}
 procedure SwapValues(var a, b: Extended); var Tmp: Extended; begin Tmp := A; A := B; B := Tmp; end;
 {$endif}
-procedure SwapValues(var a, b: char);     var Tmp: char;     begin Tmp := A; A := B; B := Tmp; end;
+procedure SwapValues(var a, b: AnsiChar); var Tmp: AnsiChar; begin Tmp := A; A := B; B := Tmp; end;
+procedure SwapValues(var a, b: WideChar); var Tmp: WideChar; begin Tmp := A; A := B; B := Tmp; end;
 procedure SwapValues(var a, b: Pointer);  var Tmp: Pointer;  begin Tmp := A; A := B; B := Tmp; end;
 
-procedure OrderUp(var Smaller, Larger: Int64);  begin if Smaller > Larger then SwapValues(Smaller, Larger); end;
-procedure OrderUp(var Smaller, Larger: Int32);  begin if Smaller > Larger then SwapValues(Smaller, Larger); end;
+procedure OrderUp(var Smaller, Larger: UInt8);  begin if Smaller > Larger then SwapValues(Smaller, Larger); end;
+procedure OrderUp(var Smaller, Larger: UInt16); begin if Smaller > Larger then SwapValues(Smaller, Larger); end;
 procedure OrderUp(var Smaller, Larger: UInt32); begin if Smaller > Larger then SwapValues(Smaller, Larger); end;
+procedure OrderUp(var Smaller, Larger: UInt64); begin if Smaller > Larger then SwapValues(Smaller, Larger); end;
+procedure OrderUp(var Smaller, Larger: Int8);   begin if Smaller > Larger then SwapValues(Smaller, Larger); end;
+procedure OrderUp(var Smaller, Larger: Int16);  begin if Smaller > Larger then SwapValues(Smaller, Larger); end;
+procedure OrderUp(var Smaller, Larger: Int32);  begin if Smaller > Larger then SwapValues(Smaller, Larger); end;
+procedure OrderUp(var Smaller, Larger: Int64);  begin if Smaller > Larger then SwapValues(Smaller, Larger); end;
 procedure OrderUp(var Smaller, Larger: Single); begin if Smaller > Larger then SwapValues(Smaller, Larger); end;
 procedure OrderUp(var Smaller, Larger: Double); begin if Smaller > Larger then SwapValues(Smaller, Larger); end;
 {$ifdef EXTENDED_OVERLOADS}
 procedure OrderUp(var Smaller, Larger: Extended); begin if Smaller > Larger then SwapValues(Smaller, Larger); end;
 {$endif}
 
-procedure OrderUp(x, y: Int32;  var Smaller, Larger: Int32);  begin if X <= Y then begin Smaller := X; Larger := Y end else begin Smaller := Y; Larger := X end; end;
+procedure OrderUp(x, y: UInt8;  var Smaller, Larger: UInt8);  begin if X <= Y then begin Smaller := X; Larger := Y end else begin Smaller := Y; Larger := X end; end;
+procedure OrderUp(x, y: UInt16; var Smaller, Larger: UInt16); begin if X <= Y then begin Smaller := X; Larger := Y end else begin Smaller := Y; Larger := X end; end;
 procedure OrderUp(x, y: UInt32; var Smaller, Larger: UInt32); begin if X <= Y then begin Smaller := X; Larger := Y end else begin Smaller := Y; Larger := X end; end;
-procedure OrderUp(x, y: Single;   var Smaller, Larger: Single);   begin if X <= Y then begin Smaller := X; Larger := Y end else begin Smaller := Y; Larger := X end; end;
-procedure OrderUp(x, y: Double;   var Smaller, Larger: Double);   begin if X <= Y then begin Smaller := X; Larger := Y end else begin Smaller := Y; Larger := X end; end;
+procedure OrderUp(x, y: UInt64; var Smaller, Larger: UInt64); begin if X <= Y then begin Smaller := X; Larger := Y end else begin Smaller := Y; Larger := X end; end;
+procedure OrderUp(x, y: Int8;   var Smaller, Larger: Int8);   begin if X <= Y then begin Smaller := X; Larger := Y end else begin Smaller := Y; Larger := X end; end;
+procedure OrderUp(x, y: Int16;  var Smaller, Larger: Int16);  begin if X <= Y then begin Smaller := X; Larger := Y end else begin Smaller := Y; Larger := X end; end;
+procedure OrderUp(x, y: Int32;  var Smaller, Larger: Int32);  begin if X <= Y then begin Smaller := X; Larger := Y end else begin Smaller := Y; Larger := X end; end;
+procedure OrderUp(x, y: Int64;  var Smaller, Larger: Int64);  begin if X <= Y then begin Smaller := X; Larger := Y end else begin Smaller := Y; Larger := X end; end;
+procedure OrderUp(x, y: Single; var Smaller, Larger: Single); begin if X <= Y then begin Smaller := X; Larger := Y end else begin Smaller := Y; Larger := X end; end;
+procedure OrderUp(x, y: Double; var Smaller, Larger: Double); begin if X <= Y then begin Smaller := X; Larger := Y end else begin Smaller := Y; Larger := X end; end;
 {$ifdef EXTENDED_OVERLOADS}
 procedure OrderUp(x, y: Extended; var Smaller, Larger: Extended); begin if X <= Y then begin Smaller := X; Larger := Y end else begin Smaller := Y; Larger := X end; end;
 {$endif}
 
+procedure MinVar(var a: UInt8  ; const b: UInt8  ); begin if B < A then A := B end;
 procedure MinVar(var a: UInt16 ; const b: UInt16 ); begin if B < A then A := B end;
-procedure MinVar(var a: Int64  ; const b: Int64  ); begin if B < A then A := B end;
-procedure MinVar(var a: Int32  ; const b: Int32  ); begin if B < A then A := B end;
 procedure MinVar(var a: UInt32 ; const b: UInt32 ); begin if B < A then A := B end;
+procedure MinVar(var a: UInt64 ; const b: UInt64 ); begin if B < A then A := B end;
+procedure MinVar(var a: Int8   ; const b: Int8   ); begin if B < A then A := B end;
+procedure MinVar(var a: Int16  ; const b: Int16  ); begin if B < A then A := B end;
+procedure MinVar(var a: Int32  ; const b: Int32  ); begin if B < A then A := B end;
+procedure MinVar(var a: Int64  ; const b: Int64  ); begin if B < A then A := B end;
 procedure MinVar(var a: Single ; const b: Single ); begin if B < A then A := B end;
 procedure MinVar(var a: Double ; const b: Double ); begin if B < A then A := B end;
 {$ifdef EXTENDED_OVERLOADS}
 procedure MinVar(var a: Extended; const b: Extended); begin if B < A then A := B end;
 {$endif}
 
+procedure MaxVar(var a: UInt8 ; const b: UInt8 ); begin if B > A then A := B end;
 procedure MaxVar(var a: UInt16; const b: UInt16); begin if B > A then A := B end;
-procedure MaxVar(var a: Int64 ; const b: Int64 ); begin if B > A then A := B end;
-procedure MaxVar(var a: Int32 ; const b: Int32 ); begin if B > A then A := B end;
 procedure MaxVar(var a: UInt32; const b: UInt32); begin if B > A then A := B end;
+procedure MaxVar(var a: UInt64; const b: UInt64); begin if B > A then A := B end;
+procedure MaxVar(var a: Int8  ; const b: Int8  ); begin if B > A then A := B end;
+procedure MaxVar(var a: Int16 ; const b: Int16 ); begin if B > A then A := B end;
+procedure MaxVar(var a: Int32 ; const b: Int32 ); begin if B > A then A := B end;
+procedure MaxVar(var a: Int64 ; const b: Int64 ); begin if B > A then A := B end;
 procedure MaxVar(var a: Single; const b: Single); begin if B > A then A := B end;
 procedure MaxVar(var a: Double; const b: Double); begin if B > A then A := B end;
 {$ifdef EXTENDED_OVERLOADS}
@@ -500,11 +603,21 @@ begin
  end;
 end;
 
+function Between(const a, vBegin, vEnd: UInt8): boolean;    begin Result := (vBegin <= a) and (a <= vend) end;
+function Between(const a, vBegin, vEnd: UInt16): boolean;   begin Result := (vBegin <= a) and (a <= vend) end;
+function Between(const a, vBegin, vEnd: UInt32): boolean;   begin Result := (vBegin <= a) and (a <= vend) end;
+function Between(const a, vBegin, vEnd: UInt64): boolean;   begin Result := (vBegin <= a) and (a <= vend) end;
+function Between(const a, vBegin, vEnd: Int8): boolean;     begin Result := (vBegin <= a) and (a <= vend) end;
+function Between(const a, vBegin, vEnd: Int16): boolean;    begin Result := (vBegin <= a) and (a <= vend) end;
+function Between(const a, vBegin, vEnd: Int32): boolean;    begin Result := (vBegin <= a) and (a <= vend) end;
 function Between(const a, vBegin, vEnd: Int64): boolean;    begin Result := (vBegin <= a) and (a <= vend) end;
-function Between(const a, vBegin, vEnd: Int32): boolean;  begin Result := (vBegin <= a) and (a <= vend) end;
-function Between(const a, vBegin, vEnd: cardinal): boolean; begin Result := (vBegin <= a) and (a <= vend) end;
-function Between(const a, vBegin, vEnd: Float): boolean;    begin Result := (vBegin <= a) and (a <= vend) end;
-function Between(const a, vBegin, vEnd: Char): boolean;     begin Result := (vBegin <= a) and (a <= vend) end;
+function Between(const a, vBegin, vEnd: Single): boolean;   begin Result := (vBegin <= a) and (a <= vend) end;
+function Between(const a, vBegin, vEnd: Double): boolean;   begin Result := (vBegin <= a) and (a <= vend) end;
+{$ifdef EXTENDED_OVERLOADS}
+function Between(const a, vBegin, vEnd: Extended): boolean; begin Result := (vBegin <= a) and (a <= vend) end;
+{$endif}
+function Between(const a, vBegin, vEnd: AnsiChar): boolean; begin Result := (vBegin <= a) and (a <= vend) end;
+function Between(const a, vBegin, vEnd: WideChar): boolean; begin Result := (vBegin <= a) and (a <= vend) end;
 
 function RoundClamp255(const A: Single): Byte;
 var
@@ -518,7 +631,21 @@ begin
     Exit(I);
 end;
 
-function Clamped(const a, vBegin, vEnd: Int64): Int64;
+function Clamped(const a, vBegin, vEnd: UInt8): UInt8;
+begin
+  if a < vBegin then result := vBegin else
+  if a > vEnd then result := vEnd else
+    result := a;
+end;
+
+function Clamped(const a, vBegin, vEnd: UInt16): UInt16;
+begin
+  if a < vBegin then result := vBegin else
+  if a > vEnd then result := vEnd else
+    result := a;
+end;
+
+function Clamped(const a, vBegin, vEnd: UInt32): UInt32;
 begin
   if a < vBegin then result := vBegin else
   if a > vEnd then result := vEnd else
@@ -532,6 +659,20 @@ begin
     result := a;
 end;
 
+function Clamped(const a, vBegin, vEnd: Int8): Int8;
+begin
+  if a < vBegin then result := vBegin else
+  if a > vEnd then result := vEnd else
+    result := a;
+end;
+
+function Clamped(const a, vBegin, vEnd: Int16): Int16;
+begin
+  if a < vBegin then result := vBegin else
+  if a > vEnd then result := vEnd else
+    result := a;
+end;
+
 function Clamped(const a, vBegin, vEnd: Int32): Int32;
 begin
   if a < vBegin then result := vBegin else
@@ -539,7 +680,7 @@ begin
     result := a;
 end;
 
-function Clamped(const a, vBegin, vEnd: cardinal): cardinal;
+function Clamped(const a, vBegin, vEnd: Int64): Int64;
 begin
   if a < vBegin then result := vBegin else
   if a > vEnd then result := vEnd else
@@ -569,7 +710,19 @@ begin
 end;
 {$endif}
 
-procedure ClampVar(var a: Int64;    const vBegin, vEnd: Int64);
+procedure ClampVar(var a: UInt8;    const vBegin, vEnd: UInt8);
+begin
+  if a < vBegin then a := vBegin else
+  if a > vEnd then a := vEnd;
+end;
+
+procedure ClampVar(var a: UInt16;   const vBegin, vEnd: UInt16);
+begin
+  if a < vBegin then a := vBegin else
+  if a > vEnd then a := vEnd;
+end;
+
+procedure ClampVar(var a: UInt32;   const vBegin, vEnd: UInt32);
 begin
   if a < vBegin then a := vBegin else
   if a > vEnd then a := vEnd;
@@ -581,13 +734,25 @@ begin
   if a > vEnd then a := vEnd;
 end;
 
-procedure ClampVar(var a: Int32;  const vBegin, vEnd: Int32);
+procedure ClampVar(var a: Int8;     const vBegin, vEnd: Int8);
 begin
   if a < vBegin then a := vBegin else
   if a > vEnd then a := vEnd;
 end;
 
-procedure ClampVar(var a: UInt32;   const vBegin, vEnd: UInt32);
+procedure ClampVar(var a: Int16;    const vBegin, vEnd: Int16);
+begin
+  if a < vBegin then a := vBegin else
+  if a > vEnd then a := vEnd;
+end;
+
+procedure ClampVar(var a: Int32;    const vBegin, vEnd: Int32);
+begin
+  if a < vBegin then a := vBegin else
+  if a > vEnd then a := vEnd;
+end;
+
+procedure ClampVar(var a: Int64;    const vBegin, vEnd: Int64);
 begin
   if a < vBegin then a := vBegin else
   if a > vEnd then a := vEnd;
@@ -613,19 +778,49 @@ begin
 end;
 {$endif}
 
+procedure Clamp(var a: UInt8;    const vBegin, vEnd: UInt8);
+begin
+  if a < vBegin then a := vBegin else
+  if a > vEnd then a := vEnd;
+end;
+
+procedure Clamp(var a: UInt16;   const vBegin, vEnd: UInt16);
+begin
+  if a < vBegin then a := vBegin else
+  if a > vEnd then a := vEnd;
+end;
+
+procedure Clamp(var a: UInt32;   const vBegin, vEnd: UInt32);
+begin
+  if a < vBegin then a := vBegin else
+  if a > vEnd then a := vEnd;
+end;
+
+procedure Clamp(var a: UInt64;   const vBegin, vEnd: UInt64);
+begin
+  if a < vBegin then a := vBegin else
+  if a > vEnd then a := vEnd;
+end;
+
+procedure Clamp(var a: Int8;     const vBegin, vEnd: Int8);
+begin
+  if a < vBegin then a := vBegin else
+  if a > vEnd then a := vEnd;
+end;
+
+procedure Clamp(var a: Int16;    const vBegin, vEnd: Int16);
+begin
+  if a < vBegin then a := vBegin else
+  if a > vEnd then a := vEnd;
+end;
+
+procedure Clamp(var a: Int32;    const vBegin, vEnd: Int32);
+begin
+  if a < vBegin then a := vBegin else
+  if a > vEnd then a := vEnd;
+end;
+
 procedure Clamp(var a: Int64;    const vBegin, vEnd: Int64);
-begin
-  if a < vBegin then a := vBegin else
-  if a > vEnd then a := vEnd;
-end;
-
-procedure Clamp(var a: Int32;  const vBegin, vEnd: Int32);
-begin
-  if a < vBegin then a := vBegin else
-  if a > vEnd then a := vEnd;
-end;
-
-procedure Clamp(var a: cardinal; const vBegin, vEnd: cardinal);
 begin
   if a < vBegin then a := vBegin else
   if a > vEnd then a := vEnd;
@@ -1125,10 +1320,12 @@ begin
   Result := Result * Result * (3.0 - 2.0 * Result);
 end;
 
-{ Use Swap32 / Swap64 names, instead of overloading one name like Swap
-  or SwapEndian, to avoid easy mistakes. }
+function Swap16(const Value: UInt16): UInt16;
+begin
+  Result := Swap(Value);
+end;
 
-function Swap32(Value: UInt32): UInt32;
+function Swap32(const Value: UInt32): UInt32;
 begin
   {$ifndef FPC}
   // see
@@ -1137,10 +1334,10 @@ begin
   Result := Swap(UInt16(Value)) shl 16 + Swap(UInt16(Value shr 16));
   {$else}
   Result := SwapEndian(Value);
-  {$endif}
+  {$endif FPC}
 end;
 
-function Swap64(Value: UInt64): UInt64;
+function Swap64(const Value: UInt64): UInt64;
 begin
   {$ifndef FPC}
   // see
@@ -1150,252 +1347,215 @@ begin
   Result := (Result shl 32) or Swap32(UInt32(Value shr 32));
   {$else}
   Result := SwapEndian(Value);
-  {$endif}
+  {$endif FPC}
 end;
 
-function SwapEndian(const Value: Single): Single;
+function SwapSigned16(const Value: Int16): Int16;
+var
+  UnsignedValue: UInt16 absolute Value;
+  UnsignedResult: UInt16 absolute Result;
 begin
-  PUInt32(@Result)^ := Swap32(PUInt32(@Value)^);
+  UnsignedResult := Swap16(UnsignedValue);
 end;
 
-function SwapEndian(const Value: Double): Double;
+function SwapSigned32(const Value: Int32): Int32;
+var
+  UnsignedValue: UInt32 absolute Value;
+  UnsignedResult: UInt32 absolute Result;
 begin
-  PQWord(@Result)^ := Swap64(PQWord(@Value)^);
+  UnsignedResult := Swap32(UnsignedValue);
 end;
 
+function SwapSigned64(const Value: Int64): Int64;
+var
+  UnsignedValue: UInt64 absolute Value;
+  UnsignedResult: UInt64 absolute Result;
+begin
+  UnsignedResult := Swap64(UnsignedValue);
+end;
+
+function SwapSingle(const Value: Single): Single;
+var
+  UnsignedValue: UInt32 absolute Value;
+  UnsignedResult: UInt32 absolute Result;
+begin
+  UnsignedResult := Swap32(UnsignedValue);
+end;
+
+function SwapDouble(const Value: Double): Double;
+var
+  UnsignedValue: UInt64 absolute Value;
+  UnsignedResult: UInt64 absolute Result;
+begin
+  UnsignedResult := Swap64(UnsignedValue);
+end;
 
 {$ifndef FPC}
-  function NtoLE(const Value: UInt16): UInt16;
-  begin
-  {$ifdef ENDIAN_BIG}
-    Result := Swap(Value);
-  {$else ENDIAN_BIG}
-    Result := Value;
-  {$endif ENDIAN_BIG}
-  end;
+function NtoLE(const Value: UInt16): UInt16;
+begin
+  Result := {$ifdef ENDIAN_BIG} Swap16(Value) {$else} Value {$endif};
+end;
 
-  function NtoLE(const Value: UInt32): UInt32;
-  begin
-  {$ifdef ENDIAN_BIG}
-    Result := Swap32(Value);
-  {$else ENDIAN_BIG}
-    Result := Value;
-  {$endif ENDIAN_BIG}
-  end;
+function NtoLE(const Value: UInt32): UInt32;
+begin
+  Result := {$ifdef ENDIAN_BIG} Swap32(Value) {$else} Value {$endif};
+end;
 
-  function NtoLE(const Value: UInt64): UInt64;
-  begin
-  {$ifdef ENDIAN_BIG}
-    Result := Swap64(Value);
-  {$else ENDIAN_BIG}
-    Result := Value;
-  {$endif ENDIAN_BIG}
-  end;
+function NtoLE(const Value: UInt64): UInt64;
+begin
+  Result := {$ifdef ENDIAN_BIG} Swap64(Value) {$else} Value {$endif};
+end;
 
-  function NtoLE(const Value: Int64): Int64; overload;
-  begin
-  {$ifdef ENDIAN_BIG}
-    Result := Swap64(Value);
-  {$else ENDIAN_BIG}
-    Result := Value;
-  {$endif ENDIAN_BIG}
-  end;
+function NtoLE(const Value: Int16): Int16;
+begin
+  Result := {$ifdef ENDIAN_BIG} SwapSigned16(Value) {$else} Value {$endif};
+end;
 
-{$endif}
+function NtoLE(const Value: Int32): Int32;
+begin
+  Result := {$ifdef ENDIAN_BIG} SwapSigned32(Value) {$else} Value {$endif};
+end;
 
+function NtoLE(const Value: Int64): Int64;
+begin
+  Result := {$ifdef ENDIAN_BIG} SwapSigned64(Value) {$else} Value {$endif};
+end;
+{$endif FPC}
 
 function NtoLE(const Value: Single): Single;
 begin
-{$ifdef ENDIAN_BIG}
-  Result := SwapEndian(Value);
-{$else ENDIAN_BIG}
-  Result := Value;
-{$endif ENDIAN_BIG}
+  Result := {$ifdef ENDIAN_BIG} SwapSingle(Value) {$else} Value {$endif};
 end;
 
 function NtoLE(const Value: Double): Double;
 begin
-{$ifdef ENDIAN_BIG}
-  Result := SwapEndian(Value);
-{$else ENDIAN_BIG}
-  Result := Value;
-{$endif ENDIAN_BIG}
+  Result := {$ifdef ENDIAN_BIG} SwapDouble(Value) {$else} Value {$endif};
 end;
 
 {$ifndef FPC}
-  function NtoBE(const Value: UInt16): UInt16;
-  begin
-  {$ifdef ENDIAN_BIG}
-    Result := Value;
-  {$else ENDIAN_BIG}
-    Result := Swap(Value);
-  {$endif ENDIAN_BIG}
-  end;
+function NtoBE(const Value: UInt16): UInt16;
+begin
+  Result := {$ifdef ENDIAN_BIG} Value {$else} Swap16(Value) {$endif};
+end;
 
-  function NtoBE(const Value: UInt32): UInt32;
-  begin
-  {$ifdef ENDIAN_BIG}
-    Result := Value;
-  {$else ENDIAN_BIG}
-    Result := Swap32(Value);
-  {$endif ENDIAN_BIG}
-  end;
+function NtoBE(const Value: UInt32): UInt32;
+begin
+  Result := {$ifdef ENDIAN_BIG} Value {$else} Swap32(Value) {$endif};
+end;
 
+function NtoBE(const Value: UInt64): UInt64;
+begin
+  Result := {$ifdef ENDIAN_BIG} Value {$else} Swap64(Value) {$endif};
+end;
 
-  function NtoBE(const Value: UInt64): UInt64;
-  begin
-  {$ifdef ENDIAN_BIG}
-    Result := Value;
-  {$else ENDIAN_BIG}
-    Result := Swap64(Value);
-  {$endif ENDIAN_BIG}
-  end;
+function NtoBE(const Value: Int16): Int16;
+begin
+  Result := {$ifdef ENDIAN_BIG} Value {$else} SwapSigned16(Value) {$endif};
+end;
 
-  function NtoBE(const Value: Int64): Int64;
-  begin
-  {$ifdef ENDIAN_BIG}
-    Result := Value;
-  {$else ENDIAN_BIG}
-    Result := Swap64(Value);
-  {$endif ENDIAN_BIG}
-  end;
+function NtoBE(const Value: Int32): Int32;
+begin
+  Result := {$ifdef ENDIAN_BIG} Value {$else} SwapSigned32(Value) {$endif};
+end;
 
-{$endif}
-
+function NtoBE(const Value: Int64): Int64;
+begin
+  Result := {$ifdef ENDIAN_BIG} Value {$else} SwapSigned64(Value) {$endif};
+end;
+{$endif FPC}
 
 function NtoBE(const Value: Single): Single;
 begin
-{$ifdef ENDIAN_BIG}
-  Result := Value;
-{$else ENDIAN_BIG}
-  Result := SwapEndian(Value);
-{$endif ENDIAN_BIG}
+  Result := {$ifdef ENDIAN_BIG} Value {$else} SwapSingle(Value) {$endif};
 end;
 
 function NtoBE(const Value: Double): Double;
 begin
-{$ifdef ENDIAN_BIG}
-  Result := Value;
-{$else ENDIAN_BIG}
-  Result := SwapEndian(Value);
-{$endif ENDIAN_BIG}
+  Result := {$ifdef ENDIAN_BIG} Value {$else} SwapDouble(Value) {$endif};
 end;
 
 {$ifndef FPC}
-  function LEtoN(const Value: UInt16): UInt16;
-  begin
-  {$ifdef ENDIAN_BIG}
-    Result := Swap(Value);
-  {$else ENDIAN_BIG}
-    Result := Value;
-  {$endif ENDIAN_BIG}
-  end;
+function LEtoN(const Value: UInt16): UInt16;
+begin
+  Result := {$ifdef ENDIAN_BIG} Swap16(Value) {$else} Value {$endif};
+end;
 
-  function LEtoN(const Value: UInt32): UInt32;
-  begin
-  {$ifdef ENDIAN_BIG}
-    Result := Swap32(Value);
-  {$else ENDIAN_BIG}
-    Result := Value;
-  {$endif ENDIAN_BIG}
-  end;
+function LEtoN(const Value: UInt32): UInt32;
+begin
+  Result := {$ifdef ENDIAN_BIG} Swap32(Value) {$else} Value {$endif};
+end;
 
-  function LEtoN(const Value: UInt64): UInt64;
-  begin
-  {$ifdef ENDIAN_BIG}
-    Result := Swap64(Value);
-  {$else ENDIAN_BIG}
-    Result := Value;
-  {$endif ENDIAN_BIG}
-  end;
+function LEtoN(const Value: UInt64): UInt64;
+begin
+  Result := {$ifdef ENDIAN_BIG} Swap64(Value) {$else} Value {$endif};
+end;
 
-  function LEtoN(const Value: Int64): Int64;
-  begin
-  {$ifdef ENDIAN_BIG}
-    Result := Swap64(Value);
-  {$else ENDIAN_BIG}
-    Result := Value;
-  {$endif ENDIAN_BIG}
-  end;
+function LEtoN(const Value: Int16): Int16;
+begin
+  Result := {$ifdef ENDIAN_BIG} SwapSigned16(Value) {$else} Value {$endif};
+end;
 
+function LEtoN(const Value: Int32): Int32;
+begin
+  Result := {$ifdef ENDIAN_BIG} SwapSigned32(Value) {$else} Value {$endif};
+end;
 
+function LEtoN(const Value: Int64): Int64;
+begin
+  Result := {$ifdef ENDIAN_BIG} SwapSigned64(Value) {$else} Value {$endif};
+end;
 {$endif FPC}
 
 function LEtoN(const Value: Single): Single;
 begin
-{$ifdef ENDIAN_BIG}
-  Result := SwapEndian(Value);
-{$else ENDIAN_BIG}
-  Result := Value;
-{$endif ENDIAN_BIG}
+  Result := {$ifdef ENDIAN_BIG} SwapSingle(Value) {$else} Value {$endif};
 end;
 
 function LEtoN(const Value: Double): Double;
 begin
-{$ifdef ENDIAN_BIG}
-  Result := SwapEndian(Value);
-{$else ENDIAN_BIG}
-  Result := Value;
-{$endif ENDIAN_BIG}
+  Result := {$ifdef ENDIAN_BIG} SwapDouble(Value) {$else} Value {$endif};
 end;
 
 {$ifndef FPC}
+function BEtoN(const Value: UInt16): UInt16;
+begin
+  Result := {$ifdef ENDIAN_BIG} Value {$else} Swap16(Value) {$endif};
+end;
 
-  function BEtoN(const Value: UInt16): UInt16;
-  begin
-  {$ifdef ENDIAN_BIG}
-    Result := Value;
-  {$else ENDIAN_BIG}
-    Result := Swap(Value);
-  {$endif ENDIAN_BIG}
-  end;
+function BEtoN(const Value: UInt32): UInt32;
+begin
+  Result := {$ifdef ENDIAN_BIG} Value {$else} Swap32(Value) {$endif};
+end;
 
-  function BEtoN(const Value: UInt32): UInt32;
-  begin
-  {$ifdef ENDIAN_BIG}
-    Result := Value;
-  {$else ENDIAN_BIG}
-    Result := Swap32(Value);
-  {$endif ENDIAN_BIG}
-  end;
+function BEtoN(const Value: UInt64): UInt64;
+begin
+  Result := {$ifdef ENDIAN_BIG} Value {$else} Swap64(Value) {$endif};
+end;
 
-  function BEtoN(const Value: UInt64): UInt64;
-  begin
-  {$ifdef ENDIAN_BIG}
-    Result := Value;
-  {$else ENDIAN_BIG}
-    Result := Swap64(Value);
-  {$endif ENDIAN_BIG}
-  end;
+function BEtoN(const Value: Int16): Int16;
+begin
+  Result := {$ifdef ENDIAN_BIG} Value {$else} SwapSigned16(Value) {$endif};
+end;
 
-  function BEtoN(const Value: Int64): Int64;
-  begin
-  {$ifdef ENDIAN_BIG}
-    Result := Value;
-  {$else ENDIAN_BIG}
-    Result := Swap64(Value);
-  {$endif ENDIAN_BIG}
-  end;
+function BEtoN(const Value: Int32): Int32;
+begin
+  Result := {$ifdef ENDIAN_BIG} Value {$else} SwapSigned32(Value) {$endif};
+end;
 
-{$endif}
-
+function BEtoN(const Value: Int64): Int64;
+begin
+  Result := {$ifdef ENDIAN_BIG} Value {$else} SwapSigned64(Value) {$endif};
+end;
+{$endif FPC}
 
 function BEtoN(const Value: Single): Single;
 begin
-{$ifdef ENDIAN_BIG}
-  Result := Value;
-{$else ENDIAN_BIG}
-  Result := SwapEndian(Value);
-{$endif ENDIAN_BIG}
+  Result := {$ifdef ENDIAN_BIG} Value {$else} SwapSingle(Value) {$endif};
 end;
 
 function BEtoN(const Value: Double): Double;
 begin
-{$ifdef ENDIAN_BIG}
-  Result := Value;
-{$else ENDIAN_BIG}
-  Result := SwapEndian(Value);
-{$endif ENDIAN_BIG}
+  Result := {$ifdef ENDIAN_BIG} Value {$else} SwapDouble(Value) {$endif};
 end;
 
 function Deg(const Degrees: Float): Float;
