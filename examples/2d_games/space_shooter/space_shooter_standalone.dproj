@@ -277,7 +277,7 @@
      to non-Windows targets,
      see https://castle-engine.io/delphi_linux#data_files_deployment .
 -->
-<DeployFile LocalName="data\AUTHORS.md" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\AUTHORS.md" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/</RemoteDir>
   <RemoteName>AUTHORS.md</RemoteName>
@@ -324,7 +324,7 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\CastleSettings.xml" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\CastleSettings.xml" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/</RemoteDir>
   <RemoteName>CastleSettings.xml</RemoteName>
@@ -371,7 +371,7 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\explosion\explosion.castle-sprite-sheet" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\explosion\explosion.castle-sprite-sheet" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/explosion/</RemoteDir>
   <RemoteName>explosion.castle-sprite-sheet</RemoteName>
@@ -418,7 +418,7 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\explosion\explosion.castle-transform" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\explosion\explosion.castle-transform" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/explosion/</RemoteDir>
   <RemoteName>explosion.castle-transform</RemoteName>
@@ -465,7 +465,7 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\explosion\explosion.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\explosion\explosion.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/explosion/</RemoteDir>
   <RemoteName>explosion.png</RemoteName>
@@ -512,7 +512,7 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10001.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10001.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
   <RemoteName>explosion_10001.png</RemoteName>
@@ -559,7 +559,7 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10002.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10002.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
   <RemoteName>explosion_10002.png</RemoteName>
@@ -606,7 +606,7 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10003.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10003.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
   <RemoteName>explosion_10003.png</RemoteName>
@@ -653,7 +653,7 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10004.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10004.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
   <RemoteName>explosion_10004.png</RemoteName>
@@ -700,7 +700,7 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10005.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10005.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
   <RemoteName>explosion_10005.png</RemoteName>
@@ -747,7 +747,7 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10006.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10006.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
   <RemoteName>explosion_10006.png</RemoteName>
@@ -794,7 +794,7 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10007.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10007.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
   <RemoteName>explosion_10007.png</RemoteName>
@@ -841,7 +841,7 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10008.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10008.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
   <RemoteName>explosion_10008.png</RemoteName>
@@ -888,7 +888,7 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10009.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10009.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
   <RemoteName>explosion_10009.png</RemoteName>
@@ -935,7 +935,7 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10010.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10010.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
   <RemoteName>explosion_10010.png</RemoteName>
@@ -982,7 +982,7 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10011.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10011.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
   <RemoteName>explosion_10011.png</RemoteName>
@@ -1029,7 +1029,7 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10012.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10012.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
   <RemoteName>explosion_10012.png</RemoteName>
@@ -1076,7 +1076,7 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10013.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10013.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
   <RemoteName>explosion_10013.png</RemoteName>
@@ -1123,7 +1123,7 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10014.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10014.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
   <RemoteName>explosion_10014.png</RemoteName>
@@ -1170,7 +1170,7 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10015.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10015.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
   <RemoteName>explosion_10015.png</RemoteName>
@@ -1217,7 +1217,7 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10016.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10016.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
   <RemoteName>explosion_10016.png</RemoteName>
@@ -1264,7 +1264,7 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10017.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10017.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
   <RemoteName>explosion_10017.png</RemoteName>
@@ -1311,7 +1311,7 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10018.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10018.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
   <RemoteName>explosion_10018.png</RemoteName>
@@ -1358,7 +1358,7 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10019.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10019.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
   <RemoteName>explosion_10019.png</RemoteName>
@@ -1405,7 +1405,7 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10020.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10020.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
   <RemoteName>explosion_10020.png</RemoteName>
@@ -1452,7 +1452,7 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10021.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10021.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
   <RemoteName>explosion_10021.png</RemoteName>
@@ -1499,7 +1499,7 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10022.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10022.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
   <RemoteName>explosion_10022.png</RemoteName>
@@ -1546,7 +1546,7 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10023.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10023.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
   <RemoteName>explosion_10023.png</RemoteName>
@@ -1593,7 +1593,7 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10024.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10024.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
   <RemoteName>explosion_10024.png</RemoteName>
@@ -1640,7 +1640,7 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10025.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10025.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
   <RemoteName>explosion_10025.png</RemoteName>
@@ -1687,7 +1687,7 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10026.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10026.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
   <RemoteName>explosion_10026.png</RemoteName>
@@ -1734,7 +1734,7 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10027.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10027.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
   <RemoteName>explosion_10027.png</RemoteName>
@@ -1781,7 +1781,7 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10028.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10028.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
   <RemoteName>explosion_10028.png</RemoteName>
@@ -1828,7 +1828,7 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10029.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10029.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
   <RemoteName>explosion_10029.png</RemoteName>
@@ -1875,7 +1875,7 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10030.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10030.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
   <RemoteName>explosion_10030.png</RemoteName>
@@ -1922,7 +1922,7 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\gameviewmain.castle-user-interface" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\gameviewmain.castle-user-interface" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/</RemoteDir>
   <RemoteName>gameviewmain.castle-user-interface</RemoteName>
@@ -1969,7 +1969,7 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\README.txt" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\README.txt" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/</RemoteDir>
   <RemoteName>README.txt</RemoteName>
@@ -2016,7 +2016,7 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\rocket.castle-transform" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\rocket.castle-transform" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/</RemoteDir>
   <RemoteName>rocket.castle-transform</RemoteName>
@@ -2063,7 +2063,7 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\rocks\rock.bin" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\rocks\rock.bin" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/rocks/</RemoteDir>
   <RemoteName>rock.bin</RemoteName>
@@ -2110,7 +2110,7 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\rocks\rock.castle-transform" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\rocks\rock.castle-transform" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/rocks/</RemoteDir>
   <RemoteName>rock.castle-transform</RemoteName>
@@ -2157,7 +2157,7 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\rocks\rock.gltf" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\rocks\rock.gltf" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/rocks/</RemoteDir>
   <RemoteName>rock.gltf</RemoteName>
@@ -2204,7 +2204,7 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\rocks\rock_diffuse.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\rocks\rock_diffuse.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/rocks/</RemoteDir>
   <RemoteName>rock_diffuse.png</RemoteName>
@@ -2251,7 +2251,7 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\ship\shiper_mix_02_0.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\ship\shiper_mix_02_0.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/ship/</RemoteDir>
   <RemoteName>shiper_mix_02_0.png</RemoteName>
@@ -2298,7 +2298,7 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\ship\shiper_remix_h_hover_0.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\ship\shiper_remix_h_hover_0.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/ship/</RemoteDir>
   <RemoteName>shiper_remix_h_hover_0.png</RemoteName>
@@ -2345,7 +2345,7 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\space\deadPlanet.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\space\deadPlanet.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/space/</RemoteDir>
   <RemoteName>deadPlanet.png</RemoteName>
@@ -2392,7 +2392,7 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\space\goldSpace.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\space\goldSpace.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/space/</RemoteDir>
   <RemoteName>goldSpace.png</RemoteName>
@@ -2439,7 +2439,7 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\space\greenPlanet.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\space\greenPlanet.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/space/</RemoteDir>
   <RemoteName>greenPlanet.png</RemoteName>
@@ -2486,7 +2486,7 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\space\greySpace.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\space\greySpace.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/space/</RemoteDir>
   <RemoteName>greySpace.png</RemoteName>
@@ -2533,7 +2533,7 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\space\purplePlanet.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\space\purplePlanet.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/space/</RemoteDir>
   <RemoteName>purplePlanet.png</RemoteName>
@@ -2580,7 +2580,7 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\space\redSpace.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\space\redSpace.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/space/</RemoteDir>
   <RemoteName>redSpace.png</RemoteName>
@@ -2627,7 +2627,7 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\space\rustPlanet-NoAtmosphere.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\space\rustPlanet-NoAtmosphere.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/space/</RemoteDir>
   <RemoteName>rustPlanet-NoAtmosphere.png</RemoteName>
@@ -2674,2451 +2674,7 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\space\rustPlanet-WithAtmosphere.png" Configuration="Debug" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/space/</RemoteDir>
-  <RemoteName>rustPlanet-WithAtmosphere.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/space/</RemoteDir>
-  <RemoteName>rustPlanet-WithAtmosphere.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>rustPlanet-WithAtmosphere.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>rustPlanet-WithAtmosphere.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>rustPlanet-WithAtmosphere.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>rustPlanet-WithAtmosphere.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>rustPlanet-WithAtmosphere.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>rustPlanet-WithAtmosphere.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>rustPlanet-WithAtmosphere.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\AUTHORS.md" Configuration="Release" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
-  <RemoteName>AUTHORS.md</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
-  <RemoteName>AUTHORS.md</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>AUTHORS.md</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>AUTHORS.md</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>AUTHORS.md</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>AUTHORS.md</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>AUTHORS.md</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>AUTHORS.md</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>AUTHORS.md</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\CastleSettings.xml" Configuration="Release" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
-  <RemoteName>CastleSettings.xml</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
-  <RemoteName>CastleSettings.xml</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>CastleSettings.xml</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>CastleSettings.xml</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>CastleSettings.xml</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>CastleSettings.xml</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>CastleSettings.xml</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>CastleSettings.xml</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>CastleSettings.xml</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\explosion\explosion.castle-sprite-sheet" Configuration="Release" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/explosion/</RemoteDir>
-  <RemoteName>explosion.castle-sprite-sheet</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/explosion/</RemoteDir>
-  <RemoteName>explosion.castle-sprite-sheet</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/explosion/</RemoteDir>
-  <RemoteName>explosion.castle-sprite-sheet</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/explosion/</RemoteDir>
-  <RemoteName>explosion.castle-sprite-sheet</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/explosion/</RemoteDir>
-  <RemoteName>explosion.castle-sprite-sheet</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/explosion/</RemoteDir>
-  <RemoteName>explosion.castle-sprite-sheet</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/explosion/</RemoteDir>
-  <RemoteName>explosion.castle-sprite-sheet</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/explosion/</RemoteDir>
-  <RemoteName>explosion.castle-sprite-sheet</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/explosion/</RemoteDir>
-  <RemoteName>explosion.castle-sprite-sheet</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\explosion\explosion.castle-transform" Configuration="Release" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/explosion/</RemoteDir>
-  <RemoteName>explosion.castle-transform</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/explosion/</RemoteDir>
-  <RemoteName>explosion.castle-transform</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/explosion/</RemoteDir>
-  <RemoteName>explosion.castle-transform</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/explosion/</RemoteDir>
-  <RemoteName>explosion.castle-transform</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/explosion/</RemoteDir>
-  <RemoteName>explosion.castle-transform</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/explosion/</RemoteDir>
-  <RemoteName>explosion.castle-transform</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/explosion/</RemoteDir>
-  <RemoteName>explosion.castle-transform</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/explosion/</RemoteDir>
-  <RemoteName>explosion.castle-transform</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/explosion/</RemoteDir>
-  <RemoteName>explosion.castle-transform</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\explosion\explosion.png" Configuration="Release" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/explosion/</RemoteDir>
-  <RemoteName>explosion.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/explosion/</RemoteDir>
-  <RemoteName>explosion.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/explosion/</RemoteDir>
-  <RemoteName>explosion.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/explosion/</RemoteDir>
-  <RemoteName>explosion.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/explosion/</RemoteDir>
-  <RemoteName>explosion.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/explosion/</RemoteDir>
-  <RemoteName>explosion.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/explosion/</RemoteDir>
-  <RemoteName>explosion.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/explosion/</RemoteDir>
-  <RemoteName>explosion.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/explosion/</RemoteDir>
-  <RemoteName>explosion.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10001.png" Configuration="Release" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10001.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10001.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10001.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10001.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10001.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10001.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10001.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10001.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10001.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10002.png" Configuration="Release" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10002.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10002.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10002.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10002.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10002.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10002.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10002.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10002.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10002.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10003.png" Configuration="Release" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10003.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10003.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10003.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10003.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10003.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10003.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10003.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10003.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10003.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10004.png" Configuration="Release" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10004.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10004.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10004.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10004.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10004.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10004.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10004.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10004.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10004.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10005.png" Configuration="Release" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10005.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10005.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10005.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10005.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10005.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10005.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10005.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10005.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10005.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10006.png" Configuration="Release" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10006.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10006.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10006.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10006.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10006.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10006.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10006.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10006.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10006.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10007.png" Configuration="Release" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10007.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10007.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10007.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10007.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10007.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10007.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10007.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10007.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10007.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10008.png" Configuration="Release" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10008.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10008.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10008.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10008.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10008.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10008.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10008.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10008.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10008.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10009.png" Configuration="Release" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10009.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10009.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10009.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10009.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10009.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10009.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10009.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10009.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10009.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10010.png" Configuration="Release" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10010.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10010.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10010.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10010.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10010.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10010.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10010.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10010.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10010.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10011.png" Configuration="Release" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10011.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10011.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10011.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10011.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10011.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10011.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10011.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10011.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10011.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10012.png" Configuration="Release" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10012.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10012.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10012.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10012.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10012.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10012.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10012.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10012.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10012.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10013.png" Configuration="Release" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10013.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10013.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10013.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10013.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10013.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10013.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10013.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10013.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10013.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10014.png" Configuration="Release" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10014.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10014.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10014.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10014.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10014.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10014.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10014.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10014.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10014.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10015.png" Configuration="Release" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10015.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10015.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10015.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10015.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10015.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10015.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10015.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10015.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10015.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10016.png" Configuration="Release" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10016.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10016.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10016.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10016.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10016.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10016.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10016.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10016.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10016.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10017.png" Configuration="Release" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10017.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10017.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10017.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10017.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10017.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10017.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10017.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10017.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10017.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10018.png" Configuration="Release" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10018.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10018.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10018.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10018.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10018.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10018.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10018.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10018.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10018.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10019.png" Configuration="Release" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10019.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10019.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10019.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10019.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10019.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10019.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10019.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10019.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10019.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10020.png" Configuration="Release" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10020.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10020.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10020.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10020.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10020.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10020.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10020.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10020.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10020.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10021.png" Configuration="Release" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10021.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10021.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10021.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10021.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10021.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10021.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10021.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10021.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10021.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10022.png" Configuration="Release" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10022.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10022.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10022.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10022.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10022.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10022.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10022.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10022.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10022.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10023.png" Configuration="Release" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10023.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10023.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10023.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10023.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10023.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10023.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10023.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10023.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10023.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10024.png" Configuration="Release" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10024.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10024.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10024.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10024.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10024.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10024.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10024.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10024.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10024.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10025.png" Configuration="Release" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10025.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10025.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10025.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10025.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10025.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10025.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10025.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10025.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10025.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10026.png" Configuration="Release" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10026.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10026.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10026.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10026.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10026.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10026.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10026.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10026.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10026.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10027.png" Configuration="Release" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10027.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10027.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10027.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10027.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10027.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10027.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10027.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10027.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10027.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10028.png" Configuration="Release" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10028.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10028.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10028.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10028.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10028.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10028.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10028.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10028.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10028.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10029.png" Configuration="Release" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10029.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10029.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10029.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10029.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10029.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10029.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10029.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10029.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10029.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\explosion\explosion_320x240_frameskip2\explosion_10030.png" Configuration="Release" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10030.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10030.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10030.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10030.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10030.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10030.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10030.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10030.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
-  <RemoteName>explosion_10030.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\gameviewmain.castle-user-interface" Configuration="Release" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
-  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
-  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\README.txt" Configuration="Release" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\rocket.castle-transform" Configuration="Release" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
-  <RemoteName>rocket.castle-transform</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
-  <RemoteName>rocket.castle-transform</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>rocket.castle-transform</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>rocket.castle-transform</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>rocket.castle-transform</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>rocket.castle-transform</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>rocket.castle-transform</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>rocket.castle-transform</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>rocket.castle-transform</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\rocks\rock.bin" Configuration="Release" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/rocks/</RemoteDir>
-  <RemoteName>rock.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/rocks/</RemoteDir>
-  <RemoteName>rock.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/rocks/</RemoteDir>
-  <RemoteName>rock.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/rocks/</RemoteDir>
-  <RemoteName>rock.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/rocks/</RemoteDir>
-  <RemoteName>rock.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/rocks/</RemoteDir>
-  <RemoteName>rock.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/rocks/</RemoteDir>
-  <RemoteName>rock.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/rocks/</RemoteDir>
-  <RemoteName>rock.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/rocks/</RemoteDir>
-  <RemoteName>rock.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\rocks\rock.castle-transform" Configuration="Release" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/rocks/</RemoteDir>
-  <RemoteName>rock.castle-transform</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/rocks/</RemoteDir>
-  <RemoteName>rock.castle-transform</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/rocks/</RemoteDir>
-  <RemoteName>rock.castle-transform</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/rocks/</RemoteDir>
-  <RemoteName>rock.castle-transform</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/rocks/</RemoteDir>
-  <RemoteName>rock.castle-transform</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/rocks/</RemoteDir>
-  <RemoteName>rock.castle-transform</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/rocks/</RemoteDir>
-  <RemoteName>rock.castle-transform</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/rocks/</RemoteDir>
-  <RemoteName>rock.castle-transform</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/rocks/</RemoteDir>
-  <RemoteName>rock.castle-transform</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\rocks\rock.gltf" Configuration="Release" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/rocks/</RemoteDir>
-  <RemoteName>rock.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/rocks/</RemoteDir>
-  <RemoteName>rock.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/rocks/</RemoteDir>
-  <RemoteName>rock.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/rocks/</RemoteDir>
-  <RemoteName>rock.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/rocks/</RemoteDir>
-  <RemoteName>rock.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/rocks/</RemoteDir>
-  <RemoteName>rock.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/rocks/</RemoteDir>
-  <RemoteName>rock.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/rocks/</RemoteDir>
-  <RemoteName>rock.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/rocks/</RemoteDir>
-  <RemoteName>rock.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\rocks\rock_diffuse.png" Configuration="Release" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/rocks/</RemoteDir>
-  <RemoteName>rock_diffuse.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/rocks/</RemoteDir>
-  <RemoteName>rock_diffuse.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/rocks/</RemoteDir>
-  <RemoteName>rock_diffuse.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/rocks/</RemoteDir>
-  <RemoteName>rock_diffuse.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/rocks/</RemoteDir>
-  <RemoteName>rock_diffuse.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/rocks/</RemoteDir>
-  <RemoteName>rock_diffuse.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/rocks/</RemoteDir>
-  <RemoteName>rock_diffuse.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/rocks/</RemoteDir>
-  <RemoteName>rock_diffuse.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/rocks/</RemoteDir>
-  <RemoteName>rock_diffuse.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\ship\shiper_mix_02_0.png" Configuration="Release" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/ship/</RemoteDir>
-  <RemoteName>shiper_mix_02_0.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/ship/</RemoteDir>
-  <RemoteName>shiper_mix_02_0.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/ship/</RemoteDir>
-  <RemoteName>shiper_mix_02_0.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/ship/</RemoteDir>
-  <RemoteName>shiper_mix_02_0.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/ship/</RemoteDir>
-  <RemoteName>shiper_mix_02_0.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/ship/</RemoteDir>
-  <RemoteName>shiper_mix_02_0.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/ship/</RemoteDir>
-  <RemoteName>shiper_mix_02_0.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/ship/</RemoteDir>
-  <RemoteName>shiper_mix_02_0.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/ship/</RemoteDir>
-  <RemoteName>shiper_mix_02_0.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\ship\shiper_remix_h_hover_0.png" Configuration="Release" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/ship/</RemoteDir>
-  <RemoteName>shiper_remix_h_hover_0.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/ship/</RemoteDir>
-  <RemoteName>shiper_remix_h_hover_0.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/ship/</RemoteDir>
-  <RemoteName>shiper_remix_h_hover_0.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/ship/</RemoteDir>
-  <RemoteName>shiper_remix_h_hover_0.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/ship/</RemoteDir>
-  <RemoteName>shiper_remix_h_hover_0.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/ship/</RemoteDir>
-  <RemoteName>shiper_remix_h_hover_0.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/ship/</RemoteDir>
-  <RemoteName>shiper_remix_h_hover_0.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/ship/</RemoteDir>
-  <RemoteName>shiper_remix_h_hover_0.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/ship/</RemoteDir>
-  <RemoteName>shiper_remix_h_hover_0.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\space\deadPlanet.png" Configuration="Release" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/space/</RemoteDir>
-  <RemoteName>deadPlanet.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/space/</RemoteDir>
-  <RemoteName>deadPlanet.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>deadPlanet.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>deadPlanet.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>deadPlanet.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>deadPlanet.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>deadPlanet.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>deadPlanet.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>deadPlanet.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\space\goldSpace.png" Configuration="Release" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/space/</RemoteDir>
-  <RemoteName>goldSpace.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/space/</RemoteDir>
-  <RemoteName>goldSpace.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>goldSpace.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>goldSpace.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>goldSpace.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>goldSpace.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>goldSpace.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>goldSpace.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>goldSpace.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\space\greenPlanet.png" Configuration="Release" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/space/</RemoteDir>
-  <RemoteName>greenPlanet.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/space/</RemoteDir>
-  <RemoteName>greenPlanet.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>greenPlanet.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>greenPlanet.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>greenPlanet.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>greenPlanet.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>greenPlanet.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>greenPlanet.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>greenPlanet.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\space\greySpace.png" Configuration="Release" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/space/</RemoteDir>
-  <RemoteName>greySpace.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/space/</RemoteDir>
-  <RemoteName>greySpace.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>greySpace.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>greySpace.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>greySpace.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>greySpace.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>greySpace.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>greySpace.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>greySpace.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\space\purplePlanet.png" Configuration="Release" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/space/</RemoteDir>
-  <RemoteName>purplePlanet.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/space/</RemoteDir>
-  <RemoteName>purplePlanet.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>purplePlanet.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>purplePlanet.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>purplePlanet.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>purplePlanet.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>purplePlanet.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>purplePlanet.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>purplePlanet.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\space\redSpace.png" Configuration="Release" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/space/</RemoteDir>
-  <RemoteName>redSpace.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/space/</RemoteDir>
-  <RemoteName>redSpace.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>redSpace.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>redSpace.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>redSpace.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>redSpace.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>redSpace.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>redSpace.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>redSpace.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\space\rustPlanet-NoAtmosphere.png" Configuration="Release" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/space/</RemoteDir>
-  <RemoteName>rustPlanet-NoAtmosphere.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/space/</RemoteDir>
-  <RemoteName>rustPlanet-NoAtmosphere.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>rustPlanet-NoAtmosphere.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>rustPlanet-NoAtmosphere.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>rustPlanet-NoAtmosphere.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>rustPlanet-NoAtmosphere.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>rustPlanet-NoAtmosphere.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>rustPlanet-NoAtmosphere.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/space/</RemoteDir>
-  <RemoteName>rustPlanet-NoAtmosphere.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\space\rustPlanet-WithAtmosphere.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\space\rustPlanet-WithAtmosphere.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/space/</RemoteDir>
   <RemoteName>rustPlanet-WithAtmosphere.png</RemoteName>

@@ -277,8 +277,38 @@
      to non-Windows targets,
      see https://castle-engine.io/delphi_linux#data_files_deployment .
 -->
-<DeployFile LocalName="data\CastleSettings.xml" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\CastleSettings.xml" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>CastleSettings.xml</RemoteName>
   <Overwrite>true</Overwrite>
@@ -294,25 +324,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\README.txt" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\dungeon_modular_level\level-dungeon.bin" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/</RemoteDir>
+  <RemoteName>level-dungeon.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/</RemoteDir>
+  <RemoteName>level-dungeon.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/</RemoteDir>
+  <RemoteName>level-dungeon.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/</RemoteDir>
+  <RemoteName>level-dungeon.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
+  <RemoteDir>./data/dungeon_modular_level/</RemoteDir>
+  <RemoteName>level-dungeon.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/</RemoteDir>
+  <RemoteName>level-dungeon.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/level-dungeon.bin" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/dungeon_modular_level/</RemoteDir>
   <RemoteName>level-dungeon.bin</RemoteName>
   <Overwrite>true</Overwrite>
@@ -328,8 +371,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/level-dungeon.gltf" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\dungeon_modular_level\level-dungeon.gltf" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/</RemoteDir>
+  <RemoteName>level-dungeon.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/</RemoteDir>
+  <RemoteName>level-dungeon.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/</RemoteDir>
+  <RemoteName>level-dungeon.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/</RemoteDir>
+  <RemoteName>level-dungeon.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/</RemoteDir>
+  <RemoteName>level-dungeon.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/</RemoteDir>
+  <RemoteName>level-dungeon.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/dungeon_modular_level/</RemoteDir>
   <RemoteName>level-dungeon.gltf</RemoteName>
   <Overwrite>true</Overwrite>
@@ -345,8 +418,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/BucklerV5D.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\dungeon_modular_level\textures\BucklerV5D.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>BucklerV5D.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>BucklerV5D.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>BucklerV5D.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>BucklerV5D.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>BucklerV5D.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>BucklerV5D.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
   <RemoteName>BucklerV5D.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -362,8 +465,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/concrete01_diff.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\dungeon_modular_level\textures\concrete01_diff.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>concrete01_diff.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>concrete01_diff.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>concrete01_diff.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>concrete01_diff.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>concrete01_diff.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>concrete01_diff.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
   <RemoteName>concrete01_diff.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -379,8 +512,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/concrete01_norm.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\dungeon_modular_level\textures\concrete01_norm.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>concrete01_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>concrete01_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>concrete01_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>concrete01_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>concrete01_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>concrete01_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
   <RemoteName>concrete01_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -396,8 +559,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/decorative.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\dungeon_modular_level\textures\decorative.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>decorative.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>decorative.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>decorative.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>decorative.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>decorative.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>decorative.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
   <RemoteName>decorative.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -413,8 +606,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/decorative_norm.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\dungeon_modular_level\textures\decorative_norm.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>decorative_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>decorative_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>decorative_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>decorative_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>decorative_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>decorative_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
   <RemoteName>decorative_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -430,8 +653,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/decorative_spec.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\dungeon_modular_level\textures\decorative_spec.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>decorative_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>decorative_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>decorative_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>decorative_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>decorative_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>decorative_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
   <RemoteName>decorative_spec.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -447,42 +700,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/gate-2.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\dungeon_modular_level\textures\gate.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>gate.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>gate.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>gate.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>gate.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>gate-2.png</RemoteName>
+  <RemoteName>gate.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
- <Platform Name="Win32">
+ <Platform Name="OSX64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>gate-2.png</RemoteName>
+  <RemoteName>gate.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>gate-2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/gate-2_norm.png" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>gate-2_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>gate-2_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>gate-2_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/gate.png" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
   <RemoteName>gate.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -498,8 +747,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/gate_norm.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\dungeon_modular_level\textures\gate_norm.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>gate_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>gate_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>gate_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>gate_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>gate_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>gate_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
   <RemoteName>gate_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -515,59 +794,132 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/ground-1-darkness.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\dungeon_modular_level\textures\gate-2.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>gate-2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>gate-2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>gate-2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>gate-2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1-darkness.png</RemoteName>
+  <RemoteName>gate-2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>gate-2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>gate-2.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1-darkness.png</RemoteName>
+  <RemoteName>gate-2.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1-darkness.png</RemoteName>
+  <RemoteName>gate-2.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/ground-1-darkness_norm.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\dungeon_modular_level\textures\gate-2_norm.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>gate-2_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>gate-2_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>gate-2_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>gate-2_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1-darkness_norm.png</RemoteName>
+  <RemoteName>gate-2_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>gate-2_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>gate-2_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1-darkness_norm.png</RemoteName>
+  <RemoteName>gate-2_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1-darkness_norm.png</RemoteName>
+  <RemoteName>gate-2_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/ground-1-darkness_spec.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\dungeon_modular_level\textures\ground-1.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1-darkness_spec.png</RemoteName>
+  <RemoteName>ground-1.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
- <Platform Name="Win32">
+ <Platform Name="OSX64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1-darkness_spec.png</RemoteName>
+  <RemoteName>ground-1.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1-darkness_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/ground-1.png" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
   <RemoteName>ground-1.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -583,8 +935,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/ground-1_norm.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\dungeon_modular_level\textures\ground-1_norm.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
   <RemoteName>ground-1_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -600,8 +982,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/ground-1_spec.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\dungeon_modular_level\textures\ground-1_spec.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
   <RemoteName>ground-1_spec.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -617,8 +1029,179 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/ground-2.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\dungeon_modular_level\textures\ground-1-darkness.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1-darkness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1-darkness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1-darkness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1-darkness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1-darkness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1-darkness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1-darkness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1-darkness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1-darkness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\dungeon_modular_level\textures\ground-1-darkness_norm.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1-darkness_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1-darkness_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1-darkness_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1-darkness_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1-darkness_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1-darkness_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1-darkness_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1-darkness_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1-darkness_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\dungeon_modular_level\textures\ground-1-darkness_spec.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1-darkness_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1-darkness_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1-darkness_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1-darkness_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1-darkness_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1-darkness_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1-darkness_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1-darkness_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1-darkness_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\dungeon_modular_level\textures\ground-2.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
   <RemoteName>ground-2.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -634,8 +1217,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/ground-2_norm.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\dungeon_modular_level\textures\ground-2_norm.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-2_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-2_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-2_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-2_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-2_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-2_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
   <RemoteName>ground-2_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -651,8 +1264,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/ground-2_spec.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\dungeon_modular_level\textures\ground-2_spec.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-2_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-2_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-2_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-2_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-2_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-2_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
   <RemoteName>ground-2_spec.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -668,8 +1311,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/ground-3.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\dungeon_modular_level\textures\ground-3.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-3.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-3.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-3.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-3.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-3.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-3.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
   <RemoteName>ground-3.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -685,8 +1358,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/ground-3_norm.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\dungeon_modular_level\textures\ground-3_norm.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-3_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-3_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-3_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-3_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-3_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-3_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
   <RemoteName>ground-3_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -702,8 +1405,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/ground-3_spec.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\dungeon_modular_level\textures\ground-3_spec.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-3_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-3_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-3_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-3_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-3_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-3_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
   <RemoteName>ground-3_spec.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -719,8 +1452,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/ground-4.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\dungeon_modular_level\textures\ground-4.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-4.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-4.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-4.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-4.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-4.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-4.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
   <RemoteName>ground-4.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -736,8 +1499,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/ground-4_norm.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\dungeon_modular_level\textures\ground-4_norm.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-4_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-4_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-4_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-4_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-4_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-4_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
   <RemoteName>ground-4_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -753,8 +1546,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/ground-4_spec.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\dungeon_modular_level\textures\ground-4_spec.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-4_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-4_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-4_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-4_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-4_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-4_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
   <RemoteName>ground-4_spec.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -770,8 +1593,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/mug2.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\dungeon_modular_level\textures\mug2.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>mug2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>mug2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>mug2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>mug2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>mug2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>mug2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
   <RemoteName>mug2.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -787,8 +1640,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/mug2_ao.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\dungeon_modular_level\textures\mug2_ao.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>mug2_ao.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>mug2_ao.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>mug2_ao.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>mug2_ao.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>mug2_ao.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>mug2_ao.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
   <RemoteName>mug2_ao.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -804,8 +1687,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/mug2_norm.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\dungeon_modular_level\textures\mug2_norm.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>mug2_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>mug2_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>mug2_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>mug2_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>mug2_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>mug2_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
   <RemoteName>mug2_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -821,8 +1734,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/mug2_spec.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\dungeon_modular_level\textures\mug2_spec.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>mug2_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>mug2_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>mug2_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>mug2_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>mug2_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>mug2_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
   <RemoteName>mug2_spec.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -838,8 +1781,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/platform.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\dungeon_modular_level\textures\platform.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>platform.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>platform.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>platform.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>platform.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>platform.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>platform.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
   <RemoteName>platform.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -855,8 +1828,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/readme.txt" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\dungeon_modular_level\textures\readme.txt" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>readme.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>readme.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>readme.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>readme.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>readme.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>readme.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
   <RemoteName>readme.txt</RemoteName>
   <Overwrite>true</Overwrite>
@@ -872,8 +1875,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/shortSwordD.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\dungeon_modular_level\textures\shortSwordD.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>shortSwordD.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>shortSwordD.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>shortSwordD.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>shortSwordD.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>shortSwordD.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>shortSwordD.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
   <RemoteName>shortSwordD.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -889,8 +1922,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/switch.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\dungeon_modular_level\textures\switch.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>switch.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>switch.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>switch.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>switch.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>switch.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>switch.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
   <RemoteName>switch.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -906,8 +1969,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/switch_norm.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\dungeon_modular_level\textures\switch_norm.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>switch_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>switch_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>switch_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>switch_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>switch_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>switch_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
   <RemoteName>switch_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -923,8 +2016,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/switch_spec.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\dungeon_modular_level\textures\switch_spec.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>switch_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>switch_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>switch_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>switch_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>switch_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>switch_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
   <RemoteName>switch_spec.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -940,59 +2063,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/tile-ground2-norm.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\dungeon_modular_level\textures\tile_tantiles.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile_tantiles.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile_tantiles.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile_tantiles.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile_tantiles.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile-ground2-norm.png</RemoteName>
+  <RemoteName>tile_tantiles.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
- <Platform Name="Win32">
+ <Platform Name="OSX64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile-ground2-norm.png</RemoteName>
+  <RemoteName>tile_tantiles.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile-ground2-norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/tile-ground2-spec.png" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile-ground2-spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile-ground2-spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile-ground2-spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/tile-ground2.png" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile-ground2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile-ground2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile-ground2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/tile_tantiles.png" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
   <RemoteName>tile_tantiles.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1008,8 +2110,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/tile_tantiles_norm.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\dungeon_modular_level\textures\tile_tantiles_norm.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile_tantiles_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile_tantiles_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile_tantiles_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile_tantiles_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile_tantiles_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile_tantiles_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
   <RemoteName>tile_tantiles_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1025,8 +2157,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/tile_tantiles_spec.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\dungeon_modular_level\textures\tile_tantiles_spec.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile_tantiles_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile_tantiles_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile_tantiles_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile_tantiles_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile_tantiles_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile_tantiles_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
   <RemoteName>tile_tantiles_spec.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1042,8 +2204,179 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/torch.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\dungeon_modular_level\textures\tile-ground2.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\dungeon_modular_level\textures\tile-ground2-norm.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2-norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2-norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2-norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2-norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2-norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2-norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2-norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2-norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2-norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\dungeon_modular_level\textures\tile-ground2-spec.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2-spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2-spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2-spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2-spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2-spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2-spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2-spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2-spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2-spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\dungeon_modular_level\textures\torch.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>torch.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>torch.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>torch.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>torch.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>torch.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>torch.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
   <RemoteName>torch.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1059,8 +2392,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/torch_norm.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\dungeon_modular_level\textures\torch_norm.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>torch_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>torch_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>torch_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>torch_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>torch_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>torch_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
   <RemoteName>torch_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1076,8 +2439,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/wall-tex-1.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\dungeon_modular_level\textures\wall-tex-1.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-tex-1.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-tex-1.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-tex-1.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-tex-1.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-tex-1.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-tex-1.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
   <RemoteName>wall-tex-1.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1093,8 +2486,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/wall-tex-1_norm.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\dungeon_modular_level\textures\wall-tex-1_norm.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-tex-1_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-tex-1_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-tex-1_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-tex-1_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-tex-1_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-tex-1_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
   <RemoteName>wall-tex-1_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1110,8 +2533,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/wall-tex-2.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\dungeon_modular_level\textures\wall-tex-2.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-tex-2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-tex-2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-tex-2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-tex-2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-tex-2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-tex-2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
   <RemoteName>wall-tex-2.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1127,8 +2580,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/wall-tex-2_norm.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\dungeon_modular_level\textures\wall-tex-2_norm.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-tex-2_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-tex-2_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-tex-2_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-tex-2_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-tex-2_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-tex-2_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
   <RemoteName>wall-tex-2_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1144,8 +2627,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/wall-tex-3.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\dungeon_modular_level\textures\wall-tex-3.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-tex-3.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-tex-3.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-tex-3.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-tex-3.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-tex-3.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-tex-3.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
   <RemoteName>wall-tex-3.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1161,8 +2674,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/wall-tex-3_norm.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\dungeon_modular_level\textures\wall-tex-3_norm.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-tex-3_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-tex-3_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-tex-3_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-tex-3_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-tex-3_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-tex-3_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
   <RemoteName>wall-tex-3_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1178,8 +2721,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/wall-to-depth.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\dungeon_modular_level\textures\wall-to-depth.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-to-depth.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-to-depth.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-to-depth.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-to-depth.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-to-depth.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-to-depth.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
   <RemoteName>wall-to-depth.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1195,8 +2768,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/wall-window.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\dungeon_modular_level\textures\wall-window.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-window.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-window.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-window.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-window.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-window.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-window.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
   <RemoteName>wall-window.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1212,8 +2815,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/wall-window_norm.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\dungeon_modular_level\textures\wall-window_norm.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-window_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-window_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-window_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-window_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-window_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>wall-window_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
   <RemoteName>wall-window_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1229,8 +2862,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\gameviewgameover.castle-user-interface" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\gameviewgameover.castle-user-interface" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>gameviewgameover.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>gameviewgameover.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewgameover.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewgameover.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewgameover.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewgameover.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>gameviewgameover.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1246,8 +2909,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\gameviewmain.castle-user-interface" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\gameviewmain.castle-user-interface" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>gameviewmain.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1263,8 +2956,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\gameviewwin.castle-user-interface" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\gameviewwin.castle-user-interface" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>gameviewwin.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>gameviewwin.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewwin.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewwin.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewwin.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewwin.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>gameviewwin.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1280,8 +3003,85 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\skeleton/Characters_Skeleton.gltf" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\README.txt" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\skeleton\Characters_Skeleton.gltf" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/skeleton/</RemoteDir>
+  <RemoteName>Characters_Skeleton.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/skeleton/</RemoteDir>
+  <RemoteName>Characters_Skeleton.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/skeleton/</RemoteDir>
+  <RemoteName>Characters_Skeleton.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/skeleton/</RemoteDir>
+  <RemoteName>Characters_Skeleton.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/skeleton/</RemoteDir>
+  <RemoteName>Characters_Skeleton.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/skeleton/</RemoteDir>
+  <RemoteName>Characters_Skeleton.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/skeleton/</RemoteDir>
   <RemoteName>Characters_Skeleton.gltf</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1297,8 +3097,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/barrel/license.txt" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab\barrel\license.txt" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/sketchfab/barrel/</RemoteDir>
+  <RemoteName>license.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/sketchfab/barrel/</RemoteDir>
+  <RemoteName>license.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/sketchfab/barrel/</RemoteDir>
+  <RemoteName>license.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/sketchfab/barrel/</RemoteDir>
+  <RemoteName>license.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/barrel/</RemoteDir>
+  <RemoteName>license.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/sketchfab/barrel/</RemoteDir>
+  <RemoteName>license.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/sketchfab/barrel/</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1314,8 +3144,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/barrel/scene.bin" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab\barrel\scene.bin" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/sketchfab/barrel/</RemoteDir>
+  <RemoteName>scene.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/sketchfab/barrel/</RemoteDir>
+  <RemoteName>scene.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/sketchfab/barrel/</RemoteDir>
+  <RemoteName>scene.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/sketchfab/barrel/</RemoteDir>
+  <RemoteName>scene.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/barrel/</RemoteDir>
+  <RemoteName>scene.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/sketchfab/barrel/</RemoteDir>
+  <RemoteName>scene.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/sketchfab/barrel/</RemoteDir>
   <RemoteName>scene.bin</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1331,8 +3191,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/barrel/scene.gltf" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab\barrel\scene.gltf" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/sketchfab/barrel/</RemoteDir>
+  <RemoteName>scene.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/sketchfab/barrel/</RemoteDir>
+  <RemoteName>scene.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/sketchfab/barrel/</RemoteDir>
+  <RemoteName>scene.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/sketchfab/barrel/</RemoteDir>
+  <RemoteName>scene.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/barrel/</RemoteDir>
+  <RemoteName>scene.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/sketchfab/barrel/</RemoteDir>
+  <RemoteName>scene.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/sketchfab/barrel/</RemoteDir>
   <RemoteName>scene.gltf</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1348,8 +3238,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/barrel/textures/lambert2SG_baseColor.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab\barrel\textures\lambert2SG_baseColor.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/sketchfab/barrel/textures/</RemoteDir>
+  <RemoteName>lambert2SG_baseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/sketchfab/barrel/textures/</RemoteDir>
+  <RemoteName>lambert2SG_baseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
+  <RemoteName>lambert2SG_baseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
+  <RemoteName>lambert2SG_baseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
+  <RemoteName>lambert2SG_baseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
+  <RemoteName>lambert2SG_baseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
   <RemoteName>lambert2SG_baseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1365,8 +3285,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/barrel/textures/lambert2SG_metallicRoughness.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab\barrel\textures\lambert2SG_metallicRoughness.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/sketchfab/barrel/textures/</RemoteDir>
+  <RemoteName>lambert2SG_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/sketchfab/barrel/textures/</RemoteDir>
+  <RemoteName>lambert2SG_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
+  <RemoteName>lambert2SG_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
+  <RemoteName>lambert2SG_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
+  <RemoteName>lambert2SG_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
+  <RemoteName>lambert2SG_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
   <RemoteName>lambert2SG_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1382,8 +3332,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/barrel/textures/lambert2SG_normal.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab\barrel\textures\lambert2SG_normal.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/sketchfab/barrel/textures/</RemoteDir>
+  <RemoteName>lambert2SG_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/sketchfab/barrel/textures/</RemoteDir>
+  <RemoteName>lambert2SG_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
+  <RemoteName>lambert2SG_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
+  <RemoteName>lambert2SG_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
+  <RemoteName>lambert2SG_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
+  <RemoteName>lambert2SG_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
   <RemoteName>lambert2SG_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1399,8 +3379,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/barrel/textures/polySurface7SG_baseColor.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab\barrel\textures\polySurface7SG_baseColor.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/sketchfab/barrel/textures/</RemoteDir>
+  <RemoteName>polySurface7SG_baseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/sketchfab/barrel/textures/</RemoteDir>
+  <RemoteName>polySurface7SG_baseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
+  <RemoteName>polySurface7SG_baseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
+  <RemoteName>polySurface7SG_baseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
+  <RemoteName>polySurface7SG_baseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
+  <RemoteName>polySurface7SG_baseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
   <RemoteName>polySurface7SG_baseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1416,8 +3426,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/barrel/textures/polySurface7SG_metallicRoughness.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab\barrel\textures\polySurface7SG_metallicRoughness.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/sketchfab/barrel/textures/</RemoteDir>
+  <RemoteName>polySurface7SG_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/sketchfab/barrel/textures/</RemoteDir>
+  <RemoteName>polySurface7SG_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
+  <RemoteName>polySurface7SG_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
+  <RemoteName>polySurface7SG_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
+  <RemoteName>polySurface7SG_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
+  <RemoteName>polySurface7SG_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
   <RemoteName>polySurface7SG_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1433,8 +3473,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/barrel/textures/polySurface7SG_normal.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab\barrel\textures\polySurface7SG_normal.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/sketchfab/barrel/textures/</RemoteDir>
+  <RemoteName>polySurface7SG_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/sketchfab/barrel/textures/</RemoteDir>
+  <RemoteName>polySurface7SG_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
+  <RemoteName>polySurface7SG_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
+  <RemoteName>polySurface7SG_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
+  <RemoteName>polySurface7SG_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
+  <RemoteName>polySurface7SG_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
   <RemoteName>polySurface7SG_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1450,8 +3520,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/cobra-statue/license.txt" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab\cobra-statue\license.txt" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/sketchfab/cobra-statue/</RemoteDir>
+  <RemoteName>license.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/sketchfab/cobra-statue/</RemoteDir>
+  <RemoteName>license.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/sketchfab/cobra-statue/</RemoteDir>
+  <RemoteName>license.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/sketchfab/cobra-statue/</RemoteDir>
+  <RemoteName>license.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/cobra-statue/</RemoteDir>
+  <RemoteName>license.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/sketchfab/cobra-statue/</RemoteDir>
+  <RemoteName>license.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/sketchfab/cobra-statue/</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1467,8 +3567,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/cobra-statue/scene.bin" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab\cobra-statue\scene.bin" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/sketchfab/cobra-statue/</RemoteDir>
+  <RemoteName>scene.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/sketchfab/cobra-statue/</RemoteDir>
+  <RemoteName>scene.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/sketchfab/cobra-statue/</RemoteDir>
+  <RemoteName>scene.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/sketchfab/cobra-statue/</RemoteDir>
+  <RemoteName>scene.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/cobra-statue/</RemoteDir>
+  <RemoteName>scene.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/sketchfab/cobra-statue/</RemoteDir>
+  <RemoteName>scene.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/sketchfab/cobra-statue/</RemoteDir>
   <RemoteName>scene.bin</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1484,8 +3614,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/cobra-statue/scene.gltf" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab\cobra-statue\scene.gltf" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/sketchfab/cobra-statue/</RemoteDir>
+  <RemoteName>scene.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/sketchfab/cobra-statue/</RemoteDir>
+  <RemoteName>scene.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/sketchfab/cobra-statue/</RemoteDir>
+  <RemoteName>scene.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/sketchfab/cobra-statue/</RemoteDir>
+  <RemoteName>scene.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/cobra-statue/</RemoteDir>
+  <RemoteName>scene.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/sketchfab/cobra-statue/</RemoteDir>
+  <RemoteName>scene.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/sketchfab/cobra-statue/</RemoteDir>
   <RemoteName>scene.gltf</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1501,8 +3661,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/throne/license.txt" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab\throne\license.txt" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/sketchfab/throne/</RemoteDir>
+  <RemoteName>license.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/sketchfab/throne/</RemoteDir>
+  <RemoteName>license.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/sketchfab/throne/</RemoteDir>
+  <RemoteName>license.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/sketchfab/throne/</RemoteDir>
+  <RemoteName>license.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/throne/</RemoteDir>
+  <RemoteName>license.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/sketchfab/throne/</RemoteDir>
+  <RemoteName>license.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/sketchfab/throne/</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1518,8 +3708,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/throne/scene.bin" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab\throne\scene.bin" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/sketchfab/throne/</RemoteDir>
+  <RemoteName>scene.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/sketchfab/throne/</RemoteDir>
+  <RemoteName>scene.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/sketchfab/throne/</RemoteDir>
+  <RemoteName>scene.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/sketchfab/throne/</RemoteDir>
+  <RemoteName>scene.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/throne/</RemoteDir>
+  <RemoteName>scene.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/sketchfab/throne/</RemoteDir>
+  <RemoteName>scene.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/sketchfab/throne/</RemoteDir>
   <RemoteName>scene.bin</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1535,8 +3755,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/throne/scene.gltf" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab\throne\scene.gltf" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/sketchfab/throne/</RemoteDir>
+  <RemoteName>scene.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/sketchfab/throne/</RemoteDir>
+  <RemoteName>scene.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/sketchfab/throne/</RemoteDir>
+  <RemoteName>scene.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/sketchfab/throne/</RemoteDir>
+  <RemoteName>scene.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/throne/</RemoteDir>
+  <RemoteName>scene.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/sketchfab/throne/</RemoteDir>
+  <RemoteName>scene.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/sketchfab/throne/</RemoteDir>
   <RemoteName>scene.gltf</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1552,8 +3802,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/throne/textures/Material_baseColor.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab\throne\textures\Material_baseColor.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/sketchfab/throne/textures/</RemoteDir>
+  <RemoteName>Material_baseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/sketchfab/throne/textures/</RemoteDir>
+  <RemoteName>Material_baseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/sketchfab/throne/textures/</RemoteDir>
+  <RemoteName>Material_baseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/sketchfab/throne/textures/</RemoteDir>
+  <RemoteName>Material_baseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/throne/textures/</RemoteDir>
+  <RemoteName>Material_baseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/sketchfab/throne/textures/</RemoteDir>
+  <RemoteName>Material_baseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/sketchfab/throne/textures/</RemoteDir>
   <RemoteName>Material_baseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1569,8 +3849,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/throne/textures/Material_metallicRoughness.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab\throne\textures\Material_metallicRoughness.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/sketchfab/throne/textures/</RemoteDir>
+  <RemoteName>Material_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/sketchfab/throne/textures/</RemoteDir>
+  <RemoteName>Material_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/sketchfab/throne/textures/</RemoteDir>
+  <RemoteName>Material_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/sketchfab/throne/textures/</RemoteDir>
+  <RemoteName>Material_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/throne/textures/</RemoteDir>
+  <RemoteName>Material_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/sketchfab/throne/textures/</RemoteDir>
+  <RemoteName>Material_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/sketchfab/throne/textures/</RemoteDir>
   <RemoteName>Material_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1586,8 +3896,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/throne/textures/Material_normal.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab\throne\textures\Material_normal.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/sketchfab/throne/textures/</RemoteDir>
+  <RemoteName>Material_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/sketchfab/throne/textures/</RemoteDir>
+  <RemoteName>Material_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/sketchfab/throne/textures/</RemoteDir>
+  <RemoteName>Material_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/sketchfab/throne/textures/</RemoteDir>
+  <RemoteName>Material_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/throne/textures/</RemoteDir>
+  <RemoteName>Material_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/sketchfab/throne/textures/</RemoteDir>
+  <RemoteName>Material_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/sketchfab/throne/textures/</RemoteDir>
   <RemoteName>Material_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1603,8 +3943,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\trophy/trophy.bin" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\trophy\trophy.bin" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/trophy/</RemoteDir>
+  <RemoteName>trophy.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/trophy/</RemoteDir>
+  <RemoteName>trophy.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/trophy/</RemoteDir>
+  <RemoteName>trophy.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/trophy/</RemoteDir>
+  <RemoteName>trophy.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/trophy/</RemoteDir>
+  <RemoteName>trophy.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/trophy/</RemoteDir>
+  <RemoteName>trophy.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/trophy/</RemoteDir>
   <RemoteName>trophy.bin</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1620,1368 +3990,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\trophy/trophy.gltf" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\trophy\trophy.gltf" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/trophy/</RemoteDir>
+  <RemoteName>trophy.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/trophy/</RemoteDir>
+  <RemoteName>trophy.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/trophy/</RemoteDir>
+  <RemoteName>trophy.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/trophy/</RemoteDir>
+  <RemoteName>trophy.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
   <RemoteDir>./data/trophy/</RemoteDir>
   <RemoteName>trophy.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
- <Platform Name="Win32">
+ <Platform Name="OSX64">
   <RemoteDir>./data/trophy/</RemoteDir>
   <RemoteName>trophy.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/trophy/</RemoteDir>
-  <RemoteName>trophy.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\CastleSettings.xml" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>CastleSettings.xml</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>CastleSettings.xml</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>CastleSettings.xml</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\README.txt" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/level-dungeon.bin" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/</RemoteDir>
-  <RemoteName>level-dungeon.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/</RemoteDir>
-  <RemoteName>level-dungeon.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/</RemoteDir>
-  <RemoteName>level-dungeon.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/level-dungeon.gltf" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/</RemoteDir>
-  <RemoteName>level-dungeon.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/</RemoteDir>
-  <RemoteName>level-dungeon.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/</RemoteDir>
-  <RemoteName>level-dungeon.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/BucklerV5D.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>BucklerV5D.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>BucklerV5D.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>BucklerV5D.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/concrete01_diff.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>concrete01_diff.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>concrete01_diff.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>concrete01_diff.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/concrete01_norm.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>concrete01_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>concrete01_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>concrete01_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/decorative.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>decorative.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>decorative.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>decorative.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/decorative_norm.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>decorative_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>decorative_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>decorative_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/decorative_spec.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>decorative_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>decorative_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>decorative_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/gate-2.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>gate-2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>gate-2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>gate-2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/gate-2_norm.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>gate-2_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>gate-2_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>gate-2_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/gate.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>gate.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>gate.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>gate.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/gate_norm.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>gate_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>gate_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>gate_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/ground-1-darkness.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1-darkness.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1-darkness.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1-darkness.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/ground-1-darkness_norm.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1-darkness_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1-darkness_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1-darkness_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/ground-1-darkness_spec.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1-darkness_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1-darkness_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1-darkness_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/ground-1.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/ground-1_norm.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/ground-1_spec.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/ground-2.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/ground-2_norm.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-2_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-2_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-2_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/ground-2_spec.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-2_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-2_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-2_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/ground-3.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-3.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-3.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-3.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/ground-3_norm.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-3_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-3_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-3_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/ground-3_spec.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-3_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-3_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-3_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/ground-4.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-4.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-4.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-4.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/ground-4_norm.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-4_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-4_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-4_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/ground-4_spec.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-4_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-4_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-4_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/mug2.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>mug2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>mug2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>mug2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/mug2_ao.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>mug2_ao.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>mug2_ao.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>mug2_ao.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/mug2_norm.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>mug2_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>mug2_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>mug2_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/mug2_spec.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>mug2_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>mug2_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>mug2_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/platform.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>platform.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>platform.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>platform.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/readme.txt" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>readme.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>readme.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>readme.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/shortSwordD.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>shortSwordD.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>shortSwordD.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>shortSwordD.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/switch.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>switch.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>switch.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>switch.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/switch_norm.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>switch_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>switch_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>switch_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/switch_spec.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>switch_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>switch_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>switch_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/tile-ground2-norm.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile-ground2-norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile-ground2-norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile-ground2-norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/tile-ground2-spec.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile-ground2-spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile-ground2-spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile-ground2-spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/tile-ground2.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile-ground2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile-ground2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile-ground2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/tile_tantiles.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile_tantiles.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile_tantiles.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile_tantiles.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/tile_tantiles_norm.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile_tantiles_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile_tantiles_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile_tantiles_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/tile_tantiles_spec.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile_tantiles_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile_tantiles_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile_tantiles_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/torch.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>torch.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>torch.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>torch.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/torch_norm.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>torch_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>torch_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>torch_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/wall-tex-1.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>wall-tex-1.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>wall-tex-1.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>wall-tex-1.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/wall-tex-1_norm.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>wall-tex-1_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>wall-tex-1_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>wall-tex-1_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/wall-tex-2.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>wall-tex-2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>wall-tex-2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>wall-tex-2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/wall-tex-2_norm.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>wall-tex-2_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>wall-tex-2_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>wall-tex-2_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/wall-tex-3.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>wall-tex-3.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>wall-tex-3.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>wall-tex-3.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/wall-tex-3_norm.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>wall-tex-3_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>wall-tex-3_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>wall-tex-3_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/wall-to-depth.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>wall-to-depth.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>wall-to-depth.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>wall-to-depth.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/wall-window.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>wall-window.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>wall-window.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>wall-window.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level/textures/wall-window_norm.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>wall-window_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>wall-window_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>wall-window_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\gameviewgameover.castle-user-interface" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>gameviewgameover.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>gameviewgameover.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>gameviewgameover.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\gameviewmain.castle-user-interface" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\gameviewwin.castle-user-interface" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>gameviewwin.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>gameviewwin.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>gameviewwin.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\skeleton/Characters_Skeleton.gltf" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/skeleton/</RemoteDir>
-  <RemoteName>Characters_Skeleton.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/skeleton/</RemoteDir>
-  <RemoteName>Characters_Skeleton.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/skeleton/</RemoteDir>
-  <RemoteName>Characters_Skeleton.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\sketchfab/barrel/license.txt" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/barrel/</RemoteDir>
-  <RemoteName>license.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/barrel/</RemoteDir>
-  <RemoteName>license.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/barrel/</RemoteDir>
-  <RemoteName>license.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\sketchfab/barrel/scene.bin" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/barrel/</RemoteDir>
-  <RemoteName>scene.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/barrel/</RemoteDir>
-  <RemoteName>scene.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/barrel/</RemoteDir>
-  <RemoteName>scene.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\sketchfab/barrel/scene.gltf" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/barrel/</RemoteDir>
-  <RemoteName>scene.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/barrel/</RemoteDir>
-  <RemoteName>scene.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/barrel/</RemoteDir>
-  <RemoteName>scene.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\sketchfab/barrel/textures/lambert2SG_baseColor.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
-  <RemoteName>lambert2SG_baseColor.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
-  <RemoteName>lambert2SG_baseColor.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
-  <RemoteName>lambert2SG_baseColor.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\sketchfab/barrel/textures/lambert2SG_metallicRoughness.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
-  <RemoteName>lambert2SG_metallicRoughness.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
-  <RemoteName>lambert2SG_metallicRoughness.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
-  <RemoteName>lambert2SG_metallicRoughness.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\sketchfab/barrel/textures/lambert2SG_normal.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
-  <RemoteName>lambert2SG_normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
-  <RemoteName>lambert2SG_normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
-  <RemoteName>lambert2SG_normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\sketchfab/barrel/textures/polySurface7SG_baseColor.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
-  <RemoteName>polySurface7SG_baseColor.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
-  <RemoteName>polySurface7SG_baseColor.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
-  <RemoteName>polySurface7SG_baseColor.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\sketchfab/barrel/textures/polySurface7SG_metallicRoughness.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
-  <RemoteName>polySurface7SG_metallicRoughness.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
-  <RemoteName>polySurface7SG_metallicRoughness.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
-  <RemoteName>polySurface7SG_metallicRoughness.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\sketchfab/barrel/textures/polySurface7SG_normal.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
-  <RemoteName>polySurface7SG_normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
-  <RemoteName>polySurface7SG_normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/barrel/textures/</RemoteDir>
-  <RemoteName>polySurface7SG_normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\sketchfab/cobra-statue/license.txt" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/cobra-statue/</RemoteDir>
-  <RemoteName>license.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/cobra-statue/</RemoteDir>
-  <RemoteName>license.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/cobra-statue/</RemoteDir>
-  <RemoteName>license.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\sketchfab/cobra-statue/scene.bin" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/cobra-statue/</RemoteDir>
-  <RemoteName>scene.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/cobra-statue/</RemoteDir>
-  <RemoteName>scene.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/cobra-statue/</RemoteDir>
-  <RemoteName>scene.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\sketchfab/cobra-statue/scene.gltf" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/cobra-statue/</RemoteDir>
-  <RemoteName>scene.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/cobra-statue/</RemoteDir>
-  <RemoteName>scene.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/cobra-statue/</RemoteDir>
-  <RemoteName>scene.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\sketchfab/throne/license.txt" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/throne/</RemoteDir>
-  <RemoteName>license.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/throne/</RemoteDir>
-  <RemoteName>license.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/throne/</RemoteDir>
-  <RemoteName>license.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\sketchfab/throne/scene.bin" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/throne/</RemoteDir>
-  <RemoteName>scene.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/throne/</RemoteDir>
-  <RemoteName>scene.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/throne/</RemoteDir>
-  <RemoteName>scene.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\sketchfab/throne/scene.gltf" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/throne/</RemoteDir>
-  <RemoteName>scene.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/throne/</RemoteDir>
-  <RemoteName>scene.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/throne/</RemoteDir>
-  <RemoteName>scene.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\sketchfab/throne/textures/Material_baseColor.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/throne/textures/</RemoteDir>
-  <RemoteName>Material_baseColor.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/throne/textures/</RemoteDir>
-  <RemoteName>Material_baseColor.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/throne/textures/</RemoteDir>
-  <RemoteName>Material_baseColor.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\sketchfab/throne/textures/Material_metallicRoughness.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/throne/textures/</RemoteDir>
-  <RemoteName>Material_metallicRoughness.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/throne/textures/</RemoteDir>
-  <RemoteName>Material_metallicRoughness.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/throne/textures/</RemoteDir>
-  <RemoteName>Material_metallicRoughness.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\sketchfab/throne/textures/Material_normal.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/throne/textures/</RemoteDir>
-  <RemoteName>Material_normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/throne/textures/</RemoteDir>
-  <RemoteName>Material_normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/throne/textures/</RemoteDir>
-  <RemoteName>Material_normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\trophy/trophy.bin" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/trophy/</RemoteDir>
-  <RemoteName>trophy.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/trophy/</RemoteDir>
-  <RemoteName>trophy.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/trophy/</RemoteDir>
-  <RemoteName>trophy.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\trophy/trophy.gltf" Configuration="Release" Class="File">
- <Platform Name="Linux64">
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/trophy/</RemoteDir>
   <RemoteName>trophy.gltf</RemoteName>
   <Overwrite>true</Overwrite>

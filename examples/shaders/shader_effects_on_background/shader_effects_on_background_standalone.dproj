@@ -277,8 +277,38 @@
      to non-Windows targets,
      see https://castle-engine.io/delphi_linux#data_files_deployment .
 -->
-<DeployFile LocalName="data\CastleSettings.xml" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\CastleSettings.xml" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>CastleSettings.xml</RemoteName>
   <Overwrite>true</Overwrite>
@@ -294,25 +324,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\README.txt" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\gameviewmain.castle-user-interface" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
   <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
- <Platform Name="Win32">
+ <Platform Name="OSX64">
   <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\gameviewmain.castle-user-interface" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>gameviewmain.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
@@ -328,8 +371,85 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\shaders/noise.glsl" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\README.txt" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\shaders\noise.glsl" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/shaders/</RemoteDir>
+  <RemoteName>noise.glsl</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/shaders/</RemoteDir>
+  <RemoteName>noise.glsl</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/shaders/</RemoteDir>
+  <RemoteName>noise.glsl</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/shaders/</RemoteDir>
+  <RemoteName>noise.glsl</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/shaders/</RemoteDir>
+  <RemoteName>noise.glsl</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/shaders/</RemoteDir>
+  <RemoteName>noise.glsl</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/shaders/</RemoteDir>
   <RemoteName>noise.glsl</RemoteName>
   <Overwrite>true</Overwrite>
@@ -345,8 +465,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\shaders/skybox_color_effect.fs" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\shaders\skybox_color_effect.fs" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/shaders/</RemoteDir>
+  <RemoteName>skybox_color_effect.fs</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/shaders/</RemoteDir>
+  <RemoteName>skybox_color_effect.fs</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/shaders/</RemoteDir>
+  <RemoteName>skybox_color_effect.fs</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/shaders/</RemoteDir>
+  <RemoteName>skybox_color_effect.fs</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/shaders/</RemoteDir>
+  <RemoteName>skybox_color_effect.fs</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/shaders/</RemoteDir>
+  <RemoteName>skybox_color_effect.fs</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/shaders/</RemoteDir>
   <RemoteName>skybox_color_effect.fs</RemoteName>
   <Overwrite>true</Overwrite>
@@ -362,8 +512,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\shaders/skybox_cubemap.fs" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\shaders\skybox_cubemap.fs" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/shaders/</RemoteDir>
+  <RemoteName>skybox_cubemap.fs</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/shaders/</RemoteDir>
+  <RemoteName>skybox_cubemap.fs</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/shaders/</RemoteDir>
+  <RemoteName>skybox_cubemap.fs</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/shaders/</RemoteDir>
+  <RemoteName>skybox_cubemap.fs</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/shaders/</RemoteDir>
+  <RemoteName>skybox_cubemap.fs</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/shaders/</RemoteDir>
+  <RemoteName>skybox_cubemap.fs</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/shaders/</RemoteDir>
   <RemoteName>skybox_cubemap.fs</RemoteName>
   <Overwrite>true</Overwrite>
@@ -379,8 +559,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\shaders/skybox_noise.fs" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\shaders\skybox_noise.fs" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/shaders/</RemoteDir>
+  <RemoteName>skybox_noise.fs</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/shaders/</RemoteDir>
+  <RemoteName>skybox_noise.fs</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/shaders/</RemoteDir>
+  <RemoteName>skybox_noise.fs</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/shaders/</RemoteDir>
+  <RemoteName>skybox_noise.fs</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/shaders/</RemoteDir>
+  <RemoteName>skybox_noise.fs</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/shaders/</RemoteDir>
+  <RemoteName>skybox_noise.fs</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/shaders/</RemoteDir>
   <RemoteName>skybox_noise.fs</RemoteName>
   <Overwrite>true</Overwrite>
@@ -396,8 +606,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\skybox/sunset_neg_x_left.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\skybox\sunset_neg_x_left.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_x_left.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_x_left.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_x_left.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_x_left.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_x_left.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_x_left.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/skybox/</RemoteDir>
   <RemoteName>sunset_neg_x_left.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -413,8 +653,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\skybox/sunset_neg_y_bottom.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\skybox\sunset_neg_y_bottom.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_y_bottom.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_y_bottom.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_y_bottom.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_y_bottom.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_y_bottom.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_y_bottom.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/skybox/</RemoteDir>
   <RemoteName>sunset_neg_y_bottom.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -430,8 +700,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\skybox/sunset_neg_z_back.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\skybox\sunset_neg_z_back.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_z_back.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_z_back.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_z_back.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_z_back.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_z_back.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_z_back.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/skybox/</RemoteDir>
   <RemoteName>sunset_neg_z_back.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -447,8 +747,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\skybox/sunset_pos_x_right.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\skybox\sunset_pos_x_right.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_x_right.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_x_right.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_x_right.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_x_right.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_x_right.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_x_right.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/skybox/</RemoteDir>
   <RemoteName>sunset_pos_x_right.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -464,8 +794,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\skybox/sunset_pos_y_top.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\skybox\sunset_pos_y_top.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_y_top.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_y_top.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_y_top.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_y_top.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_y_top.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_y_top.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/skybox/</RemoteDir>
   <RemoteName>sunset_pos_y_top.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -481,8 +841,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\skybox/sunset_pos_z_front.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\skybox\sunset_pos_z_front.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_z_front.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_z_front.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_z_front.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_z_front.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_z_front.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_z_front.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/skybox/</RemoteDir>
   <RemoteName>sunset_pos_z_front.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -498,246 +888,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\test_cubemap.dds" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\test_cubemap.dds" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>test_cubemap.dds</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>test_cubemap.dds</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>test_cubemap.dds</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>test_cubemap.dds</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>test_cubemap.dds</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
- <Platform Name="Win32">
+ <Platform Name="OSX64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>test_cubemap.dds</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>test_cubemap.dds</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\CastleSettings.xml" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>CastleSettings.xml</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>CastleSettings.xml</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>CastleSettings.xml</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\README.txt" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\gameviewmain.castle-user-interface" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\shaders/noise.glsl" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/shaders/</RemoteDir>
-  <RemoteName>noise.glsl</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/shaders/</RemoteDir>
-  <RemoteName>noise.glsl</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/shaders/</RemoteDir>
-  <RemoteName>noise.glsl</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\shaders/skybox_color_effect.fs" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/shaders/</RemoteDir>
-  <RemoteName>skybox_color_effect.fs</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/shaders/</RemoteDir>
-  <RemoteName>skybox_color_effect.fs</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/shaders/</RemoteDir>
-  <RemoteName>skybox_color_effect.fs</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\shaders/skybox_cubemap.fs" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/shaders/</RemoteDir>
-  <RemoteName>skybox_cubemap.fs</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/shaders/</RemoteDir>
-  <RemoteName>skybox_cubemap.fs</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/shaders/</RemoteDir>
-  <RemoteName>skybox_cubemap.fs</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\shaders/skybox_noise.fs" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/shaders/</RemoteDir>
-  <RemoteName>skybox_noise.fs</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/shaders/</RemoteDir>
-  <RemoteName>skybox_noise.fs</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/shaders/</RemoteDir>
-  <RemoteName>skybox_noise.fs</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\skybox/sunset_neg_x_left.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>sunset_neg_x_left.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>sunset_neg_x_left.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>sunset_neg_x_left.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\skybox/sunset_neg_y_bottom.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>sunset_neg_y_bottom.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>sunset_neg_y_bottom.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>sunset_neg_y_bottom.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\skybox/sunset_neg_z_back.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>sunset_neg_z_back.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>sunset_neg_z_back.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>sunset_neg_z_back.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\skybox/sunset_pos_x_right.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>sunset_pos_x_right.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>sunset_pos_x_right.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>sunset_pos_x_right.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\skybox/sunset_pos_y_top.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>sunset_pos_y_top.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>sunset_pos_y_top.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>sunset_pos_y_top.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\skybox/sunset_pos_z_front.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>sunset_pos_z_front.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>sunset_pos_z_front.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>sunset_pos_z_front.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\test_cubemap.dds" Configuration="Release" Class="File">
- <Platform Name="Linux64">
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>test_cubemap.dds</RemoteName>
   <Overwrite>true</Overwrite>

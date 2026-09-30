@@ -277,25 +277,38 @@
      to non-Windows targets,
      see https://castle-engine.io/delphi_linux#data_files_deployment .
 -->
-<DeployFile LocalName="data\README.txt" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0001.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0001.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0001.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0001.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0001.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0001.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0001.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0001.png" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0001.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -311,8 +324,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0002.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0002.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0002.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0002.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0002.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0002.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0002.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0002.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0002.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -328,8 +371,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0003.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0003.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0003.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0003.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0003.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0003.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0003.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0003.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0003.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -345,8 +418,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0004.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0004.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0004.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0004.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0004.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0004.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0004.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0004.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0004.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -362,8 +465,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0005.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0005.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0005.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0005.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0005.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0005.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0005.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0005.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0005.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -379,8 +512,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0006.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0006.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0006.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0006.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0006.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0006.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0006.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0006.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0006.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -396,8 +559,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0007.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0007.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0007.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0007.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0007.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0007.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0007.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0007.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0007.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -413,8 +606,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0008.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0008.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0008.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0008.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0008.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0008.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0008.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0008.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0008.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -430,8 +653,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0009.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0009.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0009.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0009.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0009.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0009.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0009.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0009.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0009.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -447,8 +700,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0010.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0010.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0010.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0010.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0010.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0010.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0010.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0010.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0010.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -464,8 +747,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0011.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0011.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0011.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0011.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0011.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0011.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0011.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0011.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0011.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -481,8 +794,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0012.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0012.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0012.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0012.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0012.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0012.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0012.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0012.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0012.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -498,8 +841,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0013.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0013.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0013.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0013.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0013.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0013.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0013.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0013.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0013.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -515,8 +888,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0014.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0014.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0014.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0014.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0014.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0014.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0014.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0014.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0014.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -532,8 +935,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0015.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0015.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0015.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0015.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0015.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0015.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0015.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0015.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0015.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -549,8 +982,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0016.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0016.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0016.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0016.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0016.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0016.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0016.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0016.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0016.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -566,8 +1029,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0017.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0017.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0017.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0017.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0017.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0017.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0017.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0017.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0017.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -583,8 +1076,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0018.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0018.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0018.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0018.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0018.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0018.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0018.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0018.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0018.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -600,8 +1123,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0019.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0019.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0019.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0019.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0019.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0019.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0019.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0019.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0019.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -617,8 +1170,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0020.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0020.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0020.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0020.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0020.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0020.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0020.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0020.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0020.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -634,8 +1217,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0021.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0021.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0021.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0021.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0021.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0021.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0021.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0021.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0021.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -651,8 +1264,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0022.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0022.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0022.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0022.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0022.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0022.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0022.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0022.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0022.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -668,8 +1311,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0023.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0023.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0023.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0023.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0023.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0023.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0023.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0023.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0023.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -685,8 +1358,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0024.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0024.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0024.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0024.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0024.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0024.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0024.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0024.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0024.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -702,8 +1405,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0025.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0025.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0025.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0025.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0025.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0025.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0025.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0025.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0025.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -719,8 +1452,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0026.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0026.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0026.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0026.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0026.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0026.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0026.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0026.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0026.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -736,8 +1499,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0027.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0027.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0027.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0027.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0027.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0027.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0027.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0027.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0027.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -753,8 +1546,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0028.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0028.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0028.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0028.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0028.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0028.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0028.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0028.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0028.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -770,8 +1593,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0029.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0029.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0029.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0029.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0029.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0029.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0029.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0029.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0029.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -787,8 +1640,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0030.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0030.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0030.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0030.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0030.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0030.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0030.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0030.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0030.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -804,8 +1687,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0031.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0031.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0031.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0031.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0031.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0031.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0031.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0031.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0031.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -821,8 +1734,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0032.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0032.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0032.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0032.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0032.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0032.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0032.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0032.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0032.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -838,8 +1781,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0033.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0033.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0033.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0033.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0033.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0033.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0033.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0033.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0033.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -855,8 +1828,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0034.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0034.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0034.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0034.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0034.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0034.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0034.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0034.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0034.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -872,8 +1875,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0035.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0035.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0035.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0035.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0035.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0035.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0035.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0035.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0035.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -889,8 +1922,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0036.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0036.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0036.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0036.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0036.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0036.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0036.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0036.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0036.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -906,8 +1969,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0037.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0037.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0037.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0037.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0037.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0037.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0037.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0037.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0037.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -923,8 +2016,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0038.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0038.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0038.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0038.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0038.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0038.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0038.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0038.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0038.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -940,8 +2063,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0039.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0039.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0039.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0039.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0039.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0039.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0039.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0039.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0039.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -957,8 +2110,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0040.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0040.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0040.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0040.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0040.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0040.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0040.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0040.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0040.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -974,8 +2157,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0041.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0041.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0041.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0041.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0041.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0041.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0041.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0041.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0041.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -991,8 +2204,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0042.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0042.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0042.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0042.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0042.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0042.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0042.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0042.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0042.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1008,8 +2251,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0043.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0043.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0043.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0043.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0043.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0043.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0043.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0043.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0043.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1025,8 +2298,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0044.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0044.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0044.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0044.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0044.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0044.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0044.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0044.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0044.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1042,8 +2345,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0045.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0045.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0045.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0045.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0045.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0045.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0045.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0045.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0045.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1059,8 +2392,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0046.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0046.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0046.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0046.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0046.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0046.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0046.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0046.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0046.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1076,8 +2439,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0047.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0047.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0047.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0047.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0047.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0047.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0047.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0047.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0047.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1093,8 +2486,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0048.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0048.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0048.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0048.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0048.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0048.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0048.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0048.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0048.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1110,8 +2533,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0049.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0049.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0049.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0049.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0049.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0049.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0049.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0049.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0049.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1127,8 +2580,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0050.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0050.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0050.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0050.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0050.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0050.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0050.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0050.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0050.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1144,8 +2627,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0051.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0051.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0051.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0051.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0051.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0051.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0051.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0051.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0051.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1161,8 +2674,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0052.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0052.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0052.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0052.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0052.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0052.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0052.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0052.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0052.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1178,8 +2721,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0053.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0053.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0053.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0053.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0053.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0053.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0053.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0053.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0053.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1195,8 +2768,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0054.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0054.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0054.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0054.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0054.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0054.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0054.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0054.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0054.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1212,8 +2815,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0055.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0055.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0055.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0055.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0055.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0055.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0055.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0055.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0055.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1229,8 +2862,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0056.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0056.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0056.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0056.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0056.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0056.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0056.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0056.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0056.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1246,8 +2909,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0057.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0057.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0057.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0057.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0057.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0057.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0057.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0057.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0057.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1263,8 +2956,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0058.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0058.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0058.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0058.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0058.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0058.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0058.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0058.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0058.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1280,8 +3003,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0059.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0059.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0059.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0059.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0059.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0059.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0059.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0059.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0059.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1297,8 +3050,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0060.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0060.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0060.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0060.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0060.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0060.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0060.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0060.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0060.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1314,8 +3097,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0061.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0061.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0061.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0061.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0061.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0061.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0061.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0061.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0061.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1331,8 +3144,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0062.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0062.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0062.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0062.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0062.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0062.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0062.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0062.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0062.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1348,8 +3191,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0063.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0063.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0063.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0063.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0063.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0063.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0063.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0063.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0063.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1365,8 +3238,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0064.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0064.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0064.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0064.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0064.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0064.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0064.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0064.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0064.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1382,8 +3285,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0065.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0065.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0065.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0065.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0065.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0065.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0065.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0065.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0065.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1399,8 +3332,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0066.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0066.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0066.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0066.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0066.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0066.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0066.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0066.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0066.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1416,8 +3379,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0067.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0067.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0067.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0067.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0067.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0067.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0067.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0067.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0067.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1433,8 +3426,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0068.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0068.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0068.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0068.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0068.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0068.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0068.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0068.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0068.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1450,8 +3473,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0069.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0069.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0069.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0069.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0069.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0069.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0069.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0069.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0069.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1467,8 +3520,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0070.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0070.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0070.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0070.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0070.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0070.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0070.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0070.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0070.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1484,8 +3567,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0071.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0071.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0071.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0071.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0071.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0071.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0071.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0071.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0071.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1501,8 +3614,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0072.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0072.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0072.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0072.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0072.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0072.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0072.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0072.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0072.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1518,8 +3661,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0073.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0073.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0073.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0073.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0073.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0073.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0073.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0073.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0073.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1535,8 +3708,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0074.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0074.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0074.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0074.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0074.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0074.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0074.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0074.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0074.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1552,8 +3755,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0075.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0075.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0075.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0075.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0075.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0075.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0075.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0075.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0075.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1569,8 +3802,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0076.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0076.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0076.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0076.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0076.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0076.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0076.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0076.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0076.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1586,8 +3849,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0077.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0077.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0077.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0077.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0077.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0077.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0077.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0077.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0077.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1603,8 +3896,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0078.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0078.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0078.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0078.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0078.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0078.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0078.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0078.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0078.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1620,8 +3943,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0079.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0079.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0079.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0079.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0079.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0079.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0079.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0079.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0079.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1637,8 +3990,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0080.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0080.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0080.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0080.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0080.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0080.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0080.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0080.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0080.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1654,8 +4037,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0081.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0081.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0081.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0081.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0081.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0081.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0081.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0081.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0081.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1671,8 +4084,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0082.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0082.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0082.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0082.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0082.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0082.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0082.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0082.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0082.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1688,8 +4131,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0083.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0083.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0083.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0083.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0083.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0083.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0083.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0083.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0083.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1705,8 +4178,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0084.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0084.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0084.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0084.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0084.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0084.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0084.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0084.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0084.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1722,8 +4225,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0085.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0085.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0085.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0085.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0085.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0085.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0085.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0085.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0085.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1739,8 +4272,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0086.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0086.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0086.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0086.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0086.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0086.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0086.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0086.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0086.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1756,8 +4319,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0087.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0087.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0087.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0087.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0087.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0087.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0087.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0087.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0087.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1773,8 +4366,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0088.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0088.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0088.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0088.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0088.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0088.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0088.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0088.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0088.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1790,8 +4413,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0089.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0089.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0089.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0089.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0089.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0089.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0089.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0089.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0089.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1807,8 +4460,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\flame_seamless/0090.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\flame_seamless\0090.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0090.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/flame_seamless/</RemoteDir>
+  <RemoteName>0090.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0090.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0090.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0090.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/flame_seamless/</RemoteDir>
+  <RemoteName>0090.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/flame_seamless/</RemoteDir>
   <RemoteName>0090.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1824,8 +4507,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\README.txt" Configuration="Release" Class="File">
+<DeployFile LocalName="data\README.txt" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1838,1536 +4551,6 @@
  <Platform Name="Win64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0001.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0001.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0001.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0001.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0002.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0002.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0002.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0002.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0003.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0003.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0003.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0003.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0004.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0004.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0004.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0004.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0005.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0005.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0005.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0005.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0006.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0006.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0006.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0006.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0007.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0007.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0007.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0007.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0008.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0008.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0008.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0008.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0009.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0009.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0009.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0009.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0010.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0010.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0010.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0010.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0011.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0011.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0011.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0011.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0012.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0012.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0012.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0012.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0013.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0013.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0013.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0013.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0014.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0014.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0014.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0014.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0015.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0015.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0015.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0015.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0016.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0016.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0016.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0016.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0017.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0017.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0017.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0017.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0018.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0018.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0018.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0018.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0019.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0019.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0019.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0019.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0020.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0020.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0020.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0020.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0021.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0021.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0021.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0021.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0022.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0022.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0022.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0022.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0023.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0023.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0023.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0023.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0024.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0024.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0024.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0024.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0025.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0025.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0025.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0025.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0026.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0026.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0026.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0026.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0027.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0027.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0027.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0027.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0028.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0028.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0028.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0028.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0029.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0029.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0029.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0029.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0030.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0030.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0030.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0030.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0031.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0031.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0031.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0031.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0032.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0032.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0032.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0032.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0033.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0033.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0033.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0033.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0034.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0034.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0034.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0034.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0035.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0035.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0035.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0035.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0036.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0036.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0036.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0036.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0037.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0037.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0037.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0037.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0038.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0038.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0038.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0038.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0039.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0039.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0039.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0039.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0040.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0040.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0040.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0040.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0041.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0041.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0041.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0041.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0042.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0042.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0042.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0042.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0043.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0043.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0043.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0043.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0044.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0044.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0044.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0044.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0045.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0045.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0045.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0045.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0046.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0046.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0046.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0046.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0047.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0047.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0047.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0047.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0048.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0048.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0048.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0048.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0049.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0049.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0049.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0049.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0050.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0050.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0050.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0050.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0051.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0051.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0051.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0051.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0052.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0052.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0052.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0052.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0053.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0053.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0053.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0053.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0054.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0054.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0054.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0054.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0055.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0055.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0055.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0055.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0056.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0056.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0056.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0056.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0057.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0057.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0057.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0057.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0058.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0058.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0058.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0058.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0059.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0059.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0059.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0059.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0060.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0060.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0060.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0060.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0061.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0061.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0061.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0061.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0062.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0062.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0062.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0062.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0063.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0063.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0063.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0063.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0064.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0064.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0064.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0064.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0065.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0065.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0065.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0065.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0066.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0066.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0066.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0066.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0067.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0067.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0067.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0067.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0068.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0068.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0068.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0068.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0069.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0069.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0069.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0069.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0070.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0070.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0070.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0070.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0071.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0071.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0071.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0071.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0072.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0072.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0072.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0072.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0073.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0073.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0073.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0073.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0074.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0074.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0074.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0074.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0075.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0075.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0075.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0075.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0076.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0076.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0076.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0076.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0077.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0077.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0077.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0077.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0078.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0078.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0078.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0078.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0079.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0079.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0079.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0079.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0080.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0080.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0080.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0080.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0081.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0081.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0081.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0081.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0082.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0082.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0082.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0082.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0083.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0083.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0083.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0083.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0084.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0084.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0084.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0084.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0085.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0085.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0085.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0085.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0086.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0086.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0086.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0086.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0087.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0087.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0087.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0087.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0088.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0088.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0088.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0088.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0089.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0089.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0089.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0089.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\flame_seamless/0090.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0090.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0090.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/flame_seamless/</RemoteDir>
-  <RemoteName>0090.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>

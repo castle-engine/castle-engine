@@ -275,8 +275,38 @@
      to non-Windows targets,
      see https://castle-engine.io/delphi_linux#data_files_deployment .
 -->
-<DeployFile LocalName="data\mkimage_gradient.castlescript" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\mkimage_gradient.castlescript" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>mkimage_gradient.castlescript</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>mkimage_gradient.castlescript</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>mkimage_gradient.castlescript</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>mkimage_gradient.castlescript</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>mkimage_gradient.castlescript</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>mkimage_gradient.castlescript</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>mkimage_gradient.castlescript</RemoteName>
   <Overwrite>true</Overwrite>
@@ -292,8 +322,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\mkimage_sobel_edge.castlescript" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\mkimage_sobel_edge.castlescript" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>mkimage_sobel_edge.castlescript</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>mkimage_sobel_edge.castlescript</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>mkimage_sobel_edge.castlescript</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>mkimage_sobel_edge.castlescript</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>mkimage_sobel_edge.castlescript</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>mkimage_sobel_edge.castlescript</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>mkimage_sobel_edge.castlescript</RemoteName>
   <Overwrite>true</Overwrite>
@@ -309,59 +369,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\test_texture.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\test_texture.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>test_texture.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>test_texture.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>test_texture.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>test_texture.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>test_texture.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
- <Platform Name="Win32">
+ <Platform Name="OSX64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>test_texture.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>test_texture.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\mkimage_gradient.castlescript" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>mkimage_gradient.castlescript</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>mkimage_gradient.castlescript</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>mkimage_gradient.castlescript</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\mkimage_sobel_edge.castlescript" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>mkimage_sobel_edge.castlescript</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>mkimage_sobel_edge.castlescript</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>mkimage_sobel_edge.castlescript</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\test_texture.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>test_texture.png</RemoteName>
   <Overwrite>true</Overwrite>

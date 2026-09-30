@@ -277,42 +277,38 @@
      to non-Windows targets,
      see https://castle-engine.io/delphi_linux#data_files_deployment .
 -->
-<DeployFile LocalName="data\CastleSettings.xml" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\alien_props.castle-transform" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>alien_props.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>alien_props.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>alien_props.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>alien_props.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
   <RemoteDir>./data/</RemoteDir>
-  <RemoteName>CastleSettings.xml</RemoteName>
+  <RemoteName>alien_props.castle-transform</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
- <Platform Name="Win32">
+ <Platform Name="OSX64">
   <RemoteDir>./data/</RemoteDir>
-  <RemoteName>CastleSettings.xml</RemoteName>
+  <RemoteName>alien_props.castle-transform</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>CastleSettings.xml</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\README.txt" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\alien_props.castle-transform" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>alien_props.castle-transform</RemoteName>
   <Overwrite>true</Overwrite>
@@ -328,8 +324,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\castle_game_engine_icon.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\castle_game_engine_icon.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>castle_game_engine_icon.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>castle_game_engine_icon.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>castle_game_engine_icon.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>castle_game_engine_icon.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>castle_game_engine_icon.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>castle_game_engine_icon.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>castle_game_engine_icon.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -345,8 +371,85 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\engine_header.castle-user-interface" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\CastleSettings.xml" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\engine_header.castle-user-interface" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>engine_header.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>engine_header.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>engine_header.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>engine_header.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>engine_header.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>engine_header.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>engine_header.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
@@ -362,8 +465,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\fonts/AUTHORS.md" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\fonts\AUTHORS.md" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/fonts/</RemoteDir>
   <RemoteName>AUTHORS.md</RemoteName>
   <Overwrite>true</Overwrite>
@@ -379,8 +512,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\fonts/Roboto_SemiCondensed-Bold.ttf" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\fonts\Roboto_SemiCondensed-Bold.ttf" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-Bold.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-Bold.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-Bold.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-Bold.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-Bold.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-Bold.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/fonts/</RemoteDir>
   <RemoteName>Roboto_SemiCondensed-Bold.ttf</RemoteName>
   <Overwrite>true</Overwrite>
@@ -396,8 +559,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\fonts/Roboto_SemiCondensed-BoldItalic.ttf" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\fonts\Roboto_SemiCondensed-BoldItalic.ttf" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-BoldItalic.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-BoldItalic.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-BoldItalic.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-BoldItalic.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-BoldItalic.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-BoldItalic.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/fonts/</RemoteDir>
   <RemoteName>Roboto_SemiCondensed-BoldItalic.ttf</RemoteName>
   <Overwrite>true</Overwrite>
@@ -413,8 +606,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\fonts/Roboto_SemiCondensed-ExtraBold.ttf" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\fonts\Roboto_SemiCondensed-ExtraBold.ttf" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-ExtraBold.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-ExtraBold.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-ExtraBold.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-ExtraBold.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-ExtraBold.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-ExtraBold.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/fonts/</RemoteDir>
   <RemoteName>Roboto_SemiCondensed-ExtraBold.ttf</RemoteName>
   <Overwrite>true</Overwrite>
@@ -430,8 +653,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\fonts/Roboto_SemiCondensed-Italic.ttf" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\fonts\Roboto_SemiCondensed-Italic.ttf" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-Italic.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-Italic.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-Italic.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-Italic.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-Italic.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-Italic.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/fonts/</RemoteDir>
   <RemoteName>Roboto_SemiCondensed-Italic.ttf</RemoteName>
   <Overwrite>true</Overwrite>
@@ -447,8 +700,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\fonts/Roboto_SemiCondensed-Regular.ttf" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\fonts\Roboto_SemiCondensed-Regular.ttf" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-Regular.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-Regular.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-Regular.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-Regular.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-Regular.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>Roboto_SemiCondensed-Regular.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/fonts/</RemoteDir>
   <RemoteName>Roboto_SemiCondensed-Regular.ttf</RemoteName>
   <Overwrite>true</Overwrite>
@@ -464,8 +747,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\gameviewmain.castle-user-interface" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\gameviewmain.castle-user-interface" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>gameviewmain.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
@@ -481,8 +794,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\gameviewtalk.castle-user-interface" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\gameviewtalk.castle-user-interface" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>gameviewtalk.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>gameviewtalk.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewtalk.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewtalk.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewtalk.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewtalk.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>gameviewtalk.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
@@ -498,8 +841,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\material_properties.xml" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\material_properties.xml" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>material_properties.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>material_properties.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>material_properties.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>material_properties.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>material_properties.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>material_properties.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>material_properties.xml</RemoteName>
   <Overwrite>true</Overwrite>
@@ -515,42 +888,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/AUTHORS.md" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\animals\glTF\Horse.gltf" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/animals/glTF/</RemoteDir>
+  <RemoteName>Horse.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/animals/glTF/</RemoteDir>
+  <RemoteName>Horse.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/animals/glTF/</RemoteDir>
+  <RemoteName>Horse.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/animals/glTF/</RemoteDir>
+  <RemoteName>Horse.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/</RemoteDir>
-  <RemoteName>AUTHORS.md</RemoteName>
+  <RemoteDir>./data/quaternius/animals/glTF/</RemoteDir>
+  <RemoteName>Horse.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/</RemoteDir>
-  <RemoteName>AUTHORS.md</RemoteName>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/animals/glTF/</RemoteDir>
+  <RemoteName>Horse.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/</RemoteDir>
-  <RemoteName>AUTHORS.md</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/animals/License.txt" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/animals/</RemoteDir>
-  <RemoteName>License.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/animals/</RemoteDir>
-  <RemoteName>License.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/animals/</RemoteDir>
-  <RemoteName>License.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/animals/glTF/Horse.gltf" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/quaternius/animals/glTF/</RemoteDir>
   <RemoteName>Horse.gltf</RemoteName>
   <Overwrite>true</Overwrite>
@@ -566,8 +935,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/animals/glTF/Horse_White.gltf" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\animals\glTF\Horse_White.gltf" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/animals/glTF/</RemoteDir>
+  <RemoteName>Horse_White.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/animals/glTF/</RemoteDir>
+  <RemoteName>Horse_White.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/animals/glTF/</RemoteDir>
+  <RemoteName>Horse_White.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/animals/glTF/</RemoteDir>
+  <RemoteName>Horse_White.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/animals/glTF/</RemoteDir>
+  <RemoteName>Horse_White.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/animals/glTF/</RemoteDir>
+  <RemoteName>Horse_White.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/quaternius/animals/glTF/</RemoteDir>
   <RemoteName>Horse_White.gltf</RemoteName>
   <Overwrite>true</Overwrite>
@@ -583,8 +982,132 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/medieval_village/AUTHORS.md" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\animals\License.txt" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/animals/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/animals/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/animals/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/animals/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/animals/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/animals/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/quaternius/animals/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/animals/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/animals/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius\AUTHORS.md" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius\medieval_village\AUTHORS.md" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/medieval_village/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/medieval_village/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/medieval_village/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/medieval_village/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/medieval_village/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/medieval_village/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/quaternius/medieval_village/</RemoteDir>
   <RemoteName>AUTHORS.md</RemoteName>
   <Overwrite>true</Overwrite>
@@ -600,25 +1123,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/medieval_village/License_Standard.txt" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\medieval_village\glTF\Prop_Crate.bin" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>Prop_Crate.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>Prop_Crate.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>Prop_Crate.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>Prop_Crate.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/medieval_village/</RemoteDir>
-  <RemoteName>License_Standard.txt</RemoteName>
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>Prop_Crate.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/medieval_village/</RemoteDir>
-  <RemoteName>License_Standard.txt</RemoteName>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>Prop_Crate.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/medieval_village/</RemoteDir>
-  <RemoteName>License_Standard.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/medieval_village/glTF/Prop_Crate.bin" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
   <RemoteName>Prop_Crate.bin</RemoteName>
   <Overwrite>true</Overwrite>
@@ -634,8 +1170,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/medieval_village/glTF/Prop_Crate.gltf" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\medieval_village\glTF\Prop_Crate.gltf" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>Prop_Crate.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>Prop_Crate.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>Prop_Crate.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>Prop_Crate.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>Prop_Crate.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>Prop_Crate.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
   <RemoteName>Prop_Crate.gltf</RemoteName>
   <Overwrite>true</Overwrite>
@@ -651,8 +1217,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/medieval_village/glTF/T_Brick_BaseColor.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\medieval_village\glTF\T_Brick_BaseColor.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Brick_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Brick_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Brick_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Brick_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Brick_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Brick_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
   <RemoteName>T_Brick_BaseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -668,8 +1264,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/medieval_village/glTF/T_Brick_Normal.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\medieval_village\glTF\T_Brick_Normal.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Brick_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Brick_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Brick_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Brick_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Brick_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Brick_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
   <RemoteName>T_Brick_Normal.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -685,8 +1311,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/medieval_village/glTF/T_Brick_Roughness.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\medieval_village\glTF\T_Brick_Roughness.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Brick_Roughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Brick_Roughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Brick_Roughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Brick_Roughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Brick_Roughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Brick_Roughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
   <RemoteName>T_Brick_Roughness.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -702,8 +1358,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/medieval_village/glTF/T_Plaster_BaseColor.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\medieval_village\glTF\T_Plaster_BaseColor.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Plaster_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Plaster_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Plaster_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Plaster_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Plaster_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Plaster_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
   <RemoteName>T_Plaster_BaseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -719,8 +1405,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/medieval_village/glTF/T_Plaster_Normal.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\medieval_village\glTF\T_Plaster_Normal.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Plaster_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Plaster_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Plaster_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Plaster_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Plaster_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Plaster_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
   <RemoteName>T_Plaster_Normal.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -736,8 +1452,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/medieval_village/glTF/T_Plaster_ORM.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\medieval_village\glTF\T_Plaster_ORM.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Plaster_ORM.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Plaster_ORM.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Plaster_ORM.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Plaster_ORM.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Plaster_ORM.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_Plaster_ORM.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
   <RemoteName>T_Plaster_ORM.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -753,8 +1499,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/medieval_village/glTF/T_RoundTiles_BaseColor.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\medieval_village\glTF\T_RoundTiles_BaseColor.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_RoundTiles_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_RoundTiles_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_RoundTiles_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_RoundTiles_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_RoundTiles_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_RoundTiles_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
   <RemoteName>T_RoundTiles_BaseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -770,8 +1546,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/medieval_village/glTF/T_RoundTiles_Normal.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\medieval_village\glTF\T_RoundTiles_Normal.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_RoundTiles_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_RoundTiles_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_RoundTiles_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_RoundTiles_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_RoundTiles_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_RoundTiles_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
   <RemoteName>T_RoundTiles_Normal.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -787,8 +1593,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/medieval_village/glTF/T_RoundTiles_Roughness.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\medieval_village\glTF\T_RoundTiles_Roughness.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_RoundTiles_Roughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_RoundTiles_Roughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_RoundTiles_Roughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_RoundTiles_Roughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_RoundTiles_Roughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_RoundTiles_Roughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
   <RemoteName>T_RoundTiles_Roughness.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -804,8 +1640,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/medieval_village/glTF/T_WoodTrim_BaseColor.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\medieval_village\glTF\T_WoodTrim_BaseColor.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_WoodTrim_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_WoodTrim_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_WoodTrim_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_WoodTrim_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_WoodTrim_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_WoodTrim_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
   <RemoteName>T_WoodTrim_BaseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -821,8 +1687,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/medieval_village/glTF/T_WoodTrim_Normal.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\medieval_village\glTF\T_WoodTrim_Normal.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_WoodTrim_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_WoodTrim_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_WoodTrim_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_WoodTrim_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_WoodTrim_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_WoodTrim_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
   <RemoteName>T_WoodTrim_Normal.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -838,8 +1734,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/medieval_village/glTF/T_WoodTrim_Roughness.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\medieval_village\glTF\T_WoodTrim_Roughness.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_WoodTrim_Roughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_WoodTrim_Roughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_WoodTrim_Roughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_WoodTrim_Roughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_WoodTrim_Roughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
+  <RemoteName>T_WoodTrim_Roughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
   <RemoteName>T_WoodTrim_Roughness.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -855,25 +1781,85 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/modular_sci_fi/License_Source.txt" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\medieval_village\License_Standard.txt" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/medieval_village/</RemoteDir>
+  <RemoteName>License_Standard.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/medieval_village/</RemoteDir>
+  <RemoteName>License_Standard.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/medieval_village/</RemoteDir>
+  <RemoteName>License_Standard.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/medieval_village/</RemoteDir>
+  <RemoteName>License_Standard.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/modular_sci_fi/</RemoteDir>
-  <RemoteName>License_Source.txt</RemoteName>
+  <RemoteDir>./data/quaternius/medieval_village/</RemoteDir>
+  <RemoteName>License_Standard.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/medieval_village/</RemoteDir>
+  <RemoteName>License_Standard.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/quaternius/medieval_village/</RemoteDir>
+  <RemoteName>License_Standard.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/modular_sci_fi/</RemoteDir>
-  <RemoteName>License_Source.txt</RemoteName>
+  <RemoteDir>./data/quaternius/medieval_village/</RemoteDir>
+  <RemoteName>License_Standard.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/modular_sci_fi/</RemoteDir>
-  <RemoteName>License_Source.txt</RemoteName>
+  <RemoteDir>./data/quaternius/medieval_village/</RemoteDir>
+  <RemoteName>License_Standard.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/Alien_Cyclop.bin" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\modular_sci_fi\glTF\Alien_Cyclop.bin" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Alien_Cyclop.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Alien_Cyclop.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Alien_Cyclop.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Alien_Cyclop.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Alien_Cyclop.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Alien_Cyclop.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
   <RemoteName>Alien_Cyclop.bin</RemoteName>
   <Overwrite>true</Overwrite>
@@ -889,8 +1875,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/Alien_Cyclop.gltf" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\modular_sci_fi\glTF\Alien_Cyclop.gltf" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Alien_Cyclop.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Alien_Cyclop.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Alien_Cyclop.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Alien_Cyclop.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Alien_Cyclop.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Alien_Cyclop.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
   <RemoteName>Alien_Cyclop.gltf</RemoteName>
   <Overwrite>true</Overwrite>
@@ -906,8 +1922,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/Column_Round.bin" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\modular_sci_fi\glTF\Column_Round.bin" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Column_Round.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Column_Round.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Column_Round.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Column_Round.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Column_Round.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Column_Round.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
   <RemoteName>Column_Round.bin</RemoteName>
   <Overwrite>true</Overwrite>
@@ -923,8 +1969,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/Column_Round.gltf" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\modular_sci_fi\glTF\Column_Round.gltf" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Column_Round.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Column_Round.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Column_Round.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Column_Round.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Column_Round.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Column_Round.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
   <RemoteName>Column_Round.gltf</RemoteName>
   <Overwrite>true</Overwrite>
@@ -940,8 +2016,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/Platform_Padded.bin" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\modular_sci_fi\glTF\Platform_Padded.bin" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Platform_Padded.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Platform_Padded.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Platform_Padded.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Platform_Padded.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Platform_Padded.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Platform_Padded.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
   <RemoteName>Platform_Padded.bin</RemoteName>
   <Overwrite>true</Overwrite>
@@ -957,8 +2063,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/Platform_Padded.gltf" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\modular_sci_fi\glTF\Platform_Padded.gltf" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Platform_Padded.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Platform_Padded.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Platform_Padded.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Platform_Padded.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Platform_Padded.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Platform_Padded.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
   <RemoteName>Platform_Padded.gltf</RemoteName>
   <Overwrite>true</Overwrite>
@@ -974,8 +2110,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/Prop_Computer.bin" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\modular_sci_fi\glTF\Prop_Computer.bin" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Prop_Computer.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Prop_Computer.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Prop_Computer.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Prop_Computer.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Prop_Computer.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Prop_Computer.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
   <RemoteName>Prop_Computer.bin</RemoteName>
   <Overwrite>true</Overwrite>
@@ -991,8 +2157,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/Prop_Computer.gltf" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\modular_sci_fi\glTF\Prop_Computer.gltf" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Prop_Computer.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Prop_Computer.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Prop_Computer.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Prop_Computer.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Prop_Computer.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>Prop_Computer.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
   <RemoteName>Prop_Computer.gltf</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1008,8 +2204,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/T_Decals.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\modular_sci_fi\glTF\T_Decals.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Decals.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Decals.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Decals.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Decals.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Decals.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Decals.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
   <RemoteName>T_Decals.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1025,8 +2251,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/T_PaddedWall_BaseColor.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\modular_sci_fi\glTF\T_PaddedWall_BaseColor.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_PaddedWall_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_PaddedWall_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_PaddedWall_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_PaddedWall_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_PaddedWall_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_PaddedWall_BaseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
   <RemoteName>T_PaddedWall_BaseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1042,8 +2298,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/T_PaddedWall_Normal.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\modular_sci_fi\glTF\T_PaddedWall_Normal.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_PaddedWall_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_PaddedWall_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_PaddedWall_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_PaddedWall_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_PaddedWall_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_PaddedWall_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
   <RemoteName>T_PaddedWall_Normal.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1059,8 +2345,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/T_PaddedWall_ORM.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\modular_sci_fi\glTF\T_PaddedWall_ORM.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_PaddedWall_ORM.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_PaddedWall_ORM.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_PaddedWall_ORM.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_PaddedWall_ORM.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_PaddedWall_ORM.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_PaddedWall_ORM.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
   <RemoteName>T_PaddedWall_ORM.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1076,8 +2392,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/T_Trim_01_BaseColor_Red.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\modular_sci_fi\glTF\T_Trim_01_BaseColor_Red.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_01_BaseColor_Red.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_01_BaseColor_Red.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_01_BaseColor_Red.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_01_BaseColor_Red.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_01_BaseColor_Red.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_01_BaseColor_Red.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
   <RemoteName>T_Trim_01_BaseColor_Red.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1093,8 +2439,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/T_Trim_01_Normal.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\modular_sci_fi\glTF\T_Trim_01_Normal.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_01_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_01_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_01_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_01_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_01_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_01_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
   <RemoteName>T_Trim_01_Normal.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1110,8 +2486,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/T_Trim_01_ORM.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\modular_sci_fi\glTF\T_Trim_01_ORM.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_01_ORM.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_01_ORM.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_01_ORM.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_01_ORM.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_01_ORM.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_01_ORM.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
   <RemoteName>T_Trim_01_ORM.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1127,8 +2533,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/T_Trim_02_BaseColor_Red.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\modular_sci_fi\glTF\T_Trim_02_BaseColor_Red.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_02_BaseColor_Red.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_02_BaseColor_Red.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_02_BaseColor_Red.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_02_BaseColor_Red.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_02_BaseColor_Red.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_02_BaseColor_Red.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
   <RemoteName>T_Trim_02_BaseColor_Red.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1144,8 +2580,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/T_Trim_02_Normal.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\modular_sci_fi\glTF\T_Trim_02_Normal.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_02_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_02_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_02_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_02_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_02_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_02_Normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
   <RemoteName>T_Trim_02_Normal.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1161,8 +2627,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/T_Trim_02_ORM.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\modular_sci_fi\glTF\T_Trim_02_ORM.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_02_ORM.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_02_ORM.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_02_ORM.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_02_ORM.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_02_ORM.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
+  <RemoteName>T_Trim_02_ORM.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
   <RemoteName>T_Trim_02_ORM.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1178,25 +2674,85 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/nature/License.txt" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\modular_sci_fi\License_Source.txt" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/modular_sci_fi/</RemoteDir>
+  <RemoteName>License_Source.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/modular_sci_fi/</RemoteDir>
+  <RemoteName>License_Source.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/</RemoteDir>
+  <RemoteName>License_Source.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/</RemoteDir>
+  <RemoteName>License_Source.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/nature/</RemoteDir>
-  <RemoteName>License.txt</RemoteName>
+  <RemoteDir>./data/quaternius/modular_sci_fi/</RemoteDir>
+  <RemoteName>License_Source.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/</RemoteDir>
+  <RemoteName>License_Source.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/quaternius/modular_sci_fi/</RemoteDir>
+  <RemoteName>License_Source.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/nature/</RemoteDir>
-  <RemoteName>License.txt</RemoteName>
+  <RemoteDir>./data/quaternius/modular_sci_fi/</RemoteDir>
+  <RemoteName>License_Source.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/nature/</RemoteDir>
-  <RemoteName>License.txt</RemoteName>
+  <RemoteDir>./data/quaternius/modular_sci_fi/</RemoteDir>
+  <RemoteName>License_Source.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/nature/glTF/BirchTree_1.bin" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\nature\glTF\BirchTree_1.bin" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_1.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_1.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_1.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_1.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_1.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_1.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
   <RemoteName>BirchTree_1.bin</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1212,8 +2768,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/nature/glTF/BirchTree_1.gltf" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\nature\glTF\BirchTree_1.gltf" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_1.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_1.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_1.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_1.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_1.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_1.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
   <RemoteName>BirchTree_1.gltf</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1229,8 +2815,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/nature/glTF/BirchTree_Bark.jpg" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\nature\glTF\BirchTree_Bark.jpg" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_Bark.jpg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_Bark.jpg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_Bark.jpg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_Bark.jpg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_Bark.jpg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_Bark.jpg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
   <RemoteName>BirchTree_Bark.jpg</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1246,8 +2862,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/nature/glTF/BirchTree_Bark_Normal.jpg" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\nature\glTF\BirchTree_Bark_Normal.jpg" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_Bark_Normal.jpg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_Bark_Normal.jpg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_Bark_Normal.jpg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_Bark_Normal.jpg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_Bark_Normal.jpg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_Bark_Normal.jpg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
   <RemoteName>BirchTree_Bark_Normal.jpg</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1263,8 +2909,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/nature/glTF/BirchTree_Leaves.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\nature\glTF\BirchTree_Leaves.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_Leaves.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_Leaves.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_Leaves.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_Leaves.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_Leaves.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>BirchTree_Leaves.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
   <RemoteName>BirchTree_Leaves.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1280,8 +2956,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/nature/glTF/MapleTree_2.bin" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\nature\glTF\MapleTree_2.bin" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_2.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_2.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_2.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_2.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_2.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_2.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
   <RemoteName>MapleTree_2.bin</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1297,8 +3003,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/nature/glTF/MapleTree_2.gltf" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\nature\glTF\MapleTree_2.gltf" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_2.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_2.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_2.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_2.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_2.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_2.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
   <RemoteName>MapleTree_2.gltf</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1314,8 +3050,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/nature/glTF/MapleTree_Bark.jpg" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\nature\glTF\MapleTree_Bark.jpg" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_Bark.jpg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_Bark.jpg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_Bark.jpg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_Bark.jpg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_Bark.jpg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_Bark.jpg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
   <RemoteName>MapleTree_Bark.jpg</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1331,8 +3097,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/nature/glTF/MapleTree_Bark_Normal.jpg" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\nature\glTF\MapleTree_Bark_Normal.jpg" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_Bark_Normal.jpg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_Bark_Normal.jpg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_Bark_Normal.jpg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_Bark_Normal.jpg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_Bark_Normal.jpg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_Bark_Normal.jpg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
   <RemoteName>MapleTree_Bark_Normal.jpg</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1348,8 +3144,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/nature/glTF/MapleTree_Leaves.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\nature\glTF\MapleTree_Leaves.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_Leaves.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_Leaves.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_Leaves.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_Leaves.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_Leaves.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
+  <RemoteName>MapleTree_Leaves.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
   <RemoteName>MapleTree_Leaves.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1365,25 +3191,85 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/stylized_nature/License_Standard.txt" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\nature\License.txt" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/nature/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/nature/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/nature/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/nature/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/stylized_nature/</RemoteDir>
-  <RemoteName>License_Standard.txt</RemoteName>
+  <RemoteDir>./data/quaternius/nature/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/nature/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/quaternius/nature/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/stylized_nature/</RemoteDir>
-  <RemoteName>License_Standard.txt</RemoteName>
+  <RemoteDir>./data/quaternius/nature/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/stylized_nature/</RemoteDir>
-  <RemoteName>License_Standard.txt</RemoteName>
+  <RemoteDir>./data/quaternius/nature/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/stylized_nature/glTF/Rock_Medium_1.bin" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\stylized_nature\glTF\Rock_Medium_1.bin" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/stylized_nature/glTF/</RemoteDir>
+  <RemoteName>Rock_Medium_1.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/stylized_nature/glTF/</RemoteDir>
+  <RemoteName>Rock_Medium_1.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/stylized_nature/glTF/</RemoteDir>
+  <RemoteName>Rock_Medium_1.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/stylized_nature/glTF/</RemoteDir>
+  <RemoteName>Rock_Medium_1.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/stylized_nature/glTF/</RemoteDir>
+  <RemoteName>Rock_Medium_1.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/stylized_nature/glTF/</RemoteDir>
+  <RemoteName>Rock_Medium_1.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/quaternius/stylized_nature/glTF/</RemoteDir>
   <RemoteName>Rock_Medium_1.bin</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1399,8 +3285,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/stylized_nature/glTF/Rock_Medium_1.gltf" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\stylized_nature\glTF\Rock_Medium_1.gltf" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/stylized_nature/glTF/</RemoteDir>
+  <RemoteName>Rock_Medium_1.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/stylized_nature/glTF/</RemoteDir>
+  <RemoteName>Rock_Medium_1.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/stylized_nature/glTF/</RemoteDir>
+  <RemoteName>Rock_Medium_1.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/stylized_nature/glTF/</RemoteDir>
+  <RemoteName>Rock_Medium_1.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/stylized_nature/glTF/</RemoteDir>
+  <RemoteName>Rock_Medium_1.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/stylized_nature/glTF/</RemoteDir>
+  <RemoteName>Rock_Medium_1.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/quaternius/stylized_nature/glTF/</RemoteDir>
   <RemoteName>Rock_Medium_1.gltf</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1416,8 +3332,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius/stylized_nature/glTF/Rocks_Diffuse.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\stylized_nature\glTF\Rocks_Diffuse.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/stylized_nature/glTF/</RemoteDir>
+  <RemoteName>Rocks_Diffuse.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/stylized_nature/glTF/</RemoteDir>
+  <RemoteName>Rocks_Diffuse.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/stylized_nature/glTF/</RemoteDir>
+  <RemoteName>Rocks_Diffuse.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/stylized_nature/glTF/</RemoteDir>
+  <RemoteName>Rocks_Diffuse.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/stylized_nature/glTF/</RemoteDir>
+  <RemoteName>Rocks_Diffuse.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/stylized_nature/glTF/</RemoteDir>
+  <RemoteName>Rocks_Diffuse.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/quaternius/stylized_nature/glTF/</RemoteDir>
   <RemoteName>Rocks_Diffuse.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1433,8 +3379,132 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\skybox/sunset_neg_x_left.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\quaternius\stylized_nature\License_Standard.txt" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/stylized_nature/</RemoteDir>
+  <RemoteName>License_Standard.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/stylized_nature/</RemoteDir>
+  <RemoteName>License_Standard.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/stylized_nature/</RemoteDir>
+  <RemoteName>License_Standard.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/stylized_nature/</RemoteDir>
+  <RemoteName>License_Standard.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/stylized_nature/</RemoteDir>
+  <RemoteName>License_Standard.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/stylized_nature/</RemoteDir>
+  <RemoteName>License_Standard.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/quaternius/stylized_nature/</RemoteDir>
+  <RemoteName>License_Standard.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/stylized_nature/</RemoteDir>
+  <RemoteName>License_Standard.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/stylized_nature/</RemoteDir>
+  <RemoteName>License_Standard.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\README.txt" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\skybox\sunset_neg_x_left.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_x_left.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_x_left.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_x_left.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_x_left.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_x_left.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_x_left.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/skybox/</RemoteDir>
   <RemoteName>sunset_neg_x_left.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1450,8 +3520,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\skybox/sunset_neg_y_bottom.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\skybox\sunset_neg_y_bottom.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_y_bottom.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_y_bottom.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_y_bottom.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_y_bottom.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_y_bottom.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_y_bottom.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/skybox/</RemoteDir>
   <RemoteName>sunset_neg_y_bottom.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1467,8 +3567,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\skybox/sunset_neg_z_back.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\skybox\sunset_neg_z_back.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_z_back.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_z_back.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_z_back.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_z_back.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_z_back.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_neg_z_back.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/skybox/</RemoteDir>
   <RemoteName>sunset_neg_z_back.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1484,8 +3614,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\skybox/sunset_pos_x_right.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\skybox\sunset_pos_x_right.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_x_right.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_x_right.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_x_right.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_x_right.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_x_right.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_x_right.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/skybox/</RemoteDir>
   <RemoteName>sunset_pos_x_right.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1501,8 +3661,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\skybox/sunset_pos_y_top.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\skybox\sunset_pos_y_top.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_y_top.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_y_top.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_y_top.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_y_top.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_y_top.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_y_top.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/skybox/</RemoteDir>
   <RemoteName>sunset_pos_y_top.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1518,8 +3708,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\skybox/sunset_pos_z_front.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\skybox\sunset_pos_z_front.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_z_front.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_z_front.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_z_front.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_z_front.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_z_front.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>sunset_pos_z_front.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/skybox/</RemoteDir>
   <RemoteName>sunset_pos_z_front.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1535,8 +3755,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\village_crate.castle-transform" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\village_crate.castle-transform" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>village_crate.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>village_crate.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>village_crate.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>village_crate.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>village_crate.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>village_crate.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>village_crate.castle-transform</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1552,8 +3802,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\village_level.bin" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\village_level.bin" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>village_level.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>village_level.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>village_level.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>village_level.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>village_level.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>village_level.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>village_level.bin</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1569,8 +3849,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\village_level.gltf" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\village_level.gltf" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>village_level.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>village_level.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>village_level.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>village_level.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>village_level.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>village_level.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>village_level.gltf</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1586,8 +3896,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\village_level_ground.bin" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\village_level_ground.bin" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>village_level_ground.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>village_level_ground.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>village_level_ground.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>village_level_ground.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>village_level_ground.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>village_level_ground.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>village_level_ground.bin</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1603,1351 +3943,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\village_level_ground.gltf" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\village_level_ground.gltf" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>village_level_ground.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>village_level_ground.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>village_level_ground.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>village_level_ground.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>village_level_ground.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
- <Platform Name="Win32">
+ <Platform Name="OSX64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>village_level_ground.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>village_level_ground.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\CastleSettings.xml" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>CastleSettings.xml</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>CastleSettings.xml</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>CastleSettings.xml</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\README.txt" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\alien_props.castle-transform" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>alien_props.castle-transform</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>alien_props.castle-transform</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>alien_props.castle-transform</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\castle_game_engine_icon.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>castle_game_engine_icon.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>castle_game_engine_icon.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>castle_game_engine_icon.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\engine_header.castle-user-interface" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>engine_header.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>engine_header.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>engine_header.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\fonts/AUTHORS.md" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/fonts/</RemoteDir>
-  <RemoteName>AUTHORS.md</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/fonts/</RemoteDir>
-  <RemoteName>AUTHORS.md</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/fonts/</RemoteDir>
-  <RemoteName>AUTHORS.md</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\fonts/Roboto_SemiCondensed-Bold.ttf" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/fonts/</RemoteDir>
-  <RemoteName>Roboto_SemiCondensed-Bold.ttf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/fonts/</RemoteDir>
-  <RemoteName>Roboto_SemiCondensed-Bold.ttf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/fonts/</RemoteDir>
-  <RemoteName>Roboto_SemiCondensed-Bold.ttf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\fonts/Roboto_SemiCondensed-BoldItalic.ttf" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/fonts/</RemoteDir>
-  <RemoteName>Roboto_SemiCondensed-BoldItalic.ttf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/fonts/</RemoteDir>
-  <RemoteName>Roboto_SemiCondensed-BoldItalic.ttf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/fonts/</RemoteDir>
-  <RemoteName>Roboto_SemiCondensed-BoldItalic.ttf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\fonts/Roboto_SemiCondensed-ExtraBold.ttf" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/fonts/</RemoteDir>
-  <RemoteName>Roboto_SemiCondensed-ExtraBold.ttf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/fonts/</RemoteDir>
-  <RemoteName>Roboto_SemiCondensed-ExtraBold.ttf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/fonts/</RemoteDir>
-  <RemoteName>Roboto_SemiCondensed-ExtraBold.ttf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\fonts/Roboto_SemiCondensed-Italic.ttf" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/fonts/</RemoteDir>
-  <RemoteName>Roboto_SemiCondensed-Italic.ttf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/fonts/</RemoteDir>
-  <RemoteName>Roboto_SemiCondensed-Italic.ttf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/fonts/</RemoteDir>
-  <RemoteName>Roboto_SemiCondensed-Italic.ttf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\fonts/Roboto_SemiCondensed-Regular.ttf" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/fonts/</RemoteDir>
-  <RemoteName>Roboto_SemiCondensed-Regular.ttf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/fonts/</RemoteDir>
-  <RemoteName>Roboto_SemiCondensed-Regular.ttf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/fonts/</RemoteDir>
-  <RemoteName>Roboto_SemiCondensed-Regular.ttf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\gameviewmain.castle-user-interface" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\gameviewtalk.castle-user-interface" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>gameviewtalk.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>gameviewtalk.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>gameviewtalk.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\material_properties.xml" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>material_properties.xml</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>material_properties.xml</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>material_properties.xml</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/AUTHORS.md" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/</RemoteDir>
-  <RemoteName>AUTHORS.md</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/</RemoteDir>
-  <RemoteName>AUTHORS.md</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/</RemoteDir>
-  <RemoteName>AUTHORS.md</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/animals/License.txt" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/animals/</RemoteDir>
-  <RemoteName>License.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/animals/</RemoteDir>
-  <RemoteName>License.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/animals/</RemoteDir>
-  <RemoteName>License.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/animals/glTF/Horse.gltf" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/animals/glTF/</RemoteDir>
-  <RemoteName>Horse.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/animals/glTF/</RemoteDir>
-  <RemoteName>Horse.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/animals/glTF/</RemoteDir>
-  <RemoteName>Horse.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/animals/glTF/Horse_White.gltf" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/animals/glTF/</RemoteDir>
-  <RemoteName>Horse_White.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/animals/glTF/</RemoteDir>
-  <RemoteName>Horse_White.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/animals/glTF/</RemoteDir>
-  <RemoteName>Horse_White.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/medieval_village/AUTHORS.md" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/medieval_village/</RemoteDir>
-  <RemoteName>AUTHORS.md</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/medieval_village/</RemoteDir>
-  <RemoteName>AUTHORS.md</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/medieval_village/</RemoteDir>
-  <RemoteName>AUTHORS.md</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/medieval_village/License_Standard.txt" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/medieval_village/</RemoteDir>
-  <RemoteName>License_Standard.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/medieval_village/</RemoteDir>
-  <RemoteName>License_Standard.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/medieval_village/</RemoteDir>
-  <RemoteName>License_Standard.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/medieval_village/glTF/Prop_Crate.bin" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
-  <RemoteName>Prop_Crate.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
-  <RemoteName>Prop_Crate.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
-  <RemoteName>Prop_Crate.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/medieval_village/glTF/Prop_Crate.gltf" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
-  <RemoteName>Prop_Crate.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
-  <RemoteName>Prop_Crate.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
-  <RemoteName>Prop_Crate.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/medieval_village/glTF/T_Brick_BaseColor.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
-  <RemoteName>T_Brick_BaseColor.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
-  <RemoteName>T_Brick_BaseColor.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
-  <RemoteName>T_Brick_BaseColor.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/medieval_village/glTF/T_Brick_Normal.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
-  <RemoteName>T_Brick_Normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
-  <RemoteName>T_Brick_Normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
-  <RemoteName>T_Brick_Normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/medieval_village/glTF/T_Brick_Roughness.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
-  <RemoteName>T_Brick_Roughness.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
-  <RemoteName>T_Brick_Roughness.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
-  <RemoteName>T_Brick_Roughness.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/medieval_village/glTF/T_Plaster_BaseColor.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
-  <RemoteName>T_Plaster_BaseColor.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
-  <RemoteName>T_Plaster_BaseColor.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
-  <RemoteName>T_Plaster_BaseColor.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/medieval_village/glTF/T_Plaster_Normal.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
-  <RemoteName>T_Plaster_Normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
-  <RemoteName>T_Plaster_Normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
-  <RemoteName>T_Plaster_Normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/medieval_village/glTF/T_Plaster_ORM.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
-  <RemoteName>T_Plaster_ORM.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
-  <RemoteName>T_Plaster_ORM.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
-  <RemoteName>T_Plaster_ORM.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/medieval_village/glTF/T_RoundTiles_BaseColor.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
-  <RemoteName>T_RoundTiles_BaseColor.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
-  <RemoteName>T_RoundTiles_BaseColor.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
-  <RemoteName>T_RoundTiles_BaseColor.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/medieval_village/glTF/T_RoundTiles_Normal.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
-  <RemoteName>T_RoundTiles_Normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
-  <RemoteName>T_RoundTiles_Normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
-  <RemoteName>T_RoundTiles_Normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/medieval_village/glTF/T_RoundTiles_Roughness.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
-  <RemoteName>T_RoundTiles_Roughness.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
-  <RemoteName>T_RoundTiles_Roughness.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
-  <RemoteName>T_RoundTiles_Roughness.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/medieval_village/glTF/T_WoodTrim_BaseColor.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
-  <RemoteName>T_WoodTrim_BaseColor.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
-  <RemoteName>T_WoodTrim_BaseColor.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
-  <RemoteName>T_WoodTrim_BaseColor.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/medieval_village/glTF/T_WoodTrim_Normal.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
-  <RemoteName>T_WoodTrim_Normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
-  <RemoteName>T_WoodTrim_Normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
-  <RemoteName>T_WoodTrim_Normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/medieval_village/glTF/T_WoodTrim_Roughness.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
-  <RemoteName>T_WoodTrim_Roughness.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
-  <RemoteName>T_WoodTrim_Roughness.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/medieval_village/glTF/</RemoteDir>
-  <RemoteName>T_WoodTrim_Roughness.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/modular_sci_fi/License_Source.txt" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/modular_sci_fi/</RemoteDir>
-  <RemoteName>License_Source.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/modular_sci_fi/</RemoteDir>
-  <RemoteName>License_Source.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/modular_sci_fi/</RemoteDir>
-  <RemoteName>License_Source.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/Alien_Cyclop.bin" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>Alien_Cyclop.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>Alien_Cyclop.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>Alien_Cyclop.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/Alien_Cyclop.gltf" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>Alien_Cyclop.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>Alien_Cyclop.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>Alien_Cyclop.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/Column_Round.bin" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>Column_Round.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>Column_Round.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>Column_Round.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/Column_Round.gltf" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>Column_Round.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>Column_Round.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>Column_Round.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/Platform_Padded.bin" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>Platform_Padded.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>Platform_Padded.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>Platform_Padded.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/Platform_Padded.gltf" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>Platform_Padded.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>Platform_Padded.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>Platform_Padded.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/Prop_Computer.bin" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>Prop_Computer.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>Prop_Computer.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>Prop_Computer.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/Prop_Computer.gltf" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>Prop_Computer.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>Prop_Computer.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>Prop_Computer.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/T_Decals.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>T_Decals.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>T_Decals.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>T_Decals.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/T_PaddedWall_BaseColor.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>T_PaddedWall_BaseColor.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>T_PaddedWall_BaseColor.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>T_PaddedWall_BaseColor.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/T_PaddedWall_Normal.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>T_PaddedWall_Normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>T_PaddedWall_Normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>T_PaddedWall_Normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/T_PaddedWall_ORM.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>T_PaddedWall_ORM.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>T_PaddedWall_ORM.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>T_PaddedWall_ORM.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/T_Trim_01_BaseColor_Red.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>T_Trim_01_BaseColor_Red.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>T_Trim_01_BaseColor_Red.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>T_Trim_01_BaseColor_Red.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/T_Trim_01_Normal.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>T_Trim_01_Normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>T_Trim_01_Normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>T_Trim_01_Normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/T_Trim_01_ORM.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>T_Trim_01_ORM.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>T_Trim_01_ORM.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>T_Trim_01_ORM.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/T_Trim_02_BaseColor_Red.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>T_Trim_02_BaseColor_Red.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>T_Trim_02_BaseColor_Red.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>T_Trim_02_BaseColor_Red.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/T_Trim_02_Normal.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>T_Trim_02_Normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>T_Trim_02_Normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>T_Trim_02_Normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/modular_sci_fi/glTF/T_Trim_02_ORM.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>T_Trim_02_ORM.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>T_Trim_02_ORM.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/modular_sci_fi/glTF/</RemoteDir>
-  <RemoteName>T_Trim_02_ORM.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/nature/License.txt" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/nature/</RemoteDir>
-  <RemoteName>License.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/nature/</RemoteDir>
-  <RemoteName>License.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/nature/</RemoteDir>
-  <RemoteName>License.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/nature/glTF/BirchTree_1.bin" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
-  <RemoteName>BirchTree_1.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
-  <RemoteName>BirchTree_1.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
-  <RemoteName>BirchTree_1.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/nature/glTF/BirchTree_1.gltf" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
-  <RemoteName>BirchTree_1.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
-  <RemoteName>BirchTree_1.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
-  <RemoteName>BirchTree_1.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/nature/glTF/BirchTree_Bark.jpg" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
-  <RemoteName>BirchTree_Bark.jpg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
-  <RemoteName>BirchTree_Bark.jpg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
-  <RemoteName>BirchTree_Bark.jpg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/nature/glTF/BirchTree_Bark_Normal.jpg" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
-  <RemoteName>BirchTree_Bark_Normal.jpg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
-  <RemoteName>BirchTree_Bark_Normal.jpg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
-  <RemoteName>BirchTree_Bark_Normal.jpg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/nature/glTF/BirchTree_Leaves.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
-  <RemoteName>BirchTree_Leaves.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
-  <RemoteName>BirchTree_Leaves.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
-  <RemoteName>BirchTree_Leaves.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/nature/glTF/MapleTree_2.bin" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
-  <RemoteName>MapleTree_2.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
-  <RemoteName>MapleTree_2.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
-  <RemoteName>MapleTree_2.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/nature/glTF/MapleTree_2.gltf" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
-  <RemoteName>MapleTree_2.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
-  <RemoteName>MapleTree_2.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
-  <RemoteName>MapleTree_2.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/nature/glTF/MapleTree_Bark.jpg" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
-  <RemoteName>MapleTree_Bark.jpg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
-  <RemoteName>MapleTree_Bark.jpg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
-  <RemoteName>MapleTree_Bark.jpg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/nature/glTF/MapleTree_Bark_Normal.jpg" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
-  <RemoteName>MapleTree_Bark_Normal.jpg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
-  <RemoteName>MapleTree_Bark_Normal.jpg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
-  <RemoteName>MapleTree_Bark_Normal.jpg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/nature/glTF/MapleTree_Leaves.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
-  <RemoteName>MapleTree_Leaves.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
-  <RemoteName>MapleTree_Leaves.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/nature/glTF/</RemoteDir>
-  <RemoteName>MapleTree_Leaves.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/stylized_nature/License_Standard.txt" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/stylized_nature/</RemoteDir>
-  <RemoteName>License_Standard.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/stylized_nature/</RemoteDir>
-  <RemoteName>License_Standard.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/stylized_nature/</RemoteDir>
-  <RemoteName>License_Standard.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/stylized_nature/glTF/Rock_Medium_1.bin" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/stylized_nature/glTF/</RemoteDir>
-  <RemoteName>Rock_Medium_1.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/stylized_nature/glTF/</RemoteDir>
-  <RemoteName>Rock_Medium_1.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/stylized_nature/glTF/</RemoteDir>
-  <RemoteName>Rock_Medium_1.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/stylized_nature/glTF/Rock_Medium_1.gltf" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/stylized_nature/glTF/</RemoteDir>
-  <RemoteName>Rock_Medium_1.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/stylized_nature/glTF/</RemoteDir>
-  <RemoteName>Rock_Medium_1.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/stylized_nature/glTF/</RemoteDir>
-  <RemoteName>Rock_Medium_1.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius/stylized_nature/glTF/Rocks_Diffuse.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/stylized_nature/glTF/</RemoteDir>
-  <RemoteName>Rocks_Diffuse.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/stylized_nature/glTF/</RemoteDir>
-  <RemoteName>Rocks_Diffuse.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/stylized_nature/glTF/</RemoteDir>
-  <RemoteName>Rocks_Diffuse.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\skybox/sunset_neg_x_left.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>sunset_neg_x_left.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>sunset_neg_x_left.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>sunset_neg_x_left.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\skybox/sunset_neg_y_bottom.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>sunset_neg_y_bottom.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>sunset_neg_y_bottom.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>sunset_neg_y_bottom.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\skybox/sunset_neg_z_back.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>sunset_neg_z_back.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>sunset_neg_z_back.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>sunset_neg_z_back.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\skybox/sunset_pos_x_right.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>sunset_pos_x_right.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>sunset_pos_x_right.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>sunset_pos_x_right.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\skybox/sunset_pos_y_top.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>sunset_pos_y_top.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>sunset_pos_y_top.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>sunset_pos_y_top.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\skybox/sunset_pos_z_front.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>sunset_pos_z_front.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>sunset_pos_z_front.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>sunset_pos_z_front.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\village_crate.castle-transform" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>village_crate.castle-transform</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>village_crate.castle-transform</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>village_crate.castle-transform</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\village_level.bin" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>village_level.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>village_level.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>village_level.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\village_level.gltf" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>village_level.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>village_level.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>village_level.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\village_level_ground.bin" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>village_level_ground.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>village_level_ground.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>village_level_ground.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\village_level_ground.gltf" Configuration="Release" Class="File">
- <Platform Name="Linux64">
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>village_level_ground.gltf</RemoteName>
   <Overwrite>true</Overwrite>

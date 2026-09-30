@@ -277,25 +277,38 @@
      to non-Windows targets,
      see https://castle-engine.io/delphi_linux#data_files_deployment .
 -->
-<DeployFile LocalName="data\CastleSettings.xml" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\castle.bin" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>castle.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>castle.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>castle.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>castle.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
   <RemoteDir>./data/</RemoteDir>
-  <RemoteName>CastleSettings.xml</RemoteName>
+  <RemoteName>castle.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
- <Platform Name="Win32">
+ <Platform Name="OSX64">
   <RemoteDir>./data/</RemoteDir>
-  <RemoteName>CastleSettings.xml</RemoteName>
+  <RemoteName>castle.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>CastleSettings.xml</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\castle.bin" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>castle.bin</RemoteName>
   <Overwrite>true</Overwrite>
@@ -311,8 +324,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\castle.gltf" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\castle.gltf" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>castle.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>castle.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>castle.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>castle.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>castle.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>castle.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>castle.gltf</RemoteName>
   <Overwrite>true</Overwrite>
@@ -328,8 +371,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\castle_with_effects.x3dv" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\castle_with_effects.x3dv" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>castle_with_effects.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>castle_with_effects.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>castle_with_effects.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>castle_with_effects.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>castle_with_effects.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>castle_with_effects.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>castle_with_effects.x3dv</RemoteName>
   <Overwrite>true</Overwrite>
@@ -345,8 +418,85 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\gameviewmain.castle-user-interface" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\CastleSettings.xml" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\gameviewmain.castle-user-interface" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>gameviewmain.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
@@ -362,8 +512,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sample_image_with_alpha.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sample_image_with_alpha.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>sample_image_with_alpha.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>sample_image_with_alpha.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>sample_image_with_alpha.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>sample_image_with_alpha.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>sample_image_with_alpha.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>sample_image_with_alpha.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>sample_image_with_alpha.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -379,8 +559,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sample_texture.ppm" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sample_texture.ppm" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>sample_texture.ppm</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>sample_texture.ppm</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>sample_texture.ppm</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>sample_texture.ppm</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>sample_texture.ppm</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>sample_texture.ppm</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>sample_texture.ppm</RemoteName>
   <Overwrite>true</Overwrite>
@@ -396,8 +606,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\skybox/foggy_sky_neg_x_left.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\skybox\foggy_sky_neg_x_left.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/skybox/</RemoteDir>
+  <RemoteName>foggy_sky_neg_x_left.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/skybox/</RemoteDir>
+  <RemoteName>foggy_sky_neg_x_left.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>foggy_sky_neg_x_left.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>foggy_sky_neg_x_left.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>foggy_sky_neg_x_left.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>foggy_sky_neg_x_left.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/skybox/</RemoteDir>
   <RemoteName>foggy_sky_neg_x_left.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -413,8 +653,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\skybox/foggy_sky_neg_y_bottom.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\skybox\foggy_sky_neg_y_bottom.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/skybox/</RemoteDir>
+  <RemoteName>foggy_sky_neg_y_bottom.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/skybox/</RemoteDir>
+  <RemoteName>foggy_sky_neg_y_bottom.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>foggy_sky_neg_y_bottom.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>foggy_sky_neg_y_bottom.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>foggy_sky_neg_y_bottom.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>foggy_sky_neg_y_bottom.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/skybox/</RemoteDir>
   <RemoteName>foggy_sky_neg_y_bottom.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -430,8 +700,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\skybox/foggy_sky_neg_z_back.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\skybox\foggy_sky_neg_z_back.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/skybox/</RemoteDir>
+  <RemoteName>foggy_sky_neg_z_back.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/skybox/</RemoteDir>
+  <RemoteName>foggy_sky_neg_z_back.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>foggy_sky_neg_z_back.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>foggy_sky_neg_z_back.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>foggy_sky_neg_z_back.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>foggy_sky_neg_z_back.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/skybox/</RemoteDir>
   <RemoteName>foggy_sky_neg_z_back.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -447,8 +747,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\skybox/foggy_sky_pos_x_right.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\skybox\foggy_sky_pos_x_right.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/skybox/</RemoteDir>
+  <RemoteName>foggy_sky_pos_x_right.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/skybox/</RemoteDir>
+  <RemoteName>foggy_sky_pos_x_right.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>foggy_sky_pos_x_right.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>foggy_sky_pos_x_right.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>foggy_sky_pos_x_right.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>foggy_sky_pos_x_right.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/skybox/</RemoteDir>
   <RemoteName>foggy_sky_pos_x_right.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -464,8 +794,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\skybox/foggy_sky_pos_y_top.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\skybox\foggy_sky_pos_y_top.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/skybox/</RemoteDir>
+  <RemoteName>foggy_sky_pos_y_top.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/skybox/</RemoteDir>
+  <RemoteName>foggy_sky_pos_y_top.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>foggy_sky_pos_y_top.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>foggy_sky_pos_y_top.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>foggy_sky_pos_y_top.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>foggy_sky_pos_y_top.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/skybox/</RemoteDir>
   <RemoteName>foggy_sky_pos_y_top.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -481,8 +841,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\skybox/foggy_sky_pos_z_front.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\skybox\foggy_sky_pos_z_front.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/skybox/</RemoteDir>
+  <RemoteName>foggy_sky_pos_z_front.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/skybox/</RemoteDir>
+  <RemoteName>foggy_sky_pos_z_front.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>foggy_sky_pos_z_front.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>foggy_sky_pos_z_front.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>foggy_sky_pos_z_front.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/skybox/</RemoteDir>
+  <RemoteName>foggy_sky_pos_z_front.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/skybox/</RemoteDir>
   <RemoteName>foggy_sky_pos_z_front.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -498,8 +888,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sounds/player_potion_drink.wav" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sounds\player_potion_drink.wav" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/sounds/</RemoteDir>
+  <RemoteName>player_potion_drink.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/sounds/</RemoteDir>
+  <RemoteName>player_potion_drink.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>player_potion_drink.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>player_potion_drink.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>player_potion_drink.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>player_potion_drink.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/sounds/</RemoteDir>
   <RemoteName>player_potion_drink.wav</RemoteName>
   <Overwrite>true</Overwrite>
@@ -515,8 +935,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sounds/werewolf_howling.ogg" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sounds\werewolf_howling.ogg" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/sounds/</RemoteDir>
+  <RemoteName>werewolf_howling.ogg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/sounds/</RemoteDir>
+  <RemoteName>werewolf_howling.ogg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>werewolf_howling.ogg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>werewolf_howling.ogg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>werewolf_howling.ogg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>werewolf_howling.ogg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/sounds/</RemoteDir>
   <RemoteName>werewolf_howling.ogg</RemoteName>
   <Overwrite>true</Overwrite>
@@ -532,8 +982,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sounds/werewolf_howling.wav" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sounds\werewolf_howling.wav" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/sounds/</RemoteDir>
+  <RemoteName>werewolf_howling.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/sounds/</RemoteDir>
+  <RemoteName>werewolf_howling.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>werewolf_howling.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>werewolf_howling.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>werewolf_howling.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>werewolf_howling.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/sounds/</RemoteDir>
   <RemoteName>werewolf_howling.wav</RemoteName>
   <Overwrite>true</Overwrite>
@@ -549,8 +1029,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\teapots.x3dv" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\teapots.x3dv" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>teapots.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>teapots.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>teapots.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>teapots.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>teapots.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>teapots.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>teapots.x3dv</RemoteName>
   <Overwrite>true</Overwrite>
@@ -566,25 +1076,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\textures/AUTHORS.md" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\textures\airbase_radar_panels.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/textures/</RemoteDir>
+  <RemoteName>airbase_radar_panels.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/textures/</RemoteDir>
+  <RemoteName>airbase_radar_panels.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>airbase_radar_panels.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>airbase_radar_panels.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
   <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>AUTHORS.md</RemoteName>
+  <RemoteName>airbase_radar_panels.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
- <Platform Name="Win32">
+ <Platform Name="OSX64">
   <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>AUTHORS.md</RemoteName>
+  <RemoteName>airbase_radar_panels.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>AUTHORS.md</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\textures/airbase_radar_panels.png" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/textures/</RemoteDir>
   <RemoteName>airbase_radar_panels.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -600,8 +1123,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\textures/airbase_radar_panels_normalmap.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\textures\airbase_radar_panels_normalmap.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/textures/</RemoteDir>
+  <RemoteName>airbase_radar_panels_normalmap.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/textures/</RemoteDir>
+  <RemoteName>airbase_radar_panels_normalmap.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>airbase_radar_panels_normalmap.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>airbase_radar_panels_normalmap.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>airbase_radar_panels_normalmap.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>airbase_radar_panels_normalmap.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/textures/</RemoteDir>
   <RemoteName>airbase_radar_panels_normalmap.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -617,8 +1170,85 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\textures/bricksmokesidebot.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\textures\AUTHORS.md" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/textures/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/textures/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\textures\bricksmokesidebot.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/textures/</RemoteDir>
+  <RemoteName>bricksmokesidebot.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/textures/</RemoteDir>
+  <RemoteName>bricksmokesidebot.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>bricksmokesidebot.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>bricksmokesidebot.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>bricksmokesidebot.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>bricksmokesidebot.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/textures/</RemoteDir>
   <RemoteName>bricksmokesidebot.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -634,8 +1264,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\textures/bricksmokesidebot_normalmap.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\textures\bricksmokesidebot_normalmap.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/textures/</RemoteDir>
+  <RemoteName>bricksmokesidebot_normalmap.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/textures/</RemoteDir>
+  <RemoteName>bricksmokesidebot_normalmap.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>bricksmokesidebot_normalmap.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>bricksmokesidebot_normalmap.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>bricksmokesidebot_normalmap.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>bricksmokesidebot_normalmap.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/textures/</RemoteDir>
   <RemoteName>bricksmokesidebot_normalmap.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -651,8 +1311,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\textures/france_housered.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\textures\france_housered.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/textures/</RemoteDir>
+  <RemoteName>france_housered.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/textures/</RemoteDir>
+  <RemoteName>france_housered.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>france_housered.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>france_housered.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>france_housered.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>france_housered.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/textures/</RemoteDir>
   <RemoteName>france_housered.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -668,8 +1358,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\textures/france_housered_normalmap.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\textures\france_housered_normalmap.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/textures/</RemoteDir>
+  <RemoteName>france_housered_normalmap.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/textures/</RemoteDir>
+  <RemoteName>france_housered_normalmap.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>france_housered_normalmap.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>france_housered_normalmap.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>france_housered_normalmap.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>france_housered_normalmap.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/textures/</RemoteDir>
   <RemoteName>france_housered_normalmap.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -685,8 +1405,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\textures/grassfull.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\textures\grassfull.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/textures/</RemoteDir>
+  <RemoteName>grassfull.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/textures/</RemoteDir>
+  <RemoteName>grassfull.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>grassfull.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>grassfull.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>grassfull.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>grassfull.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/textures/</RemoteDir>
   <RemoteName>grassfull.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -702,8 +1452,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\textures/grassfull_normalmap.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\textures\grassfull_normalmap.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/textures/</RemoteDir>
+  <RemoteName>grassfull_normalmap.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/textures/</RemoteDir>
+  <RemoteName>grassfull_normalmap.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>grassfull_normalmap.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>grassfull_normalmap.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>grassfull_normalmap.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>grassfull_normalmap.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/textures/</RemoteDir>
   <RemoteName>grassfull_normalmap.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -719,8 +1499,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\textures/misslescararm.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\textures\misslescararm.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/textures/</RemoteDir>
+  <RemoteName>misslescararm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/textures/</RemoteDir>
+  <RemoteName>misslescararm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>misslescararm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>misslescararm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>misslescararm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>misslescararm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/textures/</RemoteDir>
   <RemoteName>misslescararm.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -736,8 +1546,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\textures/misslescararm_normalmap.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\textures\misslescararm_normalmap.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/textures/</RemoteDir>
+  <RemoteName>misslescararm_normalmap.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/textures/</RemoteDir>
+  <RemoteName>misslescararm_normalmap.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>misslescararm_normalmap.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>misslescararm_normalmap.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>misslescararm_normalmap.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>misslescararm_normalmap.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/textures/</RemoteDir>
   <RemoteName>misslescararm_normalmap.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -753,8 +1593,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\textures/water2.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\textures\water2.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/textures/</RemoteDir>
+  <RemoteName>water2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/textures/</RemoteDir>
+  <RemoteName>water2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>water2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>water2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>water2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>water2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/textures/</RemoteDir>
   <RemoteName>water2.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -770,8 +1640,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\textures/water2_normalmap.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\textures\water2_normalmap.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/textures/</RemoteDir>
+  <RemoteName>water2_normalmap.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/textures/</RemoteDir>
+  <RemoteName>water2_normalmap.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>water2_normalmap.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>water2_normalmap.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>water2_normalmap.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>water2_normalmap.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/textures/</RemoteDir>
   <RemoteName>water2_normalmap.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -787,8 +1687,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\textures/waterwall.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\textures\waterwall.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/textures/</RemoteDir>
+  <RemoteName>waterwall.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/textures/</RemoteDir>
+  <RemoteName>waterwall.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>waterwall.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>waterwall.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>waterwall.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>waterwall.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/textures/</RemoteDir>
   <RemoteName>waterwall.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -804,8 +1734,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\textures/waterwall_normalmap.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\textures\waterwall_normalmap.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/textures/</RemoteDir>
+  <RemoteName>waterwall_normalmap.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/textures/</RemoteDir>
+  <RemoteName>waterwall_normalmap.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>waterwall_normalmap.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>waterwall_normalmap.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>waterwall_normalmap.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>waterwall_normalmap.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/textures/</RemoteDir>
   <RemoteName>waterwall_normalmap.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -821,8 +1781,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\textures/wood_clear.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\textures\wood_clear.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/textures/</RemoteDir>
+  <RemoteName>wood_clear.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/textures/</RemoteDir>
+  <RemoteName>wood_clear.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>wood_clear.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>wood_clear.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>wood_clear.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>wood_clear.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/textures/</RemoteDir>
   <RemoteName>wood_clear.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -838,586 +1828,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\textures/wood_clear_normalmap.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\textures\wood_clear_normalmap.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/textures/</RemoteDir>
+  <RemoteName>wood_clear_normalmap.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/textures/</RemoteDir>
+  <RemoteName>wood_clear_normalmap.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>wood_clear_normalmap.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>wood_clear_normalmap.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
   <RemoteDir>./data/textures/</RemoteDir>
   <RemoteName>wood_clear_normalmap.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
- <Platform Name="Win32">
+ <Platform Name="OSX64">
   <RemoteDir>./data/textures/</RemoteDir>
   <RemoteName>wood_clear_normalmap.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>wood_clear_normalmap.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\CastleSettings.xml" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>CastleSettings.xml</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>CastleSettings.xml</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>CastleSettings.xml</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\castle.bin" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>castle.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>castle.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>castle.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\castle.gltf" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>castle.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>castle.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>castle.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\castle_with_effects.x3dv" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>castle_with_effects.x3dv</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>castle_with_effects.x3dv</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>castle_with_effects.x3dv</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\gameviewmain.castle-user-interface" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\sample_image_with_alpha.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>sample_image_with_alpha.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>sample_image_with_alpha.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>sample_image_with_alpha.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\sample_texture.ppm" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>sample_texture.ppm</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>sample_texture.ppm</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>sample_texture.ppm</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\skybox/foggy_sky_neg_x_left.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>foggy_sky_neg_x_left.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>foggy_sky_neg_x_left.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>foggy_sky_neg_x_left.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\skybox/foggy_sky_neg_y_bottom.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>foggy_sky_neg_y_bottom.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>foggy_sky_neg_y_bottom.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>foggy_sky_neg_y_bottom.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\skybox/foggy_sky_neg_z_back.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>foggy_sky_neg_z_back.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>foggy_sky_neg_z_back.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>foggy_sky_neg_z_back.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\skybox/foggy_sky_pos_x_right.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>foggy_sky_pos_x_right.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>foggy_sky_pos_x_right.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>foggy_sky_pos_x_right.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\skybox/foggy_sky_pos_y_top.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>foggy_sky_pos_y_top.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>foggy_sky_pos_y_top.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>foggy_sky_pos_y_top.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\skybox/foggy_sky_pos_z_front.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>foggy_sky_pos_z_front.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>foggy_sky_pos_z_front.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/skybox/</RemoteDir>
-  <RemoteName>foggy_sky_pos_z_front.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\sounds/player_potion_drink.wav" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/sounds/</RemoteDir>
-  <RemoteName>player_potion_drink.wav</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/sounds/</RemoteDir>
-  <RemoteName>player_potion_drink.wav</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/sounds/</RemoteDir>
-  <RemoteName>player_potion_drink.wav</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\sounds/werewolf_howling.ogg" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/sounds/</RemoteDir>
-  <RemoteName>werewolf_howling.ogg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/sounds/</RemoteDir>
-  <RemoteName>werewolf_howling.ogg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/sounds/</RemoteDir>
-  <RemoteName>werewolf_howling.ogg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\sounds/werewolf_howling.wav" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/sounds/</RemoteDir>
-  <RemoteName>werewolf_howling.wav</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/sounds/</RemoteDir>
-  <RemoteName>werewolf_howling.wav</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/sounds/</RemoteDir>
-  <RemoteName>werewolf_howling.wav</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\teapots.x3dv" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>teapots.x3dv</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>teapots.x3dv</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>teapots.x3dv</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\textures/AUTHORS.md" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>AUTHORS.md</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>AUTHORS.md</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>AUTHORS.md</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\textures/airbase_radar_panels.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>airbase_radar_panels.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>airbase_radar_panels.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>airbase_radar_panels.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\textures/airbase_radar_panels_normalmap.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>airbase_radar_panels_normalmap.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>airbase_radar_panels_normalmap.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>airbase_radar_panels_normalmap.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\textures/bricksmokesidebot.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>bricksmokesidebot.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>bricksmokesidebot.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>bricksmokesidebot.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\textures/bricksmokesidebot_normalmap.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>bricksmokesidebot_normalmap.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>bricksmokesidebot_normalmap.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>bricksmokesidebot_normalmap.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\textures/france_housered.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>france_housered.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>france_housered.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>france_housered.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\textures/france_housered_normalmap.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>france_housered_normalmap.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>france_housered_normalmap.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>france_housered_normalmap.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\textures/grassfull.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>grassfull.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>grassfull.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>grassfull.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\textures/grassfull_normalmap.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>grassfull_normalmap.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>grassfull_normalmap.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>grassfull_normalmap.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\textures/misslescararm.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>misslescararm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>misslescararm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>misslescararm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\textures/misslescararm_normalmap.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>misslescararm_normalmap.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>misslescararm_normalmap.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>misslescararm_normalmap.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\textures/water2.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>water2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>water2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>water2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\textures/water2_normalmap.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>water2_normalmap.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>water2_normalmap.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>water2_normalmap.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\textures/waterwall.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>waterwall.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>waterwall.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>waterwall.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\textures/waterwall_normalmap.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>waterwall_normalmap.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>waterwall_normalmap.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>waterwall_normalmap.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\textures/wood_clear.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>wood_clear.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>wood_clear.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>wood_clear.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\textures/wood_clear_normalmap.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/textures/</RemoteDir>
   <RemoteName>wood_clear_normalmap.png</RemoteName>
   <Overwrite>true</Overwrite>

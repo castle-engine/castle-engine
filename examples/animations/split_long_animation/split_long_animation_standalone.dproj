@@ -277,8 +277,38 @@
      to non-Windows targets,
      see https://castle-engine.io/delphi_linux#data_files_deployment .
 -->
-<DeployFile LocalName="data\CastleSettings.xml" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\CastleSettings.xml" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>CastleSettings.xml</RemoteName>
   <Overwrite>true</Overwrite>
@@ -294,25 +324,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\README.txt" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\gameviewmain.castle-user-interface" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
   <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
- <Platform Name="Win32">
+ <Platform Name="OSX64">
   <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\gameviewmain.castle-user-interface" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>gameviewmain.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
@@ -328,8 +371,85 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin/license.txt" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\README.txt" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab\halloween-pumpkin\license.txt" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/sketchfab/halloween-pumpkin/</RemoteDir>
+  <RemoteName>license.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/sketchfab/halloween-pumpkin/</RemoteDir>
+  <RemoteName>license.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/</RemoteDir>
+  <RemoteName>license.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/</RemoteDir>
+  <RemoteName>license.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/</RemoteDir>
+  <RemoteName>license.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/</RemoteDir>
+  <RemoteName>license.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/sketchfab/halloween-pumpkin/</RemoteDir>
   <RemoteName>license.txt</RemoteName>
   <Overwrite>true</Overwrite>
@@ -345,8 +465,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin/scene.bin" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab\halloween-pumpkin\scene.bin" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/sketchfab/halloween-pumpkin/</RemoteDir>
+  <RemoteName>scene.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/sketchfab/halloween-pumpkin/</RemoteDir>
+  <RemoteName>scene.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/</RemoteDir>
+  <RemoteName>scene.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/</RemoteDir>
+  <RemoteName>scene.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/</RemoteDir>
+  <RemoteName>scene.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/</RemoteDir>
+  <RemoteName>scene.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/sketchfab/halloween-pumpkin/</RemoteDir>
   <RemoteName>scene.bin</RemoteName>
   <Overwrite>true</Overwrite>
@@ -362,8 +512,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin/scene.gltf" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab\halloween-pumpkin\scene.gltf" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/sketchfab/halloween-pumpkin/</RemoteDir>
+  <RemoteName>scene.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/sketchfab/halloween-pumpkin/</RemoteDir>
+  <RemoteName>scene.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/</RemoteDir>
+  <RemoteName>scene.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/</RemoteDir>
+  <RemoteName>scene.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/</RemoteDir>
+  <RemoteName>scene.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/</RemoteDir>
+  <RemoteName>scene.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/sketchfab/halloween-pumpkin/</RemoteDir>
   <RemoteName>scene.gltf</RemoteName>
   <Overwrite>true</Overwrite>
@@ -379,8 +559,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin/textures/09_-_Default_baseColor.jpeg" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab\halloween-pumpkin\textures\09_-_Default_baseColor.jpeg" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>09_-_Default_baseColor.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>09_-_Default_baseColor.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>09_-_Default_baseColor.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>09_-_Default_baseColor.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>09_-_Default_baseColor.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>09_-_Default_baseColor.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>09_-_Default_baseColor.jpeg</RemoteName>
   <Overwrite>true</Overwrite>
@@ -396,8 +606,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin/textures/09_-_Default_emissive.jpeg" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab\halloween-pumpkin\textures\09_-_Default_emissive.jpeg" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>09_-_Default_emissive.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>09_-_Default_emissive.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>09_-_Default_emissive.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>09_-_Default_emissive.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>09_-_Default_emissive.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>09_-_Default_emissive.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>09_-_Default_emissive.jpeg</RemoteName>
   <Overwrite>true</Overwrite>
@@ -413,8 +653,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin/textures/09_-_Default_metallicRoughness.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab\halloween-pumpkin\textures\09_-_Default_metallicRoughness.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>09_-_Default_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>09_-_Default_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>09_-_Default_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>09_-_Default_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>09_-_Default_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>09_-_Default_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>09_-_Default_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -430,8 +700,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin/textures/09_-_Default_normal.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab\halloween-pumpkin\textures\09_-_Default_normal.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>09_-_Default_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>09_-_Default_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>09_-_Default_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>09_-_Default_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>09_-_Default_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>09_-_Default_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>09_-_Default_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -447,8 +747,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin/textures/material_1_baseColor.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab\halloween-pumpkin\textures\material_1_baseColor.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>material_1_baseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>material_1_baseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>material_1_baseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>material_1_baseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>material_1_baseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>material_1_baseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_1_baseColor.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -464,8 +794,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin/textures/material_1_metallicRoughness.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab\halloween-pumpkin\textures\material_1_metallicRoughness.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>material_1_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>material_1_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>material_1_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>material_1_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>material_1_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>material_1_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_1_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -481,8 +841,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin/textures/material_1_normal.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab\halloween-pumpkin\textures\material_1_normal.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>material_1_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>material_1_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>material_1_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>material_1_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>material_1_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>material_1_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_1_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -498,8 +888,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin/textures/material_2_baseColor.jpeg" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab\halloween-pumpkin\textures\material_2_baseColor.jpeg" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>material_2_baseColor.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>material_2_baseColor.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>material_2_baseColor.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>material_2_baseColor.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>material_2_baseColor.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>material_2_baseColor.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_2_baseColor.jpeg</RemoteName>
   <Overwrite>true</Overwrite>
@@ -515,8 +935,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin/textures/material_3_emissive.jpeg" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab\halloween-pumpkin\textures\material_3_emissive.jpeg" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>material_3_emissive.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>material_3_emissive.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>material_3_emissive.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>material_3_emissive.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>material_3_emissive.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>material_3_emissive.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_3_emissive.jpeg</RemoteName>
   <Overwrite>true</Overwrite>
@@ -532,8 +982,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin/textures/material_baseColor.jpeg" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab\halloween-pumpkin\textures\material_baseColor.jpeg" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>material_baseColor.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>material_baseColor.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>material_baseColor.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>material_baseColor.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>material_baseColor.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>material_baseColor.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_baseColor.jpeg</RemoteName>
   <Overwrite>true</Overwrite>
@@ -549,8 +1029,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin/textures/material_metallicRoughness.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab\halloween-pumpkin\textures\material_metallicRoughness.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>material_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>material_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>material_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>material_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>material_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>material_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_metallicRoughness.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -566,314 +1076,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin/textures/material_normal.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sketchfab\halloween-pumpkin\textures\material_normal.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>material_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>material_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>material_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
+  <RemoteName>material_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
   <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
- <Platform Name="Win32">
+ <Platform Name="OSX64">
   <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_normal.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
-  <RemoteName>material_normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\CastleSettings.xml" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>CastleSettings.xml</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>CastleSettings.xml</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>CastleSettings.xml</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\README.txt" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\gameviewmain.castle-user-interface" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin/license.txt" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin/</RemoteDir>
-  <RemoteName>license.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin/</RemoteDir>
-  <RemoteName>license.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin/</RemoteDir>
-  <RemoteName>license.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin/scene.bin" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin/</RemoteDir>
-  <RemoteName>scene.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin/</RemoteDir>
-  <RemoteName>scene.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin/</RemoteDir>
-  <RemoteName>scene.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin/scene.gltf" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin/</RemoteDir>
-  <RemoteName>scene.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin/</RemoteDir>
-  <RemoteName>scene.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin/</RemoteDir>
-  <RemoteName>scene.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin/textures/09_-_Default_baseColor.jpeg" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
-  <RemoteName>09_-_Default_baseColor.jpeg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
-  <RemoteName>09_-_Default_baseColor.jpeg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
-  <RemoteName>09_-_Default_baseColor.jpeg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin/textures/09_-_Default_emissive.jpeg" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
-  <RemoteName>09_-_Default_emissive.jpeg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
-  <RemoteName>09_-_Default_emissive.jpeg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
-  <RemoteName>09_-_Default_emissive.jpeg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin/textures/09_-_Default_metallicRoughness.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
-  <RemoteName>09_-_Default_metallicRoughness.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
-  <RemoteName>09_-_Default_metallicRoughness.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
-  <RemoteName>09_-_Default_metallicRoughness.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin/textures/09_-_Default_normal.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
-  <RemoteName>09_-_Default_normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
-  <RemoteName>09_-_Default_normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
-  <RemoteName>09_-_Default_normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin/textures/material_1_baseColor.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
-  <RemoteName>material_1_baseColor.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
-  <RemoteName>material_1_baseColor.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
-  <RemoteName>material_1_baseColor.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin/textures/material_1_metallicRoughness.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
-  <RemoteName>material_1_metallicRoughness.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
-  <RemoteName>material_1_metallicRoughness.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
-  <RemoteName>material_1_metallicRoughness.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin/textures/material_1_normal.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
-  <RemoteName>material_1_normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
-  <RemoteName>material_1_normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
-  <RemoteName>material_1_normal.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin/textures/material_2_baseColor.jpeg" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
-  <RemoteName>material_2_baseColor.jpeg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
-  <RemoteName>material_2_baseColor.jpeg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
-  <RemoteName>material_2_baseColor.jpeg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin/textures/material_3_emissive.jpeg" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
-  <RemoteName>material_3_emissive.jpeg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
-  <RemoteName>material_3_emissive.jpeg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
-  <RemoteName>material_3_emissive.jpeg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin/textures/material_baseColor.jpeg" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
-  <RemoteName>material_baseColor.jpeg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
-  <RemoteName>material_baseColor.jpeg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
-  <RemoteName>material_baseColor.jpeg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin/textures/material_metallicRoughness.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
-  <RemoteName>material_metallicRoughness.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
-  <RemoteName>material_metallicRoughness.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
-  <RemoteName>material_metallicRoughness.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\sketchfab/halloween-pumpkin/textures/material_normal.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/sketchfab/halloween-pumpkin/textures/</RemoteDir>
   <RemoteName>material_normal.png</RemoteName>
   <Overwrite>true</Overwrite>

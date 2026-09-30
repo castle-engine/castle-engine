@@ -277,8 +277,38 @@
      to non-Windows targets,
      see https://castle-engine.io/delphi_linux#data_files_deployment .
 -->
-<DeployFile LocalName="data\CastleSettings.xml" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\CastleSettings.xml" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>CastleSettings.xml</RemoteName>
   <Overwrite>true</Overwrite>
@@ -294,25 +324,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\README.txt" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\fonts\AUTHORS.txt" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteName>AUTHORS.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteName>AUTHORS.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>AUTHORS.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>AUTHORS.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>AUTHORS.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>AUTHORS.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\fonts/AUTHORS.txt" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/fonts/</RemoteDir>
   <RemoteName>AUTHORS.txt</RemoteName>
   <Overwrite>true</Overwrite>
@@ -328,8 +371,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\fonts/DejaVuSans.ttf" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\fonts\DejaVuSans.ttf" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteName>DejaVuSans.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteName>DejaVuSans.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>DejaVuSans.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>DejaVuSans.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>DejaVuSans.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>DejaVuSans.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/fonts/</RemoteDir>
   <RemoteName>DejaVuSans.ttf</RemoteName>
   <Overwrite>true</Overwrite>
@@ -345,25 +418,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\fonts/PARPG.ttf" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\fonts\null_terminator_0.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteName>null_terminator_0.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteName>null_terminator_0.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>null_terminator_0.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>null_terminator_0.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
   <RemoteDir>./data/fonts/</RemoteDir>
-  <RemoteName>PARPG.ttf</RemoteName>
+  <RemoteName>null_terminator_0.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
- <Platform Name="Win32">
+ <Platform Name="OSX64">
   <RemoteDir>./data/fonts/</RemoteDir>
-  <RemoteName>PARPG.ttf</RemoteName>
+  <RemoteName>null_terminator_0.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/fonts/</RemoteDir>
-  <RemoteName>PARPG.ttf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\fonts/null_terminator_0.png" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/fonts/</RemoteDir>
   <RemoteName>null_terminator_0.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -379,8 +465,85 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\fonts/sonic_asalga_0.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\fonts\PARPG.ttf" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteName>PARPG.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteName>PARPG.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>PARPG.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>PARPG.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>PARPG.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>PARPG.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>PARPG.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>PARPG.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>PARPG.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\fonts\sonic_asalga_0.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteName>sonic_asalga_0.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/fonts/</RemoteDir>
+  <RemoteName>sonic_asalga_0.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>sonic_asalga_0.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>sonic_asalga_0.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>sonic_asalga_0.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/fonts/</RemoteDir>
+  <RemoteName>sonic_asalga_0.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/fonts/</RemoteDir>
   <RemoteName>sonic_asalga_0.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -396,8 +559,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\fonts/woff/AUTHORS.md" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\fonts\woff\AUTHORS.md" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/fonts/woff/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/fonts/woff/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/fonts/woff/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/fonts/woff/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/woff/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/fonts/woff/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/fonts/woff/</RemoteDir>
   <RemoteName>AUTHORS.md</RemoteName>
   <Overwrite>true</Overwrite>
@@ -413,8 +606,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\fonts/woff/freecheese/GGBotNet.url" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\fonts\woff\freecheese\GGBotNet.url" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/fonts/woff/freecheese/</RemoteDir>
+  <RemoteName>GGBotNet.url</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/fonts/woff/freecheese/</RemoteDir>
+  <RemoteName>GGBotNet.url</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/fonts/woff/freecheese/</RemoteDir>
+  <RemoteName>GGBotNet.url</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/fonts/woff/freecheese/</RemoteDir>
+  <RemoteName>GGBotNet.url</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/woff/freecheese/</RemoteDir>
+  <RemoteName>GGBotNet.url</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/fonts/woff/freecheese/</RemoteDir>
+  <RemoteName>GGBotNet.url</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/fonts/woff/freecheese/</RemoteDir>
   <RemoteName>GGBotNet.url</RemoteName>
   <Overwrite>true</Overwrite>
@@ -430,8 +653,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\fonts/woff/freecheese/License.txt" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\fonts\woff\freecheese\License.txt" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/fonts/woff/freecheese/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/fonts/woff/freecheese/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/fonts/woff/freecheese/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/fonts/woff/freecheese/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/woff/freecheese/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/fonts/woff/freecheese/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/fonts/woff/freecheese/</RemoteDir>
   <RemoteName>License.txt</RemoteName>
   <Overwrite>true</Overwrite>
@@ -447,8 +700,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\fonts/woff/freecheese/OpenType (.otf)/FreeCheese-Italic.otf" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\fonts\woff\freecheese\OpenType (.otf)\FreeCheese-Italic.otf" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/fonts/woff/freecheese/OpenType (.otf)/</RemoteDir>
+  <RemoteName>FreeCheese-Italic.otf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/fonts/woff/freecheese/OpenType (.otf)/</RemoteDir>
+  <RemoteName>FreeCheese-Italic.otf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/fonts/woff/freecheese/OpenType (.otf)/</RemoteDir>
+  <RemoteName>FreeCheese-Italic.otf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/fonts/woff/freecheese/OpenType (.otf)/</RemoteDir>
+  <RemoteName>FreeCheese-Italic.otf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/woff/freecheese/OpenType (.otf)/</RemoteDir>
+  <RemoteName>FreeCheese-Italic.otf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/fonts/woff/freecheese/OpenType (.otf)/</RemoteDir>
+  <RemoteName>FreeCheese-Italic.otf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/fonts/woff/freecheese/OpenType (.otf)/</RemoteDir>
   <RemoteName>FreeCheese-Italic.otf</RemoteName>
   <Overwrite>true</Overwrite>
@@ -464,8 +747,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\fonts/woff/freecheese/OpenType (.otf)/FreeCheese-Regular.otf" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\fonts\woff\freecheese\OpenType (.otf)\FreeCheese-Regular.otf" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/fonts/woff/freecheese/OpenType (.otf)/</RemoteDir>
+  <RemoteName>FreeCheese-Regular.otf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/fonts/woff/freecheese/OpenType (.otf)/</RemoteDir>
+  <RemoteName>FreeCheese-Regular.otf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/fonts/woff/freecheese/OpenType (.otf)/</RemoteDir>
+  <RemoteName>FreeCheese-Regular.otf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/fonts/woff/freecheese/OpenType (.otf)/</RemoteDir>
+  <RemoteName>FreeCheese-Regular.otf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/woff/freecheese/OpenType (.otf)/</RemoteDir>
+  <RemoteName>FreeCheese-Regular.otf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/fonts/woff/freecheese/OpenType (.otf)/</RemoteDir>
+  <RemoteName>FreeCheese-Regular.otf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/fonts/woff/freecheese/OpenType (.otf)/</RemoteDir>
   <RemoteName>FreeCheese-Regular.otf</RemoteName>
   <Overwrite>true</Overwrite>
@@ -481,8 +794,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\fonts/woff/freecheese/TrueType (.ttf)/FreeCheese-Italic.ttf" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\fonts\woff\freecheese\TrueType (.ttf)\FreeCheese-Italic.ttf" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/fonts/woff/freecheese/TrueType (.ttf)/</RemoteDir>
+  <RemoteName>FreeCheese-Italic.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/fonts/woff/freecheese/TrueType (.ttf)/</RemoteDir>
+  <RemoteName>FreeCheese-Italic.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/fonts/woff/freecheese/TrueType (.ttf)/</RemoteDir>
+  <RemoteName>FreeCheese-Italic.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/fonts/woff/freecheese/TrueType (.ttf)/</RemoteDir>
+  <RemoteName>FreeCheese-Italic.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/woff/freecheese/TrueType (.ttf)/</RemoteDir>
+  <RemoteName>FreeCheese-Italic.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/fonts/woff/freecheese/TrueType (.ttf)/</RemoteDir>
+  <RemoteName>FreeCheese-Italic.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/fonts/woff/freecheese/TrueType (.ttf)/</RemoteDir>
   <RemoteName>FreeCheese-Italic.ttf</RemoteName>
   <Overwrite>true</Overwrite>
@@ -498,8 +841,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\fonts/woff/freecheese/TrueType (.ttf)/FreeCheese-Regular.ttf" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\fonts\woff\freecheese\TrueType (.ttf)\FreeCheese-Regular.ttf" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/fonts/woff/freecheese/TrueType (.ttf)/</RemoteDir>
+  <RemoteName>FreeCheese-Regular.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/fonts/woff/freecheese/TrueType (.ttf)/</RemoteDir>
+  <RemoteName>FreeCheese-Regular.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/fonts/woff/freecheese/TrueType (.ttf)/</RemoteDir>
+  <RemoteName>FreeCheese-Regular.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/fonts/woff/freecheese/TrueType (.ttf)/</RemoteDir>
+  <RemoteName>FreeCheese-Regular.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/woff/freecheese/TrueType (.ttf)/</RemoteDir>
+  <RemoteName>FreeCheese-Regular.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/fonts/woff/freecheese/TrueType (.ttf)/</RemoteDir>
+  <RemoteName>FreeCheese-Regular.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/fonts/woff/freecheese/TrueType (.ttf)/</RemoteDir>
   <RemoteName>FreeCheese-Regular.ttf</RemoteName>
   <Overwrite>true</Overwrite>
@@ -515,8 +888,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\fonts/woff/freecheese/Web Open Font Format (.woff)/FreeCheese-Italic.woff" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\fonts\woff\freecheese\Web Open Font Format (.woff)\FreeCheese-Italic.woff" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/fonts/woff/freecheese/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>FreeCheese-Italic.woff</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/fonts/woff/freecheese/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>FreeCheese-Italic.woff</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/fonts/woff/freecheese/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>FreeCheese-Italic.woff</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/fonts/woff/freecheese/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>FreeCheese-Italic.woff</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/woff/freecheese/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>FreeCheese-Italic.woff</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/fonts/woff/freecheese/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>FreeCheese-Italic.woff</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/fonts/woff/freecheese/Web Open Font Format (.woff)/</RemoteDir>
   <RemoteName>FreeCheese-Italic.woff</RemoteName>
   <Overwrite>true</Overwrite>
@@ -532,8 +935,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\fonts/woff/freecheese/Web Open Font Format (.woff)/FreeCheese-Italic.woff2" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\fonts\woff\freecheese\Web Open Font Format (.woff)\FreeCheese-Italic.woff2" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/fonts/woff/freecheese/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>FreeCheese-Italic.woff2</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/fonts/woff/freecheese/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>FreeCheese-Italic.woff2</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/fonts/woff/freecheese/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>FreeCheese-Italic.woff2</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/fonts/woff/freecheese/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>FreeCheese-Italic.woff2</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/woff/freecheese/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>FreeCheese-Italic.woff2</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/fonts/woff/freecheese/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>FreeCheese-Italic.woff2</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/fonts/woff/freecheese/Web Open Font Format (.woff)/</RemoteDir>
   <RemoteName>FreeCheese-Italic.woff2</RemoteName>
   <Overwrite>true</Overwrite>
@@ -549,8 +982,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\fonts/woff/freecheese/Web Open Font Format (.woff)/FreeCheese-Regular.woff" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\fonts\woff\freecheese\Web Open Font Format (.woff)\FreeCheese-Regular.woff" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/fonts/woff/freecheese/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>FreeCheese-Regular.woff</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/fonts/woff/freecheese/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>FreeCheese-Regular.woff</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/fonts/woff/freecheese/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>FreeCheese-Regular.woff</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/fonts/woff/freecheese/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>FreeCheese-Regular.woff</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/woff/freecheese/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>FreeCheese-Regular.woff</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/fonts/woff/freecheese/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>FreeCheese-Regular.woff</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/fonts/woff/freecheese/Web Open Font Format (.woff)/</RemoteDir>
   <RemoteName>FreeCheese-Regular.woff</RemoteName>
   <Overwrite>true</Overwrite>
@@ -566,8 +1029,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\fonts/woff/freecheese/Web Open Font Format (.woff)/FreeCheese-Regular.woff2" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\fonts\woff\freecheese\Web Open Font Format (.woff)\FreeCheese-Regular.woff2" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/fonts/woff/freecheese/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>FreeCheese-Regular.woff2</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/fonts/woff/freecheese/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>FreeCheese-Regular.woff2</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/fonts/woff/freecheese/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>FreeCheese-Regular.woff2</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/fonts/woff/freecheese/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>FreeCheese-Regular.woff2</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/woff/freecheese/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>FreeCheese-Regular.woff2</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/fonts/woff/freecheese/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>FreeCheese-Regular.woff2</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/fonts/woff/freecheese/Web Open Font Format (.woff)/</RemoteDir>
   <RemoteName>FreeCheese-Regular.woff2</RemoteName>
   <Overwrite>true</Overwrite>
@@ -583,8 +1076,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/GGBotNet.URL" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\fonts\woff\jupiteroid\GGBotNet.URL" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/</RemoteDir>
+  <RemoteName>GGBotNet.URL</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/</RemoteDir>
+  <RemoteName>GGBotNet.URL</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/</RemoteDir>
+  <RemoteName>GGBotNet.URL</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/</RemoteDir>
+  <RemoteName>GGBotNet.URL</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/</RemoteDir>
+  <RemoteName>GGBotNet.URL</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/</RemoteDir>
+  <RemoteName>GGBotNet.URL</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/fonts/woff/jupiteroid/</RemoteDir>
   <RemoteName>GGBotNet.URL</RemoteName>
   <Overwrite>true</Overwrite>
@@ -600,8 +1123,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/License.txt" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\fonts\woff\jupiteroid\License.txt" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/fonts/woff/jupiteroid/</RemoteDir>
   <RemoteName>License.txt</RemoteName>
   <Overwrite>true</Overwrite>
@@ -617,8 +1170,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/OpenType (.otf)/Jupiteroid-Bold.otf" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\fonts\woff\jupiteroid\OpenType (.otf)\Jupiteroid-Bold.otf" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
+  <RemoteName>Jupiteroid-Bold.otf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
+  <RemoteName>Jupiteroid-Bold.otf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
+  <RemoteName>Jupiteroid-Bold.otf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
+  <RemoteName>Jupiteroid-Bold.otf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
+  <RemoteName>Jupiteroid-Bold.otf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
+  <RemoteName>Jupiteroid-Bold.otf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
   <RemoteName>Jupiteroid-Bold.otf</RemoteName>
   <Overwrite>true</Overwrite>
@@ -634,8 +1217,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/OpenType (.otf)/Jupiteroid-BoldItalic.otf" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\fonts\woff\jupiteroid\OpenType (.otf)\Jupiteroid-BoldItalic.otf" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
+  <RemoteName>Jupiteroid-BoldItalic.otf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
+  <RemoteName>Jupiteroid-BoldItalic.otf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
+  <RemoteName>Jupiteroid-BoldItalic.otf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
+  <RemoteName>Jupiteroid-BoldItalic.otf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
+  <RemoteName>Jupiteroid-BoldItalic.otf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
+  <RemoteName>Jupiteroid-BoldItalic.otf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
   <RemoteName>Jupiteroid-BoldItalic.otf</RemoteName>
   <Overwrite>true</Overwrite>
@@ -651,8 +1264,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/OpenType (.otf)/Jupiteroid-Italic.otf" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\fonts\woff\jupiteroid\OpenType (.otf)\Jupiteroid-Italic.otf" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
+  <RemoteName>Jupiteroid-Italic.otf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
+  <RemoteName>Jupiteroid-Italic.otf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
+  <RemoteName>Jupiteroid-Italic.otf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
+  <RemoteName>Jupiteroid-Italic.otf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
+  <RemoteName>Jupiteroid-Italic.otf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
+  <RemoteName>Jupiteroid-Italic.otf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
   <RemoteName>Jupiteroid-Italic.otf</RemoteName>
   <Overwrite>true</Overwrite>
@@ -668,8 +1311,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/OpenType (.otf)/Jupiteroid-Light.otf" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\fonts\woff\jupiteroid\OpenType (.otf)\Jupiteroid-Light.otf" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
+  <RemoteName>Jupiteroid-Light.otf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
+  <RemoteName>Jupiteroid-Light.otf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
+  <RemoteName>Jupiteroid-Light.otf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
+  <RemoteName>Jupiteroid-Light.otf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
+  <RemoteName>Jupiteroid-Light.otf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
+  <RemoteName>Jupiteroid-Light.otf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
   <RemoteName>Jupiteroid-Light.otf</RemoteName>
   <Overwrite>true</Overwrite>
@@ -685,8 +1358,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/OpenType (.otf)/Jupiteroid-LightItalic.otf" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\fonts\woff\jupiteroid\OpenType (.otf)\Jupiteroid-LightItalic.otf" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
+  <RemoteName>Jupiteroid-LightItalic.otf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
+  <RemoteName>Jupiteroid-LightItalic.otf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
+  <RemoteName>Jupiteroid-LightItalic.otf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
+  <RemoteName>Jupiteroid-LightItalic.otf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
+  <RemoteName>Jupiteroid-LightItalic.otf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
+  <RemoteName>Jupiteroid-LightItalic.otf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
   <RemoteName>Jupiteroid-LightItalic.otf</RemoteName>
   <Overwrite>true</Overwrite>
@@ -702,8 +1405,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/OpenType (.otf)/Jupiteroid-Regular.otf" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\fonts\woff\jupiteroid\OpenType (.otf)\Jupiteroid-Regular.otf" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
+  <RemoteName>Jupiteroid-Regular.otf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
+  <RemoteName>Jupiteroid-Regular.otf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
+  <RemoteName>Jupiteroid-Regular.otf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
+  <RemoteName>Jupiteroid-Regular.otf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
+  <RemoteName>Jupiteroid-Regular.otf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
+  <RemoteName>Jupiteroid-Regular.otf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
   <RemoteName>Jupiteroid-Regular.otf</RemoteName>
   <Overwrite>true</Overwrite>
@@ -719,8 +1452,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/TrueType (.ttf)/Jupiteroid-Bold.ttf" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\fonts\woff\jupiteroid\TrueType (.ttf)\Jupiteroid-Bold.ttf" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
+  <RemoteName>Jupiteroid-Bold.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
+  <RemoteName>Jupiteroid-Bold.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
+  <RemoteName>Jupiteroid-Bold.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
+  <RemoteName>Jupiteroid-Bold.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
+  <RemoteName>Jupiteroid-Bold.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
+  <RemoteName>Jupiteroid-Bold.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
   <RemoteName>Jupiteroid-Bold.ttf</RemoteName>
   <Overwrite>true</Overwrite>
@@ -736,8 +1499,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/TrueType (.ttf)/Jupiteroid-BoldItalic.ttf" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\fonts\woff\jupiteroid\TrueType (.ttf)\Jupiteroid-BoldItalic.ttf" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
+  <RemoteName>Jupiteroid-BoldItalic.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
+  <RemoteName>Jupiteroid-BoldItalic.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
+  <RemoteName>Jupiteroid-BoldItalic.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
+  <RemoteName>Jupiteroid-BoldItalic.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
+  <RemoteName>Jupiteroid-BoldItalic.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
+  <RemoteName>Jupiteroid-BoldItalic.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
   <RemoteName>Jupiteroid-BoldItalic.ttf</RemoteName>
   <Overwrite>true</Overwrite>
@@ -753,8 +1546,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/TrueType (.ttf)/Jupiteroid-Italic.ttf" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\fonts\woff\jupiteroid\TrueType (.ttf)\Jupiteroid-Italic.ttf" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
+  <RemoteName>Jupiteroid-Italic.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
+  <RemoteName>Jupiteroid-Italic.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
+  <RemoteName>Jupiteroid-Italic.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
+  <RemoteName>Jupiteroid-Italic.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
+  <RemoteName>Jupiteroid-Italic.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
+  <RemoteName>Jupiteroid-Italic.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
   <RemoteName>Jupiteroid-Italic.ttf</RemoteName>
   <Overwrite>true</Overwrite>
@@ -770,8 +1593,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/TrueType (.ttf)/Jupiteroid-Light.ttf" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\fonts\woff\jupiteroid\TrueType (.ttf)\Jupiteroid-Light.ttf" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
+  <RemoteName>Jupiteroid-Light.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
+  <RemoteName>Jupiteroid-Light.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
+  <RemoteName>Jupiteroid-Light.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
+  <RemoteName>Jupiteroid-Light.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
+  <RemoteName>Jupiteroid-Light.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
+  <RemoteName>Jupiteroid-Light.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
   <RemoteName>Jupiteroid-Light.ttf</RemoteName>
   <Overwrite>true</Overwrite>
@@ -787,8 +1640,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/TrueType (.ttf)/Jupiteroid-LightItalic.ttf" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\fonts\woff\jupiteroid\TrueType (.ttf)\Jupiteroid-LightItalic.ttf" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
+  <RemoteName>Jupiteroid-LightItalic.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
+  <RemoteName>Jupiteroid-LightItalic.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
+  <RemoteName>Jupiteroid-LightItalic.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
+  <RemoteName>Jupiteroid-LightItalic.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
+  <RemoteName>Jupiteroid-LightItalic.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
+  <RemoteName>Jupiteroid-LightItalic.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
   <RemoteName>Jupiteroid-LightItalic.ttf</RemoteName>
   <Overwrite>true</Overwrite>
@@ -804,8 +1687,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/TrueType (.ttf)/Jupiteroid-Regular.ttf" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\fonts\woff\jupiteroid\TrueType (.ttf)\Jupiteroid-Regular.ttf" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
+  <RemoteName>Jupiteroid-Regular.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
+  <RemoteName>Jupiteroid-Regular.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
+  <RemoteName>Jupiteroid-Regular.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
+  <RemoteName>Jupiteroid-Regular.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
+  <RemoteName>Jupiteroid-Regular.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
+  <RemoteName>Jupiteroid-Regular.ttf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
   <RemoteName>Jupiteroid-Regular.ttf</RemoteName>
   <Overwrite>true</Overwrite>
@@ -821,8 +1734,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/Web Open Font Format (.woff)/Jupiteroid-Bold.woff" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\fonts\woff\jupiteroid\Web Open Font Format (.woff)\Jupiteroid-Bold.woff" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-Bold.woff</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-Bold.woff</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-Bold.woff</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-Bold.woff</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-Bold.woff</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-Bold.woff</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
   <RemoteName>Jupiteroid-Bold.woff</RemoteName>
   <Overwrite>true</Overwrite>
@@ -838,8 +1781,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/Web Open Font Format (.woff)/Jupiteroid-Bold.woff2" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\fonts\woff\jupiteroid\Web Open Font Format (.woff)\Jupiteroid-Bold.woff2" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-Bold.woff2</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-Bold.woff2</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-Bold.woff2</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-Bold.woff2</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-Bold.woff2</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-Bold.woff2</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
   <RemoteName>Jupiteroid-Bold.woff2</RemoteName>
   <Overwrite>true</Overwrite>
@@ -855,8 +1828,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/Web Open Font Format (.woff)/Jupiteroid-BoldItalic.woff" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\fonts\woff\jupiteroid\Web Open Font Format (.woff)\Jupiteroid-BoldItalic.woff" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-BoldItalic.woff</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-BoldItalic.woff</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-BoldItalic.woff</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-BoldItalic.woff</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-BoldItalic.woff</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-BoldItalic.woff</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
   <RemoteName>Jupiteroid-BoldItalic.woff</RemoteName>
   <Overwrite>true</Overwrite>
@@ -872,8 +1875,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/Web Open Font Format (.woff)/Jupiteroid-BoldItalic.woff2" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\fonts\woff\jupiteroid\Web Open Font Format (.woff)\Jupiteroid-BoldItalic.woff2" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-BoldItalic.woff2</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-BoldItalic.woff2</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-BoldItalic.woff2</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-BoldItalic.woff2</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-BoldItalic.woff2</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-BoldItalic.woff2</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
   <RemoteName>Jupiteroid-BoldItalic.woff2</RemoteName>
   <Overwrite>true</Overwrite>
@@ -889,8 +1922,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/Web Open Font Format (.woff)/Jupiteroid-Italic.woff" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\fonts\woff\jupiteroid\Web Open Font Format (.woff)\Jupiteroid-Italic.woff" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-Italic.woff</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-Italic.woff</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-Italic.woff</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-Italic.woff</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-Italic.woff</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-Italic.woff</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
   <RemoteName>Jupiteroid-Italic.woff</RemoteName>
   <Overwrite>true</Overwrite>
@@ -906,8 +1969,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/Web Open Font Format (.woff)/Jupiteroid-Italic.woff2" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\fonts\woff\jupiteroid\Web Open Font Format (.woff)\Jupiteroid-Italic.woff2" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-Italic.woff2</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-Italic.woff2</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-Italic.woff2</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-Italic.woff2</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-Italic.woff2</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-Italic.woff2</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
   <RemoteName>Jupiteroid-Italic.woff2</RemoteName>
   <Overwrite>true</Overwrite>
@@ -923,8 +2016,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/Web Open Font Format (.woff)/Jupiteroid-Light.woff" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\fonts\woff\jupiteroid\Web Open Font Format (.woff)\Jupiteroid-Light.woff" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-Light.woff</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-Light.woff</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-Light.woff</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-Light.woff</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-Light.woff</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-Light.woff</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
   <RemoteName>Jupiteroid-Light.woff</RemoteName>
   <Overwrite>true</Overwrite>
@@ -940,8 +2063,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/Web Open Font Format (.woff)/Jupiteroid-Light.woff2" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\fonts\woff\jupiteroid\Web Open Font Format (.woff)\Jupiteroid-Light.woff2" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-Light.woff2</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-Light.woff2</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-Light.woff2</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-Light.woff2</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-Light.woff2</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-Light.woff2</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
   <RemoteName>Jupiteroid-Light.woff2</RemoteName>
   <Overwrite>true</Overwrite>
@@ -957,8 +2110,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/Web Open Font Format (.woff)/Jupiteroid-LightItalic.woff" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\fonts\woff\jupiteroid\Web Open Font Format (.woff)\Jupiteroid-LightItalic.woff" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-LightItalic.woff</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-LightItalic.woff</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-LightItalic.woff</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-LightItalic.woff</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-LightItalic.woff</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-LightItalic.woff</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
   <RemoteName>Jupiteroid-LightItalic.woff</RemoteName>
   <Overwrite>true</Overwrite>
@@ -974,8 +2157,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/Web Open Font Format (.woff)/Jupiteroid-LightItalic.woff2" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\fonts\woff\jupiteroid\Web Open Font Format (.woff)\Jupiteroid-LightItalic.woff2" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-LightItalic.woff2</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-LightItalic.woff2</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-LightItalic.woff2</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-LightItalic.woff2</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-LightItalic.woff2</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-LightItalic.woff2</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
   <RemoteName>Jupiteroid-LightItalic.woff2</RemoteName>
   <Overwrite>true</Overwrite>
@@ -991,8 +2204,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/Web Open Font Format (.woff)/Jupiteroid-Regular.woff" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\fonts\woff\jupiteroid\Web Open Font Format (.woff)\Jupiteroid-Regular.woff" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-Regular.woff</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-Regular.woff</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-Regular.woff</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-Regular.woff</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-Regular.woff</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-Regular.woff</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
   <RemoteName>Jupiteroid-Regular.woff</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1008,8 +2251,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/Web Open Font Format (.woff)/Jupiteroid-Regular.woff2" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\fonts\woff\jupiteroid\Web Open Font Format (.woff)\Jupiteroid-Regular.woff2" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-Regular.woff2</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-Regular.woff2</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-Regular.woff2</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-Regular.woff2</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-Regular.woff2</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
+  <RemoteName>Jupiteroid-Regular.woff2</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
   <RemoteName>Jupiteroid-Regular.woff2</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1025,8 +2298,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\gameviewmain.castle-user-interface" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\gameviewmain.castle-user-interface" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>gameviewmain.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1042,25 +2345,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\CastleSettings.xml" Configuration="Release" Class="File">
+<DeployFile LocalName="data\README.txt" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
   <RemoteDir>./data/</RemoteDir>
-  <RemoteName>CastleSettings.xml</RemoteName>
+  <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
- <Platform Name="Win32">
+ <Platform Name="OSX64">
   <RemoteDir>./data/</RemoteDir>
-  <RemoteName>CastleSettings.xml</RemoteName>
+  <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>CastleSettings.xml</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\README.txt" Configuration="Release" Class="File">
- <Platform Name="Linux64">
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1073,737 +2389,6 @@
  <Platform Name="Win64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\fonts/AUTHORS.txt" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/fonts/</RemoteDir>
-  <RemoteName>AUTHORS.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/fonts/</RemoteDir>
-  <RemoteName>AUTHORS.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/fonts/</RemoteDir>
-  <RemoteName>AUTHORS.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\fonts/DejaVuSans.ttf" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/fonts/</RemoteDir>
-  <RemoteName>DejaVuSans.ttf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/fonts/</RemoteDir>
-  <RemoteName>DejaVuSans.ttf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/fonts/</RemoteDir>
-  <RemoteName>DejaVuSans.ttf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\fonts/PARPG.ttf" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/fonts/</RemoteDir>
-  <RemoteName>PARPG.ttf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/fonts/</RemoteDir>
-  <RemoteName>PARPG.ttf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/fonts/</RemoteDir>
-  <RemoteName>PARPG.ttf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\fonts/null_terminator_0.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/fonts/</RemoteDir>
-  <RemoteName>null_terminator_0.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/fonts/</RemoteDir>
-  <RemoteName>null_terminator_0.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/fonts/</RemoteDir>
-  <RemoteName>null_terminator_0.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\fonts/sonic_asalga_0.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/fonts/</RemoteDir>
-  <RemoteName>sonic_asalga_0.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/fonts/</RemoteDir>
-  <RemoteName>sonic_asalga_0.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/fonts/</RemoteDir>
-  <RemoteName>sonic_asalga_0.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\fonts/woff/AUTHORS.md" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/fonts/woff/</RemoteDir>
-  <RemoteName>AUTHORS.md</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/fonts/woff/</RemoteDir>
-  <RemoteName>AUTHORS.md</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/fonts/woff/</RemoteDir>
-  <RemoteName>AUTHORS.md</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\fonts/woff/freecheese/GGBotNet.url" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/fonts/woff/freecheese/</RemoteDir>
-  <RemoteName>GGBotNet.url</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/fonts/woff/freecheese/</RemoteDir>
-  <RemoteName>GGBotNet.url</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/fonts/woff/freecheese/</RemoteDir>
-  <RemoteName>GGBotNet.url</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\fonts/woff/freecheese/License.txt" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/fonts/woff/freecheese/</RemoteDir>
-  <RemoteName>License.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/fonts/woff/freecheese/</RemoteDir>
-  <RemoteName>License.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/fonts/woff/freecheese/</RemoteDir>
-  <RemoteName>License.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\fonts/woff/freecheese/OpenType (.otf)/FreeCheese-Italic.otf" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/fonts/woff/freecheese/OpenType (.otf)/</RemoteDir>
-  <RemoteName>FreeCheese-Italic.otf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/fonts/woff/freecheese/OpenType (.otf)/</RemoteDir>
-  <RemoteName>FreeCheese-Italic.otf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/fonts/woff/freecheese/OpenType (.otf)/</RemoteDir>
-  <RemoteName>FreeCheese-Italic.otf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\fonts/woff/freecheese/OpenType (.otf)/FreeCheese-Regular.otf" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/fonts/woff/freecheese/OpenType (.otf)/</RemoteDir>
-  <RemoteName>FreeCheese-Regular.otf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/fonts/woff/freecheese/OpenType (.otf)/</RemoteDir>
-  <RemoteName>FreeCheese-Regular.otf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/fonts/woff/freecheese/OpenType (.otf)/</RemoteDir>
-  <RemoteName>FreeCheese-Regular.otf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\fonts/woff/freecheese/TrueType (.ttf)/FreeCheese-Italic.ttf" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/fonts/woff/freecheese/TrueType (.ttf)/</RemoteDir>
-  <RemoteName>FreeCheese-Italic.ttf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/fonts/woff/freecheese/TrueType (.ttf)/</RemoteDir>
-  <RemoteName>FreeCheese-Italic.ttf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/fonts/woff/freecheese/TrueType (.ttf)/</RemoteDir>
-  <RemoteName>FreeCheese-Italic.ttf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\fonts/woff/freecheese/TrueType (.ttf)/FreeCheese-Regular.ttf" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/fonts/woff/freecheese/TrueType (.ttf)/</RemoteDir>
-  <RemoteName>FreeCheese-Regular.ttf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/fonts/woff/freecheese/TrueType (.ttf)/</RemoteDir>
-  <RemoteName>FreeCheese-Regular.ttf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/fonts/woff/freecheese/TrueType (.ttf)/</RemoteDir>
-  <RemoteName>FreeCheese-Regular.ttf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\fonts/woff/freecheese/Web Open Font Format (.woff)/FreeCheese-Italic.woff" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/fonts/woff/freecheese/Web Open Font Format (.woff)/</RemoteDir>
-  <RemoteName>FreeCheese-Italic.woff</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/fonts/woff/freecheese/Web Open Font Format (.woff)/</RemoteDir>
-  <RemoteName>FreeCheese-Italic.woff</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/fonts/woff/freecheese/Web Open Font Format (.woff)/</RemoteDir>
-  <RemoteName>FreeCheese-Italic.woff</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\fonts/woff/freecheese/Web Open Font Format (.woff)/FreeCheese-Italic.woff2" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/fonts/woff/freecheese/Web Open Font Format (.woff)/</RemoteDir>
-  <RemoteName>FreeCheese-Italic.woff2</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/fonts/woff/freecheese/Web Open Font Format (.woff)/</RemoteDir>
-  <RemoteName>FreeCheese-Italic.woff2</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/fonts/woff/freecheese/Web Open Font Format (.woff)/</RemoteDir>
-  <RemoteName>FreeCheese-Italic.woff2</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\fonts/woff/freecheese/Web Open Font Format (.woff)/FreeCheese-Regular.woff" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/fonts/woff/freecheese/Web Open Font Format (.woff)/</RemoteDir>
-  <RemoteName>FreeCheese-Regular.woff</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/fonts/woff/freecheese/Web Open Font Format (.woff)/</RemoteDir>
-  <RemoteName>FreeCheese-Regular.woff</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/fonts/woff/freecheese/Web Open Font Format (.woff)/</RemoteDir>
-  <RemoteName>FreeCheese-Regular.woff</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\fonts/woff/freecheese/Web Open Font Format (.woff)/FreeCheese-Regular.woff2" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/fonts/woff/freecheese/Web Open Font Format (.woff)/</RemoteDir>
-  <RemoteName>FreeCheese-Regular.woff2</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/fonts/woff/freecheese/Web Open Font Format (.woff)/</RemoteDir>
-  <RemoteName>FreeCheese-Regular.woff2</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/fonts/woff/freecheese/Web Open Font Format (.woff)/</RemoteDir>
-  <RemoteName>FreeCheese-Regular.woff2</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/GGBotNet.URL" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/</RemoteDir>
-  <RemoteName>GGBotNet.URL</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/fonts/woff/jupiteroid/</RemoteDir>
-  <RemoteName>GGBotNet.URL</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/</RemoteDir>
-  <RemoteName>GGBotNet.URL</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/License.txt" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/</RemoteDir>
-  <RemoteName>License.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/fonts/woff/jupiteroid/</RemoteDir>
-  <RemoteName>License.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/</RemoteDir>
-  <RemoteName>License.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/OpenType (.otf)/Jupiteroid-Bold.otf" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
-  <RemoteName>Jupiteroid-Bold.otf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
-  <RemoteName>Jupiteroid-Bold.otf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
-  <RemoteName>Jupiteroid-Bold.otf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/OpenType (.otf)/Jupiteroid-BoldItalic.otf" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
-  <RemoteName>Jupiteroid-BoldItalic.otf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
-  <RemoteName>Jupiteroid-BoldItalic.otf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
-  <RemoteName>Jupiteroid-BoldItalic.otf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/OpenType (.otf)/Jupiteroid-Italic.otf" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
-  <RemoteName>Jupiteroid-Italic.otf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
-  <RemoteName>Jupiteroid-Italic.otf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
-  <RemoteName>Jupiteroid-Italic.otf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/OpenType (.otf)/Jupiteroid-Light.otf" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
-  <RemoteName>Jupiteroid-Light.otf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
-  <RemoteName>Jupiteroid-Light.otf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
-  <RemoteName>Jupiteroid-Light.otf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/OpenType (.otf)/Jupiteroid-LightItalic.otf" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
-  <RemoteName>Jupiteroid-LightItalic.otf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
-  <RemoteName>Jupiteroid-LightItalic.otf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
-  <RemoteName>Jupiteroid-LightItalic.otf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/OpenType (.otf)/Jupiteroid-Regular.otf" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
-  <RemoteName>Jupiteroid-Regular.otf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
-  <RemoteName>Jupiteroid-Regular.otf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/OpenType (.otf)/</RemoteDir>
-  <RemoteName>Jupiteroid-Regular.otf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/TrueType (.ttf)/Jupiteroid-Bold.ttf" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
-  <RemoteName>Jupiteroid-Bold.ttf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
-  <RemoteName>Jupiteroid-Bold.ttf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
-  <RemoteName>Jupiteroid-Bold.ttf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/TrueType (.ttf)/Jupiteroid-BoldItalic.ttf" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
-  <RemoteName>Jupiteroid-BoldItalic.ttf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
-  <RemoteName>Jupiteroid-BoldItalic.ttf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
-  <RemoteName>Jupiteroid-BoldItalic.ttf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/TrueType (.ttf)/Jupiteroid-Italic.ttf" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
-  <RemoteName>Jupiteroid-Italic.ttf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
-  <RemoteName>Jupiteroid-Italic.ttf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
-  <RemoteName>Jupiteroid-Italic.ttf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/TrueType (.ttf)/Jupiteroid-Light.ttf" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
-  <RemoteName>Jupiteroid-Light.ttf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
-  <RemoteName>Jupiteroid-Light.ttf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
-  <RemoteName>Jupiteroid-Light.ttf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/TrueType (.ttf)/Jupiteroid-LightItalic.ttf" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
-  <RemoteName>Jupiteroid-LightItalic.ttf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
-  <RemoteName>Jupiteroid-LightItalic.ttf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
-  <RemoteName>Jupiteroid-LightItalic.ttf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/TrueType (.ttf)/Jupiteroid-Regular.ttf" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
-  <RemoteName>Jupiteroid-Regular.ttf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
-  <RemoteName>Jupiteroid-Regular.ttf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/TrueType (.ttf)/</RemoteDir>
-  <RemoteName>Jupiteroid-Regular.ttf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/Web Open Font Format (.woff)/Jupiteroid-Bold.woff" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
-  <RemoteName>Jupiteroid-Bold.woff</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
-  <RemoteName>Jupiteroid-Bold.woff</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
-  <RemoteName>Jupiteroid-Bold.woff</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/Web Open Font Format (.woff)/Jupiteroid-Bold.woff2" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
-  <RemoteName>Jupiteroid-Bold.woff2</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
-  <RemoteName>Jupiteroid-Bold.woff2</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
-  <RemoteName>Jupiteroid-Bold.woff2</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/Web Open Font Format (.woff)/Jupiteroid-BoldItalic.woff" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
-  <RemoteName>Jupiteroid-BoldItalic.woff</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
-  <RemoteName>Jupiteroid-BoldItalic.woff</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
-  <RemoteName>Jupiteroid-BoldItalic.woff</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/Web Open Font Format (.woff)/Jupiteroid-BoldItalic.woff2" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
-  <RemoteName>Jupiteroid-BoldItalic.woff2</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
-  <RemoteName>Jupiteroid-BoldItalic.woff2</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
-  <RemoteName>Jupiteroid-BoldItalic.woff2</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/Web Open Font Format (.woff)/Jupiteroid-Italic.woff" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
-  <RemoteName>Jupiteroid-Italic.woff</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
-  <RemoteName>Jupiteroid-Italic.woff</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
-  <RemoteName>Jupiteroid-Italic.woff</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/Web Open Font Format (.woff)/Jupiteroid-Italic.woff2" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
-  <RemoteName>Jupiteroid-Italic.woff2</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
-  <RemoteName>Jupiteroid-Italic.woff2</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
-  <RemoteName>Jupiteroid-Italic.woff2</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/Web Open Font Format (.woff)/Jupiteroid-Light.woff" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
-  <RemoteName>Jupiteroid-Light.woff</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
-  <RemoteName>Jupiteroid-Light.woff</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
-  <RemoteName>Jupiteroid-Light.woff</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/Web Open Font Format (.woff)/Jupiteroid-Light.woff2" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
-  <RemoteName>Jupiteroid-Light.woff2</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
-  <RemoteName>Jupiteroid-Light.woff2</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
-  <RemoteName>Jupiteroid-Light.woff2</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/Web Open Font Format (.woff)/Jupiteroid-LightItalic.woff" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
-  <RemoteName>Jupiteroid-LightItalic.woff</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
-  <RemoteName>Jupiteroid-LightItalic.woff</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
-  <RemoteName>Jupiteroid-LightItalic.woff</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/Web Open Font Format (.woff)/Jupiteroid-LightItalic.woff2" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
-  <RemoteName>Jupiteroid-LightItalic.woff2</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
-  <RemoteName>Jupiteroid-LightItalic.woff2</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
-  <RemoteName>Jupiteroid-LightItalic.woff2</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/Web Open Font Format (.woff)/Jupiteroid-Regular.woff" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
-  <RemoteName>Jupiteroid-Regular.woff</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
-  <RemoteName>Jupiteroid-Regular.woff</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
-  <RemoteName>Jupiteroid-Regular.woff</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\fonts/woff/jupiteroid/Web Open Font Format (.woff)/Jupiteroid-Regular.woff2" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
-  <RemoteName>Jupiteroid-Regular.woff2</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
-  <RemoteName>Jupiteroid-Regular.woff2</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/fonts/woff/jupiteroid/Web Open Font Format (.woff)/</RemoteDir>
-  <RemoteName>Jupiteroid-Regular.woff2</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\gameviewmain.castle-user-interface" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>

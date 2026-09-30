@@ -2314,7 +2314,7 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
     to deploy programs with their data using PAServer.
 
     Sample:
-      <DeployFile LocalName="data\Dino.gltf" Configuration="Debug" Class="File">
+      <DeployFile LocalName="data\Dino.gltf" Class="File">
           <Platform Name="Linux64">
               <RemoteDir>./data/</RemoteDir>
               <RemoteName>Dino.gltf</RemoteName>
@@ -2322,7 +2322,12 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
           </Platform>
           ... // repeat for all platforms
       </DeployFile>
-      // repeat for release too
+
+    We don't specify Configuration="..." attribute,
+    so the DeployFile applies to all configurations (Debug, Release).
+    This makes DPROJ much smaller than listing all files for each configuration
+    ( which matters, see
+    https://forum.castle-engine.io/t/there-is-a-problem-with-generating-files-for-testing-new-features/1264/6 ).
   }
   function DelphiDprojDeployFiles: String;
   const
@@ -2344,12 +2349,8 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
       'Win32',
       'Win64'
     );
-    AllDelphiConfigNames: array [0..1] of String = (
-      'Debug',
-      'Release'
-    );
   var
-    ConfigName, PlatformName, FileRelativeName: String;
+    PlatformName, FileRelativeName: String;
     Files: TStringList;
     ResultBuilder: TStringBuilder;
     RemoteDirBase, RemoteDir, RemoteName: String;
@@ -2382,48 +2383,44 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
             '-->' + NL);
         end;
 
-        for ConfigName in AllDelphiConfigNames do
+        for FileRelativeName in Files do
         begin
-          for FileRelativeName in Files do
+          ResultBuilder.Append(Format(
+            '<DeployFile LocalName="%s\%s" Class="File">' + NL, [
+              TCastleManifest.DataName,
+              FileRelativeName
+            ]));
+          for PlatformName in AllDelphiPlatformNames do
           begin
+            { calculate RemoteDir and RemoteDirBase }
+            if ArrayContainsString(PlatformName, ['Android', 'Android64']) then
+              { We need assets/ prefix, since Delphi puts this in any
+                chosen subdirectory of Android project, and we specifically
+                want to later access it using CastleAndroidInternalAssetStream . }
+              RemoteDirBase := './assets'
+            else
+              RemoteDirBase := './' + TCastleManifest.DataName;
+            RemoteDir := ExtractFilePath(FileRelativeName);
+            { For consistency, use / in RemoteDir, even on Windows. }
+            if PathDelim <> '/' then
+              RemoteDir := SReplaceChars(RemoteDir, PathDelim, '/');
+            RemoteDir := RemoteDirBase + '/' + RemoteDir;
+
+            RemoteName := ExtractFileName(FileRelativeName);
+
             ResultBuilder.Append(Format(
-              '<DeployFile LocalName="%s\%s" Configuration="%s" Class="File">' + NL, [
-                TCastleManifest.DataName,
-                FileRelativeName,
-                ConfigName
+              ' <Platform Name="%s">' + NL +
+              '  <RemoteDir>%s</RemoteDir>' + NL +
+              '  <RemoteName>%s</RemoteName>' + NL +
+              '  <Overwrite>true</Overwrite>' + NL +
+              ' </Platform>' + NL, [
+                PlatformName,
+                RemoteDir,
+                RemoteName
               ]));
-            for PlatformName in AllDelphiPlatformNames do
-            begin
-              { calculate RemoteDir and RemoteDirBase }
-              if ArrayContainsString(PlatformName, ['Android', 'Android64']) then
-                { We need assets/ prefix, since Delphi puts this in any
-                  chosen subdirectory of Android project, and we specifically
-                  want to later access it using CastleAndroidInternalAssetStream . }
-                RemoteDirBase := './assets'
-              else
-                RemoteDirBase := './' + TCastleManifest.DataName;
-              RemoteDir := ExtractFilePath(FileRelativeName);
-              { For consistency, use / in RemoteDir, even on Windows. }
-              if PathDelim <> '/' then
-                RemoteDir := SReplaceChars(RemoteDir, PathDelim, '/');
-              RemoteDir := RemoteDirBase + '/' + RemoteDir;
-
-              RemoteName := ExtractFileName(FileRelativeName);
-
-              ResultBuilder.Append(Format(
-                ' <Platform Name="%s">' + NL +
-                '  <RemoteDir>%s</RemoteDir>' + NL +
-                '  <RemoteName>%s</RemoteName>' + NL +
-                '  <Overwrite>true</Overwrite>' + NL +
-                ' </Platform>' + NL, [
-                  PlatformName,
-                  RemoteDir,
-                  RemoteName
-                ]));
-            end;
-            ResultBuilder.Append(
-              '</DeployFile>' + NL);
           end;
+          ResultBuilder.Append(
+            '</DeployFile>' + NL);
         end;
       finally FreeAndNil(Files) end;
       Result := ResultBuilder.ToString;
