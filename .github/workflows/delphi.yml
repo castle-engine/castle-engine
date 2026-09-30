@@ -128,6 +128,20 @@ jobs:
           castle-engine compile --compiler=delphi --os=win32 --cpu=i386 --compiler-option=-dCASTLE_ANSISTRING_FORCE_UTF8
           castle-engine run -- --console --no-window-create
 
+      # Test CASTLE_FREETYPE_PASCAL version
+      - name: Check AutoTests (Win64) (CASTLE_FREETYPE_PASCAL)
+        run: |
+          cd tests/
+          castle-engine clean
+          castle-engine compile --compiler=delphi --os=win64 --cpu=x86_64 --compiler-option=-dCASTLE_FREETYPE_PASCAL
+          castle-engine run -- --console --no-window-create
+      - name: Check AutoTests (Win32) (CASTLE_FREETYPE_PASCAL)
+        run: |
+          cd tests/
+          castle-engine clean
+          castle-engine compile --compiler=delphi --os=win32 --cpu=i386 --compiler-option=-dCASTLE_FREETYPE_PASCAL
+          castle-engine run -- --console --no-window-create
+
       - name: Build Templates (Win64)
         run: make test-editor-templates CASTLE_ENGINE_TOOL_OPTIONS="--compiler=delphi --os=win64 --cpu=x86_64" BUILD_TOOL="castle-engine"
       - name: Build Templates (Win32)
