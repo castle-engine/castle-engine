@@ -324,6 +324,7 @@ contains
   imjidctasm in '..\..\src\vampyre_imaginglib\src\Source\JpegLib\imjidctasm.pas',
   castleinternalcontextbase in '..\..\src\base_rendering\castleinternalcontextbase.pas',
   castleinternalcontextegl in '..\..\src\base_rendering\castleinternalcontextegl.pas',
+  castleinternalcontextexisting in '..\..\src\base_rendering\castleinternalcontextexisting.pas',
   castleinternalcontextglx in '..\..\src\base_rendering\castleinternalcontextglx.pas',
   castleinternalcontextwgl in '..\..\src\base_rendering\castleinternalcontextwgl.pas',
   castleinternalegl in '..\..\src\base_rendering\castleinternalegl.pas',

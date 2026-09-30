@@ -485,6 +485,7 @@
         <DCCReference Include="..\..\src\vampyre_imaginglib\src\Source\JpegLib\imjidctasm.pas"/>
         <DCCReference Include="..\..\src\base_rendering\castleinternalcontextbase.pas"/>
         <DCCReference Include="..\..\src\base_rendering\castleinternalcontextegl.pas"/>
+        <DCCReference Include="..\..\src\base_rendering\castleinternalcontextexisting.pas"/>
         <DCCReference Include="..\..\src\base_rendering\castleinternalcontextglx.pas"/>
         <DCCReference Include="..\..\src\base_rendering\castleinternalcontextwgl.pas"/>
         <DCCReference Include="..\..\src\base_rendering\castleinternalegl.pas"/>

@@ -113,8 +113,10 @@ begin
     Exit;
   end;
 
+  {$if defined(DELPHI)}
   EglVersion := eglQueryString(TCustomAndroidContext.SharedDisplay, EGL_VERSION);
   WritelnLog('EGL library available, version %s', [EglVersion]);
+  {$endif}
 
   Display := eglGetCurrentDisplay();
   if Display = EGL_NO_DISPLAY then
@@ -123,11 +125,13 @@ begin
     Exit;
   end;
 
+  {$if defined(DELPHI)}
   if Display <> TCustomAndroidContext.SharedDisplay then
   begin
     WritelnWarning('EGL current display is not the same as FMX -- weird state(something else interacted with EGL, aborting)');
     Exit;
   end;
+  {$endif}
 
   Surface := eglGetCurrentSurface(EGL_DRAW);
   if Surface = EGL_NO_SURFACE then
