@@ -29,13 +29,13 @@ type
   TStreamHelper = class helper for TStream
   public
     { Reads a little endian value from the stream and converts it to native
-      Byte order.
+      byte order.
 
       @groupBegin }
-    procedure ReadLE(out Value: Word); overload;
+    procedure ReadLE(out Value: UInt16); overload;
     procedure ReadLE(out Value: UInt32); overload;
-    procedure ReadLE(out Value: QWord); overload;
-    procedure ReadLE(out Value: SmallInt); overload;
+    procedure ReadLE(out Value: UInt64); overload;
+    procedure ReadLE(out Value: Int16); overload;
     procedure ReadLE(out Value: Int32); overload;
     procedure ReadLE(out Value: Int64); overload;
     procedure ReadLE(out Value: Single); overload;
@@ -46,13 +46,13 @@ type
     { @groupEnd }
 
     { Reads a big endian value from the stream and converts it to native
-      Byte order.
+      byte order.
 
       @groupBegin }
-    procedure ReadBE(out Value: Word); overload;
+    procedure ReadBE(out Value: UInt16); overload;
     procedure ReadBE(out Value: UInt32); overload;
-    procedure ReadBE(out Value: QWord); overload;
-    procedure ReadBE(out Value: SmallInt); overload;
+    procedure ReadBE(out Value: UInt64); overload;
+    procedure ReadBE(out Value: Int16); overload;
     procedure ReadBE(out Value: Int32); overload;
     procedure ReadBE(out Value: Int64); overload;
     procedure ReadBE(out Value: Single); overload;
@@ -60,38 +60,38 @@ type
     { @groupEnd }
 
     { Reads with Endianess specified as Boolean
-      and converts it to native Byte order.
+      and converts it to native byte order.
       @groupBegin }
-    procedure ReadEndianess(out Value: Word; const LittleEndian: Boolean); overload;
+    procedure ReadEndianess(out Value: UInt16; const LittleEndian: Boolean); overload;
     procedure ReadEndianess(out Value: UInt32; const LittleEndian: Boolean); overload;
-    procedure ReadEndianess(out Value: QWord; const LittleEndian: Boolean); overload;
-    procedure ReadEndianess(out Value: SmallInt; const LittleEndian: Boolean); overload;
+    procedure ReadEndianess(out Value: UInt64; const LittleEndian: Boolean); overload;
+    procedure ReadEndianess(out Value: Int16; const LittleEndian: Boolean); overload;
     procedure ReadEndianess(out Value: Int32; const LittleEndian: Boolean); overload;
     procedure ReadEndianess(out Value: Int64; const LittleEndian: Boolean); overload;
     procedure ReadEndianess(out Value: Single; const LittleEndian: Boolean); overload;
     procedure ReadEndianess(out Value: Double; const LittleEndian: Boolean); overload;
     { @groupEnd }
 
-    { Writes a value in native Byte order as little endian value to the stream.
+    { Writes a value in native byte order as little endian value to the stream.
 
       @groupBegin }
-    procedure WriteLE(const Value: Word); overload;
+    procedure WriteLE(const Value: UInt16); overload;
     procedure WriteLE(const Value: UInt32); overload;
-    procedure WriteLE(const Value: QWord); overload;
-    procedure WriteLE(const Value: SmallInt); overload;
+    procedure WriteLE(const Value: UInt64); overload;
+    procedure WriteLE(const Value: Int16); overload;
     procedure WriteLE(const Value: Int32); overload;
     procedure WriteLE(const Value: Int64); overload;
     procedure WriteLE(const Value: Single); overload;
     procedure WriteLE(const Value: Double); overload;
     { @groupEnd }
 
-    { Writes a value in native Byte order as big endian value to the stream.
+    { Writes a value in native byte order as big endian value to the stream.
 
       @groupBegin }
-    procedure WriteBE(const Value: Word); overload;
+    procedure WriteBE(const Value: UInt16); overload;
     procedure WriteBE(const Value: UInt32); overload;
-    procedure WriteBE(const Value: QWord); overload;
-    procedure WriteBE(const Value: SmallInt); overload;
+    procedure WriteBE(const Value: UInt64); overload;
+    procedure WriteBE(const Value: Int16); overload;
     procedure WriteBE(const Value: Int32); overload;
     procedure WriteBE(const Value: Int64); overload;
     procedure WriteBE(const Value: Single); overload;
@@ -105,7 +105,7 @@ implementation
 
 { ReadLE --------------------------------------------------------------------- }
 
-procedure TStreamHelper.ReadLE(out Value: Word);
+procedure TStreamHelper.ReadLE(out Value: UInt16);
 begin
   ReadBuffer(Value, SizeOf(Value));
   Value := LEtoN(Value);
@@ -117,13 +117,13 @@ begin
   Value := LEtoN(Value);
 end;
 
-procedure TStreamHelper.ReadLE(out Value: QWord);
+procedure TStreamHelper.ReadLE(out Value: UInt64);
 begin
   ReadBuffer(Value, SizeOf(Value));
   Value := LEtoN(Value);
 end;
 
-procedure TStreamHelper.ReadLE(out Value: SmallInt);
+procedure TStreamHelper.ReadLE(out Value: Int16);
 begin
   ReadBuffer(Value, SizeOf(Value));
   Value := LEtoN(Value);
@@ -173,7 +173,7 @@ end;
 
 { ReadBE --------------------------------------------------------------------- }
 
-procedure TStreamHelper.ReadBE(out Value: Word);
+procedure TStreamHelper.ReadBE(out Value: UInt16);
 begin
   ReadBuffer(Value, SizeOf(Value));
   Value := BEtoN(Value);
@@ -185,13 +185,13 @@ begin
   Value := BEtoN(Value);
 end;
 
-procedure TStreamHelper.ReadBE(out Value: QWord);
+procedure TStreamHelper.ReadBE(out Value: UInt64);
 begin
   ReadBuffer(Value, SizeOf(Value));
   Value := BEtoN(Value);
 end;
 
-procedure TStreamHelper.ReadBE(out Value: SmallInt);
+procedure TStreamHelper.ReadBE(out Value: Int16);
 begin
   ReadBuffer(Value, SizeOf(Value));
   Value := BEtoN(Value);
@@ -224,7 +224,7 @@ end;
 { ReadEndianwess --------------------------------------------------------------
   ReadEndianwess is just a wrapper around ReadLE and ReadBE. }
 
-procedure TStreamHelper.ReadEndianess(out Value: Word; const LittleEndian: Boolean);
+procedure TStreamHelper.ReadEndianess(out Value: UInt16; const LittleEndian: Boolean);
 begin
   if LittleEndian then
     ReadLE(Value)
@@ -240,7 +240,7 @@ begin
     ReadBE(Value);
 end;
 
-procedure TStreamHelper.ReadEndianess(out Value: QWord; const LittleEndian: Boolean);
+procedure TStreamHelper.ReadEndianess(out Value: UInt64; const LittleEndian: Boolean);
 begin
   if LittleEndian then
     ReadLE(Value)
@@ -248,7 +248,7 @@ begin
     ReadBE(Value);
 end;
 
-procedure TStreamHelper.ReadEndianess(out Value: SmallInt; const LittleEndian: Boolean);
+procedure TStreamHelper.ReadEndianess(out Value: Int16; const LittleEndian: Boolean);
 begin
   if LittleEndian then
     ReadLE(Value)
@@ -290,9 +290,9 @@ end;
 
 { WriteLE -------------------------------------------------------------------- }
 
-procedure TStreamHelper.WriteLE(const Value: Word);
+procedure TStreamHelper.WriteLE(const Value: UInt16);
 var
-  tmp: Word;
+  tmp: UInt16;
 begin
   tmp := NToLE(Value);
   WriteBuffer(tmp, SizeOf(tmp));
@@ -306,17 +306,17 @@ begin
   WriteBuffer(tmp, SizeOf(tmp));
 end;
 
-procedure TStreamHelper.WriteLE(const Value: QWord);
+procedure TStreamHelper.WriteLE(const Value: UInt64);
 var
-  tmp: QWord;
+  tmp: UInt64;
 begin
   tmp := NToLE(Value);
   WriteBuffer(tmp, SizeOf(tmp));
 end;
 
-procedure TStreamHelper.WriteLE(const Value: SmallInt);
+procedure TStreamHelper.WriteLE(const Value: Int16);
 var
-  tmp: SmallInt;
+  tmp: Int16;
 begin
   tmp := NToLE(Value);
   WriteBuffer(tmp, SizeOf(tmp));
@@ -356,9 +356,9 @@ end;
 
 { WriteBE -------------------------------------------------------------------- }
 
-procedure TStreamHelper.WriteBE(const Value: Word);
+procedure TStreamHelper.WriteBE(const Value: UInt16);
 var
-  tmp: Word;
+  tmp: UInt16;
 begin
   tmp := NToBE(Value);
   WriteBuffer(tmp, SizeOf(tmp));
@@ -372,17 +372,17 @@ begin
   WriteBuffer(tmp, SizeOf(tmp));
 end;
 
-procedure TStreamHelper.WriteBE(const Value: QWord);
+procedure TStreamHelper.WriteBE(const Value: UInt64);
 var
-  tmp: QWord;
+  tmp: UInt64;
 begin
   tmp := NToBE(Value);
   WriteBuffer(tmp, SizeOf(tmp));
 end;
 
-procedure TStreamHelper.WriteBE(const Value: SmallInt);
+procedure TStreamHelper.WriteBE(const Value: Int16);
 var
-  tmp: SmallInt;
+  tmp: Int16;
 begin
   tmp := NToBE(Value);
   WriteBuffer(tmp, SizeOf(tmp));

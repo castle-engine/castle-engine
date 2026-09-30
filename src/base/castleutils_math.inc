@@ -20,9 +20,9 @@
 
 { Swap variables values.
   @groupBegin }
-procedure SwapValues(var a, b: Byte    ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure SwapValues(var a, b: UInt8   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure SwapValues(var a, b: Int64   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-procedure SwapValues(var a, b: QWord   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure SwapValues(var a, b: UInt64  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure SwapValues(var a, b: Int32   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure SwapValues(var a, b: UInt32  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure SwapValues(var a, b: Single  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
@@ -63,7 +63,7 @@ procedure OrderUp(x, y: Extended; var Smaller, Larger: Extended); overload; {$if
   Works like @code(A := Min(A, B)), but is marginally faster,
   since you don't have to do anything when A is already smaller.
   @groupBegin }
-procedure MinVar(var a: Word    ; const b: Word    ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure MinVar(var a: UInt16  ; const b: UInt16  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure MinVar(var a: Int64   ; const b: Int64   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure MinVar(var a: Int32   ; const b: Int32   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure MinVar(var a: UInt32  ; const b: UInt32  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
@@ -78,7 +78,7 @@ procedure MinVar(var a: Extended; const b: Extended); overload; {$ifdef SUPPORTS
   Works like @code(A := Max(A, B)), but is marginally faster,
   since you don't have to do anything when A is already larger.
   @groupBegin }
-procedure MaxVar(var a: Word    ; const b: Word    ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure MaxVar(var a: UInt16  ; const b: UInt16  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure MaxVar(var a: Int64   ; const b: Int64   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure MaxVar(var a: Int32   ; const b: Int32   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure MaxVar(var a: UInt32  ; const b: UInt32  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
@@ -110,7 +110,7 @@ function Between(const a, vBegin, vEnd: Char    ): boolean; overload; {$ifdef SU
 function RoundClamp255(const A: Single): Byte; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 
 function Clamped(const a, vBegin, vEnd: Int64   ): Int64   ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function Clamped(const a, vBegin, vEnd: QWord   ): QWord   ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Clamped(const a, vBegin, vEnd: UInt64  ): UInt64  ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 function Clamped(const a, vBegin, vEnd: Int32   ): Int32   ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 function Clamped(const a, vBegin, vEnd: UInt32  ): UInt32  ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 function Clamped(const a, vBegin, vEnd: Single  ): Single  ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
@@ -120,7 +120,7 @@ function Clamped(const a, vBegin, vEnd: Extended): Extended; overload; {$ifdef S
 {$endif}
 
 procedure ClampVar(var a: Int64   ; const vBegin, vEnd: Int64   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-procedure ClampVar(var a: QWord   ; const vBegin, vEnd: QWord   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure ClampVar(var a: UInt64  ; const vBegin, vEnd: UInt64  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure ClampVar(var a: Int32   ; const vBegin, vEnd: Int32   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure ClampVar(var a: UInt32  ; const vBegin, vEnd: UInt32  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure ClampVar(var a: Single  ; const vBegin, vEnd: Single  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
@@ -247,11 +247,11 @@ function DivRoundUp(const Value, Divider: Integer): Integer; overload;
   @groupBegin }
 function MapRange(const SourceVal, SourceBegin, SourceEnd, DestBegin, DestEnd: Integer): Float; overload;
 function MapRange(const SourceVal, SourceBegin, SourceEnd, DestBegin, DestEnd: Int64  ): Float; overload;
-function MapRange(const SourceVal, SourceBegin, SourceEnd, DestBegin, DestEnd: QWord  ): Float; overload;
+function MapRange(const SourceVal, SourceBegin, SourceEnd, DestBegin, DestEnd: UInt64 ): Float; overload;
 function MapRange(const SourceVal, SourceBegin, SourceEnd, DestBegin, DestEnd: Float  ): Float; overload;
 function MapRangeClamped(const SourceVal, SourceBegin, SourceEnd, DestBegin, DestEnd: Integer): Float; overload;
 function MapRangeClamped(const SourceVal, SourceBegin, SourceEnd, DestBegin, DestEnd: Int64  ): Float; overload;
-function MapRangeClamped(const SourceVal, SourceBegin, SourceEnd, DestBegin, DestEnd: QWord  ): Float; overload;
+function MapRangeClamped(const SourceVal, SourceBegin, SourceEnd, DestBegin, DestEnd: UInt64 ): Float; overload;
 function MapRangeClamped(const SourceVal, SourceBegin, SourceEnd, DestBegin, DestEnd: Float  ): Float; overload;
 { @groupEnd }
 
@@ -371,14 +371,14 @@ function SmoothStep(const Edge0, Edge1, X: Single): Single;
 
   @groupBegin }
 function Swap32(Value: UInt32): UInt32;
-function Swap64(Value: QWord): QWord;
+function Swap64(Value: UInt64): UInt64;
 function SwapEndian(const Value: Single): Single; overload;
 function SwapEndian(const Value: Double): Double; overload;
 
 {$ifndef FPC}
-function NtoLE(const Value: Word): Word; overload;
-function NtoLE(const Value: DWord): DWord; overload;
-function NtoLE(const Value: QWord): QWord; overload;
+function NtoLE(const Value: UInt16): UInt16; overload;
+function NtoLE(const Value: UInt32): UInt32; overload;
+function NtoLE(const Value: UInt64): UInt64; overload;
 function NtoLE(const Value: Int64): Int64; overload;
 {$endif}
 
@@ -386,9 +386,9 @@ function NtoLE(const Value: Single): Single; overload;
 function NtoLE(const Value: Double): Double; overload;
 
 {$ifndef FPC}
-function NtoBE(const Value: Word): Word; overload;
-function NtoBE(const Value: DWord): DWord; overload;
-function NtoBE(const Value: QWord): QWord; overload;
+function NtoBE(const Value: UInt16): UInt16; overload;
+function NtoBE(const Value: UInt32): UInt32; overload;
+function NtoBE(const Value: UInt64): UInt64; overload;
 function NtoBE(const Value: Int64): Int64; overload;
 {$endif}
 
@@ -396,9 +396,9 @@ function NtoBE(const Value: Single): Single; overload;
 function NtoBE(const Value: Double): Double; overload;
 
 {$ifndef FPC}
-function LEtoN(const Value: Word): Word; overload;
-function LEtoN(const Value: DWord): DWord; overload;
-function LEtoN(const Value: QWord): QWord; overload;
+function LEtoN(const Value: UInt16): UInt16; overload;
+function LEtoN(const Value: UInt32): UInt32; overload;
+function LEtoN(const Value: UInt64): UInt64; overload;
 function LEtoN(const Value: Int64): Int64; overload;
 {$endif}
 
@@ -406,9 +406,9 @@ function LEtoN(const Value: Single): Single; overload;
 function LEtoN(const Value: Double): Double; overload;
 
 {$ifndef FPC}
-function BEtoN(const Value: Word): Word; overload;
-function BEtoN(const Value: DWord): DWord; overload;
-function BEtoN(const Value: QWord): QWord; overload;
+function BEtoN(const Value: UInt16): UInt16; overload;
+function BEtoN(const Value: UInt32): UInt32; overload;
+function BEtoN(const Value: UInt64): UInt64; overload;
 function BEtoN(const Value: Int64): Int64; overload;
 {$endif}
 function BEtoN(const Value: Single): Single; overload;
@@ -428,9 +428,9 @@ type
 
 {$ifdef read_implementation}
 
-procedure SwapValues(var a, b: Byte);   var Tmp: Byte;   begin Tmp := A; A := B; B := Tmp; end;
+procedure SwapValues(var a, b: UInt8);  var Tmp: UInt8;  begin Tmp := A; A := B; B := Tmp; end;
 procedure SwapValues(var a, b: Int64);  var Tmp: Int64;  begin Tmp := A; A := B; B := Tmp; end;
-procedure SwapValues(var a, b: QWord);  var Tmp: QWord;  begin Tmp := A; A := B; B := Tmp; end;
+procedure SwapValues(var a, b: UInt64); var Tmp: UInt64; begin Tmp := A; A := B; B := Tmp; end;
 procedure SwapValues(var a, b: Int32);  var Tmp: Int32;  begin Tmp := A; A := B; B := Tmp; end;
 procedure SwapValues(var a, b: UInt32); var Tmp: UInt32; begin Tmp := A; A := B; B := Tmp; end;
 procedure SwapValues(var a, b: Single); var Tmp: Single; begin Tmp := A; A := B; B := Tmp; end;
@@ -458,7 +458,7 @@ procedure OrderUp(x, y: Double;   var Smaller, Larger: Double);   begin if X <= 
 procedure OrderUp(x, y: Extended; var Smaller, Larger: Extended); begin if X <= Y then begin Smaller := X; Larger := Y end else begin Smaller := Y; Larger := X end; end;
 {$endif}
 
-procedure MinVar(var a: Word   ; const b: Word   ); begin if B < A then A := B end;
+procedure MinVar(var a: UInt16 ; const b: UInt16 ); begin if B < A then A := B end;
 procedure MinVar(var a: Int64  ; const b: Int64  ); begin if B < A then A := B end;
 procedure MinVar(var a: Int32  ; const b: Int32  ); begin if B < A then A := B end;
 procedure MinVar(var a: UInt32 ; const b: UInt32 ); begin if B < A then A := B end;
@@ -468,7 +468,7 @@ procedure MinVar(var a: Double ; const b: Double ); begin if B < A then A := B e
 procedure MinVar(var a: Extended; const b: Extended); begin if B < A then A := B end;
 {$endif}
 
-procedure MaxVar(var a: Word  ; const b: Word  ); begin if B > A then A := B end;
+procedure MaxVar(var a: UInt16; const b: UInt16); begin if B > A then A := B end;
 procedure MaxVar(var a: Int64 ; const b: Int64 ); begin if B > A then A := B end;
 procedure MaxVar(var a: Int32 ; const b: Int32 ); begin if B > A then A := B end;
 procedure MaxVar(var a: UInt32; const b: UInt32); begin if B > A then A := B end;
@@ -525,7 +525,7 @@ begin
     result := a;
 end;
 
-function Clamped(const a, vBegin, vEnd: QWord): QWord;
+function Clamped(const a, vBegin, vEnd: UInt64): UInt64;
 begin
   if a < vBegin then result := vBegin else
   if a > vEnd then result := vEnd else
@@ -575,7 +575,7 @@ begin
   if a > vEnd then a := vEnd;
 end;
 
-procedure ClampVar(var a: QWord;    const vBegin, vEnd: QWord);
+procedure ClampVar(var a: UInt64;   const vBegin, vEnd: UInt64);
 begin
   if a < vBegin then a := vBegin else
   if a > vEnd then a := vEnd;
@@ -587,7 +587,7 @@ begin
   if a > vEnd then a := vEnd;
 end;
 
-procedure ClampVar(var a: cardinal; const vBegin, vEnd: cardinal);
+procedure ClampVar(var a: UInt32;   const vBegin, vEnd: UInt32);
 begin
   if a < vBegin then a := vBegin else
   if a > vEnd then a := vEnd;
@@ -790,7 +790,7 @@ begin
   Result := Result * (DestEnd - DestBegin) + DestBegin;
 end;
 
-function MapRange(const SourceVal, SourceBegin, SourceEnd, DestBegin, DestEnd: QWord  ): Float;
+function MapRange(const SourceVal, SourceBegin, SourceEnd, DestBegin, DestEnd: UInt64 ): Float;
 {$I norqcheckbegin.inc}
 begin
   { Map range SourceBegin .. SourceEnd to 0..1, and express SourceVal there. }
@@ -826,7 +826,7 @@ begin
     Result := Clamped(Result, DestBegin, DestEnd);
 end;
 
-function MapRangeClamped(const SourceVal, SourceBegin, SourceEnd, DestBegin, DestEnd: QWord  ): Float;
+function MapRangeClamped(const SourceVal, SourceBegin, SourceEnd, DestBegin, DestEnd: UInt64 ): Float;
 begin
   Result := MapRange(SourceVal, SourceBegin, SourceEnd, DestBegin, DestEnd);
   if DestEnd < DestBegin then
@@ -1134,13 +1134,13 @@ begin
   // see
   // https://stackoverflow.com/questions/3065335/how-to-convert-big-endian-numbers-to-native-numbers-delphi
   // https://stackoverflow.com/questions/2882434/how-to-convert-big-endian-and-how-to-flip-the-highest-bit
-  Result := Swap(Word(Value)) shl 16 + Swap(Word(Value shr 16));
+  Result := Swap(UInt16(Value)) shl 16 + Swap(UInt16(Value shr 16));
   {$else}
   Result := SwapEndian(Value);
   {$endif}
 end;
 
-function Swap64(Value: QWord): QWord;
+function Swap64(Value: UInt64): UInt64;
 begin
   {$ifndef FPC}
   // see
@@ -1165,7 +1165,7 @@ end;
 
 
 {$ifndef FPC}
-  function NtoLE(const Value: Word): Word;
+  function NtoLE(const Value: UInt16): UInt16;
   begin
   {$ifdef ENDIAN_BIG}
     Result := Swap(Value);
@@ -1174,7 +1174,7 @@ end;
   {$endif ENDIAN_BIG}
   end;
 
-  function NtoLE(const Value: DWord): DWord;
+  function NtoLE(const Value: UInt32): UInt32;
   begin
   {$ifdef ENDIAN_BIG}
     Result := Swap32(Value);
@@ -1183,7 +1183,7 @@ end;
   {$endif ENDIAN_BIG}
   end;
 
-  function NtoLE(const Value: QWord): QWord;
+  function NtoLE(const Value: UInt64): UInt64;
   begin
   {$ifdef ENDIAN_BIG}
     Result := Swap64(Value);
@@ -1223,7 +1223,7 @@ begin
 end;
 
 {$ifndef FPC}
-  function NtoBE(const Value: Word): Word;
+  function NtoBE(const Value: UInt16): UInt16;
   begin
   {$ifdef ENDIAN_BIG}
     Result := Value;
@@ -1232,7 +1232,7 @@ end;
   {$endif ENDIAN_BIG}
   end;
 
-  function NtoBE(const Value: DWord): DWord;
+  function NtoBE(const Value: UInt32): UInt32;
   begin
   {$ifdef ENDIAN_BIG}
     Result := Value;
@@ -1242,7 +1242,7 @@ end;
   end;
 
 
-  function NtoBE(const Value: QWord): QWord;
+  function NtoBE(const Value: UInt64): UInt64;
   begin
   {$ifdef ENDIAN_BIG}
     Result := Value;
@@ -1282,7 +1282,7 @@ begin
 end;
 
 {$ifndef FPC}
-  function LEtoN(const Value: Word): Word;
+  function LEtoN(const Value: UInt16): UInt16;
   begin
   {$ifdef ENDIAN_BIG}
     Result := Swap(Value);
@@ -1291,7 +1291,7 @@ end;
   {$endif ENDIAN_BIG}
   end;
 
-  function LEtoN(const Value: DWord): DWord;
+  function LEtoN(const Value: UInt32): UInt32;
   begin
   {$ifdef ENDIAN_BIG}
     Result := Swap32(Value);
@@ -1300,7 +1300,7 @@ end;
   {$endif ENDIAN_BIG}
   end;
 
-  function LEtoN(const Value: QWord): QWord;
+  function LEtoN(const Value: UInt64): UInt64;
   begin
   {$ifdef ENDIAN_BIG}
     Result := Swap64(Value);
@@ -1341,7 +1341,7 @@ end;
 
 {$ifndef FPC}
 
-  function BEtoN(const Value: Word): Word;
+  function BEtoN(const Value: UInt16): UInt16;
   begin
   {$ifdef ENDIAN_BIG}
     Result := Value;
@@ -1350,7 +1350,7 @@ end;
   {$endif ENDIAN_BIG}
   end;
 
-  function BEtoN(const Value: DWord): DWord;
+  function BEtoN(const Value: UInt32): UInt32;
   begin
   {$ifdef ENDIAN_BIG}
     Result := Value;
@@ -1359,7 +1359,7 @@ end;
   {$endif ENDIAN_BIG}
   end;
 
-  function BEtoN(const Value: QWord): QWord;
+  function BEtoN(const Value: UInt64): UInt64;
   begin
   {$ifdef ENDIAN_BIG}
     Result := Value;
