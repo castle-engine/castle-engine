@@ -2353,7 +2353,8 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
     PlatformName, FileRelativeName: String;
     Files: TStringList;
     ResultBuilder: TStringBuilder;
-    RemoteDirBase, RemoteDir, RemoteName: String;
+    RemoteDirBase, RemoteDir, RemoteName, LocalName: String;
+    I: Integer;
   begin
     ResultBuilder := TStringBuilder.Create;
     try
@@ -2363,8 +2364,19 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
           to have the `castle-engine generate-program`
           output fully deterministic for a given project,
           and independent from source OS, undefined ordef of FindFiles etc.
-          This avoids diffs in version control if nothing changed. }
+          This avoids diffs in version control if nothing changed.
+
+          We want order the same on all OSes (to have DPROJs reproducible
+          and comparable, regardless of the operating system on which they
+          were generated). So:
+          - Use / as path delimiter (before sorting), on all OSes.
+          - Do not use locale-aware comparison (which on Windows
+            seems case-insensitive), just compare bytes. }
+        if PathDelim <> '/' then
+          for I := 0 to Files.Count - 1 do
+            Files[I] := SReplaceChars(Files[I], PathDelim, '/');
         Files.CaseSensitive := true;
+        Files.UseLocale := false;
         Files.Sort;
 
         { Note that we try to minimize output below, as it may get really
@@ -2385,10 +2397,13 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
 
         for FileRelativeName in Files do
         begin
+          { LocalName uses \ as path delimiter, on all OSes,
+            as Delphi (running on Windows) uses it. }
+          LocalName := TCastleManifest.DataName + '\' +
+            SReplaceChars(FileRelativeName, '/', '\');
           ResultBuilder.Append(Format(
-            '<DeployFile LocalName="%s\%s" Class="File">' + NL, [
-              TCastleManifest.DataName,
-              FileRelativeName
+            '<DeployFile LocalName="%s" Class="File">' + NL, [
+              LocalName
             ]));
           for PlatformName in AllDelphiPlatformNames do
           begin
@@ -2400,11 +2415,9 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
               RemoteDirBase := './assets'
             else
               RemoteDirBase := './' + TCastleManifest.DataName;
-            RemoteDir := ExtractFilePath(FileRelativeName);
-            { For consistency, use / in RemoteDir, even on Windows. }
-            if PathDelim <> '/' then
-              RemoteDir := SReplaceChars(RemoteDir, PathDelim, '/');
-            RemoteDir := RemoteDirBase + '/' + RemoteDir;
+            { FileRelativeName uses / as path delimiter (see above),
+              which is also what we want in RemoteDir. }
+            RemoteDir := RemoteDirBase + '/' + ExtractFilePath(FileRelativeName);
 
             RemoteName := ExtractFileName(FileRelativeName);
 
