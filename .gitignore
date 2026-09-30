@@ -28,42 +28,17 @@ __recovery
 *.delphilsp.json
 *.idsig
 
-# lots of Android output by Delphi (TODO: minimize this by some options?)
-Android64/
-res/
-FM_Adaptive_Icon*
-debug/
-*.Artwork/
-*.dex
-assets/
-CompiledResources/
-ic_launcher*
-styles*.xml
-strings.xml
-splash_image_def*.xml
-ResourcePackagePropertyList.txt
-ResourceCompilePropertyList.txt
-PackagedResources.zip
-ManifestMergePropertyList.txt
-ManifestGenerationPropertyList.txt
-DexList.txt
-DexPropertyList.txt
-CompiledResourcesList.txt
-colors.xml
-colors-night*.xml
-*.stamp
-AndroidLibraryManifestList.txt
-AndroidManifest-merged.xml
+# Android and iOS output by Delphi
+# Note that most of the output is hidden inside
+#   castle-engine-output\delphi\$(Platform)\$(Config)
+# (see <DCC_ExeOutput> in DPROJs of examples).
+# But Delphi places some output in the project directory itself -- in the real
+# applications (not just engine examples), it could make sense to commit
+# and version these files.
 AndroidManifest.template.xml
-/examples/**/AndroidManifest.xml
-/examples/**/lib*.so
-
-# iOS output by Delphi (TODO: minimize this by some options?)
-*.entitlements
-*.info.plist
-*.ipa
+*.Artwork/
 *.TemplateiOS.xml
-LaunchScreen.storyboard
+LaunchScreen.TemplateiOS/
 
 # Other backups
 *.blend1
