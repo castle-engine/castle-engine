@@ -324,6 +324,53 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
+<DeployFile LocalName="data\README.txt" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
 <DeployFile LocalName="data\drop_box.castle-transform" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/</RemoteDir>
@@ -415,53 +462,6 @@
  <Platform Name="Win64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\README.txt" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -559,53 +559,6 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\textures\adesert_cracks_d.jpg" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/textures/</RemoteDir>
-  <RemoteName>adesert_cracks_d.jpg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/textures/</RemoteDir>
-  <RemoteName>adesert_cracks_d.jpg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>adesert_cracks_d.jpg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>adesert_cracks_d.jpg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>adesert_cracks_d.jpg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>adesert_cracks_d.jpg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>adesert_cracks_d.jpg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>adesert_cracks_d.jpg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/textures/</RemoteDir>
-  <RemoteName>adesert_cracks_d.jpg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
 <DeployFile LocalName="data\textures\AUTHORS.txt" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/textures/</RemoteDir>
@@ -650,6 +603,53 @@
  <Platform Name="Win64">
   <RemoteDir>./data/textures/</RemoteDir>
   <RemoteName>AUTHORS.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\textures\adesert_cracks_d.jpg" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/textures/</RemoteDir>
+  <RemoteName>adesert_cracks_d.jpg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/textures/</RemoteDir>
+  <RemoteName>adesert_cracks_d.jpg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>adesert_cracks_d.jpg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>adesert_cracks_d.jpg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>adesert_cracks_d.jpg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>adesert_cracks_d.jpg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>adesert_cracks_d.jpg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>adesert_cracks_d.jpg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/textures/</RemoteDir>
+  <RemoteName>adesert_cracks_d.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>

@@ -324,6 +324,53 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
+<DeployFile LocalName="data\README.txt" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
 <DeployFile LocalName="data\gameviewmain.castle-user-interface" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/</RemoteDir>
@@ -368,6 +415,53 @@
  <Platform Name="Win64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\maps\AUTHORS.txt" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/maps/</RemoteDir>
+  <RemoteName>AUTHORS.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/maps/</RemoteDir>
+  <RemoteName>AUTHORS.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/maps/</RemoteDir>
+  <RemoteName>AUTHORS.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/maps/</RemoteDir>
+  <RemoteName>AUTHORS.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/maps/</RemoteDir>
+  <RemoteName>AUTHORS.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/maps/</RemoteDir>
+  <RemoteName>AUTHORS.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/maps/</RemoteDir>
+  <RemoteName>AUTHORS.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/maps/</RemoteDir>
+  <RemoteName>AUTHORS.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/maps/</RemoteDir>
+  <RemoteName>AUTHORS.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -559,53 +653,6 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\maps\animations\devil.tsx" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/maps/animations/</RemoteDir>
-  <RemoteName>devil.tsx</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/maps/animations/</RemoteDir>
-  <RemoteName>devil.tsx</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/maps/animations/</RemoteDir>
-  <RemoteName>devil.tsx</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/maps/animations/</RemoteDir>
-  <RemoteName>devil.tsx</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/maps/animations/</RemoteDir>
-  <RemoteName>devil.tsx</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/maps/animations/</RemoteDir>
-  <RemoteName>devil.tsx</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/maps/animations/</RemoteDir>
-  <RemoteName>devil.tsx</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/maps/animations/</RemoteDir>
-  <RemoteName>devil.tsx</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/maps/animations/</RemoteDir>
-  <RemoteName>devil.tsx</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
 <DeployFile LocalName="data\maps\animations\devil-animation.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/maps/animations/</RemoteDir>
@@ -650,6 +697,53 @@
  <Platform Name="Win64">
   <RemoteDir>./data/maps/animations/</RemoteDir>
   <RemoteName>devil-animation.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\maps\animations\devil.tsx" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/maps/animations/</RemoteDir>
+  <RemoteName>devil.tsx</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/maps/animations/</RemoteDir>
+  <RemoteName>devil.tsx</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/maps/animations/</RemoteDir>
+  <RemoteName>devil.tsx</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/maps/animations/</RemoteDir>
+  <RemoteName>devil.tsx</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/maps/animations/</RemoteDir>
+  <RemoteName>devil.tsx</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/maps/animations/</RemoteDir>
+  <RemoteName>devil.tsx</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/maps/animations/</RemoteDir>
+  <RemoteName>devil.tsx</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/maps/animations/</RemoteDir>
+  <RemoteName>devil.tsx</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/maps/animations/</RemoteDir>
+  <RemoteName>devil.tsx</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -1073,53 +1167,6 @@
  <Platform Name="Win64">
   <RemoteDir>./data/maps/animations/worldmapoverworld-tileset/</RemoteDir>
   <RemoteName>water.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\maps\AUTHORS.txt" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/maps/</RemoteDir>
-  <RemoteName>AUTHORS.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/maps/</RemoteDir>
-  <RemoteName>AUTHORS.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/maps/</RemoteDir>
-  <RemoteName>AUTHORS.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/maps/</RemoteDir>
-  <RemoteName>AUTHORS.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/maps/</RemoteDir>
-  <RemoteName>AUTHORS.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/maps/</RemoteDir>
-  <RemoteName>AUTHORS.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/maps/</RemoteDir>
-  <RemoteName>AUTHORS.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/maps/</RemoteDir>
-  <RemoteName>AUTHORS.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/maps/</RemoteDir>
-  <RemoteName>AUTHORS.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -1593,50 +1640,50 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\maps\multiple_tilesets\image3x3.png" Class="File">
+<DeployFile LocalName="data\maps\multiple_tilesets\README.md" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/maps/multiple_tilesets/</RemoteDir>
-  <RemoteName>image3x3.png</RemoteName>
+  <RemoteName>README.md</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
   <RemoteDir>./assets/maps/multiple_tilesets/</RemoteDir>
-  <RemoteName>image3x3.png</RemoteName>
+  <RemoteName>README.md</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="iOSDevice64">
   <RemoteDir>./data/maps/multiple_tilesets/</RemoteDir>
-  <RemoteName>image3x3.png</RemoteName>
+  <RemoteName>README.md</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="iOSSimARM64">
   <RemoteDir>./data/maps/multiple_tilesets/</RemoteDir>
-  <RemoteName>image3x3.png</RemoteName>
+  <RemoteName>README.md</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Linux64">
   <RemoteDir>./data/maps/multiple_tilesets/</RemoteDir>
-  <RemoteName>image3x3.png</RemoteName>
+  <RemoteName>README.md</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="OSX64">
   <RemoteDir>./data/maps/multiple_tilesets/</RemoteDir>
-  <RemoteName>image3x3.png</RemoteName>
+  <RemoteName>README.md</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="OSXARM64">
   <RemoteDir>./data/maps/multiple_tilesets/</RemoteDir>
-  <RemoteName>image3x3.png</RemoteName>
+  <RemoteName>README.md</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
   <RemoteDir>./data/maps/multiple_tilesets/</RemoteDir>
-  <RemoteName>image3x3.png</RemoteName>
+  <RemoteName>README.md</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
   <RemoteDir>./data/maps/multiple_tilesets/</RemoteDir>
-  <RemoteName>image3x3.png</RemoteName>
+  <RemoteName>README.md</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -1781,50 +1828,50 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\maps\multiple_tilesets\map64.tmx" Class="File">
+<DeployFile LocalName="data\maps\multiple_tilesets\image3x3.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/maps/multiple_tilesets/</RemoteDir>
-  <RemoteName>map64.tmx</RemoteName>
+  <RemoteName>image3x3.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
   <RemoteDir>./assets/maps/multiple_tilesets/</RemoteDir>
-  <RemoteName>map64.tmx</RemoteName>
+  <RemoteName>image3x3.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="iOSDevice64">
   <RemoteDir>./data/maps/multiple_tilesets/</RemoteDir>
-  <RemoteName>map64.tmx</RemoteName>
+  <RemoteName>image3x3.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="iOSSimARM64">
   <RemoteDir>./data/maps/multiple_tilesets/</RemoteDir>
-  <RemoteName>map64.tmx</RemoteName>
+  <RemoteName>image3x3.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Linux64">
   <RemoteDir>./data/maps/multiple_tilesets/</RemoteDir>
-  <RemoteName>map64.tmx</RemoteName>
+  <RemoteName>image3x3.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="OSX64">
   <RemoteDir>./data/maps/multiple_tilesets/</RemoteDir>
-  <RemoteName>map64.tmx</RemoteName>
+  <RemoteName>image3x3.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="OSXARM64">
   <RemoteDir>./data/maps/multiple_tilesets/</RemoteDir>
-  <RemoteName>map64.tmx</RemoteName>
+  <RemoteName>image3x3.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
   <RemoteDir>./data/maps/multiple_tilesets/</RemoteDir>
-  <RemoteName>map64.tmx</RemoteName>
+  <RemoteName>image3x3.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
   <RemoteDir>./data/maps/multiple_tilesets/</RemoteDir>
-  <RemoteName>map64.tmx</RemoteName>
+  <RemoteName>image3x3.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -1922,50 +1969,144 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\maps\multiple_tilesets\README.md" Class="File">
+<DeployFile LocalName="data\maps\multiple_tilesets\map64.tmx" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/maps/multiple_tilesets/</RemoteDir>
-  <RemoteName>README.md</RemoteName>
+  <RemoteName>map64.tmx</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
   <RemoteDir>./assets/maps/multiple_tilesets/</RemoteDir>
-  <RemoteName>README.md</RemoteName>
+  <RemoteName>map64.tmx</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="iOSDevice64">
   <RemoteDir>./data/maps/multiple_tilesets/</RemoteDir>
-  <RemoteName>README.md</RemoteName>
+  <RemoteName>map64.tmx</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="iOSSimARM64">
   <RemoteDir>./data/maps/multiple_tilesets/</RemoteDir>
-  <RemoteName>README.md</RemoteName>
+  <RemoteName>map64.tmx</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Linux64">
   <RemoteDir>./data/maps/multiple_tilesets/</RemoteDir>
-  <RemoteName>README.md</RemoteName>
+  <RemoteName>map64.tmx</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="OSX64">
   <RemoteDir>./data/maps/multiple_tilesets/</RemoteDir>
-  <RemoteName>README.md</RemoteName>
+  <RemoteName>map64.tmx</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="OSXARM64">
   <RemoteDir>./data/maps/multiple_tilesets/</RemoteDir>
-  <RemoteName>README.md</RemoteName>
+  <RemoteName>map64.tmx</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
   <RemoteDir>./data/maps/multiple_tilesets/</RemoteDir>
-  <RemoteName>README.md</RemoteName>
+  <RemoteName>map64.tmx</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
   <RemoteDir>./data/maps/multiple_tilesets/</RemoteDir>
+  <RemoteName>map64.tmx</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\maps\multiple_tilesets_desert\README.md" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/maps/multiple_tilesets_desert/</RemoteDir>
   <RemoteName>README.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/maps/multiple_tilesets_desert/</RemoteDir>
+  <RemoteName>README.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/maps/multiple_tilesets_desert/</RemoteDir>
+  <RemoteName>README.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/maps/multiple_tilesets_desert/</RemoteDir>
+  <RemoteName>README.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/maps/multiple_tilesets_desert/</RemoteDir>
+  <RemoteName>README.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/maps/multiple_tilesets_desert/</RemoteDir>
+  <RemoteName>README.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/maps/multiple_tilesets_desert/</RemoteDir>
+  <RemoteName>README.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/maps/multiple_tilesets_desert/</RemoteDir>
+  <RemoteName>README.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/maps/multiple_tilesets_desert/</RemoteDir>
+  <RemoteName>README.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\maps\multiple_tilesets_desert\Test512.tsx" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/maps/multiple_tilesets_desert/</RemoteDir>
+  <RemoteName>Test512.tsx</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/maps/multiple_tilesets_desert/</RemoteDir>
+  <RemoteName>Test512.tsx</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/maps/multiple_tilesets_desert/</RemoteDir>
+  <RemoteName>Test512.tsx</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/maps/multiple_tilesets_desert/</RemoteDir>
+  <RemoteName>Test512.tsx</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/maps/multiple_tilesets_desert/</RemoteDir>
+  <RemoteName>Test512.tsx</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/maps/multiple_tilesets_desert/</RemoteDir>
+  <RemoteName>Test512.tsx</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/maps/multiple_tilesets_desert/</RemoteDir>
+  <RemoteName>Test512.tsx</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/maps/multiple_tilesets_desert/</RemoteDir>
+  <RemoteName>Test512.tsx</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/maps/multiple_tilesets_desert/</RemoteDir>
+  <RemoteName>Test512.tsx</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -2063,53 +2204,6 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\maps\multiple_tilesets_desert\README.md" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/maps/multiple_tilesets_desert/</RemoteDir>
-  <RemoteName>README.md</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/maps/multiple_tilesets_desert/</RemoteDir>
-  <RemoteName>README.md</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/maps/multiple_tilesets_desert/</RemoteDir>
-  <RemoteName>README.md</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/maps/multiple_tilesets_desert/</RemoteDir>
-  <RemoteName>README.md</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/maps/multiple_tilesets_desert/</RemoteDir>
-  <RemoteName>README.md</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/maps/multiple_tilesets_desert/</RemoteDir>
-  <RemoteName>README.md</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/maps/multiple_tilesets_desert/</RemoteDir>
-  <RemoteName>README.md</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/maps/multiple_tilesets_desert/</RemoteDir>
-  <RemoteName>README.md</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/maps/multiple_tilesets_desert/</RemoteDir>
-  <RemoteName>README.md</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
 <DeployFile LocalName="data\maps\multiple_tilesets_desert\test512.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/maps/multiple_tilesets_desert/</RemoteDir>
@@ -2154,53 +2248,6 @@
  <Platform Name="Win64">
   <RemoteDir>./data/maps/multiple_tilesets_desert/</RemoteDir>
   <RemoteName>test512.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\maps\multiple_tilesets_desert\Test512.tsx" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/maps/multiple_tilesets_desert/</RemoteDir>
-  <RemoteName>Test512.tsx</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/maps/multiple_tilesets_desert/</RemoteDir>
-  <RemoteName>Test512.tsx</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/maps/multiple_tilesets_desert/</RemoteDir>
-  <RemoteName>Test512.tsx</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/maps/multiple_tilesets_desert/</RemoteDir>
-  <RemoteName>Test512.tsx</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/maps/multiple_tilesets_desert/</RemoteDir>
-  <RemoteName>Test512.tsx</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/maps/multiple_tilesets_desert/</RemoteDir>
-  <RemoteName>Test512.tsx</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/maps/multiple_tilesets_desert/</RemoteDir>
-  <RemoteName>Test512.tsx</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/maps/multiple_tilesets_desert/</RemoteDir>
-  <RemoteName>Test512.tsx</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/maps/multiple_tilesets_desert/</RemoteDir>
-  <RemoteName>Test512.tsx</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -3282,53 +3329,6 @@
  <Platform Name="Win64">
   <RemoteDir>./data/maps/walls_layers_isometric/</RemoteDir>
   <RemoteName>wall.tsx</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\README.txt" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>

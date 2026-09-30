@@ -277,6 +277,100 @@
      to non-Windows targets,
      see https://castle-engine.io/delphi_linux#data_files_deployment .
 -->
+<DeployFile LocalName="data\CastleSettings.xml" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\README.txt" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
 <DeployFile LocalName="data\alien_props.castle-transform" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/</RemoteDir>
@@ -368,53 +462,6 @@
  <Platform Name="Win64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>castle_game_engine_icon.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\CastleSettings.xml" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
-  <RemoteName>CastleSettings.xml</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
-  <RemoteName>CastleSettings.xml</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>CastleSettings.xml</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>CastleSettings.xml</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>CastleSettings.xml</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>CastleSettings.xml</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>CastleSettings.xml</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>CastleSettings.xml</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>CastleSettings.xml</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -888,6 +935,100 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
+<DeployFile LocalName="data\quaternius\AUTHORS.md" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius\animals\License.txt" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/animals/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/animals/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/animals/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/animals/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/animals/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/animals/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/quaternius/animals/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/animals/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/animals/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
 <DeployFile LocalName="data\quaternius\animals\glTF\Horse.gltf" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/quaternius/animals/glTF/</RemoteDir>
@@ -982,100 +1123,6 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius\animals\License.txt" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/quaternius/animals/</RemoteDir>
-  <RemoteName>License.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/quaternius/animals/</RemoteDir>
-  <RemoteName>License.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/quaternius/animals/</RemoteDir>
-  <RemoteName>License.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/quaternius/animals/</RemoteDir>
-  <RemoteName>License.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/animals/</RemoteDir>
-  <RemoteName>License.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/quaternius/animals/</RemoteDir>
-  <RemoteName>License.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/quaternius/animals/</RemoteDir>
-  <RemoteName>License.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/animals/</RemoteDir>
-  <RemoteName>License.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/animals/</RemoteDir>
-  <RemoteName>License.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius\AUTHORS.md" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/quaternius/</RemoteDir>
-  <RemoteName>AUTHORS.md</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/quaternius/</RemoteDir>
-  <RemoteName>AUTHORS.md</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/quaternius/</RemoteDir>
-  <RemoteName>AUTHORS.md</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/quaternius/</RemoteDir>
-  <RemoteName>AUTHORS.md</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/</RemoteDir>
-  <RemoteName>AUTHORS.md</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/quaternius/</RemoteDir>
-  <RemoteName>AUTHORS.md</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/quaternius/</RemoteDir>
-  <RemoteName>AUTHORS.md</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/</RemoteDir>
-  <RemoteName>AUTHORS.md</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/</RemoteDir>
-  <RemoteName>AUTHORS.md</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
 <DeployFile LocalName="data\quaternius\medieval_village\AUTHORS.md" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/quaternius/medieval_village/</RemoteDir>
@@ -1120,6 +1167,53 @@
  <Platform Name="Win64">
   <RemoteDir>./data/quaternius/medieval_village/</RemoteDir>
   <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\quaternius\medieval_village\License_Standard.txt" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/quaternius/medieval_village/</RemoteDir>
+  <RemoteName>License_Standard.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/quaternius/medieval_village/</RemoteDir>
+  <RemoteName>License_Standard.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/quaternius/medieval_village/</RemoteDir>
+  <RemoteName>License_Standard.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/quaternius/medieval_village/</RemoteDir>
+  <RemoteName>License_Standard.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/quaternius/medieval_village/</RemoteDir>
+  <RemoteName>License_Standard.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/quaternius/medieval_village/</RemoteDir>
+  <RemoteName>License_Standard.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/quaternius/medieval_village/</RemoteDir>
+  <RemoteName>License_Standard.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/quaternius/medieval_village/</RemoteDir>
+  <RemoteName>License_Standard.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/quaternius/medieval_village/</RemoteDir>
+  <RemoteName>License_Standard.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -1781,50 +1875,50 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius\medieval_village\License_Standard.txt" Class="File">
+<DeployFile LocalName="data\quaternius\modular_sci_fi\License_Source.txt" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/quaternius/medieval_village/</RemoteDir>
-  <RemoteName>License_Standard.txt</RemoteName>
+  <RemoteDir>./assets/quaternius/modular_sci_fi/</RemoteDir>
+  <RemoteName>License_Source.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/quaternius/medieval_village/</RemoteDir>
-  <RemoteName>License_Standard.txt</RemoteName>
+  <RemoteDir>./assets/quaternius/modular_sci_fi/</RemoteDir>
+  <RemoteName>License_Source.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="iOSDevice64">
-  <RemoteDir>./data/quaternius/medieval_village/</RemoteDir>
-  <RemoteName>License_Standard.txt</RemoteName>
+  <RemoteDir>./data/quaternius/modular_sci_fi/</RemoteDir>
+  <RemoteName>License_Source.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/quaternius/medieval_village/</RemoteDir>
-  <RemoteName>License_Standard.txt</RemoteName>
+  <RemoteDir>./data/quaternius/modular_sci_fi/</RemoteDir>
+  <RemoteName>License_Source.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/medieval_village/</RemoteDir>
-  <RemoteName>License_Standard.txt</RemoteName>
+  <RemoteDir>./data/quaternius/modular_sci_fi/</RemoteDir>
+  <RemoteName>License_Source.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="OSX64">
-  <RemoteDir>./data/quaternius/medieval_village/</RemoteDir>
-  <RemoteName>License_Standard.txt</RemoteName>
+  <RemoteDir>./data/quaternius/modular_sci_fi/</RemoteDir>
+  <RemoteName>License_Source.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="OSXARM64">
-  <RemoteDir>./data/quaternius/medieval_village/</RemoteDir>
-  <RemoteName>License_Standard.txt</RemoteName>
+  <RemoteDir>./data/quaternius/modular_sci_fi/</RemoteDir>
+  <RemoteName>License_Source.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/medieval_village/</RemoteDir>
-  <RemoteName>License_Standard.txt</RemoteName>
+  <RemoteDir>./data/quaternius/modular_sci_fi/</RemoteDir>
+  <RemoteName>License_Source.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/medieval_village/</RemoteDir>
-  <RemoteName>License_Standard.txt</RemoteName>
+  <RemoteDir>./data/quaternius/modular_sci_fi/</RemoteDir>
+  <RemoteName>License_Source.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -2674,50 +2768,50 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius\modular_sci_fi\License_Source.txt" Class="File">
+<DeployFile LocalName="data\quaternius\nature\License.txt" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/quaternius/modular_sci_fi/</RemoteDir>
-  <RemoteName>License_Source.txt</RemoteName>
+  <RemoteDir>./assets/quaternius/nature/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/quaternius/modular_sci_fi/</RemoteDir>
-  <RemoteName>License_Source.txt</RemoteName>
+  <RemoteDir>./assets/quaternius/nature/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="iOSDevice64">
-  <RemoteDir>./data/quaternius/modular_sci_fi/</RemoteDir>
-  <RemoteName>License_Source.txt</RemoteName>
+  <RemoteDir>./data/quaternius/nature/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/quaternius/modular_sci_fi/</RemoteDir>
-  <RemoteName>License_Source.txt</RemoteName>
+  <RemoteDir>./data/quaternius/nature/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/modular_sci_fi/</RemoteDir>
-  <RemoteName>License_Source.txt</RemoteName>
+  <RemoteDir>./data/quaternius/nature/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="OSX64">
-  <RemoteDir>./data/quaternius/modular_sci_fi/</RemoteDir>
-  <RemoteName>License_Source.txt</RemoteName>
+  <RemoteDir>./data/quaternius/nature/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="OSXARM64">
-  <RemoteDir>./data/quaternius/modular_sci_fi/</RemoteDir>
-  <RemoteName>License_Source.txt</RemoteName>
+  <RemoteDir>./data/quaternius/nature/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/modular_sci_fi/</RemoteDir>
-  <RemoteName>License_Source.txt</RemoteName>
+  <RemoteDir>./data/quaternius/nature/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/modular_sci_fi/</RemoteDir>
-  <RemoteName>License_Source.txt</RemoteName>
+  <RemoteDir>./data/quaternius/nature/</RemoteDir>
+  <RemoteName>License.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -3191,50 +3285,50 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\quaternius\nature\License.txt" Class="File">
+<DeployFile LocalName="data\quaternius\stylized_nature\License_Standard.txt" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/quaternius/nature/</RemoteDir>
-  <RemoteName>License.txt</RemoteName>
+  <RemoteDir>./assets/quaternius/stylized_nature/</RemoteDir>
+  <RemoteName>License_Standard.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/quaternius/nature/</RemoteDir>
-  <RemoteName>License.txt</RemoteName>
+  <RemoteDir>./assets/quaternius/stylized_nature/</RemoteDir>
+  <RemoteName>License_Standard.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="iOSDevice64">
-  <RemoteDir>./data/quaternius/nature/</RemoteDir>
-  <RemoteName>License.txt</RemoteName>
+  <RemoteDir>./data/quaternius/stylized_nature/</RemoteDir>
+  <RemoteName>License_Standard.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/quaternius/nature/</RemoteDir>
-  <RemoteName>License.txt</RemoteName>
+  <RemoteDir>./data/quaternius/stylized_nature/</RemoteDir>
+  <RemoteName>License_Standard.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/nature/</RemoteDir>
-  <RemoteName>License.txt</RemoteName>
+  <RemoteDir>./data/quaternius/stylized_nature/</RemoteDir>
+  <RemoteName>License_Standard.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="OSX64">
-  <RemoteDir>./data/quaternius/nature/</RemoteDir>
-  <RemoteName>License.txt</RemoteName>
+  <RemoteDir>./data/quaternius/stylized_nature/</RemoteDir>
+  <RemoteName>License_Standard.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="OSXARM64">
-  <RemoteDir>./data/quaternius/nature/</RemoteDir>
-  <RemoteName>License.txt</RemoteName>
+  <RemoteDir>./data/quaternius/stylized_nature/</RemoteDir>
+  <RemoteName>License_Standard.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/nature/</RemoteDir>
-  <RemoteName>License.txt</RemoteName>
+  <RemoteDir>./data/quaternius/stylized_nature/</RemoteDir>
+  <RemoteName>License_Standard.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/nature/</RemoteDir>
-  <RemoteName>License.txt</RemoteName>
+  <RemoteDir>./data/quaternius/stylized_nature/</RemoteDir>
+  <RemoteName>License_Standard.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -3376,100 +3470,6 @@
  <Platform Name="Win64">
   <RemoteDir>./data/quaternius/stylized_nature/glTF/</RemoteDir>
   <RemoteName>Rocks_Diffuse.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\quaternius\stylized_nature\License_Standard.txt" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/quaternius/stylized_nature/</RemoteDir>
-  <RemoteName>License_Standard.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/quaternius/stylized_nature/</RemoteDir>
-  <RemoteName>License_Standard.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/quaternius/stylized_nature/</RemoteDir>
-  <RemoteName>License_Standard.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/quaternius/stylized_nature/</RemoteDir>
-  <RemoteName>License_Standard.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/quaternius/stylized_nature/</RemoteDir>
-  <RemoteName>License_Standard.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/quaternius/stylized_nature/</RemoteDir>
-  <RemoteName>License_Standard.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/quaternius/stylized_nature/</RemoteDir>
-  <RemoteName>License_Standard.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/quaternius/stylized_nature/</RemoteDir>
-  <RemoteName>License_Standard.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/quaternius/stylized_nature/</RemoteDir>
-  <RemoteName>License_Standard.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\README.txt" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>

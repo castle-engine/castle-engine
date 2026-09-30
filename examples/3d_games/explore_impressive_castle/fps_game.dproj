@@ -2016,194 +2016,6 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\hud\box.png" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/hud/</RemoteDir>
-  <RemoteName>box.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/hud/</RemoteDir>
-  <RemoteName>box.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>box.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>box.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>box.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>box.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>box.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>box.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>box.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\hud\crosshair.png" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/hud/</RemoteDir>
-  <RemoteName>crosshair.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/hud/</RemoteDir>
-  <RemoteName>crosshair.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>crosshair.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>crosshair.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>crosshair.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>crosshair.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>crosshair.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>crosshair.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>crosshair.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\hud\gradient3.png" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/hud/</RemoteDir>
-  <RemoteName>gradient3.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/hud/</RemoteDir>
-  <RemoteName>gradient3.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>gradient3.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>gradient3.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>gradient3.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>gradient3.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>gradient3.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>gradient3.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>gradient3.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\hud\healthpack_placeholder.png" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/hud/</RemoteDir>
-  <RemoteName>healthpack_placeholder.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/hud/</RemoteDir>
-  <RemoteName>healthpack_placeholder.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>healthpack_placeholder.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>healthpack_placeholder.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>healthpack_placeholder.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>healthpack_placeholder.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>healthpack_placeholder.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>healthpack_placeholder.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>healthpack_placeholder.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
 <DeployFile LocalName="data\hud\HP_Bar_New.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/hud/</RemoteDir>
@@ -2627,6 +2439,993 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
+<DeployFile LocalName="data\hud\Simple_compass_rose.svg.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/hud/</RemoteDir>
+  <RemoteName>Simple_compass_rose.svg.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/hud/</RemoteDir>
+  <RemoteName>Simple_compass_rose.svg.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Simple_compass_rose.svg.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Simple_compass_rose.svg.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Simple_compass_rose.svg.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Simple_compass_rose.svg.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Simple_compass_rose.svg.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Simple_compass_rose.svg.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Simple_compass_rose.svg.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\hud\Slot_Ammo.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/hud/</RemoteDir>
+  <RemoteName>Slot_Ammo.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/hud/</RemoteDir>
+  <RemoteName>Slot_Ammo.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Ammo.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Ammo.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Ammo.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Ammo.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Ammo.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Ammo.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Ammo.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\hud\Slot_Ammo2.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/hud/</RemoteDir>
+  <RemoteName>Slot_Ammo2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/hud/</RemoteDir>
+  <RemoteName>Slot_Ammo2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Ammo2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Ammo2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Ammo2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Ammo2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Ammo2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Ammo2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Ammo2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\hud\Slot_Bg1.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/hud/</RemoteDir>
+  <RemoteName>Slot_Bg1.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/hud/</RemoteDir>
+  <RemoteName>Slot_Bg1.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg1.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg1.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg1.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg1.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg1.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg1.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg1.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\hud\Slot_Bg2.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/hud/</RemoteDir>
+  <RemoteName>Slot_Bg2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/hud/</RemoteDir>
+  <RemoteName>Slot_Bg2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\hud\Slot_Bg_Bolts1-focused.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Bolts1-focused.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Bolts1-focused.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Bolts1-focused.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Bolts1-focused.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Bolts1-focused.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Bolts1-focused.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Bolts1-focused.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Bolts1-focused.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Bolts1-focused.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\hud\Slot_Bg_Bolts1-pressed.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Bolts1-pressed.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Bolts1-pressed.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Bolts1-pressed.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Bolts1-pressed.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Bolts1-pressed.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Bolts1-pressed.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Bolts1-pressed.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Bolts1-pressed.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Bolts1-pressed.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\hud\Slot_Bg_Bolts1.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Bolts1.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Bolts1.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Bolts1.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Bolts1.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Bolts1.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Bolts1.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Bolts1.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Bolts1.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Bolts1.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\hud\Slot_Bg_Bolts2.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Bolts2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Bolts2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Bolts2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Bolts2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Bolts2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Bolts2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Bolts2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Bolts2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Bolts2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\hud\Slot_Bg_Only.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Only.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Only.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Only.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Only.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Only.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Only.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Only.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Only.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Only.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\hud\Slot_Bg_Only2.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Only2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Only2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Only2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Only2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Only2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Only2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Only2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Only2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Bg_Only2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\hud\Slot_Weapon.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/hud/</RemoteDir>
+  <RemoteName>Slot_Weapon.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/hud/</RemoteDir>
+  <RemoteName>Slot_Weapon.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Weapon.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Weapon.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Weapon.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Weapon.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Weapon.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Weapon.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Weapon.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\hud\Slot_Weapon_BG.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/hud/</RemoteDir>
+  <RemoteName>Slot_Weapon_BG.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/hud/</RemoteDir>
+  <RemoteName>Slot_Weapon_BG.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Weapon_BG.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Weapon_BG.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Weapon_BG.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Weapon_BG.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Weapon_BG.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Weapon_BG.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Weapon_BG.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\hud\Slot_Weapon_Gear.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/hud/</RemoteDir>
+  <RemoteName>Slot_Weapon_Gear.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/hud/</RemoteDir>
+  <RemoteName>Slot_Weapon_Gear.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Weapon_Gear.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Weapon_Gear.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Weapon_Gear.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Weapon_Gear.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Weapon_Gear.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Weapon_Gear.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_Weapon_Gear.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\hud\Slot_image.svg" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/hud/</RemoteDir>
+  <RemoteName>Slot_image.svg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/hud/</RemoteDir>
+  <RemoteName>Slot_image.svg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_image.svg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_image.svg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_image.svg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_image.svg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_image.svg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_image.svg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_image.svg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\hud\Slot_image2.svg" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/hud/</RemoteDir>
+  <RemoteName>Slot_image2.svg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/hud/</RemoteDir>
+  <RemoteName>Slot_image2.svg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_image2.svg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_image2.svg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_image2.svg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_image2.svg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_image2.svg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_image2.svg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Slot_image2.svg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\hud\Weapon_slot.svg" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/hud/</RemoteDir>
+  <RemoteName>Weapon_slot.svg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/hud/</RemoteDir>
+  <RemoteName>Weapon_slot.svg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Weapon_slot.svg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Weapon_slot.svg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Weapon_slot.svg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Weapon_slot.svg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Weapon_slot.svg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Weapon_slot.svg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>Weapon_slot.svg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\hud\box.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/hud/</RemoteDir>
+  <RemoteName>box.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/hud/</RemoteDir>
+  <RemoteName>box.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>box.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>box.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>box.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>box.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>box.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>box.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>box.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\hud\crosshair.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/hud/</RemoteDir>
+  <RemoteName>crosshair.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/hud/</RemoteDir>
+  <RemoteName>crosshair.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>crosshair.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>crosshair.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>crosshair.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>crosshair.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>crosshair.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>crosshair.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>crosshair.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\hud\gradient3.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/hud/</RemoteDir>
+  <RemoteName>gradient3.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/hud/</RemoteDir>
+  <RemoteName>gradient3.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>gradient3.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>gradient3.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>gradient3.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>gradient3.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>gradient3.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>gradient3.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>gradient3.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\hud\healthpack_placeholder.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/hud/</RemoteDir>
+  <RemoteName>healthpack_placeholder.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/hud/</RemoteDir>
+  <RemoteName>healthpack_placeholder.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>healthpack_placeholder.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>healthpack_placeholder.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>healthpack_placeholder.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>healthpack_placeholder.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>healthpack_placeholder.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>healthpack_placeholder.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/hud/</RemoteDir>
+  <RemoteName>healthpack_placeholder.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
 <DeployFile LocalName="data\hud\music_icon.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/hud/</RemoteDir>
@@ -2815,53 +3614,6 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\hud\Simple_compass_rose.svg.png" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/hud/</RemoteDir>
-  <RemoteName>Simple_compass_rose.svg.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/hud/</RemoteDir>
-  <RemoteName>Simple_compass_rose.svg.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Simple_compass_rose.svg.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Simple_compass_rose.svg.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Simple_compass_rose.svg.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Simple_compass_rose.svg.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Simple_compass_rose.svg.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Simple_compass_rose.svg.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Simple_compass_rose.svg.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
 <DeployFile LocalName="data\hud\slider_volume_thumb.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/hud/</RemoteDir>
@@ -2909,711 +3661,6 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\hud\Slot_Ammo.png" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/hud/</RemoteDir>
-  <RemoteName>Slot_Ammo.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/hud/</RemoteDir>
-  <RemoteName>Slot_Ammo.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Ammo.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Ammo.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Ammo.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Ammo.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Ammo.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Ammo.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Ammo.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\hud\Slot_Ammo2.png" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/hud/</RemoteDir>
-  <RemoteName>Slot_Ammo2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/hud/</RemoteDir>
-  <RemoteName>Slot_Ammo2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Ammo2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Ammo2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Ammo2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Ammo2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Ammo2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Ammo2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Ammo2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\hud\Slot_Bg_Bolts1.png" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Bolts1.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Bolts1.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Bolts1.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Bolts1.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Bolts1.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Bolts1.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Bolts1.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Bolts1.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Bolts1.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\hud\Slot_Bg_Bolts1-focused.png" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Bolts1-focused.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Bolts1-focused.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Bolts1-focused.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Bolts1-focused.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Bolts1-focused.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Bolts1-focused.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Bolts1-focused.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Bolts1-focused.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Bolts1-focused.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\hud\Slot_Bg_Bolts1-pressed.png" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Bolts1-pressed.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Bolts1-pressed.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Bolts1-pressed.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Bolts1-pressed.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Bolts1-pressed.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Bolts1-pressed.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Bolts1-pressed.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Bolts1-pressed.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Bolts1-pressed.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\hud\Slot_Bg_Bolts2.png" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Bolts2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Bolts2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Bolts2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Bolts2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Bolts2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Bolts2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Bolts2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Bolts2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Bolts2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\hud\Slot_Bg_Only.png" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Only.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Only.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Only.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Only.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Only.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Only.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Only.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Only.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Only.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\hud\Slot_Bg_Only2.png" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Only2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Only2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Only2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Only2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Only2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Only2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Only2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Only2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg_Only2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\hud\Slot_Bg1.png" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/hud/</RemoteDir>
-  <RemoteName>Slot_Bg1.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/hud/</RemoteDir>
-  <RemoteName>Slot_Bg1.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg1.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg1.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg1.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg1.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg1.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg1.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg1.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\hud\Slot_Bg2.png" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/hud/</RemoteDir>
-  <RemoteName>Slot_Bg2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/hud/</RemoteDir>
-  <RemoteName>Slot_Bg2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Bg2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\hud\Slot_image.svg" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/hud/</RemoteDir>
-  <RemoteName>Slot_image.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/hud/</RemoteDir>
-  <RemoteName>Slot_image.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_image.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_image.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_image.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_image.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_image.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_image.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_image.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\hud\Slot_image2.svg" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/hud/</RemoteDir>
-  <RemoteName>Slot_image2.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/hud/</RemoteDir>
-  <RemoteName>Slot_image2.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_image2.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_image2.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_image2.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_image2.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_image2.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_image2.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_image2.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\hud\Slot_Weapon.png" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/hud/</RemoteDir>
-  <RemoteName>Slot_Weapon.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/hud/</RemoteDir>
-  <RemoteName>Slot_Weapon.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Weapon.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Weapon.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Weapon.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Weapon.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Weapon.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Weapon.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Weapon.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\hud\Slot_Weapon_BG.png" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/hud/</RemoteDir>
-  <RemoteName>Slot_Weapon_BG.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/hud/</RemoteDir>
-  <RemoteName>Slot_Weapon_BG.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Weapon_BG.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Weapon_BG.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Weapon_BG.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Weapon_BG.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Weapon_BG.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Weapon_BG.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Weapon_BG.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\hud\Slot_Weapon_Gear.png" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/hud/</RemoteDir>
-  <RemoteName>Slot_Weapon_Gear.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/hud/</RemoteDir>
-  <RemoteName>Slot_Weapon_Gear.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Weapon_Gear.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Weapon_Gear.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Weapon_Gear.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Weapon_Gear.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Weapon_Gear.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Weapon_Gear.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Slot_Weapon_Gear.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
 <DeployFile LocalName="data\hud\viniette01.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/hud/</RemoteDir>
@@ -3658,53 +3705,6 @@
  <Platform Name="Win64">
   <RemoteDir>./data/hud/</RemoteDir>
   <RemoteName>viniette01.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\hud\Weapon_slot.svg" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/hud/</RemoteDir>
-  <RemoteName>Weapon_slot.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/hud/</RemoteDir>
-  <RemoteName>Weapon_slot.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Weapon_slot.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Weapon_slot.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Weapon_slot.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Weapon_slot.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Weapon_slot.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Weapon_slot.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/hud/</RemoteDir>
-  <RemoteName>Weapon_slot.svg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -4504,6 +4504,100 @@
  <Platform Name="Win64">
   <RemoteDir>./data/level/</RemoteDir>
   <RemoteName>AUTHORS.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\level\Tree.bin" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/level/</RemoteDir>
+  <RemoteName>Tree.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/level/</RemoteDir>
+  <RemoteName>Tree.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/level/</RemoteDir>
+  <RemoteName>Tree.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/level/</RemoteDir>
+  <RemoteName>Tree.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/level/</RemoteDir>
+  <RemoteName>Tree.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/level/</RemoteDir>
+  <RemoteName>Tree.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/level/</RemoteDir>
+  <RemoteName>Tree.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/level/</RemoteDir>
+  <RemoteName>Tree.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/level/</RemoteDir>
+  <RemoteName>Tree.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\level\Tree.gltf" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/level/</RemoteDir>
+  <RemoteName>Tree.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/level/</RemoteDir>
+  <RemoteName>Tree.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/level/</RemoteDir>
+  <RemoteName>Tree.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/level/</RemoteDir>
+  <RemoteName>Tree.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/level/</RemoteDir>
+  <RemoteName>Tree.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/level/</RemoteDir>
+  <RemoteName>Tree.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/level/</RemoteDir>
+  <RemoteName>Tree.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/level/</RemoteDir>
+  <RemoteName>Tree.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/level/</RemoteDir>
+  <RemoteName>Tree.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -5397,100 +5491,6 @@
  <Platform Name="Win64">
   <RemoteDir>./data/level/textures/</RemoteDir>
   <RemoteName>gold_R.tif</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\level\Tree.bin" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/level/</RemoteDir>
-  <RemoteName>Tree.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/level/</RemoteDir>
-  <RemoteName>Tree.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/level/</RemoteDir>
-  <RemoteName>Tree.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/level/</RemoteDir>
-  <RemoteName>Tree.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/</RemoteDir>
-  <RemoteName>Tree.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/level/</RemoteDir>
-  <RemoteName>Tree.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/level/</RemoteDir>
-  <RemoteName>Tree.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/</RemoteDir>
-  <RemoteName>Tree.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/</RemoteDir>
-  <RemoteName>Tree.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\level\Tree.gltf" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/level/</RemoteDir>
-  <RemoteName>Tree.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/level/</RemoteDir>
-  <RemoteName>Tree.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/level/</RemoteDir>
-  <RemoteName>Tree.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/level/</RemoteDir>
-  <RemoteName>Tree.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/level/</RemoteDir>
-  <RemoteName>Tree.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/level/</RemoteDir>
-  <RemoteName>Tree.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/level/</RemoteDir>
-  <RemoteName>Tree.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/level/</RemoteDir>
-  <RemoteName>Tree.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/level/</RemoteDir>
-  <RemoteName>Tree.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>

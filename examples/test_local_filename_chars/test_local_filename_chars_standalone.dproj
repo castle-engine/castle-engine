@@ -277,100 +277,6 @@
      to non-Windows targets,
      see https://castle-engine.io/delphi_linux#data_files_deployment .
 -->
-<DeployFile LocalName="data\ascii_name.txt" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
-  <RemoteName>ascii_name.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
-  <RemoteName>ascii_name.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>ascii_name.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>ascii_name.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>ascii_name.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>ascii_name.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>ascii_name.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>ascii_name.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>ascii_name.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\样例中文文本\name with Chinese chars 样例中文文本.txt" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/样例中文文本/</RemoteDir>
-  <RemoteName>name with Chinese chars 样例中文文本.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/样例中文文本/</RemoteDir>
-  <RemoteName>name with Chinese chars 样例中文文本.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/样例中文文本/</RemoteDir>
-  <RemoteName>name with Chinese chars 样例中文文本.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/样例中文文本/</RemoteDir>
-  <RemoteName>name with Chinese chars 样例中文文本.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/样例中文文本/</RemoteDir>
-  <RemoteName>name with Chinese chars 样例中文文本.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/样例中文文本/</RemoteDir>
-  <RemoteName>name with Chinese chars 样例中文文本.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/样例中文文本/</RemoteDir>
-  <RemoteName>name with Chinese chars 样例中文文本.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/样例中文文本/</RemoteDir>
-  <RemoteName>name with Chinese chars 样例中文文本.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/样例中文文本/</RemoteDir>
-  <RemoteName>name with Chinese chars 样例中文文本.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
 <DeployFile LocalName="data\DejaVuSans name with Russian chars образец русского текста.ttf" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/</RemoteDir>
@@ -418,50 +324,50 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\образец русского текста\name with Russian chars образец русского текста.txt" Class="File">
+<DeployFile LocalName="data\ascii_name.txt" Class="File">
  <Platform Name="Android">
-  <RemoteDir>./assets/образец русского текста/</RemoteDir>
-  <RemoteName>name with Russian chars образец русского текста.txt</RemoteName>
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>ascii_name.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
-  <RemoteDir>./assets/образец русского текста/</RemoteDir>
-  <RemoteName>name with Russian chars образец русского текста.txt</RemoteName>
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>ascii_name.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="iOSDevice64">
-  <RemoteDir>./data/образец русского текста/</RemoteDir>
-  <RemoteName>name with Russian chars образец русского текста.txt</RemoteName>
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>ascii_name.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/образец русского текста/</RemoteDir>
-  <RemoteName>name with Russian chars образец русского текста.txt</RemoteName>
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>ascii_name.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Linux64">
-  <RemoteDir>./data/образец русского текста/</RemoteDir>
-  <RemoteName>name with Russian chars образец русского текста.txt</RemoteName>
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>ascii_name.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="OSX64">
-  <RemoteDir>./data/образец русского текста/</RemoteDir>
-  <RemoteName>name with Russian chars образец русского текста.txt</RemoteName>
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>ascii_name.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="OSXARM64">
-  <RemoteDir>./data/образец русского текста/</RemoteDir>
-  <RemoteName>name with Russian chars образец русского текста.txt</RemoteName>
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>ascii_name.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/образец русского текста/</RemoteDir>
-  <RemoteName>name with Russian chars образец русского текста.txt</RemoteName>
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>ascii_name.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/образец русского текста/</RemoteDir>
-  <RemoteName>name with Russian chars образец русского текста.txt</RemoteName>
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>ascii_name.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -744,6 +650,100 @@
  <Platform Name="Win64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>reference to file with Russian chars.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\образец русского текста\name with Russian chars образец русского текста.txt" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/образец русского текста/</RemoteDir>
+  <RemoteName>name with Russian chars образец русского текста.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/образец русского текста/</RemoteDir>
+  <RemoteName>name with Russian chars образец русского текста.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/образец русского текста/</RemoteDir>
+  <RemoteName>name with Russian chars образец русского текста.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/образец русского текста/</RemoteDir>
+  <RemoteName>name with Russian chars образец русского текста.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/образец русского текста/</RemoteDir>
+  <RemoteName>name with Russian chars образец русского текста.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/образец русского текста/</RemoteDir>
+  <RemoteName>name with Russian chars образец русского текста.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/образец русского текста/</RemoteDir>
+  <RemoteName>name with Russian chars образец русского текста.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/образец русского текста/</RemoteDir>
+  <RemoteName>name with Russian chars образец русского текста.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/образец русского текста/</RemoteDir>
+  <RemoteName>name with Russian chars образец русского текста.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\样例中文文本\name with Chinese chars 样例中文文本.txt" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/样例中文文本/</RemoteDir>
+  <RemoteName>name with Chinese chars 样例中文文本.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/样例中文文本/</RemoteDir>
+  <RemoteName>name with Chinese chars 样例中文文本.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/样例中文文本/</RemoteDir>
+  <RemoteName>name with Chinese chars 样例中文文本.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/样例中文文本/</RemoteDir>
+  <RemoteName>name with Chinese chars 样例中文文本.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/样例中文文本/</RemoteDir>
+  <RemoteName>name with Chinese chars 样例中文文本.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/样例中文文本/</RemoteDir>
+  <RemoteName>name with Chinese chars 样例中文文本.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/样例中文文本/</RemoteDir>
+  <RemoteName>name with Chinese chars 样例中文文本.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/样例中文文本/</RemoteDir>
+  <RemoteName>name with Chinese chars 样例中文文本.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/样例中文文本/</RemoteDir>
+  <RemoteName>name with Chinese chars 样例中文文本.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>

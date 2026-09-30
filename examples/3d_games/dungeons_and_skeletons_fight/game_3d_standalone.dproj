@@ -324,6 +324,53 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
+<DeployFile LocalName="data\README.txt" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\level-dungeon.bin" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/dungeon_modular_level/</RemoteDir>
@@ -700,100 +747,6 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level\textures\gate.png" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>gate.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>gate.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>gate.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>gate.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>gate.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>gate.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>gate.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>gate.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>gate.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level\textures\gate_norm.png" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>gate_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>gate_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>gate_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>gate_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>gate_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>gate_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>gate_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>gate_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>gate_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\gate-2.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
@@ -888,144 +841,97 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level\textures\ground-1.png" Class="File">
+<DeployFile LocalName="data\dungeon_modular_level\textures\gate.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1.png</RemoteName>
+  <RemoteName>gate.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
   <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1.png</RemoteName>
+  <RemoteName>gate.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="iOSDevice64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1.png</RemoteName>
+  <RemoteName>gate.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="iOSSimARM64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1.png</RemoteName>
+  <RemoteName>gate.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Linux64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1.png</RemoteName>
+  <RemoteName>gate.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="OSX64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1.png</RemoteName>
+  <RemoteName>gate.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="OSXARM64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1.png</RemoteName>
+  <RemoteName>gate.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1.png</RemoteName>
+  <RemoteName>gate.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1.png</RemoteName>
+  <RemoteName>gate.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level\textures\ground-1_norm.png" Class="File">
+<DeployFile LocalName="data\dungeon_modular_level\textures\gate_norm.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1_norm.png</RemoteName>
+  <RemoteName>gate_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
   <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1_norm.png</RemoteName>
+  <RemoteName>gate_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="iOSDevice64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1_norm.png</RemoteName>
+  <RemoteName>gate_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="iOSSimARM64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1_norm.png</RemoteName>
+  <RemoteName>gate_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Linux64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1_norm.png</RemoteName>
+  <RemoteName>gate_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="OSX64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1_norm.png</RemoteName>
+  <RemoteName>gate_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="OSXARM64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1_norm.png</RemoteName>
+  <RemoteName>gate_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1_norm.png</RemoteName>
+  <RemoteName>gate_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1_norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level\textures\ground-1_spec.png" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>ground-1_spec.png</RemoteName>
+  <RemoteName>gate_norm.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -1167,6 +1073,147 @@
  <Platform Name="Win64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
   <RemoteName>ground-1-darkness_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\dungeon_modular_level\textures\ground-1.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\dungeon_modular_level\textures\ground-1_norm.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1_norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\dungeon_modular_level\textures\ground-1_spec.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1_spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>ground-1_spec.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -2063,6 +2110,147 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
+<DeployFile LocalName="data\dungeon_modular_level\textures\tile-ground2-norm.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2-norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2-norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2-norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2-norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2-norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2-norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2-norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2-norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2-norm.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\dungeon_modular_level\textures\tile-ground2-spec.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2-spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2-spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2-spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2-spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2-spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2-spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2-spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2-spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2-spec.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\dungeon_modular_level\textures\tile-ground2.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
+  <RemoteName>tile-ground2.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
 <DeployFile LocalName="data\dungeon_modular_level\textures\tile_tantiles.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
@@ -2201,147 +2389,6 @@
  <Platform Name="Win64">
   <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
   <RemoteName>tile_tantiles_spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level\textures\tile-ground2.png" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile-ground2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile-ground2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile-ground2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile-ground2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile-ground2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile-ground2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile-ground2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile-ground2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile-ground2.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level\textures\tile-ground2-norm.png" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile-ground2-norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile-ground2-norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile-ground2-norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile-ground2-norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile-ground2-norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile-ground2-norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile-ground2-norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile-ground2-norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile-ground2-norm.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\dungeon_modular_level\textures\tile-ground2-spec.png" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile-ground2-spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile-ground2-spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile-ground2-spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile-ground2-spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile-ground2-spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile-ground2-spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile-ground2-spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile-ground2-spec.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/dungeon_modular_level/textures/</RemoteDir>
-  <RemoteName>tile-ground2-spec.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -3000,53 +3047,6 @@
  <Platform Name="Win64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>gameviewwin.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\README.txt" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>

@@ -324,6 +324,53 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
+<DeployFile LocalName="data\README.txt" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
 <DeployFile LocalName="data\gameviewmain.castle-user-interface" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/</RemoteDir>
@@ -1170,53 +1217,6 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_float_N_1_hh.png" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
-  <RemoteName>observer_float_N_1_hh.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
-  <RemoteName>observer_float_N_1_hh.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
-  <RemoteName>observer_float_N_1_hh.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
-  <RemoteName>observer_float_N_1_hh.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
-  <RemoteName>observer_float_N_1_hh.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
-  <RemoteName>observer_float_N_1_hh.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
-  <RemoteName>observer_float_N_1_hh.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
-  <RemoteName>observer_float_N_1_hh.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
-  <RemoteName>observer_float_N_1_hh.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
 <DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_float_NE_1_hh.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
@@ -1311,50 +1311,50 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_float_S_1_hh.png" Class="File">
+<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_float_N_1_hh.png" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
-  <RemoteName>observer_float_S_1_hh.png</RemoteName>
+  <RemoteName>observer_float_N_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Android64">
   <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
-  <RemoteName>observer_float_S_1_hh.png</RemoteName>
+  <RemoteName>observer_float_N_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="iOSDevice64">
   <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
-  <RemoteName>observer_float_S_1_hh.png</RemoteName>
+  <RemoteName>observer_float_N_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="iOSSimARM64">
   <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
-  <RemoteName>observer_float_S_1_hh.png</RemoteName>
+  <RemoteName>observer_float_N_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Linux64">
   <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
-  <RemoteName>observer_float_S_1_hh.png</RemoteName>
+  <RemoteName>observer_float_N_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="OSX64">
   <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
-  <RemoteName>observer_float_S_1_hh.png</RemoteName>
+  <RemoteName>observer_float_N_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="OSXARM64">
   <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
-  <RemoteName>observer_float_S_1_hh.png</RemoteName>
+  <RemoteName>observer_float_N_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
   <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
-  <RemoteName>observer_float_S_1_hh.png</RemoteName>
+  <RemoteName>observer_float_N_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
   <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
-  <RemoteName>observer_float_S_1_hh.png</RemoteName>
+  <RemoteName>observer_float_N_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -1449,6 +1449,53 @@
  <Platform Name="Win64">
   <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_float_SW_1_hh.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_float_S_1_hh.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteName>observer_float_S_1_hh.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteName>observer_float_S_1_hh.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteName>observer_float_S_1_hh.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteName>observer_float_S_1_hh.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteName>observer_float_S_1_hh.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteName>observer_float_S_1_hh.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteName>observer_float_S_1_hh.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteName>observer_float_S_1_hh.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteName>observer_float_S_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -2107,53 +2154,6 @@
  <Platform Name="Win64">
   <RemoteDir>./data/map_objects/trees/</RemoteDir>
   <RemoteName>kambi_birch_01_mature_winter_thc.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\README.txt" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>

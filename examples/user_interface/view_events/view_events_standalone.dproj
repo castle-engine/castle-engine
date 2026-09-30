@@ -324,53 +324,6 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\biplane.png" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
-  <RemoteName>biplane.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
-  <RemoteName>biplane.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>biplane.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>biplane.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>biplane.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>biplane.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>biplane.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>biplane.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>biplane.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
 <DeployFile LocalName="data\CastleSettings.xml" Class="File">
  <Platform Name="Android">
   <RemoteDir>./assets/</RemoteDir>
@@ -415,6 +368,100 @@
  <Platform Name="Win64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\README.txt" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\biplane.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>biplane.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>biplane.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>biplane.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>biplane.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>biplane.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>biplane.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>biplane.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>biplane.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>biplane.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -556,6 +603,288 @@
  <Platform Name="Win64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>mountains_background.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\parallax-industrial-pack\layers\skill-desc_0000_foreground.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/parallax-industrial-pack/layers/</RemoteDir>
+  <RemoteName>skill-desc_0000_foreground.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/parallax-industrial-pack/layers/</RemoteDir>
+  <RemoteName>skill-desc_0000_foreground.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
+  <RemoteName>skill-desc_0000_foreground.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
+  <RemoteName>skill-desc_0000_foreground.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
+  <RemoteName>skill-desc_0000_foreground.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
+  <RemoteName>skill-desc_0000_foreground.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
+  <RemoteName>skill-desc_0000_foreground.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
+  <RemoteName>skill-desc_0000_foreground.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
+  <RemoteName>skill-desc_0000_foreground.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\parallax-industrial-pack\layers\skill-desc_0001_buildings.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/parallax-industrial-pack/layers/</RemoteDir>
+  <RemoteName>skill-desc_0001_buildings.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/parallax-industrial-pack/layers/</RemoteDir>
+  <RemoteName>skill-desc_0001_buildings.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
+  <RemoteName>skill-desc_0001_buildings.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
+  <RemoteName>skill-desc_0001_buildings.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
+  <RemoteName>skill-desc_0001_buildings.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
+  <RemoteName>skill-desc_0001_buildings.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
+  <RemoteName>skill-desc_0001_buildings.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
+  <RemoteName>skill-desc_0001_buildings.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
+  <RemoteName>skill-desc_0001_buildings.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\parallax-industrial-pack\layers\skill-desc_0002_far-buildings.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/parallax-industrial-pack/layers/</RemoteDir>
+  <RemoteName>skill-desc_0002_far-buildings.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/parallax-industrial-pack/layers/</RemoteDir>
+  <RemoteName>skill-desc_0002_far-buildings.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
+  <RemoteName>skill-desc_0002_far-buildings.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
+  <RemoteName>skill-desc_0002_far-buildings.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
+  <RemoteName>skill-desc_0002_far-buildings.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
+  <RemoteName>skill-desc_0002_far-buildings.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
+  <RemoteName>skill-desc_0002_far-buildings.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
+  <RemoteName>skill-desc_0002_far-buildings.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
+  <RemoteName>skill-desc_0002_far-buildings.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\parallax-industrial-pack\layers\skill-desc_0003_bg.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/parallax-industrial-pack/layers/</RemoteDir>
+  <RemoteName>skill-desc_0003_bg.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/parallax-industrial-pack/layers/</RemoteDir>
+  <RemoteName>skill-desc_0003_bg.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
+  <RemoteName>skill-desc_0003_bg.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
+  <RemoteName>skill-desc_0003_bg.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
+  <RemoteName>skill-desc_0003_bg.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
+  <RemoteName>skill-desc_0003_bg.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
+  <RemoteName>skill-desc_0003_bg.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
+  <RemoteName>skill-desc_0003_bg.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
+  <RemoteName>skill-desc_0003_bg.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\parallax-industrial-pack\license.txt" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/parallax-industrial-pack/</RemoteDir>
+  <RemoteName>license.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/parallax-industrial-pack/</RemoteDir>
+  <RemoteName>license.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/parallax-industrial-pack/</RemoteDir>
+  <RemoteName>license.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/parallax-industrial-pack/</RemoteDir>
+  <RemoteName>license.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/parallax-industrial-pack/</RemoteDir>
+  <RemoteName>license.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/parallax-industrial-pack/</RemoteDir>
+  <RemoteName>license.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/parallax-industrial-pack/</RemoteDir>
+  <RemoteName>license.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/parallax-industrial-pack/</RemoteDir>
+  <RemoteName>license.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/parallax-industrial-pack/</RemoteDir>
+  <RemoteName>license.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\parallax-industrial-pack\parallax-industrial.psd" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/parallax-industrial-pack/</RemoteDir>
+  <RemoteName>parallax-industrial.psd</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/parallax-industrial-pack/</RemoteDir>
+  <RemoteName>parallax-industrial.psd</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/parallax-industrial-pack/</RemoteDir>
+  <RemoteName>parallax-industrial.psd</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/parallax-industrial-pack/</RemoteDir>
+  <RemoteName>parallax-industrial.psd</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Linux64">
+  <RemoteDir>./data/parallax-industrial-pack/</RemoteDir>
+  <RemoteName>parallax-industrial.psd</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/parallax-industrial-pack/</RemoteDir>
+  <RemoteName>parallax-industrial.psd</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
+  <RemoteDir>./data/parallax-industrial-pack/</RemoteDir>
+  <RemoteName>parallax-industrial.psd</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/parallax-industrial-pack/</RemoteDir>
+  <RemoteName>parallax-industrial.psd</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/parallax-industrial-pack/</RemoteDir>
+  <RemoteName>parallax-industrial.psd</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -885,335 +1214,6 @@
  <Platform Name="Win64">
   <RemoteDir>./data/parallax_mountain_pack/</RemoteDir>
   <RemoteName>parallax-mountain.psd</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\parallax-industrial-pack\layers\skill-desc_0000_foreground.png" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/parallax-industrial-pack/layers/</RemoteDir>
-  <RemoteName>skill-desc_0000_foreground.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/parallax-industrial-pack/layers/</RemoteDir>
-  <RemoteName>skill-desc_0000_foreground.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
-  <RemoteName>skill-desc_0000_foreground.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
-  <RemoteName>skill-desc_0000_foreground.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
-  <RemoteName>skill-desc_0000_foreground.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
-  <RemoteName>skill-desc_0000_foreground.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
-  <RemoteName>skill-desc_0000_foreground.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
-  <RemoteName>skill-desc_0000_foreground.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
-  <RemoteName>skill-desc_0000_foreground.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\parallax-industrial-pack\layers\skill-desc_0001_buildings.png" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/parallax-industrial-pack/layers/</RemoteDir>
-  <RemoteName>skill-desc_0001_buildings.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/parallax-industrial-pack/layers/</RemoteDir>
-  <RemoteName>skill-desc_0001_buildings.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
-  <RemoteName>skill-desc_0001_buildings.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
-  <RemoteName>skill-desc_0001_buildings.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
-  <RemoteName>skill-desc_0001_buildings.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
-  <RemoteName>skill-desc_0001_buildings.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
-  <RemoteName>skill-desc_0001_buildings.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
-  <RemoteName>skill-desc_0001_buildings.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
-  <RemoteName>skill-desc_0001_buildings.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\parallax-industrial-pack\layers\skill-desc_0002_far-buildings.png" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/parallax-industrial-pack/layers/</RemoteDir>
-  <RemoteName>skill-desc_0002_far-buildings.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/parallax-industrial-pack/layers/</RemoteDir>
-  <RemoteName>skill-desc_0002_far-buildings.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
-  <RemoteName>skill-desc_0002_far-buildings.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
-  <RemoteName>skill-desc_0002_far-buildings.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
-  <RemoteName>skill-desc_0002_far-buildings.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
-  <RemoteName>skill-desc_0002_far-buildings.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
-  <RemoteName>skill-desc_0002_far-buildings.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
-  <RemoteName>skill-desc_0002_far-buildings.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
-  <RemoteName>skill-desc_0002_far-buildings.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\parallax-industrial-pack\layers\skill-desc_0003_bg.png" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/parallax-industrial-pack/layers/</RemoteDir>
-  <RemoteName>skill-desc_0003_bg.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/parallax-industrial-pack/layers/</RemoteDir>
-  <RemoteName>skill-desc_0003_bg.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
-  <RemoteName>skill-desc_0003_bg.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
-  <RemoteName>skill-desc_0003_bg.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
-  <RemoteName>skill-desc_0003_bg.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
-  <RemoteName>skill-desc_0003_bg.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
-  <RemoteName>skill-desc_0003_bg.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
-  <RemoteName>skill-desc_0003_bg.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/parallax-industrial-pack/layers/</RemoteDir>
-  <RemoteName>skill-desc_0003_bg.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\parallax-industrial-pack\license.txt" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/parallax-industrial-pack/</RemoteDir>
-  <RemoteName>license.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/parallax-industrial-pack/</RemoteDir>
-  <RemoteName>license.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/parallax-industrial-pack/</RemoteDir>
-  <RemoteName>license.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/parallax-industrial-pack/</RemoteDir>
-  <RemoteName>license.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/parallax-industrial-pack/</RemoteDir>
-  <RemoteName>license.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/parallax-industrial-pack/</RemoteDir>
-  <RemoteName>license.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/parallax-industrial-pack/</RemoteDir>
-  <RemoteName>license.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/parallax-industrial-pack/</RemoteDir>
-  <RemoteName>license.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/parallax-industrial-pack/</RemoteDir>
-  <RemoteName>license.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\parallax-industrial-pack\parallax-industrial.psd" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/parallax-industrial-pack/</RemoteDir>
-  <RemoteName>parallax-industrial.psd</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/parallax-industrial-pack/</RemoteDir>
-  <RemoteName>parallax-industrial.psd</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/parallax-industrial-pack/</RemoteDir>
-  <RemoteName>parallax-industrial.psd</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/parallax-industrial-pack/</RemoteDir>
-  <RemoteName>parallax-industrial.psd</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/parallax-industrial-pack/</RemoteDir>
-  <RemoteName>parallax-industrial.psd</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/parallax-industrial-pack/</RemoteDir>
-  <RemoteName>parallax-industrial.psd</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/parallax-industrial-pack/</RemoteDir>
-  <RemoteName>parallax-industrial.psd</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/parallax-industrial-pack/</RemoteDir>
-  <RemoteName>parallax-industrial.psd</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/parallax-industrial-pack/</RemoteDir>
-  <RemoteName>parallax-industrial.psd</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\README.txt" Class="File">
- <Platform Name="Android">
-  <RemoteDir>./assets/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Android64">
-  <RemoteDir>./assets/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSDevice64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="iOSSimARM64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSX64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="OSXARM64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
