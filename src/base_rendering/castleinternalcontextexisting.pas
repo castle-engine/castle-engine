@@ -72,7 +72,7 @@ class function TGLContextExisting.CheckRenderingContextAvailable: Boolean;
 
 {$if defined(USE_EGL)}
 var
-  EglVersion: PAnsiChar;
+  {$if defined(DELPHI)} EglVersion: PAnsiChar; {$endif}
   Display: EGLDisplay;
   Surface: EGLSurface;
   Context: EGLContext;
