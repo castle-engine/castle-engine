@@ -345,12 +345,13 @@ begin
       CopyCount
     ]);
 
-  for I := 0 to CopyCount - 1 do
-  begin
-    Move(Source^, Target^, SourceItemSize);
-    PtrUInt(Source) := PtrUInt(Source) + SourceItemSize;
-    PtrUInt(Target) := PtrUInt(Target) + TargetItemSize;
-  end;
+  if CopyCount <> 0 then
+    for I := 0 to CopyCount - 1 do
+    begin
+      Move(Source^, Target^, SourceItemSize);
+      PtrUInt(Source) := PtrUInt(Source) + SourceItemSize;
+      PtrUInt(Target) := PtrUInt(Target) + TargetItemSize;
+    end;
 end;
 
 { Copy Source contents to given Target memory. Each item in Target
