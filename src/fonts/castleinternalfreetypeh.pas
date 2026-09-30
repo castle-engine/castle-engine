@@ -40,20 +40,23 @@
     that links freetype statically into the main library).
 
   - Define some things we need (or needed in the past) in CGE:
-    FT_New_Memory_Face, FT_Open_Face and friends. }
+    FT_New_Memory_Face, FT_Open_Face and friends.
+
+  - Optionally, when CASTLE_FREETYPE_PASCAL is defined (see castleconf.inc),
+    implement a subset of FreeType API in pure Pascal, without using
+    the FreeType library at all. See castleinternalfreetypeh_pascal.inc . }
 unit CastleInternalFreeTypeH;
 
 {$i castleconf.inc}
 
 // FPC + iOS deployment always links with static FreeType library.
-// TODO: How will FreeType work on Delphi + iOS?
-{$if defined(CASTLE_IOS) and defined(FPC)}
+{$if defined(CASTLE_IOS) and defined(FPC) and not defined(CASTLE_FREETYPE_PASCAL)}
   {$define CASTLE_FREETYPE_STATIC}
 {$endif}
 
 interface
 
-uses CTypes;
+uses {$ifdef CASTLE_FREETYPE_PASCAL} Classes, {$endif} CTypes;
 
 {$ifdef FPC}{$packrecords c}{$endif}
 
@@ -411,7 +414,31 @@ type
   end;
   PFT_Open_Args = ^TFT_Open_Args;
 
-{$ifdef CASTLE_FREETYPE_STATIC}
+{$if defined(CASTLE_FREETYPE_PASCAL)}
+
+//Base Interface
+function FT_Done_Face(face: PFT_Face): integer;
+function FT_Done_FreeType(alibrary: PFT_Library): integer;
+function FT_Get_Char_Index(face: PFT_Face; charcode: FT_ULong): FT_UInt;
+function FT_Get_Kerning(face: PFT_Face; left_glyph, right_glyph, kern_mode: FT_UInt; out akerning: FT_Vector): integer;
+function FT_Init_FreeType(var alibrary: PFT_Library): integer;
+function FT_Load_Char(face: PFT_Face; charcode: FT_ULong; load_flags: CInt32): integer;
+function FT_Load_Glyph(face: PFT_Face; glyph_index: FT_UInt; load_flags: CInt32): integer;
+{ Create face from font data in Stream.
+  Note: This is different than FreeType API (that takes pointer and size).
+  The Stream becomes owned by the face (it will be freed by FT_Done_Face,
+  or immediately if this fails). }
+function FT_New_Memory_Face(alibrary: PFT_Library; Stream: TCustomMemoryStream; face_index: FT_Long; var aface: PFT_Face): integer;
+function FT_Set_Char_Size(face: PFT_Face; char_width, char_height: FT_F26dot6; horz_res, vert_res: FT_UInt): integer;
+function FT_Set_Pixel_Sizes(face: PFT_Face; pixel_width, pixel_height: FT_UInt): integer;
+
+//Glyph Management
+function FT_Get_Glyph(slot: PFT_GlyphSlot; out aglyph: PFT_Glyph): integer;
+function FT_Glyph_Copy(Source: PFT_Glyph; out target: PFT_Glyph): integer;
+function FT_Glyph_To_Bitmap(var the_glyph: PFT_Glyph; render_mode: FT_Render_Mode; origin: PFT_Vector; Destroy: FT_Bool): integer;
+procedure FT_Done_Glyph(glyph: PFT_Glyph);
+
+{$elseif defined(CASTLE_FREETYPE_STATIC)}
 
 //Base Interface
 function FT_Done_Face(face: PFT_Face): integer; cdecl; external;
@@ -476,7 +503,7 @@ var
   FT_Glyph_Transform: function(glyph: PFT_Glyph; matrix: PFT_Matrix; delta: PFT_Vector): integer; cdecl;
   FT_Done_Glyph: procedure(glyph: PFT_Glyph); cdecl;
   FT_Glyph_Get_CBox: procedure(glyph: PFT_Glyph; bbox_mode: FT_UInt; var acbox: FT_BBox); cdecl;
-{$endif CASTLE_FREETYPE_STATIC}
+{$endif}
 
 //Base Interface - macros
 function FT_IS_SCALABLE(face: PFT_Face): boolean;
@@ -484,12 +511,17 @@ function FT_IS_SCALABLE(face: PFT_Face): boolean;
 procedure LoadFreeTypeLibrary;
 
 { Did we found FreeType library and loaded it's symbols.
-  When this is @false, do not use any functions from this unit, they are @nil. }
+  When this is @false, do not use any functions from this unit, they are @nil.
+  Always @true when CASTLE_FREETYPE_PASCAL is defined. }
 function FreeTypeLibraryInitialized: boolean;
 
 implementation
 
+{$ifdef CASTLE_FREETYPE_PASCAL}
+uses SysUtils, CastleInternalOpenTypeFont, CastleInternalGlyphRasterizer;
+{$else}
 uses SysUtils, CastleDynLib;
+{$endif}
 
 { FreeType macros ------------------------------------------------------------ }
 
@@ -500,7 +532,12 @@ end;
 
 { Loading FreeType library --------------------------------------------------- }
 
-{$ifdef CASTLE_FREETYPE_STATIC}
+{$if defined(CASTLE_FREETYPE_PASCAL)}
+
+{$I castleinternalfreetypeh_pascal.inc}
+
+end.
+{$elseif defined(CASTLE_FREETYPE_STATIC)}
 
 procedure LoadFreeTypeLibrary;
 begin
@@ -512,7 +549,7 @@ begin
 end;
 
 end.
-{$else CASTLE_FREETYPE_STATIC}
+{$else}
 
 var
   FreeTypeLibrary: TDynLib;
@@ -586,4 +623,4 @@ finalization
   FreeAndNil(FreeTypeLibrary);
 end.
 
-{$endif CASTLE_FREETYPE_STATIC}
+{$endif}

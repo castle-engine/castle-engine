@@ -399,6 +399,8 @@ begin
     P.Targets.AddUnit('castlefonts.pas');
     P.Targets.AddUnit('castleinternalfreetype.pas');
     P.Targets.AddUnit('castleinternalfreetypeh.pas');
+    P.Targets.AddUnit('castleinternalglyphrasterizer.pas');
+    P.Targets.AddUnit('castleinternalopentypefont.pas');
     P.Targets.AddUnit('castleinternalrichtext.pas');
     P.Targets.AddUnit('castletexturefont_defaultui.pas');
     P.Targets.AddUnit('castletexturefont_default3d_sans.pas');

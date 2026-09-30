@@ -253,6 +253,10 @@ end;}
 { TMgrFont }
 
 constructor TMgrFont.Create (aMgr:TFontManager; afilename:string; anindex:integer);
+{$ifdef CASTLE_FREETYPE_PASCAL}
+var
+  FontStream: TCustomMemoryStream;
+{$endif}
 begin
   inherited create;
   Filename := afilename;
@@ -272,7 +276,19 @@ begin
       non-file URLs. }
 
     MemoryStream := Download(afilename, [soForceMemoryStream]) as TCustomMemoryStream;
-    FTCheck(FT_New_Memory_Face(aMgr.FTLib, MemoryStream.Memory, MemoryStream.Size, anindex, font),
+
+    {$ifdef CASTLE_FREETYPE_PASCAL}
+    { Pascal FreeType implementation takes and owns MemoryStream
+      (also in case of failure), so don't keep reference to it. }
+    FontStream := MemoryStream;
+    MemoryStream := nil;
+    {$endif}
+
+    FTCheck(FT_New_Memory_Face(aMgr.FTLib,
+      {$ifdef CASTLE_FREETYPE_PASCAL} FontStream,
+      {$else} MemoryStream.Memory, MemoryStream.Size,
+      {$endif}
+      anindex, font),
       format (sErrLoadFont,[anindex,afilename]));
 
     { We will free MemoryStream only in our destructor.
@@ -294,6 +310,15 @@ destructor TMgrFont.destroy;
 begin
   try
     FreeGlyphs;
+    { Free the face explicitly. With the FreeType library, FT_Done_FreeType
+      would also free all remaining faces, but that's not the case
+      with CASTLE_FREETYPE_PASCAL. Also, MemoryStream must remain valid
+      until FT_Done_Face. }
+    if Font <> nil then
+    begin
+      FT_Done_Face(Font);
+      Font := nil;
+    end;
   finally
     FreeAndNil(MemoryStream);
     FSizes.Free;

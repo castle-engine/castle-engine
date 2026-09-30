@@ -266,6 +266,8 @@ contains
   castlefonts in '..\..\src\fonts\castlefonts.pas',
   castleinternalfreetype in '..\..\src\fonts\castleinternalfreetype.pas',
   castleinternalfreetypeh in '..\..\src\fonts\castleinternalfreetypeh.pas',
+  castleinternalglyphrasterizer in '..\..\src\fonts\castleinternalglyphrasterizer.pas',
+  castleinternalopentypefont in '..\..\src\fonts\castleinternalopentypefont.pas',
   castleinternalrichtext in '..\..\src\fonts\castleinternalrichtext.pas',
   castletexturefont_defaultui in '..\..\src\fonts\castletexturefont_defaultui.pas',
   castletexturefont_default3d_sans in '..\..\src\fonts\castletexturefont_default3d_sans.pas',

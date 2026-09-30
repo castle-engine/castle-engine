@@ -775,6 +775,19 @@
   {$define XML_READ_REQUIRES_SEEKABLE_STREAM}
 {$endif}
 
+{ fonts ---------------------------------------------------------------------- }
+
+{ Use pure Pascal implementation of a subset of FreeType API
+  (CastleInternalOpenTypeFont and CastleInternalGlyphRasterizer units).
+
+  This is by default used for Delphi on Android and iOS,
+  where we don't deploy the FreeType library.
+  You can also define CASTLE_FREETYPE_PASCAL on other platforms,
+  e.g. to test it on desktops and compare with the FreeType library. }
+{$if defined(DELPHI) and (defined(ANDROID) or defined(CASTLE_IOS))}
+  {$define CASTLE_FREETYPE_PASCAL}
+{$endif}
+
 // -----------------------------------------------------------------------------
 // keep this line at the end of the file
 {$endif not CASTLE_CONF_INCLUDED}

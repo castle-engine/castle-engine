@@ -68,7 +68,7 @@
         <PackageName Value="castle_engine_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="110">
+    <Units Count="111">
       <Unit0>
         <Filename Value="castle_tester_standalone.dpr"/>
         <IsPartOfProject Value="True"/>
@@ -614,6 +614,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcases"/>
       </Unit109>
+      <Unit110>
+        <Filename Value="code/testcases/testcastleinternalopentypefont.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="TestCastleInternalOpenTypeFont"/>
+      </Unit110>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

@@ -427,6 +427,8 @@
         <DCCReference Include="..\..\src\fonts\castlefonts.pas"/>
         <DCCReference Include="..\..\src\fonts\castleinternalfreetype.pas"/>
         <DCCReference Include="..\..\src\fonts\castleinternalfreetypeh.pas"/>
+        <DCCReference Include="..\..\src\fonts\castleinternalglyphrasterizer.pas"/>
+        <DCCReference Include="..\..\src\fonts\castleinternalopentypefont.pas"/>
         <DCCReference Include="..\..\src\fonts\castleinternalrichtext.pas"/>
         <DCCReference Include="..\..\src\fonts\castletexturefont_defaultui.pas"/>
         <DCCReference Include="..\..\src\fonts\castletexturefont_default3d_sans.pas"/>
