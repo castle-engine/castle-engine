@@ -2368,7 +2368,7 @@ var
   Json: TJsonData;
   IfcFile: TIfcFile;
 begin
-  JsonParser := TJsonParser.Create(Stream, [joComments]);
+  JsonParser := TJsonParser.Create(Stream, [joComments, joUTF8]);
   try
     Json := JsonParser.Parse;
     try

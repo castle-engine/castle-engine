@@ -30,25 +30,26 @@ function CastleReadLink(const FileName: string): string;
 function CastleReadLink(const FileName: string): string;
 var
   ReadLinkResult, NewLength: Integer;
-  FileNameAnsi: AnsiString;
+  FileName8, Result8: Utf8String;
 begin
- NewLength := 100;
- repeat
-  SetLength(Result, NewLength);
-  FileNameAnsi := FileName;
-  ReadLinkResult := {$ifdef FPC} FpReadlink {$else} ReadLink {$endif}
-    (PAnsiChar(FileNameAnsi), Pointer(Result), NewLength);
+  NewLength := 100;
+  repeat
+    SetLength(Result8, NewLength);
+    FileName8 := FileName;
+    ReadLinkResult := {$ifdef FPC} FpReadlink {$else} ReadLink {$endif}
+      (PAnsiChar(FileName8), Pointer(Result8), NewLength);
 
-  OSCheck( ReadLinkResult <> -1, 'readlink' );
+    OSCheck( ReadLinkResult <> -1, 'readlink' );
 
-  if ReadLinkResult < NewLength then
-  begin
-   SetLength(Result, ReadLinkResult);
-   Exit;
-  end;
+    if ReadLinkResult < NewLength then
+    begin
+      SetLength(Result8, ReadLinkResult);
+      Result := Result8;
+      Exit;
+    end;
 
-  NewLength := NewLength * 2;
- until false;
+    NewLength := NewLength * 2;
+  until false;
 end;
 
 procedure InitializationOSSpecific;

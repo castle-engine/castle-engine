@@ -692,24 +692,24 @@ uses Classes, XMLRead, XMLWrite, {$ifdef FPC} BlowFish, {$endif}
 
 function TDOMNodeHelper.NodeName8: String;
 begin
-  Result := UTF8Encode(NodeName);
+  Result := Utf16ToString(NodeName);
 end;
 
 function TDOMNodeHelper.GetNodeValue8: String;
 begin
-  Result := UTF8Encode(NodeValue);
+  Result := Utf16ToString(NodeValue);
 end;
 
 procedure TDOMNodeHelper.SetNodeValue8(const S: String);
 begin
-  NodeValue := UTF8Decode(S);
+  NodeValue := StringToUtf16(S);
 end;
 
 { TDOMCharacterDataHelper ---------------------------------------------------- }
 
 function TDOMCharacterDataHelper.Data8: String;
 begin
-  Result := UTF8Encode(Data);
+  Result := Utf16ToString(Data);
 end;
 
 { ----------------------------------------------------------------------------
@@ -721,13 +721,13 @@ function TDOMElementHelper.AttributeString(const AttrName: String; var Value: St
 var
   AttrNode: TDOMNode;
 begin
-  AttrNode := Attributes.GetNamedItem(UTF8decode(AttrName));
+  AttrNode := Attributes.GetNamedItem(StringToUtf16(AttrName));
   Result := AttrNode <> nil;
   if Result then
   begin
     Check(AttrNode.NodeType = ATTRIBUTE_NODE,
       'All element attributes must have ATTRIBUTE_NODE');
-    Value := UTF8Encode((AttrNode as TDOMAttr).Value);
+    Value := Utf16ToString((AttrNode as TDOMAttr).Value);
   end;
 end;
 {$endif}
@@ -1050,64 +1050,64 @@ end;
 
 procedure TDOMElementHelper.AttributeSet(const AttrName: String; const Value: String);
 begin
-  SetAttribute(UTF8Decode(AttrName), UTF8Decode(Value));
+  SetAttribute(StringToUtf16(AttrName), StringToUtf16(Value));
 end;
 
 procedure TDOMElementHelper.AttributeSet(const AttrName: String; const Value: boolean);
 begin
-  SetAttribute(UTF8Decode(AttrName), UTF8Decode(BoolToStr(Value, true)));
+  SetAttribute(StringToUtf16(AttrName), StringToUtf16(BoolToStr(Value, true)));
 end;
 
 procedure TDOMElementHelper.AttributeSet(const AttrName: String; const Value: Integer);
 begin
-  SetAttribute(UTF8Decode(AttrName), UTF8Decode(IntToStr(Value)));
+  SetAttribute(StringToUtf16(AttrName), StringToUtf16(IntToStr(Value)));
 end;
 
 procedure TDOMElementHelper.AttributeSet(const AttrName: String; const Value: Int64);
 begin
-  SetAttribute(UTF8Decode(AttrName), UTF8Decode(IntToStr(Value)));
+  SetAttribute(StringToUtf16(AttrName), StringToUtf16(IntToStr(Value)));
 end;
 
 procedure TDOMElementHelper.AttributeSet(const AttrName: String; const Value: QWord);
 begin
-  SetAttribute(UTF8Decode(AttrName), UTF8Decode(IntToStr(Value)));
+  SetAttribute(StringToUtf16(AttrName), StringToUtf16(IntToStr(Value)));
 end;
 
 procedure TDOMElementHelper.AttributeSet(const AttrName: String; const Value: Cardinal);
 begin
-  SetAttribute(UTF8Decode(AttrName), UTF8Decode(IntToStr(Value)));
+  SetAttribute(StringToUtf16(AttrName), StringToUtf16(IntToStr(Value)));
 end;
 
 procedure TDOMElementHelper.AttributeSet(const AttrName: String; const Value: Single);
 begin
-  SetAttribute(UTF8Decode(AttrName), UTF8Decode(FloatToStrDot(Value)));
+  SetAttribute(StringToUtf16(AttrName), StringToUtf16(FloatToStrDot(Value)));
 end;
 
 procedure TDOMElementHelper.AttributeSet(const AttrName: String; const Value: TVector2);
 begin
-  SetAttribute(UTF8Decode(AttrName), UTF8Decode(Value.ToRawString));
+  SetAttribute(StringToUtf16(AttrName), StringToUtf16(Value.ToRawString));
 end;
 
 procedure TDOMElementHelper.AttributeSet(const AttrName: String; const Value: TVector3);
 begin
-  SetAttribute(UTF8Decode(AttrName), UTF8Decode(Value.ToRawString));
+  SetAttribute(StringToUtf16(AttrName), StringToUtf16(Value.ToRawString));
 end;
 
 procedure TDOMElementHelper.AttributeSet(const AttrName: String; const Value: TVector4);
 begin
-  SetAttribute(UTF8Decode(AttrName), UTF8Decode(Value.ToRawString));
+  SetAttribute(StringToUtf16(AttrName), StringToUtf16(Value.ToRawString));
 end;
 
 procedure TDOMElementHelper.AttributeColorSet(const AttrName: String;
   const Value: TCastleColor);
 begin
-  SetAttribute(UTF8Decode(AttrName), UTF8Decode(ColorToHex(Value)));
+  SetAttribute(StringToUtf16(AttrName), StringToUtf16(ColorToHex(Value)));
 end;
 
 procedure TDOMElementHelper.AttributeColorSet(const AttrName: String;
   const Value: TCastleColorRGB);
 begin
-  SetAttribute(UTF8Decode(AttrName), UTF8Decode(ColorRGBToHex(Value)));
+  SetAttribute(StringToUtf16(AttrName), StringToUtf16(ColorRGBToHex(Value)));
 end;
 
 { ------------------------------------------------------------------------
@@ -1133,7 +1133,7 @@ begin
   begin
     Node := Children.Item[I];
     if (Node.NodeType = ELEMENT_NODE) and
-       ((Node as TDOMElement).TagName = UTF8Decode(ChildName)) then
+       ((Node as TDOMElement).TagName = StringToUtf16(ChildName)) then
     begin
       if Result = nil then
         Result := TDOMElement(Node) else
@@ -1194,7 +1194,7 @@ end;
 
 function TDOMElementHelper.CreateChild(const ChildName: String): TDOMElement;
 begin
-  Result := OwnerDocument.CreateElement(UTF8Decode(ChildName));
+  Result := OwnerDocument.CreateElement(StringToUtf16(ChildName));
   AppendChild(Result);
 end;
 
@@ -1210,7 +1210,7 @@ end;
 
 function TDOMElementHelper.TagName8: String;
 begin
-  Result := UTF8Encode(TagName);
+  Result := Utf16ToString(TagName);
 end;
 
 { TXMLElementIterator -------------------------------------------------------- }
@@ -1261,7 +1261,7 @@ end;
 constructor TXMLElementFilteringIterator.Create(ParentElement: TDOMElement; const TagName: String);
 begin
   inherited Create(ParentElement);
-  FTagName := UTF8Decode(TagName);
+  FTagName := StringToUtf16(TagName);
 end;
 
 function TXMLElementFilteringIterator.GetNext: boolean;
@@ -1302,7 +1302,7 @@ begin
       if ChildNode.NodeType = CDATA_SECTION_NODE then
       begin
         Result := true;
-        FCurrent := UTF8Encode((ChildNode as TDOMCDataSection).Data);
+        FCurrent := Utf16ToString((ChildNode as TDOMCDataSection).Data);
         Break;
       end;
     end;
@@ -1387,7 +1387,7 @@ begin
       while (L > 0) and (DecryptedContent[L] = #0) do
         Dec(L);
       SetLength(DecryptedContent, L);
-      DecryptedCorrectStream := TStringStream.Create(DecryptedContent);
+      DecryptedCorrectStream := TStringStream.Create(DecryptedContent, TEncoding.UTF8);
       try
         try
           ReadXMLFile(Doc, DecryptedCorrectStream);

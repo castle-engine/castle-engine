@@ -20,7 +20,7 @@ interface
 
 uses
   Classes, SysUtils, fpJSON, jsonscanner, CastleUtils;
-  
+
 Type
 
   { TBaseJSONReader }
@@ -36,7 +36,7 @@ Type
     procedure DoError(const Msg: String);
     Procedure DoParse(AtCurrent,AllowEOF: Boolean);
     function GetNextToken: TJSONToken;
-    function CurrentTokenString: RawByteString;
+    function CurrentTokenString: TJsonScannerString;
     function CurrentToken: TJSONToken; inline;
 
     Procedure KeyValue(Const AKey : TJSONStringType); virtual; abstract;
@@ -60,9 +60,9 @@ Type
     Property Scanner : TJSONScanner read FScanner;
   Public
     Constructor Create(Source : TStream; AUseUTF8 : Boolean = True); overload;deprecated 'use options form instead';
-    Constructor Create(Const Source : RawByteString; AUseUTF8 : Boolean = True); overload;deprecated 'use options form instead';
+    Constructor Create(Const Source : TJsonScannerString; AUseUTF8 : Boolean = True); overload;deprecated 'use options form instead';
     constructor Create(Source: TStream; AOptions: TJSONOptions); overload;
-    constructor Create(const Source: RawByteString; AOptions: TJSONOptions); overload;
+    constructor Create(const Source: TJsonScannerString; AOptions: TJSONOptions); overload;
     destructor Destroy();override;
     // Parsing options
     Property Options : TJSONOptions Read GetOptions Write SetOptions;
@@ -166,7 +166,7 @@ Type
   end;
 
   EJSONParser = Class(EParserError);
-  
+
 implementation
 
 Resourcestring
@@ -213,7 +213,7 @@ begin
   Result:=FScanner.CurToken;
 end;
 
-function TBaseJSONReader.CurrentTokenString: RawByteString;
+function TBaseJSONReader.CurrentTokenString: TJsonScannerString;
 
 begin
   If CurrentToken in [tkString,tkIdentifier,tkNumber,tkComment] then
@@ -226,7 +226,7 @@ procedure TBaseJSONReader.DoParse(AtCurrent, AllowEOF: Boolean);
 
 var
   T : TJSONToken;
-  
+
 begin
   If not AtCurrent then
     T:=GetNextToken
@@ -430,7 +430,7 @@ begin
    Options:=Options + [joUTF8];
 end;
 
-constructor TBaseJSONReader.Create(const Source: RawByteString; AUseUTF8 : Boolean = True);
+constructor TBaseJSONReader.Create(const Source: TJsonScannerString; AUseUTF8 : Boolean = True);
 begin
   Inherited Create;
   FScanner:=TJSONScanner.Create(Source,[joUTF8]);
@@ -443,7 +443,7 @@ begin
   FScanner:=TJSONScanner.Create(Source,AOptions);
 end;
 
-constructor TBaseJSONReader.Create(const Source: RawByteString; AOptions: TJSONOptions);
+constructor TBaseJSONReader.Create(const Source: TJsonScannerString; AOptions: TJSONOptions);
 begin
   FScanner:=TJSONScanner.Create(Source,AOptions);
 end;

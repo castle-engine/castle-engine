@@ -955,7 +955,7 @@ begin
     { create child if necessary }
     if NewResult = nil then
     begin
-      NewResult := Document.CreateElement({$ifdef FPC}UTF8Decode({$endif}PathComponent{$ifdef FPC}){$endif});
+      NewResult := Document.CreateElement(StringToUtf16(PathComponent));
       Result.AppendChild(NewResult);
     end;
     Result := NewResult;
@@ -966,7 +966,7 @@ end;
 function TCastleConfig.PathChildren(const APath: string;
   const ChildName: string): TDOMNodeList;
 begin
-  Result := PathElement(APath, true).GetElementsByTagName(UTF8Decode(ChildName));
+  Result := PathElement(APath, true).GetElementsByTagName(StringToUtf16(ChildName));
 end;
 {$endif}
 
@@ -997,7 +997,7 @@ begin
   E := PathElement(APath, false);
   if E = nil then
     Result := DefaultValue else
-    Result := UTF8Encode(E.TextContent);
+    Result := Utf16ToString(E.TextContent);
   { convert all to Unix-line endings }
   StringReplaceAllVar(Result, #13, '', false);
   { in case we're not on Unix, convert to current line endings }
@@ -1118,7 +1118,7 @@ procedure TCastleConfig.LoadFromString(const Data: string; const PretendUrl: Str
 var
   InputStream: TStringStream;
 begin
-  InputStream := TStringStream.Create(Data);
+  InputStream := TStringStream.Create(Data, TEncoding.UTF8);
   try
     Load(InputStream, PretendUrl);
   finally FreeAndNil(InputStream) end;
@@ -1156,7 +1156,7 @@ function TCastleConfig.SaveToString: string;
 var
   ResultStream: TStringStream;
 begin
-  ResultStream := TStringStream.Create('');
+  ResultStream := TStringStream.Create('', TEncoding.UTF8);
   try
     Save(ResultStream);
     Result := ResultStream.DataString;

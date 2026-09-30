@@ -362,9 +362,9 @@ begin
     Decode := TBase64DecodingStream.Create(Source, bdmMIME);
     try
       { The input from https://en.wikipedia.org/wiki/Base64 contains 8-bit
-        (ASCII) string encoded, which is why ReadGrowingStreamToString (AnsiString)
-        makes sense.
-        See TBase64DecodingStream about encodings. }
+        (ASCII) string encoded, which is why ReadGrowingStreamToString
+        (returns Utf8String) makes sense.
+        See TBase64DecodingStream comments about encodings. }
       DecodeStr :=
         //ReadGrowingStreamToDefaultString
         ReadGrowingStreamToString

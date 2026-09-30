@@ -675,23 +675,17 @@ begin
   and our CastleGL header). }
 var
   Len, Len2: TGLint;
-{$ifndef FPC}
-  AnsiResult: AnsiString;
-{$endif}
+  { We assume the driver returns UTF-8 (though it is usually ASCII in practice). }
+  Result8: Utf8String;
 begin
   glGetShaderiv(ShaderId, GL_INFO_LOG_LENGTH, @Len);
 
   if Len <> 0 then
   begin
-    {$ifdef FPC}
-      SetLength(Result, Len);
-      glGetShaderInfoLog(ShaderId, Len, @Len2, PChar(Result));
-    {$else}
-      SetLength(AnsiResult, Len);
-      glGetShaderInfoLog(ShaderId, Len, @Len2, PAnsiChar(AnsiResult));
-      Result := String(AnsiResult);
-    {$endif}
-    StringReplaceAllVar(Result, #0, NL);
+    SetLength(Result8, Len);
+    glGetShaderInfoLog(ShaderId, Len, @Len2, PAnsiChar(Result8));
+    SetLength(Result8, Len2); // trim to Len2, as GL_INFO_LOG_LENGTH included size with null terminator
+    Result := Result8;
   end else
     Result := '';
 {$endif}
@@ -705,23 +699,17 @@ begin
 {$else}
 var
   Len, Len2: TGLint;
-{$ifndef FPC}
-  AnsiResult: AnsiString;
-{$endif}
+  { We assume the driver returns UTF-8 (though it is usually ASCII in practice). }
+  Result8: Utf8String;
 begin
   glGetProgramiv(ProgramId, GL_INFO_LOG_LENGTH, @Len);
 
   if Len <> 0 then
   begin
-    {$ifdef FPC}
-      SetLength(Result, Len);
-      glGetProgramInfoLog(ProgramId, Len, @Len2, PChar(Result));
-    {$else}
-      SetLength(AnsiResult, Len);
-      glGetProgramInfoLog(ProgramId, Len, @Len2, PAnsiChar(AnsiResult));
-      Result := String(AnsiResult);
-    {$endif}
-    StringReplaceAllVar(Result, #0, NL);
+    SetLength(Result8, Len);
+    glGetProgramInfoLog(ProgramId, Len, @Len2, PAnsiChar(Result8));
+    SetLength(Result8, Len2); // trim to Len2, as GL_INFO_LOG_LENGTH included size with null terminator
+    Result := Result8;
   end else
     Result := '';
 {$endif}
@@ -1443,7 +1431,7 @@ begin
     ReturnedLength: TGLsizei;
     Size: TGLint;
     AType: TGLEnum;
-    Name: AnsiString;
+    Name: Utf8String;
     ErrorCode: TGLenum;
   begin
     if GLFeatures.Shaders then
@@ -1494,7 +1482,7 @@ begin
     ReturnedLength: TGLsizei;
     Size: TGLint;
     AType: TGLEnum;
-    Name: AnsiString;
+    Name: Utf8String;
     ErrorCode: TGLenum;
   begin
     if GLFeatures.Shaders then
@@ -1627,9 +1615,7 @@ var
     {$ifndef CASTLE_WEBGL}
     SrcPtr: PGLChar;
     SrcLength: Cardinal;
-    {$ifndef FPC}
-    AnsiS: AnsiString;
-    {$endif}
+    Source8: Utf8String;
     CompiledInt: TGLint;
     {$endif not CASTLE_WEBGL}
     Compiled: Boolean;
@@ -1638,19 +1624,15 @@ var
 
     { Call glShaderSource to pass source code S to shader.
       This is trivial in WebGL, but requires some work for OpenGL / OpenGLES
-      to express string data as needed (and for Delphi, extra work needed
-      to convert UnicodeString to 8-bit AnsiString). }
+      to express string data as needed.
+      To work with both String=AnsiString and String=UnicodeString,
+      we use Utf8String to communicate with the OpenGL API. }
     {$ifdef CASTLE_WEBGL}
     glShaderSource(Result, S);
     {$else}
-    {$ifdef FPC}
-    SrcPtr := PGLChar(S);
-    SrcLength := Length(S);
-    {$else}
-    AnsiS := AnsiString(S);
-    SrcPtr := PGLChar(AnsiS);
-    SrcLength := Length(AnsiS);
-    {$endif}
+    Source8 := S;
+    SrcPtr := PGLChar(Source8);
+    SrcLength := Length(Source8);
     glShaderSource(Result, 1, @SrcPtr, @SrcLength);
     {$endif}
 
@@ -1909,8 +1891,8 @@ var
   VaryingLength: Cardinal;
   {$ifndef CASTLE_WEBGL}
   I: Integer;
-  VaryingsAnsi: array of AnsiString;
-  VaryingsAnsiPtr: array of PAnsiChar;
+  Varyings8: array of Utf8String;
+  Varyings8Ptr: array of PAnsiChar;
   {$endif}
 begin;
   VaryingLength := Length(Varyings);
@@ -1927,14 +1909,14 @@ begin;
     {$ifdef CASTLE_WEBGL}
     GL2.transformFeedbackVaryings(ProgramId, ListToWebGL(Varyings), TransformFeedbackBufferMode);
     {$else}
-    SetLength(VaryingsAnsi, VaryingLength);
-    SetLength(VaryingsAnsiPtr, VaryingLength);
+    SetLength(Varyings8, VaryingLength);
+    SetLength(Varyings8Ptr, VaryingLength);
     for I := 0 to VaryingLength - 1 do
     begin
-      VaryingsAnsi[I] := Varyings[I];
-      VaryingsAnsiPtr[I] := PAnsiChar(VaryingsAnsi[I]);
+      Varyings8[I] := Varyings[I];
+      Varyings8Ptr[I] := PAnsiChar(Varyings8[I]);
     end;
-    glTransformFeedbackVaryings(ProgramId, VaryingLength, @VaryingsAnsiPtr[0], TransformFeedbackBufferMode);
+    glTransformFeedbackVaryings(ProgramId, VaryingLength, @Varyings8Ptr[0], TransformFeedbackBufferMode);
     {$endif}
 
     ErrorCode := glGetError();

@@ -212,7 +212,7 @@ end;
 initialization
   RegisterSerializableComponent(TImageGrid, 'Image Grid');
   {$ifdef CASTLE_DESIGN_MODE}
-  RegisterPropertyEditor(TypeInfo(AnsiString), TImageGrid, 'Url', TImageUrlPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(String), TImageGrid, 'Url', TImageUrlPropertyEditor);
   RegisterComponentEditor(TImageGrid, TImageGridEditor);
   {$endif}
 end.

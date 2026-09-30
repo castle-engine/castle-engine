@@ -1,14 +1,14 @@
 unit CastleInternalTDxInput_TLB;
 
 // ************************************************************************ //
-// WARNING                                                                    
-// -------                                                                    
-// The types declared in this file were generated from data read from a       
-// Type Library. If this type library is explicitly or indirectly (via        
+// WARNING
+// -------
+// The types declared in this file were generated from data read from a
+// Type Library. If this type library is explicitly or indirectly (via
 // another type library referring to this type library) re-imported, or the
-// 'Refresh' command of the Type Library Editor activated while editing the   
-// Type Library, the contents of this file will be regenerated and all        
-// manual modifications will be lost.                                         
+// 'Refresh' command of the Type Library Editor activated while editing the
+// Type Library, the contents of this file will be regenerated and all
+// manual modifications will be lost.
 // ************************************************************************ //
 
 // PASTLWTR : 1.2
@@ -18,9 +18,9 @@ unit CastleInternalTDxInput_TLB;
 // Type Lib: C:\Program Files\3Dconnexion\3Dconnexion 3DxSoftware\3DxWare64\win32\TDxInput.dll (1)
 // LIBID: {7858B9E0-5793-4BE4-9B53-661D922790D2}
 // LCID: 0
-// Helpfile: 
+// Helpfile:
 // HelpString: 3Dconnexion TDxInput 1.0 Type Library
-// DepndLst: 
+// DepndLst:
 //   (1) v2.0 stdole, (C:\WINDOWS\system32\stdole2.tlb)
 // Errors:
 //   Hint: Parameter 'label' of IKeyboard.GetKeyLabel changed to 'label_'
@@ -33,17 +33,17 @@ unit CastleInternalTDxInput_TLB;
 //   Error creating palette bitmap of (TTDxInfo) : Server C:\Program Files\3Dconnexion\3Dconnexion 3DxSoftware\3DxWare64\win32\TDxInput.dll contains no icons
 // ************************************************************************ //
 // *************************************************************************//
-// NOTE:                                                                      
-// Items guarded by $IFDEF_LIVE_SERVER_AT_DESIGN_TIME are used by properties  
-// which return objects that may need to be explicitly created via a function 
-// call prior to any access via the property. These items have been disabled  
-// in order to prevent accidental use from within the object inspector. You   
-// may enable them by defining LIVE_SERVER_AT_DESIGN_TIME or by selectively   
-// removing them from the $IFDEF blocks. However, such items must still be    
-// programmatically created via a method of the appropriate CoClass before    
-// they can be used.                                                          
+// NOTE:
+// Items guarded by $IFDEF_LIVE_SERVER_AT_DESIGN_TIME are used by properties
+// which return objects that may need to be explicitly created via a function
+// call prior to any access via the property. These items have been disabled
+// in order to prevent accidental use from within the object inspector. You
+// may enable them by defining LIVE_SERVER_AT_DESIGN_TIME or by selectively
+// removing them from the $IFDEF blocks. However, such items must still be
+// programmatically created via a method of the appropriate CoClass before
+// they can be used.
 {$I castleconf.inc}
-{$TYPEDADDRESS OFF} // Unit must be compiled without type-checked pointers. 
+{$TYPEDADDRESS OFF} // Unit must be compiled without type-checked pointers.
 {$WARN SYMBOL_PLATFORM OFF}
 {$WRITEABLECONST ON}
 {$VARPROPSETTER ON}
@@ -57,11 +57,11 @@ uses Windows, ActiveX, Classes, {Graphics, }{$ifdef FPC}OleServer,{$else}Vcl.Ole
 
 
 // *********************************************************************//
-// GUIDS declared in the TypeLibrary. Following prefixes are used:        
-//   Type Libraries     : LIBID_xxxx                                      
-//   CoClasses          : CLASS_xxxx                                      
-//   DISPInterfaces     : DIID_xxxx                                       
-//   Non-DISP interfaces: IID_xxxx                                        
+// GUIDS declared in the TypeLibrary. Following prefixes are used:
+//   Type Libraries     : LIBID_xxxx
+//   CoClasses          : CLASS_xxxx
+//   DISPInterfaces     : DIID_xxxx
+//   Non-DISP interfaces: IID_xxxx
 // *********************************************************************//
 const
   // TypeLibrary Major and minor versions
@@ -88,7 +88,7 @@ const
 type
 
 // *********************************************************************//
-// Forward declaration of types defined in TypeLibrary                    
+// Forward declaration of types defined in TypeLibrary
 // *********************************************************************//
   IAngleAxis = interface;
   IAngleAxisDisp = dispinterface;
@@ -107,8 +107,8 @@ type
   ITDxInfoDisp = dispinterface;
 
 // *********************************************************************//
-// Declaration of CoClasses defined in Type Library                       
-// (NOTE: Here we map each CoClass to its Default Interface)              
+// Declaration of CoClasses defined in Type Library
+// (NOTE: Here we map each CoClass to its Default Interface)
 // *********************************************************************//
   AngleAxis = IAngleAxis;
   Vector3D = IVector3D;
@@ -339,15 +339,15 @@ type
   end;
 
 // *********************************************************************//
-// The Class CoAngleAxis provides a Create and CreateRemote method to          
-// create instances of the default interface IAngleAxis exposed by              
-// the CoClass AngleAxis. The functions are intended to be used by             
-// clients wishing to automate the CoClass objects exposed by the         
-// server of this typelibrary.                                            
+// The Class CoAngleAxis provides a Create and CreateRemote method to
+// create instances of the default interface IAngleAxis exposed by
+// the CoClass AngleAxis. The functions are intended to be used by
+// clients wishing to automate the CoClass objects exposed by the
+// server of this typelibrary.
 // *********************************************************************//
   CoAngleAxis = class
     class function Create: IAngleAxis;
-    class function CreateRemote(const MachineName: string): IAngleAxis;
+    class function CreateRemote(const MachineName: WideString): IAngleAxis;
   end;
 
 
@@ -357,7 +357,7 @@ type
 // Help String      : AngleAxis Class
 // Default Interface: IAngleAxis
 // Def. Intf. DISP? : No
-// Event   Interface: 
+// Event   Interface:
 // TypeFlags        : (1026) CanCreate Aggregatable
 // *********************************************************************//
 {$IFDEF LIVE_SERVER_AT_DESIGN_TIME}
@@ -431,15 +431,15 @@ type
 
 
 // *********************************************************************//
-// The Class CoVector3D provides a Create and CreateRemote method to          
-// create instances of the default interface IVector3D exposed by              
-// the CoClass Vector3D. The functions are intended to be used by             
-// clients wishing to automate the CoClass objects exposed by the         
-// server of this typelibrary.                                            
+// The Class CoVector3D provides a Create and CreateRemote method to
+// create instances of the default interface IVector3D exposed by
+// the CoClass Vector3D. The functions are intended to be used by
+// clients wishing to automate the CoClass objects exposed by the
+// server of this typelibrary.
 // *********************************************************************//
   CoVector3D = class
     class function Create: IVector3D;
-    class function CreateRemote(const MachineName: string): IVector3D;
+    class function CreateRemote(const MachineName: WideString): IVector3D;
   end;
 
 
@@ -449,7 +449,7 @@ type
 // Help String      : Vector3D Class
 // Default Interface: IVector3D
 // Def. Intf. DISP? : No
-// Event   Interface: 
+// Event   Interface:
 // TypeFlags        : (1026) CanCreate Aggregatable
 // *********************************************************************//
 {$IFDEF LIVE_SERVER_AT_DESIGN_TIME}
@@ -523,15 +523,15 @@ type
 
 
 // *********************************************************************//
-// The Class CoSensor provides a Create and CreateRemote method to          
-// create instances of the default interface ISensor exposed by              
-// the CoClass Sensor. The functions are intended to be used by             
-// clients wishing to automate the CoClass objects exposed by the         
-// server of this typelibrary.                                            
+// The Class CoSensor provides a Create and CreateRemote method to
+// create instances of the default interface ISensor exposed by
+// the CoClass Sensor. The functions are intended to be used by
+// clients wishing to automate the CoClass objects exposed by the
+// server of this typelibrary.
 // *********************************************************************//
   CoSensor = class
     class function Create: ISensor;
-    class function CreateRemote(const MachineName: string): ISensor;
+    class function CreateRemote(const MachineName: WideString): ISensor;
   end;
 
 
@@ -606,15 +606,15 @@ type
 
 
 // *********************************************************************//
-// The Class CoKeyboard provides a Create and CreateRemote method to          
-// create instances of the default interface IKeyboard exposed by              
-// the CoClass Keyboard. The functions are intended to be used by             
-// clients wishing to automate the CoClass objects exposed by the         
-// server of this typelibrary.                                            
+// The Class CoKeyboard provides a Create and CreateRemote method to
+// create instances of the default interface IKeyboard exposed by
+// the CoClass Keyboard. The functions are intended to be used by
+// clients wishing to automate the CoClass objects exposed by the
+// server of this typelibrary.
 // *********************************************************************//
   CoKeyboard = class
     class function Create: IKeyboard;
-    class function CreateRemote(const MachineName: string): IKeyboard;
+    class function CreateRemote(const MachineName: WideString): IKeyboard;
   end;
 
   TKeyboardKeyDown = procedure(ASender: TObject; keyCode: SYSINT) of object;
@@ -695,15 +695,15 @@ type
 
 
 // *********************************************************************//
-// The Class CoDevice provides a Create and CreateRemote method to          
-// create instances of the default interface ISimpleDevice exposed by              
-// the CoClass Device. The functions are intended to be used by             
-// clients wishing to automate the CoClass objects exposed by the         
-// server of this typelibrary.                                            
+// The Class CoDevice provides a Create and CreateRemote method to
+// create instances of the default interface ISimpleDevice exposed by
+// the CoClass Device. The functions are intended to be used by
+// clients wishing to automate the CoClass objects exposed by the
+// server of this typelibrary.
 // *********************************************************************//
   CoDevice = class
     class function Create: ISimpleDevice;
-    class function CreateRemote(const MachineName: string): ISimpleDevice;
+    class function CreateRemote(const MachineName: WideString): ISimpleDevice;
   end;
 
   TDeviceDeviceChange = procedure(ASender: TObject; reserved: Integer) of object;
@@ -783,15 +783,15 @@ type
 
 
 // *********************************************************************//
-// The Class CoTDxInfo provides a Create and CreateRemote method to          
-// create instances of the default interface ITDxInfo exposed by              
-// the CoClass TDxInfo. The functions are intended to be used by             
-// clients wishing to automate the CoClass objects exposed by the         
-// server of this typelibrary.                                            
+// The Class CoTDxInfo provides a Create and CreateRemote method to
+// create instances of the default interface ITDxInfo exposed by
+// the CoClass TDxInfo. The functions are intended to be used by
+// clients wishing to automate the CoClass objects exposed by the
+// server of this typelibrary.
 // *********************************************************************//
   CoTDxInfo = class
     class function Create: ITDxInfo;
-    class function CreateRemote(const MachineName: string): ITDxInfo;
+    class function CreateRemote(const MachineName: WideString): ITDxInfo;
   end;
 
 
@@ -801,7 +801,7 @@ type
 // Help String      : TDxInfo Class
 // Default Interface: ITDxInfo
 // Def. Intf. DISP? : No
-// Event   Interface: 
+// Event   Interface:
 // TypeFlags        : (2) CanCreate
 // *********************************************************************//
 {$IFDEF LIVE_SERVER_AT_DESIGN_TIME}
@@ -867,9 +867,11 @@ begin
   Result := CreateComObject(CLASS_AngleAxis) as IAngleAxis;
 end;
 
-class function CoAngleAxis.CreateRemote(const MachineName: string): IAngleAxis;
+{ Note that MachineName is WideString,
+  as CreateRemoteComObject takes WideString. }
+class function CoAngleAxis.CreateRemote(const MachineName: WideString): IAngleAxis;
 begin
-  Result := CreateRemoteComObject(UTF8Decode(MachineName), CLASS_AngleAxis) as IAngleAxis;
+  Result := CreateRemoteComObject(MachineName, CLASS_AngleAxis) as IAngleAxis;
 end;
 
 procedure TAngleAxis.InitServerData;
@@ -1040,9 +1042,9 @@ begin
   Result := CreateComObject(CLASS_Vector3D) as IVector3D;
 end;
 
-class function CoVector3D.CreateRemote(const MachineName: string): IVector3D;
+class function CoVector3D.CreateRemote(const MachineName: WideString): IVector3D;
 begin
-  Result := CreateRemoteComObject(UTF8Decode(MachineName), CLASS_Vector3D) as IVector3D;
+  Result := CreateRemoteComObject(MachineName, CLASS_Vector3D) as IVector3D;
 end;
 
 procedure TVector3D.InitServerData;
@@ -1213,9 +1215,9 @@ begin
   Result := CreateComObject(CLASS_Sensor) as ISensor;
 end;
 
-class function CoSensor.CreateRemote(const MachineName: string): ISensor;
+class function CoSensor.CreateRemote(const MachineName: WideString): ISensor;
 begin
-  Result := CreateRemoteComObject(UTF8Decode(MachineName), CLASS_Sensor) as ISensor;
+  Result := CreateRemoteComObject(MachineName, CLASS_Sensor) as ISensor;
 end;
 
 procedure TSensor.InitServerData;
@@ -1358,9 +1360,9 @@ begin
   Result := CreateComObject(CLASS_Keyboard) as IKeyboard;
 end;
 
-class function CoKeyboard.CreateRemote(const MachineName: string): IKeyboard;
+class function CoKeyboard.CreateRemote(const MachineName: WideString): IKeyboard;
 begin
-  Result := CreateRemoteComObject(UTF8Decode(MachineName), CLASS_Keyboard) as IKeyboard;
+  Result := CreateRemoteComObject(MachineName, CLASS_Keyboard) as IKeyboard;
 end;
 
 procedure TKeyboard.InitServerData;
@@ -1515,9 +1517,9 @@ begin
   Result := CreateComObject(CLASS_Device) as ISimpleDevice;
 end;
 
-class function CoDevice.CreateRemote(const MachineName: string): ISimpleDevice;
+class function CoDevice.CreateRemote(const MachineName: WideString): ISimpleDevice;
 begin
-  Result := CreateRemoteComObject(UTF8Decode(MachineName), CLASS_Device) as ISimpleDevice;
+  Result := CreateRemoteComObject(MachineName, CLASS_Device) as ISimpleDevice;
 end;
 
 procedure TDevice.InitServerData;
@@ -1675,9 +1677,9 @@ begin
   Result := CreateComObject(CLASS_TDxInfo) as ITDxInfo;
 end;
 
-class function CoTDxInfo.CreateRemote(const MachineName: string): ITDxInfo;
+class function CoTDxInfo.CreateRemote(const MachineName: WideString): ITDxInfo;
 begin
-  Result := CreateRemoteComObject(UTF8Decode(MachineName), CLASS_TDxInfo) as ITDxInfo;
+  Result := CreateRemoteComObject(MachineName, CLASS_TDxInfo) as ITDxInfo;
 end;
 
 procedure TTDxInfo.InitServerData;
@@ -1771,7 +1773,7 @@ end;
 (*
 procedure Register;
 begin
-  RegisterComponents(dtlServerPage, [TAngleAxis, TVector3D, TSensor, TKeyboard, 
+  RegisterComponents(dtlServerPage, [TAngleAxis, TVector3D, TSensor, TKeyboard,
     TDevice, TTDxInfo]);
 end;
 *)

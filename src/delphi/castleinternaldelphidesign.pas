@@ -618,7 +618,7 @@ begin
 
     // auto-create simple manifest, just like https://castle-engine.io/control_on_form#_opening_the_project_in_cge_editor proposes
     ManifestContents := StringReplace(ManifestTemplate, '${PROJECT_NAME}', ProposedProjectName, [rfReplaceAll]);
-    StringToFile(FilenameToUriSafe(ProjManifest), AnsiString(ManifestContents));
+    StringToFile(FilenameToUriSafe(ProjManifest), ManifestContents);
   end;
 
   ExeName := InclPathDelim(EnginePath) + 'bin' + PathDelim + 'castle-editor' + ExeExtension;

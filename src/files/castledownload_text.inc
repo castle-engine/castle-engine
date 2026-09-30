@@ -29,24 +29,34 @@ type
     destructor Destroy; override;
   end;
 
-  { Read any stream like a text file. You can read an arbitrary TStream
-    instance, or you can read an URL. Reading from URL supports
-    all URL protocols supported by the Castle Game Engine engine
-    (see https://castle-engine.io/url ).
+  { Read any stream as a text file (with UTF-8 encoding).
+    You can read an arbitrary TStream instance, or just provide a URL.
+    Reading from URL supports @url(https://castle-engine.io/url
+    all URL protocols supported by the Castle Game Engine), including reading
+    from regular files.
 
-    Includes comfortable @link(Readln) routine to read line by line
-    (lines may be terminated in any OS convention).
-    Includes comfortable @link(Read) to read next non-whitespace
-    characters, @link(ReadInteger) to read next integer and such.
+    Use various methods to read from the stream, like:
 
-    Do not use the underlying stream once you started reading it with
-    this class. We will move the position within this stream ourselves. }
+    @unorderedList(
+      @item(@link(Readln) - read the next line
+        (lines may be terminated by any OS convention).)
+      @item(@link(Read) - read next sequence of non-whitespace characters.)
+      @item(@link(ReadInteger) - read next integer from the stream.)
+    )
+
+    Do not read from the underlying stream directly anymore,
+    once you started reading it with this class.
+    We will move the position within this stream ourselves. }
   TCastleTextReader = class(TCastleTextReaderWriter)
   private
-    { For now, Stream.Read call assumes that ReadBuf is 8-bit.
-      Changing ReadBuf to String on Delphi would break e.g. Spine atlas reading,
-      TCastleTextReader.Readln would be garbage. }
-    ReadBuf: AnsiString;
+    { Buffer with data read from the stream, but not yet returned to the user.
+
+      This has to be an 8-bit string, not String (which is 16-bit on Delphi),
+      as we read it directly using Stream.Read so
+      "bytes in the file -> will be equal exactly bytes in memory".
+      And we assume the text files (read by this) contain UTF-8 always
+      (see ../../doc/miscellaneous_notes/ansistring_encoding.md ). }
+    ReadBuf: Utf8String;
     { Try to read more data from underlying stream and add it to ReadBuf.
       Returns if we succeded, @false means that the stream ends.
       When it returns @true, you can be sure that Length(ReadBuf) increased. }
@@ -59,7 +69,13 @@ type
     constructor Create(const AStream: TStream; const AOwnsStream: boolean); overload;
 
     { Read next line from Stream. Returned string does not contain
-      any end-of-line characters. }
+      any end-of-line characters.
+
+      We assume the stream contains UTF-8, in all cases.
+      The result is a @code(String) in Pascal,
+      it was automatically converted to UTF-16 if under the current compiler settings
+      (Delphi, or FPC with Unicode RTL) the @code(String) is alias to
+      16-bit UnicodeString. }
     function Readln: string;
 
     { Read the next string of non-whitespace characters.
@@ -101,13 +117,13 @@ type
     function Eof: boolean;
   end;
 
-  { Write to a stream like to a text file.
+  { Write to a stream, treating it as a text file with UTF-8 encoding.
 
     You can write to an arbitrary TStream instance,
     or you can write to an URL. Writing to an URL supports all
-    URL protocols supportted by @link(UrlSaveStream), which for now
+    URL protocols supported by @link(UrlSaveStream), which for now
     doesn't include much: only @code(file) protocol. But it will produce
-    a nice exception message in case of unsupprted URL protocol. }
+    a nice exception message in case of unsupported URL protocol. }
   TCastleTextWriter = class(TCastleTextReaderWriter)
   public
     constructor Create(const Url: String); overload;
@@ -207,6 +223,24 @@ begin
 end;
 
 function TCastleTextReader.Read: string;
+
+  { This is like CastleStringUtils.CopyPos, but using Utf8String.
+
+    This way if you have StartPosition, EndPosition that refer to indexes
+    in 8-bit string, they will work OK here.
+    In contrast, calling CastleStringUtils.CopyPos on Delphi would
+    convert S to UnicodeString, and indexes StartPosition/EndPosition
+    could become invalid when conversion UTF-8 <-> UTF-16 make the length
+    different, e.g. multibyte sequence in UTF-8 was converted to one WideChar.
+
+    TODO: Maybe add CopyPos overload to CastleStringUtils,
+    but then make sure it behaves OK -- with FPC (when String=AnsiString),
+    will it be OK? We need to test this carefully. }
+  function CopyPosUtf8(const s: Utf8String; const StartPosition, EndPosition: integer): Utf8String;
+  begin
+    result := Copy(s, StartPosition, EndPosition - StartPosition + 1);
+  end;
+
 var
   Start, I: integer;
 begin
@@ -232,7 +266,7 @@ begin
 
   Dec(I); { we know we're 1 position too far now }
   Assert(I > 0);
-  Result := CopyPos(ReadBuf, Start, I);
+  Result := CopyPosUtf8(ReadBuf, Start, I);
   Delete(ReadBuf, 1, I);
 end;
 

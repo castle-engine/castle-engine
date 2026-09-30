@@ -107,7 +107,8 @@ uses
   {$define read_uses}
   {$I castleopendocument_open.inc}
   {$undef read_uses}
-  CastleUriUtils, CastleUtils, CastleFilesUtils, CastleLog, CastleMessaging;
+  CastleUriUtils, CastleUtils, CastleFilesUtils, CastleLog, CastleMessaging,
+  CastleStringUtils;
 
 { Has URL any anchor at the end, like "index.html#chapter1".
   For such URLs, converting them to local filename may be possible

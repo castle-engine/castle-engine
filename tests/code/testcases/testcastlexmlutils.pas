@@ -30,11 +30,13 @@ type
     procedure TestEmptyAttribute;
     procedure TestGetAttribute;
     procedure TestNodeValue;
+    procedure TestUtf8StringStreams;
   end;
 
 implementation
 
-uses DOM, CastleXmlUtils, CastleFilesUtils, CastleDownload, CastleColors;
+uses DOM, CastleXmlUtils, CastleFilesUtils, CastleDownload, CastleColors,
+  CastleUtils, CastleXmlConfig, X3DNodes, X3DLoad, X3DFields, CastleTestUtils;
 
 procedure TTestCastleXmlUtils.TestReadResult;
 var
@@ -220,6 +222,53 @@ begin
     AssertTrue(AttrNode <> nil);
     AssertEquals('some_string_value', AttrNode.NodeValue8);
   finally FreeAndNil(Doc); end;
+end;
+
+procedure TTestCastleXmlUtils.TestUtf8StringStreams;
+
+{ Test that our routines converting between String and TStringStream
+  treat the text as UTF-8 correctly.
+  See doc/miscellaneous_notes/ansistring_encoding.md . }
+
+var
+  Config: TCastleConfig;
+  ConfigXml, ConfigSaved, X3DContents: String;
+  Node: TX3DRootNode;
+  WorldInfo: TWorldInfoNode;
+begin
+  ConfigXml :=
+    '<?xml version="1.0" encoding="utf-8"?>' + LineEnding +
+    '<CONFIG><test value="' + SampleText + '" /></CONFIG>';
+
+  { TCastleConfig.LoadFromString and SaveToString. }
+  Config := TCastleConfig.Create(nil);
+  try
+    Config.LoadFromString(ConfigXml, '');
+    AssertEquals(SampleText, Config.GetValue('test/value', ''));
+
+    { Also test that saving and loading again preserves the characters. }
+    Config.SetValue('test/value2', SampleText);
+    ConfigSaved := Config.SaveToString;
+  finally FreeAndNil(Config) end;
+
+  Config := TCastleConfig.Create(nil);
+  try
+    Config.LoadFromString(ConfigSaved, '');
+    AssertEquals(SampleText, Config.GetValue('test/value', ''));
+    AssertEquals(SampleText, Config.GetValue('test/value2', ''));
+  finally FreeAndNil(Config) end;
+
+  { LoadX3DClassicFromString (which uses TStringStream underneath). }
+  X3DContents :=
+    '#VRML V2.0 utf8' + LineEnding +
+    'WorldInfo { title "' + SampleText + '" }';
+  Node := LoadX3DClassicFromString(X3DContents, '');
+  try
+    AssertTrue(Node.FdChildren.Count = 1);
+    AssertTrue(Node.FdChildren[0] is TWorldInfoNode);
+    WorldInfo := TWorldInfoNode(Node.FdChildren[0]);
+    AssertEquals(SampleText, WorldInfo.Title);
+  finally FreeAndNil(Node) end;
 end;
 
 initialization

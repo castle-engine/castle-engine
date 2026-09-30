@@ -448,9 +448,6 @@ cge_clean_all ()
   # "make install PREFIX=${CASTLE_ENGINE_PATH}/installed/", as some CI jobs do)
   rm -Rf installed/
 
-  # Remove Vampyre Demos - take up 60 MB space, and are not necessary for users of CGE.
-  rm -Rf src/vampyre_imaginglib/src/Demos/
-
   # Made by "make examples-laz", not cleaned up by "make clean".
   rm -f examples/audio/test_sound_source_allocator/mainf.lrs \
         examples/lazarus/model_3d_with_2d_controls/model_3d_with_2d_controls.obj

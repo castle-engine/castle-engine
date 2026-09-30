@@ -337,7 +337,8 @@ procedure TKTXHandler.ReadKeyValues(const Stream: TStream);
 var
   RemainingToRead, KeyAndValueByteSize, ValuePadding: UInt32;
   KeyAndValue: array of AnsiChar;
-  Key, Value: AnsiString;
+  { Utf8String: KTX specification says that the key-value data is UTF-8. }
+  Key, Value: Utf8String;
 begin
   RemainingToRead := Header.BytesOfKeyValueData;
   while RemainingToRead > 0 do

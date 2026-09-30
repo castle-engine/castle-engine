@@ -19,6 +19,7 @@ uses
   { Testing (mainly) things inside Pascal standard library, not CGE }
   TestCompiler,
   TestSysUtils,
+  TestFpJson,
   {$ifdef FPC}TestFGL,{$endif}
   TestGenericsCollections,
   {$ifdef FPC}TestOldFPCBugs,{$endif}

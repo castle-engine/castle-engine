@@ -47,6 +47,7 @@ type
     procedure TestMultipleScenesOneNodeIncorrect;
     procedure TestMultipleScenesOneNodeCorrect;
     procedure TestSpineUtf8Names;
+    procedure TestSpineUtf8Escapes;
     procedure TestAnimsInSwitch;
     procedure TestLoadGzipped;
     procedure TestStarlingAndAnchors;
@@ -80,7 +81,7 @@ implementation
 uses X3DLoad, CastleVectors, CastleShapes,
   CastleTimeUtils, CastleStringUtils, X3DFields, CastleViewport, CastleBoxes,
   CastleFilesUtils, CastleScene, CastleTransform, CastleApplicationProperties,
-  CastleUriUtils, CastleColors, CastleRenderOptions;
+  CastleUriUtils, CastleColors, CastleRenderOptions, CastleTestUtils;
 
 procedure TTestSceneCore.TestBorderManifoldEdges;
 var
@@ -466,6 +467,58 @@ begin
   finally
     ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningRaiseException);
   end;
+end;
+
+procedure TTestSceneCore.TestSpineUtf8Escapes;
+
+{ Test that Spine JSON is read as UTF-8, both when the file has
+  literal UTF-8 characters and when it uses \uXXXX escape sequences.
+
+  The tested data file has 2 animations, with names that differ only
+  by an ASCII prefix ("literal-" and "escaped-"):
+  one has the non-ASCII characters written literally (as UTF-8 bytes),
+  the other using \uXXXX escapes (so that part of the file is pure ASCII).
+  Both must result in exactly the CastleTestUtils.SampleText,
+  which has the expected characters hardcoded (as UTF-8 bytes)
+  in the Pascal source.
+
+  Note: The sample text ends with a character outside of BMP
+  (U+1F600, written as a surrogate pair "\uD83D\uDE00" in JSON),
+  as this is the most tricky case. }
+
+const
+  LiteralPrefix = 'literal-';
+  EscapedPrefix = 'escaped-';
+var
+  Scene: TCastleScene;
+  I: Integer;
+  AnimName, FromLiteral, FromEscaped: String;
+begin
+  Scene := TCastleScene.Create(nil);
+  try
+    Scene.Load('castle-data:/spine/utf8_escapes.json');
+
+    FromLiteral := '';
+    FromEscaped := '';
+    for I := 0 to Scene.AnimationsList.Count - 1 do
+    begin
+      AnimName := Scene.AnimationsList[I];
+      if IsPrefix(LiteralPrefix, AnimName, false) then
+        FromLiteral := SEnding(AnimName, Length(LiteralPrefix) + 1)
+      else
+      if IsPrefix(EscapedPrefix, AnimName, false) then
+        FromEscaped := SEnding(AnimName, Length(EscapedPrefix) + 1);
+    end;
+
+    { Both animations were found, so both names were read. }
+    AssertTrue(FromLiteral <> '');
+    AssertTrue(FromEscaped <> '');
+
+    { Both the literal and the escaped form must result
+      in the expected characters. }
+    AssertEquals(SampleText, FromLiteral);
+    AssertEquals(SampleText, FromEscaped);
+  finally FreeAndNil(Scene) end;
 end;
 
 procedure TTestSceneCore.TestAnimsInSwitch;

@@ -165,15 +165,9 @@ begin
 
   TextureLoader := CreateTextureLoader(CustomAtlasName);
   try
-    { Should we add joUTF8?
-      - Long time ago, it failed to work on
-        tests/data/escape_from_the_universe_boss/boss.json
-        with FPC 3.1.1-r36683 [2017/07/08] for Linux x86_64.
-      - TODO: Needs retest.
-        It may have been some error on our side?
-        Later note reported joUTF8 is OK with FPC 3.0.2. }
-
-    P := TJSONParser.Create(Stream, [joComments]);
+    { See doc/miscellaneous_notes/ansistring_encoding.md about the joUTF8
+      option with TJSONParser. }
+    P := TJSONParser.Create(Stream, [joComments, joUTF8]);
     try
       Json := P.Parse;
       try

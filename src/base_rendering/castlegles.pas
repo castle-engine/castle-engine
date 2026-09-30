@@ -1720,15 +1720,15 @@ procedure LoadGLES(const Lib: string; const AltLibName: string = '');
     Call only when GLESLib <> nil. }
   function MyGetProcAddress(const ProcName: String): pointer;
   var
-    ProcNameAnsi: AnsiString;
+    ProcName8: Utf8String;
   begin
     Assert(GLESLib <> nil);
     Result := GLESLib.Symbol(PChar(ProcName));
 
     if Assigned(eglGetProcAddress) and (not Assigned(Result)) then
     begin
-      ProcNameAnsi := ProcName;
-      Result := eglGetProcAddress(PAnsiChar(ProcNameAnsi));
+      ProcName8 := ProcName;
+      Result := eglGetProcAddress(PAnsiChar(ProcName8));
     end;
   end;
 

@@ -267,7 +267,7 @@ var
   ControllerIndex, j : Integer;
   NewController: TGameController;
   NewControllerBackend: TLinuxControllerBackend;
-  NewName: AnsiString;
+  NewName: Utf8String;
 begin
   for ControllerIndex := 0 to 15 do
   begin

@@ -40,12 +40,13 @@ type
     procedure TestAxis2Placement3D;
     procedure TestTextLiteral;
     procedure TestTextLiteralAlignment;
+    procedure TestUtf8Escapes;
   end;
 
 implementation
 
 uses TypInfo, FpJson,
-  CastleIfc, CastleInternalRttiUtils, CastleVectors, CastleUtils;
+  CastleIfc, CastleInternalRttiUtils, CastleVectors, CastleUtils, CastleTestUtils;
 
 { Simple hack to detect does given object is a TObjectList<xxx> specialization
   and is a list of IFC classes.
@@ -448,6 +449,35 @@ begin
         finally FreeAndNil(IfcFileFromSaved) end;
       finally FreeAndNil(Json) end;
     finally FreeAndNil(FoundFontStyles) end;
+  finally FreeAndNil(IfcFile) end;
+end;
+
+procedure TTestCastleIfc.TestUtf8Escapes;
+
+{ Test that IFC JSON is read as UTF-8, both when the file has literal UTF-8
+  characters and when it uses \uXXXX escape sequences.
+
+  In the tested data file, the project "name" has the non-ASCII characters
+  written literally (as UTF-8 bytes), and the project "description" has
+  exactly the same characters written using \uXXXX escapes (so that part
+  of the file is pure ASCII). Both must result in exactly
+  the CastleTestUtils.SampleText, which has the expected characters
+  hardcoded (as UTF-8 bytes) in the Pascal source.
+
+  The sample text ends with a character outside of BMP (U+1F600),
+  written as a surrogate pair in JSON, as this is the most tricky case. }
+
+var
+  IfcFile: TIfcFile;
+begin
+  IfcFile := IfcJsonLoad('castle-data:/ifc/utf8_escapes.ifcjson');
+  try
+    AssertTrue(IfcFile.Project <> nil);
+
+    { Both the literal UTF-8 (in "name") and the \uXXXX escapes
+      (in "description") must result in the expected characters. }
+    AssertEquals(SampleText, IfcFile.Project.Name);
+    AssertEquals(SampleText, IfcFile.Project.Description);
   finally FreeAndNil(IfcFile) end;
 end;
 
