@@ -2103,6 +2103,24 @@
     function BuildNode(const Mapping: TCastleIfcMapping;
       const ParentProduct: TIfcProduct;
       const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode; override;
+
+    { Set the font size (height of the font, in the model length units).
+
+      This creates the IFC structure to express it:
+      @link(TIfcStyledItem) (assigned as our @link(StyledByItem))
+      with @link(TIfcTextStyle) with @link(TIfcTextStyleFontModel).
+      Replaces previous @link(StyledByItem), if any.
+
+      Note: The created TIfcStyledItem.Item is left @nil, for now.
+      The item is clear from the context (TIfcStyledItem is nested in our
+      @link(StyledByItem)). }
+    procedure SetFontSize(const Size: TIfcPositiveLengthMeasure;
+      const FontFamily: String = 'sans-serif');
+
+    { Font size (height of the font, in the model length units),
+      looking at the @link(TIfcTextStyle) in @link(StyledByItem).
+      Returns @false if not specified (or specified in a way we don't support). }
+    function TryGetFontSize(out Size: Single): Boolean;
   published
     { The text to display. }
     property Literal: TIfcPresentableText read FLiteral write FLiteral;
@@ -3366,20 +3384,36 @@
     property LongName: TIfcLabel read FLongName write FLongName;
     property ContainsElements: TIfcRelContainedInSpatialStructureList read FContainsElements;
 
-    { Add given Element (TIfcElement, descendant of TIfcProduct)
+    { Add given Element (usually TIfcElement, but can be any TIfcProduct)
       to the @link(ContainsElements) list of this spatial element.
 
-      This adds an intermediate TIfcRelContainedInSpatialStructure instance,
-      and expands the @link(ContainsElements) list of this spatial element,
-      and expands the @link(TIfcElement.ContainedInStructure) of the given Element.
+      What this does:
 
-      It may reuse existing TIfcRelContainedInSpatialStructure instance
+      @unorderedList(
+        @item(Adds an intermediate TIfcRelContainedInSpatialStructure instance,)
+
+        @item(Expands the @link(ContainsElements) list of this spatial element,)
+
+        @item(Expands the @link(TIfcElement.ContainedInStructure) of the given Element.
+          This is done only if @code(Element) is a TIfcElement.)
+      )
+
+      This may reuse existing TIfcRelContainedInSpatialStructure instance
       (BonsaiBIM also does this, using one TIfcRelContainedInSpatialStructure
       to refer to multiple children).
 
       This should be used to add smaller elements, like TIfcWall, TIfcWindow
-      into larger spatial elements, like TIfcBuildingStorey, TIfcSpace. }
-    procedure AddContainedElement(const Element: TIfcElement);
+      into larger spatial elements, like TIfcBuildingStorey, TIfcSpace.
+      It can also add other products, like TIfcAnnotation
+      (which is not a TIfcElement, but can be contained in a spatial element).
+
+      Despite the name suggesting it takes only "elements" (TIfcElement),
+      this method actually accepts a more general TIfcProduct, not only TIfcElement.
+      This reflects the IFC standard, that allows any TIfcProduct
+      in @link(ContainsElements),
+      and in @url(IfcRelContainedInSpatialStructure
+      https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcRelContainedInSpatialStructure.htm). }
+    procedure AddContainedElement(const Element: TIfcProduct);
 
     { Add all contained elemenents to the List.
       This enumerates relations inside @link(ContainsElements)
@@ -4527,6 +4561,16 @@
     property Value: TIfcReal read FValue write FValue;
   end;
 
+  { Value of a distance that is always positive.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPositiveLengthMeasure.htm }
+  TIfcPositiveLengthMeasure_Boxed = class(TIfcMeasureValue)
+  strict private
+    FValue: TIfcReal;
+  published
+    property Value: TIfcReal read FValue write FValue;
+  end;
+
   { Measure of the quantity of a medium acting on a unit area.
     Usually measured in Pascals (Pa, N/m2).
 
@@ -4558,6 +4602,110 @@
     FValue: TIfcReal;
   published
     property Value: TIfcReal read FValue write FValue;
+  end;
+
+  { Size of something, like the font size.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcSizeSelect.htm }
+  TIfcSizeSelect = TIfcMeasureValue;
+
+  { Name of a font family, following CSS, like 'serif', 'sans-serif', 'Arial'.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcTextFontName.htm }
+  TIfcTextFontName = String;
+
+  { Font style, following CSS: 'normal', 'italic' or 'oblique'.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcFontStyle.htm }
+  TIfcFontStyle = String;
+
+  { Font variant, following CSS: 'normal' or 'small-caps'.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcFontVariant.htm }
+  TIfcFontVariant = String;
+
+  { Font weight, following CSS: 'normal', 'bold' or '100', '200', ... '900'.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcFontWeight.htm }
+  TIfcFontWeight = String;
+
+  { Pre-defined presentation item, identified by name.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPreDefinedItem.htm }
+  TIfcPreDefinedItem = class abstract(TIfcPresentationItem)
+  strict private
+    FName: TIfcLabel;
+  published
+    { Name of the pre-defined item. }
+    property Name: TIfcLabel read FName write FName;
+  end;
+
+  { Pre-defined text font.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPreDefinedTextFont.htm }
+  TIfcPreDefinedTextFont = class abstract(TIfcPreDefinedItem)
+  end;
+
+  { Font for text, following the CSS font model.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcTextStyleFontModel.htm }
+  TIfcTextStyleFontModel = class(TIfcPreDefinedTextFont)
+  strict private
+    FFontFamily: TCastleStringList;
+    FFontStyle: TIfcFontStyle;
+    FFontVariant: TIfcFontVariant;
+    FFontWeight: TIfcFontWeight;
+    FFontSize: TIfcSizeSelect;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+
+    { Font size as a length (in the model length units), if possible.
+      Returns @false if FontSize is @nil or is not a length measure. }
+    function TryGetFontSizeLength(out Size: Single): Boolean;
+  published
+    { Font families, in order of preference. Always at least 1 item. }
+    property FontFamily: TCastleStringList read FFontFamily;
+
+    { Font style. }
+    property FontStyle: TIfcFontStyle read FFontStyle write FFontStyle;
+
+    { Font variant. }
+    property FontVariant: TIfcFontVariant read FFontVariant write FFontVariant;
+
+    { Font weight. }
+    property FontWeight: TIfcFontWeight read FFontWeight write FFontWeight;
+
+    { Font size. Usually TIfcLengthMeasure_Boxed or TIfcPositiveLengthMeasure_Boxed,
+      which is the height of the font (in the model length units).
+      We use it to set X3D TFontStyleNode.Size. }
+    property FontSize: TIfcSizeSelect read FFontSize write FFontSize;
+  end;
+
+  { Font for text, a choice (select) in IFC standard between
+    @link(TIfcPreDefinedTextFont) and IfcExternallyDefinedTextFont.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcTextFontSelect.htm }
+  TIfcTextFontSelect = TIfcPersistent;
+
+  { Style of a text, in particular its font (with size).
+    Assign it to a text (like @link(TIfcTextLiteral)) using
+    @link(TIfcStyledItem), or just use @link(TIfcTextLiteral.SetFontSize).
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcTextStyle.htm }
+  TIfcTextStyle = class(TIfcPresentationStyle)
+  strict private
+    FTextFontStyle: TIfcTextFontSelect;
+    FModelOrDraughting: TIfcBoolean;
+  published
+    { Font of the text. Usually @link(TIfcTextStyleFontModel). }
+    property TextFontStyle: TIfcTextFontSelect read FTextFontStyle write FTextFontStyle;
+
+    { Whether the text size is in model space (@true)
+      or in the drawing space (@false).
+      Note: We don't use this for display for now, we always treat
+      the font size as in model units. }
+    property ModelOrDraughting: TIfcBoolean read FModelOrDraughting write FModelOrDraughting default false;
   end;
 
   { Abstract unit: a physical quantity, with a value of one, which is used as
@@ -6655,7 +6803,7 @@ begin
   inherited;
 end;
 
-procedure TIfcSpatialElement.AddContainedElement(const Element: TIfcElement);
+procedure TIfcSpatialElement.AddContainedElement(const Element: TIfcProduct);
 var
   Relation: TIfcRelContainedInSpatialStructure;
 begin
@@ -6674,7 +6822,8 @@ begin
 
   Relation.RelatedElements.Add(Element);
 
-  Element.ContainedInStructure.Add(Relation);
+  if Element is TIfcElement then
+    TIfcElement(Element).ContainedInStructure.Add(Relation);
 end;
 
 procedure TIfcSpatialElement.GetContainedElements(const List: TIfcElementList);
@@ -8369,6 +8518,74 @@ begin
   Result := '';
 end;
 
+procedure TIfcTextLiteral.SetFontSize(const Size: TIfcPositiveLengthMeasure;
+  const FontFamily: String);
+var
+  FontSize: TIfcPositiveLengthMeasure_Boxed;
+  FontModel: TIfcTextStyleFontModel;
+  TextStyle: TIfcTextStyle;
+  NewStyledItem: TIfcStyledItem;
+begin
+  FontSize := TIfcPositiveLengthMeasure_Boxed.Create(Owner);
+  FontSize.Value := Size;
+
+  FontModel := TIfcTextStyleFontModel.Create(Owner);
+  FontModel.FontFamily.Add(FontFamily);
+  FontModel.FontSize := FontSize;
+
+  TextStyle := TIfcTextStyle.Create(Owner);
+  TextStyle.TextFontStyle := FontModel;
+  { Font size is in model units, not drawing (paper) units. }
+  TextStyle.ModelOrDraughting := true;
+
+  NewStyledItem := TIfcStyledItem.Create(Owner);
+  NewStyledItem.Styles.Add(TextStyle);
+
+  StyledByItem := NewStyledItem;
+end;
+
+function TIfcTextLiteral.TryGetFontSize(out Size: Single): Boolean;
+var
+  Style: TIfcPresentationStyle;
+begin
+  if StyledByItem <> nil then
+    for Style in StyledByItem.Styles do
+      if (Style is TIfcTextStyle) and
+         (TIfcTextStyle(Style).TextFontStyle is TIfcTextStyleFontModel) and
+         TIfcTextStyleFontModel(TIfcTextStyle(Style).TextFontStyle).TryGetFontSizeLength(Size) then
+        Exit(true);
+  Result := false;
+end;
+
+{ TIfcTextStyleFontModel ----------------------------------------------------- }
+
+constructor TIfcTextStyleFontModel.Create(AOwner: TComponent);
+begin
+  inherited;
+  FFontFamily := TCastleStringList.Create;
+end;
+
+destructor TIfcTextStyleFontModel.Destroy;
+begin
+  FreeAndNil(FFontFamily);
+  inherited;
+end;
+
+function TIfcTextStyleFontModel.TryGetFontSizeLength(out Size: Single): Boolean;
+begin
+  if FontSize is TIfcPositiveLengthMeasure_Boxed then
+  begin
+    Size := TIfcPositiveLengthMeasure_Boxed(FontSize).Value;
+    Result := true;
+  end else
+  if FontSize is TIfcLengthMeasure_Boxed then
+  begin
+    Size := TIfcLengthMeasure_Boxed(FontSize).Value;
+    Result := true;
+  end else
+    Result := false;
+end;
+
 { TIfcTextLiteralWithExtent -------------------------------------------------- }
 
 function TIfcTextLiteralWithExtent.GetBoxAlignment: TIfcBoxAlignment;
@@ -8455,6 +8672,7 @@ function IfcClasses: TIfcPersistentClassList;
     FIfcClasses.Add(TIfcAreaMeasure_Boxed);
     FIfcClasses.Add(TIfcMassMeasure);
     FIfcClasses.Add(TIfcLengthMeasure_Boxed);
+    FIfcClasses.Add(TIfcPositiveLengthMeasure_Boxed);
     FIfcClasses.Add(TIfcPressureMeasure);
     FIfcClasses.Add(TIfcVolumeMeasure);
     FIfcClasses.Add(TIfcThermodynamicTemperatureMeasure);
@@ -8541,6 +8759,10 @@ function IfcClasses: TIfcPersistentClassList;
     FIfcClasses.Add(TIfcPlanarExtent);
     FIfcClasses.Add(TIfcTextLiteral);
     FIfcClasses.Add(TIfcTextLiteralWithExtent);
+    FIfcClasses.Add(TIfcPreDefinedItem);
+    FIfcClasses.Add(TIfcPreDefinedTextFont);
+    FIfcClasses.Add(TIfcTextStyleFontModel);
+    FIfcClasses.Add(TIfcTextStyle);
     FIfcClasses.Add(TIfcTrimmedCurve);
     FIfcClasses.Add(TIfcEllipse);
     FIfcClasses.Add(TIfcMappedItem);
