@@ -4980,14 +4980,30 @@
   { Context that applies to several shape representations of a product
     being a sub context, sharing the WorldCoordinateSystem,
     CoordinateSpaceDimension, Precision and TrueNorth attributes with
-    the parent IfcGeometricRepresentationContext.  }
-  TIfcGeometricRepresentationSubContext = class(TIfcRepresentationContext)
+    the parent IfcGeometricRepresentationContext.
+
+    Descends from TIfcGeometricRepresentationContext, like in the IFC spec.
+    The WorldCoordinateSystem, CoordinateSpaceDimension, Precision and TrueNorth
+    are derived (from @link(ParentContext)) in a subcontext,
+    so they are not stored in IFC files.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcGeometricRepresentationSubContext.htm }
+  TIfcGeometricRepresentationSubContext = class(TIfcGeometricRepresentationContext)
   strict private
     FParentContext: TIfcGeometricRepresentationContext;
     FTargetScale: TIfcPositiveRatioMeasure;
     FTargetView: TIfcGeometricProjectionEnum;
     FUserDefinedTargetView: TIfcLabel;
   published
+    { Derived from @link(ParentContext) in a subcontext, so not stored. }
+    property CoordinateSpaceDimension stored false;
+    { Derived from @link(ParentContext) in a subcontext, so not stored. }
+    property Precision stored false;
+    { Derived from @link(ParentContext) in a subcontext, so not stored. }
+    property WorldCoordinateSystem stored false;
+    { Derived from @link(ParentContext) in a subcontext, so not stored. }
+    property TrueNorth stored false;
+
     { Parent context from which the sub context derives its world coordinate system,
       precision, space coordinate dimension and true north. }
     property ParentContext: TIfcGeometricRepresentationContext read FParentContext write FParentContext;
