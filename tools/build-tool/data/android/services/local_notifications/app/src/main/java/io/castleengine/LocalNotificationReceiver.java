@@ -25,6 +25,10 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 
 import androidx.core.app.NotificationCompat;
@@ -78,13 +82,45 @@ public class LocalNotificationReceiver extends BroadcastReceiver
        depending on the R class of the project's package. */
     private static int smallIcon(Context context)
     {
+        // The project's own icon, if it provided one (small_icon parameter).
         int result = context.getResources().getIdentifier(
-            "ic_castle_notification", "drawable", context.getPackageName());
+            "castle_notification_small_icon", "drawable", context.getPackageName());
         if (result == 0) {
-            // Should not happen, the drawable is part of this service.
+            // The default bell, part of this service.
+            result = context.getResources().getIdentifier(
+                "ic_castle_notification", "drawable", context.getPackageName());
+        }
+        if (result == 0) {
+            // Should not happen, the bell is part of this service.
             result = context.getApplicationInfo().icon;
         }
         return result;
+    }
+
+    /* The large icon, shown in color inside the notification:
+       the application's own icon. This is what makes the notification
+       recognizable as coming from this application, as the small icon
+       is only a silhouette. Returns null if the icon cannot be read,
+       the notification is then shown without a large icon. */
+    private static Bitmap largeIcon(Context context)
+    {
+        try {
+            Drawable icon = context.getPackageManager().getApplicationIcon(context.getPackageName());
+            if (icon instanceof BitmapDrawable) {
+                return ((BitmapDrawable) icon).getBitmap();
+            }
+            /* Adaptive icons (Android 8+) are not bitmaps, draw them. */
+            int width = Math.max(icon.getIntrinsicWidth(), 1);
+            int height = Math.max(icon.getIntrinsicHeight(), 1);
+            Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(bitmap);
+            icon.setBounds(0, 0, width, height);
+            icon.draw(canvas);
+            return bitmap;
+        } catch (Exception e) {
+            ServiceAbstract.logWarning(CATEGORY, "Cannot read the application icon: " + e.getMessage());
+            return null;
+        }
     }
 
     /* Intent to open the application when the notification is tapped. */
@@ -134,6 +170,11 @@ public class LocalNotificationReceiver extends BroadcastReceiver
             setContentText(text != null ? text : "").
             setPriority(NotificationCompat.PRIORITY_DEFAULT).
             setAutoCancel(true);
+
+        Bitmap large = largeIcon(context);
+        if (large != null) {
+            builder.setLargeIcon(large);
+        }
 
         PendingIntent open = openApplication(context);
         if (open != null) {

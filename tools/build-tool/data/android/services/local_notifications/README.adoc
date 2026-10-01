@@ -23,7 +23,18 @@ These are _local_ notifications: the application schedules them itself, nothing 
 
 * Since Android 13, showing a notification requires the `POST_NOTIFICATIONS` permission. This service asks for it when your application schedules its first notification. If the user refuses, notifications are silently not shown -- nothing fails and nothing crashes.
 
-* The small icon in the status bar is drawn by Android as a silhouette, so it cannot be the colorful application icon. This service provides a simple bell (`res/drawable/ic_castle_notification.xml`). Provide a drawable with the same name in your own project to override it.
+* The application icon is shown in color inside the notification (as its _large icon_), so the player sees at once which game it comes from.
+
+* The _small icon_, in the status bar and in the notification header, is drawn by Android as a silhouette: only its transparency matters, the color is chosen by the system. So it cannot simply be the colorful application icon. By default this service uses a simple bell. To use your own, provide a white image on a transparent background (for example your logo's outline), 96x96 pixels is enough, and point to it from `CastleEngineManifest.xml`:
+
+[source,xml]
+----
+<service name="local_notifications">
+  <parameter key="small_icon" value="android/notification_icon.png" />
+</service>
+----
+
+The path is relative to the project directory. Keep the file outside of the `data` directory, it is not needed by the game itself.
 
 ### Messages
 
