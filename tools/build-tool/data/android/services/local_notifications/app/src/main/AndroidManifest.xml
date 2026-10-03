@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This manifest will be merged with main integrated/AndroidManifest.xml
+     by the build tool. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Required since Android 13 to show any notification.
+         Requested at runtime too, by ServiceLocalNotifications. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- To schedule again the pending notifications after a reboot. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <application>
+        <!-- Shows the notification when its time comes.
+             Not exported: only our own alarms start it. -->
+        <receiver android:name="io.castleengine.LocalNotificationReceiver"
+            android:exported="false" />
+
+        <receiver android:name="io.castleengine.LocalNotificationBootReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+    </application>
+</manifest>

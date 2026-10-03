@@ -357,6 +357,7 @@ begin
     P.Targets.AddUnit('castlegameservice.pas');
     P.Targets.AddUnit('castlehelpshift.pas');
     P.Targets.AddUnit('castleinapppurchases.pas');
+    P.Targets.AddUnit('castlelocalnotifications.pas');
     P.Targets.AddUnit('castlephotoservice.pas');
     P.Targets.AddUnit('castleopendocument.pas');
     P.Targets.AddUnit('castletenjin.pas');
