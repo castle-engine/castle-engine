@@ -163,7 +163,7 @@
         <DelphiCompile Include="$(MainSource)">
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
-        <None Include="bookmarks_xml_demo.dpr"/>
+
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
@@ -235,62 +235,6 @@
                 </DeployFile>
 
                 <!-- Deploy data files -->
-<DeployFile LocalName="bookmarks_xml_demo.dpr" Configuration="Debug" Class="ProjectFile">
- <Platform Name="Android">
-  <RemoteDir>.\assets\internal\</RemoteDir>
-  <Enabled>false</Enabled>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="bookmarks_xml_demo.dpr" Configuration="Debug" Class="ProjectFile">
- <Platform Name="Android64">
-  <RemoteDir>.\assets\internal\</RemoteDir>
-  <Enabled>false</Enabled>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="bookmarks_xml_demo.dpr" Configuration="Debug" Class="ProjectFile">
- <Platform Name="iOSDevice64">
-  <RemoteDir>StartUp\Documents\</RemoteDir>
-  <Enabled>false</Enabled>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="bookmarks_xml_demo.dpr" Configuration="Debug" Class="ProjectFile">
- <Platform Name="iOSSimARM64">
-  <RemoteDir>StartUp\Documents\</RemoteDir>
-  <Enabled>false</Enabled>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="bookmarks_xml_demo.dpr" Configuration="Release" Class="ProjectFile">
- <Platform Name="Android">
-  <RemoteDir>.\assets\internal\</RemoteDir>
-  <Enabled>false</Enabled>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="bookmarks_xml_demo.dpr" Configuration="Release" Class="ProjectFile">
- <Platform Name="Android64">
-  <RemoteDir>.\assets\internal\</RemoteDir>
-  <Enabled>false</Enabled>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="bookmarks_xml_demo.dpr" Configuration="Release" Class="ProjectFile">
- <Platform Name="iOSDevice64">
-  <RemoteDir>StartUp\Documents\</RemoteDir>
-  <Enabled>false</Enabled>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="bookmarks_xml_demo.dpr" Configuration="Release" Class="ProjectFile">
- <Platform Name="iOSSimARM64">
-  <RemoteDir>StartUp\Documents\</RemoteDir>
-  <Enabled>false</Enabled>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
 
 
             </Deployment>
