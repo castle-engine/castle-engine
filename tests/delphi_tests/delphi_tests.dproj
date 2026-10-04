@@ -152,8 +152,6 @@
         <DelphiCompile Include="$(MainSource)">
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
-        <None Include="README.md"/>
-        <None Include="delphi_tests.dpr"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
@@ -226,118 +224,6 @@
                 </DeployFile>
 
                 <!-- Deploy data files -->
-<DeployFile LocalName="README.md" Configuration="Debug" Class="ProjectFile">
- <Platform Name="Android">
-  <RemoteDir>.\assets\internal\</RemoteDir>
-  <Enabled>false</Enabled>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="README.md" Configuration="Debug" Class="ProjectFile">
- <Platform Name="Android64">
-  <RemoteDir>.\assets\internal\</RemoteDir>
-  <Enabled>false</Enabled>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="README.md" Configuration="Debug" Class="ProjectFile">
- <Platform Name="iOSDevice64">
-  <RemoteDir>StartUp\Documents\</RemoteDir>
-  <Enabled>false</Enabled>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="README.md" Configuration="Debug" Class="ProjectFile">
- <Platform Name="iOSSimARM64">
-  <RemoteDir>StartUp\Documents\</RemoteDir>
-  <Enabled>false</Enabled>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="README.md" Configuration="Release" Class="ProjectFile">
- <Platform Name="Android">
-  <RemoteDir>.\assets\internal\</RemoteDir>
-  <Enabled>false</Enabled>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="README.md" Configuration="Release" Class="ProjectFile">
- <Platform Name="Android64">
-  <RemoteDir>.\assets\internal\</RemoteDir>
-  <Enabled>false</Enabled>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="README.md" Configuration="Release" Class="ProjectFile">
- <Platform Name="iOSDevice64">
-  <RemoteDir>StartUp\Documents\</RemoteDir>
-  <Enabled>false</Enabled>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="README.md" Configuration="Release" Class="ProjectFile">
- <Platform Name="iOSSimARM64">
-  <RemoteDir>StartUp\Documents\</RemoteDir>
-  <Enabled>false</Enabled>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="delphi_tests.dpr" Configuration="Debug" Class="ProjectFile">
- <Platform Name="Android">
-  <RemoteDir>.\assets\internal\</RemoteDir>
-  <Enabled>false</Enabled>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="delphi_tests.dpr" Configuration="Debug" Class="ProjectFile">
- <Platform Name="Android64">
-  <RemoteDir>.\assets\internal\</RemoteDir>
-  <Enabled>false</Enabled>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="delphi_tests.dpr" Configuration="Debug" Class="ProjectFile">
- <Platform Name="iOSDevice64">
-  <RemoteDir>StartUp\Documents\</RemoteDir>
-  <Enabled>false</Enabled>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="delphi_tests.dpr" Configuration="Debug" Class="ProjectFile">
- <Platform Name="iOSSimARM64">
-  <RemoteDir>StartUp\Documents\</RemoteDir>
-  <Enabled>false</Enabled>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="delphi_tests.dpr" Configuration="Release" Class="ProjectFile">
- <Platform Name="Android">
-  <RemoteDir>.\assets\internal\</RemoteDir>
-  <Enabled>false</Enabled>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="delphi_tests.dpr" Configuration="Release" Class="ProjectFile">
- <Platform Name="Android64">
-  <RemoteDir>.\assets\internal\</RemoteDir>
-  <Enabled>false</Enabled>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="delphi_tests.dpr" Configuration="Release" Class="ProjectFile">
- <Platform Name="iOSDevice64">
-  <RemoteDir>StartUp\Documents\</RemoteDir>
-  <Enabled>false</Enabled>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="delphi_tests.dpr" Configuration="Release" Class="ProjectFile">
- <Platform Name="iOSSimARM64">
-  <RemoteDir>StartUp\Documents\</RemoteDir>
-  <Enabled>false</Enabled>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
 <!-- Auto-generated list of deploy files.
      We need to list all "data" files to deploy Delphi applications
      to non-Windows targets,
