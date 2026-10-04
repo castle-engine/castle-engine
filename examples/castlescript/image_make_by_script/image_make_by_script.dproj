@@ -235,22 +235,56 @@
                 </DeployFile>
 
                 <!-- Deploy data files -->
-<DeployFile LocalName="image_make_by_script.dpr" Class="ProjectFile">
+<DeployFile LocalName="image_make_by_script.dpr" Configuration="Debug" Class="ProjectFile">
  <Platform Name="Android">
   <RemoteDir>.\assets\internal\</RemoteDir>
   <Enabled>false</Enabled>
   <Overwrite>true</Overwrite>
  </Platform>
+</DeployFile>
+<DeployFile LocalName="image_make_by_script.dpr" Configuration="Debug" Class="ProjectFile">
  <Platform Name="Android64">
   <RemoteDir>.\assets\internal\</RemoteDir>
   <Enabled>false</Enabled>
   <Overwrite>true</Overwrite>
  </Platform>
+</DeployFile>
+<DeployFile LocalName="image_make_by_script.dpr" Configuration="Debug" Class="ProjectFile">
  <Platform Name="iOSDevice64">
   <RemoteDir>StartUp\Documents\</RemoteDir>
   <Enabled>false</Enabled>
   <Overwrite>true</Overwrite>
  </Platform>
+</DeployFile>
+<DeployFile LocalName="image_make_by_script.dpr" Configuration="Debug" Class="ProjectFile">
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>StartUp\Documents\</RemoteDir>
+  <Enabled>false</Enabled>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="image_make_by_script.dpr" Configuration="Release" Class="ProjectFile">
+ <Platform Name="Android">
+  <RemoteDir>.\assets\internal\</RemoteDir>
+  <Enabled>false</Enabled>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="image_make_by_script.dpr" Configuration="Release" Class="ProjectFile">
+ <Platform Name="Android64">
+  <RemoteDir>.\assets\internal\</RemoteDir>
+  <Enabled>false</Enabled>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="image_make_by_script.dpr" Configuration="Release" Class="ProjectFile">
+ <Platform Name="iOSDevice64">
+  <RemoteDir>StartUp\Documents\</RemoteDir>
+  <Enabled>false</Enabled>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="image_make_by_script.dpr" Configuration="Release" Class="ProjectFile">
  <Platform Name="iOSSimARM64">
   <RemoteDir>StartUp\Documents\</RemoteDir>
   <Enabled>false</Enabled>

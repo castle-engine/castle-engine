@@ -237,44 +237,112 @@
                 </DeployFile>
 
                 <!-- Deploy data files -->
-<DeployFile LocalName="README.md" Class="ProjectFile">
+<DeployFile LocalName="README.md" Configuration="Debug" Class="ProjectFile">
  <Platform Name="Android">
   <RemoteDir>.\assets\internal\</RemoteDir>
   <Enabled>false</Enabled>
   <Overwrite>true</Overwrite>
  </Platform>
+</DeployFile>
+<DeployFile LocalName="README.md" Configuration="Debug" Class="ProjectFile">
  <Platform Name="Android64">
   <RemoteDir>.\assets\internal\</RemoteDir>
   <Enabled>false</Enabled>
   <Overwrite>true</Overwrite>
  </Platform>
+</DeployFile>
+<DeployFile LocalName="README.md" Configuration="Debug" Class="ProjectFile">
  <Platform Name="iOSDevice64">
   <RemoteDir>StartUp\Documents\</RemoteDir>
   <Enabled>false</Enabled>
   <Overwrite>true</Overwrite>
  </Platform>
+</DeployFile>
+<DeployFile LocalName="README.md" Configuration="Debug" Class="ProjectFile">
  <Platform Name="iOSSimARM64">
   <RemoteDir>StartUp\Documents\</RemoteDir>
   <Enabled>false</Enabled>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="game_services_demo_standalone.dpr" Class="ProjectFile">
+<DeployFile LocalName="README.md" Configuration="Release" Class="ProjectFile">
  <Platform Name="Android">
   <RemoteDir>.\assets\internal\</RemoteDir>
   <Enabled>false</Enabled>
   <Overwrite>true</Overwrite>
  </Platform>
+</DeployFile>
+<DeployFile LocalName="README.md" Configuration="Release" Class="ProjectFile">
  <Platform Name="Android64">
   <RemoteDir>.\assets\internal\</RemoteDir>
   <Enabled>false</Enabled>
   <Overwrite>true</Overwrite>
  </Platform>
+</DeployFile>
+<DeployFile LocalName="README.md" Configuration="Release" Class="ProjectFile">
  <Platform Name="iOSDevice64">
   <RemoteDir>StartUp\Documents\</RemoteDir>
   <Enabled>false</Enabled>
   <Overwrite>true</Overwrite>
  </Platform>
+</DeployFile>
+<DeployFile LocalName="README.md" Configuration="Release" Class="ProjectFile">
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>StartUp\Documents\</RemoteDir>
+  <Enabled>false</Enabled>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="game_services_demo_standalone.dpr" Configuration="Debug" Class="ProjectFile">
+ <Platform Name="Android">
+  <RemoteDir>.\assets\internal\</RemoteDir>
+  <Enabled>false</Enabled>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="game_services_demo_standalone.dpr" Configuration="Debug" Class="ProjectFile">
+ <Platform Name="Android64">
+  <RemoteDir>.\assets\internal\</RemoteDir>
+  <Enabled>false</Enabled>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="game_services_demo_standalone.dpr" Configuration="Debug" Class="ProjectFile">
+ <Platform Name="iOSDevice64">
+  <RemoteDir>StartUp\Documents\</RemoteDir>
+  <Enabled>false</Enabled>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="game_services_demo_standalone.dpr" Configuration="Debug" Class="ProjectFile">
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>StartUp\Documents\</RemoteDir>
+  <Enabled>false</Enabled>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="game_services_demo_standalone.dpr" Configuration="Release" Class="ProjectFile">
+ <Platform Name="Android">
+  <RemoteDir>.\assets\internal\</RemoteDir>
+  <Enabled>false</Enabled>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="game_services_demo_standalone.dpr" Configuration="Release" Class="ProjectFile">
+ <Platform Name="Android64">
+  <RemoteDir>.\assets\internal\</RemoteDir>
+  <Enabled>false</Enabled>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="game_services_demo_standalone.dpr" Configuration="Release" Class="ProjectFile">
+ <Platform Name="iOSDevice64">
+  <RemoteDir>StartUp\Documents\</RemoteDir>
+  <Enabled>false</Enabled>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="game_services_demo_standalone.dpr" Configuration="Release" Class="ProjectFile">
  <Platform Name="iOSSimARM64">
   <RemoteDir>StartUp\Documents\</RemoteDir>
   <Enabled>false</Enabled>

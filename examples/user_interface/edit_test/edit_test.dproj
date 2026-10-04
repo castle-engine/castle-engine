@@ -235,22 +235,56 @@
                 </DeployFile>
 
                 <!-- Deploy data files -->
-<DeployFile LocalName="edit_test.dpr" Class="ProjectFile">
+<DeployFile LocalName="edit_test.dpr" Configuration="Debug" Class="ProjectFile">
  <Platform Name="Android">
   <RemoteDir>.\assets\internal\</RemoteDir>
   <Enabled>false</Enabled>
   <Overwrite>true</Overwrite>
  </Platform>
+</DeployFile>
+<DeployFile LocalName="edit_test.dpr" Configuration="Debug" Class="ProjectFile">
  <Platform Name="Android64">
   <RemoteDir>.\assets\internal\</RemoteDir>
   <Enabled>false</Enabled>
   <Overwrite>true</Overwrite>
  </Platform>
+</DeployFile>
+<DeployFile LocalName="edit_test.dpr" Configuration="Debug" Class="ProjectFile">
  <Platform Name="iOSDevice64">
   <RemoteDir>StartUp\Documents\</RemoteDir>
   <Enabled>false</Enabled>
   <Overwrite>true</Overwrite>
  </Platform>
+</DeployFile>
+<DeployFile LocalName="edit_test.dpr" Configuration="Debug" Class="ProjectFile">
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>StartUp\Documents\</RemoteDir>
+  <Enabled>false</Enabled>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="edit_test.dpr" Configuration="Release" Class="ProjectFile">
+ <Platform Name="Android">
+  <RemoteDir>.\assets\internal\</RemoteDir>
+  <Enabled>false</Enabled>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="edit_test.dpr" Configuration="Release" Class="ProjectFile">
+ <Platform Name="Android64">
+  <RemoteDir>.\assets\internal\</RemoteDir>
+  <Enabled>false</Enabled>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="edit_test.dpr" Configuration="Release" Class="ProjectFile">
+ <Platform Name="iOSDevice64">
+  <RemoteDir>StartUp\Documents\</RemoteDir>
+  <Enabled>false</Enabled>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="edit_test.dpr" Configuration="Release" Class="ProjectFile">
  <Platform Name="iOSSimARM64">
   <RemoteDir>StartUp\Documents\</RemoteDir>
   <Enabled>false</Enabled>
