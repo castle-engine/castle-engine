@@ -2440,11 +2440,61 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
     finally FreeAndNil(ResultBuilder) end;
   end;
 
+  { Generate DeployFile elements for DPROJ that prevent deploying
+    the given file (listed in DPROJ as <None Include="..."/>)
+    on Android and iOS.
+
+    Without this, Delphi deploys all files listed in the project
+    using <None Include="..."/> (like README.md, xxx_standalone.dpr)
+    to Android (to assets/internal/ in APK) and iOS (to StartUp/Documents/),
+    using class "ProjectFile". They are not useful there.
+
+    The output follows what Delphi writes to DPROJ when you uncheck
+    the file in "Project -> Deployment". }
+  function DelphiDprojDisabledDeployFile(const FileName: String): String;
+  const
+    MobilePlatformNames: array [0..3] of String = (
+      'Android',
+      'Android64',
+      'iOSDevice64',
+      'iOSSimARM64'
+    );
+  var
+    PlatformName, RemoteDir, LocalName: String;
+  begin
+    { LocalName uses \ as path delimiter, on all OSes,
+      as Delphi (running on Windows) uses it. }
+    LocalName := SReplaceChars(FileName, '/', '\');
+    { Like in DelphiDprojDeployFiles, we don't specify Configuration,
+      so the DeployFile applies to all configurations (Debug, Release). }
+    Result := Format(
+      '<DeployFile LocalName="%s" Class="ProjectFile">' + NL, [
+        LocalName
+      ]);
+    for PlatformName in MobilePlatformNames do
+    begin
+      if ArrayContainsString(PlatformName, ['Android', 'Android64']) then
+        RemoteDir := '.\assets\internal\'
+      else
+        RemoteDir := 'StartUp\Documents\';
+      Result := Result + Format(
+        ' <Platform Name="%s">' + NL +
+        '  <RemoteDir>%s</RemoteDir>' + NL +
+        '  <Enabled>false</Enabled>' + NL +
+        '  <Overwrite>true</Overwrite>' + NL +
+        ' </Platform>' + NL, [
+          PlatformName,
+          RemoteDir
+        ]);
+    end;
+    Result := Result + '</DeployFile>' + NL;
+  end;
+
   { Add macros specifically useful by Delphi project files. }
   procedure AddMacrosDproj(const Macros: TStringStringMap;
     const StandaloneSource: String);
   var
-    WelcomePageFile, IncludedFiles, WelcomePageXml: String;
+    WelcomePageFile, IncludedFiles, WelcomePageXml, DeployFiles: String;
     // PascalFiles unused -- see comment below
     // PascalFiles: TStringList;
     // PascalFile, UnitFileForDelphi: String;
@@ -2528,7 +2578,16 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
     { As an optimization, do not calculate DPROJ_DEPLOY_FILES
       macro value when not needed. }
     if Pos('${DPROJ_DEPLOY_FILES}', Source) <> 0 then
-      Macros.Add('DPROJ_DEPLOY_FILES', DelphiDprojDeployFiles);
+    begin
+      DeployFiles := '';
+      { Do not deploy on mobile the files we listed in DPROJ_INCLUDED_FILES. }
+      if WelcomePageFile <> '' then
+        DeployFiles := DeployFiles + DelphiDprojDisabledDeployFile(WelcomePageFile);
+      if StandaloneSource <> '' then
+        DeployFiles := DeployFiles + DelphiDprojDisabledDeployFile(StandaloneSource);
+      DeployFiles := DeployFiles + DelphiDprojDeployFiles;
+      Macros.Add('DPROJ_DEPLOY_FILES', DeployFiles);
+    end;
   end;
 
   procedure AddMacrosWeb(const Macros: TStringStringMap);
