@@ -235,6 +235,28 @@
                 </DeployFile>
 
                 <!-- Deploy data files -->
+<DeployFile LocalName="bookmarks_xml_demo.dpr" Class="ProjectFile">
+ <Platform Name="Android">
+  <RemoteDir>.\assets\internal\</RemoteDir>
+  <Enabled>false</Enabled>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>.\assets\internal\</RemoteDir>
+  <Enabled>false</Enabled>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>StartUp\Documents\</RemoteDir>
+  <Enabled>false</Enabled>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>StartUp\Documents\</RemoteDir>
+  <Enabled>false</Enabled>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
 
 
             </Deployment>
