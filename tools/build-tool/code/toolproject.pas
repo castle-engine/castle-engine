@@ -2453,6 +2453,7 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
     the file in "Project -> Deployment". }
   function DelphiDprojDisabledDeployFile(const FileName: String): String;
   const
+    Configurations: array [0..1] of String = ('Debug', 'Release');
     MobilePlatformNames: array [0..3] of String = (
       'Android',
       'Android64',
@@ -2460,34 +2461,43 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
       'iOSSimARM64'
     );
   var
-    PlatformName, RemoteDir, LocalName: String;
+    Configuration, PlatformName, RemoteDir, LocalName: String;
   begin
+    Result := '';
     { LocalName uses \ as path delimiter, on all OSes,
       as Delphi (running on Windows) uses it. }
     LocalName := SReplaceChars(FileName, '/', '\');
-    { Like in DelphiDprojDeployFiles, we don't specify Configuration,
-      so the DeployFile applies to all configurations (Debug, Release). }
-    Result := Format(
-      '<DeployFile LocalName="%s" Class="ProjectFile">' + NL, [
-        LocalName
-      ]);
-    for PlatformName in MobilePlatformNames do
-    begin
-      if ArrayContainsString(PlatformName, ['Android', 'Android64']) then
-        RemoteDir := '.\assets\internal\'
-      else
-        RemoteDir := 'StartUp\Documents\';
-      Result := Result + Format(
-        ' <Platform Name="%s">' + NL +
-        '  <RemoteDir>%s</RemoteDir>' + NL +
-        '  <Enabled>false</Enabled>' + NL +
-        '  <Overwrite>true</Overwrite>' + NL +
-        ' </Platform>' + NL, [
-          PlatformName,
-          RemoteDir
-        ]);
-    end;
-    Result := Result + '</DeployFile>' + NL;
+
+    { Unlike in DelphiDprojDeployFiles, we have to write a separate
+      DeployFile for each configuration and platform, exactly like Delphi does.
+      Delphi manages the "ProjectFile" entries on its own.
+
+      Otherwise (if not using Configuration below):
+      Testing with Delphi 13 shows that it ignores
+      (replaces with empty element, without child elements) a <DeployFile ...>
+      without Configuration, and adds own enabled DeployFile.
+      In effect, it would deploy dpr and README.md to mobile platforms data. }
+    for Configuration in Configurations do
+      for PlatformName in MobilePlatformNames do
+      begin
+        if ArrayContainsString(PlatformName, ['Android', 'Android64']) then
+          RemoteDir := '.\assets\internal\'
+        else
+          RemoteDir := 'StartUp\Documents\';
+        Result := Result + Format(
+          '<DeployFile LocalName="%s" Configuration="%s" Class="ProjectFile">' + NL +
+          ' <Platform Name="%s">' + NL +
+          '  <RemoteDir>%s</RemoteDir>' + NL +
+          '  <Enabled>false</Enabled>' + NL +
+          '  <Overwrite>true</Overwrite>' + NL +
+          ' </Platform>' + NL +
+          '</DeployFile>' + NL, [
+            LocalName,
+            Configuration,
+            PlatformName,
+            RemoteDir
+          ]);
+      end;
   end;
 
   { Add macros specifically useful by Delphi project files. }
