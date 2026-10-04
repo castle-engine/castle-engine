@@ -231,8 +231,38 @@
      to non-Windows targets,
      see https://castle-engine.io/delphi_linux#data_files_deployment .
 -->
-<DeployFile LocalName="data\AUTHORS.txt" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\AUTHORS.txt" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>AUTHORS.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>AUTHORS.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>AUTHORS.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>AUTHORS.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>AUTHORS.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>AUTHORS.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>AUTHORS.txt</RemoteName>
   <Overwrite>true</Overwrite>
@@ -248,8 +278,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\CastleSettings.xml" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\CastleSettings.xml" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>CastleSettings.xml</RemoteName>
   <Overwrite>true</Overwrite>
@@ -265,8 +325,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\README.txt" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\README.txt" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
@@ -282,8 +372,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_carkit/ambulance.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_carkit\ambulance.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>ambulance.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>ambulance.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>ambulance.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>ambulance.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>ambulance.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>ambulance.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_carkit/</RemoteDir>
   <RemoteName>ambulance.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -299,8 +419,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_carkit/delivery.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_carkit\delivery.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>delivery.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>delivery.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>delivery.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>delivery.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>delivery.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>delivery.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_carkit/</RemoteDir>
   <RemoteName>delivery.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -316,8 +466,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_carkit/deliveryFlat.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_carkit\deliveryFlat.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>deliveryFlat.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>deliveryFlat.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>deliveryFlat.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>deliveryFlat.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>deliveryFlat.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>deliveryFlat.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_carkit/</RemoteDir>
   <RemoteName>deliveryFlat.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -333,8 +513,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_carkit/firetruck.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_carkit\firetruck.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>firetruck.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>firetruck.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>firetruck.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>firetruck.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>firetruck.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>firetruck.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_carkit/</RemoteDir>
   <RemoteName>firetruck.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -350,8 +560,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_carkit/garbageTruck.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_carkit\garbageTruck.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>garbageTruck.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>garbageTruck.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>garbageTruck.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>garbageTruck.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>garbageTruck.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>garbageTruck.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_carkit/</RemoteDir>
   <RemoteName>garbageTruck.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -367,8 +607,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_carkit/hatchbackSports.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_carkit\hatchbackSports.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>hatchbackSports.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>hatchbackSports.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>hatchbackSports.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>hatchbackSports.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>hatchbackSports.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>hatchbackSports.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_carkit/</RemoteDir>
   <RemoteName>hatchbackSports.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -384,8 +654,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_carkit/police.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_carkit\police.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>police.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>police.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>police.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>police.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>police.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>police.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_carkit/</RemoteDir>
   <RemoteName>police.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -401,8 +701,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_carkit/race.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_carkit\race.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>race.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>race.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>race.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>race.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>race.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>race.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_carkit/</RemoteDir>
   <RemoteName>race.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -418,8 +748,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_carkit/raceFuture.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_carkit\raceFuture.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>raceFuture.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>raceFuture.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>raceFuture.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>raceFuture.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>raceFuture.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>raceFuture.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_carkit/</RemoteDir>
   <RemoteName>raceFuture.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -435,8 +795,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_carkit/sedan.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_carkit\sedan.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>sedan.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>sedan.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>sedan.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>sedan.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>sedan.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>sedan.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_carkit/</RemoteDir>
   <RemoteName>sedan.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -452,8 +842,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_carkit/sedanSports.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_carkit\sedanSports.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>sedanSports.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>sedanSports.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>sedanSports.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>sedanSports.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>sedanSports.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>sedanSports.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_carkit/</RemoteDir>
   <RemoteName>sedanSports.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -469,8 +889,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_carkit/suv.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_carkit\suv.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>suv.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>suv.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>suv.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>suv.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>suv.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>suv.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_carkit/</RemoteDir>
   <RemoteName>suv.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -486,8 +936,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_carkit/suvLuxury.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_carkit\suvLuxury.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>suvLuxury.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>suvLuxury.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>suvLuxury.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>suvLuxury.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>suvLuxury.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>suvLuxury.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_carkit/</RemoteDir>
   <RemoteName>suvLuxury.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -503,8 +983,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_carkit/taxi.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_carkit\taxi.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>taxi.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>taxi.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>taxi.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>taxi.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>taxi.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>taxi.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_carkit/</RemoteDir>
   <RemoteName>taxi.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -520,8 +1030,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_carkit/tractor.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_carkit\tractor.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>tractor.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>tractor.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>tractor.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>tractor.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>tractor.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>tractor.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_carkit/</RemoteDir>
   <RemoteName>tractor.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -537,8 +1077,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_carkit/tractorPolice.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_carkit\tractorPolice.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>tractorPolice.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>tractorPolice.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>tractorPolice.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>tractorPolice.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>tractorPolice.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>tractorPolice.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_carkit/</RemoteDir>
   <RemoteName>tractorPolice.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -554,8 +1124,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_carkit/tractorShovel.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_carkit\tractorShovel.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>tractorShovel.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>tractorShovel.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>tractorShovel.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>tractorShovel.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>tractorShovel.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>tractorShovel.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_carkit/</RemoteDir>
   <RemoteName>tractorShovel.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -571,8 +1171,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_carkit/truck.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_carkit\truck.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>truck.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>truck.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>truck.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>truck.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>truck.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>truck.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_carkit/</RemoteDir>
   <RemoteName>truck.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -588,8 +1218,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_carkit/truckFlat.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_carkit\truckFlat.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>truckFlat.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>truckFlat.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>truckFlat.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>truckFlat.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>truckFlat.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>truckFlat.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_carkit/</RemoteDir>
   <RemoteName>truckFlat.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -605,8 +1265,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_carkit/van.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_carkit\van.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>van.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>van.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>van.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>van.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>van.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>van.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_carkit/</RemoteDir>
   <RemoteName>van.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -622,8 +1312,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_carkit/wheelDark.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_carkit\wheelDark.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>wheelDark.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>wheelDark.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>wheelDark.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>wheelDark.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>wheelDark.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>wheelDark.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_carkit/</RemoteDir>
   <RemoteName>wheelDark.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -639,8 +1359,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_carkit/wheelDefault.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_carkit\wheelDefault.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>wheelDefault.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>wheelDefault.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>wheelDefault.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>wheelDefault.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>wheelDefault.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>wheelDefault.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_carkit/</RemoteDir>
   <RemoteName>wheelDefault.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -656,8 +1406,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_carkit/wheelRacing.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_carkit\wheelRacing.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>wheelRacing.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>wheelRacing.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>wheelRacing.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>wheelRacing.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>wheelRacing.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>wheelRacing.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_carkit/</RemoteDir>
   <RemoteName>wheelRacing.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -673,8 +1453,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_carkit/wheelTractorBack.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_carkit\wheelTractorBack.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>wheelTractorBack.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>wheelTractorBack.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>wheelTractorBack.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>wheelTractorBack.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>wheelTractorBack.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>wheelTractorBack.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_carkit/</RemoteDir>
   <RemoteName>wheelTractorBack.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -690,8 +1500,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_carkit/wheelTractorDarkBack.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_carkit\wheelTractorDarkBack.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>wheelTractorDarkBack.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>wheelTractorDarkBack.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>wheelTractorDarkBack.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>wheelTractorDarkBack.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>wheelTractorDarkBack.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>wheelTractorDarkBack.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_carkit/</RemoteDir>
   <RemoteName>wheelTractorDarkBack.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -707,8 +1547,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_carkit/wheelTractorDarkFront.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_carkit\wheelTractorDarkFront.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>wheelTractorDarkFront.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>wheelTractorDarkFront.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>wheelTractorDarkFront.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>wheelTractorDarkFront.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>wheelTractorDarkFront.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>wheelTractorDarkFront.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_carkit/</RemoteDir>
   <RemoteName>wheelTractorDarkFront.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -724,8 +1594,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_carkit/wheelTractorFront.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_carkit\wheelTractorFront.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>wheelTractorFront.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>wheelTractorFront.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>wheelTractorFront.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>wheelTractorFront.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>wheelTractorFront.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>wheelTractorFront.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_carkit/</RemoteDir>
   <RemoteName>wheelTractorFront.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -741,8 +1641,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_carkit/wheelTruck.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_carkit\wheelTruck.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>wheelTruck.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_carkit/</RemoteDir>
+  <RemoteName>wheelTruck.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>wheelTruck.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>wheelTruck.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>wheelTruck.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_carkit/</RemoteDir>
+  <RemoteName>wheelTruck.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_carkit/</RemoteDir>
   <RemoteName>wheelTruck.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -758,8 +1688,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/battlement.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\battlement.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>battlement.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>battlement.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>battlement.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>battlement.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>battlement.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>battlement.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>battlement.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -775,8 +1735,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/battlement_cornerInner.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\battlement_cornerInner.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>battlement_cornerInner.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>battlement_cornerInner.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>battlement_cornerInner.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>battlement_cornerInner.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>battlement_cornerInner.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>battlement_cornerInner.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>battlement_cornerInner.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -792,8 +1782,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/battlement_cornerOuter.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\battlement_cornerOuter.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>battlement_cornerOuter.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>battlement_cornerOuter.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>battlement_cornerOuter.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>battlement_cornerOuter.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>battlement_cornerOuter.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>battlement_cornerOuter.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>battlement_cornerOuter.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -809,8 +1829,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/battlement_half.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\battlement_half.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>battlement_half.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>battlement_half.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>battlement_half.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>battlement_half.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>battlement_half.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>battlement_half.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>battlement_half.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -826,8 +1876,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/column.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\column.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>column.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>column.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>column.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>column.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>column.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>column.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>column.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -843,8 +1923,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/columnPaint.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\columnPaint.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>columnPaint.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>columnPaint.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>columnPaint.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>columnPaint.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>columnPaint.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>columnPaint.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>columnPaint.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -860,8 +1970,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/columnPaint_damaged.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\columnPaint_damaged.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>columnPaint_damaged.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>columnPaint_damaged.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>columnPaint_damaged.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>columnPaint_damaged.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>columnPaint_damaged.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>columnPaint_damaged.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>columnPaint_damaged.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -877,8 +2017,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/column_damaged.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\column_damaged.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>column_damaged.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>column_damaged.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>column_damaged.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>column_damaged.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>column_damaged.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>column_damaged.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>column_damaged.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -894,8 +2064,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/detail_barrel.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\detail_barrel.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>detail_barrel.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>detail_barrel.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>detail_barrel.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>detail_barrel.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>detail_barrel.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>detail_barrel.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>detail_barrel.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -911,8 +2111,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/detail_crate.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\detail_crate.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>detail_crate.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>detail_crate.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>detail_crate.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>detail_crate.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>detail_crate.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>detail_crate.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>detail_crate.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -928,8 +2158,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/detail_crateSmall.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\detail_crateSmall.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>detail_crateSmall.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>detail_crateSmall.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>detail_crateSmall.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>detail_crateSmall.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>detail_crateSmall.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>detail_crateSmall.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>detail_crateSmall.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -945,8 +2205,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/fence.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\fence.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>fence.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>fence.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>fence.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>fence.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>fence.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>fence.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>fence.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -962,8 +2252,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/floor.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\floor.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>floor.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>floor.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>floor.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>floor.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>floor.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>floor.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>floor.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -979,8 +2299,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/floor_flat.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\floor_flat.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>floor_flat.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>floor_flat.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>floor_flat.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>floor_flat.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>floor_flat.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>floor_flat.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>floor_flat.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -996,8 +2346,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/floor_stairs.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\floor_stairs.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>floor_stairs.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>floor_stairs.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>floor_stairs.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>floor_stairs.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>floor_stairs.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>floor_stairs.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>floor_stairs.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1013,8 +2393,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/floor_stairsCornerInner.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\floor_stairsCornerInner.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>floor_stairsCornerInner.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>floor_stairsCornerInner.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>floor_stairsCornerInner.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>floor_stairsCornerInner.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>floor_stairsCornerInner.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>floor_stairsCornerInner.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>floor_stairsCornerInner.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1030,8 +2440,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/floor_stairsCornerOuter.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\floor_stairsCornerOuter.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>floor_stairsCornerOuter.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>floor_stairsCornerOuter.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>floor_stairsCornerOuter.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>floor_stairsCornerOuter.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>floor_stairsCornerOuter.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>floor_stairsCornerOuter.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>floor_stairsCornerOuter.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1047,8 +2487,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/floor_steps.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\floor_steps.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>floor_steps.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>floor_steps.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>floor_steps.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>floor_steps.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>floor_steps.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>floor_steps.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>floor_steps.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1064,8 +2534,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/floor_stepsCornerInner.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\floor_stepsCornerInner.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>floor_stepsCornerInner.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>floor_stepsCornerInner.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>floor_stepsCornerInner.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>floor_stepsCornerInner.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>floor_stepsCornerInner.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>floor_stepsCornerInner.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>floor_stepsCornerInner.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1081,8 +2581,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/floor_stepsCornerOuter.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\floor_stepsCornerOuter.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>floor_stepsCornerOuter.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>floor_stepsCornerOuter.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>floor_stepsCornerOuter.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>floor_stepsCornerOuter.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>floor_stepsCornerOuter.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>floor_stepsCornerOuter.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>floor_stepsCornerOuter.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1098,8 +2628,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/overhang.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\overhang.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>overhang.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>overhang.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>overhang.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>overhang.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>overhang.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>overhang.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>overhang.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1115,8 +2675,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/overhang_fence.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\overhang_fence.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>overhang_fence.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>overhang_fence.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>overhang_fence.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>overhang_fence.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>overhang_fence.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>overhang_fence.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>overhang_fence.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1132,8 +2722,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/overhang_round.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\overhang_round.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>overhang_round.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>overhang_round.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>overhang_round.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>overhang_round.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>overhang_round.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>overhang_round.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>overhang_round.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1149,8 +2769,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/roof.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\roof.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>roof.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>roof.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>roof.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>roof.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>roof.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>roof.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>roof.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1166,8 +2816,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/roof_corner.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\roof_corner.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>roof_corner.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>roof_corner.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>roof_corner.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>roof_corner.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>roof_corner.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>roof_corner.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>roof_corner.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1183,8 +2863,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/roof_edge.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\roof_edge.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>roof_edge.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>roof_edge.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>roof_edge.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>roof_edge.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>roof_edge.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>roof_edge.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>roof_edge.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1200,8 +2910,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/structure.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\structure.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>structure.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>structure.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>structure.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>structure.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>structure.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>structure.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>structure.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1217,8 +2957,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/structure_poles.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\structure_poles.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>structure_poles.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>structure_poles.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>structure_poles.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>structure_poles.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>structure_poles.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>structure_poles.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>structure_poles.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1234,8 +3004,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/structure_wall.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\structure_wall.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>structure_wall.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>structure_wall.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>structure_wall.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>structure_wall.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>structure_wall.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>structure_wall.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>structure_wall.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1251,8 +3051,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/tower.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\tower.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>tower.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>tower.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>tower.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>tower.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>tower.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>tower.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>tower.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1268,8 +3098,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/towerPaint.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\towerPaint.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>towerPaint.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>towerPaint.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>towerPaint.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>towerPaint.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>towerPaint.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>towerPaint.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>towerPaint.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1285,8 +3145,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/towerPaint_base.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\towerPaint_base.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>towerPaint_base.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>towerPaint_base.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>towerPaint_base.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>towerPaint_base.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>towerPaint_base.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>towerPaint_base.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>towerPaint_base.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1302,8 +3192,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/tower_base.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\tower_base.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>tower_base.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>tower_base.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>tower_base.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>tower_base.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>tower_base.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>tower_base.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>tower_base.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1319,8 +3239,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/tower_edge.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\tower_edge.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>tower_edge.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>tower_edge.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>tower_edge.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>tower_edge.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>tower_edge.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>tower_edge.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>tower_edge.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1336,8 +3286,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/tower_top.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\tower_top.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>tower_top.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>tower_top.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>tower_top.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>tower_top.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>tower_top.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>tower_top.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>tower_top.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1353,8 +3333,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/wall.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\wall.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wall.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wall.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wall.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wall.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wall.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wall.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>wall.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1370,8 +3380,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/wallFortified.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\wallFortified.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallFortified.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallFortified.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallFortified.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallFortified.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallFortified.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallFortified.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>wallFortified.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1387,8 +3427,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/wallFortifiedPaint.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\wallFortifiedPaint.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallFortifiedPaint.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallFortifiedPaint.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallFortifiedPaint.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallFortifiedPaint.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallFortifiedPaint.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallFortifiedPaint.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>wallFortifiedPaint.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1404,8 +3474,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/wallFortifiedPaint_gate.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\wallFortifiedPaint_gate.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallFortifiedPaint_gate.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallFortifiedPaint_gate.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallFortifiedPaint_gate.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallFortifiedPaint_gate.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallFortifiedPaint_gate.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallFortifiedPaint_gate.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>wallFortifiedPaint_gate.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1421,8 +3521,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/wallFortifiedPaint_half.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\wallFortifiedPaint_half.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallFortifiedPaint_half.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallFortifiedPaint_half.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallFortifiedPaint_half.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallFortifiedPaint_half.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallFortifiedPaint_half.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallFortifiedPaint_half.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>wallFortifiedPaint_half.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1438,8 +3568,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/wallFortified_gate.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\wallFortified_gate.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallFortified_gate.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallFortified_gate.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallFortified_gate.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallFortified_gate.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallFortified_gate.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallFortified_gate.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>wallFortified_gate.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1455,8 +3615,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/wallFortified_gateHalf.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\wallFortified_gateHalf.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallFortified_gateHalf.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallFortified_gateHalf.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallFortified_gateHalf.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallFortified_gateHalf.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallFortified_gateHalf.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallFortified_gateHalf.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>wallFortified_gateHalf.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1472,8 +3662,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/wallFortified_half.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\wallFortified_half.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallFortified_half.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallFortified_half.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallFortified_half.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallFortified_half.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallFortified_half.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallFortified_half.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>wallFortified_half.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1489,8 +3709,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/wallPaint.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\wallPaint.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallPaint.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallPaint.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallPaint.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallPaint.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallPaint.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallPaint.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>wallPaint.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1506,8 +3756,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/wallPaint_detail.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\wallPaint_detail.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallPaint_detail.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallPaint_detail.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallPaint_detail.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallPaint_detail.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallPaint_detail.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallPaint_detail.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>wallPaint_detail.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1523,8 +3803,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/wallPaint_flat.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\wallPaint_flat.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallPaint_flat.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallPaint_flat.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallPaint_flat.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallPaint_flat.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallPaint_flat.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallPaint_flat.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>wallPaint_flat.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1540,8 +3850,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/wallPaint_gate.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\wallPaint_gate.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallPaint_gate.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallPaint_gate.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallPaint_gate.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallPaint_gate.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallPaint_gate.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallPaint_gate.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>wallPaint_gate.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1557,8 +3897,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/wallPaint_half.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\wallPaint_half.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallPaint_half.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallPaint_half.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallPaint_half.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallPaint_half.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallPaint_half.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wallPaint_half.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>wallPaint_half.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1574,8 +3944,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/wall_detail.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\wall_detail.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wall_detail.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wall_detail.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wall_detail.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wall_detail.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wall_detail.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wall_detail.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>wall_detail.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1591,8 +3991,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/wall_flat.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\wall_flat.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wall_flat.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wall_flat.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wall_flat.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wall_flat.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wall_flat.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wall_flat.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>wall_flat.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1608,8 +4038,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/wall_flatGate.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\wall_flatGate.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wall_flatGate.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wall_flatGate.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wall_flatGate.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wall_flatGate.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wall_flatGate.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wall_flatGate.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>wall_flatGate.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1625,8 +4085,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/wall_gate.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\wall_gate.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wall_gate.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wall_gate.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wall_gate.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wall_gate.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wall_gate.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wall_gate.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>wall_gate.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1642,8 +4132,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/wall_gateHalf.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\wall_gateHalf.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wall_gateHalf.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wall_gateHalf.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wall_gateHalf.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wall_gateHalf.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wall_gateHalf.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wall_gateHalf.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>wall_gateHalf.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1659,8 +4179,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/wall_half.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\wall_half.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wall_half.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wall_half.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wall_half.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wall_half.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wall_half.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wall_half.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>wall_half.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1676,8 +4226,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/wall_low.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\kenney_retro_medieval\wall_low.glb" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wall_low.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wall_low.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wall_low.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wall_low.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wall_low.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
+  <RemoteName>wall_low.glb</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
   <RemoteName>wall_low.glb</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1693,8 +4273,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sunny_land.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sunny_land.png" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>sunny_land.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>sunny_land.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>sunny_land.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>sunny_land.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>sunny_land.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>sunny_land.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>sunny_land.png</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1710,8 +4320,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\test_2d.castle-user-interface" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\test_2d.castle-user-interface" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>test_2d.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>test_2d.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>test_2d.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>test_2d.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>test_2d.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>test_2d.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>test_2d.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1727,8 +4367,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\test_3d.castle-user-interface" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\test_3d.castle-user-interface" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>test_3d.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>test_3d.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>test_3d.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>test_3d.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>test_3d.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSX64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>test_3d.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>test_3d.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
@@ -1744,1538 +4414,38 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\test_ui.castle-user-interface" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\test_ui.castle-user-interface" Class="File">
+ <Platform Name="Android">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>test_ui.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Android64">
+  <RemoteDir>./assets/</RemoteDir>
+  <RemoteName>test_ui.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSDevice64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>test_ui.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="iOSSimARM64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>test_ui.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
  <Platform Name="Linux64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>test_ui.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
- <Platform Name="Win32">
+ <Platform Name="OSX64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>test_ui.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>test_ui.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\AUTHORS.txt" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>AUTHORS.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>AUTHORS.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>AUTHORS.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\CastleSettings.xml" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>CastleSettings.xml</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>CastleSettings.xml</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>CastleSettings.xml</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\README.txt" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_carkit/ambulance.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>ambulance.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>ambulance.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>ambulance.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_carkit/delivery.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>delivery.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>delivery.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>delivery.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_carkit/deliveryFlat.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>deliveryFlat.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>deliveryFlat.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>deliveryFlat.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_carkit/firetruck.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>firetruck.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>firetruck.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>firetruck.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_carkit/garbageTruck.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>garbageTruck.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>garbageTruck.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>garbageTruck.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_carkit/hatchbackSports.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>hatchbackSports.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>hatchbackSports.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>hatchbackSports.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_carkit/police.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>police.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>police.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>police.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_carkit/race.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>race.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>race.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>race.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_carkit/raceFuture.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>raceFuture.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>raceFuture.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>raceFuture.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_carkit/sedan.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>sedan.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>sedan.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>sedan.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_carkit/sedanSports.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>sedanSports.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>sedanSports.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>sedanSports.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_carkit/suv.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>suv.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>suv.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>suv.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_carkit/suvLuxury.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>suvLuxury.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>suvLuxury.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>suvLuxury.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_carkit/taxi.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>taxi.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>taxi.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>taxi.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_carkit/tractor.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>tractor.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>tractor.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>tractor.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_carkit/tractorPolice.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>tractorPolice.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>tractorPolice.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>tractorPolice.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_carkit/tractorShovel.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>tractorShovel.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>tractorShovel.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>tractorShovel.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_carkit/truck.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>truck.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>truck.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>truck.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_carkit/truckFlat.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>truckFlat.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>truckFlat.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>truckFlat.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_carkit/van.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>van.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>van.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>van.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_carkit/wheelDark.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>wheelDark.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>wheelDark.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>wheelDark.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_carkit/wheelDefault.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>wheelDefault.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>wheelDefault.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>wheelDefault.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_carkit/wheelRacing.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>wheelRacing.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>wheelRacing.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>wheelRacing.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_carkit/wheelTractorBack.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>wheelTractorBack.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>wheelTractorBack.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>wheelTractorBack.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_carkit/wheelTractorDarkBack.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>wheelTractorDarkBack.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>wheelTractorDarkBack.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>wheelTractorDarkBack.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_carkit/wheelTractorDarkFront.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>wheelTractorDarkFront.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>wheelTractorDarkFront.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>wheelTractorDarkFront.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_carkit/wheelTractorFront.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>wheelTractorFront.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>wheelTractorFront.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>wheelTractorFront.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_carkit/wheelTruck.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>wheelTruck.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>wheelTruck.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_carkit/</RemoteDir>
-  <RemoteName>wheelTruck.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/battlement.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>battlement.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>battlement.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>battlement.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/battlement_cornerInner.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>battlement_cornerInner.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>battlement_cornerInner.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>battlement_cornerInner.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/battlement_cornerOuter.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>battlement_cornerOuter.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>battlement_cornerOuter.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>battlement_cornerOuter.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/battlement_half.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>battlement_half.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>battlement_half.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>battlement_half.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/column.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>column.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>column.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>column.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/columnPaint.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>columnPaint.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>columnPaint.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>columnPaint.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/columnPaint_damaged.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>columnPaint_damaged.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>columnPaint_damaged.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>columnPaint_damaged.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/column_damaged.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>column_damaged.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>column_damaged.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>column_damaged.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/detail_barrel.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>detail_barrel.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>detail_barrel.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>detail_barrel.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/detail_crate.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>detail_crate.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>detail_crate.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>detail_crate.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/detail_crateSmall.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>detail_crateSmall.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>detail_crateSmall.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>detail_crateSmall.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/fence.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>fence.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>fence.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>fence.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/floor.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>floor.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>floor.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>floor.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/floor_flat.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>floor_flat.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>floor_flat.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>floor_flat.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/floor_stairs.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>floor_stairs.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>floor_stairs.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>floor_stairs.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/floor_stairsCornerInner.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>floor_stairsCornerInner.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>floor_stairsCornerInner.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>floor_stairsCornerInner.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/floor_stairsCornerOuter.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>floor_stairsCornerOuter.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>floor_stairsCornerOuter.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>floor_stairsCornerOuter.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/floor_steps.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>floor_steps.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>floor_steps.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>floor_steps.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/floor_stepsCornerInner.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>floor_stepsCornerInner.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>floor_stepsCornerInner.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>floor_stepsCornerInner.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/floor_stepsCornerOuter.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>floor_stepsCornerOuter.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>floor_stepsCornerOuter.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>floor_stepsCornerOuter.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/overhang.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>overhang.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>overhang.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>overhang.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/overhang_fence.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>overhang_fence.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>overhang_fence.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>overhang_fence.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/overhang_round.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>overhang_round.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>overhang_round.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>overhang_round.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/roof.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>roof.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>roof.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>roof.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/roof_corner.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>roof_corner.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>roof_corner.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>roof_corner.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/roof_edge.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>roof_edge.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>roof_edge.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>roof_edge.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/structure.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>structure.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>structure.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>structure.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/structure_poles.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>structure_poles.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>structure_poles.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>structure_poles.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/structure_wall.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>structure_wall.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>structure_wall.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>structure_wall.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/tower.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>tower.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>tower.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>tower.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/towerPaint.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>towerPaint.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>towerPaint.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>towerPaint.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/towerPaint_base.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>towerPaint_base.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>towerPaint_base.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>towerPaint_base.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/tower_base.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>tower_base.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>tower_base.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>tower_base.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/tower_edge.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>tower_edge.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>tower_edge.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>tower_edge.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/tower_top.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>tower_top.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>tower_top.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>tower_top.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/wall.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wall.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wall.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wall.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/wallFortified.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wallFortified.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wallFortified.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wallFortified.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/wallFortifiedPaint.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wallFortifiedPaint.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wallFortifiedPaint.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wallFortifiedPaint.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/wallFortifiedPaint_gate.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wallFortifiedPaint_gate.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wallFortifiedPaint_gate.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wallFortifiedPaint_gate.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/wallFortifiedPaint_half.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wallFortifiedPaint_half.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wallFortifiedPaint_half.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wallFortifiedPaint_half.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/wallFortified_gate.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wallFortified_gate.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wallFortified_gate.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wallFortified_gate.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/wallFortified_gateHalf.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wallFortified_gateHalf.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wallFortified_gateHalf.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wallFortified_gateHalf.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/wallFortified_half.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wallFortified_half.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wallFortified_half.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wallFortified_half.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/wallPaint.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wallPaint.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wallPaint.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wallPaint.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/wallPaint_detail.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wallPaint_detail.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wallPaint_detail.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wallPaint_detail.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/wallPaint_flat.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wallPaint_flat.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wallPaint_flat.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wallPaint_flat.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/wallPaint_gate.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wallPaint_gate.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wallPaint_gate.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wallPaint_gate.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/wallPaint_half.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wallPaint_half.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wallPaint_half.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wallPaint_half.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/wall_detail.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wall_detail.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wall_detail.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wall_detail.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/wall_flat.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wall_flat.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wall_flat.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wall_flat.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/wall_flatGate.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wall_flatGate.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wall_flatGate.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wall_flatGate.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/wall_gate.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wall_gate.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wall_gate.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wall_gate.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/wall_gateHalf.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wall_gateHalf.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wall_gateHalf.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wall_gateHalf.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/wall_half.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wall_half.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wall_half.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wall_half.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\kenney_retro_medieval/wall_low.glb" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wall_low.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wall_low.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/kenney_retro_medieval/</RemoteDir>
-  <RemoteName>wall_low.glb</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\sunny_land.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>sunny_land.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>sunny_land.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>sunny_land.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\test_2d.castle-user-interface" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>test_2d.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>test_2d.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>test_2d.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\test_3d.castle-user-interface" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>test_3d.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>test_3d.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>test_3d.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\test_ui.castle-user-interface" Configuration="Release" Class="File">
- <Platform Name="Linux64">
+ <Platform Name="OSXARM64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>test_ui.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
