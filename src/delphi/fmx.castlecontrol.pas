@@ -517,33 +517,22 @@ begin
     ProcessTasks;
   end;
 
-  { TODO (but it seems FMXLinux issue -- we should report):
-    On FMXLinux, not using "Application.Run"
-    means that FMXLinux never frees the Application singleton.
+  { Free the forms (and other components owned by Application) at exit.
 
-    Consequently, things owned by Application are never freed,
-    TForm.OnDestroy callbacks are not run,
-    and component destructors like TCastleControl.Destroy are not run.
-    Things just leak at program exit.
+    Standard "Application.Run" does this by registering (using AddExitProc)
+    an internal FMX.Forms routine DoneApplication, on all platforms.
+    Since we don't call "Application.Run" here, this doesn't happen,
+    and without the code below things owned by Application would never be freed:
+    TForm.OnDestroy callbacks would not run,
+    component destructors like TCastleControl.Destroy would not run.
 
-    It seems FMXLinux "TPlatformLinux.Destroy"
-    should just call "FreeAndNil(Application)". This is what Delphi built-in
-    "TPlatformWin.Destroy" and "TPlatformCocoa.Destroy" are doing.
-    It also makes sense since "TPlatformLinux.Create" creates the Application
-    singleton.
-
-    In fact, I haven't found *how is Application freed when
-    we call Application.Run*. FMXLinux never seems to free Application.
-    Unlike Windows and macOS FMX platforms.
-    But logging shows that forms *are* freed at application exit
-    if we run Application.Run, but not otherwise.
-
-    This is reproducible in FMX almost-blank application, without any CGE,
-    just remove Application.Run but call Application.RealCreateForms .
-    You will notice that form OnCreate callback executes,
-    but form OnDestroy callback never happens. }
-
-  FreeAndNil(Application);
+    We cannot call DoneApplication (it's internal in FMX.Forms),
+    so we do the same thing as DoneApplication does. }
+  if Screen <> nil then
+    Screen.ActiveForm := nil;
+  Application.DestroyComponents;
+  if TThread.CurrentThread.ThreadID = MainThreadID then
+    CheckSynchronize;
   {$endif}
 end;
 
