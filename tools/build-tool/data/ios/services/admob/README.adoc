@@ -1,0 +1,38 @@
+## admob
+
+This service enables the AdMob banner, interstitial and rewarded advertisements on iOS, and gathers the user consent (GDPR) using Google's User Messaging Platform. Use https://castle-engine.io/apidoc/html/CastleAds.TAds.html[TAds] class from the https://castle-engine.io/apidoc/html/CastleAds.html[CastleAds] unit, with `AdNetwork` set to `anAdMob`. The same Pascal code works on Android and iOS.
+
+Declare the service in `CastleEngineManifest.xml`, with your AdMob application id for iOS (it is different from the Android one):
+
+[source,xml]
+----
+<ios>
+  <services>
+    <service name="admob">
+      <parameter key="app_id" value="ca-app-pub-xxxxxxxxxxxxxxxx~yyyyyyyyyy" />
+    </service>
+  </services>
+</ios>
+----
+
+To just test, use Google's test application id `ca-app-pub-3940256099942544~1458002511`.
+
+Note that the ad unit ids (passed to `TAds.InitializeAdMob` or `TAds.InitializeAdMobWithConsent`) are also different on iOS. Google's test ad units for iOS are listed on https://developers.google.com/admob/ios/test-ads .
+
+### Requires
+
+* https://cocoapods.org/[CocoaPods], the service uses `Google-Mobile-Ads-SDK` and `GoogleUserMessagingPlatform` pods.
+
+* iOS 13 or newer, required by the Google Mobile Ads SDK 12.
+
+### User consent (GDPR)
+
+Works the same as on Android: initialize with `TAds.InitializeAdMobWithConsent`, the consent form is shown when required, and ads are requested only once the answer allows it. When `TAds.PrivacyOptionsRequired` is `true`, show an entry point (like a button in your settings) calling `TAds.ShowConsentPrivacyOptions`.
+
+Create the consent messages in your AdMob account first, see https://support.google.com/admob/answer/10113005[Add the Google User Messaging Platform SDK to your app].
+
+### Not done
+
+* App Tracking Transparency (ATT) is not requested. Ads work without it, but are not personalized using the IDFA. To request it, the application would need `NSUserTrackingUsageDescription` in Info.plist and a call to `ATTrackingManager`.
+
+* `SKAdNetworkItems` in Info.plist lists only Google's own identifier. Google recommends adding the identifiers of other buyers, see https://developers.google.com/admob/ios/privacy/strategies#skadnetwork .
