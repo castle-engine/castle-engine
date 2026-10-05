@@ -37,10 +37,16 @@ type
     Push notifications (sent from your server) are a different mechanism,
     not implemented by this unit.
 
-    Using this requires the @code(local_notifications) service on Android,
-    see https://castle-engine.io/android_services .
+    Using this requires the @code(local_notifications) service,
+    on Android (see https://castle-engine.io/android_services )
+    and on iOS (see https://castle-engine.io/ios_services ).
     On other platforms, the methods here do nothing (and this is deliberately
-    not an error: a game can schedule notifications unconditionally). }
+    not an error: a game can schedule notifications unconditionally).
+
+    The behavior is the same on both platforms, with small differences:
+    on Android the notification may be a few minutes late,
+    iOS keeps at most 64 pending notifications,
+    and only Android allows a custom status bar icon. }
   TLocalNotifications = class(TComponent)
   public
     { Show a notification with given Title and Text after DelaySeconds.

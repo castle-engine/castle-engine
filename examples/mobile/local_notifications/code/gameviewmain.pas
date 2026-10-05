@@ -94,8 +94,8 @@ begin
   PlantedTime := UserConfig.GetInt64('garden/planted_time', 0);
   UpdateGarden;
 
-  {$if not defined(ANDROID)}
-  Status('Notifications are shown only on Android now. On this platform, the buttons do nothing.');
+  {$if not (defined(ANDROID) or defined(CASTLE_IOS))}
+  Status('Notifications are shown only on Android and iOS. On this platform, the buttons do nothing.');
   {$endif}
 end;
 

@@ -6,7 +6,7 @@ Show a notification at a chosen time, even when the application is no longer run
 
 - The _Garden_ is the use-case notifications are for: something happens in your game while the player is not looking. Plant a seed and the flower blooms after a minute -- and the player is notified, even if the application was closed. Reopen the application to see the flower. _Dig it up_ cancels the notification.
 
-Notifications are shown on Android now (using the `local_notifications` service, declared in `CastleEngineManifest.xml`). On other platforms, `TLocalNotifications` methods do nothing, so the code doesn't need any `{$ifdef}`.
+Notifications are shown on Android and iOS (using the `local_notifications` service, declared for both in `CastleEngineManifest.xml`). On other platforms, `TLocalNotifications` methods do nothing, so the code doesn't need any `{$ifdef}`.
 
 The project also shows how to provide your own status bar icon: `android/notification_icon.png`, white on a transparent background, set as the `small_icon` service parameter.
 
