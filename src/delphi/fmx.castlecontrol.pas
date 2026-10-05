@@ -489,20 +489,21 @@ end;
 
 class procedure TCastleControl.ApplicationRun;
 begin
-  { We only use Application.Run if the result can reliably execute our
-    "update" messages.
+  { We use Application.Run only if FMX can reliably execute our "update" logic
+    (DoUpdateEverything) by timer, when USE_TIMER.
 
-    - This is the case when USE_TIMER (right now with Delphi/Linux).
-      See src/window/castlewindow_form.inc comments.
-
-    - On Delphi/Android and Delphi/iOS we also use Application.Run,
-      even though they have no USE_TIMER.
-      See TCastleWindow.OpenAndRun in src/window/castlewindow_form.inc
-      for details what Application.Run does.
+    Note: With Delphi/Android and Delphi/iOS we simply have to
+    use Application.Run, even if they would not define USE_TIMER
+    (but they do). See TCastleWindow.OpenAndRun in
+    src/window/castlewindow_form.inc for details what Application.Run does
+    on these platforms.
   }
-  {$if defined(USE_TIMER) or defined(ANDROID) or defined(IOS)}
+  {$if defined(USE_TIMER)}
   Application.Run;
   {$else}
+  { In practice, the code below is only for Delphi/Linux, as only then
+    USE_TIMER is not defined. }
+
   Application.RealCreateForms;
 
   { On Linux, it's especially important to check Terminating (not just Terminated)
