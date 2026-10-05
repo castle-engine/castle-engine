@@ -714,7 +714,7 @@
   {$define CASTLE_PROCESS_AVAILABLE}
 {$endif}
 
-{ Encoding ------------------------------------------------------------------- }
+{ String encoding ------------------------------------------------------------ }
 
 { Check symbols
   CASTLE_ANSISTRING_FORCE_UTF8 and
