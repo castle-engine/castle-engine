@@ -369,12 +369,15 @@ end;
   require initialization / finalization. Otherwise target memory data
   will not be properly referenced.
 
+  Note: It's important to declare sizes and counts parameters here as SizeUInt,
+  not SizeInt. See AssignToInterleaved for more details.
+
   @raises(EAssignInterleavedRangeError When Indexes.Count < CopyCount,
     or some index points outside of array.) }
 procedure AssignToInterleavedIndexed(
   const AttributeName: String;
-  Target: Pointer; const TargetItemSize, CopyCount: SizeInt;
-  Source: Pointer; const SourceItemSize, SourceCount: SizeInt;
+  Target: Pointer; const TargetItemSize, CopyCount: SizeUInt;
+  Source: Pointer; const SourceItemSize, SourceCount: SizeUInt;
   const Indexes: TUInt32List);
 var
   I: Integer;
@@ -387,39 +390,41 @@ begin
       CopyCount
     ]);
 
-  for I := 0 to CopyCount - 1 do
-  begin
-    Index := Indexes.L[I];
-    if Index >= SourceCount then
-      raise EAssignInterleavedRangeError.CreateFmt('Invalid index: %d, but we have %d items in %s', [
-        Index,
-        SourceCount,
-        AttributeName
-      ]);
+  if CopyCount <> 0 then
+    for I := 0 to CopyCount - 1 do
+    begin
+      Index := Indexes.L[I];
+      if Index >= SourceCount then
+        raise EAssignInterleavedRangeError.CreateFmt('Invalid index: %d, but we have %d items in %s', [
+          Index,
+          SourceCount,
+          AttributeName
+        ]);
 
-    { Beware to not make multiplication below (* ItemSize) using 64-bit ints.
-      This would cause noticeable slowdown when using AssignToInterleavedIndexed
-      for ArraysGenerator, that in turn affects dynamic scenes
-      and especially dynamic shading like radiance_transfer. }
-    Move(Pointer(PtrUInt(Source) + PtrUInt(Index) * PtrUInt(SourceItemSize))^,
-      Target^, SourceItemSize);
-    PtrUInt(Target) := PtrUInt(Target) + TargetItemSize;
-  end;
+      { Beware to not make multiplication below (* ItemSize) using 64-bit ints.
+        This would cause noticeable slowdown when using AssignToInterleavedIndexed
+        for ArraysGenerator, that in turn affects dynamic scenes
+        and especially dynamic shading like radiance_transfer. }
+      Move(Pointer(PtrUInt(Source) + PtrUInt(Index) * PtrUInt(SourceItemSize))^,
+        Target^, SourceItemSize);
+      PtrUInt(Target) := PtrUInt(Target) + TargetItemSize;
+    end;
 end;
 
 { Like AssignToInterleaved, but there is only one Source value,
   that should be copied to all destinations. }
 procedure AssignToInterleavedConstant(
-  Target: Pointer; const TargetItemSize, CopyCount: SizeInt;
-  const Source: Pointer; const SourceItemSize: SizeInt);
+  Target: Pointer; const TargetItemSize, CopyCount: SizeUInt;
+  const Source: Pointer; const SourceItemSize: SizeUInt);
 var
   I: Integer;
 begin
-  for I := 0 to CopyCount - 1 do
-  begin
-    Move(Source^, Target^, SourceItemSize);
-    PtrUInt(Target) := PtrUInt(Target) + TargetItemSize;
-  end;
+  if CopyCount <> 0 then
+    for I := 0 to CopyCount - 1 do
+    begin
+      Move(Source^, Target^, SourceItemSize);
+      PtrUInt(Target) := PtrUInt(Target) + TargetItemSize;
+    end;
 end;
 
 { classes -------------------------------------------------------------------- }
