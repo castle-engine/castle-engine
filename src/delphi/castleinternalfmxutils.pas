@@ -17,6 +17,8 @@
   This allows sharing of solutions between FMX TOpenGLControl and FMX TCastleControl. }
 unit CastleInternalFmxUtils;
 
+{$I castleconf.inc}
+
 interface
 
 uses FMX.Controls, FMX.Controls.Presentation, FMX.Types, UITypes,
@@ -37,10 +39,14 @@ type
 
     - On Windows: make sure native Windows handle is initialized when necessary,
       and pass it to TGLContextWgl.
+
     - On Linux: we have to create our own Gtk widget (since FMXLinux only ever
       creates native handle for the whole form, it seems).
       And insert it into FMX form, keeping the existing FMX drawing area too.
       And then use TGLContextEgl to connect to our own Gtk widget.
+
+    - On other controls: just rely on FMX to create / release the OpenGL context.
+      This makes sense on Delphi/Android and Delphi/iOS.
 
     Note: We could not make TCastleControl descend from TOpenGLControl on FMX
     (like we did on LCL), since the GL work of TCastleControl is partially
@@ -78,14 +84,14 @@ type
         any system-specific resources) we need.
         E.g. Gtk handle on Linux, created by Delphi/Linux.
 
-      - or when there's no need to create anything..E.g. FMX on Android just
-        uses the existing context, so we don't need to create anything more.
-        So this applies to Delphi/Android.
+      - or when there's no need to create anything..E.g. FMX on Android or iOS
+        just uses the existing context, so we don't need to create anything more.
+        So this applies to Delphi/Android and Delphi/iOS.
 
-      TODO: Delphi/iOS, Delphi/macOS: to be figured out, where they lie.
+      TODO: Delphi/macOS: to be figured out.
 
       In contrast, on platforms where FMX Presentation is available
-      (like Delphi on Windows), we use FMX Presentation features,
+      (like Delphi/Windows), we use FMX Presentation features,
       and we don't need extra notifications from this class when handle
       is created/destroyed. }
     OnHandleAfterCreateEvent: THandleEvent;
